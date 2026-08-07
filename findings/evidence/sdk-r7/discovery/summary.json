@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "release": "R7-A",
+  "automaticDecision": "PARTIAL_GO",
+  "finalDecision": "PARTIAL_GO",
+  "manual": {
+    "required": true,
+    "status": "passed",
+    "scope": "headed Chrome and Firefox Fcitx Chewing plus user-gesture plain-text clipboard",
+    "browsers": {
+      "chrome": {
+        "evidence": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/discovery/input/chrome-manual-pass.json",
+        "status": "passed",
+        "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+        "operatorInputMethod": "Fcitx5 Chewing (operator-confirmed)",
+        "commitCount": 6,
+        "compositionEndTrustValues": [
+          false
+        ],
+        "output": {
+          "bytes": 21786,
+          "sha256": "4e0911a8dbe3ca30b98c4c03b91a2e1fd0dfba42dfadb24bf12364d29affa0f6"
+        },
+        "verifiedAt": "2026-08-02T17:58:28.374Z",
+        "checks": {
+          "schema": true,
+          "browser": true,
+          "inputMethod": true,
+          "artifact": true,
+          "reportedPass": true,
+          "expectedCommits": true,
+          "revisionsMonotonic": true,
+          "trustedComposition": true,
+          "cancelZeroMutation": true,
+          "trustedNativePaste": true,
+          "clipboardWrite": true,
+          "clipboardRead": true,
+          "searches": true,
+          "output": true
+        },
+        "pass": true
+      },
+      "firefox": {
+        "evidence": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/discovery/input/firefox-manual-pass.json",
+        "status": "passed",
+        "browser": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0",
+        "operatorInputMethod": "Fcitx5 Chewing (operator-confirmed)",
+        "commitCount": 4,
+        "compositionEndTrustValues": [
+          true
+        ],
+        "output": {
+          "bytes": 22438,
+          "sha256": "746f675bec675f0ac62b7d834d9000fe21302b4bfc0fe128dc7b6af2642280d5"
+        },
+        "verifiedAt": "2026-08-02T18:15:37.072Z",
+        "checks": {
+          "schema": true,
+          "browser": true,
+          "inputMethod": true,
+          "artifact": true,
+          "reportedPass": true,
+          "expectedCommits": true,
+          "revisionsMonotonic": true,
+          "trustedComposition": true,
+          "cancelZeroMutation": true,
+          "trustedNativePaste": true,
+          "clipboardWrite": true,
+          "clipboardRead": true,
+          "searches": true,
+          "output": true
+        },
+        "pass": true
+      }
+    }
+  },
+  "checks": {
+    "preflight": true,
+    "corpus": true,
+    "chrome": true,
+    "firefox": true,
+    "manual": true
+  },
+  "browsers": {
+    "chrome": {
+      "checks": {
+        "page": true,
+        "syntheticInput": true,
+        "unicodeOdtXml": true,
+        "cancelZeroMutation": true,
+        "clipboardPlainText": true,
+        "formatSafety": true,
+        "lifecycle10": true,
+        "crashRestart3": true,
+        "processSamples": true,
+        "desktopRoundtrip": true
+      },
+      "missingUnicodeInOdtXml": [],
+      "docxClassification": "name-dependent",
+      "processSampleCount": 171,
+      "processMemory": {
+        "sampleCount": 171,
+        "firstRssBytes": 1175117824,
+        "lastRssBytes": 1069899776,
+        "peakRssBytes": 3094458368,
+        "rssDeltaBytes": -105218048,
+        "firstPssBytes": 278590464,
+        "lastPssBytes": 322694144,
+        "peakPssBytes": 2272934912,
+        "pssDeltaBytes": 44103680,
+        "peakProcessCount": 15
+      },
+      "browserMemoryMethods": [
+        "performance.measureUserAgentSpecificMemory",
+        "performance.measureUserAgentSpecificMemory"
+      ],
+      "browserMemory": [
+        {
+          "phase": "before",
+          "atMs": 18.230000004172325,
+          "bytes": 614829,
+          "method": "performance.measureUserAgentSpecificMemory"
+        },
+        {
+          "phase": "after",
+          "atMs": 31431.365000002086,
+          "bytes": 922666,
+          "method": "performance.measureUserAgentSpecificMemory"
+        }
+      ],
+      "desktopRoundtrip": {
+        "command": [
+          "/usr/bin/soffice",
+          "--headless",
+          "--nologo",
+          "--nodefault",
+          "--nofirststartwizard",
+          "--norestore",
+          "-env:UserInstallation=file:///tmp/r7-a-desktop-42un7elz/profile",
+          "--convert-to",
+          "pdf:writer_pdf_Export",
+          "--outdir",
+          "/tmp/r7-a-desktop-42un7elz",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/discovery/input/chrome-unicode-out.odt"
+        ],
+        "returnCode": 0,
+        "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/discovery/input/chrome-unicode-out.odt as a Writer document -> /tmp/r7-a-desktop-42un7elz/chrome-unicode-out.pdf using filter : writer_pdf_Export",
+        "stderr": "",
+        "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/discovery/input/chrome-unicode-out.pdf",
+        "pdfBytes": 107222,
+        "pdfSha256": "d0523b9738427858899fa094db225fbf794a8f67a283d878c711383b5475fa6c",
+        "pdfinfo": "Title:           R1 純文字中英混排測試\nSubject:         wasm_sdk_probe R1 fixture\nCreator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Mon Aug  3 22:13:57 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       107222 bytes\nOptimized:       no\nPDF version:     1.7",
+        "pass": true
+      },
+      "pass": true
+    },
+    "firefox": {
+      "checks": {
+        "page": true,
+        "syntheticInput": true,
+        "unicodeOdtXml": true,
+        "cancelZeroMutation": true,
+        "clipboardPlainText": true,
+        "formatSafety": true,
+        "lifecycle10": true,
+        "crashRestart3": true,
+        "processSamples": true,
+        "desktopRoundtrip": true
+      },
+      "missingUnicodeInOdtXml": [],
+      "docxClassification": "name-dependent",
+      "processSampleCount": 62,
+      "processMemory": {
+        "sampleCount": 62,
+        "firstRssBytes": 1059221504,
+        "lastRssBytes": 1909501952,
+        "peakRssBytes": 2513207296,
+        "rssDeltaBytes": 850280448,
+        "firstPssBytes": 503278592,
+        "lastPssBytes": 850184192,
+        "peakPssBytes": 1747727360,
+        "pssDeltaBytes": 346905600,
+        "peakProcessCount": 12
+      },
+      "browserMemoryMethods": [
+        "unavailable",
+        "unavailable"
+      ],
+      "browserMemory": [
+        {
+          "phase": "before",
+          "atMs": 76.76,
+          "bytes": null,
+          "method": "unavailable"
+        },
+        {
+          "phase": "after",
+          "atMs": 33647.86,
+          "bytes": null,
+          "method": "unavailable"
+        }
+      ],
+      "desktopRoundtrip": {
+        "command": [
+          "/usr/bin/soffice",
+          "--headless",
+          "--nologo",
+          "--nodefault",
+          "--nofirststartwizard",
+          "--norestore",
+          "-env:UserInstallation=file:///tmp/r7-a-desktop-lugt5lm7/profile",
+          "--convert-to",
+          "pdf:writer_pdf_Export",
+          "--outdir",
+          "/tmp/r7-a-desktop-lugt5lm7",
+          "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/discovery/input/firefox-unicode-out.odt"
+        ],
+        "returnCode": 0,
+        "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/discovery/input/firefox-unicode-out.odt as a Writer document -> /tmp/r7-a-desktop-lugt5lm7/firefox-unicode-out.pdf using filter : writer_pdf_Export",
+        "stderr": "",
+        "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/discovery/input/firefox-unicode-out.pdf",
+        "pdfBytes": 107088,
+        "pdfSha256": "9ce47c2b0c5b7c0fde66047564a373f1bdcc59c593fd0075714168a8de104c76",
+        "pdfinfo": "Title:           R1 純文字中英混排測試\nSubject:         wasm_sdk_probe R1 fixture\nCreator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Mon Aug  3 22:13:58 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       107088 bytes\nOptimized:       no\nPDF version:     1.7",
+        "pass": true
+      },
+      "pass": true
+    }
+  },
+  "thresholds": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/discovery/memory/thresholds.json",
+  "pass": true
+}

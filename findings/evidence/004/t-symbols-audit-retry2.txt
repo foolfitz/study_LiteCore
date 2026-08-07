@@ -1,0 +1,35 @@
+Captured: 2026-08-01 (Asia/Taipei), after retry2 and before any retry3 build
+Build: wasm-lite/build-qt6-poc
+
+== Source definitions and retry2 artifact stat ==
+
+# users)
+MAKEFLAGS += r
+.SUFFIXES:
+
+true := T
+false :=
+gb_not = $(if $(1),$(false),$(true))
+
+$(call gb_LinkTarget_get_target,$(1)) : SOVERSIONSCRIPT :=
+$(call gb_LinkTarget_get_target,$(1)) : COMPILER_TEST :=
+$(call gb_LinkTarget_get_target,$(1)) : T_SYMBOLS := $(if $(call gb_target_symbols_enabled,$(2)),$(true),$(false))
+$(call gb_LinkTarget_get_target,$(1)) : T_FORCE_COMPILE := $(if $(call gb_LinkTarget__force_compile,$(2)),$(true),$(false))
+$(call gb_LinkTarget_get_target,$(1)) : T_CC :=
+wasm-lite/build-qt6-poc/instdir/program/soffice.js | 1349015 bytes | 2026-08-01 02:16:17.671942928 +0800
+wasm-lite/build-qt6-poc/instdir/program/soffice.wasm | 194983376 bytes | 2026-08-01 02:16:17.666615949 +0800
+wasm-lite/build-qt6-poc/instdir/program/soffice.wasm.debug.wasm | 203268297 bytes | 2026-08-01 02:16:15.728642866 +0800
+wasm-lite/build-qt6-poc/instdir/program/soffice.wasm.debug.wasm.dwp | MISSING
+wasm-lite/build-qt6-poc/workdir/CObject/desktop/source/app/main.dwo | 1334 bytes | 2026-08-01 02:14:42.493937850 +0800
+
+== First local patch used by retry2 ==
+
+$(if $(filter EMSCRIPTEN,$(OS)),$(if $(filter TRUE,$(T_SYMBOLS)),$(if $(filter TRUE,$(HAVE_EXTERNAL_DWARF)),&& emdwp -e ... -o ...)))
+
+== Fact-based conclusion ==
+
+gbuild defines its true sentinel as `T`, while false is empty. For
+Executable_soffice_bin, LinkTarget.mk therefore assigns `T_SYMBOLS := T`.
+`$(filter TRUE,T)` is empty, so the first local patch omitted emdwp even though
+retry2 genuinely rebuilt main.c and relinked soffice.js. The corrected guard
+tests the established target-local boolean directly: `$(if $(T_SYMBOLS),...)`.

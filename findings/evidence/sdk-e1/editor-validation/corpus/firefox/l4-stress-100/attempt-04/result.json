@@ -1,0 +1,2842 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-C-editor-validation",
+  "browser": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+  "crossOriginIsolated": true,
+  "scenario": "corpus",
+  "fixture": "l4-stress-100",
+  "repetition": 1,
+  "manual": false,
+  "artifact": {
+    "profile": "e1-editor-v1",
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-v1",
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "loader": "./probe.js",
+    "wasm": "./probe.wasm",
+    "editorContract": {
+      "version": 1,
+      "abiVersion": 1,
+      "actions": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic",
+        "set-underline",
+        "set-strikethrough"
+      ],
+      "textCommit": "document-sdk-insert-text",
+      "undo": "document-sdk-undo",
+      "state": "typed-editor-state-v1",
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "boundaryRejectionRequiresFreshWorker": true,
+      "automaticRetry": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "diagnosticOperationsExposed": false,
+      "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+      "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+      "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761"
+    }
+  },
+  "operations": [
+    {
+      "name": "corpus-insert",
+      "status": "passed",
+      "beforeRevision": 0,
+      "revision": 1,
+      "result": {
+        "method": "paste",
+        "revision": 1
+      }
+    },
+    {
+      "name": "corpus-insert-postcondition",
+      "status": "passed",
+      "result": {
+        "found": true,
+        "text": "E1C-l4-stress-100-臺灣😀",
+        "selections": [
+          {
+            "part": "0",
+            "rectangles": "6291, 1658, 4221, 520"
+          }
+        ]
+      }
+    },
+    {
+      "name": "corpus-delete",
+      "status": "passed",
+      "beforeRevision": 1,
+      "revision": 2,
+      "result": {
+        "action": "delete-backward",
+        "option": false,
+        "beforeRevision": 1,
+        "revision": 2,
+        "changed": true,
+        "completion": "verified-selection-delete",
+        "callbackSequenceBefore": 14,
+        "callbackSequenceAfter": 19,
+        "state": {
+          "sourceSequence": 19,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 10152,
+            "y": 1658,
+            "width": 0,
+            "height": 521
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": true,
+            "start": {
+              "x": 10152,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "end": {
+              "x": 10512,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "rectangles": []
+          },
+          "format": {
+            "bold": null,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "corpus-undo-delete",
+      "status": "passed",
+      "beforeRevision": 2,
+      "revision": 3,
+      "result": {
+        "revision": 3
+      }
+    },
+    {
+      "name": "corpus-bold",
+      "status": "passed",
+      "beforeRevision": 3,
+      "revision": 4,
+      "result": {
+        "action": "set-bold",
+        "option": true,
+        "beforeRevision": 3,
+        "revision": 4,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 26,
+        "callbackSequenceAfter": 28,
+        "state": {
+          "sourceSequence": 28,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 521
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 6291,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "end": {
+              "x": 10512,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "rectangles": [
+              {
+                "x": 6291,
+                "y": 1658,
+                "width": 4100,
+                "height": 520
+              }
+            ]
+          },
+          "format": {
+            "bold": false,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "corpus-italic",
+      "status": "passed",
+      "beforeRevision": 4,
+      "revision": 5,
+      "result": {
+        "action": "set-italic",
+        "option": true,
+        "beforeRevision": 4,
+        "revision": 5,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 31,
+        "callbackSequenceAfter": 33,
+        "state": {
+          "sourceSequence": 33,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 10391,
+            "y": 1658,
+            "width": 0,
+            "height": 521
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 6291,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "end": {
+              "x": 10391,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "rectangles": [
+              {
+                "x": 6291,
+                "y": 1658,
+                "width": 4143,
+                "height": 520
+              }
+            ]
+          },
+          "format": {
+            "bold": false,
+            "italic": true
+          }
+        }
+      }
+    },
+    {
+      "name": "corpus-original-anchors",
+      "status": "passed",
+      "result": [
+        {
+          "anchor": "R7 stress page 001 頁面錨點",
+          "found": true,
+          "text": "R7 stress page 001 頁面錨點",
+          "selections": [
+            {
+              "part": "0",
+              "rectangles": "1418, 1658, 4873, 520"
+            }
+          ]
+        },
+        {
+          "anchor": "R7 stress page 050 頁面錨點",
+          "found": true,
+          "text": "R7 stress page 050 頁面錨點",
+          "selections": [
+            {
+              "part": "0",
+              "rectangles": "1418, 840396, 2706, 303"
+            }
+          ]
+        },
+        {
+          "anchor": "R7 stress page 100 頁面錨點",
+          "found": true,
+          "text": "R7 stress page 100 頁面錨點",
+          "selections": [
+            {
+              "part": "0",
+              "rectangles": "1418, 1696496, 2706, 303"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "save",
+      "status": "passed",
+      "beforeRevision": 5,
+      "revision": 5,
+      "result": {
+        "bytes": 15355,
+        "sha256": "1e5180f974bf0675ba23955621a3cba00806686f108247ce5aac670e46352894"
+      }
+    }
+  ],
+  "states": [
+    {
+      "atMs": 23.7,
+      "state": "loading",
+      "documentName": "l4-stress-100.odt",
+      "revision": null,
+      "dirty": false,
+      "generation": 0,
+      "pending": 0,
+      "editorState": null,
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 1898.8,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1738,
+          "width": 0,
+          "height": 414
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 1996,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1738,
+          "width": 0,
+          "height": 414
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 1996.04,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1738,
+          "width": 0,
+          "height": 414
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 1996.04,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1738,
+          "width": 0,
+          "height": 414
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2021.9,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6219,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6219,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2021.96,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6219,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6219,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2021.98,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6219,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6219,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2021.98,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6219,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6219,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2022,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6219,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6219,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2025.82,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6219,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6219,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2025.84,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6219,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6219,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2093.3,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6219,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6219,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2093.34,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6219,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6219,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2093.36,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6219,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6219,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2131.2,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 14,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2131.26,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 14,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2131.28,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 14,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2131.28,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 14,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2131.34,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 14,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2181.1,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 19,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10152,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 10152,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2181.16,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 19,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10152,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 10152,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2181.62,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 19,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10152,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 10152,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2181.66,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 19,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10152,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 10152,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2181.66,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 19,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10152,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 10152,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2194.36,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 10152,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 10152,
+              "y": 1658,
+              "width": 360,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2194.42,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 10152,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 10152,
+              "y": 1658,
+              "width": 360,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2212.96,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 10152,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 10152,
+              "y": 1658,
+              "width": 360,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2213,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 10152,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 10152,
+              "y": 1658,
+              "width": 360,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2213,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 10152,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 10152,
+              "y": 1658,
+              "width": 360,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2219.94,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 28,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6291,
+              "y": 1658,
+              "width": 4100,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2219.96,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 28,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6291,
+              "y": 1658,
+              "width": 4100,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2220.3,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 28,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6291,
+              "y": 1658,
+              "width": 4100,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2220.32,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 28,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6291,
+              "y": 1658,
+              "width": 4100,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2220.32,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 28,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10512,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10512,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6291,
+              "y": 1658,
+              "width": 4100,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2230.5,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 33,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10391,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10391,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6291,
+              "y": 1658,
+              "width": 4143,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2230.54,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 33,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10391,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10391,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6291,
+              "y": 1658,
+              "width": 4143,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2290.14,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 33,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10391,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10391,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6291,
+              "y": 1658,
+              "width": 4143,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2290.2,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 33,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10391,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10391,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6291,
+              "y": 1658,
+              "width": 4143,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2290.2,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 33,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 10391,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6291,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 10391,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6291,
+              "y": 1658,
+              "width": 4143,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2531.72,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 48,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4124,
+          "y": 1696496,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 1696496,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 4124,
+            "y": 1696496,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 1696496,
+              "width": 2706,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "R7 stress page 100 頁面錨點"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2531.78,
+      "state": "busy",
+      "documentName": "l4-stress-100.odt",
+      "revision": 5,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 48,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4124,
+          "y": 1696496,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 1696496,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 4124,
+            "y": 1696496,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 1696496,
+              "width": 2706,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "R7 stress page 100 頁面錨點"
+      },
+      "hasSavedBytes": true,
+      "error": null
+    },
+    {
+      "atMs": 2531.78,
+      "state": "ready",
+      "documentName": "l4-stress-100.odt",
+      "revision": 5,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 48,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4124,
+          "y": 1696496,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 1696496,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 4124,
+            "y": 1696496,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 1696496,
+              "width": 2706,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "R7 stress page 100 頁面錨點"
+      },
+      "hasSavedBytes": true,
+      "error": null
+    },
+    {
+      "atMs": 2542.28,
+      "state": "closed",
+      "documentName": "l4-stress-100.odt",
+      "revision": 5,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 48,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4124,
+          "y": 1696496,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 1696496,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 4124,
+            "y": 1696496,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 1696496,
+              "width": 2706,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "R7 stress page 100 頁面錨點"
+      },
+      "hasSavedBytes": true,
+      "error": null
+    }
+  ],
+  "sdkEvents": [
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "view-ready",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 1
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 1
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 3
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 4
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 5
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 5
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 5
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 5
+    }
+  ],
+  "inputTrace": [
+    {
+      "type": "blocked-change",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "blocked": false,
+      "reason": null
+    },
+    {
+      "type": "compositioncancel",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "wasComposing": false
+    },
+    {
+      "type": "queue-invalidated",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "cancelled": 0
+    },
+    {
+      "type": "detach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    },
+    {
+      "type": "attach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    },
+    {
+      "type": "compositioncancel",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "wasComposing": false
+    },
+    {
+      "type": "queue-invalidated",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "cancelled": 0
+    },
+    {
+      "type": "detach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    }
+  ],
+  "clipboardTrace": [],
+  "workers": {
+    "created": 1,
+    "terminated": 1,
+    "intentionalCrashes": 0
+  },
+  "output": {
+    "bytes": 15355,
+    "sha256": "1e5180f974bf0675ba23955621a3cba00806686f108247ce5aac670e46352894"
+  },
+  "manualEvidence": null,
+  "complete": true,
+  "pass": true,
+  "error": null,
+  "browserName": "firefox",
+  "browserVersion": "153.0.1",
+  "case": {
+    "phase": "corpus",
+    "name": "l4-stress-100",
+    "scenario": "corpus",
+    "fixture": "l4-stress-100",
+    "repetition": 1
+  },
+  "savedOutput": {
+    "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/corpus/firefox/l4-stress-100/attempt-04/output.odt",
+    "bytes": 15355,
+    "sha256": "1e5180f974bf0675ba23955621a3cba00806686f108247ce5aac670e46352894"
+  },
+  "processSamples": [
+    {
+      "monotonicSeconds": 156882.98657161,
+      "rootPid": 1483616,
+      "processes": [
+        {
+          "pid": 1483616,
+          "ppid": 1483613,
+          "name": "geckodriver",
+          "rssBytes": 11087872,
+          "pssBytes": 8870912,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483688,
+          "ppid": 1483616,
+          "name": "firefox",
+          "rssBytes": 600195072,
+          "pssBytes": 426529792,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483762,
+          "ppid": 1483688,
+          "name": "forkserver",
+          "rssBytes": 34893824,
+          "pssBytes": 7748608,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483765,
+          "ppid": 1483762,
+          "name": "Socket Process",
+          "rssBytes": 40452096,
+          "pssBytes": 5976064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483777,
+          "ppid": 1483762,
+          "name": "WebExtensions",
+          "rssBytes": 124624896,
+          "pssBytes": 47861760,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483784,
+          "ppid": 1483762,
+          "name": "RDD Process",
+          "rssBytes": 49831936,
+          "pssBytes": 16739328,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483993,
+          "ppid": 1483762,
+          "name": "Utility Process",
+          "rssBytes": 35942400,
+          "pssBytes": 5195776,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1484045,
+          "ppid": 1483762,
+          "name": "Privileged Cont",
+          "rssBytes": 127913984,
+          "pssBytes": 50352128,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1484103,
+          "ppid": 1483762,
+          "name": "Isolated Web Co",
+          "rssBytes": 285147136,
+          "pssBytes": 187091968,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1484144,
+          "ppid": 1483762,
+          "name": "Web Content",
+          "rssBytes": 79912960,
+          "pssBytes": 16913408,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1484149,
+          "ppid": 1483762,
+          "name": "Web Content",
+          "rssBytes": 79683584,
+          "pssBytes": 16795648,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1484159,
+          "ppid": 1483762,
+          "name": "Web Content",
+          "rssBytes": 79785984,
+          "pssBytes": 16907264,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "before-l4-stress-100",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": null,
+      "activeHandles": null,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 12,
+      "rssBytes": 1549471744,
+      "pssBytes": 806982656
+    },
+    {
+      "monotonicSeconds": 156885.718861459,
+      "rootPid": 1483616,
+      "processes": [
+        {
+          "pid": 1483616,
+          "ppid": 1483613,
+          "name": "geckodriver",
+          "rssBytes": 11091968,
+          "pssBytes": 8865792,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483688,
+          "ppid": 1483616,
+          "name": "firefox",
+          "rssBytes": 613388288,
+          "pssBytes": 432279552,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483762,
+          "ppid": 1483688,
+          "name": "forkserver",
+          "rssBytes": 34893824,
+          "pssBytes": 7706624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483765,
+          "ppid": 1483762,
+          "name": "Socket Process",
+          "rssBytes": 40452096,
+          "pssBytes": 5977088,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483777,
+          "ppid": 1483762,
+          "name": "WebExtensions",
+          "rssBytes": 124624896,
+          "pssBytes": 47761408,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483784,
+          "ppid": 1483762,
+          "name": "RDD Process",
+          "rssBytes": 49831936,
+          "pssBytes": 16723968,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1483993,
+          "ppid": 1483762,
+          "name": "Utility Process",
+          "rssBytes": 35942400,
+          "pssBytes": 5195776,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1484045,
+          "ppid": 1483762,
+          "name": "Privileged Cont",
+          "rssBytes": 128847872,
+          "pssBytes": 50587648,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1484103,
+          "ppid": 1483762,
+          "name": "Isolated Web Co",
+          "rssBytes": 300240896,
+          "pssBytes": 200872960,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1484144,
+          "ppid": 1483762,
+          "name": "Web Content",
+          "rssBytes": 79912960,
+          "pssBytes": 16911360,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1484149,
+          "ppid": 1483762,
+          "name": "Web Content",
+          "rssBytes": 79683584,
+          "pssBytes": 16792576,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1484159,
+          "ppid": 1483762,
+          "name": "Web Content",
+          "rssBytes": 79785984,
+          "pssBytes": 16904192,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "after-l4-stress-100",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": null,
+      "activeHandles": null,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 12,
+      "rssBytes": 1578696704,
+      "pssBytes": 826578944
+    }
+  ],
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/corpus/firefox/l4-stress-100/attempt-04"
+}

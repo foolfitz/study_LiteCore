@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OxOffice R6 協作 Reference Application</title>
+  <link rel="stylesheet" href="r6.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>OxOffice R6 協作 Reference Application</h1>
+      <p><span id="identity" class="fixture-badge">fixture identity；非正式登入</span></p>
+    </div>
+    <span id="status" class="status-pill" data-state="idle" role="status">idle</span>
+  </header>
+
+  <main class="reference-grid">
+    <section class="card" aria-label="文件 Reader">
+      <div class="toolbar">
+        <strong id="role">—</strong>
+        <button id="zoom-100">100%</button>
+        <button id="zoom-150">150%</button>
+        <button id="reload">明確重新載入</button>
+        <button id="download-authority">下載權威版本</button>
+        <button id="download-local">下載未提交 bytes</button>
+      </div>
+      <div id="viewport" class="viewport reference-viewport" tabindex="0">
+        <div id="surface" class="document-surface">
+          <div id="tiles" class="tile-layer" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="search-row">
+        <input id="search" value="LibreOfficeKit" aria-label="搜尋">
+        <button id="search-next">搜尋下一筆</button>
+        <output id="search-result">尚未搜尋</output>
+      </div>
+      <dl class="metadata compact-metadata">
+        <dt>Document</dt><dd id="document-id">—</dd>
+        <dt>Version / ETag</dt><dd><span id="version">—</span> / <span id="etag">—</span></dd>
+        <dt>SDK revision</dt><dd id="revision">—</dd>
+        <dt>狀態 / 下一動作</dt><dd><span id="reader-state">—</span> / <span id="next-action">—</span></dd>
+        <dt>Profile / SDK</dt><dd><span id="profile">—</span> / <span id="sdk-version">—</span></dd>
+      </dl>
+    </section>
+
+    <section class="card panel-section" aria-label="協作審閱">
+      <h2>Review sidecar</h2>
+      <p>Presence 位置只作 hint，不是 suggestion anchor 或權限。</p>
+      <h3>Presence</h3>
+      <ul id="presence-list" class="item-list"><li>尚未 heartbeat</li></ul>
+      <h3>Comments</h3>
+      <ul id="comment-list" class="item-list"><li>尚無 comment</li></ul>
+      <h3>Suggestions</h3>
+      <ul id="suggestion-list" class="item-list"><li>尚無 suggestion</li></ul>
+      <div class="toolbar wrap">
+        <button id="heartbeat">Heartbeat</button>
+        <button id="comment">建立 comment</button>
+        <button id="reply-comment">回覆最後 comment</button>
+        <button id="resolve-comment">Resolve 第一筆 open</button>
+        <button id="manual-suggestion">建立人工 suggestion</button>
+        <button id="provider-suggestion">Provider suggestion</button>
+        <button id="refresh">刷新 snapshot</button>
+        <button id="poll-events">重連 events</button>
+      </div>
+    </section>
+
+    <section class="card panel-section" aria-label="編輯與衝突">
+      <h2>Edit lease / conflict</h2>
+      <dl class="metadata compact-metadata">
+        <dt>Lease</dt><dd id="lease">未持有</dd>
+        <dt>權威版本</dt><dd id="authority-version">—</dd>
+        <dt>本機 base</dt><dd id="local-base">—</dd>
+        <dt>衝突</dt><dd id="conflict">無</dd>
+        <dt>本機 bytes</dt><dd id="local-bytes">無</dd>
+      </dl>
+      <div class="toolbar wrap">
+        <button id="acquire">Acquire</button>
+        <button id="renew">Renew</button>
+        <button id="release">Release</button>
+        <button id="accept-first" class="primary">接受第一筆 open suggestion</button>
+        <button id="local-edit-save">本機 edit + save</button>
+        <button id="cancel-local">Undo 本機修改</button>
+        <button id="worker-crash" class="danger">Document Worker crash</button>
+      </div>
+      <div id="message" class="message">等待初始化。</div>
+    </section>
+
+    <section class="card reference-log-card">
+      <h2>Audit / event log</h2>
+      <pre id="log" class="log" aria-label="事件紀錄"></pre>
+    </section>
+  </main>
+
+  <script type="module" src="r6-reference-app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7405 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-B-narrow-editor",
+  "browser": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+  "crossOriginIsolated": true,
+  "profile": "e1-editor-v1",
+  "contract": {
+    "version": 1,
+    "abiVersion": 1,
+    "actions": [
+      "move-character-left",
+      "move-character-right",
+      "delete-backward",
+      "delete-forward",
+      "insert-paragraph-break",
+      "insert-line-break",
+      "set-bold",
+      "set-italic"
+    ],
+    "textCommit": "document-sdk-insert-text",
+    "undo": "document-sdk-undo",
+    "state": "typed-editor-state-v1",
+    "selectionBarrier": "verified-single-writer-unit-v1",
+    "boundaryRejectionRequiresFreshWorker": true,
+    "automaticRetry": false,
+    "rawCallbackExposed": false,
+    "arbitraryKeyCodeAccepted": false,
+    "arbitraryUnoCommandAccepted": false,
+    "diagnosticOperationsExposed": false,
+    "loaderSha256": "45c31f321fa4bcf2e5065c1942e0358b03ab94148732496160ae822541b9511e",
+    "wasmSha256": "94b38437cce120de4bffb6275d084f1257abb7d6a310cb3cf20594ae72eab6ef",
+    "workerSha256": "9696c9ce580b431644cd4f56ea7356647dfd9ab143da6370e521bc2474a35fd7"
+  },
+  "operations": [
+    {
+      "name": "unsupported-redo",
+      "status": "passed",
+      "result": {
+        "pass": true,
+        "code": "EDITOR_ACTION_UNSUPPORTED"
+      }
+    },
+    {
+      "name": "move-character-left",
+      "status": "passed",
+      "beforeRevision": 0,
+      "revision": 0,
+      "result": {
+        "action": "move-character-left",
+        "option": false,
+        "beforeRevision": 0,
+        "revision": 0,
+        "changed": false,
+        "completion": "documented-callback-visible-cursor",
+        "callbackSequenceBefore": 7,
+        "callbackSequenceAfter": 8,
+        "state": {
+          "sourceSequence": 8,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": true,
+            "start": {
+              "x": 1418,
+              "y": 1807,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 2437,
+              "y": 1807,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": []
+          },
+          "format": {
+            "bold": null,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "move-character-right",
+      "status": "passed",
+      "beforeRevision": 0,
+      "revision": 0,
+      "result": {
+        "action": "move-character-right",
+        "option": false,
+        "beforeRevision": 0,
+        "revision": 0,
+        "changed": false,
+        "completion": "documented-callback-visible-cursor",
+        "callbackSequenceBefore": 8,
+        "callbackSequenceAfter": 9,
+        "state": {
+          "sourceSequence": 9,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": true,
+            "start": {
+              "x": 1418,
+              "y": 1807,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 2437,
+              "y": 1807,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": []
+          },
+          "format": {
+            "bold": null,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "extend-selection-left",
+      "status": "passed",
+      "beforeRevision": 0,
+      "revision": 0,
+      "result": {
+        "action": "move-character-left",
+        "option": false,
+        "beforeRevision": 0,
+        "revision": 0,
+        "changed": false,
+        "completion": "documented-callback-text-selection",
+        "callbackSequenceBefore": 9,
+        "callbackSequenceAfter": 12,
+        "state": {
+          "sourceSequence": 12,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 2331,
+              "y": 1807,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 2437,
+              "y": 1807,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 2331,
+                "y": 1807,
+                "width": 106,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": null,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "typed-selection-state",
+      "status": "passed",
+      "result": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 13,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 2331,
+              "y": 1807,
+              "width": 106,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "c"
+      }
+    },
+    {
+      "name": "delete-backward",
+      "status": "passed",
+      "beforeRevision": 0,
+      "revision": 1,
+      "result": {
+        "action": "delete-backward",
+        "option": false,
+        "beforeRevision": 0,
+        "revision": 1,
+        "changed": true,
+        "completion": "verified-selection-delete",
+        "callbackSequenceBefore": 18,
+        "callbackSequenceAfter": 23,
+        "state": {
+          "sourceSequence": 23,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": true,
+            "start": {
+              "x": 2331,
+              "y": 1807,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 2437,
+              "y": 1807,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": []
+          },
+          "format": {
+            "bold": null,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "delete-backward-text",
+      "status": "passed",
+      "result": {
+        "found": true,
+        "text": "ASCII ab",
+        "selections": [
+          {
+            "part": "0",
+            "rectangles": "1418, 1807, 913, 275"
+          }
+        ]
+      }
+    },
+    {
+      "name": "undo-delete-backward",
+      "status": "passed",
+      "beforeRevision": 1,
+      "revision": 2,
+      "result": {
+        "revision": 2
+      }
+    },
+    {
+      "name": "delete-forward",
+      "status": "passed",
+      "beforeRevision": 2,
+      "revision": 3,
+      "result": {
+        "action": "delete-forward",
+        "option": false,
+        "beforeRevision": 2,
+        "revision": 3,
+        "changed": true,
+        "completion": "verified-selection-delete",
+        "callbackSequenceBefore": 36,
+        "callbackSequenceAfter": 42,
+        "state": {
+          "sourceSequence": 42,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": true,
+            "start": {
+              "x": 3051,
+              "y": 1807,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 3171,
+              "y": 1807,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": []
+          },
+          "format": {
+            "bold": null,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "delete-forward-text",
+      "status": "passed",
+      "result": {
+        "found": true,
+        "text": "123456789",
+        "selections": [
+          {
+            "part": "0",
+            "rectangles": "3051, 1807, 1080, 275"
+          }
+        ]
+      }
+    },
+    {
+      "name": "undo-delete-forward",
+      "status": "passed",
+      "beforeRevision": 3,
+      "revision": 4,
+      "result": {
+        "revision": 4
+      }
+    },
+    {
+      "name": "insert-text",
+      "status": "passed",
+      "beforeRevision": 4,
+      "revision": 5,
+      "result": {
+        "method": "paste",
+        "revision": 5
+      }
+    },
+    {
+      "name": "insert-text-search",
+      "status": "passed",
+      "result": {
+        "found": true,
+        "text": "E1B-文字😀",
+        "selections": [
+          {
+            "part": "0",
+            "rectangles": "3311, 1418, 1226, 347"
+          }
+        ]
+      }
+    },
+    {
+      "name": "insert-paragraph-break",
+      "status": "passed",
+      "beforeRevision": 5,
+      "revision": 6,
+      "result": {
+        "action": "insert-paragraph-break",
+        "option": false,
+        "beforeRevision": 5,
+        "revision": 6,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 62,
+        "callbackSequenceAfter": 62,
+        "state": {
+          "sourceSequence": 62,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 348
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": true,
+            "start": {
+              "x": 3311,
+              "y": 1418,
+              "width": 0,
+              "height": 347
+            },
+            "end": {
+              "x": 4537,
+              "y": 1418,
+              "width": 0,
+              "height": 347
+            },
+            "rectangles": []
+          },
+          "format": {
+            "bold": null,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "paragraph-text",
+      "status": "passed",
+      "beforeRevision": 6,
+      "revision": 7,
+      "result": {
+        "method": "paste",
+        "revision": 7
+      }
+    },
+    {
+      "name": "paragraph-search",
+      "status": "passed",
+      "result": {
+        "found": true,
+        "text": "E1B-PARAGRAPH",
+        "selections": [
+          {
+            "part": "0",
+            "rectangles": "1418, 1879, 1960, 275"
+          }
+        ]
+      }
+    },
+    {
+      "name": "insert-line-break",
+      "status": "passed",
+      "beforeRevision": 7,
+      "revision": 8,
+      "result": {
+        "action": "insert-line-break",
+        "option": false,
+        "beforeRevision": 7,
+        "revision": 8,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 70,
+        "callbackSequenceAfter": 70,
+        "state": {
+          "sourceSequence": 70,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": true,
+            "start": {
+              "x": 1418,
+              "y": 1879,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 3378,
+              "y": 1879,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": []
+          },
+          "format": {
+            "bold": null,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "line-text",
+      "status": "passed",
+      "beforeRevision": 8,
+      "revision": 9,
+      "result": {
+        "method": "paste",
+        "revision": 9
+      }
+    },
+    {
+      "name": "line-search",
+      "status": "passed",
+      "result": {
+        "found": true,
+        "text": "E1B-LINE",
+        "selections": [
+          {
+            "part": "0",
+            "rectangles": "1418, 2155, 1053, 275"
+          }
+        ]
+      }
+    },
+    {
+      "name": "set-bold-on",
+      "status": "passed",
+      "beforeRevision": 9,
+      "revision": 10,
+      "result": {
+        "action": "set-bold",
+        "option": true,
+        "beforeRevision": 9,
+        "revision": 10,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 79,
+        "callbackSequenceAfter": 81,
+        "state": {
+          "sourceSequence": 81,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 2044,
+            "y": 2544,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 1418,
+              "y": 2544,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 2044,
+              "y": 2544,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 1418,
+                "y": 2544,
+                "width": 666,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": true,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "set-italic-on",
+      "status": "passed",
+      "beforeRevision": 10,
+      "revision": 11,
+      "result": {
+        "action": "set-italic",
+        "option": true,
+        "beforeRevision": 10,
+        "revision": 11,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 84,
+        "callbackSequenceAfter": 86,
+        "state": {
+          "sourceSequence": 86,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 2084,
+            "y": 2544,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 1418,
+              "y": 2544,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 2084,
+              "y": 2544,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 1418,
+                "y": 2544,
+                "width": 640,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": true,
+            "italic": true
+          }
+        }
+      }
+    },
+    {
+      "name": "set-bold-off",
+      "status": "passed",
+      "beforeRevision": 11,
+      "revision": 12,
+      "result": {
+        "action": "set-bold",
+        "option": false,
+        "beforeRevision": 11,
+        "revision": 12,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 89,
+        "callbackSequenceAfter": 91,
+        "state": {
+          "sourceSequence": 91,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 2058,
+            "y": 2544,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 1418,
+              "y": 2544,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 2058,
+              "y": 2544,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 1418,
+                "y": 2544,
+                "width": 586,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": false,
+            "italic": true
+          }
+        }
+      }
+    },
+    {
+      "name": "set-italic-off",
+      "status": "passed",
+      "beforeRevision": 12,
+      "revision": 13,
+      "result": {
+        "action": "set-italic",
+        "option": false,
+        "beforeRevision": 12,
+        "revision": 13,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 94,
+        "callbackSequenceAfter": 96,
+        "state": {
+          "sourceSequence": 96,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 2004,
+            "y": 2544,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 1418,
+              "y": 2544,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 2004,
+              "y": 2544,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 1418,
+                "y": 2544,
+                "width": 626,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": false,
+            "italic": false
+          }
+        }
+      }
+    },
+    {
+      "name": "insert-undo-marker",
+      "status": "passed",
+      "beforeRevision": 13,
+      "revision": 14,
+      "result": {
+        "method": "paste",
+        "revision": 14
+      }
+    },
+    {
+      "name": "public-undo",
+      "status": "passed",
+      "beforeRevision": 14,
+      "revision": 15,
+      "result": {
+        "revision": 15
+      }
+    },
+    {
+      "name": "undo-text-postcondition",
+      "status": "passed",
+      "result": {
+        "beforeUndo": {
+          "found": true,
+          "text": "E1B-UNDO",
+          "selections": [
+            {
+              "part": "0",
+              "rectangles": "2471, 2155, 1199, 275"
+            }
+          ]
+        },
+        "afterUndo": {
+          "found": false,
+          "text": ""
+        }
+      }
+    },
+    {
+      "name": "save",
+      "status": "passed",
+      "beforeRevision": 15,
+      "revision": 15,
+      "result": {
+        "revision": 15,
+        "bytes": 10912
+      }
+    }
+  ],
+  "states": [
+    {
+      "atMs": 93.8,
+      "state": "loading",
+      "documentName": "plain-grapheme.odt",
+      "revision": null,
+      "dirty": false,
+      "generation": 0,
+      "pending": 0,
+      "editorState": null,
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2062.42,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2143.24,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2143.34,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2143.36,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2187.48,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2187.56,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2187.64,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2187.66,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2187.66,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2227,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2227.04,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2227.34,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2227.36,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2227.36,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2274.06,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 9,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2274.14,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 9,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2275.06,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 9,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2275.1,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 9,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2275.16,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 9,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2322.08,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 12,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 2331,
+              "y": 1807,
+              "width": 106,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2322.18,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 12,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 2331,
+              "y": 1807,
+              "width": 106,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2353.76,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 12,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 2331,
+              "y": 1807,
+              "width": 106,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2353.86,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 12,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 2331,
+              "y": 1807,
+              "width": 106,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2353.88,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 12,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 2331,
+              "y": 1807,
+              "width": 106,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2393.74,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 18,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2393.8,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 18,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2393.82,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 18,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2393.84,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 18,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2393.84,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 18,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2448.22,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2448.3,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2478.18,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2478.24,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2478.26,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2488.36,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 2,
+        "sourceSequence": 30,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 2331,
+              "y": 1807,
+              "width": 106,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "c"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2488.42,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 2,
+        "sourceSequence": 30,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 2331,
+              "y": 1807,
+              "width": 106,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "c"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2518.36,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 2,
+        "sourceSequence": 30,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 2331,
+              "y": 1807,
+              "width": 106,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "c"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2518.42,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 2,
+        "sourceSequence": 30,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 2331,
+              "y": 1807,
+              "width": 106,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "c"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2518.42,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 2,
+        "sourceSequence": 30,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2437,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 2331,
+              "y": 1807,
+              "width": 106,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "c"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2557.66,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 2,
+        "sourceSequence": 36,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3051,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 4251,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2557.7,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 2,
+        "sourceSequence": 36,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3051,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 4251,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2557.72,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 2,
+        "sourceSequence": 36,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3051,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 4251,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2557.74,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 2,
+        "sourceSequence": 36,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3051,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 4251,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2557.74,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 2,
+        "sourceSequence": 36,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3051,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 4251,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2620.72,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 42,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3051,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3171,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2620.82,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 42,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3051,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3171,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2650.84,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 42,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3051,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3171,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2650.9,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 42,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3051,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3171,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2650.92,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 42,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3051,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3171,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2660.54,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 4,
+        "sourceSequence": 50,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3171,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3171,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 3051,
+              "y": 1807,
+              "width": 120,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "0"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2660.6,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 4,
+        "sourceSequence": 50,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3171,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3171,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 3051,
+              "y": 1807,
+              "width": 120,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "0"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2689.66,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 4,
+        "sourceSequence": 50,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3171,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3171,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 3051,
+              "y": 1807,
+              "width": 120,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "0"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2689.72,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 4,
+        "sourceSequence": 50,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3171,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3171,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 3051,
+              "y": 1807,
+              "width": 120,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "0"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2689.74,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 4,
+        "sourceSequence": 50,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3171,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3171,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 3051,
+              "y": 1807,
+              "width": 120,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "0"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2727.68,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 4,
+        "sourceSequence": 55,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2727.76,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 4,
+        "sourceSequence": 55,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2727.78,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 4,
+        "sourceSequence": 55,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2727.8,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 4,
+        "sourceSequence": 55,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2727.82,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 4,
+        "sourceSequence": 55,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2731.68,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 55,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2731.74,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 55,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2784.68,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 55,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2785.96,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 55,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2785.98,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 55,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2812.28,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 62,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4537,
+          "y": 1418,
+          "width": 0,
+          "height": 348
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2812.34,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 62,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4537,
+          "y": 1418,
+          "width": 0,
+          "height": 348
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2812.38,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 62,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4537,
+          "y": 1418,
+          "width": 0,
+          "height": 348
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2812.4,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 62,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4537,
+          "y": 1418,
+          "width": 0,
+          "height": 348
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2812.4,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 62,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4537,
+          "y": 1418,
+          "width": 0,
+          "height": 348
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2830.18,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 6,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 62,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4537,
+          "y": 1418,
+          "width": 0,
+          "height": 348
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2830.26,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 6,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 62,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4537,
+          "y": 1418,
+          "width": 0,
+          "height": 348
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2836.4,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 6,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 62,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4537,
+          "y": 1418,
+          "width": 0,
+          "height": 348
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2836.46,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 6,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 62,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4537,
+          "y": 1418,
+          "width": 0,
+          "height": 348
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2836.48,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 6,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 62,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4537,
+          "y": 1418,
+          "width": 0,
+          "height": 348
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2842.22,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 7,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 7,
+        "sourceSequence": 63,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1879,
+          "width": 0,
+          "height": 277
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2842.26,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 7,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 7,
+        "sourceSequence": 63,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1879,
+          "width": 0,
+          "height": 277
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2889.92,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 7,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 7,
+        "sourceSequence": 63,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1879,
+          "width": 0,
+          "height": 277
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2889.98,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 7,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 7,
+        "sourceSequence": 63,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1879,
+          "width": 0,
+          "height": 277
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2890.02,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 7,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 7,
+        "sourceSequence": 63,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1879,
+          "width": 0,
+          "height": 277
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "end": {
+            "x": 4537,
+            "y": 1418,
+            "width": 0,
+            "height": 347
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2916.16,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 7,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 7,
+        "sourceSequence": 70,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3378,
+          "y": 1879,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2916.26,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 7,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 7,
+        "sourceSequence": 70,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3378,
+          "y": 1879,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2916.28,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 7,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 7,
+        "sourceSequence": 70,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3378,
+          "y": 1879,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2916.3,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 7,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 7,
+        "sourceSequence": 70,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3378,
+          "y": 1879,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2916.3,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 7,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 7,
+        "sourceSequence": 70,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3378,
+          "y": 1879,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2965.98,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 8,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 70,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3378,
+          "y": 1879,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2966.06,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 8,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 70,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3378,
+          "y": 1879,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2970.48,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 8,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 70,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3378,
+          "y": 1879,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2970.6,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 8,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 70,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3378,
+          "y": 1879,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2970.62,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 8,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 70,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3378,
+          "y": 1879,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2974.56,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 9,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 9,
+        "sourceSequence": 71,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2974.6,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 9,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 9,
+        "sourceSequence": 71,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3025.4,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 9,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 9,
+        "sourceSequence": 71,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3025.48,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 9,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 9,
+        "sourceSequence": 71,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3025.54,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 9,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 9,
+        "sourceSequence": 71,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3378,
+            "y": 1879,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3033.2,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 10,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 81,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2044,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2044,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 666,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3033.3,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 10,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 81,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2044,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2044,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 666,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3048.66,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 10,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 81,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2044,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2044,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 666,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3048.72,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 10,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 81,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2044,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2044,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 666,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3048.72,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 10,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 81,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2044,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2044,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 666,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3053.74,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 11,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 86,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2084,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2084,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 640,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3053.76,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 11,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 86,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2084,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2084,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 640,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3070.28,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 11,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 86,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2084,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2084,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 640,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3070.34,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 11,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 86,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2084,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2084,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 640,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3070.34,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 11,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 86,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2084,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2084,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 640,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3082.4,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 12,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 91,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2058,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2058,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 586,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3082.46,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 12,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 91,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2058,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2058,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 586,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3097.46,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 12,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 91,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2058,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2058,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 586,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3097.5,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 12,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 91,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2058,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2058,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 586,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3097.52,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 12,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 91,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2058,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2058,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 586,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3102.72,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 13,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 96,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2004,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2004,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 626,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3102.78,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 13,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 96,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2004,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2004,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 626,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3132.84,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 13,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 96,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2004,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2004,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 626,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3132.9,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 13,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 96,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2004,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2004,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 626,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3132.92,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 13,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 96,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2004,
+          "y": 2544,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2004,
+            "y": 2544,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 2544,
+              "width": 626,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3172.52,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 13,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 13,
+        "sourceSequence": 104,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3172.6,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 13,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 13,
+        "sourceSequence": 104,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3172.64,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 13,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 13,
+        "sourceSequence": 104,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3172.66,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 13,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 13,
+        "sourceSequence": 104,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3172.68,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 13,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 13,
+        "sourceSequence": 104,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3174.18,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 14,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 14,
+        "sourceSequence": 104,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3174.22,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 14,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 14,
+        "sourceSequence": 104,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3209.7,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 14,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 14,
+        "sourceSequence": 104,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3209.76,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 14,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 14,
+        "sourceSequence": 104,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3209.76,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 14,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 14,
+        "sourceSequence": 104,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3217.36,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 15,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 15,
+        "sourceSequence": 110,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3670,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3217.42,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 15,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 15,
+        "sourceSequence": 110,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3670,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3245.48,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 15,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 15,
+        "sourceSequence": 110,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3670,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3245.52,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 15,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 15,
+        "sourceSequence": 110,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3670,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3245.52,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 15,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 15,
+        "sourceSequence": 110,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3670,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 3456.52,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 15,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 15,
+        "sourceSequence": 110,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3670,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": true,
+      "error": null
+    },
+    {
+      "atMs": 3457.12,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 15,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 15,
+        "sourceSequence": 110,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3670,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": true,
+      "error": null
+    },
+    {
+      "atMs": 3457.18,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 15,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 15,
+        "sourceSequence": 110,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2471,
+          "y": 2155,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2471,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3670,
+            "y": 2155,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": false,
+          "italic": false
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": true,
+      "error": null
+    }
+  ],
+  "events": [
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "view-ready",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 2
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 2
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 2
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 2
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 2
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 3
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 4
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 4
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 5
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 6
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 7
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 8
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 9
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 9
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 10
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 11
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 12
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 13
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 13
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 14
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 15
+    }
+  ],
+  "output": {
+    "bytes": 10912,
+    "sha256": "37c23c2705e2b53a90f25990996ef324101a167851854c91f94e566494154a23",
+    "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-contract/browser/firefox/output.odt"
+  },
+  "complete": true,
+  "pass": true,
+  "error": null,
+  "fixture": "plain-grapheme",
+  "deleteResults": {
+    "backward": {
+      "action": "delete-backward",
+      "option": false,
+      "beforeRevision": 0,
+      "revision": 1,
+      "changed": true,
+      "completion": "verified-selection-delete",
+      "callbackSequenceBefore": 18,
+      "callbackSequenceAfter": 23,
+      "state": {
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2331,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 2331,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2437,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      }
+    },
+    "forward": {
+      "action": "delete-forward",
+      "option": false,
+      "beforeRevision": 2,
+      "revision": 3,
+      "changed": true,
+      "completion": "verified-selection-delete",
+      "callbackSequenceBefore": 36,
+      "callbackSequenceAfter": 42,
+      "state": {
+        "sourceSequence": 42,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3051,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 3051,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3171,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      }
+    }
+  },
+  "browserName": "firefox",
+  "browserVersion": "153.0.1",
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-contract/browser/firefox"
+}

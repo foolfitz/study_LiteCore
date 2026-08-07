@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "date": "2026-08-01",
+  "decision": "GO",
+  "sdk_version": "0.4.0-r4",
+  "protocol_version": 1,
+  "abi_version": 65537,
+  "abi_version_text": "1.1",
+  "provider_contract_version": "1.0",
+  "core_commit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+  "unit": {
+    "document_sdk_tests": { "passed": 8, "failed": 0 },
+    "provider_sdk_tests": { "passed": 11, "failed": 0 },
+    "abi_header_compile": true,
+    "strict_wasm_link": true
+  },
+  "provider_contract": {
+    "provider_id": "tw.oxoffice.fixture.translator",
+    "capability": "text.translate",
+    "endpoint": "translate-selection",
+    "input": "selection.text",
+    "output_operation": "replaceSelection",
+    "same_fixture_web_desktop": true,
+    "immutable_snapshot": true,
+    "no_document_surface": true,
+    "invalid_operations_blocked_without_sink_call": true,
+    "typed_cancel_without_late_mutation": true,
+    "typed_worker_crash_and_future_call_rejection": true,
+    "duplicate_terminal_result_ignored": true
+  },
+  "provider_slices": [
+    {
+      "browser": "chrome",
+      "version": "Chrome/150.0.7871.128",
+      "passed": 3,
+      "samples": 3,
+      "median_ms": {
+        "ready": 2492.385,
+        "open": 293.06,
+        "provider": 110.11,
+        "stale_provider": 106.415,
+        "first_tile": 141.855,
+        "save": 197.445
+      },
+      "input_transferred": true,
+      "main_thread_isolated": true,
+      "provider_worker_isolated": true,
+      "stale_provider_rejected": true,
+      "validated_replace": true,
+      "final_revision": 3
+    },
+    {
+      "browser": "firefox",
+      "version": "152.0.6",
+      "passed": 3,
+      "samples": 3,
+      "median_ms": {
+        "ready": 3065.6,
+        "open": 487.94,
+        "provider": 111.58,
+        "stale_provider": 112.84,
+        "first_tile": 133.44,
+        "save": 286.7
+      },
+      "input_transferred": true,
+      "main_thread_isolated": true,
+      "provider_worker_isolated": true,
+      "stale_provider_rejected": true,
+      "validated_replace": true,
+      "final_revision": 3
+    }
+  ],
+  "provider_conformance": {
+    "chrome": {
+      "pass": true,
+      "contract_1_0": true,
+      "provider_discovery": true,
+      "descriptor_immutable": true,
+      "dedicated_worker": true,
+      "provider_worker_document_isolated": true,
+      "invalid_operation_blocked": true,
+      "cancellation_typed_no_mutation": true,
+      "no_generic_uno_surface": true,
+      "no_raw_document_surface": true
+    },
+    "firefox": {
+      "pass": true,
+      "contract_1_0": true,
+      "provider_discovery": true,
+      "descriptor_immutable": true,
+      "dedicated_worker": true,
+      "provider_worker_document_isolated": true,
+      "invalid_operation_blocked": true,
+      "cancellation_typed_no_mutation": true,
+      "no_generic_uno_surface": true,
+      "no_raw_document_surface": true
+    }
+  },
+  "roundtrip": {
+    "passed": 6,
+    "samples": 6,
+    "provider_output_present": 6,
+    "concurrent_edit_absent": 6,
+    "raw_uno_text_absent": 6,
+    "desktop_version": "LibreOffice 26.2.4.2 620(Build:2)",
+    "desktop_open_passed": 6
+  },
+  "regression": {
+    "r3_conformance_browsers_passed": 2,
+    "r3_browser_slices_passed": 2,
+    "r3_roundtrip_passed": 2,
+    "r2_conformance_browsers_passed": 2,
+    "r2_soak_iterations_per_browser": 10,
+    "r1_legacy_slices_passed": 2,
+    "r1_roundtrip_passed": 2,
+    "final_artifact_smoke_passed": 2,
+    "final_artifact_roundtrip_passed": 2
+  },
+  "core_artifacts": [
+    {
+      "path": "wasm_sdk_probe/dist/probe.js",
+      "raw_bytes": 367855,
+      "gzip_9_bytes": 90960,
+      "sha256": "e6d5d2adbde87d7e58d4a79f8930ef970ededa4ba386bddda865d7a901fe7dfd"
+    },
+    {
+      "path": "wasm_sdk_probe/dist/probe.wasm",
+      "raw_bytes": 169263111,
+      "gzip_9_bytes": 45649122,
+      "sha256": "23e765aa8464e832f2e0150252244403b252744173243de1eb628df959327e62"
+    },
+    {
+      "path": "wasm_sdk_probe/dist/soffice.data",
+      "raw_bytes": 102765226,
+      "gzip_9_bytes": 42969853,
+      "sha256": "68b80e0ddc9253de50e9580eccecbcfd0d2243f845af6ebb5735952e32ca19c6"
+    }
+  ],
+  "artifact_totals": {
+    "core_raw_bytes": 272396192,
+    "core_gzip_9_bytes": 88709935,
+    "core_raw_delta_from_r3_bytes": 0,
+    "core_gzip_9_delta_from_r3_bytes": 0,
+    "r4_browser_layer_raw_bytes": 45229,
+    "r4_browser_layer_gzip_9_sum_bytes": 12028,
+    "size_optimization_deferred_to": "R5"
+  },
+  "evidence": {
+    "browser": "findings/evidence/sdk-r4/browser-raw",
+    "provider_conformance": "findings/evidence/sdk-r4/conformance",
+    "roundtrip": "findings/evidence/sdk-r4/roundtrip.json",
+    "final_artifact_smoke": "findings/evidence/sdk-r4/final-smoke",
+    "final_artifact_roundtrip": "findings/evidence/sdk-r4/final-smoke-roundtrip.json",
+    "r3_regression": "findings/evidence/sdk-r4/r3-regression",
+    "r2_regression": "findings/evidence/sdk-r4/r2-regression",
+    "r1_regression": "findings/evidence/sdk-r4/r1-regression"
+  }
+}

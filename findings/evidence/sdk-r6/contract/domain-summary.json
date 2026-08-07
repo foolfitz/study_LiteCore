@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "release": "R6-B",
+  "adapter": "domain",
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "immutable v1 metadata, ETag, hash and bytes agree",
+      "pass": true,
+      "durationMs": 0.20515199999999822,
+      "details": {
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+        "bytes": 17885
+      }
+    },
+    {
+      "id": 2,
+      "name": "presence heartbeat and deterministic TTL expiry",
+      "pass": true,
+      "durationMs": 0.7686999999999955,
+      "details": {
+        "before": 2,
+        "after": 0,
+        "expiryEvents": 2
+      }
+    },
+    {
+      "id": 3,
+      "name": "comment reply and resolve do not mutate the Office blob",
+      "pass": true,
+      "durationMs": 0.4280570000000026,
+      "details": {
+        "types": [
+          "comment-created",
+          "comment-created",
+          "comment-resolved"
+        ],
+        "blobSha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02"
+      }
+    },
+    {
+      "id": 4,
+      "name": "suggestion schema rejects unsafe payloads",
+      "pass": true,
+      "durationMs": 1.5944369999999992,
+      "details": {
+        "rejected": 4,
+        "suggestionCount": 0
+      }
+    },
+    {
+      "id": 5,
+      "name": "single lease excludes Bob and never leaks its token",
+      "pass": true,
+      "durationMs": 0.33299000000000234,
+      "details": {
+        "leaseId": "lease-1",
+        "holder": "alice",
+        "tokenRedacted": true
+      }
+    },
+    {
+      "id": 6,
+      "name": "lease plus CAS atomically creates v2 and accepts suggestion",
+      "pass": true,
+      "durationMs": 0.638809000000002,
+      "details": {
+        "version": "v2",
+        "parentVersion": "v1",
+        "suggestionStatus": "accepted"
+      }
+    },
+    {
+      "id": 7,
+      "name": "stale v1 compare-and-swap cannot create v3",
+      "pass": true,
+      "durationMs": 0.31462600000000407,
+      "details": {
+        "error": "VERSION_CONFLICT",
+        "versionCount": 2,
+        "currentHash": "22143516f6d53822269a7e818dd34298c1895e9b3ea70b25832dd31ba2576def"
+      }
+    },
+    {
+      "id": 8,
+      "name": "wrong, expired and cross-document lease tokens are rejected",
+      "pass": true,
+      "durationMs": 0.48615500000000367,
+      "details": {
+        "rejected": [
+          "INVALID_LEASE",
+          "INVALID_LEASE",
+          "LEASE_EXPIRED"
+        ],
+        "versionCount": 1
+      }
+    },
+    {
+      "id": 9,
+      "name": "idempotency retries are stable and conflicting reuse is rejected",
+      "pass": true,
+      "durationMs": 0.18769900000000206,
+      "details": {
+        "commentId": "comment-1",
+        "count": 1,
+        "conflict": "IDEMPOTENCY_CONFLICT"
+      }
+    },
+    {
+      "id": 10,
+      "name": "event replay, duplicate de-duplication and snapshot fallback converge",
+      "pass": true,
+      "durationMs": 0.35553200000000373,
+      "details": {
+        "snapshotComments": 5,
+        "replayed": 2,
+        "uniqueAfterDuplicate": 2
+      }
+    },
+    {
+      "id": 11,
+      "name": "fault injection never leaves a partial version and post-commit retry recovers",
+      "pass": true,
+      "durationMs": 0.45887400000000156,
+      "details": {
+        "beforeCommitVersionCount": 1,
+        "recoveredVersion": "v2",
+        "finalVersionCount": 2
+      }
+    },
+    {
+      "id": 12,
+      "name": "contract major mismatch and unknown mutation are rejected",
+      "pass": true,
+      "durationMs": 0.14156400000000247,
+      "details": {
+        "rejected": [
+          "CONTRACT_VERSION_MISMATCH",
+          "INVALID_ARGUMENT"
+        ]
+      }
+    }
+  ],
+  "passed": 12,
+  "failed": 0,
+  "pass": true
+}

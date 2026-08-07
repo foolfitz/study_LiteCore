@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-012-native-26-8-attribution",
+  "verifiedAt": "2026-08-03T22:06:58+08:00",
+  "expectedCoreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+  "nativeCoreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+  "native": {
+    "decision": "NOT_REPRODUCED_SYSTEM_NATIVE",
+    "observed": "native LibreOfficeKit document destroy entry/return stages",
+    "notValidated": [
+      "version",
+      "same-commit native LibreOfficeKit"
+    ],
+    "runs": {
+      "t2-original": 3,
+      "t2-image-unwrapped": 3
+    },
+    "pass": true
+  },
+  "nativeRuntime": {
+    "schemaVersion": 1,
+    "release": "finding-012-r7-attribution",
+    "layer": "native-lok",
+    "nativeVersion": "LibreOffice 26.8.0.1.0 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "probe": {
+      "sha256": "c393bea2c65364b9292ccd06a9d4038614a42d99824bb0be3525a7705303c728",
+      "headerCoreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+      "runtimeInstallPath": "/home/jiajun/LibreOffice/study_LiteCore/native-lok-26-8/build/instdir/program"
+    },
+    "runtimeSource": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/native-lok-26-8/src",
+      "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+      "clean": true
+    },
+    "runtimeInstallPath": "/home/jiajun/LibreOffice/study_LiteCore/native-lok-26-8/build/instdir/program",
+    "runs": [
+      {
+        "fixture": "t2-original",
+        "run": 1,
+        "timeoutMs": 10000,
+        "outcome": "close-pass",
+        "stages": [
+          "kit-init-enter",
+          "kit-init-return",
+          "document-load-enter",
+          "document-load-return",
+          "document-destroy-enter",
+          "document-destroy-return",
+          "complete"
+        ],
+        "pass": true
+      },
+      {
+        "fixture": "t2-image-unwrapped",
+        "run": 1,
+        "timeoutMs": 10000,
+        "outcome": "close-pass",
+        "stages": [
+          "kit-init-enter",
+          "kit-init-return",
+          "document-load-enter",
+          "document-load-return",
+          "document-destroy-enter",
+          "document-destroy-return",
+          "complete"
+        ],
+        "pass": true
+      },
+      {
+        "fixture": "t2-original",
+        "run": 2,
+        "timeoutMs": 10000,
+        "outcome": "close-pass",
+        "stages": [
+          "kit-init-enter",
+          "kit-init-return",
+          "document-load-enter",
+          "document-load-return",
+          "document-destroy-enter",
+          "document-destroy-return",
+          "complete"
+        ],
+        "pass": true
+      },
+      {
+        "fixture": "t2-original",
+        "run": 3,
+        "timeoutMs": 10000,
+        "outcome": "close-pass",
+        "stages": [
+          "kit-init-enter",
+          "kit-init-return",
+          "document-load-enter",
+          "document-load-return",
+          "document-destroy-enter",
+          "document-destroy-return",
+          "complete"
+        ],
+        "pass": true
+      },
+      {
+        "fixture": "t2-image-unwrapped",
+        "run": 2,
+        "timeoutMs": 10000,
+        "outcome": "close-pass",
+        "stages": [
+          "kit-init-enter",
+          "kit-init-return",
+          "document-load-enter",
+          "document-load-return",
+          "document-destroy-enter",
+          "document-destroy-return",
+          "complete"
+        ],
+        "pass": true
+      },
+      {
+        "fixture": "t2-image-unwrapped",
+        "run": 3,
+        "timeoutMs": 10000,
+        "outcome": "close-pass",
+        "stages": [
+          "kit-init-enter",
+          "kit-init-return",
+          "document-load-enter",
+          "document-load-return",
+          "document-destroy-enter",
+          "document-destroy-return",
+          "complete"
+        ],
+        "pass": true
+      }
+    ],
+    "pass": true
+  },
+  "buildEvidence": {
+    "buildDir": "/home/jiajun/LibreOffice/study_LiteCore/native-lok-26-8/build",
+    "autogenInput": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/native-lok-26-8/build/autogen.input",
+      "present": true,
+      "bytes": 348,
+      "sha256": "a06c2890cd597ee5a63b6182498fabceb147d203f9a321f485015538f2f2b686"
+    },
+    "configHost": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/native-lok-26-8/build/config_host.mk",
+      "present": true,
+      "bytes": 28667,
+      "sha256": "363c0ef2b45d9e1460640f425a559ff1c711953159509e733511cbd6112c9fca"
+    },
+    "runtime": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/native-lok-26-8/build/instdir/program/libmergedlo.so",
+      "present": true,
+      "bytes": 159097704,
+      "sha256": "2d49c9ff845d3e2cd3fb5d109ea95e9ce01bf45f2925e9a1ed2176eaedd3f924"
+    },
+    "configureLog": {
+      "path": "../findings/evidence/012/native-26-8-attribution/configure.log",
+      "present": true,
+      "bytes": 25117,
+      "sha256": "dfa51bb6584a99399f70a02fd67cb50ada4296bc110bda9d48d21ca4045ba264"
+    },
+    "buildLog": {
+      "path": "../findings/evidence/012/native-26-8-attribution/build.log",
+      "present": true,
+      "bytes": 1100297,
+      "sha256": "f350ee63bd7d02aa25438bfde3c3217bbf300fbff967a738af3a9e27ebe5a40a"
+    }
+  },
+  "wasm": {
+    "chrome": "WASM_DOCUMENT_DESTROY_BLOCKED",
+    "firefox": "WASM_DOCUMENT_DESTROY_BLOCKED"
+  },
+  "wasmEvidence": "../findings/evidence/012/r7-attribution/summary.json",
+  "fixed": false,
+  "r7Pass": false,
+  "notValidated": [
+    "specific teardown subsystem inside LibreOfficeKitDocument::destroy"
+  ],
+  "decision": "EMSCRIPTEN_SPECIFIC_DOCUMENT_DESTROY",
+  "candidateLayer": "emscripten-document-teardown",
+  "nextAction": "wasm-fix",
+  "pass": true
+}

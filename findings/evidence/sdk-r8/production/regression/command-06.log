@@ -1,0 +1,107 @@
+python3 tools/build_r8_release_manifest.py --output dist/r8/release-manifest.json
+{"output": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/r8/release-manifest.json", "releaseId": "writer-review-82cfce600c80ed6e", "manifestSha256": "9328e2738fffd6feade8e5499c40744430c7e09570fa9be9cb191789cab0bf6a", "artifacts": 17, "requiredArtifacts": 15, "rawBytes": 218470862, "pass": true}
+python3 tools/build_r8_bundles.py --output dist/releases
+{
+  "output": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/releases",
+  "index": {
+    "schemaVersion": 1,
+    "release": "R8-B-versioned-artifact-delivery",
+    "createdAt": "2026-08-04T00:00:00+08:00",
+    "releases": [
+      {
+        "policy": "standard",
+        "releaseId": "writer-review-5fa3ca0d38f2b46d",
+        "manifestUrl": "releases/writer-review-5fa3ca0d38f2b46d/release-manifest.json",
+        "manifestSha256": "244276f2f12f176fac5d189a19500b6d1d49e19b4e0deb022e6efff5ec089cc4",
+        "requiredRawBytes": 169355716,
+        "gzipEncodedBytes": 83765740,
+        "pass": true
+      },
+      {
+        "policy": "full-fidelity",
+        "releaseId": "writer-review-687bd4d891114d62",
+        "manifestUrl": "releases/writer-review-687bd4d891114d62/release-manifest.json",
+        "manifestSha256": "1cf633a9024da1f3b331c32c0d89a86a6ef9ac46fa38162965bb24a1dc89cfec",
+        "requiredRawBytes": 218473422,
+        "gzipEncodedBytes": 83765736,
+        "pass": true
+      }
+    ],
+    "pass": true
+  },
+  "validation": {
+    "schemaVersion": 1,
+    "releases": [
+      {
+        "schemaVersion": 1,
+        "policy": "standard",
+        "releaseId": "writer-review-5fa3ca0d38f2b46d",
+        "artifactCount": 17,
+        "requiredArtifactCount": 15,
+        "errors": [],
+        "pass": true
+      },
+      {
+        "schemaVersion": 1,
+        "policy": "full-fidelity",
+        "releaseId": "writer-review-687bd4d891114d62",
+        "artifactCount": 17,
+        "requiredArtifactCount": 17,
+        "errors": [],
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "pass": true
+  },
+  "pass": true
+}
+python3 tools/build_r8_c_release_set.py --output dist/r8c
+{
+  "output": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/r8c/release-set.json",
+  "releaseIds": {
+    "A": "writer-review-5fa3ca0d38f2b46d",
+    "B": "writer-review-29680a2e250d2b3e",
+    "C": "writer-review-07f2694e5f1deab8"
+  },
+  "pass": true
+}
+python3 -m unittest tests/test_r8_bundle.py tests/test_r8_c.py
+node --test delivery/tests/verified-loader.test.mjs \
+	delivery/tests/release-state.test.mjs
+✔ fresh candidate becomes active and last-known-good only after health (0.953855ms)
+✔ failed candidate health restores previous known-good (4.67488ms)
+✔ interrupted staging and health-pending activation recover conservatively (0.385117ms)
+✔ client pin forbids hot switch and eviction (0.463002ms)
+✔ eviction plan deletes failed and excess retiring releases but protects pins (1.201276ms)
+✔ failed staging leaves active release untouched (0.174655ms)
+✔ repair commit atomically switches cache identity and preserves active health (0.194231ms)
+✔ safe relative URL contract rejects schemes, traversal, credentials, and fragments (1.107141ms)
+✔ standard and full-fidelity closed manifests validate (6.326114ms)
+✔ all required artifacts verify before Worker start is authorized (19.706866ms)
+✔ verified artifact callback receives exact bytes before Worker authorization (2.759747ms)
+✔ artifact persistence failure prevents release verification (1.790994ms)
+✔ wrong media, encoding, size, and hash are typed pre-Worker failures (5.55617ms)
+✔ unsafe or self-inconsistent manifest is rejected before artifact fetch (0.888474ms)
+✔ verified engine checks release handshake and enforces fidelity restart (2.751731ms)
+✔ handshake mismatch disposes the engine and never claims a session (2.57413ms)
+✔ timeout and external abort retain their delivery taxonomy (5.779576ms)
+✔ artifact origin must be a credential-free origin-only URL (1.437134ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 94.290225
+node --check web/r8-service-worker.js
+node --check web/r8-update-app.js
+python3 -m py_compile tools/build_r8_c_release_set.py \
+	tools/run_r8_service_worker.py tools/validate_r8_c_preflight.py \
+	tools/validate_r8_c.py tests/test_r8_c.py
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.055s
+
+OK

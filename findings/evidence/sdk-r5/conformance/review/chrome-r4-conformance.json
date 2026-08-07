@@ -1,0 +1,113 @@
+{
+  "browser": "chrome",
+  "browser_version": "Chrome/150.0.7871.128",
+  "conformance": {
+    "contract_1_0": true,
+    "provider_discovery": true,
+    "descriptor_immutable": true,
+    "dedicated_worker": true,
+    "provider_worker_document_isolated": true,
+    "invalid_operation_blocked": true,
+    "cancellation_typed_no_mutation": true,
+    "no_generic_uno_surface": true,
+    "no_raw_document_surface": true,
+    "pass": true
+  },
+  "manifest": {
+    "abiVersion": 65537,
+    "abiVersionText": "1.1",
+    "artifactFiles": {
+      "probe.js": "probe.35d96f5fdcb9ed0c.js",
+      "probe.wasm": "probe.ba257beb038b6a2d.wasm",
+      "soffice.data": "../resources/base-r5.ba15a988a7fec468.data",
+      "soffice.data.js.metadata": "../resources/base-r5.ef11ef80faf373bc.metadata"
+    },
+    "capabilities": [
+      "open-odt",
+      "rgba-tile",
+      "insert-text",
+      "save-odt",
+      "cancel-queued",
+      "search",
+      "selection-text",
+      "replace-selection",
+      "undo",
+      "comments",
+      "tracked-changes",
+      "provider-contract-1.0",
+      "provider-worker",
+      "validated-provider-operation"
+    ],
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "expectedCapabilityBits": 2047,
+    "profile": "writer-review",
+    "protocolVersion": 1,
+    "providerContractVersion": "1.0",
+    "resourcePacks": [
+      {
+        "bytes": 19484784,
+        "data": "../resources/cjk-r5.b76b0433203017ca.data",
+        "id": "cjk-r5",
+        "loadAtStartup": true,
+        "metadata": "../resources/cjk-r5.fafab99558ab6f8b.metadata",
+        "purpose": "CJK corpus",
+        "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+      },
+      {
+        "bytes": 49102042,
+        "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+        "id": "fallback-fonts-r5",
+        "loadAtStartup": false,
+        "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+        "purpose": "optional complex-script and fidelity fallback",
+        "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+      }
+    ],
+    "sdkVersion": "0.5.0-r5",
+    "capabilityBits": 2047
+  },
+  "provider": {
+    "descriptor": {
+      "contractVersion": "1.0",
+      "id": "tw.oxoffice.fixture.translator",
+      "version": "1.0.0",
+      "displayName": "OxOffice R4 Fixture Translator",
+      "capabilities": [
+        "text.translate"
+      ],
+      "endpoints": [
+        {
+          "id": "translate-selection",
+          "capability": "text.translate",
+          "input": "selection.text",
+          "outputOperations": [
+            "replaceSelection"
+          ]
+        }
+      ]
+    },
+    "adapter": "worker",
+    "runtime": {
+      "globalKind": "dedicated-worker",
+      "document": "undefined",
+      "createProbeModule": "undefined",
+      "FS": "undefined",
+      "HEAPU8": "undefined"
+    }
+  },
+  "isolation": {
+    "main": {
+      "createProbeModule": "undefined",
+      "FS": "undefined",
+      "HEAPU8": "undefined",
+      "pass": true
+    },
+    "provider": {
+      "globalKind": "dedicated-worker",
+      "document": "undefined",
+      "createProbeModule": "undefined",
+      "FS": "undefined",
+      "HEAPU8": "undefined"
+    }
+  }
+}

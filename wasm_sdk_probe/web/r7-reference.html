@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OxOffice R7 Reference Application</title>
+  <link rel="stylesheet" href="r7.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>OxOffice R7 Reference Application</h1>
+      <p>公開 Document SDK 的 ODT-first viewer／輸入驗證程式</p>
+    </div>
+    <span id="status" class="status-pill" role="status" aria-live="polite">loading</span>
+  </header>
+
+  <main class="grid">
+    <section class="card" aria-labelledby="reader-heading">
+      <h2 id="reader-heading">文件檢視</h2>
+      <div class="toolbar" role="toolbar" aria-label="文件檢視工具">
+        <button id="page-first" type="button">第一頁</button>
+        <button id="page-previous" type="button">上一頁</button>
+        <button id="page-next" type="button">下一頁</button>
+        <button id="page-last" type="button">最後一頁</button>
+        <button id="zoom-100" type="button">100%</button>
+        <button id="zoom-150" type="button">150%</button>
+        <button id="reload" type="button">重新載入</button>
+        <button id="download" type="button">下載本機 ODT</button>
+      </div>
+      <p id="location" class="hint">頁面位置提示：尚未載入</p>
+      <div id="viewport" class="viewport" tabindex="0" aria-label="文件畫布；文件內容 accessibility 尚未支援">
+        <div id="surface" class="document-surface">
+          <div id="tiles" class="tile-layer" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <label for="search">搜尋</label>
+        <input id="search" value="Final line：ODT round-trip 完整性檢查。">
+        <button id="search-next" type="button">搜尋下一筆</button>
+        <output id="search-result">尚未搜尋</output>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="state-heading">
+      <h2 id="state-heading">公開狀態</h2>
+      <dl class="metadata">
+        <dt>Document</dt><dd id="document-id">r7-input-fixture</dd>
+        <dt>Version</dt><dd id="version">fixture-v1</dd>
+        <dt>SDK revision</dt><dd id="revision">—</dd>
+        <dt>Input state</dt><dd id="input-state">idle</dd>
+        <dt>Queue</dt><dd id="queue-depth">0 / 8</dd>
+        <dt>Profile／SDK</dt><dd><span id="profile">—</span>／<span id="sdk-version">—</span></dd>
+        <dt>能力限制</dt><dd id="limitations">DOCX unsupported；文件內容 accessibility unsupported；hyperlink activation unsupported</dd>
+        <dt>下一動作</dt><dd id="next-action">等待文件載入</dd>
+      </dl>
+      <p id="message" role="alert"></p>
+    </section>
+
+    <section class="card wide" aria-labelledby="input-heading">
+      <h2 id="input-heading">IME 與純文字 Clipboard</h2>
+      <p>composition preedit 留在此 DOM textarea；只有確定 commit 的 Unicode 字串會進入 SDK。</p>
+      <label for="manual-method">本輪 input method</label>
+      <select id="manual-method">
+        <option value="chewing">Fcitx5 Chewing</option>
+        <option value="cangjie">Fcitx5 Cangjie</option>
+        <option value="pinyin">Fcitx5 Pinyin</option>
+      </select>
+      <button id="manual-arm" type="button">開始／切換本方法記錄</button>
+      <label for="manual-input">IME／paste input sink</label>
+      <textarea id="manual-input" class="manual-input" autocomplete="off" autocapitalize="off"
+        spellcheck="false" placeholder="請使用目前選擇的真實輸入法"></textarea>
+      <div class="toolbar">
+        <button id="cancel-arm" type="button">開始 cancel 測試</button>
+        <button id="cancel-check" type="button">確認 cancel 零 mutation</button>
+        <button id="copy-selection" type="button">複製公開 selection</button>
+        <button id="clipboard-write" type="button">寫入 Unicode fixture</button>
+        <button id="clipboard-read" type="button">讀取並貼上純文字</button>
+        <button id="manual-verify" type="button">集中儲存與驗證</button>
+        <button id="copy-evidence" type="button">複製 evidence JSON</button>
+      </div>
+      <fieldset>
+        <legend>集中鍵盤／Orca spike</legend>
+        <button id="keyboard-arm" type="button">開始記錄鍵盤焦點</button>
+        <button id="keyboard-check" type="button">檢查鍵盤流程</button>
+        <label><input id="orca-confirm" type="checkbox"> Operator 確認 Orca 能宣告 status 與 control name</label>
+      </fieldset>
+      <label for="native-source">原生 Ctrl+C／Ctrl+V fixture</label>
+      <input id="native-source" readonly value="R7-clipboard-𠀀😀👨‍👩‍👧‍👦éé">
+      <p id="manual-status" role="status" aria-live="polite">尚未開始人工驗收</p>
+      <label for="manual-evidence">人工 evidence</label>
+      <textarea id="manual-evidence" class="evidence" readonly></textarea>
+    </section>
+
+    <section class="card wide">
+      <h2>Machine audit log</h2>
+      <pre id="log" class="log" aria-label="R7 machine audit log"></pre>
+    </section>
+  </main>
+  <script type="module" src="r7-reference-app.js"></script>
+</body>
+</html>

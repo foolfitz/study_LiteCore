@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "finding": "017",
+  "observedAt": "2026-08-05T16:54:43+08:00",
+  "status": "remediation-verified-in-browser",
+  "evidenceLevel": {
+    "verbatimLog": "one run only; the captured excerpt does not identify which browser produced it",
+    "operatorReported": "operator states both Chrome and Firefox passed; only the single excerpt above was captured",
+    "note": "Per-browser verbatim logs were not retained. The cross-browser claim rests on operator report, not on captured output."
+  },
+  "browser": {
+    "mode": "headed-operator",
+    "machine": "same machine as finding 016",
+    "chrome": "150.0.7871.128",
+    "firefox": "153.0.1",
+    "userAgent": null,
+    "note": "versions supplied by operator; not captured in the log excerpt"
+  },
+  "core": {
+    "commit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "modifiedByThisFinding": false
+  },
+  "artifact": {
+    "profile": "e1-editor-discovery",
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-discovery",
+    "rebuiltAt": "2026-08-05",
+    "manifestSha256": "d3c79bbc70238c4fadfcd123c4f56159a92d3b6bdaa6bfa20aec396e86676cdc",
+    "loaderSha256": "53919e643c266593ee9417647c43f2fd17cab965e3c4ab66c7b08685548c3213",
+    "wasmSha256": "d341b5ef84f9641487f11a77b9b86b85cb45f1130f07e8b0484828d8eca2cd83",
+    "workerSha256": "4c2a3ea72abe82b572cc6e7d295fc70e6a0a7f319828b5846d1016323e5dd452",
+    "supersedes": {
+      "loaderSha256": "a733b8f89eebaa53685056c447cf76151f5a86f455ff1d9dd0c725ff20f8e87d",
+      "wasmSha256": "1c8b79fd5c9968dd362a43e4e1e032fe07806f72c34c1f5b041c8af00d6c1e78",
+      "workerSha256": "09e34824ba938c76ebd53e908be1885e3f3e6e020d58effcaec7f1c3983ec3ed",
+      "manifestSha256": "da78c6937d746282ffcf7e57789546df7cd0ee8930d2a92ad572504545e62ca8"
+    }
+  },
+  "manualPage": {
+    "htmlSha256": "df8c6c51ff62a88683271e36fb315a8c3e4c6f4dcc675103b5955b03a1a500a5",
+    "applicationSha256": "c793d5b95106f6e299e5c776290c1b19c9bf172976e09305c58ccb18a5b55841"
+  },
+  "observed": {
+    "getSelectionSucceeded": true,
+    "selectionType": "none",
+    "selectionText": "",
+    "selectionObserved": true,
+    "selectionCollapsed": true,
+    "selectionRectangles": 0,
+    "preconditionPassed": true,
+    "note": "The readback that produced LOK_ERROR in r5 now returns a successful none-selection, and the independent callback path agrees."
+  },
+  "scenarioCoverage": {
+    "ran": ["delete-backward at anchor end, fixture plain-grapheme"],
+    "notRun": [
+      "delete-forward",
+      "complex selection branch",
+      "paragraph boundary cases"
+    ]
+  },
+  "finding016StillOpen": {
+    "callbackSequenceBefore": 7,
+    "callbackSequenceAfter": 7,
+    "changed": null,
+    "documentChangeSequence": 0,
+    "completion": "uno-command-result-manual-observation",
+    "note": "The mutation landed (revision 0 to 1, expected string found, original absent) but no callback sequence advanced, so completion was established by reading the document afterwards, not by an attributable callback. This run re-confirms finding 016 rather than resolving it."
+  },
+  "evidence": {
+    "operatorLog": {
+      "path": "findings/evidence/017/operator-2026-08-05-verify.log",
+      "sha256": "ba3b6545be416b1eef0f120b387ec98b171d99872f26ddb1a700b9428e46212b"
+    }
+  },
+  "decision": {
+    "finding017": "REMEDIATION_VERIFIED",
+    "e1": "STOP_OR_RESCOPE",
+    "note": "017 no longer blocks. E1 remains stopped on finding 016."
+  }
+}

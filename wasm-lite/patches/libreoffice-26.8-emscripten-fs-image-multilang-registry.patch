@@ -1,0 +1,19 @@
+diff --git a/static/CustomTarget_emscripten_fs_image.mk b/static/CustomTarget_emscripten_fs_image.mk
+index 7e4057ec9765..c2bcc57bf97d 100644
+--- a/static/CustomTarget_emscripten_fs_image.mk
++++ b/static/CustomTarget_emscripten_fs_image.mk
+@@ -1682,11 +1682,11 @@ gb_emscripten_fs_image_files += \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/ctlseqcheck.xcd \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/ctl.xcd \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/graphicfilter.xcd \
+-    $(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/Langpack-en-US.xcd \
++    $(foreach lang,$(gb_Configuration_LANGS),$(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/Langpack-$(lang).xcd) \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/lingucomponent.xcd \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/main.xcd \
+-    $(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/res/fcfg_langpack_en-US.xcd \
+-    $(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/res/registry_en-US.xcd \
++    $(foreach lang,$(gb_Configuration_LANGS),$(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/res/fcfg_langpack_$(lang).xcd) \
++    $(foreach lang,$(gb_Configuration_LANGS),$(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/res/registry_$(lang).xcd) \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/writer.xcd \
+ 	$(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/calc.xcd \
+     $(INSTROOT)/$(LIBO_SHARE_FOLDER)/registry/draw.xcd \

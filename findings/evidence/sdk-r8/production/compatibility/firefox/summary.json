@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "release": "R8-D-production-validation",
+  "browser": "firefox",
+  "status": "known-generation-limit-compositional-evidence",
+  "activeCachedReleaseCorpusCompleted": false,
+  "documentCount": 28,
+  "workersStarted": 0,
+  "maxWorkersPerPage": 0,
+  "sources": {
+    "r7FullCompatibility": "findings/evidence/sdk-r7/browser/compatibility/firefox/full/run-1/result.json",
+    "r7CompatibilityAggregate": "findings/evidence/sdk-r7/compatibility-summary.json",
+    "r8cFirefoxActiveRelease": "findings/evidence/sdk-r8/service-worker/summary.json",
+    "finding014": "findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md",
+    "attempt1": "findings/evidence/sdk-r8/production/attempts/compatibility-firefox-after-r8c-generation-exhaustion/result.json",
+    "attempt2": "findings/evidence/sdk-r8/production/attempts/compatibility-firefox-single-process-navigation-timeout/result.json"
+  },
+  "observed": "two Firefox R8-D attempts returned no first-batch page value for 900 seconds after the R8-C Firefox formal matrix",
+  "acceptedForPartialGo": true,
+  "formalGap": "the 28-document corpus was not rerun as one R8 active-cache campaign in Firefox after the known generation budget was exhausted",
+  "pass": false
+}

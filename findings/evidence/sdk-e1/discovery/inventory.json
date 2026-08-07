@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-A-editing-discovery",
+  "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+  "surfaces": [
+    {
+      "name": "LibreOfficeKitDocumentClass.postKeyEvent",
+      "classification": "stable-header",
+      "returnContract": "void",
+      "e1Use": "closed diagnostic action mapping only",
+      "productCommitment": false
+    },
+    {
+      "name": "LibreOfficeKitDocumentClass.postMouseEvent",
+      "classification": "stable-header",
+      "returnContract": "void",
+      "e1Use": "closed diagnostic mouse-drag candidate",
+      "productCommitment": false
+    },
+    {
+      "name": "LibreOfficeKitDocumentClass.setTextSelection",
+      "classification": "unstable-header",
+      "returnContract": "void",
+      "e1Use": "internal diagnostic compatibility candidate",
+      "productCommitment": false
+    },
+    {
+      "name": "LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR",
+      "classification": "documented-enum-payload",
+      "normalizedAs": "typed caret rectangle",
+      "rawPayloadExposed": false
+    },
+    {
+      "name": "LOK_CALLBACK_TEXT_SELECTION[_START|_END]",
+      "classification": "documented-enum-payload",
+      "normalizedAs": "typed selection geometry",
+      "rawPayloadExposed": false
+    },
+    {
+      "name": "LOK_CALLBACK_INVALIDATE_TILES",
+      "classification": "documented-enum-payload",
+      "normalizedAs": "typed document-change sequence",
+      "rawPayloadExposed": false
+    },
+    {
+      "name": "LOK_CALLBACK_UNO_COMMAND_RESULT",
+      "classification": "documented-enum-payload",
+      "normalizedAs": "fixed internal command completion",
+      "rawPayloadExposed": false
+    }
+  ],
+  "diagnosticContract": {
+    "scope": "e1-odt-editing-discovery",
+    "closedActionCount": 19,
+    "closedSelectionMethodCount": 3,
+    "arbitraryKeyCodeAccepted": false,
+    "arbitraryUnoCommandAccepted": false,
+    "rawCallbackExposed": false,
+    "productionArtifactReplaced": false
+  },
+  "observed": [
+    "caret and Shift-selection callbacks can be normalized without exposing payload",
+    "postKeyEvent return is not a mutation completion barrier",
+    "forward delete may mutate without any attributable documented completion callback"
+  ],
+  "inference": [
+    "state callbacks do not provide request identity and are insufficient as a general mutation acknowledgement"
+  ],
+  "pending": [
+    "upstream acknowledgement surface or a safely reduced product scope"
+  ]
+}

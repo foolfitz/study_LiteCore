@@ -1,0 +1,13 @@
+# UnpackedTarball .dir race — 原始錯誤
+# 情境：全新的 build 目錄，make -j12，--with-distro=LibreOfficeWASM32 --enable-symbols
+# 日期：2026-07-31
+
+$ make -j$(nproc)
+[build DEP] LNK:Library/libxmlreaderlo.so.d
+/bin/sh: 1: cannot create /home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build-stock/workdir_for_build/UnpackedTarball/dragonbox.version: Directory nonexistent
+make[1]: *** [/home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8/solenv/gbuild/UnpackedTarball.mk:170: /home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build-stock/workdir_for_build/UnpackedTarball/dragonbox.version] Error 2
+make[1]: *** Waiting for unfinished jobs....
+make: *** [Makefile:326: cross-toolset] Error 2
+
+# 失敗後 workdir_for_build/UnpackedTarball/ 已經被建出來（但是空的），
+# 所以直接重跑 make 就會過 —— 這是 race，不是設定錯誤。

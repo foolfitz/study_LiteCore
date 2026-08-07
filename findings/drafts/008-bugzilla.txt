@@ -1,0 +1,292 @@
+================================================================
+Bugzilla: https://bugs.documentfoundation.org
+================================================================
+Product:        LibreOffice
+Component:      LibreOffice             [TODO: confirm before submitting]
+Version:        26.8.0.1 rc
+Hardware:       Other                   [TODO: confirm appropriate WASM value]
+OS:             Linux (Ubuntu 26.04)    [only environment tested so far]
+Severity:       critical
+Summary:        CRASH [qt6][WASM] SetInputContext accesses an emval handle
+                from the wrong pthread
+================================================================
+
+
+DRAFT STATUS -- DO NOT SUBMIT YET
+---------------------------------
+
+This report is based on a custom Qt6-WASM/JSPI source build. The failure
+and local fix are well isolated in that build, but still need to be
+reproduced and validated on a freshly fetched LibreOffice master or a
+clean libreoffice-26-8 tree before submission.
+
+Items marked TODO near the end must be completed first.
+
+
+Description
+-----------
+
+In a Qt 6.10.2 WASM/JSPI build, the LibreOffice Start Center opens, but
+opening Writer aborts the whole application:
+
+    Qt for WebAssembly: soffice
+    Application exit (Assertion failed: invalid handle: 32)
+
+With a diagnostic distinction added to the generated soffice.js, the
+assertion is specifically an invalid emval handle. The symbolised stack
+is:
+
+    Emval.toValue()
+    __emval_set_property()
+    emscripten::val::set("value", ...)
+    QWasmInputContext::updateInputElement()
+    QWasmInputContext::update(...)
+    QInputMethod::update(...)
+    QWidget::setAttribute(Qt::WidgetAttribute, bool)
+    QtFrame::SetInputContext(SalInputContext*)
+    vcl::Window::ImplNewInputContext()
+
+The object passed to __emval_set_property is an HTMLInputElement handle
+created in the main browser JavaScript context. Qt's input-context update
+later uses the same numeric handle from an Emscripten pthread whose emval
+table does not contain that handle.
+
+
+Steps to Reproduce
+------------------
+
+1. Build Qt 6.10.2 for WebAssembly with threads, WASM exceptions and
+   WASM JSPI enabled.
+2. Build LibreOffice from libreoffice-26-8 commit
+   671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb with at least:
+
+       --enable-qt6
+       --disable-qt5
+       --enable-emscripten-jspi
+       --disable-emscripten-proxy-to-pthread
+       --with-wasm-module=writer
+       --enable-symbols=Executable_soffice_bin
+
+   The independent Qt 6.10 compatibility prerequisites used by this
+   build are disclosed below.
+3. Serve instdir/program/qt_soffice.html over HTTP with the COOP/COEP
+   headers required for SharedArrayBuffer/pthreads.
+4. Wait for the LibreOffice Start Center to appear.
+5. Select Writer.
+
+
+Actual Results
+--------------
+
+The application exits with "Assertion failed: invalid handle: 32" while
+QWasmInputContext::updateInputElement() tries to update the hidden HTML
+input element.
+
+Observed 5 out of 5 times before applying the proposed change.
+
+
+Expected Results
+----------------
+
+Writer opens and accepts text input without aborting the WebAssembly
+application.
+
+
+Cross-Thread Isolation
+----------------------
+
+Temporary instrumentation of the generated soffice.js recorded the
+lifecycle of handle 32.
+
+Producer:
+
+    JavaScript context: main browser context
+    workerId:           0
+    pthread:            false
+    C++ thread:         0x0372a98c
+    value:              HTMLInputElement
+    saved refcount:     1
+
+Consumer:
+
+    JavaScript context: em-pthread-7
+    C++ thread:         0x038c0128
+    call:               QWasmInputContext::updateInputElement()
+    handle allocated:   false
+    handle value:       undefined
+    refcount after use: NaN
+
+The property-name and property-value handles used by the same
+__emval_set_property call were valid in em-pthread-7. Only the DOM object
+handle was missing. This rules out the earlier hypothesis that the
+std::string conversion was producing the invalid handle.
+
+An Emscripten upstream issue explains that emscripten::val objects
+representing JavaScript values are sensitive to being used and destroyed
+on the same thread/context where they were created:
+
+    https://github.com/emscripten-core/emscripten/issues/20610
+
+
+Proposed Fix
+------------
+
+QtFrame::SetInputContext() currently enters Qt directly:
+
+    m_pQWidget->setAttribute(Qt::WA_InputMethodEnabled);
+
+Run that synchronous Qt/input-method update through LibreOffice's
+existing Emscripten main-runtime-thread helper instead:
+
+    GetQtInstance().EmscriptenLightweightRunInMainThread(
+        [this] { m_pQWidget->setAttribute(Qt::WA_InputMethodEnabled); });
+
+Full diff:
+
+    diff --git a/vcl/qt5/QtFrame.cxx b/vcl/qt5/QtFrame.cxx
+    --- a/vcl/qt5/QtFrame.cxx
+    +++ b/vcl/qt5/QtFrame.cxx
+    @@
+    -    m_pQWidget->setAttribute(Qt::WA_InputMethodEnabled);
+    +    GetQtInstance().EmscriptenLightweightRunInMainThread(
+    +        [this] { m_pQWidget->setAttribute(Qt::WA_InputMethodEnabled); });
+
+Despite the vcl/qt5 path, this source is shared with the Qt6 VCL plugin.
+
+EmscriptenLightweightRunInMainThread() performs the special synchronous
+proxy only for this configuration:
+
+    __EMSCRIPTEN__ && ENABLE_QT6 && HAVE_EMSCRIPTEN_JSPI
+        && !HAVE_EMSCRIPTEN_PROXY_TO_PTHREAD
+
+It releases SolarMutex around the proxy and acquires it on the main
+runtime thread. In other configurations it calls the function directly.
+
+There is an existing LibreOffice precedent using the same helper to fix
+another QtFrame WASM "invalid handle" failure:
+
+    https://github.com/LibreOffice/core/commit/46cadd6b0329
+
+
+Local Validation
+----------------
+
+After applying only the SetInputContext change on top of the existing
+Qt6-WASM build prerequisites, the incremental build visibly rebuilt and
+relinked:
+
+    [build CXX] vcl/qt6/QtFrame.cxx
+    [build LNK] Library/libvclplug_qt6lo.a
+    [build LNK] Executable/soffice.js
+    [build BIN] instsetoo_native
+    [build MOD] instsetoo_native
+    [build MOD] libreoffice
+    [build BIN] top level modules: libreoffice
+    [build ALL] top level modules: build-non-l10n-only build-l10n-only
+
+One manual runtime validation then produced the following result:
+
+  * Start Center opened.
+  * Writer opened instead of aborting.
+  * The invalid emval handle failure did not recur.
+  * Chinese IME input produced text successfully.
+
+Reproducibility at the time this draft was written:
+
+    before proposed fix: 5/5 aborted
+    after proposed fix:  0/1 aborted
+
+The patched output was:
+
+    soffice.js SHA-256
+    90a11899092e7af9004190822c6a24b7885ec126aad174ecd56638477f2debe5
+
+    soffice.wasm SHA-256
+    601c9ab1de3a6798f1f1fe3be2ba76001fe66312e18b9136d822d9e7726898c9
+
+
+Independent Local Modifications / Reproduction Boundary
+---------------------------------------------------------
+
+This is not yet a stock build. The tested worktree also contained these
+independent prerequisites or product-specific changes:
+
+  * removal of stale qstdweb::EventListener exports which no longer
+    exist in Qt 6.10.2;
+  * an Emscripten gbuild fix making a partial-symbol soffice target run
+    emdwp and complete installation;
+  * a filesystem-image change for zh-TW data and a CJK font;
+  * a Qt 6.10.2 guard for a delayed pointer-enter event whose DOM node
+    had become null;
+  * a backport of Qt's suspend/resume pending-event reentrancy fix.
+
+Those changes address separate build/runtime blockers and are not part
+of the proposed SetInputContext patch. However, their presence must be
+disclosed, and a clean current-master validation is required before this
+draft is submitted.
+
+The local origin/master snapshot inspected while preparing this draft
+was d9d87d79ced23f8a770eaf94de7e59d59d8eb49e. It still contained the
+direct QWidget::setAttribute call, but it has not yet been used for a
+runtime reproduction and must be refreshed before submission.
+
+
+Separate Issue Explicitly Excluded
+----------------------------------
+
+The first successful Writer session also showed one English key press
+inserting two characters. That behaviour is tracked separately because
+there is not yet an input-event trace or an identified owner. It must
+not be combined with this startup crash report.
+
+
+Build Environment
+-----------------
+
+LibreOffice   26.8.0.1.0+
+Source        libreoffice-26-8 @
+              671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+Qt            6.10.2, WebAssembly build
+Qt features   thread=ON, wasm_exceptions=ON, wasm_jspi=ON
+Emscripten    4.0.10
+Browser       Google Chrome 150.0.7871.128
+Host          Ubuntu 26.04 LTS, x86-64
+LO mode       --enable-emscripten-jspi
+              --disable-emscripten-proxy-to-pthread
+Module        Writer
+Languages     en-US zh-TW
+
+
+Evidence Available Locally
+--------------------------
+
+  * findings/evidence/008/browser-stack.txt
+  * findings/evidence/008/browser-stack-after-ecmastring.txt
+  * findings/evidence/008/emval32-cross-thread-lifecycle.txt
+  * findings/evidence/008/main-thread-proxy-validation.txt
+  * findings/evidence/008/env-qt6-poc.txt
+  * wasm-lite/patches/
+      libreoffice-26.8-qt-wasm-inputcontext-main-thread.patch
+
+The generated soffice.js diagnostics were temporary. They were removed
+after collecting the lifecycle evidence and were not present in the
+validated output.
+
+
+TODO Before Submission
+----------------------
+
+  [ ] Fetch current LibreOffice master and record its exact commit.
+  [ ] Reproduce on a clean current master or clean libreoffice-26-8 tree,
+      with only separately disclosed Qt 6.10 prerequisites.
+  [ ] Repeat the unpatched Writer-open test at least 3 times.
+  [ ] Apply only the proposed SetInputContext change and repeat at least
+      3 times.
+  [ ] Capture a clean browser console for both unpatched and patched
+      builds.
+  [ ] Test Start Center, Writer, Chinese IME, basic Latin input and mouse
+      interaction; report the Latin duplication separately.
+  [ ] If feasible, compile/test a non-WASM Qt6 configuration.
+  [ ] Search LibreOffice Bugzilla and Gerrit for duplicates.
+  [ ] Confirm Bugzilla Component, Hardware and OS fields.
+  [ ] Remove this DRAFT STATUS section and replace all TODO fields.

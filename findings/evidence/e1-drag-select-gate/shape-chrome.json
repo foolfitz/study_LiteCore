@@ -1,0 +1,100 @@
+{
+ "schemaVersion": 1,
+ "release": "e1-drag-select-gate",
+ "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+ "crossOriginIsolated": true,
+ "profile": "e1-editor-discovery",
+ "timeoutMs": 15000,
+ "cases": [
+  {
+   "case": "range-across-lines",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "type": "text",
+   "text": "E1-PLAIN-START\nASCII abc XYZ 0123456789\n臺灣中文游標測試",
+   "length": 48,
+   "elapsedMs": 1468
+  },
+  {
+   "case": "range-then-delete",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "selectedText": "ASCII abc XY",
+   "beforeRevision": 0,
+   "deleteOutcome": {
+    "status": "failed",
+    "error": {
+     "code": "EDITOR_STATE_UNAVAILABLE",
+     "message": "selection barrier requires a callback-confirmed collapsed caret"
+    }
+   },
+   "selectedTextStillFound": true,
+   "elapsedMs": 1043
+  },
+  {
+   "case": "range-then-bold-saved",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "selectedText": "ASCII abc XY",
+   "boldOutcome": {
+    "status": "completed",
+    "completion": "uno-command-result"
+   },
+   "savedBytes": 10279,
+   "elapsedMs": 1179
+  }
+ ],
+ "verdict": {
+  "range-across-lines": {
+   "case": "range-across-lines",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "type": "text",
+   "text": "E1-PLAIN-START\nASCII abc XYZ 0123456789\n臺灣中文游標測試",
+   "length": 48,
+   "elapsedMs": 1468
+  },
+  "range-then-delete": {
+   "case": "range-then-delete",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "selectedText": "ASCII abc XY",
+   "beforeRevision": 0,
+   "deleteOutcome": {
+    "status": "failed",
+    "error": {
+     "code": "EDITOR_STATE_UNAVAILABLE",
+     "message": "selection barrier requires a callback-confirmed collapsed caret"
+    }
+   },
+   "selectedTextStillFound": true,
+   "elapsedMs": 1043
+  },
+  "range-then-bold-saved": {
+   "case": "range-then-bold-saved",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "selectedText": "ASCII abc XY",
+   "boldOutcome": {
+    "status": "completed",
+    "completion": "uno-command-result"
+   },
+   "savedBytes": 10279,
+   "elapsedMs": 1179
+  }
+ },
+ "complete": true,
+ "error": null
+}

@@ -1,0 +1,11 @@
+R1 純文字中英混排測試
+這是一份用來驗證 LibreOfficeKit WebAssembly 文件流程的測試文件。內容包含繁體中文、
+English words、數字 1234567890，以及全形標點：「」，。！？；：。測試時，JavaScript
+會把這份文件寫入 MEMFS，再由 headless Writer 開啟。接著使用 paintTile 繪製頁面、在游
+標位置插入中文字『測』，最後另存為新的 ODT。我們需要確認字型顯示正常、段落沒有
+遺失、輸出的壓縮封裝與 content.xml 都能解析。若流程可以在不同瀏覽器連續重跑，就代
+表最小文件 SDK 的技術切片成立。本段也加入常用字：天地玄黃、日月山川、春夏秋冬、
+東西南北、臺灣軟體工程。
+Final line：ODT round-trip 完整性檢查。
+
+

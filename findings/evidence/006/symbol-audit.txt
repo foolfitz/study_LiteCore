@@ -1,0 +1,28 @@
+Captured: 2026-08-01 (Asia/Taipei)
+LibreOffice source commit: 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+Qt: qtbase-everywhere-src-6.10.2, SHA-256 aeb78d29291a2b5fd53cb55950f8f5065b4978c25fb1d77f627d695ab9adf21e
+
+$ rg -n -F 'qstdweb13EventListener' libreoffice-26-8
+libreoffice-26-8/solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk:36:    -sJSPI_EXPORTS=_emscripten_check_mailbox,_ZN10emscripten8internal13MethodInvokerINS0_3rvp11default_tagEMN7qstdweb13EventListenerEFvNS_3valEEvPS5_JS6_EE6invokeERKS8_S9_PNS_7_EM_VALE
+libreoffice-26-8/desktop/CustomTarget_soffice_bin-emscripten-exports.mk:25:    printf '__ZN10emscripten8internal13MethodInvokerINS0_3rvp11default_tagEMN7qstdweb13EventListenerEFvNS_3valEEvPS5_JS6_EE6invokeERKS8_S9_PNS_7_EM_VALE\n' >>$@
+
+$ c++filt '_ZN10emscripten8internal13MethodInvokerINS0_3rvp11default_tagEMN7qstdweb13EventListenerEFvNS_3valEEvPS5_JS6_EE6invokeERKS8_S9_PNS_7_EM_VALE'
+emscripten::internal::MethodInvoker<emscripten::internal::rvp::default_tag, void (qstdweb::EventListener::*)(emscripten::val), void, qstdweb::EventListener*, emscripten::val>::invoke(void (qstdweb::EventListener::* const&)(emscripten::val), qstdweb::EventListener*, emscripten::_EM_VAL*)
+
+$ llvm-nm -A libQt6Core.a | rg 'qstdweb13EventListener'
+（無輸出；Qt 6.10.2 archive 不含舊符號）
+
+$ llvm-nm -A --defined-only libQt6Core.a | rg 'qtSendPending|QWasmEventHandler|internal7Invoker'
+libQt6Core.a:qwasmsuspendresumecontrol.cpp.o: 000010d9 T _Z19qtSendPendingEventsv
+libQt6Core.a:qwasmsuspendresumecontrol.cpp.o: 000010ff T _ZN17QWasmEventHandlerC1EN10emscripten3valERKNSt3__212basic_stringIcNS2_11char_traitsIcEENS2_9allocatorIcEEEENS2_8functionIFvS1_EEE
+libQt6Core.a:qwasmsuspendresumecontrol.cpp.o: 00001528 T _ZN17QWasmEventHandlerD1Ev
+libQt6Core.a:qwasmsuspendresumecontrol.cpp.o: 00002049 W _ZN10emscripten8internal7InvokerINS0_3rvp11default_tagEvJEE6invokeEPFvvE
+
+Qt 6.10.2 source references:
+src/corelib/platform/wasm/qwasmsuspendresumecontrol_p.h:50-64 — QWasmEventHandler
+src/corelib/platform/wasm/qwasmsuspendresumecontrol.cpp:187 — emscripten::function("qtSendPendingEvents", qtSendPendingEvents QT_WASM_EMSCRIPTEN_ASYNC)
+src/corelib/platform/wasm/qstdweb_p.h:37-41 — wasm_jspi 時 QT_WASM_EMSCRIPTEN_ASYNC 展開為 emscripten::async()
+
+Upstream history:
+LibreOffice workaround: https://github.com/LibreOffice/core/commit/5c357a4c66990e2ffd4d46d627ee836e7c30fa25
+Qt event/timer helpers: https://github.com/qt/qtbase/commit/de2a29a1feef913037a668e9fa23269935bc3082

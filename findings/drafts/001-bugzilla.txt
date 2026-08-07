@@ -1,0 +1,199 @@
+================================================================
+Bugzilla: https://bugs.documentfoundation.org
+================================================================
+Product:        LibreOffice
+Component:      ???                    [送出前確認。候選：framework / Build tooling]
+Version:        26.8.0.1 rc
+Hardware:       x86-64
+OS:             Linux (Ubuntu 26.04)
+Severity:       critical
+Summary:        WASM: --disable-symbols breaks C++ exception handling; app dies
+                at startup in configmgrWriter thread
+================================================================
+
+
+Description
+-----------
+
+An Emscripten/Qt5 WASM build made with --disable-symbols dies immediately
+at startup.  The same build made with symbols enabled works.
+
+Symptom in the browser: the Qt logo flashes, then a blank canvas.  The Qt
+loader stays on "Downloading/Compiling..." forever.
+
+Console shows a pthread dying from an uncaught C++ exception:
+
+    [0.5s] 200 102087692B soffice.data          <- all assets load fine
+    [0.7s] QRect(0,0 1280x720) 1                <- Qt has initialised
+    [1.0s] Thread name: "configmgrWriter"
+    [1.0s] worker: onmessage() captured an uncaught exception: [object WebAssembly.Exception]
+    [1.0s] Error: com::sun::star::uno::RuntimeException,
+        at ___throw_exception_with_stack_trace
+        at soffice.wasm:wasm-function[177251]:0x49e1a2c
+        at soffice.wasm:wasm-function[9907]:0x472ed8
+        at soffice.wasm:wasm-function[22835]:0x6aafa4
+        at soffice.wasm:wasm-function[58390]:0x131dd59
+        at soffice.wasm:wasm-function[58517]:0x1326971
+        at soffice.wasm:wasm-function[22875]:0x6b03ea
+        at soffice.wasm:wasm-function[22228]:0x66a299
+        at soffice.wasm:wasm-function[175847]:0x498e7f8
+        at invokeEntryPoint
+    [1.0s] Pthread 0x034de350 sent an error!
+
+100% reproducible; the stack (including the pthread address) is identical
+on every run.
+
+Note that Components::WriteThread::execute()
+(configmgr/source/components.cxx:205-211) does catch RuntimeException:
+
+    try {
+        writeModFile(components_, url_, data_);
+    } catch (css::uno::RuntimeException &) {
+        // Ignore write errors, instead of aborting:
+        TOOLS_WARN_EXCEPTION("configmgr", "error writing modifications");
+    }
+
+but the exception escapes it and kills the thread, which takes the whole
+application down with it.
+
+
+Steps to Reproduce
+------------------
+
+1. Set up the WASM build per static/README.wasm.md
+   (emsdk 4.0.10, allotropia qt5 branch 5.15.2+wasm).
+2. Configure with --with-distro=LibreOfficeWASM32 plus --disable-symbols.
+3. make
+4. emrun --hostname 127.0.0.1 --port 6933 \
+       workdir/installation/LibreOffice/emscripten/qt_soffice.html
+5. Open the page in a new tab.
+
+
+Actual Results
+--------------
+
+Blank canvas.  configmgrWriter thread dies from an uncaught
+com::sun::star::uno::RuntimeException.
+
+
+Expected Results
+----------------
+
+Start Center (or Writer) renders, as it does with symbols enabled.
+
+
+Isolation
+---------
+
+Five builds from the same source tree (libreoffice-26-8 @ 671c848b1bb8):
+
+  build dir     configuration                                        result
+  ------------  ---------------------------------------------------  ------
+  build         reduced flag set incl. --disable-symbols             CRASH
+  build-stock   --with-distro=LibreOfficeWASM32 --enable-symbols     ok
+  build-t1      + --with-wasm-module=writer                          ok
+  build-t2      + --enable-release-build                             ok
+  build-t3      the SAME 31 flags as "build", except                 ok
+                --disable-symbols replaced by
+                --enable-symbols=Executable_soffice_bin
+
+build-t3 is the decisive one.  It differs from the crashing build in the
+symbol setting only, and symbols were enabled for a single target, so
+every library object is byte-identical to the crashing build (ccache hit
+throughout).  The difference is therefore isolated to the final emcc link
+of soffice_bin.
+
+Comparing config_host.mk between the crashing build and build-t2, the
+only runtime-relevant difference left is ENABLE_SYMBOLS_FOR.  (The
+remaining diffs are DISABLE_CVE_TESTS, MSGFMT/MSGUNIQ and
+GIT_NEEDED_SUBMODULES, all build-time or l10n related.)
+
+
+Ruled Out
+---------
+
+  * startup arguments -- 4 combinations tested (none; --writer
+    --norestore --nologo; with -env:UserInstallation=file:///tmp/louser;
+    UserInstallation only) -- identical stack every time
+  * COOP/COEP and SharedArrayBuffer -- crossOriginIsolated: true,
+    SharedArrayBuffer available
+  * asset loading -- soffice.wasm / soffice.data / metadata all HTTP 200
+  * toolchain mismatch -- config_host.mk CC/CXX both point at emsdk 4.0.10
+  * Qt5 exception flags -- Qt configured without -fwasm-exceptions, per
+    README.wasm.md
+  * --with-lang / language packs -- removing the zh-TW .xcd entries from
+    soffice.data.js.metadata (leaving the blob untouched) changes nothing
+  * UserInstallation path -- patching bootstraprc inside the data blob to
+    a creatable path changes nothing; and build-t2 works while carrying
+    the exact same UserInstallation=$SYSUSERCONFIG/libreoffice/4
+
+
+Suspected Mechanism (NOT VERIFIED -- please treat as a hypothesis)
+------------------------------------------------------------------
+
+On Emscripten the symbol setting has exactly one effect.
+solenv/gbuild/LinkTarget.mk:60 selects between debug and opt/strip link
+flags, but on this platform all three variables involved are empty:
+
+    solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk:72  gb_LINKEROPTFLAGS :=
+    solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk:73  gb_LINKERSTRIPDEBUGFLAGS :=
+    solenv/gbuild/platform/com_GCC_defs.mk:234         gb_LINKER_DEBUGINFO_FLAGS=
+
+So the link flags are the same either way.  What actually differs is
+LinkTarget.mk:49 adding gb_DEBUGINFO_FLAGS to the target's compile flags,
+and since emcc is both compiler and linker these reach the final link:
+
+    EMSCRIPTEN_INTEL_GCC.mk:76  gb_DEBUGINFO_FLAGS = -g
+    EMSCRIPTEN_INTEL_GCC.mk:79  gb_DEBUGINFO_FLAGS += -gseparate-dwarf -gsplit-dwarf -gpubnames
+
+build-t3 produced soffice.wasm.debug.wasm (199 MB), confirming
+-gseparate-dwarf did reach the link step.
+
+Hypothesis: with -g present, Emscripten limits post-link wasm rewriting
+(the -Wno-limited-postlink-optimizations at EMSCRIPTEN_INTEL_GCC.mk:65-69
+exists to silence the resulting warning).  Without it, the full wasm-opt
+post-link pass runs, and something in that pass breaks C++ exception type
+matching -- which would explain why the catch at
+configmgr/source/components.cxx:208 does not catch.
+
+I have NOT verified this last step.  What is verified is the
+input/output relation above.
+
+Possibly related: emscripten-core/emscripten#13665 ("Wasm Exception
+handling doesn't work with LTO") shows this class of breakage exists in
+Emscripten's exception handling, though that issue is about LTO rather
+than debug info.
+
+
+Impact
+------
+
+This blocks any shippable WASM build.  Anyone trying to reduce
+soffice.wasm (191 MB with symbols, 125 MB without) will turn symbols off,
+and the result does not start.  It is presumably unnoticed because
+development and testing are done with symbol-enabled builds.
+
+
+Build Environment
+-----------------
+
+LibreOffice   26.8.0.1.0+   libreoffice-26-8 @ 671c848b1bb8 (2026-07-30)
+Emscripten    4.0.10
+Qt            https://github.com/allotropia/qt5.git
+              branch 5.15.2+wasm @ 3d440b7787f9 (2025-05-23)
+OS            Ubuntu 26.04 LTS, kernel 7.0.0-28-generic, x86_64
+Browser       Chromium 151.0.7922.34 (headless, via Playwright)
+              also reproduced with Google Chrome 150.0.7871.128
+
+
+Workaround
+----------
+
+Build with --enable-symbols=Executable_soffice_bin.  Everything else can
+still be built without debug info, so the cost is the name section in
+soffice.wasm rather than a full debug build.
+
+Note that this workaround currently trips over a second issue: the
+emscripten-install step assumes a .dwp file exists whenever
+ENABLE_SYMBOLS_FOR is non-empty, which is not true for a partial symbol
+set.  [連結到 004 送出後拿到的 tdf# 編號]

@@ -1,0 +1,36 @@
+Finding 017 source trace (read-only), 2026-08-05
+
+Core commit:
+  671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+
+Project request path:
+  wasm_sdk_probe/src/probe_engine.cpp
+  handleGetSelection()
+  - calls getTextSelection(..., "text/plain;charset=utf-8", nullptr)
+  - maps a null result to SDK LOK_ERROR with kitError()
+
+LibreOfficeKit conversion path:
+  libreoffice-26-8/desktop/source/lib/init.cxx
+  getFromTransferable()
+  - canonicalizes text/plain;charset=utf-8 to text/plain;charset=utf-16
+  - uses OUString DataType for that internal flavor
+  - if unsupported, sets: Flavor text/plain;charset=utf-16 is not supported
+
+  doc_getTextSelection()
+  - obtains pDoc->getSelection()
+  - calls getFromTransferable()
+  - returns nullptr when conversion/flavor lookup fails
+
+Documented candidate readback:
+  libreoffice-26-8/include/LibreOfficeKit/LibreOfficeKit.hxx
+  getSelectionTypeAndText(), available since LibreOffice 7.4
+  - returns LOK_SELTYPE_NONE when there is no text selection
+  - returns text only for LOK_SELTYPE_TEXT
+
+Related project behavior:
+  wasm_sdk_probe/src/probe_engine.cpp
+  handleEditorGetState()
+  - also calls getTextSelection(..., utf-8)
+  - unlike handleGetSelection(), currently serializes null as empty selectionText
+
+No source file was modified while collecting this trace.

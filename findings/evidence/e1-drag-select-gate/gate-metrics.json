@@ -1,0 +1,457 @@
+{
+ "schemaVersion": 1,
+ "release": "e1-drag-select-gate",
+ "browser": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+ "crossOriginIsolated": true,
+ "profile": "e1-editor-discovery",
+ "timeoutMs": 15000,
+ "cases": [
+  {
+   "case": "drag-across-text",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "after": {
+    "usable": true,
+    "selectionType": "none",
+    "selectionText": "",
+    "sequence": 7
+   },
+   "elapsedMs": 1931
+  },
+  {
+   "case": "drag-repeated",
+   "outcomes": [
+    {
+     "status": "completed",
+     "completion": "documented-callback-text-selection"
+    },
+    {
+     "status": "completed",
+     "completion": "documented-callback-text-selection"
+    },
+    {
+     "status": "completed",
+     "completion": "documented-callback-text-selection"
+    }
+   ],
+   "after": {
+    "usable": true,
+    "selectionType": "text",
+    "selectionText": "ASCII",
+    "sequence": 15
+   },
+   "elapsedMs": 1921
+  },
+  {
+   "case": "drag-zero-length",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "after": {
+    "usable": true,
+    "selectionType": "none",
+    "selectionText": "",
+    "sequence": 7
+   },
+   "elapsedMs": 1860
+  },
+  {
+   "case": "drag-empty-area",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "after": {
+    "usable": true,
+    "selectionType": "none",
+    "selectionText": "",
+    "sequence": 7
+   },
+   "elapsedMs": 1864
+  },
+  {
+   "case": "drag-after-degenerate",
+   "first": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "second": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "after": {
+    "usable": true,
+    "selectionType": "text",
+    "selectionText": "ASCII abc XY",
+    "sequence": 11
+   },
+   "elapsedMs": 1892
+  },
+  {
+   "case": "drag-then-poll",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "polls": [
+    {
+     "atMs": 1,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 27,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 52,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 79,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 105,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 131,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 158,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 185,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 210,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 237,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 263,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 289,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 316,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 342,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 368,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 394,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 420,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 447,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 473,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 500,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 526,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 553,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 579,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 606,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 632,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 659,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 685,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 711,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 738,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 764,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 790,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 817,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 843,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 870,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 896,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 922,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 949,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 976,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 1003,
+     "type": "none",
+     "text": ""
+    },
+    {
+     "atMs": 1029,
+     "type": "none",
+     "text": ""
+    }
+   ],
+   "settledAtMs": 1029,
+   "settledText": "",
+   "elapsedMs": 2921
+  },
+  {
+   "case": "handles-then-poll-1",
+   "fatal": {
+    "code": "TIMEOUT",
+    "message": "search timed out after 30000 ms"
+   },
+   "elapsedMs": 31729
+  },
+  {
+   "case": "handles-then-poll-2",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "settledAtMs": 2,
+   "settledText": "ASCII abc XY",
+   "samples": 1,
+   "elapsedMs": 1805
+  },
+  {
+   "case": "handles-zero-length",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "after": {
+    "usable": true,
+    "selectionType": "none",
+    "selectionText": "",
+    "sequence": 7
+   },
+   "elapsedMs": 1792
+  },
+  {
+   "case": "handles-empty-area",
+   "fatal": {
+    "code": "TIMEOUT",
+    "message": "search timed out after 30000 ms"
+   },
+   "elapsedMs": 31778
+  },
+  {
+   "case": "handles-recover-after-empty",
+   "first": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "second": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "after": {
+    "usable": true,
+    "selectionType": "text",
+    "selectionText": "ASCII abc XY",
+    "sequence": 11
+   },
+   "elapsedMs": 1830
+  },
+  {
+   "case": "handles-distinct-ranges",
+   "steps": [
+    {
+     "span": 200,
+     "status": "completed",
+     "type": "text",
+     "text": "A"
+    },
+    {
+     "span": 400,
+     "status": "completed",
+     "type": "text",
+     "text": "ASC"
+    },
+    {
+     "span": 600,
+     "status": "completed",
+     "type": "text",
+     "text": "ASCII"
+    },
+    {
+     "span": 800,
+     "status": "completed",
+     "type": "text",
+     "text": "ASCII a"
+    }
+   ],
+   "after": {
+    "usable": true,
+    "selectionType": "text",
+    "selectionText": "ASCII a",
+    "sequence": 21
+   },
+   "elapsedMs": 1881
+  }
+ ],
+ "verdict": {
+  "happyPathCompletes": true,
+  "happyPathSelectedText": "",
+  "happyPathSelectionType": "none",
+  "repeatsAllComplete": true,
+  "zeroLengthStatus": "completed",
+  "zeroLengthLeavesUsable": true,
+  "emptyAreaStatus": "completed",
+  "emptyAreaLeavesUsable": true,
+  "recoversAfterDegenerate": "completed",
+  "pollSettledAtMs": 1029,
+  "pollSettledText": "",
+  "pollFirstSample": {
+   "atMs": 1,
+   "type": "none",
+   "text": ""
+  },
+  "handlesFirstText": "",
+  "handlesFirstAtMs": null,
+  "handlesSecondText": "ASCII abc XY",
+  "handlesSecondAtMs": 2,
+  "handlesZeroLength": "completed",
+  "handlesZeroLeavesUsable": true,
+  "handlesEmptyArea": null,
+  "handlesEmptyLeavesUsable": null,
+  "handlesRecoverSecond": "completed",
+  "handlesRecoverText": "ASCII abc XY",
+  "handlesDistinctRanges": [
+   {
+    "span": 200,
+    "status": "completed",
+    "type": "text",
+    "text": "A"
+   },
+   {
+    "span": 400,
+    "status": "completed",
+    "type": "text",
+    "text": "ASC"
+   },
+   {
+    "span": 600,
+    "status": "completed",
+    "type": "text",
+    "text": "ASCII"
+   },
+   {
+    "span": 800,
+    "status": "completed",
+    "type": "text",
+    "text": "ASCII a"
+   }
+  ]
+ },
+ "complete": true,
+ "error": null
+}

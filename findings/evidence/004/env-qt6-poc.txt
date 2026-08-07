@@ -1,0 +1,45 @@
+Captured: 2026-08-01 (Asia/Taipei)
+Command: BUILDDIR=../wasm-lite/build-qt6-poc ./env-snapshot.sh
+
+=== LibreOffice ===
+Version                26.8.0.1.0+
+Branch                 libreoffice-26-8
+Commit                 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+Commit date            2026-07-30
+Local modifications:   yes
+                        M desktop/CustomTarget_soffice_bin-emscripten-exports.mk
+                        M solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk
+                        M static/CustomTarget_emscripten_fs_image.mk
+                       ?? LibreOffice_VCL_Qt6_研究報告.md
+
+=== Toolchain ===
+Emscripten             4.0.10 (b7dc6e5747465580df5984e723b9d1f10d8e804b)
+Qt (actual build)      6.10.2
+Qt install             wasm-lite/tools/qt6-wasm-6.10.2
+Qt features            thread=ON, wasm_exceptions=ON, wasm_jspi=ON
+
+=== Host ===
+OS                     Ubuntu 26.04 LTS
+Kernel                 7.0.0-28-generic
+Arch                   x86_64
+Desktop                KDE
+CPU                    12 cores
+RAM                    31.0 GB
+Swap                   64.0 GB
+
+=== Browser ===
+google-chrome          Google Chrome 150.0.7871.128
+firefox                Mozilla Firefox 152.0.6
+Playwright Chromium    151.0.7922.34
+
+=== Build configuration ===
+Build dir              wasm-lite/build-qt6-poc
+ENABLE_SYMBOLS_FOR     Executable_soffice_bin
+HAVE_EXTERNAL_DWARF    TRUE
+
+=== Snapshot caveats ===
+The repository's env-snapshot.sh currently reports its hard-coded Qt5 checkout
+(`5.15.2+wasm`, allotropia/qt5). That field does not describe this build. The
+actual Qt selected by this Qt6 POC is the 6.10.2 installation shown above.
+The script also reported that build-qt6-poc/autogen.lastrun was absent; the two
+effective symbol settings above were read from build-qt6-poc/config_host.mk.

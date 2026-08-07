@@ -1,0 +1,25 @@
+diff --git a/src/corelib/platform/wasm/qwasmsuspendresumecontrol.cpp b/src/corelib/platform/wasm/qwasmsuspendresumecontrol.cpp
+--- a/src/corelib/platform/wasm/qwasmsuspendresumecontrol.cpp
++++ b/src/corelib/platform/wasm/qwasmsuspendresumecontrol.cpp
+@@ -164,15 +164,17 @@ int QWasmSuspendResumeControl::sendPendingEvents()
+     Q_ASSERT(emscripten_is_main_runtime_thread());
+ #endif
+     emscripten::val pendingEvents = suspendResumeControlJs()["pendingEvents"];
+-    int count = pendingEvents["length"].as<int>();
+-    if (count == 0)
+-        return false;
+-    while (count-- > 0) {
++    if (pendingEvents["length"].as<int>() == 0)
++        return 0;
++
++    int count = 0;
++    while (pendingEvents["length"].as<int>() > 0) { // Make sure it is reentrant
+         // Grab one event (handler and arg), and call it
+         emscripten::val event = pendingEvents.call<val>("shift");
+         auto it = m_eventHandlers.find(event["index"].as<int>());
+         Q_ASSERT(it != m_eventHandlers.end());
+         it->second(event["arg"]);
++        ++count;
+     }
+     return count;
+ }

@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-A-editing-discovery",
+  "frozenDate": "2026-08-04",
+  "mutationPolicy": "copy-only",
+  "fixtures": [
+    {
+      "id": "plain-grapheme",
+      "path": "plain-grapheme.odt",
+      "bytes": 1377,
+      "sha256": "9a99a2f708191ff6ae79624cb1e18163c9ff00a41ad5d5208368cd0cea4e69ca",
+      "anchors": [
+        "E1-PLAIN-START",
+        "臺灣中文游標測試",
+        "emoji 😀 grapheme",
+        "combining é boundary",
+        "E1-PLAIN-END"
+      ],
+      "minimum": {
+        "paragraphs": 6,
+        "headings": 0,
+        "lists": 0,
+        "tables": 0
+      },
+      "source": "project-generated deterministic ODT"
+    },
+    {
+      "id": "multi-paragraph",
+      "path": "multi-paragraph.odt",
+      "bytes": 1343,
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "anchors": [
+        "E1-MULTI-START alpha",
+        "第二段中文 beta",
+        "E1-MULTI-END omega"
+      ],
+      "minimum": {
+        "paragraphs": 5,
+        "headings": 0,
+        "lists": 0,
+        "tables": 0
+      },
+      "source": "project-generated deterministic ODT"
+    },
+    {
+      "id": "styled-list",
+      "path": "styled-list.odt",
+      "bytes": 1379,
+      "sha256": "309094260291bfc5a31f634562ec4efa2c8f84841deadcb8cd234211914d7bfc",
+      "anchors": [
+        "E1-STYLED-HEADING",
+        "bold anchor",
+        "italic anchor",
+        "E1-LIST-ONE",
+        "E1-STYLED-END"
+      ],
+      "minimum": {
+        "paragraphs": 4,
+        "headings": 1,
+        "lists": 1,
+        "tables": 0
+      },
+      "source": "project-generated deterministic ODT"
+    },
+    {
+      "id": "table-boundary",
+      "path": "table-boundary.odt",
+      "bytes": 1353,
+      "sha256": "037f8e0c2da63fa0f340c12430b3ff7247ca89367ea2f6698674c693d153fe86",
+      "anchors": [
+        "E1-TABLE-BEFORE",
+        "E1-CELL-A1",
+        "E1-CELL-B2",
+        "E1-TABLE-AFTER"
+      ],
+      "minimum": {
+        "paragraphs": 6,
+        "headings": 0,
+        "lists": 0,
+        "tables": 1
+      },
+      "source": "project-generated deterministic ODT"
+    },
+    {
+      "id": "r7-t2-styled",
+      "path": "r7-t2-styled.odt",
+      "bytes": 33278,
+      "sha256": "0f69906035cb5d96f86b034cf2596994d5de82ee6347a47c00f35784c9888d31",
+      "anchors": [
+        "R1 樣式文件",
+        "文件結尾：請確認表格、圖片、註解與標題樣式均保留。"
+      ],
+      "minimum": {
+        "paragraphs": 1,
+        "headings": 1,
+        "lists": 0,
+        "tables": 1
+      },
+      "source": "wasm_sdk_probe/test-docs/t2-styled.odt exact copy"
+    }
+  ]
+}

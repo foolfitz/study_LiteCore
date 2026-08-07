@@ -1,0 +1,909 @@
+{
+  "schemaVersion": 1,
+  "release": "R7-D",
+  "decision": "PARTIAL_GO",
+  "checks": {
+    "r7B": true,
+    "r7CStressPrecondition": true,
+    "automaticUsability": true,
+    "manualKeyboard": false,
+    "orcaSpike": false,
+    "longevity": false,
+    "scenarioMatrix": false,
+    "finding012Normal": true
+  },
+  "usability": {
+    "chrome": {
+      "schemaVersion": 1,
+      "release": "R7-D-usability",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "sessionType": "headless-automatic",
+      "metrics": {
+        "synthetic": true,
+        "controls": [
+          {
+            "id": "page-first",
+            "tag": "BUTTON",
+            "name": "第一頁",
+            "focused": true
+          },
+          {
+            "id": "page-previous",
+            "tag": "BUTTON",
+            "name": "上一頁",
+            "focused": true
+          },
+          {
+            "id": "page-next",
+            "tag": "BUTTON",
+            "name": "下一頁",
+            "focused": true
+          },
+          {
+            "id": "page-last",
+            "tag": "BUTTON",
+            "name": "最後一頁",
+            "focused": true
+          },
+          {
+            "id": "zoom-100",
+            "tag": "BUTTON",
+            "name": "100%",
+            "focused": true
+          },
+          {
+            "id": "zoom-150",
+            "tag": "BUTTON",
+            "name": "150%",
+            "focused": true
+          },
+          {
+            "id": "reload",
+            "tag": "BUTTON",
+            "name": "重新載入",
+            "focused": true
+          },
+          {
+            "id": "download",
+            "tag": "BUTTON",
+            "name": "下載本機 ODT",
+            "focused": true
+          },
+          {
+            "id": "viewport",
+            "tag": "DIV",
+            "name": "文件畫布；文件內容 accessibility 尚未支援",
+            "focused": true
+          },
+          {
+            "id": "search",
+            "tag": "INPUT",
+            "name": "搜尋",
+            "focused": true
+          },
+          {
+            "id": "search-next",
+            "tag": "BUTTON",
+            "name": "搜尋下一筆",
+            "focused": true
+          },
+          {
+            "id": "manual-method",
+            "tag": "SELECT",
+            "name": "本輪 input method",
+            "focused": true
+          },
+          {
+            "id": "manual-arm",
+            "tag": "BUTTON",
+            "name": "開始／切換本方法記錄",
+            "focused": true
+          },
+          {
+            "id": "manual-input",
+            "tag": "TEXTAREA",
+            "name": "IME／paste input sink",
+            "focused": true
+          },
+          {
+            "id": "cancel-arm",
+            "tag": "BUTTON",
+            "name": "開始 cancel 測試",
+            "focused": true
+          },
+          {
+            "id": "cancel-check",
+            "tag": "BUTTON",
+            "name": "確認 cancel 零 mutation",
+            "focused": true
+          },
+          {
+            "id": "copy-selection",
+            "tag": "BUTTON",
+            "name": "複製公開 selection",
+            "focused": true
+          },
+          {
+            "id": "clipboard-write",
+            "tag": "BUTTON",
+            "name": "寫入 Unicode fixture",
+            "focused": true
+          },
+          {
+            "id": "clipboard-read",
+            "tag": "BUTTON",
+            "name": "讀取並貼上純文字",
+            "focused": true
+          },
+          {
+            "id": "manual-verify",
+            "tag": "BUTTON",
+            "name": "集中儲存與驗證",
+            "focused": true
+          },
+          {
+            "id": "copy-evidence",
+            "tag": "BUTTON",
+            "name": "複製 evidence JSON",
+            "focused": true
+          },
+          {
+            "id": "keyboard-arm",
+            "tag": "BUTTON",
+            "name": "開始記錄鍵盤焦點",
+            "focused": true
+          },
+          {
+            "id": "keyboard-check",
+            "tag": "BUTTON",
+            "name": "檢查鍵盤流程",
+            "focused": true
+          },
+          {
+            "id": "orca-confirm",
+            "tag": "INPUT",
+            "name": "on",
+            "focused": true
+          },
+          {
+            "id": "native-source",
+            "tag": "INPUT",
+            "name": "原生 Ctrl+C／Ctrl+V fixture",
+            "focused": true
+          },
+          {
+            "id": "manual-evidence",
+            "tag": "TEXTAREA",
+            "name": "人工 evidence",
+            "focused": true
+          }
+        ],
+        "required": [
+          {
+            "id": "page-first",
+            "present": true,
+            "name": "第一頁",
+            "focused": true
+          },
+          {
+            "id": "page-previous",
+            "present": true,
+            "name": "上一頁",
+            "focused": true
+          },
+          {
+            "id": "page-next",
+            "present": true,
+            "name": "下一頁",
+            "focused": true
+          },
+          {
+            "id": "page-last",
+            "present": true,
+            "name": "最後一頁",
+            "focused": true
+          },
+          {
+            "id": "zoom-100",
+            "present": true,
+            "name": "100%",
+            "focused": true
+          },
+          {
+            "id": "zoom-150",
+            "present": true,
+            "name": "150%",
+            "focused": true
+          },
+          {
+            "id": "reload",
+            "present": true,
+            "name": "重新載入",
+            "focused": true
+          },
+          {
+            "id": "download",
+            "present": true,
+            "name": "下載本機 ODT",
+            "focused": true
+          },
+          {
+            "id": "search",
+            "present": true,
+            "name": "搜尋",
+            "focused": true
+          },
+          {
+            "id": "search-next",
+            "present": true,
+            "name": "搜尋下一筆",
+            "focused": true
+          },
+          {
+            "id": "manual-method",
+            "present": true,
+            "name": "本輪 input method",
+            "focused": true
+          },
+          {
+            "id": "manual-input",
+            "present": true,
+            "name": "IME／paste input sink",
+            "focused": true
+          }
+        ],
+        "status": {
+          "role": "status",
+          "live": "polite",
+          "text": "執行 R7-D usability assertions"
+        },
+        "page": {
+          "pageAfterOneActivation": 2,
+          "lastPage": 100,
+          "locationHint": "頁面位置提示：第 54 / 100 頁"
+        },
+        "zoom150": "1.5",
+        "search": {
+          "found": true,
+          "geometryPolicy": "selection-only-no-scroll-geometry"
+        },
+        "hyperlinks": [
+          {
+            "target": "https://example.test/r7",
+            "result": {
+              "supported": true,
+              "kind": "external-url",
+              "target": "https://example.test/r7"
+            }
+          },
+          {
+            "target": "#r7-bookmark",
+            "result": {
+              "supported": true,
+              "kind": "internal-bookmark",
+              "target": "#r7-bookmark"
+            }
+          },
+          {
+            "target": "javascript:alert(1)",
+            "result": {
+              "supported": false,
+              "code": "HYPERLINK_SCHEME_BLOCKED",
+              "scheme": "javascript:"
+            }
+          },
+          {
+            "target": "file:///etc/passwd",
+            "result": {
+              "supported": false,
+              "code": "HYPERLINK_SCHEME_BLOCKED",
+              "scheme": "file:"
+            }
+          },
+          {
+            "target": "macro:Run",
+            "result": {
+              "supported": false,
+              "code": "HYPERLINK_SCHEME_BLOCKED",
+              "scheme": "macro:"
+            }
+          }
+        ],
+        "documentContentAccessibility": "unsupported",
+        "pass": true
+      },
+      "accessibilityTree": {
+        "status": "checked",
+        "nodeCount": 202,
+        "roles": [
+          "DescriptionList",
+          "InlineTextBox",
+          "LabelText",
+          "Legend",
+          "MenuListPopup",
+          "RootWebArea",
+          "StaticText",
+          "alert",
+          "banner",
+          "button",
+          "checkbox",
+          "combobox",
+          "definition",
+          "generic",
+          "group",
+          "heading",
+          "main",
+          "none",
+          "option",
+          "paragraph",
+          "region",
+          "status",
+          "term",
+          "textbox",
+          "toolbar"
+        ],
+        "requiredNames": [
+          {
+            "name": "第一頁",
+            "found": true
+          },
+          {
+            "name": "下一頁",
+            "found": true
+          },
+          {
+            "name": "150%",
+            "found": true
+          },
+          {
+            "name": "搜尋",
+            "found": true
+          },
+          {
+            "name": "下載本機 ODT",
+            "found": true
+          }
+        ],
+        "pass": true
+      },
+      "documentContentAccessibility": "unsupported",
+      "pass": true
+    },
+    "firefox": {
+      "schemaVersion": 1,
+      "release": "R7-D-usability",
+      "browser": "firefox",
+      "browserVersion": "153.0.1",
+      "sessionType": "headless-automatic",
+      "metrics": {
+        "synthetic": true,
+        "controls": [
+          {
+            "id": "page-first",
+            "tag": "BUTTON",
+            "name": "第一頁",
+            "focused": true
+          },
+          {
+            "id": "page-previous",
+            "tag": "BUTTON",
+            "name": "上一頁",
+            "focused": true
+          },
+          {
+            "id": "page-next",
+            "tag": "BUTTON",
+            "name": "下一頁",
+            "focused": true
+          },
+          {
+            "id": "page-last",
+            "tag": "BUTTON",
+            "name": "最後一頁",
+            "focused": true
+          },
+          {
+            "id": "zoom-100",
+            "tag": "BUTTON",
+            "name": "100%",
+            "focused": true
+          },
+          {
+            "id": "zoom-150",
+            "tag": "BUTTON",
+            "name": "150%",
+            "focused": true
+          },
+          {
+            "id": "reload",
+            "tag": "BUTTON",
+            "name": "重新載入",
+            "focused": true
+          },
+          {
+            "id": "download",
+            "tag": "BUTTON",
+            "name": "下載本機 ODT",
+            "focused": true
+          },
+          {
+            "id": "viewport",
+            "tag": "DIV",
+            "name": "文件畫布；文件內容 accessibility 尚未支援",
+            "focused": true
+          },
+          {
+            "id": "search",
+            "tag": "INPUT",
+            "name": "搜尋",
+            "focused": true
+          },
+          {
+            "id": "search-next",
+            "tag": "BUTTON",
+            "name": "搜尋下一筆",
+            "focused": true
+          },
+          {
+            "id": "manual-method",
+            "tag": "SELECT",
+            "name": "本輪 input method",
+            "focused": true
+          },
+          {
+            "id": "manual-arm",
+            "tag": "BUTTON",
+            "name": "開始／切換本方法記錄",
+            "focused": true
+          },
+          {
+            "id": "manual-input",
+            "tag": "TEXTAREA",
+            "name": "IME／paste input sink",
+            "focused": true
+          },
+          {
+            "id": "cancel-arm",
+            "tag": "BUTTON",
+            "name": "開始 cancel 測試",
+            "focused": true
+          },
+          {
+            "id": "cancel-check",
+            "tag": "BUTTON",
+            "name": "確認 cancel 零 mutation",
+            "focused": true
+          },
+          {
+            "id": "copy-selection",
+            "tag": "BUTTON",
+            "name": "複製公開 selection",
+            "focused": true
+          },
+          {
+            "id": "clipboard-write",
+            "tag": "BUTTON",
+            "name": "寫入 Unicode fixture",
+            "focused": true
+          },
+          {
+            "id": "clipboard-read",
+            "tag": "BUTTON",
+            "name": "讀取並貼上純文字",
+            "focused": true
+          },
+          {
+            "id": "manual-verify",
+            "tag": "BUTTON",
+            "name": "集中儲存與驗證",
+            "focused": true
+          },
+          {
+            "id": "copy-evidence",
+            "tag": "BUTTON",
+            "name": "複製 evidence JSON",
+            "focused": true
+          },
+          {
+            "id": "keyboard-arm",
+            "tag": "BUTTON",
+            "name": "開始記錄鍵盤焦點",
+            "focused": true
+          },
+          {
+            "id": "keyboard-check",
+            "tag": "BUTTON",
+            "name": "檢查鍵盤流程",
+            "focused": true
+          },
+          {
+            "id": "orca-confirm",
+            "tag": "INPUT",
+            "name": "on",
+            "focused": true
+          },
+          {
+            "id": "native-source",
+            "tag": "INPUT",
+            "name": "原生 Ctrl+C／Ctrl+V fixture",
+            "focused": true
+          },
+          {
+            "id": "manual-evidence",
+            "tag": "TEXTAREA",
+            "name": "人工 evidence",
+            "focused": true
+          }
+        ],
+        "required": [
+          {
+            "id": "page-first",
+            "present": true,
+            "name": "第一頁",
+            "focused": true
+          },
+          {
+            "id": "page-previous",
+            "present": true,
+            "name": "上一頁",
+            "focused": true
+          },
+          {
+            "id": "page-next",
+            "present": true,
+            "name": "下一頁",
+            "focused": true
+          },
+          {
+            "id": "page-last",
+            "present": true,
+            "name": "最後一頁",
+            "focused": true
+          },
+          {
+            "id": "zoom-100",
+            "present": true,
+            "name": "100%",
+            "focused": true
+          },
+          {
+            "id": "zoom-150",
+            "present": true,
+            "name": "150%",
+            "focused": true
+          },
+          {
+            "id": "reload",
+            "present": true,
+            "name": "重新載入",
+            "focused": true
+          },
+          {
+            "id": "download",
+            "present": true,
+            "name": "下載本機 ODT",
+            "focused": true
+          },
+          {
+            "id": "search",
+            "present": true,
+            "name": "搜尋",
+            "focused": true
+          },
+          {
+            "id": "search-next",
+            "present": true,
+            "name": "搜尋下一筆",
+            "focused": true
+          },
+          {
+            "id": "manual-method",
+            "present": true,
+            "name": "本輪 input method",
+            "focused": true
+          },
+          {
+            "id": "manual-input",
+            "present": true,
+            "name": "IME／paste input sink",
+            "focused": true
+          }
+        ],
+        "status": {
+          "role": "status",
+          "live": "polite",
+          "text": "執行 R7-D usability assertions"
+        },
+        "page": {
+          "pageAfterOneActivation": 2,
+          "lastPage": 100,
+          "locationHint": "頁面位置提示：第 55 / 100 頁"
+        },
+        "zoom150": "1.5",
+        "search": {
+          "found": true,
+          "geometryPolicy": "selection-only-no-scroll-geometry"
+        },
+        "hyperlinks": [
+          {
+            "target": "https://example.test/r7",
+            "result": {
+              "supported": true,
+              "kind": "external-url",
+              "target": "https://example.test/r7"
+            }
+          },
+          {
+            "target": "#r7-bookmark",
+            "result": {
+              "supported": true,
+              "kind": "internal-bookmark",
+              "target": "#r7-bookmark"
+            }
+          },
+          {
+            "target": "javascript:alert(1)",
+            "result": {
+              "supported": false,
+              "code": "HYPERLINK_SCHEME_BLOCKED",
+              "scheme": "javascript:"
+            }
+          },
+          {
+            "target": "file:///etc/passwd",
+            "result": {
+              "supported": false,
+              "code": "HYPERLINK_SCHEME_BLOCKED",
+              "scheme": "file:"
+            }
+          },
+          {
+            "target": "macro:Run",
+            "result": {
+              "supported": false,
+              "code": "HYPERLINK_SCHEME_BLOCKED",
+              "scheme": "macro:"
+            }
+          }
+        ],
+        "documentContentAccessibility": "unsupported",
+        "pass": true
+      },
+      "accessibilityTree": {
+        "status": "firefox-dom-webdriver-only",
+        "pass": null
+      },
+      "documentContentAccessibility": "unsupported",
+      "pass": true
+    }
+  },
+  "manual": {
+    "keyboard": {
+      "chrome": false,
+      "firefox": false
+    },
+    "orca": {
+      "chrome": false,
+      "firefox": false
+    }
+  },
+  "longevity": {
+    "chrome": {
+      "schemaVersion": 1,
+      "release": "R7-D",
+      "browser": "chrome",
+      "threshold": {
+        "browser": "chrome",
+        "sampleIntervalMs": 1000,
+        "warmupCycles": 10,
+        "blockSize": 10,
+        "cycleCount": 50,
+        "maxPostCloseGrowthBytes": 536870912,
+        "maxPostCloseGrowthRatio": 0.35,
+        "maxBlockMedianSlopeBytes": 67108864,
+        "maxWasmHeapStepBytes": 268435456,
+        "maxWorkersAfterClose": 0,
+        "openTimeoutMs": 180000,
+        "closeTimeoutMs": 180000
+      },
+      "runs": [
+        {
+          "scenario": "s1",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/chrome/s1/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s1",
+          "run": 2,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/chrome/s1/run-2/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s1",
+          "run": 3,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/chrome/s1/run-3/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s2-reuse",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/chrome/s2-reuse/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s2-fresh",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/chrome/s2-fresh/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s3",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/chrome/s3/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s4",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/chrome/s4/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s5-normal",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/chrome/s5-normal/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s5-known",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/chrome/s5-known/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        }
+      ],
+      "pass": true
+    },
+    "firefox": {
+      "schemaVersion": 1,
+      "release": "R7-D",
+      "browser": "firefox",
+      "threshold": {
+        "browser": "firefox",
+        "sampleIntervalMs": 1000,
+        "warmupCycles": 10,
+        "blockSize": 10,
+        "cycleCount": 50,
+        "maxPostCloseGrowthBytes": 536870912,
+        "maxPostCloseGrowthRatio": 0.35,
+        "maxBlockMedianSlopeBytes": 67108864,
+        "maxWasmHeapStepBytes": 268435456,
+        "maxWorkersAfterClose": 0,
+        "openTimeoutMs": 180000,
+        "closeTimeoutMs": 180000
+      },
+      "runs": [
+        {
+          "scenario": "s1",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/firefox/s1/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s1",
+          "run": 2,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/firefox/s1/run-2/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s1",
+          "run": 3,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/firefox/s1/run-3/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s2-reuse",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/firefox/s2-reuse/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s2-fresh",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/firefox/s2-fresh/run-1/result.json",
+          "pass": false,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s3",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/firefox/s3/run-1/result.json",
+          "pass": false,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s4",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/firefox/s4/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s5-normal",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/firefox/s5-normal/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        },
+        {
+          "scenario": "s5-known",
+          "run": 1,
+          "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/longevity/firefox/s5-known/run-1/result.json",
+          "pass": true,
+          "knownDegradation": null
+        }
+      ],
+      "pass": false
+    }
+  },
+  "scenarioChecks": {
+    "chrome": {
+      "s1": true,
+      "s2-reuse": true,
+      "s2-fresh": true,
+      "s3": true,
+      "s4": true,
+      "s5-normal": true,
+      "s5-known": true
+    },
+    "firefox": {
+      "s1": true,
+      "s2-reuse": true,
+      "s2-fresh": false,
+      "s3": false,
+      "s4": true,
+      "s5-normal": true,
+      "s5-known": true
+    }
+  },
+  "finding012": {
+    "chrome": {
+      "normalPass": true,
+      "knownSequencePass": true,
+      "knownDegradation": null
+    },
+    "firefox": {
+      "normalPass": true,
+      "knownSequencePass": true,
+      "knownDegradation": null
+    }
+  },
+  "formalMatrixPass": false,
+  "partialAcceptance": {
+    "safeCorePass": true,
+    "firefoxRequiredNormalScenarios": true,
+    "limitations": [
+      "Firefox fresh-engine stress stopped after 35/50 successful cycles",
+      "Firefox crash-storm recovery stopped at cycle 20 after 19 successful recoveries",
+      "headed keyboard matrix and Orca spike were not collected"
+    ],
+    "finding": "findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md"
+  },
+  "documentContentAccessibility": "unsupported-public-sdk",
+  "hyperlinkActivation": "unsupported-safe-fallback",
+  "pass": true
+}

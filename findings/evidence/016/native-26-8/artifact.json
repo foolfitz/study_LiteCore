@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "finding": "016",
+  "observedAt": "2026-08-05",
+  "purpose": "Native stock LibreOffice 26.8 comparison: does a forward delete that leaves caret geometry unchanged emit any documented LOK callback?",
+  "why": "All prior 016 evidence came from the headless --disable-gui WASM profile. findings/README.md requires reproducing on an upstream-default configuration before filing upstream.",
+  "core": {
+    "commit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "modifiedByThisFinding": false,
+    "localWorktreeModifications": [
+      "solenv/gbuild/platform/unxgcc.mk (inert: entire hunk is inside $(if $(filter EMSCRIPTEN,$(OS)),...))",
+      "desktop/CustomTarget_soffice_bin-emscripten-exports.mk (emscripten-only target)",
+      "static/CustomTarget_emscripten_fs_image.mk (emscripten-only target)",
+      "solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk (emscripten-only platform)",
+      "vcl/qt5/QtFrame.cxx (NOT compiled: ENABLE_QT5=0, ENABLE_QT6=0 in this build)"
+    ],
+    "comparisonCleanliness": "No local modification reaches this build. Verified against config_host/config_vclplug.h."
+  },
+  "build": {
+    "directory": "build-native-26-8",
+    "outOfTree": true,
+    "autogenInput": [
+      "--disable-debug", "--enable-sal-log", "--disable-lto", "--disable-odk",
+      "--disable-python", "--without-help", "--without-myspell-dicts",
+      "--with-lang=en-US", "--disable-online-update", "--disable-breakpad",
+      "--disable-crashdump", "--disable-qt5", "--disable-qt6",
+      "--disable-kf5", "--disable-kf6", "--disable-gstreamer-1-0"
+    ],
+    "note": "GUI backends left enabled (ENABLE_GTK3=1) and svp selected at runtime, matching how Collabora Online runs LibreOfficeKit. A --disable-gui build would have left a negative result ambiguous."
+  },
+  "run": {
+    "vclplugin": "svp",
+    "salLog": "+INFO.lok.a11y+WARN",
+    "fixture": "wasm_sdk_probe/test-docs/e1/plain-grapheme.odt",
+    "mainLoopPumped": false,
+    "note": "The probe does NOT call runLoop(); see the analysis for why this matters."
+  },
+  "validity": {
+    "textLengthBefore": 120,
+    "textLengthAfter": 119,
+    "mutated": true,
+    "verdict": "valid",
+    "control": "Caret move produced INVALIDATE_VISIBLE_CURSOR and TEXT_SELECTION, proving the callback channel was alive before the measured step.",
+    "note": "A run in which the delete did not land would prove nothing about callback absence; the probe marks such runs DISCARD."
+  },
+  "observed": {
+    "invalidateTilesCount": 0,
+    "stateChangedCount": 185,
+    "unoCommandResult": {
+      "commandName": ".uno:Delete",
+      "success": true,
+      "wasModified": false,
+      "note": "wasModified sits beside saveDurationMics and appears to describe save state, not content change. Not relied upon."
+    },
+    "contentDerivedSignal": {
+      "before": ".uno:StateWordCount=20 words, 94 characters",
+      "after": ".uno:StateWordCount=20 words, 93 characters"
+    },
+    "modifiedStatus": "false -> true across the delete",
+    "timing": {
+      "deleteDispatchedAtMs": 2268.37,
+      "unoCommandResultAtMs": 2269.27,
+      "deferredStateChangedBurstAtMs": 2870.51,
+      "note": "Deferred callbacks arrive roughly 600ms AFTER the command result, i.e. they are idle/scheduler driven."
+    }
+  },
+  "wasmComparison": {
+    "profile": "e1-editor-discovery",
+    "formatStateAcrossWholeSession": { "bold": null, "italic": null },
+    "note": "Native emits .uno:Bold=false; the WASM profile never observed one, so the deferred STATE_CHANGED stream does not reach it at all.",
+    "engineYieldsToScheduler": false,
+    "engineGrep": "probe_engine.cpp contains no Yield, Scheduler, ProcessEventsToIdle or emscripten_sleep"
+  },
+  "coolReference": {
+    "checkout": "study_LiteCore/cool-26-04 (read-only, distro/collabora/co-26.04)",
+    "setup": "kit/SetupKitEnvironment.hpp:66 sets options = \"unipoll\"",
+    "loop": "kit/Kit.cpp:3561 calls loKit->runLoop(pollCallback, wakeCallback, mainKit.get())",
+    "coreReads": "desktop/source/lib/init.cxx:8083 reads SAL_LOK_OPTIONS (COOL sets SAL_KIT_OPTIONS; the names differ and the core-side name governs)"
+  },
+  "conclusion": {
+    "upstreamGap": false,
+    "reframedAs": "project execution model omits the LibreOfficeKit main loop that deferred callbacks depend on",
+    "confidence": "inference, not yet observed: pumping the loop in the WASM engine has not been tried",
+    "openQuestion": "Native emitted zero INVALIDATE_TILES even after a 1500ms drain. Unexplained; not used to support the conclusion."
+  },
+  "evidence": {
+    "callbackStream": { "path": "callbacks.jsonl", "sha256": "c3b773b423b98174af60067131a4e870979cceb390e76b2e52cd08f049749020" },
+    "salLog": { "path": "sal.log", "sha256": "569fc6401c5a15be4a62b9045a77a753311efb9b4b2ea99326dcd716734a7af2" },
+    "probeSource": { "path": "finding_016_native_lok.cpp", "sha256": "e7068f4f0243d1a1bfcd063b886c1bec6eb1a304cb5275eede0304c1ae861342" }
+  }
+}

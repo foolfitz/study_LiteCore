@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "release": "R8-C-service-worker",
+  "cacheSchema": "oxsdk-r8c-release-v1",
+  "metadataDatabase": "oxsdk-r8c-metadata-v1",
+  "retainedReleaseCeiling": 3,
+  "states": [
+    "staging",
+    "ready",
+    "active-health-pending",
+    "active",
+    "retiring",
+    "failed"
+  ],
+  "barriers": [
+    "manifest-verified",
+    "artifact-verified",
+    "artifact-cached",
+    "metadata-before-ready",
+    "activation-prepared",
+    "activation-health-pending",
+    "eviction-cache-deleted"
+  ],
+  "errors": {
+    "OFFLINE_RELEASE_UNAVAILABLE": {
+      "retryable": true,
+      "safeNextAction": "reconnect-or-select-known-good"
+    },
+    "CACHED_ARTIFACT_INVALID": {
+      "retryable": true,
+      "safeNextAction": "repair-same-release-online"
+    },
+    "CACHE_WRITE_FAILED": {
+      "retryable": true,
+      "safeNextAction": "retain-known-good-and-retry"
+    },
+    "CANDIDATE_NOT_READY": {
+      "retryable": true,
+      "safeNextAction": "finish-or-retry-staging"
+    },
+    "ACTIVATION_HEALTH_FAILED": {
+      "retryable": false,
+      "safeNextAction": "rollback-last-known-good"
+    },
+    "ROLLBACK_TARGET_UNAVAILABLE": {
+      "retryable": false,
+      "safeNextAction": "online-repair-or-terminal-action"
+    },
+    "RELEASE_PINNED": {
+      "retryable": true,
+      "safeNextAction": "close-or-reload-pinned-client"
+    },
+    "UNSAVED_RELOAD_BLOCKED": {
+      "retryable": true,
+      "safeNextAction": "save-download-or-cancel"
+    }
+  },
+  "invariants": [
+    "candidate-cache-is-release-specific",
+    "active-and-last-known-good-are-never-evicted",
+    "pinned-client-never-switches-release",
+    "failed-candidate-never-becomes-active",
+    "health-failure-rolls-back-without-document-mutation",
+    "offline-never-composes-a-partial-release",
+    "controllerchange-never-hot-swaps-document-worker",
+    "recovery-never-replays-document-mutation"
+  ]
+}

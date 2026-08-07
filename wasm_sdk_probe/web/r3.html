@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OxOffice Document SDK — R3 Review Operations</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; line-height: 1.45; }
+    body { margin: 0 auto; max-width: 1120px; padding: 24px; }
+    h1 { margin-bottom: 4px; }
+    .panel { border: 1px solid #8886; border-radius: 10px; margin: 16px 0; padding: 16px; }
+    .controls { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; }
+    button, input { font: inherit; }
+    button { min-height: 36px; padding: 5px 12px; }
+    button.primary { font-weight: 700; }
+    #status { font-weight: 700; }
+    #canvas { background: white; border: 1px solid #888; display: block; max-width: 100%; }
+    #log { background: #111; color: #ddd; max-height: 420px; min-height: 220px;
+           overflow: auto; padding: 12px; white-space: pre-wrap; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <h1>OxOffice Document SDK</h1>
+  <p>R3：search、selection、revision-guarded replace／undo、comments 與 tracked changes。</p>
+
+  <section class="panel">
+    <div class="controls">
+      <input id="file" type="file" accept=".odt,application/vnd.oasis.opendocument.text">
+      <button id="run-all" class="primary">Run R3 Review Flow</button>
+      <button id="run-conformance">R3 ABI Conformance</button>
+      <button id="download" disabled>Download R3 ODT</button>
+      <button id="copy-metrics">Copy metrics JSON</button>
+      <span>Status: <span id="status">loading worker</span></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <canvas id="canvas" width="512" height="512"></canvas>
+  </section>
+
+  <section class="panel">
+    <h2>SDK event log</h2>
+    <pre id="log"></pre>
+  </section>
+
+  <script type="module" src="r3-app.js"></script>
+</body>
+</html>

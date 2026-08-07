@@ -1,0 +1,19 @@
+diff --git a/src/plugins/platforms/wasm/qwasmwindow.cpp b/src/plugins/platforms/wasm/qwasmwindow.cpp
+--- a/src/plugins/platforms/wasm/qwasmwindow.cpp
++++ b/src/plugins/platforms/wasm/qwasmwindow.cpp
+@@ -780,9 +780,15 @@ bool QWasmWindow::processPointerEnterLeave(const PointerEvent &event)
+ 
+     switch (event.type) {
+     case EventType::PointerEnter: {
++        const auto eventTarget = event.target();
++        const auto screenElement = platformScreen()->element();
++        if (eventTarget.isNull() || eventTarget.isUndefined()
++            || screenElement.isNull() || screenElement.isUndefined()) {
++            break;
++        }
+         const auto pointInScreen = platformScreen()->mapFromLocal(
+-            dom::mapPoint(event.target(), platformScreen()->element(), event.localPoint));
++            dom::mapPoint(eventTarget, screenElement, event.localPoint));
+         QWindowSystemInterface::handleEnterEvent(
+                 window(), mapFromGlobal(pointInScreen.toPoint()), pointInScreen);
+         break;

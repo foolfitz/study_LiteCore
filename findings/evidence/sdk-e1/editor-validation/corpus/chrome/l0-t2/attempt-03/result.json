@@ -1,0 +1,2843 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-C-editor-validation",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "scenario": "corpus",
+  "fixture": "l0-t2",
+  "repetition": 1,
+  "manual": false,
+  "artifact": {
+    "profile": "e1-editor-v1",
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-v1",
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "loader": "./probe.js",
+    "wasm": "./probe.wasm",
+    "editorContract": {
+      "version": 1,
+      "abiVersion": 1,
+      "actions": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic"
+      ],
+      "textCommit": "document-sdk-insert-text",
+      "undo": "document-sdk-undo",
+      "state": "typed-editor-state-v1",
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "boundaryRejectionRequiresFreshWorker": true,
+      "automaticRetry": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "diagnosticOperationsExposed": false,
+      "loaderSha256": "b9a29749413512aff86182c58481f118e78c6ee0dc89b6d432f815d6350e3835",
+      "wasmSha256": "97e605ee8e5c1df3bafaae736012d6203826abf6c5362a7e58364768c86023b6",
+      "workerSha256": "9696c9ce580b431644cd4f56ea7356647dfd9ab143da6370e521bc2474a35fd7"
+    }
+  },
+  "operations": [
+    {
+      "name": "corpus-insert",
+      "status": "passed",
+      "beforeRevision": 0,
+      "revision": 1,
+      "result": {
+        "method": "paste",
+        "revision": 1
+      }
+    },
+    {
+      "name": "corpus-insert-postcondition",
+      "status": "passed",
+      "result": {
+        "found": true,
+        "text": "E1C-l0-t2-臺灣😀",
+        "selections": [
+          {
+            "part": "0",
+            "rectangles": "6668, 37032, 1669, 303"
+          }
+        ]
+      }
+    },
+    {
+      "name": "corpus-delete",
+      "status": "passed",
+      "beforeRevision": 1,
+      "revision": 2,
+      "result": {
+        "action": "delete-backward",
+        "option": false,
+        "beforeRevision": 1,
+        "revision": 2,
+        "changed": true,
+        "completion": "verified-selection-delete",
+        "callbackSequenceBefore": 15,
+        "callbackSequenceAfter": 20,
+        "state": {
+          "sourceSequence": 20,
+          "documentChangeSequence": 3,
+          "visible": true,
+          "caret": {
+            "x": 8127,
+            "y": 37032,
+            "width": 0,
+            "height": 304
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": true,
+            "start": {
+              "x": 8127,
+              "y": 37032,
+              "width": 0,
+              "height": 303
+            },
+            "end": {
+              "x": 8337,
+              "y": 37032,
+              "width": 0,
+              "height": 303
+            },
+            "rectangles": []
+          },
+          "format": {
+            "bold": null,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "corpus-undo-delete",
+      "status": "passed",
+      "beforeRevision": 2,
+      "revision": 3,
+      "result": {
+        "revision": 3
+      }
+    },
+    {
+      "name": "corpus-bold",
+      "status": "passed",
+      "beforeRevision": 3,
+      "revision": 4,
+      "result": {
+        "action": "set-bold",
+        "option": true,
+        "beforeRevision": 3,
+        "revision": 4,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 27,
+        "callbackSequenceAfter": 29,
+        "state": {
+          "sourceSequence": 29,
+          "documentChangeSequence": 3,
+          "visible": true,
+          "caret": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 304
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 6668,
+              "y": 37032,
+              "width": 0,
+              "height": 303
+            },
+            "end": {
+              "x": 8337,
+              "y": 37032,
+              "width": 0,
+              "height": 303
+            },
+            "rectangles": [
+              {
+                "x": 6668,
+                "y": 37032,
+                "width": 1709,
+                "height": 303
+              }
+            ]
+          },
+          "format": {
+            "bold": true,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "corpus-italic",
+      "status": "passed",
+      "beforeRevision": 4,
+      "revision": 5,
+      "result": {
+        "action": "set-italic",
+        "option": true,
+        "beforeRevision": 4,
+        "revision": 5,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 32,
+        "callbackSequenceAfter": 34,
+        "state": {
+          "sourceSequence": 34,
+          "documentChangeSequence": 3,
+          "visible": true,
+          "caret": {
+            "x": 8377,
+            "y": 37032,
+            "width": 0,
+            "height": 304
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 6668,
+              "y": 37032,
+              "width": 0,
+              "height": 303
+            },
+            "end": {
+              "x": 8377,
+              "y": 37032,
+              "width": 0,
+              "height": 303
+            },
+            "rectangles": [
+              {
+                "x": 6668,
+                "y": 37032,
+                "width": 1708,
+                "height": 303
+              }
+            ]
+          },
+          "format": {
+            "bold": true,
+            "italic": true
+          }
+        }
+      }
+    },
+    {
+      "name": "corpus-original-anchors",
+      "status": "passed",
+      "result": [
+        {
+          "anchor": "文件結尾：請確認表格、圖片、註解與標題樣式均保留。",
+          "found": true,
+          "text": "文件結尾：請確認表格、圖片、註解與標題樣式均保留。",
+          "selections": [
+            {
+              "part": "0",
+              "rectangles": "1418, 37032, 5250, 303"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "save",
+      "status": "passed",
+      "beforeRevision": 5,
+      "revision": 5,
+      "result": {
+        "bytes": 34386,
+        "sha256": "9c10482e64ef04681ec67a5d2a6fbc9ad9d473dcb75c1b353ad37ef5b17c2e8a"
+      }
+    }
+  ],
+  "states": [
+    {
+      "atMs": 23.535000003874302,
+      "state": "loading",
+      "documentName": "l0-t2-styled.odt",
+      "revision": null,
+      "dirty": false,
+      "generation": 0,
+      "pending": 0,
+      "editorState": null,
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 1078.2750000059605,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4682,
+          "y": 1783,
+          "width": 0,
+          "height": 644
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2397.304999999702,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4682,
+          "y": 1783,
+          "width": 0,
+          "height": 644
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2397.3550000041723,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4682,
+          "y": 1783,
+          "width": 0,
+          "height": 644
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2397.359999999404,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 4682,
+          "y": 1783,
+          "width": 0,
+          "height": 644
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2444.935000002384,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2444.9800000041723,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2445.005000002682,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2445.005000002682,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2445.015000000596,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2447.4800000041723,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 8,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2447.490000002086,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 8,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2508.0250000059605,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 8,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2508.060000002384,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 8,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2508.070000000298,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 8,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2544.880000002682,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 15,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2544.914999999106,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 15,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2544.935000002384,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 15,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2544.9400000050664,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 15,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2544.945000000298,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 15,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2600.5350000038743,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 20,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8127,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 8127,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2600.5800000056624,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 20,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8127,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 8127,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2601.005000002682,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 20,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8127,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 8127,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2601.0100000053644,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 20,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8127,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 8127,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2601.015000000596,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 20,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8127,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 8127,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2612.0900000035763,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 24,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 8127,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 8127,
+              "y": 37032,
+              "width": 210,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2612.125,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 24,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 8127,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 8127,
+              "y": 37032,
+              "width": 210,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2640.6750000044703,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 24,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 8127,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 8127,
+              "y": 37032,
+              "width": 210,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2640.7150000035763,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 24,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 8127,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 8127,
+              "y": 37032,
+              "width": 210,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2640.719999998808,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 24,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 8127,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 8127,
+              "y": 37032,
+              "width": 210,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2657.4950000047684,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 29,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 6668,
+              "y": 37032,
+              "width": 1709,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2657.530000001192,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 29,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 6668,
+              "y": 37032,
+              "width": 1709,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2657.9550000056624,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 29,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 6668,
+              "y": 37032,
+              "width": 1709,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2657.960000000894,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 29,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 6668,
+              "y": 37032,
+              "width": 1709,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2657.9650000035763,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 29,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8337,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8337,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 6668,
+              "y": 37032,
+              "width": 1709,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2676.5650000050664,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 34,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8377,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8377,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 6668,
+              "y": 37032,
+              "width": 1708,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2676.60000000149,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 34,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8377,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8377,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 6668,
+              "y": 37032,
+              "width": 1708,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2698.4400000050664,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 34,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8377,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8377,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 6668,
+              "y": 37032,
+              "width": 1708,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2698.4650000035763,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 34,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8377,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8377,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 6668,
+              "y": 37032,
+              "width": 1708,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2698.469999998808,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 34,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 8377,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 8377,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 6668,
+              "y": 37032,
+              "width": 1708,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2849.5900000035763,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 41,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 37032,
+              "width": 5250,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "文件結尾：請確認表格、圖片、註解與標題樣式均保留。"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2849.6750000044703,
+      "state": "busy",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 5,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 41,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 37032,
+              "width": 5250,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "文件結尾：請確認表格、圖片、註解與標題樣式均保留。"
+      },
+      "hasSavedBytes": true,
+      "error": null
+    },
+    {
+      "atMs": 2849.6750000044703,
+      "state": "ready",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 5,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 41,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 37032,
+              "width": 5250,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "文件結尾：請確認表格、圖片、註解與標題樣式均保留。"
+      },
+      "hasSavedBytes": true,
+      "error": null
+    },
+    {
+      "atMs": 13851.05000000447,
+      "state": "closed",
+      "documentName": "l0-t2-styled.odt",
+      "revision": 5,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 41,
+        "documentChangeSequence": 3,
+        "visible": true,
+        "caret": {
+          "x": 6668,
+          "y": 37032,
+          "width": 0,
+          "height": 304
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "end": {
+            "x": 6668,
+            "y": 37032,
+            "width": 0,
+            "height": 303
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 37032,
+              "width": 5250,
+              "height": 303
+            }
+          ]
+        },
+        "format": {
+          "bold": true,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "文件結尾：請確認表格、圖片、註解與標題樣式均保留。"
+      },
+      "hasSavedBytes": true,
+      "error": null
+    }
+  ],
+  "sdkEvents": [
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "view-ready",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 1
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 1
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 3
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 4
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 5
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 5
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-close-recovery-started",
+      "documentHandle": 1,
+      "detail": {
+        "strategy": "worker-restart",
+        "timeoutMs": 10000,
+        "previousGeneration": 1
+      }
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "resource-pack-loaded",
+      "resourcePack": "cjk-r5",
+      "files": 1,
+      "bytes": 19484784,
+      "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-close-recovery-complete",
+      "documentHandle": 1,
+      "detail": {
+        "strategy": "worker-restart",
+        "timeoutMs": 10000,
+        "previousGeneration": 1,
+        "generation": 2
+      }
+    }
+  ],
+  "inputTrace": [
+    {
+      "type": "blocked-change",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "blocked": false,
+      "reason": null
+    },
+    {
+      "type": "compositioncancel",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "wasComposing": false
+    },
+    {
+      "type": "queue-invalidated",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "cancelled": 0
+    },
+    {
+      "type": "detach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    },
+    {
+      "type": "attach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    },
+    {
+      "type": "compositioncancel",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "wasComposing": false
+    },
+    {
+      "type": "queue-invalidated",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "cancelled": 0
+    },
+    {
+      "type": "detach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    }
+  ],
+  "clipboardTrace": [],
+  "workers": {
+    "created": 2,
+    "terminated": 2,
+    "intentionalCrashes": 0
+  },
+  "output": {
+    "bytes": 34386,
+    "sha256": "9c10482e64ef04681ec67a5d2a6fbc9ad9d473dcb75c1b353ad37ef5b17c2e8a"
+  },
+  "manualEvidence": null,
+  "complete": true,
+  "pass": true,
+  "error": null,
+  "browserName": "chrome",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "case": {
+    "phase": "corpus",
+    "name": "l0-t2",
+    "scenario": "corpus",
+    "fixture": "l0-t2",
+    "repetition": 1
+  },
+  "savedOutput": {
+    "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/corpus/chrome/l0-t2/attempt-03/output.odt",
+    "bytes": 34386,
+    "sha256": "9c10482e64ef04681ec67a5d2a6fbc9ad9d473dcb75c1b353ad37ef5b17c2e8a"
+  },
+  "processSamples": [
+    {
+      "monotonicSeconds": 50915.458655143,
+      "rootPid": 677138,
+      "processes": [
+        {
+          "pid": 677138,
+          "ppid": 677115,
+          "name": "chrome",
+          "rssBytes": 310165504,
+          "pssBytes": 123893760,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677142,
+          "ppid": 677138,
+          "name": "cat",
+          "rssBytes": 7602176,
+          "pssBytes": 2401280,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677143,
+          "ppid": 677138,
+          "name": "cat",
+          "rssBytes": 7544832,
+          "pssBytes": 2421760,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677153,
+          "ppid": 677138,
+          "name": "chrome",
+          "rssBytes": 72306688,
+          "pssBytes": 12237824,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677154,
+          "ppid": 677138,
+          "name": "chrome",
+          "rssBytes": 72830976,
+          "pssBytes": 6634496,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677179,
+          "ppid": 677138,
+          "name": "chrome",
+          "rssBytes": 123584512,
+          "pssBytes": 29968384,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677156,
+          "ppid": 677154,
+          "name": "chrome",
+          "rssBytes": 19566592,
+          "pssBytes": 2693120,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677181,
+          "ppid": 677156,
+          "name": "chrome",
+          "rssBytes": 56623104,
+          "pssBytes": 6093824,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677219,
+          "ppid": 677156,
+          "name": "chrome",
+          "rssBytes": 1470050304,
+          "pssBytes": 1331431424,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677243,
+          "ppid": 677156,
+          "name": "chrome",
+          "rssBytes": 98615296,
+          "pssBytes": 14405632,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677408,
+          "ppid": 677156,
+          "name": "chrome",
+          "rssBytes": 101728256,
+          "pssBytes": 15747072,
+          "status": "sleeping"
+        },
+        {
+          "pid": 678203,
+          "ppid": 677156,
+          "name": "chrome",
+          "rssBytes": 78811136,
+          "pssBytes": 11208704,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677177,
+          "ppid": 677153,
+          "name": "chrome",
+          "rssBytes": 159207424,
+          "pssBytes": 45130752,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "before-l0-t2",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": null,
+      "activeHandles": null,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 13,
+      "rssBytes": 2578636800,
+      "pssBytes": 1604268032
+    },
+    {
+      "monotonicSeconds": 50929.575417378,
+      "rootPid": 677138,
+      "processes": [
+        {
+          "pid": 677138,
+          "ppid": 677115,
+          "name": "chrome",
+          "rssBytes": 309346304,
+          "pssBytes": 124192768,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677142,
+          "ppid": 677138,
+          "name": "cat",
+          "rssBytes": 7602176,
+          "pssBytes": 2401280,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677143,
+          "ppid": 677138,
+          "name": "cat",
+          "rssBytes": 7544832,
+          "pssBytes": 2421760,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677153,
+          "ppid": 677138,
+          "name": "chrome",
+          "rssBytes": 72306688,
+          "pssBytes": 12369920,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677154,
+          "ppid": 677138,
+          "name": "chrome",
+          "rssBytes": 72830976,
+          "pssBytes": 7610368,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677179,
+          "ppid": 677138,
+          "name": "chrome",
+          "rssBytes": 123928576,
+          "pssBytes": 30691328,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677156,
+          "ppid": 677154,
+          "name": "chrome",
+          "rssBytes": 19566592,
+          "pssBytes": 3549184,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677181,
+          "ppid": 677156,
+          "name": "chrome",
+          "rssBytes": 56623104,
+          "pssBytes": 7243776,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677219,
+          "ppid": 677156,
+          "name": "chrome",
+          "rssBytes": 1390989312,
+          "pssBytes": 1254344704,
+          "status": "sleeping"
+        },
+        {
+          "pid": 678261,
+          "ppid": 677156,
+          "name": "chrome",
+          "rssBytes": 78548992,
+          "pssBytes": 12194816,
+          "status": "sleeping"
+        },
+        {
+          "pid": 677177,
+          "ppid": 677153,
+          "name": "chrome",
+          "rssBytes": 158539776,
+          "pssBytes": 45208576,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "after-l0-t2",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": null,
+      "activeHandles": null,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 11,
+      "rssBytes": 2297827328,
+      "pssBytes": 1502228480
+    }
+  ],
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/corpus/chrome/l0-t2/attempt-03"
+}

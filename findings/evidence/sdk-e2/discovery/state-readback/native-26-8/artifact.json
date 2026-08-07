@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-A",
+  "phase": "A2-state-readback",
+  "date": "2026-08-05",
+  "question": "Do .uno:DefaultBullet, .uno:DefaultNumbering and .uno:StyleApply reach a LibreOfficeKit client, what strings does StyleApply carry, and do the paragraph/list fixed commands acknowledge?",
+  "whyNative": "A negative result from the WASM profile alone cannot separate 'core never sends this' from 'our build does not receive it'. Finding 016 needed a native comparison to settle exactly that, so E2-A runs native before wiring any completion barrier.",
+  "build": {
+    "tree": "libreoffice-26-8",
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "buildDir": "build-native-26-8",
+    "vclplugin": "svp",
+    "note": "Same native build used for the Finding 016 comparison; not rebuilt for E2."
+  },
+  "fixture": {
+    "path": "wasm_sdk_probe/test-docs/e1/styled-list.odt",
+    "layout": "Heading 1 / plain paragraph / list with two items / tail paragraph",
+    "caretForMutations": "plain paragraph (paragraph 2)"
+  },
+  "validityGuard": {
+    "method": "saveAs to ODT after every dispatch; postcondition read from content.xml, not from the callbacks under test",
+    "why": "A paragraph-format command does not change document text, so text length cannot be used as the guard the way Finding 016 used it.",
+    "result": "all six saves returned true and were inspected"
+  },
+  "observed": {
+    "stateCallbacksArrive": true,
+    "distinctStateStrings": [
+      ".uno:DefaultBullet=false",
+      ".uno:DefaultBullet=true",
+      ".uno:DefaultNumbering=false",
+      ".uno:DefaultNumbering=true",
+      ".uno:StyleApply=Default Paragraph Style",
+      ".uno:StyleApply=Heading 1",
+      ".uno:StyleApply=Body Text"
+    ],
+    "stateArrivesOnCaretMoveWithoutMutation": true,
+    "unoCommandResultCount": 5,
+    "perCommand": [
+      {
+        "command": ".uno:DefaultBullet",
+        "unoResult": { "success": true, "wasModified": false },
+        "stateAfterMs": 602,
+        "documentChanged": true,
+        "postcondition": "paragraph moved into <text:list><text:list-item>",
+        "note": "wasModified:false contradicts the saved document"
+      },
+      {
+        "command": ".uno:DefaultNumbering",
+        "unoResult": { "success": true, "wasModified": true },
+        "stateAfterMs": 301,
+        "documentChanged": true,
+        "postcondition": "DefaultBullet=false and DefaultNumbering=true"
+      },
+      {
+        "command": ".uno:RemoveBullets",
+        "unoResult": { "success": false, "wasModified": true },
+        "stateAfterMs": 601,
+        "documentChanged": true,
+        "postcondition": "paragraph left the list, style back to Standard",
+        "note": "success:false contradicts the saved document -- see finding 020"
+      },
+      {
+        "command": ".uno:Heading1ParaStyle",
+        "unoResult": null,
+        "stateAfterMs": null,
+        "documentChanged": false,
+        "postcondition": "paragraph style unchanged (Standard)",
+        "note": "UI alias, not a dispatchable slot -- see finding 019"
+      },
+      {
+        "command": ".uno:StyleApply",
+        "arguments": { "Style": "Heading 1", "FamilyName": "ParagraphStyles" },
+        "unoResult": { "success": true, "wasModified": true },
+        "stateAfterMs": 301,
+        "documentChanged": true,
+        "postcondition": "text:style-name=Heading_20_1"
+      },
+      {
+        "command": ".uno:StyleApply",
+        "arguments": { "Style": "Text body", "FamilyName": "ParagraphStyles" },
+        "unoResult": { "success": true, "wasModified": true },
+        "stateAfterMs": 301,
+        "documentChanged": true,
+        "postcondition": "text:style-name=Text_20_body",
+        "note": "three different strings for one style: sent 'Text body', stored 'Text_20_body', reported 'Body Text'"
+      }
+    ],
+    "orderingUnoResultBeforeState": true,
+    "unoResultLatencyMs": "1-4",
+    "stateLatencyMs": "301-602"
+  },
+  "consequences": {
+    "a2Gate": "passed for lists and for parameterised StyleApply; the paragraph-style aliases fail for a different reason than assumed",
+    "specPremiseOverturned": "SPEC-E2-A entered assuming these commands emit no UNO command result at all. Four of five dispatchable forms do. The real defects are a wrong command mapping (019) and an untrustworthy success flag (020).",
+    "barrierDesignRevision": "The UNO command result carries commandName and so solves attribution, which the state broadcast alone cannot. But success/wasModified are demonstrably wrong for two commands, so the result cannot carry truth. Completion must require both: the matching command result for attribution and the expected state for truth.",
+    "expectedStatePostconditions": {
+      "set-list-unordered": ".uno:DefaultBullet=true",
+      "set-list-ordered": ".uno:DefaultNumbering=true",
+      "set-list-none": ".uno:DefaultBullet=false and .uno:DefaultNumbering=false",
+      "set-paragraph-heading": ".uno:StyleApply=Heading 1",
+      "set-paragraph-body": ".uno:StyleApply=Body Text"
+    }
+  },
+  "notValidated": [
+    "Whether the same states and results arrive in the WASM profile under Chrome and Firefox.",
+    "Whether StyleApply display names change with UI locale; this run used the default locale only.",
+    "Whether the state can arrive before the UNO command result under load, which would change the barrier's ordering assumption.",
+    "Whether list toggling triggers the Finding 012 teardown class on close."
+  ],
+  "files": {
+    "callbacks.jsonl": "f9e5dc17d8e68a69b7ebefe3c67d06a49b3617261ad0e3916a7dbc45aa087444",
+    "sal.log": "16f63124cbd3779dd47d00e24cccf48e23b255cdf791702cdd604ee003c321b8",
+    "e2_a_native_state_readback.cpp": "0d02a81854341e14c677a315a77e43e02dd1a8577e9839bfae8d7d25ab040de2",
+    "postcondition/after-bullet.odt": "b753488f1d5eaadbf11d61f921000c66516f9ca72bd85bbe64555e5426b5c479",
+    "postcondition/after-numbering.odt": "c93dc9239a9ee5e99ea2258aa260359976cd2354ec2871108049c900d9a7d880",
+    "postcondition/after-remove.odt": "6df11846ee341d68c173fc63753e0498f865706a7166584fcaa2c74639c49643",
+    "postcondition/after-heading-alias.odt": "93fd089d0ff429c78511990ee415fa039a1c39200630aa9a30e6bc27fba6ce67",
+    "postcondition/after-heading.odt": "bc3e9f73767d77e10a75d8be19d29ac5c82c367a7d27010a721cba2eac50f3d2",
+    "postcondition/after-body.odt": "978a0b7c448ea5c62b7679179759ee948ad20d6d1a4f706894c16e40c8b6158d"
+  },
+  "rerun": "wasm_sdk_probe/tools/run_e2_a_native.sh"
+}

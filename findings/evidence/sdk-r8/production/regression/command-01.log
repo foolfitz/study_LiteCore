@@ -1,0 +1,38 @@
+node --test reader-shell/tests/*.test.mjs
+✔ session opens, renders, saves, protects local bytes, and reloads with a new worker (2.195336ms)
+✔ session maps worker crash to recoverable error and can reload (0.259984ms)
+✔ session classifies unique, missing, and ambiguous anchors conservatively (0.251217ms)
+✔ reader state follows the documented loading, stale, reload, and close path (0.843981ms)
+✔ reader refuses silent reload when local bytes exist (0.341255ms)
+✔ reader rejects impossible transitions and updates after close (0.127828ms)
+✔ CSS/twips adapter and boundary clamp are deterministic (0.847397ms)
+✔ visible tiles precede prefetch and the in-flight ceiling is enforced (16.302079ms)
+✔ same key uses cache and revision invalidation clears it (1.20331ms)
+✔ late completion from an old generation never paints the new viewport (1.640343ms)
+✔ LRU cache respects its byte ceiling (0.364979ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.085647
+node --check web/r6-discovery-app.js
+node --check web/r6-reader-app.js
+node --test collaboration/tests/*.test.mjs
+✔ all 12 R6-B scenarios pass through the pure domain adapter (8.109242ms)
+✔ all 12 R6-B scenarios pass through the loopback HTTP adapter (79.144476ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 141.384782
+node --check collaboration/contract.js
+node --check collaboration/domain.js
+node --check collaboration/reference-service.js
+node --check web/r6-reference-app.js
+node --check tools/serve_r6_reference.mjs

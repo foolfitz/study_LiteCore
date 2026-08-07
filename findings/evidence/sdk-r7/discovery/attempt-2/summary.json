@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "release": "R7-A",
+  "automaticDecision": "STOP",
+  "finalDecision": "PENDING_MANUAL",
+  "manual": {
+    "required": true,
+    "status": "pending",
+    "scope": "headed Chrome and Firefox Fcitx Chewing plus user-gesture plain-text clipboard"
+  },
+  "checks": {
+    "preflight": true,
+    "corpus": true,
+    "chrome": false,
+    "firefox": false
+  },
+  "browsers": {
+    "chrome": {
+      "checks": {
+        "page": true,
+        "syntheticInput": true,
+        "unicodeOdtXml": false,
+        "cancelZeroMutation": true,
+        "clipboardPlainText": true,
+        "formatSafety": true,
+        "lifecycle10": true,
+        "crashRestart3": true,
+        "processSamples": true
+      },
+      "missingUnicodeInOdtXml": [
+        "臺灣文件測試",
+        "𠀀",
+        "👨‍👩‍👧‍👦",
+        "é",
+        "é",
+        "換行前-R7",
+        "換行後-R7",
+        "連續一-R7",
+        "連續二-R7"
+      ],
+      "docxClassification": "name-dependent",
+      "processSampleCount": 184,
+      "browserMemoryMethods": [
+        "performance.measureUserAgentSpecificMemory",
+        "performance.measureUserAgentSpecificMemory"
+      ],
+      "pass": false
+    },
+    "firefox": {
+      "checks": {
+        "page": true,
+        "syntheticInput": true,
+        "unicodeOdtXml": false,
+        "cancelZeroMutation": true,
+        "clipboardPlainText": true,
+        "formatSafety": true,
+        "lifecycle10": true,
+        "crashRestart3": true,
+        "processSamples": true
+      },
+      "missingUnicodeInOdtXml": [
+        "臺灣文件測試",
+        "𠀀",
+        "👨‍👩‍👧‍👦",
+        "é",
+        "é",
+        "換行前-R7",
+        "換行後-R7",
+        "連續一-R7",
+        "連續二-R7"
+      ],
+      "docxClassification": "name-dependent",
+      "processSampleCount": 64,
+      "browserMemoryMethods": [
+        "unavailable",
+        "unavailable"
+      ],
+      "pass": false
+    }
+  },
+  "thresholds": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/discovery/memory/thresholds.json",
+  "pass": false
+}

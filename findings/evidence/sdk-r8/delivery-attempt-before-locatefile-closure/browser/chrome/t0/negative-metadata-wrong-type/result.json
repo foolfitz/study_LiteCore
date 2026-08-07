@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "release": "R8-B-versioned-artifact-delivery",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "topology": "t0",
+  "policy": "standard",
+  "transport": "identity",
+  "cacheMode": "cold",
+  "scenario": "negative",
+  "artifactOrigin": "http://127.0.0.1:34459",
+  "crossOriginIsolated": true,
+  "startedAt": "2026-08-04T03:55:37.107Z",
+  "phases": [
+    {
+      "atMs": 23.41499999910593,
+      "value": "manifest-selected"
+    },
+    {
+      "atMs": 515.8449999988079,
+      "value": "r8-delivery-result"
+    }
+  ],
+  "workersStarted": 0,
+  "documentMutations": 0,
+  "verified": null,
+  "handshake": null,
+  "document": null,
+  "output": null,
+  "error": {
+    "name": "DeliveryError",
+    "code": "ARTIFACT_MEDIA_TYPE_MISMATCH",
+    "message": "base-metadata media type text/plain; charset=utf-8 != application/json; charset=utf-8",
+    "details": {
+      "stage": "artifact-validate",
+      "releaseId": "writer-review-5996a47cc94d422a",
+      "role": "base-metadata",
+      "retryable": false,
+      "safeNextAction": "reject-release",
+      "mutationState": "none",
+      "expected": "application/json; charset=utf-8",
+      "actual": "text/plain; charset=utf-8"
+    }
+  },
+  "status": "complete",
+  "pass": true,
+  "completedAt": "2026-08-04T03:55:37.607Z",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "runnerElapsedMs": 564.092
+}

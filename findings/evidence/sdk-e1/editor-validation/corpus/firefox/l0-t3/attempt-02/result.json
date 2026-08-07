@@ -1,0 +1,2830 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-C-editor-validation",
+  "browser": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+  "crossOriginIsolated": true,
+  "scenario": "corpus",
+  "fixture": "l0-t3",
+  "repetition": 1,
+  "manual": false,
+  "artifact": {
+    "profile": "e1-editor-v1",
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-v1",
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "loader": "./probe.js",
+    "wasm": "./probe.wasm",
+    "editorContract": {
+      "version": 1,
+      "abiVersion": 1,
+      "actions": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic"
+      ],
+      "textCommit": "document-sdk-insert-text",
+      "undo": "document-sdk-undo",
+      "state": "typed-editor-state-v1",
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "boundaryRejectionRequiresFreshWorker": true,
+      "automaticRetry": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "diagnosticOperationsExposed": false,
+      "loaderSha256": "b9a29749413512aff86182c58481f118e78c6ee0dc89b6d432f815d6350e3835",
+      "wasmSha256": "97e605ee8e5c1df3bafaae736012d6203826abf6c5362a7e58364768c86023b6",
+      "workerSha256": "9696c9ce580b431644cd4f56ea7356647dfd9ab143da6370e521bc2474a35fd7"
+    }
+  },
+  "operations": [
+    {
+      "name": "corpus-insert",
+      "status": "passed",
+      "beforeRevision": 0,
+      "revision": 1,
+      "result": {
+        "method": "paste",
+        "revision": 1
+      }
+    },
+    {
+      "name": "corpus-insert-postcondition",
+      "status": "passed",
+      "result": {
+        "found": true,
+        "text": "E1C-l0-t3-臺灣😀",
+        "selections": [
+          {
+            "part": "0",
+            "rectangles": "6910, 1658, 2760, 520"
+          }
+        ]
+      }
+    },
+    {
+      "name": "corpus-delete",
+      "status": "passed",
+      "beforeRevision": 1,
+      "revision": 2,
+      "result": {
+        "action": "delete-backward",
+        "option": false,
+        "beforeRevision": 1,
+        "revision": 2,
+        "changed": true,
+        "completion": "verified-selection-delete",
+        "callbackSequenceBefore": 14,
+        "callbackSequenceAfter": 19,
+        "state": {
+          "sourceSequence": 19,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 9310,
+            "y": 1658,
+            "width": 0,
+            "height": 521
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": true,
+            "start": {
+              "x": 9310,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "end": {
+              "x": 9670,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "rectangles": []
+          },
+          "format": {
+            "bold": null,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "corpus-undo-delete",
+      "status": "passed",
+      "beforeRevision": 2,
+      "revision": 3,
+      "result": {
+        "revision": 3
+      }
+    },
+    {
+      "name": "corpus-bold",
+      "status": "passed",
+      "beforeRevision": 3,
+      "revision": 4,
+      "result": {
+        "action": "set-bold",
+        "option": true,
+        "beforeRevision": 3,
+        "revision": 4,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 26,
+        "callbackSequenceAfter": 28,
+        "state": {
+          "sourceSequence": 28,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 521
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 6910,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "end": {
+              "x": 9670,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "rectangles": [
+              {
+                "x": 6910,
+                "y": 1658,
+                "width": 2720,
+                "height": 520
+              }
+            ]
+          },
+          "format": {
+            "bold": false,
+            "italic": null
+          }
+        }
+      }
+    },
+    {
+      "name": "corpus-italic",
+      "status": "passed",
+      "beforeRevision": 4,
+      "revision": 5,
+      "result": {
+        "action": "set-italic",
+        "option": true,
+        "beforeRevision": 4,
+        "revision": 5,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 31,
+        "callbackSequenceAfter": 33,
+        "state": {
+          "sourceSequence": 33,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 9630,
+            "y": 1658,
+            "width": 0,
+            "height": 521
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 6910,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "end": {
+              "x": 9630,
+              "y": 1658,
+              "width": 0,
+              "height": 520
+            },
+            "rectangles": [
+              {
+                "x": 6910,
+                "y": 1658,
+                "width": 2763,
+                "height": 520
+              }
+            ]
+          },
+          "format": {
+            "bold": false,
+            "italic": true
+          }
+        }
+      }
+    },
+    {
+      "name": "corpus-original-anchors",
+      "status": "passed",
+      "result": [
+        {
+          "anchor": "第 1 頁：長文件記憶體與效能測試",
+          "found": true,
+          "text": "第 1 頁：長文件記憶體與效能測試",
+          "selections": [
+            {
+              "part": "0",
+              "rectangles": "1418, 1658, 5492, 520"
+            }
+          ]
+        },
+        {
+          "anchor": "第 22 頁：長文件記憶體與效能測試",
+          "found": true,
+          "text": "第 22 頁：長文件記憶體與效能測試",
+          "selections": [
+            {
+              "part": "0",
+              "rectangles": "1418, 361220, 5620, 520"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "save",
+      "status": "passed",
+      "beforeRevision": 5,
+      "revision": 5,
+      "result": {
+        "bytes": 38183,
+        "sha256": "87d3853fb3d9703dcb616ba89c3e050f726d815abf07be0c8354a2c15348a02a"
+      }
+    }
+  ],
+  "states": [
+    {
+      "atMs": 30.1,
+      "state": "loading",
+      "documentName": "l0-t3-long.odt",
+      "revision": null,
+      "dirty": false,
+      "generation": 0,
+      "pending": 0,
+      "editorState": null,
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 1849.98,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2040.6,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2040.66,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2040.66,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2077.12,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6838,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6838,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2077.18,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6838,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6838,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2077.2,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6838,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6838,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2077.2,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6838,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6838,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2077.2,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6838,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6838,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2084.36,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6838,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6838,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2084.38,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6838,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6838,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2142.94,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6838,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6838,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2142.98,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6838,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6838,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2143,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 6838,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 6838,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2181.08,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 14,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2181.12,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 14,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2181.14,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 14,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2181.16,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 14,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2181.2,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 14,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2237.54,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 19,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9310,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 9310,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2237.6,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 19,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9310,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 9310,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2238.24,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 19,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9310,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 9310,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2238.28,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 19,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9310,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 9310,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2238.28,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 2,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 19,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9310,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 9310,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2250.02,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 9310,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 9310,
+              "y": 1658,
+              "width": 360,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2250.06,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 9310,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 9310,
+              "y": 1658,
+              "width": 360,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2276.14,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 9310,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 9310,
+              "y": 1658,
+              "width": 360,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2276.18,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 9310,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 9310,
+              "y": 1658,
+              "width": 360,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2276.18,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 3,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 3,
+        "sourceSequence": 23,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 9310,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 9310,
+              "y": 1658,
+              "width": 360,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "😀"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2283.76,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 28,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6910,
+              "y": 1658,
+              "width": 2720,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2283.8,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 28,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6910,
+              "y": 1658,
+              "width": 2720,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2284.42,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 28,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6910,
+              "y": 1658,
+              "width": 2720,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2284.44,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 28,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6910,
+              "y": 1658,
+              "width": 2720,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2284.44,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 4,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 28,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9670,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9670,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6910,
+              "y": 1658,
+              "width": 2720,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": null
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2292.72,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 33,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9630,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9630,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6910,
+              "y": 1658,
+              "width": 2763,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2292.74,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "sourceSequence": 33,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9630,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9630,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6910,
+              "y": 1658,
+              "width": 2763,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2338.34,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 33,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9630,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9630,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6910,
+              "y": 1658,
+              "width": 2763,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2338.36,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 33,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9630,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9630,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6910,
+              "y": 1658,
+              "width": 2763,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2338.36,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "sourceSequence": 33,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 9630,
+          "y": 1658,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 6910,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 9630,
+            "y": 1658,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 6910,
+              "y": 1658,
+              "width": 2763,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        }
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2648.14,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 5,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 44,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 7038,
+          "y": 361220,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 361220,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 7038,
+            "y": 361220,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 361220,
+              "width": 5620,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "第 22 頁：長文件記憶體與效能測試"
+      },
+      "hasSavedBytes": false,
+      "error": null
+    },
+    {
+      "atMs": 2648.24,
+      "state": "busy",
+      "documentName": "l0-t3-long.odt",
+      "revision": 5,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 44,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 7038,
+          "y": 361220,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 361220,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 7038,
+            "y": 361220,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 361220,
+              "width": 5620,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "第 22 頁：長文件記憶體與效能測試"
+      },
+      "hasSavedBytes": true,
+      "error": null
+    },
+    {
+      "atMs": 2648.26,
+      "state": "ready",
+      "documentName": "l0-t3-long.odt",
+      "revision": 5,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 44,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 7038,
+          "y": 361220,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 361220,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 7038,
+            "y": 361220,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 361220,
+              "width": 5620,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "第 22 頁：長文件記憶體與效能測試"
+      },
+      "hasSavedBytes": true,
+      "error": null
+    },
+    {
+      "atMs": 2660.18,
+      "state": "closed",
+      "documentName": "l0-t3-long.odt",
+      "revision": 5,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 5,
+        "sourceSequence": 44,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 7038,
+          "y": 361220,
+          "width": 0,
+          "height": 521
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 361220,
+            "width": 0,
+            "height": 520
+          },
+          "end": {
+            "x": 7038,
+            "y": 361220,
+            "width": 0,
+            "height": 520
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 361220,
+              "width": 5620,
+              "height": 520
+            }
+          ]
+        },
+        "format": {
+          "bold": false,
+          "italic": true
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "第 22 頁：長文件記憶體與效能測試"
+      },
+      "hasSavedBytes": true,
+      "error": null
+    }
+  ],
+  "sdkEvents": [
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "view-ready",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 1
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 1
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 3
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 4
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 5
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 5
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 5
+    }
+  ],
+  "inputTrace": [
+    {
+      "type": "blocked-change",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "blocked": false,
+      "reason": null
+    },
+    {
+      "type": "compositioncancel",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "wasComposing": false
+    },
+    {
+      "type": "queue-invalidated",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "cancelled": 0
+    },
+    {
+      "type": "detach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    },
+    {
+      "type": "attach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    },
+    {
+      "type": "compositioncancel",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "wasComposing": false
+    },
+    {
+      "type": "queue-invalidated",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "cancelled": 0
+    },
+    {
+      "type": "detach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    }
+  ],
+  "clipboardTrace": [],
+  "workers": {
+    "created": 1,
+    "terminated": 1,
+    "intentionalCrashes": 0
+  },
+  "output": {
+    "bytes": 38183,
+    "sha256": "87d3853fb3d9703dcb616ba89c3e050f726d815abf07be0c8354a2c15348a02a"
+  },
+  "manualEvidence": null,
+  "complete": true,
+  "pass": true,
+  "error": null,
+  "browserName": "firefox",
+  "browserVersion": "153.0.1",
+  "case": {
+    "phase": "corpus",
+    "name": "l0-t3",
+    "scenario": "corpus",
+    "fixture": "l0-t3",
+    "repetition": 1
+  },
+  "savedOutput": {
+    "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/corpus/firefox/l0-t3/attempt-02/output.odt",
+    "bytes": 38183,
+    "sha256": "87d3853fb3d9703dcb616ba89c3e050f726d815abf07be0c8354a2c15348a02a"
+  },
+  "processSamples": [
+    {
+      "monotonicSeconds": 51227.236954998,
+      "rootPid": 683930,
+      "processes": [
+        {
+          "pid": 683930,
+          "ppid": 683926,
+          "name": "geckodriver",
+          "rssBytes": 11165696,
+          "pssBytes": 8748032,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684002,
+          "ppid": 683930,
+          "name": "firefox",
+          "rssBytes": 570785792,
+          "pssBytes": 372026368,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684077,
+          "ppid": 684002,
+          "name": "forkserver",
+          "rssBytes": 35500032,
+          "pssBytes": 3644416,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684080,
+          "ppid": 684077,
+          "name": "Socket Process",
+          "rssBytes": 40837120,
+          "pssBytes": 4214784,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684091,
+          "ppid": 684077,
+          "name": "WebExtensions",
+          "rssBytes": 126177280,
+          "pssBytes": 40347648,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684100,
+          "ppid": 684077,
+          "name": "RDD Process",
+          "rssBytes": 50167808,
+          "pssBytes": 9542656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684303,
+          "ppid": 684077,
+          "name": "Utility Process",
+          "rssBytes": 36069376,
+          "pssBytes": 3803136,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684355,
+          "ppid": 684077,
+          "name": "Privileged Cont",
+          "rssBytes": 130220032,
+          "pssBytes": 41922560,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684403,
+          "ppid": 684077,
+          "name": "Isolated Web Co",
+          "rssBytes": 275722240,
+          "pssBytes": 157459456,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684417,
+          "ppid": 684077,
+          "name": "Web Content",
+          "rssBytes": 80519168,
+          "pssBytes": 12558336,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684430,
+          "ppid": 684077,
+          "name": "Web Content",
+          "rssBytes": 80510976,
+          "pssBytes": 12551168,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684540,
+          "ppid": 684077,
+          "name": "Web Content",
+          "rssBytes": 80949248,
+          "pssBytes": 12569600,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "before-l0-t3",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": null,
+      "activeHandles": null,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 12,
+      "rssBytes": 1518624768,
+      "pssBytes": 679388160
+    },
+    {
+      "monotonicSeconds": 51230.06185184,
+      "rootPid": 683930,
+      "processes": [
+        {
+          "pid": 683930,
+          "ppid": 683926,
+          "name": "geckodriver",
+          "rssBytes": 11321344,
+          "pssBytes": 8900608,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684002,
+          "ppid": 683930,
+          "name": "firefox",
+          "rssBytes": 585117696,
+          "pssBytes": 379738112,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684077,
+          "ppid": 684002,
+          "name": "forkserver",
+          "rssBytes": 35500032,
+          "pssBytes": 3609600,
+          "status": "sleeping"
+        },
+        {
+          "pid": 685667,
+          "ppid": 684002,
+          "name": "crashreporter",
+          "rssBytes": 13922304,
+          "pssBytes": 4532224,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684080,
+          "ppid": 684077,
+          "name": "Socket Process",
+          "rssBytes": 40837120,
+          "pssBytes": 4210688,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684091,
+          "ppid": 684077,
+          "name": "WebExtensions",
+          "rssBytes": 125915136,
+          "pssBytes": 40077312,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684100,
+          "ppid": 684077,
+          "name": "RDD Process",
+          "rssBytes": 50167808,
+          "pssBytes": 9537536,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684303,
+          "ppid": 684077,
+          "name": "Utility Process",
+          "rssBytes": 36069376,
+          "pssBytes": 3799040,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684355,
+          "ppid": 684077,
+          "name": "Privileged Cont",
+          "rssBytes": 130220032,
+          "pssBytes": 41916416,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684403,
+          "ppid": 684077,
+          "name": "Isolated Web Co",
+          "rssBytes": 287350784,
+          "pssBytes": 168908800,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684417,
+          "ppid": 684077,
+          "name": "Web Content",
+          "rssBytes": 80519168,
+          "pssBytes": 12552192,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684430,
+          "ppid": 684077,
+          "name": "Web Content",
+          "rssBytes": 80510976,
+          "pssBytes": 12546048,
+          "status": "sleeping"
+        },
+        {
+          "pid": 684540,
+          "ppid": 684077,
+          "name": "Web Content",
+          "rssBytes": 80949248,
+          "pssBytes": 12563456,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "after-l0-t3",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": null,
+      "activeHandles": null,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 13,
+      "rssBytes": 1558401024,
+      "pssBytes": 702892032
+    }
+  ],
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/corpus/firefox/l0-t3/attempt-02"
+}

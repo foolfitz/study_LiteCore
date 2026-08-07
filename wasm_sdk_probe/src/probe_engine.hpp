@@ -1,0 +1,89 @@
+#ifndef WASM_SDK_PROBE_ENGINE_HPP
+#define WASM_SDK_PROBE_ENGINE_HPP
+
+#include <cstdint>
+#include <string>
+#include <vector>
+
+namespace probe {
+enum class SubmitStatus : std::int32_t {
+  Ok = 0,
+  InvalidArgument = 1,
+  IncompatibleAbi = 2,
+  NotStarted = 3,
+  DuplicateRequest = 4,
+  RequestNotFound = 5,
+  NotCancellable = 6,
+  InternalError = 7
+};
+
+bool started();
+void start();
+SubmitStatus start(std::uint32_t requestId);
+void open(std::string fileUrl);
+SubmitStatus openBytes(std::uint32_t requestId, std::vector<std::uint8_t> bytes,
+                       std::string name);
+void paintTile(int xTwips, int yTwips, int widthTwips, int heightTwips,
+               int canvasWidthPx, int canvasHeightPx);
+SubmitStatus paintTile(std::uint32_t requestId, std::uint32_t documentHandle,
+                       int xTwips, int yTwips, int widthTwips, int heightTwips,
+                       int canvasWidthPx, int canvasHeightPx);
+void click(int xTwips, int yTwips);
+SubmitStatus click(std::uint32_t requestId, std::uint32_t documentHandle,
+                   int xTwips, int yTwips);
+void insertText(std::string utf8);
+SubmitStatus insertText(std::uint32_t requestId, std::uint32_t documentHandle,
+                        std::string utf8);
+void key(int type, int charCode, int keyCode);
+void save(std::string format);
+SubmitStatus save(std::uint32_t requestId, std::uint32_t documentHandle,
+                  std::string format);
+void close();
+SubmitStatus close(std::uint32_t requestId, std::uint32_t documentHandle);
+SubmitStatus search(std::uint32_t requestId, std::uint32_t documentHandle,
+                    std::string query, bool backward);
+SubmitStatus getSelection(std::uint32_t requestId,
+                          std::uint32_t documentHandle);
+SubmitStatus replaceSelection(std::uint32_t requestId,
+                              std::uint32_t documentHandle,
+                              std::uint32_t expectedRevision,
+                              std::string utf8);
+SubmitStatus undo(std::uint32_t requestId, std::uint32_t documentHandle,
+                  std::uint32_t expectedRevision);
+SubmitStatus addComment(std::uint32_t requestId,
+                        std::uint32_t documentHandle,
+                        std::uint32_t expectedRevision, std::string text,
+                        std::string author);
+SubmitStatus listComments(std::uint32_t requestId,
+                          std::uint32_t documentHandle);
+SubmitStatus setTrackChanges(std::uint32_t requestId,
+                             std::uint32_t documentHandle,
+                             std::uint32_t expectedRevision, bool enabled);
+SubmitStatus listChanges(std::uint32_t requestId,
+                         std::uint32_t documentHandle);
+SubmitStatus editorAction(std::uint32_t requestId,
+                          std::uint32_t documentHandle,
+                          std::uint32_t expectedRevision,
+                          std::uint32_t action, bool extendSelection,
+                          bool option);
+// boundedReadback: complete from a selection readback if the requested range
+// changes nothing and core therefore emits no selection callback (SPEC E1-D).
+// The product range-select sets it; the diagnostic path does not, so the
+// profiles the findings were measured on keep pure callback semantics.
+SubmitStatus editorSelect(std::uint32_t requestId,
+                          std::uint32_t documentHandle,
+                          std::uint32_t method, int startXTwips,
+                          int startYTwips, int endXTwips, int endYTwips,
+                          bool boundedReadback = false);
+SubmitStatus editorGetState(std::uint32_t requestId,
+                            std::uint32_t documentHandle);
+#ifdef OXSDK_FINDING_016_SCHEDULER_PROBE
+SubmitStatus editorDrainScheduler(std::uint32_t requestId,
+                                  std::uint32_t documentHandle);
+#endif
+SubmitStatus cancel(std::uint32_t requestId);
+
+void emitError(const char *where, const std::string &message);
+} // namespace probe
+
+#endif

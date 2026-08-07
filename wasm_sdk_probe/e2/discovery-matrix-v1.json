@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-A-paragraph-format-discovery",
+  "frozenDate": "2026-08-05",
+  "baseline": {
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "e1Decision": "E1_GO_ODT_EDITOR",
+    "e1EditorV1LoaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+    "e1EditorV1WasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+    "e1EditorV1WorkerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+    "e1EditorV1RefrozenNote": "Re-frozen 2026-08-06 for finding 022. Every E2-A measurement recorded in this file predates it and was taken against loader 45c31f321fa4bcf2... / wasm 94b38437cce120de... . E2-A never ran on e1-editor-v1 itself (it uses the e2-* profiles), so no E2-A result is invalidated; this baseline records which shipped editor existed at the time."
+  },
+  "browsers": [
+    "chrome",
+    "firefox"
+  ],
+  "fixtures": [
+    "styled-list",
+    "multi-paragraph",
+    "plain-grapheme",
+    "table-boundary"
+  ],
+  "operations": {
+    "list": [
+      "set-list-unordered",
+      "set-list-ordered",
+      "set-list-none"
+    ],
+    "paragraphStyle": [
+      "set-paragraph-heading",
+      "set-paragraph-body"
+    ],
+    "secondaryNotJudged": [
+      "move-line-up",
+      "move-line-down",
+      "move-line-home",
+      "move-line-end",
+      "mouse-drag-forward",
+      "mouse-drag-backward"
+    ]
+  },
+  "dispatchMap": {
+    "set-list-unordered": {
+      "command": ".uno:DefaultBullet",
+      "arguments": null,
+      "expectedState": ".uno:DefaultBullet=true"
+    },
+    "set-list-ordered": {
+      "command": ".uno:DefaultNumbering",
+      "arguments": null,
+      "expectedState": ".uno:DefaultNumbering=true"
+    },
+    "set-list-none": {
+      "command": ".uno:RemoveBullets",
+      "arguments": null,
+      "expectedState": ".uno:DefaultBullet=false and .uno:DefaultNumbering=false"
+    },
+    "set-paragraph-heading": {
+      "command": ".uno:StyleApply",
+      "arguments": {
+        "Style": "Heading 1",
+        "FamilyName": "ParagraphStyles"
+      },
+      "expectedState": ".uno:StyleApply=Heading 1"
+    },
+    "set-paragraph-body": {
+      "command": ".uno:StyleApply",
+      "arguments": {
+        "Style": "Text body",
+        "FamilyName": "ParagraphStyles"
+      },
+      "expectedState": ".uno:StyleApply=Body Text"
+    }
+  },
+  "dispatchMapProvenance": "Measured natively on 2026-08-05, not inferred. The three strings for one style differ (sent 'Text body', stored 'Text_20_body', reported 'Body Text'), so none may be substituted for another. Evidence: findings/evidence/sdk-e2/discovery/state-readback/native-26-8/",
+  "completionRule": {
+    "requires": [
+      "matching-uno-command-result",
+      "expected-state-postcondition"
+    ],
+    "ignoredFields": [
+      "success",
+      "wasModified"
+    ],
+    "ignoredBecause": "finding 020 -- .uno:RemoveBullets reports success:false and .uno:DefaultBullet reports wasModified:false while both change the document",
+    "noopCompletion": "documented-state-noop",
+    "unknownPrecondition": "EDITOR_FORMAT_STATE_UNAVAILABLE",
+    "timeout": "MUTATION_OUTCOME_UNKNOWN, no retry"
+  },
+  "negativeCases": [
+    "state-crosstalk",
+    "stale-revision",
+    "timeout-after-dispatch",
+    "table-boundary",
+    "unsupported-action",
+    "list-teardown"
+  ],
+  "thresholds": {
+    "positiveRepetitionsPerBrowser": 3,
+    "negativeRepetitionsPerBrowser": 1,
+    "callbackBarrierMs": 10000,
+    "operationTimeoutMs": 30000,
+    "openSaveTimeoutMs": 180000,
+    "maximumFirefoxWorkerGenerationsPerPage": 3,
+    "manualImeRounds": 0,
+    "roundtripDocumentsPerBrowser": 3
+  },
+  "requiredProperties": [
+    "closed-operation-taxonomy",
+    "no-raw-uno-or-arbitrary-keycode",
+    "no-command-string-across-abi",
+    "documented-callback-payload-only",
+    "attributable-completion",
+    "noop-distinguishable-from-missing",
+    "fail-closed-unknown-precondition",
+    "no-automatic-replay-after-unknown-outcome",
+    "odt-roundtrip",
+    "r6-r8-e1-regression",
+    "bounded-worker-generation"
+  ],
+  "decisionPolicy": {
+    "listAndParagraphStyleBothProven": "GO_TO_E2_B",
+    "oneFamilyProvenOtherReduced": "PARTIAL_GO_TO_E2_B",
+    "unattributableOrIndistinguishableCompletion": "STOP_OR_RESCOPE"
+  },
+  "a2WasmResult": {
+    "date": "2026-08-05",
+    "browsers": {
+      "chrome": "150.0.7871.128",
+      "firefox": "153.0.1"
+    },
+    "profileWasmSha256": "45f2372beb961907e220d7f873706486e09f8b808a62e3a33ec76c7b42594b53",
+    "payloadsArrive": true,
+    "postconditionFromSavedOdt": "5/5 per browser",
+    "crosstalkCount": 0,
+    "earlyStateCount": 0,
+    "finding020ReproducedInWasm": true,
+    "stateTracksCaret": false,
+    "blockingFinding": "021",
+    "evidence": "findings/evidence/sdk-e2/discovery/state-readback/wasm/",
+    "profileWasmSha256Note": "A2 results were measured on this build; the same profile was later rebuilt as 9b6e9c587e1224ed... when raw STATE_CHANGED counters were added for finding 021 attribution."
+  },
+  "status": "frozen-A2-complete-partial-A3-blocked-pending-scheduler-pump-decision",
+  "finding021Attribution": {
+    "date": "2026-08-05",
+    "conclusion": "our-engine-loop-does-not-pump-the-vcl-scheduler",
+    "upstream": false,
+    "nativeAllFourMovementMethodsTrack": true,
+    "watchedPayloadArrivalsAtFailingPositions": 0,
+    "stateCorrectAfterSchedulerDrain": true,
+    "attributionProfileWasmSha256": "1b6a3dd2a5cbeb3c",
+    "productPumpMechanismDecided": false,
+    "productPumpMustNotBe": "unit_lok_process_events_to_idle (upstream unit-test hook)",
+    "evidence": [
+      "findings/evidence/021/native-caret-tracking/",
+      "findings/evidence/021/scheduler-attribution/"
+    ],
+    "pumpApiMeasured": {
+      "useSystemEventLoop": true,
+      "applicationRescheduleReturns": false,
+      "applicationRescheduleIsNoOpHere": true,
+      "callbacksFlushAfterPumpReturns": true,
+      "why": "vcl/headless/svpinst.cxx:103 forces m_bUseSystemLoop under __EMSCRIPTEN__; vcl/source/app/svapp.cxx:400-406 then makes Reschedule a no-op"
+    }
+  },
+  "finding021Remediation": {
+    "date": "2026-08-05",
+    "scope": "discovery-profile-only",
+    "design": "engine fails closed on stale format state; host drives the refresh (pump then wait for flush); engine never sleeps",
+    "withoutRefresh": "5/5 EDITOR_FORMAT_STATE_UNAVAILABLE, zero mutation",
+    "withRefresh": "5/5 verified-format-state, 5/5 saved-ODT postconditions, chrome and firefox",
+    "productMechanismDecided": false,
+    "ruledOut": [
+      "Application::Reschedule (no-op in this configuration)",
+      "unit_lok_process_events_to_idle (upstream unit-test hook)"
+    ],
+    "remainingCandidates": [
+      "run the upstream emscripten main loop via Application::Execute (restructure)",
+      "ask upstream for a supported status-refresh primitive"
+    ],
+    "evidence": "findings/evidence/021/remediation/"
+  },
+  "finding021Candidate1": {
+    "date": "2026-08-06",
+    "scope": "discovery-profile-only",
+    "profile": "e2-mainloop-attribution",
+    "mechanism": "SAL_LOK_OPTIONS=unipoll + LOK runLoop (registration only; soffice_main returns immediately via ImplSVMain IsVCLInit) + Application::Execute; command dispatch inside the unipoll poll callback; no unit-test pump linked",
+    "mechanismResult": "full command lifecycle passes on chrome and firefox; poll counters ~810 total / ~739 idle per run",
+    "freshnessResult": "refuted, but not as first written: under the live loop watched payloads DO arrive, lagging one placement behind (each position reads the previous position's values; chrome after-list 1 watched arrival, firefox list-item 2 / after-list 1, all flagged fresh). The gap is convergence/ordering, not never-scheduled. click bursts 26/158 are the initial binding flush, not per-move requery.",
+    "unsoundInvariantReverted": "idle-poll-clears-stale (transitional build, chrome attempt-03 kept as loop-mechanism demo only)",
+    "soundMatrix": "5/5 EDITOR_FORMAT_STATE_UNAVAILABLE, zero mutation, files unchanged, chrome and firefox",
+    "productMechanismDecided": false,
+    "openQuestion": "why ProcessEventsToIdle (old non-unipoll config) releases watched payloads while the live loop schedules nothing; discriminating experiments listed in finding 021",
+    "discriminatingExperiments": {
+      "date": "2026-08-06",
+      "experiment1PeiUnderLiveLoop": {
+        "profile": "e2-mainloop-pei-attribution",
+        "result": "PEI still releases watched payloads and values are correct at every position; full remediation matrix reproduced (5/5 verified-format-state, 5/5 saved-ODT postconditions, chrome and firefox)",
+        "rulesOut": "desktop-main-initialization-difference"
+      },
+      "experiment2RealDispatchNudge": {
+        "profile": "e2-mainloop-attribution",
+        "result": "a real cursor dispatch (move-character-left) after API placement does not trigger the recompute; all five dispatches stay typed-rejected",
+        "rulesOut": "placement-path-difference"
+      },
+      "verdict": "gap is PEI's own semantics: per-tick ImplYield(isActive(), false) does not converge to what InnerYield(false, true)-to-quiescence reaches, so the matching payload lags one placement. NOTE loop() and PEI differ in TWO parameters (bWait and bHandleAllCurrentEvents) plus PEI's outer loop; not yet isolated. Mechanism lead: with bHandleAllCurrentEvents=false ImplYield returns early after DispatchUserEvents, skipping CheckTimeout() which upstream's own comment says invokes the scheduler."
+    },
+    "retractedMeasurement": "GetMostUrgentTaskPriority()==-1 carried no information: the probe samples only when timeoutUs != 0, which implies CheckTimeout() returned false, which is the same condition as that function's own early return. Withdrawn as evidence.",
+    "openSoundnessGap": "RETRACTED 2026-08-06 (second review). The claim was that a lagging payload clears the stale flag; it does not. The engine's formatStateStale is true in every search row of both browsers, and updateEditorFormatState clears the flag before emitting the event, so no payload can arrive without clearing it. The misread field was the harness's own fresh = formatStateEventsObserved > 0, whose count starts before placement (web/e2-format-discovery-app.js:242,268) and so includes broadcasts caused by the placement itself.",
+    "residualGap": "one formatStateStale flag guards five fields: any watched payload (e.g. .uno:Bold) clears it, after which a list precondition may read a listBullet never re-broadcast for this paragraph. Per-field generation marking is what is missing. INFERRED, no instance observed; deprioritised under product route C, mandatory if route A is ever enabled.",
+    "productRoute": "C -- the product does not read precondition state. Closed actions dispatch unconditionally and are judged by postcondition only (post-dispatch state + saved ODT, verified 5/5). documented-state-noop is dropped rather than promised. Removes the pump dependency entirely. Route A (product calls the pump itself) is deferred, not rejected. Decided 2026-08-06; the user also decided not to file upstream.",
+    "supportedEntryPointCorrection": "the earlier claim that no supported refresh entry point exists was wrong: Scheduler::ProcessEventsToIdle() is public API (include/vcl/scheduler.hxx:65, class VCL_DLLPUBLIC Scheduler final) with production callers in sw/source/uibase/dbui/dbmgr.cxx:1375, sw/source/ui/dbui/mmresultdialogs.cxx:712 and vcl/source/app/svmain.cxx:438. Only the C wrapper unit_lok_process_events_to_idle (svapp.cxx:485-491) is labelled test-only. The real constraint is the header's own busy-lock warning, which is ours to bound. Note the doc comment claiming it calls Application::Reschedule(true) is stale; the implementation uses InnerYield(false, true)."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "browser": "firefox",
+  "browserVersion": "153.0.1",
+  "geckodriverVersion": "0.37.0",
+  "topology": "t0",
+  "phase": "initial-session",
+  "observedAt": "2026-08-04T11:04:36+08:00",
+  "status": "failed-before-navigation",
+  "error": {
+    "webdriverError": "session not created",
+    "message": "Failed to set preferences: unknown error"
+  },
+  "observed": "The R8 runner created its persistent Firefox profile under the host /tmp directory. The installed Firefox is a strict-confined Snap and could not initialize that external profile path.",
+  "inference": "The failure is in browser-profile visibility before any R8 page, SDK artifact, Service Worker, or cache probe runs.",
+  "verifiedRemediation": "A Firefox WebDriver session using the same preferences starts successfully when the temporary profile directory is under the project path in /home; the directory is removed after close.",
+  "classification": "test-harness-environment-compatibility"
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "release": "R8-B-versioned-artifact-delivery",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "topology": "t1",
+  "policy": "standard",
+  "transport": "identity",
+  "cacheMode": "cold",
+  "scenario": "negative",
+  "artifactOrigin": "http://127.0.0.1:37921",
+  "crossOriginIsolated": true,
+  "startedAt": "2026-08-04T03:56:33.164Z",
+  "phases": [
+    {
+      "atMs": 22.565000005066395,
+      "value": "manifest-selected"
+    },
+    {
+      "atMs": 39.150000005960464,
+      "value": "r8-delivery-result"
+    }
+  ],
+  "workersStarted": 0,
+  "documentMutations": 0,
+  "verified": null,
+  "handshake": null,
+  "document": null,
+  "output": null,
+  "error": {
+    "name": "DeliveryError",
+    "code": "ARTIFACT_ENCODING_MISMATCH",
+    "message": "app-module encoding gzip != identity",
+    "details": {
+      "stage": "artifact-validate",
+      "releaseId": "writer-review-5996a47cc94d422a",
+      "role": "app-module",
+      "retryable": false,
+      "safeNextAction": "reject-release",
+      "mutationState": "none",
+      "expected": "identity",
+      "actual": "gzip"
+    }
+  },
+  "status": "complete",
+  "pass": true,
+  "completedAt": "2026-08-04T03:56:33.188Z",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "runnerElapsedMs": 265.916
+}

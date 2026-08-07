@@ -1,0 +1,701 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-012-r7-attribution",
+  "layer": "diagnostic-wasm",
+  "browser": "firefox",
+  "browserVersion": "153.0.1",
+  "fixture": {
+    "id": "t2-image-unwrapped",
+    "path": "t2-image-unwrapped.odt",
+    "changedAxes": [
+      "frame.wrapper"
+    ],
+    "retainedFeatures": [
+      "table",
+      "image",
+      "annotation",
+      "page-break"
+    ],
+    "removedFeatures": [],
+    "bytes": 32885,
+    "sha256": "0389bea6870ea3cf3214200598cf545d695b43d66c9201d2ca61bf2528d23996",
+    "packageValidation": {
+      "zip": true,
+      "crc": true,
+      "xml": true,
+      "axisChecks": {
+        "frame.wrapper": true
+      },
+      "embeddedImageSha256": "f2e18c7cfeeae665c64c10b9272ca5a551c8ca3361d0548be420a4c4282ff57f",
+      "pass": true
+    },
+    "expectedClose": "discovery",
+    "desktopValidation": {
+      "desktopVersion": "LibreOffice 26.2.4.2 620(Build:2)",
+      "batchReturnCode": 0,
+      "pdfGenerated": true,
+      "pages": 3,
+      "pass": true
+    }
+  },
+  "run": 1,
+  "timeoutMs": 10000,
+  "stages": [
+    "open.begin",
+    "open.documentLoad",
+    "open.documentLoad-returned",
+    "open.initializeForRendering",
+    "open.registerCallback",
+    "open.query-metadata",
+    "document-destroy-enter",
+    "document-destroy-return"
+  ],
+  "outcome": "close-pass",
+  "metrics": {
+    "schemaVersion": 1,
+    "release": "finding-012-r7-attribution",
+    "requestedArtifact": "diagnostic",
+    "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+    "crossOriginIsolated": true,
+    "fixture": {
+      "id": "t2-image-unwrapped",
+      "path": "t2-image-unwrapped.odt",
+      "bytes": 32885,
+      "sha256": "0389bea6870ea3cf3214200598cf545d695b43d66c9201d2ca61bf2528d23996",
+      "retainedFeatures": [
+        "table",
+        "image",
+        "annotation",
+        "page-break"
+      ],
+      "removedFeatures": []
+    },
+    "artifact": {
+      "profile": "finding-012-diagnostic",
+      "sdkVersion": "0.6.0-r6-worker+finding-012-diagnostic",
+      "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+      "loader": "./probe.js",
+      "wasm": "./probe.wasm"
+    },
+    "workers": {
+      "created": 1,
+      "terminated": 1,
+      "active": 0,
+      "forcedTermination": false
+    },
+    "handles": {
+      "opened": 1,
+      "closed": 1,
+      "active": 0
+    },
+    "sdkEvents": [
+      {
+        "atMs": 1828.24,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.begin",
+          "heapBytes": 1073741824,
+          "sbrk": 287248384
+        }
+      },
+      {
+        "atMs": 1828.96,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.documentLoad",
+          "heapBytes": 1073741824,
+          "sbrk": 287248384
+        }
+      },
+      {
+        "atMs": 1829.18,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:desktop.app:42:3:desktop/source/app/app.cxx:2080: Could not disable AutoRecovery. com.sun.star.uno.DeploymentException message: \"component context fails to supply singleton com.sun.star.frame.theAutoRecovery of type com.sun.star.frame.XDispatch\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+      },
+      {
+        "atMs": 1860.4,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:editeng:42:1:editeng/source/misc/acorrcfg.cxx:107: Unable to iterate directory 'file:///instdir/program/../share/autocorr' com.sun.star.ucb.InteractiveAugmentedIOException message: \"an error occurred during file opening (12/2)\" context: N10fileaccess11BaseContentE Code: 22"
+      },
+      {
+        "atMs": 1879.4,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:xmloff:42:1:xmloff/source/text/txtimp.cxx:1934: unknown element urn:oasis:names:tc:opendocument:xmlns:drawing:1.0 draw:frame"
+      },
+      {
+        "atMs": 1886.72,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+      },
+      {
+        "atMs": 1888.02,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+      },
+      {
+        "atMs": 1896.82,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 2095.36,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 2096.28,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 2099.64,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 2099.76,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 2100.72,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.documentLoad-returned",
+          "heapBytes": 1073741824,
+          "sbrk": 292655104
+        }
+      },
+      {
+        "atMs": 2100.74,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.initializeForRendering",
+          "heapBytes": 1073741824,
+          "sbrk": 292655104
+        }
+      },
+      {
+        "atMs": 2103.22,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.registerCallback",
+          "heapBytes": 1073741824,
+          "sbrk": 292655104
+        }
+      },
+      {
+        "atMs": 2103.3,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.query-metadata",
+          "heapBytes": 1073741824,
+          "sbrk": 292655104
+        }
+      },
+      {
+        "atMs": 2175.7,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regionband.cxx:982: RegionBand::Exclude() - nLeft > nRight"
+      },
+      {
+        "atMs": 2176.6,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regband.cxx:486: ImplRegionBand::Exclude(): nxLeft > nXRight"
+      },
+      {
+        "atMs": 2176.7,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regband.cxx:486: ImplRegionBand::Exclude(): nxLeft > nXRight"
+      },
+      {
+        "atMs": 2176.72,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regband.cxx:486: ImplRegionBand::Exclude(): nxLeft > nXRight"
+      },
+      {
+        "atMs": 2176.84,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "atMs": 2176.86,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "atMs": 2177.1,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "document-destroy-enter",
+          "heapBytes": 1073741824,
+          "sbrk": 292655104
+        }
+      },
+      {
+        "atMs": 2183.32,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "document-destroy-return",
+          "heapBytes": 1073741824,
+          "sbrk": 292655104
+        }
+      }
+    ],
+    "stage": "complete",
+    "close": {
+      "status": "passed",
+      "ms": 6.639999999999873,
+      "timeoutMs": 10000
+    },
+    "complete": true,
+    "pass": true,
+    "error": null,
+    "open": {
+      "ms": 349.6600000000003,
+      "documentHandle": 1,
+      "revision": 0,
+      "parts": 3,
+      "widthTwips": 17004,
+      "heightTwips": 51650
+    }
+  },
+  "processSamples": [
+    {
+      "monotonicSeconds": 32749.216444483,
+      "rootPid": 382782,
+      "processes": [
+        {
+          "pid": 382782,
+          "ppid": 381178,
+          "name": "geckodriver",
+          "rssBytes": 7405568,
+          "pssBytes": 4942848,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382853,
+          "ppid": 382782,
+          "name": "firefox",
+          "rssBytes": 417083392,
+          "pssBytes": 295670784,
+          "status": "running"
+        },
+        {
+          "pid": 382935,
+          "ppid": 382853,
+          "name": "forkserver",
+          "rssBytes": 35377152,
+          "pssBytes": 3146752,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382938,
+          "ppid": 382935,
+          "name": "Socket Process",
+          "rssBytes": 37675008,
+          "pssBytes": 3748864,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382949,
+          "ppid": 382935,
+          "name": "WebExtensions",
+          "rssBytes": 123740160,
+          "pssBytes": 42646528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382956,
+          "ppid": 382935,
+          "name": "RDD Process",
+          "rssBytes": 47546368,
+          "pssBytes": 9109504,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383166,
+          "ppid": 382935,
+          "name": "Utility Process",
+          "rssBytes": 32923648,
+          "pssBytes": 3335168,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383217,
+          "ppid": 382935,
+          "name": "Privileged Cont",
+          "rssBytes": 124690432,
+          "pssBytes": 39934976,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383273,
+          "ppid": 382935,
+          "name": "Isolated Web Co",
+          "rssBytes": 126971904,
+          "pssBytes": 34701312,
+          "status": "running"
+        },
+        {
+          "pid": 383316,
+          "ppid": 382935,
+          "name": "Web Content",
+          "rssBytes": 78938112,
+          "pssBytes": 12510208,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383320,
+          "ppid": 382935,
+          "name": "Web Content",
+          "rssBytes": 78962688,
+          "pssBytes": 12526592,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383329,
+          "ppid": 382935,
+          "name": "Web Content",
+          "rssBytes": 78950400,
+          "pssBytes": 12516352,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "loading",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 0,
+      "activeHandles": 0,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 12,
+      "rssBytes": 1190264832,
+      "pssBytes": 474789888
+    },
+    {
+      "monotonicSeconds": 32750.288411046,
+      "rootPid": 382782,
+      "processes": [
+        {
+          "pid": 382782,
+          "ppid": 381178,
+          "name": "geckodriver",
+          "rssBytes": 7417856,
+          "pssBytes": 4956160,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382853,
+          "ppid": 382782,
+          "name": "firefox",
+          "rssBytes": 525393920,
+          "pssBytes": 402382848,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382935,
+          "ppid": 382853,
+          "name": "forkserver",
+          "rssBytes": 35377152,
+          "pssBytes": 3649536,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382938,
+          "ppid": 382935,
+          "name": "Socket Process",
+          "rssBytes": 37740544,
+          "pssBytes": 3962880,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382949,
+          "ppid": 382935,
+          "name": "WebExtensions",
+          "rssBytes": 123809792,
+          "pssBytes": 42713088,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382956,
+          "ppid": 382935,
+          "name": "RDD Process",
+          "rssBytes": 47546368,
+          "pssBytes": 9342976,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383166,
+          "ppid": 382935,
+          "name": "Utility Process",
+          "rssBytes": 32923648,
+          "pssBytes": 3581952,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383217,
+          "ppid": 382935,
+          "name": "Privileged Cont",
+          "rssBytes": 124760064,
+          "pssBytes": 39909376,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383273,
+          "ppid": 382935,
+          "name": "Isolated Web Co",
+          "rssBytes": 742277120,
+          "pssBytes": 666844160,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383316,
+          "ppid": 382935,
+          "name": "Web Content",
+          "rssBytes": 80453632,
+          "pssBytes": 12679168,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383320,
+          "ppid": 382935,
+          "name": "Web Content",
+          "rssBytes": 80478208,
+          "pssBytes": 12692480,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383329,
+          "ppid": 382935,
+          "name": "Web Content",
+          "rssBytes": 80470016,
+          "pssBytes": 12685312,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "engine-init",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 0,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 12,
+      "rssBytes": 1918648320,
+      "pssBytes": 1215399936
+    },
+    {
+      "monotonicSeconds": 32751.350609839,
+      "rootPid": 382782,
+      "processes": [
+        {
+          "pid": 382782,
+          "ppid": 381178,
+          "name": "geckodriver",
+          "rssBytes": 7499776,
+          "pssBytes": 5038080,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382853,
+          "ppid": 382782,
+          "name": "firefox",
+          "rssBytes": 559026176,
+          "pssBytes": 434317312,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382935,
+          "ppid": 382853,
+          "name": "forkserver",
+          "rssBytes": 35377152,
+          "pssBytes": 3648512,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382938,
+          "ppid": 382935,
+          "name": "Socket Process",
+          "rssBytes": 37740544,
+          "pssBytes": 3963904,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382949,
+          "ppid": 382935,
+          "name": "WebExtensions",
+          "rssBytes": 123809792,
+          "pssBytes": 42706944,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382956,
+          "ppid": 382935,
+          "name": "RDD Process",
+          "rssBytes": 47546368,
+          "pssBytes": 9342976,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383166,
+          "ppid": 382935,
+          "name": "Utility Process",
+          "rssBytes": 32923648,
+          "pssBytes": 3582976,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383217,
+          "ppid": 382935,
+          "name": "Privileged Cont",
+          "rssBytes": 124760064,
+          "pssBytes": 39907328,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383273,
+          "ppid": 382935,
+          "name": "Isolated Web Co",
+          "rssBytes": 163934208,
+          "pssBytes": 66422784,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383316,
+          "ppid": 382935,
+          "name": "Web Content",
+          "rssBytes": 80453632,
+          "pssBytes": 12679168,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383320,
+          "ppid": 382935,
+          "name": "Web Content",
+          "rssBytes": 80478208,
+          "pssBytes": 12692480,
+          "status": "sleeping"
+        },
+        {
+          "pid": 383329,
+          "ppid": 382935,
+          "name": "Web Content",
+          "rssBytes": 80470016,
+          "pssBytes": 12686336,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "complete",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 0,
+      "activeHandles": 0,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 12,
+      "rssBytes": 1374019584,
+      "pssBytes": 646988800
+    }
+  ],
+  "artifactHashes": {
+    "loader": "265a0ee254d3083d49da2c3aa942eb4d00b8ebf71ba9d5620a289ced8b66e120",
+    "wasm": "b7c77ddb27724e5ec6ce81b602aade17c992bd835017fd38314a443f98d91880",
+    "manifest": "79321043e7be681838adb80206cb79fe6219d9ad8f8e5da289c9699981cf9e83",
+    "productionLoader": "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566",
+    "productionWasm": "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6"
+  },
+  "pass": true
+}

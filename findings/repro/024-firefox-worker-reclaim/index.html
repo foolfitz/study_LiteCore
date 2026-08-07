@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>pthread worker reclaim repro</title>
+</head>
+<body>
+<!--
+Repro for: Firefox reclaims a navigated-away page's pthread-pool workers (and
+the shared WebAssembly.Memory they hold) lazily.  This page spawns a worker
+that instantiates a small Emscripten pthread module (1 GiB shared memory,
+7-thread pool), never terminates it, and re-navigates to itself.  After enough
+navigations, module init silently never completes:
+
+  - default: worker-slot budget -- new Worker() calls queue behind
+    dom.workers.maxPerDomain (default 512) slots still held by dead pages'
+    pthread workers.  Wedges at navigation 65 (Firefox 153); Chrome runs
+    clean; fixed in Nightly 155.0a1.  Set dom.workers.maxPerDomain=64 and it
+    wedges at 9.
+  - ?touch=N keeps N MiB of JS-heap ballast per leaked worker.  This does NOT
+    surface the second (memory) budget -- that needs a large real module, see
+    README -- but is kept for experimentation.
+
+Serve with COOP/COEP (python3 serve.py) -- SharedArrayBuffer needs
+cross-origin isolation.  check.py automates the whole loop.
+-->
+<h1 id="status">starting…</h1>
+<pre id="detail"></pre>
+<script>
+const params = new URLSearchParams(location.search);
+const n = Number(params.get("n") || 1);
+const touchMib = Number(params.get("touch") || 0);
+const statusEl = document.getElementById("status");
+const detailEl = document.getElementById("detail");
+const suffix = touchMib ? `&touch=${touchMib}` : "";
+document.title = `nav ${n}`;
+
+detailEl.textContent = [
+  `navigation:          ${n}`,
+  `touch MiB:           ${touchMib}`,
+  `crossOriginIsolated: ${globalThis.crossOriginIsolated}`,
+  `last ready nav:      ${localStorage.getItem("lastReady") || "—"}`,
+].join("\n");
+
+if (!globalThis.crossOriginIsolated) {
+  statusEl.textContent = "NOT cross-origin isolated — serve with serve.py";
+  throw new Error("not isolated");
+}
+
+const worker = new Worker("./worker.js");
+worker.postMessage({ touchMib });
+worker.onmessage = (event) => {
+  const answer = event.data || {};
+  if (answer.ready !== true) {
+    statusEl.textContent = `navigation ${n}: INSTANTIATION FAILED`;
+    detailEl.textContent += `\n${answer.error || "unknown error"}`;
+    document.title = `ABORT at ${n}`;
+    localStorage.setItem("wedge", JSON.stringify({ n, kind: "abort", error: answer.error }));
+    return;
+  }
+  localStorage.setItem("lastReady", String(n));
+  statusEl.textContent =
+    `navigation ${n}: module ready in ${answer.initMs} ms (heap ${answer.heapBytes})`;
+  // Deliberately do NOT terminate the worker: navigation tears it down, which
+  // is the path under test.
+  setTimeout(() => { location.href = `?n=${n + 1}${suffix}`; }, 100);
+};
+worker.onerror = (event) => {
+  statusEl.textContent = `navigation ${n}: worker error: ${event.message}`;
+  document.title = `ERROR at ${n}`;
+  localStorage.setItem("wedge", JSON.stringify({ n, kind: "worker-error", error: event.message }));
+};
+setTimeout(() => {
+  if (localStorage.getItem("lastReady") !== String(n)) {
+    statusEl.textContent =
+      `navigation ${n}: WEDGED — module init did not complete within 60 s ` +
+      "(no error is ever raised; the pool workers are queued)";
+    document.title = `WEDGED at ${n}`;
+    localStorage.setItem("wedge", JSON.stringify({ n, kind: "silent-wedge" }));
+  }
+}, 60000);
+</script>
+</body>
+</html>

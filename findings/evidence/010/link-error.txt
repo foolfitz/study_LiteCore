@@ -1,0 +1,32 @@
+R1-B external probe first link attempt, 2026-08-01
+
+Command exited with non-zero status 2
+Elapsed (wall clock): 0:01.64
+Maximum resident set size: 1708648 KiB
+Exit status: 2
+
+wasm-ld: error: symbol exported via --export not found: _ZTIN3com3sun4star10deployment16InstallExceptionE
+wasm-ld: error: symbol exported via --export not found: _ZTIN3com3sun4star10deployment16LicenseExceptionE
+wasm-ld: error: symbol exported via --export not found: _ZTIN3com3sun4star10deployment16VersionExceptionE
+wasm-ld: error: symbol exported via --export not found: _ZTIN3com3sun4star10deployment17PlatformExceptionE
+wasm-ld: error: symbol exported via --export not found: _ZTIN3com3sun4star10deployment19DependencyExceptionE
+wasm-ld: error: too many errors emitted, stopping now (use -error-limit=0 to see all errors)
+em++: error: '.../wasm-ld @...rsp.utf-8' failed (returned 1)
+make: *** [Makefile:41: dist/probe.js] Error 1
+
+Provider verification:
+
+workdir/LinkTarget/StaticLibrary/libunoembind.a:bindings_uno.o:
+000240e8 W _ZTIN3com3sun4star10deployment16InstallExceptionE
+
+After filtering bridge RTTI exports, second attempt:
+
+wasm-ld: error: .../instdir/program/libsofficeapp.a(initjsunoscripting.o):
+undefined symbol: init_unoembind_uno()
+em++: error: '.../wasm-ld @...rsp.utf-8' failed (returned 1)
+make: *** [Makefile:43: dist/probe.js] Error 1
+
+Provider verification:
+
+workdir/LinkTarget/StaticLibrary/libunoembind.a:bindings_uno.o:
+00001b03 T init_unoembind_uno()

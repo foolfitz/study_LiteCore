@@ -1,0 +1,14 @@
+diff --git a/vcl/qt5/QtFrame.cxx b/vcl/qt5/QtFrame.cxx
+index 96d343e25050..1954b46d499d 100644
+--- a/vcl/qt5/QtFrame.cxx
++++ b/vcl/qt5/QtFrame.cxx
+@@ -776,7 +776,8 @@ void QtFrame::SetInputContext(SalInputContext* pContext)
+     if (!(pContext->mnOptions & InputContextFlags::Text))
+         return;
+ 
+-    m_pQWidget->setAttribute(Qt::WA_InputMethodEnabled);
++    GetQtInstance().EmscriptenLightweightRunInMainThread(
++        [this] { m_pQWidget->setAttribute(Qt::WA_InputMethodEnabled); });
+ }
+ 
+ void QtFrame::EndExtTextInput(EndExtTextInputFlags /*nFlags*/) { m_pQWidget->endExtTextInput(); }

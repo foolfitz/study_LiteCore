@@ -1,0 +1,72 @@
+LibreOffice Qt6-WASM input-context main-thread proxy validation
+Date: 2026-08-01 Asia/Taipei
+
+Source and local modification
+-----------------------------
+LibreOffice source commit:
+671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+
+Local source modification used for this validation:
+ M vcl/qt5/QtFrame.cxx
+
+Patch:
+wasm-lite/patches/libreoffice-26.8-qt-wasm-inputcontext-main-thread.patch
+SHA-256: 09ea55a3ec1e4c2eb9a99666c05af3bc2ac5835d72bf1b5d8b3bf1a4e4e0add3
+
+The patch changes QtFrame::SetInputContext() from a direct QWidget::setAttribute()
+call to GetQtInstance().EmscriptenLightweightRunInMainThread().
+
+Build
+-----
+Command run manually from wasm-lite/build-qt6-poc after sourcing
+qt6-poc-env.sh:
+
+    make -j"$LO_JOBS" 2>&1 \
+      | tee "$LITECORE_ROOT/wasm-lite/logs/lo-qt6-poc-inputcontext-main-thread.log"
+
+Full build log:
+wasm-lite/logs/lo-qt6-poc-inputcontext-main-thread.log
+SHA-256: e54c73ac24c0e2c1ffb8058839f7922c25449183d9ecc4fce6538f7c9d266965
+
+Decisive build lines:
+
+    [build CXX] vcl/qt6/QtFrame.cxx
+    [build LNK] Library/libvclplug_qt6lo.a
+    [build LNK] Executable/soffice.js
+    [build BIN] instsetoo_native
+    [build MOD] instsetoo_native
+    [build MOD] libreoffice
+    [build BIN] top level modules: libreoffice
+    [build ALL] top level modules: build-non-l10n-only build-l10n-only
+
+Output timestamps and hashes
+-----------------------------
+2026-08-01 10:27:34.161886965 +0800 119532
+wasm-lite/build-qt6-poc/workdir/CxxObject/vcl/qt6/QtFrame.o
+
+2026-08-01 10:29:01.610708016 +0800 1349015
+wasm-lite/build-qt6-poc/instdir/program/soffice.js
+SHA-256: 90a11899092e7af9004190822c6a24b7885ec126aad174ecd56638477f2debe5
+
+2026-08-01 10:29:01.605942199 +0800 194985858
+wasm-lite/build-qt6-poc/instdir/program/soffice.wasm
+SHA-256: 601c9ab1de3a6798f1f1fe3be2ba76001fe66312e18b9136d822d9e7726898c9
+
+2026-08-01 10:29:01.924566920 +0800 1165
+wasm-lite/build-qt6-poc/instdir/program/soffice.wasm.debug.wasm.dwp
+SHA-256: 7e281e46d6867399d470e84f7152e441647ac027dca99e46f5e9904439bce6d9
+
+Manual runtime observation
+--------------------------
+Operator's exact report after loading the rebuilt application and opening Writer:
+
+    啟動了！甚至可以打中文！！
+    但英文按一個鍵會跑出兩個字
+
+Observed result for finding 008:
+- Writer opened instead of exiting with invalid emval handle 32.
+- Chinese input produced text successfully.
+
+Caveat:
+- This was one manual runtime session, not an automated browser-console capture.
+- English key duplication is a separate behavior and is recorded as finding 009.

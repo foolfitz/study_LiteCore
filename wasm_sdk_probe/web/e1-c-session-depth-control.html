@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>E1-C session depth control</title>
+</head>
+<body>
+<!--
+Control page for the E1-C session-depth wedge.
+
+The full harness wedges after ~26 (firefox) / ~34 (chrome) navigations in one
+browser session, with no slowdown beforehand.  This page runs the same
+navigation loop with progressively less of the stack, so the wedge can be
+attributed instead of guessed:
+
+  ?mode=inert    nothing but the two globals the driver waits on
+  ?mode=worker   one module worker created and terminated per navigation
+  ?mode=buffer   the same worker, plus a SharedArrayBuffer of --buffer-mib
+  ?mode=pool     8 workers sharing one SharedArrayBuffer of --buffer-mib
+  ?mode=wasmmem  the same worker, but the allocation is a shared
+                 WebAssembly.Memory instead of a SharedArrayBuffer
+  ?mode=compile  the same worker fetches and compiles the real engine wasm
+                 without instantiating it
+  ?mode=minimal  a classic worker instantiates a tiny module linked with the
+                 engine's exact flags (1 GiB shared memory, 7-thread pool)
+  ?mode=realinstant  the same classic worker instantiates the real shipped
+                 probe.js/probe.wasm but never calls oxsdk_engine_start
+
+It is served by the same serve.py, so COOP/COEP and cross-origin isolation are
+identical to the real harness.  That matters: isolation itself is a candidate
+cause and must not differ between the rungs.
+-->
+<pre id="log"></pre>
+<script type="module" src="./e1-c-session-depth-control-app.js"></script>
+</body>
+</html>

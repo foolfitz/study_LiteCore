@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-012-r7-attribution",
+  "layer": "diagnostic-wasm",
+  "browser": "firefox",
+  "runs": [
+    {
+      "fixture": "t2-original",
+      "run": 1,
+      "timeoutMs": 10000,
+      "outcome": "timeout",
+      "stages": [
+        "open.begin",
+        "open.documentLoad",
+        "open.documentLoad-returned",
+        "open.initializeForRendering",
+        "open.registerCallback",
+        "open.query-metadata",
+        "document-destroy-enter"
+      ],
+      "pass": true
+    },
+    {
+      "fixture": "t2-image-unwrapped",
+      "run": 1,
+      "timeoutMs": 10000,
+      "outcome": "close-pass",
+      "stages": [
+        "open.begin",
+        "open.documentLoad",
+        "open.documentLoad-returned",
+        "open.initializeForRendering",
+        "open.registerCallback",
+        "open.query-metadata",
+        "document-destroy-enter",
+        "document-destroy-return"
+      ],
+      "pass": true
+    },
+    {
+      "fixture": "t2-original",
+      "run": 2,
+      "timeoutMs": 180000,
+      "outcome": "timeout",
+      "stages": [
+        "open.begin",
+        "open.documentLoad",
+        "open.documentLoad-returned",
+        "open.initializeForRendering",
+        "open.registerCallback",
+        "open.query-metadata",
+        "document-destroy-enter"
+      ],
+      "pass": true
+    },
+    {
+      "fixture": "t2-image-unwrapped",
+      "run": 2,
+      "timeoutMs": 10000,
+      "outcome": "close-pass",
+      "stages": [
+        "open.begin",
+        "open.documentLoad",
+        "open.documentLoad-returned",
+        "open.initializeForRendering",
+        "open.registerCallback",
+        "open.query-metadata",
+        "document-destroy-enter",
+        "document-destroy-return"
+      ],
+      "pass": true
+    },
+    {
+      "fixture": "t2-image-unwrapped",
+      "run": 3,
+      "timeoutMs": 10000,
+      "outcome": "close-pass",
+      "stages": [
+        "open.begin",
+        "open.documentLoad",
+        "open.documentLoad-returned",
+        "open.initializeForRendering",
+        "open.registerCallback",
+        "open.query-metadata",
+        "document-destroy-enter",
+        "document-destroy-return"
+      ],
+      "pass": true
+    }
+  ],
+  "artifactHashes": {
+    "loader": "265a0ee254d3083d49da2c3aa942eb4d00b8ebf71ba9d5620a289ced8b66e120",
+    "wasm": "b7c77ddb27724e5ec6ce81b602aade17c992bd835017fd38314a443f98d91880",
+    "manifest": "79321043e7be681838adb80206cb79fe6219d9ad8f8e5da289c9699981cf9e83",
+    "productionLoader": "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566",
+    "productionWasm": "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6"
+  },
+  "pass": true
+}

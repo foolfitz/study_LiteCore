@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "release": "R7",
+  "verifiedAt": "2026-08-04",
+  "decision": "PARTIAL_GO_ODT_FIRST",
+  "phases": {
+    "R7-A": "PARTIAL_GO",
+    "R7-B": "PARTIAL_GO",
+    "R7-C": "PARTIAL_GO_ODT_FIRST",
+    "R7-D": "PARTIAL_GO"
+  },
+  "checks": {
+    "r7A": true,
+    "r7B": true,
+    "r7C": true,
+    "r7DPartialAcceptance": true,
+    "finding012Remediation": true,
+    "r1ToR6Regression": true,
+    "coreAndR5ArtifactsProtected": true
+  },
+  "formalGaps": {
+    "docxImport": "unsupported-finding-013",
+    "headedInputMethods": ["cangjie", "pinyin"],
+    "documentContentAccessibility": "unsupported-public-sdk",
+    "hyperlinkActivation": "unsupported-safe-fallback",
+    "firefoxFreshEngineCycles": "35-of-50-before-init-timeout",
+    "firefoxCrashRecoveries": "19-of-20-before-init-timeout"
+  },
+  "findings": {
+    "012": {
+      "status": "sdk-remediated-core-root-cause-open",
+      "decision": "REMEDIATED_BY_BOUNDED_WORKER_RECYCLE",
+      "evidence": "findings/evidence/012/r7-remediation/summary.json"
+    },
+    "013": {
+      "status": "confirmed-typed-unsupported",
+      "evidence": "findings/013-sdk-open-name-rejects-docx-before-content-detection.md"
+    },
+    "014": {
+      "status": "confirmed-r7-partial-go-limit",
+      "evidence": "findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md"
+    }
+  },
+  "evidence": {
+    "discovery": "findings/evidence/sdk-r7/discovery/summary.json",
+    "input": "findings/evidence/sdk-r7/input-summary.json",
+    "compatibility": "findings/evidence/sdk-r7/compatibility-summary.json",
+    "longevity": "findings/evidence/sdk-r7/longevity/summary.json",
+    "regression": "findings/evidence/sdk-r7/regression/summary.json",
+    "preflightAfter": "findings/evidence/sdk-r7/baseline/preflight-after.json"
+  },
+  "artifacts": {
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "writerReviewLoaderSha256": "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566",
+    "writerReviewWasmSha256": "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6"
+  },
+  "pass": true
+}

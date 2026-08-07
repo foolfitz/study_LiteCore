@@ -1,0 +1,31 @@
+node --test sdk/tests/document-sdk.test.mjs
+✔ version handshake and request correlation expose no runtime internals (5.004804ms)
+✔ open makes transfer ownership explicit and close is idempotent (0.630413ms)
+✔ close timeout recycles the owning Worker and keeps the engine reusable (5.705719ms)
+✔ aborted close remains a typed failure and does not claim recovery (0.322891ms)
+✔ timeout rejects and emits a best-effort cancel (5.655936ms)
+✔ AbortSignal rejects and emits cancel (0.420192ms)
+✔ worker crash rejects pending work and restart invalidates old handles (0.584187ms)
+✔ protocol mismatch is treated as a worker crash (0.223055ms)
+✔ R3 semantic review operations propagate monotonic revisions (0.399754ms)
+✔ R3 stale revision is a typed error with current revision details (0.255636ms)
+✔ unsupported profile operations remain typed SDK errors (0.174715ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.679274
+python3 -m unittest tests/test_finding_012_remediation.py
+node --check sdk/document-sdk.js
+node --check web/r7-close-minimizer-app.js
+python3 -m py_compile tools/run_finding_012_remediation.py \
+	tools/validate_finding_012_remediation.py \
+	tests/test_finding_012_remediation.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK

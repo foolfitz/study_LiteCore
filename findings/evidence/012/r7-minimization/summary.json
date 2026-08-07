@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-012-r7-minimization",
+  "decision": "MINIMIZED",
+  "confirmation": [
+    {
+      "id": "t2-keep-table-annotation-pagebreak",
+      "expectedOutcome": "close-pass",
+      "runs": 3,
+      "reason": "maximal passing side of one-feature boundary; adding image timed out",
+      "browsers": {
+        "chrome": {
+          "outcomes": [
+            "close-pass",
+            "close-pass",
+            "close-pass"
+          ],
+          "expected": "close-pass",
+          "pass": true
+        },
+        "firefox": {
+          "outcomes": [
+            "close-pass",
+            "close-pass",
+            "close-pass"
+          ],
+          "expected": "close-pass",
+          "pass": true
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "t2-original",
+      "expectedOutcome": "timeout",
+      "runs": 1,
+      "reason": "failing side of one-feature boundary; added image",
+      "browsers": {
+        "chrome": {
+          "outcomes": [
+            "timeout"
+          ],
+          "expected": "timeout",
+          "pass": true
+        },
+        "firefox": {
+          "outcomes": [
+            "timeout"
+          ],
+          "expected": "timeout",
+          "pass": true
+        }
+      },
+      "pass": true
+    }
+  ],
+  "candidateTriggerFeatures": [
+    "image"
+  ],
+  "observed": "public open-close outcomes only",
+  "inference": "candidate features are necessary at the confirmed one-feature boundary, not yet proven sufficient",
+  "notValidated": [
+    "LibreOffice core versus SDK Worker root cause",
+    "native LOK reproduction"
+  ],
+  "pass": true
+}

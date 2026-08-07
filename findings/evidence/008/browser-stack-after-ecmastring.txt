@@ -1,0 +1,45 @@
+Capture date: 2026-08-01T09:50:32+08:00
+URL: http://127.0.0.1:6940/qt_soffice.html
+Scenario: Open Writer after replacing toStdString() with toEcmaString()
+
+Temporary diagnostic changes
+----------------------------
+The generated soffice.js assertions distinguished Emval handles from promise handles and appended
+a JavaScript stack. The generated file was restored after capture; SHA-256 returned to
+74b010f544c13212a215d0c468402b1d2bf9ba58ec4f75a160c6dbea86c56f2e.
+
+Observed loader message
+-----------------------
+Application exit (Assertion failed: invalid emval handle: 32
+Error
+    at assert (http://127.0.0.1:6940/soffice.js:614:28)
+    at Object.toValue (http://127.0.0.1:6940/soffice.js:7144:9)
+    at __emval_set_property (http://127.0.0.1:6940/soffice.js:9683:22)
+    at soffice.wasm.QWasmInputContext::updateInputElement()
+      (http://127.0.0.1:6940/soffice.wasm:wasm-function[349507]:0x53f6476)
+    at soffice.wasm.QWasmInputContext::update(QFlags<Qt::InputMethodQuery>)
+      (http://127.0.0.1:6940/soffice.wasm:wasm-function[349506]:0x53f5701)
+    at soffice.wasm.QInputMethod::update(QFlags<Qt::InputMethodQuery>)
+      (http://127.0.0.1:6940/soffice.wasm:wasm-function[329704]:0x4d6df72)
+    at soffice.wasm.QWidget::setAttribute(Qt::WidgetAttribute, bool)
+      (http://127.0.0.1:6940/soffice.wasm:wasm-function[337590]:0x50777dc)
+    at soffice.wasm.non-virtual thunk to QtFrame::SetInputContext(SalInputContext*)
+      (http://127.0.0.1:6940/soffice.wasm:wasm-function[275447]:0x3f5c5fe)
+    at soffice.wasm.vcl::Window::ImplNewInputContext()
+      (http://127.0.0.1:6940/soffice.wasm:wasm-function[109743]:0x1043660)
+    at soffice.wasm.vcl::Window::ImplGrabFocus(GetFocusFlags)
+      (http://127.0.0.1:6940/soffice.wasm:wasm-function[108675]:0x100629b))
+
+Generated __emval_set_property at the reported line
+---------------------------------------------------
+  var __emval_set_property = (handle, key, value) => {
+      handle = Emval.toValue(handle);  // line 9683: failing conversion
+      key = Emval.toValue(key);
+      value = Emval.toValue(value);
+      handle[key] = value;
+    };
+
+Negative result
+---------------
+Changing the property value conversion from toStdString() to toEcmaString() did not change the
+failure. The invalid value is the first argument (the DOM object handle), not the string value.

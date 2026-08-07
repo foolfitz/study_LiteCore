@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "release": "R7-D-diagnostic-stop",
+  "verifiedAt": "2026-08-03T22:07:03+08:00",
+  "scenario": "S5-normal-minimal-open-close",
+  "fixture": {
+    "id": "l0-t2",
+    "path": "wasm_sdk_probe/test-docs/r7-compat/l0-t2-styled.odt",
+    "sha256": "0f69906035cb5d96f86b034cf2596994d5de82ee6347a47c00f35784c9888d31"
+  },
+  "artifact": {
+    "profile": "writer-review",
+    "loaderSha256": "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566",
+    "wasmSha256": "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6",
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb"
+  },
+  "observed": [
+    {
+      "browser": "chrome",
+      "version": "Chrome/150.0.7871.128",
+      "openMs": 522.7799999997951,
+      "closeTimeoutMs": 180000,
+      "closeCode": "TIMEOUT",
+      "documentClosed": false,
+      "forcedWorkerTermination": true,
+      "processSampleCount": 176,
+      "rawEvidence": "findings/evidence/sdk-r7/longevity-smoke/s5-minimize-open-180s/chrome/s5-normal/run-1/result.json"
+    },
+    {
+      "browser": "firefox",
+      "version": "153.0.1",
+      "openMs": 351.29999999999995,
+      "closeTimeoutMs": 180000,
+      "closeCode": "TIMEOUT",
+      "documentClosed": false,
+      "forcedWorkerTermination": true,
+      "processSampleCount": 176,
+      "rawEvidence": "findings/evidence/sdk-r7/longevity-smoke/s5-minimize-open-180s/firefox/s5-normal/run-1/result.json"
+    }
+  ],
+  "inference": "The R6 finding 012 trigger is broader than render/cancel/search: this styled fixture cannot complete the public close contract after open alone in either target browser.",
+  "notValidated": [
+    "specific teardown subsystem inside LibreOfficeKitDocument::destroy",
+    "WASM remediation and cross-browser regression"
+  ],
+  "stopCondition": "SPEC-R7-D normal close repeatedly times out",
+  "followupMinimization": {
+    "decision": "MINIMIZED",
+    "candidateTriggerFeatures": [
+      "image"
+    ],
+    "candidateTriggerAxes": [
+      "frame.wrapper"
+    ],
+    "firstStageEvidence": "findings/evidence/012/r7-minimization/summary.json",
+    "evidence": "findings/evidence/012/r7-image-axis/summary.json",
+    "fixed": false
+  },
+  "attribution": {
+    "decision": "DOCUMENT_DESTROY_BOUNDARY_CONFIRMED",
+    "candidateLayer": "wasm-build-or-version-specific-document-destroy",
+    "nativeControl": {
+      "version": "LibreOffice 26.2.4.2 620(Build:2)",
+      "decision": "NOT_REPRODUCED_SYSTEM_NATIVE",
+      "originalRuns": 3,
+      "unwrappedRuns": 3
+    },
+    "wasm": {
+      "chrome": "WASM_DOCUMENT_DESTROY_BLOCKED",
+      "firefox": "WASM_DOCUMENT_DESTROY_BLOCKED"
+    },
+    "evidence": "findings/evidence/012/r7-attribution/summary.json",
+    "fixed": false
+  },
+  "sameCommitNative": {
+    "version": "LibreOffice 26.8.0.1.0 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "decision": "EMSCRIPTEN_SPECIFIC_DOCUMENT_DESTROY",
+    "candidateLayer": "emscripten-document-teardown",
+    "nativeOutcome": "NOT_REPRODUCED_SYSTEM_NATIVE",
+    "originalRuns": 3,
+    "unwrappedRuns": 3,
+    "nextAction": "wasm-fix",
+    "evidence": "findings/evidence/012/native-26-8-attribution/summary.json",
+    "fixed": false
+  },
+  "decision": "STOP",
+  "pass": false
+}

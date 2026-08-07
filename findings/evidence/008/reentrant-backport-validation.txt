@@ -1,0 +1,76 @@
+Captured: 2026-08-01T10:02:37+08:00
+
+Upstream source correlation
+---------------------------
+Qt commit 3a217d259260: wasm: Make suspendresumecontrol event handling reentrant
+Qt commit 66e3fe3f9557: wasm: make tst_qeventloop pass on webassembly (Pick-to: 6.10)
+
+Qt 6.10.2 had the integer sendPendingEvents() API from 66e3fe3f9557, but retained the cached-length
+loop from before 3a217d259260. The local compatibility backport now uses:
+
+  if (pendingEvents["length"].as<int>() == 0)
+      return 0;
+  int count = 0;
+  while (pendingEvents["length"].as<int>() > 0) {
+      emscripten::val event = pendingEvents.call<val>("shift");
+      ...
+      ++count;
+  }
+  return count;
+
+Patch validation
+----------------
+checking file src/plugins/platforms/wasm/qwasminputcontext.cpp
+  inputcontext toEcmaString patch: forward dry-run succeeds (not applied)
+checking file src/corelib/platform/wasm/qwasmsuspendresumecontrol.cpp
+  reentrant patch: reverse dry-run succeeds (applied)
+checking file src/plugins/platforms/wasm/qwasmwindow.cpp
+  finding 007 pointer guard: reverse dry-run succeeds (applied)
+
+Qt incremental build
+--------------------
+[3/11] Building CXX object src/corelib/.../qwasmsuspendresumecontrol.cpp.o
+[5/11] Linking CXX static library lib/libQt6Core.a
+[8/10] Building CXX object src/plugins/.../qwasminputcontext.cpp.o
+[10/10] Linking CXX static library plugins/platforms/libqwasm.a
+exit: 0
+
+Qt install
+----------
+Install configuration: Release
+exit: 0
+
+Build and installed library comparison
+--------------------------------------
+92a1f36ebca515b50e8d0438c21be0ff37b6109cea10a5d8076e0a07f1b8c232  build/libQt6Core.a
+92a1f36ebca515b50e8d0438c21be0ff37b6109cea10a5d8076e0a07f1b8c232  install/libQt6Core.a
+9c04d653541408124efdbc9f39b63bac236abbb5fae562afba28381db6ae87bb  build/libqwasm.a
+9c04d653541408124efdbc9f39b63bac236abbb5fae562afba28381db6ae87bb  install/libqwasm.a
+
+LibreOffice incremental build
+-----------------------------
+[LNK] Executable/soffice.js
+[BIN] desktop
+[MOD] desktop
+[LNK] Executable/uri-encode.js
+[BIN] shell
+[MOD] shell
+[BIN] instsetoo_native
+[MOD] instsetoo_native
+[MOD] libreoffice
+[BIN] top level modules: libreoffice
+[ALL] top level modules: build-non-l10n-only build-l10n-only
+exit: 0
+
+Final artifacts
+---------------
+1349015   2026-08-01 10:01:50 +0800  instdir/program/soffice.js
+194983674 2026-08-01 10:01:50 +0800  instdir/program/soffice.wasm
+1165      2026-08-01 10:01:50 +0800  instdir/program/soffice.wasm.debug.wasm.dwp
+
+74b010f544c13212a215d0c468402b1d2bf9ba58ec4f75a160c6dbea86c56f2e  soffice.js
+0ef90c2045f5dca3c1ab4091b773afcf692bb1fb3643e0fc10e558037c5043eb  soffice.wasm
+7e281e46d6867399d470e84f7152e441647ac027dca99e46f5e9904439bce6d9  soffice.wasm.debug.wasm.dwp
+
+Temporary generated-JavaScript diagnostics: absent
+Runtime validation: not yet performed

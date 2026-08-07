@@ -1,0 +1,53 @@
+tdf#NNNNNN gbuild: fix UnpackedTarball .version race with .dir under -j
+
+On a fresh build directory, "make -j12" intermittently failed with
+
+> /bin/sh: 1: cannot create .../workdir_for_build/UnpackedTarball/dragonbox.version:
+> Directory nonexistent
+
+Of three related targets in UnpackedTarball.mk, only two carry the
+order-only prerequisite that creates the containing directory:
+
+  $(call gb_UnpackedTarball_get_preparation_target,$(1)) :| $(dir ...).dir
+  $(call gb_UnpackedTarball_get_target,$(1))             :| $(dir ...).dir
+
+The .version target has none.  Since .prepare lists .version among its
+normal prerequisites, and GNU make guarantees no ordering between a
+target's normal and order-only prerequisites, under -j the recipe for
+.version can run before .prepare's .dir prerequisite has been made.  The
+directory does not exist yet and the shell redirection fails.
+
+This usually goes unnoticed because UnpackedTarball/ has typically been
+created by some other target already; only the first make in a fresh
+build directory exposes it.  Observed on 2 out of 4 fresh build
+directories on the same machine with -j12.
+
+Give the .version target the same order-only prerequisite the other two
+already have.
+
+Change-Id: I0000000000000000000000000000000000000000
+
+
+================================================================
+備註（不要貼進 commit message）
+================================================================
+
+* Change-Id 由 LibreOffice 的 commit-msg hook 自動產生，
+  跑過 ./logerrit setup 之後 git commit 會自己補上，
+  上面那行佔位符請刪掉。
+
+* tdf#NNNNNN 換成 Bugzilla 送出後拿到的編號。
+  若最後決定不開 bug 而直接送 patch，整個 "tdf#NNNNNN " 前綴拿掉即可。
+
+* 第一行含前綴請盡量在 72 字元內。目前這行是 71 字元
+  （含 "tdf#NNNNNN " 前綴以 10 位數估算）。
+
+* 送出流程：
+      ./logerrit setup                    # 只需一次
+      git checkout -b fix-unpackedtarball-race
+      git commit -a
+      ./logerrit submit master
+
+* 上游要求 patch 先進 master，之後才 backport 到 release 分支。
+  我們是在 libreoffice-26-8 上發現的，但要在 master 上重製這個 commit。
+  先確認 master 的 UnpackedTarball.mk 同一段程式碼仍然相同。

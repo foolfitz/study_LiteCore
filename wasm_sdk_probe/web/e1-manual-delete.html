@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>E1 Finding 016 人工刪除測試</title>
+  <style>
+    :root { color-scheme: light; font: 15px/1.45 system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #eef2f6; color: #17212b; }
+    header { padding: 12px 18px; background: #17324d; color: white; }
+    header span { margin-left: 10px; color: #bfe0ff; }
+    main { display: grid; grid-template-columns: minmax(520px, 720px) minmax(360px, 1fr); gap: 14px; padding: 14px; }
+    .viewer, .panel { background: white; border: 1px solid #c9d3dd; border-radius: 8px; box-shadow: 0 2px 7px #5673; }
+    .viewer { padding: 10px; }
+    canvas { display: block; width: 100%; background: white; cursor: text; }
+    .panel { padding: 14px; }
+    .warning { margin: 0 0 12px; padding: 10px; border-left: 5px solid #d88400; background: #fff4db; }
+    fieldset { margin: 0 0 12px; border: 1px solid #ccd5de; border-radius: 6px; }
+    legend { font-weight: 700; }
+    .row { display: flex; flex-wrap: wrap; gap: 7px; margin: 7px 0; }
+    input, select, button { min-height: 34px; font: inherit; }
+    input[type="text"] { flex: 1 1 220px; min-width: 160px; padding: 5px 8px; }
+    select { padding: 4px 7px; }
+    button { padding: 5px 10px; border: 1px solid #8294a6; border-radius: 5px; background: #f8fafc; cursor: pointer; }
+    button.primary { background: #175b91; border-color: #175b91; color: white; }
+    button.danger { background: #8b2e24; border-color: #8b2e24; color: white; }
+    button:disabled { opacity: .5; cursor: wait; }
+    .result { margin: 8px 0 12px; padding: 8px 10px; border-radius: 5px; background: #e9eef3; }
+    .result.pass { background: #def5e5; color: #145c2b; }
+    .result.fail { background: #ffe0dc; color: #7d2118; }
+    pre { margin: 0; min-height: 220px; max-height: 380px; overflow: auto; padding: 10px; background: #101820; color: #d4edff; white-space: pre-wrap; }
+    @media (max-width: 950px) { main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header><strong>E1 Finding 016 人工刪除測試</strong><span id="status">初始化中</span></header>
+  <main>
+    <section class="viewer">
+      <canvas id="canvas" width="640" height="800" aria-label="ODT 文件畫面；可點擊放置游標"></canvas>
+    </section>
+    <section class="panel">
+      <p class="warning"><strong>診斷限定：</strong>刪除完成只代表固定命令已回覆；請直接看文件畫面確認是否刪對字、是否合併段落。</p>
+      <fieldset>
+        <legend>文件控制</legend>
+        <div class="row">
+          <select id="fixture" aria-label="測試文件"></select>
+          <button id="reload" type="button">以全新 Worker 載入原始文件</button>
+          <button id="save" type="button">儲存 ODT</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>1. 字元刪除（一鍵、自動檢查）</legend>
+        <p>每顆按鈕都會先建立全新 Worker，再以限定的診斷 selection reset 將搜尋選取收至字串邊界；雙重確認為單一游標後才會刪除。</p>
+        <div class="row">
+          <button id="scenario-delete" class="danger" type="button">Delete：預期只刪除 0</button>
+          <button id="scenario-backspace" class="danger" type="button">Backspace：預期只刪除 9</button>
+        </div>
+        <div id="scenario-result" class="result" aria-live="polite">尚未執行一鍵案例</div>
+      </fieldset>
+      <fieldset>
+        <legend>2. 段落邊界（一鍵、人工看合併）</legend>
+        <p>每顆按鈕同樣使用全新頁面／Worker與刪除前游標驗證，避免刪掉整段搜尋選取。</p>
+        <div class="row">
+          <button id="scenario-paragraph-start" type="button">段首 Backspace：預期合併上一段</button>
+          <button id="scenario-paragraph-end" type="button">段尾 Delete：預期合併下一段</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>3. 自由測試：定位</legend>
+        <div class="row">
+          <input id="search-text" type="text" value="0123456789" aria-label="尋找文字">
+          <button id="search" type="button">選取文字</button>
+        </div>
+        <div class="row">
+          <button id="collapse-left" type="button">游標到選取開頭</button>
+          <button id="collapse-right" type="button">游標到選取結尾</button>
+        </div>
+        <small>只有自由測試需要自行組合步驟；也可以直接點左側文件放置游標。</small>
+      </fieldset>
+      <fieldset>
+        <legend>3. 自由測試：操作</legend>
+        <div class="row">
+          <button id="delete-backward" class="danger" type="button">Backspace</button>
+          <button id="delete-forward" class="danger" type="button">Delete</button>
+        </div>
+        <div class="row">
+          <input id="insert-text" type="text" value="人工測試臺灣😀" aria-label="插入文字">
+          <button id="insert" class="primary" type="button">插入文字</button>
+        </div>
+        <div class="row">
+          <button id="paragraph-break" type="button">段落換行</button>
+          <button id="line-break" type="button">行內換行</button>
+        </div>
+      </fieldset>
+      <pre id="log" aria-live="polite"></pre>
+    </section>
+  </main>
+  <script type="module" src="./e1-manual-delete-app.js"></script>
+</body>
+</html>

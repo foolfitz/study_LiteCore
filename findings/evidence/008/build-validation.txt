@@ -1,0 +1,56 @@
+Captured: 2026-08-01
+
+Qt source change
+----------------
+File: src/plugins/platforms/wasm/qwasminputcontext.cpp
+
+- m_inputElement.set("value", queryEvent.value(Qt::ImSurroundingText).toString().toStdString());
++ m_inputElement.set("value", queryEvent.value(Qt::ImSurroundingText).toString().toEcmaString());
+
+Patch reverse dry-run
+---------------------
+checking file src/plugins/platforms/wasm/qwasminputcontext.cpp
+exit: 0
+
+Qt incremental build
+--------------------
+[3/5] Building CXX object src/plugins/platforms/.../qwasminputcontext.cpp.o
+[4/5] Linking CXX static library plugins/platforms/libqwasm.a
+[5/5] Linking CXX static library plugins/platforms/libqwasm.a
+exit: 0
+
+Qt install
+----------
+Install configuration: Release
+exit: 0
+
+Build and installed library comparison:
+68b7644fe91d2a3fbae1ab1e1586894a807d428dd4abaeeaf05180e5a46de232  build/plugins/platforms/libqwasm.a
+68b7644fe91d2a3fbae1ab1e1586894a807d428dd4abaeeaf05180e5a46de232  install/plugins/platforms/libqwasm.a
+cmp exit: 0
+
+LibreOffice incremental build
+-----------------------------
+[LNK] Executable/soffice.js
+[BIN] desktop
+[MOD] desktop
+[BIN] shell
+[MOD] shell
+[BIN] instsetoo_native
+[MOD] instsetoo_native
+[MOD] libreoffice
+[BIN] top level modules: libreoffice
+[ALL] top level modules: build-non-l10n-only build-l10n-only
+exit: 0
+
+Final artifacts
+---------------
+1349015   2026-08-01 09:35:34 +0800  instdir/program/soffice.js
+194983502 2026-08-01 09:35:34 +0800  instdir/program/soffice.wasm
+1165      2026-08-01 09:35:34 +0800  instdir/program/soffice.wasm.debug.wasm.dwp
+
+74b010f544c13212a215d0c468402b1d2bf9ba58ec4f75a160c6dbea86c56f2e  soffice.js
+f542ee05d8cd9b284fe195bc030c714c904b1fe859142302a8b322419de1a9a5  soffice.wasm
+
+Temporary generated-JavaScript diagnostics:
+absent

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "release": "R8-D-production-validation",
+  "browser": "chrome",
+  "stage": "activate-b-health-from-a-pinned-client",
+  "error": {
+    "name": "ReleaseStateError",
+    "code": "CLIENT_ALREADY_PINNED",
+    "message": "client cannot hot-switch its pinned release"
+  },
+  "observed": "the long-lived release A page was correctly prevented from pinning release B for candidate health",
+  "fix": "keep the parent pinned to A and run B health in a distinct same-origin client",
+  "pass": false
+}

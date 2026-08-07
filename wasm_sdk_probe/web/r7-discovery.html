@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OxOffice R7-A Discovery</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { margin: 0 auto; max-width: 1080px; padding: 24px; }
+    button, textarea { font: inherit; }
+    #status { font-weight: 700; }
+    #manual-panel { border: 1px solid #888; border-radius: 8px; margin: 20px 0; padding: 16px; }
+    #manual-input { box-sizing: border-box; min-height: 5rem; width: 100%; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+    #log { background: #111; color: #ddd; max-height: 480px; min-height: 300px;
+           overflow: auto; padding: 12px; white-space: pre-wrap; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <h1>R7-A 輸入／格式 discovery checkpoint</h1>
+  <p>Automatic status: <span id="status" role="status" aria-live="polite">loading</span></p>
+  <section id="manual-panel" aria-labelledby="manual-heading">
+    <h2 id="manual-heading">Headed 人工 Chewing／clipboard checkpoint</h2>
+    <p>自動 discovery 完成後按「開始人工驗收」，再把焦點放入輸入區並用真實 Fcitx Chewing 選字。</p>
+    <div class="actions">
+      <button id="manual-start" type="button">開始人工驗收</button>
+      <button id="manual-cancel-arm" type="button">開始 cancel 測試</button>
+      <button id="manual-cancel-check" type="button">確認 cancel 零 mutation</button>
+      <button id="clipboard-write" type="button">寫入 R7 fixture clipboard</button>
+      <button id="clipboard-read" type="button">讀取純文字 clipboard 並 commit</button>
+      <button id="manual-verify" type="button">儲存並驗證人工輸入</button>
+      <button id="manual-copy-evidence" type="button">複製人工 evidence JSON</button>
+    </div>
+    <label for="manual-input">IME／paste input sink</label>
+    <textarea id="manual-input" autocomplete="off" autocapitalize="off" spellcheck="false"
+      placeholder="用真實 IME 在這裡輸入；preedit 不會送入 SDK"></textarea>
+    <label for="clipboard-source">原生 Ctrl+C fixture</label>
+    <input id="clipboard-source" readonly value="R7-manual-native-copy-臺灣😀">
+    <p>Manual status: <span id="manual-status" role="status" aria-live="polite">尚未開始</span></p>
+    <label for="manual-evidence">人工 evidence（完成驗證後貼回）</label>
+    <textarea id="manual-evidence" readonly></textarea>
+  </section>
+  <pre id="log" aria-label="R7 discovery log"></pre>
+  <script type="module" src="r7-discovery-app.js"></script>
+</body>
+</html>

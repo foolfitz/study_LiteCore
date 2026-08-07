@@ -1,0 +1,16 @@
+# solenv/gbuild/UnpackedTarball.mk 相關片段（commit 671c848b1bb8）
+
+## 166-172：.dir 規則與 .version 規則
+     1	$(dir $(call gb_UnpackedTarball_get_target,%)).dir :
+     2		$(if $(wildcard $(dir $@)),,mkdir -p $(dir $@))
+     3	
+     4	$(call gb_UnpackedTarball_get_version_target,%) : $(gb_Helper_PHONY)
+     5		$(if $(and $(wildcard $@),$(filter $(UNPACKED_TARBALL),$(file < $@))),,\
+     6			printf $(UNPACKED_TARBALL) > $@)
+     7	
+
+## 210-213：.prepare 相依 .version，且只有 .prepare/.done 掛了 | .dir
+     1	$(call gb_UnpackedTarball_get_preparation_target,$(1)) : $(gb_Module_CURRENTMAKEFILE) \
+     2		$(call gb_UnpackedTarball_get_version_target,$(1))
+     3	$(call gb_UnpackedTarball_get_preparation_target,$(1)) :| $(dir $(call gb_UnpackedTarball_get_target,$(1))).dir
+     4	$(call gb_UnpackedTarball_get_target,$(1)) :| $(dir $(call gb_UnpackedTarball_get_target,$(1))).dir

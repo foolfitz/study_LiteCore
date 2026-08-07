@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "release": "R6-A",
+  "checkpoint": "discovery",
+  "decision": "GO",
+  "browsers": {
+    "chrome": {
+      "version": "150.0.7871.128",
+      "pass": true
+    },
+    "firefox": {
+      "version": "152.0.6",
+      "pass": true
+    }
+  },
+  "checks": {
+    "writerReviewArtifactReused": true,
+    "dimensionsCoverLongWriterDocument": true,
+    "adjacentTilesDiffer": true,
+    "partialOutOfBoundsRenderStable": true,
+    "searchUnique": true,
+    "searchNotFound": true,
+    "searchAmbiguous": true,
+    "selectionTextExact": true,
+    "mutationInvalidationObserved": true,
+    "queuedAbortObserved": true,
+    "completionOrderStable": true,
+    "r5LargeArtifactsUnchanged": true
+  },
+  "documents": {
+    "t1-plain-zh.odt": {
+      "parts": 1,
+      "widthTwips": 12474,
+      "heightTwips": 17406,
+      "anchorResults": ["unique", "not-found"]
+    },
+    "t3-long.odt": {
+      "parts": 22,
+      "widthTwips": 12474,
+      "heightTwips": 376968,
+      "anchorResults": ["ambiguous"]
+    }
+  },
+  "safeDegradations": {
+    "searchHighlight": "not claimed; rectangles remain opaque",
+    "tileInvalidation": "clear all tiles for the affected revision",
+    "anchorIdentity": "opaque selection equality is used only within one open version and revision"
+  },
+  "excludedFinding": {
+    "id": 12,
+    "fixture": "t2-styled.odt",
+    "reason": "close timeout reproduced twice; R6 uses the spec-allowed multipage t3 corpus"
+  },
+  "pass": true
+}

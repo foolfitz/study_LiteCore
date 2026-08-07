@@ -1,0 +1,56 @@
+{
+  "date": "2026-08-01",
+  "desktop_version": "LibreOffice 26.2.4.2 620(Build:2)",
+  "documents": [
+    {
+      "doc": "t1-plain-zh.odt",
+      "desktop_version": "LibreOffice 26.2.4.2 620(Build:2)",
+      "pass": true,
+      "notes": "2 browser outputs checked: ZIP/XML, inserted character delta, text preservation, desktop PDF export",
+      "samples": [
+        {
+          "path": "../findings/evidence/sdk-r2/hardening-regression/chrome-t1-plain-zh-cold-1-out.odt",
+          "pass": true,
+          "inserted_character_delta": 1,
+          "text_similarity": 0.9986091794158554,
+          "structure_ok": true,
+          "output_structure": {
+            "tables": 0,
+            "images": 0,
+            "annotations": 0,
+            "headings": 0,
+            "picture_entries": 0
+          },
+          "desktop_open": {
+            "pass": true,
+            "returncode": 0,
+            "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r2/hardening-regression/chrome-t1-plain-zh-cold-1-out.odt as a Writer document -> /tmp/wasm-sdk-probe-roundtrip-oue0nfx2/pdf/chrome-t1-plain-zh-cold-1-out.pdf using filter : writer_pdf_Export",
+            "stderr": "",
+            "pdf_bytes": 86875
+          }
+        },
+        {
+          "path": "../findings/evidence/sdk-r2/hardening-regression/firefox-t1-plain-zh-cold-1-out.odt",
+          "pass": true,
+          "inserted_character_delta": 1,
+          "text_similarity": 0.9986091794158554,
+          "structure_ok": true,
+          "output_structure": {
+            "tables": 0,
+            "images": 0,
+            "annotations": 0,
+            "headings": 0,
+            "picture_entries": 0
+          },
+          "desktop_open": {
+            "pass": true,
+            "returncode": 0,
+            "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r2/hardening-regression/firefox-t1-plain-zh-cold-1-out.odt as a Writer document -> /tmp/wasm-sdk-probe-roundtrip-ojg9jy5r/pdf/firefox-t1-plain-zh-cold-1-out.pdf using filter : writer_pdf_Export",
+            "stderr": "",
+            "pdf_bytes": 86875
+          }
+        }
+      ]
+    }
+  ]
+}

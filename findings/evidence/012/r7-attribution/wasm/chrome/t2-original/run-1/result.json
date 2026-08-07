@@ -1,0 +1,1984 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-012-r7-attribution",
+  "layer": "diagnostic-wasm",
+  "browser": "chrome",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "fixture": {
+    "id": "t2-original",
+    "path": "t2-original.odt",
+    "changedAxes": [],
+    "retainedFeatures": [
+      "table",
+      "image",
+      "annotation",
+      "page-break"
+    ],
+    "removedFeatures": [],
+    "bytes": 33278,
+    "sha256": "0f69906035cb5d96f86b034cf2596994d5de82ee6347a47c00f35784c9888d31",
+    "packageValidation": {
+      "zip": true,
+      "crc": true,
+      "xml": true,
+      "axisChecks": {},
+      "embeddedImageSha256": "f2e18c7cfeeae665c64c10b9272ca5a551c8ca3361d0548be420a4c4282ff57f",
+      "pass": true
+    },
+    "expectedClose": "discovery",
+    "desktopValidation": {
+      "desktopVersion": "LibreOffice 26.2.4.2 620(Build:2)",
+      "batchReturnCode": 0,
+      "pdfGenerated": true,
+      "pages": 3,
+      "pass": true
+    }
+  },
+  "run": 1,
+  "timeoutMs": 10000,
+  "stages": [
+    "open.begin",
+    "open.documentLoad",
+    "open.documentLoad-returned",
+    "open.initializeForRendering",
+    "open.registerCallback",
+    "open.query-metadata",
+    "document-destroy-enter"
+  ],
+  "outcome": "timeout",
+  "metrics": {
+    "schemaVersion": 1,
+    "release": "finding-012-r7-attribution",
+    "requestedArtifact": "diagnostic",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "crossOriginIsolated": true,
+    "fixture": {
+      "id": "t2-original",
+      "path": "t2-original.odt",
+      "bytes": 33278,
+      "sha256": "0f69906035cb5d96f86b034cf2596994d5de82ee6347a47c00f35784c9888d31",
+      "retainedFeatures": [
+        "table",
+        "image",
+        "annotation",
+        "page-break"
+      ],
+      "removedFeatures": []
+    },
+    "artifact": {
+      "profile": "finding-012-diagnostic",
+      "sdkVersion": "0.6.0-r6-worker+finding-012-diagnostic",
+      "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+      "loader": "./probe.js",
+      "wasm": "./probe.wasm"
+    },
+    "workers": {
+      "created": 1,
+      "terminated": 1,
+      "active": 0,
+      "forcedTermination": true
+    },
+    "handles": {
+      "opened": 1,
+      "closed": 0,
+      "active": 0
+    },
+    "sdkEvents": [
+      {
+        "atMs": 1246.1650000028312,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.begin",
+          "heapBytes": 1073741824,
+          "sbrk": 287248384
+        }
+      },
+      {
+        "atMs": 1246.280000001192,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.documentLoad",
+          "heapBytes": 1073741824,
+          "sbrk": 287248384
+        }
+      },
+      {
+        "atMs": 1249.6100000031292,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:desktop.app:42:3:desktop/source/app/app.cxx:2080: Could not disable AutoRecovery. com.sun.star.uno.DeploymentException message: \"component context fails to supply singleton com.sun.star.frame.theAutoRecovery of type com.sun.star.frame.XDispatch\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+      },
+      {
+        "atMs": 1347.4300000034273,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:editeng:42:1:editeng/source/misc/acorrcfg.cxx:107: Unable to iterate directory 'file:///instdir/program/../share/autocorr' com.sun.star.ucb.InteractiveAugmentedIOException message: \"an error occurred during file opening (12/2)\" context: N10fileaccess11BaseContentE Code: 22"
+      },
+      {
+        "atMs": 1553.3300000019372,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+      },
+      {
+        "atMs": 1553.4150000028312,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+      },
+      {
+        "atMs": 1611.120000001043,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 1681.9300000034273,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 1682.9150000028312,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 1706.315000001341,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 1706.3950000032783,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 1711.8250000029802,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.documentLoad-returned",
+          "heapBytes": 1073741824,
+          "sbrk": 292696064
+        }
+      },
+      {
+        "atMs": 1711.8850000016391,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.initializeForRendering",
+          "heapBytes": 1073741824,
+          "sbrk": 292696064
+        }
+      },
+      {
+        "atMs": 1717.4350000023842,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.registerCallback",
+          "heapBytes": 1073741824,
+          "sbrk": 292696064
+        }
+      },
+      {
+        "atMs": 1721.6300000026822,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.query-metadata",
+          "heapBytes": 1073741824,
+          "sbrk": 292696064
+        }
+      },
+      {
+        "atMs": 1787.9000000022352,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regionband.cxx:982: RegionBand::Exclude() - nLeft > nRight"
+      },
+      {
+        "atMs": 1787.9650000035763,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regband.cxx:486: ImplRegionBand::Exclude(): nxLeft > nXRight"
+      },
+      {
+        "atMs": 1788,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regband.cxx:486: ImplRegionBand::Exclude(): nxLeft > nXRight"
+      },
+      {
+        "atMs": 1788.0200000032783,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regband.cxx:486: ImplRegionBand::Exclude(): nxLeft > nXRight"
+      },
+      {
+        "atMs": 1790.0950000025332,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "atMs": 1790.1150000020862,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "atMs": 1790.2900000028312,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "document-destroy-enter",
+          "heapBytes": 1073741824,
+          "sbrk": 292696064
+        }
+      }
+    ],
+    "stage": "complete",
+    "close": {
+      "status": "typed-failure",
+      "ms": 10000.320000000298,
+      "timeoutMs": 10000,
+      "error": {
+        "name": "SdkTimeoutError",
+        "code": "TIMEOUT",
+        "message": "close timed out after 10000 ms",
+        "details": {
+          "operation": "close",
+          "timeoutMs": 10000
+        }
+      }
+    },
+    "complete": true,
+    "pass": false,
+    "error": null,
+    "open": {
+      "ms": 546.195000000298,
+      "documentHandle": 1,
+      "revision": 0,
+      "parts": 3,
+      "widthTwips": 17004,
+      "heightTwips": 51650
+    }
+  },
+  "processSamples": [
+    {
+      "monotonicSeconds": 32723.261449398,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 239042560,
+          "pssBytes": 80776192,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11120640,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 5472256,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 122490880,
+          "pssBytes": 27804672,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2640896,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56139776,
+          "pssBytes": 5961728,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 320163840,
+          "pssBytes": 216570880,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 104669184,
+          "pssBytes": 16477184,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 97665024,
+          "pssBytes": 16095232,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381360,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 76746752,
+          "pssBytes": 11338752,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 131481600,
+          "pssBytes": 29211648,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "engine-init",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 0,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 13,
+      "rssBytes": 1325121536,
+      "pssBytes": 428316672
+    },
+    {
+      "monotonicSeconds": 32724.316873602,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 240234496,
+          "pssBytes": 81366016,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11119616,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 5471232,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 120422400,
+          "pssBytes": 26727424,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2639872,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56139776,
+          "pssBytes": 5960704,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 896696320,
+          "pssBytes": 778165248,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 104669184,
+          "pssBytes": 16475136,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 97665024,
+          "pssBytes": 16073728,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381360,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 76746752,
+          "pssBytes": 11338752,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 131997696,
+          "pssBytes": 29440000,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "open",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 0,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 13,
+      "rssBytes": 1901293568,
+      "pssBytes": 989624320
+    },
+    {
+      "monotonicSeconds": 32725.379269703,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 253349888,
+          "pssBytes": 88427520,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11078656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 4968448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 121020416,
+          "pssBytes": 26886144,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2134016,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56254464,
+          "pssBytes": 5446656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 963796992,
+          "pssBytes": 851759104,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 105353216,
+          "pssBytes": 15466496,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 98598912,
+          "pssBytes": 15077376,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382093,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 78225408,
+          "pssBytes": 10796032,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382099,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 112939008,
+          "pssBytes": 19187712,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382112,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 101355520,
+          "pssBytes": 16282624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 133693440,
+          "pssBytes": 30091264,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "close",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 1,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2201309184,
+      "pssBytes": 1102448640
+    },
+    {
+      "monotonicSeconds": 32726.45141067,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 253419520,
+          "pssBytes": 88449024,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11078656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 4968448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 121020416,
+          "pssBytes": 26886144,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2134016,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56254464,
+          "pssBytes": 5446656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 820727808,
+          "pssBytes": 708685824,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 105353216,
+          "pssBytes": 15466496,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 98598912,
+          "pssBytes": 15077376,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382093,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 78225408,
+          "pssBytes": 10796032,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382099,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 112939008,
+          "pssBytes": 19187712,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382112,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 101355520,
+          "pssBytes": 16282624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 133693440,
+          "pssBytes": 30091264,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "close",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 1,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2058309632,
+      "pssBytes": 959396864
+    },
+    {
+      "monotonicSeconds": 32727.499243154,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 253419520,
+          "pssBytes": 88449024,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11078656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 4968448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 121020416,
+          "pssBytes": 26886144,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2134016,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56254464,
+          "pssBytes": 5446656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 819785728,
+          "pssBytes": 707743744,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 105353216,
+          "pssBytes": 15466496,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 98598912,
+          "pssBytes": 15077376,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382093,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 78225408,
+          "pssBytes": 10796032,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382099,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 112951296,
+          "pssBytes": 19200000,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382112,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 101355520,
+          "pssBytes": 16282624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 133693440,
+          "pssBytes": 30091264,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "close",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 1,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2057379840,
+      "pssBytes": 958467072
+    },
+    {
+      "monotonicSeconds": 32728.547223063,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 253317120,
+          "pssBytes": 88307712,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11078656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 4968448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 120918016,
+          "pssBytes": 26781696,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2134016,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56254464,
+          "pssBytes": 5446656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 819949568,
+          "pssBytes": 707907584,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 105353216,
+          "pssBytes": 15466496,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 98598912,
+          "pssBytes": 15077376,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382093,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 78225408,
+          "pssBytes": 10796032,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382099,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 112951296,
+          "pssBytes": 19200000,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382112,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 101355520,
+          "pssBytes": 16282624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 133693440,
+          "pssBytes": 30189568,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "close",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 1,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2057338880,
+      "pssBytes": 958483456
+    },
+    {
+      "monotonicSeconds": 32729.596917481,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 253317120,
+          "pssBytes": 88307712,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11078656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 4968448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 120918016,
+          "pssBytes": 26781696,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2134016,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56254464,
+          "pssBytes": 5446656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 819929088,
+          "pssBytes": 707887104,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 105353216,
+          "pssBytes": 15466496,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 98598912,
+          "pssBytes": 15077376,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382093,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 78225408,
+          "pssBytes": 10796032,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382099,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 112951296,
+          "pssBytes": 19200000,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382112,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 101355520,
+          "pssBytes": 16282624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 133496832,
+          "pssBytes": 29992960,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "close",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 1,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2057121792,
+      "pssBytes": 958266368
+    },
+    {
+      "monotonicSeconds": 32730.645168024,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 253317120,
+          "pssBytes": 88307712,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11078656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 4968448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 120918016,
+          "pssBytes": 26781696,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2134016,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56254464,
+          "pssBytes": 5446656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 818618368,
+          "pssBytes": 707174400,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 105353216,
+          "pssBytes": 15466496,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 98598912,
+          "pssBytes": 15077376,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382093,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 78225408,
+          "pssBytes": 10796032,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382099,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 112951296,
+          "pssBytes": 19200000,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382112,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 101355520,
+          "pssBytes": 16282624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 132308992,
+          "pssBytes": 29403136,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "close",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 1,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2054623232,
+      "pssBytes": 956963840
+    },
+    {
+      "monotonicSeconds": 32731.693207302,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 253317120,
+          "pssBytes": 88307712,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11078656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 4968448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 120918016,
+          "pssBytes": 26781696,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2134016,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56254464,
+          "pssBytes": 5446656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 818757632,
+          "pssBytes": 707313664,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 105353216,
+          "pssBytes": 15466496,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 98598912,
+          "pssBytes": 15077376,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382093,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 78225408,
+          "pssBytes": 10796032,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382099,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 112951296,
+          "pssBytes": 19200000,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382112,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 101355520,
+          "pssBytes": 16282624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 132308992,
+          "pssBytes": 29403136,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "close",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 1,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2054762496,
+      "pssBytes": 957103104
+    },
+    {
+      "monotonicSeconds": 32732.746697256,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 253317120,
+          "pssBytes": 88307712,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11078656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 4968448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 120918016,
+          "pssBytes": 26781696,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2134016,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56254464,
+          "pssBytes": 5446656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 818880512,
+          "pssBytes": 707436544,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 105353216,
+          "pssBytes": 15466496,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 98598912,
+          "pssBytes": 15077376,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382093,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 78225408,
+          "pssBytes": 10796032,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382099,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 112951296,
+          "pssBytes": 19200000,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382112,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 101355520,
+          "pssBytes": 16282624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 132308992,
+          "pssBytes": 29403136,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "close",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 1,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2054885376,
+      "pssBytes": 957225984
+    },
+    {
+      "monotonicSeconds": 32733.794260848,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 253726720,
+          "pssBytes": 88553472,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11078656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 4968448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 120938496,
+          "pssBytes": 26802176,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2134016,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56258560,
+          "pssBytes": 5450752,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 818192384,
+          "pssBytes": 706746368,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 105422848,
+          "pssBytes": 15476736,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 98033664,
+          "pssBytes": 14509056,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382093,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 78225408,
+          "pssBytes": 10796032,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382099,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 112951296,
+          "pssBytes": 19196928,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382112,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 101355520,
+          "pssBytes": 16281600,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 132308992,
+          "pssBytes": 29403136,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "close",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 1,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2054135808,
+      "pssBytes": 956243968
+    },
+    {
+      "monotonicSeconds": 32734.842225518,
+      "rootPid": 381183,
+      "processes": [
+        {
+          "pid": 381183,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 253308928,
+          "pssBytes": 88132608,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381193,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7520256,
+          "pssBytes": 2520064,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381194,
+          "ppid": 381183,
+          "name": "cat",
+          "rssBytes": 7397376,
+          "pssBytes": 2326528,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381211,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71331840,
+          "pssBytes": 11078656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381212,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 71077888,
+          "pssBytes": 4968448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381252,
+          "ppid": 381183,
+          "name": "chrome",
+          "rssBytes": 120922112,
+          "pssBytes": 26785792,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381214,
+          "ppid": 381212,
+          "name": "chrome",
+          "rssBytes": 19394560,
+          "pssBytes": 2134016,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381257,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 56258560,
+          "pssBytes": 5450752,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381297,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 794759168,
+          "pssBytes": 682304512,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381301,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 105422848,
+          "pssBytes": 15476736,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381326,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 98033664,
+          "pssBytes": 14509056,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382093,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 78225408,
+          "pssBytes": 10796032,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382099,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 112951296,
+          "pssBytes": 19196928,
+          "status": "sleeping"
+        },
+        {
+          "pid": 382112,
+          "ppid": 381214,
+          "name": "chrome",
+          "rssBytes": 101355520,
+          "pssBytes": 16277504,
+          "status": "sleeping"
+        },
+        {
+          "pid": 381248,
+          "ppid": 381211,
+          "name": "chrome",
+          "rssBytes": 133607424,
+          "pssBytes": 30062592,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "complete",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 0,
+      "activeHandles": 0,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2031566848,
+      "pssBytes": 932020224
+    }
+  ],
+  "artifactHashes": {
+    "loader": "265a0ee254d3083d49da2c3aa942eb4d00b8ebf71ba9d5620a289ced8b66e120",
+    "wasm": "b7c77ddb27724e5ec6ce81b602aade17c992bd835017fd38314a443f98d91880",
+    "manifest": "79321043e7be681838adb80206cb79fe6219d9ad8f8e5da289c9699981cf9e83",
+    "productionLoader": "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566",
+    "productionWasm": "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6"
+  },
+  "pass": true
+}

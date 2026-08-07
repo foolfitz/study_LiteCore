@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OxOffice R6 Reader Shell</title>
+  <link rel="stylesheet" href="r6.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>OxOffice Document SDK — R6 Reader</h1>
+      <p>公開 SDK viewport、版本狀態與明確 reload</p>
+    </div>
+    <span id="status" class="status-pill" data-state="idle" role="status">idle</span>
+  </header>
+
+  <main class="shell">
+    <section class="card" aria-label="文件閱讀區">
+      <div class="toolbar">
+        <button id="fit-width">符合寬度</button>
+        <button id="zoom-100">100%</button>
+        <button id="zoom-150">150%</button>
+        <span>縮放：<output id="zoom-value">100%</output></span>
+        <span class="spacer"></span>
+        <button id="reload">重新載入版本</button>
+        <button id="download">下載本機結果</button>
+        <button id="close" class="danger">關閉</button>
+      </div>
+      <div id="viewport" class="viewport" tabindex="0" aria-label="可捲動文件 viewport">
+        <div id="surface" class="document-surface">
+          <div id="tiles" class="tile-layer" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side-panel">
+      <section class="card panel-section">
+        <h2>文件與引擎</h2>
+        <dl class="metadata">
+          <dt>文件</dt><dd id="document-id">—</dd>
+          <dt>Version</dt><dd id="version">—</dd>
+          <dt>ETag</dt><dd id="etag">—</dd>
+          <dt>SDK revision</dt><dd id="revision">—</dd>
+          <dt>Profile</dt><dd id="profile">—</dd>
+          <dt>SDK</dt><dd id="sdk-version">—</dd>
+          <dt>Provider</dt><dd id="provider-version">—</dd>
+          <dt>Core</dt><dd id="core-commit">—</dd>
+          <dt>下一動作</dt><dd id="next-action">open</dd>
+        </dl>
+      </section>
+
+      <section class="card panel-section">
+        <h2>搜尋</h2>
+        <div class="search-row">
+          <label for="search" class="visually-hidden">搜尋文字</label>
+          <input id="search" value="LibreOfficeKit" autocomplete="off">
+          <button id="search-next" class="primary">下一筆</button>
+        </div>
+        <div id="search-result" class="message">尚未搜尋；R6 不解析 opaque rectangles。</div>
+      </section>
+
+      <section class="card panel-section">
+        <h2>測試控制</h2>
+        <p><span class="fixture-badge">fixture identity；非正式登入</span></p>
+        <button id="remote-update">注入遠端 v2</button>
+        <button id="worker-crash">注入 Worker crash</button>
+        <button id="recover">重啟並重新載入</button>
+        <button id="run-all" class="primary">執行 R6-A 自動流程</button>
+        <div id="message" class="message">等待初始化。</div>
+      </section>
+
+      <section class="card">
+        <pre id="log" class="log" aria-label="事件紀錄"></pre>
+      </section>
+    </aside>
+  </main>
+
+  <script type="module" src="r6-reader-app.js"></script>
+</body>
+</html>

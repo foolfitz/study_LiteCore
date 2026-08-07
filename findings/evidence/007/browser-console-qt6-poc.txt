@@ -1,0 +1,46 @@
+Capture time: 2026-08-01T02:42+08:00 to 2026-08-01T02:50+08:00
+Page: http://127.0.0.1:6940/qt_soffice.html
+Browser: Google Chrome 150.0.7871.128
+Capture method: Chrome DevTools Protocol Runtime/Log domains
+
+Note: Runtime.enable and Log.enable replayed entries retained by Chrome. Text and stacks below are
+verbatim excerpts; ordering between different CDP domains must not be treated as an exact timeline.
+
+--- First actionable JavaScript exception ---
+
+[exception page AEA36E2D96191FE1554BA49F7713AC6B] TypeError: Cannot read properties of null (reading 'getBoundingClientRect')
+    at __emval_call_method (http://127.0.0.1:6940/soffice.js:9552:41)
+    at soffice.wasm.dom::mapPoint(emscripten::val, emscripten::val, QPointF const&) (http://127.0.0.1:6940/soffice.wasm:wasm-function[349055]:0x53de929)
+    at soffice.wasm.QWasmWindow::processPointerEnterLeave(PointerEvent const&) (http://127.0.0.1:6940/soffice.wasm:wasm-function[349149]:0x53e9d7b)
+    at soffice.wasm.std::__2::__function::__func<QWasmWindow::registerEventHandlers()::$_4, std::__2::allocator<QWasmWindow::registerEventHandlers()::$_4>, void (emscripten::val)>::operator()(emscripten::val&&) (http://127.0.0.1:6940/soffice.wasm:wasm-function[349215]:0x53ec03b)
+    at soffice.wasm.QWasmSuspendResumeControl::sendPendingEvents() (http://127.0.0.1:6940/soffice.wasm:wasm-function[327894]:0x4cf0437)
+    at soffice.wasm.QEventDispatcherWasm::sendNativeEvents(QFlags<QEventLoop::ProcessEventsFlag>) (http://127.0.0.1:6940/soffice.wasm:wasm-function[328035]:0x4cf5e67)
+    at soffice.wasm.QEventDispatcherWasm::sendAllEvents(QFlags<QEventLoop::ProcessEventsFlag>) (http://127.0.0.1:6940/soffice.wasm:wasm-function[328032]:0x4cf5bf7)
+    at soffice.wasm.QEventDispatcherWasm::processEvents(QFlags<QEventLoop::ProcessEventsFlag>) (http://127.0.0.1:6940/soffice.wasm:wasm-function[328030]:0x4cf582b)
+    at soffice.wasm.QtInstance::ImplYield(bool, bool) (http://127.0.0.1:6940/soffice.wasm:wasm-function[276034]:0x3f6ed7a)
+    at soffice.wasm.QtInstance::DoYield(bool, bool) (http://127.0.0.1:6940/soffice.wasm:wasm-function[276097]:0x3f72172)
+
+--- Application abort reported by the page/worker ---
+
+[console page AEA36E2D96191FE1554BA49F7713AC6B error] Pthread 0x038c0128 sent an error! http://127.0.0.1:6940/soffice.js:848: Uncaught RuntimeError: unreachable
+  at worker.onerror (http://127.0.0.1:6940/soffice.js:1715:10)
+
+[exception page AEA36E2D96191FE1554BA49F7713AC6B] ErrorEvent
+
+[log page AEA36E2D96191FE1554BA49F7713AC6B error] Aborted(Assertion failed: invalid handle: 32)
+  at abort (http://127.0.0.1:6940/soffice.js:1171:2)
+
+[log page AEA36E2D96191FE1554BA49F7713AC6B error] Uncaught (in promise) RuntimeError: unreachable
+
+[log page AEA36E2D96191FE1554BA49F7713AC6B error] Uncaught RuntimeError: unreachable
+
+--- Other warnings seen before the abort ---
+
+[console page AEA36E2D96191FE1554BA49F7713AC6B error] Blocking on the main thread is very dangerous, see https://emscripten.org/docs/porting/pthreads.html#blocking-on-the-main-browser-thread
+  at warnOnce (http://127.0.0.1:6940/soffice.js:1938:8)
+  at _emscripten_check_blocking_allowed (http://127.0.0.1:6940/soffice.js:10303:6)
+  at $__pthread_cond_timedwait (http://127.0.0.1:6940/soffice.wasm:0:88113618)
+
+[console page AEA36E2D96191FE1554BA49F7713AC6B error] warning: unsupported syscall: __syscall_mprotect
+  at _emscripten_err (http://127.0.0.1:6940/soffice.js:10313:33)
+  at $__syscall_mprotect (http://127.0.0.1:6940/soffice.wasm:0:88088690)

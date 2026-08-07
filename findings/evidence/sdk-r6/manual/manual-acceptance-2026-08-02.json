@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "release": "R6-C",
+  "evidenceKind": "guided-manual-acceptance",
+  "date": "2026-08-02",
+  "timezone": "Asia/Taipei",
+  "source": {
+    "operator": "user",
+    "guidance": "Codex guided Alice and Bob through the reference application",
+    "contexts": [
+      "alice",
+      "bob"
+    ],
+    "browserCombination": "two independent browser contexts; browser product/version was not captured in the pasted audit log",
+    "serverVerification": "GET /api/documents/r6-reference-document/collaboration and GET /__test/state/r6-reference-document"
+  },
+  "initialEditRegression": {
+    "reportedError": {
+      "code": "ANCHOR_NOT_FOUND",
+      "message": "local edit quote is missing"
+    },
+    "fixedPath": {
+      "initialQuery": "alice-manual-R6",
+      "initialQueryFound": true,
+      "revisionBeforeEdit": 1,
+      "command": "localEditFromSearch",
+      "status": "passed",
+      "savedBytes": 18732,
+      "savedSha256": "aae3b918fa55b0a8bb20b7ca3df3bbfa8e3f86c6bf44e7a571a0f3a9e392a0bf",
+      "revisionAfterEdit": 2,
+      "replacement": "alice-local-R6",
+      "replacementFoundBeforeUndo": true,
+      "undoStatus": "passed",
+      "revisionAfterUndo": 3,
+      "localBytesAvailableAfterUndo": false,
+      "replacementFoundAfterUndo": false,
+      "originalFoundAfterUndo": true
+    }
+  },
+  "cleanFixtureFlow": {
+    "reset": {
+      "fixtureName": "t1-plain-zh.odt",
+      "eventRetention": 64,
+      "initialVersion": "v1",
+      "initialVersionCount": 1,
+      "initialEventSequence": 0
+    },
+    "presence": {
+      "aliceSawAliceAndBob": true,
+      "bobSawAliceAndBob": true,
+      "viewedVersion": "v1"
+    },
+    "comments": {
+      "consistentInBothContexts": true,
+      "root": {
+        "id": "comment-1",
+        "authorId": "bob",
+        "body": "bob sidecar comment",
+        "status": "resolved"
+      },
+      "reply": {
+        "id": "comment-2",
+        "authorId": "alice",
+        "body": "alice manual reply",
+        "status": "open",
+        "parentId": "comment-1"
+      }
+    },
+    "providerSuggestion": {
+      "authorId": "bob",
+      "quote": "LibreOfficeKit",
+      "replacement": "R4 Provider：LibreOfficeKit",
+      "acceptedBy": "alice",
+      "acceptCommandStatus": "passed",
+      "acceptedVersion": "v2",
+      "etag": "\"sha256-2b29b36d2c752f6677e1531f24cea2fc87782ce56f71cc0bcbb59934a4bfaddd\"",
+      "blobSha256": "2b29b36d2c752f6677e1531f24cea2fc87782ce56f71cc0bcbb59934a4bfaddd",
+      "suggestionStatus": "accepted",
+      "saveMs": 192.89000000059605,
+      "putMs": 4.659999996423721,
+      "aliceReloadMs": 1058.469999998808,
+      "bobReloadStatus": "passed",
+      "bobReloadMs": 2272.119999999879,
+      "bobExactReplacementSearch": true,
+      "bobRevisionAfterReload": 0
+    },
+    "leaseContention": {
+      "aliceAcquireAndRenew": "user-confirmed passed",
+      "bobWhileAliceHeld": {
+        "code": "LEASE_HELD",
+        "message": "document already has an active lease"
+      },
+      "aliceRelease": "user-confirmed passed",
+      "bobAcquireRenewRelease": "user-confirmed passed",
+      "finalLease": null
+    },
+    "workerCrashRecovery": {
+      "role": "bob",
+      "workerEvent": "worker-crashed",
+      "commandStatus": "passed",
+      "state": "recoverable-error",
+      "code": "WORKER_CRASHED",
+      "saved": false,
+      "localBytesAvailable": false,
+      "reloadStatus": "passed",
+      "reloadedVersion": "v2",
+      "reloadedEtag": "\"sha256-2b29b36d2c752f6677e1531f24cea2fc87782ce56f71cc0bcbb59934a4bfaddd\"",
+      "reloadMs": 2159.4199999999255,
+      "authorityReplacementFoundAfterReload": true,
+      "revisionAfterReload": 0
+    },
+    "authorityAndLocalDownloads": {
+      "authorityFilename": "r6-reference-document-v2.odt",
+      "localFilename": "r6-reference-document-bob-uncommitted.odt",
+      "authorityContained": "R4 Provider：LibreOfficeKit",
+      "localContained": "bob-local-R6",
+      "confirmedByUser": true,
+      "undoRestoredAuthorityText": true,
+      "serverVersionUnaffectedByLocalEdit": true
+    }
+  },
+  "finalServerState": {
+    "currentVersion": "v2",
+    "versionCount": 2,
+    "eventSequence": 18,
+    "idempotencyCount": 18,
+    "etag": "\"sha256-2b29b36d2c752f6677e1531f24cea2fc87782ce56f71cc0bcbb59934a4bfaddd\"",
+    "blobSha256": "2b29b36d2c752f6677e1531f24cea2fc87782ce56f71cc0bcbb59934a4bfaddd",
+    "bytes": 18934,
+    "lease": null,
+    "commentCount": 2,
+    "suggestionCount": 1,
+    "acceptedSuggestionCount": 1,
+    "eventTypes": [
+      "presence-upserted",
+      "presence-upserted",
+      "presence-upserted",
+      "presence-upserted",
+      "comment-created",
+      "comment-created",
+      "comment-resolved",
+      "suggestion-created",
+      "lease-acquired",
+      "suggestion-decided",
+      "document-updated",
+      "lease-released",
+      "lease-acquired",
+      "lease-released",
+      "lease-acquired",
+      "lease-released",
+      "lease-acquired",
+      "lease-released"
+    ]
+  },
+  "observationClassification": {
+    "observed": [
+      "The edit button used the current search-field quote and produced local ODT bytes after the fix.",
+      "Undo removed the local bytes and restored the original accepted text.",
+      "Both contexts converged on presence, comments and the accepted Provider suggestion.",
+      "The second lease acquire was rejected with typed LEASE_HELD while Alice held the lease.",
+      "A Document Worker crash entered recoverable-error and explicit reload reopened the unchanged v2.",
+      "Authority and uncommitted ODT downloads contained different expected text.",
+      "Final service state had two immutable versions and no active lease."
+    ],
+    "inferred": [
+      "Because the final service still had versionCount=2 and the accepted v2 hash was unchanged, the manual local edit, download and undo did not silently publish a new version."
+    ],
+    "notReperformedManually": [
+      "ANCHOR_AMBIGUOUS negative fixture",
+      "event-retention snapshot fallback",
+      "Provider invalid-operation and late-result boundary matrix",
+      "commit interruption idempotency faults"
+    ]
+  },
+  "decision": "GO",
+  "pass": true
+}

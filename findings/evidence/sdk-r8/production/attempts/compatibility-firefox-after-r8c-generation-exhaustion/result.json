@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "release": "R8-D-production-validation",
+  "browser": "firefox",
+  "stage": "first-compatibility-batch-after-fresh",
+  "runnerStrategy": "separate-browser-process-per-batch",
+  "freshReleasePrepared": true,
+  "completedBatches": 0,
+  "timeoutSeconds": 900,
+  "lastBrowserValue": null,
+  "error": {
+    "name": "TimeoutError",
+    "message": "R8-D browser value timed out: None"
+  },
+  "observed": "after the R8-C Firefox full matrix, the second R8-D Firefox process returned no compatibility page value for 900 seconds",
+  "inference": "consistent with Finding 014 cross-process large-WASM generation exhaustion; not attributed to a corpus document because no batch started",
+  "nextAction": "reuse the prepared profile, use one browser process with navigation batches, and retain the frozen maximum of three Worker generations per page",
+  "pass": false
+}

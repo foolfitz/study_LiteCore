@@ -1,0 +1,31 @@
+diff --git a/static/CustomTarget_emscripten_fs_image.mk b/static/CustomTarget_emscripten_fs_image.mk
+index 7e4057ec9765..c2bcc57bf97d 100644
+--- a/static/CustomTarget_emscripten_fs_image.mk
++++ b/static/CustomTarget_emscripten_fs_image.mk
+@@ -1780,6 +1780,26 @@ endif
+ gb_emscripten_fs_image_filelists += $(call gb_Package_get_target,liblangtag_data)
+ gb_emscripten_fs_image_filelists += $(call gb_Package_get_target,fontconfig_data)
+ 
++# litecore-lite: i18n + extra fonts
++# 上游 external/more_fonts 一套 CJK 字型都沒有，而 WASM 的虛擬檔案系統
++# 抓不到系統字型；LITE_EXTRA_FONTS_DIR 由 Qt6 POC 環境檔匯出。
++ifneq ($(LITE_EXTRA_FONTS_DIR),)
++lite_extra_font_names := $(notdir \
++    $(wildcard $(LITE_EXTRA_FONTS_DIR)/*.ttf) \
++    $(wildcard $(LITE_EXTRA_FONTS_DIR)/*.ttc) \
++    $(wildcard $(LITE_EXTRA_FONTS_DIR)/*.otf) \
++    $(wildcard $(LITE_EXTRA_FONTS_DIR)/*.otc))
++
++gb_emscripten_fs_image_files += $(foreach f,$(lite_extra_font_names),\
++    $(INSTROOT)/$(LIBO_SHARE_FOLDER)/fonts/truetype/$(f))
++
++define lite_extra_font_rule
++$(INSTROOT)/$(LIBO_SHARE_FOLDER)/fonts/truetype/$(1) : $(LITE_EXTRA_FONTS_DIR)/$(1)
++	mkdir -p $$(dir $$@) && cp -f $$< $$@
++endef
++$(foreach f,$(lite_extra_font_names),$(eval $(call lite_extra_font_rule,$(f))))
++endif
++
+ #
+ # Ruleset
+ #

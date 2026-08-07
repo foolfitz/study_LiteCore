@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "release": "R8-D-production-validation",
+  "frozenDate": "2026-08-04",
+  "topologies": {
+    "t0": { "required": true, "kind": "deterministic-loopback" },
+    "t1": { "required": true, "kind": "local-cross-origin" },
+    "t2": { "requiredForFullGo": true, "kind": "user-authorized-https" }
+  },
+  "browsers": ["chrome", "firefox"],
+  "gates": {
+    "r8c": "service-worker/summary.json",
+    "activeReleaseCompatibility": "production/compatibility/{browser}/summary.json",
+    "longevity": "production/longevity/{browser}/summary.json",
+    "regression": "production/regression/summary.json",
+    "deployment": "production/deployment/summary.json"
+  },
+  "compatibility": {
+    "manifest": "test-docs/r7-compat/manifest.json",
+    "documentCount": 28,
+    "requiredReleaseSlot": "A",
+    "maxWorkerGenerationsPerPage": 3
+  },
+  "longevity": {
+    "minimumMinutes": 30,
+    "sampleIntervalMs": 60000,
+    "maximumFirefoxWorkerGenerationsPerPage": 3,
+    "requiredTransitions": ["active-a", "active-b", "offline-a-runtime", "rollback-a"]
+  },
+  "decisionPolicy": {
+    "safetyFailure": "STOP",
+    "localPassWithoutT2": "PARTIAL_GO_LOCAL_DELIVERY",
+    "allRequiredIncludingT2": "GO"
+  }
+}

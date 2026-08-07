@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-A-editing-discovery",
+  "frozenDate": "2026-08-04",
+  "baseline": {
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "profile": "writer-review",
+    "loaderSha256": "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566",
+    "wasmSha256": "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6",
+    "r8Decision": "PARTIAL_GO_LOCAL_DELIVERY"
+  },
+  "browsers": ["chrome", "firefox"],
+  "fixtures": [
+    "plain-grapheme",
+    "multi-paragraph",
+    "styled-list",
+    "table-boundary",
+    "r7-t2-styled"
+  ],
+  "operationFamilies": {
+    "caret": [
+      "click",
+      "move-character-left",
+      "move-character-right",
+      "move-line-up",
+      "move-line-down",
+      "move-line-home",
+      "move-line-end"
+    ],
+    "selection": [
+      "extend-character",
+      "extend-line",
+      "extend-line-boundary",
+      "mouse-drag-forward",
+      "mouse-drag-backward",
+      "selection-reset"
+    ],
+    "mutation": [
+      "insert-text",
+      "delete-backward",
+      "delete-forward",
+      "insert-paragraph-break",
+      "insert-line-break"
+    ],
+    "history": ["undo", "redo"],
+    "format": [
+      "set-bold",
+      "set-italic",
+      "set-paragraph-body",
+      "set-paragraph-heading",
+      "set-list-none",
+      "set-list-unordered",
+      "set-list-ordered"
+    ]
+  },
+  "negativeCases": [
+    "stale-revision",
+    "cancel-before-start",
+    "timeout-after-dispatch",
+    "worker-crash-after-dispatch",
+    "document-boundary",
+    "table-boundary",
+    "unsupported-action"
+  ],
+  "thresholds": {
+    "positiveRepetitionsPerBrowser": 3,
+    "negativeRepetitionsPerBrowser": 1,
+    "callbackBarrierMs": 10000,
+    "operationTimeoutMs": 30000,
+    "openSaveTimeoutMs": 180000,
+    "maximumFirefoxWorkerGenerationsPerPage": 3,
+    "manualImeRounds": 0
+  },
+  "requiredProperties": [
+    "closed-operation-taxonomy",
+    "no-raw-uno-or-arbitrary-keycode",
+    "documented-callback-payload-only",
+    "typed-caret-selection-state",
+    "revision-guarded-mutation",
+    "exactly-once-host-action",
+    "no-automatic-replay-after-unknown-outcome",
+    "odt-roundtrip",
+    "r6-r8-regression",
+    "bounded-worker-generation"
+  ],
+  "decisionPolicy": {
+    "allCoreAndAtLeastMinimalFormat": "GO_TO_E1_B",
+    "coreEditingWithExplicitCapabilityReduction": "PARTIAL_GO_TO_E1_B",
+    "unsafeCompletionOrForbiddenSurfaceRequired": "STOP_OR_RESCOPE"
+  }
+}

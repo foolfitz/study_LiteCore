@@ -1,0 +1,485 @@
+{
+  "schemaVersion": 1,
+  "release": "R5",
+  "decision": "GO",
+  "checks": {
+    "resourceProof": true,
+    "artifactHashes": true,
+    "exports": true,
+    "sizeReduction": true,
+    "cachePolicy": true,
+    "browserMatrix": true,
+    "providerConformance": true,
+    "regressions": true,
+    "roundtrip": true,
+    "coreUnchanged": true,
+    "automationNotShippable": true
+  },
+  "size": {
+    "writer-review": {
+      "wasmRawReductionBytes": 53997961,
+      "wasmGzipReductionBytes": 4728906,
+      "startupResourceReductionBytes": 49102042,
+      "pass": true
+    },
+    "writer-reader": {
+      "wasmRawReductionBytes": 53999527,
+      "wasmGzipReductionBytes": 4727431,
+      "startupResourceReductionBytes": 49102042,
+      "pass": true
+    }
+  },
+  "browser": [
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r5/browser-raw/review/chrome-t1-plain-zh-cold-summary.json",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "cache": "cold",
+      "samples": 3,
+      "passed": 3,
+      "medianMs": {
+        "t_first_tile_ms": 136.815,
+        "t_open_ms": 110.74,
+        "t_provider_ms": 110.43,
+        "t_ready_ms": 838.245,
+        "t_save_ms": 225.885,
+        "t_stale_provider_ms": 105.62
+      }
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r5/browser-raw/review/firefox-t1-plain-zh-cold-summary.json",
+      "browser": "firefox",
+      "browserVersion": "152.0.6",
+      "cache": "cold",
+      "samples": 3,
+      "passed": 3,
+      "medianMs": {
+        "t_first_tile_ms": 133,
+        "t_open_ms": 410.98,
+        "t_provider_ms": 111.06,
+        "t_ready_ms": 1563.08,
+        "t_save_ms": 281.04,
+        "t_stale_provider_ms": 113.2
+      }
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r5/browser-raw/reader/chrome-t1-plain-zh-cold-summary.json",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "cache": "cold",
+      "samples": 3,
+      "passed": 3,
+      "medianMs": {
+        "t_first_tile_ms": 149.97,
+        "t_open_ms": 310.655,
+        "t_ready_ms": 824.215,
+        "t_save_ms": 196.52,
+        "t_search_cjk_ms": 19.03,
+        "t_search_latin_ms": 28.935
+      }
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r5/browser-raw/reader/chrome-t1-plain-zh-hot-summary.json",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "cache": "hot",
+      "samples": 3,
+      "passed": 3,
+      "medianMs": {
+        "t_first_tile_ms": 182.89,
+        "t_open_ms": 115.34,
+        "t_ready_ms": 848.41,
+        "t_save_ms": 218.295,
+        "t_search_cjk_ms": 18.265,
+        "t_search_latin_ms": 28.915
+      }
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r5/browser-raw/reader/firefox-t1-plain-zh-cold-summary.json",
+      "browser": "firefox",
+      "browserVersion": "152.0.6",
+      "cache": "cold",
+      "samples": 3,
+      "passed": 3,
+      "medianMs": {
+        "t_first_tile_ms": 132.96,
+        "t_open_ms": 396.2,
+        "t_ready_ms": 1588.76,
+        "t_save_ms": 283.74,
+        "t_search_cjk_ms": 18.6,
+        "t_search_latin_ms": 28.9
+      }
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r5/browser-raw/reader/firefox-t1-plain-zh-hot-summary.json",
+      "browser": "firefox",
+      "browserVersion": "152.0.6",
+      "cache": "hot",
+      "samples": 3,
+      "passed": 3,
+      "medianMs": {
+        "t_first_tile_ms": 135.0,
+        "t_open_ms": 393.66,
+        "t_ready_ms": 1498.48,
+        "t_save_ms": 288.32,
+        "t_search_cjk_ms": 19.08,
+        "t_search_latin_ms": 29.1
+      }
+    }
+  ],
+  "exports": {
+    "writer-review": {
+      "expected": [
+        "_oxsdk_abi_version",
+        "_oxsdk_buffer_alloc",
+        "_oxsdk_buffer_free",
+        "_oxsdk_capabilities",
+        "_oxsdk_document_add_comment",
+        "_oxsdk_document_click",
+        "_oxsdk_document_close",
+        "_oxsdk_document_get_selection",
+        "_oxsdk_document_insert_text",
+        "_oxsdk_document_list_changes",
+        "_oxsdk_document_list_comments",
+        "_oxsdk_document_open",
+        "_oxsdk_document_paint",
+        "_oxsdk_document_replace_selection",
+        "_oxsdk_document_save",
+        "_oxsdk_document_search",
+        "_oxsdk_document_set_track_changes",
+        "_oxsdk_document_undo",
+        "_oxsdk_engine_start",
+        "_oxsdk_request_cancel"
+      ],
+      "actual": [
+        "_oxsdk_abi_version",
+        "_oxsdk_buffer_alloc",
+        "_oxsdk_buffer_free",
+        "_oxsdk_capabilities",
+        "_oxsdk_document_add_comment",
+        "_oxsdk_document_click",
+        "_oxsdk_document_close",
+        "_oxsdk_document_get_selection",
+        "_oxsdk_document_insert_text",
+        "_oxsdk_document_list_changes",
+        "_oxsdk_document_list_comments",
+        "_oxsdk_document_open",
+        "_oxsdk_document_paint",
+        "_oxsdk_document_replace_selection",
+        "_oxsdk_document_save",
+        "_oxsdk_document_search",
+        "_oxsdk_document_set_track_changes",
+        "_oxsdk_document_undo",
+        "_oxsdk_engine_start",
+        "_oxsdk_request_cancel"
+      ],
+      "noLegacyProbe": true,
+      "pass": true
+    },
+    "writer-reader": {
+      "expected": [
+        "_oxsdk_abi_version",
+        "_oxsdk_buffer_alloc",
+        "_oxsdk_buffer_free",
+        "_oxsdk_capabilities",
+        "_oxsdk_document_close",
+        "_oxsdk_document_open",
+        "_oxsdk_document_paint",
+        "_oxsdk_document_save",
+        "_oxsdk_document_search",
+        "_oxsdk_engine_start",
+        "_oxsdk_request_cancel"
+      ],
+      "actual": [
+        "_oxsdk_abi_version",
+        "_oxsdk_buffer_alloc",
+        "_oxsdk_buffer_free",
+        "_oxsdk_capabilities",
+        "_oxsdk_document_close",
+        "_oxsdk_document_open",
+        "_oxsdk_document_paint",
+        "_oxsdk_document_save",
+        "_oxsdk_document_search",
+        "_oxsdk_engine_start",
+        "_oxsdk_request_cancel"
+      ],
+      "noLegacyProbe": true,
+      "pass": true
+    }
+  },
+  "hashChecks": [
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/full-qa/probe.e6d5d2adbde87d7e.js",
+      "exists": true,
+      "sha256": "e6d5d2adbde87d7e58d4a79f8930ef970ededa4ba386bddda865d7a901fe7dfd",
+      "filenameHash": "e6d5d2adbde87d7e",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/full-qa/probe.e59c5d72bd9795fe.wasm",
+      "exists": true,
+      "sha256": "e59c5d72bd9795fe06a207a7abb274b8047e91b33795e9e0cbbcddd8dbbcee73",
+      "filenameHash": "e59c5d72bd9795fe",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/full-qa-r5.68b80e0ddc9253de.data",
+      "exists": true,
+      "sha256": "68b80e0ddc9253de50e9580eccecbcfd0d2243f845af6ebb5735952e32ca19c6",
+      "filenameHash": "68b80e0ddc9253de",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/full-qa-r5.72dd2755c8cd8880.metadata",
+      "exists": true,
+      "sha256": "72dd2755c8cd88800cfa1269bdb2b0e6fa30dad671cba61693bdde6ef7d454c9",
+      "filenameHash": "72dd2755c8cd8880",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/writer-review/probe.35d96f5fdcb9ed0c.js",
+      "exists": true,
+      "sha256": "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566",
+      "filenameHash": "35d96f5fdcb9ed0c",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/writer-review/probe.ba257beb038b6a2d.wasm",
+      "exists": true,
+      "sha256": "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6",
+      "filenameHash": "ba257beb038b6a2d",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/base-r5.ba15a988a7fec468.data",
+      "exists": true,
+      "sha256": "ba15a988a7fec4683a0d5dec32b015cc98cc03df428d322316bc0745dd7b4f35",
+      "filenameHash": "ba15a988a7fec468",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/base-r5.ef11ef80faf373bc.metadata",
+      "exists": true,
+      "sha256": "ef11ef80faf373bc382ffdf71e5ccde179bad66c3cf410470227dc589c7daba2",
+      "filenameHash": "ef11ef80faf373bc",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/cjk-r5.b76b0433203017ca.data",
+      "exists": true,
+      "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+      "filenameHash": "b76b0433203017ca",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/cjk-r5.fafab99558ab6f8b.metadata",
+      "exists": true,
+      "sha256": "fafab99558ab6f8b49a0a9d15c1e8bb2cbc9ae8fa73d6be5cd84b91f85dbfc79",
+      "filenameHash": "fafab99558ab6f8b",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/cjk-r5.b76b0433203017ca.data",
+      "packIntegrity": true,
+      "rangesContiguous": true,
+      "manifestHashMatches": true,
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/fallback-fonts-r5.33856e2a082148dd.data",
+      "exists": true,
+      "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9",
+      "filenameHash": "33856e2a082148dd",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+      "exists": true,
+      "sha256": "924fb0ed8b4599463e9a9d53f6c1aa06cc306cced8ef112424275605ed0c907a",
+      "filenameHash": "924fb0ed8b459946",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/fallback-fonts-r5.33856e2a082148dd.data",
+      "packIntegrity": true,
+      "rangesContiguous": true,
+      "manifestHashMatches": true,
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/writer-reader/probe.292ff1962ab4de0a.js",
+      "exists": true,
+      "sha256": "292ff1962ab4de0a62347c964fb1bbac35b214ffd2e914052ea87c20072afb3e",
+      "filenameHash": "292ff1962ab4de0a",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/writer-reader/probe.c8ee23cd89161cd9.wasm",
+      "exists": true,
+      "sha256": "c8ee23cd89161cd9575ce4a730f38d5209bf8ba8722a9fdb9797eb0f34aa97c3",
+      "filenameHash": "c8ee23cd89161cd9",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/base-r5.ba15a988a7fec468.data",
+      "exists": true,
+      "sha256": "ba15a988a7fec4683a0d5dec32b015cc98cc03df428d322316bc0745dd7b4f35",
+      "filenameHash": "ba15a988a7fec468",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/base-r5.ef11ef80faf373bc.metadata",
+      "exists": true,
+      "sha256": "ef11ef80faf373bc382ffdf71e5ccde179bad66c3cf410470227dc589c7daba2",
+      "filenameHash": "ef11ef80faf373bc",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/cjk-r5.b76b0433203017ca.data",
+      "exists": true,
+      "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+      "filenameHash": "b76b0433203017ca",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/cjk-r5.fafab99558ab6f8b.metadata",
+      "exists": true,
+      "sha256": "fafab99558ab6f8b49a0a9d15c1e8bb2cbc9ae8fa73d6be5cd84b91f85dbfc79",
+      "filenameHash": "fafab99558ab6f8b",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/cjk-r5.b76b0433203017ca.data",
+      "packIntegrity": true,
+      "rangesContiguous": true,
+      "manifestHashMatches": true,
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/fallback-fonts-r5.33856e2a082148dd.data",
+      "exists": true,
+      "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9",
+      "filenameHash": "33856e2a082148dd",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+      "exists": true,
+      "sha256": "924fb0ed8b4599463e9a9d53f6c1aa06cc306cced8ef112424275605ed0c907a",
+      "filenameHash": "924fb0ed8b459946",
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/resources/fallback-fonts-r5.33856e2a082148dd.data",
+      "packIntegrity": true,
+      "rangesContiguous": true,
+      "manifestHashMatches": true,
+      "pass": true
+    }
+  ],
+  "cache": {
+    "hashed": [
+      {
+        "path": "profiles/full-qa/probe.e59c5d72bd9795fe.wasm",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/full-qa/probe.e6d5d2adbde87d7e.js",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/resources/base-r5.ba15a988a7fec468.data",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/resources/base-r5.ef11ef80faf373bc.metadata",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/resources/cjk-r5.b76b0433203017ca.data",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/resources/cjk-r5.fafab99558ab6f8b.metadata",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/resources/fallback-fonts-r5.33856e2a082148dd.data",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/resources/full-qa-r5.68b80e0ddc9253de.data",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/resources/full-qa-r5.72dd2755c8cd8880.metadata",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/writer-reader/probe.292ff1962ab4de0a.js",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/writer-reader/probe.c8ee23cd89161cd9.wasm",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/writer-review/probe.35d96f5fdcb9ed0c.js",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      },
+      {
+        "path": "profiles/writer-review/probe.ba257beb038b6a2d.wasm",
+        "status": 200,
+        "cacheControl": "public, max-age=31536000, immutable"
+      }
+    ],
+    "entries": [
+      {
+        "path": "r5-reader.html",
+        "status": 200,
+        "cacheControl": "no-cache"
+      },
+      {
+        "path": "r5-reader-app.js",
+        "status": 200,
+        "cacheControl": "no-cache"
+      },
+      {
+        "path": "profiles/writer-reader/sdk-worker.js",
+        "status": 200,
+        "cacheControl": "no-cache"
+      },
+      {
+        "path": "profiles/writer-reader/sdk-manifest.json",
+        "status": 200,
+        "cacheControl": "no-cache"
+      }
+    ]
+  },
+  "coreStatus": [
+    " M desktop/CustomTarget_soffice_bin-emscripten-exports.mk",
+    " M solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk",
+    " M solenv/gbuild/platform/unxgcc.mk",
+    " M static/CustomTarget_emscripten_fs_image.mk",
+    " M vcl/qt5/QtFrame.cxx",
+    "?? LibreOffice_VCL_Qt6_研究報告.md"
+  ],
+  "inventory": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/r5-inventory.json"
+}

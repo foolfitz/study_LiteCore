@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "date": "2026-08-01",
+  "decision": "GO",
+  "sdk_version": "0.2.0-r2",
+  "protocol_version": 1,
+  "abi_version": 65536,
+  "core_commit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+  "unit": {
+    "node_tests": { "passed": 6, "failed": 0 },
+    "abi_header_compile": true
+  },
+  "browser_vertical_slices": [
+    {
+      "browser": "chrome",
+      "version": "Chrome/150.0.7871.128",
+      "passed": 3,
+      "samples": 3,
+      "median_ms": {
+        "ready": 2635.475,
+        "open": 143.055,
+        "first_tile": 156.52,
+        "insert": 1.88,
+        "save": 212.275
+      },
+      "input_transferred": true,
+      "main_thread_isolated": true
+    },
+    {
+      "browser": "firefox",
+      "version": "152.0.6",
+      "passed": 3,
+      "samples": 3,
+      "median_ms": {
+        "ready": 3272.14,
+        "open": 489.42,
+        "first_tile": 144.72,
+        "insert": 1.82,
+        "save": 305.78
+      },
+      "input_transferred": true,
+      "main_thread_isolated": true
+    }
+  ],
+  "conformance": {
+    "chrome": {
+      "pass": true,
+      "stale_handle_rejected": true,
+      "queued_cancel": true,
+      "timeout_cancel": true,
+      "invalid_handle_rejected": true,
+      "double_close_rejected": true,
+      "abi_mismatch_rejected": true,
+      "zero_request_id_rejected": true,
+      "invalid_argument_rejected": true,
+      "copied_input_preserved": true,
+      "transferred_input_consumed": true,
+      "output_ownership": true,
+      "soak_open_render_close_iterations": 10,
+      "soak_open_render_close": true,
+      "worker_crash_recovery": true
+    },
+    "firefox": {
+      "pass": true,
+      "stale_handle_rejected": true,
+      "queued_cancel": true,
+      "timeout_cancel": true,
+      "invalid_handle_rejected": true,
+      "double_close_rejected": true,
+      "abi_mismatch_rejected": true,
+      "zero_request_id_rejected": true,
+      "invalid_argument_rejected": true,
+      "copied_input_preserved": true,
+      "transferred_input_consumed": true,
+      "output_ownership": true,
+      "soak_open_render_close_iterations": 10,
+      "soak_open_render_close": true,
+      "worker_crash_recovery": true
+    }
+  },
+  "roundtrip": {
+    "passed": 6,
+    "samples": 6,
+    "inserted_character_delta": 1,
+    "text_similarity": 0.9986091794158554,
+    "desktop_version": "LibreOffice 26.2.4.2 620(Build:2)",
+    "desktop_open_passed": 6
+  },
+  "hardening_regression": {
+    "browser_vertical_slices_passed": 2,
+    "browser_vertical_slices_samples": 2,
+    "roundtrip_passed": 2,
+    "roundtrip_samples": 2,
+    "inserted_character_delta": 1,
+    "text_similarity": 0.9986091794158554,
+    "desktop_open_passed": 2
+  },
+  "artifacts": [
+    {
+      "path": "wasm_sdk_probe/dist/probe.js",
+      "raw_bytes": 365785,
+      "gzip_9_bytes": 90700,
+      "sha256": "014f710a83d6f4421be0dc7b2840a2a57d68bca4b2da2c62ab00c4c6fa77613b"
+    },
+    {
+      "path": "wasm_sdk_probe/dist/probe.wasm",
+      "raw_bytes": 169242199,
+      "gzip_9_bytes": 45639578,
+      "sha256": "0b6cb1a9ba8c0bccbffaf352eb4eb711fc86d920fbe966ee3801a31192747839"
+    },
+    {
+      "path": "wasm_sdk_probe/dist/soffice.data",
+      "raw_bytes": 102765226,
+      "gzip_9_bytes": 42969853,
+      "sha256": "68b80e0ddc9253de50e9580eccecbcfd0d2243f845af6ebb5735952e32ca19c6"
+    }
+  ],
+  "artifact_totals": {
+    "raw_bytes": 272373210,
+    "gzip_9_bytes": 88700131,
+    "raw_delta_from_r1_bytes": 32019,
+    "gzip_9_delta_from_r1_bytes": 10127,
+    "size_optimization_deferred_to": "R5"
+  },
+  "evidence": {
+    "browser": "findings/evidence/sdk-r2/browser-raw",
+    "conformance": "findings/evidence/sdk-r2/conformance",
+    "roundtrip": "findings/evidence/sdk-r2/roundtrip.json",
+    "hardening_regression": "findings/evidence/sdk-r2/hardening-regression",
+    "hardening_roundtrip": "findings/evidence/sdk-r2/hardening-roundtrip.json",
+    "r1_compatibility": "findings/evidence/sdk-r2/r1-compat-smoke"
+  }
+}

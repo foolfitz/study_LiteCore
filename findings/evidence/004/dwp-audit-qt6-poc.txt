@@ -1,0 +1,50 @@
+Captured: 2026-08-01 (Asia/Taipei), before applying the local T_SYMBOLS patch
+Build: wasm-lite/build-qt6-poc
+Source commit: 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+
+== Effective configuration ==
+wasm-lite/build-qt6-poc/config_host.mk:254:export ENABLE_SYMBOLS_FOR=Executable_soffice_bin
+wasm-lite/build-qt6-poc/config_host.mk:341:export HAVE_EXTERNAL_DWARF=TRUE
+
+== Output audit ==
+wasm-lite/build-qt6-poc/instdir/program/soffice.js | 1349015 bytes | present
+wasm-lite/build-qt6-poc/instdir/program/soffice.wasm | 194983376 bytes | present
+wasm-lite/build-qt6-poc/instdir/program/soffice.wasm.debug.wasm | 203268297 bytes | present
+wasm-lite/build-qt6-poc/instdir/program/soffice.wasm.debug.wasm.dwp | MISSING
+wasm-lite/build-qt6-poc/instdir/program/soffice.data | 102087692 bytes | present
+wasm-lite/build-qt6-poc/instdir/program/qt_soffice.html | 2973 bytes | present
+
+== Split DWARF input audit ==
+wasm-lite/build-qt6-poc/workdir/CObject/desktop/source/app/main.dwo | 1334 bytes
+llvm-dwarfdump --verify result: No errors.
+
+== Symbol predicate ==
+solenv/gbuild/gbuild.mk:
+gb_target_symbols_enabled = \
+ $(and $(if $(filter -$(1),$(ENABLE_SYMBOLS_FOR)),,$(true)),\
+       $(or $(gb_Module_CURRENTMODULE_SYMBOLS_ENABLED),\
+            $(filter $(1),$(ENABLE_SYMBOLS_FOR))))
+
+== Correct target-local value ==
+solenv/gbuild/LinkTarget.mk:
+$(call gb_LinkTarget_get_target,$(1)) : T_SYMBOLS := $(if $(call gb_target_symbols_enabled,$(2)),$(true),$(false))
+
+For soffice_bin, $(2) is the gbuild makefile target name
+`Executable_soffice_bin`, which matches ENABLE_SYMBOLS_FOR.
+
+== Pre-patch emdwp guard ==
+solenv/gbuild/platform/unxgcc.mk:
+$(if $(filter EMSCRIPTEN,$(OS)),$(if $(call gb_target_symbols_enabled,$(1)),$(if $(filter TRUE,$(HAVE_EXTERNAL_DWARF)),&& emdwp -e ... -o ...)))
+
+Inside gb_LinkTarget__command_dynamiclink, $(1) is the concrete output target
+/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build-qt6-poc/instdir/program/soffice.js,
+which does not match `Executable_soffice_bin`. The predicate is therefore false
+and emdwp is omitted from the link recipe.
+
+== Installer expectation ==
+instsetoo_native/CustomTarget_emscripten-install.mk:
+$(if $(ENABLE_SYMBOLS_FOR), \
+    soffice.wasm.debug.wasm \
+    soffice.wasm.debug.wasm.dwp)
+
+Because ENABLE_SYMBOLS_FOR is non-empty, packaging requires the skipped .dwp.

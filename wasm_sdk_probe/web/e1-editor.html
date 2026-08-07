@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>E1 窄版 ODT Editor</title>
+  <style>
+    :root { font: 14px system-ui, sans-serif; color: #17202a; background: #edf1f5; }
+    body { margin: 0; }
+    header { display: flex; gap: 12px; align-items: center; padding: 10px 14px; color: white; background: #17324d; }
+    header output { padding: 3px 8px; border-radius: 999px; background: #315878; }
+    nav { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; background: white; border-bottom: 1px solid #ccd5dd; }
+    button, textarea { font: inherit; }
+    button { padding: 5px 9px; }
+    button:disabled { opacity: .45; }
+    main { display: grid; grid-template-columns: minmax(520px, 760px) minmax(320px, 1fr); gap: 12px; padding: 12px; }
+    #canvas { width: 100%; height: auto; background: white; box-shadow: 0 1px 6px #7a8792; cursor: text; }
+    aside { display: grid; gap: 8px; align-content: start; }
+    #input { min-height: 72px; padding: 8px; }
+    pre { margin: 0; padding: 10px; min-height: 560px; max-height: 70vh; overflow: auto; color: #d6eeff; background: #111820; white-space: pre-wrap; }
+    .error { color: #ffb4ab; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>E1 窄版 ODT Editor</strong>
+    <output id="status">starting</output>
+    <span>revision <output id="revision">—</output></span>
+    <span id="message"></span>
+  </header>
+  <nav id="toolbar">
+    <button data-action="left">←</button>
+    <button data-action="right">→</button>
+    <button data-action="select-left">Shift+←</button>
+    <button data-action="select-right">Shift+→</button>
+    <button data-action="backspace">Backspace</button>
+    <button data-action="delete">Delete</button>
+    <button data-action="paragraph">段落換行</button>
+    <button data-action="line">軟換行</button>
+    <button data-action="undo">Undo</button>
+    <button data-action="bold">Bold</button>
+    <button data-action="italic">Italic</button>
+    <button data-action="copy">複製選取純文字</button>
+    <button data-action="paste">貼上純文字</button>
+    <button data-action="cancel-composition">取消輸入組字</button>
+    <button data-action="save">Save ODT</button>
+    <button data-action="restart">Restart Worker</button>
+    <button data-action="run">自動驗證</button>
+  </nav>
+  <main>
+    <canvas id="canvas" width="720" height="900" aria-label="ODT 文件畫面"></canvas>
+    <aside>
+      <label for="input">文字／IME input sink</label>
+      <textarea id="input" placeholder="在此輸入，composition完成後才提交到ODT"></textarea>
+      <pre id="log"></pre>
+    </aside>
+  </main>
+  <script type="module" src="./e1-editor-app.js"></script>
+</body>
+</html>

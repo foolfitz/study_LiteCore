@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-012-r7-attribution",
+  "verifiedAt": "2026-08-03T20:05:39+08:00",
+  "native": {
+    "decision": "NOT_REPRODUCED_SYSTEM_NATIVE",
+    "observed": "native LibreOfficeKit document destroy entry/return stages",
+    "notValidated": [
+      "version",
+      "same-commit native LibreOfficeKit"
+    ],
+    "runs": {
+      "t2-original": 3,
+      "t2-image-unwrapped": 3
+    },
+    "pass": true
+  },
+  "wasm": {
+    "chrome": {
+      "decision": "WASM_DOCUMENT_DESTROY_BLOCKED",
+      "observed": "diagnostic stage events around LibreOfficeKitDocument::destroy",
+      "notValidated": [
+        "causality inside LibreOfficeKitDocument::destroy"
+      ],
+      "runs": {
+        "t2-original": 2,
+        "t2-image-unwrapped": 3
+      },
+      "pass": true
+    },
+    "firefox": {
+      "decision": "WASM_DOCUMENT_DESTROY_BLOCKED",
+      "observed": "diagnostic stage events around LibreOfficeKitDocument::destroy",
+      "notValidated": [
+        "causality inside LibreOfficeKitDocument::destroy"
+      ],
+      "runs": {
+        "t2-original": 2,
+        "t2-image-unwrapped": 3
+      },
+      "pass": true
+    }
+  },
+  "decision": "DOCUMENT_DESTROY_BOUNDARY_CONFIRMED",
+  "candidateLayer": "wasm-build-or-version-specific-document-destroy",
+  "fixed": false,
+  "r7Pass": false,
+  "notValidated": [
+    "same-commit native LibreOfficeKit",
+    "causality inside LibreOfficeKitDocument::destroy"
+  ],
+  "pass": true
+}

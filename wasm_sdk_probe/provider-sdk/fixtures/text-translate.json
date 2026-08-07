@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "provider": {
+    "contractVersion": "1.0",
+    "id": "tw.oxoffice.fixture.translator",
+    "version": "1.0.0",
+    "displayName": "OxOffice R4 Fixture Translator",
+    "capabilities": ["text.translate"],
+    "endpoints": [
+      {
+        "id": "translate-selection",
+        "capability": "text.translate",
+        "input": "selection.text",
+        "outputOperations": ["replaceSelection"]
+      }
+    ]
+  },
+  "endpointId": "translate-selection",
+  "input": {
+    "kind": "selection.text",
+    "text": "English words",
+    "revision": 0,
+    "parameters": {
+      "target-language": "zh-TW"
+    }
+  },
+  "expectedOperation": {
+    "type": "replaceSelection",
+    "text": "R4 Provider：英文詞彙",
+    "expectedRevision": 0
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-012-r7-image-axis",
+  "decision": "MINIMIZED",
+  "confirmation": [
+    {
+      "id": "t2-image-unwrapped",
+      "expectedOutcome": "close-pass",
+      "runs": 3,
+      "reason": "smallest passing image-object change: frame.wrapper",
+      "browsers": {
+        "chrome": {
+          "outcomes": [
+            "close-pass",
+            "close-pass",
+            "close-pass"
+          ],
+          "expected": "close-pass",
+          "pass": true
+        },
+        "firefox": {
+          "outcomes": [
+            "close-pass",
+            "close-pass",
+            "close-pass"
+          ],
+          "expected": "close-pass",
+          "pass": true
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "t2-original",
+      "expectedOutcome": "timeout",
+      "runs": 1,
+      "reason": "byte-identical failing control",
+      "browsers": {
+        "chrome": {
+          "outcomes": [
+            "timeout"
+          ],
+          "expected": "timeout",
+          "pass": true
+        },
+        "firefox": {
+          "outcomes": [
+            "timeout"
+          ],
+          "expected": "timeout",
+          "pass": true
+        }
+      },
+      "pass": true
+    }
+  ],
+  "candidateTriggerFeatures": [],
+  "candidateTriggerAxes": [
+    "frame.wrapper"
+  ],
+  "observed": "public open-close outcomes only",
+  "inference": "removing the confirmed image-object axis or axis interaction changes timeout to close-pass; causality below ODF attributes is not yet proven",
+  "notValidated": [
+    "LibreOffice core versus SDK Worker root cause",
+    "native LOK reproduction"
+  ],
+  "pass": true
+}

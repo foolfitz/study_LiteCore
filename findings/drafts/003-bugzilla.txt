@@ -1,0 +1,148 @@
+================================================================
+Bugzilla: https://bugs.documentfoundation.org
+================================================================
+Product:        LibreOffice
+Component:      Build tooling          [送出前用下拉選單確認]
+Version:        26.8.0.1 rc
+Hardware:       All
+OS:             All
+Severity:       normal
+Summary:        gbuild: UnpackedTarball .version target lacks order-only
+                dependency on .dir, races under make -j
+================================================================
+
+
+Description
+-----------
+
+On a fresh build directory, `make -j12` intermittently fails while
+generating the .version stamp for an external tarball:
+
+    /bin/sh: 1: cannot create \
+      .../workdir_for_build/UnpackedTarball/dragonbox.version: Directory nonexistent
+    make[1]: *** [solenv/gbuild/UnpackedTarball.mk:170: \
+      .../workdir_for_build/UnpackedTarball/dragonbox.version] Error 2
+
+Simply re-running `make` succeeds, because the failed step has by then
+created the directory. So this is a race, not a configuration problem.
+
+
+Steps to Reproduce
+------------------
+
+1. Create a brand new build directory (one where
+   workdir_for_build/UnpackedTarball/ does not yet exist).
+2. Run autogen.sh (see configuration below).
+3. Run `make -j$(nproc)`.
+
+The more parallelism, the more likely it triggers.
+
+
+Actual Results
+--------------
+
+Intermittent "Directory nonexistent" failure on some external tarball's
+.version target.
+
+
+Expected Results
+----------------
+
+Build proceeds normally.
+
+
+Frequency
+---------
+
+Observed on 4 fresh build directories on the same machine, same source
+tree, `make -j12`:
+
+    build dir     configuration                          hit?   package
+    ------------  -------------------------------------  -----  ---------
+    build         WASM, heavily reduced flag set         no     -
+    build-stock   --with-distro=LibreOfficeWASM32        YES    dragonbox
+                  --enable-symbols
+    build-t1      + --with-wasm-module=writer            no     -
+    build-t2      + --enable-release-build               YES    dragonbox
+
+Both failures stopped on dragonbox, presumably because it is enumerated
+early and therefore most likely to win the race against .dir. It is not
+expected to be the only possible victim.
+
+
+Root Cause
+----------
+
+In solenv/gbuild/UnpackedTarball.mk, three related targets exist but only
+two of them carry the order-only dependency that creates the directory:
+
+    # line 212
+    $(call gb_UnpackedTarball_get_preparation_target,$(1)) :| $(dir ...).dir   OK
+    # line 213
+    $(call gb_UnpackedTarball_get_target,$(1))             :| $(dir ...).dir   OK
+
+    # line 169 -- only PHONY
+    $(call gb_UnpackedTarball_get_version_target,%) : $(gb_Helper_PHONY)       MISSING
+        $(if $(and $(wildcard $@),$(filter $(UNPACKED_TARBALL),$(file < $@))),,\
+            printf $(UNPACKED_TARBALL) > $@)
+
+And lines 210-211 make .prepare depend on .version:
+
+    $(call gb_UnpackedTarball_get_preparation_target,$(1)) : $(gb_Module_CURRENTMAKEFILE) \
+        $(call gb_UnpackedTarball_get_version_target,$(1))
+
+GNU make guarantees no ordering between a target's normal prerequisites
+and its order-only prerequisites. Under -j, the recipe for .version
+(`printf ... > $@`) can therefore run before .prepare's .dir order-only
+prerequisite has been made. The directory does not exist yet and the
+shell redirection fails.
+
+This normally goes unnoticed because UnpackedTarball/ is usually created
+by some other target first; only the very first make in a fresh build
+directory exposes it.
+
+
+Proposed Fix
+------------
+
+    --- a/solenv/gbuild/UnpackedTarball.mk
+    +++ b/solenv/gbuild/UnpackedTarball.mk
+    @@ -166,7 +166,8 @@
+     $(dir $(call gb_UnpackedTarball_get_target,%)).dir :
+     	$(if $(wildcard $(dir $@)),,mkdir -p $(dir $@))
+
+    -$(call gb_UnpackedTarball_get_version_target,%) : $(gb_Helper_PHONY)
+    +$(call gb_UnpackedTarball_get_version_target,%) : $(gb_Helper_PHONY) \
+    +	| $(dir $(call gb_UnpackedTarball_get_target,%)).dir
+     	$(if $(and $(wildcard $@),$(filter $(UNPACKED_TARBALL),$(file < $@))),,\
+     		printf $(UNPACKED_TARBALL) > $@)
+
+The same `$(dir $(call gb_UnpackedTarball_get_target,%))` expression is
+already used as a target pattern on line 166, so the form is consistent.
+
+CAVEAT: I am not certain whether $(dir ...) expands correctly if % ever
+contains a slash. Please check that before taking the patch as-is.
+
+
+Build Environment
+-----------------
+
+LibreOffice   26.8.0.1.0+   libreoffice-26-8 @ 671c848b1bb8 (2026-07-30)
+OS            Ubuntu 26.04 LTS, kernel 7.0.0-28-generic, x86_64
+make          GNU make, -j12
+/bin/sh       dash
+configure     --with-distro=LibreOfficeWASM32 --enable-symbols --enable-ccache
+              --with-build-platform-configure-options=--enable-ccache
+
+Encountered during an Emscripten cross build (workdir_for_build is the
+build-side workdir of a cross build), but the defect itself is
+platform-independent: any fresh build directory can hit it.
+
+
+Workaround
+----------
+
+Re-run make. Or pre-create the directories:
+
+    mkdir -p <builddir>/workdir/UnpackedTarball \
+             <builddir>/workdir_for_build/UnpackedTarball

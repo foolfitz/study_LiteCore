@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "release": "R8-D-production-validation",
+  "browser": "firefox",
+  "stage": "first-compatibility-batch-after-fresh",
+  "runnerStrategy": "single-browser-process-with-same-origin-navigation-batches",
+  "freshReleasePrepared": true,
+  "completedBatches": 0,
+  "timeoutSeconds": 900,
+  "lastBrowserValue": null,
+  "error": {
+    "name": "TimeoutError",
+    "message": "R8-D browser value timed out: None"
+  },
+  "observed": "the second Firefox R8-D strategy also returned no first-batch page value for 900 seconds after the R8-C Firefox formal matrix",
+  "inference": "consistent with Finding 014 cross-process large-WASM generation exhaustion; the failure happened before a corpus case could be attributed",
+  "nextAction": "retain R7 Firefox full-corpus and 30-minute evidence plus R8-C Firefox active-release evidence as an explicit partial-GO composition; do not spend additional generations in the same browser lifetime",
+  "pass": false
+}

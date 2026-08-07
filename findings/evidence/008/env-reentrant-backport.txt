@@ -1,0 +1,48 @@
+Captured: 2026-08-01T10:02:37+08:00
+
+Caveat
+------
+This snapshot was taken after the reentrant patch was built and installed, but before browser
+runtime validation. It describes the candidate fix, not the preceding failing reproduction.
+
+LibreOffice source
+------------------
+Path: /home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8
+Commit: 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+Version: 26.8.0.1.0+
+Build: /home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build-qt6-poc
+
+Local LibreOffice changes present:
+ M desktop/CustomTarget_soffice_bin-emscripten-exports.mk
+ M solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk
+ M solenv/gbuild/platform/unxgcc.mk
+ M static/CustomTarget_emscripten_fs_image.mk
+?? LibreOffice_VCL_Qt6_研究報告.md
+
+Toolchain
+---------
+Emscripten: 4.0.10 (b7dc6e5747465580df5984e723b9d1f10d8e804b)
+Qt source: qtbase-everywhere-src-6.10.2
+Qt build type: Release
+Qt features: thread=ON, wasm_exceptions=ON, wasm_jspi=ON
+LibreOffice: ENABLE_QT6=TRUE, ENABLE_EMSCRIPTEN_JSPI=TRUE,
+             ENABLE_EMSCRIPTEN_PROXY_TO_PTHREAD=<empty>
+Browser: Google Chrome 150.0.7871.128
+
+Local Qt source modifications
+-----------------------------
+- finding 007 pointer-enter null/undefined guard: applied
+- inputcontext toEcmaString experiment: not applied (reverted after negative runtime result)
+- suspend/resume reentrant queue patch: applied
+
+Runtime artifacts
+-----------------
+74b010f544c13212a215d0c468402b1d2bf9ba58ec4f75a160c6dbea86c56f2e  soffice.js
+0ef90c2045f5dca3c1ab4091b773afcf692bb1fb3643e0fc10e558037c5043eb  soffice.wasm
+7e281e46d6867399d470e84f7152e441647ac027dca99e46f5e9904439bce6d9  soffice.wasm.debug.wasm.dwp
+
+Host
+----
+OS: Ubuntu 26.04 LTS
+Kernel: 7.0.0-28-generic
+Arch: x86_64

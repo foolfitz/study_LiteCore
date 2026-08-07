@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "release": "R7-A",
+  "frozenDate": "2026-08-02",
+  "limits": {
+    "maxFileBytes": 5242880,
+    "maxZipEntries": 2048,
+    "maxUncompressedBytes": 67108864,
+    "maxCompressionRatio": 200
+  },
+  "generator": {
+    "sourceSha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+    "soffice": "LibreOffice 26.2.4.2 620(Build:2)",
+    "conversionLog": "convert /tmp/r7-corpus-pt0xwxb2/r7-plain.odt as a Writer document -> /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/r7/r7-plain.docx using filter : Office Open XML Text"
+  },
+  "documents": [
+    {
+      "id": "r7-plain-odt",
+      "path": "r7-plain.odt",
+      "bytes": 17885,
+      "sha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+      "mediaType": "application/vnd.oasis.opendocument.text",
+      "source": {
+        "kind": "project-generated",
+        "path": "wasm_sdk_probe/test-docs/t1-plain-zh.odt",
+        "license": "MPL-2.0"
+      },
+      "expectedOpen": "pass",
+      "mutationPolicy": "discovery-copy-only",
+      "pageClass": "short",
+      "anchors": [
+        "Final line：ODT round-trip 完整性檢查。"
+      ]
+    },
+    {
+      "id": "r7-plain-docx",
+      "path": "r7-plain.docx",
+      "bytes": 6136,
+      "sha256": "3f8c5645cc1925a5273b9697eb155420a3263008c804c9eb808c8e3a701708ce",
+      "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "source": {
+        "kind": "project-generated",
+        "path": "wasm_sdk_probe/test-docs/t1-plain-zh.odt",
+        "license": "MPL-2.0"
+      },
+      "expectedOpen": "discover",
+      "mutationPolicy": "discovery-copy-only",
+      "pageClass": "short",
+      "anchors": [
+        "Final line：ODT round-trip 完整性檢查。"
+      ]
+    },
+    {
+      "id": "r7-corrupt-truncated-odt",
+      "path": "r7-corrupt-truncated.odt",
+      "bytes": 17628,
+      "sha256": "c83495093915aa82f169c1547e0e97312d4e5928a506141c8c803fffcdcb5cc7",
+      "mediaType": "application/vnd.oasis.opendocument.text",
+      "source": {
+        "kind": "project-generated",
+        "path": "wasm_sdk_probe/test-docs/t1-plain-zh.odt",
+        "license": "MPL-2.0"
+      },
+      "expectedOpen": "typed-failure",
+      "mutationPolicy": "discovery-copy-only",
+      "pageClass": "short",
+      "anchors": [],
+      "parent": {
+        "path": "r7-plain.odt",
+        "sha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02"
+      },
+      "derivation": "remove the final 257 bytes from the parent, with no other transformation"
+    },
+    {
+      "id": "r7-corrupt-truncated-docx",
+      "path": "r7-corrupt-truncated.docx",
+      "bytes": 5879,
+      "sha256": "f20c0d9143fd9aad57b772c2b736f8ebbbcd9a873887e2d898ebd6c1a5f2d474",
+      "mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "source": {
+        "kind": "project-generated",
+        "path": "wasm_sdk_probe/test-docs/t1-plain-zh.odt",
+        "license": "MPL-2.0"
+      },
+      "expectedOpen": "typed-failure",
+      "mutationPolicy": "discovery-copy-only",
+      "pageClass": "short",
+      "anchors": [],
+      "parent": {
+        "path": "r7-plain.docx",
+        "sha256": "3f8c5645cc1925a5273b9697eb155420a3263008c804c9eb808c8e3a701708ce"
+      },
+      "derivation": "remove the final 257 bytes from the parent, with no other transformation"
+    },
+    {
+      "id": "r7-unknown-bin",
+      "path": "r7-unknown.bin",
+      "bytes": 48,
+      "sha256": "f679cb915455db74e2be867b3974a4c657c3dc92106ab402553f7eae236afa75",
+      "mediaType": "application/octet-stream",
+      "source": {
+        "kind": "project-generated",
+        "path": "wasm_sdk_probe/test-docs/t1-plain-zh.odt",
+        "license": "MPL-2.0"
+      },
+      "expectedOpen": "typed-failure",
+      "mutationPolicy": "discovery-copy-only",
+      "pageClass": "short",
+      "anchors": [],
+      "derivation": "literal bytes: R7 deterministic unsupported-format fixture plus LF 00 01 02 FF"
+    }
+  ]
+}

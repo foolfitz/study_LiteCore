@@ -1,0 +1,1913 @@
+{
+  "caseCount": 88,
+  "cases": [
+    {
+      "browser": "chrome",
+      "caseId": "negative-wrong-bytes",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-fetch"
+        },
+        "message": "invalid JSON from http://127.0.0.1:48893/releases/writer-review-5fa3ca0d38f2b46d/release-manifest.json?fault=wrong-bytes: SyntaxError: Unexpected token 'z', \"z\n  \"artif\"... is not valid JSON",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-bad-schema",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest identity fields are invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-bad-release",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-0000000000000000",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "release ID does not match canonical manifest identity",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-duplicate-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-unknown-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-path-traversal",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-credential-url",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-unknown-scheme",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-missing-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-js-404",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 404,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "app-module",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 404 for app-module",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-worker-500",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 500,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "sdk-worker",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 500 for sdk-worker",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-wasm-404",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 404,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "wasm-binary",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 404 for wasm-binary",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-data-wrong-bytes",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HASH_MISMATCH",
+        "details": {
+          "actual": "1696a29f0b50cd5c866deadfcb4006accce0db49249ca1885c512178c9449f97",
+          "expected": "ba15a988a7fec4683a0d5dec32b015cc98cc03df428d322316bc0745dd7b4f35",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "base-data",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "base-data SHA-256 mismatch",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-metadata-wrong-type",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_MEDIA_TYPE_MISMATCH",
+        "details": {
+          "actual": "text/plain; charset=utf-8",
+          "expected": "application/json; charset=utf-8",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "base-metadata",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "base-metadata media type text/plain; charset=utf-8 != application/json; charset=utf-8",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-wrong-encoding",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_ENCODING_MISMATCH",
+        "details": {
+          "actual": "gzip",
+          "expected": "identity",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "app-module",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "app-module encoding gzip != identity",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-partial-response",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_SIZE_MISMATCH",
+        "details": {
+          "cause": "TypeError",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "app-module",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "app-module response body was incomplete: TypeError: Failed to fetch",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-timeout-late-response",
+      "documentMutations": 0,
+      "error": {
+        "code": "DELIVERY_TIMEOUT",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": true,
+          "role": null,
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "release verification timed out",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-cancel",
+      "documentMutations": 0,
+      "error": {
+        "code": "DELIVERY_ABORTED",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": true,
+          "role": null,
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "release verification aborted",
+        "name": "AbortError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-stale-release",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_SIZE_MISMATCH",
+        "details": {
+          "contentLength": 1637,
+          "expectedEncodedBytes": 1638,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "sdk-manifest",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "sdk-manifest encoded Content-Length mismatch",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-redirect-cross-origin",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "finalUrl": "http://127.0.0.1:34411/releases/writer-review-5fa3ca0d38f2b46d/r7-reference-app.js?representation=identity",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "app-module",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "app-module redirected outside its release origin",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-no-coep",
+      "documentMutations": 0,
+      "error": {
+        "code": "CROSS_ORIGIN_ISOLATION_REQUIRED",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "fix-deployment-headers",
+          "stage": "manifest-fetch"
+        },
+        "message": "cross-origin isolation is required before release verification",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-wrong-bytes",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-fetch"
+        },
+        "message": "invalid JSON from http://127.0.0.1:35997/releases/writer-review-5fa3ca0d38f2b46d/release-manifest.json?fault=wrong-bytes: SyntaxError: Unexpected token 'z', \"z\n  \"artif\"... is not valid JSON",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-bad-schema",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest identity fields are invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-bad-release",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-0000000000000000",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "release ID does not match canonical manifest identity",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-duplicate-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-unknown-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-path-traversal",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-credential-url",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-unknown-scheme",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-manifest-missing-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-js-404",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 404,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "app-module",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 404 for app-module",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-worker-500",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 500,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "sdk-worker",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 500 for sdk-worker",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-wasm-404",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 404,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "wasm-binary",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 404 for wasm-binary",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-data-wrong-bytes",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HASH_MISMATCH",
+        "details": {
+          "actual": "1696a29f0b50cd5c866deadfcb4006accce0db49249ca1885c512178c9449f97",
+          "expected": "ba15a988a7fec4683a0d5dec32b015cc98cc03df428d322316bc0745dd7b4f35",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "base-data",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "base-data SHA-256 mismatch",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-metadata-wrong-type",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_MEDIA_TYPE_MISMATCH",
+        "details": {
+          "actual": "text/plain; charset=utf-8",
+          "expected": "application/json; charset=utf-8",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "base-metadata",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "base-metadata media type text/plain; charset=utf-8 != application/json; charset=utf-8",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-wrong-encoding",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_ENCODING_MISMATCH",
+        "details": {
+          "actual": "gzip",
+          "expected": "identity",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "app-module",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "app-module encoding gzip != identity",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-partial-response",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_SIZE_MISMATCH",
+        "details": {
+          "cause": "TypeError",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "app-module",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "app-module response body was incomplete: TypeError: Failed to fetch",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-timeout-late-response",
+      "documentMutations": 0,
+      "error": {
+        "code": "DELIVERY_TIMEOUT",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": true,
+          "role": null,
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "release verification timed out",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-cancel",
+      "documentMutations": 0,
+      "error": {
+        "code": "DELIVERY_ABORTED",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": true,
+          "role": null,
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "release verification aborted",
+        "name": "AbortError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-stale-release",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_SIZE_MISMATCH",
+        "details": {
+          "contentLength": 1637,
+          "expectedEncodedBytes": 1638,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "sdk-manifest",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "sdk-manifest encoded Content-Length mismatch",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-redirect-cross-origin",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "finalUrl": "http://127.0.0.1:59573/releases/writer-review-5fa3ca0d38f2b46d/r7-reference-app.js?representation=identity",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "app-module",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "app-module redirected outside its release origin",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-no-coep",
+      "documentMutations": 0,
+      "error": {
+        "code": "CROSS_ORIGIN_ISOLATION_REQUIRED",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "fix-deployment-headers",
+          "stage": "manifest-fetch"
+        },
+        "message": "cross-origin isolation is required before release verification",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-no-cors",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "cause": "TypeError",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "wasm-binary",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "Failed to fetch",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "chrome",
+      "caseId": "negative-no-corp",
+      "documentMutations": 0,
+      "error": {
+        "code": "CROSS_ORIGIN_ISOLATION_REQUIRED",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "wasm-binary",
+          "safeNextAction": "fix-deployment-headers",
+          "sourceOrigin": "http://127.0.0.1:44877",
+          "stage": "artifact-fetch"
+        },
+        "message": "wasm-binary lacks Cross-Origin-Resource-Policy: cross-origin",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-wrong-bytes",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-fetch"
+        },
+        "message": "invalid JSON from http://127.0.0.1:57807/releases/writer-review-5fa3ca0d38f2b46d/release-manifest.json?fault=wrong-bytes: SyntaxError: JSON.parse: unexpected character at line 1 column 1 of the JSON data",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-bad-schema",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest identity fields are invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-bad-release",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-0000000000000000",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "release ID does not match canonical manifest identity",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-duplicate-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-unknown-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-path-traversal",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-credential-url",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-unknown-scheme",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-missing-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-js-404",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 404,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "app-module",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 404 for app-module",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-worker-500",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 500,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "sdk-worker",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 500 for sdk-worker",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-wasm-404",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 404,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "wasm-binary",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 404 for wasm-binary",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-data-wrong-bytes",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HASH_MISMATCH",
+        "details": {
+          "actual": "1696a29f0b50cd5c866deadfcb4006accce0db49249ca1885c512178c9449f97",
+          "expected": "ba15a988a7fec4683a0d5dec32b015cc98cc03df428d322316bc0745dd7b4f35",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "base-data",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "base-data SHA-256 mismatch",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-metadata-wrong-type",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_MEDIA_TYPE_MISMATCH",
+        "details": {
+          "actual": "text/plain; charset=utf-8",
+          "expected": "application/json; charset=utf-8",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "base-metadata",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "base-metadata media type text/plain; charset=utf-8 != application/json; charset=utf-8",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-wrong-encoding",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_ENCODING_MISMATCH",
+        "details": {
+          "actual": "gzip",
+          "expected": "identity",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "app-module",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "app-module encoding gzip != identity",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-partial-response",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_SIZE_MISMATCH",
+        "details": {
+          "actualDecodedBytes": 29037,
+          "expectedDecodedBytes": 29044,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "app-module",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "app-module decoded bytes 29037 != 29044",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-timeout-late-response",
+      "documentMutations": 0,
+      "error": {
+        "code": "DELIVERY_TIMEOUT",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": true,
+          "role": null,
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "release verification timed out",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-cancel",
+      "documentMutations": 0,
+      "error": {
+        "code": "DELIVERY_ABORTED",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": true,
+          "role": null,
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "release verification aborted",
+        "name": "AbortError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-stale-release",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_SIZE_MISMATCH",
+        "details": {
+          "contentLength": 1637,
+          "expectedEncodedBytes": 1638,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "sdk-manifest",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "sdk-manifest encoded Content-Length mismatch",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-redirect-cross-origin",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "finalUrl": "http://127.0.0.1:49015/releases/writer-review-5fa3ca0d38f2b46d/r7-reference-app.js?representation=identity",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "app-module",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "app-module redirected outside its release origin",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-no-coep",
+      "documentMutations": 0,
+      "error": {
+        "code": "CROSS_ORIGIN_ISOLATION_REQUIRED",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "fix-deployment-headers",
+          "stage": "manifest-fetch"
+        },
+        "message": "cross-origin isolation is required before release verification",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t0",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-wrong-bytes",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-fetch"
+        },
+        "message": "invalid JSON from http://127.0.0.1:58363/releases/writer-review-5fa3ca0d38f2b46d/release-manifest.json?fault=wrong-bytes: SyntaxError: JSON.parse: unexpected character at line 1 column 1 of the JSON data",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-bad-schema",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest identity fields are invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-bad-release",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-0000000000000000",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "release ID does not match canonical manifest identity",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-duplicate-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-unknown-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-path-traversal",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-credential-url",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-unknown-scheme",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "artifact entry-html is invalid",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-manifest-missing-role",
+      "documentMutations": 0,
+      "error": {
+        "code": "RELEASE_MANIFEST_INVALID",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "select-known-good",
+          "stage": "manifest-validate"
+        },
+        "message": "manifest roles differ from the frozen graph",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-js-404",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 404,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "app-module",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 404 for app-module",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-worker-500",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 500,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "sdk-worker",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 500 for sdk-worker",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-wasm-404",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "httpStatus": 404,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "wasm-binary",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "HTTP 404 for wasm-binary",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-data-wrong-bytes",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HASH_MISMATCH",
+        "details": {
+          "actual": "1696a29f0b50cd5c866deadfcb4006accce0db49249ca1885c512178c9449f97",
+          "expected": "ba15a988a7fec4683a0d5dec32b015cc98cc03df428d322316bc0745dd7b4f35",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "base-data",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "base-data SHA-256 mismatch",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-metadata-wrong-type",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_MEDIA_TYPE_MISMATCH",
+        "details": {
+          "actual": "text/plain; charset=utf-8",
+          "expected": "application/json; charset=utf-8",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "base-metadata",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "base-metadata media type text/plain; charset=utf-8 != application/json; charset=utf-8",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-wrong-encoding",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_ENCODING_MISMATCH",
+        "details": {
+          "actual": "gzip",
+          "expected": "identity",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "app-module",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "app-module encoding gzip != identity",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-partial-response",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_SIZE_MISMATCH",
+        "details": {
+          "actualDecodedBytes": 29037,
+          "expectedDecodedBytes": 29044,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "app-module",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "app-module decoded bytes 29037 != 29044",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-timeout-late-response",
+      "documentMutations": 0,
+      "error": {
+        "code": "DELIVERY_TIMEOUT",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": true,
+          "role": null,
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "release verification timed out",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-cancel",
+      "documentMutations": 0,
+      "error": {
+        "code": "DELIVERY_ABORTED",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": true,
+          "role": null,
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "release verification aborted",
+        "name": "AbortError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-stale-release",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_SIZE_MISMATCH",
+        "details": {
+          "contentLength": 1637,
+          "expectedEncodedBytes": 1638,
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "sdk-manifest",
+          "safeNextAction": "reject-release",
+          "stage": "artifact-validate"
+        },
+        "message": "sdk-manifest encoded Content-Length mismatch",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-redirect-cross-origin",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "finalUrl": "http://127.0.0.1:53445/releases/writer-review-5fa3ca0d38f2b46d/r7-reference-app.js?representation=identity",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "app-module",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "app-module redirected outside its release origin",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-no-coep",
+      "documentMutations": 0,
+      "error": {
+        "code": "CROSS_ORIGIN_ISOLATION_REQUIRED",
+        "details": {
+          "mutationState": "none",
+          "releaseId": null,
+          "retryable": false,
+          "role": null,
+          "safeNextAction": "fix-deployment-headers",
+          "stage": "manifest-fetch"
+        },
+        "message": "cross-origin isolation is required before release verification",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-no-cors",
+      "documentMutations": 0,
+      "error": {
+        "code": "ARTIFACT_HTTP_ERROR",
+        "details": {
+          "cause": "TypeError",
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": true,
+          "role": "wasm-binary",
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
+        },
+        "message": "NetworkError when attempting to fetch resource.",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    },
+    {
+      "browser": "firefox",
+      "caseId": "negative-no-corp",
+      "documentMutations": 0,
+      "error": {
+        "code": "CROSS_ORIGIN_ISOLATION_REQUIRED",
+        "details": {
+          "mutationState": "none",
+          "releaseId": "writer-review-5fa3ca0d38f2b46d",
+          "retryable": false,
+          "role": "wasm-binary",
+          "safeNextAction": "fix-deployment-headers",
+          "sourceOrigin": "http://127.0.0.1:38751",
+          "stage": "artifact-fetch"
+        },
+        "message": "wasm-binary lacks Cross-Origin-Resource-Policy: cross-origin",
+        "name": "DeliveryError"
+      },
+      "pass": true,
+      "topology": "t1",
+      "workersStarted": 0
+    }
+  ],
+  "pass": true,
+  "schemaVersion": 1
+}

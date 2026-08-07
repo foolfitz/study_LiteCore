@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "finding": "017",
+  "observedAt": "2026-08-05T16:10:13+08:00",
+  "status": "confirmed-sdk-readback-boundary",
+  "browser": {
+    "mode": "headed-operator",
+    "userAgent": null,
+    "note": "browser version was not captured in the r5 console excerpt"
+  },
+  "core": {
+    "commit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "modifiedByThisFinding": false
+  },
+  "artifact": {
+    "profile": "e1-editor-discovery",
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-discovery",
+    "manifestSha256": "da78c6937d746282ffcf7e57789546df7cd0ee8930d2a92ad572504545e62ca8",
+    "loaderSha256": "a733b8f89eebaa53685056c447cf76151f5a86f455ff1d9dd0c725ff20f8e87d",
+    "wasmSha256": "1c8b79fd5c9968dd362a43e4e1e032fe07806f72c34c1f5b041c8af00d6c1e78",
+    "workerSha256": "09e34824ba938c76ebd53e908be1885e3f3e6e020d58effcaec7f1c3983ec3ed"
+  },
+  "manualPage": {
+    "release": "E1-Finding-016-manual-delete-r5-final",
+    "htmlSha256": "df8c6c51ff62a88683271e36fb315a8c3e4c6f4dcc675103b5955b03a1a500a5",
+    "applicationSha256": "aa7570bbc3ca420adafc7d7e40b6d401c8493bbb5c2885734235e5c842918bf0"
+  },
+  "operation": {
+    "fixture": "plain-grapheme",
+    "anchor": "0123456789",
+    "boundary": "start",
+    "selectionMethod": "selection-reset-unstable",
+    "failingOperation": "get-selection",
+    "errorCode": "LOK_ERROR",
+    "errorMessage": "Flavor text/plain;charset=utf-16 is not supported",
+    "documentHandle": 1,
+    "revision": 0,
+    "deleteDispatched": false,
+    "mutationDispatched": false
+  },
+  "sourceContract": {
+    "projectRequestedMimeType": "text/plain;charset=utf-8",
+    "libreOfficeInternalFlavor": "text/plain;charset=utf-16",
+    "currentNullMapping": "LOK_ERROR",
+    "documentedCandidate": "getSelectionTypeAndText/getSelectionType"
+  },
+  "evidence": {
+    "operatorLog": {
+      "path": "findings/evidence/017/operator-2026-08-05.log",
+      "sha256": "656f9589473feced9cbdf7c3340c5e6ba46fcdfb2d7b878cd429101edfb6d70f"
+    },
+    "sourceTrace": {
+      "path": "findings/evidence/017/source-trace.txt",
+      "sha256": "3994a981ec0fdcd5c9f66a16b9f85185ed3dc8dc35e89db94b80a6dee36d9793"
+    }
+  },
+  "decision": {
+    "manualIteration": "STOP",
+    "e1": "STOP_OR_RESCOPE",
+    "requiresCodeRemediationBeforeRetest": true
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "chrome": {
+    "command": [
+      "/usr/bin/google-chrome",
+      "--version"
+    ],
+    "available": true,
+    "returnCode": 0,
+    "stdout": "Google Chrome 150.0.7871.128 ",
+    "stderr": ""
+  },
+  "firefox": {
+    "command": [
+      "/usr/bin/firefox",
+      "--version"
+    ],
+    "available": false,
+    "returnCode": 1,
+    "stdout": "",
+    "stderr": "snap-confine has elevated permissions and is not confined but should be. Refusing to continue to avoid permission escalation attacks\nPlease make sure that the snapd.apparmor service is enabled and started."
+  },
+  "geckodriver": {
+    "command": [
+      "/snap/bin/geckodriver",
+      "--version"
+    ],
+    "available": false,
+    "returnCode": 1,
+    "stdout": "",
+    "stderr": "snap-confine has elevated permissions and is not confined but should be. Refusing to continue to avoid permission escalation attacks\nPlease make sure that the snapd.apparmor service is enabled and started."
+  },
+  "node": {
+    "command": [
+      "/home/jiajun/.nvm/versions/node/v24.16.0/bin/node",
+      "--version"
+    ],
+    "available": true,
+    "returnCode": 0,
+    "stdout": "v24.16.0",
+    "stderr": ""
+  },
+  "python": {
+    "command": [
+      "/usr/bin/python3",
+      "--version"
+    ],
+    "available": true,
+    "returnCode": 0,
+    "stdout": "Python 3.14.4",
+    "stderr": ""
+  },
+  "soffice": {
+    "command": [
+      "/usr/bin/soffice",
+      "--version"
+    ],
+    "available": true,
+    "returnCode": 0,
+    "stdout": "LibreOffice 26.2.4.2 620(Build:2)",
+    "stderr": "\n(process:210): dconf-CRITICAL **: 14:03:16.573: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly."
+  },
+  "fcitx5": {
+    "command": [
+      "/usr/bin/fcitx5",
+      "--version"
+    ],
+    "available": true,
+    "returnCode": 0,
+    "stdout": "5.1.19",
+    "stderr": ""
+  },
+  "fcitx5Remote": {
+    "command": [
+      "/usr/bin/fcitx5-remote",
+      "-n"
+    ],
+    "available": false,
+    "returnCode": -6,
+    "stdout": "",
+    "stderr": "terminate called after throwing an instance of 'std::runtime_error'\n  what():  Failed to create dbus connection"
+  },
+  "orca": {
+    "command": [
+      "/usr/bin/orca",
+      "--version"
+    ],
+    "available": false,
+    "returnCode": -6,
+    "stdout": "",
+    "stderr": "\n(orca:213): dconf-CRITICAL **: 14:03:16.882: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.\n\n(orca:213): dconf-CRITICAL **: 14:03:16.882: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.\n\n(orca:213): dconf-CRITICAL **: 14:03:16.882: unable to create file '/run/user/1000/dconf/user': Read-only file system.  dconf will not work properly.\n\n(orca:213): GLib-GIO-CRITICAL **: 14:03:16.883: g_dbus_proxy_new_sync: assertion 'G_IS_DBUS_CONNECTION (connection)' failed\n\n(orca:213): GLib-GIO-CRITICAL **: 14:03:16.883: g_dbus_proxy_get_name_owner: assertion 'G_IS_DBUS_PROXY (proxy)' failed\n\n(orca:213): dbind-ERROR **: 14:03:16.883: AT-SPI: Couldn't connect to accessibility bus. Is at-spi-bus-launcher running?"
+  },
+  "pdfinfo": {
+    "command": [
+      "/usr/bin/pdfinfo",
+      "-v"
+    ],
+    "available": true,
+    "returnCode": 0,
+    "stdout": "",
+    "stderr": "pdfinfo version 26.01.0\nCopyright 2005-2026 The Poppler Developers - http://poppler.freedesktop.org\nCopyright 1996-2011, 2022 Glyph & Cog, LLC"
+  },
+  "pythonModules": {
+    "psutil": {
+      "command": [
+        "/usr/bin/python3",
+        "-c",
+        "import psutil; print(psutil.__version__)"
+      ],
+      "available": true,
+      "returnCode": 0,
+      "stdout": "7.1.0",
+      "stderr": ""
+    },
+    "websockets": {
+      "command": [
+        "/usr/bin/python3",
+        "-c",
+        "import websockets; print(websockets.__version__)"
+      ],
+      "available": true,
+      "returnCode": 0,
+      "stdout": "15.0.1",
+      "stderr": ""
+    }
+  },
+  "session": {
+    "XDG_SESSION_TYPE": "wayland",
+    "DISPLAY": ":0",
+    "WAYLAND_DISPLAY": "wayland-0",
+    "GTK_IM_MODULE": null,
+    "QT_IM_MODULE": null
+  },
+  "fcitxProfile": {
+    "path": "/home/jiajun/.config/fcitx5/profile",
+    "exists": true,
+    "text": "[Groups/0]\n# Group Name\nName=預設\n# Layout\nDefault Layout=us\n# Default Input Method\nDefaultIM=chewing\n\n[Groups/0/Items/0]\n# Name\nName=keyboard-us\n# Layout\nLayout=\n\n[Groups/0/Items/1]\n# Name\nName=chewing\n# Layout\nLayout=\n\n[GroupOrder]\n0=預設\n\n"
+  }
+}

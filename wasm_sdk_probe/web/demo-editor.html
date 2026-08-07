@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LiteCore Writer — WASM × JS 窄版 ODT 編輯器</title>
+  <style>
+    :root {
+      --ink: #1b2733;
+      --muted: #5c6b7a;
+      --line: #d3dce4;
+      --paper: #ffffff;
+      --desk: #e7ecf1;
+      --bar: #ffffff;
+      --accent: #2f6fb2;
+      --accent-soft: #e5eff8;
+      --ok: #1f7a4d;
+      --warn: #a8630a;
+      --bad: #b3261e;
+      font: 14px/1.5 system-ui, "Noto Sans CJK TC", sans-serif;
+      color: var(--ink);
+    }
+    * { box-sizing: border-box; }
+    /* A real mouse drag over the canvas would otherwise start the browser's own
+       text selection across the surrounding page, painting a native highlight
+       over the UI and fighting the gesture.  Synthesised MouseEvents never
+       trigger that, so it only shows up under a human hand. */
+    body {
+      margin: 0; height: 100vh; display: flex; flex-direction: column;
+      background: var(--desk);
+      user-select: none; -webkit-user-select: none;
+    }
+    /* The IME sink must stay selectable: composition and native paste need it. */
+    #sink { user-select: text; -webkit-user-select: text; }
+
+    /* ---------- title bar ---------- */
+    .titlebar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 14px; background: var(--bar); border-bottom: 1px solid var(--line);
+    }
+    .brand { font-weight: 650; letter-spacing: .2px; }
+    .brand small { font-weight: 400; color: var(--muted); margin-left: 8px; }
+    .spacer { flex: 1; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 12px; font-variant-numeric: tabular-nums;
+      background: var(--accent-soft); color: var(--accent);
+      border: 1px solid #c9dcee;
+    }
+    .badge b { font-weight: 600; }
+    .pill {
+      padding: 3px 9px; border-radius: 999px; font-size: 12px;
+      background: #eef2f6; color: var(--muted); border: 1px solid var(--line);
+    }
+    .pill[data-state="ready"] { background: #e7f4ec; color: var(--ok); border-color: #bfe0cc; }
+    .pill[data-state="busy"], .pill[data-state="loading"] { background: #fdf3e3; color: var(--warn); border-color: #ecd6ac; }
+    .pill[data-state="recoverable-error"], .pill[data-state="restart-required"],
+    .pill[data-state="blocked"] { background: #fbeae9; color: var(--bad); border-color: #eec4c1; }
+
+    /* ---------- toolbar ---------- */
+    .toolbar {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      padding: 6px 12px; background: var(--bar); border-bottom: 1px solid var(--line);
+    }
+    .toolbar .sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
+    button, select {
+      font: inherit; color: inherit;
+      background: #fff; border: 1px solid var(--line); border-radius: 6px;
+      padding: 5px 10px; cursor: pointer;
+    }
+    button:hover:not(:disabled), select:hover { border-color: #a9bccd; background: #f6f9fc; }
+    button:disabled { opacity: .4; cursor: default; }
+    button[aria-pressed="true"] { background: var(--accent-soft); border-color: #a9c8e4; color: var(--accent); }
+    button.icon { min-width: 34px; font-size: 15px; }
+    button.icon.b { font-weight: 700; }
+    button.icon.i { font-style: italic; font-family: Georgia, serif; }
+    button.icon.u { text-decoration: underline; }
+    button.icon.s { text-decoration: line-through; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button.primary:hover:not(:disabled) { background: #2a629d; border-color: #2a629d; }
+
+    /* ---------- document ---------- */
+    /* align-items must not be the flex default here: `stretch` sizes the paper
+       to the *viewport* rather than to the canvas it contains, so any document
+       taller than the window spills its bitmap outside the white page and the
+       overlay (inset:0 on the paper) gets clipped with it. */
+    .desk {
+      flex: 1; overflow: auto; display: flex;
+      justify-content: center; align-items: flex-start;
+      padding: 22px 16px 40px;
+    }
+    .paper {
+      /* flex-shrink must be off: as a flex item the page would otherwise be
+         squashed to fit a narrow window, silently changing the scale the
+         overlay maps twips into. */
+      /* No white backing of our own: the engine paints the page white and the
+         workspace around it grey, exactly as LibreOffice does, and the reported
+         document area is wider than the page in some documents.  Faking a sheet
+         underneath made that workspace look like a broken block inside it. */
+      flex: none;
+      position: relative; overflow: hidden;
+      box-shadow: 0 1px 3px rgba(27,39,51,.16), 0 8px 24px rgba(27,39,51,.10);
+      border-radius: 2px;
+    }
+    #canvas { display: block; cursor: text; border-radius: 2px; }
+    /* Caret and selection are drawn as an overlay rather than into the canvas:
+       the canvas holds the engine's bitmap, and blinking a caret must not cost
+       a re-render. Geometry comes from the engine in twips. */
+    #overlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    /* The text under the highlight is part of the engine's bitmap, so the
+       highlight has to be composited over it.  `multiply` keeps the glyphs
+       dark and readable while the band itself reads as a solid selection --
+       a plain translucent wash at this size just looks like a smudge. */
+    #overlay .sel {
+      position: absolute; background: #7fb2e5;
+      mix-blend-mode: multiply; border-radius: 1px;
+    }
+    #overlay .caret {
+      position: absolute; width: 2px; background: #17324d;
+      animation: blink 1.06s steps(1, end) infinite;
+    }
+    /* Geometry the engine has not yet confirmed is shown hollow and still,
+       never as a confident caret in a possibly wrong place. */
+    #overlay .caret.unconfirmed {
+      animation: none; background: transparent;
+      border-left: 2px dashed #8a9bab;
+    }
+    @keyframes blink { 0%,49% { opacity: 1 } 50%,100% { opacity: 0 } }
+
+    /* Comments are not painted into the engine's bitmap -- LOK delivers them as
+       data and reserves the margin column the grey area occupies.  Drawing them
+       is the client's job, the same split Collabora Online uses. */
+    #comments { position: absolute; inset: 0; pointer-events: none; }
+    #comments .comment {
+      position: absolute; pointer-events: auto;
+      background: #fff9e3; border: 1px solid #e3d49a; border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(27,39,51,.14);
+      padding: 7px 9px; font-size: 12px; line-height: 1.45; color: var(--ink);
+    }
+    #comments .comment .who {
+      display: block; font-size: 11px; color: var(--muted); margin-bottom: 3px;
+    }
+    #comments .comment.resolved { opacity: .55; }
+    #comments .tie {
+      position: absolute; height: 1px; background: #d8c073; pointer-events: none;
+    }
+    /* The engine also paints its own comment boxes into the tile, but when the
+       whole document is rendered as one reduced-scale image their text is not
+       scaled with the box and comes out overlapping itself.  We have the same
+       comments as data, so the column is covered and redrawn rather than left
+       showing two renderings of one comment. */
+    #comments .margin-cover {
+      position: absolute; top: 0; bottom: 0;
+      background: #c0c0c0; pointer-events: none;
+    }
+    #comments .pin {
+      position: absolute; width: 7px; height: 7px; margin: -3px 0 0 -3px;
+      border-radius: 50%; background: #d8c073; pointer-events: none;
+    }
+    /* The IME sink.  Invisible while idle, but it must become *visible* during
+       composition: bopomofo preedit and the candidate window are drawn by the
+       IME inside this element, so a zero-opacity sink means the operator cannot
+       see what they are typing or choose a character. */
+    #sink {
+      position: absolute; width: 2px; height: 19px;
+      padding: 0; margin: 0; border: 0; background: transparent;
+      color: transparent; caret-color: transparent;
+      font: inherit; resize: none; overflow: hidden; white-space: pre;
+      opacity: 0;
+    }
+    /* Off-screen twin of the composition box, used only to measure how wide the
+       preedit actually is: a textarea reports its `cols` width for `auto`, not
+       its content, so scrollWidth alone cannot shrink the box to one character. */
+    #sink-mirror {
+      position: absolute; visibility: hidden; pointer-events: none;
+      left: -9999px; top: 0; white-space: pre;
+      padding: 1px 3px; border: 1px solid transparent; line-height: 1.4;
+    }
+    #sink.composing {
+      opacity: 1; z-index: 3;
+      /* Sized from content by sizeSink(); a textarea otherwise keeps its `rows`
+         height (leaving half the box empty) and clips a long preedit instead of
+         growing.  max-width makes it wrap rather than run off the page. */
+      /* One line that grows sideways, the way fcitx draws its own preedit.
+         Wrapping is what created the half-empty box and the clipped syllable in
+         the first place; there is nothing to wrap if the box never has a second
+         row. */
+      min-width: 6em; height: auto; white-space: pre;
+      padding: 1px 3px; background: #fffbe8;
+      border: 1px solid var(--accent); border-radius: 3px;
+      color: var(--ink); caret-color: var(--ink);
+      overflow: hidden; line-height: 1.4;
+    }
+
+    /* ---------- status bar ---------- */
+    .statusbar {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      padding: 5px 14px; background: var(--bar); border-top: 1px solid var(--line);
+      font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums;
+    }
+    .statusbar b { color: var(--ink); font-weight: 600; }
+
+    /* ---------- toast ---------- */
+    #toast {
+      position: fixed; left: 50%; bottom: 56px; transform: translateX(-50%) translateY(8px);
+      max-width: min(560px, 90vw);
+      padding: 9px 14px; border-radius: 8px; font-size: 13px;
+      background: #22303d; color: #f2f6f9; box-shadow: 0 6px 20px rgba(0,0,0,.22);
+      opacity: 0; pointer-events: none; transition: opacity .16s, transform .16s;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.bad { background: #7d211b; }
+
+    /* ---------- capability drawer ---------- */
+    dialog {
+      border: 1px solid var(--line); border-radius: 10px; padding: 0;
+      max-width: 620px; width: calc(100vw - 32px); color: var(--ink);
+      box-shadow: 0 12px 40px rgba(0,0,0,.2);
+    }
+    dialog::backdrop { background: rgba(20,30,40,.36); }
+    dialog header { padding: 14px 18px; border-bottom: 1px solid var(--line); font-weight: 600; }
+    dialog .body { padding: 14px 18px; }
+    dialog footer { padding: 12px 18px; border-top: 1px solid var(--line); text-align: right; }
+    dialog h3 { margin: 14px 0 6px; font-size: 13px; letter-spacing: .3px; text-transform: uppercase; color: var(--muted); }
+    dialog h3:first-child { margin-top: 0; }
+    dialog ul { margin: 0; padding-left: 20px; }
+    dialog li { margin: 2px 0; }
+    dialog li.no { color: var(--muted); }
+    dialog dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 14px; margin: 0; font-size: 13px; }
+    dialog dt { color: var(--muted); }
+    dialog dd { margin: 0; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="titlebar">
+    <span class="brand">LiteCore Writer<small>窄版 ODT 編輯器</small></span>
+    <span class="spacer"></span>
+    <span class="badge" id="engine-badge" title="文件引擎在 WebAssembly Worker 內執行">
+      <b>WASM</b> <span id="engine-profile">載入中…</span>
+    </span>
+    <span class="pill" id="state-pill" data-state="loading">啟動中</span>
+  </div>
+
+  <div class="toolbar" id="toolbar">
+    <select id="fixture" title="範例文件"></select>
+    <button data-action="open">開啟…</button>
+    <button data-action="save" class="primary">儲存 ODT</button>
+    <div class="sep"></div>
+    <button data-action="bold" class="icon b" title="粗體 (Ctrl+B)" aria-pressed="false">B</button>
+    <button data-action="italic" class="icon i" title="斜體 (Ctrl+I)" aria-pressed="false">I</button>
+    <button data-action="underline" class="icon u" title="底線 (Ctrl+U)" aria-pressed="false">U</button>
+    <button data-action="strikethrough" class="icon s" title="刪除線" aria-pressed="false">S</button>
+    <div class="sep"></div>
+    <button data-action="undo" title="復原 (Ctrl+Z)">↶ 復原</button>
+    <div class="sep"></div>
+    <button data-action="zoom-out" class="icon" title="縮小">−</button>
+    <span class="pill" id="zoom-label">100%</span>
+    <button data-action="zoom-in" class="icon" title="放大">＋</button>
+    <span class="spacer"></span>
+    <button data-action="restart" title="Worker 當掉時重新啟動" disabled>重新啟動引擎</button>
+    <button data-action="about">這個 demo 能做什麼</button>
+    <input type="file" id="file" accept=".odt,application/vnd.oasis.opendocument.text" hidden>
+  </div>
+
+  <div class="desk" id="desk">
+    <div class="paper" id="paper">
+      <canvas id="canvas" aria-label="ODT 文件畫面"></canvas>
+      <div id="overlay"></div>
+      <div id="comments"></div>
+      <span id="sink-mirror" aria-hidden="true"></span>
+      <textarea id="sink" rows="1" cols="1" wrap="soft" autocomplete="off" autocorrect="off"
+                autocapitalize="off" spellcheck="false" aria-label="文字輸入"></textarea>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span>狀態 <b id="s-state">—</b></span>
+    <span>修訂 <b id="s-revision">—</b></span>
+    <span>未儲存 <b id="s-dirty">—</b></span>
+    <span>佇列 <b id="s-pending">0</b></span>
+    <span>Worker 世代 <b id="s-generation">—</b>／3</span>
+    <span>上次操作 <b id="s-latency">—</b></span>
+    <span>游標 <b id="s-caret">—</b></span>
+    <span class="spacer" style="flex:1"></span>
+    <span id="s-doc">—</span>
+  </div>
+
+  <div id="toast" role="status"></div>
+
+  <dialog id="about">
+    <header>這個 demo 能做什麼、不能做什麼</header>
+    <div class="body">
+      <p style="margin-top:0">整份 LibreOffice 文件引擎編譯成 WebAssembly，跑在瀏覽器的 Worker 裡。
+         畫面是引擎算出的點陣圖，編輯經由一組<strong>窄版契約</strong>送進引擎；ODT 由引擎自己存出，不是前端拼的。</p>
+      <h3>支援</h3>
+      <ul>
+        <li>點擊定位游標、真 IME 輸入（注音／組字）、Unicode 與 emoji</li>
+        <li>滑鼠拖曳選取（跨行、跨段落），範圍由引擎回報而非前端推算</li>
+        <li>左右字元移動、Shift 擴張選取</li>
+        <li>Backspace／Delete 雙向刪除</li>
+        <li>Enter 段落換行、Shift+Enter 軟換行</li>
+        <li>粗體、斜體、底線、刪除線（明確開關，非切換猜測）</li>
+        <li>復原（Undo）、純文字複製貼上</li>
+        <li>存成 ODT，桌面版 LibreOffice 可直接開</li>
+      </ul>
+      <h3>本版不支援（刻意不做，不是壞掉）</h3>
+      <ul>
+        <li class="no">上下行移動、Home／End（行導覽，見 finding 018）</li>
+        <li class="no">重做（Redo）、選取控點</li>
+        <li class="no">在選取範圍上按 Backspace／Delete（會被明確拒絕，文件不受影響）</li>
+        <li class="no">段落樣式、清單、表格等結構編輯</li>
+        <li class="no">DOCX、格式化剪貼簿內容</li>
+      </ul>
+      <h3>執行中的成品</h3>
+      <dl id="about-facts"></dl>
+    </div>
+    <footer><button data-close>關閉</button></footer>
+  </dialog>
+
+  <script type="module" src="./demo-editor-app.js"></script>
+</body>
+</html>

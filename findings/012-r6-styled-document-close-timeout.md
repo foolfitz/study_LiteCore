@@ -1,0 +1,158 @@
+# 012 — R5 writer-review 對 t2 styled image frame 的 paragraph wrapper close 不回應
+
+| | |
+|---|---|
+| **狀態** | 歸因完成：same-commit native正常、WASM停在document destroy；下一步`wasm-fix`，R7 STOP |
+| **Bugzilla** | — |
+| **發現日** | 2026-08-02 |
+| **嚴重度** | 嚴重 |
+| **可重現** | 100%（內容軸與diagnostic destroy stage跨瀏覽器一致；180秒邊界確認一致） |
+| **是否上游** | 未確認 |
+
+## 現象
+
+以 R5 `writer-review` 開啟 `t2-styled.odt`，公開 `DocumentHandle.close()` 不回應。R6 最初在相鄰／部分越界
+render、三筆 render queue（其中一筆 queued cancel）及搜尋後重現；R7-D 已進一步證明只做
+`open → close` 也會在 Chrome／Firefox 的完整 180 秒上限 timeout。相同 artifact 的 t1、t3 與 R7 100頁
+stress ODT lifecycle 可正常 close。
+
+## 重現步驟
+
+1. 執行 `make -C wasm_sdk_probe r6-discovery-assets`。
+2. 執行 `python3 tools/run_r7_longevity.py --browser chrome --scenario s5-normal --s5-variant open`，Firefox 同理。
+3. 等待 public close response；未提供縮短 timeout 時使用凍結的 180 秒上限。
+
+**預期**：close 完成並使 handle 進入 closed。  
+**實際**：180 秒後得到 `TIMEOUT`；Worker 未回 `closed` event。
+
+## 證據
+
+- `evidence/sdk-r6/discovery/chrome.json`：第一次，完整矩陣中 30 秒 timeout。
+- `evidence/sdk-r6/discovery/chrome-t2-styled.json`：第二次，單 fixture 180 秒 timeout。
+- `evidence/sdk-r6/discovery/chrome-t2-styled.log.txt`
+- `evidence/sdk-r6/discovery/chrome-t2-styled.png`
+- `evidence/sdk-r7/longevity/finding-012-audit/summary.json`：R7 跨瀏覽器最小化摘要。
+- `evidence/sdk-r7/longevity-smoke/s5-minimize-open-180s/chrome/s5-normal/run-1/result.json`：Chrome 176 筆
+  process sample與完整 lifecycle。
+- `evidence/sdk-r7/longevity-smoke/s5-minimize-open-180s/firefox/s5-normal/run-1/result.json`：Firefox 176 筆
+  process sample與完整 lifecycle。
+- `evidence/012/r7-minimization/summary.json`：16組 feature matrix、跨瀏覽器邊界確認與machine判定。
+- `evidence/012/r7-minimization/classify/`：Chrome／Firefox各16份10秒分類raw result、log、screenshot與process
+  samples。
+- `evidence/012/r7-image-axis/summary.json`：9組image-object屬性／結構軸、跨瀏覽器邊界確認與machine判定。
+- `evidence/012/r7-image-axis/classify/`：Chrome／Firefox各9份10秒分類證據。
+- `evidence/012/r7-image-axis/confirm/`：`t2-image-unwrapped`各3次成功與byte-identical原始t2各1次180秒timeout。
+- `evidence/012/r7-minimization/confirm/`：無image邊界每browser 3次成功與原始含image邊界各1次180秒timeout。
+- `evidence/012/r7-attribution/summary.json`：native LOK對照、diagnostic WASM destroy stage與machine歸因判定。
+- `evidence/012/r7-attribution/native/`：系統LibreOffice 26.2.4原始／unwrapped各3次native LOK結果。
+- `evidence/012/r7-attribution/wasm/`：Chrome／Firefox的短測、成功控制與180秒diagnostic確認。
+- `evidence/012/native-26-8-attribution/summary.json`：same-commit native 26.8與既有WASM證據的最終歸因判定。
+- `evidence/012/native-26-8-attribution/native/`：原始t2／unwrapped各3次same-commit native結果。
+- `evidence/012/native-26-8-attribution/native-sandbox-failed/`：受限環境造成共同post-complete失敗的保留證據。
+- `evidence/012/native-26-8-attribution/configure.log`與`build.log`：隔離native build完整歷程。
+
+## 分析
+
+### 已觀察
+
+- open、tile render 與 queued cancel 都有 public response；cancel-result 是 `OK`。
+- t2 的 `close` 沒有 response，且 180 秒上限仍會逾時。
+- t1 在相同流程（另含 mutation）可正常 close。
+- R7-D Chrome 150 與 Firefox 153.0.1 只執行 `open → close`，兩端都在 180,000 ms 得到公開
+  `SdkTimeoutError/TIMEOUT`；文件 handle 未完成 close。
+- timeout 後 harness 明確記錄 `closed=0`，再由 `engine.dispose()` 終止 Worker；強制終止沒有被計為成功 close。
+- Chrome 的 open 約 523 ms、Firefox約 351 ms，因此問題發生在 close 階段，不是 open timeout。
+- 以ODF package XML直接建立table／image／annotation／page-break完整2⁴=16種組合；所有ZIP CRC／XML與desktop
+  LibreOffice PDF驗證通過，原始組合保持byte-identical。產生器未使用UNO。
+- Chrome／Firefox分類完全一致：8個含image組合全部在10秒timeout；8個不含image組合全部正常close。
+- 最大無image組合仍保留table、annotation、3頁page break：Chrome close 18.55～22.81 ms、Firefox
+  7.54～8.08 ms，各3/3。只加入原始embedded 640×360 RGB PNG後，Chrome 180000.42 ms、Firefox
+  180005.28 ms timeout，handle未close並需明確終止Worker。
+- **反例**：L4 100頁stress ODT嵌入完全相同PNG（SHA `f2e18c7c…f57f`），同樣使用`as-char`、onLoad與package
+  relationship，且R7-D S1可正常render/save/close。因此「任意embedded PNG」或PNG bytes本身不是充分條件。
+- 第二階段建立9份image-axis ODT，逐一控制`draw:mime-type`、style reference、name/z-index、clip、全部
+  graphic properties、paragraph wrapper與L4 geometry/frame形狀；9/9通過ZIP/XML、feature assertion與desktop PDF。
+- Chrome／Firefox 10秒分類逐項一致：只有移除image frame直接外層`text:p`的`t2-image-unwrapped`正常close；
+  原始t2與其餘7個單軸變體全部timeout。所有變體保留相同PNG SHA。
+- 完整邊界確認：`t2-image-unwrapped`在Chrome 3/3 close 18.22～20.80 ms、Firefox 3/3 close
+  6.60～9.74 ms；byte-identical t2在Chrome 180000.41 ms、Firefox 180000.90 ms仍timeout。
+- 系統native LibreOfficeKit 26.2.4對原始t2與unwrapped各3/3均正常進入並離開document destroy；完整程序
+  約243～269 ms。此結果只代表不同版本的native反例。
+- 隔離diagnostic WASM使用相同core commit與linkdeps，只在document destroy前後發出stage；未覆蓋R5 artifact。
+  Chrome／Firefox原始t2短測與180秒確認都只見`document-destroy-enter`，沒有return；unwrapped各3/3同時
+  具有enter與return並正常close。
+- 隔離same-commit native build版本為`LibreOffice 26.8.0.1.0 671c848…`；原始t2與unwrapped各3/3均出現
+  `document-destroy-enter`、`document-destroy-return`與`complete`，正常結束。
+- 第一輪same-commit native runner在受限環境中，兩份文件都已完整return／complete後遭共同環境限制影響；
+  該失敗已獨立保存。相同binary與fixtures在可用環境重跑後6/6正常，未把受限結果當文件差異。
+- R5 large artifact 未改變。
+
+### 推論
+
+- 觸發條件不需要 render、search、comments 或 queued cancel；diagnostic stage證明SDK Worker與engine queue已
+  派送close，停點位於同步`LibreOfficeKitDocument::destroy()`呼叫內或其下層，不是等待中的Worker response。
+- 第一階段的`image`是t2 feature軸分類，不代表任意embedded image都失敗；第二階段已排除PNG bytes、
+  `draw:mime-type`、style reference、name/z-index、clip、graphic properties與geometry各自為充分條件。
+- 目前最小的公開可觀察邊界是「image frame作為`text:p`直接子節點」：移除該wrapper即正常close。這可能是
+  wrapper本身或其與image／anchor teardown的交互作用。
+- system native 26.2與same-commit native 26.8都不重現，而同commit WASM跨瀏覽器重現；因此版本差異與
+  Worker queue皆已排除，最終候選層級是Emscripten組態／runtime特定的document teardown。
+- R6 v1 可使用規格允許的既有多頁 `t3-long.odt` 驗證 viewport，無須把 t2 當成功門檻。
+
+### 待驗證
+
+1. ~~分解t2 image object的style、clip、mime、name/z-index、wrapper與geometry軸。~~ 第二階段已完成。
+2. ~~以系統native LibreOfficeKit對原始／unwrapped做版本範圍內對照。~~ 26.2.4各3/3正常，不重現。
+3. ~~在`destroy()`前後增加隔離diagnostic stage。~~ 已確認跨瀏覽器皆進入destroy但原始t2不返回。
+4. ~~建立same-commit 26.8 native LOK build／測試。~~ 原始／unwrapped各3/3正常，最終路由為`wasm-fix`。
+5. ~~Firefox 是否相同。~~ R7-D 已重現。
+6. ~~t3 多頁 fixture 是否正常 close。~~ 已由 Chrome／Firefox discovery 與 R6-A／R6-C 重複驗證正常。
+7. ~~R7 remediation。~~ SDK已加入10秒bounded close recovery：native document destroy timeout時終止該
+   Worker、建立新generation並讓engine可重用；原始t2在Chrome／Firefox各3/3完成SDK close recovery。
+   這修復產品生命週期，但不宣稱Emscripten document teardown本身已返回。
+
+本輪不以 `Worker.terminate()` 取代成功 close；若 R6 正式 corpus 的 t1／t3 也重現，需重新評估
+R6-A lifecycle gate。
+
+## 環境
+
+- Core commit：`671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb`
+- writer-review WASM：`ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6`
+- Chrome：`150.0.7871.128`
+- Firefox：`153.0.1`
+- Native control：`LibreOffice 26.2.4.2 620(Build:2)`
+- Same-commit native：`LibreOffice 26.8.0.1.0 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb`
+- Fixture SHA-256：`0f69906035cb5d96f86b034cf2596994d5de82ee6347a47c00f35784c9888d31`
+
+## 還缺什麼才能送
+
+- [x] 最小化是哪一項內容特徵觸發（t2 image frame 的直接 paragraph wrapper／交互作用）
+- [x] Firefox 重現狀態
+- [x] 排除SDK Worker／engine queue未派送；確認停在WASM LOK document destroy呼叫內或其下層
+- [x] 使用系統native LOK 26.2.4對照；原始／unwrapped各3/3正常
+- [x] 以same-commit native LOK區分；原始／unwrapped各3/3正常，路由至Emscripten特定修復
+- [ ] 完成`wasm-fix`並使原始t2 public close跨瀏覽器正常返回
+- [x] 規格必要 t1／t3 corpus 正常 close，未擴散為 R6 lifecycle gate
+
+## 時間軸
+
+- 2026-08-02：完整 discovery 首次在 30 秒 close timeout。
+- 2026-08-02：單 t2 fixture 以 180 秒上限再次重現；建立 finding。
+- 2026-08-02：t1／t3 在 Chrome／Firefox reader 與雙 context reference app 正常；R6 GO，t2 問題保留待最小化。
+- 2026-08-03：R7-D 六個 10 秒區分測試全部 timeout；Chrome 純 open→close 在完整 180 秒再次 timeout。
+- 2026-08-03：Firefox 純 open→close 同樣在完整 180 秒 timeout；finding 升級為跨瀏覽器 R7 STOP 阻礙。
+- 2026-08-03：2⁴ feature matrix跨瀏覽器32/32完成；image presence與timeout形成完全分界。
+- 2026-08-03：最大無image邊界Chrome／Firefox各3/3 close，加入image後各1/1完整180秒timeout；第一階段
+  machine decision為`MINIMIZED`，候選trigger feature為`image`。
+- 2026-08-03：確認L4使用相同PNG與基本relationship仍可close；下一階段焦點縮為t2 styled image屬性，
+  不把結論誤寫成所有embedded image都失敗。
+- 2026-08-03：9組image-axis跨瀏覽器分類完成；只有移除frame直接`text:p` wrapper會恢復close。
+- 2026-08-03：unwrapped邊界Chrome／Firefox各3/3成功，byte-identical原始t2各1/1完整180秒timeout；第二階段
+  machine decision為`MINIMIZED`，候選trigger axis為`frame.wrapper`，R7 STOP不變。
+- 2026-08-03：系統native LOK 26.2.4原始／unwrapped各3/3正常；不同版本native未重現。
+- 2026-08-03：隔離diagnostic WASM跨瀏覽器均證明原始t2進入document destroy但不返回，unwrapped各3/3
+  正常返回；machine decision為`DOCUMENT_DESTROY_BOUNDARY_CONFIRMED`，Worker queue排除，R7 STOP不變。
+- 2026-08-03：same-commit native 26.8原始／unwrapped各3/3正常；最終machine decision為
+  `EMSCRIPTEN_SPECIFIC_DOCUMENT_DESTROY`、next action為`wasm-fix`。Finding歸因階段結束，R7待修復仍STOP。
+- 2026-08-04：R7 remediation以bounded Worker recycle完成；原始t2 Chrome／Firefox各3/3 close recovery，
+  Worker與handle歸零且engine可再開文件。Finding 012不再阻斷normal／known S5；底層destroy root cause仍保留。

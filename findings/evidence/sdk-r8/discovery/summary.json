@@ -1,0 +1,103 @@
+{
+  "browsers": {
+    "chrome": {
+      "checks": {
+        "exactTopologies": true,
+        "faults": true,
+        "headers": true,
+        "initial": true,
+        "largeCache": true,
+        "restart": true,
+        "storageEstimate": true,
+        "summaryPass": true
+      },
+      "pass": true
+    },
+    "firefox": {
+      "checks": {
+        "exactTopologies": true,
+        "faults": true,
+        "headers": true,
+        "initial": true,
+        "largeCache": true,
+        "restart": true,
+        "storageEstimate": true,
+        "summaryPass": true
+      },
+      "pass": true
+    }
+  },
+  "checks": {
+    "cacheRestart": true,
+    "chromeT0T1": true,
+    "faultFeasibility": true,
+    "firefoxT0T1": true,
+    "fontPolicy": true,
+    "gzip": true,
+    "headers": true,
+    "preflightAfter": true,
+    "preflightBefore": true,
+    "releaseGraph": true,
+    "thresholdsFrozen": true
+  },
+  "decision": "PARTIAL_GO",
+  "evidence": {
+    "cacheStorage": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/discovery/cache-storage/summary.json",
+    "compression": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/discovery/compression/summary.json",
+    "faults": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/discovery/fault-feasibility/summary.json",
+    "fonts": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/discovery/fonts/summary.json",
+    "headers": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/discovery/headers/summary.json",
+    "preflightAfter": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/discovery/baseline/preflight-after.json",
+    "preflightBefore": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/discovery/baseline/preflight-before.json",
+    "releaseGraph": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/discovery/release-graph/inventory.json"
+  },
+  "formalGaps": {
+    "brotliPrecompression": "unavailable-local-cli",
+    "documentFontInventory": "not-observable-public-sdk",
+    "realQuotaPressure": "not-executed-browser-policy",
+    "t2HttpsDeployment": "not-required-in-r8-a"
+  },
+  "nextAction": "r8-b-planning",
+  "pass": true,
+  "release": "R8-A-delivery-discovery",
+  "releaseGraph": {
+    "artifactCount": 17,
+    "checks": {
+      "closedRoles": true,
+      "manifestUnderLimit": true,
+      "maxArtifactUnderLimit": true,
+      "requiredGraphUnderLimit": true
+    },
+    "manifestCanonicalSha256": "9328e2738fffd6feade8e5499c40744430c7e09570fa9be9cb191789cab0bf6a",
+    "manifestFileSha256": "63cc3506a384149dbc1c1c7cf370a38b613edad94d69e5f3bb9ecd0b564ffad2",
+    "maxArtifactRawBytes": 115265157,
+    "optionalArtifactCount": 2,
+    "optionalRawBytes": 49117707,
+    "pass": true,
+    "releaseId": "writer-review-82cfce600c80ed6e",
+    "requiredArtifactCount": 15,
+    "requiredRawBytes": 169353155,
+    "roles": [
+      "entry-html",
+      "stylesheet",
+      "app-module",
+      "document-sdk",
+      "input-adapter",
+      "clipboard-adapter",
+      "page-navigation",
+      "sdk-worker",
+      "sdk-manifest",
+      "wasm-loader",
+      "wasm-binary",
+      "base-data",
+      "base-metadata",
+      "cjk-data",
+      "cjk-metadata",
+      "fallback-data",
+      "fallback-metadata"
+    ],
+    "schemaSha256": "f7908e614631832fb24ca753b60fcd87c3c1fa311cbfc07a5a13e2d16dca424b",
+    "schemaVersion": 1
+  },
+  "schemaVersion": 1
+}

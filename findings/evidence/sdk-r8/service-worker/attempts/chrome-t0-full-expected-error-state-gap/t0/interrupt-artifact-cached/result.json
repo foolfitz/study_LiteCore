@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "release": "R8-C-service-worker",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "topology": "t0",
+  "action": "stage",
+  "artifactOrigin": "http://127.0.0.1:52381",
+  "online": true,
+  "crossOriginIsolated": true,
+  "startedAt": "2026-08-04T06:34:55.434Z",
+  "serviceWorker": null,
+  "releaseSet": {
+    "activeSlot": "A",
+    "candidateSlot": "B",
+    "createdAt": "2026-08-04T00:00:00+08:00",
+    "pass": true,
+    "release": "R8-C-service-worker",
+    "releases": [
+      {
+        "gzipEncodedBytes": 83765740,
+        "manifestSha256": "244276f2f12f176fac5d189a19500b6d1d49e19b4e0deb022e6efff5ec089cc4",
+        "manifestUrl": "releases/writer-review-5fa3ca0d38f2b46d/release-manifest.json",
+        "pass": true,
+        "policy": "standard",
+        "releaseId": "writer-review-5fa3ca0d38f2b46d",
+        "requiredArtifactCount": 15,
+        "requiredRawBytes": 169355716,
+        "slot": "A",
+        "variant": "canonical-r8b-standard"
+      },
+      {
+        "gzipEncodedBytes": 83765788,
+        "manifestSha256": "63a452b01f2b12d69b227febb8242005156cb1b82c9dbff0df8dd4c4ac7d784d",
+        "manifestUrl": "releases/writer-review-29680a2e250d2b3e/release-manifest.json",
+        "pass": true,
+        "policy": "standard",
+        "releaseId": "writer-review-29680a2e250d2b3e",
+        "requiredArtifactCount": 15,
+        "requiredRawBytes": 169355765,
+        "slot": "B",
+        "variant": "r8c-candidate-v1"
+      },
+      {
+        "gzipEncodedBytes": 83765788,
+        "manifestSha256": "b4df230234a0fde4637b1e7a084f4c43bcff1bb7fce5d0067adf21d92e5be305",
+        "manifestUrl": "releases/writer-review-07f2694e5f1deab8/release-manifest.json",
+        "pass": true,
+        "policy": "standard",
+        "releaseId": "writer-review-07f2694e5f1deab8",
+        "requiredArtifactCount": 15,
+        "requiredRawBytes": 169355765,
+        "slot": "C",
+        "variant": "r8c-candidate-v2"
+      }
+    ],
+    "schemaVersion": 1,
+    "validation": [
+      {
+        "artifactCount": 17,
+        "errors": [],
+        "pass": true,
+        "policy": "standard",
+        "releaseId": "writer-review-5fa3ca0d38f2b46d",
+        "requiredArtifactCount": 15,
+        "schemaVersion": 1,
+        "slot": "A"
+      },
+      {
+        "artifactCount": 17,
+        "errors": [],
+        "pass": true,
+        "policy": "standard",
+        "releaseId": "writer-review-29680a2e250d2b3e",
+        "requiredArtifactCount": 15,
+        "schemaVersion": 1,
+        "slot": "B"
+      },
+      {
+        "artifactCount": 17,
+        "errors": [],
+        "pass": true,
+        "policy": "standard",
+        "releaseId": "writer-review-07f2694e5f1deab8",
+        "requiredArtifactCount": 15,
+        "schemaVersion": 1,
+        "slot": "C"
+      }
+    ]
+  },
+  "commands": [
+    {
+      "name": "stage-release",
+      "status": "failed",
+      "error": {
+        "name": "R8CacheError",
+        "code": "R8_BARRIER_REACHED",
+        "message": "deterministic barrier reached: artifact-cached",
+        "details": {
+          "barrier": "artifact-cached",
+          "releaseId": "writer-review-29680a2e250d2b3e",
+          "role": "app-module"
+        }
+      }
+    }
+  ],
+  "runtime": null,
+  "error": {
+    "name": "R8CacheError",
+    "code": "R8_BARRIER_REACHED",
+    "message": "deterministic barrier reached: artifact-cached",
+    "details": {
+      "barrier": "artifact-cached",
+      "releaseId": "writer-review-29680a2e250d2b3e",
+      "role": "app-module"
+    }
+  },
+  "status": "complete",
+  "pass": true,
+  "completedAt": "2026-08-04T06:34:55.475Z",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "runnerElapsedMs": 273.713,
+  "caseId": "interrupt-artifact-cached",
+  "gatePass": false
+}

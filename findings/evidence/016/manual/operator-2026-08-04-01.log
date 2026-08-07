@@ -1,0 +1,15 @@
+Operator report: delete和backspace刪除的字元不對
+
+[15:43:51.524] 已載入原始 fixture {"fixture":"plain-grapheme","revision":0}
+[15:43:59.624] 點擊放置游標 完成 {"xTwips":2244,"yTwips":1456,"revision":0}
+[15:44:10.931] 游標到選取開頭 完成 {"action":"move-character-left","option":false,"beforeRevision":0,"revision":0,"changed":false,"completion":"documented-callback-visible-cursor","callbackSequenceBefore":5,"callbackSequenceAfter":6,"state":{"sourceSequence":6,"documentChangeSequence":0,"visible":true,"caret":{"x":2044,"y":1418,"width":0,"height":276},"selection":{"collapsed":true,"start":null,"end":null,"rectangles":[]},"format":{"bold":false,"italic":false}}}
+[15:44:13.533] Delete 命令已回覆；請人工確認畫面 {"action":"delete-forward","option":true,"beforeRevision":0,"revision":1,"changed":null,"completion":"uno-command-result-manual-observation","callbackSequenceBefore":6,"callbackSequenceAfter":6,"state":{"sourceSequence":6,"documentChangeSequence":0,"visible":true,"caret":{"x":2044,"y":1418,"width":0,"height":276},"selection":{"collapsed":true,"start":null,"end":null,"rectangles":[]},"format":{"bold":false,"italic":false}}}
+[15:44:30.331] 選取文字 完成 {"found":true,"query":"E1-PLIN-START","selections":[{"part":"0","rectangles":"1418, 1418, 1719, 275"}],"revision":1}
+[15:44:34.219] 游標到選取結尾 完成 {"action":"move-character-right","option":false,"beforeRevision":1,"revision":1,"changed":false,"completion":"documented-callback-text-selection","callbackSequenceBefore":10,"callbackSequenceAfter":11,"state":{"sourceSequence":11,"documentChangeSequence":0,"visible":true,"caret":{"x":3137,"y":1418,"width":0,"height":276},"selection":{"collapsed":true,"start":{"x":1418,"y":1418,"width":0,"height":275},"end":{"x":3137,"y":1418,"width":0,"height":275},"rectangles":[]},"format":{"bold":false,"italic":false}}}
+[15:44:36.008] Delete 命令已回覆；請人工確認畫面 {"action":"delete-forward","option":true,"beforeRevision":1,"revision":2,"changed":null,"completion":"uno-command-result-manual-observation","callbackSequenceBefore":12,"callbackSequenceAfter":12,"state":{"sourceSequence":12,"documentChangeSequence":0,"visible":true,"caret":{"x":1418,"y":1807,"width":0,"height":276},"selection":{"collapsed":true,"start":{"x":1418,"y":1418,"width":0,"height":275},"end":{"x":3137,"y":1418,"width":0,"height":275},"rectangles":[]},"format":{"bold":false,"italic":false}}}
+
+Observed interpretation:
+- The first click placed the caret inside E1-PLAIN-START.
+- With no active selection, "collapse to selection start" became a one-character left move.
+- Delete then removed the A from PLAIN; the later successful search for E1-PLIN-START confirms the wrong test position.
+- This evidence demonstrates an ambiguous manual-flow defect. It does not by itself prove that the fixed Delete command maps to the wrong Writer action.

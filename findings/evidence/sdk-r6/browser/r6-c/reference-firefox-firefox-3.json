@@ -1,0 +1,6282 @@
+{
+  "schemaVersion": 1,
+  "release": "R6-C",
+  "runId": "reference-firefox-firefox-3",
+  "aliceBrowser": "firefox",
+  "bobBrowser": "firefox",
+  "aliceBrowserVersion": "152.0.6",
+  "bobBrowserVersion": "152.0.6",
+  "scenarios": [
+    {
+      "id": "S1",
+      "pass": true,
+      "durationMs": 6154.476782998245,
+      "details": {
+        "initialPresence": 2,
+        "commentId": "comment-1",
+        "replyId": "comment-2",
+        "remainingPresence": [
+          "alice"
+        ],
+        "expiry": {
+          "now": "2026-08-02T00:00:45.003Z",
+          "presenceCount": 0
+        },
+        "version": "v1",
+        "blobSha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+        "snapshots": [
+          {
+            "eventSequence": 2,
+            "version": "v1"
+          },
+          {
+            "eventSequence": 2,
+            "version": "v1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "S2",
+      "pass": true,
+      "durationMs": 10419.995971999015,
+      "details": {
+        "provider": {
+          "suggestionId": "suggestion-1",
+          "replacement": "R4 Provider：LibreOfficeKit",
+          "sdkRevision": 0,
+          "sidecarOnly": true
+        },
+        "accepted": {
+          "version": "v2",
+          "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+          "blobSha256": "a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64",
+          "saveMs": 292.72000000000116,
+          "putMs": 2.5,
+          "reloadMs": 2149.0199999999986,
+          "suggestionStatus": "accepted"
+        },
+        "bobEvent": {
+          "mode": "replay",
+          "applied": 5,
+          "eventSequence": 7,
+          "version": "v2",
+          "comments": 0,
+          "suggestions": 1,
+          "recoveryMs": 7.819999999999709
+        },
+        "bobReload": {
+          "version": "v2",
+          "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+          "reloadMs": 2095.5800000000017
+        },
+        "replacementFound": true,
+        "v1Immutable": true,
+        "versionCount": 2,
+        "v2Evidence": "reference-firefox-firefox-3-s2-v2.odt"
+      }
+    },
+    {
+      "id": "S3",
+      "pass": true,
+      "durationMs": 9111.392405000515,
+      "details": {
+        "aliceLease": {
+          "leaseId": "lease-2",
+          "waitMs": 5.440000000002328
+        },
+        "bobAcquireError": {
+          "code": "LEASE_HELD",
+          "message": "document already has an active lease",
+          "details": {
+            "lease": {
+              "leaseId": "lease-2",
+              "documentId": "r6-reference-document",
+              "actorId": "alice",
+              "baseVersion": "v1",
+              "issuedAt": "2026-08-02T00:00:45.003Z",
+              "expiresAt": "2026-08-02T00:01:15.003Z"
+            }
+          }
+        },
+        "bobLocal": {
+          "bytes": 18981,
+          "sha256": "9c2844c33c2a710e3c914820ab0ebe09c830d26d2d571adf913c4e0603b52637",
+          "revision": 1
+        },
+        "aliceCommit": {
+          "version": "v2",
+          "etag": "\"sha256-ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405\"",
+          "blobSha256": "ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405",
+          "saveMs": 294.6999999999971,
+          "putMs": 2.279999999998836,
+          "reloadMs": 2179.619999999999,
+          "suggestionStatus": "accepted"
+        },
+        "bobSubmitError": {
+          "code": "VERSION_CONFLICT",
+          "message": "blob compare-and-swap validator is stale",
+          "details": {
+            "currentVersion": "v2",
+            "currentEtag": "\"sha256-ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405\""
+          }
+        },
+        "bobConflict": {
+          "code": "VERSION_CONFLICT",
+          "authorityVersion": "v2",
+          "localBaseVersion": "v1",
+          "localBytesAvailable": true
+        },
+        "versionCount": 2
+      }
+    },
+    {
+      "id": "S4",
+      "pass": true,
+      "durationMs": 6121.896652999567,
+      "details": {
+        "missing": {
+          "code": "ANCHOR_NOT_FOUND",
+          "message": "suggestion anchor is not-found",
+          "details": {}
+        },
+        "ambiguous": {
+          "code": "ANCHOR_AMBIGUOUS",
+          "message": "suggestion anchor is ambiguous",
+          "details": {}
+        },
+        "statuses": {
+          "suggestion-1": "conflict",
+          "suggestion-3": "conflict"
+        },
+        "version": "v1",
+        "blobUnchanged": true
+      }
+    },
+    {
+      "id": "S5",
+      "pass": true,
+      "durationMs": 22261.07159199819,
+      "details": {
+        "replay": {
+          "mode": "replay",
+          "applied": 6,
+          "eventSequence": 8,
+          "version": "v2",
+          "comments": 1,
+          "suggestions": 1,
+          "recoveryMs": 14.200000000004366
+        },
+        "snapshot": {
+          "mode": "snapshot",
+          "applied": 0,
+          "eventSequence": 11,
+          "version": "v2",
+          "comments": 4,
+          "suggestions": 1,
+          "recoveryMs": 2.9400000000023283
+        },
+        "canvasBeforeReload": "v1",
+        "authorityBeforeReload": "v2",
+        "reload": {
+          "version": "v2",
+          "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+          "reloadMs": 2217.6600000000035
+        }
+      }
+    },
+    {
+      "id": "S6",
+      "pass": true,
+      "durationMs": 5381.047694001609,
+      "details": {
+        "blocked": [
+          {
+            "name": "generic-uno",
+            "code": "INVALID_OPERATION"
+          },
+          {
+            "name": "unknown-operation",
+            "code": "INVALID_OPERATION"
+          },
+          {
+            "name": "wrong-endpoint",
+            "code": "UNKNOWN_ENDPOINT"
+          },
+          {
+            "name": "oversized",
+            "code": "INVALID_OPERATION"
+          }
+        ],
+        "cancelCode": "PROVIDER_ABORTED",
+        "crashCode": "PROVIDER_WORKER_CRASHED",
+        "documentStillAlive": true,
+        "restartedOperation": "replaceSelection",
+        "suggestionsBefore": 0,
+        "suggestionsAfter": 0
+      }
+    },
+    {
+      "id": "S7",
+      "pass": true,
+      "durationMs": 13331.864636998944,
+      "details": {
+        "savedCrash": {
+          "state": "recoverable-error",
+          "code": "WORKER_CRASHED",
+          "saved": true,
+          "localBytesAvailable": true,
+          "recoveryMessage": "已保存的本機 bytes 可下載；不自動重送 mutation"
+        },
+        "unsavedCrash": {
+          "state": "recoverable-error",
+          "code": "WORKER_CRASHED",
+          "saved": false,
+          "localBytesAvailable": false,
+          "recoveryMessage": "尚未 save 的本機修改不可恢復；不自動重送 mutation"
+        },
+        "authorityVersionCount": 1,
+        "automaticMutationReplay": false
+      }
+    }
+  ],
+  "pass": true,
+  "alice": {
+    "schemaVersion": 1,
+    "release": "R6-C",
+    "role": "alice",
+    "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+    "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0",
+    "crossOriginIsolated": true,
+    "ready": true,
+    "readerStates": [
+      {
+        "atMs": 79.34,
+        "state": "loading-core",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": null,
+        "profile": null,
+        "coreCommit": null,
+        "sdkVersion": null,
+        "providerContractVersion": null,
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-core"
+      },
+      {
+        "atMs": 2070.66,
+        "state": "loading-document",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": null,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-document"
+      },
+      {
+        "atMs": 2517.68,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 2521.04,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 3022.14,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 1
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 3022.24,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 1
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 4981.08,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 4983.2,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 5144.78,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 9174.56,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 8
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 9174.68,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 8
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 11121.68,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 11125.04,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 11286.92,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 14293.8,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 14324.32,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 14324.44,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 14326.9,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 14617,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 14618.24,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 14620.88,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v2",
+          "eventSequence": 7
+        },
+        "error": null,
+        "nextAction": "download-local-or-reload"
+      },
+      {
+        "atMs": 14623.6,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v2",
+          "eventSequence": 7
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 16601.32,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 16603.94,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 16769.92,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 19595.06,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 7
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 19595.14,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 7
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 21650.82,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 21654.18,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 21819.66,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 25729.28,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 25763,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 25763.12,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 25764.34,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 26057.68,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 26058.94,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 26061.3,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v2",
+          "eventSequence": 7
+        },
+        "error": null,
+        "nextAction": "download-local-or-reload"
+      },
+      {
+        "atMs": 26063.66,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v2",
+          "eventSequence": 7
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 28059.96,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 28062.78,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 28241,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 28707.68,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 7
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 28707.8,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 7
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 30788.26,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 30791.7,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 30945.64,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 34590.98,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 34610.54,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 34829.78,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 1
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 34829.86,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 1
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 36809.94,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 36813.94,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 36975.66,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 40444.94,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 40480.26,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 40480.34,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 40482.04,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 40786.34,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 40787.54,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 40789.84,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v2",
+          "eventSequence": 8
+        },
+        "error": null,
+        "nextAction": "download-local-or-reload"
+      },
+      {
+        "atMs": 40792.54,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v2",
+          "eventSequence": 8
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 42770.64,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 42775.14,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 42959.98,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 45334.46,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 8
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 45334.54,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 8
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 47268.26,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 47272.22,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 47443.94,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 51896.26,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 51924.06,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 51924.16,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 51927.94,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 52224.3,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 52225.58,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 52228.1,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v2",
+          "eventSequence": 11
+        },
+        "error": null,
+        "nextAction": "download-local-or-reload"
+      },
+      {
+        "atMs": 52230.56,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v2",
+          "eventSequence": 11
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 54198.1,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 54203.5,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 54375.2,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 57091.42,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 11
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 57091.54,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 11
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 59121.68,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 59128.04,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 59305.34,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 62472.14,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 1
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 62472.24,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 1
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 64394.96,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 64400.66,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 64564.42,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 67536.82,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 67546.5,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 67546.58,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 67548.8,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 67848.38,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 67851.7,
+        "state": "recoverable-error",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": {
+          "code": "WORKER_CRASHED",
+          "message": "intentional R6-C alice Document Worker crash",
+          "details": {}
+        },
+        "nextAction": "restart-and-reload"
+      },
+      {
+        "atMs": 67871.86,
+        "state": "recoverable-error",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": {
+          "code": "WORKER_CRASHED",
+          "message": "intentional R6-C alice Document Worker crash",
+          "details": {}
+        },
+        "nextAction": "restart-and-reload"
+      },
+      {
+        "atMs": 67983.88,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 69927.24,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 69933.96,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 70119.62,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 73239.42,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 73248.14,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 73251.14,
+        "state": "recoverable-error",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": {
+          "code": "WORKER_CRASHED",
+          "message": "intentional R6-C alice Document Worker crash",
+          "details": {}
+        },
+        "nextAction": "restart-and-reload"
+      },
+      {
+        "atMs": 73271.3,
+        "state": "recoverable-error",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": {
+          "code": "WORKER_CRASHED",
+          "message": "intentional R6-C alice Document Worker crash",
+          "details": {}
+        },
+        "nextAction": "restart-and-reload"
+      },
+      {
+        "atMs": 73479.44,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 75493.62,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 75503.44,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 75659.06,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      }
+    ],
+    "sdkEvents": [
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 23,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 24,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 1
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 26,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 27,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 1
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 23,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 24,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 26,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 27,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 1
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 23,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 24,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 26,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 27,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 21,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 1
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 22,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 25,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 26,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 1
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "worker-crashed",
+        "error": {
+          "code": "WORKER_CRASHED",
+          "message": "intentional R6-C alice Document Worker crash"
+        }
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "worker-crashed",
+        "error": {
+          "code": "WORKER_CRASHED",
+          "message": "intentional R6-C alice Document Worker crash"
+        }
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      }
+    ],
+    "commands": [
+      {
+        "id": 1,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 3017.56,
+        "durationMs": 2127.2599999999998,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2126.6
+        }
+      },
+      {
+        "id": 2,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 7501.94,
+        "durationMs": 3.6200000000008004,
+        "result": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "presenceCount": 1
+        }
+      },
+      {
+        "id": 3,
+        "name": "refresh",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 7917.34,
+        "durationMs": 1.9600000000000364,
+        "result": {
+          "eventSequence": 2,
+          "version": "v1"
+        }
+      },
+      {
+        "id": 4,
+        "name": "createComment",
+        "args": {
+          "body": "Alice S1 reply",
+          "parentId": "comment-1"
+        },
+        "status": "passed",
+        "startedAtMs": 8338.66,
+        "durationMs": 4.540000000000873,
+        "result": {
+          "id": "comment-2",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "parentId": "comment-1",
+          "body": "Alice S1 reply",
+          "authorId": "alice",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:30.002Z"
+        }
+      },
+      {
+        "id": 5,
+        "name": "resolveComment",
+        "args": {
+          "commentId": "comment-1"
+        },
+        "status": "passed",
+        "startedAtMs": 8547.2,
+        "durationMs": 3.7399999999997817,
+        "result": {
+          "id": "comment-1",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "parentId": null,
+          "body": "Bob S1 comment",
+          "authorId": "bob",
+          "status": "resolved",
+          "createdAt": "2026-08-02T00:00:30.002Z",
+          "resolvedAt": "2026-08-02T00:00:30.002Z",
+          "resolvedBy": "alice"
+        }
+      },
+      {
+        "id": 6,
+        "name": "advanceClock",
+        "args": {
+          "milliseconds": 15001
+        },
+        "status": "passed",
+        "startedAtMs": 8754.64,
+        "durationMs": 3,
+        "result": {
+          "now": "2026-08-02T00:00:45.003Z",
+          "presenceCount": 0
+        }
+      },
+      {
+        "id": 7,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 8961.7,
+        "durationMs": 4.3799999999992,
+        "result": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "presenceCount": 1
+        }
+      },
+      {
+        "id": 8,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 9171.26,
+        "durationMs": 2115.6800000000003,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2115.6400000000012
+        }
+      },
+      {
+        "id": 9,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 13650.12,
+        "durationMs": 3.599999999998545,
+        "result": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "presenceCount": 1
+        }
+      },
+      {
+        "id": 10,
+        "name": "acceptSuggestion",
+        "args": {
+          "suggestionId": "suggestion-1"
+        },
+        "status": "passed",
+        "startedAtMs": 14272.64,
+        "durationMs": 2497.34,
+        "result": {
+          "version": "v2",
+          "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+          "blobSha256": "a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64",
+          "saveMs": 292.72000000000116,
+          "putMs": 2.5,
+          "reloadMs": 2149.0199999999986,
+          "suggestionStatus": "accepted"
+        }
+      },
+      {
+        "id": 11,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 19591.58,
+        "durationMs": 2228.1399999999994,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2228.100000000002
+        }
+      },
+      {
+        "id": 12,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 24086.26,
+        "durationMs": 4.360000000000582,
+        "result": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "presenceCount": 1
+        }
+      },
+      {
+        "id": 13,
+        "name": "createSuggestion",
+        "args": {
+          "quote": "LibreOfficeKit",
+          "replacement": "Alice-authoritative-R6-S3"
+        },
+        "status": "passed",
+        "startedAtMs": 24504.56,
+        "durationMs": 3.599999999998545,
+        "result": {
+          "id": "suggestion-1",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "anchor": {
+            "quote": "LibreOfficeKit",
+            "prefix": "",
+            "suffix": ""
+          },
+          "replacement": "Alice-authoritative-R6-S3",
+          "authorId": "alice",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:45.003Z"
+        }
+      },
+      {
+        "id": 14,
+        "name": "acquireLease",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 24755.24,
+        "durationMs": 5.5,
+        "result": {
+          "leaseId": "lease-2",
+          "token": "secret-r6-token-1",
+          "documentId": "r6-reference-document",
+          "actorId": "alice",
+          "baseVersion": "v1",
+          "issuedAt": "2026-08-02T00:00:45.003Z",
+          "expiresAt": "2026-08-02T00:01:15.003Z",
+          "waitMs": 5.440000000002328
+        }
+      },
+      {
+        "id": 15,
+        "name": "acceptSuggestion",
+        "args": {
+          "suggestionId": "suggestion-1"
+        },
+        "status": "passed",
+        "startedAtMs": 25710.18,
+        "durationMs": 2530.8600000000006,
+        "result": {
+          "version": "v2",
+          "etag": "\"sha256-ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405\"",
+          "blobSha256": "ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405",
+          "saveMs": 294.6999999999971,
+          "putMs": 2.279999999998836,
+          "reloadMs": 2179.619999999999,
+          "suggestionStatus": "accepted"
+        }
+      },
+      {
+        "id": 16,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 28703.56,
+        "durationMs": 2242.1399999999994,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+          "reloadMs": 2242.100000000002
+        }
+      },
+      {
+        "id": 17,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 33315.42,
+        "durationMs": 4.279999999998836,
+        "result": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "presenceCount": 1
+        }
+      },
+      {
+        "id": 18,
+        "name": "createSuggestion",
+        "args": {
+          "quote": "R6-ANCHOR-DOES-NOT-EXIST",
+          "replacement": "forbidden-missing"
+        },
+        "status": "passed",
+        "startedAtMs": 33819.58,
+        "durationMs": 4.360000000000582,
+        "result": {
+          "id": "suggestion-1",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "anchor": {
+            "quote": "R6-ANCHOR-DOES-NOT-EXIST",
+            "prefix": "",
+            "suffix": ""
+          },
+          "replacement": "forbidden-missing",
+          "authorId": "alice",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:45.003Z"
+        }
+      },
+      {
+        "id": 19,
+        "name": "acceptSuggestion",
+        "args": {
+          "suggestionId": "suggestion-1"
+        },
+        "status": "failed",
+        "startedAtMs": 34070.72,
+        "durationMs": 24.119999999995343,
+        "error": {
+          "code": "ANCHOR_NOT_FOUND",
+          "message": "suggestion anchor is not-found",
+          "details": {}
+        }
+      },
+      {
+        "id": 20,
+        "name": "createSuggestion",
+        "args": {
+          "quote": "English compatibility text",
+          "replacement": "forbidden-ambiguous"
+        },
+        "status": "passed",
+        "startedAtMs": 34321.1,
+        "durationMs": 3.7600000000020373,
+        "result": {
+          "id": "suggestion-3",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "anchor": {
+            "quote": "English compatibility text",
+            "prefix": "",
+            "suffix": ""
+          },
+          "replacement": "forbidden-ambiguous",
+          "authorId": "alice",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:45.003Z"
+        }
+      },
+      {
+        "id": 21,
+        "name": "acceptSuggestion",
+        "args": {
+          "suggestionId": "suggestion-3"
+        },
+        "status": "failed",
+        "startedAtMs": 34571.1,
+        "durationMs": 41.06000000000495,
+        "error": {
+          "code": "ANCHOR_AMBIGUOUS",
+          "message": "suggestion anchor is ambiguous",
+          "details": {}
+        }
+      },
+      {
+        "id": 22,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 34825,
+        "durationMs": 2150.720000000001,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2150.659999999996
+        }
+      },
+      {
+        "id": 23,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 39417.24,
+        "durationMs": 5.060000000004948,
+        "result": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "presenceCount": 1
+        }
+      },
+      {
+        "id": 24,
+        "name": "createComment",
+        "args": {
+          "body": "S5 replay comment"
+        },
+        "status": "passed",
+        "startedAtMs": 39919.3,
+        "durationMs": 4.959999999999127,
+        "result": {
+          "id": "comment-1",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "parentId": null,
+          "body": "S5 replay comment",
+          "authorId": "alice",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:45.003Z"
+        }
+      },
+      {
+        "id": 25,
+        "name": "createSuggestion",
+        "args": {
+          "quote": "LibreOfficeKit",
+          "replacement": "R6-S5-replay-version"
+        },
+        "status": "passed",
+        "startedAtMs": 40171.28,
+        "durationMs": 4.239999999997963,
+        "result": {
+          "id": "suggestion-2",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "anchor": {
+            "quote": "LibreOfficeKit",
+            "prefix": "",
+            "suffix": ""
+          },
+          "replacement": "R6-S5-replay-version",
+          "authorId": "alice",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:45.003Z"
+        }
+      },
+      {
+        "id": 26,
+        "name": "acceptSuggestion",
+        "args": {
+          "suggestionId": "suggestion-2"
+        },
+        "status": "passed",
+        "startedAtMs": 40422.18,
+        "durationMs": 2537.8399999999965,
+        "result": {
+          "version": "v2",
+          "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+          "blobSha256": "d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83",
+          "saveMs": 306.1200000000026,
+          "putMs": 2.1999999999970896,
+          "reloadMs": 2170.0999999999985,
+          "suggestionStatus": "accepted"
+        }
+      },
+      {
+        "id": 27,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 45330.46,
+        "durationMs": 2113.520000000004,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2113.5
+        }
+      },
+      {
+        "id": 28,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 49858.1,
+        "durationMs": 5.739999999997963,
+        "result": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "presenceCount": 1
+        }
+      },
+      {
+        "id": 29,
+        "name": "createComment",
+        "args": {
+          "body": "S5 snapshot comment 0"
+        },
+        "status": "passed",
+        "startedAtMs": 50404.78,
+        "durationMs": 4.580000000001746,
+        "result": {
+          "id": "comment-1",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "parentId": null,
+          "body": "S5 snapshot comment 0",
+          "authorId": "alice",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:45.003Z"
+        }
+      },
+      {
+        "id": 30,
+        "name": "createComment",
+        "args": {
+          "body": "S5 snapshot comment 1"
+        },
+        "status": "passed",
+        "startedAtMs": 50697.28,
+        "durationMs": 4.260000000002037,
+        "result": {
+          "id": "comment-2",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "parentId": null,
+          "body": "S5 snapshot comment 1",
+          "authorId": "alice",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:45.003Z"
+        }
+      },
+      {
+        "id": 31,
+        "name": "createComment",
+        "args": {
+          "body": "S5 snapshot comment 2"
+        },
+        "status": "passed",
+        "startedAtMs": 50991.7,
+        "durationMs": 4.92000000000553,
+        "result": {
+          "id": "comment-3",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "parentId": null,
+          "body": "S5 snapshot comment 2",
+          "authorId": "alice",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:45.003Z"
+        }
+      },
+      {
+        "id": 32,
+        "name": "createComment",
+        "args": {
+          "body": "S5 snapshot comment 3"
+        },
+        "status": "passed",
+        "startedAtMs": 51285.46,
+        "durationMs": 5.120000000002619,
+        "result": {
+          "id": "comment-4",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "parentId": null,
+          "body": "S5 snapshot comment 3",
+          "authorId": "alice",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:45.003Z"
+        }
+      },
+      {
+        "id": 33,
+        "name": "createSuggestion",
+        "args": {
+          "quote": "LibreOfficeKit",
+          "replacement": "R6-S5-snapshot-version"
+        },
+        "status": "passed",
+        "startedAtMs": 51578.82,
+        "durationMs": 4.8400000000037835,
+        "result": {
+          "id": "suggestion-5",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "anchor": {
+            "quote": "LibreOfficeKit",
+            "prefix": "",
+            "suffix": ""
+          },
+          "replacement": "R6-S5-snapshot-version",
+          "authorId": "alice",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:45.003Z"
+        }
+      },
+      {
+        "id": 34,
+        "name": "acceptSuggestion",
+        "args": {
+          "suggestionId": "suggestion-5"
+        },
+        "status": "passed",
+        "startedAtMs": 51872.72,
+        "durationMs": 2502.540000000001,
+        "result": {
+          "version": "v2",
+          "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+          "blobSha256": "3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0",
+          "saveMs": 300.26000000000204,
+          "putMs": 2.4399999999950523,
+          "reloadMs": 2147.0999999999985,
+          "suggestionStatus": "accepted"
+        }
+      },
+      {
+        "id": 35,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 57086.14,
+        "durationMs": 2219.239999999998,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2219.199999999997
+        }
+      },
+      {
+        "id": 36,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 61584.2,
+        "durationMs": 5.120000000002619,
+        "result": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "presenceCount": 1
+        }
+      },
+      {
+        "id": 37,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 62468.06,
+        "durationMs": 2096.4200000000055,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2096.4000000000015
+        }
+      },
+      {
+        "id": 38,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 66968.94,
+        "durationMs": 4.959999999991851,
+        "result": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "presenceCount": 1
+        }
+      },
+      {
+        "id": 39,
+        "name": "crashWithLocalEdit",
+        "args": {
+          "save": true,
+          "replacement": "R6-S7-saved-local"
+        },
+        "status": "passed",
+        "startedAtMs": 67516.74,
+        "durationMs": 355.2399999999907,
+        "result": {
+          "state": "recoverable-error",
+          "code": "WORKER_CRASHED",
+          "saved": true,
+          "localBytesAvailable": true,
+          "recoveryMessage": "已保存的本機 bytes 可下載；不自動重送 mutation"
+        }
+      },
+      {
+        "id": 40,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 67978.3,
+        "durationMs": 2141.4199999999983,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2141.3800000000047
+        }
+      },
+      {
+        "id": 41,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 72666.18,
+        "durationMs": 5.240000000005239,
+        "result": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "presenceCount": 1
+        }
+      },
+      {
+        "id": 42,
+        "name": "crashWithLocalEdit",
+        "args": {
+          "save": false,
+          "replacement": "R6-S7-unsaved-local"
+        },
+        "status": "passed",
+        "startedAtMs": 73216.34,
+        "durationMs": 55.04000000000815,
+        "result": {
+          "state": "recoverable-error",
+          "code": "WORKER_CRASHED",
+          "saved": false,
+          "localBytesAvailable": false,
+          "recoveryMessage": "尚未 save 的本機修改不可恢復；不自動重送 mutation"
+        }
+      },
+      {
+        "id": 43,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 73474,
+        "durationMs": 2185.100000000006,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2185.0800000000017
+        }
+      }
+    ],
+    "typedErrors": [
+      {
+        "command": "acceptSuggestion",
+        "code": "ANCHOR_NOT_FOUND",
+        "message": "suggestion anchor is not-found",
+        "details": {}
+      },
+      {
+        "command": "acceptSuggestion",
+        "code": "ANCHOR_AMBIGUOUS",
+        "message": "suggestion anchor is ambiguous",
+        "details": {}
+      }
+    ],
+    "workersCreated": 15,
+    "workersTerminated": 14,
+    "providerWorkersCreated": 1,
+    "providerWorkersTerminated": 0,
+    "tileDraws": 151,
+    "firstTileMs": 2579.04,
+    "staleAtMs": 3022.2,
+    "staleToReloadReadyMs": 72635.34,
+    "eventCursor": 2,
+    "eventRecovery": [],
+    "version": "v1",
+    "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+    "sdkRevision": 0,
+    "authorityVersion": "v1",
+    "authorityHash": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+    "localBytesAvailable": false,
+    "localBytesSha256": null,
+    "providerDocumentMutation": false,
+    "providerBoundary": null,
+    "conflict": {
+      "code": "ANCHOR_AMBIGUOUS",
+      "authorityVersion": "v1",
+      "localBaseVersion": "v1"
+    },
+    "fatalError": null
+  },
+  "bob": {
+    "schemaVersion": 1,
+    "release": "R6-C",
+    "role": "bob",
+    "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+    "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0",
+    "crossOriginIsolated": true,
+    "ready": true,
+    "readerStates": [
+      {
+        "atMs": 120.66,
+        "state": "loading-core",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": null,
+        "profile": null,
+        "coreCommit": null,
+        "sdkVersion": null,
+        "providerContractVersion": null,
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-core"
+      },
+      {
+        "atMs": 2114.56,
+        "state": "loading-document",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": null,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-document"
+      },
+      {
+        "atMs": 2535.88,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 2538.36,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 5188.12,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 5188.2,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 7132.78,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 7134.74,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 7296.72,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 11333.86,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 11333.94,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 13315.5,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 13317.64,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 13478.94,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 13997.74,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 16850.36,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "previousVersion": "v1",
+          "version": "v2",
+          "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+          "blobSha256": "a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64"
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 17058.46,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "previousVersion": "v1",
+          "version": "v2",
+          "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+          "blobSha256": "a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64"
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 18986.32,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 18989.84,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 19150.7,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 19328.2,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 21766.8,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 7
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 21766.88,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 7
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 23760.38,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 23765.06,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 23929.64,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 25207.34,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 25215.88,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 25215.94,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 25217.86,
+        "state": "saving",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "wait-for-save"
+      },
+      {
+        "atMs": 25495.82,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 25496.96,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 30918.74,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "download-local-or-reload"
+      },
+      {
+        "atMs": 30918.86,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 1,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": true,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 32965.92,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 32970.56,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 33129.9,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 37046.12,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 37046.2,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 39094.04,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 39098.8,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 39256.52,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 42911.14,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "previousVersion": "v1",
+          "version": "v2",
+          "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+          "blobSha256": "d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83"
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 43157,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "previousVersion": "v1",
+          "version": "v2",
+          "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+          "blobSha256": "d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83"
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 45077.48,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 45083.4,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 45243.78,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 47478.66,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 8
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 47478.78,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 8
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 49434.74,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 49439.36,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 49614.44,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 54700.6,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v2",
+          "eventSequence": 11
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 54700.7,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v2",
+          "eventSequence": 11
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 56729.92,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 56735.78,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 56913.22,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 59361.7,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 11
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 59361.8,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v2",
+        "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v2",
+          "version": "v1",
+          "eventSequence": 11
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 61275.06,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 61283.28,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 61442.18,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 62113.64,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 64543.02,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 64543.16,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 66548.18,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 66553.64,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 66730.68,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 70241.06,
+        "state": "stale",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "reload"
+      },
+      {
+        "atMs": 70241.18,
+        "state": "reloading",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": {
+          "documentId": "r6-reference-document",
+          "previousVersion": "v1",
+          "version": "v1",
+          "eventSequence": 2
+        },
+        "error": null,
+        "nextAction": "wait-for-reload"
+      },
+      {
+        "atMs": 72232.38,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 72240.1,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      },
+      {
+        "atMs": 72396.04,
+        "state": "ready",
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "sdkRevision": 0,
+        "profile": "writer-review",
+        "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+        "sdkVersion": "0.6.0-r6-worker",
+        "providerContractVersion": "1.0",
+        "hasLocalBytes": false,
+        "remoteUpdate": null,
+        "error": null,
+        "nextAction": "read-or-request-edit"
+      }
+    ],
+    "sdkEvents": [
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 1
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 3,
+        "status": "NOT_CANCELLABLE"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 4,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 5,
+        "status": "OK"
+      },
+      {
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "cancel-result",
+        "requestId": 6,
+        "status": "OK"
+      }
+    ],
+    "commands": [
+      {
+        "id": 1,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 5184.78,
+        "durationMs": 2111.9800000000005,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2111.96
+        }
+      },
+      {
+        "id": 2,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 7629.52,
+        "durationMs": 3.839999999999236,
+        "result": {
+          "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+          "presenceCount": 2
+        }
+      },
+      {
+        "id": 3,
+        "name": "refresh",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 8044.4,
+        "durationMs": 1.9400000000005093,
+        "result": {
+          "eventSequence": 2,
+          "version": "v1"
+        }
+      },
+      {
+        "id": 4,
+        "name": "createComment",
+        "args": {
+          "body": "Bob S1 comment"
+        },
+        "status": "passed",
+        "startedAtMs": 8050.74,
+        "durationMs": 3.4200000000000728,
+        "result": {
+          "id": "comment-1",
+          "documentId": "r6-reference-document",
+          "baseVersion": "v1",
+          "parentId": null,
+          "body": "Bob S1 comment",
+          "authorId": "bob",
+          "status": "open",
+          "createdAt": "2026-08-02T00:00:30.002Z"
+        }
+      },
+      {
+        "id": 5,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 11330.22,
+        "durationMs": 2148.76,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2148.7199999999993
+        }
+      },
+      {
+        "id": 6,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 13777.8,
+        "durationMs": 3.540000000000873,
+        "result": {
+          "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+          "presenceCount": 2
+        }
+      },
+      {
+        "id": 7,
+        "name": "providerSuggestion",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 13986.06,
+        "durationMs": 118.76000000000022,
+        "result": {
+          "suggestionId": "suggestion-1",
+          "replacement": "R4 Provider：LibreOfficeKit",
+          "sdkRevision": 0,
+          "sidecarOnly": true
+        }
+      },
+      {
+        "id": 8,
+        "name": "pollEvents",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 16845.34,
+        "durationMs": 7.860000000000582,
+        "result": {
+          "mode": "replay",
+          "applied": 5,
+          "eventSequence": 7,
+          "version": "v2",
+          "comments": 0,
+          "suggestions": 1,
+          "recoveryMs": 7.819999999999709
+        }
+      },
+      {
+        "id": 9,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 17055.12,
+        "durationMs": 2095.6200000000026,
+        "result": {
+          "version": "v2",
+          "etag": "\"sha256-a3ea61074d25a64eb188c76a63ddfad2f449c2c613323aa9a19374e670356d64\"",
+          "reloadMs": 2095.5800000000017
+        }
+      },
+      {
+        "id": 10,
+        "name": "search",
+        "args": {
+          "query": "R4 Provider：LibreOfficeKit"
+        },
+        "status": "passed",
+        "startedAtMs": 19301.34,
+        "durationMs": 28.020000000000437,
+        "result": {
+          "found": true,
+          "query": "R4 Provider：LibreOfficeKit",
+          "matchCount": 1,
+          "selectionText": "R4 Provider：LibreOfficeKit",
+          "revision": 0
+        }
+      },
+      {
+        "id": 11,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 21763.02,
+        "durationMs": 2166.66,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2166.5999999999985
+        }
+      },
+      {
+        "id": 12,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 24215.84,
+        "durationMs": 3.9199999999982538,
+        "result": {
+          "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+          "presenceCount": 2
+        }
+      },
+      {
+        "id": 13,
+        "name": "acquireLease",
+        "args": {},
+        "status": "failed",
+        "startedAtMs": 24926.86,
+        "durationMs": 2.680000000000291,
+        "error": {
+          "code": "LEASE_HELD",
+          "message": "document already has an active lease",
+          "details": {
+            "lease": {
+              "leaseId": "lease-2",
+              "documentId": "r6-reference-document",
+              "actorId": "alice",
+              "baseVersion": "v1",
+              "issuedAt": "2026-08-02T00:00:45.003Z",
+              "expiresAt": "2026-08-02T00:01:15.003Z"
+            }
+          }
+        }
+      },
+      {
+        "id": 14,
+        "name": "localEditAndSave",
+        "args": {
+          "replacement": "BOB-FORBIDDEN-STALE-R6"
+        },
+        "status": "passed",
+        "startedAtMs": 25177.44,
+        "durationMs": 319.5600000000013,
+        "result": {
+          "bytes": 18981,
+          "sha256": "9c2844c33c2a710e3c914820ab0ebe09c830d26d2d571adf913c4e0603b52637",
+          "revision": 1
+        }
+      },
+      {
+        "id": 15,
+        "name": "stalePut",
+        "args": {},
+        "status": "failed",
+        "startedAtMs": 28327.3,
+        "durationMs": 3.819999999999709,
+        "error": {
+          "code": "VERSION_CONFLICT",
+          "message": "blob compare-and-swap validator is stale",
+          "details": {
+            "currentVersion": "v2",
+            "currentEtag": "\"sha256-ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405\""
+          }
+        }
+      },
+      {
+        "id": 16,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 30915.52,
+        "durationMs": 2214.420000000002,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02\"",
+          "reloadMs": 2214.380000000001
+        }
+      },
+      {
+        "id": 17,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 33487.58,
+        "durationMs": 4.3399999999965075,
+        "result": {
+          "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+          "presenceCount": 2
+        }
+      },
+      {
+        "id": 18,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 37042.3,
+        "durationMs": 2214.279999999999,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2214.220000000001
+        }
+      },
+      {
+        "id": 19,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 39588.62,
+        "durationMs": 3.8999999999941792,
+        "result": {
+          "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+          "presenceCount": 2
+        }
+      },
+      {
+        "id": 20,
+        "name": "pollEvents",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 42900.72,
+        "durationMs": 14.239999999997963,
+        "result": {
+          "mode": "replay",
+          "applied": 6,
+          "eventSequence": 8,
+          "version": "v2",
+          "comments": 1,
+          "suggestions": 1,
+          "recoveryMs": 14.200000000004366
+        }
+      },
+      {
+        "id": 21,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 43152.64,
+        "durationMs": 2091.1800000000003,
+        "result": {
+          "version": "v2",
+          "etag": "\"sha256-d64e1e7dd05e32849cf5622117200c7ad139e8347bf5053d7d2c7299b13d3c83\"",
+          "reloadMs": 2091.159999999996
+        }
+      },
+      {
+        "id": 22,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 47475.5,
+        "durationMs": 2139,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2138.9400000000023
+        }
+      },
+      {
+        "id": 23,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 50072.68,
+        "durationMs": 4.599999999998545,
+        "result": {
+          "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+          "presenceCount": 2
+        }
+      },
+      {
+        "id": 24,
+        "name": "pollEvents",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 54398.84,
+        "durationMs": 3,
+        "result": {
+          "mode": "snapshot",
+          "applied": 0,
+          "eventSequence": 11,
+          "version": "v2",
+          "comments": 4,
+          "suggestions": 1,
+          "recoveryMs": 2.9400000000023283
+        }
+      },
+      {
+        "id": 25,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 54695.56,
+        "durationMs": 2217.7000000000044,
+        "result": {
+          "version": "v2",
+          "etag": "\"sha256-3207d3abc77e7c72caa6162fa0b0744c40654f8d81a560073ae435a628ce57c0\"",
+          "reloadMs": 2217.6600000000035
+        }
+      },
+      {
+        "id": 26,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 59357.64,
+        "durationMs": 2084.5800000000017,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2084.5
+        }
+      },
+      {
+        "id": 27,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 61799.34,
+        "durationMs": 4.640000000006694,
+        "result": {
+          "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+          "presenceCount": 2
+        }
+      },
+      {
+        "id": 28,
+        "name": "providerBoundaryRegression",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 62093.76,
+        "durationMs": 203.5,
+        "result": {
+          "blocked": [
+            {
+              "name": "generic-uno",
+              "code": "INVALID_OPERATION"
+            },
+            {
+              "name": "unknown-operation",
+              "code": "INVALID_OPERATION"
+            },
+            {
+              "name": "wrong-endpoint",
+              "code": "UNKNOWN_ENDPOINT"
+            },
+            {
+              "name": "oversized",
+              "code": "INVALID_OPERATION"
+            }
+          ],
+          "cancelCode": "PROVIDER_ABORTED",
+          "crashCode": "PROVIDER_WORKER_CRASHED",
+          "documentStillAlive": true,
+          "restartedOperation": "replaceSelection",
+          "suggestionsBefore": 0,
+          "suggestionsAfter": 0
+        }
+      },
+      {
+        "id": 29,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 64538,
+        "durationMs": 2192.720000000001,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2192.7000000000044
+        }
+      },
+      {
+        "id": 30,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 67143.74,
+        "durationMs": 4.559999999997672,
+        "result": {
+          "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+          "presenceCount": 2
+        }
+      },
+      {
+        "id": 31,
+        "name": "reloadAuthority",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 70236.32,
+        "durationMs": 2159.7599999999948,
+        "result": {
+          "version": "v1",
+          "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+          "reloadMs": 2159.720000000001
+        }
+      },
+      {
+        "id": 32,
+        "name": "heartbeat",
+        "args": {},
+        "status": "passed",
+        "startedAtMs": 72841.6,
+        "durationMs": 5.039999999993597,
+        "result": {
+          "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+          "presenceCount": 2
+        }
+      }
+    ],
+    "typedErrors": [
+      {
+        "command": "acquireLease",
+        "code": "LEASE_HELD",
+        "message": "document already has an active lease",
+        "details": {
+          "lease": {
+            "leaseId": "lease-2",
+            "documentId": "r6-reference-document",
+            "actorId": "alice",
+            "baseVersion": "v1",
+            "issuedAt": "2026-08-02T00:00:45.003Z",
+            "expiresAt": "2026-08-02T00:01:15.003Z"
+          }
+        }
+      },
+      {
+        "command": "stalePut",
+        "code": "VERSION_CONFLICT",
+        "message": "blob compare-and-swap validator is stale",
+        "details": {
+          "currentVersion": "v2",
+          "currentEtag": "\"sha256-ecc0615d2956399eb00511fb181e30826a050d336868e7a3466b2092a7842405\""
+        }
+      }
+    ],
+    "workersCreated": 13,
+    "workersTerminated": 12,
+    "providerWorkersCreated": 3,
+    "providerWorkersTerminated": 2,
+    "tileDraws": 153,
+    "firstTileMs": 2566.82,
+    "staleAtMs": 5188.18,
+    "staleToReloadReadyMs": 67206.22,
+    "eventCursor": 2,
+    "eventRecovery": [
+      {
+        "mode": "replay",
+        "applied": 5,
+        "eventSequence": 7,
+        "version": "v2",
+        "comments": 0,
+        "suggestions": 1,
+        "recoveryMs": 7.819999999999709
+      },
+      {
+        "mode": "replay",
+        "applied": 6,
+        "eventSequence": 8,
+        "version": "v2",
+        "comments": 1,
+        "suggestions": 1,
+        "recoveryMs": 14.200000000004366
+      },
+      {
+        "mode": "snapshot",
+        "applied": 0,
+        "eventSequence": 11,
+        "version": "v2",
+        "comments": 4,
+        "suggestions": 1,
+        "recoveryMs": 2.9400000000023283
+      }
+    ],
+    "version": "v1",
+    "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+    "sdkRevision": 0,
+    "authorityVersion": "v1",
+    "authorityHash": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+    "localBytesAvailable": false,
+    "localBytesSha256": null,
+    "providerDocumentMutation": false,
+    "providerBoundary": {
+      "blocked": [
+        {
+          "name": "generic-uno",
+          "code": "INVALID_OPERATION"
+        },
+        {
+          "name": "unknown-operation",
+          "code": "INVALID_OPERATION"
+        },
+        {
+          "name": "wrong-endpoint",
+          "code": "UNKNOWN_ENDPOINT"
+        },
+        {
+          "name": "oversized",
+          "code": "INVALID_OPERATION"
+        }
+      ],
+      "cancelCode": "PROVIDER_ABORTED",
+      "crashCode": "PROVIDER_WORKER_CRASHED",
+      "documentStillAlive": true,
+      "restartedOperation": "replaceSelection",
+      "suggestionsBefore": 0,
+      "suggestionsAfter": 0
+    },
+    "conflict": {
+      "code": "VERSION_CONFLICT",
+      "authorityVersion": "v2",
+      "localBaseVersion": "v1",
+      "localBytesAvailable": true
+    },
+    "fatalError": null
+  },
+  "finalServer": {
+    "currentVersion": "v1",
+    "versionCount": 1,
+    "versions": [
+      {
+        "documentId": "r6-reference-document",
+        "version": "v1",
+        "etag": "\"sha256-bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02\"",
+        "blobSha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+        "bytes": 17885,
+        "mediaType": "application/vnd.oasis.opendocument.text",
+        "createdAt": "2026-08-02T00:00:45.003Z",
+        "createdBy": "fixture",
+        "parentVersion": null
+      }
+    ],
+    "eventSequence": 2,
+    "events": [
+      {
+        "contractVersion": "1.0",
+        "documentId": "r6-reference-document",
+        "snapshotVersion": 1,
+        "eventSequence": 1,
+        "type": "presence-upserted",
+        "createdAt": "2026-08-02T00:00:45.003Z",
+        "data": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "actorId": "alice",
+          "displayName": "Alice（fixture identity；非正式登入）",
+          "viewedVersion": "v1",
+          "locationHint": {
+            "page": 1
+          },
+          "lastSeenAt": "2026-08-02T00:00:45.003Z",
+          "expiresAt": "2026-08-02T00:01:00.003Z"
+        }
+      },
+      {
+        "contractVersion": "1.0",
+        "documentId": "r6-reference-document",
+        "snapshotVersion": 1,
+        "eventSequence": 2,
+        "type": "presence-upserted",
+        "createdAt": "2026-08-02T00:00:45.003Z",
+        "data": {
+          "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+          "actorId": "bob",
+          "displayName": "Bob（fixture identity；非正式登入）",
+          "viewedVersion": "v1",
+          "locationHint": {
+            "page": 1
+          },
+          "lastSeenAt": "2026-08-02T00:00:45.003Z",
+          "expiresAt": "2026-08-02T00:01:00.003Z"
+        }
+      }
+    ],
+    "idempotencyCount": 2,
+    "audit": [
+      {
+        "at": "2026-08-02T00:00:45.003Z",
+        "documentId": "r6-reference-document",
+        "eventSequence": 1,
+        "type": "presence-upserted",
+        "data": {
+          "sessionId": "alice-82bf50af-e097-442c-be3b-e964af263b69",
+          "actorId": "alice",
+          "displayName": "Alice（fixture identity；非正式登入）",
+          "viewedVersion": "v1",
+          "locationHint": {
+            "page": 1
+          },
+          "lastSeenAt": "2026-08-02T00:00:45.003Z",
+          "expiresAt": "2026-08-02T00:01:00.003Z"
+        }
+      },
+      {
+        "at": "2026-08-02T00:00:45.003Z",
+        "documentId": "r6-reference-document",
+        "eventSequence": 2,
+        "type": "presence-upserted",
+        "data": {
+          "sessionId": "bob-de883d7a-f867-4778-bc6d-edafbfe66b05",
+          "actorId": "bob",
+          "displayName": "Bob（fixture identity；非正式登入）",
+          "viewedVersion": "v1",
+          "locationHint": {
+            "page": 1
+          },
+          "lastSeenAt": "2026-08-02T00:00:45.003Z",
+          "expiresAt": "2026-08-02T00:01:00.003Z"
+        }
+      }
+    ]
+  }
+}

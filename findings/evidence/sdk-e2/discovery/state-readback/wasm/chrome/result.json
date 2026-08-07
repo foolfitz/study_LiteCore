@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-A-paragraph-format-discovery",
+  "stage": "A2-wasm",
+  "fixture": "styled-list",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "phase": "complete",
+  "complete": true,
+  "checkpoints": [
+    {
+      "name": "load-manifest"
+    },
+    {
+      "name": "initialize-engine"
+    },
+    {
+      "name": "open",
+      "bytes": 1379
+    }
+  ],
+  "formatStateEvents": [],
+  "readback": [],
+  "dispatch": [],
+  "outputs": [],
+  "error": {
+    "name": "DocumentSdkError",
+    "code": "UNSUPPORTED_OPERATION",
+    "message": "editor discovery operations require the isolated E1 diagnostic profile",
+    "details": {
+      "operation": "editorDiscoveryGetState",
+      "code": "UNSUPPORTED_OPERATION",
+      "message": "editor discovery operations require the isolated E1 diagnostic profile",
+      "profile": "e2-format-discovery"
+    }
+  },
+  "pass": false,
+  "fixtureManifest": {
+    "id": "styled-list",
+    "path": "styled-list.odt",
+    "bytes": 1379,
+    "sha256": "309094260291bfc5a31f634562ec4efa2c8f84841deadcb8cd234211914d7bfc",
+    "anchors": [
+      "E1-STYLED-HEADING",
+      "bold anchor",
+      "italic anchor",
+      "E1-LIST-ONE",
+      "E1-STYLED-END"
+    ],
+    "minimum": {
+      "paragraphs": 4,
+      "headings": 1,
+      "lists": 1,
+      "tables": 0
+    },
+    "source": "project-generated deterministic ODT"
+  },
+  "manifest": {
+    "abiVersion": 65537,
+    "abiVersionText": "1.1",
+    "artifactFiles": {
+      "probe.js": "./probe.js",
+      "probe.wasm": "./probe.wasm",
+      "soffice.data": "../resources/base-r5.ba15a988a7fec468.data",
+      "soffice.data.js.metadata": "../resources/base-r5.ef11ef80faf373bc.metadata"
+    },
+    "capabilities": [
+      "open-odt",
+      "rgba-tile",
+      "insert-text",
+      "save-odt",
+      "cancel-queued",
+      "search",
+      "selection-text",
+      "replace-selection",
+      "undo",
+      "comments",
+      "tracked-changes",
+      "provider-contract-1.0",
+      "provider-worker",
+      "validated-provider-operation",
+      "editor-discovery-closed-actions",
+      "verified-selection-delete",
+      "verified-format-state"
+    ],
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "expectedCapabilityBits": 2047,
+    "profile": "e2-format-discovery",
+    "protocolVersion": 1,
+    "providerContractVersion": "1.0",
+    "resourcePacks": [
+      {
+        "bytes": 19484784,
+        "data": "../resources/cjk-r5.b76b0433203017ca.data",
+        "id": "cjk-r5",
+        "loadAtStartup": true,
+        "metadata": "../resources/cjk-r5.fafab99558ab6f8b.metadata",
+        "purpose": "CJK corpus",
+        "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+      },
+      {
+        "bytes": 49102042,
+        "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+        "id": "fallback-fonts-r5",
+        "loadAtStartup": false,
+        "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+        "purpose": "optional complex-script and fidelity fallback",
+        "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+      }
+    ],
+    "sdkVersion": "0.6.0-r6-worker+e2-format-discovery",
+    "diagnostic": {
+      "scope": "e2-paragraph-format-discovery",
+      "contract": "closed-actions-v1-candidate-not-product-abi",
+      "loaderSha256": "9f15527dcca4b0aee42ddcf5d94bd85e92175d4c8af23b2621cd7280e58b5bfd",
+      "wasmSha256": "45f2372beb961907e220d7f873706486e09f8b808a62e3a33ec76c7b42594b53",
+      "workerSha256": "9696c9ce580b431644cd4f56ea7356647dfd9ab143da6370e521bc2474a35fd7",
+      "productionArtifactReplaced": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "automaticRetry": false,
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "formatBarrier": "verified-format-state-v1",
+      "formatCompletionRequiresCommandResultAndState": true,
+      "formatResultVerdictFieldsUsedForCompletion": false,
+      "stateWordCountUsedForCompletion": false,
+      "boundaryReadbackDeadlineMs": 250,
+      "deadlineCanDeclareMutationSuccess": false,
+      "boundaryRejectionRequiresFreshWorker": true
+    },
+    "capabilityBits": 2047
+  },
+  "documentPostconditions": {
+    "judged": 0,
+    "met": 0,
+    "allMet": false
+  },
+  "browser": "chrome",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/state-readback/wasm/chrome"
+}

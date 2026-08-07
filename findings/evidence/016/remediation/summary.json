@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "finding": "016",
+  "complete": false,
+  "checks": {
+    "chrome:plain-grapheme": {
+      "pass": false,
+      "actions": {
+        "delete-backward": {
+          "count": 3,
+          "pass": false
+        },
+        "delete-forward": {
+          "count": 3,
+          "pass": false
+        }
+      }
+    },
+    "chrome:multi-paragraph": {
+      "pass": true,
+      "actions": {
+        "insert-line-break": {
+          "count": 3,
+          "pass": true
+        },
+        "insert-paragraph-break": {
+          "count": 3,
+          "pass": true
+        }
+      }
+    },
+    "chrome:boundary": {
+      "pass": true,
+      "count": 6
+    },
+    "firefox:plain-grapheme": {
+      "pass": false,
+      "reason": "missing result"
+    },
+    "firefox:multi-paragraph": {
+      "pass": false,
+      "reason": "missing result"
+    },
+    "firefox:boundary": {
+      "pass": false,
+      "count": 0
+    }
+  },
+  "decision": "STOP_OR_RESCOPE"
+}

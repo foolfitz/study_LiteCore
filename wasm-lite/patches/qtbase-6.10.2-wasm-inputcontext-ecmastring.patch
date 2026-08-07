@@ -1,0 +1,11 @@
+--- a/src/plugins/platforms/wasm/qwasminputcontext.cpp
++++ b/src/plugins/platforms/wasm/qwasminputcontext.cpp
+@@ -303,7 +303,7 @@ void QWasmInputContext::updateInputElement()
+     qCDebug(qLcQpaWasmInputContext) << "Qt cursor position: " << queryEvent.value(Qt::ImCursorPosition).toInt();
+     qCDebug(qLcQpaWasmInputContext) << "Qt anchor position: " << queryEvent.value(Qt::ImAnchorPosition).toInt();
+ 
+-    m_inputElement.set("value", queryEvent.value(Qt::ImSurroundingText).toString().toStdString());
++    m_inputElement.set("value", queryEvent.value(Qt::ImSurroundingText).toString().toEcmaString());
+ 
+     m_inputElement.set("selectionStart", queryEvent.value(Qt::ImAnchorPosition).toUInt());
+     m_inputElement.set("selectionEnd", queryEvent.value(Qt::ImCursorPosition).toUInt());

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>E1-C ODT Editor 驗證</title>
+  <style>
+    :root { font: 14px system-ui, sans-serif; color: #17202a; background: #edf1f5; }
+    body { margin: 0; }
+    header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 10px 14px; color: white; background: #17324d; }
+    header output { padding: 3px 8px; border-radius: 999px; background: #315878; }
+    nav { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; background: white; border-bottom: 1px solid #ccd5dd; }
+    button, textarea { font: inherit; }
+    button { padding: 5px 9px; }
+    button:disabled { opacity: .45; }
+    main { display: grid; grid-template-columns: minmax(520px, 760px) minmax(340px, 1fr); gap: 12px; padding: 12px; }
+    #canvas { width: 100%; height: auto; background: white; box-shadow: 0 1px 6px #7a8792; cursor: text; }
+    aside { display: grid; gap: 8px; align-content: start; }
+    #input { min-height: 72px; padding: 8px; }
+    #input:focus { outline: 3px solid #2b78c5; outline-offset: 2px; }
+    #input-feedback { display: block; min-height: 1.5em; padding: 6px 8px; color: #123b5d; background: #e8f4ff; border: 1px solid #9bc5eb; }
+    #manual-instructions { padding: 8px 10px; background: #fff8d8; border: 1px solid #d8c770; }
+    #manual-instructions ol { margin: 6px 0; padding-left: 22px; }
+    #manual-clipboard-source { width: 100%; box-sizing: border-box; }
+    pre { margin: 0; padding: 10px; min-height: 480px; max-height: 66vh; overflow: auto; color: #d6eeff; background: #111820; white-space: pre-wrap; }
+    .error { color: #ffb4ab; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>E1-C ODT Editor 驗證</strong>
+    <output id="status">starting</output>
+    <span>scenario <output id="scenario">—</output></span>
+    <span>revision <output id="revision">—</output></span>
+    <span id="message"></span>
+  </header>
+  <nav id="manual-toolbar" hidden>
+    <button data-manual="caret">1 準備一般輸入</button>
+    <button data-manual="selection">2 準備選取取代</button>
+    <button data-manual="cancel-start">3 記錄取消前狀態</button>
+    <button data-manual="cancel-check">4 驗證取消</button>
+    <button data-manual="native-prepare">5 準備原生 Ctrl+C/V</button>
+    <button data-manual="clipboard-write">6a Clipboard API寫入</button>
+    <button data-manual="clipboard-read">6b Clipboard API讀入</button>
+    <button data-manual="finish">7 儲存、驗證並送出</button>
+  </nav>
+  <main>
+    <canvas id="canvas" width="720" height="900" aria-label="E1-C ODT文件畫面"></canvas>
+    <aside>
+      <div id="manual-instructions" hidden>
+        <label><input id="manual-chewing-confirm" type="checkbox"> 我確認本輪使用 Fcitx5 Chewing</label>
+        <ol>
+          <li>按1，用Chewing輸入 <code>E1C人工第一筆中文輸入</code> 並完成選字。</li>
+          <li>按2，用Chewing輸入 <code>E1C人工選取替換</code> 並完成選字。</li>
+          <li>按3，開始一段Chewing組字但不要選字，按Escape，再按4。</li>
+          <li>按5後按Ctrl+C；再點下方input sink並按Ctrl+V。</li>
+          <li>依序按6a、6b，再按7；結果會自動寫入本機evidence。</li>
+        </ol>
+        <strong id="manual-status" role="status">尚未開始</strong>
+      </div>
+      <label for="input">文字／IME input sink</label>
+      <textarea id="input" placeholder="請在此輸入；文字會直接提交到 ODT，此框提交後會清空"></textarea>
+      <output id="input-feedback" role="status" aria-live="polite">尚未收到鍵盤輸入</output>
+      <label for="manual-clipboard-source">原生 Ctrl+C fixture</label>
+      <input id="manual-clipboard-source" readonly hidden value="E1C人工原生貼上臺灣😀">
+      <pre id="log" aria-live="polite"></pre>
+    </aside>
+  </main>
+  <script type="module" src="./e1-editor-validation-app.js"></script>
+</body>
+</html>

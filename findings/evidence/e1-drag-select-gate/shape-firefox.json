@@ -1,0 +1,128 @@
+{
+ "schemaVersion": 1,
+ "release": "e1-drag-select-gate",
+ "browser": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+ "crossOriginIsolated": true,
+ "profile": "e1-editor-discovery",
+ "timeoutMs": 15000,
+ "cases": [
+  {
+   "case": "range-across-lines",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "type": "text",
+   "text": "E1-PLAIN-START\nASCII abc XYZ 0123456789\n臺灣中文游標測試",
+   "length": 48,
+   "elapsedMs": 1934
+  },
+  {
+   "case": "range-then-delete",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "selectedText": "ASCII abc XY",
+   "beforeRevision": 0,
+   "deleteOutcome": {
+    "status": "failed",
+    "error": {
+     "code": "EDITOR_STATE_UNAVAILABLE",
+     "message": "selection barrier requires a callback-confirmed collapsed caret"
+    }
+   },
+   "selectedTextStillFound": true,
+   "elapsedMs": 1806
+  },
+  {
+   "case": "range-then-bold-saved",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "selectedText": "ASCII abc XY",
+   "boldOutcome": {
+    "status": "completed",
+    "completion": "uno-command-result"
+   },
+   "savedBytes": 10254,
+   "elapsedMs": 1990
+  },
+  {
+   "case": "range-then-replace-saved",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "selectedText": "ASCII abc XY",
+   "replaced": {
+    "status": "completed",
+    "revision": 1
+   },
+   "replacementFound": true,
+   "elapsedMs": 2054
+  }
+ ],
+ "verdict": {
+  "range-across-lines": {
+   "case": "range-across-lines",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "type": "text",
+   "text": "E1-PLAIN-START\nASCII abc XYZ 0123456789\n臺灣中文游標測試",
+   "length": 48,
+   "elapsedMs": 1934
+  },
+  "range-then-delete": {
+   "case": "range-then-delete",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "selectedText": "ASCII abc XY",
+   "beforeRevision": 0,
+   "deleteOutcome": {
+    "status": "failed",
+    "error": {
+     "code": "EDITOR_STATE_UNAVAILABLE",
+     "message": "selection barrier requires a callback-confirmed collapsed caret"
+    }
+   },
+   "selectedTextStillFound": true,
+   "elapsedMs": 1806
+  },
+  "range-then-bold-saved": {
+   "case": "range-then-bold-saved",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "selectedText": "ASCII abc XY",
+   "boldOutcome": {
+    "status": "completed",
+    "completion": "uno-command-result"
+   },
+   "savedBytes": 10254,
+   "elapsedMs": 1990
+  },
+  "range-then-replace-saved": {
+   "case": "range-then-replace-saved",
+   "outcome": {
+    "status": "completed",
+    "completion": "documented-callback-text-selection"
+   },
+   "selectedText": "ASCII abc XY",
+   "replaced": {
+    "status": "completed",
+    "revision": 1
+   },
+   "replacementFound": true,
+   "elapsedMs": 2054
+  }
+ },
+ "complete": true,
+ "error": null
+}

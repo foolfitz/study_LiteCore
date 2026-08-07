@@ -1,0 +1,81 @@
+Qt 6.10.2 WASM emval handle 32 cross-thread lifecycle
+Captured: 2026-08-01 02:17 Asia/Taipei
+URL: http://127.0.0.1:6940/qt_soffice.html
+Browser: Chrome 150.0.7871.128, DevTools Protocol 1.3
+
+Diagnostic method
+-----------------
+The generated soffice.js was temporarily instrumented at Emval.toHandle(),
+__emval_incref(), __emval_decref(), and __emval_set_property(). Each record
+included workerID, ENVIRONMENT_IS_WORKER, ENVIRONMENT_IS_PTHREAD,
+_pthread_self(), the handle's allocation/refcount state, and a JavaScript
+stack. The instrumentation was removed after capture.
+
+Selected raw browser log
+------------------------
+[EMVAL32] action=allocate workerId=0 worker=false pthread=false thread=0x0372a98c name=<main> allocated=true refcount=1 value=HTMLInputElement tag=INPUT id=<none> class=<none> connected=false Error
+    at traceEmval32 (http://127.0.0.1:6940/soffice.js:7175:9)
+    at Object.toHandle (http://127.0.0.1:6940/soffice.js:7199:13)
+    at Object.toWireType (http://127.0.0.1:6940/soffice.js:8808:51)
+    at emval_returnValue (http://127.0.0.1:6940/soffice.js:9550:44)
+    at methodCaller<(emscripten::val) => emscripten::val> (eval at __emval_get_method_caller (http://127.0.0.1:6940/soffice.js:9680:29), <anonymous>:6:10)
+    at __emval_call_method (http://127.0.0.1:6940/soffice.js:9601:14)
+    at soffice.wasm.QWasmWindow::QWasmWindow(QWindow*, QWasmDeadKeySupport*, QWasmCompositor*, QWasmBackingStore*, unsigned int) (http://127.0.0.1:6940/soffice.wasm:wasm-function[349082]:0x53e1b7a)
+
+[EMVAL32] action=set-property workerId=0 worker=false pthread=false thread=0x0372a98c name=<main> allocated=true refcount=1 value=HTMLInputElement tag=INPUT id=<none> class=qt-window-input-element connected=false keyHandle=226 key=string:type valueHandle=192 value=string:text Error
+    at traceEmval32 (http://127.0.0.1:6940/soffice.js:7175:9)
+    at __emval_set_property (http://127.0.0.1:6940/soffice.js:9732:9)
+    at soffice.wasm.QWasmWindow::QWasmWindow(QWindow*, QWasmDeadKeySupport*, QWasmCompositor*, QWasmBackingStore*, unsigned int) (http://127.0.0.1:6940/soffice.wasm:wasm-function[349082]:0x53e2d65)
+
+[EMVAL32] action=incref-after workerId=0 worker=false pthread=false thread=0x0372a98c name=<main> allocated=true refcount=2 value=HTMLInputElement tag=INPUT id=<none> class=qt-window-input-element connected=false Error
+    at traceEmval32 (http://127.0.0.1:6940/soffice.js:7175:9)
+    at __emval_incref (http://127.0.0.1:6940/soffice.js:9701:7)
+    at soffice.wasm.QWasmWindow::QWasmWindow(QWindow*, QWasmDeadKeySupport*, QWasmCompositor*, QWasmBackingStore*, unsigned int) (http://127.0.0.1:6940/soffice.wasm:wasm-function[349082]:0x53e30d5)
+
+[EMVAL32] action=decref-after workerId=0 worker=false pthread=false thread=0x0372a98c name=<main> allocated=true refcount=1 value=HTMLInputElement tag=INPUT id=<none> class=qt-window-input-element connected=false Error
+    at traceEmval32 (http://127.0.0.1:6940/soffice.js:7175:9)
+    at __emval_decref (http://127.0.0.1:6940/soffice.js:8795:9)
+    at Object.fromWireType (http://127.0.0.1:6940/soffice.js:8805:9)
+    at soffice.wasm.QWasmWindow::QWasmWindow(QWindow*, QWasmDeadKeySupport*, QWasmCompositor*, QWasmBackingStore*, unsigned int) (http://127.0.0.1:6940/soffice.wasm:wasm-function[349082]:0x53e315b)
+
+[EMVAL32] action=incref-after workerId=7 worker=true pthread=true thread=0x038c0128 name=em-pthread-7 allocated=false refcount=NaN value=undefined Error
+    at traceEmval32 (http://127.0.0.1:6940/soffice.js:7175:9)
+    at __emval_incref (http://127.0.0.1:6940/soffice.js:9701:7)
+    at soffice.wasm.QWasmInputContext::updateInputElement() (http://127.0.0.1:6940/soffice.wasm:wasm-function[349507]:0x53f5976)
+    at soffice.wasm.QWasmInputContext::update(QFlags<Qt::InputMethodQuery>) (http://127.0.0.1:6940/soffice.wasm:wasm-function[349506]:0x53f57b1)
+    at soffice.wasm.QInputMethod::update(QFlags<Qt::InputMethodQuery>) (http://127.0.0.1:6940/soffice.wasm:wasm-function[329704]:0x4d6e022)
+    at soffice.wasm.QWidget::setAttribute(Qt::WidgetAttribute, bool) (http://127.0.0.1:6940/soffice.wasm:wasm-function[337590]:0x507788c)
+    at soffice.wasm.non-virtual thunk to QtFrame::SetInputContext(SalInputContext*) (http://127.0.0.1:6940/soffice.wasm:wasm-function[275447]:0x3f5c5fe)
+
+[EMVAL32] action=set-property workerId=7 worker=true pthread=true thread=0x038c0128 name=em-pthread-7 allocated=false refcount=NaN value=undefined keyHandle=34 key=string:value valueHandle=36 value=string: Error
+    at traceEmval32 (http://127.0.0.1:6940/soffice.js:7175:9)
+    at __emval_set_property (http://127.0.0.1:6940/soffice.js:9732:9)
+    at soffice.wasm.void emscripten::val::set<char [6], std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>>(char const (&) [6], std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&) (http://127.0.0.1:6940/soffice.wasm:wasm-function[348462]:0x53adc5a)
+    at soffice.wasm.QWasmInputContext::updateInputElement() (http://127.0.0.1:6940/soffice.wasm:wasm-function[349507]:0x53f6527)
+
+Aborted(Assertion failed: invalid emval handle: 32
+Error
+    at assert (http://127.0.0.1:6940/soffice.js:614:28)
+    at Object.toValue (http://127.0.0.1:6940/soffice.js:7186:9)
+    at __emval_set_property (http://127.0.0.1:6940/soffice.js:9736:22)
+    at soffice.wasm.void emscripten::val::set<char [6], std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>>>(char const (&) [6], std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&) (http://127.0.0.1:6940/soffice.wasm:wasm-function[348462]:0x53adc5a)
+    at soffice.wasm.QWasmInputContext::updateInputElement() (http://127.0.0.1:6940/soffice.wasm:wasm-function[349507]:0x53f6527))
+
+Generated artifact restoration
+------------------------------
+soffice.js after removing all temporary instrumentation:
+74b010f544c13212a215d0c468402b1d2bf9ba58ec4f75a160c6dbea86c56f2e
+
+Relevant build/header observations
+----------------------------------
+The qwasminputcontext.cpp compile command contains both -DNDEBUG and -pthread.
+Emscripten 4.0.10 val.h checks val ownership only through a C assert:
+
+    EM_VAL as_handle() const {
+    #ifdef _REENTRANT
+        assert(pthread_equal(thread, pthread_self()) && "val accessed from wrong thread");
+    #endif
+        return handle;
+    }
+
+With -DNDEBUG, that diagnostic assertion is compiled out.

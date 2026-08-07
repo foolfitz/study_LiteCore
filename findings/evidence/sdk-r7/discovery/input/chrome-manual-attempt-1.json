@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "release": "R7-A",
+  "kind": "operator-provided-headed-manual-evidence-summary",
+  "browser": "Chrome 150.0.0.0",
+  "inputMethod": "Fcitx5 Chewing",
+  "observedDate": "2026-08-03",
+  "artifactContext": "R5 writer-review via R6 worker manifest",
+  "commits": [
+    {"text": "開始中文輸入", "source": "composition", "beforeRevision": 0, "revision": 1},
+    {"text": "測試", "source": "composition", "beforeRevision": 1, "revision": 2},
+    {"text": "\n", "source": "beforeinput", "isTrusted": true, "beforeRevision": 2, "revision": 3},
+    {"text": "\n", "source": "beforeinput", "isTrusted": true, "beforeRevision": 3, "revision": 4},
+    {"text": "R7-manual-native-copy-臺灣😀", "source": "clipboard-event", "isTrusted": true, "beforeRevision": 4, "revision": 5},
+    {"text": "R7-manual-clipboard-臺灣😀", "source": "clipboard-api", "beforeRevision": 5, "revision": 6},
+    {"text": "測試取消輸入", "source": "composition", "beforeRevision": 6, "revision": 7},
+    {"text": "R7-manual-native-copy-臺灣😀", "source": "clipboard-event", "isTrusted": true, "beforeRevision": 7, "revision": 8},
+    {"text": "R7-manual-clipboard-臺灣😀", "source": "clipboard-api", "beforeRevision": 8, "revision": 9}
+  ],
+  "imeEventObservation": {
+    "trustedCompositionStart": true,
+    "trustedCompositionUpdates": true,
+    "trustedInsertCompositionBeforeInput": true,
+    "compositionEndIsTrusted": false,
+    "note": "operator-driven Chewing preedit had trusted start/update/beforeinput; Chrome exposed compositionend as untrusted"
+  },
+  "cancelProbe": {
+    "commitBaseline": 7,
+    "requestDelta": 0,
+    "compositionEndData": "",
+    "pass": true
+  },
+  "clipboard": {
+    "nativePasteIsTrusted": true,
+    "writeStatus": "passed",
+    "readStatus": "passed",
+    "readCommitDelta": 1,
+    "readAnchorFound": true
+  },
+  "searches": [
+    {"text": "開始中文輸入", "found": false},
+    {"text": "測試", "found": true},
+    {"text": "\n", "found": false, "validatorFalseNegative": true},
+    {"text": "\n", "found": false, "validatorFalseNegative": true},
+    {"text": "R7-manual-native-copy-臺灣😀", "found": true},
+    {"text": "R7-manual-clipboard-臺灣😀", "found": true},
+    {"text": "測試取消輸入", "found": false}
+  ],
+  "output": {
+    "bytes": 25683,
+    "sha256": "6e729298d338dc1924f588816e9e5b6d353cd6e4261d6b49423a28eec296ce31"
+  },
+  "pass": false,
+  "classification": {
+    "observed": "true Chewing preedit, cancel and clipboard paths were exercised; earlier composition anchors were absent at final search",
+    "inferred": "repeated fixed-coordinate caret click may have been interpreted as a multi-click selection, allowing a later paste to replace earlier text",
+    "toValidate": "one clean run with alternating caret placement and newline verified outside public search"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "finding": 15,
+  "observedAt": "2026-08-04",
+  "scenario": {
+    "id": "truncated-attempt-1",
+    "declaredBytes": 29,
+    "transmittedBytes": 22,
+    "canaryBytes": 22,
+    "canarySha256": "2b126af538008e696a4d5340d0c9453856320d9e6ba8fa4a31858351c9f893a0"
+  },
+  "results": [
+    {
+      "browser": "Chrome/150.0.7871.128",
+      "topology": "t0",
+      "fetchRejected": true,
+      "error": "TypeError: Failed to fetch"
+    },
+    {
+      "browser": "Chrome/150.0.7871.128",
+      "topology": "t1",
+      "fetchRejected": true,
+      "error": "TypeError: Failed to fetch"
+    },
+    {
+      "browser": "Firefox/153.0.1",
+      "topology": "t0",
+      "fetchRejected": false,
+      "resolvedBytes": 22,
+      "resolvedSha256": "2b126af538008e696a4d5340d0c9453856320d9e6ba8fa4a31858351c9f893a0"
+    },
+    {
+      "browser": "Firefox/153.0.1",
+      "topology": "t1",
+      "fetchRejected": false,
+      "resolvedBytes": 22,
+      "resolvedSha256": "2b126af538008e696a4d5340d0c9453856320d9e6ba8fa4a31858351c9f893a0"
+    }
+  ],
+  "observed": "Chrome rejected the mismatched response while Firefox resolved the complete body in both topologies.",
+  "inference": "Transport rejection is not a portable integrity oracle; decoded size and SHA-256 must be verified.",
+  "toVerify": "Send an actually partial body and accept rejection or decoded size/hash mismatch as safe detection.",
+  "remediation": {
+    "scenario": {
+      "id": "truncated",
+      "declaredBytes": 22,
+      "transmittedBytes": 15
+    },
+    "chrome": {
+      "t0": {"fetchRejected": true, "detected": true, "faultPass": true},
+      "t1": {"fetchRejected": true, "detected": true, "faultPass": true}
+    },
+    "firefox": {
+      "t0": {"fetchRejected": false, "resolvedBytes": 15, "detected": true, "faultPass": true},
+      "t1": {"fetchRejected": false, "resolvedBytes": 15, "detected": true, "faultPass": true}
+    },
+    "verifiedAt": "2026-08-04",
+    "pass": true
+  }
+}

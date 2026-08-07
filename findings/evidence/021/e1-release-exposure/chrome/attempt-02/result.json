@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-021-e1-exposure",
+  "stage": "set-bold-noop",
+  "profile": "e1-editor-v1",
+  "fixture": "styled-list.odt",
+  "complete": true,
+  "cases": [
+    {
+      "label": "control",
+      "preselectBold": false,
+      "status": "passed",
+      "stateAtOpen": {
+        "bold": null,
+        "italic": null,
+        "selectionType": null,
+        "revision": 0
+      },
+      "targetSelection": {
+        "anchor": "E1-STYLED-END",
+        "found": true,
+        "selectionType": null
+      },
+      "stateBeforeAction": {
+        "bold": null,
+        "italic": null,
+        "selectionType": null,
+        "revision": 0
+      },
+      "result": {
+        "action": "set-bold",
+        "option": true,
+        "beforeRevision": 0,
+        "revision": 1,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 5,
+        "callbackSequenceAfter": 7,
+        "state": {
+          "sourceSequence": 7,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 3257,
+            "y": 3112,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 1418,
+              "y": 3112,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 3257,
+              "y": 3112,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 1418,
+                "y": 3112,
+                "width": 1906,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": true,
+            "italic": null
+          }
+        }
+      },
+      "stateAfterAction": {
+        "bold": true,
+        "italic": null,
+        "selectionType": null,
+        "revision": 1
+      },
+      "retrieved": true,
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/021/e1-release-exposure/chrome/attempt-02/after-control.odt",
+      "sha256": "24e72333a4de5a2720d0c1fb7c05fc46697639cbe9b1bd24a1ef430df5839efd",
+      "inspection": {
+        "anchor": "E1-STYLED-END",
+        "found": true,
+        "boldRuns": [
+          "E1-STYLED-END"
+        ],
+        "plainRuns": [],
+        "anchorIsBold": true,
+        "boldStyleNames": [
+          "Heading_20_1",
+          "P2",
+          "T1"
+        ],
+        "paragraphStyle": "P2"
+      }
+    },
+    {
+      "label": "exposure",
+      "preselectBold": true,
+      "status": "failed",
+      "stateAtOpen": {
+        "bold": null,
+        "italic": null,
+        "selectionType": null,
+        "revision": 0
+      },
+      "error": {
+        "code": "TIMEOUT",
+        "message": "search timed out after 60000 ms"
+      },
+      "retrieved": false
+    }
+  ],
+  "outputs": [
+    {
+      "label": "control"
+    }
+  ],
+  "manifest": {
+    "abiVersion": 65537,
+    "abiVersionText": "1.1",
+    "artifactFiles": {
+      "probe.js": "./probe.js",
+      "probe.wasm": "./probe.wasm",
+      "soffice.data": "../resources/base-r5.ba15a988a7fec468.data",
+      "soffice.data.js.metadata": "../resources/base-r5.ef11ef80faf373bc.metadata"
+    },
+    "capabilities": [
+      "open-odt",
+      "rgba-tile",
+      "insert-text",
+      "save-odt",
+      "cancel-queued",
+      "search",
+      "selection-text",
+      "replace-selection",
+      "undo",
+      "comments",
+      "tracked-changes",
+      "provider-contract-1.0",
+      "provider-worker",
+      "validated-provider-operation",
+      "narrow-editor-v1",
+      "verified-selection-delete"
+    ],
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "expectedCapabilityBits": 2047,
+    "profile": "e1-editor-v1",
+    "protocolVersion": 1,
+    "providerContractVersion": "1.0",
+    "resourcePacks": [
+      {
+        "bytes": 19484784,
+        "data": "../resources/cjk-r5.b76b0433203017ca.data",
+        "id": "cjk-r5",
+        "loadAtStartup": true,
+        "metadata": "../resources/cjk-r5.fafab99558ab6f8b.metadata",
+        "purpose": "CJK corpus",
+        "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+      },
+      {
+        "bytes": 49102042,
+        "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+        "id": "fallback-fonts-r5",
+        "loadAtStartup": false,
+        "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+        "purpose": "optional complex-script and fidelity fallback",
+        "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+      }
+    ],
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-v1",
+    "editorContract": {
+      "version": 1,
+      "abiVersion": 1,
+      "actions": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic"
+      ],
+      "textCommit": "document-sdk-insert-text",
+      "undo": "document-sdk-undo",
+      "state": "typed-editor-state-v1",
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "boundaryRejectionRequiresFreshWorker": true,
+      "automaticRetry": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "diagnosticOperationsExposed": false,
+      "loaderSha256": "45c31f321fa4bcf2e5065c1942e0358b03ab94148732496160ae822541b9511e",
+      "wasmSha256": "94b38437cce120de4bffb6275d084f1257abb7d6a310cb3cf20594ae72eab6ef",
+      "workerSha256": "9696c9ce580b431644cd4f56ea7356647dfd9ab143da6370e521bc2474a35fd7"
+    },
+    "capabilityBits": 2047
+  },
+  "verdict": {
+    "controlAppliedBold": true,
+    "exposureAppliedBold": null,
+    "controlCompletion": "uno-command-result",
+    "exposureCompletion": null,
+    "exposed": false,
+    "conclusive": false,
+    "note": "exposed=true means the shipped editor reported a no-op for a paragraph that never was bold, and left the document unchanged"
+  },
+  "browser": "chrome",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/021/e1-release-exposure/chrome/attempt-02"
+}

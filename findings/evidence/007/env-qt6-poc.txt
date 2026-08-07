@@ -1,0 +1,42 @@
+Captured: 2026-08-01T02:57:30+08:00
+
+LibreOffice source
+------------------
+Path: /home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8
+Commit: 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+Build: /home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build-qt6-poc
+
+Local LibreOffice changes present during reproduction:
+ M desktop/CustomTarget_soffice_bin-emscripten-exports.mk
+ M solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk
+ M solenv/gbuild/platform/unxgcc.mk
+ M static/CustomTarget_emscripten_fs_image.mk
+?? LibreOffice_VCL_Qt6_研究報告.md
+
+Toolchain
+---------
+Emscripten: 4.0.10 (b7dc6e5747465580df5984e723b9d1f10d8e804b)
+Qt source: qtbase-everywhere-src-6.10.2
+Qt features:
+  FEATURE_thread=ON
+  FEATURE_wasm_exceptions=ON
+  FEATURE_wasm_jspi=ON
+LibreOffice configuration:
+  ENABLE_QT6=TRUE
+  ENABLE_EMSCRIPTEN_JSPI=TRUE
+  ENABLE_EMSCRIPTEN_PROXY_TO_PTHREAD=<empty>
+  OS=EMSCRIPTEN
+Browser: Google Chrome 150.0.7871.128
+
+Runtime artifacts used
+----------------------
+1349015   2026-08-01 02:31:05 +0800  instdir/program/soffice.js
+194983376 2026-08-01 02:31:05 +0800  instdir/program/soffice.wasm
+2973      2026-08-01 02:31:05 +0800  instdir/program/qt_soffice.html
+
+Server
+------
+URL: http://127.0.0.1:6940/qt_soffice.html
+Response: HTTP 200
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp

@@ -1,0 +1,757 @@
+{
+  "schemaVersion": 2,
+  "release": "finding-022-e1-exposure",
+  "stage": "inline-format-noop",
+  "profile": "e1-editor-v1",
+  "fixture": "styled-list.odt",
+  "complete": true,
+  "cases": [
+    {
+      "label": "control-bold",
+      "format": "bold",
+      "enabled": true,
+      "target": "E1-STYLED-END",
+      "expect": "target becomes bold",
+      "status": "passed",
+      "stateAtOpen": {
+        "bold": null,
+        "italic": null,
+        "revision": 0
+      },
+      "targetSelection": {
+        "anchor": "E1-STYLED-END",
+        "found": true
+      },
+      "stateBeforeAction": {
+        "bold": null,
+        "italic": null,
+        "revision": 0
+      },
+      "result": {
+        "action": "set-bold",
+        "option": true,
+        "beforeRevision": 0,
+        "revision": 1,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 5,
+        "callbackSequenceAfter": 7,
+        "state": {
+          "sourceSequence": 7,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 3257,
+            "y": 3112,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 1418,
+              "y": 3112,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 3257,
+              "y": 3112,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 1418,
+                "y": 3112,
+                "width": 1906,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": true,
+            "italic": null
+          }
+        }
+      },
+      "stateAfterAction": {
+        "bold": true,
+        "italic": null,
+        "revision": 1
+      },
+      "retrieved": true,
+      "sha256": "a9ece4c277552cb6fca56d5381bc4a62f5a8f3ad4debcd2f6e187627e954f540",
+      "inspection": {
+        "anchor": "E1-STYLED-END",
+        "found": true,
+        "paragraphStyle": "P2",
+        "runs": [
+          {
+            "text": "E1-STYLED-END",
+            "style": "P2",
+            "bold": true,
+            "italic": false
+          }
+        ],
+        "bold": true,
+        "italic": false
+      }
+    },
+    {
+      "label": "exposure-bold",
+      "format": "bold",
+      "enabled": true,
+      "prime": "bold anchor",
+      "target": "E1-STYLED-END",
+      "expect": "cache says bold, target is not -- shortcut must not fire",
+      "status": "passed",
+      "stateAtOpen": {
+        "bold": null,
+        "italic": null,
+        "revision": 0
+      },
+      "priming": {
+        "anchor": "bold anchor",
+        "clicked": false,
+        "reason": "no rectangle"
+      },
+      "stateAfterPriming": {
+        "bold": true,
+        "italic": false,
+        "revision": 0
+      },
+      "targetSelection": {
+        "anchor": "E1-STYLED-END",
+        "found": true
+      },
+      "stateBeforeAction": {
+        "bold": true,
+        "italic": false,
+        "revision": 0
+      },
+      "result": {
+        "action": "set-bold",
+        "option": true,
+        "beforeRevision": 0,
+        "revision": 0,
+        "changed": false,
+        "completion": "documented-state-noop",
+        "callbackSequenceBefore": 15,
+        "callbackSequenceAfter": 15,
+        "state": {
+          "sourceSequence": 15,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 3257,
+            "y": 3112,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 1418,
+              "y": 3112,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 3257,
+              "y": 3112,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 1418,
+                "y": 3112,
+                "width": 1839,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": true,
+            "italic": false
+          }
+        }
+      },
+      "stateAfterAction": {
+        "bold": true,
+        "italic": false,
+        "revision": 0
+      },
+      "retrieved": true,
+      "sha256": "5888ac4fe7f3d85f7355a2ba5abd9bb399155d931c1310e3c1ec8258e43e81cf",
+      "inspection": {
+        "anchor": "E1-STYLED-END",
+        "found": true,
+        "paragraphStyle": "Standard",
+        "runs": [
+          {
+            "text": "E1-STYLED-END",
+            "style": "Standard",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        "bold": false,
+        "italic": false
+      }
+    },
+    {
+      "label": "control-italic",
+      "format": "italic",
+      "enabled": true,
+      "target": "E1-STYLED-END",
+      "expect": "target becomes italic",
+      "status": "passed",
+      "stateAtOpen": {
+        "bold": null,
+        "italic": null,
+        "revision": 0
+      },
+      "targetSelection": {
+        "anchor": "E1-STYLED-END",
+        "found": true
+      },
+      "stateBeforeAction": {
+        "bold": null,
+        "italic": null,
+        "revision": 0
+      },
+      "result": {
+        "action": "set-italic",
+        "option": true,
+        "beforeRevision": 0,
+        "revision": 1,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 5,
+        "callbackSequenceAfter": 8,
+        "state": {
+          "sourceSequence": 8,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 3257,
+            "y": 3112,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 1418,
+              "y": 3112,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 3257,
+              "y": 3112,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 1418,
+                "y": 3112,
+                "width": 1769,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": false,
+            "italic": true
+          }
+        }
+      },
+      "stateAfterAction": {
+        "bold": false,
+        "italic": true,
+        "revision": 1
+      },
+      "retrieved": true,
+      "sha256": "b14f30ae2867ba756de936bceec9ca9aec56fd458883a0a34001cc218f325c74",
+      "inspection": {
+        "anchor": "E1-STYLED-END",
+        "found": true,
+        "paragraphStyle": "P2",
+        "runs": [
+          {
+            "text": "E1-STYLED-END",
+            "style": "P2",
+            "bold": false,
+            "italic": true
+          }
+        ],
+        "bold": false,
+        "italic": true
+      }
+    },
+    {
+      "label": "exposure-italic",
+      "format": "italic",
+      "enabled": true,
+      "prime": "italic anchor",
+      "target": "E1-STYLED-END",
+      "expect": "cache says italic, target is not -- shortcut must not fire",
+      "status": "passed",
+      "stateAtOpen": {
+        "bold": null,
+        "italic": null,
+        "revision": 0
+      },
+      "priming": {
+        "anchor": "italic anchor",
+        "clicked": false,
+        "reason": "no rectangle"
+      },
+      "stateAfterPriming": {
+        "bold": false,
+        "italic": true,
+        "revision": 0
+      },
+      "targetSelection": {
+        "anchor": "E1-STYLED-END",
+        "found": true
+      },
+      "stateBeforeAction": {
+        "bold": false,
+        "italic": true,
+        "revision": 0
+      },
+      "result": {
+        "action": "set-italic",
+        "option": true,
+        "beforeRevision": 0,
+        "revision": 0,
+        "changed": false,
+        "completion": "documented-state-noop",
+        "callbackSequenceBefore": 15,
+        "callbackSequenceAfter": 15,
+        "state": {
+          "sourceSequence": 15,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 3257,
+            "y": 3112,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 1418,
+              "y": 3112,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 3257,
+              "y": 3112,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 1418,
+                "y": 3112,
+                "width": 1839,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": false,
+            "italic": true
+          }
+        }
+      },
+      "stateAfterAction": {
+        "bold": false,
+        "italic": true,
+        "revision": 0
+      },
+      "retrieved": true,
+      "sha256": "e634640e9ea8bc043daddb979445584f9b58ac81d8819ef3acd5202ea480b026",
+      "inspection": {
+        "anchor": "E1-STYLED-END",
+        "found": true,
+        "paragraphStyle": "Standard",
+        "runs": [
+          {
+            "text": "E1-STYLED-END",
+            "style": "Standard",
+            "bold": false,
+            "italic": false
+          }
+        ],
+        "bold": false,
+        "italic": false
+      }
+    },
+    {
+      "label": "control-unbold",
+      "format": "bold",
+      "enabled": false,
+      "target": "bold anchor",
+      "expect": "target loses bold",
+      "status": "passed",
+      "stateAtOpen": {
+        "bold": null,
+        "italic": null,
+        "revision": 0
+      },
+      "targetSelection": {
+        "anchor": "bold anchor",
+        "found": true
+      },
+      "stateBeforeAction": {
+        "bold": null,
+        "italic": null,
+        "revision": 0
+      },
+      "result": {
+        "action": "set-bold",
+        "option": false,
+        "beforeRevision": 0,
+        "revision": 1,
+        "changed": true,
+        "completion": "uno-command-result",
+        "callbackSequenceBefore": 5,
+        "callbackSequenceAfter": 7,
+        "state": {
+          "sourceSequence": 7,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 3444,
+            "y": 1945,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 2211,
+              "y": 1945,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 3444,
+              "y": 1945,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 2211,
+                "y": 1945,
+                "width": 1139,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": false,
+            "italic": null
+          }
+        }
+      },
+      "stateAfterAction": {
+        "bold": false,
+        "italic": null,
+        "revision": 1
+      },
+      "retrieved": true,
+      "sha256": "5b8209bb4928b3fe33822f94758a39980c09ffd6264ad367f5cee0d26bf90a52",
+      "inspection": {
+        "anchor": "bold anchor",
+        "found": true,
+        "paragraphStyle": "Standard",
+        "runs": [
+          {
+            "text": "Normal",
+            "style": "Standard",
+            "bold": false,
+            "italic": false
+          },
+          {
+            "text": "bold anchor",
+            "style": "T1",
+            "bold": false,
+            "italic": false
+          },
+          {
+            "text": "italic anchor",
+            "style": "T2",
+            "bold": false,
+            "italic": true
+          }
+        ],
+        "bold": false,
+        "italic": false
+      }
+    },
+    {
+      "label": "exposure-unbold",
+      "format": "bold",
+      "enabled": false,
+      "prime": "E1-STYLED-END",
+      "target": "bold anchor",
+      "expect": "cache says not bold, target is -- shortcut must not fire",
+      "status": "passed",
+      "stateAtOpen": {
+        "bold": null,
+        "italic": null,
+        "revision": 0
+      },
+      "priming": {
+        "anchor": "E1-STYLED-END",
+        "clicked": false,
+        "reason": "no rectangle"
+      },
+      "stateAfterPriming": {
+        "bold": false,
+        "italic": false,
+        "revision": 0
+      },
+      "targetSelection": {
+        "anchor": "bold anchor",
+        "found": true
+      },
+      "stateBeforeAction": {
+        "bold": false,
+        "italic": false,
+        "revision": 0
+      },
+      "result": {
+        "action": "set-bold",
+        "option": false,
+        "beforeRevision": 0,
+        "revision": 0,
+        "changed": false,
+        "completion": "documented-state-noop",
+        "callbackSequenceBefore": 15,
+        "callbackSequenceAfter": 15,
+        "state": {
+          "sourceSequence": 15,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 3444,
+            "y": 1945,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": true,
+            "collapsed": false,
+            "start": {
+              "x": 2211,
+              "y": 1945,
+              "width": 0,
+              "height": 275
+            },
+            "end": {
+              "x": 3444,
+              "y": 1945,
+              "width": 0,
+              "height": 275
+            },
+            "rectangles": [
+              {
+                "x": 2211,
+                "y": 1945,
+                "width": 1233,
+                "height": 275
+              }
+            ]
+          },
+          "format": {
+            "bold": false,
+            "italic": false
+          }
+        }
+      },
+      "stateAfterAction": {
+        "bold": false,
+        "italic": false,
+        "revision": 0
+      },
+      "retrieved": true,
+      "sha256": "648996ed106088e088c6dbbabf4e1cc5a4f05d3ce842154d317c28fd7162bb7b",
+      "inspection": {
+        "anchor": "bold anchor",
+        "found": true,
+        "paragraphStyle": "Standard",
+        "runs": [
+          {
+            "text": "Normal",
+            "style": "Standard",
+            "bold": false,
+            "italic": false
+          },
+          {
+            "text": "bold anchor",
+            "style": "T1",
+            "bold": true,
+            "italic": false
+          },
+          {
+            "text": "italic anchor",
+            "style": "T2",
+            "bold": false,
+            "italic": true
+          }
+        ],
+        "bold": true,
+        "italic": false
+      }
+    }
+  ],
+  "manifest": {
+    "abiVersion": 65537,
+    "abiVersionText": "1.1",
+    "artifactFiles": {
+      "probe.js": "./probe.js",
+      "probe.wasm": "./probe.wasm",
+      "soffice.data": "../resources/base-r5.ba15a988a7fec468.data",
+      "soffice.data.js.metadata": "../resources/base-r5.ef11ef80faf373bc.metadata"
+    },
+    "capabilities": [
+      "open-odt",
+      "rgba-tile",
+      "insert-text",
+      "save-odt",
+      "cancel-queued",
+      "search",
+      "selection-text",
+      "replace-selection",
+      "undo",
+      "comments",
+      "tracked-changes",
+      "provider-contract-1.0",
+      "provider-worker",
+      "validated-provider-operation",
+      "narrow-editor-v1",
+      "verified-selection-delete"
+    ],
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "expectedCapabilityBits": 2047,
+    "profile": "e1-editor-v1",
+    "protocolVersion": 1,
+    "providerContractVersion": "1.0",
+    "resourcePacks": [
+      {
+        "bytes": 19484784,
+        "data": "../resources/cjk-r5.b76b0433203017ca.data",
+        "id": "cjk-r5",
+        "loadAtStartup": true,
+        "metadata": "../resources/cjk-r5.fafab99558ab6f8b.metadata",
+        "purpose": "CJK corpus",
+        "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+      },
+      {
+        "bytes": 49102042,
+        "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+        "id": "fallback-fonts-r5",
+        "loadAtStartup": false,
+        "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+        "purpose": "optional complex-script and fidelity fallback",
+        "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+      }
+    ],
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-v1",
+    "editorContract": {
+      "version": 1,
+      "abiVersion": 1,
+      "actions": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic"
+      ],
+      "textCommit": "document-sdk-insert-text",
+      "undo": "document-sdk-undo",
+      "state": "typed-editor-state-v1",
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "boundaryRejectionRequiresFreshWorker": true,
+      "automaticRetry": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "diagnosticOperationsExposed": false,
+      "loaderSha256": "45c31f321fa4bcf2e5065c1942e0358b03ab94148732496160ae822541b9511e",
+      "wasmSha256": "94b38437cce120de4bffb6275d084f1257abb7d6a310cb3cf20594ae72eab6ef",
+      "workerSha256": "9696c9ce580b431644cd4f56ea7356647dfd9ab143da6370e521bc2474a35fd7"
+    },
+    "capabilityBits": 2047
+  },
+  "verdict": {
+    "pairs": {
+      "exposure-bold": {
+        "control": "control-bold",
+        "controlApplied": true,
+        "cacheAfterPriming": true,
+        "cachePrimed": true,
+        "exposureApplied": false,
+        "exposureCompletion": "documented-state-noop",
+        "controlCompletion": "uno-command-result",
+        "exposed": true,
+        "reachedShortcut": true
+      },
+      "exposure-italic": {
+        "control": "control-italic",
+        "controlApplied": true,
+        "cacheAfterPriming": true,
+        "cachePrimed": true,
+        "exposureApplied": false,
+        "exposureCompletion": "documented-state-noop",
+        "controlCompletion": "uno-command-result",
+        "exposed": true,
+        "reachedShortcut": true
+      },
+      "exposure-unbold": {
+        "control": "control-unbold",
+        "controlApplied": true,
+        "cacheAfterPriming": false,
+        "cachePrimed": true,
+        "exposureApplied": false,
+        "exposureCompletion": "documented-state-noop",
+        "controlCompletion": "uno-command-result",
+        "exposed": true,
+        "reachedShortcut": true
+      }
+    },
+    "exposed": [
+      "exposure-bold",
+      "exposure-italic",
+      "exposure-unbold"
+    ],
+    "notReached": [],
+    "allControlsApplied": true,
+    "conclusive": true,
+    "note": "an exposed pair means the shipped editor reported documented-state-noop for text that was not in that state, and left the document unchanged"
+  },
+  "browser": "chrome",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "profileUnderTest": "e1-editor-v1",
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/022/chrome"
+}

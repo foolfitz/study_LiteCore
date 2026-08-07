@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "release": "R7-A",
+  "browser": "firefox",
+  "browserVersion": "152.0.6",
+  "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0",
+  "formats": {
+    "cases": [
+      {
+        "id": "odt-name-odt",
+        "path": "r7-plain.odt",
+        "name": "plain.odt",
+        "expected": "positive",
+        "anchor": "Final line：ODT round-trip 完整性檢查。",
+        "stage": "complete",
+        "opened": true,
+        "anchorFound": true,
+        "firstTile": {
+          "ms": 146.71999999999935,
+          "bytes": 65536,
+          "revision": 0
+        },
+        "closeMs": 8.979999999999563,
+        "error": null,
+        "workerHealthy": true,
+        "inputBytes": 17885,
+        "inputSha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+        "dimensions": {
+          "parts": 1,
+          "widthTwips": 12474,
+          "heightTwips": 17406
+        },
+        "safe": true
+      },
+      {
+        "id": "odt-name-docx",
+        "path": "r7-plain.odt",
+        "name": "plain.docx",
+        "expected": "positive",
+        "anchor": "Final line：ODT round-trip 完整性檢查。",
+        "stage": "complete",
+        "opened": false,
+        "anchorFound": null,
+        "firstTile": null,
+        "closeMs": null,
+        "error": {
+          "name": "DocumentSdkError",
+          "code": "INVALID_ARGUMENT",
+          "message": "open was rejected before queueing",
+          "details": {
+            "operation": "open",
+            "code": "INVALID_ARGUMENT",
+            "message": "open was rejected before queueing",
+            "status": 1
+          }
+        },
+        "workerHealthy": true,
+        "inputBytes": 17885,
+        "inputSha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+        "failureStage": "open",
+        "safe": true
+      },
+      {
+        "id": "docx-name-docx",
+        "path": "r7-plain.docx",
+        "name": "plain.docx",
+        "expected": "positive",
+        "anchor": "Final line：ODT round-trip 完整性檢查。",
+        "stage": "complete",
+        "opened": false,
+        "anchorFound": null,
+        "firstTile": null,
+        "closeMs": null,
+        "error": {
+          "name": "DocumentSdkError",
+          "code": "INVALID_ARGUMENT",
+          "message": "open was rejected before queueing",
+          "details": {
+            "operation": "open",
+            "code": "INVALID_ARGUMENT",
+            "message": "open was rejected before queueing",
+            "status": 1
+          }
+        },
+        "workerHealthy": true,
+        "inputBytes": 6136,
+        "inputSha256": "3f8c5645cc1925a5273b9697eb155420a3263008c804c9eb808c8e3a701708ce",
+        "failureStage": "open",
+        "safe": true
+      },
+      {
+        "id": "docx-name-odt",
+        "path": "r7-plain.docx",
+        "name": "plain.odt",
+        "expected": "positive",
+        "anchor": "Final line：ODT round-trip 完整性檢查。",
+        "stage": "complete",
+        "opened": true,
+        "anchorFound": true,
+        "firstTile": {
+          "ms": 134.73999999999978,
+          "bytes": 65536,
+          "revision": 0
+        },
+        "closeMs": 9.920000000000073,
+        "error": null,
+        "workerHealthy": true,
+        "inputBytes": 6136,
+        "inputSha256": "3f8c5645cc1925a5273b9697eb155420a3263008c804c9eb808c8e3a701708ce",
+        "dimensions": {
+          "parts": 1,
+          "widthTwips": 12474,
+          "heightTwips": 17406
+        },
+        "safe": true
+      },
+      {
+        "id": "corrupt-odt",
+        "path": "r7-corrupt-truncated.odt",
+        "name": "corrupt.odt",
+        "expected": "typed-failure",
+        "stage": "complete",
+        "opened": false,
+        "anchorFound": null,
+        "firstTile": null,
+        "closeMs": null,
+        "error": {
+          "name": "DocumentSdkError",
+          "code": "LOK_ERROR",
+          "message": "loadComponentFromURL returned an empty reference",
+          "details": {
+            "operation": "open",
+            "code": "LOK_ERROR",
+            "message": "loadComponentFromURL returned an empty reference",
+            "documentHandle": 0,
+            "revision": 0,
+            "expectedRevision": null,
+            "currentRevision": null
+          }
+        },
+        "workerHealthy": true,
+        "inputBytes": 17628,
+        "inputSha256": "c83495093915aa82f169c1547e0e97312d4e5928a506141c8c803fffcdcb5cc7",
+        "failureStage": "open",
+        "safe": true
+      },
+      {
+        "id": "corrupt-docx",
+        "path": "r7-corrupt-truncated.docx",
+        "name": "corrupt.docx",
+        "expected": "typed-failure",
+        "stage": "complete",
+        "opened": false,
+        "anchorFound": null,
+        "firstTile": null,
+        "closeMs": null,
+        "error": {
+          "name": "DocumentSdkError",
+          "code": "INVALID_ARGUMENT",
+          "message": "open was rejected before queueing",
+          "details": {
+            "operation": "open",
+            "code": "INVALID_ARGUMENT",
+            "message": "open was rejected before queueing",
+            "status": 1
+          }
+        },
+        "workerHealthy": true,
+        "inputBytes": 5879,
+        "inputSha256": "f20c0d9143fd9aad57b772c2b736f8ebbbcd9a873887e2d898ebd6c1a5f2d474",
+        "failureStage": "open",
+        "safe": true
+      },
+      {
+        "id": "unknown",
+        "path": "r7-unknown.bin",
+        "name": "unknown.bin",
+        "expected": "typed-failure",
+        "stage": "complete",
+        "opened": false,
+        "anchorFound": null,
+        "firstTile": null,
+        "closeMs": null,
+        "error": {
+          "name": "DocumentSdkError",
+          "code": "INVALID_ARGUMENT",
+          "message": "open was rejected before queueing",
+          "details": {
+            "operation": "open",
+            "code": "INVALID_ARGUMENT",
+            "message": "open was rejected before queueing",
+            "status": 1
+          }
+        },
+        "workerHealthy": true,
+        "inputBytes": 48,
+        "inputSha256": "f679cb915455db74e2be867b3974a4c657c3dc92106ab402553f7eae236afa75",
+        "failureStage": "open",
+        "safe": true
+      }
+    ],
+    "docxClassification": "name-dependent",
+    "pass": true
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/oxsdk/r8/release-schema-v1.json",
+  "title": "OxOffice WASM SDK R8 release manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "releaseId",
+    "createdAt",
+    "sdkVersion",
+    "profile",
+    "coreCommit",
+    "entry",
+    "capabilities",
+    "artifacts"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "releaseId": {
+      "type": "string",
+      "pattern": "^writer-review-[0-9a-f]{16}$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sdkVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "profile": {
+      "const": "writer-review"
+    },
+    "coreCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "entry": {
+      "type": "string",
+      "const": "r7-reference.html"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9.-]*$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "url",
+        "sha256",
+        "rawBytes",
+        "mediaType",
+        "contentEncoding",
+        "required",
+        "cachePolicy"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "entry-html",
+            "stylesheet",
+            "app-module",
+            "document-sdk",
+            "input-adapter",
+            "clipboard-adapter",
+            "page-navigation",
+            "sdk-worker",
+            "sdk-manifest",
+            "wasm-loader",
+            "wasm-binary",
+            "base-data",
+            "base-metadata",
+            "cjk-data",
+            "cjk-metadata",
+            "fallback-data",
+            "fallback-metadata"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "^[A-Za-z0-9._/-]+$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "rawBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mediaType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96
+        },
+        "contentEncoding": {
+          "enum": [
+            "identity"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "cachePolicy": {
+          "enum": [
+            "entry",
+            "immutable",
+            "optional-pack"
+          ]
+        }
+      }
+    }
+  }
+}

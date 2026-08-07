@@ -1,0 +1,277 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-C-editor-validation",
+  "frozenDate": "2026-08-05",
+  "status": "executed-automatic-phases-bound-to-835b453d-manual-round-pending",
+  "baseline": {
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "profile": "e1-editor-v1",
+    "capability": "narrow-editor-v1",
+    "editorContractVersion": 1,
+    "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+    "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+    "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+    "e1BDecision": "GO_TO_E1_C",
+    "r7Decision": "PARTIAL_GO_ODT_FIRST",
+    "r8Decision": "PARTIAL_GO_LOCAL_DELIVERY",
+    "refrozen": {
+      "date": "2026-08-06",
+      "reason": "finding 022: set-bold/set-italic could answer documented-state-noop from a stale cache, leaving the document unchanged. The shortcut was removed and the artifact rebuilt.",
+      "previousLoaderSha256": "45c31f321fa4bcf2e5065c1942e0358b03ab94148732496160ae822541b9511e",
+      "previousWasmSha256": "94b38437cce120de4bffb6275d084f1257abb7d6a310cb3cf20594ae72eab6ef",
+      "workerUnchanged": true
+    }
+  },
+  "browsers": [
+    "chrome",
+    "firefox"
+  ],
+  "productActions": [
+    "move-character-left",
+    "move-character-right",
+    "delete-backward",
+    "delete-forward",
+    "insert-paragraph-break",
+    "insert-line-break",
+    "set-bold",
+    "set-italic",
+    "set-underline",
+    "set-strikethrough"
+  ],
+  "documentSdkReuse": [
+    "click",
+    "insert-text",
+    "get-selection",
+    "undo",
+    "save",
+    "close"
+  ],
+  "integrationScenarios": [
+    "commit-at-collapsed-caret",
+    "commit-after-character-navigation",
+    "committed-text-replaces-character-selection",
+    "composition-cancel-after-navigation",
+    "composition-cancel-after-selection",
+    "duplicate-composition-end-zero-duplicate",
+    "late-beforeinput-zero-duplicate",
+    "plain-text-paste-replaces-selection",
+    "html-plus-plain-uses-plain-only",
+    "clipboard-denied-zero-mutation",
+    "clipboard-empty-zero-mutation",
+    "clipboard-oversized-zero-mutation",
+    "unicode-grapheme-roundtrip",
+    "delete-break-format-undo-save-sequence"
+  ],
+  "recoveryScenarios": [
+    "stale-editor-revision-zero-mutation",
+    "stale-document-handle-zero-mutation",
+    "boundary-enters-restart-required",
+    "boundary-rejects-queued-operation",
+    "fresh-worker-after-boundary-no-replay",
+    "crash-during-preedit-zero-mutation",
+    "crash-with-queued-mutation-no-replay",
+    "crash-before-save-unsaved-not-recovered",
+    "crash-after-save-authority-restored",
+    "old-generation-result-does-not-contaminate-restart"
+  ],
+  "corpus": [
+    {
+      "id": "l0-t1",
+      "path": "test-docs/r7-compat/l0-t1-plain-zh.odt",
+      "features": [
+        "plain",
+        "cjk"
+      ],
+      "editPolicy": "ordinary-paragraph-anchor"
+    },
+    {
+      "id": "l0-t2",
+      "path": "test-docs/r7-compat/l0-t2-styled.odt",
+      "features": [
+        "styles",
+        "table",
+        "image",
+        "comment"
+      ],
+      "editPolicy": "ordinary-paragraph-outside-structures"
+    },
+    {
+      "id": "l0-t3",
+      "path": "test-docs/r7-compat/l0-t3-long.odt",
+      "features": [
+        "long-document"
+      ],
+      "editPolicy": "first-middle-last-text-anchors"
+    },
+    {
+      "id": "l1-review-odt",
+      "path": "test-docs/r7-compat/l1-review.odt",
+      "features": [
+        "comments",
+        "tracked-changes"
+      ],
+      "editPolicy": "ordinary-untracked-paragraph-anchor"
+    },
+    {
+      "id": "l4-stress-100",
+      "path": "test-docs/r7-compat/l4-stress-100.odt",
+      "features": [
+        "100-pages",
+        "cjk",
+        "image",
+        "stress"
+      ],
+      "editPolicy": "fixed-page-text-anchor"
+    }
+  ],
+  "thresholds": {
+    "integrationRepetitionsPerBrowser": 3,
+    "negativeRepetitionsPerBrowser": 1,
+    "corpusRepetitionsPerBrowser": 1,
+    "editSaveReopenSessionsPerBrowser": 10,
+    "lifecycleWarmupCycles": 10,
+    "crashBarriersPerBrowser": 4,
+    "boundaryRestartCasesPerBrowser": 2,
+    "maximumWorkerGenerationsPerPage": 3,
+    "operationTimeoutMs": 30000,
+    "openSaveTimeoutMs": 180000,
+    "caretStatePollMs": 30000,
+    "manualRoundsPerBrowser": 1
+  },
+  "manual": {
+    "requiredForFullGo": true,
+    "onlyAfterAutomaticPass": true,
+    "browsers": [
+      "chrome",
+      "firefox"
+    ],
+    "inputMethod": "Fcitx5 Chewing",
+    "runsPerBrowser": 1,
+    "cases": [
+      "trusted-ime-commit-at-caret",
+      "trusted-ime-selection-replacement",
+      "trusted-ime-cancel-after-navigation",
+      "trusted-native-copy-paste",
+      "clipboard-api-user-gesture",
+      "saved-odt-machine-validation"
+    ],
+    "excluded": [
+      "Cangjie",
+      "Pinyin",
+      "Orca",
+      "repeated-manual-rounds"
+    ]
+  },
+  "requiredProperties": [
+    "product-profile-fail-closed",
+    "composition-exactly-once",
+    "selection-replacement-exactly-once",
+    "cancel-and-denied-zero-mutation",
+    "verified-selection-delete",
+    "revision-monotonicity",
+    "boundary-requires-fresh-worker",
+    "no-automatic-retry-or-replay",
+    "stale-handle-rejected",
+    "saved-authority-only-recovery",
+    "bounded-worker-generation",
+    "odt-zip-xml-anchor-roundtrip",
+    "desktop-libreoffice-reopen",
+    "r6-r8-e1-regression",
+    "workspace-baseline-preserved"
+  ],
+  "unsupported": [
+    "raw-uno",
+    "unoembind",
+    "arbitrary-uno-command",
+    "arbitrary-key-code",
+    "raw-lok-callback",
+    "line-navigation",
+    "redo",
+    "mouse-drag-selection",
+    "selection-handles",
+    "paragraph-or-list-format",
+    "structural-boundary-editing",
+    "rich-clipboard",
+    "docx-edit-or-save",
+    "automatic-mutation-retry"
+  ],
+  "decisionPolicy": {
+    "allRequiredPropertiesAndTrustedDelta": "E1_GO_ODT_EDITOR",
+    "safeCoreWithExplicitNonEssentialReduction": "E1_PARTIAL_GO_ODT_EDITOR",
+    "silentMutationLossReplayCorruptionOrForbiddenSurface": "E1_STOP_OR_RESCOPE"
+  },
+  "evidenceRoot": "findings/evidence/sdk-e1/editor-validation",
+  "execution": {
+    "firstRun": {
+      "date": "2026-08-05",
+      "decision": "E1_GO_ODT_EDITOR",
+      "artifactWasmSha256": "94b38437cce120de4bffb6275d084f1257abb7d6a310cb3cf20594ae72eab6ef",
+      "note": "The status field said planned-not-executed until 2026-08-06; that was stale bookkeeping, the run had happened."
+    },
+    "rerunAfterRefreeze": {
+      "date": "2026-08-06",
+      "reason": "finding 022 forced a rebuild of e1-editor-v1, so the previous verdict no longer described the shipped artifact.",
+      "artifactWasmSha256": "97e605ee8e5c1df3bafaae736012d6203826abf6c5362a7e58364768c86023b6",
+      "automaticPass": true,
+      "decision": "E1_GO_ODT_EDITOR",
+      "automaticPhases": "integration, recovery, corpus and lifecycle pass on chrome and firefox; roundtrip, regression and preflight pass",
+      "flakes": "one 'init timed out after 120000 ms' per browser during long lifecycle runs (chrome cycle-06, firefox warmup-08), both under heavy host load from concurrent WASM linking. A clean re-run of the lifecycle phase passed every cycle on both browsers. The failing attempts are retained in the evidence tree.",
+      "flakesAttributionWithdrawn": "2026-08-07: the host-load attribution above is WRONG and is kept only as the record of what was believed. The 2026-08-07 run failed at the same two cases on an idle host, and tools/run_e1_c_session_depth.py reproduces it by repeating one identical cheap case: firefox wedges at navigation 26, chrome at 34, deterministically. Same workload gives the same depth every time; heavier work wedges sooner (22/30 for the real matrix). The 'clean re-run of the lifecycle phase' passed because lifecycle alone is 20 navigations, below every observed wall -- it never approached the limit. See finding 023.",
+      "manualPass": true,
+      "manualRound": "Re-run 2026-08-06 against the re-frozen artifact by an operator connecting remotely over an SSH port forward (ssh -L 8765:127.0.0.1:8765). The forward is required, not a convenience: the manual page gates on crossOriginIsolated and uses the real navigator.clipboard, both of which need a secure context, so serving the port on the LAN address would fail the run rather than enable it. Chrome 150 and Firefox 152, both manual.pass true, artifact hashes matching 97e605ee.... The first attempt failed on mistyped fixture strings (ASCII prefix leaking through the Chewing mode, one wrong candidate character) and on a missed Ctrl+V in Chrome; retained as *-attempt-02. The Chrome trustedPaste:false seen there did not reproduce and needs no finding."
+    },
+    "rebuiltForE1D": {
+      "date": "2026-08-07",
+      "reason": "SPEC E1-D added range selection to narrow-editor-v1, which required a new export and therefore a relink.",
+      "artifactWasmSha256": null,
+      "artifactLoaderSha256": null,
+      "artifactWorkerSha256": null,
+      "artifactPrefixes": {
+        "wasm": "69d4333d",
+        "loader": "ff9c9b43",
+        "worker": "053adcf1"
+      },
+      "hashesCorrected": "This entry recorded 835b453d.../1fe83aed.../e4f37ffe... until 2026-08-07, which cannot be right: those are the hashes of the LATER underline/strikethrough relink, and two different links cannot produce the same output. The E1-D-only values were overwritten while sweeping the pinned hashes for that later rebuild. The full digests are unrecoverable (the artifact was replaced), but DEVLOG-2026-08-06-wasm-sdk-e2-mainloop.md recorded the 8-hex prefixes at the time; those are kept in artifactPrefixes and the full fields are null rather than left wrong. No evidence was ever taken against the E1-D-only artifact, so nothing depends on the full values.",
+      "manualEvidenceInvalidated": true,
+      "note": "The 2026-08-06 manual Chewing rounds are bound to the previous artifact hashes and no longer describe what ships. E1-C's verdict therefore returns to E1_PARTIAL_GO_ODT_EDITOR until an operator re-runs one round per browser. The user authorised the rebuild on 2026-08-07 knowing this cost.",
+      "firstBuildDefect": "The first E1-D build completed a range select only when the selection actually changed; a range over empty space while the caret was already collapsed produced no callback and wedged the operation for 60s, then poisoned the session. Fixed by a bounded selection readback (EditorSelectReadbackDeadlineMs=250) before this artifact was kept."
+    },
+    "rebuiltForUnderlineStrikethrough": {
+      "date": "2026-08-07",
+      "reason": "Underline and strikethrough added to narrow-editor-v1; the engine had no such actions at all, so a new ABI and relink were required.",
+      "artifactWasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+      "contractActions": 10,
+      "manualEvidenceInvalidated": true,
+      "verifiedFrom": "saved ODT: one automatic style carries style:text-underline-style=solid and style:text-line-through-style=solid over exactly the twelve selected characters"
+    },
+    "artifactBindingGateAdded": {
+      "date": "2026-08-07",
+      "reason": "Only the manual gate compared the artifact hashes a run recorded against the profile on disk. The automatic phases did not, so the two 2026-08-07 relinks invalidated the manual round by construction while leaving all 48 browser cases silently alive. The gate could therefore report E1_PARTIAL_GO_ODT_EDITOR -- which asserts the machine phases describe the shipped artifact and only trusted input is missing -- while every one of those phases had run against a superseded binary.",
+      "change": "validate_e1_c.artifact_binding() binds every automatic case to dist/profiles/e1-editor-v1; decide() takes it as a seventh automatic component. Evidence that records no artifact does not bind either. manual_gate now shares the same hash-extraction helper so one definition governs both halves.",
+      "observedOnAdding": {
+        "boundCases": 0,
+        "supersededCases": 48,
+        "unattributableCases": 0,
+        "evidenceWasm": "97e605ee8e5c1df3bafaae736012d6203826abf6c5362a7e58364768c86023b6",
+        "profileWasm": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d"
+      },
+      "decisionBefore": "E1_PARTIAL_GO_ODT_EDITOR",
+      "decisionAfter": "E1_STOP_OR_RESCOPE",
+      "reRunOutcome": "2026-08-07 12:09-12:15, both browsers, four automatic phases against 835b453d...: chrome died at lifecycle cycle-06 and firefox at lifecycle warmup-08 with 'init timed out after 120000 ms' -- the same two cases as 2026-08-06. That reproduction is what exposed finding 023. Binding after the partial run: boundCases 33, supersededCases 14, unattributableCases 1 (chrome cycle-06 records no artifact because init never completed). E1-C cannot reach GO until finding 023 is resolved or the matrix consciously bounds session depth and says what that hides.",
+      "failedProperties": [
+        "evidenceArtifactBinding",
+        "trustedManualDelta"
+      ],
+      "note": "The other six properties still pass, so this is not a newly discovered defect in the editor: it is the same rebuild cost the manual gate had already reported, now counted honestly across the whole matrix. Returning to GO needs the four automatic phases re-run on both browsers AND one manual Chewing round per browser, all against 835b453d...."
+    },
+    "rerunAfterFinding023Fix": {
+      "date": "2026-08-07",
+      "reason": "finding 023 blocked the automatic phases: the lifecycle phase could not complete inside one browser session (init timed out at a fixed depth). Second attribution landed on the probe infrastructure itself -- the runners piped serve.py's stderr into a 64 KiB pipe nobody read, so the request log filled it and the HTTP handler blocked before sending response bodies.  Caught live via /proc wchan=anon_pipe_write; byte accounting matches the observed walls (chrome 1902 B/navigation -> crossing at 35, wall was 34; firefox 2431 B -> 28, wall was 26).  Fixed by redirecting server output to a serve.log file.  See finding 023 (second revision).",
+      "outcome": "2026-08-07 afternoon, both browsers, four automatic phases against 835b453d...: chrome pass=true, firefox pass=true -- lifecycle completed inside a single session for the first time.  validate_e1_c: automaticPass true, artifactBinding boundCases 48 / supersededCases 0 / unattributableCases 0, decision E1_PARTIAL_GO_ODT_EDITOR.  The only missing property is trustedManualDelta: one manual Chewing round per browser against 835b453d... (SPEC E1-C sections 11.4/11.5) still needs an operator.",
+      "boundCases": 48,
+      "supersededCases": 0,
+      "unattributableCases": 0,
+      "decision": "E1_PARTIAL_GO_ODT_EDITOR"
+    }
+  }
+}

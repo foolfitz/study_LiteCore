@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-A-editing-discovery",
+  "verifiedAt": "2026-08-05T12:55:51+08:00",
+  "checks": {
+    "e1Static": {
+      "command": "make test-e1-a-static",
+      "pythonTests": 7,
+      "nodeTests": 21,
+      "pass": true
+    },
+    "finding016SelectionBarrierStatic": {
+      "command": "make test-finding-016-selection-barrier-static",
+      "pythonTests": 5,
+      "nodeTests": 1,
+      "pass": true
+    },
+    "r6Release": {
+      "command": "make test-r6-release",
+      "decision": "GO",
+      "source": "findings/evidence/sdk-r6/summary.json",
+      "pass": true
+    },
+    "r7StaticAndDecision": {
+      "command": "make test-r7-d-static test-finding-012-static",
+      "decision": "PARTIAL_GO_ODT_FIRST",
+      "source": "findings/evidence/sdk-r7/summary.json",
+      "pass": true
+    },
+    "finding012": {
+      "decision": "REMEDIATED_BY_BOUNDED_WORKER_RECYCLE",
+      "source": "findings/evidence/012/r7-remediation/summary.json",
+      "pass": true
+    },
+    "r8StaticAndDecision": {
+      "command": "make test-r8-d-static",
+      "decision": "PARTIAL_GO_LOCAL_DELIVERY",
+      "source": "findings/evidence/sdk-r8/summary.json",
+      "pass": true
+    },
+    "baselineProtection": {
+      "source": "findings/evidence/sdk-e1/baseline/preflight-after.json",
+      "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+      "coreDirtyStatePreserved": true,
+      "writerReviewArtifactsUnchanged": true,
+      "pass": true
+    }
+  },
+  "pass": true
+}

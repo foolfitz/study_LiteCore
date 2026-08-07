@@ -1,0 +1,601 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-012-r7-attribution",
+  "layer": "diagnostic-wasm",
+  "browser": "chrome",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "fixture": {
+    "id": "t2-image-unwrapped",
+    "path": "t2-image-unwrapped.odt",
+    "changedAxes": [
+      "frame.wrapper"
+    ],
+    "retainedFeatures": [
+      "table",
+      "image",
+      "annotation",
+      "page-break"
+    ],
+    "removedFeatures": [],
+    "bytes": 32885,
+    "sha256": "0389bea6870ea3cf3214200598cf545d695b43d66c9201d2ca61bf2528d23996",
+    "packageValidation": {
+      "zip": true,
+      "crc": true,
+      "xml": true,
+      "axisChecks": {
+        "frame.wrapper": true
+      },
+      "embeddedImageSha256": "f2e18c7cfeeae665c64c10b9272ca5a551c8ca3361d0548be420a4c4282ff57f",
+      "pass": true
+    },
+    "expectedClose": "discovery",
+    "desktopValidation": {
+      "desktopVersion": "LibreOffice 26.2.4.2 620(Build:2)",
+      "batchReturnCode": 0,
+      "pdfGenerated": true,
+      "pages": 3,
+      "pass": true
+    }
+  },
+  "run": 2,
+  "timeoutMs": 10000,
+  "stages": [
+    "open.begin",
+    "open.documentLoad",
+    "open.documentLoad-returned",
+    "open.initializeForRendering",
+    "open.registerCallback",
+    "open.query-metadata",
+    "document-destroy-enter",
+    "document-destroy-return"
+  ],
+  "outcome": "close-pass",
+  "metrics": {
+    "schemaVersion": 1,
+    "release": "finding-012-r7-attribution",
+    "requestedArtifact": "diagnostic",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "crossOriginIsolated": true,
+    "fixture": {
+      "id": "t2-image-unwrapped",
+      "path": "t2-image-unwrapped.odt",
+      "bytes": 32885,
+      "sha256": "0389bea6870ea3cf3214200598cf545d695b43d66c9201d2ca61bf2528d23996",
+      "retainedFeatures": [
+        "table",
+        "image",
+        "annotation",
+        "page-break"
+      ],
+      "removedFeatures": []
+    },
+    "artifact": {
+      "profile": "finding-012-diagnostic",
+      "sdkVersion": "0.6.0-r6-worker+finding-012-diagnostic",
+      "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+      "loader": "./probe.js",
+      "wasm": "./probe.wasm"
+    },
+    "workers": {
+      "created": 1,
+      "terminated": 1,
+      "active": 0,
+      "forcedTermination": false
+    },
+    "handles": {
+      "opened": 1,
+      "closed": 1,
+      "active": 0
+    },
+    "sdkEvents": [
+      {
+        "atMs": 1127.804999999702,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:desktop.app:42:3:desktop/source/app/app.cxx:2080: Could not disable AutoRecovery. com.sun.star.uno.DeploymentException message: \"component context fails to supply singleton com.sun.star.frame.theAutoRecovery of type com.sun.star.frame.XDispatch\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+      },
+      {
+        "atMs": 1130.5050000026822,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.begin",
+          "heapBytes": 1073741824,
+          "sbrk": 287248384
+        }
+      },
+      {
+        "atMs": 1130.550000000745,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.documentLoad",
+          "heapBytes": 1073741824,
+          "sbrk": 287248384
+        }
+      },
+      {
+        "atMs": 1315.5050000026822,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:editeng:42:1:editeng/source/misc/acorrcfg.cxx:107: Unable to iterate directory 'file:///instdir/program/../share/autocorr' com.sun.star.ucb.InteractiveAugmentedIOException message: \"an error occurred during file opening (12/2)\" context: N10fileaccess11BaseContentE Code: 22"
+      },
+      {
+        "atMs": 1445.9550000019372,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:xmloff:42:1:xmloff/source/text/txtimp.cxx:1934: unknown element urn:oasis:names:tc:opendocument:xmlns:drawing:1.0 draw:frame"
+      },
+      {
+        "atMs": 1462.3100000023842,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+      },
+      {
+        "atMs": 1462.425000000745,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+      },
+      {
+        "atMs": 1506.3850000016391,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 1580.785000000149,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 1581.6850000023842,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 1608.030000001192,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 1608.2550000026822,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+      },
+      {
+        "atMs": 1615.480000000447,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.documentLoad-returned",
+          "heapBytes": 1073741824,
+          "sbrk": 292651008
+        }
+      },
+      {
+        "atMs": 1615.550000000745,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.initializeForRendering",
+          "heapBytes": 1073741824,
+          "sbrk": 292651008
+        }
+      },
+      {
+        "atMs": 1623.0100000016391,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.registerCallback",
+          "heapBytes": 1073741824,
+          "sbrk": 292651008
+        }
+      },
+      {
+        "atMs": 1626.859999999404,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "open.query-metadata",
+          "heapBytes": 1073741824,
+          "sbrk": 292651008
+        }
+      },
+      {
+        "atMs": 1690.960000000894,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regionband.cxx:982: RegionBand::Exclude() - nLeft > nRight"
+      },
+      {
+        "atMs": 1691.0250000022352,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regband.cxx:486: ImplRegionBand::Exclude(): nxLeft > nXRight"
+      },
+      {
+        "atMs": 1691.105000000447,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regband.cxx:486: ImplRegionBand::Exclude(): nxLeft > nXRight"
+      },
+      {
+        "atMs": 1691.1350000016391,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stderr",
+        "message": "warn:vcl:42:3:vcl/source/gdi/regband.cxx:486: ImplRegionBand::Exclude(): nxLeft > nXRight"
+      },
+      {
+        "atMs": 1693.5100000016391,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "view-ready",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "atMs": 1693.530000001192,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "document-invalidated",
+        "documentHandle": 1,
+        "revision": 0
+      },
+      {
+        "atMs": 1693.780000001192,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "document-destroy-enter",
+          "heapBytes": 1073741824,
+          "sbrk": 292651008
+        }
+      },
+      {
+        "atMs": 1713.030000001192,
+        "protocolVersion": 1,
+        "kind": "event",
+        "event": "diagnostic",
+        "level": "stage",
+        "detail": {
+          "type": "stage",
+          "name": "document-destroy-return",
+          "heapBytes": 1073741824,
+          "sbrk": 292651008
+        }
+      }
+    ],
+    "stage": "complete",
+    "close": {
+      "status": "passed",
+      "ms": 19.684999998658895,
+      "timeoutMs": 10000
+    },
+    "complete": true,
+    "pass": true,
+    "error": null,
+    "open": {
+      "ms": 569.3350000008941,
+      "documentHandle": 1,
+      "revision": 0,
+      "parts": 3,
+      "widthTwips": 17004,
+      "heightTwips": 51650
+    }
+  },
+  "processSamples": [
+    {
+      "monotonicSeconds": 32919.658261479,
+      "rootPid": 385001,
+      "processes": [
+        {
+          "pid": 385001,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 239554560,
+          "pssBytes": 80936960,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385005,
+          "ppid": 385001,
+          "name": "cat",
+          "rssBytes": 7475200,
+          "pssBytes": 2321408,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385006,
+          "ppid": 385001,
+          "name": "cat",
+          "rssBytes": 7593984,
+          "pssBytes": 2567168,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385016,
+          "ppid": 385001,
+          "name": "chrome",
+          "rssBytes": 70840320,
+          "pssBytes": 11134976,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385017,
+          "ppid": 385001,
+          "name": "chrome",
+          "rssBytes": 70598656,
+          "pssBytes": 5449728,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385044,
+          "ppid": 385001,
+          "name": "chrome",
+          "rssBytes": 122953728,
+          "pssBytes": 27615232,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385019,
+          "ppid": 385017,
+          "name": "chrome",
+          "rssBytes": 19304448,
+          "pssBytes": 2636800,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385055,
+          "ppid": 385019,
+          "name": "chrome",
+          "rssBytes": 54927360,
+          "pssBytes": 5956608,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385084,
+          "ppid": 385019,
+          "name": "chrome",
+          "rssBytes": 340230144,
+          "pssBytes": 235725824,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385085,
+          "ppid": 385019,
+          "name": "chrome",
+          "rssBytes": 105426944,
+          "pssBytes": 16921600,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385108,
+          "ppid": 385019,
+          "name": "chrome",
+          "rssBytes": 98213888,
+          "pssBytes": 16129024,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385137,
+          "ppid": 385019,
+          "name": "chrome",
+          "rssBytes": 77860864,
+          "pssBytes": 11884544,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385042,
+          "ppid": 385016,
+          "name": "chrome",
+          "rssBytes": 131907584,
+          "pssBytes": 29635584,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "engine-init",
+      "cycle": 2,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 0,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 13,
+      "rssBytes": 1346887680,
+      "pssBytes": 448915456
+    },
+    {
+      "monotonicSeconds": 32920.704143835,
+      "rootPid": 385001,
+      "processes": [
+        {
+          "pid": 385001,
+          "ppid": 381173,
+          "name": "chrome",
+          "rssBytes": 240865280,
+          "pssBytes": 81606656,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385005,
+          "ppid": 385001,
+          "name": "cat",
+          "rssBytes": 7475200,
+          "pssBytes": 2321408,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385006,
+          "ppid": 385001,
+          "name": "cat",
+          "rssBytes": 7593984,
+          "pssBytes": 2567168,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385016,
+          "ppid": 385001,
+          "name": "chrome",
+          "rssBytes": 70840320,
+          "pssBytes": 11133952,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385017,
+          "ppid": 385001,
+          "name": "chrome",
+          "rssBytes": 70598656,
+          "pssBytes": 5449728,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385044,
+          "ppid": 385001,
+          "name": "chrome",
+          "rssBytes": 121053184,
+          "pssBytes": 26713088,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385019,
+          "ppid": 385017,
+          "name": "chrome",
+          "rssBytes": 19304448,
+          "pssBytes": 2636800,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385055,
+          "ppid": 385019,
+          "name": "chrome",
+          "rssBytes": 54927360,
+          "pssBytes": 5956608,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385084,
+          "ppid": 385019,
+          "name": "chrome",
+          "rssBytes": 791343104,
+          "pssBytes": 681162752,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385085,
+          "ppid": 385019,
+          "name": "chrome",
+          "rssBytes": 105426944,
+          "pssBytes": 16916480,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385108,
+          "ppid": 385019,
+          "name": "chrome",
+          "rssBytes": 98213888,
+          "pssBytes": 16105472,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385137,
+          "ppid": 385019,
+          "name": "chrome",
+          "rssBytes": 77860864,
+          "pssBytes": 11881472,
+          "status": "sleeping"
+        },
+        {
+          "pid": 385042,
+          "ppid": 385016,
+          "name": "chrome",
+          "rssBytes": 132005888,
+          "pssBytes": 29647872,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "open",
+      "cycle": 2,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": 1,
+      "activeHandles": 0,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 13,
+      "rssBytes": 1797509120,
+      "pssBytes": 894099456
+    }
+  ],
+  "artifactHashes": {
+    "loader": "265a0ee254d3083d49da2c3aa942eb4d00b8ebf71ba9d5620a289ced8b66e120",
+    "wasm": "b7c77ddb27724e5ec6ce81b602aade17c992bd835017fd38314a443f98d91880",
+    "manifest": "79321043e7be681838adb80206cb79fe6219d9ad8f8e5da289c9699981cf9e83",
+    "productionLoader": "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566",
+    "productionWasm": "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6"
+  },
+  "pass": true
+}

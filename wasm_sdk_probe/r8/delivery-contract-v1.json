@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "release": "R8-B-versioned-artifact-delivery",
+  "manifestSchemaVersion": 1,
+  "hashBoundary": "decoded-artifact-bytes",
+  "transportEncodings": [
+    "identity",
+    "gzip"
+  ],
+  "fidelityPolicies": {
+    "standard": {
+      "requiredRoles": [
+        "entry-html",
+        "stylesheet",
+        "app-module",
+        "document-sdk",
+        "input-adapter",
+        "clipboard-adapter",
+        "page-navigation",
+        "sdk-worker",
+        "sdk-manifest",
+        "wasm-loader",
+        "wasm-binary",
+        "base-data",
+        "base-metadata",
+        "cjk-data",
+        "cjk-metadata"
+      ],
+      "optionalRoles": [
+        "fallback-data",
+        "fallback-metadata"
+      ]
+    },
+    "full-fidelity": {
+      "requiredRoles": [
+        "entry-html",
+        "stylesheet",
+        "app-module",
+        "document-sdk",
+        "input-adapter",
+        "clipboard-adapter",
+        "page-navigation",
+        "sdk-worker",
+        "sdk-manifest",
+        "wasm-loader",
+        "wasm-binary",
+        "base-data",
+        "base-metadata",
+        "cjk-data",
+        "cjk-metadata",
+        "fallback-data",
+        "fallback-metadata"
+      ],
+      "optionalRoles": []
+    }
+  },
+  "stages": [
+    "manifest-fetch",
+    "manifest-validate",
+    "artifact-fetch",
+    "artifact-validate",
+    "worker-start",
+    "worker-handshake",
+    "document-open"
+  ],
+  "errors": {
+    "RELEASE_MANIFEST_INVALID": {"retryable": false, "safeNextAction": "select-known-good"},
+    "RELEASE_UNSUPPORTED": {"retryable": false, "safeNextAction": "select-supported-release"},
+    "ARTIFACT_HTTP_ERROR": {"retryable": true, "safeNextAction": "retry-release"},
+    "ARTIFACT_MEDIA_TYPE_MISMATCH": {"retryable": false, "safeNextAction": "reject-release"},
+    "ARTIFACT_ENCODING_MISMATCH": {"retryable": false, "safeNextAction": "reject-release"},
+    "ARTIFACT_SIZE_MISMATCH": {"retryable": false, "safeNextAction": "reject-release"},
+    "ARTIFACT_HASH_MISMATCH": {"retryable": false, "safeNextAction": "reject-release"},
+    "CROSS_ORIGIN_ISOLATION_REQUIRED": {"retryable": false, "safeNextAction": "fix-deployment-headers"},
+    "DELIVERY_ABORTED": {"retryable": true, "safeNextAction": "retry-release"},
+    "DELIVERY_TIMEOUT": {"retryable": true, "safeNextAction": "retry-release"},
+    "WORKER_HANDSHAKE_MISMATCH": {"retryable": false, "safeNextAction": "reject-release"},
+    "FONT_PACK_RESTART_REQUIRED": {"retryable": true, "safeNextAction": "save-and-reload-release"}
+  },
+  "invariants": [
+    "all-required-artifacts-verified-before-worker-start",
+    "decoded-size-and-sha256-verified",
+    "worker-release-id-matches-host-release-id",
+    "failed-candidate-does-not-mutate-document",
+    "full-fidelity-fallback-pack-mounted-before-engine-start"
+  ]
+}

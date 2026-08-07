@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-A-editing-discovery",
+  "manifest": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/manifest.json",
+  "manifestSha256": "c3f0312c219d206c6ebfa85ed5afc9b7040e6fda9c73b985bf8c3579b8f3ff8d",
+  "schemaPass": true,
+  "fixtures": [
+    {
+      "id": "plain-grapheme",
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/plain-grapheme.odt",
+      "sha256": "9a99a2f708191ff6ae79624cb1e18163c9ff00a41ad5d5208368cd0cea4e69ca",
+      "anchors": [
+        {
+          "text": "E1-PLAIN-START",
+          "found": true
+        },
+        {
+          "text": "臺灣中文游標測試",
+          "found": true
+        },
+        {
+          "text": "emoji 😀 grapheme",
+          "found": true
+        },
+        {
+          "text": "combining é boundary",
+          "found": true
+        },
+        {
+          "text": "E1-PLAIN-END",
+          "found": true
+        }
+      ],
+      "structure": {
+        "paragraphs": {
+          "actual": 6,
+          "minimum": 6,
+          "pass": true
+        },
+        "headings": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "lists": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "tables": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "multi-paragraph",
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/multi-paragraph.odt",
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "anchors": [
+        {
+          "text": "E1-MULTI-START alpha",
+          "found": true
+        },
+        {
+          "text": "第二段中文 beta",
+          "found": true
+        },
+        {
+          "text": "E1-MULTI-END omega",
+          "found": true
+        }
+      ],
+      "structure": {
+        "paragraphs": {
+          "actual": 5,
+          "minimum": 5,
+          "pass": true
+        },
+        "headings": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "lists": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "tables": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "styled-list",
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/styled-list.odt",
+      "sha256": "309094260291bfc5a31f634562ec4efa2c8f84841deadcb8cd234211914d7bfc",
+      "anchors": [
+        {
+          "text": "E1-STYLED-HEADING",
+          "found": true
+        },
+        {
+          "text": "bold anchor",
+          "found": true
+        },
+        {
+          "text": "italic anchor",
+          "found": true
+        },
+        {
+          "text": "E1-LIST-ONE",
+          "found": true
+        },
+        {
+          "text": "E1-STYLED-END",
+          "found": true
+        }
+      ],
+      "structure": {
+        "paragraphs": {
+          "actual": 4,
+          "minimum": 4,
+          "pass": true
+        },
+        "headings": {
+          "actual": 1,
+          "minimum": 1,
+          "pass": true
+        },
+        "lists": {
+          "actual": 1,
+          "minimum": 1,
+          "pass": true
+        },
+        "tables": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "table-boundary",
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/table-boundary.odt",
+      "sha256": "037f8e0c2da63fa0f340c12430b3ff7247ca89367ea2f6698674c693d153fe86",
+      "anchors": [
+        {
+          "text": "E1-TABLE-BEFORE",
+          "found": true
+        },
+        {
+          "text": "E1-CELL-A1",
+          "found": true
+        },
+        {
+          "text": "E1-CELL-B2",
+          "found": true
+        },
+        {
+          "text": "E1-TABLE-AFTER",
+          "found": true
+        }
+      ],
+      "structure": {
+        "paragraphs": {
+          "actual": 6,
+          "minimum": 6,
+          "pass": true
+        },
+        "headings": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "lists": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "tables": {
+          "actual": 1,
+          "minimum": 1,
+          "pass": true
+        }
+      },
+      "pass": true
+    },
+    {
+      "id": "r7-t2-styled",
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/r7-t2-styled.odt",
+      "sha256": "0f69906035cb5d96f86b034cf2596994d5de82ee6347a47c00f35784c9888d31",
+      "anchors": [
+        {
+          "text": "R1 樣式文件",
+          "found": true
+        },
+        {
+          "text": "文件結尾：請確認表格、圖片、註解與標題樣式均保留。",
+          "found": true
+        }
+      ],
+      "structure": {
+        "paragraphs": {
+          "actual": 17,
+          "minimum": 1,
+          "pass": true
+        },
+        "headings": {
+          "actual": 3,
+          "minimum": 1,
+          "pass": true
+        },
+        "lists": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "tables": {
+          "actual": 1,
+          "minimum": 1,
+          "pass": true
+        }
+      },
+      "pass": true
+    }
+  ],
+  "pass": true
+}

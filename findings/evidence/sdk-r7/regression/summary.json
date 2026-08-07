@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "release": "R7-regression",
+  "verifiedAt": "2026-08-04",
+  "commands": [
+    "make test-r5 test-r6-c test-r6-roundtrip test-r6-release test-r7-d-static test-finding-012-remediation",
+    "python3 tools/validate_r7_preflight.py --phase after"
+  ],
+  "checks": {
+    "sdkDocumentTests11of11": true,
+    "providerTests11of11": true,
+    "r6ReaderTests11of11": true,
+    "r6CollaborationDomainAndHttp24of24": true,
+    "r6Roundtrip": true,
+    "r6ReleaseGo": true,
+    "r7InputTests14of14": true,
+    "r7CompatibilityUnit5of5": true,
+    "r7LongevityUnit5of5": true,
+    "finding012RemediationUnit4of4": true,
+    "staticSyntax": true,
+    "preflightAfter": true
+  },
+  "core": {
+    "head": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "originalDirtyStatePreserved": true
+  },
+  "artifacts": {
+    "loaderSha256": "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566",
+    "wasmSha256": "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6"
+  },
+  "pass": true
+}

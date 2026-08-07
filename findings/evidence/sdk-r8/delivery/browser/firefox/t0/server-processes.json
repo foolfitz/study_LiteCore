@@ -1,0 +1,12 @@
+{
+  "server1": {
+    "returnCode": -15,
+    "stdout": "{\"root\": \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist\", \"origin\": \"http://127.0.0.1:49015\", \"role\": \"artifact\", \"allowOrigin\": \"http://127.0.0.1:57807\"}\n",
+    "stderr": ""
+  },
+  "server2": {
+    "returnCode": -15,
+    "stdout": "{\"root\": \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist\", \"origin\": \"http://127.0.0.1:57807\", \"role\": \"app\", \"allowOrigin\": null}\n",
+    "stderr": "----------------------------------------\nException occurred during processing of request from ('127.0.0.1', 36796)\nTraceback (most recent call last):\n  File \"/usr/lib/python3.14/socketserver.py\", line 697, in process_request_thread\n    self.finish_request(request, client_address)\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/socketserver.py\", line 362, in finish_request\n    self.RequestHandlerClass(request, client_address, self)\n    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/http/server.py\", line 732, in __init__\n    super().__init__(*args, **kwargs)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/socketserver.py\", line 766, in __init__\n    self.handle()\n    ~~~~~~~~~~~^^\n  File \"/usr/lib/python3.14/http/server.py\", line 496, in handle\n    self.handle_one_request()\n    ~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/usr/lib/python3.14/http/server.py\", line 484, in handle_one_request\n    method()\n    ~~~~~~^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/r8_delivery_server.py\", line 310, in do_GET\n    self._serve_and_record()\n    ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/r8_delivery_server.py\", line 298, in _serve_and_record\n    self._dispatch()\n    ~~~~~~~~~~~~~~^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/r8_delivery_server.py\", line 291, in _dispatch\n    self._write_static()\n    ~~~~~~~~~~~~~~~~~~^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/r8_delivery_server.py\", line 271, in _write_static\n    self.wfile.write(transmitted)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/socketserver.py\", line 845, in write\n    self._sock.sendall(b)\n    ~~~~~~~~~~~~~~~~~~^^^\nBrokenPipeError: [Errno 32] Broken pipe\n----------------------------------------\n"
+  }
+}

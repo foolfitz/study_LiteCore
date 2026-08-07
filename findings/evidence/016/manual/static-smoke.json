@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "finding": "016",
+  "release": "E1-Finding-016-manual-delete",
+  "date": "2026-08-04",
+  "updatedAt": "2026-08-05",
+  "status": "stopped-finding-017",
+  "checks": {
+    "emscriptenCompile": true,
+    "pythonUnitTests": {
+      "passed": 6,
+      "failed": 0
+    },
+    "nodeTests": {
+      "passed": 15,
+      "failed": 0
+    },
+    "javascriptSyntax": true,
+    "deterministicScenarioUi": true,
+    "freshWorkerPerScenario": true,
+    "sameWorkerReopenRemoved": true,
+    "timeoutBusyRecoveryUi": true,
+    "caretPlacementBySearchRectangle": true,
+    "preMutationSelectionTextReadback": true,
+    "preMutationCollapsedStateReadback": true,
+    "closedDiagnosticSelectionReset": true,
+    "operatorRound1": "invalid-ambiguous-caret-flow",
+    "operatorRound2": "search-timeout-after-same-worker-reopen-then-busy",
+    "operatorRound3": "arrow-completion-with-search-selection-still-active",
+    "operatorRound4": "public-click-left-search-selection-active-fail-closed",
+    "operatorRound5": "selection-reset-then-public-get-selection-lok-error",
+    "httpHtml": 200,
+    "httpApplicationJavascript": 200,
+    "httpManifest": 200,
+    "crossOriginOpenerPolicy": "same-origin",
+    "crossOriginEmbedderPolicy": "require-corp",
+    "interactiveBrowser": "stopped-no-more-operator-runs"
+  },
+  "assets": {
+    "htmlSha256": "df8c6c51ff62a88683271e36fb315a8c3e4c6f4dcc675103b5955b03a1a500a5",
+    "applicationSha256": "aa7570bbc3ca420adafc7d7e40b6d401c8493bbb5c2885734235e5c842918bf0",
+    "clientSha256": "b276df8defd8262f5ea49ff2f55e71031fba4ee17a010cf964748585c946ddc6",
+    "loaderSha256": "a733b8f89eebaa53685056c447cf76151f5a86f455ff1d9dd0c725ff20f8e87d",
+    "wasmSha256": "1c8b79fd5c9968dd362a43e4e1e032fe07806f72c34c1f5b041c8af00d6c1e78"
+  },
+  "manualSemantics": {
+    "changed": null,
+    "manualVerificationRequired": true,
+    "decisionChanged": false,
+    "lastMutationDispatched": false,
+    "linkedFinding": "017",
+    "stopReason": "public empty-selection readback cannot be represented by current SDK contract"
+  }
+}

@@ -1,0 +1,1390 @@
+LOSRC ?= ../libreoffice-26-8
+LOBUILD ?= ../wasm-lite/build-headless-probe
+
+EMSDK_ROOT ?= ../wasm-lite/tools/emsdk
+CXX := $(EMSDK_ROOT)/upstream/emscripten/em++
+HOST_CXX ?= g++
+CPPFLAGS := -DLOK_USE_UNSTABLE_API -I$(LOSRC)/include \
+	-I$(LOBUILD)/config_host \
+	-I$(LOBUILD)/workdir/UnoApiHeadersTarget/udkapi/comprehensive
+E1_CPPFLAGS := $(CPPFLAGS) \
+	-I$(LOBUILD)/workdir/UnoApiHeadersTarget/offapi/comprehensive \
+	-I$(LOBUILD)/workdir/UnpackedTarball/boost
+CXXFLAGS := -O1 -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm
+R5_CXXFLAGS := -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm
+
+SOURCES := src/probe_api.cpp src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp
+OBJECTS := $(SOURCES:.cpp=.o)
+HEADERS := src/probe_api.h src/sdk_api.h src/probe_engine.hpp
+CORE_EXPORTS := $(LOBUILD)/workdir/CustomTarget/desktop/soffice_bin-emscripten-exports/exports
+LINKDEPS := $(LOBUILD)/instdir/program/soffice.js.linkdeps
+FS_PRE_JS := $(LOBUILD)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link
+CORE_DATA := $(LOBUILD)/instdir/program/soffice.data
+CORE_METADATA := $(LOBUILD)/instdir/program/soffice.data.js.metadata
+CORE_COMMIT := $(shell git -C $(LOSRC) rev-parse HEAD)
+R5_BUILD := build/r5
+R5_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp
+R5_REVIEW_OBJECTS := $(patsubst src/%.cpp,$(R5_BUILD)/writer-review/%.o,$(R5_SOURCES))
+R5_READER_OBJECTS := $(patsubst src/%.cpp,$(R5_BUILD)/writer-reader/%.o,$(R5_SOURCES))
+R7_COMPAT_FILES := $(notdir $(wildcard test-docs/r7-compat/*))
+FINDING_012_FILES := $(notdir $(wildcard test-docs/r7-finding-012/*))
+FINDING_012_BUILD := build/finding-012
+FINDING_012_DIAGNOSTIC_BUILD := $(FINDING_012_BUILD)/diagnostic
+FINDING_012_DIAGNOSTIC_OBJECTS := $(patsubst src/%.cpp,$(FINDING_012_DIAGNOSTIC_BUILD)/%.o,$(R5_SOURCES))
+FINDING_012_DIAGNOSTIC_DIST := dist/profiles/finding-012-diagnostic
+E1_BUILD := build/e1/editor-discovery
+E1_DIST := dist/profiles/e1-editor-discovery
+E1_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp \
+	src/editor_discovery_api.cpp
+E1_OBJECTS := $(patsubst src/%.cpp,$(E1_BUILD)/%.o,$(E1_SOURCES))
+E1_FIXTURE_FILES := $(notdir $(wildcard test-docs/e1/*.odt))
+E1_B_BUILD := build/e1/editor-v1
+E1_B_DIST := dist/profiles/e1-editor-v1
+E1_B_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp \
+	src/editor_api.cpp
+E1_B_OBJECTS := $(patsubst src/%.cpp,$(E1_B_BUILD)/%.o,$(E1_B_SOURCES))
+
+# finding 022 verification build: same flags as e1-editor-v1, separate output.
+# The frozen e1-editor-v1 must not be rebuilt (SPEC E2-A section 3), so the fix
+# is verified on its own artifact and the frozen one keeps carrying the bug
+# until re-validating it is an explicit decision.
+E1_FIX_BUILD := build/e1/editor-v1-noopfix
+E1_FIX_DIST := dist/profiles/e1-editor-v1-noopfix
+E1_FIX_OBJECTS := $(patsubst src/%.cpp,$(E1_FIX_BUILD)/%.o,$(E1_B_SOURCES))
+E2_BUILD := build/e2/format-discovery
+E2_DIST := dist/profiles/e2-format-discovery
+E2_OBJECTS := $(patsubst src/%.cpp,$(E2_BUILD)/%.o,$(E1_SOURCES))
+# Finding 021 attribution: same as E2 plus the Finding 016 scheduler drain, so
+# the run can ask whether the missing state is core not computing it or this
+# build never pumping the scheduler that would.
+E2_SCHED_BUILD := build/e2/scheduler-attribution
+E2_SCHED_DIST := dist/profiles/e2-scheduler-attribution
+E2_SCHED_OBJECTS := $(patsubst src/%.cpp,$(E2_SCHED_BUILD)/%.o,$(E1_SOURCES))
+# Finding 021 candidate 1: same as E2 but the engine command loop is replaced
+# by the upstream emscripten main loop entered through the public LOK runLoop
+# API (unipoll).  No unit-test pump is linked; the question this profile
+# answers is whether the production main loop alone keeps the format state
+# fresh.
+E2_MAINLOOP_BUILD := build/e2/mainloop-attribution
+E2_MAINLOOP_DIST := dist/profiles/e2-mainloop-attribution
+E2_MAINLOOP_OBJECTS := $(patsubst src/%.cpp,$(E2_MAINLOOP_BUILD)/%.o,$(E1_SOURCES))
+# Finding 021 discriminating experiment 1: the main-loop engine PLUS the
+# Finding 016 scheduler drain, so ProcessEventsToIdle can be measured under
+# the live loop.  If PEI still releases watched payloads here, the
+# PEI-vs-loop difference is in PEI's semantics; if it no longer does, the
+# difference is in what the old non-unipoll init (full Desktop::Main) set up.
+E2_MLPEI_BUILD := build/e2/mainloop-pei
+E2_MLPEI_DIST := dist/profiles/e2-mainloop-pei-attribution
+E2_MLPEI_OBJECTS := $(patsubst src/%.cpp,$(E2_MLPEI_BUILD)/%.o,$(E1_SOURCES))
+FINDING_016_SCHEDULER_BUILD := build/finding-016/scheduler
+FINDING_016_SCHEDULER_DIST := dist/profiles/finding-016-scheduler
+FINDING_016_SCHEDULER_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SCHEDULER_BUILD)/%.o,$(E1_SOURCES))
+FINDING_016_SELECTION_BUILD := build/finding-016/selection-barrier
+FINDING_016_SELECTION_DIST := dist/profiles/finding-016-selection-barrier
+FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BUILD)/%.o,$(E1_SOURCES))
+
+.PHONY: all clean serve serve-r5 serve-demo r5 r5-profiles r6-discovery-assets \
+	r6-reader-assets r6-contract-assets r6-reference-assets r6-assets \
+	r7-discovery-assets \
+	r7-reference-assets r7-compatibility-assets r7-longevity-assets r7-assets \
+	r8-discovery-assets r8-delivery-assets r8-service-worker-assets \
+	e1-discovery-profile e1-discovery-assets \
+	e1-editor-profile e1-editor-assets e1-editor-validation-assets \
+	demo-editor-assets f018-line-nav-assets e1-drag-select-gate-assets \
+	e1-noopfix-profile e1-noopfix-assets \
+	e2-format-discovery-profile e2-format-discovery-assets \
+	e2-scheduler-attribution-profile e2-scheduler-attribution-assets \
+	e2-mainloop-attribution-profile e2-mainloop-attribution-assets \
+	e2-mainloop-pei-attribution-profile e2-mainloop-pei-attribution-assets \
+	finding-016-scheduler-profile finding-016-scheduler-assets \
+	finding-016-selection-barrier-profile finding-016-selection-barrier-assets \
+	finding-012-assets finding-012-attribution-assets r7-remediation-assets \
+	test-r2 test-r3 test-r4 test-r5 test-r6-a test-r6-b test-r6-c \
+	test-r6-roundtrip test-r6-release test-r7-a-static test-r7-b-static \
+	test-r7-c-static test-r7-d-static test-r8-a-static test-r8-b-static \
+	test-r8-c-static test-r8-d-static \
+	test-e1-a-static test-e1-b-static test-e1-c-static test-e2-a-static \
+	test-finding-016-scheduler-static \
+	test-finding-016-selection-barrier-static \
+	test-finding-012-static \
+	test-finding-012-attribution test-finding-012-native-26-8 \
+	test-finding-012-remediation
+
+all: dist/probe.js dist/probe.wasm dist/soffice.data dist/soffice.data.js.metadata \
+	 dist/index.html dist/app.js dist/r2.html dist/r2-app.js \
+	 dist/r3.html dist/r3-app.js \
+	 dist/r4.html dist/r4-app.js \
+	 dist/document-sdk.js dist/document-sdk.d.ts dist/sdk-worker.js dist/sdk-manifest.json \
+	 dist/provider-sdk/provider-sdk.js dist/provider-sdk/provider-sdk.d.ts \
+	 dist/providers/text-translate-descriptor.js \
+	 dist/providers/text-translate-provider.js dist/providers/text-translate-worker.js
+
+r5: all r5-profiles dist/r5-reader.html dist/r5-reader-app.js
+
+r6-discovery-assets: dist/r6-discovery.html dist/r6-discovery-app.js \
+	dist/profiles/writer-review-r6/sdk-worker.js \
+	dist/profiles/writer-review-r6/sdk-manifest.json \
+	dist/r6-fixtures/t1-plain-zh.odt dist/r6-fixtures/t2-styled.odt \
+	dist/r6-fixtures/t3-long.odt
+
+r6-reader-assets: r6-discovery-assets dist/r6-reader.html dist/r6-reader-app.js \
+	dist/r6.css dist/reader-shell/state-machine.js \
+	dist/reader-shell/tile-scheduler.js dist/reader-shell/reader-session.js
+
+r6-contract-assets: dist/collaboration/contract.js dist/collaboration/contract.d.ts \
+	dist/collaboration/collaboration-client.js
+
+r6-reference-assets: r6-reader-assets r6-contract-assets \
+	dist/r6-reference.html dist/r6-reference-app.js \
+	dist/provider-sdk/provider-sdk.js \
+	dist/providers/text-translate-descriptor.js \
+	dist/providers/text-translate-provider.js dist/providers/text-translate-worker.js
+
+r6-assets: r6-reference-assets
+
+r7-discovery-assets: r6-discovery-assets dist/r7-discovery.html \
+	dist/r7-discovery-app.js dist/input/input-adapter.js \
+	dist/r7-fixtures/manifest.json \
+	dist/r7-fixtures/r7-plain.odt dist/r7-fixtures/r7-plain.docx \
+	dist/r7-fixtures/r7-corrupt-truncated.odt \
+	dist/r7-fixtures/r7-corrupt-truncated.docx \
+	dist/r7-fixtures/r7-unknown.bin
+
+r7-reference-assets: r7-discovery-assets dist/r7-reference.html \
+	dist/r7-reference-app.js dist/r7.css dist/input/clipboard-adapter.js \
+	dist/r7/page-navigation.js
+
+r7-compatibility-assets: r7-reference-assets dist/r7-compatibility.html \
+	dist/r7-compatibility-app.js dist/r7/document-preflight.js \
+	$(addprefix dist/r7-compat-fixtures/,$(R7_COMPAT_FILES))
+
+r7-longevity-assets: r7-compatibility-assets dist/r7-longevity.html \
+	dist/r7-longevity-app.js
+
+r7-assets: r7-longevity-assets
+
+r8-discovery-assets: r7-assets dist/r8-discovery.html \
+	dist/r8-discovery-app.js dist/r8-discovery-sw.js \
+	dist/r8/release-schema-v1.json dist/r8/release-manifest.json
+
+r8-delivery-assets: r8-discovery-assets dist/r8-delivery.html \
+	dist/r8-delivery-app.js dist/delivery/verified-loader.js \
+	dist/delivery/verified-loader.d.ts dist/releases/index.json
+
+r8-service-worker-assets: r8-delivery-assets dist/r8-update.html \
+	dist/r8-update-app.js dist/r8-service-worker.js \
+	dist/delivery/release-state.js dist/delivery/release-state.d.ts \
+	dist/r8c/release-set.json
+
+e1-discovery-assets: e1-discovery-profile dist/e1-discovery.html \
+	dist/e1-discovery-app.js dist/e1-manual-delete.html \
+	dist/e1-manual-delete-app.js dist/e1/editor-discovery-client.js \
+	dist/sdk/document-sdk.js dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+e2-format-discovery-assets: e2-format-discovery-profile \
+	dist/e2-format-discovery.html dist/e2-format-discovery-app.js \
+	dist/e2/format-discovery-client.js dist/e2/discovery-matrix-v1.json \
+	dist/sdk/document-sdk.js dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+e2-scheduler-attribution-assets: e2-scheduler-attribution-profile \
+	dist/e2-format-discovery.html dist/e2-format-discovery-app.js \
+	dist/e2/format-discovery-client.js dist/sdk/document-sdk.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+e2-mainloop-attribution-assets: e2-mainloop-attribution-profile \
+	dist/e2-format-discovery.html dist/e2-format-discovery-app.js \
+	dist/e2/format-discovery-client.js dist/sdk/document-sdk.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+e2-mainloop-pei-attribution-assets: e2-mainloop-pei-attribution-profile \
+	dist/e2-format-discovery.html dist/e2-format-discovery-app.js \
+	dist/e2/format-discovery-client.js dist/sdk/document-sdk.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+e1-editor-assets: e1-editor-profile dist/e1-editor.html \
+	dist/e1-editor-app.js dist/sdk/document-sdk.js \
+	dist/editor-shell/editor-client.js dist/editor-shell/editor-client.d.ts \
+	dist/editor-shell/state-machine.js dist/editor-shell/editor-session.js \
+	dist/input/input-adapter.js dist/input/clipboard-adapter.js \
+	dist/reader-shell/tile-scheduler.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+# Finding 021 exposure check on the *already built* e1-editor-v1 profile.
+# Deliberately does not depend on e1-editor-profile: rebuilding the frozen
+# artifact is exactly what this check must not do.  It reads dist/profiles/
+# e1-editor-v1 as shipped.
+e1-noopfix-assets: e1-noopfix-profile e1-bold-noop-assets
+
+e1-bold-noop-assets: dist/e1-bold-noop-check.html dist/e1-bold-noop-app.js \
+	dist/sdk/document-sdk.js dist/editor-shell/editor-client.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+# Presentation shell over the *already built* e1-editor-v1 profile.  Like
+# e1-bold-noop-assets it deliberately omits the e1-editor-profile prerequisite:
+# the frozen artifact must not be rebuilt, because rebuilding it invalidates the
+# manual Chewing evidence that E1-C's verdict depends on.
+demo-editor-assets: dist/demo-editor.html dist/demo-editor-app.js \
+	dist/sdk/document-sdk.js \
+	dist/editor-shell/editor-client.js dist/editor-shell/state-machine.js \
+	dist/editor-shell/editor-session.js \
+	dist/input/input-adapter.js dist/input/clipboard-adapter.js \
+	dist/reader-shell/tile-scheduler.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+# First gate for promoting range selection into the narrow contract.  Runs on
+# the *already built* e1-editor-discovery profile: the whole point is to decide
+# whether a rebuild of e1-editor-v1 is worth paying for, so it must not need one.
+e1-drag-select-gate-assets: dist/e1-drag-select-gate.html \
+	dist/e1-drag-select-gate-app.js dist/sdk/document-sdk.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+# Session-depth control ladder.  Deliberately depends on NO profile and no SDK:
+# it exists to run the same navigation loop with the engine removed, so a wedge
+# that reproduces here is not ours.
+e1-c-session-depth-control-assets: dist/e1-c-session-depth-control.html \
+	dist/e1-c-session-depth-control-app.js dist/e1-c-session-depth-worker.js \
+	dist/e1-c-session-depth-engine-worker.js
+
+# The `minimal` rung of the same ladder: a module with the engine's exact
+# resource shape (link_r5_product's flags minus LibreOffice, its pre-js and its
+# --wrap) and no LibreOffice code.  The `realinstant` rung needs no target of
+# its own -- it runs against the already shipped e1-editor-v1 profile.
+e1-c-session-depth-minimal-assets: e1-c-session-depth-control-assets \
+	dist/e1-c-minimal/minimal.js dist/e1-c-minimal/minimal.wasm
+
+E1_C_MINIMAL_BUILD := build/e1-c-session-depth-minimal
+
+$(E1_C_MINIMAL_BUILD) dist/e1-c-minimal:
+	mkdir -p $@
+
+# Flags are link_r5_product verbatim, minus the LibreOffice objects/libs, the
+# exports file, the two pre-js files and the --wrap; a wedge reproduced here is
+# emscripten-runtime- or browser-shaped, not LibreOffice-shaped.
+$(E1_C_MINIMAL_BUILD)/minimal.js: src/session_depth_minimal.cpp Makefile | $(E1_C_MINIMAL_BUILD)
+	$(CXX) $< \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=65536 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=_oxsdk_minimal_ping \
+		-o $@
+
+$(E1_C_MINIMAL_BUILD)/minimal.wasm: $(E1_C_MINIMAL_BUILD)/minimal.js
+	@test -s $@
+
+dist/e1-c-minimal/minimal.js: $(E1_C_MINIMAL_BUILD)/minimal.js | dist/e1-c-minimal
+	cp $< $@
+
+dist/e1-c-minimal/minimal.wasm: $(E1_C_MINIMAL_BUILD)/minimal.wasm | dist/e1-c-minimal
+	cp $< $@
+
+# Finding 018 attribution on two *already built* diagnostic profiles.  No
+# profile prerequisite: both e1-editor-discovery and e2-mainloop-attribution
+# are already linked, and rebuilding either would change what is being compared.
+f018-line-nav-assets: dist/f018-line-nav-check.html dist/f018-line-nav-app.js \
+	dist/sdk/document-sdk.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+e1-editor-validation-assets: e1-editor-assets \
+	dist/e1-editor-validation.html dist/e1-editor-validation-app.js \
+	$(addprefix dist/r7-compat-fixtures/,$(R7_COMPAT_FILES))
+
+finding-016-scheduler-assets: finding-016-scheduler-profile \
+	dist/finding-016-scheduler.html dist/finding-016-scheduler-app.js \
+	dist/e1/editor-discovery-client.js dist/sdk/document-sdk.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+finding-016-selection-barrier-assets: finding-016-selection-barrier-profile \
+	dist/finding-016-selection-barrier.html \
+	dist/finding-016-selection-barrier-app.js \
+	dist/e1/editor-discovery-client.js dist/sdk/document-sdk.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+finding-012-assets: r7-longevity-assets dist/r7-close-minimizer.html \
+	dist/r7-close-minimizer-app.js \
+	$(addprefix dist/r7-finding-012/,$(FINDING_012_FILES))
+
+finding-012-attribution-assets: finding-012-assets \
+	$(FINDING_012_BUILD)/native-lok-probe \
+	$(FINDING_012_DIAGNOSTIC_DIST)/sdk-manifest.json
+
+r7-remediation-assets: finding-012-assets dist/document-sdk.js \
+	dist/document-sdk.d.ts dist/r7-close-minimizer-app.js
+
+src/%.o: src/%.cpp $(HEADERS) Makefile
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+dist:
+	mkdir -p $@
+
+dist/provider-sdk dist/providers:
+	mkdir -p $@
+
+dist/r6-fixtures:
+	mkdir -p $@
+
+dist/profiles/writer-review-r6:
+	mkdir -p $@
+
+dist/reader-shell:
+	mkdir -p $@
+
+dist/collaboration:
+	mkdir -p $@
+
+dist/input dist/r7 dist/r8 dist/r8c dist/delivery dist/releases dist/r7-fixtures \
+		dist/r7-compat-fixtures dist/r7-finding-012 dist/e1 dist/e1-fixtures \
+		dist/sdk dist/editor-shell dist/e2:
+	mkdir -p $@
+
+dist/exports.txt: $(CORE_EXPORTS) Makefile | dist
+	# The tail of the core list is bridge RTTI implemented only by libunoembind.a.
+	# This probe excludes unoembind, so retain the fixed C exports and the one
+	# file-load exception RTTI required below.
+	grep -v '^__ZTI' $< > $@
+	# Keep the file UCP exception RTTI canonical across static archives.  This one
+	# is provided by the Writer linkdeps and is needed by documentLoad's catch.
+	printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE >> $@
+	printf '%s\n' \
+		_probe_start \
+		_probe_open \
+		_probe_paint_tile \
+		_probe_click \
+		_probe_insert_text \
+		_probe_key \
+		_probe_save \
+		_probe_close \
+		_probe_free \
+		_oxsdk_abi_version \
+		_oxsdk_capabilities \
+		_oxsdk_engine_start \
+		_oxsdk_document_open \
+		_oxsdk_document_paint \
+		_oxsdk_document_click \
+		_oxsdk_document_insert_text \
+		_oxsdk_document_save \
+		_oxsdk_document_close \
+		_oxsdk_document_search \
+		_oxsdk_document_get_selection \
+		_oxsdk_document_replace_selection \
+		_oxsdk_document_undo \
+		_oxsdk_document_add_comment \
+		_oxsdk_document_list_comments \
+		_oxsdk_document_set_track_changes \
+		_oxsdk_document_list_changes \
+		_oxsdk_request_cancel \
+		_oxsdk_buffer_alloc \
+		_oxsdk_buffer_free >> $@
+
+$(R5_BUILD)/writer-review $(R5_BUILD)/writer-reader:
+	mkdir -p $@
+
+$(FINDING_012_BUILD) $(FINDING_012_DIAGNOSTIC_BUILD) \
+		$(FINDING_012_DIAGNOSTIC_DIST) $(E1_BUILD) $(E1_DIST) \
+		$(E1_B_BUILD) $(E1_B_DIST) $(E1_FIX_BUILD) $(E1_FIX_DIST) \
+		$(FINDING_016_SCHEDULER_BUILD) $(FINDING_016_SCHEDULER_DIST) \
+		$(FINDING_016_SELECTION_BUILD) $(FINDING_016_SELECTION_DIST) \
+		$(E2_BUILD) $(E2_DIST) $(E2_SCHED_BUILD) $(E2_SCHED_DIST) \
+		$(E2_MAINLOOP_BUILD) $(E2_MAINLOOP_DIST) \
+		$(E2_MLPEI_BUILD) $(E2_MLPEI_DIST):
+	mkdir -p $@
+
+$(R5_BUILD)/writer-review/%.o: src/%.cpp $(HEADERS) Makefile | $(R5_BUILD)/writer-review
+	$(CXX) $(CPPFLAGS) $(R5_CXXFLAGS) -c $< -o $@
+
+$(R5_BUILD)/writer-reader/%.o: src/%.cpp $(HEADERS) Makefile | $(R5_BUILD)/writer-reader
+	$(CXX) $(CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_READER_PROFILE -c $< -o $@
+
+$(FINDING_012_DIAGNOSTIC_BUILD)/%.o: src/%.cpp $(HEADERS) Makefile | $(FINDING_012_DIAGNOSTIC_BUILD)
+	$(CXX) $(CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_DIAGNOSTIC_CLOSE_STAGES -c $< -o $@
+
+$(E1_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(E1_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -c $< -o $@
+
+$(E1_B_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h Makefile | $(E1_B_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -c $< -o $@
+
+$(E1_FIX_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h Makefile | $(E1_FIX_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -c $< -o $@
+
+$(E2_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(E2_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-c $< -o $@
+
+$(E2_SCHED_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(E2_SCHED_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_FINDING_016_SCHEDULER_PROBE -c $< -o $@
+
+$(E2_MAINLOOP_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(E2_MAINLOOP_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MAINLOOP_ENGINE -c $< -o $@
+
+$(E2_MLPEI_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(E2_MLPEI_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MAINLOOP_ENGINE -DOXSDK_FINDING_016_SCHEDULER_PROBE -c $< -o $@
+
+$(FINDING_016_SCHEDULER_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(FINDING_016_SCHEDULER_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SCHEDULER_PROBE -c $< -o $@
+
+$(FINDING_016_SELECTION_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(FINDING_016_SELECTION_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -c $< -o $@
+
+$(R5_BUILD)/writer-review/exports.txt: $(CORE_EXPORTS) Makefile | $(R5_BUILD)/writer-review
+	grep -v -e '^__ZTI' -e '^_main$$' $< > $@
+	printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE >> $@
+	printf '%s\n' \
+		_oxsdk_abi_version \
+		_oxsdk_capabilities \
+		_oxsdk_engine_start \
+		_oxsdk_document_open \
+		_oxsdk_document_paint \
+		_oxsdk_document_click \
+		_oxsdk_document_insert_text \
+		_oxsdk_document_save \
+		_oxsdk_document_close \
+		_oxsdk_document_search \
+		_oxsdk_document_get_selection \
+		_oxsdk_document_replace_selection \
+		_oxsdk_document_undo \
+		_oxsdk_document_add_comment \
+		_oxsdk_document_list_comments \
+		_oxsdk_document_set_track_changes \
+		_oxsdk_document_list_changes \
+		_oxsdk_request_cancel \
+		_oxsdk_buffer_alloc \
+		_oxsdk_buffer_free >> $@
+
+$(R5_BUILD)/writer-reader/exports.txt: $(CORE_EXPORTS) Makefile | $(R5_BUILD)/writer-reader
+	grep -v -e '^__ZTI' -e '^_main$$' $< > $@
+	printf '%s\n' __ZTIN3com3sun4star3ucb31InteractiveAugmentedIOExceptionE >> $@
+	printf '%s\n' \
+		_oxsdk_abi_version \
+		_oxsdk_capabilities \
+		_oxsdk_engine_start \
+		_oxsdk_document_open \
+		_oxsdk_document_paint \
+		_oxsdk_document_save \
+		_oxsdk_document_close \
+		_oxsdk_document_search \
+		_oxsdk_request_cancel \
+		_oxsdk_buffer_alloc \
+		_oxsdk_buffer_free >> $@
+
+define link_r5_product
+	$(CXX) $(1) \
+		-L$(LOBUILD)/instdir/program $$(cat $(LINKDEPS)) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=65536 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(2) \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(FS_PRE_JS) \
+		-o $(3)
+endef
+
+$(R5_BUILD)/writer-review/probe.js: $(R5_REVIEW_OBJECTS) \
+		$(R5_BUILD)/writer-review/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(R5_REVIEW_OBJECTS),$(R5_BUILD)/writer-review/exports.txt,$@)
+
+$(R5_BUILD)/writer-review/probe.wasm: $(R5_BUILD)/writer-review/probe.js
+	@test -s $@
+
+$(R5_BUILD)/writer-reader/probe.js: $(R5_READER_OBJECTS) \
+		$(R5_BUILD)/writer-reader/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(R5_READER_OBJECTS),$(R5_BUILD)/writer-reader/exports.txt,$@)
+
+$(R5_BUILD)/writer-reader/probe.wasm: $(R5_BUILD)/writer-reader/probe.js
+	@test -s $@
+
+$(FINDING_012_DIAGNOSTIC_BUILD)/exports.txt: Makefile | $(FINDING_012_DIAGNOSTIC_BUILD)
+	@test -s $(R5_BUILD)/writer-review/exports.txt
+	cp $(R5_BUILD)/writer-review/exports.txt $@
+
+$(FINDING_012_DIAGNOSTIC_BUILD)/probe.js: $(FINDING_012_DIAGNOSTIC_OBJECTS) \
+		$(FINDING_012_DIAGNOSTIC_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(FINDING_012_DIAGNOSTIC_OBJECTS),$(FINDING_012_DIAGNOSTIC_BUILD)/exports.txt,$@)
+
+$(FINDING_012_DIAGNOSTIC_BUILD)/probe.wasm: $(FINDING_012_DIAGNOSTIC_BUILD)/probe.js
+	@test -s $@
+
+$(E1_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile | $(E1_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_discovery_action \
+		_oxsdk_editor_discovery_select \
+		_oxsdk_editor_discovery_get_state >> $@
+
+$(E1_BUILD)/probe.js: $(E1_OBJECTS) $(E1_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(E1_OBJECTS),$(E1_BUILD)/exports.txt,$@)
+
+$(E1_BUILD)/probe.wasm: $(E1_BUILD)/probe.js
+	@test -s $@
+
+$(E1_B_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile | $(E1_B_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range >> $@
+
+$(E1_B_BUILD)/probe.js: $(E1_B_OBJECTS) $(E1_B_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(E1_B_OBJECTS),$(E1_B_BUILD)/exports.txt,$@)
+
+$(E1_B_BUILD)/probe.wasm: $(E1_B_BUILD)/probe.js
+	@test -s $@
+
+$(E1_FIX_BUILD)/exports.txt: $(E1_B_BUILD)/exports.txt Makefile | $(E1_FIX_BUILD)
+	cp $< $@
+
+$(E1_FIX_BUILD)/probe.js: $(E1_FIX_OBJECTS) $(E1_FIX_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(E1_FIX_OBJECTS),$(E1_FIX_BUILD)/exports.txt,$@)
+
+$(E1_FIX_BUILD)/probe.wasm: $(E1_FIX_BUILD)/probe.js
+	@test -s $@
+
+$(E2_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(E2_BUILD)
+	cp $< $@
+
+$(E2_BUILD)/probe.js: $(E2_OBJECTS) $(E2_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(E2_OBJECTS),$(E2_BUILD)/exports.txt,$@)
+
+$(E2_BUILD)/probe.wasm: $(E2_BUILD)/probe.js
+	@test -s $@
+
+$(E2_SCHED_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(E2_SCHED_BUILD)
+	cp $< $@
+	printf '%s\n' _oxsdk_editor_discovery_drain_scheduler >> $@
+
+$(E2_SCHED_BUILD)/probe.js: $(E2_SCHED_OBJECTS) $(E2_SCHED_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(E2_SCHED_OBJECTS),$(E2_SCHED_BUILD)/exports.txt,$@)
+
+$(E2_SCHED_BUILD)/probe.wasm: $(E2_SCHED_BUILD)/probe.js
+	@test -s $@
+
+$(E2_MAINLOOP_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(E2_MAINLOOP_BUILD)
+	cp $< $@
+
+$(E2_MLPEI_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(E2_MLPEI_BUILD)
+	cp $< $@
+	printf '%s\n' _oxsdk_editor_discovery_drain_scheduler >> $@
+
+$(E2_MLPEI_BUILD)/probe.js: $(E2_MLPEI_OBJECTS) $(E2_MLPEI_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(E2_MLPEI_OBJECTS),$(E2_MLPEI_BUILD)/exports.txt,$@)
+
+$(E2_MLPEI_BUILD)/probe.wasm: $(E2_MLPEI_BUILD)/probe.js
+	@test -s $@
+
+$(E2_MAINLOOP_BUILD)/probe.js: $(E2_MAINLOOP_OBJECTS) $(E2_MAINLOOP_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(E2_MAINLOOP_OBJECTS),$(E2_MAINLOOP_BUILD)/exports.txt,$@)
+
+$(E2_MAINLOOP_BUILD)/probe.wasm: $(E2_MAINLOOP_BUILD)/probe.js
+	@test -s $@
+
+$(FINDING_016_SCHEDULER_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(FINDING_016_SCHEDULER_BUILD)
+	cp $< $@
+	printf '%s\n' _oxsdk_editor_discovery_drain_scheduler >> $@
+
+$(FINDING_016_SCHEDULER_BUILD)/probe.js: $(FINDING_016_SCHEDULER_OBJECTS) \
+		$(FINDING_016_SCHEDULER_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(FINDING_016_SCHEDULER_OBJECTS),$(FINDING_016_SCHEDULER_BUILD)/exports.txt,$@)
+
+$(FINDING_016_SCHEDULER_BUILD)/probe.wasm: $(FINDING_016_SCHEDULER_BUILD)/probe.js
+	@test -s $@
+
+$(FINDING_016_SELECTION_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(FINDING_016_SELECTION_BUILD)
+	cp $< $@
+
+$(FINDING_016_SELECTION_BUILD)/probe.js: $(FINDING_016_SELECTION_OBJECTS) \
+		$(FINDING_016_SELECTION_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(FINDING_016_SELECTION_OBJECTS),$(FINDING_016_SELECTION_BUILD)/exports.txt,$@)
+
+$(FINDING_016_SELECTION_BUILD)/probe.wasm: $(FINDING_016_SELECTION_BUILD)/probe.js
+	@test -s $@
+
+$(E1_DIST)/sdk-manifest.json: $(E1_BUILD)/probe.js \
+		$(E1_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e1_discovery_profile.py \
+		tools/e1_support.py | $(E1_DIST)
+	python3 tools/build_e1_discovery_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E1_BUILD)/probe.js --wasm $(E1_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(E1_DIST)
+	@test -s $(E1_DIST)/probe.js
+	@test -s $(E1_DIST)/probe.wasm
+	@test -s $(E1_DIST)/sdk-worker.js
+
+e1-discovery-profile: $(E1_DIST)/sdk-manifest.json
+
+$(E1_B_DIST)/sdk-manifest.json: $(E1_B_BUILD)/probe.js \
+		$(E1_B_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e1_b_profile.py \
+		tools/e1_support.py | $(E1_B_DIST)
+	python3 tools/build_e1_b_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E1_B_BUILD)/probe.js --wasm $(E1_B_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(E1_B_DIST)
+	@test -s $(E1_B_DIST)/probe.js
+	@test -s $(E1_B_DIST)/probe.wasm
+	@test -s $(E1_B_DIST)/sdk-worker.js
+
+e1-editor-profile: $(E1_B_DIST)/sdk-manifest.json
+
+$(E1_FIX_DIST)/sdk-manifest.json: $(E1_FIX_BUILD)/probe.js \
+		$(E1_FIX_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e1_b_profile.py \
+		tools/e1_support.py | $(E1_FIX_DIST)
+	python3 tools/build_e1_b_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E1_FIX_BUILD)/probe.js --wasm $(E1_FIX_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(E1_FIX_DIST)
+	@test -s $(E1_FIX_DIST)/probe.js
+	@test -s $(E1_FIX_DIST)/probe.wasm
+
+e1-noopfix-profile: $(E1_FIX_DIST)/sdk-manifest.json
+
+$(E2_DIST)/sdk-manifest.json: $(E2_BUILD)/probe.js \
+		$(E2_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e2_discovery_profile.py \
+		tools/e1_support.py | $(E2_DIST)
+	python3 tools/build_e2_discovery_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_BUILD)/probe.js --wasm $(E2_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(E2_DIST)
+	@test -s $(E2_DIST)/probe.js
+	@test -s $(E2_DIST)/probe.wasm
+	@test -s $(E2_DIST)/sdk-worker.js
+
+e2-format-discovery-profile: $(E2_DIST)/sdk-manifest.json
+
+$(E2_SCHED_DIST)/sdk-manifest.json: $(E2_SCHED_BUILD)/probe.js \
+		$(E2_SCHED_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e2_discovery_profile.py \
+		tools/e1_support.py | $(E2_SCHED_DIST)
+	python3 tools/build_e2_discovery_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_SCHED_BUILD)/probe.js --wasm $(E2_SCHED_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(E2_SCHED_DIST) \
+		--profile-name e2-scheduler-attribution \
+		--scope e2-scheduler-attribution \
+		--extra-capability finding-016-scheduler-probe
+	@test -s $(E2_SCHED_DIST)/probe.js
+	@test -s $(E2_SCHED_DIST)/probe.wasm
+	@test -s $(E2_SCHED_DIST)/sdk-worker.js
+
+e2-scheduler-attribution-profile: $(E2_SCHED_DIST)/sdk-manifest.json
+
+$(E2_MAINLOOP_DIST)/sdk-manifest.json: $(E2_MAINLOOP_BUILD)/probe.js \
+		$(E2_MAINLOOP_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e2_discovery_profile.py \
+		tools/e1_support.py | $(E2_MAINLOOP_DIST)
+	python3 tools/build_e2_discovery_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_MAINLOOP_BUILD)/probe.js --wasm $(E2_MAINLOOP_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(E2_MAINLOOP_DIST) \
+		--profile-name e2-mainloop-attribution \
+		--scope e2-mainloop-attribution \
+		--extra-capability mainloop-engine
+	@test -s $(E2_MAINLOOP_DIST)/probe.js
+	@test -s $(E2_MAINLOOP_DIST)/probe.wasm
+	@test -s $(E2_MAINLOOP_DIST)/sdk-worker.js
+
+e2-mainloop-attribution-profile: $(E2_MAINLOOP_DIST)/sdk-manifest.json
+
+$(E2_MLPEI_DIST)/sdk-manifest.json: $(E2_MLPEI_BUILD)/probe.js \
+		$(E2_MLPEI_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e2_discovery_profile.py \
+		tools/e1_support.py | $(E2_MLPEI_DIST)
+	python3 tools/build_e2_discovery_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_MLPEI_BUILD)/probe.js --wasm $(E2_MLPEI_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(E2_MLPEI_DIST) \
+		--profile-name e2-mainloop-pei-attribution \
+		--scope e2-mainloop-pei-attribution \
+		--extra-capability mainloop-engine \
+		--extra-capability finding-016-scheduler-probe
+	@test -s $(E2_MLPEI_DIST)/probe.js
+	@test -s $(E2_MLPEI_DIST)/probe.wasm
+	@test -s $(E2_MLPEI_DIST)/sdk-worker.js
+
+e2-mainloop-pei-attribution-profile: $(E2_MLPEI_DIST)/sdk-manifest.json
+
+$(FINDING_016_SCHEDULER_DIST)/sdk-manifest.json: \
+		$(FINDING_016_SCHEDULER_BUILD)/probe.js \
+		$(FINDING_016_SCHEDULER_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json \
+		tools/build_finding_016_scheduler_profile.py tools/e1_support.py | $(FINDING_016_SCHEDULER_DIST)
+	python3 tools/build_finding_016_scheduler_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(FINDING_016_SCHEDULER_BUILD)/probe.js \
+		--wasm $(FINDING_016_SCHEDULER_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(FINDING_016_SCHEDULER_DIST)
+	@test -s $(FINDING_016_SCHEDULER_DIST)/probe.js
+	@test -s $(FINDING_016_SCHEDULER_DIST)/probe.wasm
+	@test -s $(FINDING_016_SCHEDULER_DIST)/sdk-worker.js
+
+finding-016-scheduler-profile: $(FINDING_016_SCHEDULER_DIST)/sdk-manifest.json
+
+$(FINDING_016_SELECTION_DIST)/sdk-manifest.json: \
+		$(FINDING_016_SELECTION_BUILD)/probe.js \
+		$(FINDING_016_SELECTION_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json \
+		tools/build_finding_016_selection_barrier_profile.py tools/e1_support.py | $(FINDING_016_SELECTION_DIST)
+	python3 tools/build_finding_016_selection_barrier_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(FINDING_016_SELECTION_BUILD)/probe.js \
+		--wasm $(FINDING_016_SELECTION_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(FINDING_016_SELECTION_DIST)
+	@test -s $(FINDING_016_SELECTION_DIST)/probe.js
+	@test -s $(FINDING_016_SELECTION_DIST)/probe.wasm
+	@test -s $(FINDING_016_SELECTION_DIST)/sdk-worker.js
+
+finding-016-selection-barrier-profile: $(FINDING_016_SELECTION_DIST)/sdk-manifest.json
+
+$(FINDING_012_BUILD)/native-lok-probe: tools/finding_012_native_lok.cpp | $(FINDING_012_BUILD)
+	$(HOST_CXX) -std=c++17 -O2 -I$(LOSRC)/include $< -ldl -o $@
+
+$(FINDING_012_DIAGNOSTIC_DIST)/sdk-manifest.json: \
+		$(FINDING_012_DIAGNOSTIC_BUILD)/probe.js \
+		$(FINDING_012_DIAGNOSTIC_BUILD)/probe.wasm \
+		sdk/sdk-worker.js sdk/r6-writer-review-manifest.json \
+		tools/build_finding_012_diagnostic.py | $(FINDING_012_DIAGNOSTIC_DIST)
+	python3 tools/build_finding_012_diagnostic.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(FINDING_012_DIAGNOSTIC_BUILD)/probe.js \
+		--wasm $(FINDING_012_DIAGNOSTIC_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js \
+		--output $(FINDING_012_DIAGNOSTIC_DIST)
+	@test -s $(FINDING_012_DIAGNOSTIC_DIST)/probe.js
+	@test -s $(FINDING_012_DIAGNOSTIC_DIST)/probe.wasm
+	@test -s $(FINDING_012_DIAGNOSTIC_DIST)/sdk-worker.js
+
+dist/profiles/r5-inventory.json: dist/probe.js dist/probe.wasm \
+		$(R5_BUILD)/writer-review/probe.js $(R5_BUILD)/writer-review/probe.wasm \
+		$(R5_BUILD)/writer-reader/probe.js $(R5_BUILD)/writer-reader/probe.wasm \
+		$(CORE_DATA) $(CORE_METADATA) sdk/sdk-worker.js tools/build_r5_profiles.py
+	python3 tools/build_r5_profiles.py \
+		--full-loader dist/probe.js --full-wasm dist/probe.wasm \
+		--review-loader $(R5_BUILD)/writer-review/probe.js \
+		--review-wasm $(R5_BUILD)/writer-review/probe.wasm \
+		--reader-loader $(R5_BUILD)/writer-reader/probe.js \
+		--reader-wasm $(R5_BUILD)/writer-reader/probe.wasm \
+		--data $(CORE_DATA) --metadata $(CORE_METADATA) \
+		--worker sdk/sdk-worker.js --output dist/profiles \
+		--core-commit $(CORE_COMMIT)
+
+r5-profiles: dist/profiles/r5-inventory.json
+
+dist/probe.js: $(OBJECTS) dist/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(CXX) $(OBJECTS) \
+		-L$(LOBUILD)/instdir/program $$(cat $(LINKDEPS)) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --bind \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=65536 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=1 -sEXIT_RUNTIME=0 \
+		-sEXPORTED_RUNTIME_METHODS=ccall,cwrap,FS,UTF8ToString,stringToNewUTF8,HEAPU8,HEAPU16,HEAPU32,registerType,ClassHandle \
+		-sEXPORTED_FUNCTIONS=@dist/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(FS_PRE_JS) \
+		--profiling-funcs \
+		-o $@
+
+dist/probe.wasm: dist/probe.js
+	@test -s $@
+
+dist/soffice.data: $(CORE_DATA) | dist
+	cp $< $@
+
+dist/soffice.data.js.metadata: $(CORE_METADATA) | dist
+	cp $< $@
+
+dist/index.html: web/index.html | dist
+	cp $< $@
+
+# Keep the generated Emscripten loader as dist/probe.js. The browser harness
+# source is web/probe.js, but is copied under a collision-free runtime name.
+dist/app.js: web/probe.js | dist
+	cp $< $@
+
+dist/r2.html: web/r2.html | dist
+	cp $< $@
+
+dist/r2-app.js: web/r2-app.js | dist
+	cp $< $@
+
+dist/r3.html: web/r3.html | dist
+	cp $< $@
+
+dist/r3-app.js: web/r3-app.js | dist
+	cp $< $@
+
+dist/r4.html: web/r4.html | dist
+	cp $< $@
+
+dist/r4-app.js: web/r4-app.js | dist
+	cp $< $@
+
+dist/r5-reader.html: web/r5-reader.html | dist
+	cp $< $@
+
+dist/r5-reader-app.js: web/r5-reader-app.js | dist
+	cp $< $@
+
+dist/r6-discovery.html: web/r6-discovery.html | dist
+	cp $< $@
+
+dist/r6-discovery-app.js: web/r6-discovery-app.js | dist
+	cp $< $@
+
+dist/r7-discovery.html: web/r7-discovery.html | dist
+	cp $< $@
+
+dist/r7-discovery-app.js: web/r7-discovery-app.js | dist
+	cp $< $@
+
+dist/r7-reference.html: web/r7-reference.html | dist
+	cp $< $@
+
+dist/r7-reference-app.js: web/r7-reference-app.js | dist
+	cp $< $@
+
+dist/r7-compatibility.html: web/r7-compatibility.html | dist
+	cp $< $@
+
+dist/r7-compatibility-app.js: web/r7-compatibility-app.js | dist
+	cp $< $@
+
+dist/r7-longevity.html: web/r7-longevity.html | dist
+	cp $< $@
+
+dist/r7-longevity-app.js: web/r7-longevity-app.js | dist
+	cp $< $@
+
+dist/r7-close-minimizer.html: web/r7-close-minimizer.html | dist
+	cp $< $@
+
+dist/r7-close-minimizer-app.js: web/r7-close-minimizer-app.js | dist
+	cp $< $@
+
+dist/r8-discovery.html: web/r8-discovery.html | dist
+	cp $< $@
+
+dist/r8-discovery-app.js: web/r8-discovery-app.js | dist
+	cp $< $@
+
+dist/r8-discovery-sw.js: web/r8-discovery-sw.js | dist
+	cp $< $@
+
+dist/r8-delivery.html: web/r8-delivery.html | dist
+	cp $< $@
+
+dist/r8-delivery-app.js: web/r8-delivery-app.js | dist
+	cp $< $@
+
+dist/delivery/verified-loader.js: delivery/verified-loader.js | dist/delivery
+	cp $< $@
+
+dist/delivery/verified-loader.d.ts: delivery/verified-loader.d.ts | dist/delivery
+	cp $< $@
+
+dist/delivery/release-state.js: delivery/release-state.js | dist/delivery
+	cp $< $@
+
+dist/delivery/release-state.d.ts: delivery/release-state.d.ts | dist/delivery
+	cp $< $@
+
+dist/r8-update.html: web/r8-update.html | dist
+	cp $< $@
+
+dist/r8-update-app.js: web/r8-update-app.js | dist
+	cp $< $@
+
+dist/e1-discovery.html: web/e1-discovery.html | dist
+	cp $< $@
+
+dist/e1-discovery-app.js: web/e1-discovery-app.js | dist
+	cp $< $@
+
+dist/e1-manual-delete.html: web/e1-manual-delete.html | dist
+	cp $< $@
+
+dist/e1-manual-delete-app.js: web/e1-manual-delete-app.js | dist
+	cp $< $@
+
+dist/e1-editor.html: web/e1-editor.html | dist
+	cp $< $@
+
+dist/e1-editor-app.js: web/e1-editor-app.js | dist
+	cp $< $@
+
+dist/e1-c-session-depth-control.html: web/e1-c-session-depth-control.html | dist
+	cp $< $@
+
+dist/e1-c-session-depth-control-app.js: web/e1-c-session-depth-control-app.js | dist
+	cp $< $@
+
+dist/e1-c-session-depth-worker.js: web/e1-c-session-depth-worker.js | dist
+	cp $< $@
+
+dist/e1-c-session-depth-engine-worker.js: web/e1-c-session-depth-engine-worker.js | dist
+	cp $< $@
+
+dist/e1-drag-select-gate.html: web/e1-drag-select-gate.html | dist
+	cp $< $@
+
+dist/e1-drag-select-gate-app.js: web/e1-drag-select-gate-app.js | dist
+	cp $< $@
+
+dist/f018-line-nav-check.html: web/f018-line-nav-check.html | dist
+	cp $< $@
+
+dist/f018-line-nav-app.js: web/f018-line-nav-app.js | dist
+	cp $< $@
+
+dist/demo-editor.html: web/demo-editor.html | dist
+	cp $< $@
+
+dist/demo-editor-app.js: web/demo-editor-app.js | dist
+	cp $< $@
+
+dist/e1-editor-validation.html: web/e1-editor-validation.html | dist
+	cp $< $@
+
+dist/e1-editor-validation-app.js: web/e1-editor-validation-app.js | dist
+	cp $< $@
+
+dist/finding-016-scheduler.html: web/finding-016-scheduler.html | dist
+	cp $< $@
+
+dist/finding-016-scheduler-app.js: web/finding-016-scheduler-app.js | dist
+	cp $< $@
+
+dist/finding-016-selection-barrier.html: web/finding-016-selection-barrier.html | dist
+	cp $< $@
+
+dist/finding-016-selection-barrier-app.js: web/finding-016-selection-barrier-app.js | dist
+	cp $< $@
+
+dist/e1/editor-discovery-client.js: e1/editor-discovery-client.js | dist/e1
+	cp $< $@
+
+dist/e2/format-discovery-client.js: e2/format-discovery-client.js | dist/e2
+	cp $< $@
+
+dist/e2/discovery-matrix-v1.json: e2/discovery-matrix-v1.json | dist/e2
+	cp $< $@
+
+dist/e1-bold-noop-check.html: web/e1-bold-noop-check.html | dist
+	cp $< $@
+
+dist/e1-bold-noop-app.js: web/e1-bold-noop-app.js | dist
+	cp $< $@
+
+dist/e2-format-discovery.html: web/e2-format-discovery.html | dist
+	cp $< $@
+
+dist/e2-format-discovery-app.js: web/e2-format-discovery-app.js | dist
+	cp $< $@
+
+dist/editor-shell/editor-client.js: editor-shell/editor-client.js | dist/editor-shell
+	cp $< $@
+
+dist/editor-shell/editor-client.d.ts: editor-shell/editor-client.d.ts | dist/editor-shell
+	cp $< $@
+
+dist/editor-shell/state-machine.js: editor-shell/state-machine.js | dist/editor-shell
+	cp $< $@
+
+dist/editor-shell/editor-session.js: editor-shell/editor-session.js | dist/editor-shell
+	cp $< $@
+
+dist/sdk/document-sdk.js: sdk/document-sdk.js | dist/sdk
+	cp $< $@
+
+dist/r8-service-worker.js: web/r8-service-worker.js | dist
+	cp $< $@
+
+dist/r8/release-schema-v1.json: r8/release-schema-v1.json | dist/r8
+	cp $< $@
+
+dist/r8/release-manifest.json: r7-assets r8/release-schema-v1.json \
+		tools/r8_release.py tools/build_r8_release_manifest.py | dist/r8
+	python3 tools/build_r8_release_manifest.py --output $@
+
+dist/releases/index.json: dist/r8/release-manifest.json tools/r8_bundle.py \
+		tools/build_r8_bundles.py | dist/releases
+	python3 tools/build_r8_bundles.py --output dist/releases
+
+dist/r8c/release-set.json: dist/releases/index.json tools/r8_bundle.py \
+		tools/build_r8_c_release_set.py | dist/r8c
+	python3 tools/build_r8_c_release_set.py --output dist/r8c
+
+dist/r7.css: web/r7.css | dist
+	cp $< $@
+
+dist/input/input-adapter.js: input/input-adapter.js | dist/input
+	cp $< $@
+
+dist/input/clipboard-adapter.js: input/clipboard-adapter.js | dist/input
+	cp $< $@
+
+dist/r7/page-navigation.js: r7/page-navigation.js | dist/r7
+	cp $< $@
+
+dist/r7/document-preflight.js: r7/document-preflight.js | dist/r7
+	cp $< $@
+
+dist/r7-fixtures/%: test-docs/r7/% | dist/r7-fixtures
+	cp $< $@
+
+dist/r7-compat-fixtures/%: test-docs/r7-compat/% | dist/r7-compat-fixtures
+	cp $< $@
+
+dist/r7-finding-012/%: test-docs/r7-finding-012/% | dist/r7-finding-012
+	cp $< $@
+
+test-docs/e1/manifest.json: tools/create_e1_corpus.py tools/e1_support.py
+	python3 tools/create_e1_corpus.py
+
+dist/e1-fixtures/manifest.json: test-docs/e1/manifest.json | dist/e1-fixtures
+	cp $< $@
+
+dist/e1-fixtures/%.odt: test-docs/e1/%.odt | dist/e1-fixtures
+	cp $< $@
+
+dist/r6-reader.html: web/r6-reader.html | dist
+	cp $< $@
+
+dist/r6-reader-app.js: web/r6-reader-app.js | dist
+	cp $< $@
+
+dist/r6-reference.html: web/r6-reference.html | dist
+	cp $< $@
+
+dist/r6-reference-app.js: web/r6-reference-app.js | dist
+	cp $< $@
+
+dist/r6.css: web/r6.css | dist
+	cp $< $@
+
+dist/reader-shell/%.js: reader-shell/%.js | dist/reader-shell
+	cp $< $@
+
+dist/collaboration/%.js: collaboration/%.js | dist/collaboration
+	cp $< $@
+
+dist/collaboration/%.d.ts: collaboration/%.d.ts | dist/collaboration
+	cp $< $@
+
+dist/profiles/writer-review-r6/sdk-worker.js: sdk/sdk-worker.js | dist/profiles/writer-review-r6
+	cp $< $@
+
+dist/profiles/writer-review-r6/sdk-manifest.json: sdk/r6-writer-review-manifest.json | dist/profiles/writer-review-r6
+	cp $< $@
+
+dist/r6-fixtures/%.odt: test-docs/%.odt | dist/r6-fixtures
+	cp $< $@
+
+dist/document-sdk.js: sdk/document-sdk.js | dist
+	cp $< $@
+
+dist/document-sdk.d.ts: sdk/document-sdk.d.ts | dist
+	cp $< $@
+
+dist/sdk-worker.js: sdk/sdk-worker.js | dist
+	cp $< $@
+
+dist/sdk-manifest.json: sdk/manifest.json | dist
+	cp $< $@
+
+dist/provider-sdk/provider-sdk.js: provider-sdk/provider-sdk.js | dist/provider-sdk
+	cp $< $@
+
+dist/provider-sdk/provider-sdk.d.ts: provider-sdk/provider-sdk.d.ts | dist/provider-sdk
+	cp $< $@
+
+dist/providers/text-translate-descriptor.js: providers/text-translate-descriptor.js | dist/providers
+	cp $< $@
+
+dist/providers/text-translate-provider.js: providers/text-translate-provider.js | dist/providers
+	cp $< $@
+
+dist/providers/text-translate-worker.js: providers/text-translate-worker.js | dist/providers
+	cp $< $@
+
+serve: all
+	python3 web/serve.py
+
+serve-r5: r5
+	python3 web/serve.py
+
+# One command for the demo shell.  Copies the two presentation files and
+# serves dist with the cross-origin isolation headers the engine needs; it does
+# not build anything, so the frozen e1-editor-v1 artifact stays untouched.
+serve-demo: demo-editor-assets
+	@echo "開啟 http://127.0.0.1:8765/demo-editor.html"
+	python3 web/serve.py
+
+test-r2:
+	node --test sdk/tests/*.test.mjs
+	c++ -std=c++17 -Isrc -fsyntax-only tests/abi_header_test.cpp
+
+test-r3: test-r2
+
+test-r4: test-r3
+	node --test provider-sdk/tests/*.test.mjs
+
+test-r5: test-r4
+	node --check sdk/sdk-worker.js
+	python3 -m unittest tests/test_r5_profiles.py
+
+test-r6-a:
+	node --test reader-shell/tests/*.test.mjs
+	node --check web/r6-discovery-app.js
+	node --check web/r6-reader-app.js
+
+test-r6-b: test-r6-a
+	node --test collaboration/tests/*.test.mjs
+	node --check collaboration/contract.js
+	node --check collaboration/domain.js
+	node --check collaboration/reference-service.js
+
+test-r6-c: test-r6-b
+	node --check web/r6-reference-app.js
+	node --check tools/serve_r6_reference.mjs
+
+test-r6-roundtrip:
+	python3 tools/validate_r6_roundtrip.py
+
+test-r6-release:
+	python3 tools/validate_r6_release.py
+
+test-r7-a-static:
+	node --test input/tests/input-adapter.test.mjs
+	python3 -m unittest tests/test_r7_corpus.py
+	node --check input/input-adapter.js
+	node --check web/r7-discovery-app.js
+	python3 -m py_compile tools/create_r7_corpus.py tools/validate_r7_corpus.py \
+		tools/run_r7_discovery.py tools/validate_r7_a.py tools/validate_r7_preflight.py
+
+test-r7-b-static:
+	node --test input/tests/*.test.mjs
+	node --test r7/tests/page-navigation.test.mjs
+	node --check input/input-adapter.js
+	node --check input/clipboard-adapter.js
+	node --check web/r7-reference-app.js
+	python3 -m py_compile tools/r7_support.py tools/run_r7_input.py tools/validate_r7_b.py
+
+test-r7-c-static: test-r7-b-static
+	node --test r7/tests/*.test.mjs
+	python3 -m unittest tests/test_r7_compatibility_corpus.py
+	node --check r7/document-preflight.js
+	node --check web/r7-compatibility-app.js
+	python3 -m py_compile tools/create_r7_compatibility_corpus.py \
+		tools/validate_r7_compatibility_corpus.py tools/run_r7_compatibility.py \
+		tools/validate_r7_c.py tests/test_r7_compatibility_corpus.py
+
+test-r7-d-static: test-r7-c-static
+	node --check web/r7-longevity-app.js
+	python3 -m unittest tests/test_r7_longevity.py
+	python3 -m py_compile tools/r7_longevity_analysis.py tools/run_r7_usability.py \
+		tools/run_r7_longevity.py tools/validate_r7_d.py tests/test_r7_longevity.py
+
+test-r8-a-static: r8-discovery-assets
+	python3 -m unittest tests/test_r8_release.py \
+		tests/test_r8_delivery_server.py tests/test_r8_a.py
+	node --check web/r8-discovery-app.js
+	node --check web/r8-discovery-sw.js
+	python3 -m py_compile tools/r8_release.py tools/build_r8_release_manifest.py \
+		tools/r8_delivery_server.py tools/run_r8_discovery.py \
+		tools/validate_r8_a.py tools/validate_r8_preflight.py \
+		tests/test_r8_release.py tests/test_r8_delivery_server.py tests/test_r8_a.py
+
+test-r8-b-static: r8-delivery-assets
+	python3 -m unittest tests/test_r8_bundle.py tests/test_r8_delivery_server.py
+	python3 -m unittest tests/test_r8_b.py
+	node --test delivery/tests/verified-loader.test.mjs
+	node --check delivery/verified-loader.js
+	node --check web/r8-delivery-app.js
+	python3 -m py_compile tools/r8_bundle.py tools/build_r8_bundles.py \
+		tools/r8_delivery_server.py tools/run_r8_delivery.py \
+		tools/validate_r8_b_preflight.py tools/validate_r8_b_roundtrip.py \
+		tools/validate_r8_b.py tests/test_r8_bundle.py \
+		tests/test_r8_delivery_server.py tests/test_r8_b.py
+
+test-r8-c-static: r8-service-worker-assets
+	python3 -m unittest tests/test_r8_bundle.py tests/test_r8_c.py
+	node --test delivery/tests/verified-loader.test.mjs \
+		delivery/tests/release-state.test.mjs
+	node --check web/r8-service-worker.js
+	node --check web/r8-update-app.js
+	python3 -m py_compile tools/build_r8_c_release_set.py \
+		tools/run_r8_service_worker.py tools/validate_r8_c_preflight.py \
+		tools/validate_r8_c.py tests/test_r8_c.py
+
+test-r8-d-static: test-r8-c-static
+	python3 -m unittest tests/test_r8_d.py
+	python3 -m json.tool r8/production-matrix-v1.json >/dev/null
+	python3 -m py_compile tools/run_r8_production.py tools/validate_r8_d.py \
+		tests/test_r8_d.py
+
+test-e1-a-static:
+	python3 -m unittest tests/test_e1_corpus.py \
+		tests/test_e1_discovery_profile.py tests/test_e1_a.py \
+		tests/test_finding_016_remediation.py
+	node --test e1/tests/editor-discovery-client.test.mjs \
+		sdk/tests/document-sdk.test.mjs
+	node --check e1/editor-discovery-client.js
+	node --check sdk/sdk-worker.js
+	node --check web/e1-discovery-app.js
+	node --check web/e1-manual-delete-app.js
+	python3 -m json.tool e1/discovery-matrix-v1.json >/dev/null
+	c++ -std=c++17 -Isrc -fsyntax-only tests/editor_discovery_abi_header_test.cpp
+	python3 -m py_compile tools/e1_support.py \
+		tools/build_e1_discovery_profile.py tools/create_e1_corpus.py \
+		tools/validate_e1_corpus.py tools/validate_e1_preflight.py \
+		tools/run_e1_discovery.py tools/validate_e1_roundtrip.py \
+		tools/validate_e1_a.py tools/validate_finding_016_remediation.py \
+		tests/test_e1_corpus.py tests/test_e1_discovery_profile.py \
+		tests/test_e1_a.py tests/test_finding_016_remediation.py
+
+test-e1-b-static:
+	python3 -m unittest tests/test_e1_b_profile.py tests/test_e1_b.py
+	node --test editor-shell/tests/*.test.mjs sdk/tests/document-sdk.test.mjs \
+		input/tests/input-adapter.test.mjs reader-shell/tests/tile-scheduler.test.mjs
+	node --check sdk/sdk-worker.js
+	node --check editor-shell/editor-client.js
+	node --check editor-shell/state-machine.js
+	node --check editor-shell/editor-session.js
+	node --check web/e1-editor-app.js
+	c++ -std=c++17 -Isrc -fsyntax-only tests/editor_abi_header_test.cpp
+	python3 -m py_compile tools/build_e1_b_profile.py tools/run_e1_b.py \
+		tools/validate_e1_b.py tests/test_e1_b_profile.py tests/test_e1_b.py
+
+# No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
+# and therefore rebuilds the frozen e1-editor-v1 profile; this target must stay
+# runnable without touching any artifact.
+test-e2-a-static:
+	python3 -m unittest tests/test_e2_profile.py
+	node --check e2/format-discovery-client.js
+	node --check web/e2-format-discovery-app.js
+	node --check sdk/sdk-worker.js
+	python3 -m json.tool e2/discovery-matrix-v1.json >/dev/null
+	python3 -m py_compile tools/build_e2_discovery_profile.py \
+		tools/run_e2_discovery.py tools/analyze_e2_a_native_caret.py \
+		tests/test_e2_profile.py
+	bash -n tools/run_e2_a_native_caret.sh
+	c++ -std=c++17 -fsyntax-only -I$(LOSRC)/include \
+		tools/e2_a_native_caret_tracking.cpp
+
+test-e1-c-static: e1-editor-validation-assets
+	python3 -m unittest tests/test_e1_c.py
+	node --test editor-shell/tests/*.test.mjs sdk/tests/document-sdk.test.mjs \
+		input/tests/*.test.mjs reader-shell/tests/tile-scheduler.test.mjs
+	node --check editor-shell/editor-session.js
+	node --check web/e1-editor-app.js
+	node --check web/e1-editor-validation-app.js
+	python3 -m json.tool e1/validation-matrix-v1.json >/dev/null
+	python3 -m py_compile tools/run_e1_c.py tools/validate_e1_c.py \
+		tests/test_e1_c.py
+
+test-finding-016-scheduler-static:
+	python3 -m unittest tests/test_finding_016_scheduler.py
+	node --test e1/tests/editor-discovery-client.test.mjs
+	node --check sdk/sdk-worker.js
+	node --check web/finding-016-scheduler-app.js
+	python3 -m py_compile tools/build_finding_016_scheduler_profile.py \
+		tools/run_finding_016_scheduler.py tests/test_finding_016_scheduler.py
+
+test-finding-016-selection-barrier-static:
+	python3 -m unittest tests/test_finding_016_selection_barrier.py
+	node --test e1/tests/editor-discovery-client.test.mjs
+	node --check sdk/sdk-worker.js
+	node --check web/finding-016-selection-barrier-app.js
+	python3 -m py_compile \
+		tools/build_finding_016_selection_barrier_profile.py \
+		tools/run_finding_016_selection_barrier.py \
+		tools/validate_finding_016_selection_barrier.py \
+		tests/test_finding_016_selection_barrier.py
+
+test-finding-012-static: test-r7-d-static
+	python3 -m unittest tests/test_finding_012_corpus.py
+	node --check web/r7-close-minimizer-app.js
+	python3 -m py_compile tools/create_finding_012_corpus.py \
+		tools/run_finding_012.py tools/validate_finding_012.py \
+		tests/test_finding_012_corpus.py
+
+test-finding-012-attribution:
+	python3 -m unittest tests/test_finding_012_attribution.py
+	node --check web/r7-close-minimizer-app.js
+	python3 -m py_compile tools/build_finding_012_diagnostic.py \
+		tools/run_finding_012_attribution.py \
+		tools/validate_finding_012_attribution.py \
+		tests/test_finding_012_attribution.py
+
+test-finding-012-native-26-8:
+	python3 -m unittest tests/test_finding_012_native_26_8.py
+	python3 -m py_compile tools/validate_finding_012_native_26_8.py \
+		tests/test_finding_012_native_26_8.py
+
+test-finding-012-remediation:
+	node --test sdk/tests/document-sdk.test.mjs
+	python3 -m unittest tests/test_finding_012_remediation.py
+	node --check sdk/document-sdk.js
+	node --check web/r7-close-minimizer-app.js
+	python3 -m py_compile tools/run_finding_012_remediation.py \
+		tools/validate_finding_012_remediation.py \
+		tests/test_finding_012_remediation.py
+
+clean:
+	rm -f $(OBJECTS) dist/exports.txt dist/probe.js dist/probe.wasm \
+		dist/probe.wasm.debug.wasm \
+		dist/soffice.data dist/soffice.data.js.metadata dist/index.html dist/app.js \
+	dist/r2.html dist/r2-app.js dist/document-sdk.js dist/document-sdk.d.ts \
+	dist/r3.html dist/r3-app.js \
+	dist/r4.html dist/r4-app.js \
+	dist/r5-reader.html dist/r5-reader-app.js \
+	dist/r8-discovery.html dist/r8-discovery-app.js dist/r8-discovery-sw.js \
+	dist/r8/release-schema-v1.json dist/r8/release-manifest.json \
+	dist/sdk-worker.js dist/sdk-manifest.json \
+	dist/provider-sdk/provider-sdk.js dist/provider-sdk/provider-sdk.d.ts \
+	dist/providers/text-translate-descriptor.js \
+	dist/providers/text-translate-provider.js dist/providers/text-translate-worker.js

@@ -1,0 +1,56 @@
+# soffice.wasm 啟動崩潰 — Playwright 主控台紀錄
+# 產生: 2026-07-31T14:18:51+08:00
+# URL: http://127.0.0.1:6933/qt_soffice.html （lite build, --disable-symbols）
+
+==================== CONSOLE ====================
+[  0.0s REQ] qt_soffice.html
+[  0.0s RESP] 200 3229B qt_soffice.html
+[  0.0s REQ] qtlogo.svg
+[  0.0s REQ] qtloader.js
+[  0.0s RESP] 200 3047B qtlogo.svg
+[  0.1s RESP] 200 22298B qtloader.js
+[  0.2s REQ] soffice.js
+[  0.2s REQ] soffice.wasm
+[  0.2s RESP] 200 840059B soffice.js
+[  0.2s RESP] 200 130971980B soffice.wasm
+[  0.6s REQ] soffice.data.js.metadata
+[  0.6s RESP] 200 150276B soffice.data.js.metadata
+[  0.7s REQ] soffice.data
+[  0.7s RESP] 200 102087692B soffice.data
+[  1.0s REQ] 9aba0cc7-cc42-4542-99b0-79ea741d18e4
+[  1.0s WORKER] started blob:http://127.0.0.1:6933/9aba0cc7-cc42-4542-99b0-79ea741d18e4
+[  1.0s RESP] 200 840059B 9aba0cc7-cc42-4542-99b0-79ea741d18e4
+[  1.1s LOG] QRect(0,0 1280x720) 1
+[  1.7s REQ] 55aded06-2be8-4d34-8ecc-0dd5eea62e4c
+[  1.7s WORKER] started blob:http://127.0.0.1:6933/55aded06-2be8-4d34-8ecc-0dd5eea62e4c
+[  1.7s RESP] 200 840059B 55aded06-2be8-4d34-8ecc-0dd5eea62e4c
+[  1.8s LOG] Thread name: "configmgrWriter"
+[  1.9s LOG] worker: onmessage() captured an uncaught exception: [object WebAssembly.Exception]
+[  1.9s LOG] Error: com::sun::star::uno::RuntimeException,
+    at ___throw_exception_with_stack_trace (blob:http://127.0.0.1:6933/9aba0cc7-cc42-4542-99b0-79ea741d18e4:1:130555)
+    at http://127.0.0.1:6933/soffice.wasm:wasm-function[177251]:0x49e1a2c
+    at http://127.0.0.1:6933/soffice.wasm:wasm-function[9907]:0x472ed8
+    at http://127.0.0.1:6933/soffice.wasm:wasm-function[22835]:0x6aafa4
+    at http://127.0.0.1:6933/soffice.wasm:wasm-function[58390]:0x131dd59
+    at http://127.0.0.1:6933/soffice.wasm:wasm-function[58517]:0x1326971
+    at http://127.0.0.1:6933/soffice.wasm:wasm-function[22875]:0x6b03ea
+    at http://127.0.0.1:6933/soffice.wasm:wasm-function[22228]:0x66a299
+    at http://127.0.0.1:6933/soffice.wasm:wasm-function[175847]:0x498e7f8
+    at invokeEntryPoint (blob:http://127.0.0.1:6933/9aba0cc7-cc42-4542-99b0-79ea741d18e4:1:38906)
+[  1.9s LOG] Pthread 0x034de350 sent an error! blob:http://127.0.0.1:6933/9aba0cc7-cc42-4542-99b0-79ea741d18e4:1: Uncaught [object WebAssembly.Exception]
+[  1.9s PAGEERROR] ErrorEvent
+
+[  1.9s PAGEERROR] Exception
+
+==================== PAGE STATE ====================
+{
+  "qtstatus": "Downloading/Compiling...",
+  "canvasDisplay": "block",
+  "canvasSize": [
+    300,
+    150
+  ],
+  "excMsgs": [],
+  "crossOriginIsolated": true,
+  "hasSAB": true
+}

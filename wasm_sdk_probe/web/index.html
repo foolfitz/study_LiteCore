@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LibreOffice WASM SDK Probe — R1</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, sans-serif;
+      line-height: 1.45;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 1120px;
+      padding: 24px;
+    }
+    h1 { margin: 0 0 4px; }
+    p { margin-top: 4px; }
+    .panel {
+      border: 1px solid #8886;
+      border-radius: 10px;
+      margin: 16px 0;
+      padding: 16px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    button, input { font: inherit; }
+    button { min-height: 36px; padding: 5px 12px; }
+    button.primary { font-weight: 700; }
+    label.number { display: inline-flex; align-items: center; gap: 4px; }
+    label.number input { width: 78px; }
+    #status { font-weight: 700; }
+    #canvas {
+      background: white;
+      border: 1px solid #888;
+      display: block;
+      max-width: 100%;
+    }
+    #log {
+      background: #111;
+      color: #ddd;
+      max-height: 360px;
+      min-height: 160px;
+      overflow: auto;
+      padding: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <h1>LibreOffice WASM SDK Probe</h1>
+  <p>R1：MEMFS 開檔、tile 繪製、插入「測」、存回 ODT。</p>
+
+  <section class="panel">
+    <div class="controls">
+      <input id="file" type="file" accept=".odt,application/vnd.oasis.opendocument.text">
+      <button id="start">Start</button>
+      <button id="open">Open</button>
+      <button id="paint">Paint</button>
+      <button id="click">Click</button>
+      <button id="insert">Insert「測」</button>
+      <button id="save">Save</button>
+      <button id="close">Close</button>
+      <button id="run-all" class="primary">Run All</button>
+      <button id="download" disabled>Download out.odt</button>
+      <button id="copy-metrics">Copy metrics JSON</button>
+    </div>
+    <div class="controls" style="margin-top: 12px">
+      <label class="number">Click X <input id="click-x" type="number" value="1700" min="0"></label>
+      <label class="number">Click Y <input id="click-y" type="number" value="1700" min="0"></label>
+      <label class="number">Tile twips <input id="tile-size" type="number" value="7680" min="1"></label>
+      <span>Status: <span id="status">loading module</span></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <canvas id="canvas" width="512" height="512"></canvas>
+  </section>
+
+  <section class="panel">
+    <h2>Event log</h2>
+    <pre id="log"></pre>
+  </section>
+
+  <script src="probe.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

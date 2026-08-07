@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-012-r7-image-axis",
+  "crossBrowserClassification": {
+    "t2-original": "timeout",
+    "t2-image-no-mime": "timeout",
+    "t2-image-no-style-ref": "timeout",
+    "t2-image-no-name-zindex": "timeout",
+    "t2-image-no-clip": "timeout",
+    "t2-image-no-graphic-properties": "timeout",
+    "t2-image-unwrapped": "close-pass",
+    "t2-image-l4-geometry": "timeout",
+    "t2-image-l4-like-frame": "close-pass"
+  },
+  "selected": [
+    {
+      "id": "t2-image-unwrapped",
+      "expectedOutcome": "close-pass",
+      "runs": 3,
+      "reason": "smallest passing image-object change: frame.wrapper"
+    },
+    {
+      "id": "t2-original",
+      "expectedOutcome": "timeout",
+      "runs": 1,
+      "reason": "byte-identical failing control"
+    }
+  ],
+  "pass": true
+}
