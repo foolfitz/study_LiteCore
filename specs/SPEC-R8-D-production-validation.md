@@ -185,6 +185,7 @@ round-trip回歸。保存所有stage evidence、建立finding並停止R8，不�
 |---|---|
 | 2026-08-04 | v1。定義T0/T1/T2、正式scenario、效能、安全、R6/R7回歸與最少人工驗收。 |
 | 2026-08-04 | 完成T0/T1、active-release corpus、30分鐘longevity與回歸；缺T2且保留Firefox Finding 014缺口，判定部分GO。 |
+| 2026-08-08 | 新增§10.1。Firefox的900秒停擺歸因為finding 025（注入腳本從未執行＋WebDriver sandbox），修復後compatibility 28/28、soak 30.07分鐘、R8-C t0 46/t1 37全過；Firefox combined campaign缺口補齊，finding 014的R8-D觀察撤回。T2缺口仍在，判定`PARTIAL_GO_LOCAL_DELIVERY`不變。 |
 
 ## 12. 執行結果（2026-08-04）
 
@@ -219,5 +220,39 @@ round-trip回歸。保存所有stage evidence、建立finding並停止R8，不�
 - **待驗證**：使用者授權的T2 HTTPS/CDN、真browser quota、candidate無須顯式reload的替代產品體驗，以及
   Finding 014根因。這些未被T0/T1或deterministic quota-like failure冒充。
 - **判定：`PARTIAL_GO_LOCAL_DELIVERY`。** 所有13項safety checks為true，未觸發停止條件；缺T2及上述明列
-  缺口，所以不宣稱production CDN SLA或Firefox單一combined campaign已通過。Machine summary：
+  缺口，所以不宣稱production CDN SLA或~~Firefox單一combined campaign~~已通過。Machine summary：
   `findings/evidence/sdk-r8/production/summary.json`。
+  **（刪節號那項 2026-08-08 已補齊，見 §10.1；T2 缺口仍在，判定不變。）**
+
+### 10.1 2026-08-08 Firefox combined campaign 補齊：缺口是 harness，不是瀏覽器
+
+上面「Firefox 以兩種策略啟動 R8-D 都等滿 900 秒、零頁面結果」的成因已歸因並修復，
+是 [finding 025](../findings/025-webdriver-script-injection-never-ran-on-firefox.md)：
+**注入腳本在 Firefox 上從未執行**（`r7_support.evaluate()` 對 Firefox 包成
+`return {expression};`，而多行腳本字串以換行開頭 → ASI → 整份成死碼；
+Chrome 走 CDP 原字串，故不受影響）。修好後又露出第二層——WebDriver sandbox 使產品的
+`globalThis.fetch?.bind(globalThis)` 綁到 sandbox，拋出真實頁面碰不到的
+`RELEASE_MANIFEST_INVALID`；以 `run_in_page()`（`<script>` 元素塞進頁面真 global）根治。
+
+以修好的 harness 重跑（**且未先跑 R8-C**，條件比 2026-08-04 更乾淨）：
+
+| 相位 | 2026-08-04 | 2026-08-08 |
+|---|---|---|
+| compatibility | 兩種策略各等滿 **900 秒**、`completedBatches: 0` | **28/28 份文件通過**；6 批次、12 worker、每頁最高 3（與 Chrome 同形） |
+| longevity soak | 未執行 | **通過**：30.07 分鐘、30 cycles、4 個 worker generation、每頁最高 3；`beforeDispose`／`rollback`／`offlineFinal` 皆 pass；high-water PSS 372 MB |
+| R8-C 回歸 | — | **t0 46/46、t1 37/37 通過**（multi-client 走 `webdriver-tabs`、6.2 秒） |
+
+**這改變什麼、不改變什麼：**
+
+- **改變**：§10「Firefox 部分 GO 組合證據」那條——不再需要用「R7 corpus ＋ R7 soak ＋
+  R8-C」的組合去替代單一 combined run，Firefox 現在**有自己的 combined campaign 證據**。
+  連帶：[finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)
+  的 R8-D 那組觀察撤回（不是 worker generation 耗盡）。
+- **不改變**：判定仍是 `PARTIAL_GO_LOCAL_DELIVERY`——**T2 HTTPS/CDN 缺口與本節無關，仍在**，
+  且需使用者授權。真 browser quota 與 candidate 免 reload 的替代體驗也仍未驗。
+- **未處理**：§7「Finding 014 的 Firefox generation budget 與 reload 提示可觀察」與
+  §8「以凍結 budget 測試產品 reload 策略」兩條的前提已經動搖，但要撤掉產品側的
+  generation budget 需另跑 E1 的每頁 3 代上限矩陣，**本節不撤**。
+
+證據：`findings/evidence/sdk-r8-post-023-fix/`（production／service-worker 全樹；
+2026-08-04 的失敗 attempt 原封保留在 `findings/evidence/sdk-r8/production/attempts/`）。

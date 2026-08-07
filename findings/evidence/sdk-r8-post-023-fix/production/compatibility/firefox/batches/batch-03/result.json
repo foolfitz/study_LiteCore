@@ -1,0 +1,430 @@
+{
+  "phase": "complete",
+  "schemaVersion": 1,
+  "release": "R8-D-production-validation",
+  "releaseId": "writer-review-d6bee07b960a942d",
+  "selectedDocumentIds": [
+    "l0-t3",
+    "l1-plain-odt",
+    "l1-plain-docx"
+  ],
+  "documentCount": 3,
+  "workersStarted": 2,
+  "verifyMs": 1698.36,
+  "cases": [
+    {
+      "id": "l0-t3",
+      "expected": {
+        "open": "pass",
+        "save": "none",
+        "typedCode": null,
+        "degradation": [],
+        "pageCount": 22
+      },
+      "opened": true,
+      "anchors": [
+        {
+          "text": "第 1 頁：長文件記憶體與效能測試",
+          "found": true
+        },
+        {
+          "text": "第 22 頁：長文件記憶體與效能測試",
+          "found": true
+        }
+      ],
+      "tiles": [
+        {
+          "ratio": 0,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 1,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1.5,
+          "width": 192,
+          "height": 192,
+          "bytes": 147456
+        }
+      ],
+      "pass": true,
+      "inputBytes": 44849,
+      "inputSha256": "858d7a0424a1c69a025fc49ff4ff079263af55f3532d573bbe5c6f92e3108e02",
+      "preflight": {
+        "format": "odt",
+        "bytes": 44849,
+        "archive": {
+          "entryCount": 9,
+          "compressedBytes": 43804,
+          "uncompressedBytes": 155346,
+          "compressionRatio": 3.546388457675098,
+          "names": [
+            "mimetype",
+            "Configurations2/",
+            "styles.xml",
+            "manifest.rdf",
+            "content.xml",
+            "meta.xml",
+            "settings.xml",
+            "Thumbnails/thumbnail.png",
+            "META-INF/manifest.xml"
+          ]
+        }
+      },
+      "openMs": 348.8199999999997,
+      "workerGenerations": 1
+    },
+    {
+      "id": "l1-plain-odt",
+      "expected": {
+        "open": "pass",
+        "save": "odt",
+        "typedCode": null,
+        "degradation": []
+      },
+      "opened": true,
+      "anchors": [
+        {
+          "text": "Final line：ODT round-trip 完整性檢查。",
+          "found": true
+        }
+      ],
+      "tiles": [
+        {
+          "ratio": 0,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 1,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1.5,
+          "width": 192,
+          "height": 192,
+          "bytes": 147456
+        }
+      ],
+      "pass": true,
+      "inputBytes": 17885,
+      "inputSha256": "bda964cc3ac3d0d3364f15da0219b0ac11160ebddd797ab444cbe45532b8ec02",
+      "preflight": {
+        "format": "odt",
+        "bytes": 17885,
+        "archive": {
+          "entryCount": 9,
+          "compressedBytes": 16840,
+          "uncompressedBytes": 44299,
+          "compressionRatio": 2.630581947743468,
+          "names": [
+            "mimetype",
+            "Configurations2/",
+            "styles.xml",
+            "manifest.rdf",
+            "content.xml",
+            "meta.xml",
+            "settings.xml",
+            "Thumbnails/thumbnail.png",
+            "META-INF/manifest.xml"
+          ]
+        }
+      },
+      "openMs": 292.9800000000005,
+      "output": {
+        "bytes": 18711,
+        "sha256": "5f26c6fa49a5ac81e38aa5add8327dc0146dc7a21f0b200da028dfc5d90c01f4"
+      },
+      "workerGenerations": 1
+    },
+    {
+      "id": "l1-plain-docx",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "UNSUPPORTED_FORMAT",
+        "degradation": [
+          "finding-013-public-docx-unsupported"
+        ]
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 6136,
+      "inputSha256": "92eeca42f73dc0689b777fd11f85992e5eca798009c2b153c50a49664da1cbfb",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "UNSUPPORTED_FORMAT",
+        "message": "R7 writer-review public capability is ODT-only",
+        "details": {
+          "extension": ".docx"
+        }
+      },
+      "workerGenerations": 0
+    }
+  ],
+  "status": {
+    "instance": "r8c-service-worker-v1",
+    "metadataRecovery": null,
+    "state": {
+      "schemaVersion": 1,
+      "retentionLimit": 3,
+      "sequence": 27,
+      "currentReleaseId": "writer-review-d6bee07b960a942d",
+      "candidate": null,
+      "lastKnownGoodReleaseId": "writer-review-d6bee07b960a942d",
+      "activation": null,
+      "releases": {
+        "writer-review-d6bee07b960a942d": {
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "graphHash": "344860a31349847085b70bdbc2d6f758b506d9d6143e1a8a86f67bcc3e9749f5",
+          "cacheName": "oxsdk-r8c-release-v1-writer-review-d6bee07b960a942d",
+          "status": "active",
+          "health": "passed",
+          "totalArtifacts": 15,
+          "stagedRoles": [
+            "entry-html",
+            "stylesheet",
+            "app-module",
+            "document-sdk",
+            "input-adapter",
+            "clipboard-adapter",
+            "page-navigation",
+            "sdk-worker",
+            "sdk-manifest",
+            "wasm-loader",
+            "wasm-binary",
+            "base-data",
+            "base-metadata",
+            "cjk-data",
+            "cjk-metadata"
+          ],
+          "cachedBytes": 169368534,
+          "barrier": "metadata-before-ready",
+          "updatedAt": null
+        }
+      },
+      "clientPins": {
+        "ccf31a59-18ee-4358-9614-8789a866427a": "writer-review-d6bee07b960a942d"
+      },
+      "journal": [
+        {
+          "sequence": 1,
+          "type": "DISCOVER_CANDIDATE",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 2,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 3,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 4,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 5,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 6,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 7,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 8,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 9,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 10,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 11,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 12,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 13,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 14,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 15,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 16,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 17,
+          "type": "STAGE_READY",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 18,
+          "type": "ACTIVATE_BEGIN",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": [
+            "persist-activation-journal"
+          ]
+        },
+        {
+          "sequence": 19,
+          "type": "ACTIVATE_COMMIT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": [
+            "run-bounded-health-check"
+          ]
+        },
+        {
+          "sequence": 20,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 21,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 22,
+          "type": "HEALTH_PASS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 23,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 24,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 25,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 26,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 27,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        }
+      ]
+    },
+    "validation": {
+      "errors": [],
+      "pass": true
+    },
+    "inventory": {
+      "cacheNames": [
+        "oxsdk-r8c-release-v1-writer-review-d6bee07b960a942d",
+        "oxsdk-r8c-shell-v1"
+      ],
+      "releaseCaches": [
+        {
+          "name": "oxsdk-r8c-release-v1-writer-review-d6bee07b960a942d",
+          "entries": 17
+        }
+      ],
+      "retainedReleaseCount": 1
+    }
+  },
+  "pass": true,
+  "batch": 3,
+  "browser": "firefox",
+  "browserVersion": "153.0.1"
+}

@@ -15,7 +15,7 @@ import urllib.parse
 from pathlib import Path
 from typing import Any
 
-from r7_support import evaluate, load_json, write_json
+from r7_support import evaluate, load_json, run_in_page, write_json
 from run_browser_probe import ChromeSession, FirefoxSession, free_port, wait_http
 
 
@@ -178,7 +178,14 @@ def run_multi_client(
     session = session_class("hot", profile_dir=profile)
     started = time.monotonic()
     try:
-        if isinstance(session, FirefoxSession):
+        # The Firefox-only branch below was written to get around a hang in the
+        # injected-script path.  finding 025 shows that hang was our own bug
+        # (evaluate() built `return \n <script>`, ASI made it dead code), so the
+        # branch may now be retirable -- two browsers on two code paths is exactly
+        # what makes them incomparable.  This env var forces Firefox down the
+        # shared path so that can be measured; default behaviour is unchanged.
+        force_injected = os.environ.get("OXSDK_R8C_FORCE_INJECTED_MULTICLIENT") == "1"
+        if isinstance(session, FirefoxSession) and not force_injected:
             parent_handle = session.command("GET", "/window")
             navigate(session, page_url(app_origin, {
                 "topology": topology, "artifactOrigin": artifact_origin, "action": "status",
@@ -277,7 +284,7 @@ def run_multi_client(
         }
         expression = f"""
           (() => {{
-            globalThis.__r8_multi_result = null;
+            window.__r8_multi_result = null;
             const waitFrame = (frame) => new Promise((resolve, reject) => {{
               const started = performance.now();
               const poll = () => {{
@@ -334,8 +341,8 @@ def run_multi_client(
                   && pinValues.includes({json.dumps(release_b['releaseId'])})
               }};
             }})().then(
-              value => {{ globalThis.__r8_multi_result = value; }},
-              error => {{ globalThis.__r8_multi_result = {{
+              value => {{ window.__r8_multi_result = value; }},
+              error => {{ window.__r8_multi_result = {{
                 pass: false,
                 error: {{ name: error?.name || 'Error', message: String(error?.message || error) }}
               }}; }}
@@ -343,7 +350,7 @@ def run_multi_client(
             return true;
           }})()
         """
-        evaluate(session, expression)
+        run_in_page(session, expression)
         deadline = time.monotonic() + timeout
         value = None
         while time.monotonic() < deadline:

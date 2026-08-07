@@ -94,7 +94,44 @@ def process_snapshot(root_pid: int, page_state: dict[str, Any] | None = None) ->
 def evaluate(session: ChromeSession | FirefoxSession, expression: str) -> Any:
     if isinstance(session, ChromeSession):
         return session.evaluate(expression)
-    return session.execute(f"return {expression};")
+    # .strip() is load-bearing, not tidiness.  WebDriver runs the body as a
+    # function, so this becomes `return <expression>;` -- and if the expression
+    # starts with a newline (every multi-line injected script does), JavaScript's
+    # automatic semicolon insertion turns it into `return;` and the rest is dead
+    # code that never runs.  Chrome is unaffected: CDP evaluates the raw
+    # expression with no `return` wrapper, so the same script works there.
+    # That asymmetry is exactly what made R8-D "hang" only on Firefox: the
+    # injected batch script never executed, so the value the runner polled for
+    # was never set, and it waited out the full 900 s timeout.
+    # Measured 2026-08-08: `return \n (()=>{window.x='ran';return 'v'})()`
+    # -> null and window.x stays unset; stripped -> 'v' and window.x === 'ran'.
+    return session.execute(f"return {expression.strip()};")
+
+
+def run_in_page(session: ChromeSession | FirefoxSession, script: str) -> None:
+    """Execute `script` in the page's OWN global, not the driver's sandbox.
+
+    Firefox's WebDriver evaluates injected scripts in a sandbox whose global is
+    not the page window, and that breaks more than variable writes.  Product
+    code that legitimately defaults to `globalThis.fetch?.bind(globalThis)`
+    (delivery/verified-loader.js) then binds fetch to the sandbox, and every
+    call throws "'fetch' called on an object that does not implement interface
+    Window" -- surfacing as a RELEASE_MANIFEST_INVALID at stage manifest-fetch,
+    i.e. the harness manufacturing a delivery error that no real page can hit.
+
+    Appending a <script> element makes the browser run the text in the real page
+    global, in both browsers.  Chrome's CDP path never had the problem; running
+    both the same way is what makes the two browsers comparable at all.
+    """
+    evaluate(
+        session,
+        "(() => {"
+        " const element = document.createElement('script');"
+        f" element.textContent = {json.dumps(script)};"
+        " document.head.appendChild(element);"
+        " element.remove();"
+        " return true; })()",
+    )
 
 
 def wait_page(url: str, timeout: float = 30) -> None:

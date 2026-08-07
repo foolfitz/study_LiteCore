@@ -1,0 +1,689 @@
+{
+  "phase": "complete",
+  "schemaVersion": 1,
+  "release": "R8-D-production-validation",
+  "releaseId": "writer-review-d6bee07b960a942d",
+  "selectedDocumentIds": [
+    "l2-qa-redlines-and-comments",
+    "l3-truncated-odt",
+    "l3-truncated-docx",
+    "l3-bad-central",
+    "l3-missing-content",
+    "l3-format-mismatch",
+    "l3-unknown",
+    "l3-too-large",
+    "l3-entry-limit",
+    "l3-ratio-limit",
+    "l3-external",
+    "l4-stress-100"
+  ],
+  "documentCount": 12,
+  "workersStarted": 2,
+  "verifyMs": 1622.0599999999997,
+  "cases": [
+    {
+      "id": "l2-qa-redlines-and-comments",
+      "expected": {
+        "open": "pass",
+        "save": "none",
+        "typedCode": null,
+        "degradation": []
+      },
+      "opened": true,
+      "anchors": [
+        {
+          "text": "Lorem ipsum",
+          "found": true
+        }
+      ],
+      "tiles": [
+        {
+          "ratio": 0,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 1,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1.5,
+          "width": 192,
+          "height": 192,
+          "bytes": 147456
+        }
+      ],
+      "pass": true,
+      "inputBytes": 13408,
+      "inputSha256": "4d27378e369bce79a4d59c5bc4b88cbddaec490bdf3c994e204c9e7d6cbab0e2",
+      "preflight": {
+        "format": "odt",
+        "bytes": 13408,
+        "archive": {
+          "entryCount": 8,
+          "compressedBytes": 12487,
+          "uncompressedBytes": 92676,
+          "compressionRatio": 7.421798670617442,
+          "names": [
+            "mimetype",
+            "manifest.rdf",
+            "Configurations2/",
+            "styles.xml",
+            "settings.xml",
+            "meta.xml",
+            "content.xml",
+            "META-INF/manifest.xml"
+          ]
+        }
+      },
+      "openMs": 448.82000000000016,
+      "workerGenerations": 1
+    },
+    {
+      "id": "l3-truncated-odt",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "CORRUPT_DOCUMENT",
+        "degradation": []
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 17628,
+      "inputSha256": "c83495093915aa82f169c1547e0e97312d4e5928a506141c8c803fffcdcb5cc7",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "CORRUPT_DOCUMENT",
+        "message": "ZIP central directory is missing",
+        "details": {}
+      },
+      "workerGenerations": 0
+    },
+    {
+      "id": "l3-truncated-docx",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "UNSUPPORTED_FORMAT",
+        "degradation": []
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 5879,
+      "inputSha256": "4270720dedaaea3d4ecb4aff3cd5cb0ce53cdfee863035bca7c9a8d13e51e135",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "UNSUPPORTED_FORMAT",
+        "message": "R7 writer-review public capability is ODT-only",
+        "details": {
+          "extension": ".docx"
+        }
+      },
+      "workerGenerations": 0
+    },
+    {
+      "id": "l3-bad-central",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "CORRUPT_DOCUMENT",
+        "degradation": []
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 17885,
+      "inputSha256": "32b7f4d564572b1234da0df2d0b2b60bd2bcded7bf83118078cd58f8e652d02c",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "CORRUPT_DOCUMENT",
+        "message": "ZIP central directory is missing",
+        "details": {}
+      },
+      "workerGenerations": 0
+    },
+    {
+      "id": "l3-missing-content",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "CORRUPT_DOCUMENT",
+        "degradation": []
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 16064,
+      "inputSha256": "d72beed580680644dbcaa6738e836073967357a1728a81ad87cabb10086a0f03",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "CORRUPT_DOCUMENT",
+        "message": "required ODT package entries are missing",
+        "details": {
+          "missing": [
+            "content.xml"
+          ]
+        }
+      },
+      "workerGenerations": 0
+    },
+    {
+      "id": "l3-format-mismatch",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "UNSUPPORTED_FORMAT",
+        "degradation": []
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 6136,
+      "inputSha256": "92eeca42f73dc0689b777fd11f85992e5eca798009c2b153c50a49664da1cbfb",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "UNSUPPORTED_FORMAT",
+        "message": "DOCX bytes cannot use the ODT-only public capability",
+        "details": {
+          "detectedFormat": "docx"
+        }
+      },
+      "workerGenerations": 0
+    },
+    {
+      "id": "l3-unknown",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "UNSUPPORTED_FORMAT",
+        "degradation": []
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 40,
+      "inputSha256": "8c814c90b464f08d318d49a27140c9a58928250c92251e631924dd980eea82e9",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "UNSUPPORTED_FORMAT",
+        "message": "R7 writer-review public capability is ODT-only",
+        "details": {
+          "extension": ".bin"
+        }
+      },
+      "workerGenerations": 0
+    },
+    {
+      "id": "l3-too-large",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "DOCUMENT_TOO_LARGE",
+        "degradation": []
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 5242884,
+      "inputSha256": "202a77ed18cff6e7fe6725a5c493253840d1a7805da25cf119ca4889bec97613",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "DOCUMENT_TOO_LARGE",
+        "message": "compressed document size limit exceeded",
+        "details": {
+          "bytes": 5242884,
+          "maxFileBytes": 5242880
+        }
+      },
+      "workerGenerations": 0
+    },
+    {
+      "id": "l3-entry-limit",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "DOCUMENT_TOO_LARGE",
+        "degradation": []
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 251375,
+      "inputSha256": "46be3e6e62fd4375e957d27816e09047de3796dd39c33c0139fa9919223d5edb",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "DOCUMENT_TOO_LARGE",
+        "message": "ZIP entry limit exceeded",
+        "details": {
+          "entryCount": 2058
+        }
+      },
+      "workerGenerations": 0
+    },
+    {
+      "id": "l3-ratio-limit",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "DOCUMENT_TOO_LARGE",
+        "degradation": []
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 26063,
+      "inputSha256": "b8c6815d950b22d0b33384547c70f8447e4ea2649d571f341923712e74bbab45",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "DOCUMENT_TOO_LARGE",
+        "message": "ZIP expanded size or compression ratio limit exceeded",
+        "details": {
+          "uncompressedBytes": 8432907,
+          "compressionRatio": 337.3432674613969
+        }
+      },
+      "workerGenerations": 0
+    },
+    {
+      "id": "l3-external",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "UNSUPPORTED_FORMAT",
+        "degradation": []
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 5975,
+      "inputSha256": "165d28e6e7c0639258711096bba76b2ea1fd14d45e0b3419b398d1aba5662a65",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "UNSUPPORTED_FORMAT",
+        "message": "R7 writer-review public capability is ODT-only",
+        "details": {
+          "extension": ".docx"
+        }
+      },
+      "workerGenerations": 0
+    },
+    {
+      "id": "l4-stress-100",
+      "expected": {
+        "open": "pass",
+        "save": "none",
+        "typedCode": null,
+        "degradation": [],
+        "pageCount": 100
+      },
+      "opened": true,
+      "anchors": [
+        {
+          "text": "R7 stress page 001 頁面錨點",
+          "found": true
+        },
+        {
+          "text": "R7 stress page 050 頁面錨點",
+          "found": true
+        },
+        {
+          "text": "R7 stress page 100 頁面錨點",
+          "found": true
+        }
+      ],
+      "tiles": [
+        {
+          "ratio": 0,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 1,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1.5,
+          "width": 192,
+          "height": 192,
+          "bytes": 147456
+        }
+      ],
+      "pass": true,
+      "inputBytes": 35772,
+      "inputSha256": "ae648d6bae96d82ce6636434c9dbba3ec75af07489a59b9fcce4c7af07f5e2ef",
+      "preflight": {
+        "format": "odt",
+        "bytes": 35772,
+        "archive": {
+          "entryCount": 10,
+          "compressedBytes": 34707,
+          "uncompressedBytes": 123231,
+          "compressionRatio": 3.550609387155329,
+          "names": [
+            "mimetype",
+            "Configurations2/",
+            "styles.xml",
+            "manifest.rdf",
+            "content.xml",
+            "meta.xml",
+            "settings.xml",
+            "Thumbnails/thumbnail.png",
+            "META-INF/manifest.xml",
+            "Pictures/r7-test.png"
+          ]
+        }
+      },
+      "openMs": 360.8600000000006,
+      "workerGenerations": 1
+    }
+  ],
+  "status": {
+    "instance": "r8c-service-worker-v1",
+    "metadataRecovery": null,
+    "state": {
+      "schemaVersion": 1,
+      "retentionLimit": 3,
+      "sequence": 33,
+      "currentReleaseId": "writer-review-d6bee07b960a942d",
+      "candidate": null,
+      "lastKnownGoodReleaseId": "writer-review-d6bee07b960a942d",
+      "activation": null,
+      "releases": {
+        "writer-review-d6bee07b960a942d": {
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "graphHash": "344860a31349847085b70bdbc2d6f758b506d9d6143e1a8a86f67bcc3e9749f5",
+          "cacheName": "oxsdk-r8c-release-v1-writer-review-d6bee07b960a942d",
+          "status": "active",
+          "health": "passed",
+          "totalArtifacts": 15,
+          "stagedRoles": [
+            "entry-html",
+            "stylesheet",
+            "app-module",
+            "document-sdk",
+            "input-adapter",
+            "clipboard-adapter",
+            "page-navigation",
+            "sdk-worker",
+            "sdk-manifest",
+            "wasm-loader",
+            "wasm-binary",
+            "base-data",
+            "base-metadata",
+            "cjk-data",
+            "cjk-metadata"
+          ],
+          "cachedBytes": 169368534,
+          "barrier": "metadata-before-ready",
+          "updatedAt": null
+        }
+      },
+      "clientPins": {
+        "fea6b078-3317-4649-b6a5-a2274100fe64": "writer-review-d6bee07b960a942d"
+      },
+      "journal": [
+        {
+          "sequence": 1,
+          "type": "DISCOVER_CANDIDATE",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 2,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 3,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 4,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 5,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 6,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 7,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 8,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 9,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 10,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 11,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 12,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 13,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 14,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 15,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 16,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 17,
+          "type": "STAGE_READY",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 18,
+          "type": "ACTIVATE_BEGIN",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": [
+            "persist-activation-journal"
+          ]
+        },
+        {
+          "sequence": 19,
+          "type": "ACTIVATE_COMMIT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": [
+            "run-bounded-health-check"
+          ]
+        },
+        {
+          "sequence": 20,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 21,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 22,
+          "type": "HEALTH_PASS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 23,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 24,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 25,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 26,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 27,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 28,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 29,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 30,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 31,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 32,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 33,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        }
+      ]
+    },
+    "validation": {
+      "errors": [],
+      "pass": true
+    },
+    "inventory": {
+      "cacheNames": [
+        "oxsdk-r8c-release-v1-writer-review-d6bee07b960a942d",
+        "oxsdk-r8c-shell-v1"
+      ],
+      "releaseCaches": [
+        {
+          "name": "oxsdk-r8c-release-v1-writer-review-d6bee07b960a942d",
+          "entries": 17
+        }
+      ],
+      "retainedReleaseCount": 1
+    }
+  },
+  "pass": true,
+  "batch": 6,
+  "browser": "firefox",
+  "browserVersion": "153.0.1"
+}

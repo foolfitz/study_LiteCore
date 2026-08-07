@@ -35,8 +35,12 @@ CDN／真實 HTTPS 拓樸的延遲與 header 結論必須標示實際環境，�
 - R7 machine summary 為 `PARTIAL_GO_ODT_FIRST`。ODT corpus、host input、review flow、bounded Worker
   recovery 與桌面 round-trip 可作 R8 回歸基線。
 - R7 正式限制為：DOCX public open unsupported（finding 013）、Cangjie／Pinyin未驗證、document-content
-  accessibility與安全 hyperlink activation unsupported，以及 Firefox大量重建大型WASM Worker的generation
-  exhaustion（finding 014）。R8 不得把 delivery 成功誤寫成這些功能已解決。
+  accessibility與安全 hyperlink activation unsupported，以及 ~~Firefox大量重建大型WASM Worker的generation
+  exhaustion（finding 014）~~。R8 不得把 delivery 成功誤寫成這些功能已解決。
+  **（2026-08-08：刪節號那項撤回——finding 014 的成因是我方 harness 的 unread pipe
+  （[023](../findings/023-sdk-init-wedges-at-fixed-session-depth.md)）與注入腳本從未執行
+  （[025](../findings/025-webdriver-script-injection-never-ran-on-firefox.md)），
+  R7-D 正式九輪與 R8-D 重跑後皆全過。其餘三項限制不變。）**
 - 現有 `web/serve.py` 只提供固定 COOP／COEP、content-hash cache header 與 `no-cache` entry；沒有預壓縮、
   release slot、Service Worker、故障注入、rollback或真實跨origin矩陣。
 - 現有 Chrome CDP、Firefox WebDriver runner、R7 corpus／memory工具與desktop LibreOffice validator可重用；
@@ -228,8 +232,12 @@ cache inventory、SW lifecycle與browser log，建立finding後決定縮小scope
 - R8-C已完成並判定`PARTIAL_GO`：Chrome／Firefox T0/T1的atomic stage／activate、client pin、offline、repair、
   rollback、interrupt與deterministic storage failure均通過；真quota及顯式reload仍是缺口。
 - R8-D已完成並判定`PARTIAL_GO_LOCAL_DELIVERY`：13項safety checks全為true；Chrome active-release 28份corpus
-  與30.038分鐘soak通過，Firefox依Finding 014保留combined-run缺口並採明列的組合證據。未提供T2，所以不宣稱
+  與30.038分鐘soak通過，~~Firefox依Finding 014保留combined-run缺口並採明列的組合證據~~。未提供T2，所以不宣稱
   production CDN SLA；R8主線可結案並進入ODT-first基本編輯器規格盤點。
+  **（2026-08-08：Firefox combined-run 缺口已補齊——成因是
+  [finding 025](../findings/025-webdriver-script-injection-never-ran-on-firefox.md)
+  的 harness 缺陷而非瀏覽器；重跑後 compatibility 28/28、soak 30.07 分鐘、R8-C t0 46／t1 37
+  全過。見 [R8-D §10.1](./SPEC-R8-D-production-validation.md)。**T2 缺口仍在，判定不變。**）**
 - 延後的基本編輯器不是R8範圍，但已列為R10深層裁切前的產品能力閘門。
 
 ## 13. 修訂紀錄
@@ -241,3 +249,4 @@ cache inventory、SW lifecycle與browser log，建立finding後決定縮小scope
 | 2026-08-04 | R8-B完成並判定PARTIAL GO；direct delivery安全gate全通過，下一步R8-C atomic offline/update/recovery。 |
 | 2026-08-04 | R8-C完成並判定PARTIAL GO；原子更新、offline、rollback與last-known-good跨瀏覽器成立。 |
 | 2026-08-04 | R8-D完成；所有local safety gate通過，缺T2及Firefox Finding 014 combined-run缺口，R8判定PARTIAL_GO_LOCAL_DELIVERY。 |
+| 2026-08-08 | Firefox combined-run缺口補齊（成因為finding 025的harness缺陷，非瀏覽器）：R8-D compatibility 28/28、soak 30.07分鐘、R8-C t0 46／t1 37全過。finding 014相關限制撤回。T2缺口仍在，R8判定不變。 |

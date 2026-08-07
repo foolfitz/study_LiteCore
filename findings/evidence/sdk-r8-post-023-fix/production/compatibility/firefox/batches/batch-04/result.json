@@ -1,0 +1,460 @@
+{
+  "phase": "complete",
+  "schemaVersion": 1,
+  "release": "R8-D-production-validation",
+  "releaseId": "writer-review-d6bee07b960a942d",
+  "selectedDocumentIds": [
+    "l1-layout-table-image-odt",
+    "l1-layout-table-image-docx",
+    "l1-review-odt",
+    "l1-review-docx"
+  ],
+  "documentCount": 4,
+  "workersStarted": 3,
+  "verifyMs": 1750.5200000000004,
+  "cases": [
+    {
+      "id": "l1-layout-table-image-odt",
+      "expected": {
+        "open": "pass",
+        "save": "none",
+        "typedCode": null,
+        "degradation": []
+      },
+      "opened": true,
+      "anchors": [
+        {
+          "text": "文件結尾：請確認表格、圖片、註解與標題樣式均保留。",
+          "found": true
+        }
+      ],
+      "tiles": [
+        {
+          "ratio": 0,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 1,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1.5,
+          "width": 192,
+          "height": 192,
+          "bytes": 147456
+        }
+      ],
+      "pass": true,
+      "inputBytes": 33278,
+      "inputSha256": "0f69906035cb5d96f86b034cf2596994d5de82ee6347a47c00f35784c9888d31",
+      "preflight": {
+        "format": "odt",
+        "bytes": 33278,
+        "archive": {
+          "entryCount": 10,
+          "compressedBytes": 32067,
+          "uncompressedBytes": 66023,
+          "compressionRatio": 2.058907911560171,
+          "names": [
+            "mimetype",
+            "Configurations2/",
+            "styles.xml",
+            "manifest.rdf",
+            "content.xml",
+            "meta.xml",
+            "settings.xml",
+            "Pictures/1000000000000280000001683AABDCFE.png",
+            "Thumbnails/thumbnail.png",
+            "META-INF/manifest.xml"
+          ]
+        }
+      },
+      "openMs": 398.22000000000025,
+      "workerGenerations": 2
+    },
+    {
+      "id": "l1-layout-table-image-docx",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "UNSUPPORTED_FORMAT",
+        "degradation": [
+          "finding-013-public-docx-unsupported"
+        ]
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 25416,
+      "inputSha256": "15708a75d562adad7ac4975cb44a6247a905d0d1db7973bf3fc8b42e2d4b3b7c",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "UNSUPPORTED_FORMAT",
+        "message": "R7 writer-review public capability is ODT-only",
+        "details": {
+          "extension": ".docx"
+        }
+      },
+      "workerGenerations": 0
+    },
+    {
+      "id": "l1-review-odt",
+      "expected": {
+        "open": "pass",
+        "save": "none",
+        "typedCode": null,
+        "degradation": []
+      },
+      "opened": true,
+      "anchors": [
+        {
+          "text": "Lorem ipsum",
+          "found": true
+        }
+      ],
+      "tiles": [
+        {
+          "ratio": 0,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 1,
+          "scale": 1,
+          "width": 128,
+          "height": 128,
+          "bytes": 65536
+        },
+        {
+          "ratio": 0.5,
+          "scale": 1.5,
+          "width": 192,
+          "height": 192,
+          "bytes": 147456
+        }
+      ],
+      "pass": true,
+      "inputBytes": 13408,
+      "inputSha256": "4d27378e369bce79a4d59c5bc4b88cbddaec490bdf3c994e204c9e7d6cbab0e2",
+      "preflight": {
+        "format": "odt",
+        "bytes": 13408,
+        "archive": {
+          "entryCount": 8,
+          "compressedBytes": 12487,
+          "uncompressedBytes": 92676,
+          "compressionRatio": 7.421798670617442,
+          "names": [
+            "mimetype",
+            "manifest.rdf",
+            "Configurations2/",
+            "styles.xml",
+            "settings.xml",
+            "meta.xml",
+            "content.xml",
+            "META-INF/manifest.xml"
+          ]
+        }
+      },
+      "openMs": 446.1800000000003,
+      "workerGenerations": 1
+    },
+    {
+      "id": "l1-review-docx",
+      "expected": {
+        "open": "typed-failure",
+        "save": "none",
+        "typedCode": "UNSUPPORTED_FORMAT",
+        "degradation": [
+          "finding-013-public-docx-unsupported"
+        ]
+      },
+      "opened": false,
+      "anchors": [],
+      "tiles": [],
+      "pass": true,
+      "inputBytes": 11722,
+      "inputSha256": "f5260432fd7660558b4e73bd8164069ee26ad402bc735a4ddf64d28aafc460e2",
+      "error": {
+        "name": "DocumentPreflightError",
+        "code": "UNSUPPORTED_FORMAT",
+        "message": "R7 writer-review public capability is ODT-only",
+        "details": {
+          "extension": ".docx"
+        }
+      },
+      "workerGenerations": 0
+    }
+  ],
+  "status": {
+    "instance": "r8c-service-worker-v1",
+    "metadataRecovery": null,
+    "state": {
+      "schemaVersion": 1,
+      "retentionLimit": 3,
+      "sequence": 29,
+      "currentReleaseId": "writer-review-d6bee07b960a942d",
+      "candidate": null,
+      "lastKnownGoodReleaseId": "writer-review-d6bee07b960a942d",
+      "activation": null,
+      "releases": {
+        "writer-review-d6bee07b960a942d": {
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "graphHash": "344860a31349847085b70bdbc2d6f758b506d9d6143e1a8a86f67bcc3e9749f5",
+          "cacheName": "oxsdk-r8c-release-v1-writer-review-d6bee07b960a942d",
+          "status": "active",
+          "health": "passed",
+          "totalArtifacts": 15,
+          "stagedRoles": [
+            "entry-html",
+            "stylesheet",
+            "app-module",
+            "document-sdk",
+            "input-adapter",
+            "clipboard-adapter",
+            "page-navigation",
+            "sdk-worker",
+            "sdk-manifest",
+            "wasm-loader",
+            "wasm-binary",
+            "base-data",
+            "base-metadata",
+            "cjk-data",
+            "cjk-metadata"
+          ],
+          "cachedBytes": 169368534,
+          "barrier": "metadata-before-ready",
+          "updatedAt": null
+        }
+      },
+      "clientPins": {
+        "b6ca96e3-9c74-409d-9b14-e29db0297a73": "writer-review-d6bee07b960a942d"
+      },
+      "journal": [
+        {
+          "sequence": 1,
+          "type": "DISCOVER_CANDIDATE",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 2,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 3,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 4,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 5,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 6,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 7,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 8,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 9,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 10,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 11,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 12,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 13,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 14,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 15,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 16,
+          "type": "STAGE_PROGRESS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 17,
+          "type": "STAGE_READY",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 18,
+          "type": "ACTIVATE_BEGIN",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": [
+            "persist-activation-journal"
+          ]
+        },
+        {
+          "sequence": 19,
+          "type": "ACTIVATE_COMMIT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": [
+            "run-bounded-health-check"
+          ]
+        },
+        {
+          "sequence": 20,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 21,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 22,
+          "type": "HEALTH_PASS",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 23,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 24,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 25,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 26,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 27,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        },
+        {
+          "sequence": 28,
+          "type": "UNPIN_CLIENT",
+          "releaseId": null,
+          "actions": []
+        },
+        {
+          "sequence": 29,
+          "type": "PIN_CLIENT",
+          "releaseId": "writer-review-d6bee07b960a942d",
+          "actions": []
+        }
+      ]
+    },
+    "validation": {
+      "errors": [],
+      "pass": true
+    },
+    "inventory": {
+      "cacheNames": [
+        "oxsdk-r8c-release-v1-writer-review-d6bee07b960a942d",
+        "oxsdk-r8c-shell-v1"
+      ],
+      "releaseCaches": [
+        {
+          "name": "oxsdk-r8c-release-v1-writer-review-d6bee07b960a942d",
+          "entries": 17
+        }
+      ],
+      "retainedReleaseCount": 1
+    }
+  },
+  "pass": true,
+  "batch": 4,
+  "browser": "firefox",
+  "browserVersion": "153.0.1"
+}

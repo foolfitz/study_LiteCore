@@ -16,7 +16,7 @@ import urllib.parse
 from pathlib import Path
 from typing import Any
 
-from r7_support import evaluate, write_json
+from r7_support import evaluate, run_in_page, write_json
 from r8_release import load_json
 from run_browser_probe import ChromeSession, FirefoxSession, free_port, wait_http
 
@@ -37,16 +37,32 @@ def wait_value(session: ChromeSession | FirefoxSession, expression: str,
                timeout: float, complete: callable) -> Any:
     deadline = time.monotonic() + timeout
     last = None
+    # Every evaluate() failure used to be swallowed by a bare `except: pass`,
+    # so a session whose evaluate ALWAYS throws (stale window, dead browsing
+    # context, driver error) reported exactly the same thing as a page that
+    # simply never finished: "timed out: None", after the full timeout, with
+    # nothing to tell them apart.  R8-D's Firefox stall sat on that for four
+    # days.  Keep the last error and count them: a poll loop that hides the one
+    # error explaining its own failure is the same mistake as finding 023.
+    last_error: str | None = None
+    error_count = 0
+    poll_count = 0
     while time.monotonic() < deadline:
+        poll_count += 1
         try:
             raw = evaluate(session, f"JSON.stringify({expression})")
             last = json.loads(raw) if raw else None
             if complete(last):
                 return last
-        except Exception:
-            pass
+        except Exception as error:  # noqa: BLE001 - recorded, not silenced
+            error_count += 1
+            last_error = f"{type(error).__name__}: {error}"
         time.sleep(0.25)
-    raise TimeoutError(f"R8-D browser value timed out: {last}")
+    raise TimeoutError(
+        f"R8-D browser value timed out: {last}"
+        f" (polls={poll_count}, evaluateErrors={error_count},"
+        f" lastEvaluateError={last_error})"
+    )
 
 
 def wait_page(session: ChromeSession | FirefoxSession, timeout: float = 900) -> dict[str, Any]:
@@ -136,9 +152,19 @@ def fresh_active_release(session: ChromeSession | FirefoxSession, origin: str,
 
 
 def compatibility_script(release_id: str, selected_ids: list[str]) -> str:
+    # State an injected script publishes for the runner to poll MUST be written
+    # to `window.`, never `globalThis.`.  Firefox's WebDriver evaluates injected
+    # scripts in a sandbox whose global is not the page window, so a
+    # `globalThis.X = ...` write lands on the sandbox and the next execute/sync
+    # -- a different sandbox -- sees nothing.  Chrome (CDP Runtime.evaluate)
+    # runs on the real window, which is why this only ever failed on Firefox.
+    # Measured 2026-08-08: write via globalThis -> next call reads null; write
+    # via window -> next call reads the value; Chrome persists either way.
+    # Reads may stay on `globalThis.` (the sandbox has window on its prototype
+    # chain, so page-set globals like __r8_update_command resolve fine).
     return f"""
       (() => {{
-        globalThis.__r8d_compatibility = {{ phase: 'running', pass: false }};
+        window.__r8d_compatibility = {{ phase: 'running', pass: false }};
         const serializeError = error => ({{
           name: error?.name || 'Error', code: error?.code || 'DOCUMENT_OPEN_FAILED',
           message: String(error?.message || error), details: error?.details || null
@@ -256,8 +282,8 @@ def compatibility_script(release_id: str, selected_ids: list[str]) -> str:
             await globalThis.__r8_update_command('unpin').catch(() => {{}});
           }}
         }})().then(
-          value => {{ globalThis.__r8d_compatibility = {{ phase: 'complete', ...value }}; }},
-          error => {{ globalThis.__r8d_compatibility = {{
+          value => {{ window.__r8d_compatibility = {{ phase: 'complete', ...value }}; }},
+          error => {{ window.__r8d_compatibility = {{
             phase: 'failed', error: serializeError(error), pass: false
           }}; }}
         );
@@ -332,7 +358,7 @@ def run_compatibility(project: Path, evidence: Path, browser: str, timeout: floa
             status_page = wait_page(session, timeout)
             if status_page.get("pass") is not True:
                 raise RuntimeError("R8-D compatibility status page failed")
-            evaluate(session, compatibility_script(ids["A"], selected_ids))
+            run_in_page(session, compatibility_script(ids["A"], selected_ids))
             batch_result = wait_value(
                 session, "globalThis.__r8d_compatibility || null", timeout,
                 lambda value: bool(value) and value.get("phase") in {"complete", "failed"},
@@ -413,12 +439,15 @@ def process_memory(root_pid: int) -> dict[str, int]:
 
 def async_result(session: ChromeSession | FirefoxSession, name: str, body: str,
                  timeout: float = 900) -> dict[str, Any]:
+    # window[...], and run_in_page(): the same two Firefox sandbox hazards the
+    # compatibility path hit -- a globalThis write lands on the sandbox, and
+    # product code binding fetch to globalThis then throws on every call.
     expression = f"""
       (() => {{
-        globalThis[{json.dumps(name)}] = null;
+        window[{json.dumps(name)}] = null;
         Promise.resolve().then(async () => {{ {body} }}).then(
-          value => globalThis[{json.dumps(name)}] = {{ pass: true, value }},
-          error => globalThis[{json.dumps(name)}] = {{ pass: false, error: {{
+          value => window[{json.dumps(name)}] = {{ pass: true, value }},
+          error => window[{json.dumps(name)}] = {{ pass: false, error: {{
             name: error?.name || 'Error', code: error?.code || 'UNCLASSIFIED_ERROR',
             message: String(error?.message || error)
           }} }}
@@ -426,7 +455,7 @@ def async_result(session: ChromeSession | FirefoxSession, name: str, body: str,
         return true;
       }})()
     """
-    evaluate(session, expression)
+    run_in_page(session, expression)
     return wait_value(session, f"globalThis[{json.dumps(name)}]", timeout, lambda value: value is not None)
 
 
@@ -456,7 +485,7 @@ def run_soak(project: Path, evidence: Path, browser: str, minutes: float,
             policy: 'standard', transport: 'identity', cacheMode: 'warm',
             artifactOrigin: location.origin, requireIsolation: true, timeoutMs: 600000
           }});
-          globalThis.__r8d_soak_session = await delivery.startVerifiedEngine(verified, {{
+          window.__r8d_soak_session = await delivery.startVerifiedEngine(verified, {{
             timeoutMs: 180000,
             workerFactory(url) {{ return new Worker(url, {{ name: 'r8-d-long-lived-a' }}); }}
           }});
@@ -581,7 +610,11 @@ def run_soak(project: Path, evidence: Path, browser: str, minutes: float,
         before_dispose = async_result(session, "__r8d_soak_before_dispose", """
           return await globalThis.__r8_update_command('status');
         """, 60)
-        evaluate(session, "globalThis.__r8d_soak_session?.dispose(); globalThis.__r8d_soak_session = null; true")
+        # One expression, not three statements: evaluate() wraps the body in
+        # `return <expr>;`, so `a; b; c` would return a and leave b and c as
+        # dead code -- the session would be disposed but never nulled.
+        evaluate(session, "(() => { window.__r8d_soak_session?.dispose();"
+                          " window.__r8d_soak_session = null; return true; })()")
         async_result(session, "__r8d_soak_unpin", """
           await globalThis.__r8_update_command('unpin'); return true;
         """, 60)

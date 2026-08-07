@@ -52,9 +52,15 @@
 **這些不會因為本檔撤回而自動失效**——要撤掉限制得各自重跑對應矩陣。**在那之前不得
 把「上限已解除」寫進任何規格或產品。**
 
-進度：**R7-D 已完成**（2026-08-08 重跑正式九輪，`summary.pass: true`，證據
-`evidence/sdk-r7/longevity-post-023-fix/firefox/`）。R8-D combined run 與 E1 的
-每頁 3 代上限**尚未重跑**，限制照舊有效。
+進度：
+
+- **R7-D 已完成**（2026-08-08 重跑正式九輪，`summary.pass: true`，證據
+  `evidence/sdk-r7/longevity-post-023-fix/firefox/`）。
+- **R8-D compatibility 已完成**（2026-08-08 **28/28**，證據
+  `evidence/sdk-r8-post-023-fix/production/compatibility/firefox/`）——成因是
+  [finding 025](025-webdriver-script-injection-never-ran-on-firefox.md)，注入腳本
+  在 Firefox 上從未執行。
+- E1 的**每頁 3 代上限尚未重跑，限制照舊有效**。
 
 （R7-D 的判定並沒有因此變成完整 GO——§8 的 GO 還要求 DOM accessibility 狀態正確，
 而 document-content accessibility／完整 headed keyboard／Orca 至今未收集。
@@ -68,7 +74,7 @@
 |---|---|---|
 | `s2-fresh`／`s3` 的牆（第 34／36／37／38 個 worker） | **finding 023 的 `serve.py` pipe（已確認，實驗＋算術）** | 見下「位元組帳」與上表的重跑結果 |
 | R7-C 單頁多 Worker／快速多 session 的 init、navigation 耗盡 | **未定**（原記 024，已降級） | 同一支 harness、同一條 pipe 當時都在；未重跑 |
-| R8-D 兩種策略都等滿 900 秒且沒有任何頁面結果 | **未定**（原記 024，已降級） | `r8_delivery_server.py:73` 的 `log_message` 是 no-op，**server pipe 已排除**；但 geckodriver pipe 未排除（見下） |
+| R8-D 兩種策略都等滿 900 秒且沒有任何頁面結果 | **[finding 025](025-webdriver-script-injection-never-ran-on-firefox.md)（已確認，實驗）** | 注入腳本在 Firefox 上**從未執行**（`evaluate()` 包成 `return`＋換行 → ASI）。修好後同一相位 **28/28 全過**，且這次沒先跑 R8-C，條件比當年更乾淨。三條 pipe 全部排除：server 端 `log_message` 是 no-op，driver 端 900 秒全程僅 **926 B** |
 
 ### 位元組帳：牆的位置是算得出來的（已觀察）
 
