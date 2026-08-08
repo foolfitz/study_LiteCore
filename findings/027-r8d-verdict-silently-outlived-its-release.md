@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | 已確認（mtime ＋ 確定性重建 ＋ `make -n` 三方一致）；修復campaign已重跑 |
+| **狀態** | 已確認（mtime ＋ 確定性重建 ＋ `make -n` 三方一致）；**修復只完成一半**——campaign 重跑了 R8-D 自己的四個相位，R8-B／R8-C 的證據仍是 08-04、仍綁已刪除的 release，**判定現為 `STOP`**（見〈修復不完整〉） |
 | **發現日** | 2026-08-08（重跑 R8-D soak 後 `validate_r8_d.py` 由 `PARTIAL_GO_LOCAL_DELIVERY` 變成 `STOP`，追下去才發現） |
 | **嚴重度** | 一般偏高：判定會在無人察覺的情況下描述一個不存在的 release |
 | **可重現** | 100 %（靜態事實） |
@@ -86,6 +86,45 @@ compatibility 的每一項與 08-04 歷史紀錄**逐項相同**（28／6／12�
 （該目標會重建 release set），三個 id **逐字不變**，`validate_r8_d.py` 仍 `pass: true`。
 因為 bundle 內容自 campaign 起未再變動——這也再次確認 builder 的確定性。
 
+## 修復不完整（2026-08-08 補，已觀察）
+
+**上一節說的「四個相位」是 R8-D 自己的四個瀏覽器相位；R8-D 的判定實際吃六個證據家族。
+另外兩個沒有重跑，而且到補寫這一節為止仍綁在那個已經不存在的 release 上。**
+
+| 證據家族 | mtime | 記的 release | 現行 dist/ 應為 |
+|---|---|---|---|
+| `production/compatibility/{chrome,firefox}` | 08-08 14:52／14:53 | `d6bee07b…` | 相符 |
+| `production/longevity/{chrome,firefox}` | 08-08 15:24／15:54 | `d6bee07b…`（A／B／C 全記） | 相符 |
+| `delivery/summary.json`（R8-B） | **08-04 13:49** | `5fa3ca0d…`／`687bd4d8…` | `d6bee07b…`／`da9e9a18…` |
+| `service-worker/summary.json`（R8-C） | **08-04 15:56** | `5fa3ca0d…`／`29680a2e…`／`07f2694e…` | `d6bee07b…`／`2a409589…`／`b8993a6e…` |
+
+那兩份證據描述的 release 目錄**已經被 builder `rmtree` 掉了**（`build_r8_c_release_set.py:72-76`、
+`r8_bundle.py:289-293` 刪除 `old_ids - current_ids`）：`dist/r8c/releases/` 現在只剩
+`d6bee07b`／`2a409589`／`b8993a6e`。bundle 必要位元組由 169,355,716 變成 169,368,534
+（**差 12,818 B**），來源就是 08-07 那次 `sdk-worker.js` 變更——不是空白調整。
+
+**為什麼上一節沒發現：**`safetyChecks.r8b` 與 `r8c` 只看 `summary.json` 的 `pass` 欄位
+（`validate_r8_d.py` 原 241-242 行），**完全沒有比對 release**。本檔開頭說
+`activeCachedRelease`「沒有壞，只是沒機會執行到會失敗那一刻」——這句話對 compatibility 成立，
+但對 R8-B／R8-C 不成立：**那裡根本沒有這道閘門**。三份證據各自記了
+`releaseIds`／`bundles[].releaseId`／`releaseSet.index.releases[].releaseId`，
+寫下來卻沒有人讀，等於沒記。
+
+**已修（`7e66554`）：**`validate_r8_d.release_binding()` 六個家族全查，比對對象改成
+**當下從 `dist/` 重算**的身分（`source_bytes()` ＋ `bundle_manifest()`，不落地、不讀
+`dist/r8c/release-set.json`、0.7 秒）。release id 本身就是 bundle 內容的雜湊
+（`r8_release.expected_release_id()` 對 manifest 取 SHA-256，而 manifest 的
+`artifacts[].sha256` 由現場檔案重算），所以不需要另外再記一份 bundle 雜湊。
+沒記 release 的證據與記錯的證據**一律 fail**。
+
+**判定因此變差，這是它本來就該有的值：`PARTIAL_GO_LOCAL_DELIVERY` → `STOP`**
+（bound 4、superseded 2）。要救回來只能重跑 R8-B 與 R8-C 的瀏覽器相位，不能改門檻。
+兩者各 166 個 case、`runnerElapsedMs` 合計 4.3 分與 3.9 分（已觀察，由 08-04 證據加總）。
+
+**正控制（已觀察）：**用 symlink 影子 `dist/`，對被 bundle 的 `r7.css` 加一個位元組，
+四個身分全變（`d6bee07b…`→`922814f9…` 等），**全程不跑 `make`**；不擾動時則逐字重現現行 id。
+同一次真實執行裡兩種極性都出現：四個相位 bound、兩個 superseded。
+
 ## 待處理（未做）——已寫成交接文件待決
 
 三件都會改動 Makefile 語意、證據擺放慣例或驗證判準，屬流程決定，因此只記錄未動手。
@@ -93,10 +132,14 @@ compatibility 的每一項與 08-04 歷史紀錄**逐項相同**（28／6／12�
 （含硬約束、驗證判準，以及一個更上層的問題：本檔與 025／026 的四個缺陷是不是同一個病、
 有沒有一條通則能一次擋掉）。
 
-1. **讓過期可被偵測，而不是等 make。**最省的作法：把「證據記的 releaseId」與「bundle 內容雜湊」
-   一起記進證據，validator 直接重算 bundle 雜湊比對，不經過 `dist/` 的快取狀態。
+1. ~~**讓過期可被偵測，而不是等 make。**~~ **已做（`7e66554`）**，見〈修復不完整〉。
+   原本寫的作法（另記一份 bundle 內容雜湊）是多餘的：**release id 本身就是那個雜湊**，
+   validator 只要在判定當下重算一次即可，不必新增欄位、也不必動證據格式。
 2. **`*-static` 目標不該改動建置產物**，或至少改名，讓「static」名副其實。
 3. **證據根統一**：`sdk-r8` 與 `sdk-r8-post-023-fix` 並存會讓「修好了」與「判定看得到」脫節。
+   **注意**：`sdk-r8-post-023-fix/service-worker/` 底下 08-08 03:05 的重跑**已經綁在
+   `d6bee07b…`**（已觀察，見該處 `result.json` 的 `releaseSet`），也就是說 R8-C 那一半
+   「修好的證據」其實已經存在，只是在 validator 讀不到的根裡。R8-B 則**沒有**任何重跑證據。
 
 ## 證據
 
@@ -111,3 +154,8 @@ compatibility 的每一項與 08-04 歷史紀錄**逐項相同**（28／6／12�
 - 2026-08-08：建檔。起因是重跑 soak 後判定變 STOP；追查發現 `compatibility` 的
   `activeCachedRelease` 失敗，再回溯到 08-07 的 `sdk-worker.js` 變更。
   一併記錄「static 目標會重建」與「證據根分裂」兩個同族問題。
+- 2026-08-08（第二次）：**〈修復〉一節高估了修復範圍，已補〈修復不完整〉更正。**
+  R8-D 吃六個證據家族，campaign 只重跑了四個；R8-B／R8-C 的證據仍是 08-04、
+  仍綁 `5fa3ca0d…`，而它們那一側**從來就沒有 release 閘門**——所以本檔開頭
+  「閘門沒壞，只是沒機會失敗」這句話只對 compatibility 成立。
+  待處理第 1 項同時完成（`7e66554`），判定由 `PARTIAL_GO_LOCAL_DELIVERY` 變 `STOP`。
