@@ -351,7 +351,20 @@ def desktop_required(entry: dict[str, Any]) -> bool:
     return False
 
 
-def validate_outputs(cases: list[dict[str, Any]], skip_desktop: bool) -> dict[str, Any]:
+def recorded_roundtrips(previous: dict[str, Any]) -> dict[tuple[str, str, str], dict[str, Any]]:
+    """Index a previous roundtrip summary by case identity."""
+    return {
+        (item.get("phase"), item.get("browser"), item.get("case")): item
+        for item in previous.get("documents", [])
+        if item.get("phase") and item.get("browser") and item.get("case")
+    }
+
+
+def validate_outputs(cases: list[dict[str, Any]], skip_desktop: bool,
+                     previous: dict[str, Any] | None = None,
+                     refresh_desktop: bool = False) -> dict[str, Any]:
+    recorded = recorded_roundtrips(previous or {})
+    reused_count = 0
     documents = []
     for entry in cases:
         directory = Path(entry["directory"])
@@ -368,7 +381,27 @@ def validate_outputs(cases: list[dict[str, Any]], skip_desktop: bool) -> dict[st
             for value in forbidden
         ]
         need_desktop = desktop_required(entry)
-        if need_desktop and not skip_desktop:
+        # Reuse a recorded round-trip when the input ODT is byte-identical to
+        # the one it was recorded from.  Re-running rewrites desktop.pdf, and
+        # LibreOffice stamps a fresh CreationDate into every export, so the run
+        # can never reproduce the recorded pdfSha256 anyway -- validating was
+        # silently mutating the evidence it was validating, every single time.
+        source_sha = sha256(source) if source.is_file() else None
+        prior = recorded.get((entry["phase"], entry["browser"], entry["case"]))
+        prior_desktop = (prior or {}).get("desktop") or {}
+        can_reuse = (
+            not refresh_desktop
+            and prior is not None
+            and source_sha is not None
+            and prior.get("sha256") == source_sha
+            and prior_desktop.get("pass") is True
+            and prior_desktop.get("skipped") is not True
+            and (directory / "desktop.pdf").is_file()
+        )
+        if need_desktop and can_reuse:
+            desktop = {**prior_desktop, "reused": True}
+            reused_count += 1
+        elif need_desktop and not skip_desktop:
             desktop = desktop_pdf_roundtrip(source, directory / "desktop.pdf")
         elif need_desktop:
             desktop = {"pass": True, "skipped": True}
@@ -389,7 +422,7 @@ def validate_outputs(cases: list[dict[str, Any]], skip_desktop: bool) -> dict[st
             "case": entry["case"],
             "path": str(source),
             "bytes": source.stat().st_size if source.is_file() else None,
-            "sha256": sha256(source) if source.is_file() else None,
+            "sha256": source_sha,
             "inspection": {
                 key: inspected.get(key)
                 for key in ("exists", "zip", "crc", "xml", "paragraphs", "headings", "lists", "tables")
@@ -404,6 +437,10 @@ def validate_outputs(cases: list[dict[str, Any]], skip_desktop: bool) -> dict[st
         "release": "E1-C-editor-validation",
         "documents": documents,
         "desktopRequired": sum(desktop_required(item) for item in cases),
+        "desktopReused": reused_count,
+        "desktopSkipped": sum(
+            1 for item in documents if (item.get("desktop") or {}).get("skipped") is True
+        ),
         "pass": bool(documents) and all(item["pass"] for item in documents),
     }
 
@@ -556,6 +593,12 @@ def main() -> None:
         default=workspace / "findings" / "evidence" / "sdk-e1" / "editor-validation",
     )
     parser.add_argument("--skip-desktop", action="store_true")
+    parser.add_argument(
+        "--refresh-desktop", action="store_true",
+        help="re-run every desktop round-trip even when the input ODT is "
+        "unchanged, overwriting the recorded desktop.pdf files.  Off by "
+        "default so validating does not mutate the evidence it validates",
+    )
     parser.add_argument("--run-regression", action="store_true")
     parser.add_argument("--write-preflight", choices=("before", "after"))
     args = parser.parse_args()
@@ -579,7 +622,11 @@ def main() -> None:
     cases, phases = collect_cases(root)
     binding = artifact_binding(cases, project)
     write_json(root / "inventory" / "artifact-binding.json", binding)
-    outputs = validate_outputs(cases, args.skip_desktop)
+    outputs = validate_outputs(
+        cases, args.skip_desktop,
+        previous=load_json(root / "roundtrip" / "summary.json", {}),
+        refresh_desktop=args.refresh_desktop,
+    )
     write_json(root / "roundtrip" / "summary.json", outputs)
     manual = manual_gate(root, project)
     regression = run_regression(project, root) if args.run_regression else load_json(
