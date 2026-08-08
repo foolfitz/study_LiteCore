@@ -10,12 +10,25 @@ import os
 from pathlib import Path
 from typing import Any, Iterable
 
+from build_r8_c_release_set import CANDIDATE_VARIANT, RETENTION_VARIANT
+from r8_bundle import bundle_manifest, source_bytes
 from r8_release import load_json, sha256_file, write_json
 
 
 CORE_COMMIT = "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb"
 LOADER_SHA256 = "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566"
 WASM_SHA256 = "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6"
+
+# Every release identity R8 can ship, keyed by the (fidelity policy, variant
+# marker) pair that produces it.  R8-B ships two policies; R8-C ships three
+# slots of the standard policy.
+RELEASE_VARIANTS: dict[str, tuple[str, str | None]] = {
+    "r8b-standard": ("standard", None),
+    "r8b-full-fidelity": ("full-fidelity", None),
+    "r8c-A": ("standard", None),
+    "r8c-B": ("standard", CANDIDATE_VARIANT),
+    "r8c-C": ("standard", RETENTION_VARIANT),
+}
 
 
 def percentile(values: Iterable[float], quantile: float) -> float | None:
@@ -100,6 +113,114 @@ def longevity_check(path: Path, minimum_minutes: float, browser: str) -> dict[st
         "summaryPass": value.get("pass") is True,
     }
     return {"path": str(path), "checks": checks, "pass": all(checks.values())}
+
+
+def expected_release_identities(project: Path) -> dict[str, str]:
+    """Recompute every release identity from dist/ as it stands right now.
+
+    A release ID *is* a content hash: expected_release_id() digests the release
+    manifest, and bundle_manifest() fills that manifest's artifacts[].sha256
+    from the bytes currently on disk.  So this answers "what would today's
+    dist/ be called", without writing a staging tree and without consulting
+    dist/r8c/release-set.json.
+
+    Not consulting that file is the entire point.  activeCachedRelease compares
+    the evidence against the release *set file*, and on 2026-08-07 both sides
+    went stale together: the bundled sdk-worker.js changed, nothing recomputed
+    the identity, and the verdict described a release that no longer existed
+    for four days -- until a make target happened to rebuild the set (finding
+    027).  A cache cannot notice that it is out of date; only a recomputation
+    can.  Costs ~0.7 s: it re-reads and re-hashes the 17 bundled artifacts.
+    """
+    source = load_json(project / "dist" / "r8" / "release-manifest.json")
+    identities: dict[str, str] = {}
+    for key, (policy, marker) in RELEASE_VARIANTS.items():
+        values = {
+            item["role"]: source_bytes(project, item, policy, marker)
+            for item in source["artifacts"]
+        }
+        identities[key] = bundle_manifest(project, policy, values)["releaseId"]
+    return identities
+
+
+def release_binding(root: Path, project: Path,
+                    expected: dict[str, str] | None = None) -> dict[str, Any]:
+    """Bind every phase's evidence to the release identity dist/ has right now.
+
+    validate_e1_c.artifact_binding does this for E1-C's 48 browser cases.  R8-D
+    consumed six evidence families and checked the release of exactly one of
+    them -- compatibility, via activeCachedRelease, and against a cache at that.
+    Longevity records releaseIds, delivery records its bundle IDs and
+    service-worker records the whole release set; all three were written down
+    and never read, which is the same as not recording them.
+
+    Absence binds no better than mismatch.  Evidence that never named the
+    release it ran against is not weaker proof than stale evidence, it is none.
+    """
+    expected = expected_release_identities(project) if expected is None else expected
+    r8c_slots = {slot: expected[f"r8c-{slot}"] for slot in ("A", "B", "C")}
+    families: list[dict[str, Any]] = []
+
+    def bind(family: str, path: Path, want: Any, extract: Any) -> None:
+        value = load_json(path) if path.is_file() else None
+        observed = extract(value) if value is not None else None
+        if not observed:
+            reason = "evidence does not record the release it ran against"
+        elif observed != want:
+            reason = "evidence was produced against a superseded release"
+        else:
+            reason = None
+        families.append({
+            "family": family, "path": str(path), "expected": want,
+            "observed": observed, "pass": reason is None, "reason": reason,
+        })
+
+    for browser in ("chrome", "firefox"):
+        bind(
+            f"compatibility:{browser}",
+            root / "production" / "compatibility" / browser / "summary.json",
+            expected["r8c-A"], lambda value: value.get("releaseId"),
+        )
+        bind(
+            f"longevity:{browser}",
+            root / "production" / "longevity" / browser / "summary.json",
+            r8c_slots, lambda value: value.get("releaseIds"),
+        )
+    bind(
+        "delivery", root / "delivery" / "summary.json",
+        {"standard": expected["r8b-standard"],
+         "full-fidelity": expected["r8b-full-fidelity"]},
+        lambda value: {
+            item.get("policy"): item.get("releaseId")
+            for item in ((value.get("bundles") or {}).get("releases") or [])
+        },
+    )
+    bind(
+        # validate_r8_c stores the loaded release set under releaseSet.index --
+        # the per-case result.json puts the same array one level higher, under
+        # releaseSet.releases.  Read only the shape this producer writes; a
+        # tolerant lookup would report a drifted schema as "unattributable"
+        # and hide the drift behind the right verdict.
+        "service-worker", root / "service-worker" / "summary.json", r8c_slots,
+        lambda value: {
+            item.get("slot"): item.get("releaseId")
+            for item in (((value.get("releaseSet") or {}).get("index") or {})
+                         .get("releases") or [])
+        },
+    )
+    counted = lambda reason: sum(1 for item in families if item["reason"] == reason)  # noqa: E731
+    return {
+        "schemaVersion": 1,
+        "release": "R8-D-production-validation",
+        "expected": expected,
+        "families": families,
+        "boundFamilies": sum(1 for item in families if item["pass"]),
+        "supersededFamilies": counted("evidence was produced against a superseded release"),
+        "unattributableFamilies": counted(
+            "evidence does not record the release it ran against"
+        ),
+        "pass": bool(families) and all(item["pass"] for item in families),
+    }
 
 
 def performance_summary(delivery: dict[str, Any], service_worker: dict[str, Any]) -> dict[str, Any]:
@@ -236,8 +357,10 @@ def main() -> None:
     }
     network["pass"] = network["t0t1DirectDelivery"] and network["t0t1ServiceWorker"]
     baseline_after = root / "service-worker" / "baseline" / "preflight-after.json"
+    binding = release_binding(root, project)
     safety_checks = {
         "matrixSchema": matrix.get("schemaVersion") == 1,
+        "releaseBinding": binding["pass"],
         "r8c": r8c.get("pass") is True and r8c.get("decision") in {"GO", "PARTIAL_GO"},
         "r8b": delivery.get("pass") is True,
         "compatibility": compatibility_accepted,
@@ -270,7 +393,12 @@ def main() -> None:
         gaps.append(firefox_longevity_value["formalGap"])
     if firefox_compatibility_fallback or firefox_longevity_fallback:
         gaps.append("Firefox worker-generation budget requires bounded reuse and full browser reload guidance")
+    if not binding["pass"]:
+        gaps.append(
+            "R8 browser evidence is not bound to the release currently in dist/"
+        )
     performance = performance_summary(delivery, r8c)
+    write_json(root / "production" / "release-binding.json", binding)
     write_json(root / "production" / "performance" / "summary.json", {
         "schemaVersion": 1, "release": "R8-D-production-validation",
         "measurements": performance, "t2Included": t2_pass, "pass": True,
@@ -297,6 +425,7 @@ def main() -> None:
         "artifacts": {"loaderSha256": LOADER_SHA256, "wasmSha256": WASM_SHA256},
         "matrixSha256": sha256_file(project / "r8" / "production-matrix-v1.json"),
         "releaseIds": {item["slot"]: item["releaseId"] for item in release_set["releases"]},
+        "releaseBinding": binding,
         "safetyChecks": safety_checks,
         "compatibility": compatibility,
         "compatibilityAcceptance": {
@@ -338,7 +467,16 @@ def main() -> None:
     })
     print(json.dumps({
         "output": str(output), "topLevel": str(top), "decision": decision,
-        "safetyChecks": safety_checks, "formalGaps": gaps, "pass": summary["pass"],
+        "safetyChecks": safety_checks,
+        "releaseBinding": {
+            key: binding[key] for key in
+            ("boundFamilies", "supersededFamilies", "unattributableFamilies")
+        },
+        "unboundEvidence": [
+            {"family": item["family"], "reason": item["reason"]}
+            for item in binding["families"] if not item["pass"]
+        ],
+        "formalGaps": gaps, "pass": summary["pass"],
     }, ensure_ascii=False, indent=2))
     if decision == "STOP":
         raise SystemExit(1)
