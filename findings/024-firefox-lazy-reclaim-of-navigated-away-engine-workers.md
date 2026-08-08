@@ -110,6 +110,15 @@ finding 名下。**2026-08-08 已撤回那個歸屬**：014 的核心證據（R7
 - 現行 `EditorSession` 生命週期（close→terminate）已是這個形狀；要補的是
   「使用者沒走 close 就導覽」的路徑。
 
+**「名額即時歸還」已由直接量測證實（已觀察，2026-08-08）**，不再只是推論：把預算縮到
+`dom.workers.maxPerDomain=64`（＝8 代份的名額）後，**同一個頁面連續 50 代全過**
+（50 建 50 拆、active 0）——若頁內 `dispose()` 也像導覽拆除那樣惰性，牆會在第 8 代。
+同組的正控制 `=4`（比一代所需的 8 還少）讓**第 1 代**就以本 finding 的靜默排隊簽章死掉
+（`init timed out after 120000 ms`、零 worker 錯誤），證明 pref 確實生效。
+**本 finding 的惰性回收只咬導覽拆除，不咬頁內 dispose**——這正是上述對策有效的機制。
+證據：`findings/evidence/sdk-r7/single-page-generations-pref/maxperdomain-{4,64}/firefox/s2-fresh/run-1/result.json`
+（詳見 [finding 014](014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈`dom.workers.maxPerDomain` 判別〉）。
+
 ## 還缺什麼才能送（Mozilla）
 
 - [x] **最小重現頁已完成並自測**（2026-08-07）：

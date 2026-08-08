@@ -141,6 +141,36 @@ def merge_fresh_metrics(batches: list[dict], target_cycles: int) -> dict:
     return merged
 
 
+def parse_firefox_prefs(items: list[str]) -> dict[str, object]:
+    """Parse repeated NAME=VALUE pref arguments; JSON values where possible."""
+    prefs: dict[str, object] = {}
+    for item in items:
+        name, _, raw = item.partition("=")
+        if not name or not _:
+            raise SystemExit(f"--firefox-pref expects NAME=VALUE, got {item!r}")
+        try:
+            prefs[name] = json.loads(raw)
+        except json.JSONDecodeError:
+            prefs[name] = raw
+    return prefs
+
+
+def open_session(
+    session_class: type[ChromeSession] | type[FirefoxSession],
+    args: argparse.Namespace,
+) -> ChromeSession | FirefoxSession:
+    """Open a cold session, applying --firefox-pref when the browser is firefox.
+
+    Prefs are the only handle we have on a *browser* budget, so this is what
+    turns "50 generations passed" into an attribution: shrink the budget and
+    watch whether the wall moves with it (finding 024's method).
+    """
+    prefs = parse_firefox_prefs(args.firefox_pref)
+    if prefs and session_class is FirefoxSession:
+        return session_class("cold", extra_prefs=prefs)
+    return session_class("cold")
+
+
 def run_one(
     session_class: type[ChromeSession] | type[FirefoxSession],
     base_url: str,
@@ -154,7 +184,7 @@ def run_one(
 ) -> dict:
     root = browser_root / scenario / f"run-{run_number}"
     root.mkdir(parents=True, exist_ok=True)
-    session = session_class("cold")
+    session = open_session(session_class, args)
     samples = []
     metrics = None
     last_token = None
@@ -217,6 +247,7 @@ def run_one(
             "scenario": scenario,
             "run": run_number,
             "browserRootPid": session.process.pid,
+            "firefoxPrefs": parse_firefox_prefs(args.firefox_pref) or None,
             "artifactHashes": artifact_hashes,
             "threshold": threshold,
             "metrics": metrics,
@@ -237,6 +268,7 @@ def run_one(
         failure = {
             "schemaVersion": 1, "release": "R7-D", "browser": browser,
             "scenario": scenario, "run": run_number,
+            "firefoxPrefs": parse_firefox_prefs(args.firefox_pref) or None,
             "error": {"name": type(error).__name__, "message": str(error)},
             "lastMetrics": metrics, "processSamples": samples, "pass": False,
         }
@@ -272,7 +304,7 @@ def run_firefox_fresh_batched(
             count = min(batch_size, args.lifecycle_cycles - offset)
             batch_root = root / "batches" / f"batch-{batch_number}"
             batch_root.mkdir(parents=True, exist_ok=True)
-            session = session_class("cold")
+            session = open_session(session_class, args)
             browser_versions.append(session.version)
             browser_root_pids.append(session.process.pid)
             query = {
@@ -386,6 +418,14 @@ def main() -> None:
         "of 5-cycle batches; measures how many engine generations a single page "
         "actually sustains (the E1 specs cap it at 3, citing finding 014)",
     )
+    parser.add_argument(
+        "--firefox-pref", action="append", default=[], metavar="NAME=VALUE",
+        help="extra about:config pref for the firefox session (repeatable); "
+        "values are parsed as JSON when possible, else kept as strings.  Used "
+        "to shrink a suspected browser budget (e.g. dom.workers.maxPerDomain) "
+        "and watch whether a wall moves with it.  Requires an explicit "
+        "--evidence-root so a pref run can never overwrite the formal series",
+    )
     parser.add_argument("--crash-cycles", type=int, default=20)
     parser.add_argument("--soak-minutes", type=int, default=30)
     parser.add_argument("--soak-interval-ms", type=int, default=60000)
@@ -396,13 +436,15 @@ def main() -> None:
         default="reader",
     )
     parser.add_argument("--timeout", type=float, default=7200)
-    parser.add_argument(
-        "--evidence-root", type=Path,
-        default=workspace / "findings" / "evidence" / "sdk-r7" / "longevity",
-    )
+    default_evidence_root = workspace / "findings" / "evidence" / "sdk-r7" / "longevity"
+    parser.add_argument("--evidence-root", type=Path, default=default_evidence_root)
     args = parser.parse_args()
     if not args.all and not args.scenario and not args.summarize_only:
         parser.error("use --all or --scenario")
+    if args.firefox_pref and args.evidence_root == default_evidence_root:
+        parser.error("--firefox-pref needs its own --evidence-root: a run with a "
+                     "moved browser budget is not the formal series and must not "
+                     "overwrite it")
     thresholds = load_json(workspace / "findings" / "evidence" / "sdk-r7" / "discovery" / "memory" / "thresholds.json")
     threshold = next(item for item in thresholds["thresholds"] if item["browser"] == args.browser)
     if args.lifecycle_cycles != threshold["cycleCount"] and args.all:
