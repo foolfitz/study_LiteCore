@@ -4,22 +4,22 @@
   "release": "R8-D-production-validation",
   "releaseId": "writer-review-d6bee07b960a942d",
   "selectedDocumentIds": [
-    "l1-layout-table-image-odt",
-    "l1-layout-table-image-docx",
-    "l1-review-odt",
-    "l1-review-docx"
+    "l0-t2"
   ],
-  "documentCount": 4,
-  "workersStarted": 3,
-  "verifyMs": 887.214999973774,
+  "documentCount": 1,
+  "workersStarted": 2,
+  "verifyMs": 853.46,
   "cases": [
     {
-      "id": "l1-layout-table-image-odt",
+      "id": "l0-t2",
       "expected": {
         "open": "pass",
         "save": "none",
         "typedCode": null,
-        "degradation": []
+        "degradation": [
+          "finding-012-known-discovery-sequence"
+        ],
+        "pageCount": 3
       },
       "opened": true,
       "anchors": [
@@ -83,131 +83,8 @@
           ]
         }
       },
-      "openMs": 197.98500001430511,
+      "openMs": 346.03999999999996,
       "workerGenerations": 2
-    },
-    {
-      "id": "l1-layout-table-image-docx",
-      "expected": {
-        "open": "typed-failure",
-        "save": "none",
-        "typedCode": "UNSUPPORTED_FORMAT",
-        "degradation": [
-          "finding-013-public-docx-unsupported"
-        ]
-      },
-      "opened": false,
-      "anchors": [],
-      "tiles": [],
-      "pass": true,
-      "inputBytes": 25416,
-      "inputSha256": "15708a75d562adad7ac4975cb44a6247a905d0d1db7973bf3fc8b42e2d4b3b7c",
-      "error": {
-        "name": "DocumentPreflightError",
-        "code": "UNSUPPORTED_FORMAT",
-        "message": "R7 writer-review public capability is ODT-only",
-        "details": {
-          "extension": ".docx"
-        }
-      },
-      "workerGenerations": 0
-    },
-    {
-      "id": "l1-review-odt",
-      "expected": {
-        "open": "pass",
-        "save": "none",
-        "typedCode": null,
-        "degradation": []
-      },
-      "opened": true,
-      "anchors": [
-        {
-          "text": "Lorem ipsum",
-          "found": true
-        }
-      ],
-      "tiles": [
-        {
-          "ratio": 0,
-          "scale": 1,
-          "width": 128,
-          "height": 128,
-          "bytes": 65536
-        },
-        {
-          "ratio": 0.5,
-          "scale": 1,
-          "width": 128,
-          "height": 128,
-          "bytes": 65536
-        },
-        {
-          "ratio": 1,
-          "scale": 1,
-          "width": 128,
-          "height": 128,
-          "bytes": 65536
-        },
-        {
-          "ratio": 0.5,
-          "scale": 1.5,
-          "width": 192,
-          "height": 192,
-          "bytes": 147456
-        }
-      ],
-      "pass": true,
-      "inputBytes": 13408,
-      "inputSha256": "4d27378e369bce79a4d59c5bc4b88cbddaec490bdf3c994e204c9e7d6cbab0e2",
-      "preflight": {
-        "format": "odt",
-        "bytes": 13408,
-        "archive": {
-          "entryCount": 8,
-          "compressedBytes": 12487,
-          "uncompressedBytes": 92676,
-          "compressionRatio": 7.421798670617442,
-          "names": [
-            "mimetype",
-            "manifest.rdf",
-            "Configurations2/",
-            "styles.xml",
-            "settings.xml",
-            "meta.xml",
-            "content.xml",
-            "META-INF/manifest.xml"
-          ]
-        }
-      },
-      "openMs": 299.78999999165535,
-      "workerGenerations": 1
-    },
-    {
-      "id": "l1-review-docx",
-      "expected": {
-        "open": "typed-failure",
-        "save": "none",
-        "typedCode": "UNSUPPORTED_FORMAT",
-        "degradation": [
-          "finding-013-public-docx-unsupported"
-        ]
-      },
-      "opened": false,
-      "anchors": [],
-      "tiles": [],
-      "pass": true,
-      "inputBytes": 11722,
-      "inputSha256": "f5260432fd7660558b4e73bd8164069ee26ad402bc735a4ddf64d28aafc460e2",
-      "error": {
-        "name": "DocumentPreflightError",
-        "code": "UNSUPPORTED_FORMAT",
-        "message": "R7 writer-review public capability is ODT-only",
-        "details": {
-          "extension": ".docx"
-        }
-      },
-      "workerGenerations": 0
     }
   ],
   "status": {
@@ -216,7 +93,7 @@
     "state": {
       "schemaVersion": 1,
       "retentionLimit": 3,
-      "sequence": 29,
+      "sequence": 25,
       "currentReleaseId": "writer-review-d6bee07b960a942d",
       "candidate": null,
       "lastKnownGoodReleaseId": "writer-review-d6bee07b960a942d",
@@ -252,7 +129,7 @@
         }
       },
       "clientPins": {
-        "af0e27ba-0c5e-4b57-b04d-4bb433e24875": "writer-review-d6bee07b960a942d"
+        "5a0e8f98-c67a-4bbc-8943-aac448d81494": "writer-review-d6bee07b960a942d"
       },
       "journal": [
         {
@@ -408,30 +285,6 @@
           "type": "PIN_CLIENT",
           "releaseId": "writer-review-d6bee07b960a942d",
           "actions": []
-        },
-        {
-          "sequence": 26,
-          "type": "UNPIN_CLIENT",
-          "releaseId": null,
-          "actions": []
-        },
-        {
-          "sequence": 27,
-          "type": "PIN_CLIENT",
-          "releaseId": "writer-review-d6bee07b960a942d",
-          "actions": []
-        },
-        {
-          "sequence": 28,
-          "type": "UNPIN_CLIENT",
-          "releaseId": null,
-          "actions": []
-        },
-        {
-          "sequence": 29,
-          "type": "PIN_CLIENT",
-          "releaseId": "writer-review-d6bee07b960a942d",
-          "actions": []
         }
       ]
     },
@@ -454,7 +307,7 @@
     }
   },
   "pass": true,
-  "batch": 4,
-  "browser": "chrome",
-  "browserVersion": "Chrome/150.0.7871.128"
+  "batch": 2,
+  "browser": "firefox",
+  "browserVersion": "153.0.1"
 }

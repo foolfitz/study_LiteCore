@@ -19,19 +19,19 @@
     },
     "firefox": {
       "checks": {
-        "activeCachedRelease": false,
-        "allCases": false,
-        "boundedWorkerGenerationsPerPage": false,
+        "activeCachedRelease": true,
+        "allCases": true,
+        "boundedWorkerGenerationsPerPage": true,
         "documentCount": true,
-        "summaryPass": false,
+        "summaryPass": true,
         "summaryPresent": true
       },
-      "pass": false,
+      "pass": true,
       "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/production/compatibility/firefox/summary.json"
     }
   },
   "compatibilityAcceptance": {
-    "firefoxCompositionalFallback": true,
+    "firefoxCompositionalFallback": false,
     "pass": true
   },
   "core": {
@@ -59,10 +59,7 @@
   "formalGaps": [
     "T2 user-authorized HTTPS/CDN environment was not provided",
     "true browser quota exhaustion remains deployment-environment validation",
-    "candidate adoption requires explicit reload/new session",
-    "the 28-document corpus was not rerun as one R8 active-cache campaign in Firefox after the known generation budget was exhausted",
-    "Firefox R8 cache/update and 30-minute longevity passed separately, but a new combined R8-D soak was not started after generation exhaustion",
-    "Firefox worker-generation budget requires bounded reuse and full browser reload guidance"
+    "candidate adoption requires explicit reload/new session"
   ],
   "inherited": {
     "r7Compatibility": true,
@@ -87,21 +84,21 @@
     },
     "firefox": {
       "checks": {
-        "boundedWorkerGenerations": false,
+        "boundedWorkerGenerations": true,
         "boundedWorkerGenerationsPerPage": true,
         "duration": true,
-        "noFailedCycle": false,
-        "requiredTransitions": false,
-        "samples": false,
-        "summaryPass": false,
+        "noFailedCycle": true,
+        "requiredTransitions": true,
+        "samples": true,
+        "summaryPass": true,
         "summaryPresent": true
       },
-      "pass": false,
+      "pass": true,
       "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/production/longevity/firefox/summary.json"
     }
   },
   "longevityAcceptance": {
-    "firefoxCompositionalFallback": true,
+    "firefoxCompositionalFallback": false,
     "pass": true
   },
   "matrixSha256": "63ce0ce62b70b08ea9186b12a328a32b5fcfb987484fe0ad3d6d87d476025291",
@@ -226,9 +223,9 @@
   },
   "release": "R8-D-production-validation",
   "releaseIds": {
-    "A": "writer-review-5fa3ca0d38f2b46d",
-    "B": "writer-review-29680a2e250d2b3e",
-    "C": "writer-review-07f2694e5f1deab8"
+    "A": "writer-review-d6bee07b960a942d",
+    "B": "writer-review-2a40958963aadc21",
+    "C": "writer-review-b8993a6e8d87d093"
   },
   "roundtrip": {
     "pass": true,

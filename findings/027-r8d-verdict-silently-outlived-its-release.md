@@ -59,8 +59,32 @@ R8-D 的瀏覽器證據綁在一個**由 bundle 內容算出來的 release id** 
 因為 `make` 會重鑄 id，把已錄好的相位當場作廢。這正是 SPEC-R8-D「必須是同一次 campaign」
 的實際機制，先前只寫成文字、沒有寫成可執行的約束。
 
-compatibility 兩瀏覽器已完成並綁上現行 release `d6bee07b…`：各 **28/28、6 批次、12 worker、
-每頁最高 3**，與歷史紀錄逐項相同（＝忠實重跑，不是換了行為）。soak 兩輪隨後。
+**結果（已觀察，2026-08-08 15:54 完成）：判定回到 `PARTIAL_GO_LOCAL_DELIVERY`，
+四個相位全部綁在現行 release `writer-review-d6bee07b960a942d`，`safetyChecks` 無一失敗。**
+
+| 相位 | Chrome 150 | Firefox 153.0.1 |
+|---|---|---|
+| compatibility | 28/28、6 批次、12 worker、每頁最高 3 | 同左 |
+| soak | 30.04 分、30 cycles、`workerGenerations` **3**（≤8） | 30.07 分、30 cycles、**3**（≤4） |
+| `maxWorkerGenerationsPerPage` | 3（≤3） | 3（≤3） |
+
+compatibility 的每一項與 08-04 歷史紀錄**逐項相同**（28／6／12／3）＝忠實重跑，不是行為改變；
+唯一的差別是 `releaseId` 現在綁現行 release。
+
+**兩個額外收穫：**
+
+1. **Firefox 這次是自己過的，不是靠 fallback。**先前 `compatibility.firefox.pass` 與
+   `longevity.firefox.pass` 都是 `false`，靠 `validate_r8_d.py:188-197` 的
+   `acceptedForPartialGo` ＋ finding 014 檔案存在這條路徑才被接受。現在兩者
+   `checks` 全綠、直接為 `true`——**判定比先前更強，不再依賴那條 fallback**。
+2. **三條 formal gap 消失**（6 → 3）：「28 份 corpus 未以單一 R8 active-cache campaign 在
+   Firefox 重跑」、「Firefox 的 cache/update 與 30 分鐘 longevity 分開通過、未重啟合併 soak」、
+   「Firefox worker-generation budget 需要有界 reuse 與完整重載指引」。
+   剩下三條與本檔無關：T2、真 quota、candidate adoption 需明確 reload。
+
+**重建不會再打掉它**（已觀察）：campaign 之後再跑一次 `make test-r8-d-static`
+（該目標會重建 release set），三個 id **逐字不變**，`validate_r8_d.py` 仍 `pass: true`。
+因為 bundle 內容自 campaign 起未再變動——這也再次確認 builder 的確定性。
 
 ## 待處理（未做）
 
