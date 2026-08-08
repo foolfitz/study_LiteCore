@@ -7,6 +7,14 @@ const scenario = params.get("scenario") || "integration";
 const fixtureId = params.get("fixture") || "plain-grapheme";
 const repetition = Number(params.get("repetition") || 1);
 const manualMode = params.get("manual") === "1";
+// The product default lives in EditorSession (`options.maxWorkerGenerations ?? 3`).
+// Overridable here ONLY so the limit can be measured on the shipped artifact:
+// every E1-C case navigates once per generation, so no case has ever driven more
+// than one generation into a single page -- the cap has never been exercised at
+// any value, including its own.  Default unchanged, so all 48 frozen cases keep
+// the exact behaviour they were validated with.
+const generationLimit = Number(params.get("maxGenerations") || 3);
+const generationCycles = Number(params.get("generations") || 0);
 
 const FIXTURES = Object.freeze({
   "plain-grapheme": {
@@ -288,7 +296,7 @@ async function fetchFixture() {
 async function createSession() {
   const value = new EditorSession({
     engineFactory,
-    maxWorkerGenerations: 3,
+    maxWorkerGenerations: generationLimit,
     clipboard: manualMode ? navigator.clipboard : fakeClipboard,
     secureContext: manualMode ? globalThis.isSecureContext : true,
     onState: updateState,
@@ -758,8 +766,73 @@ async function runLifecycle() {
   });
 }
 
+// N engine generations inside ONE page on the shipped artifact, plus proof the
+// limit still fails closed at N.  This is the evidence the spec's per-page cap
+// never had: E1-C drives one generation per navigation, and R7's 50-generation
+// runs used the writer-review probe, not e1-editor-v1.
+async function runGenerations() {
+  // A generation is NOT one opened document.  close() ends the session, and a
+  // new document means a new EditorSession whose counter starts at zero.  The
+  // only way _generation advances is restart() after a crash or a boundary --
+  // so this cap governs "how many times may ONE session recover before the page
+  // must be reloaded", and driving it means crashing the worker on purpose.
+  const generations = [];
+  for (let index = 2; index <= generationCycles; index += 1) {
+    await placeAtBoundary(fixture.editAnchor, "end");
+    await record(`gen-${index}-precrash-commit`,
+      () => session.commitText(`E1C-GEN-${index.toString().padStart(2, "0")}`));
+    await record(`gen-${index}-precrash-save`, saveOutput);
+    activeWorkerControl.crash(`generations-${index}`);
+    await waitForState("recoverable-error", 30000);
+    const started = performance.now();
+    await record(`gen-${index}-restart`, () => session.restart());
+    generations.push({
+      generation: session.state.snapshot.generation,
+      restartMs: performance.now() - started,
+      workers: { ...metrics.workers },
+    });
+    metrics.operations.push({
+      name: `gen-${index}-observed`,
+      status: session.state.snapshot.generation === index ? "passed" : "failed",
+      result: { expected: index, observed: session.state.snapshot.generation },
+    });
+  }
+  // Raising the number is only defensible if the limit is still a limit: the
+  // (N+1)-th recovery must still be refused with the typed, reload-directing
+  // error, or this change removes the backstop instead of moving it.
+  activeWorkerControl.crash("generations-overrun");
+  await waitForState("recoverable-error", 30000);
+  let overrun = null;
+  try {
+    await session.restart();
+    overrun = { code: "UNEXPECTED_SUCCESS", requiresPageReload: null };
+  } catch (error) {
+    overrun = {
+      code: error?.code ?? null,
+      requiresPageReload: error?.details?.requiresPageReload ?? null,
+      maximumWorkerGenerations: error?.details?.maximumWorkerGenerations ?? null,
+    };
+  }
+  metrics.operations.push({
+    name: "generation-limit-still-fails-closed",
+    status: overrun.code === "WORKER_GENERATION_LIMIT"
+      && overrun.requiresPageReload === true ? "passed" : "failed",
+    result: overrun,
+  });
+  metrics.generationLimitProbe = {
+    configured: generationLimit,
+    requested: generationCycles,
+    reached: session.state.snapshot.generation,
+    generations,
+    overrun,
+    workers: { ...metrics.workers },
+  };
+}
+
 async function runAutomatic() {
-  if (scenario === "integration")
+  if (scenario === "generations")
+    await runGenerations();
+  else if (scenario === "integration")
     await runIntegration();
   else if (scenario.startsWith("boundary-"))
     await runBoundary();
@@ -776,7 +849,10 @@ async function runAutomatic() {
     && metrics.artifact?.editorContract?.version === 1
     && metrics.operations.length > 0
     && metrics.operations.every((entry) => entry.status === "passed")
-    && metrics.workers.created <= 3;
+    // Compare against the CONFIGURED limit, not a repeated literal: a gate that
+    // restates the constant it is guarding drifts from it silently.  Default is
+    // still 3, so every frozen case is unaffected.
+    && metrics.workers.created <= generationLimit;
 }
 
 async function prepareManualCaret() {

@@ -47,12 +47,25 @@ def tree_bytes(sample: dict) -> int:
     )
 
 
+# Mutable one-element box so the RUNGS query builders can see --generations
+# without rewriting every builder's signature.
+GENERATIONS = [16]
+
 RUNGS = {
     # rung -> (page, query builder).  The full rung is the real harness; the
     # others strip the stack down so a reproduction can be attributed.
     "full": ("e1-editor-validation.html", lambda index, mib: {
         "scenario": "lifecycle", "fixture": "plain-grapheme",
         "repetition": 100 + index,
+    }),
+    # Not a ladder rung: ONE page load that drives N crash-recovery generations
+    # inside it, on the shipped e1-editor-v1 artifact.  Every E1-C case
+    # navigates once per generation, so the per-page cap has never been
+    # exercised at any value -- including the 3 it is set to.  Use with
+    # --iterations 1 --generations N.
+    "generations": ("e1-editor-validation.html", lambda index, mib: {
+        "scenario": "generations", "fixture": "plain-grapheme",
+        "generations": GENERATIONS[0], "maxGenerations": GENERATIONS[0],
     }),
     "inert": ("e1-c-session-depth-control.html", lambda index, mib: {
         "mode": "inert", "n": index,
@@ -246,6 +259,7 @@ def one_navigation(
         # Keep the last operation's payload so `buffer` can be seen to have
         # actually allocated, rather than silently degrading into `worker`.
         "lastOperation": ((metrics or {}).get("operations") or [None])[-1],
+        "generationLimitProbe": (metrics or {}).get("generationLimitProbe"),
         "treeBytesBefore": tree_bytes(before),
         "treeBytesAfter": tree_bytes(after),
         "processCount": len(after.get("processes", [])),
@@ -267,6 +281,13 @@ def main() -> None:
     parser.add_argument("--rung", choices=tuple(RUNGS), default="full")
     parser.add_argument("--buffer-mib", type=int, default=256)
     parser.add_argument("--iterations", type=int, default=40)
+    parser.add_argument(
+        "--generations", type=int, default=16,
+        help="for --rung generations: how many crash-recovery generations to "
+        "drive inside ONE page, and what to set the session's own limit to.  "
+        "The probe then asserts the (N+1)-th recovery is still refused with "
+        "WORKER_GENERATION_LIMIT, so raising a cap cannot silently remove it",
+    )
     parser.add_argument("--timeout-per-iteration", type=float, default=180)
     parser.add_argument(
         "--firefox-pref", action="append", default=[], metavar="NAME=VALUE",
@@ -289,6 +310,7 @@ def main() -> None:
         / "session-depth",
     )
     args = parser.parse_args()
+    GENERATIONS[0] = args.generations
     rung_label = f"{args.rung}-freshtab" if args.fresh_tab else args.rung
     extra_prefs = {}
     for item in args.firefox_pref:

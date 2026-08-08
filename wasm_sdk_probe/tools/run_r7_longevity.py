@@ -224,6 +224,24 @@ def run_one(
             time.sleep(0.2)
         if not metrics or not metrics.get("complete"):
             raise RuntimeError(f"R7-D {scenario} timed out at {metrics and metrics.get('phase')}")
+        # Idle tail: keep sampling the SAME page, doing no work, after the last
+        # generation is disposed.  The post-close block medians rise
+        # monotonically across a run, but "residue that accumulates per
+        # generation" and "reclamation that simply lags the workload" produce
+        # exactly the same rising curve while work is ongoing.  They differ only
+        # once the work stops: residue stays, lag drains.  Tagged with its own
+        # checkpoint so analyse_memory()'s post-close gate never sees these.
+        if args.idle_tail_seconds > 0:
+            tail_deadline = time.monotonic() + args.idle_tail_seconds
+            tail_index = 0
+            while time.monotonic() < tail_deadline:
+                samples.append(process_snapshot(session.process.pid, {
+                    "checkpoint": "idle-tail",
+                    "cycle": (metrics.get("sampleState") or {}).get("cycle"),
+                    "block": tail_index,
+                }))
+                tail_index += 1
+                time.sleep(threshold["sampleIntervalMs"] / 1000)
         (root / "page.png").write_bytes(session.screenshot())
         (root / "browser.log.txt").write_text(
             str(evaluate(session, "document.querySelector('#log').textContent")), encoding="utf-8"
@@ -422,6 +440,14 @@ def main() -> None:
         "actually sustains (the E1 specs cap it at 3, citing finding 014)",
     )
     parser.add_argument(
+        "--idle-tail-seconds", type=float, default=0.0, metavar="SECONDS",
+        help="after the page reports complete, keep sampling the same idle page "
+        "for SECONDS.  Separates per-generation residue (stays) from reclaim "
+        "latency (drains) -- while work is ongoing the two look identical "
+        "(finding 014 待驗證 10).  Samples are tagged checkpoint=idle-tail and "
+        "are excluded from the formal post-close gate",
+    )
+    parser.add_argument(
         "--plan-prefix", type=int, metavar="N",
         help="with --all, run only the first N entries of the formal plan.  "
         "Exists so the byte prefix that a later scenario inherits on a shared "
@@ -456,6 +482,9 @@ def main() -> None:
         parser.error("--firefox-pref needs its own --evidence-root: a run with a "
                      "moved browser budget is not the formal series and must not "
                      "overwrite it")
+    if args.idle_tail_seconds > 0 and args.evidence_root == default_evidence_root:
+        parser.error("--idle-tail-seconds needs its own --evidence-root: it adds "
+                     "samples the formal series does not have")
     if args.plan_prefix is not None:
         if not args.all:
             parser.error("--plan-prefix only applies to --all")
