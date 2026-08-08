@@ -86,7 +86,12 @@ compatibility 的每一項與 08-04 歷史紀錄**逐項相同**（28／6／12�
 （該目標會重建 release set），三個 id **逐字不變**，`validate_r8_d.py` 仍 `pass: true`。
 因為 bundle 內容自 campaign 起未再變動——這也再次確認 builder 的確定性。
 
-## 待處理（未做）
+## 待處理（未做）——已寫成交接文件待決
+
+三件都會改動 Makefile 語意、證據擺放慣例或驗證判準，屬流程決定，因此只記錄未動手。
+交接文件：[`HANDOFF-2026-08-08-evidence-integrity.md`](../HANDOFF-2026-08-08-evidence-integrity.md)
+（含硬約束、驗證判準，以及一個更上層的問題：本檔與 025／026 的四個缺陷是不是同一個病、
+有沒有一條通則能一次擋掉）。
 
 1. **讓過期可被偵測，而不是等 make。**最省的作法：把「證據記的 releaseId」與「bundle 內容雜湊」
    一起記進證據，validator 直接重算 bundle 雜湊比對，不經過 `dist/` 的快取狀態。
