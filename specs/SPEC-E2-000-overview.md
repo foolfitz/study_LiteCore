@@ -83,6 +83,8 @@ verified-selection barrier 解除。E2 要驗證這個方法能不能一般化�
 - [Finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md) 要求 Firefox 每頁 Worker
   generation 有界。
 
+> **2026-08-08 補標**：此處把 finding 014 的限制列為「已觀察」，但該 finding 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**（上限所寫的 16 倍以上）。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立。（本處先前漏列於 finding 014 的〈下游影響〉，2026-08-08 第三次複核才補上。）
+
 以上只是進場基線。第 5 節後三點形成本輪的核心**推論**，必須由 E2-A 用實測升格，不得直接當結論。
 
 **2026-08-05 更新**：A2 原生實測已將該推論升格為**已觀察** —— 三個 state payload 都會抵達。同一次實測

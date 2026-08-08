@@ -42,6 +42,8 @@ E3 的三條主線：
 - finding 014：Firefox 長壽程序反覆建立大型 WASM Worker 有明確上限；E3 任何瀏覽器矩陣都必須
   沿用其 generation budget。
 
+> **2026-08-08 補標**：此處把 finding 014 的限制列為「已觀察」，但該 finding 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**（上限所寫的 16 倍以上）。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立。（本處先前漏列於 finding 014 的〈下游影響〉，2026-08-08 第三次複核才補上。）
+
 ### 2.2 推論
 
 - 「28 份 corpus 之外還存在會影響產品宣稱的 ODT 邊界」——推論。E3-A 的第一項工作就是把它變成
@@ -155,6 +157,8 @@ provenance、正式結果後不得放寬）；E3-A 之後的所有工作只能�
 - 每筆結果標已觀察／推論／待驗證；`pass:true` 不得掩蓋縮限。
 - Firefox 每頁 Worker generation 上限沿用 finding 014；負向與 crash 類案例後的恢復比照 R7-C
   「同 Worker 新 engine 開 t1」的驗證方式。
+
+> **2026-08-08 補標**：同上，finding 014 的前提已不成立（同頁 50 代實測全過），條文未改。
 
 ## 9. 判定
 

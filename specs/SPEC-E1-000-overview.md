@@ -45,6 +45,8 @@ R9仍是需求驅動的平行候選；R10必須等待E1 corpus／reachability凍
 - Finding 012要求styled ODT close維持bounded Worker recovery；Finding 014要求Firefox generation有界並在預算
   耗盡前提示整個browser工作階段reload。
 
+> **2026-08-08 補標**：此處把 finding 014 的限制列為「已觀察」，但該 finding 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**（上限所寫的 16 倍以上）。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立。（本處先前漏列於 finding 014 的〈下游影響〉，2026-08-08 第三次複核才補上。）
+
 以上分成已觀察基線，不代表E1能力已成立。
 
 ## 4. 不可退讓的邊界

@@ -5,7 +5,7 @@
 | **狀態** | **已歸因（第二次）、已修**——機制是**探針基礎設施自己的 pipe 阻塞**：runner 用 `Popen(stderr=PIPE)` 啟動 `serve.py` 但從不讀取，HTTP 請求 log 塞滿 64 KiB pipe 後，handler 執行緒卡在 `log_message()`（在回應本體送出**之前**），之後所有 fetch 永遠等不到回應。修法＝server 輸出改導檔案（同時成為請求數證據）。 |
 | **Bugzilla** | 不適用（我方 harness bug，非上游） |
 | **發現日** | 2026-08-06（誤判為主機負載）／2026-08-07（第一次歸因：錯）／2026-08-07（第二次歸因：pipe，接手完成） |
-| **嚴重度** | ~~高（阻斷 E1-C）~~ → **對產品零影響**；對 harness 是阻斷，已修。**但對「歷史結論」的破壞力比原先估的大**：2026-08-08 確認它也是 [finding 014](014-firefox-long-lived-wasm-worker-init-exhaustion.md)（Firefox 長壽 Worker 耗盡）的成因，而 014 的限制被八份規格引用 |
+| **嚴重度** | ~~高（阻斷 E1-C）~~ → **對產品零影響**；對 harness 是阻斷，已修。**但對「歷史結論」的破壞力比原先估的大**：2026-08-08 確認它也是 [finding 014](014-firefox-long-lived-wasm-worker-init-exhaustion.md)（Firefox 長壽 Worker 耗盡）的成因，而 014 的限制被 15 個規格檔（11 份帶現行條文）、7 個程式碼站點與 1 份凍結矩陣引用（2026-08-08 第三次複核更正，原記「八份規格」） |
 | **可重現** | 100%，深度確定（修復前）；**修復後牆消失**（全部驗證輪通過） |
 | **是否上游** | **否**——我方探針基礎設施 |
 | **影響範圍** | 所有用 `Popen(stdout=PIPE, stderr=PIPE)` 開 `serve.py` 且不讀 pipe 的 runner（`run_e1_c.py`、`run_e1_c_session_depth.py` 已修；`run_r7_*.py`、`run_r8_*.py`、`run_finding_012.py` 同型未修，見「善後」） |
@@ -151,7 +151,8 @@ full／chrome 卡在第 34 次導覽的當下，從 `/proc` 直接看：
 
   →**本 finding 的影響範圍比原本記的大**：它不只咬 E1-C，也是
   [finding 014](014-firefox-long-lived-wasm-worker-init-exhaustion.md) 的成因，
-  而 014 的產品限制被八份規格引用（見該檔〈下游影響〉）。
+  而 014 的產品限制被 **15 個規格檔（11 份帶現行條文）、7 個程式碼站點與 1 份凍結矩陣**引用
+  （見該檔〈下游影響〉；2026-08-08 第三次複核更正，原記「八份規格」）。
   教訓照抄一次：**「執行形狀看起來很輕」是印象，不是量測。**把同一件事量成位元組只花了幾分鐘。
 - [x] **E1-C 四個自動相位已用修復後 harness 重跑**（2026-08-07，chrome＋firefox
   `--phase all` 皆 `pass: true`——lifecycle 首次在單一 session 內完整跑完）。

@@ -74,6 +74,8 @@ B/C修正單位，不能在validator裡豁免失敗。
 - R7 compatibility：28份manifest至少在T0 active release完整跑一次／browser；T1/T2跑凍結代表集。
 - R7 longevity：100頁單次、reuse cycles、bounded crash/close、30-minute soak使用R8 cache/Worker。
 - Finding 012 known document維持bounded Worker recovery；Finding 014的Firefox generation budget與reload提示可觀察。
+
+> **2026-08-08 補標**：§10.1 處理的是 900 秒停擺（成因 finding 025），**本條的 generation budget 未處理**。finding 014 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)。條文未改，僅記錄前提不成立；`validate_r8_d.py:80,86-87` 仍以 Firefox ≤4 代／每頁 ≤3 代當閘門。
 - DOCX、Cangjie/Pinyin、document accessibility與hyperlink限制保持typed/unsupported，不因delivery誤升格。
 
 ### D7 Cache retention與長時間update

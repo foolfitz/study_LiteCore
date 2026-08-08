@@ -1,0 +1,20 @@
+firefox/full/run-1/result.json 的 metrics.workerBudget 欄位不可信，請勿拿它對帳。
+
+這一輪是 finding 014 的判別輪，用 --firefox-worker-budget 64 跑的（把 R7-C 每頁 3 個
+Worker 的規避策略開到 64，看 19 份文件能不能擠在同一個頁面）。但當時
+tools/run_r7_compatibility.py:232 把 metrics 裡的 workerBudget 寫死成字面值 3，
+不反映命令列參數，所以 result.json 記的是 workerBudget: 3 —— 與實際跑的 64 相反。
+
+實際佐證這一輪的欄位是同一個檔案裡的：
+
+  metrics.batchSizes              [19]        （只切一個 batch，原本 full group 要切 7 個）
+  metrics.workers                 {"created": 19, "terminated": 19}
+  caseChecks[].casePass           19 筆全為 true
+  pass                            true
+
+證據本身一個位元組都沒有改動。程式碼已於 2026-08-08 改成記錄實際使用的 worker_budget，
+所以此後的 result.json 不再有這個問題；本目錄以外、2026-08-08 之前產生的 R7-C 證據若
+帶有非預設的 budget，也一律適用本說明。
+
+相關：findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md
+      〈「每頁 Worker generation 上限為 3」：前提已被推翻〉

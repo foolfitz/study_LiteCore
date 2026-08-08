@@ -125,6 +125,8 @@ performance採樣方式與topology分類凍結後才能實作B；不得在看到
 - cold、warm、offline、update、rollback分開報告；不把loopback時間或gzip raw sum當CDN SLA。
 - Firefox generation budget採finding 014安全策略，接近上限時要求重新載入session，不等待120秒timeout。
 
+> **2026-08-08 補標**：2026-08-08 的撤回只補齊了 Firefox combined-run 缺口（成因是 finding 025），**本條的 generation budget 未處理**。finding 014 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立；`tools/run_r8_production.py` 與 `tools/validate_r8_d.py` 仍把上限寫死。
+
 ## 6. 明確不在R8
 
 - 任意游標、拖曳選取、backspace/delete、Redo、rich formatting或完整Writer toolbar；屬延後的ODT-first

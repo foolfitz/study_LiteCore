@@ -229,7 +229,10 @@ def run_firefox_group_batches(
         "group": group,
         "batched": True,
         "batchSizes": [len(batch) for batch in batches],
-        "workerBudget": 3,
+        # The budget actually used, not the default.  This was the literal 3
+        # until 2026-08-08, so any run that passed --firefox-worker-budget
+        # recorded a value contradicting what it ran (finding 014).
+        "workerBudget": worker_budget,
         "cooldownSeconds": cooldown_seconds,
         "cases": cases,
         "workers": worker_counts,
