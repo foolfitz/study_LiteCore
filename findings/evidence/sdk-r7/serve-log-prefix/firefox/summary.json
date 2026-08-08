@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "release": "R7-D",
+  "browser": "firefox",
+  "threshold": {
+    "browser": "firefox",
+    "sampleIntervalMs": 1000,
+    "warmupCycles": 10,
+    "blockSize": 10,
+    "cycleCount": 50,
+    "maxPostCloseGrowthBytes": 536870912,
+    "maxPostCloseGrowthRatio": 0.35,
+    "maxBlockMedianSlopeBytes": 67108864,
+    "maxWasmHeapStepBytes": 268435456,
+    "maxWorkersAfterClose": 0,
+    "openTimeoutMs": 180000,
+    "closeTimeoutMs": 180000
+  },
+  "runs": [
+    {
+      "scenario": "s1",
+      "run": 1,
+      "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/serve-log-prefix/firefox/s1/run-1/result.json",
+      "pass": true,
+      "knownDegradation": null
+    },
+    {
+      "scenario": "s1",
+      "run": 2,
+      "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/serve-log-prefix/firefox/s1/run-2/result.json",
+      "pass": true,
+      "knownDegradation": null
+    },
+    {
+      "scenario": "s1",
+      "run": 3,
+      "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/serve-log-prefix/firefox/s1/run-3/result.json",
+      "pass": true,
+      "knownDegradation": null
+    },
+    {
+      "scenario": "s2-reuse",
+      "run": 1,
+      "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/serve-log-prefix/firefox/s2-reuse/run-1/result.json",
+      "pass": true,
+      "knownDegradation": null
+    }
+  ],
+  "serverLogLedger": [
+    {
+      "after": "wait_page",
+      "bytes": 77,
+      "monotonic": 229361.507968326
+    },
+    {
+      "after": "s1 run-1",
+      "bytes": 2562,
+      "monotonic": 229377.812990191
+    },
+    {
+      "after": "s1 run-2",
+      "bytes": 5047,
+      "monotonic": 229394.398991728
+    },
+    {
+      "after": "s1 run-3",
+      "bytes": 7532,
+      "monotonic": 229410.527109622
+    },
+    {
+      "after": "s2-reuse run-1",
+      "bytes": 10033,
+      "monotonic": 229485.312304145
+    }
+  ],
+  "serverLogPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/serve-log-prefix/serve.log",
+  "pass": true
+}

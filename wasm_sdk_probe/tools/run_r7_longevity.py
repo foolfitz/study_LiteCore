@@ -8,6 +8,7 @@ import base64
 import copy
 import json
 import math
+import os
 import subprocess
 import sys
 import time
@@ -39,6 +40,8 @@ FORMAL_PLANS = [
 def scenario_plans(args: argparse.Namespace) -> list[tuple[str, int]]:
     if args.scenario:
         return [(args.scenario, args.run)]
+    if args.plan_prefix is not None:
+        return FORMAL_PLANS[:args.plan_prefix]
     return FORMAL_PLANS
 
 
@@ -419,6 +422,14 @@ def main() -> None:
         "actually sustains (the E1 specs cap it at 3, citing finding 014)",
     )
     parser.add_argument(
+        "--plan-prefix", type=int, metavar="N",
+        help="with --all, run only the first N entries of the formal plan.  "
+        "Exists so the byte prefix that a later scenario inherits on a shared "
+        "serve.py log can be measured on the real code path (finding 014's "
+        "待驗證 9) instead of a re-implementation that might issue a different "
+        "request sequence.  Needs its own --evidence-root",
+    )
+    parser.add_argument(
         "--firefox-pref", action="append", default=[], metavar="NAME=VALUE",
         help="extra about:config pref for the firefox session (repeatable); "
         "values are parsed as JSON when possible, else kept as strings.  Used "
@@ -445,6 +456,12 @@ def main() -> None:
         parser.error("--firefox-pref needs its own --evidence-root: a run with a "
                      "moved browser budget is not the formal series and must not "
                      "overwrite it")
+    if args.plan_prefix is not None:
+        if not args.all:
+            parser.error("--plan-prefix only applies to --all")
+        if args.evidence_root == default_evidence_root:
+            parser.error("--plan-prefix needs its own --evidence-root: a truncated "
+                         "plan is not the formal series and must not overwrite it")
     thresholds = load_json(workspace / "findings" / "evidence" / "sdk-r7" / "discovery" / "memory" / "thresholds.json")
     threshold = next(item for item in thresholds["thresholds"] if item["browser"] == args.browser)
     if args.lifecycle_cycles != threshold["cycleCount"] and args.all:
@@ -460,19 +477,37 @@ def main() -> None:
             raise SystemExit(1)
         return
     port = free_port()
+    # OXSDK_SERVER_LOG_DIR opts into keeping serve.py's request log so its
+    # BYTE VOLUME can be measured -- that volume is what filled the 64 KiB pipe
+    # in finding 023, and finding 014's byte ledger needs it per workload.  A
+    # real file, never a pipe, so enabling it cannot reintroduce 023.
+    server_log_dir = os.environ.get("OXSDK_SERVER_LOG_DIR")
+    server_log_path = Path(server_log_dir) / "serve.log" if server_log_dir else None
+    server_log = None
+    if server_log_path:
+        server_log_path.parent.mkdir(parents=True, exist_ok=True)
+        server_log = open(server_log_path, "w", buffering=1)
     server = subprocess.Popen(
         [sys.executable, str(project / "web" / "serve.py"), "--port", str(port)],
         # DEVNULL, not PIPE: nothing ever read these pipes, and the request
         # log fills 64 KiB after a workload-dependent number of navigations --
         # the handler thread then blocks before sending the response body and
         # every later fetch hangs (finding 023).
-        cwd=project, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        cwd=project, stdout=server_log or subprocess.DEVNULL,
+        stderr=subprocess.STDOUT if server_log else subprocess.DEVNULL,
         text=True,
     )
+
+    def server_log_bytes() -> int | None:
+        return server_log_path.stat().st_size if server_log_path else None
     summaries = []
     try:
         base_url = f"http://127.0.0.1:{port}/r7-longevity.html"
         wait_page(base_url)
+        # Sampled BEFORE the first scenario so wait_page()'s own polling is
+        # attributed to startup and not to scenario 1.
+        server_log_ledger = [{"after": "wait_page", "bytes": server_log_bytes(),
+                              "monotonic": time.monotonic()}]
         session_class = ChromeSession if args.browser == "chrome" else FirefoxSession
         artifact_hashes = {
             "manifest": sha256(project / "dist" / "profiles" / "writer-review-r6" / "sdk-manifest.json"),
@@ -502,12 +537,18 @@ def main() -> None:
                     scenario, run_number, threshold, args, artifact_hashes,
                 )
             summaries.append(item)
+            server_log_ledger.append({
+                "after": f"{scenario} run-{run_number}",
+                "bytes": server_log_bytes(), "monotonic": time.monotonic(),
+            })
             print(json.dumps(item, ensure_ascii=False), flush=True)
             if not item["pass"]:
                 break
         summary = {
             "schemaVersion": 1, "release": "R7-D", "browser": args.browser,
             "threshold": threshold, "runs": summaries,
+            "serverLogLedger": server_log_ledger if server_log_path else None,
+            "serverLogPath": str(server_log_path) if server_log_path else None,
             "pass": len(summaries) == len(scenario_plans(args)) and all(item["pass"] for item in summaries),
         }
         write_json(browser_root / "summary.json", summary)
@@ -520,6 +561,8 @@ def main() -> None:
         except subprocess.TimeoutExpired:
             server.kill()
             server.wait(timeout=10)
+        if server_log is not None:
+            server_log.close()
 
 
 if __name__ == "__main__":
