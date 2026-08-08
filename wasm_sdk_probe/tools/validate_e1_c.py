@@ -404,7 +404,13 @@ def validate_outputs(cases: list[dict[str, Any]], skip_desktop: bool,
         elif need_desktop and not skip_desktop:
             desktop = desktop_pdf_roundtrip(source, directory / "desktop.pdf")
         elif need_desktop:
-            desktop = {"pass": True, "skipped": True}
+            # Skipping a required check means it was not measured, and not
+            # measured has to fail: until 2026-08-08 this recorded pass=True,
+            # so --skip-desktop could carry a run all the way to
+            # E1_GO_ODT_EDITOR without a single desktop round-trip ever having
+            # run.  The flag still works -- it just can no longer launder an
+            # absent measurement into a passing one.
+            desktop = {"pass": False, "skipped": True}
         else:
             desktop = {"pass": True, "required": False}
         passed = (

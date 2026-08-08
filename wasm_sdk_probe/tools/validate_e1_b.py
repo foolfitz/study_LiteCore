@@ -153,7 +153,8 @@ def main() -> None:
             for text in ("E1B-文字😀", "E1B-PARAGRAPH", "E1B-LINE")
         ]
         desktop = (
-            {"pass": True, "skipped": True}
+            # Not measured is a failure, not an exemption (see validate_e1_c).
+            {"pass": False, "skipped": True}
             if args.skip_desktop
             else desktop_pdf_roundtrip(output, directory / "desktop.pdf")
         ) if output.is_file() else {"pass": False, "error": "missing output"}
