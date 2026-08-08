@@ -7,42 +7,42 @@
   "transport": "identity",
   "cacheMode": "cold",
   "scenario": "cancel",
-  "artifactOrigin": "http://127.0.0.1:57807",
+  "artifactOrigin": "http://127.0.0.1:34425",
   "crossOriginIsolated": true,
-  "startedAt": "2026-08-04T04:43:09.622Z",
+  "startedAt": "2026-08-08T09:27:59.373Z",
   "phases": [
     {
-      "atMs": 81.74,
+      "atMs": 72.16,
       "value": "manifest-selected"
     },
     {
-      "atMs": 105.5,
+      "atMs": 96.78,
       "value": "r8-delivery-result"
     }
   ],
   "workersStarted": 0,
   "documentMutations": 0,
   "verified": null,
-  "candidateReleaseId": "writer-review-5fa3ca0d38f2b46d",
+  "candidateReleaseId": "writer-review-d6bee07b960a942d",
   "handshake": null,
   "document": null,
   "output": null,
   "error": {
-    "name": "AbortError",
-    "code": "DELIVERY_ABORTED",
-    "message": "release verification aborted",
+    "name": "DeliveryError",
+    "code": "RELEASE_MANIFEST_INVALID",
+    "message": "invalid JSON from http://127.0.0.1:34425/releases/writer-review-d6bee07b960a942d/release-manifest.json: AbortError: The operation was aborted. ",
     "details": {
-      "stage": "artifact-fetch",
+      "stage": "manifest-fetch",
       "releaseId": null,
       "role": null,
-      "retryable": true,
-      "safeNextAction": "retry-release",
+      "retryable": false,
+      "safeNextAction": "select-known-good",
       "mutationState": "none"
     }
   },
-  "status": "complete",
-  "pass": true,
-  "completedAt": "2026-08-04T04:43:09.647Z",
+  "status": "failed",
+  "pass": false,
+  "completedAt": "2026-08-08T09:27:59.402Z",
   "browserVersion": "153.0.1",
-  "runnerElapsedMs": 351.997
+  "runnerElapsedMs": 352.833
 }
