@@ -84,7 +84,14 @@ def longevity_check(path: Path, minimum_minutes: float, browser: str) -> dict[st
         "duration": value.get("durationMinutes", 0) >= minimum_minutes,
         "samples": len(value.get("samples", [])) >= 2,
         "boundedWorkerGenerations": 0 < value.get("workerGenerations", 0) <= generation_limit,
-        "boundedWorkerGenerationsPerPage": value.get("maxWorkerGenerationsPerPage", 99) <= 3,
+        # Was `value.get(..., 99) <= 3` against a hand-written 3 -- a gate that
+        # restated the constant it guarded and so could never fail (finding 026).
+        # The producer now measures; a non-integer means "never measured", which
+        # must fail rather than default into a pass.
+        "boundedWorkerGenerationsPerPage": (
+            isinstance(value.get("maxWorkerGenerationsPerPage"), int)
+            and value["maxWorkerGenerationsPerPage"] <= 3
+        ),
         "requiredTransitions": {
             "active-a", "active-b", "offline-a-runtime", "rollback-a"
         }.issubset(transitions),

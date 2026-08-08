@@ -118,6 +118,21 @@ fetch manifest (no-cache)
 - 成功輸出做ZIP/XML與desktop LibreOffice open/PDF；delivery不能改變ODT語意。
 - Finding 012 known-close走bounded recovery；Finding 014要求Firefox優先reuse並記generation budget。
 > **2026-08-08 更正**：此處把 finding 014 的限制列為「已觀察」，但該 finding 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**（上限所寫的 16 倍以上）。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立。
+>
+> **2026-08-08 第二次更正（這一條數錯了東西）**：上面說的「每頁 Worker generation」是
+> **每頁引擎實例化次數**，而**產品從來沒有實作過它**。產品唯一實作的是
+> `editor-shell/editor-session.js` 的 `maxWorkerGenerations`（預設 **3**），數的是
+> **同一個 `EditorSession` 的崩潰／boundary 回復次數**：首次 `open()` 算第 1 代，
+> 之後每次 `restart()` ＋1；`close()` 之後不能再開，下一份文件是新的 session、計數器歸零。
+> 兩者只有在「一頁只有一個 session」時才碰巧一致。見
+> [finding 026](../findings/026-generation-cap-means-two-different-things.md)。
+>
+> **決定（2026-08-08）：產品維持 3。**理由是崩潰回復深度本來就該有界，
+> 與 finding 014 無關、也不因 014 撤回而需要改動；
+> **「每頁」這個承諾撤除**——它沒有任何產品側實作，且 014 撤回後也沒有任何已量測的理由
+> （單頁 100 代通過，記憶體是回收延遲不是殘留，見 finding 014〈待驗證 10 結案〉）。
+> 佐證：出貨 artifact `835b453d…` 在回復軸上 Chrome／Firefox 各 **16/16**，
+> 第 17 次仍以 `WORKER_GENERATION_LIMIT`＋`requiresPageReload` 擋下，fail-closed 未被移除。
 
 - 記錄manifest、release、artifact hash、response headers、cache source、encoded/decoded bytes、各stage timing與
   Worker handshake。
@@ -198,3 +213,4 @@ Service Worker atomic update、offline或rollback已完成。
 | 2026-08-04 | v1。定義versioned direct delivery、verified loader、precompression、headers與防混版gate。 |
 | 2026-08-04 | 完成Chrome／Firefox T0/T1、negative與roundtrip；判定PARTIAL GO，可進R8-C。 |
 | 2026-08-04 | 結案audit封閉`locateFile()`未知logical path，重跑完整矩陣後維持PARTIAL GO。 |
+| 2026-08-08 | 更正。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |

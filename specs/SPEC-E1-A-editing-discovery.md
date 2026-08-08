@@ -101,7 +101,13 @@ diagnostic層可把closed action映射到文件化`postKeyEvent()`，但不得�
 | `r7-t2-styled` | Finding 012 close recovery與既有round-trip回歸 |
 
 每個browser至少執行collapsed caret、forward selection、backward selection、stale revision、cancel／timeout與save/reload。
-Firefox每頁Worker generation最高3，不能用大量fresh Worker洗掉Finding 014。
+每個`EditorSession`最多3個Worker generation（＝最多2次崩潰／boundary回復），不能用無界restart規避。
+> **2026-08-08 更正**：這句描述的「每頁」量**產品從未實作**；實際實作的是
+> `EditorSession` 的 `maxWorkerGenerations`（預設 **3**）＝**同一個 session 的崩潰／
+> boundary 回復次數**。**產品維持 3；「每頁」承諾撤除。**見
+> [finding 026](../findings/026-generation-cap-means-two-different-things.md)
+> 與 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)。
+
 
 > **2026-08-08 前提更新**：本條的唯一依據是
 > [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)，
@@ -149,7 +155,13 @@ type EditorAction =
 
 - 自動browser：Chrome與Firefox；每個必要positive至少3次，每個negative至少1次。
 - action callback barrier：10,000 ms；一般action request：30,000 ms；open／save：180,000 ms。
-- 同頁Firefox Worker generation最高3；R7 headed IME原則上重用，不新增人工輪次。
+- 每個`EditorSession`最多3個Worker generation；R7 headed IME原則上重用，不新增人工輪次。
+> **2026-08-08 更正**：這句描述的「每頁」量**產品從未實作**；實際實作的是
+> `EditorSession` 的 `maxWorkerGenerations`（預設 **3**）＝**同一個 session 的崩潰／
+> boundary 回復次數**。**產品維持 3；「每頁」承諾撤除。**見
+> [finding 026](../findings/026-generation-cap-means-two-different-things.md)
+> 與 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)。
+
 - 每個成功mutation必須`revision = beforeRevision + 1`，除非A證據促成更嚴格、另有版本的batch定義；不得一個
   host action增加兩次產品revision。
 - save output通過ZIP CRC、全部XML parse、預期anchor／格式與desktop LibreOffice reopen。
@@ -348,3 +360,4 @@ E1-B／C仍不得啟動。
 | 2026-08-05 | v5。隔離scheduler實驗跨Chrome／Firefox否證主迴圈缺口；改判為SDK callback分類／歸屬缺口，停止判定維持。 |
 | 2026-08-05 | v6。Verified-selection barrier跨Chrome／Firefox與desktop round-trip通過；Finding 016解除停止，恢復剩餘A6矩陣。 |
 | 2026-08-05 | v7。完成A6雙瀏覽器10 fixture、10份desktop round-trip與回歸；判定PARTIAL_GO_TO_E1_B，line navigation／Redo／drag／paragraph-list縮限。 |
+| 2026-08-08 | 更正。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |

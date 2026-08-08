@@ -78,7 +78,7 @@ A 完全不會擋。
 本檔只確認「技術上做得到」與「fail-closed 沒被拿掉」。
 證據：`findings/evidence/sdk-e1/editor-validation/session-depth/generations/{chrome,firefox}/result.json`。
 
-## 兩個假閘門（已確認，需修）
+## 兩個假閘門（已確認，**已修**，修法見下節）
 
 清點時另外發現兩個**永遠不可能失敗**的檢查——不是數字錯，是**根本沒在量**：
 
@@ -96,7 +96,41 @@ R8-D 的 `boundedWorkerGenerations`／`boundedWorkerGenerationsPerPage` 兩個�
 `requiredProperties` 裡的 `bounded-worker-generation` 則是**純宣告**——
 `validate_e1_c.py` 只檢查矩陣的 `schemaVersion`／`release`，**沒有任何程式讀那個門檻**。
 
-## 產品面該怎麼收（待決定，不在本檔擅自決定）
+## 已收（2026-08-08，使用者決定）
+
+1. **A 維持 3。**理由是崩潰回復深度該有界，與 finding 014 無關。使用者原本同意改 16，
+   是基於我對這個上限的錯誤說明（「第四份文件會被踢」）；說明更正後，決定改為維持 3。
+   **實測支持：自發性崩潰量到 0 次**——單頁 100 代 `crashes: 0`、單頁 50 代 `crashes: 0`、
+   E1-C 的 210 個非故意崩潰 case 中只有 7 個重建過引擎，而那 7 個**全是同一份文件**
+   （`l0-t2`，Chrome 4 次／Firefox 3 次），對應 finding 012 的已知降級
+   （R7 語料 28 份裡佔 1 份）。要踩到上限得是**同一份文件、同一個階段裡連壞兩次**。
+2. **B（每頁）承諾撤除。**15 份規格中 11 份帶現行條文的引用已就地修訂，
+   加上第二次更正註記與修訂紀錄；產品程式**一行未改**，因此不需重發任何判定。
+3. **兩個假閘門已改成真量測**（見下）。
+
+（未做，留給日後：若 `l0-t2` 那類「已知會回復一次」的文件不該吃掉使用者額度，
+正解是**讓已知降級不計入額度**，而不是把 3 調大。）
+
+## 假閘門的修法與它自己的驗證（已觀察，2026-08-08）
+
+`run_r8_production.py` 現在讓**頁面自己數**：三個 `workerFactory` 站點
+（`:220`、`:493`、`r8-update-app.js:168`）各自 `window.__r8_worker_generations += 1`，
+soak 結束時讀回來寫進 summary；`validate_r8_d.py` 與 soak 的 `pass` 條件都改成
+**非整數即失敗**（沒量到不能算通過）。
+
+修的過程本身踩了兩個同類的坑，兩個都由「數字會不會動」抓出來：
+
+| 讀數 | 原因 |
+|---|---|
+| 1（第一次） | 用 `evaluate()` 讀 → Firefox 上落在 WebDriver sandbox，不是頁面 global（[finding 025](025-webdriver-script-injection-never-ran-on-firefox.md)）。改走 `async_result()` 在頁內讀 |
+| 1（第二次） | `serve.py` 服務的是 `dist/`，而我只改了 `web/`。`make dist/r8-update-app.js` 之後才生效 |
+| **3**（正確） | ＝1 個長壽 soak session ＋ 2 次 `runtimeHealth`。與最終 health 的 `workersStarted: 1` 對得上 |
+
+**判準就是「同一段工作量下讀數會不會隨程式改變而改變」**：1 → 3 才證明它在量東西。
+舊值 4／3 從來不動——所有歷史 soak summary 都是 `gen 4 / maxPerPage 3`，
+**連 `pass: false` 的那幾輪也是**，那正是常數的指紋。
+
+## 產品面該怎麼收（原始清單，已由上節取代）
 
 1. **A（回復深度）**：預設 3 沒有已知理由要改。若要改，理由必須是可靠性論證，不是 014。
 2. **B（每頁引擎實例化）**：若規格要繼續承諾它，產品就得**真的去數**——目前是零實作。
@@ -121,3 +155,6 @@ R8-D 的 `boundedWorkerGenerations`／`boundedWorkerGenerationsPerPage` 兩個�
 
 - 2026-08-08：建檔。起因是準備執行「上限 3 → 16」時清點實際生效點，發現規格與產品
   在數不同的東西；連帶更正我自己先前對使用者說的「第四份文件會被踢出去」。
+- 2026-08-08（同日，收尾）：使用者決定 **A 維持 3、B 承諾撤除**。11 份帶現行條文的規格
+  已就地修訂＋補修訂紀錄；兩個假閘門已改成頁面自數的真量測（讀數由 1 變 3 才收下）；
+  產品程式一行未改，故不重發任何判定。新增〈已收〉與〈假閘門的修法〉兩節。

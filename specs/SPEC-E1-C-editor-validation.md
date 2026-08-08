@@ -31,9 +31,24 @@ E1-C不再擴充Editor ABI；它要證明E1-B的窄版產品contract在真實hos
   `pass:true`人工證據；Cangjie／Pinyin未驗證且不在E1 v1承諾。
 - R7 28份相容性corpus已通過ODT-first驗證；E1-C只取五份代表性positive ODT，避免把DOCX與negative format
   classification混入editor驗收。
-- Finding 012已有bounded Worker recycle；Finding 014限制Firefox同頁面大量建立大型WASM Worker。E1-C必須每頁
-  最多使用三個Worker generation，達上限前明確reload整個頁面。
+- Finding 012已有bounded Worker recycle。E1-C的每個`EditorSession`最多使用三個Worker generation
+  （＝最多兩次崩潰／boundary回復），達上限時明確reload整個頁面。
 > **2026-08-08 更正**：此處把 finding 014 的限制列為「已觀察」，但該 finding 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**（上限所寫的 16 倍以上）。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立。
+>
+> **2026-08-08 第二次更正（這一條數錯了東西）**：上面說的「每頁 Worker generation」是
+> **每頁引擎實例化次數**，而**產品從來沒有實作過它**。產品唯一實作的是
+> `editor-shell/editor-session.js` 的 `maxWorkerGenerations`（預設 **3**），數的是
+> **同一個 `EditorSession` 的崩潰／boundary 回復次數**：首次 `open()` 算第 1 代，
+> 之後每次 `restart()` ＋1；`close()` 之後不能再開，下一份文件是新的 session、計數器歸零。
+> 兩者只有在「一頁只有一個 session」時才碰巧一致。見
+> [finding 026](../findings/026-generation-cap-means-two-different-things.md)。
+>
+> **決定（2026-08-08）：產品維持 3。**理由是崩潰回復深度本來就該有界，
+> 與 finding 014 無關、也不因 014 撤回而需要改動；
+> **「每頁」這個承諾撤除**——它沒有任何產品側實作，且 014 撤回後也沒有任何已量測的理由
+> （單頁 100 代通過，記憶體是回收延遲不是殘留，見 finding 014〈待驗證 10 結案〉）。
+> 佐證：出貨 artifact `835b453d…` 在回復軸上 Chrome／Firefox 各 **16/16**，
+> 第 17 次仍以 `WORKER_GENERATION_LIMIT`＋`requiresPageReload` 擋下，fail-closed 未被移除。
 
 - Finding 016要求結構邊界拒絕後fresh Worker；Finding 018使line navigation維持unsupported。
 
@@ -102,7 +117,15 @@ Chrome／Firefox各三次完整sequence：
 - fresh Worker只重開authority bytes，boundary action與queue不重播；
 - composing、queued mutation、unsaved local edit、saved authority四個crash barrier；
 - unsaved內容明確不可恢復，saved authority可恢復，舊handle／舊generation結果不可污染新session；
-- 每頁Worker generation上限為3，達上限前要求完整page reload，不以無界restart規避Finding 014。
+- **每個`EditorSession`**最多3個Worker generation（首次open為第1代，其後每次崩潰／boundary
+  `restart()`＋1），達上限時以typed `WORKER_GENERATION_LIMIT`＋`requiresPageReload`要求完整page
+  reload，不以無界restart規避。
+> **2026-08-08 更正**：這句描述的「每頁」量**產品從未實作**；實際實作的是
+> `EditorSession` 的 `maxWorkerGenerations`（預設 **3**）＝**同一個 session 的崩潰／
+> boundary 回復次數**。**產品維持 3；「每頁」承諾撤除。**見
+> [finding 026](../findings/026-generation-cap-means-two-different-things.md)
+> 與 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)。
+
 
 > **2026-08-08 前提更新**：本條的唯一依據是
 > [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)，
@@ -333,3 +356,4 @@ pipe）之後，§11.4 要求的重跑全數完成，全部對出貨 artifact `8
 | 2026-08-07 | v4。新增§11.4。E1-D與底線／刪除線兩次重連結；補上自動相位的artifact綁定閘門，裁決降為`E1_STOP_OR_RESCOPE`。 |
 | 2026-08-07 | v5。新增§11.5。重跑自動相位撞上finding 023（session深度固定後SDK init卡死）；撤回「主機負載偶發」歸因。 |
 | 2026-08-07 | v6。新增§11.6。finding 023修復後全部相位＋雙瀏覽器人工輪對`835b453d…`重跑完畢，48/48綁定、0 superseded，裁決回到`E1_GO_ODT_EDITOR`；關閉Chrome `trustedPaste`的finding候選。 |
+| 2026-08-08 | v7。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |

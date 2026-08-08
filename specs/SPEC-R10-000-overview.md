@@ -121,6 +121,21 @@ inventory（4.1）→ 凍結矩陣（4.2）→ A/B build（4.3）
   更新機制、真正 bit-reproducible build。每個單位的矩陣要寫明自己依賴哪一層。
 - Firefox 量測沿用 finding 014 的 Worker generation 上限；Firefox 缺席的量測項標 `unavailable`，
 > **2026-08-08 更正**：此處把 finding 014 的限制列為「已觀察」，但該 finding 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**（上限所寫的 16 倍以上）。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立。
+>
+> **2026-08-08 第二次更正（這一條數錯了東西）**：上面說的「每頁 Worker generation」是
+> **每頁引擎實例化次數**，而**產品從來沒有實作過它**。產品唯一實作的是
+> `editor-shell/editor-session.js` 的 `maxWorkerGenerations`（預設 **3**），數的是
+> **同一個 `EditorSession` 的崩潰／boundary 回復次數**：首次 `open()` 算第 1 代，
+> 之後每次 `restart()` ＋1；`close()` 之後不能再開，下一份文件是新的 session、計數器歸零。
+> 兩者只有在「一頁只有一個 session」時才碰巧一致。見
+> [finding 026](../findings/026-generation-cap-means-two-different-things.md)。
+>
+> **決定（2026-08-08）：產品維持 3。**理由是崩潰回復深度本來就該有界，
+> 與 finding 014 無關、也不因 014 撤回而需要改動；
+> **「每頁」這個承諾撤除**——它沒有任何產品側實作，且 014 撤回後也沒有任何已量測的理由
+> （單頁 100 代通過，記憶體是回收延遲不是殘留，見 finding 014〈待驗證 10 結案〉）。
+> 佐證：出貨 artifact `835b453d…` 在回復軸上 Chrome／Firefox 各 **16/16**，
+> 第 17 次仍以 `WORKER_GENERATION_LIMIT`＋`requiresPageReload` 擋下，fail-closed 未被移除。
 
   不以 Chrome 數字補。
 
@@ -151,3 +166,4 @@ R10 的結束狀態由已 `MERGED` 單位總結；全部 `STOPPED` 且保留 R5 
 | 日期 | 內容 |
 |---|---|
 | 2026-08-05 | v1。只定義方法、進場閘門（P1～P5，含 P5 基線可重建）、裁切單位證據要求（4.1～4.7）、停止條件與判定語彙；明確不列裁切目標，目標待 E2／E3／E4 定案後另立子規格。前置條件未成立，不可啟動。 |
+| 2026-08-08 | 更正。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |

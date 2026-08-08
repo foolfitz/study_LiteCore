@@ -295,7 +295,13 @@ LibreOffice reopen 與 PDF export。回歸 R6～R8、E1-A／B／C 與 before／a
 | barrier 上限 | 10,000 ms |
 | operation timeout | 30,000 ms |
 | open／save timeout | 180,000 ms |
-| Firefox 每頁 Worker generation 上限 | 3 |
+| 每個 `EditorSession` 的 Worker generation 上限（＝最多 2 次崩潰／boundary 回復） | 3 |
+> **2026-08-08 更正**：這句描述的「每頁」量**產品從未實作**；實際實作的是
+> `EditorSession` 的 `maxWorkerGenerations`（預設 **3**）＝**同一個 session 的崩潰／
+> boundary 回復次數**。**產品維持 3；「每頁」承諾撤除。**見
+> [finding 026](../findings/026-generation-cap-means-two-different-things.md)
+> 與 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)。
+
 | 人工 IME 輪數 | 0 |
 
 ## 6. Evidence contract
@@ -492,3 +498,4 @@ scope 共用同一份 worker patch，manifest 新增 `engineLoop` 診斷欄位�
 | 2026-08-06 | v8。判別實驗一（複合 profile `e2-mainloop-pei-attribution`）：PEI 在活迴圈下有效、修法完整矩陣重現（兩瀏覽器 5/5 verified ＋ postcondition 5/5），排除 Desktop::Main 初始化假設；判別實驗二（真游標 dispatch nudge）：不觸發重算，排除定位路徑假設。缺口定為 PEI 語意（每 tick ImplYield vs 迴圈到靜止），產品出路收斂為上游報告。A3 在有受支援 pump 前不啟動。 |
 | 2026-08-06 | v9（覆核修訂）。2.6 節結果二改寫：watched payload 在活迴圈下**會抵達但落後一個定位點**（原寫「零抵達／未被排程」對最終 build 的證據為假，該讀數屬過渡 build），缺口正確描述為收斂／順序問題；撤回 `GetMostUrgentTaskPriority=-1` 作為證據（取樣點使該值恆為 -1）；補記 `loop()` 與 PEI 差兩個參數。新增結果三：回退後的 fail-closed 仍擋不住落後一格的 payload，**未修補**，A3 的前提因此多一項。 |
 | 2026-08-06 | v10（二次覆核＋產品決定）。撤回 v9 追加的「結果三：落後一格的 payload 會清掉 stale 旗標」——engine 旗標在兩瀏覽器全部 search 列都正確為 stale，且 `updateEditorFormatState` 先清旗標才發事件，誤因是把 harness 的 `fresh`（計數起點在定位之前）當成 engine 判準；殘留缺口改寫為逐欄位世代標記（推論，未觀測到實例）。更正「沒有受支援的刷新入口」：`Scheduler::ProcessEventsToIdle()` 是公開 API 且有產品呼叫者，只有 C 包裝 `unit_lok_process_events_to_idle` 是 unit-test 掛鉤。使用者決定不送上游，產品路線定為 **C：不讀前置狀態**（closed action 直接派送，只用後置條件判定，移除 `documented-state-noop`），路線 A（產品自行 pump）延後而非否決。 |
+| 2026-08-08 | 更正。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |

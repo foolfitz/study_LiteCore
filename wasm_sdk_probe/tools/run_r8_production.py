@@ -217,6 +217,8 @@ def compatibility_script(release_id: str, selected_ids: list[str]) -> str:
                     timeoutMs: 180000,
                     workerFactory(url) {{
                       workersStarted += 1;
+                      window.__r8_worker_generations =
+                        (window.__r8_worker_generations ?? 0) + 1;
                       return new Worker(url, {{ name: `r8-d-${{item.id}}` }});
                     }}
                   }});
@@ -487,7 +489,11 @@ def run_soak(project: Path, evidence: Path, browser: str, minutes: float,
           }});
           window.__r8d_soak_session = await delivery.startVerifiedEngine(verified, {{
             timeoutMs: 180000,
-            workerFactory(url) {{ return new Worker(url, {{ name: 'r8-d-long-lived-a' }}); }}
+            workerFactory(url) {{
+              window.__r8_worker_generations =
+                (window.__r8_worker_generations ?? 0) + 1;
+              return new Worker(url, {{ name: 'r8-d-long-lived-a' }});
+            }}
           }});
           return {{ releaseId, artifactCount: verified.artifacts.length }};
         """, timeout)
@@ -631,13 +637,28 @@ def run_soak(project: Path, evidence: Path, browser: str, minutes: float,
           return {{ health, status: await globalThis.__r8_update_command('status') }};
         """, timeout)
         duration_minutes = (time.monotonic() - soak_started) / 60
-        worker_generations = 4
+        # Read the page's own tally instead of restating a constant.  Until
+        # 2026-08-08 these two were the literals `4` and `3`, checked against
+        # `<= 4` and `<= 3` -- gates that could not fail, and did not: every
+        # recorded soak summary carries 4/3 whether the run passed or failed
+        # (finding 026).
+        # Read it IN THE PAGE.  A bare evaluate() lands in the WebDriver
+        # sandbox on Firefox, whose global is not the page's (finding 025):
+        # the first run of this measurement returned 1 while the final health
+        # check had demonstrably started its own worker, i.e. the read was not
+        # seeing the counter the page had been incrementing.
+        worker_generations = (async_result(
+            session, "__r8d_worker_generations",
+            "return window.__r8_worker_generations ?? null;", 60,
+        ).get("value"))
+        # One page for the whole soak, so the per-page maximum IS that tally.
+        max_generations_per_page = worker_generations
         summary = {
             "schemaVersion": 1, "release": "R8-D-production-validation",
             "browser": browser, "browserVersion": session.version,
             "releaseIds": ids, "durationMinutes": duration_minutes,
             "intervalMs": interval_ms, "workerGenerations": worker_generations,
-            "maxWorkerGenerationsPerPage": 3,
+            "maxWorkerGenerationsPerPage": max_generations_per_page,
             "transitions": transitions, "cycles": cycles, "samples": samples,
             "beforeDispose": before_dispose, "rollback": rollback,
             "offlineFinal": offline, "serverRuns": server_runs,
@@ -653,6 +674,10 @@ def run_soak(project: Path, evidence: Path, browser: str, minutes: float,
             and all(item["pass"] for item in cycles)
             and offline.get("pass") is True
             and {"active-a", "active-b", "offline-a-runtime", "rollback-a"}.issubset(transitions)
+            # A missing measurement is a failure, not a pass: `None` here means
+            # the page never reported a tally, which is precisely the state the
+            # old literal was hiding.
+            and isinstance(worker_generations, int)
             and worker_generations <= (4 if browser == "firefox" else 8)
         )
         write_json(output / "summary.json", summary)

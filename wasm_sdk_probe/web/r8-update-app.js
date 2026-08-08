@@ -160,6 +160,12 @@ async function runtimeHealth(releaseId, options = {}) {
       timeoutMs: 180000,
       workerFactory(url) {
         workersStarted += 1;
+        // Page-scoped tally of engine instantiations.  EVERY engine in this page
+        // is built through a workerFactory, so this is the one place a count
+        // cannot drift from what actually happened -- which is exactly how
+        // run_r8_production.py ended up asserting a hand-written 4 against a
+        // threshold of 4 and calling it a passing property (finding 026).
+        window.__r8_worker_generations = (window.__r8_worker_generations ?? 0) + 1;
         return new Worker(url, { name: `r8-c-health-${workersStarted}` });
       },
     });

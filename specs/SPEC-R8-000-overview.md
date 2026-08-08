@@ -126,6 +126,21 @@ performance採樣方式與topology分類凍結後才能實作B；不得在看到
 - Firefox generation budget採finding 014安全策略，接近上限時要求重新載入session，不等待120秒timeout。
 
 > **2026-08-08 補標**：2026-08-08 的撤回只補齊了 Firefox combined-run 缺口（成因是 finding 025），**本條的 generation budget 未處理**。finding 014 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立；`tools/run_r8_production.py` 與 `tools/validate_r8_d.py` 仍把上限寫死。
+>
+> **2026-08-08 第二次更正（這一條數錯了東西）**：上面說的「每頁 Worker generation」是
+> **每頁引擎實例化次數**，而**產品從來沒有實作過它**。產品唯一實作的是
+> `editor-shell/editor-session.js` 的 `maxWorkerGenerations`（預設 **3**），數的是
+> **同一個 `EditorSession` 的崩潰／boundary 回復次數**：首次 `open()` 算第 1 代，
+> 之後每次 `restart()` ＋1；`close()` 之後不能再開，下一份文件是新的 session、計數器歸零。
+> 兩者只有在「一頁只有一個 session」時才碰巧一致。見
+> [finding 026](../findings/026-generation-cap-means-two-different-things.md)。
+>
+> **決定（2026-08-08）：產品維持 3。**理由是崩潰回復深度本來就該有界，
+> 與 finding 014 無關、也不因 014 撤回而需要改動；
+> **「每頁」這個承諾撤除**——它沒有任何產品側實作，且 014 撤回後也沒有任何已量測的理由
+> （單頁 100 代通過，記憶體是回收延遲不是殘留，見 finding 014〈待驗證 10 結案〉）。
+> 佐證：出貨 artifact `835b453d…` 在回復軸上 Chrome／Firefox 各 **16/16**，
+> 第 17 次仍以 `WORKER_GENERATION_LIMIT`＋`requiresPageReload` 擋下，fail-closed 未被移除。
 
 ## 6. 明確不在R8
 
@@ -252,3 +267,4 @@ cache inventory、SW lifecycle與browser log，建立finding後決定縮小scope
 | 2026-08-04 | R8-C完成並判定PARTIAL GO；原子更新、offline、rollback與last-known-good跨瀏覽器成立。 |
 | 2026-08-04 | R8-D完成；所有local safety gate通過，缺T2及Firefox Finding 014 combined-run缺口，R8判定PARTIAL_GO_LOCAL_DELIVERY。 |
 | 2026-08-08 | Firefox combined-run缺口補齊（成因為finding 025的harness缺陷，非瀏覽器）：R8-D compatibility 28/28、soak 30.07分鐘、R8-C t0 46／t1 37全過。finding 014相關限制撤回。T2缺口仍在，R8判定不變。 |
+| 2026-08-08 | 更正。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |
