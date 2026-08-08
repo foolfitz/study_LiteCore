@@ -120,6 +120,8 @@ inventory（4.1）→ 凍結矩陣（4.2）→ A/B build（4.3）
 - bit reproducibility 三分，不得混為一談（roadmap 8.2）：deterministic content、artifact hash
   更新機制、真正 bit-reproducible build。每個單位的矩陣要寫明自己依賴哪一層。
 - Firefox 量測沿用 finding 014 的 Worker generation 上限；Firefox 缺席的量測項標 `unavailable`，
+> **2026-08-08 更正**：此處把 finding 014 的限制列為「已觀察」，但該 finding 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**（上限所寫的 16 倍以上）。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立。
+
   不以 Chrome 數字補。
 
 ## 8. 裁切目標（本規格明確不列）

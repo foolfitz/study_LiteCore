@@ -168,6 +168,8 @@ G0 通過後、任何契約凍結前，在 native 26.8 量測並凍結兩份矩�
   native 26.8 為 validator，並明確標注其獨立性較弱（與 WASM 同一 source tree）；不得因 validator
   缺位而讓 md 輸出免驗。
 - Firefox Worker generation 上限沿用 finding 014。
+> **2026-08-08 更正**：此處把 finding 014 的限制列為「已觀察」，但該 finding 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**（上限所寫的 16 倍以上）。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立。
+
 
 ## 10. 判定
 

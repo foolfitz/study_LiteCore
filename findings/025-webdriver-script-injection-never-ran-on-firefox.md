@@ -127,9 +127,11 @@ TypeError: 'fetch' called on an object that does not implement interface Window.
   差了 **182 倍**，而且是同一段程式碼、同一個瀏覽器。歸因閉合。
   證據 `evidence/sdk-r8-post-023-fix/service-worker-firefox-injected-path/`。
 
-  **建議（未執行，屬產品／流程決定）**：`run_multi_client()` 的 Firefox 專用
-  `webdriver-tabs` 分支可以退休，讓兩個瀏覽器回到同一條路徑。本次**不逕行刪除**——
-  出貨的 R8-C 證據是用 tabs 策略取得的，換策略等於換證據來源，該由使用者決定。
+  **分支已退休（2026-08-08，使用者指示）**：`run_multi_client()` 的 Firefox 專用
+  `webdriver-tabs` 分支（79 行）已刪除，兩個瀏覽器回到同一條路徑；連同臨時的
+  `OXSDK_R8C_FORCE_INJECTED_MULTICLIENT` 開關一併移除。刪除後重跑 R8-C Firefox 全套：
+  **t0 46/46、t1 37/37 通過**，multi-client `strategy: null`（共用路徑）**5,192 ms**。
+  證據 `evidence/sdk-r8-post-023-fix/service-worker-unified/`。
 
   > 更正紀錄：本檔初版寫「R8-C 的多 client 測試在 Firefox 上同樣從未執行過，結果待重看」。
   > 查證後那是錯的——Firefox 走的是另一條分支，結果有效。錯誤來自看到同型的

@@ -117,6 +117,8 @@ fetch manifest (no-cache)
 - 每個成功release至少跑R6 reader/reference smoke、R7 t1／t2與一份font fixture的open/render/search/save/close。
 - 成功輸出做ZIP/XML與desktop LibreOffice open/PDF；delivery不能改變ODT語意。
 - Finding 012 known-close走bounded recovery；Finding 014要求Firefox優先reuse並記generation budget。
+> **2026-08-08 更正**：此處把 finding 014 的限制列為「已觀察」，但該 finding 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**（上限所寫的 16 倍以上）。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立。
+
 - 記錄manifest、release、artifact hash、response headers、cache source、encoded/decoded bytes、各stage timing與
   Worker handshake。
 

@@ -2,7 +2,21 @@
 
 ## 狀態
 
-**本檔的核心證據（R7-D `s2-fresh`／`s3`）已於 2026-08-08 撤回歸因：那不是 Firefox 缺陷，
+**本檔已全數撤回（2026-08-08）。三組觀察全部歸屬到我方 harness，沒有一組是 Firefox 缺陷：**
+
+| 本檔觀察 | 歸屬 |
+|---|---|
+| R7-D `s2-fresh`／`s3` 的牆 | [finding 023](023-sdk-init-wedges-at-fixed-session-depth.md)（unread `serve.py` pipe） |
+| R7-C 單頁多 Worker 耗盡 | 同上 |
+| R8-D 兩策略各等滿 900 秒 | [finding 025](025-webdriver-script-injection-never-ran-on-firefox.md)（注入腳本從未執行） |
+
+三組都以重跑證明：R7-D 正式九輪 `summary.pass: true`、R7-C 單頁 19 Worker 19/19、
+R8-D compatibility 28/28 ＋ soak 30.07 分鐘。**「每頁 Worker generation 上限為 3」的前提
+亦被兩種工作量各自推翻**（單頁 50 代、單頁 19 Worker）。
+
+---
+
+**核心證據（R7-D `s2-fresh`／`s3`）的撤回經過：那不是 Firefox 缺陷，
 是我們自己的 harness——[finding 023](023-sdk-init-wedges-at-fixed-session-depth.md) 那條
 沒人讀的 `serve.py` 請求 log pipe。**用修好的 harness 原封不動重跑，兩個情境都全通：
 
@@ -36,7 +50,7 @@
   **（2026-08-08 撤回）**：pipe 修好後 `s2-fresh` 50/50、`s3` 20/20 全過。
   Firefox R7-D longevity 的九個情境**現在全數通過**（其餘七個 2026-08-04 當時就過）。
 
-### 下游影響（2026-08-08，尚未處理）
+### 下游影響（2026-08-08，逐項處理中）
 
 本檔的產品限制被八份規格引用，全部建立在這個已撤回的機制上：
 
@@ -44,13 +58,13 @@
 |---|---|
 | ~~`SPEC-R7-D`~~ | **已處理（2026-08-08，§10.3）**：Firefox 正式九輪重跑 `summary.pass: true`，限制撤回。判定仍為部分 GO，但理由只剩 accessibility |
 | ~~`SPEC-R7-000`~~ | **已處理（2026-08-08，v6）**：總判定保留項刪去「Firefox 無限 Worker generation」 |
-| `SPEC-R8-000` §39/122/231/243 | `PARTIAL_GO_LOCAL_DELIVERY` 的 Firefox combined-run 缺口 |
-| `SPEC-R8-B` §119、`SPEC-R8-C` §47/123 | generation budget、耗盡時要求整個 session reload |
-| `SPEC-E1-A` §104、`SPEC-E1-C` §34/103 | **「每頁 Worker generation 上限為 3」** |
-| `SPEC-E4-000` §170、`SPEC-R10-000` §122 | 沿用本檔的 Worker generation 上限 |
+| ~~`SPEC-R8-000`／`SPEC-R8-D`~~ | **已處理（2026-08-08，R8-D §10.1、R8-000 三處）**：Firefox combined-run 缺口補齊——compatibility 28/28、soak 30.07 分鐘、R8-C t0 46／t1 37。成因是 [finding 025](025-webdriver-script-injection-never-ran-on-firefox.md)。**T2 缺口與本檔無關，`PARTIAL_GO_LOCAL_DELIVERY` 判定不變** |
+| `SPEC-E1-A` §4、`SPEC-E1-C` §2.1／§C2／§C4 | **「每頁 Worker generation 上限為 3」——前提已被實測推翻並就地標註，但條文未改**（見下節）。放寬與否會改變 E1-C 對外承諾與產品 reload 行為，屬產品決定 |
+| `SPEC-R8-B`、`SPEC-R8-C`、`SPEC-E4-000`、`SPEC-R10-000` | generation budget／沿用上限：同樣已就地標註指回本檔，條文未改 |
 
 **這些不會因為本檔撤回而自動失效**——要撤掉限制得各自重跑對應矩陣。**在那之前不得
-把「上限已解除」寫進任何規格或產品。**
+把「上限已解除」寫進任何規格或產品。**（截至 2026-08-08：R7-D、R7-000、R8-000、R8-D
+四份已用重跑證據處理完畢；E1／R8-B／R8-C／E4／R10 只標註前提不成立，**條文一律未改**。）
 
 進度：
 
@@ -60,11 +74,50 @@
   `evidence/sdk-r8-post-023-fix/production/compatibility/firefox/`）——成因是
   [finding 025](025-webdriver-script-injection-never-ran-on-firefox.md)，注入腳本
   在 Firefox 上從未執行。
-- E1 的**每頁 3 代上限尚未重跑，限制照舊有效**。
+- **E1 的「每頁 Worker generation 上限為 3」前提已被實測推翻（2026-08-08）**，見下。
 
 （R7-D 的判定並沒有因此變成完整 GO——§8 的 GO 還要求 DOM accessibility 狀態正確，
 而 document-content accessibility／完整 headed keyboard／Orca 至今未收集。
 **longevity 這一半移除後，部分 GO 只剩 accessibility 那一半。**）
+
+### 「每頁 Worker generation 上限為 3」：前提已被推翻（已觀察，2026-08-08）
+
+`SPEC-E1-C` §C2 與 `SPEC-E1-A` §4 寫的是「每頁 Worker generation 上限為 3，達上限前
+要求完整 page reload，**不以無界 restart 規避 Finding 014**」。這條的唯一依據就是本檔。
+
+判別實驗：R7-D `s2-fresh` 加一個預設關閉的 `--firefox-single-session`，把 50 個 cycle
+全部跑在**同一個瀏覽器行程的同一個頁面**裡（不導覽、不 reload），對照 2026-08-04
+同形狀的原始單頁測試（當時第 34 個 worker 逾時）：
+
+| | 2026-08-04 | 2026-08-08 |
+|---|---|---|
+| 單頁 engine generation | 33 完成，第 **34** 個 `init timed out` | **50/50 全過** |
+| worker | — | 50 建 50 拆、active **0** |
+| handle | — | 50 開 50 關、active 0 |
+| 記憶體 | — | 斜率 **+22.4 MB**／block（門檻 67 MB）、post-close **+4.09%**（門檻 35%）、`pass: true` |
+
+`sessionType: headless-automatic`（非分批）、`batches: null`——確認是單一 session 單一頁面。
+**實測到的每頁世代數至少 50，是規格所寫上限的 16 倍以上。**
+證據：`findings/evidence/sdk-r7/single-page-generations/firefox/s2-fresh/run-1/result.json`。
+
+**我沒有動那兩份規格的要求條文。**理由：E1-C 是**凍結矩陣**且已判 `E1_GO_ODT_EDITOR`，
+其證據是在「每頁 ≤3 代」這個約束下取得的。放寬約束不會使既有證據失效
+（在更嚴格的約束下通過，仍然通過），但它會**改變 E1-C 對外承諾的內容**，
+也會改變 `SPEC-R8-B`／`SPEC-R8-C` 的 generation budget 與「耗盡時要求整個 session reload」
+這條產品行為。那是產品決定，不是量測結論。**本檔只負責記錄前提已不成立。**
+
+**第二個獨立的資料點（真實 corpus，不是壓力檔）**：R7-C 的 `firefox_batches()` 也硬寫著
+`worker_budget: int = 3`，docstring 明說是「Firefox observed large-WASM Worker ceiling」。
+把它開到 64 之後，full group 的 **19 份文件在同一個頁面**跑完——19 個 Worker 建 19 拆、
+19/19 全過、只用 1 個 batch（原本 7 個）。證據
+`findings/evidence/sdk-r7/compatibility-single-page/firefox/full/run-1/`。
+
+所以「每頁 3 個」在**兩種完全不同的工作量**下都被推翻：合成壓力檔（s2-fresh 單頁 50 代）
+與正式相容性 corpus（R7-C 單頁 19 個 Worker）。
+
+順帶一提，R7-D 對 Firefox `s2-fresh` 的**每 5 cycle 換一個瀏覽器行程**的分批策略、
+以及 R7-C 的每頁 3 個上限，都是為了規避本檔而寫的；上面兩輪表示它們都可以退休
+（**未執行**——改預設值會改變既有證據的取得形狀，屬產品／流程決定）。
 
 ## 2026-08-08 重新分類（本檔三組觀察各自的歸屬）
 
@@ -73,7 +126,7 @@
 | 本檔觀察 | 歸屬 | 依據 |
 |---|---|---|
 | `s2-fresh`／`s3` 的牆（第 34／36／37／38 個 worker） | **finding 023 的 `serve.py` pipe（已確認，實驗＋算術）** | 見下「位元組帳」與上表的重跑結果 |
-| R7-C 單頁多 Worker／快速多 session 的 init、navigation 耗盡 | **未定**（原記 024，已降級） | 同一支 harness、同一條 pipe 當時都在；未重跑 |
+| R7-C 單頁多 Worker／快速多 session 的 init、navigation 耗盡 | **finding 023 的 `serve.py` pipe（已確認，實驗）** | 標準組態重跑全過（repeat ×3 ＋ full，28 case）。判別輪把 `--firefox-worker-budget` 由 3 開到 64，讓 full group 的 **19 份文件全部擠在同一個頁面**：**19 個 Worker 建 19 拆，19/19 全過，只用 1 個 batch**（原本要切 7 個）。每頁 3 個的規避策略不再需要 |
 | R8-D 兩種策略都等滿 900 秒且沒有任何頁面結果 | **[finding 025](025-webdriver-script-injection-never-ran-on-firefox.md)（已確認，實驗）** | 注入腳本在 Firefox 上**從未執行**（`evaluate()` 包成 `return`＋換行 → ASI）。修好後同一相位 **28/28 全過**，且這次沒先跑 R8-C，條件比當年更乾淨。三條 pipe 全部排除：server 端 `log_message` 是 no-op，driver 端 900 秒全程僅 **926 B** |
 
 ### 位元組帳：牆的位置是算得出來的（已觀察）
@@ -116,9 +169,14 @@ init 就逾時（8 個 pid 各不相同，已查證）。瀏覽器行程內的�
   **超過 64 KiB。**後續三輪重跑（含 90 秒純 idle 對照）都沒再出現，所以它是
   **偶發、依網路狀態**，不隨我們的工作量增長。
 
-→ 對本檔：driver pipe 是 **per-session**（每批新開一個 geckodriver），**產生不了跨批次
-累積的第 36 格牆**，所以不是 `s2-fresh` 的成因。→ 對 R8-D：那是**同一個 session 等滿
-900 秒**，這條 pipe 的爆量形狀對得上，**不能排除**。
+→ 對 `s2-fresh`：driver pipe 是 **per-session**（每批新開一個 geckodriver），
+**產生不了跨批次累積的第 36 格牆**，所以不是它的成因。
+
+→ 對 R8-D：本節初版寫「同一 session 等滿 900 秒，爆量形狀對得上，**不能排除**」。
+**已排除（2026-08-08）**：把 driver stderr 導成檔案重跑那 900 秒的停擺，**全程只有 926 B**
+（離 64 KiB 差 70 倍），且 R8-D 的成因已由
+[finding 025](025-webdriver-script-injection-never-ran-on-firefox.md) 確認為注入腳本
+從未執行。證據 `evidence/sdk-r8-post-023-fix/driver-stderr/`。
 
 ## 已觀察
 

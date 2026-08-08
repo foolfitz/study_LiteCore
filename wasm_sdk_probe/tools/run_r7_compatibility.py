@@ -77,7 +77,15 @@ def full_batches(documents: list[dict[str, object]], batch_size: int) -> list[li
 def firefox_batches(
     documents: list[dict[str, object]], group: str, worker_budget: int = 3,
 ) -> list[list[dict[str, object]]]:
-    """Keep each page below Firefox's observed large-WASM Worker ceiling."""
+    """Split a group into pages, capped at `worker_budget` Workers per page.
+
+    The default of 3 is finding 014's "observed large-WASM Worker ceiling".
+    That ceiling turned out to be our own harness (finding 023's unread
+    serve.py pipe): a single Firefox page has since sustained 50 engine
+    generations cleanly.  --firefox-worker-budget raises the cap so the
+    workaround can be tested for whether it is still needed; the default is
+    unchanged, so existing evidence keeps its shape.
+    """
     if worker_budget < 1:
         raise ValueError("worker_budget must be positive")
     batches: list[list[dict[str, object]]] = []
@@ -107,9 +115,10 @@ def run_firefox_group_batches(
     group: str,
     run_number: int,
     cooldown_seconds: float,
+    worker_budget: int = 3,
 ) -> dict[str, object]:
     run_root = browser_root / group / f"run-{run_number}"
-    batches = firefox_batches(documents, group)
+    batches = firefox_batches(documents, group, worker_budget)
     cases: list[dict[str, object]] = []
     batch_evidence = []
     versions = []
@@ -275,6 +284,12 @@ def main() -> None:
     parser.add_argument("--group", choices=("all", "repeat", "full"), default="all")
     parser.add_argument("--timeout", type=float, default=3600)
     parser.add_argument("--firefox-batch-cooldown", type=float, default=8.0)
+    parser.add_argument(
+        "--firefox-worker-budget", type=int, default=3,
+        help="max large-WASM Workers per page for firefox (default 3 = finding "
+        "014's supposed ceiling, whose cause turned out to be our own harness). "
+        "Raise it to test whether the per-page split is still needed",
+    )
     parser.add_argument("--summarize-only", action="store_true")
     parser.add_argument(
         "--evidence-root", type=Path,
@@ -323,6 +338,7 @@ def main() -> None:
                     group,
                     run_number,
                     args.firefox_batch_cooldown,
+                    args.firefox_worker_budget,
                 )
                 summaries.append(item)
                 if not item["pass"]:

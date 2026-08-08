@@ -1,0 +1,1329 @@
+{
+  "schemaVersion": 1,
+  "release": "R7-C",
+  "browser": "firefox",
+  "browserVersion": "153.0.1",
+  "browserVersions": [
+    "153.0.1"
+  ],
+  "group": "full",
+  "run": 1,
+  "metrics": {
+    "schemaVersion": 1,
+    "release": "R7-C",
+    "group": "full",
+    "batched": true,
+    "batchSizes": [
+      19
+    ],
+    "workerBudget": 3,
+    "cooldownSeconds": 8.0,
+    "cases": [
+      {
+        "id": "l1-hyperlink-font-odt",
+        "tier": "L1",
+        "path": "l1-hyperlink-font.odt",
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": [
+            "font-not-observable"
+          ]
+        },
+        "inputBytes": 8812,
+        "inputSha256": "fcd07fa18290294800968b5a19440e6707f0f651c3fb24c52d666c4389bd2938",
+        "preflight": {
+          "format": "odt",
+          "bytes": 8812,
+          "archive": {
+            "entryCount": 17,
+            "compressedBytes": 6821,
+            "uncompressedBytes": 30394,
+            "compressionRatio": 4.455944876117871,
+            "names": [
+              "mimetype",
+              "Configurations2/progressbar/",
+              "Configurations2/menubar/",
+              "Configurations2/popupmenu/",
+              "Configurations2/statusbar/",
+              "Configurations2/toolbar/",
+              "Configurations2/images/Bitmaps/",
+              "Configurations2/accelerator/",
+              "Configurations2/floater/",
+              "Configurations2/toolpanel/",
+              "manifest.rdf",
+              "styles.xml",
+              "meta.xml",
+              "settings.xml",
+              "content.xml",
+              "Thumbnails/thumbnail.png",
+              "META-INF/manifest.xml"
+            ]
+          }
+        },
+        "opened": true,
+        "dimensions": {
+          "parts": 1,
+          "widthTwips": 12474,
+          "heightTwips": 17406
+        },
+        "tiles": [
+          {
+            "yRatio": 0,
+            "scale": 1,
+            "yTwips": 0,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "ea9afa82b7c0b08571760479ae073e115cdb4a774c2d87b4814278c6246e0abb",
+            "revision": 0,
+            "ms": 25.079999999999927
+          },
+          {
+            "yRatio": 0.5,
+            "scale": 1,
+            "yTwips": 4863,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "5f950e8cf56bed450b9c2ff9c49fcd73ff44911c2c7c4df98e7d9be904e0dd6b",
+            "revision": 0,
+            "ms": 0.7800000000002001
+          },
+          {
+            "yRatio": 1,
+            "scale": 1,
+            "yTwips": 9726,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "091f37e763026634caf191a4dbff2e110f8efcb95f1e97d651bb27b1e137a361",
+            "revision": 0,
+            "ms": 0.5599999999999454
+          },
+          {
+            "yRatio": 0.5,
+            "scale": 1.5,
+            "yTwips": 4863,
+            "width": 192,
+            "height": 192,
+            "bytes": 147456,
+            "sha256": "cb3ee69b8ded19667197ecd4500d1b8a94a00e846742dae5638dc35983296ca9",
+            "revision": 0,
+            "ms": 0.6599999999998545
+          }
+        ],
+        "anchors": [
+          {
+            "text": "Normal text, hyperlink",
+            "count": 1,
+            "found": true,
+            "selectionText": "Normal text, hyperlink",
+            "revision": 0
+          }
+        ],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": {
+          "status": "passed",
+          "ms": 5.7199999999998
+        },
+        "health": null,
+        "error": null,
+        "pass": true,
+        "openMs": 345.5
+      },
+      {
+        "id": "l1-hyperlink-font-docx",
+        "tier": "L1",
+        "path": "l1-hyperlink-font.docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported",
+            "font-not-observable"
+          ]
+        },
+        "inputBytes": 5342,
+        "inputSha256": "229c009ba0ff10b5f7d57fb0715e3867267a323b454eb52d076696e16f90de82",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "UNSUPPORTED_FORMAT",
+            "message": "R7 writer-review public capability is ODT-only",
+            "details": {
+              "extension": ".docx"
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "UNSUPPORTED_FORMAT",
+          "message": "R7 writer-review public capability is ODT-only",
+          "details": {
+            "extension": ".docx"
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l2-qa-comments-on-load",
+        "tier": "L2",
+        "path": "l2-qa-comments-on-load.docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported"
+          ]
+        },
+        "inputBytes": 20338,
+        "inputSha256": "09ae12a5e0abc0d8881ab2438ec43afdbaab7135e73e1008ce285bb1ba7b6e86",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "UNSUPPORTED_FORMAT",
+            "message": "R7 writer-review public capability is ODT-only",
+            "details": {
+              "extension": ".docx"
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "UNSUPPORTED_FORMAT",
+          "message": "R7 writer-review public capability is ODT-only",
+          "details": {
+            "extension": ".docx"
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l2-qa-redline-range-comment",
+        "tier": "L2",
+        "path": "l2-qa-redline-range-comment.docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported"
+          ]
+        },
+        "inputBytes": 17713,
+        "inputSha256": "27f72a9f8f6f223900682a0627ea28c27923b2ae384cc35a0630a71f1f312d98",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "UNSUPPORTED_FORMAT",
+            "message": "R7 writer-review public capability is ODT-only",
+            "details": {
+              "extension": ".docx"
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "UNSUPPORTED_FORMAT",
+          "message": "R7 writer-review public capability is ODT-only",
+          "details": {
+            "extension": ".docx"
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l2-qa-image-lazy-read",
+        "tier": "L2",
+        "path": "l2-qa-image-lazy-read.docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported"
+          ]
+        },
+        "inputBytes": 9392,
+        "inputSha256": "20344bbabee9ed73d7733c4e3121c41ecf66a014b586d9f6889a7aac7c3270ba",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "UNSUPPORTED_FORMAT",
+            "message": "R7 writer-review public capability is ODT-only",
+            "details": {
+              "extension": ".docx"
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "UNSUPPORTED_FORMAT",
+          "message": "R7 writer-review public capability is ODT-only",
+          "details": {
+            "extension": ".docx"
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l2-qa-subsetted-embedded-font",
+        "tier": "L2",
+        "path": "l2-qa-subsetted-embedded-font.docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": [
+            "finding-013-public-docx-unsupported"
+          ]
+        },
+        "inputBytes": 36987,
+        "inputSha256": "d980bf64e5b0ac1dd2c6142fd5a33ce55cf36bbe33cc3aa96e8389345a647877",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "UNSUPPORTED_FORMAT",
+            "message": "R7 writer-review public capability is ODT-only",
+            "details": {
+              "extension": ".docx"
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "UNSUPPORTED_FORMAT",
+          "message": "R7 writer-review public capability is ODT-only",
+          "details": {
+            "extension": ".docx"
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l2-qa-hyperlink",
+        "tier": "L2",
+        "path": "l2-qa-hyperlink.odt",
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": []
+        },
+        "inputBytes": 9154,
+        "inputSha256": "bb7e0817a28327981df3569f8b8a6fb5d0f365c78684c32ed4cea735be28f8a5",
+        "preflight": {
+          "format": "odt",
+          "bytes": 9154,
+          "archive": {
+            "entryCount": 17,
+            "compressedBytes": 7067,
+            "uncompressedBytes": 31430,
+            "compressionRatio": 4.447431724918636,
+            "names": [
+              "mimetype",
+              "Configurations2/progressbar/",
+              "Configurations2/menubar/",
+              "Configurations2/popupmenu/",
+              "Configurations2/statusbar/",
+              "Configurations2/toolbar/",
+              "Configurations2/images/Bitmaps/",
+              "Configurations2/accelerator/",
+              "Configurations2/floater/",
+              "Configurations2/toolpanel/",
+              "manifest.rdf",
+              "styles.xml",
+              "meta.xml",
+              "settings.xml",
+              "content.xml",
+              "Thumbnails/thumbnail.png",
+              "META-INF/manifest.xml"
+            ]
+          }
+        },
+        "opened": true,
+        "dimensions": {
+          "parts": 1,
+          "widthTwips": 12474,
+          "heightTwips": 17406
+        },
+        "tiles": [
+          {
+            "yRatio": 0,
+            "scale": 1,
+            "yTwips": 0,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "ea9afa82b7c0b08571760479ae073e115cdb4a774c2d87b4814278c6246e0abb",
+            "revision": 0,
+            "ms": 27.720000000001164
+          },
+          {
+            "yRatio": 0.5,
+            "scale": 1,
+            "yTwips": 4863,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "5f950e8cf56bed450b9c2ff9c49fcd73ff44911c2c7c4df98e7d9be904e0dd6b",
+            "revision": 0,
+            "ms": 0.7200000000011642
+          },
+          {
+            "yRatio": 1,
+            "scale": 1,
+            "yTwips": 9726,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "091f37e763026634caf191a4dbff2e110f8efcb95f1e97d651bb27b1e137a361",
+            "revision": 0,
+            "ms": 0.5
+          },
+          {
+            "yRatio": 0.5,
+            "scale": 1.5,
+            "yTwips": 4863,
+            "width": 192,
+            "height": 192,
+            "bytes": 147456,
+            "sha256": "cb3ee69b8ded19667197ecd4500d1b8a94a00e846742dae5638dc35983296ca9",
+            "revision": 0,
+            "ms": 0.6599999999998545
+          }
+        ],
+        "anchors": [
+          {
+            "text": "Normal text, hyperlink",
+            "count": 1,
+            "found": true,
+            "selectionText": "Normal text, hyperlink",
+            "revision": 0
+          }
+        ],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": {
+          "status": "passed",
+          "ms": 5.819999999999709
+        },
+        "health": null,
+        "error": null,
+        "pass": true,
+        "openMs": 301.58000000000175
+      },
+      {
+        "id": "l2-qa-redlines-and-comments",
+        "tier": "L2",
+        "path": "l2-qa-redlines-and-comments.odt",
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": []
+        },
+        "inputBytes": 13408,
+        "inputSha256": "4d27378e369bce79a4d59c5bc4b88cbddaec490bdf3c994e204c9e7d6cbab0e2",
+        "preflight": {
+          "format": "odt",
+          "bytes": 13408,
+          "archive": {
+            "entryCount": 8,
+            "compressedBytes": 12487,
+            "uncompressedBytes": 92676,
+            "compressionRatio": 7.421798670617442,
+            "names": [
+              "mimetype",
+              "manifest.rdf",
+              "Configurations2/",
+              "styles.xml",
+              "settings.xml",
+              "meta.xml",
+              "content.xml",
+              "META-INF/manifest.xml"
+            ]
+          }
+        },
+        "opened": true,
+        "dimensions": {
+          "parts": 2,
+          "widthTwips": 17004,
+          "heightTwips": 34528
+        },
+        "tiles": [
+          {
+            "yRatio": 0,
+            "scale": 1,
+            "yTwips": 0,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "61cc01f7ddb96d05d34544a9c2bda43751ebac71a8aba26d4462b30a652a7a52",
+            "revision": 0,
+            "ms": 168.47999999999956
+          },
+          {
+            "yRatio": 0.5,
+            "scale": 1,
+            "yTwips": 13424,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "1f26673bbef0ea5ed64e72dc8d454843ad557e6bd2f4c136d98d68c3a2fcf682",
+            "revision": 0,
+            "ms": 45.38000000000102
+          },
+          {
+            "yRatio": 1,
+            "scale": 1,
+            "yTwips": 26848,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "797abd5e44669e6783cc0c238e1d32ace9fef6b0a3cbd3aaadcf9d9759abf033",
+            "revision": 0,
+            "ms": 36.86000000000058
+          },
+          {
+            "yRatio": 0.5,
+            "scale": 1.5,
+            "yTwips": 13424,
+            "width": 192,
+            "height": 192,
+            "bytes": 147456,
+            "sha256": "055905ae4659e4b648570925ce96c2fd26cc23d09e6e7877063a1a5f1c40ee55",
+            "revision": 0,
+            "ms": 112.05999999999767
+          }
+        ],
+        "anchors": [
+          {
+            "text": "Lorem ipsum",
+            "count": 1,
+            "found": true,
+            "selectionText": "Lorem ipsum",
+            "revision": 0
+          }
+        ],
+        "semantics": {
+          "comments": {
+            "count": 19,
+            "revision": 0
+          }
+        },
+        "mutation": null,
+        "output": null,
+        "close": {
+          "status": "passed",
+          "ms": 10.62000000000262
+        },
+        "health": null,
+        "error": null,
+        "pass": true,
+        "openMs": 445.1800000000003
+      },
+      {
+        "id": "l3-truncated-odt",
+        "tier": "L3",
+        "path": "l3-truncated.odt",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "CORRUPT_DOCUMENT",
+          "degradation": []
+        },
+        "inputBytes": 17628,
+        "inputSha256": "c83495093915aa82f169c1547e0e97312d4e5928a506141c8c803fffcdcb5cc7",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "CORRUPT_DOCUMENT",
+            "message": "ZIP central directory is missing",
+            "details": {}
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "CORRUPT_DOCUMENT",
+          "message": "ZIP central directory is missing",
+          "details": {}
+        },
+        "pass": true
+      },
+      {
+        "id": "l3-truncated-docx",
+        "tier": "L3",
+        "path": "l3-truncated.docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": []
+        },
+        "inputBytes": 5879,
+        "inputSha256": "4270720dedaaea3d4ecb4aff3cd5cb0ce53cdfee863035bca7c9a8d13e51e135",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "UNSUPPORTED_FORMAT",
+            "message": "R7 writer-review public capability is ODT-only",
+            "details": {
+              "extension": ".docx"
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "UNSUPPORTED_FORMAT",
+          "message": "R7 writer-review public capability is ODT-only",
+          "details": {
+            "extension": ".docx"
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l3-bad-central",
+        "tier": "L3",
+        "path": "l3-bad-central-directory.odt",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "CORRUPT_DOCUMENT",
+          "degradation": []
+        },
+        "inputBytes": 17885,
+        "inputSha256": "32b7f4d564572b1234da0df2d0b2b60bd2bcded7bf83118078cd58f8e652d02c",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "CORRUPT_DOCUMENT",
+            "message": "ZIP central directory is missing",
+            "details": {}
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "CORRUPT_DOCUMENT",
+          "message": "ZIP central directory is missing",
+          "details": {}
+        },
+        "pass": true
+      },
+      {
+        "id": "l3-missing-content",
+        "tier": "L3",
+        "path": "l3-missing-content-xml.odt",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "CORRUPT_DOCUMENT",
+          "degradation": []
+        },
+        "inputBytes": 16064,
+        "inputSha256": "d72beed580680644dbcaa6738e836073967357a1728a81ad87cabb10086a0f03",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "CORRUPT_DOCUMENT",
+            "message": "required ODT package entries are missing",
+            "details": {
+              "missing": [
+                "content.xml"
+              ]
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "CORRUPT_DOCUMENT",
+          "message": "required ODT package entries are missing",
+          "details": {
+            "missing": [
+              "content.xml"
+            ]
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l3-format-mismatch",
+        "tier": "L3",
+        "path": "l3-docx-disguised-as-odt.odt",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": []
+        },
+        "inputBytes": 6136,
+        "inputSha256": "92eeca42f73dc0689b777fd11f85992e5eca798009c2b153c50a49664da1cbfb",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "UNSUPPORTED_FORMAT",
+            "message": "DOCX bytes cannot use the ODT-only public capability",
+            "details": {
+              "detectedFormat": "docx"
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "UNSUPPORTED_FORMAT",
+          "message": "DOCX bytes cannot use the ODT-only public capability",
+          "details": {
+            "detectedFormat": "docx"
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l3-unknown",
+        "tier": "L3",
+        "path": "l3-unknown.bin",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": []
+        },
+        "inputBytes": 40,
+        "inputSha256": "8c814c90b464f08d318d49a27140c9a58928250c92251e631924dd980eea82e9",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "UNSUPPORTED_FORMAT",
+            "message": "R7 writer-review public capability is ODT-only",
+            "details": {
+              "extension": ".bin"
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "UNSUPPORTED_FORMAT",
+          "message": "R7 writer-review public capability is ODT-only",
+          "details": {
+            "extension": ".bin"
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l3-too-large",
+        "tier": "L3",
+        "path": "l3-too-large.bin",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "DOCUMENT_TOO_LARGE",
+          "degradation": []
+        },
+        "inputBytes": 5242884,
+        "inputSha256": "202a77ed18cff6e7fe6725a5c493253840d1a7805da25cf119ca4889bec97613",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "DOCUMENT_TOO_LARGE",
+            "message": "compressed document size limit exceeded",
+            "details": {
+              "bytes": 5242884,
+              "maxFileBytes": 5242880
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "DOCUMENT_TOO_LARGE",
+          "message": "compressed document size limit exceeded",
+          "details": {
+            "bytes": 5242884,
+            "maxFileBytes": 5242880
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l3-entry-limit",
+        "tier": "L3",
+        "path": "l3-too-many-entries.odt",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "DOCUMENT_TOO_LARGE",
+          "degradation": []
+        },
+        "inputBytes": 251375,
+        "inputSha256": "46be3e6e62fd4375e957d27816e09047de3796dd39c33c0139fa9919223d5edb",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "DOCUMENT_TOO_LARGE",
+            "message": "ZIP entry limit exceeded",
+            "details": {
+              "entryCount": 2058
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "DOCUMENT_TOO_LARGE",
+          "message": "ZIP entry limit exceeded",
+          "details": {
+            "entryCount": 2058
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l3-ratio-limit",
+        "tier": "L3",
+        "path": "l3-high-ratio.odt",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "DOCUMENT_TOO_LARGE",
+          "degradation": []
+        },
+        "inputBytes": 26063,
+        "inputSha256": "b8c6815d950b22d0b33384547c70f8447e4ea2649d571f341923712e74bbab45",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "DOCUMENT_TOO_LARGE",
+            "message": "ZIP expanded size or compression ratio limit exceeded",
+            "details": {
+              "uncompressedBytes": 8432907,
+              "compressionRatio": 337.3432674613969
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "DOCUMENT_TOO_LARGE",
+          "message": "ZIP expanded size or compression ratio limit exceeded",
+          "details": {
+            "uncompressedBytes": 8432907,
+            "compressionRatio": 337.3432674613969
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l3-external",
+        "tier": "L3",
+        "path": "l3-external-relationship.docx",
+        "expected": {
+          "open": "typed-failure",
+          "save": "none",
+          "typedCode": "UNSUPPORTED_FORMAT",
+          "degradation": []
+        },
+        "inputBytes": 5975,
+        "inputSha256": "165d28e6e7c0639258711096bba76b2ea1fd14d45e0b3419b398d1aba5662a65",
+        "preflight": {
+          "status": "typed-failure",
+          "error": {
+            "name": "DocumentPreflightError",
+            "code": "UNSUPPORTED_FORMAT",
+            "message": "R7 writer-review public capability is ODT-only",
+            "details": {
+              "extension": ".docx"
+            }
+          }
+        },
+        "opened": false,
+        "dimensions": null,
+        "tiles": [],
+        "anchors": [],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": null,
+        "health": {
+          "pass": true
+        },
+        "error": {
+          "name": "DocumentPreflightError",
+          "code": "UNSUPPORTED_FORMAT",
+          "message": "R7 writer-review public capability is ODT-only",
+          "details": {
+            "extension": ".docx"
+          }
+        },
+        "pass": true
+      },
+      {
+        "id": "l4-stress-100",
+        "tier": "L4",
+        "path": "l4-stress-100.odt",
+        "expected": {
+          "open": "pass",
+          "save": "none",
+          "typedCode": null,
+          "degradation": [],
+          "pageCount": 100
+        },
+        "inputBytes": 35772,
+        "inputSha256": "ae648d6bae96d82ce6636434c9dbba3ec75af07489a59b9fcce4c7af07f5e2ef",
+        "preflight": {
+          "format": "odt",
+          "bytes": 35772,
+          "archive": {
+            "entryCount": 10,
+            "compressedBytes": 34707,
+            "uncompressedBytes": 123231,
+            "compressionRatio": 3.550609387155329,
+            "names": [
+              "mimetype",
+              "Configurations2/",
+              "styles.xml",
+              "manifest.rdf",
+              "content.xml",
+              "meta.xml",
+              "settings.xml",
+              "Thumbnails/thumbnail.png",
+              "META-INF/manifest.xml",
+              "Pictures/r7-test.png"
+            ]
+          }
+        },
+        "opened": true,
+        "dimensions": {
+          "parts": 100,
+          "widthTwips": 12474,
+          "heightTwips": 1712484
+        },
+        "tiles": [
+          {
+            "yRatio": 0,
+            "scale": 1,
+            "yTwips": 0,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "c41e06c49781455b16b6fa4e1de37538dc005c33364c0f7eda9874098ef2eeba",
+            "revision": 0,
+            "ms": 75.58000000000175
+          },
+          {
+            "yRatio": 0.5,
+            "scale": 1,
+            "yTwips": 852402,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "d0ff53d712e28d414197d39b2e2029e51eb759b5afdb0e1322e6bcca4976c45e",
+            "revision": 0,
+            "ms": 8.660000000003492
+          },
+          {
+            "yRatio": 1,
+            "scale": 1,
+            "yTwips": 1704804,
+            "width": 128,
+            "height": 128,
+            "bytes": 65536,
+            "sha256": "c9e893e2f2f139ae50f03e2c8c1b3ec0b6b03b6a5d514edce77b70dffe9878d7",
+            "revision": 0,
+            "ms": 1.1599999999962165
+          },
+          {
+            "yRatio": 0.5,
+            "scale": 1.5,
+            "yTwips": 852402,
+            "width": 192,
+            "height": 192,
+            "bytes": 147456,
+            "sha256": "21fb08110b20c234ab509ae5b09b7f5f453b664abe2f700376c3f315dea7ad36",
+            "revision": 0,
+            "ms": 36.26000000000204
+          }
+        ],
+        "anchors": [
+          {
+            "text": "R7 stress page 001 頁面錨點",
+            "count": 1,
+            "found": true,
+            "selectionText": "R7 stress page 001 頁面錨點",
+            "revision": 0
+          },
+          {
+            "text": "R7 stress page 050 頁面錨點",
+            "count": 1,
+            "found": true,
+            "selectionText": "R7 stress page 050 頁面錨點",
+            "revision": 0
+          },
+          {
+            "text": "R7 stress page 100 頁面錨點",
+            "count": 1,
+            "found": true,
+            "selectionText": "R7 stress page 100 頁面錨點",
+            "revision": 0
+          }
+        ],
+        "semantics": {},
+        "mutation": null,
+        "output": null,
+        "close": {
+          "status": "passed",
+          "ms": 7.92000000000553
+        },
+        "health": null,
+        "error": null,
+        "pass": true,
+        "openMs": 369.25999999999476
+      }
+    ],
+    "workers": {
+      "created": 19,
+      "terminated": 19
+    },
+    "complete": true,
+    "pass": true,
+    "decisionCandidate": "PARTIAL_GO_ODT_FIRST"
+  },
+  "caseChecks": [
+    {
+      "id": "l1-hyperlink-font-odt",
+      "manifestHash": "fcd07fa18290294800968b5a19440e6707f0f651c3fb24c52d666c4389bd2938",
+      "inputHash": "fcd07fa18290294800968b5a19440e6707f0f651c3fb24c52d666c4389bd2938",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l1-hyperlink-font-docx",
+      "manifestHash": "229c009ba0ff10b5f7d57fb0715e3867267a323b454eb52d076696e16f90de82",
+      "inputHash": "229c009ba0ff10b5f7d57fb0715e3867267a323b454eb52d076696e16f90de82",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l2-qa-comments-on-load",
+      "manifestHash": "09ae12a5e0abc0d8881ab2438ec43afdbaab7135e73e1008ce285bb1ba7b6e86",
+      "inputHash": "09ae12a5e0abc0d8881ab2438ec43afdbaab7135e73e1008ce285bb1ba7b6e86",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l2-qa-redline-range-comment",
+      "manifestHash": "27f72a9f8f6f223900682a0627ea28c27923b2ae384cc35a0630a71f1f312d98",
+      "inputHash": "27f72a9f8f6f223900682a0627ea28c27923b2ae384cc35a0630a71f1f312d98",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l2-qa-image-lazy-read",
+      "manifestHash": "20344bbabee9ed73d7733c4e3121c41ecf66a014b586d9f6889a7aac7c3270ba",
+      "inputHash": "20344bbabee9ed73d7733c4e3121c41ecf66a014b586d9f6889a7aac7c3270ba",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l2-qa-subsetted-embedded-font",
+      "manifestHash": "d980bf64e5b0ac1dd2c6142fd5a33ce55cf36bbe33cc3aa96e8389345a647877",
+      "inputHash": "d980bf64e5b0ac1dd2c6142fd5a33ce55cf36bbe33cc3aa96e8389345a647877",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l2-qa-hyperlink",
+      "manifestHash": "bb7e0817a28327981df3569f8b8a6fb5d0f365c78684c32ed4cea735be28f8a5",
+      "inputHash": "bb7e0817a28327981df3569f8b8a6fb5d0f365c78684c32ed4cea735be28f8a5",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l2-qa-redlines-and-comments",
+      "manifestHash": "4d27378e369bce79a4d59c5bc4b88cbddaec490bdf3c994e204c9e7d6cbab0e2",
+      "inputHash": "4d27378e369bce79a4d59c5bc4b88cbddaec490bdf3c994e204c9e7d6cbab0e2",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l3-truncated-odt",
+      "manifestHash": "c83495093915aa82f169c1547e0e97312d4e5928a506141c8c803fffcdcb5cc7",
+      "inputHash": "c83495093915aa82f169c1547e0e97312d4e5928a506141c8c803fffcdcb5cc7",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l3-truncated-docx",
+      "manifestHash": "4270720dedaaea3d4ecb4aff3cd5cb0ce53cdfee863035bca7c9a8d13e51e135",
+      "inputHash": "4270720dedaaea3d4ecb4aff3cd5cb0ce53cdfee863035bca7c9a8d13e51e135",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l3-bad-central",
+      "manifestHash": "32b7f4d564572b1234da0df2d0b2b60bd2bcded7bf83118078cd58f8e652d02c",
+      "inputHash": "32b7f4d564572b1234da0df2d0b2b60bd2bcded7bf83118078cd58f8e652d02c",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l3-missing-content",
+      "manifestHash": "d72beed580680644dbcaa6738e836073967357a1728a81ad87cabb10086a0f03",
+      "inputHash": "d72beed580680644dbcaa6738e836073967357a1728a81ad87cabb10086a0f03",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l3-format-mismatch",
+      "manifestHash": "92eeca42f73dc0689b777fd11f85992e5eca798009c2b153c50a49664da1cbfb",
+      "inputHash": "92eeca42f73dc0689b777fd11f85992e5eca798009c2b153c50a49664da1cbfb",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l3-unknown",
+      "manifestHash": "8c814c90b464f08d318d49a27140c9a58928250c92251e631924dd980eea82e9",
+      "inputHash": "8c814c90b464f08d318d49a27140c9a58928250c92251e631924dd980eea82e9",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l3-too-large",
+      "manifestHash": "202a77ed18cff6e7fe6725a5c493253840d1a7805da25cf119ca4889bec97613",
+      "inputHash": "202a77ed18cff6e7fe6725a5c493253840d1a7805da25cf119ca4889bec97613",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l3-entry-limit",
+      "manifestHash": "46be3e6e62fd4375e957d27816e09047de3796dd39c33c0139fa9919223d5edb",
+      "inputHash": "46be3e6e62fd4375e957d27816e09047de3796dd39c33c0139fa9919223d5edb",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l3-ratio-limit",
+      "manifestHash": "b8c6815d950b22d0b33384547c70f8447e4ea2649d571f341923712e74bbab45",
+      "inputHash": "b8c6815d950b22d0b33384547c70f8447e4ea2649d571f341923712e74bbab45",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l3-external",
+      "manifestHash": "165d28e6e7c0639258711096bba76b2ea1fd14d45e0b3419b398d1aba5662a65",
+      "inputHash": "165d28e6e7c0639258711096bba76b2ea1fd14d45e0b3419b398d1aba5662a65",
+      "hashPass": true,
+      "casePass": true
+    },
+    {
+      "id": "l4-stress-100",
+      "manifestHash": "ae648d6bae96d82ce6636434c9dbba3ec75af07489a59b9fcce4c7af07f5e2ef",
+      "inputHash": "ae648d6bae96d82ce6636434c9dbba3ec75af07489a59b9fcce4c7af07f5e2ef",
+      "hashPass": true,
+      "casePass": true
+    }
+  ],
+  "outputs": {},
+  "batches": [
+    {
+      "batch": 1,
+      "result": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r7/compatibility-single-page/firefox/full/run-1/batches/batch-1/result.json",
+      "ids": [
+        "l1-hyperlink-font-odt",
+        "l1-hyperlink-font-docx",
+        "l2-qa-comments-on-load",
+        "l2-qa-redline-range-comment",
+        "l2-qa-image-lazy-read",
+        "l2-qa-subsetted-embedded-font",
+        "l2-qa-hyperlink",
+        "l2-qa-redlines-and-comments",
+        "l3-truncated-odt",
+        "l3-truncated-docx",
+        "l3-bad-central",
+        "l3-missing-content",
+        "l3-format-mismatch",
+        "l3-unknown",
+        "l3-too-large",
+        "l3-entry-limit",
+        "l3-ratio-limit",
+        "l3-external",
+        "l4-stress-100"
+      ],
+      "pass": true
+    }
+  ],
+  "pass": true
+}

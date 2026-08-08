@@ -33,6 +33,8 @@ E1-C不再擴充Editor ABI；它要證明E1-B的窄版產品contract在真實hos
   classification混入editor驗收。
 - Finding 012已有bounded Worker recycle；Finding 014限制Firefox同頁面大量建立大型WASM Worker。E1-C必須每頁
   最多使用三個Worker generation，達上限前明確reload整個頁面。
+> **2026-08-08 更正**：此處把 finding 014 的限制列為「已觀察」，但該 finding 的成因已改判為我方 harness，**同頁 50 個 generation 實測全過**（上限所寫的 16 倍以上）。見 [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)〈每頁 Worker generation 上限為 3〉一節。條文未改，僅記錄前提不成立。
+
 - Finding 016要求結構邊界拒絕後fresh Worker；Finding 018使line navigation維持unsupported。
 
 ### 2.2 推論
@@ -101,6 +103,18 @@ Chrome／Firefox各三次完整sequence：
 - composing、queued mutation、unsaved local edit、saved authority四個crash barrier；
 - unsaved內容明確不可恢復，saved authority可恢復，舊handle／舊generation結果不可污染新session；
 - 每頁Worker generation上限為3，達上限前要求完整page reload，不以無界restart規避Finding 014。
+
+> **2026-08-08 前提更新**：本條的唯一依據是
+> [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)，
+> 而該 finding 的成因已改判為我方 harness
+> （[023](../findings/023-sdk-init-wedges-at-fixed-session-depth.md) 的 unread pipe
+> 與 [025](../findings/025-webdriver-script-injection-never-ran-on-firefox.md) 的注入腳本
+> 從未執行）。實測：**同一頁面連續 50 個 engine generation 全過**
+> （50 建 50 拆、active 0、記憶體斜率 +22.4 MB／block，遠低於 67 MB 門檻；證據
+> `findings/evidence/sdk-r7/single-page-generations/firefox/s2-fresh/run-1/result.json`），
+> 是本條所寫上限的 16 倍以上。**條文本身未改**——放寬它會改變本規格對外承諾的內容
+> 與產品的 reload 行為，屬產品決定；此處僅記錄前提已不成立。
+
 
 ### C3：ODT editor corpus
 

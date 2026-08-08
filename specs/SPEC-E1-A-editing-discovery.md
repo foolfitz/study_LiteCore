@@ -103,6 +103,18 @@ diagnostic層可把closed action映射到文件化`postKeyEvent()`，但不得�
 每個browser至少執行collapsed caret、forward selection、backward selection、stale revision、cancel／timeout與save/reload。
 Firefox每頁Worker generation最高3，不能用大量fresh Worker洗掉Finding 014。
 
+> **2026-08-08 前提更新**：本條的唯一依據是
+> [finding 014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md)，
+> 而該 finding 的成因已改判為我方 harness
+> （[023](../findings/023-sdk-init-wedges-at-fixed-session-depth.md) 的 unread pipe
+> 與 [025](../findings/025-webdriver-script-injection-never-ran-on-firefox.md) 的注入腳本
+> 從未執行）。實測：**同一頁面連續 50 個 engine generation 全過**
+> （50 建 50 拆、active 0、記憶體斜率 +22.4 MB／block，遠低於 67 MB 門檻；證據
+> `findings/evidence/sdk-r7/single-page-generations/firefox/s2-fresh/run-1/result.json`），
+> 是本條所寫上限的 16 倍以上。**條文本身未改**——放寬它會改變本規格對外承諾的內容
+> 與產品的 reload 行為，屬產品決定；此處僅記錄前提已不成立。
+
+
 ## 5. Typed contract候選（非承諾）
 
 ```ts

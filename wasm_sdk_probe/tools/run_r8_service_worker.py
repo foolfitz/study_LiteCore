@@ -178,85 +178,14 @@ def run_multi_client(
     session = session_class("hot", profile_dir=profile)
     started = time.monotonic()
     try:
-        # The Firefox-only branch below was written to get around a hang in the
-        # injected-script path.  finding 025 shows that hang was our own bug
-        # (evaluate() built `return \n <script>`, ASI made it dead code), so the
-        # branch may now be retirable -- two browsers on two code paths is exactly
-        # what makes them incomparable.  This env var forces Firefox down the
-        # shared path so that can be measured; default behaviour is unchanged.
-        force_injected = os.environ.get("OXSDK_R8C_FORCE_INJECTED_MULTICLIENT") == "1"
-        if isinstance(session, FirefoxSession) and not force_injected:
-            parent_handle = session.command("GET", "/window")
-            navigate(session, page_url(app_origin, {
-                "topology": topology, "artifactOrigin": artifact_origin, "action": "status",
-            }))
-            initial = wait_result(session, timeout)
-            if initial.get("pass") is not True:
-                raise RuntimeError("multi-client parent status page failed")
-
-            old_handle = session.command("POST", "/window/new", {"type": "tab"})["handle"]
-            session.command("POST", "/window", {"handle": old_handle})
-            navigate(session, page_url(app_origin, {
-                "topology": topology, "artifactOrigin": artifact_origin,
-                "action": "pin-only", "releaseId": release_a["releaseId"],
-            }))
-            old_metrics = wait_result(session, timeout)
-
-            session.command("POST", "/window", {"handle": parent_handle})
-            navigate(session, page_url(app_origin, {
-                "topology": topology, "artifactOrigin": artifact_origin,
-                "action": "stage", "slot": "B",
-            }))
-            staged = wait_result(session, timeout)
-            navigate(session, page_url(app_origin, {
-                "topology": topology, "artifactOrigin": artifact_origin,
-                "action": "activate", "slot": "B",
-            }))
-            activated = wait_result(session, timeout)
-
-            new_handle = session.command("POST", "/window/new", {"type": "tab"})["handle"]
-            session.command("POST", "/window", {"handle": new_handle})
-            navigate(session, page_url(app_origin, {
-                "topology": topology, "artifactOrigin": artifact_origin,
-                "action": "pin-only", "releaseId": release_b["releaseId"],
-            }))
-            new_metrics = wait_result(session, timeout)
-            session.command("POST", "/window", {"handle": parent_handle})
-            navigate(session, page_url(app_origin, {
-                "topology": topology, "artifactOrigin": artifact_origin, "action": "status",
-            }))
-            status_metrics = wait_result(session, timeout)
-            status = status_metrics.get("serviceWorker") or {}
-            pin_values = list((status.get("state") or {}).get("clientPins", {}).values())
-            value = {
-                "oldClientReleaseId": release_a["releaseId"],
-                "newClientReleaseId": release_b["releaseId"],
-                "oldClientPass": old_metrics.get("pass") is True,
-                "newClientPass": new_metrics.get("pass") is True,
-                "stagedPass": staged.get("pass") is True,
-                "health": activated.get("runtime"),
-                "status": status,
-                "pinValues": pin_values,
-            }
-            value["pass"] = (
-                value["oldClientPass"] and value["newClientPass"] and value["stagedPass"]
-                and activated.get("pass") is True
-                and (status.get("state") or {}).get("currentReleaseId") == release_b["releaseId"]
-                and (status.get("state") or {}).get("lastKnownGoodReleaseId") == release_b["releaseId"]
-                and release_a["releaseId"] in pin_values
-                and release_b["releaseId"] in pin_values
-            )
-            result = {
-                "schemaVersion": 1, "release": "R8-C-service-worker",
-                "browser": session.version, "topology": topology,
-                "action": "multi-client-update", "strategy": "webdriver-tabs",
-                "multiClient": value, "serviceWorker": status,
-                "runnerElapsedMs": round((time.monotonic() - started) * 1000, 3),
-                "pass": value["pass"],
-            }
-            write_json(output / "result.json", result)
-            return result
-
+        # Both browsers take the same path.  A Firefox-only `webdriver-tabs`
+        # branch used to live here, written to get around a hang in this shared
+        # injected-script path; finding 025 showed the hang was our own bug
+        # (evaluate() built `return \n <script>`, and ASI made the whole script
+        # dead code).  With that fixed, Firefox runs this path in 4,929 ms where
+        # it used to time out at 900,531 ms -- so the divergence is retired.
+        # Two browsers on two code paths is exactly what makes them
+        # incomparable, which is how the underlying bug survived four days.
         navigate(session, page_url(app_origin, {
             "topology": topology, "artifactOrigin": artifact_origin, "action": "status",
         }))

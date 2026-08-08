@@ -380,6 +380,12 @@ def main() -> None:
     )
     parser.add_argument("--run", type=int, default=1)
     parser.add_argument("--lifecycle-cycles", type=int, default=50)
+    parser.add_argument(
+        "--firefox-single-session", action="store_true",
+        help="run firefox s2-fresh in one browser process and ONE page instead "
+        "of 5-cycle batches; measures how many engine generations a single page "
+        "actually sustains (the E1 specs cap it at 3, citing finding 014)",
+    )
     parser.add_argument("--crash-cycles", type=int, default=20)
     parser.add_argument("--soak-minutes", type=int, default=30)
     parser.add_argument("--soak-interval-ms", type=int, default=60000)
@@ -433,7 +439,17 @@ def main() -> None:
             "corpusManifest": sha256(project / "dist" / "r7-compat-fixtures" / "manifest.json"),
         }
         for scenario, run_number in scenario_plans(args):
-            if args.browser == "firefox" and scenario == "s2-fresh":
+            # The Firefox-only batching below (a fresh browser process every 5
+            # cycles) exists because of finding 014's "worker generation
+            # exhaustion".  finding 014's cause turned out to be our own unread
+            # serve.py pipe (finding 023), so the batching may be unnecessary --
+            # and while it is in place, one page never runs more than 5 engine
+            # generations, which is exactly the claim the E1 specs' "max 3
+            # generations per page" limit rests on.  --firefox-single-session
+            # runs all 50 cycles in ONE page so that can be measured; default
+            # behaviour is unchanged.
+            if (args.browser == "firefox" and scenario == "s2-fresh"
+                    and not args.firefox_single_session):
                 item = run_firefox_fresh_batched(
                     session_class, base_url, browser_root,
                     threshold, args, artifact_hashes,
