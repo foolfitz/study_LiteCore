@@ -15,9 +15,46 @@ from r8_bundle import bundle_manifest, source_bytes
 from r8_release import load_json, sha256_file, write_json
 
 
-CORE_COMMIT = "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb"
-LOADER_SHA256 = "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566"
-WASM_SHA256 = "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6"
+EXPECTED_CORE_COMMIT = "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb"
+EXPECTED_LOADER_SHA256 = "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566"
+EXPECTED_WASM_SHA256 = "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6"
+
+
+def shipped_identity(project: Path) -> dict[str, Any]:
+    """Read the identity of what is being validated, instead of transcribing it.
+
+    These three fields used to be module constants written straight into the
+    summary, next to a matrixSha256 that was computed.  Same dict, two different
+    epistemic statuses, and nothing in the output told them apart: a reader would
+    take "wasmSha256" for the identity of the wasm that was validated, when it
+    would print the same value whatever sat on disk.  A constant that is only
+    ever written out cannot fail, so it carries no information -- the same shape
+    as finding 027, where the verdict's self-description outlived what it
+    described.
+
+    So: hash the artifacts the release manifest actually points at, take the core
+    commit the manifest actually claims, and keep the old constants as the
+    expectation to compare against.  Divergence now fails a safety check instead
+    of being reported as fact.
+    """
+    manifest = load_json(project / "dist" / "r8" / "release-manifest.json")
+    by_role = {item["role"]: item for item in manifest["artifacts"]}
+    observed = {
+        "coreCommit": manifest["coreCommit"],
+        "loaderSha256": sha256_file(project / "dist" / by_role["wasm-loader"]["url"]),
+        "wasmSha256": sha256_file(project / "dist" / by_role["wasm-binary"]["url"]),
+    }
+    expected = {
+        "coreCommit": EXPECTED_CORE_COMMIT,
+        "loaderSha256": EXPECTED_LOADER_SHA256,
+        "wasmSha256": EXPECTED_WASM_SHA256,
+    }
+    return {
+        "observed": observed,
+        "expected": expected,
+        "matches": {key: observed[key] == expected[key] for key in expected},
+        "pass": observed == expected,
+    }
 
 # Every release identity R8 can ship, keyed by the (fidelity policy, variant
 # marker) pair that produces it.  R8-B ships two policies; R8-C ships three
@@ -358,8 +395,10 @@ def main() -> None:
     network["pass"] = network["t0t1DirectDelivery"] and network["t0t1ServiceWorker"]
     baseline_after = root / "service-worker" / "baseline" / "preflight-after.json"
     binding = release_binding(root, project)
+    identity = shipped_identity(project)
     safety_checks = {
         "matrixSchema": matrix.get("schemaVersion") == 1,
+        "shippedIdentity": identity["pass"],
         "releaseBinding": binding["pass"],
         "r8c": r8c.get("pass") is True and r8c.get("decision") in {"GO", "PARTIAL_GO"},
         "r8b": delivery.get("pass") is True,
@@ -421,8 +460,12 @@ def main() -> None:
         "release": "R8-D-production-validation",
         "decision": decision,
         "advancementAllowed": decision in {"GO", "PARTIAL_GO_LOCAL_DELIVERY"},
-        "core": {"commit": CORE_COMMIT},
-        "artifacts": {"loaderSha256": LOADER_SHA256, "wasmSha256": WASM_SHA256},
+        "core": {"commit": identity["observed"]["coreCommit"]},
+        "artifacts": {
+            "loaderSha256": identity["observed"]["loaderSha256"],
+            "wasmSha256": identity["observed"]["wasmSha256"],
+        },
+        "shippedIdentity": identity,
         "matrixSha256": sha256_file(project / "r8" / "production-matrix-v1.json"),
         "releaseIds": {item["slot"]: item["releaseId"] for item in release_set["releases"]},
         "releaseBinding": binding,
