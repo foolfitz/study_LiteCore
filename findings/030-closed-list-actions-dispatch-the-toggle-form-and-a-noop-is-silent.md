@@ -134,6 +134,22 @@ core 的 status 廣播只在值改變時送出，這是 SfxBindings 的既有語
 **本輪不替使用者決定**。可以先做的是與路線無關的部分：把派送改成參數化形式（缺陷一），
 那在四條出路裡都是必要的。
 
+### 一條線索（**推論，未實測**）
+
+「值沒變就不廣播」在上游本身就被當成要繞開的東西：`txtnum.cxx:100-106` 在
+`bNewResult != bMode` 時，會用 `rBindings.SetState()` **先送反值再送真值**，
+硬把 payload 逼出來給 toolbar 更新。也就是說 core 有強制重播的手段
+（`SfxBindings::InvalidateAll(bool bWithMsg)`、`SfxLokHelper::sendUnoStatus()`）。
+
+但這條線索**不構成第五條出路**：強制重播出來的 payload 一樣要靠 scheduler 才 flush 得出去，
+繞回路線 A 的同一個代價。列在這裡是為了讓「no-op 沒有後置條件」不被誤讀成 core 的疏漏——
+它是既有語意，而且上游自己也要為它寫繞法。
+
+另外掃過 `getCommandValues` 的實作（`sw/source/uibase/uno/loktxdoc.cxx`）：
+支援的是 form field／bookmark／section／`ExtractDocumentStructures`（content control、
+chart、doc property、redline）等，**沒有**游標所在段落的清單／樣式狀態。
+出路 3 需要的 readback 確實不存在於現有 LOK 介面——這一項是查過原始碼的，不是推測。
+
 ## 修法後的重跑（2026-08-11）
 
 engine 改派參數化形式後重建兩個 E2 profile：`e2-format-discovery` `abf3598f…`、
