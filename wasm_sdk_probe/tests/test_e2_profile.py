@@ -246,6 +246,62 @@ class TestFormatDispatchForm(unittest.TestCase):
         self.assertNotIn("barrier.arguments =", segment)
 
 
+class TestLocaleAttributionProfile(unittest.TestCase):
+    """Finding 031: the UI language is a build-level experiment, not a surface."""
+
+    PROFILE = PROJECT / "dist" / "profiles" / "e2-locale-attribution"
+
+    def test_only_the_locale_profile_compiles_a_language_in(self):
+        for name in ("e2-format-discovery", "e2-scheduler-attribution",
+                     "e2-mainloop-attribution", "e2-mainloop-pei-attribution"):
+            manifest = PROJECT / "dist" / "profiles" / name / "sdk-manifest.json"
+            if not manifest.is_file():
+                continue
+            with self.subTest(profile=name):
+                diagnostic = json.loads(manifest.read_text(encoding="utf-8"))["diagnostic"]
+                # None means the profile predates the field; both readings say
+                # "this build does not ask LOK for a language".
+                self.assertIsNone(diagnostic.get("uiLanguage"))
+
+    def test_locale_profile_declares_the_language_it_was_built_with(self):
+        manifest = self.PROFILE / "sdk-manifest.json"
+        if not manifest.is_file():
+            self.skipTest("locale attribution profile not built")
+        diagnostic = json.loads(manifest.read_text(encoding="utf-8"))["diagnostic"]
+        self.assertEqual(diagnostic["scope"], "e2-locale-attribution")
+        self.assertEqual(diagnostic["uiLanguage"], "zh-TW")
+
+
+class TestFinding031Tripwire(unittest.TestCase):
+    """Fails when the latent defect in finding 031 becomes reachable.
+
+    The barrier matches the paragraph style postcondition against the whole
+    strings "Heading 1" and "Body Text", which core draws from a table keyed by
+    UI language.  Today that is harmless only because the shipped WASM
+    filesystem image carries no message catalogs at all -- zh-TW is selectable
+    from the registry langpacks and there is nothing to select.  Adding
+    translations is a prerequisite for a zh-TW product and is exactly the moment
+    the comparison silently stops matching, which is also the moment nobody
+    would think to re-check a format barrier.  So notice it here instead.
+    """
+
+    IMAGE = (PROJECT.parent / "wasm-lite" / "build-headless-probe" / "workdir"
+             / "CustomTarget" / "static" / "emscripten_fs_image"
+             / "soffice.data.js.metadata")
+
+    def test_shipped_image_still_carries_no_message_catalogs(self):
+        if not self.IMAGE.is_file():
+            self.skipTest("wasm-lite filesystem image metadata not present")
+        files = [entry["filename"]
+                 for entry in json.loads(self.IMAGE.read_text(encoding="utf-8"))["files"]]
+        catalogs = [name for name in files if name.endswith(".mo")]
+        self.assertEqual(catalogs, [], msg=(
+            "translations are now packaged, so the UIName table is no longer "
+            "English-only and the paragraph-style postcondition strings in "
+            "probe_engine.cpp will stop matching -- see finding 031 before "
+            "deleting this test"))
+
+
 class TestFormatDiscoveryClient(unittest.TestCase):
     def test_closed_action_list(self):
         text = (PROJECT / "e2" / "format-discovery-client.js").read_text(encoding="utf-8")

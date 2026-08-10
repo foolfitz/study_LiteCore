@@ -76,6 +76,16 @@ E2_MAINLOOP_OBJECTS := $(patsubst src/%.cpp,$(E2_MAINLOOP_BUILD)/%.o,$(E1_SOURCE
 E2_MLPEI_BUILD := build/e2/mainloop-pei
 E2_MLPEI_DIST := dist/profiles/e2-mainloop-pei-attribution
 E2_MLPEI_OBJECTS := $(patsubst src/%.cpp,$(E2_MLPEI_BUILD)/%.o,$(E1_SOURCES))
+# Finding 031 measurement: the scheduler-attribution profile with one thing
+# changed -- it asks LOK for a zh-TW UI language at documentLoad.  The
+# paragraph-style postcondition matches whole strings that come from core's
+# UIName table, and that table is keyed by UI language, so this build is the
+# other arm of a comparison whose first arm is every run so far.  The tag is
+# compiled in rather than passed from JS: it is an experiment, not a surface.
+E2_LOCALE_BUILD := build/e2/locale-attribution
+E2_LOCALE_DIST := dist/profiles/e2-locale-attribution
+E2_LOCALE_LANGUAGE := zh-TW
+E2_LOCALE_OBJECTS := $(patsubst src/%.cpp,$(E2_LOCALE_BUILD)/%.o,$(E1_SOURCES))
 FINDING_016_SCHEDULER_BUILD := build/finding-016/scheduler
 FINDING_016_SCHEDULER_DIST := dist/profiles/finding-016-scheduler
 FINDING_016_SCHEDULER_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SCHEDULER_BUILD)/%.o,$(E1_SOURCES))
@@ -96,6 +106,7 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	e2-scheduler-attribution-profile e2-scheduler-attribution-assets \
 	e2-mainloop-attribution-profile e2-mainloop-attribution-assets \
 	e2-mainloop-pei-attribution-profile e2-mainloop-pei-attribution-assets \
+	e2-locale-attribution-profile e2-locale-attribution-assets \
 	finding-016-scheduler-profile finding-016-scheduler-assets \
 	finding-016-selection-barrier-profile finding-016-selection-barrier-assets \
 	finding-012-assets finding-012-attribution-assets r7-remediation-assets \
@@ -189,6 +200,12 @@ e2-format-discovery-assets: e2-format-discovery-profile \
 	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
 
 e2-scheduler-attribution-assets: e2-scheduler-attribution-profile \
+	dist/e2-format-discovery.html dist/e2-format-discovery-app.js \
+	dist/e2/format-discovery-client.js dist/sdk/document-sdk.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+e2-locale-attribution-assets: e2-locale-attribution-profile \
 	dist/e2-format-discovery.html dist/e2-format-discovery-app.js \
 	dist/e2/format-discovery-client.js dist/sdk/document-sdk.js \
 	dist/e1-fixtures/manifest.json \
@@ -401,7 +418,8 @@ $(FINDING_012_BUILD) $(FINDING_012_DIAGNOSTIC_BUILD) \
 		$(FINDING_016_SELECTION_BUILD) $(FINDING_016_SELECTION_DIST) \
 		$(E2_BUILD) $(E2_DIST) $(E2_SCHED_BUILD) $(E2_SCHED_DIST) \
 		$(E2_MAINLOOP_BUILD) $(E2_MAINLOOP_DIST) \
-		$(E2_MLPEI_BUILD) $(E2_MLPEI_DIST):
+		$(E2_MLPEI_BUILD) $(E2_MLPEI_DIST) \
+		$(E2_LOCALE_BUILD) $(E2_LOCALE_DIST):
 	mkdir -p $@
 
 $(R5_BUILD)/writer-review/%.o: src/%.cpp $(HEADERS) Makefile | $(R5_BUILD)/writer-review
@@ -434,6 +452,12 @@ $(E2_SCHED_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile 
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
 		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
 		-DOXSDK_FINDING_016_SCHEDULER_PROBE -c $< -o $@
+
+$(E2_LOCALE_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(E2_LOCALE_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_FINDING_016_SCHEDULER_PROBE \
+		-DOXSDK_E2_UI_LANGUAGE='"$(E2_LOCALE_LANGUAGE)"' -c $< -o $@
 
 $(E2_MAINLOOP_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(E2_MAINLOOP_BUILD)
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
@@ -595,6 +619,17 @@ $(E2_SCHED_BUILD)/probe.js: $(E2_SCHED_OBJECTS) $(E2_SCHED_BUILD)/exports.txt \
 $(E2_SCHED_BUILD)/probe.wasm: $(E2_SCHED_BUILD)/probe.js
 	@test -s $@
 
+$(E2_LOCALE_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(E2_LOCALE_BUILD)
+	cp $< $@
+	printf '%s\n' _oxsdk_editor_discovery_drain_scheduler >> $@
+
+$(E2_LOCALE_BUILD)/probe.js: $(E2_LOCALE_OBJECTS) $(E2_LOCALE_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(E2_LOCALE_OBJECTS),$(E2_LOCALE_BUILD)/exports.txt,$@)
+
+$(E2_LOCALE_BUILD)/probe.wasm: $(E2_LOCALE_BUILD)/probe.js
+	@test -s $@
+
 $(E2_MAINLOOP_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(E2_MAINLOOP_BUILD)
 	cp $< $@
 
@@ -708,6 +743,24 @@ $(E2_SCHED_DIST)/sdk-manifest.json: $(E2_SCHED_BUILD)/probe.js \
 	@test -s $(E2_SCHED_DIST)/sdk-worker.js
 
 e2-scheduler-attribution-profile: $(E2_SCHED_DIST)/sdk-manifest.json
+
+$(E2_LOCALE_DIST)/sdk-manifest.json: $(E2_LOCALE_BUILD)/probe.js \
+		$(E2_LOCALE_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e2_discovery_profile.py \
+		tools/e1_support.py | $(E2_LOCALE_DIST)
+	python3 tools/build_e2_discovery_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_LOCALE_BUILD)/probe.js --wasm $(E2_LOCALE_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(E2_LOCALE_DIST) \
+		--profile-name e2-locale-attribution \
+		--scope e2-locale-attribution \
+		--extra-capability finding-016-scheduler-probe \
+		--ui-language $(E2_LOCALE_LANGUAGE)
+	@test -s $(E2_LOCALE_DIST)/probe.js
+	@test -s $(E2_LOCALE_DIST)/probe.wasm
+	@test -s $(E2_LOCALE_DIST)/sdk-worker.js
+
+e2-locale-attribution-profile: $(E2_LOCALE_DIST)/sdk-manifest.json
 
 $(E2_MAINLOOP_DIST)/sdk-manifest.json: $(E2_MAINLOOP_BUILD)/probe.js \
 		$(E2_MAINLOOP_BUILD)/probe.wasm sdk/sdk-worker.js \

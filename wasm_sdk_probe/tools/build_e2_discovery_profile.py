@@ -31,7 +31,8 @@ WORKER_GATE_AFTER = """function editorDiscoveryEnabled() {
       || activeManifest?.diagnostic?.scope === "e2-paragraph-format-discovery"
       || activeManifest?.diagnostic?.scope === "e2-scheduler-attribution"
       || activeManifest?.diagnostic?.scope === "e2-mainloop-attribution"
-      || activeManifest?.diagnostic?.scope === "e2-mainloop-pei-attribution")
+      || activeManifest?.diagnostic?.scope === "e2-mainloop-pei-attribution"
+      || activeManifest?.diagnostic?.scope === "e2-locale-attribution")
     && activeManifest?.capabilities?.includes("editor-discovery-closed-actions");
 }"""
 
@@ -95,7 +96,8 @@ def write_e2_worker(source: Path, destination: Path) -> dict[str, object]:
 def build_profile(source_manifest: Path, loader: Path, wasm: Path, worker: Path,
                   output: Path, profile_name: str = "e2-format-discovery",
                   scope: str = "e2-paragraph-format-discovery",
-                  extra_capabilities: list[str] | None = None) -> dict[str, object]:
+                  extra_capabilities: list[str] | None = None,
+                  ui_language: str | None = None) -> dict[str, object]:
     manifest = json.loads(source_manifest.read_text(encoding="utf-8"))
     output.mkdir(parents=True, exist_ok=True)
     shutil.copy2(loader, output / "probe.js")
@@ -145,6 +147,11 @@ def build_profile(source_manifest: Path, loader: Path, wasm: Path, worker: Path,
         "engineLoop": ("lok-runloop-unipoll"
                        if profile_name.startswith("e2-mainloop")
                        else "blocking-command-loop"),
+        # Finding 031.  null means the engine calls documentLoad with no
+        # options, which is every profile but the locale measurement one.  The
+        # value is compiled into the WASM, so recording it here is a claim the
+        # evidence can be checked against rather than the thing that sets it.
+        "uiLanguage": ui_language,
         "workerPatch": worker_patch,
     }
     write_json(output / "sdk-manifest.json", manifest)
@@ -161,10 +168,11 @@ def main() -> None:
     parser.add_argument("--profile-name", default="e2-format-discovery")
     parser.add_argument("--scope", default="e2-paragraph-format-discovery")
     parser.add_argument("--extra-capability", action="append", default=[])
+    parser.add_argument("--ui-language", default=None)
     args = parser.parse_args()
     build_profile(args.source_manifest, args.loader, args.wasm, args.worker,
                   args.output, args.profile_name, args.scope,
-                  args.extra_capability)
+                  args.extra_capability, args.ui_language)
 
 
 if __name__ == "__main__":

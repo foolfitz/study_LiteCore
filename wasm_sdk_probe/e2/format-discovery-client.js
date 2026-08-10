@@ -30,6 +30,11 @@ const E2_DIAGNOSTIC_SCOPES = new Set([
   "e2-scheduler-attribution",
   "e2-mainloop-attribution",
   "e2-mainloop-pei-attribution",
+  // Finding 031: the scheduler-attribution profile with a zh-TW UI language
+  // compiled in, so the paragraph-style postcondition strings can be read in a
+  // second locale.  Same capabilities, same code path -- only the language
+  // asked for at documentLoad differs.
+  "e2-locale-attribution",
 ]);
 
 function integerTwips(value, name) {

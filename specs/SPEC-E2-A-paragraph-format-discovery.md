@@ -137,10 +137,15 @@ idle job；原生由 `soffice_main` 的 VCL 主迴圈推動，我方探針核外
   而 UIName 陣列以 UI 語系為 key、由 `SwResId()` 建（`DocumentStylePoolManager.cxx:2665-2676`）；
   ProgName 陣列則是寫死不翻譯的。既有證據已佐證這一點：我方送 `Text body`／`Standard`，
   state 回 `Body Text`／`Default Paragraph Style`——送出與回報不是同一個字串。
-  **我方 WASM build 的 `instdir` 已含 `zh_TW/LC_MESSAGES/sw.mo`**，其中
-  `Heading 1`→「標題 1」、`Body Text`→「內文」，正是第 4 節比對的那兩串。
-  端到端在非英文 UI 下的實測**尚未做**（原生 build 只有 en-US，量了保證假陰性；
-  WASM 有譯文但 engine 走 `documentLoad` 無選項，沒有選語系的路）。
+  建置樹的 `instdir` 有 `zh_TW/LC_MESSAGES/sw.mo`（`Heading 1`→「標題 1」、
+  `Body Text`→「內文」，正是第 4 節比對的那兩串），**但出貨的 WASM 檔案系統映像沒有**：
+  `soffice.data` 的 1,358 個檔裡 `.mo` 是 0、`/resource/` 下只有一個字型，
+  却有三個 zh-TW registry langpack XCD——**選得到但沒有東西可選**。
+  端到端實測**已試且為假陰性**：新增隔離 profile `e2-locale-attribution`
+  （engine 走 `documentLoadWithOptions(…, "Language=zh-TW")`，編譯期常數隔離）跑 Chrome 一輪，
+  回報字串完全沒變、五個 action 全 `verified-format-state`、postcondition 5/5——
+  沒有譯文的 build 上這條路不可能印出不同值，**因此最後一環仍是推論**。
+  要真的量到得先把譯文打進 FS 映像（做 zh-TW 產品本來就得做）或執行期寫進 MEMFS。
   清單三個動作不受影響（payload 是布林值）。
 - ~~state 是否可能早於 command result 抵達~~。已驗證：`earlyStateCount` 全為 0。
 - 清單切換產生的 `<text:list>` 包裝結構是否觸發 [Finding 012](../findings/012-r6-styled-document-close-timeout.md)

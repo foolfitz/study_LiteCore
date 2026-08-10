@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認（原始碼追到底＋既有證據佐證＋譯文檔實查）／端到端尚未在非英文 UI 下實測** |
+| **狀態** | **機制已確認（原始碼追到底＋既有證據佐證）／端到端仍未實測——已試，是假陰性，因為出貨映像沒打包任何譯文** |
 | **Bugzilla** | — |
 | **發現日** | 2026-08-11 |
 | **嚴重度** | 嚴重（潛伏：一旦 UI 語系不是英文，兩個段落樣式動作的 barrier 永遠不會完成） |
@@ -76,40 +76,84 @@ const std::vector<OUString>& SwStyleNameMapper::GetTextProgNameArray()
 `SfxTemplateItem aItem(nWhich, aName.toString(), aProgName.toString())`——**兩個都放**。
 只有 `SID_STYLE_APPLY` 這條沒放 ProgName，所以 payload 這一側**沒有語系無關的替代欄位可用**。
 
-**（三）我方 WASM build 已經內含 zh-TW 譯文**（已觀察）。
+**（三）建置樹裡有 zh-TW 譯文，但\*\*出貨的 WASM 檔案系統映像沒有\*\***（已觀察）。
 
-`wasm-lite/build-headless-probe` 的 `autogen.input` 是 `--with-lang=en-US`，但
-`instdir/program/resource/` 下**確實有 `zh_TW/LC_MESSAGES/`，含 `sw.mo`**（5,354 筆）：
+> **2026-08-11 更正。** 本節第一版寫「我方 WASM build 已經內含 zh-TW 譯文」，
+> **那是錯的**。我看的是建置主機上的 `instdir/`，但 WASM 出貨的不是 `instdir`，
+> 是打包進 emscripten 的檔案系統映像。兩者不一樣，而差別正好落在這一項。
+
+建置樹（`wasm-lite/build-headless-probe/instdir/program/resource/`）確實有
+`zh_TW/LC_MESSAGES/sw.mo`（5,354 筆），其中：
 
 ```text
 'STR_POOLCOLL_HEADLINE1\x04Heading 1' -> '標題 1'
 'STR_POOLCOLL_TEXT\x04Body Text'      -> '內文'
 ```
 
-正好就是 barrier 比對的那兩個字串。
+**但 `soffice.data` 的檔案清單（`soffice.data.js.metadata`，1,358 個檔）裡：**
 
-## 為什麼還沒實測
+| 項目 | 數量 |
+|---|---|
+| `.mo` 訊息目錄 | **0** |
+| `/instdir/program/resource/` 下的檔案 | **1**（`common/fonts/opens___.ttf`） |
+| zh-TW 的 registry langpack | 3（`Langpack-zh-TW.xcd`、`res/fcfg_langpack_zh-TW.xcd`、`res/registry_zh-TW.xcd`） |
 
-端到端要在**非英文 UI 語系**下跑一輪，才算把最後一環從推論升格為已觀察。這一環目前跑不出來，
-而且**跑錯地方會得到保證的假陰性**：
+也就是說：**zh-TW 在這個 build 是「選得到、但沒有東西可選」**——registry 說有這個語系，
+訊息目錄一個都沒打包，`SwResId()` 只能回傳未翻譯的 msgid。
 
-- **原生 build 不能用**：`build-native-26-8` 是 `--with-lang=en-US` 且
-  `resource/` 下只有 `common`，沒有任何譯文。設 `LANG=zh_TW.UTF-8` 會回退英文，
-  量到「字串沒變」——那是量測環境的結論，不是產品的。
-- **WASM build 有譯文，但我方沒有選語系的路**：engine 呼叫的是
-  `documentLoad(kit, url)`（`src/probe_engine.cpp:1718`），沒有選項；全樹沒有任何
-  `setLanguageTag`／`ooLocale`／locale 設定。
+這本身是一項值得記下的產品事實：**今天把 UI 設成 zh-TW，介面會是英文**。
+功能線要做的 heading dropdown／清單按鈕也一樣。
 
-要實測需要的最小改動（**未實作**）：discovery-only 改走
-`documentLoadWithOptions(kit, url, "Language=zh-TW")`。LOK 對這個選項的處理在
+## 實測跑了，而且是假陰性——原因已查明
+
+**做法**：新增隔離 profile `e2-locale-attribution`＝`e2-scheduler-attribution` 只改一件事，
+engine 改走 `documentLoadWithOptions(kit, url, "Language=zh-TW")`
+（`src/probe_engine.cpp`，以 `OXSDK_E2_UI_LANGUAGE` 編譯期常數隔離，JS 選不了，
+是實驗不是 surface）。語系標籤由 LOK 自己消化，見
 `desktop/source/lib/init.cxx:2843-2866`，會設 `comphelper::LibreOfficeKit::setLanguageTag()`
-與 `setLocale()`，也就是 `SvtSysLocale::GetUILanguageTag()` 讀的那個——正是（二）的 key。
+與 `setLocale()`，正是（二）那張表的 key。兩臂唯一差別就是這個標籤。
+
+**結果**（Chrome 150，profile `e2-locale-attribution` WASM `8adca798…`）：
+
+| | en-US 臂（`38d15ed4…`） | zh-TW 臂（`8adca798…`） |
+|---|---|---|
+| `set-paragraph-heading` 後回報的樣式 | `Heading 1` | `Heading 1` |
+| `set-paragraph-body` 後回報的樣式 | `Body Text` | `Body Text` |
+| 五個 action 的 completion | 全 `verified-format-state` | 全 `verified-format-state` |
+| ODT postcondition | 5/5 | 5/5 |
+
+**字串沒有變。而這不是本單的反證，是（三）的直接後果**：這個 build 一個訊息目錄都沒打包，
+`SwResId()` 只能回英文 msgid，所以**這條路上不可能量到不同的值**。
+我在上一版預測原生 build 會有這個假陰性，然後在 WASM build 上踩了同一個坑——
+差別是原生我事先查了 `resource/`，WASM 我看的是 `instdir` 而不是出貨映像。
+
+**因此本輪沒有把最後一環升格為已觀察。** 唯一新增的正面觀察是：
+`documentLoadWithOptions` 帶 `Language=zh-TW` **不會弄壞任何東西**（五個 action 照常完成、
+postcondition 5/5），所以之後真的要量時，這條路是通的。
+
+**這一輪也沒有正控制**：無法區分「選項根本沒生效」與「選項生效但沒有譯文可用」。
+在沒有譯文的 build 上，任何控制都問不出前者——要先有譯文才有得問。
+
+### 真要量到，要先解決打包
+
+兩條路，都不便宜：
+
+1. **把 `resource/` 打進 FS 映像**（或 `--with-lang=zh-TW` 重建 wasm-lite）。
+   這是**做 zh-TW 產品本來就得做的事**，不是為了量測才做的。重建成本高，且動到凍結的
+   `build-headless-probe`。
+2. **執行期把 `sw.mo` 寫進 MEMFS**（`/instdir/program/resource/zh_TW/LC_MESSAGES/`）。
+   emscripten FS 可寫，engine 也已經有寫入 MEMFS 的路徑（`writeInputFile`）。
+   便宜得多，但要新增一條 discovery-only 的檔案注入通道，且要確認 core 是在
+   documentLoad 之後才第一次查表。**未實作。**
 
 ## 影響與修法方向（未決）
 
-**今天是潛伏的**：沒有任何一條路徑會選非英文 UI，所以現行讀數是 en-US，barrier 比對得中。
-**但這個專案的產品對象是 zh-TW 使用者**，一旦要上在地化 UI，這兩個動作會在使用者眼前
-變成「明明套用了、卻回報結果未知」。
+**今天是潛伏的，而且觸發點比原本寫的更明確**：不是「一旦有人選了非英文 UI」，
+而是**一旦把訊息目錄打進 FS 映像**——而那正是做 zh-TW 產品的必要步驟。
+在那之前，就算選了 zh-TW 也只會拿到英文，barrier 照樣比對得中（本輪實測即為此）。
+
+換句話說：**這個缺陷會在「產品開始在地化」的那一刻同時被啟動**，
+而那一刻通常沒有人會想到要回頭重驗 barrier 的字串比對。
 
 候選方向，都還沒選：
 

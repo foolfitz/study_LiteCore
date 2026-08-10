@@ -1714,8 +1714,32 @@ void handleOpen(const Command &command) {
     closeDocument(nullptr);
   }
   emitStage("open.documentLoad");
+#ifdef OXSDK_E2_UI_LANGUAGE
+  // Finding 031 measurement profile, discovery only.
+  //
+  // The paragraph-style postcondition compares whole strings against
+  // "Heading 1" and "Body Text", and those come from core's UIName table,
+  // which SwStyleNameMapper keys by UI language tag.  Nothing in this project
+  // selects a language, so every reading so far has been en-US and the
+  // comparison has always matched.  This profile asks for a language so the
+  // two arms can be compared in one build.
+  //
+  // Language= is consumed by LOK itself (desktop/source/lib/init.cxx:2843-2866)
+  // and sets comphelper::LibreOfficeKit::setLanguageTag / setLocale, which is
+  // what SvtSysLocale::GetUILanguageTag reads back.  The tag is compiled in, so
+  // JS cannot choose it and this stays a build-level experiment rather than a
+  // surface.
+  {
+    const std::string options =
+        std::string("Language=") + OXSDK_E2_UI_LANGUAGE;
+    emitStage("open.documentLoadWithOptions");
+    gState.document = gState.kit->pClass->documentLoadWithOptions(
+        gState.kit, fileUrl.c_str(), options.c_str());
+  }
+#else
   gState.document =
       gState.kit->pClass->documentLoad(gState.kit, fileUrl.c_str());
+#endif
   emitStage("open.documentLoad-returned");
   if (!gState.document) {
     emitCommandError(command, "open", "LOK_ERROR", kitError());

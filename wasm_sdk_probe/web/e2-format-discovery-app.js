@@ -17,13 +17,20 @@ const fixtureId = params.get("fixture") || "styled-list";
 // emscripten main loop (LOK runLoop, unipoll), no drain exists, and the
 // question is whether the state stays fresh with no host pump at all.
 const mode = params.get("mode") || "a2";
+// "locale-attribution" is scheduler-attribution with one difference: the engine
+// asks LOK for a zh-TW UI language at documentLoad.  Everything else -- the
+// drain, the sequence, the postcondition checks -- is identical, so the two
+// runs are directly comparable and any difference in the reported style strings
+// is the language (finding 031).
 const profile = mode === "scheduler-attribution"
   ? "e2-scheduler-attribution"
-  : mode === "mainloop-pei-attribution"
-    ? "e2-mainloop-pei-attribution"
-    : mode === "mainloop-attribution" || mode === "mainloop-move-attribution"
-      ? "e2-mainloop-attribution"
-      : "e2-format-discovery";
+  : mode === "locale-attribution"
+    ? "e2-locale-attribution"
+    : mode === "mainloop-pei-attribution"
+      ? "e2-mainloop-pei-attribution"
+      : mode === "mainloop-attribution" || mode === "mainloop-move-attribution"
+        ? "e2-mainloop-attribution"
+        : "e2-format-discovery";
 // Finding 021 discriminating experiments.  "mainloop-pei-attribution" runs
 // the scheduler drain (ProcessEventsToIdle) under the live loop; if it still
 // releases watched payloads the PEI-vs-loop difference is PEI's own
@@ -32,6 +39,7 @@ const profile = mode === "scheduler-attribution"
 // placement; if that schedules the recompute, the invalidation gap is
 // specific to the API placement path.
 const drainRefresh = mode === "scheduler-attribution"
+  || mode === "locale-attribution"
   || mode === "mainloop-pei-attribution";
 const mainloopWait = mode === "mainloop-attribution"
   || mode === "mainloop-move-attribution";
@@ -354,13 +362,21 @@ async function runDispatch(documentHandle, client) {
       const started = performance.now();
       entry.result = await client.action(step.action, { timeoutMs: 30000 });
       entry.elapsedMs = Math.round(performance.now() - started);
-      entry.settleAfter = await settleFormatState();
-      const stateAfter = await client.getState();
-      entry.formatAfter = formatOf(stateAfter);
       entry.status = "passed";
     } catch (error) {
       entry.error = errorValue(error);
       entry.status = "failed";
+    }
+    // Read the state after the dispatch whichever way it reported.  The old
+    // shape only recorded it on success, so a barrier that failed *because of
+    // what the state said* threw away the one reading that explains it -- which
+    // is precisely the finding 031 case, where the postcondition string is
+    // right there and simply is not the string being compared against.
+    try {
+      entry.settleAfter = await settleFormatState();
+      entry.formatAfter = formatOf(await client.getState());
+    } catch (error) {
+      entry.formatAfterError = errorValue(error);
     }
     // Save regardless of how the dispatch reported, so the runner can judge the
     // document even when -- especially when -- the callback said something else.

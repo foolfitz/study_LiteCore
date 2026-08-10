@@ -123,6 +123,10 @@ def main() -> None:
         choices=(
             "a2",
             "scheduler-attribution",
+            # Finding 031: scheduler-attribution with a zh-TW UI language
+            # compiled into the engine.  Same sequence, same drain, so the two
+            # modes are directly comparable.
+            "locale-attribution",
             "mainloop-attribution",
             "mainloop-pei-attribution",
             "mainloop-move-attribution",
