@@ -372,3 +372,55 @@ zh-TW UI 之下，那兩個動作的 barrier 會逾時成 `MUTATION_OUTCOME_UNKN
 `documentLoadWithOptions(…, "Language=zh-TW")`。
 
 這一項答完了 SPEC E2-A 2.5 節掛了六天的待驗證條目，該節已就地劃掉並填上答案。
+
+## 使用者已回覆兩個決定（2026-08-11）
+
+1. **no-op 缺口走出路 3：後置條件改讀文件。**
+2. **finding 031 先做實測**（做了，是假陰性，見下）。
+
+### finding 031 實測：跑了，假陰性，而且更正了我自己的錯
+
+新增隔離 profile `e2-locale-attribution`＝`e2-scheduler-attribution` 只改一件事，
+engine 走 `documentLoadWithOptions(…, "Language=zh-TW")`（`OXSDK_E2_UI_LANGUAGE`
+編譯期常數，JS 選不了）。Chrome 一輪：**回報字串完全沒變**（仍 `Heading 1`／`Body Text`）、
+五個 action 全 `verified-format-state`、postcondition 5/5。
+
+**那不是反證，是我先前寫錯的直接後果。** 我寫「WASM build 已內含 zh-TW 譯文」——
+我看的是建置主機的 `instdir/`，但 WASM 出貨的是 emscripten 檔案系統映像。
+`soffice.data` 的 1,358 個檔裡 **`.mo` 是 0**、`/instdir/program/resource/` 下只有一個字型，
+却有三個 zh-TW registry langpack XCD。**zh-TW 選得到但沒有東西可選**，
+`SwResId()` 只能回英文 msgid，所以這條路上不可能印出不同值。
+我上一版還預測原生 build 會有這個假陰性（並查了 `resource/`），
+然後在 WASM 上踩了同一個坑——差別只在我查錯了樹。
+
+因此 031 的最後一環仍是推論。本輪也**沒有正控制**（沒有譯文時，
+問不出「選項到底有沒有生效」）。唯一新增的正面觀察：帶 `Language=` 不會弄壞東西，路是通的。
+
+**留了一個 tripwire 而不是一句備註**：`TestFinding031Tripwire` 在出貨映像出現任何 `.mo`
+的當下就會失敗——那既是做 zh-TW 產品的必要步驟，也正是整串比對悄悄失效的那一刻，
+而那一刻不會有人想到要回頭重驗 format barrier。突變控制：指向一個含單一 `.mo` 的假 metadata，
+它會失敗並印出 finding 編號。
+
+順帶修掉 harness 一個缺陷：dispatch 失敗時不記錄 `formatAfter`——
+**因狀態內容而失敗的 barrier ，正好丟掉唯一能解釋它的那個讀數**。
+
+### 出路 3 動手前先量了可行性（SPEC E2-A 2.8 節）
+
+`getCommandValues` 以讀原始碼排除。selection transferable **實測可用**：
+`text/html` 下 heading→`<h1>`、無序→`<ul><li>`、有序→`<ol><li>`、離開清單→`<p>`，
+五個 action 全可分、跟著 mutation 走、**且與語系無關**（順帶解掉 031 在段落樣式的曝險）。
+
+**三項代價是量出來的**：
+
+1. **游標塌陷時讀不到**（selType 0、0 bytes）。要先 `.uno:GoToStartOfPara` →
+   `.uno:EndOfParaSel` 選起整段才讀得到，讀完要還原選取，**還原本身要被驗證**。A5 要加案例。
+2. **`Text body` 與預設樣式都是 `<p>`**。分得出「是不是 heading」，分不出 Text body 與 Standard。
+   `set-paragraph-body` 的宣稱因此變弱；兩態承諾剛好夠用，但**是縮限，判定要明列**。
+3. **這串 HTML 是序列化器輸出，不是有文件的契約。** 整串比對＝把序列化器釘成 ABI，
+   跨版本可能變。**未驗證**，屬 A7 回歸該涵蓋。
+
+### 下一步（未動工）
+
+實作 readback barrier：engine 派送後選段→讀 `text/html`→以封閉集合比對→還原選取並驗證。
+**規格的契約與三項代價都已寫定（2.8 節），可以直接照著做。**
+之後才是 A3～A7。
