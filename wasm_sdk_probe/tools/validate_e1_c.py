@@ -179,7 +179,15 @@ def workspace_preflight(
         "python": command_version(["python3", "--version"]),
         "soffice": command_version(["/usr/bin/soffice", "--version"]),
     }
-    core_pass = head == CORE_BASELINE_HEAD and status == CORE_BASELINE_STATUS
+    # The matrix carries its own baseline.coreCommit, and until 2026-08-10 nobody
+    # read it: this gate compared the measured HEAD against the module constant
+    # and never noticed if the frozen matrix disagreed with it.  An unread claim
+    # is what finding 029 was about, so compare the two copies as well -- E1's
+    # matrix against E1's constant.  This is deliberately within one release; the
+    # frozen baselines of E1/R6/R7/R8 are allowed to differ from each other.
+    matrix_commit_pass = baseline.get("coreCommit") == CORE_BASELINE_HEAD
+    core_pass = (head == CORE_BASELINE_HEAD and status == CORE_BASELINE_STATUS
+                 and matrix_commit_pass)
     result = {
         "schemaVersion": 1,
         "release": "E1-C-editor-validation",
@@ -190,6 +198,8 @@ def workspace_preflight(
             "expectedHead": CORE_BASELINE_HEAD,
             "status": status,
             "expectedStatus": CORE_BASELINE_STATUS,
+            "matrixCommit": baseline.get("coreCommit"),
+            "matrixCommitPass": matrix_commit_pass,
             "pass": core_pass,
         },
         "profile": {

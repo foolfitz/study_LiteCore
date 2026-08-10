@@ -170,9 +170,51 @@ release（E1／R6／R7／R8／finding 012）各自的**凍結基線**。收斂�
 那正好破壞凍結的意義，也會讓 `validate_e1_c.py` 這種以模組常數比對實測 HEAD
 的真閘門失去獨立性。
 
-**成本高、方向可疑，因此不做。** 值得做的是上面兩個殘留：讓矩陣的
-`.baseline.coreCommit` 有人讀（或刪掉它，別留一個沒人看的宣稱）。
-**兩者本輪均未動。**
+**成本高、方向可疑，因此不做。** 值得做的是上面兩個殘留。
+
+## 殘留一已清：矩陣的 `.baseline.coreCommit` 現在有人讀（2026-08-10）
+
+三份矩陣，處理方式依「**它自己所屬的 release 內有沒有可比對的常數**」而定。
+跨 release 比對是錯的——E1／R6／R7／R8 的凍結基線本來就允許各自停在不同 commit。
+
+| 矩陣 | 同 release 的對應常數 | 處置 |
+|---|---|---|
+| `e1/validation-matrix-v1.json` | `validate_e1_c.CORE_BASELINE_HEAD` | 兩處都加：validator 閘門 ＋ 單元測試 |
+| `e1/discovery-matrix-v1.json` | `validate_e1_preflight.CORE_COMMIT` | 單元測試（該 preflight 不讀矩陣，硬塞一個新讀取不划算） |
+| `e2/discovery-matrix-v1.json` | **無**（E2 沒有任何帶此常數的 validator） | **未動**，見下 |
+
+- **`validate_e1_c.workspace_preflight()`** 新增 `matrixCommitPass`，併入 `core.pass`。
+- **`tests/test_e1_c.py`** 新增 `test_e1_matrices_agree_with_the_validators_that_gate_them`，
+  以 `subTest` 涵蓋兩份 E1 矩陣。**這才是常態生效的那一個**——
+  `Makefile:1319` 讓它進 `test-e1-c-static`，每次都跑。
+
+### 兩者的分工要講清楚（否則會高估 validator 那側）
+
+`workspace_preflight()` **只在 `--write-preflight before|after` 時執行**；判定本身讀的是
+已存的 `baseline/preflight-{before,after}.json`。**既存那兩份是本次改動之前寫的，
+所以不含 `matrixCommitPass`**——validator 那側要下次擷取 preflight 才會生效。
+
+**沒有為了補這個欄位去重新產生已凍結的證據**：`preflight-before.json` 是
+`preserved-entry-baseline`（讀自保存檔），本來就無法忠實重做，只重做 `after`
+會讓兩份不對稱；為一個欄位改寫已出貨判定的證據，代價與收益不成比例。
+乾跑（不寫檔）確認**今天重新擷取會通過**，`core.pass`／`matrixCommitPass` 皆 True。
+
+### 突變控制
+
+把 `CORE_BASELINE_HEAD` 暫時改成 `0000dead…` 後 `python3 -m unittest tests.test_e1_c`
+→ `FAILED (failures=1)`，訊息直指被改動的 hash。還原後 15 個測試全過，
+E1-C 判定仍為 `E1_GO_ODT_EDITOR`、`automaticPass: true`、48/48 綁定、0 superseded。
+
+### 為什麼 E2 那份不動（推論）
+
+`e2/discovery-matrix-v1.json` 的 baseline 記的是它**繼承自 E1** 的東西
+（`coreCommit`、`e1Decision: E1_GO_ODT_EDITOR`、`e1EditorV1LoaderSha256`），
+而 E2 自己沒有任何帶此常數的 validator。要閘住它得先寫明「E2 繼承 E1 基線」
+這個契約——那是 E2 的工作，而 E2 尚未啟動。**硬加一個跨 release 比對會把
+「凍結基線可各自不同」這條原則破壞掉**，與待驗證 3 不收斂的理由同一條。
+
+**殘留二（corpus 的 commit 只驗有無不驗值）仍未動**——屬測試素材的 provenance
+metadata，不進任何判定。
 
 ## 證據
 
@@ -185,6 +227,12 @@ release（E1／R6／R7／R8／finding 012）各自的**凍結基線**。收斂�
 
 ## 修訂紀錄
 
+- 2026-08-10（第三則）：**殘留一已清。** E1 兩份矩陣的 `.baseline.coreCommit`
+  現在有人比對——`validate_e1_c` 加 `matrixCommitPass` 閘門，並在
+  `tests/test_e1_c.py` 加常態生效的交叉檢查（`Makefile:1319` 讓它每次都跑）。
+  比對範圍**限制在同一個 release 內**，理由與待驗證 3 相同。
+  未為此重新產生已凍結的 preflight 證據，改以乾跑確認今天重新擷取會通過。
+  E2 那份與 corpus 那項維持未動，各自記明理由。
 - 2026-08-10（第二則）：**三個待驗證同日結案。** 逐檔審計 14 份副本，
   **沒有第二個「只寫出不比對」**——R8-D 是唯一例外，`validate_e1_c.py` 反而是
   做對的示範。待驗證 2 改用比對來源檔而非新增第 16 份寫死副本，

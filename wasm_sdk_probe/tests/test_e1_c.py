@@ -55,6 +55,26 @@ class E1CMatrixTest(unittest.TestCase):
                     })
         self.assertEqual(sum(desktop_required(entry) for entry in entries), 16)
 
+    def test_e1_matrices_agree_with_the_validators_that_gate_them(self) -> None:
+        """Both E1 matrices record a baseline.coreCommit that nothing read.
+
+        finding 029: a claim nobody compares cannot fail, so it cannot notice
+        going stale.  The validators gate the measured core HEAD against their
+        own module constants, so a frozen matrix could disagree with them
+        indefinitely.  Compare the copies -- within E1 only.  E1/R6/R7/R8 freeze
+        independent baselines and are allowed to differ from one another, so
+        there is deliberately no cross-release assertion here.
+        """
+        import validate_e1_preflight  # noqa: PLC0415
+
+        for name, expected in (
+            ("validation-matrix-v1.json", validate_e1_c.CORE_BASELINE_HEAD),
+            ("discovery-matrix-v1.json", validate_e1_preflight.CORE_COMMIT),
+        ):
+            with self.subTest(matrix=name):
+                matrix = json.loads((PROJECT / "e1" / name).read_text())
+                self.assertEqual(matrix["baseline"]["coreCommit"], expected)
+
 
 class E1CDecisionTest(unittest.TestCase):
     @staticmethod
