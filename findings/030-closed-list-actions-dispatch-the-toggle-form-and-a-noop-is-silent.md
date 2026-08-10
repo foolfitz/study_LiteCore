@@ -134,10 +134,36 @@ core 的 status 廣播只在值改變時送出，這是 SfxBindings 的既有語
 **本輪不替使用者決定**。可以先做的是與路線無關的部分：把派送改成參數化形式（缺陷一），
 那在四條出路裡都是必要的。
 
+## 修法後的重跑（2026-08-11）
+
+engine 改派參數化形式後重建兩個 E2 profile：`e2-format-discovery` `abf3598f…`、
+`e2-scheduler-attribution` `38d15ed4…`。以 `--mode scheduler-attribution`
+兩瀏覽器各跑一輪（Chrome 150.0.7871.128、Firefox 153.0.1）：
+
+| | Chrome | Firefox |
+|---|---|---|
+| 五個 action 的 completion | 全為 `verified-format-state`、`changed:true` | 同 |
+| `documentPostconditions` | 5/5 `allMet:true` | 5/5 `allMet:true` |
+
+與最後一版 sound build（`7c5b8e5c…`，Chrome attempt-04／Firefox attempt-02）**逐項相同**。
+新證據在 `state-readback/scheduler-attribution/chrome/attempt-05` 與 `firefox/attempt-03`。
+
+**這輪重跑證明的是「沒弄壞」，不是「參數生效」。** 該 harness 的五個派送每一個都是
+**跨狀態轉換**，而在跨狀態轉換上 toggle 與 setter 的結果完全相同——就算 `On` 在我方
+worker／engine 的序列化中被丟掉，這五項也會照樣全過。要證明參數在 WASM 路徑上生效，
+必須**重複派送**，而路線 B 的 `alreadyAtTarget` 正好擋住重複派送。
+這件事留給 A4（第 4 節未決事項定案之後），與 finding 028 的
+「瀏覽器重跑不能當成 body 路徑的證明」是同一種侷限。
+
+engine 改動的隔離也逐位元驗過：關掉 `OXSDK_E2_FORMAT_BARRIER` 重編 E1-B 組態的
+`probe_engine.o`，與既有 `build/e1/editor-v1/probe_engine.o` **完全相同**；
+`e1-editor-v1` 仍為 `835b453d…`。
+
 ## 未驗證
 
 - WASM profile 下 Chrome／Firefox 是否重現這兩件事（本輪只有原生）。
-- `On` 參數是否原封不動通過我方 `postUnoCommand` 路徑。
+- `On` 參數是否原封不動通過我方 `postUnoCommand` 路徑——**修法後的重跑不能回答這題**，
+  理由見上一節。
 - `.uno:RemoveBullets` 有沒有參數化形式；本輪兩組都用 bare 派送，因為它本來就測到是 setter。
 - 表格內或清單邊界的段落是否相同；本 fixture 兩者皆無。
 

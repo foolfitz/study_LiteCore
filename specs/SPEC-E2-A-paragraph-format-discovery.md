@@ -201,6 +201,13 @@ search 列都正確為 `true`，且 `updateEditorFormatState` 先清旗標才發
 所以第 4 節的三態封閉列舉做得到，前提是送對形式。engine 已改派參數化形式
 （`src/probe_engine.cpp`，`tests/test_e2_profile.py` 有測試釘住，突變控制通過）。
 
+修法後以 `--mode scheduler-attribution` 兩瀏覽器各重跑一輪（新 profile `38d15ed4…`），
+五個 action 全為 `verified-format-state`、`documentPostconditions` 5/5，與最後一版
+sound build 逐項相同。**但那輪只證明「沒弄壞」**：該 harness 的五個派送都是跨狀態轉換，
+toggle 與 setter 在跨狀態轉換上結果相同，所以就算 `On` 在序列化中被丟掉也會照樣全過。
+「參數在 WASM 路徑上生效」要靠**重複派送**才驗得到，而那正是路線 B 的 `alreadyAtTarget`
+擋住的事——留給 A4。
+
 **（二）值沒變就沒有 STATE_CHANGED。** 已在目標狀態時再按一次，文件正確、command result
 照常抵達且帶正確 `commandName`，但**九個案例的第二、三次全部零 watched payload**。
 第 4 節的 completion 需要 (a) 歸屬與 (b) state 後置條件同時成立，(b) 在合法 no-op 時

@@ -26,6 +26,9 @@
 
 > **2026-08-10 追記：已決定並執行——修了，而且範圍比本節寫的大一倍。**
 > 本節說的「一處不對稱」實際是兩處，第二處更嚴重。詳見文末追記。
+>
+> **2026-08-11 追記：現在擋路的換成另一件事**——E2-A 的 no-op 沒有後置條件可等，
+> 四條出路待你選。見文末〈2026-08-11 追記〉。
 
 `delivery/verified-loader.js:188-201` 兩個 `catch` 不對稱——fetch 那層會把 `AbortError`
 原樣拋出，`response.json()` 那層不會，於是**使用者取消**被標成
@@ -271,3 +274,80 @@ catch（`:400-408`）轉出來的。**修好之後，取消落在 fetch 或 body
 08-08 未完成清單的第 3～7 項原樣保留：release-manifest 殘留層、builder `rmtree`
 取捨的記錄、T2、finding 024 是否送 Mozilla、以及更早延後的
 heading dropdown／清單／SPEC E1-D §5／Route C／A3。
+
+---
+
+# 2026-08-11 追記：功能線開工，卡在一個產品決定
+
+使用者指示「開始功能線，自主執行」。功能線＝heading dropdown／有序清單／無序清單，
+交接文件建議先用最便宜的 discovery profile 把關——也就是 **E2-A**。
+
+## 先做了「Route C 的 E2-A 前置契約」，因為那是 A3 的擋路者
+
+08-06 的產品決定（路線 C：不讀前置狀態）當時只寫進 SPEC E2-A 的 2.6 節敘述，
+**條文沒改**：第 4 節的 barrier 流程圖仍以前置狀態讀取開頭、A4 仍寫
+`documented-state-noop`。規格已修訂為 **v11**，作廢原文以引用區保留不刪。
+
+## 但實測先否證了路線 C 的一個前提（finding 030）
+
+路線 C 允許同一個 action 被連續派送，這使兩件先前被 `alreadyAtTarget` 遮住的事顯露。
+原生 26.8、同一段落、先置入相反狀態再連按三次，每次派送後存 ODT，**判定讀存檔不讀 callback**：
+
+1. **不帶參數的 `.uno:DefaultBullet`／`.uno:DefaultNumbering` 是 toggle。**
+   第二次按 `set-list-unordered` 會把段落踢出清單。`svx/sdi/svx.sdi:2251`／`:4985`
+   宣告 `SfxBoolItem On FN_PARAM_1`，`sw/.../txtnum.cxx:81-108` 有參數才是 explicit mode。
+   **帶 `On=true` 則四個案例全是 setter**，含有序→無序的跨種類轉換。
+   與 finding 019 同形狀（派送形式錯，不是能力不存在），修法也相同。**已修。**
+2. **值沒變就沒有 STATE_CHANGED。** 已在目標狀態時再按一次，文件正確、command result
+   照常抵達且帶正確 `commandName`，但九個案例的第二、三次**全部零 watched payload**。
+   E2-A 的 completion 需要「歸屬＋state 後置條件」同時成立，(b) 永遠不會到，
+   於是逾時成 `MUTATION_OUTCOME_UNKNOWN`。**是低報不是誤報**，但 SPEC E2-A 第 8 節把
+   「no-op 與遺失不可區分」列為 STOP。**未修，需要決定。**
+
+## 唯一擋路的事：第 2 項要走哪條路（使用者決定）
+
+規格第 4 節新增〈路線 C 未決事項〉列四條，**不預設**：
+
+1. **接受低報**——零新機制；但「不知道」變成常態讀數，而且這個選擇本身就落在第 8 節的 STOP 條款上。
+2. **路線 A（產品自行推進 scheduler）**——`Scheduler::ProcessEventsToIdle()` 是公開 API，
+   v10 已更正「沒有受支援入口」不成立；代價是進共用路徑要跑完整回歸（finding 012 相鄰風險）。
+3. **後置條件改讀文件**——最誠實，但需要目前不存在的 readback 能力，自成一輪 discovery。
+4. **只用 command result**——歸屬有真值無，是第 4 節當初明確拒絕的做法。**不建議。**
+
+**在這個決定之前跑 A3 沒有意義**：會得到「跨狀態轉換全過、重複派送全 UNKNOWN」，
+而那個 UNKNOWN 是設計未定，不是量測結果。第 7 節已把這條寫成 A3 的前置。
+
+## 本輪已完成、與出路選擇無關的部分
+
+- engine 改派參數化 explicit mode（`OXSDK_E2_FORMAT_BARRIER` 內）。
+- `e2-format-discovery` 重建為 `abf3598f…`、`e2-scheduler-attribution` 為 `38d15ed4…`。
+- **凍結 artifact 未受影響**：關掉旗標重編 E1-B 組態的 `probe_engine.o`
+  與既有 `build/e1/editor-v1/probe_engine.o` **逐位元相同**；`e1-editor-v1` 仍 `835b453d…`。
+- `tests/test_e2_profile.py` 新增三項釘住派送形式；突變（拿掉 `On`）證明會失敗。
+- `make test-e2-a-static` 納入新增的三個檔案（先前只檢查 caret 那組）。
+- 兩瀏覽器各重跑一輪 `scheduler-attribution`：5/5 `verified-format-state`、
+  postcondition 5/5，與最後一版 sound build 逐項相同。
+
+## 這輪重跑**不能**當成「`On` 參數在 WASM 生效」的證明
+
+那五個派送每一個都是**跨狀態轉換**，而 toggle 與 setter 在跨狀態轉換上結果相同——
+`On` 就算在序列化中被丟掉也會照樣 5/5。要證明它生效必須**重複派送**，
+而那正是路線 B 的 `alreadyAtTarget` 擋住的。與 finding 028 的
+「瀏覽器重跑不能當成 body 路徑的證明」是同一種侷限，留給 A4。
+
+## 本輪新增的量測紀律
+
+- **「連按兩次會怎樣」是移除前置條件讀取之後才存在的問題面。** 原本的正向矩陣全是
+  跨狀態轉換，那種矩陣**驗不到**冪等性——toggle 與 setter 在它上面讀數相同。
+- **判定用的比較基準要挑對。** 本輪分析器第一版拿 LibreOffice 每次存檔重新編號的
+  自動樣式名（P1/L1 對 P2/L2）比對，於是宣稱沒被碰過的段落變了。基準改為
+  **同一次 run 的第一份快照**（已過存檔正規化）＋解析到具名 parent 之後才正確。
+  拿手寫 fixture 當基準也會有同樣的假陽性。
+- **沒重跑量測，只重跑判讀。** 分析器修好後是對同一批已保存的 ODT 重新判讀的，
+  不是重跑探針求綠。
+
+## 我在本輪犯的錯
+
+1. 分析器第一版用生成的自動樣式名做比對，得到「未被碰過的清單項變了」的假陽性。
+2. 又一次 shell cwd 漂移（在 `study_LiteCore` 下跑 `tools/run_...sh`）。
+   交接文件已經寫過這條，我還是踩了；一律用絕對路徑。
