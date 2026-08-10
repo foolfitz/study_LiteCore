@@ -23,6 +23,7 @@ from r7_support import evaluate, wait_page
 from run_browser_probe import ChromeSession, FirefoxSession, free_port
 
 TEXT_NS = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+STYLE_NS = "urn:oasis:names:tc:opendocument:xmlns:style:1.0"
 
 # What the document must look like after each dispatch.  These are the
 # properties of the saved file, independent of anything the engine reported.
@@ -37,8 +38,15 @@ EXPECTED_POSTCONDITIONS = {
     "bullet-on": {"insideList": True},
     "numbering-on": {"insideList": True},
     "list-off": {"insideList": False},
-    "heading-on": {"paragraphStyle": "Heading_20_1"},
-    "body-on": {"paragraphStyle": "Text_20_body"},
+    "heading-on": {"resolvedParagraphStyle": "Heading_20_1"},
+    "body-on": {"resolvedParagraphStyle": "Text_20_body"},
+    # Repeats must land on the same state, not the opposite one.  A toggle
+    # would show up here as insideList flipping back to False on repeat-1 and
+    # True again on repeat-2 (finding 030).
+    "bullet-on-repeat-1": {"insideList": True},
+    "bullet-on-repeat-2": {"insideList": True},
+    "heading-on-repeat-1": {"resolvedParagraphStyle": "Heading_20_1"},
+    "heading-on-repeat-2": {"resolvedParagraphStyle": "Heading_20_1"},
 }
 
 
@@ -61,6 +69,7 @@ def inspect_target_paragraph(path: Path, anchor: str) -> dict[str, Any]:
         "found": False,
         "isHeading": None,
         "paragraphStyle": None,
+        "resolvedParagraphStyle": None,
         "insideList": None,
         "listStyle": None,
         "totalLists": None,
@@ -75,6 +84,20 @@ def inspect_target_paragraph(path: Path, anchor: str) -> dict[str, Any]:
             return result
         root = ElementTree.fromstring(archive.read("content.xml"))
     parents = {child: parent for parent in root.iter() for child in parent}
+    # Joining a list gives the paragraph an automatic style (P1, P2, ...) that
+    # inherits from the named one, so the raw style-name stops being the style
+    # the moment a heading is also in a list.  Resolving to the named parent is
+    # what makes "is this Heading 1" answerable in both shapes.  The same
+    # mistake was fixed in analyze_e2_a_native_reissue.py earlier the same day
+    # and not carried across to here, which is how a correct barrier ended up
+    # judged as a failure.
+    style_parents = {
+        node.get(f"{{{STYLE_NS}}}name"): node.get(f"{{{STYLE_NS}}}parent-style-name")
+        for node in root.iter(f"{{{STYLE_NS}}}style")
+        if node.get(f"{{{STYLE_NS}}}family") == "paragraph"
+        and node.get(f"{{{STYLE_NS}}}name")
+        and node.get(f"{{{STYLE_NS}}}parent-style-name")
+    }
     result["totalLists"] = sum(node.tag == f"{{{TEXT_NS}}}list" for node in root.iter())
     result["totalHeadings"] = sum(node.tag == f"{{{TEXT_NS}}}h" for node in root.iter())
     for node in root.iter():
@@ -84,7 +107,9 @@ def inspect_target_paragraph(path: Path, anchor: str) -> dict[str, Any]:
             continue
         result["found"] = True
         result["isHeading"] = node.tag == f"{{{TEXT_NS}}}h"
-        result["paragraphStyle"] = node.get(f"{{{TEXT_NS}}}style-name")
+        style_name = node.get(f"{{{TEXT_NS}}}style-name")
+        result["paragraphStyle"] = style_name
+        result["resolvedParagraphStyle"] = style_parents.get(style_name, style_name)
         ancestor = parents.get(node)
         inside = False
         while ancestor is not None:

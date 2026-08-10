@@ -135,6 +135,9 @@ enum class CommandType {
 #ifdef OXSDK_FINDING_016_SELECTION_BARRIER
   EditorSelectionBarrierStep,
 #endif
+#ifdef OXSDK_E2_FORMAT_BARRIER
+  EditorFormatBarrierStep,
+#endif
 #ifdef OXSDK_FINDING_016_SCHEDULER_PROBE
   EditorDrainScheduler,
 #endif
@@ -386,6 +389,104 @@ enum class FormatBarrierTarget {
   ParagraphStyle,
 };
 
+// Route C, revised 2026-08-11 after finding 030.
+//
+// The state broadcast cannot serve as the postcondition: core stays silent
+// when the value did not change, so a repeated press -- the case route C
+// created by dropping the precondition read -- is indistinguishable from a
+// command that never arrived.  The postcondition is therefore read out of the
+// document, measured feasible in SPEC E2-A section 2.8.
+//
+// A collapsed caret reads back nothing at all, so the read has to select the
+// paragraph and put the caret back afterwards.  That is a visible side effect,
+// which is why restoring is a stage with its own confirmation rather than a
+// fire-and-forget call: "we posted a restore" is not "the selection is
+// collapsed again".
+enum class FormatBarrierStage {
+  Idle,
+  // Dispatched; waiting for the command result that attributes an outcome to
+  // this request.  The result is still the only thing carrying commandName.
+  AwaitingResult,
+  // Result seen; a step is queued to select the paragraph off the callback
+  // thread, the same non-reentrancy rule the selection barrier follows.
+  SelectQueued,
+  // Paragraph selection posted; waiting for the selection callback that says
+  // there is something to read.
+  AwaitingSelection,
+  // Selection confirmed; a step is queued to do the read and compare.
+  ReadQueued,
+  // Read done; caret restore posted, waiting for the collapse to be confirmed.
+  AwaitingRestore,
+};
+
+// The closed set of block tags this build will accept from the selection
+// serialiser.  Anything outside it is not "probably fine", it is a shape this
+// barrier has never measured, so it fails closed.
+bool formatTagIsKnown(const std::string &tag) {
+  return tag == "ul" || tag == "ol" || tag == "li" || tag == "h1" || tag == "p";
+}
+
+// Reads the open-tag sequence inside <body>, which is all the postcondition
+// needs and far less than parsing HTML.
+//
+// Two values, not one: taking only the first tag would conflate list
+// membership with paragraph style, so a heading inside a list would read as
+// "ul" and the paragraph-style postcondition could never be satisfied there.
+// The list kind and the block tag are separate questions and are answered
+// separately.
+struct FormatReadback {
+  bool parsed = false;
+  bool unknownTag = false;
+  std::string listTag;   // "ul", "ol", or empty
+  std::string blockTag;  // "h1" or "p", or empty
+};
+
+FormatReadback parseFormatReadback(const std::string &html) {
+  FormatReadback readback;
+  const std::size_t body = html.find("<body");
+  if (body == std::string::npos)
+    return readback;
+  std::size_t index = html.find('>', body);
+  if (index == std::string::npos)
+    return readback;
+  bool first = true;
+  for (++index; index < html.size(); ++index) {
+    if (html[index] != '<')
+      continue;
+    std::size_t start = index + 1;
+    if (start >= html.size())
+      break;
+    if (html[start] == '/')
+      continue;
+    std::size_t end = start;
+    while (end < html.size() &&
+           ((html[end] >= 'a' && html[end] <= 'z') ||
+            (html[end] >= 'A' && html[end] <= 'Z') ||
+            (html[end] >= '0' && html[end] <= '9')))
+      ++end;
+    if (end == start)
+      continue;
+    std::string tag = html.substr(start, end - start);
+    for (char &character : tag)
+      if (character >= 'A' && character <= 'Z')
+        character = static_cast<char>(character - 'A' + 'a');
+    if (!formatTagIsKnown(tag)) {
+      readback.unknownTag = true;
+      break;
+    }
+    readback.parsed = true;
+    if (first) {
+      first = false;
+      if (tag == "ul" || tag == "ol")
+        readback.listTag = tag;
+    }
+    if (readback.blockTag.empty() && (tag == "h1" || tag == "p"))
+      readback.blockTag = tag;
+    index = end - 1;
+  }
+  return readback;
+}
+
 struct FormatStateBarrier {
   std::uint32_t requestId = 0;
   std::uint32_t documentHandle = 0;
@@ -415,9 +516,31 @@ struct FormatStateBarrier {
   std::string action;
   std::string command;
   std::string arguments;
+  // Route C readback (finding 030 / SPEC E2-A 2.8).
+  FormatBarrierStage stage = FormatBarrierStage::Idle;
+  std::uint64_t serial = 0;
+  // Where the caret was before the read selected the paragraph, so it can be
+  // put back.  Recorded before the dispatch, because the dispatch itself may
+  // move it.
+  EditorRect restorePoint;
+  bool restorePointValid = false;
+  bool restoreConfirmed = false;
+  // What the postcondition demands of the readback.  Empty means "this action
+  // makes no claim about that half".
+  std::string expectedListTag;   // "ul" / "ol" / "none"
+  std::string expectedBlockTag;  // "h1" / "p"
+  FormatReadback readback;
+  std::size_t readbackBytes = 0;
+  // Kept verbatim and bounded.  A postcondition that failed is only auditable
+  // if the markup it judged is in the evidence -- reporting "did not match"
+  // without it is the shape of claim this project keeps having to retract.
+  std::string readbackHtml;
 };
 
+constexpr std::size_t FormatReadbackEvidenceLimit = 2048;
+
 FormatStateBarrier gFormatBarrier;
+std::uint64_t gNextFormatBarrierSerial = 1;
 
 bool formatBarrierActive() {
   return gFormatBarrier.target != FormatBarrierTarget::None;
@@ -461,6 +584,10 @@ SelectionReadback readSelection();
 void handleSelectionBarrierStateCallback(int callbackType);
 bool handleSelectionBarrierUnoResult(const char *payload);
 void handleSelectionBarrierStep(const Command &command);
+#endif
+#ifdef OXSDK_E2_FORMAT_BARRIER
+void handleFormatBarrierStateCallback(int callbackType);
+void handleFormatBarrierStep(const Command &command);
 #endif
 #endif
 
@@ -779,7 +906,21 @@ void appendFormatBarrierDetails(std::ostringstream &json,
       json << ',';
     json << '"' << jsonEscape(barrier.expectedStyles[index].c_str()) << '"';
   }
-  json << "]}";
+  json << "],\"readback\":{\"parsed\":"
+       << (barrier.readback.parsed ? "true" : "false")
+       << ",\"unknownTag\":"
+       << (barrier.readback.unknownTag ? "true" : "false")
+       << ",\"listTag\":\"" << jsonEscape(barrier.readback.listTag.c_str())
+       << "\",\"blockTag\":\"" << jsonEscape(barrier.readback.blockTag.c_str())
+       << "\",\"expectedListTag\":\""
+       << jsonEscape(barrier.expectedListTag.c_str())
+       << "\",\"expectedBlockTag\":\""
+       << jsonEscape(barrier.expectedBlockTag.c_str())
+       << "\",\"bytes\":" << barrier.readbackBytes
+       << ",\"restoreConfirmed\":"
+       << (barrier.restoreConfirmed ? "true" : "false")
+       << ",\"html\":\"" << jsonEscape(barrier.readbackHtml.c_str())
+       << "\"}}";
 }
 
 void completeFormatBarrier() {
@@ -794,7 +935,10 @@ void completeFormatBarrier() {
        << barrier.beforeRevision << ",\"revision\":" << gState.revision
        << ",\"action\":\"" << jsonEscape(barrier.action.c_str())
        << "\",\"option\":false,\"changed\":true"
-       << ",\"completion\":\"verified-format-state\""
+       // Route C reports what it verified, and it verified the document, not a
+       // broadcast.  The name changed with the source deliberately: evidence
+       // recorded under the old name was produced by a different check.
+       << ",\"completion\":\"verified-format-readback\""
        << ",\"callbackSequenceBefore\":" << barrier.beforeSequence
        << ",\"callbackSequenceAfter\":" << gEditorState.sourceSequence << ',';
   appendFormatBarrierDetails(json, barrier);
@@ -805,31 +949,36 @@ void completeFormatBarrier() {
   finishAsynchronous(barrier.requestId);
 }
 
-// Completion needs both halves and neither substitutes for the other: the
-// command result carries commandName, which is the only thing that ties an
-// outcome to this request, while the state callback is the only thing that
-// reports what actually happened (finding 020).
-void tryCompleteFormatBarrier() {
-  if (!gFormatBarrier.resultSeen || !formatBarrierPostconditionMet())
-    return;
-  completeFormatBarrier();
+void failFormatBarrier(const char *code, const char *message) {
+  const FormatStateBarrier barrier = gFormatBarrier;
+  gFormatBarrier = FormatStateBarrier{};
+  std::ostringstream json;
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
+       << ",\"type\":\"error\",\"requestId\":" << barrier.requestId
+       << ",\"documentHandle\":" << barrier.documentHandle
+       << ",\"operation\":\"editor-action\",\"code\":\"" << code
+       << "\",\"message\":\"" << jsonEscape(message) << "\",";
+  appendFormatBarrierDetails(json, barrier);
+  json << "}";
+  emitJson(json.str());
+  finishAsynchronous(barrier.requestId);
 }
 
+// The state broadcast no longer decides anything -- finding 030 showed it is
+// silent exactly when the answer would matter most.  The two attribution
+// counters stay, because "how much unrelated watched traffic arrived while this
+// request was in flight" is still worth having in the evidence, and A5's
+// state-crosstalk case is judged from them.  They now count observations, not
+// rejections.
 void observeFormatBarrierPayload(const FormatStatePayload &parsed) {
   if (!formatBarrierActive() || !formatBarrierWatches(parsed.command))
     return;
   if (!formatBarrierPostconditionMet()) {
-    // A watched command reported a value that is not the one this request asked
-    // for.  That is exactly the broadcast traffic the barrier must not accept,
-    // so record it and keep waiting instead of completing.
     ++gFormatBarrier.crosstalkCount;
     return;
   }
-  if (!gFormatBarrier.resultSeen) {
+  if (!gFormatBarrier.resultSeen)
     ++gFormatBarrier.earlyStateCount;
-    return;
-  }
-  tryCompleteFormatBarrier();
 }
 
 void updateEditorFormatState(const char *payload) {
@@ -1028,6 +1177,8 @@ bool commandResultSucceeded(const char *payload) {
 }
 
 #ifdef OXSDK_E2_FORMAT_BARRIER
+void queueFormatBarrierStep(FormatBarrierStage next);
+
 void handleFormatBarrierUnoResult(const char *payload) {
   if (!formatBarrierActive() || gFormatBarrier.resultSeen ||
       !commandResultMatches(payload, gFormatBarrier.command))
@@ -1041,7 +1192,11 @@ void handleFormatBarrierUnoResult(const char *payload) {
   const char *modified = jsonFieldValue(payload, "wasModified");
   gFormatBarrier.resultModified =
       modified && std::strncmp(modified, "true", 4) == 0;
-  tryCompleteFormatBarrier();
+  // Attribution is settled; truth is not.  The read happens off this callback,
+  // on the engine loop, for the same non-reentrancy reason the selection
+  // barrier queues its verification instead of doing it here.
+  if (gFormatBarrier.stage == FormatBarrierStage::AwaitingResult)
+    queueFormatBarrierStep(FormatBarrierStage::SelectQueued);
 }
 #endif
 
@@ -1456,6 +1611,9 @@ void onLokCallback(int type, const char *payload, void *) {
     emitEditorStateEvent(editorSource);
 #ifdef OXSDK_FINDING_016_SELECTION_BARRIER
     handleSelectionBarrierStateCallback(type);
+#endif
+#ifdef OXSDK_E2_FORMAT_BARRIER
+    handleFormatBarrierStateCallback(type);
 #endif
     completePendingEditorOperation(type);
   } else if (type >= LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR &&
@@ -2579,18 +2737,147 @@ const char *const kListOnArguments = "{\"On\":{\"type\":\"boolean\","
 void startFormatBarrierActionResolved(const Command &command,
                                       std::uint32_t action, const char *name);
 
-// The caret may have moved since the cache last reported.  Refusing here is
-// what keeps a stale value from being answered as this paragraph's -- the host
-// must refresh first (see the scheduler drain operation) and only then act.
-// Fail closed: no mutation, no guess.
-void startFormatBarrierAction(const Command &command, std::uint32_t action,
-                              const char *name) {
-  if (gEditorState.formatStateStale) {
-    emitCommandError(
-        command, "editor-action", "EDITOR_FORMAT_STATE_UNAVAILABLE",
-        "paragraph format state has not reported since the caret moved");
+void queueFormatBarrierStep(FormatBarrierStage next) {
+  gFormatBarrier.stage = next;
+  Command step{CommandType::EditorFormatBarrierStep};
+  step.requestId = gFormatBarrier.requestId;
+  step.documentHandle = gFormatBarrier.documentHandle;
+  step.correlation = gFormatBarrier.serial;
+  if (submit(std::move(step)) != SubmitStatus::Ok)
+    failFormatBarrier("EDITOR_STATE_UNAVAILABLE",
+                      "format barrier could not schedule a non-reentrant "
+                      "postcondition read");
+}
+
+// SPEC E2-A 2.8: a collapsed caret reads back nothing, so the paragraph has to
+// be selected first.  Paragraph-relative, not line-relative -- applying a
+// heading style rewraps the text, and a line-relative walk would then select
+// something else and read back a postcondition for a paragraph nobody touched.
+void postFormatBarrierParagraphSelection() {
+  gState.document->pClass->postUnoCommand(gState.document,
+                                          ".uno:GoToStartOfPara", nullptr,
+                                          false);
+  gState.document->pClass->postUnoCommand(gState.document, ".uno:EndOfParaSel",
+                                          nullptr, false);
+}
+
+void readFormatBarrierPostcondition() {
+  char *html = gState.document->pClass->getTextSelection(
+      gState.document, "text/html", nullptr);
+  const std::string markup = html ? std::string(html) : std::string();
+  std::free(html);
+  gFormatBarrier.readbackBytes = markup.size();
+  gFormatBarrier.readbackHtml =
+      markup.size() > FormatReadbackEvidenceLimit
+          ? markup.substr(0, FormatReadbackEvidenceLimit)
+          : markup;
+  gFormatBarrier.readback = parseFormatReadback(markup);
+}
+
+bool formatBarrierReadbackSatisfied() {
+  const FormatReadback &readback = gFormatBarrier.readback;
+  if (!readback.parsed || readback.unknownTag)
+    return false;
+  if (!gFormatBarrier.expectedListTag.empty()) {
+    const std::string observed =
+        readback.listTag.empty() ? std::string("none") : readback.listTag;
+    if (observed != gFormatBarrier.expectedListTag)
+      return false;
+  }
+  if (!gFormatBarrier.expectedBlockTag.empty() &&
+      readback.blockTag != gFormatBarrier.expectedBlockTag)
+    return false;
+  return true;
+}
+
+// Putting the caret back is part of the operation, not cleanup after it.  The
+// stage waits for the collapse to be confirmed rather than assuming the posted
+// restore worked, because "we asked for it" is the class of claim this project
+// keeps having to retract.
+void postFormatBarrierRestore() {
+  if (!gFormatBarrier.restorePointValid)
+    return;
+  gState.document->pClass->setTextSelection(
+      gState.document, LOK_SETTEXTSELECTION_RESET,
+      gFormatBarrier.restorePoint.x,
+      gFormatBarrier.restorePoint.y + gFormatBarrier.restorePoint.height / 2);
+}
+
+void finishFormatBarrierAfterRestore() {
+  gFormatBarrier.restoreConfirmed = gEditorState.selectionRectangles.empty();
+  if (!formatBarrierReadbackSatisfied()) {
+    failFormatBarrier(
+        "EDITOR_FORMAT_POSTCONDITION_FAILED",
+        "the document does not show the state this action asked for");
     return;
   }
+  if (!gFormatBarrier.restoreConfirmed) {
+    // The document reached the target, but the selection this read created is
+    // still there.  Reporting success would leave the caller holding a
+    // selection it never made, so this is a failure with a distinct code --
+    // the mutation happened and the evidence says so.
+    failFormatBarrier(
+        "EDITOR_SELECTION_NOT_RESTORED",
+        "the postcondition read left a selection the barrier could not undo");
+    return;
+  }
+  completeFormatBarrier();
+}
+
+void handleFormatBarrierStep(const Command &command) {
+  if (!formatBarrierActive() ||
+      command.requestId != gFormatBarrier.requestId ||
+      command.documentHandle != gFormatBarrier.documentHandle ||
+      command.correlation != gFormatBarrier.serial ||
+      command.documentHandle != gState.documentHandle)
+    return;
+  switch (gFormatBarrier.stage) {
+  case FormatBarrierStage::SelectQueued:
+    gFormatBarrier.stage = FormatBarrierStage::AwaitingSelection;
+    postFormatBarrierParagraphSelection();
+    return;
+  case FormatBarrierStage::ReadQueued:
+    readFormatBarrierPostcondition();
+    gFormatBarrier.stage = FormatBarrierStage::AwaitingRestore;
+    postFormatBarrierRestore();
+    if (!gFormatBarrier.restorePointValid) {
+      // Nothing was ever recorded to restore to, so waiting for a collapse
+      // that will never be posted would hang.  Judge now and let the evidence
+      // carry restoreConfirmed:false.
+      finishFormatBarrierAfterRestore();
+    }
+    return;
+  case FormatBarrierStage::AwaitingRestore:
+    finishFormatBarrierAfterRestore();
+    return;
+  default:
+    return;
+  }
+}
+
+void handleFormatBarrierStateCallback(int callbackType) {
+  if (!formatBarrierActive())
+    return;
+  if (gFormatBarrier.stage == FormatBarrierStage::AwaitingSelection) {
+    if (callbackType == LOK_CALLBACK_TEXT_SELECTION &&
+        !gEditorState.selectionRectangles.empty())
+      queueFormatBarrierStep(FormatBarrierStage::ReadQueued);
+    return;
+  }
+  if (gFormatBarrier.stage == FormatBarrierStage::AwaitingRestore &&
+      callbackType == LOK_CALLBACK_TEXT_SELECTION &&
+      gEditorState.selectionRectangles.empty())
+    queueFormatBarrierStep(FormatBarrierStage::AwaitingRestore);
+}
+
+// Route C: no precondition read at all.
+//
+// The staleness gate that used to live here refused whenever the cached state
+// might describe another paragraph, which is most of the time (finding 021).
+// Route C does not consult the cache, so there is nothing here to be stale --
+// the action dispatches and the postcondition is read from the document.
+void startFormatBarrierAction(const Command &command, std::uint32_t action,
+                              const char *name) {
   startFormatBarrierActionResolved(command, action, name);
 }
 
@@ -2598,8 +2885,6 @@ void startFormatBarrierActionResolved(const Command &command,
                                       std::uint32_t action, const char *name) {
   FormatStateBarrier barrier;
   barrier.action = name;
-  bool stateKnown = false;
-  bool alreadyAtTarget = false;
 
   switch (action) {
   case OXSDK_EDITOR_SET_LIST_UNORDERED:
@@ -2607,16 +2892,14 @@ void startFormatBarrierActionResolved(const Command &command,
     barrier.expected = true;
     barrier.command = ".uno:DefaultBullet";
     barrier.arguments = kListOnArguments;
-    stateKnown = gEditorState.listBulletKnown;
-    alreadyAtTarget = gEditorState.listBullet;
+    barrier.expectedListTag = "ul";
     break;
   case OXSDK_EDITOR_SET_LIST_ORDERED:
     barrier.target = FormatBarrierTarget::ListNumber;
     barrier.expected = true;
     barrier.command = ".uno:DefaultNumbering";
     barrier.arguments = kListOnArguments;
-    stateKnown = gEditorState.listNumberKnown;
-    alreadyAtTarget = gEditorState.listNumber;
+    barrier.expectedListTag = "ol";
     break;
   case OXSDK_EDITOR_SET_LIST_NONE:
     barrier.target = FormatBarrierTarget::ListNone;
@@ -2626,8 +2909,7 @@ void startFormatBarrierActionResolved(const Command &command,
     // already a setter.  Finding 030 measured it landing on "no list" three
     // presses running, from both a bulleted and a numbered start.
     barrier.command = ".uno:RemoveBullets";
-    stateKnown = gEditorState.listBulletKnown && gEditorState.listNumberKnown;
-    alreadyAtTarget = !gEditorState.listBullet && !gEditorState.listNumber;
+    barrier.expectedListTag = "none";
     break;
   case OXSDK_EDITOR_SET_PARAGRAPH_HEADING:
   case OXSDK_EDITOR_SET_PARAGRAPH_BODY: {
@@ -2640,12 +2922,12 @@ void startFormatBarrierActionResolved(const Command &command,
     barrier.command = ".uno:StyleApply";
     barrier.arguments = styleApplyArguments(heading);
     barrier.expectedStyles = styleCandidates(heading);
-    stateKnown = gEditorState.paragraphStyleKnown;
-    alreadyAtTarget =
-        stateKnown && std::find(barrier.expectedStyles.begin(),
-                                barrier.expectedStyles.end(),
-                                gEditorState.paragraphStyle) !=
-                          barrier.expectedStyles.end();
+    // SPEC E2-A 2.8, narrowing 2: the serialiser writes <p> for both "Text
+    // body" and the default paragraph style, so this half of the postcondition
+    // reads "is it a heading" and not "is it Text body".  The closed enum
+    // promises two states, which this answers; it does not promise the style
+    // name, and must not be reported as if it did.
+    barrier.expectedBlockTag = heading ? "h1" : "p";
     break;
   }
   default:
@@ -2654,24 +2936,18 @@ void startFormatBarrierActionResolved(const Command &command,
     return;
   }
 
-  if (!stateKnown) {
-    emitCommandError(
-        command, "editor-action", "EDITOR_FORMAT_STATE_UNAVAILABLE",
-        "documented paragraph format state is unavailable before mutation");
-    return;
-  }
-  if (alreadyAtTarget) {
-    emitEditorActionResult(command, name, gState.revision,
-                           gEditorState.sourceSequence, true, false,
-                           "documented-state-noop");
-    return;
-  }
-
   barrier.requestId = command.requestId;
   barrier.documentHandle = gState.documentHandle;
   barrier.beforeRevision = gState.revision;
   barrier.beforeSequence = gEditorState.sourceSequence;
   barrier.dispatchSequence = gEditorState.sourceSequence;
+  // Captured before the dispatch, because the dispatch can move the caret and
+  // the read is going to move it again.  A restore aimed at where the caret
+  // ended up would put it back to the wrong place and still look like success.
+  barrier.restorePoint = gEditorState.caret;
+  barrier.restorePointValid = gEditorState.caret.available;
+  barrier.stage = FormatBarrierStage::AwaitingResult;
+  barrier.serial = gNextFormatBarrierSerial++;
   gFormatBarrier = barrier;
   markAsynchronous(command.requestId);
   gState.document->pClass->postUnoCommand(
@@ -3144,6 +3420,11 @@ void dispatch(const Command &command) {
     handleListChanges(command);
     break;
 #ifdef OXSDK_EDITOR_DISCOVERY
+#ifdef OXSDK_E2_FORMAT_BARRIER
+  case CommandType::EditorFormatBarrierStep:
+    handleFormatBarrierStep(command);
+    break;
+#endif
   case CommandType::EditorAction:
     handleEditorAction(command);
     break;

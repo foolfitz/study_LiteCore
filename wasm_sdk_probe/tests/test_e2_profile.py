@@ -272,6 +272,57 @@ class TestLocaleAttributionProfile(unittest.TestCase):
         self.assertEqual(diagnostic["uiLanguage"], "zh-TW")
 
 
+class TestPostconditionResolvesAutomaticStyles(unittest.TestCase):
+    """A paragraph that is both a heading and a list item carries P2, not Heading_20_1.
+
+    Joining a list gives the paragraph an automatic style inheriting from the
+    named one, so comparing the raw text:style-name answers "no" for a document
+    that is in fact correct.  This bit the native analyzer first and then the
+    browser runner, in the same day, because the fix was not carried across --
+    so it is pinned in both places now.
+    """
+
+    # A real document from the run that exposed this: the anchor paragraph is a
+    # Heading 1 *and* a list item, so its text:style-name is P2.
+    EVIDENCE = (PROJECT.parent / "findings" / "evidence" / "sdk-e2" / "discovery"
+                / "state-readback" / "wasm" / "chrome" / "attempt-10"
+                / "after-heading-on-repeat-2.odt")
+
+    def test_a_heading_inside_a_list_resolves_to_heading(self):
+        import run_e2_discovery  # noqa: PLC0415
+
+        if not self.EVIDENCE.is_file():
+            self.skipTest("evidence document not present")
+        inspection = run_e2_discovery.inspect_target_paragraph(
+            self.EVIDENCE, "E1-STYLED-END")
+        self.assertTrue(inspection["found"])
+        self.assertTrue(inspection["insideList"])
+        # The raw name is an automatic style; the resolved one is the answer.
+        self.assertEqual(inspection["paragraphStyle"], "P2")
+        self.assertEqual(inspection["resolvedParagraphStyle"], "Heading_20_1")
+
+    def test_postconditions_are_keyed_on_the_resolved_style(self):
+        import run_e2_discovery  # noqa: PLC0415
+
+        for label in ("heading-on", "heading-on-repeat-1", "heading-on-repeat-2"):
+            with self.subTest(label=label):
+                expected = run_e2_discovery.EXPECTED_POSTCONDITIONS[label]
+                # The raw name is not the style once a list is involved, so a
+                # postcondition keyed on it is only right by accident.
+                self.assertNotIn("paragraphStyle", expected)
+                self.assertEqual(expected["resolvedParagraphStyle"], "Heading_20_1")
+
+    def test_analyzer_and_runner_agree_on_the_rule(self):
+        import analyze_e2_a_native_reissue as analyzer  # noqa: PLC0415
+
+        source = (PROJECT / "tools" / "run_e2_discovery.py").read_text(encoding="utf-8")
+        self.assertIn("parent-style-name", source)
+        self.assertIn("parent-style-name",
+                      (PROJECT / "tools" / "analyze_e2_a_native_reissue.py")
+                      .read_text(encoding="utf-8"))
+        self.assertIn("resolvedStyle", analyzer.describe.__code__.co_consts)
+
+
 class TestFinding031Tripwire(unittest.TestCase):
     """Fails when the latent defect in finding 031 becomes reachable.
 

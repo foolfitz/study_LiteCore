@@ -209,9 +209,54 @@ worker／engine 的序列化中被丟掉，這五項也會照樣全過。要證�
 這件事留給 A4（第 4 節未決事項定案之後），與 finding 028 的
 「瀏覽器重跑不能當成 body 路徑的證明」是同一種侷限。
 
-engine 改動的隔離也逐位元驗過：關掉 `OXSDK_E2_FORMAT_BARRIER` 重編 E1-B 組態的
-`probe_engine.o`，與既有 `build/e1/editor-v1/probe_engine.o` **完全相同**；
-`e1-editor-v1` 仍為 `835b453d…`。
+engine 改動的隔離**當時**是用「關掉旗標重編、目的檔逐位元相同」驗的，`e1-editor-v1` 仍為 `835b453d…`。
+
+> **2026-08-11 更正（[finding 032](032-object-file-comparison-is-a-coin-flip-not-an-isolation-check.md)）**：
+> **那個檢查有一半機率通過**——同源同旗標連編 8 次會得到兩種目的檔，各 4 次。
+> 隔離結論不變，但改以**前置處理後的翻譯單元**比對重新驗證（E1-B 組態下與 `HEAD`
+> 逐位元相同），那才是直接證明「該組態看到的原始碼一模一樣」且不受 codegen 不確定性影響的東西。
+
+## 缺陷二已修（2026-08-11）：readback barrier 實作並實測
+
+engine 改為「無條件派送 ＋ 讀文件判後置條件」，完成事件更名為 `verified-format-readback`
+（證據來源換了，名字就得換）。細節見 SPEC E2-A 2.9 節。
+
+`e2-format-discovery` WASM `7665308a…`，9 個派送含 **4 次重複派送**：
+
+| | Chrome 150.0.7871.128 | Firefox 153.0.1 |
+|---|---|---|
+| `verified-format-readback` | 9/9 | 9/9 |
+| `restoreConfirmed`（游標還原經確認） | 9/9 | 9/9 |
+| 存檔 ODT postcondition | 9/9 | 9/9 |
+
+兩瀏覽器逐項相同。**正控制是同一個 profile 的前後對照**：它先前對五個動作一律回
+`EDITOR_FORMAT_STATE_UNAVAILABLE`、文件零變動，現在 9/9 完成且文件如實改變——讀數變了。
+
+**重複派送同時答完兩題**：
+
+1. **冪等**——重複後仍停在目標狀態，所以 `On` 參數確實原封不動通過 worker／engine 路徑。
+   這正是上一節那輪重跑**答不出來**的問題（全是跨狀態轉換），現在有答案。
+2. **無聲 no-op**——重複派送不再逾時。缺陷二關閉。
+
+實作上有一項是實測逼出來的：`heading-on-repeat` 讀到 `listTag="ul"` 且 `blockTag="h1"`
+（清單裡的 heading）。**只取第一個標籤會讀成 `ul`**，段落樣式的後置條件在清單裡就永遠
+不可能成立——所以解析必須把「清單種類」與「區塊標籤」分開答。
+
+### 本輪我犯的錯：同一個缺陷修了一處、漏了另一處
+
+第一次跑重複派送時，9 個 ODT postcondition 有 **2 個判失敗**，位置是
+`heading-on-repeat-1`／`-2`。查下去是**判定端錯了，不是 barrier 錯**：
+段落同時是 heading 又是清單項時，ODT 的 `text:style-name` 是自動樣式 `P2`，
+而 `P2` 的 `parent-style-name` 正是 `Heading_20_1`。
+
+`run_e2_discovery.py` 比對的是原始名稱，沒有解析到具名 parent——
+**與我當天稍早在 `analyze_e2_a_native_reissue.py` 修掉的是同一個缺陷**，
+我在一處學到教訓卻沒有帶到另一處，於是讓一個正確的 barrier 被判成失敗。
+
+修法：runner 也解析到具名 parent，期望值改鍵在 `resolvedParagraphStyle`。
+**沒有重跑瀏覽器來換綠**——先用修好的判定重新判讀**同一批已存的 ODT**，得到 9/9，
+之後才為了留下乾淨證據重跑。兩個測試釘住這條規則（含一份真的「清單裡的 heading」文件），
+突變（拿掉 parent 解析）證明會失敗。
 
 ## 未驗證
 

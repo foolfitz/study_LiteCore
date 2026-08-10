@@ -424,3 +424,42 @@ engine 走 `documentLoadWithOptions(…, "Language=zh-TW")`（`OXSDK_E2_UI_LANGU
 實作 readback barrier：engine 派送後選段→讀 `text/html`→以封閉集合比對→還原選取並驗證。
 **規格的契約與三項代價都已寫定（2.8 節），可以直接照著做。**
 之後才是 A3～A7。
+
+## readback barrier 已實作並實測（2026-08-11 後半）
+
+engine 的 `OXSDK_E2_FORMAT_BARRIER` 改成路線 C ＋ 文件後置條件，完成事件更名
+`verified-format-readback`（證據來源換了，名字就得換）。流程與三項代價寫在
+SPEC E2-A 2.9 節。
+
+`e2-format-discovery` WASM `7665308a…`，9 個派送含 **4 次重複派送**，
+Chrome 150.0.7871.128 與 Firefox 153.0.1 **逐項相同**：
+`verified-format-readback` 9/9、`restoreConfirmed` 9/9、存檔 ODT postcondition 9/9。
+
+正控制是同一個 profile 的前後對照：它先前對五個動作一律回
+`EDITOR_FORMAT_STATE_UNAVAILABLE`、文件零變動，現在 9/9 完成且文件如實改變。
+
+**重複派送同時答完兩題**：冪等成立（所以 `On` 參數確實通過我方 worker／engine 路徑——
+這正是上午那輪 scheduler-attribution 重跑答不出來的問題），以及無聲 no-op 不再逾時。
+
+實作被實測逼出一項設計：`heading-on-repeat` 讀到 `listTag="ul"` 且 `blockTag="h1"`
+（清單裡的 heading）。**只取第一個標籤會讀成 `ul`**，段落樣式後置條件在清單裡就永遠不成立，
+所以解析必須把清單種類與區塊標籤分開答。
+
+## 兩個我犯的錯，都已更正並釘住
+
+1. **「目的檔逐位元相同」不是隔離檢查，是擲硬幣**（[finding 032](findings/032-object-file-comparison-is-a-coin-flip-not-an-isolation-check.md)）。
+   同源同旗標連編 8 次得到兩種目的檔各 4 次，固定差 37 bytes。
+   我本輪用它下過三次保證，全部降級；SPEC E2-A 10.6 節更早的同方法保證同樣打折。
+   **改用前置處理後的翻譯單元比對**（`-E -P`），E1-B 組態下與 `HEAD` 4,355,327 bytes 逐位元相同——
+   那才是直接證明隔離、且不受 codegen 不確定性影響的檢查。
+   **未量**：連結後的 profile 雜湊會不會也跳。不要據此推論。
+2. **同一個缺陷修了一處、漏了另一處**：`run_e2_discovery.py` 的 postcondition 比對原始
+   `text:style-name`，但清單裡的 heading 是自動樣式 `P2`（parent 才是 `Heading_20_1`），
+   於是把正確的 barrier 判成失敗。我當天稍早才在 `analyze_e2_a_native_reissue.py` 修掉同一件事。
+   **沒有重跑求綠**——先用修好的判定重新判讀同一批已存 ODT 得到 9/9，之後才重跑留乾淨證據。
+
+## 下一步
+
+A3～A7 尚未執行。A3 的兩項前置（路線 C 契約、no-op 可判定性）都已解除，
+可以開始跑正式矩陣。第 8 節判定要記得明列 2.8 節的縮限（`set-paragraph-body`
+只承諾「不是 heading」）與未驗證項（HTML 是序列化器輸出，跨版本穩定性屬 A7）。

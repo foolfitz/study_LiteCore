@@ -104,6 +104,19 @@ const DISPATCH_STEPS = [
   { label: "list-off", anchor: "E1-STYLED-END", action: "set-list-none" },
   { label: "heading-on", anchor: "E1-STYLED-END", action: "set-paragraph-heading" },
   { label: "body-on", anchor: "E1-STYLED-END", action: "set-paragraph-body" },
+  // Repeats.  Route C dropped the precondition read, so pressing the same
+  // button twice dispatches twice -- the case finding 030 was about and the
+  // one the five steps above cannot reach, because every one of them is a
+  // cross-state transition and a toggle and a setter agree on those.
+  //
+  // Each repeat lands on a paragraph that is already in the target state, so
+  // it is simultaneously the idempotence check (does the document stay put)
+  // and the silent-no-op check (does the barrier still complete when core
+  // broadcasts nothing).
+  { label: "bullet-on-repeat-1", anchor: "E1-STYLED-END", action: "set-list-unordered" },
+  { label: "bullet-on-repeat-2", anchor: "E1-STYLED-END", action: "set-list-unordered" },
+  { label: "heading-on-repeat-1", anchor: "E1-STYLED-END", action: "set-paragraph-heading" },
+  { label: "heading-on-repeat-2", anchor: "E1-STYLED-END", action: "set-paragraph-heading" },
 ];
 
 function log(value) {

@@ -350,6 +350,47 @@ track changes），**沒有游標所在段落的樣式或清單狀態**。剩下
 3. **這串 HTML 是序列化器輸出，不是有文件的契約。** 整串比對等於把序列化器釘成 ABI，
    跨版本可能變。**未驗證**，是 A7 回歸該涵蓋的事。
 
+### 2.9 readback barrier 已實作並實測（2026-08-11，已觀察）
+
+engine 的 `OXSDK_E2_FORMAT_BARRIER` 已改為路線 C ＋ 文件後置條件：
+
+```text
+dispatch      ── 無條件派送（不讀前置狀態）
+command result ─ commandName 相符 ⇒ 歸屬成立；接著排一個 step（不在 callback 內做事，
+                 與 selection barrier 同一條非再進入規則）
+step          ── .uno:GoToStartOfPara → .uno:EndOfParaSel，等 TEXT_SELECTION
+step          ── getTextSelection("text/html")，解析 body 內的開標籤序列
+              ── listTag（ul／ol／none）與 blockTag（h1／p）**分開判定**
+              ── 還原游標，等塌陷確認
+              ──▶ completion = "verified-format-readback"
+不符          ──▶ EDITOR_FORMAT_POSTCONDITION_FAILED（帶實際讀到的標籤與原始 HTML）
+還原不成      ──▶ EDITOR_SELECTION_NOT_RESTORED（文件已改，但選取沒還原，照實報）
+```
+
+`completion` 的字串**跟著證據來源改名**：舊名 `verified-format-state` 下的證據是另一種檢查產生的。
+
+**兩個標籤分開判定不是設計潔癖**：實測 `heading-on-repeat` 讀到
+`listTag="ul"` 且 `blockTag="h1"`——清單裡的 heading。只取第一個標籤會讀成 `ul`，
+段落樣式的後置條件在清單裡就永遠不可能成立。
+
+實測（`e2-format-discovery` WASM `7665308a…`，9 個派送含 4 次重複）：
+
+| | Chrome 150.0.7871.128 | Firefox 153.0.1 |
+|---|---|---|
+| `verified-format-readback` | 9/9 | 9/9 |
+| `restoreConfirmed` | 9/9 | 9/9 |
+| 存檔 ODT postcondition | 9/9 | 9/9 |
+
+**兩瀏覽器逐項相同。** 正控制來自同一個 profile 的前後對照：加 fail-closed 之後
+它對五個動作一律回 `EDITOR_FORMAT_STATE_UNAVAILABLE`、文件零變動（10.3 節），
+現在同一個 profile 是 9/9 完成、文件如實改變——**讀數變了**。
+
+**四次重複派送同時答完兩題**：
+（一）**冪等**——`bullet-on-repeat-2`／`heading-on-repeat-2` 都停在目標狀態，
+所以 `On` 參數確實原封不動通過我方 worker／engine 路徑。
+這正是 2.7 節那輪 scheduler-attribution 重跑**答不出來**的問題（全是跨狀態轉換），現在有答案。
+（二）**無聲 no-op**——重複派送不再逾時，barrier 照常完成。第 4 節的缺口關閉。
+
 ## 5. 凍結矩陣
 
 數量與項目以 [`e2/discovery-matrix-v1.json`](../wasm_sdk_probe/e2/discovery-matrix-v1.json) 為準，
@@ -621,9 +662,14 @@ A3～A7 尚未執行。**A3 仍不啟動**：finding 021 已歸因且產品級�
 > 實測出來的新前置：合法 no-op 沒有後置條件可等（第 4 節〈路線 C 未決事項〉）。
 >
 > 已完成、與出路選擇無關的部分：派送形式改為參數化 explicit mode（2.7 節（一）），
-> `e2-format-discovery` 已重建為 `abf3598f…`；`OXSDK_E2_FORMAT_BARRIER` 關閉時
-> E1-B 組態的 `probe_engine.o` **逐位元不變**（與既有 `build/e1/editor-v1/probe_engine.o`
-> 比對通過），三個凍結 artifact 未受影響。`tests/test_e2_profile.py` 新增三項釘住派送形式，
+> `e2-format-discovery` 已重建為 `abf3598f…`，三個凍結 artifact 未受影響。
+>
+> **2026-08-11 更正（[finding 032](../findings/032-object-file-comparison-is-a-coin-flip-not-an-isolation-check.md)）**：
+> 本段原本寫「`OXSDK_E2_FORMAT_BARRIER` 關閉時 E1-B 組態的 `probe_engine.o` 逐位元不變」。
+> **那個檢查不可靠**——同源同旗標連編 8 次會得到兩種目的檔（各 4 次、固定差 37 bytes），
+> 通過與否有一半是運氣。隔離改以**前置處理後的翻譯單元**比對驗證，
+> 這才是直接證明「該組態看到的原始碼一模一樣」的東西，且不受 codegen 不確定性影響：
+> 與 `HEAD` 版本在 E1-B 組態下 **4,355,327 bytes 逐位元相同**。結論不變，理由換掉。`tests/test_e2_profile.py` 新增三項釘住派送形式，
 > 突變（拿掉 `On` 參數）證明會失敗。
 
 ### 10.5 順帶記錄（與 E2 無因果關係）
@@ -649,6 +695,9 @@ stale 的過渡 build 上，僅作迴圈機制示範）。
 scope 共用同一份 worker patch，manifest 新增 `engineLoop` 診斷欄位。engine 的
 `OXSDK_MAINLOOP_ENGINE` 區塊以旗標關閉時 E1-B 組態目的檔逐位元不變驗證
 （重編對比既有 `build/e1/editor-v1/probe_engine.o`），凍結 artifact 未受影響。
+> **2026-08-11 註（[finding 032](../findings/032-object-file-comparison-is-a-coin-flip-not-an-isolation-check.md)）**：
+> 這句用的是目的檔逐位元比對，**該方法後來被證明有一半機率通過**。
+> 本次結論未被推翻，但它的證據力要照這個折扣讀；要重新確認請改比對前置處理後的翻譯單元。
 瀏覽器 console 的 `oxsdk-mainloop:` 診斷（poll／dispatch／tick-alive／poll-pending）
 是本輪歸因的主要儀器；engine pthread 的 stderr 到不了可捕捉的 console，診斷一律走
 `MAIN_THREAD_EM_ASM`。
