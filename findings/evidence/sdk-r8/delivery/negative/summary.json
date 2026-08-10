@@ -1326,19 +1326,19 @@
       "caseId": "negative-cancel",
       "documentMutations": 0,
       "error": {
-        "code": "RELEASE_MANIFEST_INVALID",
+        "code": "DELIVERY_ABORTED",
         "details": {
           "mutationState": "none",
           "releaseId": null,
-          "retryable": false,
+          "retryable": true,
           "role": null,
-          "safeNextAction": "select-known-good",
-          "stage": "manifest-fetch"
+          "safeNextAction": "retry-release",
+          "stage": "artifact-fetch"
         },
-        "message": "invalid JSON from http://127.0.0.1:34425/releases/writer-review-d6bee07b960a942d/release-manifest.json: AbortError: The operation was aborted. ",
-        "name": "DeliveryError"
+        "message": "release verification aborted",
+        "name": "AbortError"
       },
-      "pass": false,
+      "pass": true,
       "topology": "t0",
       "workersStarted": 0
     },
@@ -1908,6 +1908,6 @@
       "workersStarted": 0
     }
   ],
-  "pass": false,
+  "pass": true,
   "schemaVersion": 1
 }

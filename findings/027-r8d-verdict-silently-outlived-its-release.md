@@ -159,3 +159,25 @@ compatibility 的每一項與 08-04 歷史紀錄**逐項相同**（28／6／12�
   仍綁 `5fa3ca0d…`，而它們那一側**從來就沒有 release 閘門**——所以本檔開頭
   「閘門沒壞，只是沒機會失敗」這句話只對 compatibility 成立。
   待處理第 1 項同時完成（`7e66554`），判定由 `PARTIAL_GO_LOCAL_DELIVERY` 變 `STOP`。
+- 2026-08-10：**證據根統一（待處理第 3 項）改為「原地退休、保留」，不刪除。**
+  [finding 028](028-cancel-during-manifest-body-read-reported-as-corrupt-manifest.md)
+  修好後 R8-B／R8-C 已重跑進 `sdk-r8/`，六家族全 bound，判定回到
+  `PARTIAL_GO_LOCAL_DELIVERY`——「R8-C 只有舊根綁對 release」這個阻擋因素消失。
+  但逐路徑查證發現**另一個先前未列出的阻擋因素**：`driver-stderr/`、
+  `service-worker-firefox-injected-path/`、`service-worker-unified/`
+  **只存在於舊根**，且分別是 [025](025-webdriver-script-injection-never-ran-on-firefox.md)
+  與 [014](014-firefox-long-lived-wasm-worker-init-exhaustion.md) 的主要證據，
+  `specs/SPEC-R8-D-production-validation.md:259` 亦整棵引用。
+  已在 `findings/evidence/sdk-r8-post-023-fix/README.md` 標明退休狀態與不可刪除的理由；
+  要真的刪除，得先把那三個路徑的引用遷走。
+- 2026-08-10（第二則）：**「跑 make 會重鑄 release id」這句話要再精確一層。**
+  已觀察：`dist/r8/release-manifest.json` 的前置 `r7-assets` 是 `.PHONY`，所以整條
+  鑄 release 的鏈**無條件**重跑（`make -n test-r8-c-static` 現在就會列出
+  `build_r8_c_release_set.py`；`test-r8-b-static` 則不會）。但
+  `r8_bundle.py:170` 是 `manifest["releaseId"] = expected_release_id(manifest)`
+  ——**id 由 bundle 內容衍生**，而 `build_r8_c_release_set.py:72-76` 的 `rmtree`
+  只刪 `old_ids - current_ids`。所以正確的形式是：**重建一定發生，但只有 bundle
+  輸入變了才會換 id、才會作廢綁定。** 本輪修的 `verified-loader.js` 不在那 17 個
+  artifact 內，實測跑前跑後 id 逐字不變（R8-B 兩個、R8-C 三個）。
+  「重跑期間不跑 `make`」的紀律仍然維持，但理由是避免中途改寫 artifact 擾動
+  進行中的相位，不是每次都會換 id。

@@ -276,6 +276,90 @@ test("timeout and external abort retain their delivery taxonomy", async () => {
   await assert.rejects(attempt, (error) => error.code === "DELIVERY_ABORTED");
 });
 
+// finding 028: the two catches above only cover a rejecting *fetch* promise. Every
+// body read has its own catch, and those are the ones that mislabel a cancel.
+function bodyRejects(error, contentType, byteLength) {
+  return new Response(new ReadableStream({
+    start(controller) { controller.error(error); },
+  }), {
+    status: 200,
+    headers: {
+      "Content-Type": contentType,
+      "Content-Encoding": "identity",
+      "Content-Length": String(byteLength),
+    },
+  });
+}
+
+function bodyFailsAt(data, target, error, controller = null) {
+  const base = fetcher(data);
+  return async (input, options) => {
+    const url = new URL(input);
+    const hit = target === "manifest" ? url.pathname.endsWith("release-manifest.json")
+      : target === "compression-index" ? url.pathname.endsWith("compression-index.json")
+        : url.pathname.endsWith(`${target}.bin`);
+    if (!hit)
+      return base(input, options);
+    const artifact = data.manifest.artifacts.find((item) => item.role === target);
+    if (controller)
+      controller.abort();
+    return bodyRejects(error,
+      artifact ? artifact.mediaType : "application/json; charset=utf-8",
+      artifact ? artifact.rawBytes : 2);
+  };
+}
+
+const BODY_READ_SITES = ["manifest", "compression-index", "entry-html"];
+
+test("abort during a body read stays DELIVERY_ABORTED at every read site", async () => {
+  const data = await fixture();
+  const observed = [];
+  for (const target of BODY_READ_SITES) {
+    const controller = new AbortController();
+    try {
+      await verifyRelease({
+        manifestUrl: "https://app.test/releases/id/release-manifest.json",
+        fetchImpl: bodyFailsAt(data, target, new DOMException("aborted", "AbortError"), controller),
+        signal: controller.signal,
+        requireIsolation: false,
+      });
+      observed.push([target, "resolved"]);
+    } catch (error) {
+      // Report every site, not just the first one to fail.
+      observed.push([target, `${error.code}/${error.details?.retryable}/${error.details?.safeNextAction}`]);
+    }
+  }
+  assert.deepEqual(observed, BODY_READ_SITES.map((target) =>
+    [target, "DELIVERY_ABORTED/true/retry-release"]));
+});
+
+// Positive control for the same two catches: without an abort, each body failure must
+// keep its own typed code. Without this, the fix above could be a gate that never fires.
+test("body failure without abort keeps its original typed failure", async () => {
+  const data = await fixture();
+  const base = fetcher(data);
+  for (const [target, code] of [
+    ["manifest", "RELEASE_MANIFEST_INVALID"],
+    ["compression-index", "RELEASE_MANIFEST_INVALID"],
+    ["entry-html", "ARTIFACT_SIZE_MISMATCH"],
+  ]) {
+    const fetchImpl = target === "entry-html"
+      ? bodyFailsAt(data, target, new TypeError("network error"))
+      : async (input, options) => (String(input).endsWith(`${target}.json`)
+        ? new Response("{", { headers: { "Content-Type": "application/json; charset=utf-8" } })
+        : base(input, options));
+    await assert.rejects(
+      verifyRelease({
+        manifestUrl: "https://app.test/releases/id/release-manifest.json",
+        fetchImpl,
+        requireIsolation: false,
+      }),
+      (error) => error instanceof DeliveryError && error.code === code,
+      target,
+    );
+  }
+});
+
 test("artifact origin must be a credential-free origin-only URL", async () => {
   const data = await fixture();
   for (const artifactOrigin of [

@@ -18,7 +18,14 @@
 **R8-D 從 `PARTIAL_GO_LOCAL_DELIVERY` 掉到 `STOP` 不是退步，是先前被兩層問題遮住的東西露出來了**
 （先是 release 綁定沒閘門，修好後才看見 R8-B 的產品缺陷）。沒有調過任何門檻。
 
+> **2026-08-10 追記：上表的 R8-B／R8-D 已不再是 `STOP`。** finding 028 已修、
+> 兩者已重跑重發。以下 08-08 的內容全部保留原樣，最新狀態見文末
+> [〈2026-08-10 追記〉](#2026-08-10-追記finding-028-已修判定全部重發)。
+
 ## 唯一擋路的事：finding 028，等你決定
+
+> **2026-08-10 追記：已決定並執行——修了，而且範圍比本節寫的大一倍。**
+> 本節說的「一處不對稱」實際是兩處，第二處更嚴重。詳見文末追記。
 
 `delivery/verified-loader.js:188-201` 兩個 `catch` 不對稱——fetch 那層會把 `AbortError`
 原樣拋出，`response.json()` 那層不會，於是**使用者取消**被標成
@@ -146,3 +153,121 @@ unread `serve.py` pipe，R8-D 900 秒是 [025](findings/025-webdriver-script-inj
 6. finding 014 的記憶體數字錯兩次（分母錯；把視窗太短的假象當線性趨勢）。
 
 **這份文件的轉述同樣可能有錯——數字請一律回核 `findings/evidence/` 下的原始 JSON。**
+
+---
+
+# 2026-08-10 追記：finding 028 已修，判定全部重發
+
+> 以上 08-08 的內容一律保留原樣，本節只做增補與更正。
+> 起點 commit `f4afa75`。
+
+## 判定現況（取代文件開頭那張表）
+
+| 判定 | 08-08 | 現在 |
+|---|---|---|
+| **R8-B** | `STOP` | **`PARTIAL_GO`**（`safetyChecks.firefox` 恢復） |
+| **R8-C** | `PARTIAL_GO` | `PARTIAL_GO`（改綁修復後的 loader） |
+| **R8-D** | `STOP` | **`PARTIAL_GO_LOCAL_DELIVERY`**，六家族 bound／0 superseded／0 unattributable |
+| E1-C | `E1_GO_ODT_EDITOR` | 未動 |
+
+**沒有調整任何門檻。** R8-B 剩下的兩條 `partialGaps`（Brotli CLI、full-fidelity 圖
+218,486,240 B 超過凍結的 200,000,000 B）是既有項，與 028 無關。
+
+## 更正：028 的不對稱是兩處，不是一處
+
+08-08 的〈唯一擋路的事〉只記了 `fetchJson` 那一處。全檔審計三個 fetch／body
+邊界後：**三個 fetch 的 catch 都有 abort 檢查，兩個 body 讀取的 catch 都沒有。**
+
+| body 讀取點 | 誤標成 | `ERROR_POLICY` | 對呼叫端的意思 |
+|---|---|---|---|
+| `fetchJson:197-201` | `RELEASE_MANIFEST_INVALID` | `[false, select-known-good]` | 退回舊版 |
+| `fetchArtifact:276-282` | `ARTIFACT_SIZE_MISMATCH` | `[false, **reject-release**]` | 直接作廢 release |
+
+兩件 08-08 漏掉的事：
+
+1. **`fetchJson` 服務兩個呼叫點**（`:339` manifest、`:351` compression-index），
+   所以受影響的呼叫點是**三個**。
+2. **`fetchArtifact` 那處更嚴重且至今隱形。** 訊息會宣稱
+   `${role} response body was incomplete`——把使用者按取消講成 release 內容不完整。
+   08-04 之所以看到**正確**的 `DELIVERY_ABORTED` at `artifact-fetch`，是因為取消
+   落在 `fetchImpl` 呼叫本身的 catch（`:238`，有檢查），**不是** body 那條。
+
+## 修復不必靠競態重跑就能證明（方法上的收穫）
+
+`verified-loader.test.mjs:255` 的既有 abort 測試只在 **fetch promise** 上 reject，
+**測試盲點正好落在缺陷所在**。讓 `json()`／`arrayBuffer()` 以 `AbortError` 拒絕
+即可確定性重現——修前三站點分別印：
+
+```
+manifest           RELEASE_MANIFEST_INVALID / false / select-known-good
+compression-index  RELEASE_MANIFEST_INVALID / false / select-known-good
+entry-html         ARTIFACT_SIZE_MISMATCH   / false / reject-release
+```
+
+manifest 那筆的訊息與 Firefox 實測證據同形。修後三站點皆為
+`DELIVERY_ABORTED / true / retry-release`。
+
+**兩個被改的 catch 先前兩側都沒有任何測試覆蓋**——看似相關的
+`ARTIFACT_SIZE_MISMATCH` 案例（`:174-193`）其實打在 `:270-274` 的 Content-Length
+檢查，根本到不了 `arrayBuffer()`。所以正控制是新補的，並用**突變控制**
+（把兩處判斷暫時改成 `if (true)`）證明它能失敗：正控制紅、abort 測試仍綠。
+
+## 重要：這輪瀏覽器重跑**不能**當成 body 路徑的證明
+
+四個 `negative-cancel`（兩瀏覽器 × t0／t1）都回到 `DELIVERY_ABORTED`，
+但訊息全是 `release verification aborted`／stage `artifact-fetch`——那是外層
+catch（`:400-408`）轉出來的。**修好之後，取消落在 fetch 或 body 輸出完全相同**，
+從外部無法分辨走了哪條。這正是修好的定義，卻也表示
+**body 路徑修好的證明是 node 測試，不是這輪重跑。**
+
+## 未完成清單的狀態變更
+
+- **第 1 項（finding 028）：完成。**
+- **第 2 項（退休 `evidence/sdk-r8-post-023-fix/`）：改為原地退休、不刪除。**
+  08-08 寫的解鎖條件（R8-C 已在 `sdk-r8` 綁對）確實滿足了，但逐路徑查證發現
+  **另一個當時沒列到的阻擋因素**：`driver-stderr/`、
+  `service-worker-firefox-injected-path/`、`service-worker-unified/`
+  **只存在於舊根**，分別是 [025](findings/025-webdriver-script-injection-never-ran-on-firefox.md)
+  與 [014](findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md) 的主要證據，
+  `specs/SPEC-R8-D-production-validation.md:259` 還整棵引用。
+  刪了會讓三份已結案文件失去證據。已加
+  `findings/evidence/sdk-r8-post-023-fix/README.md` 標明退休狀態與不可刪除的理由
+  （全樹 14 MB）。要真的刪，得先把那三個路徑的引用遷走。
+- **第 3～7 項：未動。**
+
+## 更正〈踩過的坑〉：「絕對不能跑 `make`」要再精確一層
+
+**已觀察**：`dist/r8/release-manifest.json` 的前置 `r7-assets` 是 `.PHONY`，
+所以鑄 release 的鏈**無條件**重跑——`make -n test-r8-c-static` 現在就會列出
+`build_r8_c_release_set.py`（`test-r8-b-static` 則**不會**，實測 grep 計數 0）。
+但 `r8_bundle.py:170` 是 `manifest["releaseId"] = expected_release_id(manifest)`
+——**id 由 bundle 內容衍生**，而 `build_r8_c_release_set.py:72-76` 的 `rmtree`
+只刪 `old_ids - current_ids`。
+
+**正確的形式：重建一定發生，但只有 bundle 輸入變了才會換 id、才會作廢綁定。**
+本輪修的 `verified-loader.js` 不在那 17 個 artifact 內，實測跑前跑後 id 逐字不變
+（R8-B 兩個、R8-C 三個，由重跑腳本頭尾各印一次自我驗證）。
+
+**紀律仍然維持「重跑期間不跑 `make`」**，但理由改成：避免中途改寫 artifact
+擾動進行中的相位，而不是每次都會換 id。
+
+## 本輪新增的量測紀律
+
+- **改一個 catch 之前，先確認它兩側都有測試。** 本輪兩個 catch 兩側都沒有，
+  看似相關的既有案例其實打在更前面的閘門上、根本到不了。
+- **正控制自己也要證明能失敗。** 用突變（把判斷改成 `if (true)`）跑一次，
+  看它是否變紅；不變紅就跟恆真閘門一樣沒資訊。
+- **「修好」有時會讓兩條路徑從外部無法分辨。** 這時要明說判定綠燈證明的是什麼、
+  不證明什麼，不能拿無法分辨的觀測回頭宣稱某條路徑被驗證過。
+
+## 本輪我犯的錯（供校準）
+
+1. `pgrep`／cwd 那兩個坑沒踩到，但 **cwd 還是漂了一次**——`cd` 寫在
+   `&&` 複合指令裡不會持續到下一次呼叫，害一次 grep 找不到 `tools/*.py`。
+   一律用絕對路徑仍然是對的。
+
+## 尚未處理
+
+08-08 未完成清單的第 3～7 項原樣保留：release-manifest 殘留層、builder `rmtree`
+取捨的記錄、T2、finding 024 是否送 Mozilla、以及更早延後的
+heading dropdown／清單／SPEC E1-D §5／Route C／A3。

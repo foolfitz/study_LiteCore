@@ -197,6 +197,8 @@ async function fetchJson(fetchImpl, url, options, code, stage) {
   try {
     return { response, value: await response.json() };
   } catch (error) {
+    if (options?.signal?.aborted || error?.name === "AbortError")
+      throw error;
     throw new DeliveryError(code, `invalid JSON from ${url}: ${error}`, { stage });
   }
 }
@@ -276,6 +278,8 @@ async function fetchArtifact(fetchImpl, baseUrl, manifest, artifact, compression
   try {
     buffer = await response.arrayBuffer();
   } catch (error) {
+    if (signal.aborted || error?.name === "AbortError")
+      throw error;
     throw artifactError("ARTIFACT_SIZE_MISMATCH",
       `${artifact.role} response body was incomplete: ${error}`, manifest, artifact,
       "artifact-validate", { cause: error?.name || "Error" });

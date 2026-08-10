@@ -7,16 +7,16 @@
   "transport": "identity",
   "cacheMode": "cold",
   "scenario": "cancel",
-  "artifactOrigin": "http://127.0.0.1:34425",
+  "artifactOrigin": "http://127.0.0.1:49545",
   "crossOriginIsolated": true,
-  "startedAt": "2026-08-08T09:27:59.373Z",
+  "startedAt": "2026-08-10T06:59:56.156Z",
   "phases": [
     {
-      "atMs": 72.16,
+      "atMs": 84.74,
       "value": "manifest-selected"
     },
     {
-      "atMs": 96.78,
+      "atMs": 107.16,
       "value": "r8-delivery-result"
     }
   ],
@@ -28,21 +28,21 @@
   "document": null,
   "output": null,
   "error": {
-    "name": "DeliveryError",
-    "code": "RELEASE_MANIFEST_INVALID",
-    "message": "invalid JSON from http://127.0.0.1:34425/releases/writer-review-d6bee07b960a942d/release-manifest.json: AbortError: The operation was aborted. ",
+    "name": "AbortError",
+    "code": "DELIVERY_ABORTED",
+    "message": "release verification aborted",
     "details": {
-      "stage": "manifest-fetch",
+      "stage": "artifact-fetch",
       "releaseId": null,
       "role": null,
-      "retryable": false,
-      "safeNextAction": "select-known-good",
+      "retryable": true,
+      "safeNextAction": "retry-release",
       "mutationState": "none"
     }
   },
-  "status": "failed",
-  "pass": false,
-  "completedAt": "2026-08-08T09:27:59.402Z",
+  "status": "complete",
+  "pass": true,
+  "completedAt": "2026-08-10T06:59:56.181Z",
   "browserVersion": "153.0.1",
-  "runnerElapsedMs": 352.833
+  "runnerElapsedMs": 362.123
 }

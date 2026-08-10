@@ -1,22 +1,371 @@
 {
-  "advancementAllowed": false,
-  "currentStage": "R8-B",
-  "decision": "STOP",
-  "partialGaps": [
-    "Brotli CLI unavailable; identity and deterministic gzip only",
-    "full-fidelity required graph 218486240 exceeds frozen 200000000-byte limit"
+  "advancementAllowed": true,
+  "artifacts": {
+    "loaderSha256": "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566",
+    "wasmSha256": "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6"
+  },
+  "compatibility": {
+    "chrome": {
+      "checks": {
+        "activeCachedRelease": true,
+        "allCases": true,
+        "boundedWorkerGenerationsPerPage": true,
+        "documentCount": true,
+        "summaryPass": true,
+        "summaryPresent": true
+      },
+      "pass": true,
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/production/compatibility/chrome/summary.json"
+    },
+    "firefox": {
+      "checks": {
+        "activeCachedRelease": true,
+        "allCases": true,
+        "boundedWorkerGenerationsPerPage": true,
+        "documentCount": true,
+        "summaryPass": true,
+        "summaryPresent": true
+      },
+      "pass": true,
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/production/compatibility/firefox/summary.json"
+    }
+  },
+  "compatibilityAcceptance": {
+    "firefoxCompositionalFallback": false,
+    "pass": true
+  },
+  "core": {
+    "commit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb"
+  },
+  "currentStage": "R8-D",
+  "decision": "PARTIAL_GO_LOCAL_DELIVERY",
+  "deployment": {
+    "authorizedUrl": null,
+    "pass": false,
+    "release": "R8-D-production-validation",
+    "schemaVersion": 1,
+    "status": "not-executed-no-authorized-environment",
+    "topology": "t2"
+  },
+  "environment": {
+    "t2Status": "not-executed-no-authorized-environment",
+    "t2UrlConfigured": false
+  },
+  "fonts": {
+    "knownFontInventoryGapRetained": true,
+    "pass": true,
+    "policyDrivenDelivery": true,
+    "source": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/delivery/fonts/summary.json"
+  },
+  "formalGaps": [
+    "T2 user-authorized HTTPS/CDN environment was not provided",
+    "true browser quota exhaustion remains deployment-environment validation",
+    "candidate adoption requires explicit reload/new session"
   ],
-  "pass": false,
+  "inherited": {
+    "r7Compatibility": true,
+    "r7Input": true,
+    "r7Overall": true,
+    "r7Regression": true
+  },
+  "longevity": {
+    "chrome": {
+      "checks": {
+        "boundedWorkerGenerations": true,
+        "boundedWorkerGenerationsPerPage": true,
+        "duration": true,
+        "noFailedCycle": true,
+        "requiredTransitions": true,
+        "samples": true,
+        "summaryPass": true,
+        "summaryPresent": true
+      },
+      "pass": true,
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/production/longevity/chrome/summary.json"
+    },
+    "firefox": {
+      "checks": {
+        "boundedWorkerGenerations": true,
+        "boundedWorkerGenerationsPerPage": true,
+        "duration": true,
+        "noFailedCycle": true,
+        "requiredTransitions": true,
+        "samples": true,
+        "summaryPass": true,
+        "summaryPresent": true
+      },
+      "pass": true,
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/production/longevity/firefox/summary.json"
+    }
+  },
+  "longevityAcceptance": {
+    "firefoxCompositionalFallback": false,
+    "pass": true
+  },
+  "matrixSha256": "63ce0ce62b70b08ea9186b12a328a32b5fcfb987484fe0ad3d6d87d476025291",
+  "network": {
+    "pass": true,
+    "t0t1DirectDelivery": true,
+    "t0t1ServiceWorker": true,
+    "t2": "not-executed-no-authorized-environment"
+  },
+  "pass": true,
+  "performance": {
+    "chrome": {
+      "serviceWorkerCaseMs": {
+        "count": 83,
+        "max": 4306.705,
+        "median": 1028.669,
+        "min": 265.61,
+        "p90": 3121.9811999999997
+      }
+    },
+    "chrome-t0": {
+      "directDeliveryMs": {
+        "count": 44,
+        "max": 14714.861,
+        "median": 930.4915000000001,
+        "min": 267.355,
+        "p90": 3566.8537
+      },
+      "documentOpenMs": {
+        "count": 19,
+        "max": 553.9850000143051,
+        "median": 379.90000000596046,
+        "min": 120.56499999761581,
+        "p90": 439.8380000114441
+      },
+      "manifestAndArtifactVerifyMs": {
+        "count": 22,
+        "max": 1128.0150000154972,
+        "median": 711.6049999892712,
+        "min": 436.55500000715256,
+        "p90": 849.0019999831916
+      }
+    },
+    "chrome-t1": {
+      "directDeliveryMs": {
+        "count": 39,
+        "max": 3951.573,
+        "median": 294.871,
+        "min": 277.981,
+        "p90": 3645.7856
+      },
+      "documentOpenMs": {
+        "count": 14,
+        "max": 504.72500002384186,
+        "median": 424.3425000011921,
+        "min": 132.9399999976158,
+        "p90": 489.8240000009537
+      },
+      "manifestAndArtifactVerifyMs": {
+        "count": 16,
+        "max": 905.2350000143051,
+        "median": 749.1550000011921,
+        "min": 486.8400000035763,
+        "p90": 868.6974999904633
+      }
+    },
+    "firefox": {
+      "serviceWorkerCaseMs": {
+        "count": 83,
+        "max": 4930.724,
+        "median": 1637.487,
+        "min": 362.25,
+        "p90": 3212.2686
+      }
+    },
+    "firefox-t0": {
+      "directDeliveryMs": {
+        "count": 44,
+        "max": 15826.161,
+        "median": 1198.568,
+        "min": 96.941,
+        "p90": 3963.6739000000002
+      },
+      "documentOpenMs": {
+        "count": 19,
+        "max": 449.52,
+        "median": 367.2600000000002,
+        "min": 313.2999999999997,
+        "p90": 409.93199999999996
+      },
+      "manifestAndArtifactVerifyMs": {
+        "count": 22,
+        "max": 1008.1199999999999,
+        "median": 873.02,
+        "min": 564.7,
+        "p90": 955.306
+      }
+    },
+    "firefox-t1": {
+      "directDeliveryMs": {
+        "count": 39,
+        "max": 4212.879,
+        "median": 366.492,
+        "min": 103.631,
+        "p90": 4184.888599999999
+      },
+      "documentOpenMs": {
+        "count": 14,
+        "max": 418.4199999999996,
+        "median": 357.74,
+        "min": 319.3000000000002,
+        "p90": 409.3700000000001
+      },
+      "manifestAndArtifactVerifyMs": {
+        "count": 16,
+        "max": 967.0999999999999,
+        "median": 852.54,
+        "min": 630.04,
+        "p90": 948.1000000000001
+      }
+    }
+  },
   "phases": {
     "R8-A": {
-      "decision": "PARTIAL_GO",
       "summary": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/discovery/summary.json"
     },
     "R8-B": {
-      "decision": "STOP",
       "summary": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/delivery/summary.json"
+    },
+    "R8-C": {
+      "decision": "PARTIAL_GO",
+      "summary": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/service-worker/summary.json"
+    },
+    "R8-D": {
+      "decision": "PARTIAL_GO_LOCAL_DELIVERY",
+      "summary": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/production/summary.json"
     }
   },
   "release": "R8-delivery-update-recovery",
-  "schemaVersion": 1
+  "releaseBinding": {
+    "boundFamilies": 6,
+    "expected": {
+      "r8b-full-fidelity": "writer-review-da9e9a18e2e6cc8f",
+      "r8b-standard": "writer-review-d6bee07b960a942d",
+      "r8c-A": "writer-review-d6bee07b960a942d",
+      "r8c-B": "writer-review-2a40958963aadc21",
+      "r8c-C": "writer-review-b8993a6e8d87d093"
+    },
+    "families": [
+      {
+        "expected": "writer-review-d6bee07b960a942d",
+        "family": "compatibility:chrome",
+        "observed": "writer-review-d6bee07b960a942d",
+        "pass": true,
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/production/compatibility/chrome/summary.json",
+        "reason": null
+      },
+      {
+        "expected": {
+          "A": "writer-review-d6bee07b960a942d",
+          "B": "writer-review-2a40958963aadc21",
+          "C": "writer-review-b8993a6e8d87d093"
+        },
+        "family": "longevity:chrome",
+        "observed": {
+          "A": "writer-review-d6bee07b960a942d",
+          "B": "writer-review-2a40958963aadc21",
+          "C": "writer-review-b8993a6e8d87d093"
+        },
+        "pass": true,
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/production/longevity/chrome/summary.json",
+        "reason": null
+      },
+      {
+        "expected": "writer-review-d6bee07b960a942d",
+        "family": "compatibility:firefox",
+        "observed": "writer-review-d6bee07b960a942d",
+        "pass": true,
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/production/compatibility/firefox/summary.json",
+        "reason": null
+      },
+      {
+        "expected": {
+          "A": "writer-review-d6bee07b960a942d",
+          "B": "writer-review-2a40958963aadc21",
+          "C": "writer-review-b8993a6e8d87d093"
+        },
+        "family": "longevity:firefox",
+        "observed": {
+          "A": "writer-review-d6bee07b960a942d",
+          "B": "writer-review-2a40958963aadc21",
+          "C": "writer-review-b8993a6e8d87d093"
+        },
+        "pass": true,
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/production/longevity/firefox/summary.json",
+        "reason": null
+      },
+      {
+        "expected": {
+          "full-fidelity": "writer-review-da9e9a18e2e6cc8f",
+          "standard": "writer-review-d6bee07b960a942d"
+        },
+        "family": "delivery",
+        "observed": {
+          "full-fidelity": "writer-review-da9e9a18e2e6cc8f",
+          "standard": "writer-review-d6bee07b960a942d"
+        },
+        "pass": true,
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/delivery/summary.json",
+        "reason": null
+      },
+      {
+        "expected": {
+          "A": "writer-review-d6bee07b960a942d",
+          "B": "writer-review-2a40958963aadc21",
+          "C": "writer-review-b8993a6e8d87d093"
+        },
+        "family": "service-worker",
+        "observed": {
+          "A": "writer-review-d6bee07b960a942d",
+          "B": "writer-review-2a40958963aadc21",
+          "C": "writer-review-b8993a6e8d87d093"
+        },
+        "pass": true,
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/service-worker/summary.json",
+        "reason": null
+      }
+    ],
+    "pass": true,
+    "release": "R8-D-production-validation",
+    "schemaVersion": 1,
+    "supersededFamilies": 0,
+    "unattributableFamilies": 0
+  },
+  "releaseIds": {
+    "A": "writer-review-d6bee07b960a942d",
+    "B": "writer-review-2a40958963aadc21",
+    "C": "writer-review-b8993a6e8d87d093"
+  },
+  "roundtrip": {
+    "pass": true,
+    "r7Regression": true,
+    "r8bEightOutputs": true,
+    "source": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-r8/delivery/roundtrip/summary.json"
+  },
+  "safetyChecks": {
+    "compatibility": true,
+    "fonts": true,
+    "inheritedR7": true,
+    "longevity": true,
+    "matrixSchema": true,
+    "network": true,
+    "operatorDocs": true,
+    "preflightAfter": true,
+    "r8b": true,
+    "r8c": true,
+    "regression": true,
+    "releaseBinding": true,
+    "roundtrip": true,
+    "security": true
+  },
+  "schemaVersion": 1,
+  "security": {
+    "closedSyntheticCachePrefix": true,
+    "noCredentialFetch": true,
+    "noDocumentCacheName": true,
+    "typedIntegrityFailure": true
+  }
 }
