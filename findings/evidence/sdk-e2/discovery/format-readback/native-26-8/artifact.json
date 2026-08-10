@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-A",
+  "phase": "A2-format-readback",
+  "date": "2026-08-11",
+  "question": "Product route C's chosen way out of finding 030 is to read the document instead of listening for a broadcast. Does a readback that answers the five closed actions exist in the LOK surface at all, and does it follow the mutation?",
+  "whyNative": "Same rule as every other A2 phase: a WASM-only negative cannot separate 'LOK does not offer this' from 'our build does not receive it'. Native also lets the exact markup be captured verbatim, which the barrier will have to match whole.",
+  "build": {
+    "tree": "libreoffice-26-8",
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "buildDir": "build-native-26-8",
+    "vclplugin": "svp"
+  },
+  "ruledOutBeforeMeasuring": {
+    "getCommandValues": "sw/source/uibase/uno/loktxdoc.cxx serves form fields, bookmarks, sections and ExtractDocumentStructures (charts, content controls, doc props, track changes). None report the cursor paragraph's style or list state.",
+    "stateBroadcast": "finding 030: silent whenever the value did not change, which is exactly the repeated-press case."
+  },
+  "observed": {
+    "collapsedCaretYieldsNothing": true,
+    "collapsedSelectionType": 0,
+    "paragraphSelectedSelectionType": 1,
+    "htmlDistinguishesAllFiveActions": true,
+    "markup": {
+      "heading": "<h1 class=\"western\">…</h1>",
+      "body": "<p style=\"line-height: 100%; margin-bottom: 0.08in\">…</p>",
+      "bodyAfterStyleApplyTextBody": "<p>…</p>",
+      "listUnordered": "<ul><li><p …>…</p></li></ul>",
+      "listOrdered": "<ol><li><p …>…</p></li></ol>",
+      "listNone": "<p …>…</p>"
+    },
+    "followsTheMutation": "all five dispatches produced markup matching what the dispatch asked for; the saved ODTs agree",
+    "localeIndependent": "the distinguishing tokens are HTML structure (h1, ul, ol, li), not UI names -- unlike the .uno:StyleApply payload of finding 031"
+  },
+  "costsMeasured": {
+    "requiresASelection": "A collapsed caret returns selection type 0 and zero bytes, so the barrier has to select the paragraph (.uno:GoToStartOfPara then .uno:EndOfParaSel) before reading. That is a visible side effect on the user's selection, and restoring it is work the barrier must do and must itself verify.",
+    "bodyIsNotDistinguishedFromDefault": "Text body and the default paragraph style both serialise as <p>. The readback separates heading from not-heading; it does not separate 'Text body' from 'Standard'. A set-paragraph-body postcondition built on it claims less than the current .uno:StyleApply=Body Text does."
+  },
+  "notValidated": [
+    "Whether the same markup arrives in the WASM profile under Chrome and Firefox.",
+    "Whether the HTML changes shape for a paragraph inside a table, a nested list, or at a list boundary; this fixture has none of those.",
+    "Whether the markup is stable across LibreOffice versions -- it is a serialiser output, not a documented contract, so pinning it means pinning a serialiser.",
+    "Whether restoring the caret after the read is reliable enough to be invisible to the user."
+  ],
+  "files": {
+    "e2_a_native_format_readback.cpp": "d48a71a251afc42fb66a4fa225f9596be882f90d865c20c0af5ff13ef6a483e9",
+    "postcondition/after-list-none.odt": "7bb6a560433bf9a3badfdac817385345120a966827cda0a8e03e1cc88ab7de35",
+    "postcondition/after-list-ordered.odt": "04616997e79647a3d627ee877656401bfcee5f9aa4fe0510799461d5505526ce",
+    "postcondition/after-list-unordered.odt": "c7364de9c28aa42907878646b41201992fcce3a409f05f0e6a68cd8fa4683bbb",
+    "postcondition/after-paragraph-body.odt": "35a6a2a68743ae42728dc9c76e77d3a6b15ce0f9b8b17e53023aa10e394d0b4f",
+    "postcondition/after-paragraph-heading.odt": "342a02e03834c005ae18265b66a1bc3443263543ab869c99a790a79162985f71",
+    "readback.jsonl": "a9eefe012372d8cdb9b6f1a0749886170a5859df1f636ddb24ad5eb204df9a10",
+    "sal.log": "17d182ae4217a9aabef42ff600854f115ed40040965153f1d63a6d2f1d1eb8b6"
+  },
+  "rerun": "wasm_sdk_probe/tools/e2_a_native_format_readback.cpp (compiled and run the same way as run_e2_a_native_reissue.sh)"
+}

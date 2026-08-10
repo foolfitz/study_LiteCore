@@ -128,11 +128,49 @@ core 的 status 廣播只在值改變時送出，這是 SfxBindings 的既有語
    狀態可信之後，前置條件與 no-op 都能再次區分。代價是進入共用路徑需跑完整回歸（finding 012 相鄰風險）。
 3. **後置條件改讀文件而非讀廣播**：不靠 callback，派送後直接讀該段落的實際格式。
    最誠實，但需要一個目前不存在的 readback 能力，得自成一輪 discovery。
+   **← 使用者 2026-08-11 選定；可行性已實測，見本節末。**
 4. **只用 command result 當完成條件**：歸屬有了（實測九案例每次都到），但真值沒有——
    這正是 E2-A 第 4 節當初明確拒絕的做法（finding 020）。**不建議**，列出是為了說明它被考慮過。
 
 **本輪不替使用者決定**。可以先做的是與路線無關的部分：把派送改成參數化形式（缺陷一），
 那在四條出路裡都是必要的。
+
+### 出路 3 已選定，且可行性已實測（2026-08-11）
+
+使用者選了出路 3：**後置條件改讀文件**。動手前先量它存不存在——這是 A2 的同一條紀律，
+不然就是把 barrier 蓋在猜測上。證據：
+[`sdk-e2/discovery/format-readback/native-26-8/`](evidence/sdk-e2/discovery/format-readback/native-26-8/)。
+
+`getCommandValues` 先以讀原始碼排除（見上）。剩下的候選是 selection transferable：
+`doc_getTextSelection`（`desktop/source/lib/init.cxx:5912`）把選取交給剪貼簿機制，
+所以 `text/html` 應該會帶出結構。實測結果：
+
+| 情境 | `text/html` 讀到 |
+|---|---|
+| heading | `<h1 class="western">…</h1>` |
+| body 段落 | `<p style="line-height: 100%; …">…</p>` |
+| 無序清單 | `<ul><li><p …>…</p></li></ul>` |
+| 有序清單 | `<ol><li><p …>…</p></li></ol>` |
+| 離開清單後 | `<p …>…</p>` |
+
+**五個 closed action 全部可分，而且讀數跟著 mutation 走**（五次派送後的讀數都與派送內容相符，
+存檔 ODT 一致）。**而且它與語系無關**——分辨用的是 HTML 結構（`h1`／`ul`／`ol`／`li`），
+不是 UI 名稱，所以段落樣式那兩個動作的 [finding 031](031-styleapply-postcondition-compares-a-localized-ui-name.md)
+曝險也一併解掉。
+
+**兩個代價是量出來的，不是猜的：**
+
+1. **游標塌陷時讀不到任何東西**（selection type 0、0 bytes）。barrier 必須先選起整段
+   （`.uno:GoToStartOfPara` → `.uno:EndOfParaSel`）才讀得到。那會動到使用者的選取，
+   讀完要還原，而**還原本身也要被驗證**——不能只是「做了就假設成功」。
+2. **`Text body` 與預設樣式都序列化成 `<p>`**。這個讀法分得出「是不是 heading」，
+   分不出「是 Text body 還是 Standard」。也就是說用它做 `set-paragraph-body` 的後置條件，
+   **宣稱會比現在的 `.uno:StyleApply=Body Text` 弱**。SPEC E2-000 的承諾是
+   `set-paragraph-style(body｜heading)` 兩態，「不是 heading」剛好夠用——
+   但這是縮限，要寫進判定，不能當作沒發生。
+
+另有一項要先想清楚再實作：這串 HTML 是**序列化器的輸出，不是有文件的契約**。
+整串比對等於把序列化器釘成 ABI，跨 LibreOffice 版本可能變。這一項**尚未驗證**。
 
 ### 一條線索（**推論，未實測**）
 

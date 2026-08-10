@@ -295,13 +295,16 @@ barrier 逾時  ──▶ MUTATION_OUTCOME_UNKNOWN，不 retry，不猜
 風險，但兩個保護仍保留並各自計數：`crosstalkCount`（watched 命令但值不對）與 `earlyStateCount`（值對但早於
 command result 抵達）。第 5 節的 `state-crosstalk` 案例驗證這兩個計數確實有效。
 
-### 路線 C 未決事項：no-op 沒有後置條件可等
+### 路線 C 的 no-op 缺口：已選定出路 3（2026-08-11）
 
 2.7 節（二）的實測讓上面的 completion 定義在一種情況下永遠無法成立：文件已經在目標狀態時，
-core 不廣播 state，於是 (b) 不會到，barrier 逾時。**A3 在這一點解決之前不啟動。**
+core 不廣播 state，於是 (b) 不會到，barrier 逾時。
 
-四條出路（詳見 [finding 030](../findings/030-closed-list-actions-dispatch-the-toggle-form-and-a-noop-is-silent.md)），
-本規格不預設哪一條：
+**使用者 2026-08-11 決定走出路 3：後置條件改讀文件，不讀廣播。**
+可行性已先實測（見 2.8 節），因此 A3 的這一項前置**已解除**；
+未解除的是實作本身與它帶來的兩項縮限（同見 2.8 節）。
+
+以下四條出路原樣保留，說明選擇是在什麼之間做的：
 
 1. **接受低報**：維持現有定義，重複按下回 `MUTATION_OUTCOME_UNKNOWN`。零新機制，
    但把「不知道」變成常態讀數，判定訊號變鈍。
@@ -313,6 +316,39 @@ core 不廣播 state，於是 (b) 不會到，barrier 逾時。**A3 在這一點
    （finding 020），列出只為說明它被考慮過。**不建議。**
 
 無論選哪一條，**派送形式的修正（2.7 節（一））都是必要的**，因此已先行實作。
+
+### 2.8 出路 3 的可行性實測（2026-08-11，已觀察）
+
+證據：[`sdk-e2/discovery/format-readback/native-26-8/`](../findings/evidence/sdk-e2/discovery/format-readback/native-26-8/)。
+
+先排除再量測：`getCommandValues` 的實作（`sw/source/uibase/uno/loktxdoc.cxx`）只服務 form
+field、bookmark、section 與 `ExtractDocumentStructures`（chart／content control／doc prop／
+track changes），**沒有游標所在段落的樣式或清單狀態**。剩下的候選是 selection transferable
+（`doc_getTextSelection`，`desktop/source/lib/init.cxx:5912`）。
+
+| 情境 | `text/html` 讀到 |
+|---|---|
+| heading | `<h1 class="western">…</h1>` |
+| body 段落 | `<p style="line-height: 100%; …">…</p>` |
+| 無序清單 | `<ul><li><p …>…</p></li></ul>` |
+| 有序清單 | `<ol><li><p …>…</p></li></ol>` |
+| 離開清單後 | `<p …>…</p>` |
+
+**五個 closed action 全部可分、讀數跟著 mutation 走、且與語系無關**——分辨用的是 HTML 結構
+而非 UI 名稱，所以 2.5 節的 finding 031 曝險在段落樣式那兩個動作上一併解掉。
+
+**三項代價／限制，量出來的：**
+
+1. **游標塌陷時讀不到**（selection type 0、0 bytes）。barrier 必須先
+   `.uno:GoToStartOfPara` → `.uno:EndOfParaSel` 選起整段才讀得到，讀完要還原選取，
+   **且還原本身要被驗證**。這是新增的可觀察副作用，A5 需要為它加案例。
+2. **`Text body` 與預設樣式都是 `<p>`**。這個讀法分得出「是不是 heading」，
+   分不出「是 Text body 還是 Standard」。`set-paragraph-body` 的後置條件因此
+   **比現行的 `.uno:StyleApply=Body Text` 弱**；SPEC E2-000 承諾的是
+   `set-paragraph-style(body｜heading)` 兩態，「不是 heading」剛好夠用，
+   但這是縮限，第 8 節判定要明列。
+3. **這串 HTML 是序列化器輸出，不是有文件的契約。** 整串比對等於把序列化器釘成 ABI，
+   跨版本可能變。**未驗證**，是 A7 回歸該涵蓋的事。
 
 ## 5. 凍結矩陣
 
