@@ -351,3 +351,24 @@ heading dropdown／清單／SPEC E1-D §5／Route C／A3。
 1. 分析器第一版用生成的自動樣式名做比對，得到「未被碰過的清單項變了」的假陽性。
 2. 又一次 shell cwd 漂移（在 `study_LiteCore` 下跑 `tools/run_...sh`）。
    交接文件已經寫過這條，我還是踩了；一律用絕對路徑。
+
+## 同一輪另外挖出來的：finding 031（與路線選擇無關，但更早該發現）
+
+barrier 用整串比對判定段落樣式的後置條件（`Heading 1`／`Body Text`）。那兩串是
+**UI 顯示名稱**：`SID_STYLE_APPLY` 的狀態放 `UIName` 且**不放 ProgName**，
+而 UIName 陣列以 UI 語系為 key、由 `SwResId()` 建。**我方 WASM build 的 `instdir`
+已經含 `zh_TW/LC_MESSAGES/sw.mo`**，裡面 `Heading 1`→「標題 1」、`Body Text`→「內文」。
+
+zh-TW UI 之下，那兩個動作的 barrier 會逾時成 `MUTATION_OUTCOME_UNKNOWN`，
+**而文件其實已經改對了**。派送那一側安全（送的是 ProgName）。清單三個動作不受影響
+（payload 是布林值）。
+
+**今天是潛伏的**：全樹沒有任何路徑會選非英文 UI。但這個專案的產品對象就是 zh-TW。
+
+**未實測，而且說明了為什麼不能就地測**：原生 build 是 `--with-lang=en-US`、`resource/`
+下只有 `common`，設 `LANG` 會回退英文——量到「字串沒變」是量測環境的結論，不是產品的
+（保證假陰性）。WASM build 有譯文，但 engine 走 `documentLoad(kit, url)` 沒有選項。
+最小實測改動已定位未實作：discovery-only 改走
+`documentLoadWithOptions(…, "Language=zh-TW")`。
+
+這一項答完了 SPEC E2-A 2.5 節掛了六天的待驗證條目，該節已就地劃掉並填上答案。

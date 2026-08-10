@@ -131,7 +131,17 @@ idle job；原生由 `soffice_main` 的 VCL 主迴圈推動，我方探針核外
   [finding 021](../findings/021-wasm-format-state-not-refreshed-by-caret-movement.md)
   「判別實驗結果與剩下的路」。
 - 主迴圈進入共用路徑前的再進入／teardown 副作用（finding 012 屬相鄰風險）與 R6～E1 全量回歸。
-- `Body Text` 等 state 顯示名稱是否隨 UI locale 改變。若會，postcondition 不能比對顯示名稱。
+- ~~`Body Text` 等 state 顯示名稱是否隨 UI locale 改變。若會，postcondition 不能比對顯示名稱。~~
+  **已答（2026-08-11）：會變，見 [finding 031](../findings/031-styleapply-postcondition-compares-a-localized-ui-name.md)。**
+  `SID_STYLE_APPLY` 的狀態放的是 `UIName` 且**不放 ProgName**（`sw/.../docst.cxx:140,145,166`），
+  而 UIName 陣列以 UI 語系為 key、由 `SwResId()` 建（`DocumentStylePoolManager.cxx:2665-2676`）；
+  ProgName 陣列則是寫死不翻譯的。既有證據已佐證這一點：我方送 `Text body`／`Standard`，
+  state 回 `Body Text`／`Default Paragraph Style`——送出與回報不是同一個字串。
+  **我方 WASM build 的 `instdir` 已含 `zh_TW/LC_MESSAGES/sw.mo`**，其中
+  `Heading 1`→「標題 1」、`Body Text`→「內文」，正是第 4 節比對的那兩串。
+  端到端在非英文 UI 下的實測**尚未做**（原生 build 只有 en-US，量了保證假陰性；
+  WASM 有譯文但 engine 走 `documentLoad` 無選項，沒有選語系的路）。
+  清單三個動作不受影響（payload 是布林值）。
 - ~~state 是否可能早於 command result 抵達~~。已驗證：`earlyStateCount` 全為 0。
 - 清單切換產生的 `<text:list>` 包裝結構是否觸發 [Finding 012](../findings/012-r6-styled-document-close-timeout.md)
   的 `frame.wrapper` 類 teardown 阻塞。本輪 close 正常，但未做 A5 的 `list-teardown` 專項。
