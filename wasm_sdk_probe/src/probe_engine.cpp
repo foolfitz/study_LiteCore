@@ -2537,6 +2537,21 @@ std::string styleApplyArguments(bool heading) {
          "\"ParagraphStyles\"}}";
 }
 
+// Finding 030: dispatched bare, these two commands ask for the *opposite* of
+// what is there.  svx/sdi/svx.sdi:2251 and :4985 declare an `On` boolean
+// (FN_PARAM_1) and sw/source/uibase/shells/txtnum.cxx:81-108 uses it as an
+// explicit mode, falling back to `!SelectionHasBullet()` only when it is
+// absent.  A closed set-list(...) enum is a setter, so it has to send the
+// parameter -- the same correction finding 019 made for paragraph styles, where
+// the convenient command name was also not the dispatchable one.
+//
+// This was latent under the fail-closed design, which only dispatches when the
+// cached state is known and differs from the target -- exactly when a toggle
+// does the right thing by accident.  It becomes live the moment the
+// precondition read goes away.
+const char *const kListOnArguments = "{\"On\":{\"type\":\"boolean\","
+                                     "\"value\":true}}";
+
 void startFormatBarrierActionResolved(const Command &command,
                                       std::uint32_t action, const char *name);
 
@@ -2567,6 +2582,7 @@ void startFormatBarrierActionResolved(const Command &command,
     barrier.target = FormatBarrierTarget::ListBullet;
     barrier.expected = true;
     barrier.command = ".uno:DefaultBullet";
+    barrier.arguments = kListOnArguments;
     stateKnown = gEditorState.listBulletKnown;
     alreadyAtTarget = gEditorState.listBullet;
     break;
@@ -2574,12 +2590,17 @@ void startFormatBarrierActionResolved(const Command &command,
     barrier.target = FormatBarrierTarget::ListNumber;
     barrier.expected = true;
     barrier.command = ".uno:DefaultNumbering";
+    barrier.arguments = kListOnArguments;
     stateKnown = gEditorState.listNumberKnown;
     alreadyAtTarget = gEditorState.listNumber;
     break;
   case OXSDK_EDITOR_SET_LIST_NONE:
     barrier.target = FormatBarrierTarget::ListNone;
     barrier.expected = false;
+    // Dispatched bare on purpose: FN_NUM_BULLET_OFF forwards to
+    // FN_NUM_BULLET_ON with On=false and then calls DelNumRules, so it is
+    // already a setter.  Finding 030 measured it landing on "no list" three
+    // presses running, from both a bulleted and a numbered start.
     barrier.command = ".uno:RemoveBullets";
     stateKnown = gEditorState.listBulletKnown && gEditorState.listNumberKnown;
     alreadyAtTarget = !gEditorState.listBullet && !gEditorState.listNumber;

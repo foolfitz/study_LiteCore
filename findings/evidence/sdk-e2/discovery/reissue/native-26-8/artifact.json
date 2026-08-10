@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-A",
+  "phase": "A2-reissue",
+  "date": "2026-08-11",
+  "question": "Product route C dispatches a closed action without reading any precondition, so pressing the same button twice dispatches twice. Are the five paragraph-level commands setters, and can a postcondition-only barrier tell a legitimate no-op from a lost command?",
+  "whyNative": "Same reason as the A2 state-readback run: a WASM-only answer cannot separate 'core toggles' from 'our engine dispatched twice by accident'. Native is also where the slot definitions can be read against the observed behaviour.",
+  "build": {
+    "tree": "libreoffice-26-8",
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "coreDirtyFiles": 6,
+    "buildDir": "build-native-26-8",
+    "vclplugin": "svp",
+    "note": "Measured with git rev-parse at run time, not transcribed from the A2 artifact (finding 029)."
+  },
+  "fixture": {
+    "path": "wasm_sdk_probe/test-docs/e1/styled-list.odt",
+    "layout": "Heading 1 / plain paragraph / list with two items / tail paragraph",
+    "target": "the plain paragraph, located by searching for the anchor text 'bold anchor'",
+    "whySearchNotGoDown": "Applying a heading style changes the paragraph height and joining a list changes its indent, so a line-relative walk stops meaning the same thing partway through the run -- and it would fail silently, by formatting a paragraph nobody asked about."
+  },
+  "method": {
+    "perCase": "put the paragraph into the opposite state (reset), then dispatch the same action three more times, saving the document after every dispatch",
+    "whyThreePresses": "Two presses can only say 'issue 2 differs'. Three separate a toggle (issue 3 back at issue 1) from a one-way collapse.",
+    "groups": {
+      "bare": "the dispatch form the E2 discovery engine uses today: command name only",
+      "param": "the documented explicit-mode form: On=<bool> (FN_PARAM_1), svx/sdi/svx.sdi:2251 and :4985"
+    },
+    "verdictFrom": "the saved ODTs, never the callbacks -- finding 020 is exactly why the callbacks are not evidence here",
+    "collateralGuard": "three untouched paragraphs are re-read in every snapshot; a change in one of them would mean the caret was not where the run assumed"
+  },
+  "observed": {
+    "verdicts": {
+      "bare/set-list-unordered": "toggle",
+      "bare/set-list-ordered": "toggle",
+      "bare/set-list-none": "setter",
+      "bare/set-paragraph-heading": "setter",
+      "bare/set-paragraph-body": "setter",
+      "param/set-list-unordered": "setter",
+      "param/set-list-ordered": "setter",
+      "param/set-list-unordered-from-ordered": "setter",
+      "param/set-list-none-from-ordered": "setter"
+    },
+    "allWitnessesUnchanged": true,
+    "bareFormIsToggleFor": [
+      ".uno:DefaultBullet",
+      ".uno:DefaultNumbering"
+    ],
+    "parameterisedFormIsSetterFor": [
+      "set-list-unordered",
+      "set-list-ordered",
+      "set-list-unordered-from-ordered",
+      "set-list-none-from-ordered"
+    ],
+    "silentRepeats": {
+      "bare": {
+        "allSetters": false,
+        "silentRepeats": {
+          "bare/set-list-none": [
+            "issue2",
+            "issue3"
+          ],
+          "bare/set-paragraph-heading": [
+            "issue2",
+            "issue3"
+          ],
+          "bare/set-paragraph-body": [
+            "issue2",
+            "issue3"
+          ]
+        }
+      },
+      "param": {
+        "allSetters": true,
+        "silentRepeats": {
+          "param/set-list-unordered": [
+            "issue2",
+            "issue3"
+          ],
+          "param/set-list-ordered": [
+            "issue2",
+            "issue3"
+          ],
+          "param/set-list-unordered-from-ordered": [
+            "issue2",
+            "issue3"
+          ],
+          "param/set-list-none-from-ordered": [
+            "issue2",
+            "issue3"
+          ]
+        }
+      }
+    },
+    "commandResultOnEveryDispatch": true,
+    "stateBroadcastOnUnchangedValue": false
+  },
+  "consequences": {
+    "toggle": "Without the On parameter, .uno:DefaultBullet and .uno:DefaultNumbering ask for the opposite of whatever is there. A closed set-list(none|unordered|ordered) enum built on the bare form inverts on the second press, which is the behaviour SPEC E2-000 section 140 forbids.",
+    "parameterised": "With On=true the same commands land on the target every time, including the cross-kind transition (numbered list to bullet list), so the three-state closed enum is achievable.",
+    "silentNoop": "Core does not broadcast STATE_CHANGED when the value does not change. Every repeat press that was already at the target produced zero watched payloads, in all nine cases. A postcondition-only barrier that requires a state payload therefore reports MUTATION_OUTCOME_UNKNOWN for a document that is in fact correct -- no-op and lost command become indistinguishable, which SPEC E2-A section 8 lists as a STOP condition.",
+    "commandResult": "A UNO command result with the matching commandName did arrive for every dispatch including the no-ops, so attribution survives route C even where truth does not."
+  },
+  "notValidated": [
+    "Whether the same behaviour reproduces in the WASM profile under Chrome and Firefox.",
+    "Whether the On parameter reaches the WASM engine's postUnoCommand path unchanged.",
+    "Whether .uno:RemoveBullets accepts a parameterised form at all; it was dispatched bare in both groups because it measured as a setter either way.",
+    "Whether a paragraph inside a table or at a list boundary behaves the same; this fixture has neither."
+  ],
+  "limitations": [
+    "The nine cases run in one session against one paragraph, in order, so each case starts from whatever the previous case left behind. The reset step is what makes each case's own reading valid; the resolved paragraph style carried over between cases and is visible in the readings.",
+    "A first run of this probe measured the bare group only. Its analyzer compared generated automatic style names (P1/L1 vs P2/L2) and duly reported that untouched list items had changed; they had not. The comparison now resolves automatic styles to their named parent. No measurement was rerun to fix this -- only the reading of it."
+  ],
+  "files": {
+    "analysis.json": "f2c177cd7f8c32e1f172f34878ac2be04237d77b36b599ba831e5618ecd015ed",
+    "analyze_e2_a_native_reissue.py": "6caec0908e912dfc8c1408f5c654636f15b2c36fb6d03c4c40d68a91f891baa4",
+    "callbacks.jsonl": "bb908bcb7679a340e2a0a2c8e00ce28851d10bed39f76c0ef893530531ffc334",
+    "cases.json": "6bf875fdf0508a5a78148503f301849a32695468b023dc228a00d179a394e222",
+    "e2_a_native_reissue.cpp": "39ebfd2156e9116676b9a546e5664783b74c0e5906416cc4bb1be0f452fc1512",
+    "postcondition/bare/set-list-none-issue1.odt": "cc15670ec1e3e40a2075ec3a6c1bf99e7f93688457f81f88f54f6634ea4810db",
+    "postcondition/bare/set-list-none-issue2.odt": "07a93016b54cbd012ca44197090f4f3ac0be9e0b5c84f658672ac9bc308e1c54",
+    "postcondition/bare/set-list-none-issue3.odt": "30bf04c00cb457a541ce79407b7fac67bacc94129454db5bd29580abae0d67f7",
+    "postcondition/bare/set-list-none-reset.odt": "a9a354e24ae5f138db41fb938d5a9d55fa1f56995d47a034ed424921cc4bb73d",
+    "postcondition/bare/set-list-ordered-issue1.odt": "fb22116cc12b63782aa3a1ffcb01fc29c45d03744a22273325bffea75bd477f2",
+    "postcondition/bare/set-list-ordered-issue2.odt": "add8598b611415b5a6eed0b8347996425698dca77d1a5dfe582b44addd0e2125",
+    "postcondition/bare/set-list-ordered-issue3.odt": "78cfa257ff45e70c4e10667d0d089fd7d008a4c126735109f459646500ad924e",
+    "postcondition/bare/set-list-ordered-reset.odt": "47a3c1416c4d169c8558910db1dacfcc485ef6c04c7d722487c57af83c593d30",
+    "postcondition/bare/set-list-unordered-issue1.odt": "3af273c4d8a988990ddeb44c2058d3a7ce7c385629fa0d695a216bc31a1b5ff6",
+    "postcondition/bare/set-list-unordered-issue2.odt": "ffd2dd803373ea7ccc02d0462e00bceaa914732d3a3297ca9bf78fa336ad63db",
+    "postcondition/bare/set-list-unordered-issue3.odt": "b43a5c51b66a5f2e3cea2964c2bc6eb2c24531b00e10f0e958060f5329dc889c",
+    "postcondition/bare/set-list-unordered-reset.odt": "0642af7e1d5d5175ae40aaf97ec462ac1526021b80a9a295ef51464d22871945",
+    "postcondition/bare/set-paragraph-body-issue1.odt": "8432a01fcc503ab6d59579e71d60c9c4952ff128729fa390ead01f51f621317d",
+    "postcondition/bare/set-paragraph-body-issue2.odt": "1ca5c1056c9bffe3c593a8bfbea42fccb266780f6a546e34300d0dbf7bc6efc5",
+    "postcondition/bare/set-paragraph-body-issue3.odt": "b7a032673848385510e3a485b10b18f06d01db0ba393105b57004cbbab685f0a",
+    "postcondition/bare/set-paragraph-body-reset.odt": "a19e95b8033fe5ec93a0bf7fa8d4dfd8ae31323258ac6c213be93e280573a1f5",
+    "postcondition/bare/set-paragraph-heading-issue1.odt": "a93b9e540e880fd04eb51f4b2744bcf8a676016f202191ed9e79caacae1699ff",
+    "postcondition/bare/set-paragraph-heading-issue2.odt": "f2919bd2b69d2b2aad4fb797bea6da6bdd2285bf21b757679b625ab0e466a4d5",
+    "postcondition/bare/set-paragraph-heading-issue3.odt": "3a2ec216686b8018eaa6f9a73b5c670063071077531716b80cecaa234f3c46ea",
+    "postcondition/bare/set-paragraph-heading-reset.odt": "31ab9a5761397385346a682fc97dac436f7e26321397feb10b3927f0b5eff47e",
+    "postcondition/param/set-list-none-from-ordered-issue1.odt": "2e0e6426b992cfa7d71368bf32ca96a227805f038fba978d311b369ec0bd6a75",
+    "postcondition/param/set-list-none-from-ordered-issue2.odt": "9a9da87746387be96afc94baf1767b77a9e0f833081e717535af5670d0a271bb",
+    "postcondition/param/set-list-none-from-ordered-issue3.odt": "be0acbf48eec2c28f5dc444451a0c9e630298bddff20dde7bb95cea286df87de",
+    "postcondition/param/set-list-none-from-ordered-reset.odt": "0b1215d61906ba6d2f4645be1dae8ea938f64d1f34cb9ffb7073686b5d45f0f4",
+    "postcondition/param/set-list-ordered-issue1.odt": "b85a6a1f550c4e3047b9f773276b7adb00500844efd10d54b9ed031e4dc9e0a7",
+    "postcondition/param/set-list-ordered-issue2.odt": "621f604ee3226823b6fd032d3b919f338e180a6ff2c941f885c5812c29aa22b7",
+    "postcondition/param/set-list-ordered-issue3.odt": "713fd9848f7457685dc2bb2a1094071416a4e6b7663c77a0e133f5adb8678489",
+    "postcondition/param/set-list-ordered-reset.odt": "b8d60bbd09f45553bbbf88ce6536581eb9596242362840381c4b0ac1cf724e5e",
+    "postcondition/param/set-list-unordered-from-ordered-issue1.odt": "e686673f6f558b41aa9150aea17943b3377cfd89fdb8dda23375e4eedded30de",
+    "postcondition/param/set-list-unordered-from-ordered-issue2.odt": "ad9e63cba538c9d1e0f499032c12666a9612f7efdf0edf49b8b73a73f5600751",
+    "postcondition/param/set-list-unordered-from-ordered-issue3.odt": "c70d80370d459df0caed4fb6e40f252848be7ff882e70e4eeac188dbde152f06",
+    "postcondition/param/set-list-unordered-from-ordered-reset.odt": "b36167ffe1a34a70f3c487d06afb9ea60ddb58ecc64395084b26a2525605da64",
+    "postcondition/param/set-list-unordered-issue1.odt": "9fc087c161f53c1135942fe630edc1b12d90a6bdf93ff4749ff75aabd585ed54",
+    "postcondition/param/set-list-unordered-issue2.odt": "5a9b7094e9982918c11cc3ef8c7e5bf7514bafa7c84b238a34bace83a000b31a",
+    "postcondition/param/set-list-unordered-issue3.odt": "a2602902bf13ea6c8ccef44b931e04ea5cdece7f02c2ca4fe4bf9e2dd24fac66",
+    "postcondition/param/set-list-unordered-reset.odt": "19a58ed87c027221ec492945da88e2a89f1e6028ade54c4e63fec261cd2f428b",
+    "sal.log": "5597d0ef8cbc9d1d36eb006d231d5633d7cf98cc69208a01759849025d3b98e7"
+  },
+  "rerun": "wasm_sdk_probe/tools/run_e2_a_native_reissue.sh"
+}

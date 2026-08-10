@@ -200,6 +200,52 @@ class TestMainLoopAttributionProfile(unittest.TestCase):
                 )
 
 
+class TestFormatDispatchForm(unittest.TestCase):
+    """Finding 030: the bare command name is a toggle, not a setter.
+
+    A closed set-list(...) enum that dispatches `.uno:DefaultBullet` with no
+    arguments asks core for the opposite of whatever is there, so the second
+    press undoes the first.  The explicit-mode parameter is what makes it a
+    setter, and losing it again would be invisible at every other layer -- the
+    action name, the manifest and the client code all stay identical.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        source = (PROJECT / "src" / "probe_engine.cpp").read_text(encoding="utf-8")
+        start = source.index("void startFormatBarrierActionResolved(const Command &command,\n"
+                             "                                      std::uint32_t action, "
+                             "const char *name) {")
+        cls.body = source[start:source.index("\n}\n", start)]
+        cls.source = source
+
+    def segment(self, action: str) -> str:
+        start = self.body.index(f"case {action}:")
+        return self.body[start:self.body.index("break;", start)]
+
+    def test_list_actions_dispatch_the_explicit_mode_form(self):
+        for action in ("OXSDK_EDITOR_SET_LIST_UNORDERED",
+                       "OXSDK_EDITOR_SET_LIST_ORDERED"):
+            with self.subTest(action=action):
+                self.assertIn("barrier.arguments = kListOnArguments;",
+                              self.segment(action))
+
+    def test_the_explicit_mode_argument_says_on_true(self):
+        # Measured against native 26.8, not assumed: svx/sdi/svx.sdi declares
+        # `On` as FN_PARAM_1 and txtnum.cxx uses it as the mode when present.
+        self.assertIn('const char *const kListOnArguments = "{\\"On\\":{\\"type\\":\\"boolean\\","\n'
+                      '                                     "\\"value\\":true}}";',
+                      self.source)
+
+    def test_remove_bullets_is_dispatched_bare_on_purpose(self):
+        # FN_NUM_BULLET_OFF forwards to FN_NUM_BULLET_ON with On=false and then
+        # calls DelNumRules, so it is already a setter.  Pinned so that adding
+        # arguments here becomes a deliberate change rather than a tidy-up.
+        segment = self.segment("OXSDK_EDITOR_SET_LIST_NONE")
+        self.assertIn('barrier.command = ".uno:RemoveBullets";', segment)
+        self.assertNotIn("barrier.arguments =", segment)
+
+
 class TestFormatDiscoveryClient(unittest.TestCase):
     def test_closed_action_list(self):
         text = (PROJECT / "e2" / "format-discovery-client.js").read_text(encoding="utf-8")

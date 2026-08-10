@@ -1,0 +1,960 @@
+{
+  "anchor": "bold anchor",
+  "fixtureBaseline": {
+    "found": true,
+    "element": "p",
+    "styleName": null,
+    "resolvedStyle": null,
+    "inList": false,
+    "listStyle": null,
+    "listKind": null,
+    "listDepth": 0
+  },
+  "witnessBaselineSnapshot": "bare/set-list-unordered-reset.odt",
+  "witnessBaseline": {
+    "E1-STYLED-HEADING": [
+      true,
+      "h",
+      "Heading_20_1",
+      false,
+      null,
+      0
+    ],
+    "E1-LIST-ONE": [
+      true,
+      "p",
+      "Standard",
+      true,
+      "number",
+      1
+    ],
+    "E1-STYLED-END": [
+      true,
+      "p",
+      "Standard",
+      false,
+      null,
+      0
+    ]
+  },
+  "cases": {
+    "bare/set-list-unordered": {
+      "dispatched": {
+        "group": "bare",
+        "name": "set-list-unordered",
+        "command": ".uno:DefaultBullet",
+        "arguments": "",
+        "reset": ".uno:RemoveBullets",
+        "resetArguments": ""
+      },
+      "verdict": "toggle",
+      "readings": {
+        "reset": {
+          "found": true,
+          "element": "p",
+          "styleName": "Standard",
+          "resolvedStyle": "Standard",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue1": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Standard",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "bullet",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        },
+        "issue2": {
+          "found": true,
+          "element": "p",
+          "styleName": "Standard",
+          "resolvedStyle": "Standard",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue3": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Standard",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "bullet",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        }
+      },
+      "witnessesUnchanged": true,
+      "callbacks": {
+        "reset": {
+          "command": ".uno:RemoveBullets",
+          "states": [
+            ".uno:StyleApply=Default Paragraph Style"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:RemoveBullets\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": false, \"startUnixTimeMics\": 12938807265, \"saveDurationMics\": 528}"
+          ]
+        },
+        "issue1": {
+          "command": ".uno:DefaultBullet",
+          "states": [
+            ".uno:DefaultBullet=true"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultBullet\", \"success\": true, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12941551284, \"saveDurationMics\": 1390}"
+          ]
+        },
+        "issue2": {
+          "command": ".uno:DefaultBullet",
+          "states": [
+            ".uno:DefaultBullet=false"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultBullet\", \"success\": true, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12944271421, \"saveDurationMics\": 1035}"
+          ]
+        },
+        "issue3": {
+          "command": ".uno:DefaultBullet",
+          "states": [
+            ".uno:DefaultBullet=true"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultBullet\", \"success\": true, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12946999228, \"saveDurationMics\": 1089}"
+          ]
+        }
+      },
+      "silentRepeats": []
+    },
+    "bare/set-list-ordered": {
+      "dispatched": {
+        "group": "bare",
+        "name": "set-list-ordered",
+        "command": ".uno:DefaultNumbering",
+        "arguments": "",
+        "reset": ".uno:RemoveBullets",
+        "resetArguments": ""
+      },
+      "verdict": "toggle",
+      "readings": {
+        "reset": {
+          "found": true,
+          "element": "p",
+          "styleName": "Standard",
+          "resolvedStyle": "Standard",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue1": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Standard",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "number",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        },
+        "issue2": {
+          "found": true,
+          "element": "p",
+          "styleName": "Standard",
+          "resolvedStyle": "Standard",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue3": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Standard",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "number",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        }
+      },
+      "witnessesUnchanged": true,
+      "callbacks": {
+        "reset": {
+          "command": ".uno:RemoveBullets",
+          "states": [
+            ".uno:DefaultBullet=false"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:RemoveBullets\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12949717943, \"saveDurationMics\": 644}"
+          ]
+        },
+        "issue1": {
+          "command": ".uno:DefaultNumbering",
+          "states": [
+            ".uno:DefaultNumbering=true"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultNumbering\", \"success\": true, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12952438939, \"saveDurationMics\": 1034}"
+          ]
+        },
+        "issue2": {
+          "command": ".uno:DefaultNumbering",
+          "states": [
+            ".uno:DefaultNumbering=false"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultNumbering\", \"success\": true, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12955164666, \"saveDurationMics\": 948}"
+          ]
+        },
+        "issue3": {
+          "command": ".uno:DefaultNumbering",
+          "states": [
+            ".uno:DefaultNumbering=true"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultNumbering\", \"success\": true, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12957884440, \"saveDurationMics\": 956}"
+          ]
+        }
+      },
+      "silentRepeats": []
+    },
+    "bare/set-list-none": {
+      "dispatched": {
+        "group": "bare",
+        "name": "set-list-none",
+        "command": ".uno:RemoveBullets",
+        "arguments": "",
+        "reset": ".uno:DefaultBullet",
+        "resetArguments": ""
+      },
+      "verdict": "setter",
+      "readings": {
+        "reset": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Standard",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "bullet",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        },
+        "issue1": {
+          "found": true,
+          "element": "p",
+          "styleName": "Standard",
+          "resolvedStyle": "Standard",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue2": {
+          "found": true,
+          "element": "p",
+          "styleName": "Standard",
+          "resolvedStyle": "Standard",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue3": {
+          "found": true,
+          "element": "p",
+          "styleName": "Standard",
+          "resolvedStyle": "Standard",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        }
+      },
+      "witnessesUnchanged": true,
+      "callbacks": {
+        "reset": {
+          "command": ".uno:DefaultBullet",
+          "states": [
+            ".uno:DefaultBullet=true",
+            ".uno:DefaultNumbering=false"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultBullet\", \"success\": true, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12960613672, \"saveDurationMics\": 1171}"
+          ]
+        },
+        "issue1": {
+          "command": ".uno:RemoveBullets",
+          "states": [
+            ".uno:DefaultBullet=false"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:RemoveBullets\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12963335656, \"saveDurationMics\": 719}"
+          ]
+        },
+        "issue2": {
+          "command": ".uno:RemoveBullets",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:RemoveBullets\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12966060489, \"saveDurationMics\": 500}"
+          ]
+        },
+        "issue3": {
+          "command": ".uno:RemoveBullets",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:RemoveBullets\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12968781956, \"saveDurationMics\": 334}"
+          ]
+        }
+      },
+      "silentRepeats": [
+        "issue2",
+        "issue3"
+      ]
+    },
+    "bare/set-paragraph-heading": {
+      "dispatched": {
+        "group": "bare",
+        "name": "set-paragraph-heading",
+        "command": ".uno:StyleApply",
+        "arguments": "{\"Style\":{\"type\":\"string\",\"value\":\"Heading 1\"},\"FamilyName\":{\"type\":\"string\",\"value\":\"ParagraphStyles\"}}",
+        "reset": ".uno:StyleApply",
+        "resetArguments": "{\"Style\":{\"type\":\"string\",\"value\":\"Text body\"},\"FamilyName\":{\"type\":\"string\",\"value\":\"ParagraphStyles\"}}"
+      },
+      "verdict": "setter",
+      "readings": {
+        "reset": {
+          "found": true,
+          "element": "p",
+          "styleName": "Text_20_body",
+          "resolvedStyle": "Text_20_body",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue1": {
+          "found": true,
+          "element": "p",
+          "styleName": "Heading_20_1",
+          "resolvedStyle": "Heading_20_1",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue2": {
+          "found": true,
+          "element": "p",
+          "styleName": "Heading_20_1",
+          "resolvedStyle": "Heading_20_1",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue3": {
+          "found": true,
+          "element": "p",
+          "styleName": "Heading_20_1",
+          "resolvedStyle": "Heading_20_1",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        }
+      },
+      "witnessesUnchanged": true,
+      "callbacks": {
+        "reset": {
+          "command": ".uno:StyleApply",
+          "states": [
+            ".uno:StyleApply=Body Text"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:StyleApply\", \"success\": true, \"result\": { \"type\": \"unsigned short\"}, \"wasModified\": true, \"startUnixTimeMics\": 12971502717, \"saveDurationMics\": 767}"
+          ]
+        },
+        "issue1": {
+          "command": ".uno:StyleApply",
+          "states": [
+            ".uno:StyleApply=Heading 1"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:StyleApply\", \"success\": true, \"result\": { \"type\": \"unsigned short\"}, \"wasModified\": true, \"startUnixTimeMics\": 12974223495, \"saveDurationMics\": 948}"
+          ]
+        },
+        "issue2": {
+          "command": ".uno:StyleApply",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:StyleApply\", \"success\": true, \"result\": { \"type\": \"unsigned short\"}, \"wasModified\": true, \"startUnixTimeMics\": 12976951370, \"saveDurationMics\": 528}"
+          ]
+        },
+        "issue3": {
+          "command": ".uno:StyleApply",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:StyleApply\", \"success\": true, \"result\": { \"type\": \"unsigned short\"}, \"wasModified\": true, \"startUnixTimeMics\": 12979671728, \"saveDurationMics\": 404}"
+          ]
+        }
+      },
+      "silentRepeats": [
+        "issue2",
+        "issue3"
+      ]
+    },
+    "bare/set-paragraph-body": {
+      "dispatched": {
+        "group": "bare",
+        "name": "set-paragraph-body",
+        "command": ".uno:StyleApply",
+        "arguments": "{\"Style\":{\"type\":\"string\",\"value\":\"Text body\"},\"FamilyName\":{\"type\":\"string\",\"value\":\"ParagraphStyles\"}}",
+        "reset": ".uno:StyleApply",
+        "resetArguments": "{\"Style\":{\"type\":\"string\",\"value\":\"Heading 1\"},\"FamilyName\":{\"type\":\"string\",\"value\":\"ParagraphStyles\"}}"
+      },
+      "verdict": "setter",
+      "readings": {
+        "reset": {
+          "found": true,
+          "element": "p",
+          "styleName": "Heading_20_1",
+          "resolvedStyle": "Heading_20_1",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue1": {
+          "found": true,
+          "element": "p",
+          "styleName": "Text_20_body",
+          "resolvedStyle": "Text_20_body",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue2": {
+          "found": true,
+          "element": "p",
+          "styleName": "Text_20_body",
+          "resolvedStyle": "Text_20_body",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue3": {
+          "found": true,
+          "element": "p",
+          "styleName": "Text_20_body",
+          "resolvedStyle": "Text_20_body",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        }
+      },
+      "witnessesUnchanged": true,
+      "callbacks": {
+        "reset": {
+          "command": ".uno:StyleApply",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:StyleApply\", \"success\": true, \"result\": { \"type\": \"unsigned short\"}, \"wasModified\": true, \"startUnixTimeMics\": 12982391952, \"saveDurationMics\": 559}"
+          ]
+        },
+        "issue1": {
+          "command": ".uno:StyleApply",
+          "states": [
+            ".uno:StyleApply=Body Text"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:StyleApply\", \"success\": true, \"result\": { \"type\": \"unsigned short\"}, \"wasModified\": true, \"startUnixTimeMics\": 12985116466, \"saveDurationMics\": 904}"
+          ]
+        },
+        "issue2": {
+          "command": ".uno:StyleApply",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:StyleApply\", \"success\": true, \"result\": { \"type\": \"unsigned short\"}, \"wasModified\": true, \"startUnixTimeMics\": 12987838262, \"saveDurationMics\": 570}"
+          ]
+        },
+        "issue3": {
+          "command": ".uno:StyleApply",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:StyleApply\", \"success\": true, \"result\": { \"type\": \"unsigned short\"}, \"wasModified\": true, \"startUnixTimeMics\": 12990564275, \"saveDurationMics\": 508}"
+          ]
+        }
+      },
+      "silentRepeats": [
+        "issue2",
+        "issue3"
+      ]
+    },
+    "param/set-list-unordered": {
+      "dispatched": {
+        "group": "param",
+        "name": "set-list-unordered",
+        "command": ".uno:DefaultBullet",
+        "arguments": "{\"On\":{\"type\":\"boolean\",\"value\":true}}",
+        "reset": ".uno:RemoveBullets",
+        "resetArguments": ""
+      },
+      "verdict": "setter",
+      "readings": {
+        "reset": {
+          "found": true,
+          "element": "p",
+          "styleName": "Text_20_body",
+          "resolvedStyle": "Text_20_body",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue1": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Text_20_body",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "bullet",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        },
+        "issue2": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Text_20_body",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "bullet",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        },
+        "issue3": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Text_20_body",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "bullet",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        }
+      },
+      "witnessesUnchanged": true,
+      "callbacks": {
+        "reset": {
+          "command": ".uno:RemoveBullets",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:RemoveBullets\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12993301640, \"saveDurationMics\": 340}"
+          ]
+        },
+        "issue1": {
+          "command": ".uno:DefaultBullet",
+          "states": [
+            ".uno:DefaultBullet=true"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultBullet\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12996021619, \"saveDurationMics\": 838}"
+          ]
+        },
+        "issue2": {
+          "command": ".uno:DefaultBullet",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultBullet\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 12998741479, \"saveDurationMics\": 279}"
+          ]
+        },
+        "issue3": {
+          "command": ".uno:DefaultBullet",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultBullet\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13001461568, \"saveDurationMics\": 415}"
+          ]
+        }
+      },
+      "silentRepeats": [
+        "issue2",
+        "issue3"
+      ]
+    },
+    "param/set-list-ordered": {
+      "dispatched": {
+        "group": "param",
+        "name": "set-list-ordered",
+        "command": ".uno:DefaultNumbering",
+        "arguments": "{\"On\":{\"type\":\"boolean\",\"value\":true}}",
+        "reset": ".uno:RemoveBullets",
+        "resetArguments": ""
+      },
+      "verdict": "setter",
+      "readings": {
+        "reset": {
+          "found": true,
+          "element": "p",
+          "styleName": "Text_20_body",
+          "resolvedStyle": "Text_20_body",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue1": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Text_20_body",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "number",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        },
+        "issue2": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Text_20_body",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "number",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        },
+        "issue3": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Text_20_body",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "number",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        }
+      },
+      "witnessesUnchanged": true,
+      "callbacks": {
+        "reset": {
+          "command": ".uno:RemoveBullets",
+          "states": [
+            ".uno:DefaultBullet=false"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:RemoveBullets\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13004179636, \"saveDurationMics\": 690}"
+          ]
+        },
+        "issue1": {
+          "command": ".uno:DefaultNumbering",
+          "states": [
+            ".uno:DefaultNumbering=true"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultNumbering\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13006901359, \"saveDurationMics\": 874}"
+          ]
+        },
+        "issue2": {
+          "command": ".uno:DefaultNumbering",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultNumbering\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13009622826, \"saveDurationMics\": 439}"
+          ]
+        },
+        "issue3": {
+          "command": ".uno:DefaultNumbering",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultNumbering\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13012343063, \"saveDurationMics\": 284}"
+          ]
+        }
+      },
+      "silentRepeats": [
+        "issue2",
+        "issue3"
+      ]
+    },
+    "param/set-list-unordered-from-ordered": {
+      "dispatched": {
+        "group": "param",
+        "name": "set-list-unordered-from-ordered",
+        "command": ".uno:DefaultBullet",
+        "arguments": "{\"On\":{\"type\":\"boolean\",\"value\":true}}",
+        "reset": ".uno:DefaultNumbering",
+        "resetArguments": "{\"On\":{\"type\":\"boolean\",\"value\":true}}"
+      },
+      "verdict": "setter",
+      "readings": {
+        "reset": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Text_20_body",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "number",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        },
+        "issue1": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Text_20_body",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "bullet",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        },
+        "issue2": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Text_20_body",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "bullet",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        },
+        "issue3": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Text_20_body",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "bullet",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        }
+      },
+      "witnessesUnchanged": true,
+      "callbacks": {
+        "reset": {
+          "command": ".uno:DefaultNumbering",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultNumbering\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13015068553, \"saveDurationMics\": 416}"
+          ]
+        },
+        "issue1": {
+          "command": ".uno:DefaultBullet",
+          "states": [
+            ".uno:DefaultBullet=true",
+            ".uno:DefaultNumbering=false"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultBullet\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13017789808, \"saveDurationMics\": 856}"
+          ]
+        },
+        "issue2": {
+          "command": ".uno:DefaultBullet",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultBullet\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13020510681, \"saveDurationMics\": 473}"
+          ]
+        },
+        "issue3": {
+          "command": ".uno:DefaultBullet",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultBullet\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13023232416, \"saveDurationMics\": 288}"
+          ]
+        }
+      },
+      "silentRepeats": [
+        "issue2",
+        "issue3"
+      ]
+    },
+    "param/set-list-none-from-ordered": {
+      "dispatched": {
+        "group": "param",
+        "name": "set-list-none-from-ordered",
+        "command": ".uno:RemoveBullets",
+        "arguments": "",
+        "reset": ".uno:DefaultNumbering",
+        "resetArguments": "{\"On\":{\"type\":\"boolean\",\"value\":true}}"
+      },
+      "verdict": "setter",
+      "readings": {
+        "reset": {
+          "found": true,
+          "element": "p",
+          "styleName": "P1",
+          "resolvedStyle": "Text_20_body",
+          "inList": true,
+          "listStyle": "L1",
+          "listKind": "number",
+          "listDepth": 1,
+          "witnessesUnchanged": true
+        },
+        "issue1": {
+          "found": true,
+          "element": "p",
+          "styleName": "Text_20_body",
+          "resolvedStyle": "Text_20_body",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue2": {
+          "found": true,
+          "element": "p",
+          "styleName": "Text_20_body",
+          "resolvedStyle": "Text_20_body",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        },
+        "issue3": {
+          "found": true,
+          "element": "p",
+          "styleName": "Text_20_body",
+          "resolvedStyle": "Text_20_body",
+          "inList": false,
+          "listStyle": null,
+          "listKind": null,
+          "listDepth": 0,
+          "witnessesUnchanged": true
+        }
+      },
+      "witnessesUnchanged": true,
+      "callbacks": {
+        "reset": {
+          "command": ".uno:DefaultNumbering",
+          "states": [
+            ".uno:DefaultBullet=false",
+            ".uno:DefaultNumbering=true"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:DefaultNumbering\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13025961061, \"saveDurationMics\": 718}"
+          ]
+        },
+        "issue1": {
+          "command": ".uno:RemoveBullets",
+          "states": [
+            ".uno:DefaultNumbering=false"
+          ],
+          "results": [
+            "{ \"commandName\": \".uno:RemoveBullets\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13028687404, \"saveDurationMics\": 748}"
+          ]
+        },
+        "issue2": {
+          "command": ".uno:RemoveBullets",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:RemoveBullets\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13031412307, \"saveDurationMics\": 335}"
+          ]
+        },
+        "issue3": {
+          "command": ".uno:RemoveBullets",
+          "states": [],
+          "results": [
+            "{ \"commandName\": \".uno:RemoveBullets\", \"success\": false, \"result\": { \"type\": \"void\"}, \"wasModified\": true, \"startUnixTimeMics\": 13034133149, \"saveDurationMics\": 339}"
+          ]
+        }
+      },
+      "silentRepeats": [
+        "issue2",
+        "issue3"
+      ]
+    }
+  },
+  "missingSnapshots": [],
+  "verdicts": {
+    "bare/set-list-unordered": "toggle",
+    "bare/set-list-ordered": "toggle",
+    "bare/set-list-none": "setter",
+    "bare/set-paragraph-heading": "setter",
+    "bare/set-paragraph-body": "setter",
+    "param/set-list-unordered": "setter",
+    "param/set-list-ordered": "setter",
+    "param/set-list-unordered-from-ordered": "setter",
+    "param/set-list-none-from-ordered": "setter"
+  },
+  "byGroup": {
+    "bare": {
+      "allSetters": false,
+      "silentRepeats": {
+        "bare/set-list-none": [
+          "issue2",
+          "issue3"
+        ],
+        "bare/set-paragraph-heading": [
+          "issue2",
+          "issue3"
+        ],
+        "bare/set-paragraph-body": [
+          "issue2",
+          "issue3"
+        ]
+      }
+    },
+    "param": {
+      "allSetters": true,
+      "silentRepeats": {
+        "param/set-list-unordered": [
+          "issue2",
+          "issue3"
+        ],
+        "param/set-list-ordered": [
+          "issue2",
+          "issue3"
+        ],
+        "param/set-list-unordered-from-ordered": [
+          "issue2",
+          "issue3"
+        ],
+        "param/set-list-none-from-ordered": [
+          "issue2",
+          "issue3"
+        ]
+      }
+    }
+  },
+  "allSetters": false,
+  "allWitnessesUnchanged": true,
+  "anySilentRepeat": true
+}

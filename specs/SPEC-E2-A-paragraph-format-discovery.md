@@ -1,7 +1,8 @@
 # SPEC E2-A：段落層級格式的 completion barrier discovery
 
-> **日期**：2026-08-05  
-> **狀態**：規劃；尚未執行  
+> **日期**：2026-08-05（最後修訂 2026-08-11，v11）  
+> **狀態**：A1（部分）與 A2 已執行；**A3～A7 未執行、E2-A 尚無判定**。
+> A3 的前置是第 4 節〈路線 C 未決事項〉先有決定。  
 > **上層規格**：[SPEC E2-000](./SPEC-E2-000-overview.md)  
 > **前置閘門**：[E1](./SPEC-E1-000-overview.md) 已判定 `E1_GO_ODT_EDITOR`  
 > **凍結矩陣**：[`e2/discovery-matrix-v1.json`](../wasm_sdk_probe/e2/discovery-matrix-v1.json)
@@ -183,6 +184,32 @@ search 列都正確為 `true`，且 `updateEditorFormatState` 先清旗標才發
 `Scheduler::ProcessEventsToIdle()` 是公開 API（`include/vcl/scheduler.hxx:65`）且有
 產品呼叫者，「沒有受支援入口」不成立；路線 A（產品自行 pump）**延後而非否決**。
 
+### 2.7 路線 C 的兩個前提實測（2026-08-11，已觀察）
+
+證據：[`sdk-e2/discovery/reissue/native-26-8/`](../findings/evidence/sdk-e2/discovery/reissue/native-26-8/)，
+見 [finding 030](../findings/030-closed-list-actions-dispatch-the-toggle-form-and-a-noop-is-silent.md)。
+
+路線 C 移除前置條件讀取，等於**允許同一個 action 被連續派送**。這使兩件先前被
+`alreadyAtTarget` 短路遮住的事變成必須先答的問題。原生 26.8、同一段落、先置入相反狀態再
+連按三次，每次派送後存 ODT，判定一律讀存檔內容。
+
+**（一）不帶參數的清單命令是 toggle。** `.uno:DefaultBullet`／`.uno:DefaultNumbering`
+在沒有 `On` 參數時取 `!SelectionHasBullet()`，也就是現況的相反（`svx/sdi/svx.sdi:2251`、
+`:4985` 宣告 `SfxBoolItem On FN_PARAM_1`；`sw/source/uibase/shells/txtnum.cxx:81-108`
+有參數才是 explicit mode）。實測第二次按下 `set-list-unordered` 會把段落踢出清單。
+**帶 `On=true` 則四個案例全部是 setter**，包含有序清單→無序清單的跨種類轉換——
+所以第 4 節的三態封閉列舉做得到，前提是送對形式。engine 已改派參數化形式
+（`src/probe_engine.cpp`，`tests/test_e2_profile.py` 有測試釘住，突變控制通過）。
+
+**（二）值沒變就沒有 STATE_CHANGED。** 已在目標狀態時再按一次，文件正確、command result
+照常抵達且帶正確 `commandName`，但**九個案例的第二、三次全部零 watched payload**。
+第 4 節的 completion 需要 (a) 歸屬與 (b) state 後置條件同時成立，(b) 在合法 no-op 時
+永遠不會到，因此會逾時成 `MUTATION_OUTCOME_UNKNOWN`——而文件其實是對的。
+
+**這是低報，不是誤報**，但第 8 節把「no-op 與遺失不可區分」列為 `STOP_OR_RESCOPE`，
+所以只修（一）不會讓 A3 可判定。四條出路（接受低報／路線 A／新增文件 readback／
+只用 command result）記在 finding 030，**待產品決定**。
+
 ## 3. 不可退讓的邊界
 
 沿用 [SPEC E2-000](./SPEC-E2-000-overview.md) 第 6 節全部條款。E2-A 另加：
@@ -200,10 +227,23 @@ A2 的結果決定了設計：**兩個來源各自只提供一半，缺一不可
 - state callback 是唯一如實反映文件的東西 —— 解決真值。反過來用會錯：用 `success` 判定會讓
   `set-list-none` 每次都回報失敗。
 
+> **2026-08-11 v11 修訂（路線 C 的前置條件契約）**：下方流程圖的**前兩行已作廢**。
+> 產品路線 C 不讀前置狀態，`EDITOR_FORMAT_STATE_UNAVAILABLE` 的前置檢查與
+> `documented-state-noop` 一併移除；派送是無條件的。作廢的原文保留在本段，
+> 不從歷史抹掉：
+>
+> ```text
+> dispatch 前   ── 對應 typed state 未知 ──▶ EDITOR_FORMAT_STATE_UNAVAILABLE（零 mutation，fail closed）
+>               └─ 已等於目標值 ──────────▶ documented-state-noop（changed:false，revision 不變）
+> ```
+>
+> 移除的代價已於 2.7 節實測：合法 no-op 不再有任何 state payload 可等，
+> 因此下方的「barrier 逾時」會成為**重複按下的常態讀數**。這是本規格目前的
+> 未決點，見本節末的〈路線 C 未決事項〉。
+
 ```text
-dispatch 前   ── 對應 typed state 未知 ──▶ EDITOR_FORMAT_STATE_UNAVAILABLE（零 mutation，fail closed）
-              └─ 已等於目標值 ──────────▶ documented-state-noop（changed:false，revision 不變）
-dispatch      ── 記錄 beforeRevision / beforeSequence，開啟 barrier，期間其他 editor action 回 BUSY
+dispatch      ── 無條件派送（不讀前置狀態）。記錄 beforeRevision / beforeSequence，
+                 開啟 barrier，期間其他 editor action 回 BUSY
 barrier 命中  ── 需同時成立：
                  (a) command result 的 commandName 等於本次派送的命令；
                  (b) 對應命令的 state payload 值等於期望值。
@@ -215,17 +255,42 @@ barrier 逾時  ──▶ MUTATION_OUTCOME_UNKNOWN，不 retry，不猜
 
 | action | 派送 | 後置條件（state） |
 |---|---|---|
-| `set-list-unordered` | `.uno:DefaultBullet` | `.uno:DefaultBullet=true` |
-| `set-list-ordered` | `.uno:DefaultNumbering` | `.uno:DefaultNumbering=true` |
+| `set-list-unordered` | `.uno:DefaultBullet` ＋ `On=true` | `.uno:DefaultBullet=true` |
+| `set-list-ordered` | `.uno:DefaultNumbering` ＋ `On=true` | `.uno:DefaultNumbering=true` |
 | `set-list-none` | `.uno:RemoveBullets` | `DefaultBullet=false` **且** `DefaultNumbering=false` |
 | `set-paragraph-heading` | `.uno:StyleApply` ＋ `Style=Heading 1`、`FamilyName=ParagraphStyles` | `.uno:StyleApply=Heading 1` |
 | `set-paragraph-body` | `.uno:StyleApply` ＋ `Style=Text body`、`FamilyName=ParagraphStyles` | `.uno:StyleApply=Body Text` |
+
+> **2026-08-11 v11 修訂（派送形式）**：前兩列原本寫不帶參數的命令名。實測那是 toggle，
+> 在無條件派送下第二次按會反轉（2.7 節、[finding 030](../findings/030-closed-list-actions-dispatch-the-toggle-form-and-a-noop-is-silent.md)）。
+> `On` 是 core 有文件的 explicit mode 參數，**不是我方發明的旗標**。
+> `set-list-none` 維持不帶參數：`FN_NUM_BULLET_OFF` 本身就轉呼 `On=false` 再
+> `DelNumRules`，實測三次連按皆停在「不在清單」，從 bullet 與 numbered 兩種起點都一樣。
 
 `success` 與 `wasModified` 只記錄進 evidence，**不參與判定**。
 
 **次要危害仍是 attribution。** state callback 是廣播的，caret 移動也會送出。command result 已大幅降低這個
 風險，但兩個保護仍保留並各自計數：`crosstalkCount`（watched 命令但值不對）與 `earlyStateCount`（值對但早於
 command result 抵達）。第 5 節的 `state-crosstalk` 案例驗證這兩個計數確實有效。
+
+### 路線 C 未決事項：no-op 沒有後置條件可等
+
+2.7 節（二）的實測讓上面的 completion 定義在一種情況下永遠無法成立：文件已經在目標狀態時，
+core 不廣播 state，於是 (b) 不會到，barrier 逾時。**A3 在這一點解決之前不啟動。**
+
+四條出路（詳見 [finding 030](../findings/030-closed-list-actions-dispatch-the-toggle-form-and-a-noop-is-silent.md)），
+本規格不預設哪一條：
+
+1. **接受低報**：維持現有定義，重複按下回 `MUTATION_OUTCOME_UNKNOWN`。零新機制，
+   但把「不知道」變成常態讀數，判定訊號變鈍。
+2. **路線 A（產品自行推進 scheduler）**：狀態可信之後，前置條件與 no-op 再次可分。
+   代價是進入共用路徑需跑完整回歸（finding 012 相鄰風險）。
+3. **後置條件改讀文件**：派送後直接讀該段落實際格式，不靠廣播。最誠實，
+   但需要一個目前不存在的 readback 能力，得自成一輪 discovery。
+4. **只用 command result 當完成條件**：歸屬有了，真值沒有。這正是本節開頭明確拒絕的做法
+   （finding 020），列出只為說明它被考慮過。**不建議。**
+
+無論選哪一條，**派送形式的修正（2.7 節（一））都是必要的**，因此已先行實作。
 
 ## 5. 凍結矩陣
 
@@ -251,6 +316,9 @@ A2 不通過就直接停止：沒有可靠的後置狀態，barrier 無從建立
 - **A2-native**：已完成（2026-08-05）。結果見 2.2 節；通過，但推翻 v1 前提並產生 finding 019／020。
 - **A2-wasm**：已完成（2026-08-05）。結果見 2.3 節。三個 payload 抵達且派送後可信，但
   caret 追隨性不成立（finding 021），因此 A2 **部分通過**：後置條件成立，前置條件不成立。
+- **A2-reissue（原生）**：已完成（2026-08-11）。結果見 2.7 節。路線 C 的兩個前提各得一個答案：
+  派送形式要帶參數才是 setter（已修）；合法 no-op 沒有後置條件可等（未決）。
+  此項是路線 C 定案後才成立的問題，v1～v10 沒有對應的先決條件。
 
 ### A3：正向 barrier
 
@@ -260,10 +328,26 @@ Chrome／Firefox 各 3 次，每個 fixture：
 - `set-paragraph-heading` → `set-paragraph-body` 兩態往返；
 - 每次驗證 completion source、`changed`、revision 只前進一格與 typed 後置狀態。
 
-### A4：no-op 與 fail-closed
+> **2026-08-11 v11 補充**：三態循環的每一步都是**跨狀態轉換**，所以它驗不到重複派送。
+> 那正是路線 C 新增的風險面，因此 A4 改寫如下。
 
-- 已是目標狀態時重下同一 action，必須回 `documented-state-noop`、`changed:false`、revision 不變。
-- 在狀態尚未已知時下 action，必須回 `EDITOR_FORMAT_STATE_UNAVAILABLE` 且零 mutation。
+### A4：重複派送（原「no-op 與 fail-closed」）
+
+> **2026-08-11 v11 改寫。** 原文兩條都建立在讀前置狀態上，路線 C 之後兩條都不再適用，
+> 作廢原文保留於此：
+>
+> - ~~已是目標狀態時重下同一 action，必須回 `documented-state-noop`、`changed:false`、revision 不變。~~
+> - ~~在狀態尚未已知時下 action，必須回 `EDITOR_FORMAT_STATE_UNAVAILABLE` 且零 mutation。~~
+
+無條件派送之下，要驗的是**冪等**與**無聲 no-op**：
+
+- **冪等**：已是目標狀態時連下同一 action 三次，每次派送後存檔，
+  五個 action 的文件狀態都必須停在目標，**不得反轉**。2.7 節已在原生驗過參數化形式成立；
+  A4 要驗的是 WASM 路徑上 `On` 參數確實原封不動送達（原生成立不代表我方 worker／engine
+  的序列化沒動它）。
+- **無聲 no-op**：同上重複派送時記錄 completion 的實際結果。
+  依第 4 節〈路線 C 未決事項〉選定的出路判定；**在未決之前，A4 不算通過，A3 不啟動**。
+- **零 mutation 的 fail-closed 仍要有一條**：`stale-revision` 移到 A5 一併驗（原本就在那裡）。
 
 ### A5：負向與邊界
 
@@ -312,6 +396,7 @@ findings/evidence/sdk-e2/
   baseline/preflight-after.json
   inventory/profile.json
   discovery/state-readback/<browser>.json      ← A2
+  discovery/reissue/native-26-8/               ← A2-reissue（2.7 節）
   discovery/browser/<browser>/<fixture>/<attempt>/
   discovery/secondary/<browser>.json           ← A6
   roundtrip/summary.json
@@ -329,6 +414,9 @@ findings/evidence/sdk-e2/
 
 - A1 若 surface 不符先停止，不跑 mutation。
 - **A2 不通過即停止**，不進 A3；這是本輪最主要推論的驗證點。
+- **（2026-08-11 v11 新增）A3 另有一個前置條件**：第 4 節〈路線 C 未決事項〉必須先有決定。
+  在那之前跑 A3 只會得到一批「跨狀態轉換都過、重複派送都 UNKNOWN」的資料，
+  而那個 UNKNOWN 是設計未定，不是量測結果——**跑了也不能判定**。
 - A3／A4 出現 silent mutation、completion 不可歸屬或 no-op 與遺失不可區分時，立即停止並建立 finding。
 - A5 的 `state-crosstalk` 失敗等同 completion 不可歸屬，屬停止條件，不得以「實務上很少發生」略過。
 - A6 失敗不停止。
@@ -345,12 +433,25 @@ A7 round-trip 與回歸通過。
 **`STOP_OR_RESCOPE`**：A2 狀態不抵達或不穩定；completion 不可歸屬（含 `state-crosstalk` 失敗）；
 no-op 與遺失不可區分；清單切換造成結構 silent loss 或 teardown 阻塞；或補齊需要禁止 surface。
 
+> **2026-08-11 v11 註**：`STOP_OR_RESCOPE` 的「no-op 與遺失不可區分」現在**已經有一個已知實例**
+> （2.7 節（二））。這不表示 E2-A 現在就是 STOP——判定要有完整的 A3～A7 才成立，而 A3 尚未啟動。
+> 它表示的是：若第 4 節〈路線 C 未決事項〉選了出路 1（接受低報），
+> **選擇本身就落在這條 STOP 條款上**，那時要嘛改寫這條條款、要嘛接受 STOP。
+> 兩者都可以，但不能當作沒看到。
+
 ## 9. 實作檔案
 
 已新增（A2-native）：
 
 - `wasm_sdk_probe/tools/e2_a_native_state_readback.cpp`
 - `wasm_sdk_probe/tools/run_e2_a_native.sh`
+
+已新增（A2-reissue，2026-08-11）：
+
+- `wasm_sdk_probe/tools/e2_a_native_reissue.cpp`
+- `wasm_sdk_probe/tools/run_e2_a_native_reissue.sh`
+- `wasm_sdk_probe/tools/analyze_e2_a_native_reissue.py`（判定放在分析器，不放在 shell 摘要行，
+  理由與 `run_e2_a_native.sh` 的前綴比對錯誤相同）
 
 已修改（barrier 實作）：
 
@@ -457,6 +558,16 @@ A3～A7 尚未執行。**A3 仍不啟動**：finding 021 已歸因且產品級�
 （2.6 節），但 caret 移動後的 freshness 來源未定（PEI 與活迴圈的行為差異未歸因），
 且推進點若進入共用路徑需先跑完整回歸。E2-A 目前**沒有**判定；第 8 節的三個結果都還不成立。
 
+> **2026-08-11 v11 更新：擋住 A3 的理由換了一個。** 產品路線 C 定案後，上面那個
+> freshness 問題**不再是 A3 的前置**——路線 C 根本不讀前置狀態。取而代之的是 2.7 節
+> 實測出來的新前置：合法 no-op 沒有後置條件可等（第 4 節〈路線 C 未決事項〉）。
+>
+> 已完成、與出路選擇無關的部分：派送形式改為參數化 explicit mode（2.7 節（一）），
+> `e2-format-discovery` 已重建為 `abf3598f…`；`OXSDK_E2_FORMAT_BARRIER` 關閉時
+> E1-B 組態的 `probe_engine.o` **逐位元不變**（與既有 `build/e1/editor-v1/probe_engine.o`
+> 比對通過），三個凍結 artifact 未受影響。`tests/test_e2_profile.py` 新增三項釘住派送形式，
+> 突變（拿掉 `On` 參數）證明會失敗。
+
 ### 10.5 順帶記錄（與 E2 無因果關係）
 
 `src/probe_engine.cpp` 的 `struct SelectionReadback` 定義在 `#ifdef OXSDK_EDITOR_DISCOVERY` 區塊內，但
@@ -499,3 +610,4 @@ scope 共用同一份 worker patch，manifest 新增 `engineLoop` 診斷欄位�
 | 2026-08-06 | v9（覆核修訂）。2.6 節結果二改寫：watched payload 在活迴圈下**會抵達但落後一個定位點**（原寫「零抵達／未被排程」對最終 build 的證據為假，該讀數屬過渡 build），缺口正確描述為收斂／順序問題；撤回 `GetMostUrgentTaskPriority=-1` 作為證據（取樣點使該值恆為 -1）；補記 `loop()` 與 PEI 差兩個參數。新增結果三：回退後的 fail-closed 仍擋不住落後一格的 payload，**未修補**，A3 的前提因此多一項。 |
 | 2026-08-06 | v10（二次覆核＋產品決定）。撤回 v9 追加的「結果三：落後一格的 payload 會清掉 stale 旗標」——engine 旗標在兩瀏覽器全部 search 列都正確為 stale，且 `updateEditorFormatState` 先清旗標才發事件，誤因是把 harness 的 `fresh`（計數起點在定位之前）當成 engine 判準；殘留缺口改寫為逐欄位世代標記（推論，未觀測到實例）。更正「沒有受支援的刷新入口」：`Scheduler::ProcessEventsToIdle()` 是公開 API 且有產品呼叫者，只有 C 包裝 `unit_lok_process_events_to_idle` 是 unit-test 掛鉤。使用者決定不送上游，產品路線定為 **C：不讀前置狀態**（closed action 直接派送，只用後置條件判定，移除 `documented-state-noop`），路線 A（產品自行 pump）延後而非否決。 |
 | 2026-08-08 | 更正。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |
+| 2026-08-11 | v11（路線 C 的前置條件契約）。把 v10 的產品決定落成條文：第 4 節作廢前置狀態讀取與 `documented-state-noop`（原文保留於引用區），A4 由「no-op 與 fail-closed」改寫為「重複派送」。新增 2.7 節，記錄路線 C 兩個前提的原生實測（[finding 030](../findings/030-closed-list-actions-dispatch-the-toggle-form-and-a-noop-is-silent.md)）：（一）不帶參數的 `.uno:DefaultBullet`／`.uno:DefaultNumbering` **是 toggle**，第二次按下會反轉，帶 `On=true` 則四案例全為 setter（含跨種類轉換）——已修，engine 改派參數化形式，測試釘住並通過突變控制，E1-B 目的檔逐位元不變；（二）**值沒變就沒有 STATE_CHANGED**，合法 no-op 因此沒有後置條件可等，barrier 逾時成 `MUTATION_OUTCOME_UNKNOWN`。（二）尚未有解，第 4 節新增〈路線 C 未決事項〉列四條出路並註明本規格不預設；第 7 節因此給 A3 加上「未決事項先有決定」的前置，第 8 節註明出路 1 本身就落在 STOP 條款上。**擋住 A3 的理由由 freshness 換成 no-op 的可判定性**，10.4 節已就地更新。 |
