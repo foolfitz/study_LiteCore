@@ -49,12 +49,50 @@ def shipped_identity(project: Path) -> dict[str, Any]:
         "loaderSha256": EXPECTED_LOADER_SHA256,
         "wasmSha256": EXPECTED_WASM_SHA256,
     }
+    matches = {key: observed[key] == expected[key] for key in expected}
     return {
         "observed": observed,
         "expected": expected,
-        "matches": {key: observed[key] == expected[key] for key in expected},
+        "matches": matches,
+        "transcription": faithful_transcription(project, manifest),
         "pass": observed == expected,
     }
+
+
+# The three fields build_release_manifest() copies verbatim out of the profile
+# manifest rather than deriving from the artifacts (r8_release.py:242-246).
+TRANSCRIBED_FIELDS = ("coreCommit", "sdkVersion", "capabilities")
+
+
+def faithful_transcription(project: Path, manifest: dict[str, Any]) -> dict[str, Any]:
+    """Check the release manifest still says what its source says.
+
+    coreCommit, sdkVersion and capabilities are not measured from the artifacts;
+    build_release_manifest() copies them out of
+    dist/profiles/writer-review-r6/sdk-manifest.json, which is itself a plain cp
+    of a hand-maintained file (Makefile:1120-1121).  Faithful at build time, by
+    construction -- but this validator reads dist/r8/release-manifest.json off
+    disk without rebuilding it, so a release manifest that predates a change to
+    the profile manifest is reachable, and that is finding 027's shape again.
+
+    Comparing the copy against its source costs nothing and adds no new hardcoded
+    copy of the fact -- which matters, because the core commit alone already sits
+    in 15 files with no cross-check (finding 029).  capabilities in particular is
+    gated nowhere else: validate_r7_preflight.EXPECTED_MANIFEST covers coreCommit
+    and sdkVersion, but not it.
+    """
+    source = load_json(project / "dist" / "profiles" / "writer-review-r6" / "sdk-manifest.json")
+    fields = {
+        field: {
+            "release": manifest.get(field),
+            # The builder sorts capabilities; compare on the same footing.
+            "source": sorted(source[field]) if field == "capabilities" else source.get(field),
+        }
+        for field in TRANSCRIBED_FIELDS
+    }
+    for value in fields.values():
+        value["pass"] = value["release"] == value["source"]
+    return {"fields": fields, "pass": all(value["pass"] for value in fields.values())}
 
 # Every release identity R8 can ship, keyed by the (fidelity policy, variant
 # marker) pair that produces it.  R8-B ships two policies; R8-C ships three
@@ -398,7 +436,7 @@ def main() -> None:
     identity = shipped_identity(project)
     safety_checks = {
         "matrixSchema": matrix.get("schemaVersion") == 1,
-        "shippedIdentity": identity["pass"],
+        "shippedIdentity": identity["pass"] and identity["transcription"]["pass"],
         "releaseBinding": binding["pass"],
         "r8c": r8c.get("pass") is True and r8c.get("decision") in {"GO", "PARTIAL_GO"},
         "r8b": delivery.get("pass") is True,

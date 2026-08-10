@@ -101,14 +101,78 @@ artifacts.wasmSha256         : ba257beb…   ← 印的是實測值，不是被�
 還原後 `decision` 回到 `PARTIAL_GO_LOCAL_DELIVERY`、
 `shippedIdentity: True`、六家族仍全 bound。
 
-## 待驗證
+## 待驗證（三項均已於 2026-08-10 同日結案）
 
-1. 另外 14 份寫死的 `671c848b…` 副本裡，有哪些也是「只寫出不比對」。
-   本檔只查了 `validate_r8_d.py` 這一份。
-2. `sdkVersion` 與 `capabilities` 同樣是手工宣稱且無交叉比對，
-   本次未納入 `shippedIdentity`（它們不影響 artifact 身分，但會影響
-   `RELEASE_UNSUPPORTED` 那條路徑的語意）。
-3. 是否該把 15 份副本收斂成單一來源。**改動範圍跨 E1／R6／R7／R8，未評估。**
+### 1. 另外 14 份副本 ~~有哪些也是「只寫出不比對」~~ → **結案：沒有，`validate_r8_d.py` 是唯一一份**
+
+逐檔審計結果（已觀察）：
+
+| 檔案 | 用法 | 判定 |
+|---|---|---|
+| `validate_e1_preflight.py:104` | `head == CORE_COMMIT`（比對實測 git HEAD） | 真閘門 |
+| `validate_r6_preflight.py:102`、`:113-119` | 同上；另 `result["manifest"] == {…}` | 真閘門 ×2 |
+| `validate_r7_preflight.py:170`、`:173` | 同上；另 `manifest_summary == EXPECTED_MANIFEST` | 真閘門 ×2 |
+| `validate_r8_preflight.py:92` | `core_commit == EXPECTED_CORE_COMMIT` | 真閘門 |
+| `validate_e1_c.py:182` | `head == CORE_BASELINE_HEAD` | 真閘門 |
+| `validate_finding_012_native_26_8.py:106` | `--expected-core-commit` 的預設值，validator 比對 | 真閘門 |
+| `tests/test_finding_012_native_26_8.py` | 測試 fixture | 不適用 |
+| `create_r7_compatibility_corpus.py:198`、`:384` | **producer 在建立時蓋 provenance** | 見下 |
+| `sdk/manifest.json`、`sdk/r6-writer-review-manifest.json` | 被上列 preflight 比對的**受檢宣稱** | 受閘 |
+| `e1/*.json`、`e2/*.json` 的 `.baseline.coreCommit` | **無人讀取** | 見下 |
+| `test-docs/r7-compat/manifest.json`（7 處） | corpus 資料 | 見下 |
+
+**`validate_e1_c.py` 反而是做對的示範**：artifact 雜湊在 `:105-107` 實算、
+`:158-173` 以 observed／expected 比對——與本檔對 R8-D 的修法同形。
+**R8-D 是唯一的例外，不是通例。**
+
+兩個較弱的殘留（**都不寫進判定，嚴重度低於本檔主體**）：
+
+- **`e1/validation-matrix-v1.json`、`e1/discovery-matrix-v1.json`、
+  `e2/discovery-matrix-v1.json` 的 `.baseline.coreCommit` 沒有任何人讀。**
+  `validate_e1_c.py:157` 確實讀 `matrix["baseline"]`，但只取三個
+  `*Sha256` 欄位；commit 那欄是閘門用**模組常數**比對的，不是用矩陣裡這個值。
+  兩者目前一致，但矩陣若過期不會有人發現。
+- **corpus 的 `coreCommit` 只驗有無、不驗值**：
+  `validate_r7_compatibility_corpus.py:113-114` 是
+  `if source.get("kind") == "libreoffice-qa" and not source.get("coreCommit")`。
+  屬測試素材的 provenance metadata。
+
+### 2. ~~`sdkVersion` 與 `capabilities` 未納入~~ → **結案：已納入，但改用更好的比對對象**
+
+原本設想是替它們也加寫死的期待值。查證後改法更好——**`capabilities` 確實沒有任何
+閘門**（`validate_r7_preflight.EXPECTED_MANIFEST` 只涵蓋 `coreCommit` 與
+`sdkVersion`），而 `sdkVersion` 已被 R7 preflight 閘在
+`dist/profiles/writer-review-r6/sdk-manifest.json` 上——**正是 R8 release manifest
+抄寫的同一份來源檔**。
+
+所以新增的不是第 16 份寫死副本，而是 `faithful_transcription()`：
+**比對「抄本」與「它抄的那份來源」**。這檢查的是本檔主體沒涵蓋的一條路——
+`validate_r8_d.py` 直接讀磁碟上的 `dist/r8/release-manifest.json` 而不重建，
+所以「release manifest 早於 profile manifest 的變更」是可達的，
+**又是 027 的形狀**。不符現在併入 `safetyChecks["shippedIdentity"]`。
+
+突變控制（兩次，各自針對不同欄位）：
+
+| 突變 | `decision` | `identity` | `transcription` | 逐欄 |
+|---|---|---|---|---|
+| 來源指向 `writer-review`（非 `-r6`） | STOP | **True**（不受影響） | False | 只有 `sdkVersion` false |
+| 來源 `capabilities` 刪掉一項 | STOP | True | False | 只有 `capabilities` false |
+
+第一次突變**沒有真正考驗 `capabilities`**（兩個 profile 剛好都是 14 項且相同），
+所以補了第二次專門針對它的突變。還原後 `PARTIAL_GO_LOCAL_DELIVERY`、
+`identity` 與 `transcription` 皆 True、六家族仍全 bound。
+
+### 3. ~~是否該把 15 份副本收斂成單一來源~~ → **結案：不收斂，理由如下**
+
+第 1 項的審計改變了這個問題的前提：**14 份裡沒有一份是壞的**，它們是六個獨立
+release（E1／R6／R7／R8／finding 012）各自的**凍結基線**。收斂成單一來源會把
+「每個 release 凍結它當時的基線」變成「所有 release 共享一個會動的值」——
+那正好破壞凍結的意義，也會讓 `validate_e1_c.py` 這種以模組常數比對實測 HEAD
+的真閘門失去獨立性。
+
+**成本高、方向可疑，因此不做。** 值得做的是上面兩個殘留：讓矩陣的
+`.baseline.coreCommit` 有人讀（或刪掉它，別留一個沒人看的宣稱）。
+**兩者本輪均未動。**
 
 ## 證據
 
@@ -121,6 +185,13 @@ artifacts.wasmSha256         : ba257beb…   ← 印的是實測值，不是被�
 
 ## 修訂紀錄
 
+- 2026-08-10（第二則）：**三個待驗證同日結案。** 逐檔審計 14 份副本，
+  **沒有第二個「只寫出不比對」**——R8-D 是唯一例外，`validate_e1_c.py` 反而是
+  做對的示範。待驗證 2 改用比對來源檔而非新增第 16 份寫死副本，
+  新增 `faithful_transcription()`（含 `capabilities`，它先前沒有任何閘門），
+  兩次針對不同欄位的突變各自證明能失敗。待驗證 3 改判為**不收斂**：
+  14 份是六個 release 各自的凍結基線，收斂會破壞凍結的意義。
+  留下兩個未動的殘留：矩陣 `.baseline.coreCommit` 無人讀、corpus commit 只驗有無。
 - 2026-08-10：建檔並同日修復。起因是查 finding 027 待處理第 3 項的「殘留層」，
   發現真正會影響最上層判定的不是 release manifest 的照抄，而是
   `validate_r8_d.py` 把驗證對象的身分抄成常數寫進摘要。
