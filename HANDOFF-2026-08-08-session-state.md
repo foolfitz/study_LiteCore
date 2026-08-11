@@ -678,7 +678,10 @@ readback 的 markup **本來就帶著段落文字**，所以判準寫成
 |---|---|
 | A3 | **A3_PASS**（兩瀏覽器 × 三 fixture，各 3/3，綁定 `25761ff0…`） |
 | A5 | **A5_PASS**（兩瀏覽器 × 四 fixture）——**Firefox 負向輪由零變成有** |
-| A4 | 重綁中（sweep 執行中） |
+| A4 | **A4_PASS**（18 runs／270 次派送） |
+
+A3 105 次派送 ＋ A4 270 次 ＋ A5 58 個案例，全部綁定 `25761ff0…`。
+**E2-A 仍無總判定**——第 8 節要求 A6／A7 也有結果，兩者都未開始。
 
 凍結文件的漂移已補：SPEC E2-A v12（A5 表格的 `table-boundary` 期望改寫＋範圍限制）、
 矩陣新增第二筆 `revisions`（含 `superseded` 與 `openAfterThisRevision`）、
