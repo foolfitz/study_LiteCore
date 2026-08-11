@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認（A5 負向案例實測）／修法不完整——成因已改判為選取回呼不可歸屬，見下** |
+| **狀態** | **已確認並已修（2026-08-11 實測關閉）——關掉它的是 BUSY 閘，不是歸屬；見〈修法已實作〉** |
 | **Bugzilla** | — |
 | **發現日** | 2026-08-11 |
 | **嚴重度** | 嚴重（可能對錯誤的段落回報成功，且不會有任何錯誤訊號） |
@@ -93,9 +93,65 @@ barrier in-flight 期間，`search`／`placeCaret`／`select` **目前不被 `BU
 一併記下：**`GoToStartOfPara` 也會回 result**，所以推進條件必須比對 `commandName` 本身，
 不能寫成「收到任何 result」——`commandResultMatches` 正是做這件事。
 
-**尚未實作。** 還需要：BUSY 閘擋住 barrier in-flight 期間的移動游標命令（覆核判定為
-**必要但不充分**，兩層各管一段：歸屬管「推進那一刻」，BUSY 管「推進之後到讀取之間」），
-以及以 crosstalk 案例（含 table fixture）驗證。
+## 修法已實作並實測關閉（2026-08-11，**已觀察**）
+
+引擎 `25761ff0…`（前一版 `902379ba…`、修法前 `68590548…`）。
+
+兩層都做了：
+
+1. **歸屬**——`EndOfParaSel` 以 `notify=true` 派送，`AwaitingSelection` 的推進條件改為
+   「收到 `commandName == ".uno:EndOfParaSel"` 的 result **且** 選取非空」。
+2. **BUSY 閘**——`search`／`editor-select` 在 `formatBarrierActive()` 期間一律回 `BUSY`。
+   `search` 也在內，因為 `.uno:ExecuteSearch` **會選起命中處**，它是 caret mover，
+   而且正是 crosstalk 案例實際走的那條路。
+
+A5 `state-crosstalk`，Chrome 150.0.7871.128：
+
+| fixture | 結果 | readback | `caretMoveAccepted` |
+|---|---|---|---|
+| styled-list | `verified-format-readback` | `listTag=ul`、`blockTag=h1`、`restoreConfirmed=true` | `false` |
+| table-boundary | `verified-format-readback` | `<ul><li><h1>E1-CELL-A1</h1></li></ul>` | `false` |
+
+markup 自己帶著段落文字（`E1-CELL-A1`），所以「讀到哪一段」是**直接看得見**的，
+不必靠「那一段剛好不是目標狀態」這種會兩邊都通過的判準——本單前面正是栽在這裡。
+
+### 關掉它的是 BUSY，歸屬沒有被獨立證實
+
+`caretMoveAccepted=false`：crosstalk 的 `search` 被 `BUSY` 擋掉，游標根本沒移動。
+而 `selectionBeforeResultCount` 在**每一次** barrier 都是 `0`——
+意思是在自己的 `EndOfParaSel` result 到達之前，沒有任何非空選取抵達。
+
+**所以歸屬那一層在這批證據裡沒有攔到任何東西。** 它是縱深防禦，不是這次的修復者。
+本單不宣稱它修好了什麼；`selectionBeforeResultCount` 之所以不叫
+`unattributedSelectionCount`，就是為了不把判讀寫進名字裡。
+
+### 附帶量到的事：`notify` 是兩條派送路徑，混用不保序
+
+第一版只把 `EndOfParaSel` 改成 `notify=true`，`GoToStartOfPara` 維持 `false`
+（當時的理由是「少一個 result 比較乾淨」）。結果在 A5 styled-list attempt-04：
+
+- `stale-revision` 的 readback 是 `<p>D-END</p>`，而那一段的文字是 `E1-STYLED-END`
+  ——**選取錨點落在字中間**，也就是 `EndOfParaSel` 比 `GoToStartOfPara` 先生效。
+- `list-teardown` 直接 **30 秒逾時**：游標本來就停在段尾，`EndOfParaSel` 選到空，
+  非空選取的回呼永遠不會來。
+
+兩個都不是 flake，是同一個原因。兩個命令改成同樣 `notify=true` 後，五個案例全數回復
+（`stale-revision` 重新回到 `STALE_REVISION` 這個該有的分類拒絕）。
+原生那支確立本 readback 可行的探針，用的就是兩個都 `notify=true`。
+
+**代價是多一個 command result**——而這正是推進條件必須比對 `commandName` 的原因：
+`GoToStartOfPara` 也會回 result（原生 8/8，見上表）。那條當時看起來像註腳的量測，
+現在是承重的。
+
+### 順帶暴露的缺口：barrier 卡住會讓引擎永久 BUSY（**已觀察**，未修）
+
+`list-teardown` 逾時的是 client（30 秒），引擎那側的 barrier **仍然是 active**，
+於是下一個案例的 `search` 收到 `BUSY`——整個 document handle 就此卡死。
+
+引擎目前沒有 format barrier 的自有期限。矩陣有 `boundaryReadbackDeadlineMs: 250` 與
+`deadlineCanDeclareMutationSuccess: false`，方向是清楚的（期限只能判失敗，不能判成功），
+但 format barrier 沒接上。這條**在正常路徑上碰不到**（上述順序修好後五案例全通），
+但它是「一次逾時就毀掉整個 session」的形狀，列為未結項。
 
 ## 未消除的殘留（**推論，未實測**）
 
@@ -104,6 +160,11 @@ barrier in-flight 期間，`search`／`placeCaret`／`select` **目前不被 `BU
 
 這條路**沒有被量測過**，也沒有被關閉。要真正關掉需要一個「段落身分」而非座標的定位方式，
 那是目前 LOK 介面沒有提供的東西（`getCommandValues` 的實作已查過，見 finding 030）。
+
+BUSY 閘縮小了它的可達性——barrier in-flight 期間 caller 已經動不了游標——
+但**沒有消除**它：還原點是派送**前**擷取的座標，而派送本身就會改變幾何。
+上面 attempt-04 的 `<p>D-END</p>` 剛好也示範了「錨點落在段落中間」這件事會長什麼樣子，
+只是那次的成因是命令順序而不是重排。
 
 ## 相關
 

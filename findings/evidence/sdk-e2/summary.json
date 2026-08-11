@@ -2,57 +2,57 @@
   "schemaVersion": 1,
   "release": "E2-A",
   "phase": "A3",
-  "decision": "A3_NOT_RUN",
+  "decision": "A3_PASS",
   "matrixStatus": "A2-complete-A3-ready-route-c-readback-postcondition",
   "requiredPerBrowserPerFixture": 3,
   "coverage": {
     "chrome/styled-list": {
       "required": 3,
-      "found": 7,
-      "bound": 1,
+      "found": 12,
+      "bound": 6,
       "superseded": 6,
-      "passing": 1,
-      "state": "short"
+      "passing": 6,
+      "state": "covered"
     },
     "chrome/multi-paragraph": {
       "required": 3,
-      "found": 6,
-      "bound": 0,
+      "found": 9,
+      "bound": 3,
       "superseded": 6,
-      "passing": 0,
-      "state": "short"
+      "passing": 3,
+      "state": "covered"
     },
     "chrome/plain-grapheme": {
       "required": 3,
-      "found": 6,
-      "bound": 0,
+      "found": 9,
+      "bound": 3,
       "superseded": 6,
-      "passing": 0,
-      "state": "short"
+      "passing": 3,
+      "state": "covered"
     },
     "firefox/styled-list": {
       "required": 3,
-      "found": 6,
-      "bound": 0,
+      "found": 9,
+      "bound": 3,
       "superseded": 6,
-      "passing": 0,
-      "state": "short"
+      "passing": 3,
+      "state": "covered"
     },
     "firefox/multi-paragraph": {
       "required": 3,
-      "found": 6,
-      "bound": 0,
+      "found": 9,
+      "bound": 3,
       "superseded": 6,
-      "passing": 0,
-      "state": "short"
+      "passing": 3,
+      "state": "covered"
     },
     "firefox/plain-grapheme": {
       "required": 3,
-      "found": 6,
-      "bound": 0,
+      "found": 9,
+      "bound": 3,
       "superseded": 6,
-      "passing": 0,
-      "state": "short"
+      "passing": 3,
+      "state": "covered"
     }
   },
   "artifactBinding": {
@@ -68,60 +68,1147 @@
       "80b48abfd045aae5c277ff08c52a66454825ef9c2e7a530ba3001140fac1a27c"
     ]
   },
-  "coveredCells": [],
-  "gaps": {
-    "chrome/styled-list": {
-      "required": 3,
-      "found": 7,
-      "bound": 1,
-      "superseded": 6,
-      "passing": 1,
-      "state": "short"
-    },
-    "chrome/multi-paragraph": {
-      "required": 3,
-      "found": 6,
-      "bound": 0,
-      "superseded": 6,
-      "passing": 0,
-      "state": "short"
-    },
-    "chrome/plain-grapheme": {
-      "required": 3,
-      "found": 6,
-      "bound": 0,
-      "superseded": 6,
-      "passing": 0,
-      "state": "short"
-    },
-    "firefox/styled-list": {
-      "required": 3,
-      "found": 6,
-      "bound": 0,
-      "superseded": 6,
-      "passing": 0,
-      "state": "short"
-    },
-    "firefox/multi-paragraph": {
-      "required": 3,
-      "found": 6,
-      "bound": 0,
-      "superseded": 6,
-      "passing": 0,
-      "state": "short"
-    },
-    "firefox/plain-grapheme": {
-      "required": 3,
-      "found": 6,
-      "bound": 0,
-      "superseded": 6,
-      "passing": 0,
-      "state": "short"
-    }
-  },
+  "coveredCells": [
+    "chrome/styled-list",
+    "chrome/multi-paragraph",
+    "chrome/plain-grapheme",
+    "firefox/styled-list",
+    "firefox/multi-paragraph",
+    "firefox/plain-grapheme"
+  ],
+  "gaps": {},
   "fixturesDeferredToA5": [
     "table-boundary"
   ],
+  "a5": {
+    "decision": "A5_PASS",
+    "coverage": {
+      "chrome/styled-list": {
+        "required": 1,
+        "found": 6,
+        "bound": 2,
+        "superseded": 4,
+        "passing": 2,
+        "state": "covered"
+      },
+      "chrome/multi-paragraph": {
+        "required": 1,
+        "found": 2,
+        "bound": 2,
+        "superseded": 0,
+        "passing": 2,
+        "state": "covered"
+      },
+      "chrome/plain-grapheme": {
+        "required": 1,
+        "found": 1,
+        "bound": 1,
+        "superseded": 0,
+        "passing": 1,
+        "state": "covered"
+      },
+      "chrome/table-boundary": {
+        "required": 1,
+        "found": 7,
+        "bound": 2,
+        "superseded": 5,
+        "passing": 2,
+        "state": "covered"
+      },
+      "firefox/styled-list": {
+        "required": 1,
+        "found": 1,
+        "bound": 1,
+        "superseded": 0,
+        "passing": 1,
+        "state": "covered"
+      },
+      "firefox/multi-paragraph": {
+        "required": 1,
+        "found": 1,
+        "bound": 1,
+        "superseded": 0,
+        "passing": 1,
+        "state": "covered"
+      },
+      "firefox/plain-grapheme": {
+        "required": 1,
+        "found": 1,
+        "bound": 1,
+        "superseded": 0,
+        "passing": 1,
+        "state": "covered"
+      },
+      "firefox/table-boundary": {
+        "required": 1,
+        "found": 1,
+        "bound": 1,
+        "superseded": 0,
+        "passing": 1,
+        "state": "covered"
+      }
+    },
+    "artifactBinding": {
+      "currentProfileWasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "evidenceWasmSha256": [
+        "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+        "902379ba264c9d9f68ab1796ac8a96c4c8eae2b9ffd66c9c504aa2d88af573af",
+        "d9f50d25f9c144d84cb2721ff81edf8e8735661046f162ca6bf70817e3eccd97"
+      ],
+      "boundToCurrentBuild": false,
+      "staleBuilds": [
+        "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+        "902379ba264c9d9f68ab1796ac8a96c4c8eae2b9ffd66c9c504aa2d88af573af",
+        "d9f50d25f9c144d84cb2721ff81edf8e8735661046f162ca6bf70817e3eccd97"
+      ]
+    },
+    "gaps": {},
+    "runs": [
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/styled-list",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "d9f50d25f9c144d84cb2721ff81edf8e8735661046f162ca6bf70817e3eccd97",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "EDITOR_FORMAT_POSTCONDITION_FAILED",
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": false,
+            "why": "case missing from the run"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": false
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/styled-list/attempt-02",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": false,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": false,
+            "why": "case missing from the run"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": false
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/styled-list/attempt-03",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "EDITOR_FORMAT_POSTCONDITION_FAILED",
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": false
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/styled-list/attempt-04",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "902379ba264c9d9f68ab1796ac8a96c4c8eae2b9ffd66c9c504aa2d88af573af",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "EDITOR_FORMAT_POSTCONDITION_FAILED",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": false,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "TIMEOUT",
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "BUSY",
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": false
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/styled-list/attempt-05",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/styled-list/attempt-06",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/multi-paragraph",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/multi-paragraph/attempt-02",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/plain-grapheme",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/table-boundary",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "EDITOR_FORMAT_POSTCONDITION_FAILED",
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "table-boundary",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "a typed outcome, and the readback agrees with it"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": false
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/table-boundary/attempt-02",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "EDITOR_FORMAT_POSTCONDITION_FAILED",
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "table-boundary",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "a typed outcome, and the readback agrees with it"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": false
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/table-boundary/attempt-03",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "EDITOR_FORMAT_POSTCONDITION_FAILED",
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "table-boundary",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "a typed outcome, and the readback agrees with it"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": false
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/table-boundary/attempt-04",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "EDITOR_FORMAT_POSTCONDITION_FAILED",
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "table-boundary",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "a typed outcome, and the readback agrees with it"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": false
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/table-boundary/attempt-05",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": false,
+            "status": "rejected",
+            "code": "EDITOR_FORMAT_POSTCONDITION_FAILED",
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "table-boundary",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "a typed outcome, and the readback agrees with it"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": false
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/table-boundary/attempt-06",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "table-boundary",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "a typed outcome, and the readback agrees with it"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/chrome/table-boundary/attempt-07",
+        "browser": "chrome",
+        "browserVersion": "Chrome/150.0.7871.128",
+        "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "table-boundary",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "a typed outcome, and the readback agrees with it"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/firefox/styled-list",
+        "browser": "firefox",
+        "browserVersion": "153.0.1",
+        "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/firefox/multi-paragraph",
+        "browser": "firefox",
+        "browserVersion": "153.0.1",
+        "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/firefox/plain-grapheme",
+        "browser": "firefox",
+        "browserVersion": "153.0.1",
+        "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/negative/firefox/table-boundary",
+        "browser": "firefox",
+        "browserVersion": "153.0.1",
+        "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "cases": [
+          {
+            "case": "unsupported-action",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "asks": "typed rejection before anything is dispatched"
+          },
+          {
+            "case": "stale-revision",
+            "judged": true,
+            "pass": true,
+            "status": "rejected",
+            "code": "STALE_REVISION",
+            "asks": "typed rejection, and the revision sits where the aging action left it -- the refused dispatch moved nothing"
+          },
+          {
+            "case": "state-crosstalk",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the readback markup contains the dispatched paragraph's text and not the paragraph the caller tried to move to"
+          },
+          {
+            "case": "table-boundary",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "a typed outcome, and the readback agrees with it"
+          },
+          {
+            "case": "list-teardown",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the list cycle completed and close returned inside the timeout"
+          },
+          {
+            "case": "timeout-after-dispatch",
+            "judged": true,
+            "pass": true,
+            "status": "completed",
+            "code": null,
+            "asks": "the caller timed out and nothing was replayed for it"
+          }
+        ],
+        "pass": true
+      }
+    ],
+    "asks": "the negative and boundary cases. state-crosstalk is judged on the readback markup's own text -- the serialiser writes the paragraph content, so which paragraph the barrier read is directly visible rather than inferred from a structural tag that both answers could satisfy (finding 033).",
+    "revised": "table-boundary's frozen expectation was 'typed rejection, then a fresh Worker'. Measured: the cell paragraph accepts set-list-unordered. The expectation is now 'a typed outcome, and the readback agrees'; see the matrix revisions array."
+  },
   "runs": [
     {
       "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/styled-list",
@@ -1377,6 +2464,901 @@
       "pass": true
     },
     {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/styled-list/attempt-08",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P2",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 498
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 552
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 449
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/styled-list/attempt-09",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P2",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 498
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 552
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 449
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/styled-list/attempt-10",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P2",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 498
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 552
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 449
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/styled-list/attempt-11",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P2",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 498
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 552
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 449
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/styled-list/attempt-12",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P2",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 498
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 552
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 449
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
       "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/multi-paragraph",
       "browser": "chrome",
       "browserVersion": "Chrome/150.0.7871.128",
@@ -2277,6 +4259,543 @@
       "browserVersion": "Chrome/150.0.7871.128",
       "profile": "e2-format-discovery",
       "wasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 503
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 557
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 454
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/multi-paragraph/attempt-07",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 503
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 557
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 454
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/multi-paragraph/attempt-08",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 503
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 557
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 454
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/multi-paragraph/attempt-09",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
       "steps": [
         {
           "label": "cycle-list-unordered",
@@ -3525,6 +6044,543 @@
       "pass": true
     },
     {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/plain-grapheme/attempt-07",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 497
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 551
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 448
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/plain-grapheme/attempt-08",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 497
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 551
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 448
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/plain-grapheme/attempt-09",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 497
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 551
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 448
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
       "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/firefox/styled-list",
       "browser": "firefox",
       "browserVersion": "153.0.1",
@@ -4425,6 +7481,543 @@
       "browserVersion": "153.0.1",
       "profile": "e2-format-discovery",
       "wasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P2",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 498
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 552
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 449
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/firefox/styled-list/attempt-07",
+      "browser": "firefox",
+      "browserVersion": "153.0.1",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P2",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 498
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 552
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 449
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/firefox/styled-list/attempt-08",
+      "browser": "firefox",
+      "browserVersion": "153.0.1",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P2",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 498
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 552
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 449
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/firefox/styled-list/attempt-09",
+      "browser": "firefox",
+      "browserVersion": "153.0.1",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
       "steps": [
         {
           "label": "cycle-list-unordered",
@@ -5673,6 +9266,543 @@
       "pass": true
     },
     {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/firefox/multi-paragraph/attempt-07",
+      "browser": "firefox",
+      "browserVersion": "153.0.1",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 503
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 557
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 454
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/firefox/multi-paragraph/attempt-08",
+      "browser": "firefox",
+      "browserVersion": "153.0.1",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 503
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 557
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 454
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/firefox/multi-paragraph/attempt-09",
+      "browser": "firefox",
+      "browserVersion": "153.0.1",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 523
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 503
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 557
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 454
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
       "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/firefox/plain-grapheme",
       "browser": "firefox",
       "browserVersion": "153.0.1",
@@ -6573,6 +10703,543 @@
       "browserVersion": "153.0.1",
       "profile": "e2-format-discovery",
       "wasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 497
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 551
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 448
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/firefox/plain-grapheme/attempt-07",
+      "browser": "firefox",
+      "browserVersion": "153.0.1",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 497
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 551
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 448
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/firefox/plain-grapheme/attempt-08",
+      "browser": "firefox",
+      "browserVersion": "153.0.1",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 517
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 497
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 551
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 448
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/firefox/plain-grapheme/attempt-09",
+      "browser": "firefox",
+      "browserVersion": "153.0.1",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
       "steps": [
         {
           "label": "cycle-list-unordered",
@@ -29618,8 +34285,8 @@
     "The readback markup is a serialiser output, not a documented contract. Matching it whole pins a serialiser; cross-version stability is A7's job and is not validated here."
   ],
   "notValidated": [
-    "A5 negative and boundary cases have not run.",
     "A6 secondary capabilities have not run.",
-    "A7 round-trip and regression have not run."
+    "A7 round-trip and regression have not run.",
+    "The commandName attribution added for finding 033 is not demonstrated by this evidence: selectionBeforeResultCount is 0 on every run, so no foreign selection ever reached it. The BUSY gate is what the crosstalk case shows."
   ]
 }

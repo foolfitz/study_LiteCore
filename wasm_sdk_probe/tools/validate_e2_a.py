@@ -44,12 +44,138 @@ A5_ONLY_FIXTURES = ("table-boundary",)
 
 COMPLETION = "verified-format-readback"
 
+# A5's fixed order, matching the app.  table-boundary's own case is inserted
+# only for that fixture.
+A5_CASES = ("unsupported-action", "stale-revision", "state-crosstalk",
+            "list-teardown", "timeout-after-dispatch")
+A5_FIXTURES = A3_FIXTURES + A5_ONLY_FIXTURES
+
 # A4's sequence, mirroring the app: drive each action to its target, then press
 # it twice more on a paragraph already there.
 A4_ACTIONS = ("list-unordered", "list-ordered", "list-none",
               "paragraph-heading", "paragraph-body")
 A4_STEPS = tuple(f"{key}-{suffix}" for key in A4_ACTIONS
                  for suffix in ("set", "repeat-1", "repeat-2"))
+
+
+# A5's cases, and what each one has to show.  Every judgement below is made
+# from something the evidence carries, not from the case's own status word:
+# "completed" says the client's promise resolved, which is not the same claim
+# as "the document agrees".
+#
+# The crosstalk case is judged on the readback markup's *text*.  The serialiser
+# writes the paragraph's content, so "which paragraph did the barrier read" is
+# directly visible -- and a check that reads it cannot pass on both answers the
+# way the earlier structural check did (finding 033: the crosstalk anchor was
+# itself a Heading 1 while the case dispatched set-paragraph-heading).
+A5_DISPATCH_ANCHORS = dict(A3_ANCHORS, **{"table-boundary": "E1-CELL-A1"})
+A5_CROSSTALK_ANCHORS = {
+    "styled-list": "E1-LIST-ONE",
+    "multi-paragraph": "E1-MULTI-START",
+    "plain-grapheme": "E1-PLAIN-START",
+    "table-boundary": "E1-TABLE-BEFORE",
+}
+
+
+def _barrier(case: dict[str, Any]) -> dict[str, Any]:
+    outcome = case.get("outcome")
+    if isinstance(outcome, dict) and outcome.get("formatBarrier"):
+        return outcome["formatBarrier"]
+    return ((case.get("error") or {}).get("details") or {}).get("formatBarrier") or {}
+
+
+def judge_a5_case(case: dict[str, Any], fixture: str, close_ms: Any,
+                  close_budget_ms: int) -> dict[str, Any]:
+    name = case.get("case")
+    status = case.get("status")
+    code = (case.get("error") or {}).get("code")
+    outcome = case.get("outcome") if isinstance(case.get("outcome"), dict) else {}
+    barrier = _barrier(case)
+    readback = barrier.get("readback") or {}
+    html = readback.get("html") or ""
+    note: str
+    ok: bool
+
+    if name == "unsupported-action":
+        ok = status == "rejected" and code == "EDITOR_ACTION_UNSUPPORTED"
+        note = "typed rejection before anything is dispatched"
+    elif name == "stale-revision":
+        # "Zero mutation" is a claim about the *stale* dispatch, not about the
+        # case: the case ages the revision on purpose by performing a real
+        # action first, so revisionBefore != revisionAfter is expected and
+        # asserting otherwise would fail a correct product.  What must hold is
+        # that the aging action moved the revision and the refused one did not.
+        aged = case.get("staleRevision") != case.get("currentRevision")
+        ok = (status == "rejected" and code == "STALE_REVISION" and aged
+              and case.get("revisionAfter") == case.get("currentRevision"))
+        note = ("typed rejection, and the revision sits where the aging action"
+                " left it -- the refused dispatch moved nothing")
+    elif name == "state-crosstalk":
+        dispatched = A5_DISPATCH_ANCHORS.get(fixture)
+        moved = A5_CROSSTALK_ANCHORS.get(fixture)
+        ok = (status == "completed"
+              and outcome.get("completion") == COMPLETION
+              and readback.get("restoreConfirmed") is True
+              and readback.get("blockTag") == "h1"
+              # The discriminating half: the markup names the paragraph.
+              and bool(dispatched) and dispatched in html
+              and bool(moved) and moved not in html)
+        note = ("the readback markup contains the dispatched paragraph's text and"
+                " not the paragraph the caller tried to move to")
+    elif name == "table-boundary":
+        # Revised 2026-08-11: the frozen "typed rejection" was contradicted by
+        # measurement.  Either outcome is acceptable; what is not acceptable is
+        # a completion the document does not support.
+        if status == "completed":
+            ok = (outcome.get("completion") == COMPLETION
+                  and readback.get("listTag") == "ul"
+                  and A5_DISPATCH_ANCHORS[fixture] in html)
+        else:
+            ok = bool(code) and case.get("revisionBefore") == case.get("revisionAfter")
+        note = "a typed outcome, and the readback agrees with it"
+    elif name == "list-teardown":
+        ok = (status == "completed" and case.get("cycleComplete") is True
+              and isinstance(close_ms, (int, float))
+              and close_ms < close_budget_ms)
+        note = "the list cycle completed and close returned inside the timeout"
+    elif name == "timeout-after-dispatch":
+        # The caller must actually have timed out, or the case measured nothing;
+        # and no retry may be issued on its behalf.
+        ok = (case.get("timedOut") is True
+              and (case.get("timeoutError") or {}).get("code") == "TIMEOUT")
+        note = "the caller timed out and nothing was replayed for it"
+    else:
+        return {"case": name, "judged": False,
+                "why": "no registered expectation for this case"}
+    return {"case": name, "judged": True, "pass": ok, "status": status,
+            "code": code, "asks": note}
+
+
+def judge_a5_attempt(path: Path, fixture: str,
+                     close_budget_ms: int) -> dict[str, Any]:
+    result = json.loads((path / "result.json").read_text(encoding="utf-8"))
+    expected = list(A5_CASES)
+    if fixture == "table-boundary":
+        expected.insert(3, "table-boundary")
+    present = {case.get("case"): case for case in result.get("a5", [])}
+    cases = []
+    for name in expected:
+        case = present.get(name)
+        if case is None:
+            cases.append({"case": name, "judged": True, "pass": False,
+                          "why": "case missing from the run"})
+            continue
+        cases.append(judge_a5_case(case, fixture, result.get("closeMs"),
+                                   close_budget_ms))
+    return {
+        "path": str(path),
+        "browser": result.get("browser"),
+        "browserVersion": result.get("browserVersion"),
+        "wasmSha256": (result.get("manifest") or {}).get(
+            "diagnostic", {}).get("wasmSha256"),
+        "cases": cases,
+        "pass": all(case.get("pass") for case in cases),
+    }
 
 
 def attempts(root: Path, browser: str, fixture: str,
@@ -189,6 +315,37 @@ def main() -> int:
                           "short" if passing < required else "covered"),
             }
 
+    # A5 had no verdict at all until now: the cases ran and were read by hand.
+    # A negative suite nobody judges is the same shape as a check that cannot
+    # fail, so it gets the same treatment as A3/A4 -- required cells expanded
+    # from the matrix, coverage resolved to covered or missing, artifact-bound.
+    negative_required = matrix["thresholds"]["negativeRepetitionsPerBrowser"]
+    close_budget = matrix["thresholds"]["openSaveTimeoutMs"]
+    a5_coverage: dict[str, Any] = {}
+    a5_runs: list[dict[str, Any]] = []
+    for browser in browsers:
+        for fixture in A5_FIXTURES:
+            found = attempts(args.evidence_root, browser, fixture, tree="negative")
+            judged = [judge_a5_attempt(path, fixture, close_budget)
+                      for path in found]
+            a5_runs.extend(judged)
+            bound = [item for item in judged
+                     if item.get("wasmSha256") == current_wasm]
+            passing = sum(1 for item in bound if item["pass"])
+            a5_coverage[f"{browser}/{fixture}"] = {
+                "required": negative_required, "found": len(found),
+                "bound": len(bound), "superseded": len(judged) - len(bound),
+                "passing": passing,
+                "state": ("missing" if not bound else
+                          "short" if passing < negative_required else "covered"),
+            }
+    a5_gaps = {key: value for key, value in a5_coverage.items()
+               if value["state"] != "covered"}
+    a5_covered = [key for key, value in a5_coverage.items()
+                  if value["state"] == "covered"]
+    a5_decision = ("A5_NOT_RUN" if not a5_covered else
+                   "A5_PARTIAL_COVERAGE" if a5_gaps else "A5_PASS")
+
     def binding(runs_: list) -> dict[str, Any]:
         seen = sorted({item.get("wasmSha256") for item in runs_ if item.get("wasmSha256")})
         stale = [value for value in seen if value != current_wasm]
@@ -230,6 +387,22 @@ def main() -> int:
         "gaps": gaps,
         # Named so a reader does not have to infer why table-boundary is absent.
         "fixturesDeferredToA5": list(A5_ONLY_FIXTURES),
+        "a5": {
+            "decision": a5_decision,
+            "coverage": a5_coverage,
+            "artifactBinding": binding(a5_runs),
+            "gaps": a5_gaps,
+            "runs": a5_runs,
+            "asks": "the negative and boundary cases. state-crosstalk is judged on the"
+                    " readback markup's own text -- the serialiser writes the paragraph"
+                    " content, so which paragraph the barrier read is directly visible"
+                    " rather than inferred from a structural tag that both answers could"
+                    " satisfy (finding 033).",
+            "revised": "table-boundary's frozen expectation was 'typed rejection, then a"
+                       " fresh Worker'. Measured: the cell paragraph accepts"
+                       " set-list-unordered. The expectation is now 'a typed outcome, and"
+                       " the readback agrees'; see the matrix revisions array.",
+        },
         "runs": runs,
         "a4": {
             "decision": a4_decision,
@@ -253,9 +426,11 @@ def main() -> int:
             " and is not validated here.",
         ],
         "notValidated": [
-            "A5 negative and boundary cases have not run.",
             "A6 secondary capabilities have not run.",
             "A7 round-trip and regression have not run.",
+            "The commandName attribution added for finding 033 is not demonstrated by"
+            " this evidence: selectionBeforeResultCount is 0 on every run, so no foreign"
+            " selection ever reached it. The BUSY gate is what the crosstalk case shows.",
         ],
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -265,6 +440,10 @@ def main() -> int:
     print(f"A3 decision: {decision}")
     print(f"required per browser per fixture: {required}")
     for key, value in coverage.items():
+        print(f"   {key:<28} {value['state']:<8} bound={value.get('bound')} "
+              f"superseded={value.get('superseded')} passing={value['passing']}")
+    print(f"A5 decision: {a5_decision}")
+    for key, value in a5_coverage.items():
         print(f"   {key:<28} {value['state']:<8} bound={value.get('bound')} "
               f"superseded={value.get('superseded')} passing={value['passing']}")
     print(f"A4 decision: {a4_decision}")
@@ -277,8 +456,15 @@ def main() -> int:
         for item in failing:
             bad = [step["label"] for step in item["steps"] if not step["pass"]]
             print(f"   {item['path']}: {bad}")
+    a5_failing = [item for item in a5_runs if not item["pass"]]
+    if a5_failing:
+        print("\nfailing A5 runs:")
+        for item in a5_failing:
+            bad = [case["case"] for case in item["cases"] if not case.get("pass")]
+            print(f"   {item['path']}: {bad}")
     print(f"\nwritten: {args.output}")
-    return 0 if decision == "A3_PASS" and a4_decision == "A4_PASS" else 1
+    return 0 if (decision == "A3_PASS" and a4_decision == "A4_PASS"
+                 and a5_decision == "A5_PASS") else 1
 
 
 if __name__ == "__main__":

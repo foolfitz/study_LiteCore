@@ -325,6 +325,41 @@
         ],
         "status": "frozen-A2-complete-partial-A3-blocked-pending-scheduler-pump-decision"
       }
+    },
+    {
+      "date": "2026-08-11",
+      "why": "One frozen expectation was contradicted by measurement, and one required property turned out to name an obligation the barrier did not yet meet. Recorded rather than applied silently. The table-boundary change makes the expectation weaker, and that is the point: an expectation that demands a rejection from a system that accepts would fail every A5 round, and the thing failing would be the matrix.",
+      "changes": [
+        {
+          "field": "negativeCaseExpectations.table-boundary",
+          "from": "typed rejection, then a fresh Worker",
+          "to": "a typed outcome, and the saved document must agree with it",
+          "because": "measured on engine 25761ff0, Chrome 150.0.7871.128 and Firefox 153.0.1: a paragraph inside a table cell ACCEPTS set-list-unordered, the barrier completes, and the readback is <ul><li><h1>E1-CELL-A1</h1></li></ul> -- the markup carries the paragraph text, so which paragraph was read is directly visible. The original wording was what was expected when the matrix was frozen, not what was measured. Scope: one cell, collapsed caret; cross-cell selections, nested tables and boundary merges are unmeasured."
+        },
+        {
+          "field": "requiredProperties",
+          "from": "attributable-completion, as a property the format barrier claimed to meet",
+          "to": "same property, now carrying what closed it and what did not",
+          "because": "finding 033: the barrier advanced out of AwaitingSelection on any non-empty TEXT_SELECTION, and a caller's search selects its match. Closed by refusing caret movers (search, editor-select) with BUSY while a barrier is in flight. The commandName attribution added alongside it is defence-in-depth and is NOT demonstrated by this evidence: selectionBeforeResultCount is 0 on every run, so no foreign selection ever reached it to be filtered."
+        }
+      ],
+      "superseded": {
+        "negativeCaseExpectations": {
+          "table-boundary": "typed rejection, then a fresh Worker"
+        }
+      },
+      "openAfterThisRevision": [
+        "The format barrier has no engine-side deadline. A client timeout leaves it active and every later caret mover gets BUSY -- observed once (A5 styled-list attempt-04, before the dispatch-path fix). Unreachable on the normal path now, but the shape is 'one timeout wedges the session'.",
+        "The caret restore is a document coordinate captured before dispatch, and the dispatch changes the paragraph's geometry. BUSY narrows who can reach it; it does not close it. A paragraph-identity anchor would, and LOK exposes none."
+      ]
     }
-  ]
+  ],
+  "negativeCaseExpectations": {
+    "state-crosstalk": "the completion describes the dispatched paragraph, not wherever the caret went; caret movers are refused while the barrier is in flight",
+    "stale-revision": "zero mutation, typed STALE_REVISION",
+    "timeout-after-dispatch": "MUTATION_OUTCOME_UNKNOWN, no retry, later calls get BUSY",
+    "table-boundary": "a typed outcome, and the saved document must agree with it",
+    "unsupported-action": "typed rejection, nothing dispatched",
+    "list-teardown": "close returns well inside the timeout after a list cycle (finding 012 class)"
+  }
 }

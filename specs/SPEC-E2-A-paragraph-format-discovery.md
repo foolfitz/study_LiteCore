@@ -1,6 +1,6 @@
 # SPEC E2-A：段落層級格式的 completion barrier discovery
 
-> **日期**：2026-08-05（最後修訂 2026-08-11，v11）  
+> **日期**：2026-08-05（最後修訂 2026-08-11，v12）  
 > **狀態**：A1（部分）與 A2 已執行；**A3～A7 未執行、E2-A 尚無判定**。
 > A3 的前置是第 4 節〈路線 C 未決事項〉先有決定。  
 > **上層規格**：[SPEC E2-000](./SPEC-E2-000-overview.md)  
@@ -477,9 +477,27 @@ Chrome／Firefox 各 3 次，每個 fixture：
 | `state-crosstalk` | dispatch 前後刻意移動 caret 觸發無關 state；barrier 不得誤判為 completion |
 | `stale-revision` | 零 mutation |
 | `timeout-after-dispatch` | `MUTATION_OUTCOME_UNKNOWN`，無 retry，後續回 `BUSY` |
-| `table-boundary` | typed 拒絕，之後 fresh Worker |
+| `table-boundary` | **實測改寫，見下** — typed 結果，且文件必須同意 |
 | `unsupported-action` | typed 拒絕 |
 | `list-teardown` | 清單切換後 open→close 不得重現 Finding 012 類阻塞 |
+
+> **2026-08-11 v12 修訂：`table-boundary` 的凍結期望被實測否證。**
+>
+> 原文寫「typed 拒絕，之後 fresh Worker」。那是**寫矩陣時的預期**，不是量到的行為：
+> 表格儲存格內的段落在 26.8 上**接受** `set-list-unordered`，barrier 完成，
+> 而且存回的文件同意——readback 是
+> `<ul><li><h1>E1-CELL-A1</h1></li></ul>`，文字自己標明讀的是儲存格內那一段。
+>
+> 期望改為：**typed 結果，且文件必須同意**。也就是不預設是接受或拒絕，
+> 但無論哪一個，都必須是分類過的結果，且不得出現「回報成功而文件不支持」。
+> 這比原文弱，**但原文弱的是它的真假而不是它的嚴格度**——一條要求拒絕而系統會接受的
+> 期望，只會讓每一輪 A5 都判失敗，而失敗的是規格。
+>
+> 範圍限制（**不得**外推）：Chrome 150.0.7871.128 與 Firefox 153.0.1、
+> 引擎 `25761ff0…`、`table-boundary` fixture 的**單一儲存格** `E1-CELL-A1`、
+> 派送時 caret 是**收合**的。跨儲存格選取、巢狀表格、表格邊界上的段落合併都**沒有量過**。
+>
+> 證據：`findings/evidence/sdk-e2/discovery/negative/{chrome,firefox}/table-boundary/`。
 
 ### A6：次要能力重評（不列入判定）
 
@@ -791,3 +809,4 @@ scope 共用同一份 worker patch，manifest 新增 `engineLoop` 診斷欄位�
 | 2026-08-06 | v10（二次覆核＋產品決定）。撤回 v9 追加的「結果三：落後一格的 payload 會清掉 stale 旗標」——engine 旗標在兩瀏覽器全部 search 列都正確為 stale，且 `updateEditorFormatState` 先清旗標才發事件，誤因是把 harness 的 `fresh`（計數起點在定位之前）當成 engine 判準；殘留缺口改寫為逐欄位世代標記（推論，未觀測到實例）。更正「沒有受支援的刷新入口」：`Scheduler::ProcessEventsToIdle()` 是公開 API 且有產品呼叫者，只有 C 包裝 `unit_lok_process_events_to_idle` 是 unit-test 掛鉤。使用者決定不送上游，產品路線定為 **C：不讀前置狀態**（closed action 直接派送，只用後置條件判定，移除 `documented-state-noop`），路線 A（產品自行 pump）延後而非否決。 |
 | 2026-08-08 | 更正。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |
 | 2026-08-11 | v11（路線 C 的前置條件契約）。把 v10 的產品決定落成條文：第 4 節作廢前置狀態讀取與 `documented-state-noop`（原文保留於引用區），A4 由「no-op 與 fail-closed」改寫為「重複派送」。新增 2.7 節，記錄路線 C 兩個前提的原生實測（[finding 030](../findings/030-closed-list-actions-dispatch-the-toggle-form-and-a-noop-is-silent.md)）：（一）不帶參數的 `.uno:DefaultBullet`／`.uno:DefaultNumbering` **是 toggle**，第二次按下會反轉，帶 `On=true` 則四案例全為 setter（含跨種類轉換）——已修，engine 改派參數化形式，測試釘住並通過突變控制，E1-B 目的檔逐位元不變；（二）**值沒變就沒有 STATE_CHANGED**，合法 no-op 因此沒有後置條件可等，barrier 逾時成 `MUTATION_OUTCOME_UNKNOWN`。（二）尚未有解，第 4 節新增〈路線 C 未決事項〉列四條出路並註明本規格不預設；第 7 節因此給 A3 加上「未決事項先有決定」的前置，第 8 節註明出路 1 本身就落在 STOP 條款上。**擋住 A3 的理由由 freshness 換成 no-op 的可判定性**，10.4 節已就地更新。 |
+| 2026-08-11 | v12（crosstalk 關閉＋`table-boundary` 期望改寫）。[finding 033](../findings/033-readback-barrier-read-wherever-the-caret-went.md) 的修法實作並實測關閉：barrier in-flight 期間 `search`／`editor-select` 一律 `BUSY`（`.uno:ExecuteSearch` **會選起命中處**，它是 caret mover，也是 crosstalk 案例實際走的路），`EndOfParaSel` 以 `notify=true` 派送且推進條件比對 `commandName`。**關掉它的是 BUSY 閘**——`selectionBeforeResultCount` 全為 0，歸屬那一層在這批證據裡沒有攔到東西，本規格不宣稱它修好了什麼。附帶量到：`notify` 是兩條派送路徑，只改一個命令會使 `EndOfParaSel` 先於 `GoToStartOfPara` 生效（readback 讀到 `<p>D-END</p>`，段落實為 `E1-STYLED-END`），游標在段尾時選取為空、barrier 永久等待。A5 表格的 `table-boundary` 期望由「typed 拒絕，之後 fresh Worker」改為「typed 結果，且文件必須同意」——儲存格內的段落在 26.8 **接受** `set-list-unordered`，原期望是寫矩陣時的預期而非量到的行為；修訂已附範圍限制。A5 首次覆蓋兩瀏覽器 × 四 fixture，**Firefox 負向輪由零變成有**。 |
