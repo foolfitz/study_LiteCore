@@ -352,7 +352,15 @@ def main() -> int:
         return {
             "currentProfileWasmSha256": current_wasm,
             "evidenceWasmSha256": seen,
-            "boundToCurrentBuild": bool(seen) and not stale,
+            # Renamed 2026-08-11.  This was "boundToCurrentBuild", which read as
+            # a statement about the verdict and printed false beside A3_PASS --
+            # two fields of one report contradicting each other.  It has always
+            # answered a narrower question: is every run in the tree, including
+            # the superseded ones kept on purpose, from the current build.
+            "allEvidenceIsCurrentBuild": bool(seen) and not stale,
+            # The verdict's own rule, stated rather than inferred: coverage
+            # counts only runs whose wasmSha256 matches the profile in dist/.
+            "verdictCountsOnlyCurrentBuild": True,
             "staleBuilds": stale,
         }
 

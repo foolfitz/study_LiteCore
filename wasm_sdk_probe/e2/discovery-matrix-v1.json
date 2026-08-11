@@ -167,7 +167,7 @@
     "evidence": "findings/evidence/sdk-e2/discovery/state-readback/wasm/",
     "profileWasmSha256Note": "A2 results were measured on this build; the same profile was later rebuilt as 9b6e9c587e1224ed... when raw STATE_CHANGED counters were added for finding 021 attribution."
   },
-  "status": "A2-complete-A3-ready-route-c-readback-postcondition",
+  "status": "A3-A4-A5-pass-route-c-readback-postcondition-A6-A7-not-run",
   "finding021Attribution": {
     "date": "2026-08-05",
     "conclusion": "our-engine-loop-does-not-pump-the-vcl-scheduler",
@@ -361,5 +361,20 @@
     "table-boundary": "a typed outcome, and the saved document must agree with it",
     "unsupported-action": "typed rejection, nothing dispatched",
     "list-teardown": "close returns well inside the timeout after a list cycle (finding 012 class)"
+  },
+  "statusProvenance": {
+    "replaced": "A2-complete-A3-ready-route-c-readback-postcondition",
+    "date": "2026-08-11",
+    "decidedBy": "wasm_sdk_probe/tools/validate_e2_a.py against the evidence tree",
+    "boundTo": "engine wasm 25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+    "counts": {
+      "a3": "21 runs / 105 dispatches, 3+ passing per browser per fixture",
+      "a4": "18 runs / 270 dispatches",
+      "a5": "11 runs / 58 cases, both browsers, all four fixtures"
+    },
+    "notCovered": [
+      "A6 secondary capabilities",
+      "A7 round-trip and regression"
+    ]
   }
 }

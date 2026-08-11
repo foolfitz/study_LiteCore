@@ -1,8 +1,10 @@
 # SPEC E2-A：段落層級格式的 completion barrier discovery
 
 > **日期**：2026-08-05（最後修訂 2026-08-11，v12）  
-> **狀態**：A1（部分）與 A2 已執行；**A3～A7 未執行、E2-A 尚無判定**。
-> A3 的前置是第 4 節〈路線 C 未決事項〉先有決定。  
+> **狀態**（2026-08-11 v12）：A1（部分）、A2、**A3／A4／A5 已執行且全數通過**
+> ——綁定引擎 `25761ff0…`，兩瀏覽器 × 三 fixture（A5 四 fixture）。
+> **A6／A7 未執行，E2-A 因此尚無總判定。**
+> A3 的前置（第 4 節〈路線 C 未決事項〉）已由使用者選定路線並實作完成。  
 > **上層規格**：[SPEC E2-000](./SPEC-E2-000-overview.md)  
 > **前置閘門**：[E1](./SPEC-E1-000-overview.md) 已判定 `E1_GO_ODT_EDITOR`  
 > **凍結矩陣**：[`e2/discovery-matrix-v1.json`](../wasm_sdk_probe/e2/discovery-matrix-v1.json)
@@ -741,9 +743,51 @@ level 2／3 為 number），第一版 validator 問「這個樣式含不含 numb
 突變控制：把 `list-unordered-repeat-1` 的期望改成「已離開清單」（也就是 toggle 的行為），
 19 次 run 全數轉為失敗。
 
+### 10.9 已完成：A5 負向與邊界（2026-08-11）
+
+判定：**`A5_PASS`**。證據樹 `findings/evidence/sdk-e2/discovery/negative/<browser>/<fixture>/`，
+摘要在 `summary.json` 的 `a5` 區塊。2 瀏覽器 × **4** fixture（含 `table-boundary`）
+× 6 個案例，綁定引擎 `25761ff0…`。
+
+**A5 在此之前沒有任何判定**——案例跑完是人工看的。一個沒人判的負向套件，
+形狀和「不會失敗的檢查」一樣，所以它現在走與 A3／A4 相同的機制。
+
+`state-crosstalk` 的判準改成讀 **readback markup 自己的文字**：序列化器會寫出段落內容，
+所以「barrier 讀到哪一段」是直接看得見的，不必靠結構標籤——本規格的舊判準正是敗在
+兩種答案都會通過（[finding 033](../findings/033-readback-barrier-read-wherever-the-caret-went.md)）。
+
+鑑別控制不是合成的，是既有證據自己給的：同一條判準在**現行 build 11/11 通過、
+在它之前的三個 build 0/9**。
+
+修法本身見 finding 033。一句話：**關掉 crosstalk 的是 BUSY 閘，不是 commandName 歸屬**
+——`selectionBeforeResultCount` 每次都是 0，歸屬那一層沒有攔到任何東西，
+它是縱深防禦，本規格不宣稱它修好了什麼。
+
+### 10.10 目前總結（2026-08-11）
+
+| 相位 | 判定 | 綁定證據 |
+|---|---|---|
+| A3 | **A3_PASS** | 21 runs／105 次派送 |
+| A4 | **A4_PASS** | 18 runs／270 次派送 |
+| A5 | **A5_PASS** | 11 runs／58 個案例 |
+| A6 | 未執行 | — |
+| A7 | 未執行 | — |
+
+**E2-A 仍無總判定**：第 8 節要求 A6／A7 也有結果。
+
+兩個未結的引擎缺口（都已記在 finding 033，都不擋 A3～A5 的判定）：
+
+1. **format barrier 沒有引擎側期限。** client 逾時後引擎側 barrier 仍 active，
+   之後每個 caret mover 都收到 `BUSY`——整個 document handle 卡死。已觀察過一次
+   （A5 styled-list attempt-04，派送路徑修好之前）。正常路徑碰不到，但形狀是
+   「一次逾時毀掉整個 session」。矩陣的 `deadlineCanDeclareMutationSuccess: false`
+   已經寫好方向（期限只能判失敗），只是 format barrier 沒接上。
+2. **座標殘留仍在。** 還原點是派送**前**擷取的文件座標，而派送本身改變幾何。
+   BUSY 閘縮小可達性，沒有消除它。
+
 ### 10.4 尚未執行
 
-~~A3～A7 尚未執行。~~ **A3（10.7 節）與 A4（10.8 節）已完成，皆 PASS；A5～A7 尚未執行。**
+~~A3～A7 尚未執行。~~ ~~**A3（10.7 節）與 A4（10.8 節）已完成，皆 PASS；A5～A7 尚未執行。**~~ **2026-08-11 再更新：A5（10.9 節）亦已完成且 PASS；A6／A7 尚未執行，見 10.10 節。**
 以下 08-06 的原文保留：A3～A7 尚未執行。**A3 仍不啟動**：finding 021 已歸因且產品級主迴圈候選已實測可跑
 （2.6 節），但 caret 移動後的 freshness 來源未定（PEI 與活迴圈的行為差異未歸因），
 且推進點若進入共用路徑需先跑完整回歸。E2-A 目前**沒有**判定；第 8 節的三個結果都還不成立。
@@ -810,3 +854,4 @@ scope 共用同一份 worker patch，manifest 新增 `engineLoop` 診斷欄位�
 | 2026-08-08 | 更正。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |
 | 2026-08-11 | v11（路線 C 的前置條件契約）。把 v10 的產品決定落成條文：第 4 節作廢前置狀態讀取與 `documented-state-noop`（原文保留於引用區），A4 由「no-op 與 fail-closed」改寫為「重複派送」。新增 2.7 節，記錄路線 C 兩個前提的原生實測（[finding 030](../findings/030-closed-list-actions-dispatch-the-toggle-form-and-a-noop-is-silent.md)）：（一）不帶參數的 `.uno:DefaultBullet`／`.uno:DefaultNumbering` **是 toggle**，第二次按下會反轉，帶 `On=true` 則四案例全為 setter（含跨種類轉換）——已修，engine 改派參數化形式，測試釘住並通過突變控制，E1-B 目的檔逐位元不變；（二）**值沒變就沒有 STATE_CHANGED**，合法 no-op 因此沒有後置條件可等，barrier 逾時成 `MUTATION_OUTCOME_UNKNOWN`。（二）尚未有解，第 4 節新增〈路線 C 未決事項〉列四條出路並註明本規格不預設；第 7 節因此給 A3 加上「未決事項先有決定」的前置，第 8 節註明出路 1 本身就落在 STOP 條款上。**擋住 A3 的理由由 freshness 換成 no-op 的可判定性**，10.4 節已就地更新。 |
 | 2026-08-11 | v12（crosstalk 關閉＋`table-boundary` 期望改寫）。[finding 033](../findings/033-readback-barrier-read-wherever-the-caret-went.md) 的修法實作並實測關閉：barrier in-flight 期間 `search`／`editor-select` 一律 `BUSY`（`.uno:ExecuteSearch` **會選起命中處**，它是 caret mover，也是 crosstalk 案例實際走的路），`EndOfParaSel` 以 `notify=true` 派送且推進條件比對 `commandName`。**關掉它的是 BUSY 閘**——`selectionBeforeResultCount` 全為 0，歸屬那一層在這批證據裡沒有攔到東西，本規格不宣稱它修好了什麼。附帶量到：`notify` 是兩條派送路徑，只改一個命令會使 `EndOfParaSel` 先於 `GoToStartOfPara` 生效（readback 讀到 `<p>D-END</p>`，段落實為 `E1-STYLED-END`），游標在段尾時選取為空、barrier 永久等待。A5 表格的 `table-boundary` 期望由「typed 拒絕，之後 fresh Worker」改為「typed 結果，且文件必須同意」——儲存格內的段落在 26.8 **接受** `set-list-unordered`，原期望是寫矩陣時的預期而非量到的行為；修訂已附範圍限制。A5 首次覆蓋兩瀏覽器 × 四 fixture，**Firefox 負向輪由零變成有**。 |
+| 2026-08-11 | v12 續（A5 判定與 artifact 重綁）。A5 首次有判定（10.9 節）：`validate_e2_a.py` 之前只判 A3／A4，A5 跑完是人工看的。`state-crosstalk` 改以 readback markup 自己的文字判定，鑑別控制取自既有證據——現行 build 11/11、之前三個 build 0/9。引擎改動使 A3／A4 既有證據變成別的 artifact 的證據（finding 027 規則），兩瀏覽器 × 三 fixture 全數重跑：**A3_PASS（105 次派送）、A4_PASS（270 次派送）、A5_PASS（兩瀏覽器 × 四 fixture）**，全部綁定 `25761ff0…`。新增 10.10 節總結，並列出兩個未結的引擎缺口（barrier 無引擎側期限、座標殘留）。矩陣 `status` 由 `A2-complete-A3-ready-…` 改為 `A3-A4-A5-pass-…-A6-A7-not-run`，附 `statusProvenance`。另修 summary 的 `boundToCurrentBuild` 欄位名——它印 false 卻與 `A3_PASS` 並排，同一份報告的兩個欄位互相矛盾；它問的一直是「樹裡每一次 run 都是現行 build 嗎」，改名為 `allEvidenceIsCurrentBuild` 並補上 `verdictCountsOnlyCurrentBuild`。 |
