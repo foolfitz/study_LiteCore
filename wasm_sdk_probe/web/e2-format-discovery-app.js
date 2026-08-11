@@ -460,6 +460,68 @@ function firstRectangle(searchResult) {
 // with a run where the caret never moved.  "search" is the E1-A discovery path
 // (setTextSelection RESET); "click" is the public mouse path the E1-B product
 // session uses.  Both are recorded separately.
+// The format barrier's wedge, measured rather than argued.
+//
+// `.uno:EndOfParaSel` has nothing to select on an empty paragraph, so the
+// non-empty TEXT_SELECTION the barrier waits for in AwaitingSelection never
+// arrives.  Every fixture used by A3/A4/A5 has text in every paragraph, which
+// is why 375 judged dispatches never reached this -- and "press the list button
+// on a blank line" is an ordinary editing gesture, not an exotic one.
+//
+// This case is written so it gives *different* answers on the two engines it
+// will run against: on a build with no deadline the action dies of the client
+// timeout and the handle is wedged (the follow-up is refused BUSY); on a build
+// with one it fails typed, quickly, and the handle still works.  Both outcomes
+// are recorded; neither is asserted here, because the judgement belongs in the
+// validator where it can be read.
+async function runDeadline(client, documentHandle) {
+  const entry = { case: "empty-paragraph-barrier", status: "running" };
+  try {
+    // Placement is geometric, so it is checked rather than trusted: the caret
+    // must land strictly between the two text anchors, or this measures
+    // nothing and says so instead of reporting a wedge it did not cause.
+    const before = await documentHandle.search("E1-EMPTY-BEFORE");
+    const after = await documentHandle.search("E1-EMPTY-AFTER");
+    const beforeRect = firstRectangle(before);
+    const afterRect = firstRectangle(after);
+    entry.anchors = { before: beforeRect, after: afterRect };
+    if (!beforeRect || !afterRect)
+      throw new Error("empty-paragraph anchors not found");
+    const x = beforeRect.x + 1;
+    const y = Math.round((beforeRect.y + beforeRect.height + afterRect.y) / 2);
+    entry.caret = { x, y };
+    entry.caretIsBetweenAnchors =
+      y > beforeRect.y + beforeRect.height && y < afterRect.y;
+    await client.placeCaret(x, y);
+
+    const started = performance.now();
+    try {
+      entry.outcome = await client.action("set-list-unordered", { timeoutMs: 20000 });
+      entry.status = "completed";
+    } catch (error) {
+      entry.error = errorValue(error);
+      entry.status = "rejected";
+    }
+    entry.elapsedMs = Math.round(performance.now() - started);
+
+    // The wedge signature: is the handle still usable afterwards?  A search is
+    // the cheapest caret-moving command and is exactly what the BUSY gate
+    // refuses while a barrier is in flight.
+    try {
+      const probe = await documentHandle.search("E1-EMPTY-AFTER");
+      entry.handleUsableAfter = Boolean(probe?.found);
+    } catch (error) {
+      entry.handleUsableAfter = false;
+      entry.handleError = errorValue(error);
+    }
+  } catch (error) {
+    entry.status = "failed";
+    entry.setupError = errorValue(error);
+  }
+  log(entry);
+  return [entry];
+}
+
 async function caretAtAnchor(documentHandle, client, anchor, method) {
   const search = await documentHandle.search(anchor);
   if (!search.found)
@@ -702,7 +764,17 @@ async function run() {
     await runControl(client);
     checkpoint("readback-after-control");
     await runReadback(documentHandle, client, metrics.readbackAfterControl, "search");
-    if (mode === "a5") {
+    if (mode === "deadline") {
+      checkpoint("deadline");
+      metrics.deadline = await runDeadline(client, documentHandle);
+      try {
+        const buffer = await documentHandle.save({ format: "odt" }, { timeoutMs: 180000 });
+        outputs.set("deadline-final", buffer);
+        metrics.outputs.push({ label: "deadline-final", bytes: buffer.byteLength });
+      } catch (error) {
+        metrics.deadlineSaveError = errorValue(error);
+      }
+    } else if (mode === "a5") {
       checkpoint("negative");
       metrics.a5 = await runA5(
         client, documentHandle, A5_ANCHORS[fixtureId] || a3Anchor);

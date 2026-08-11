@@ -230,6 +230,10 @@ def main() -> None:
             "a4",
             # A5: negative and boundary cases.
             "a5",
+            # The format barrier's wedge on an empty paragraph (finding 033's
+            # open gap).  Its own tree, because it is the same measurement run
+            # against two engines and both answers are evidence.
+            "deadline",
             "mainloop-attribution",
             "mainloop-pei-attribution",
             "mainloop-move-attribution",
@@ -260,17 +264,19 @@ def main() -> None:
     result: dict[str, Any] = {}
     if args.mode == "a2":
         root = args.evidence_root
-    elif args.mode in ("a3", "a4", "a5"):
+    elif args.mode in ("a3", "a4", "a5", "deadline"):
         # SPEC E2-A section 6 gives A3 its own tree, keyed by fixture, because
         # the verdict has to be able to say which fixtures were covered rather
         # than average over whatever happened to run.
         root = args.evidence_root.parent.parent / {
-            "a3": "browser", "a4": "repeat", "a5": "negative"}[args.mode]
+            "a3": "browser", "a4": "repeat", "a5": "negative",
+            "deadline": "barrier-deadline"}[args.mode]
         root = root / args.browser / args.fixture
     else:
         root = args.evidence_root.parent / args.mode
     evidence = next_evidence_directory(
-        root if args.mode in ("a3", "a4", "a5") else root / args.browser)
+        root if args.mode in ("a3", "a4", "a5", "deadline")
+        else root / args.browser)
     try:
         base_url = f"http://127.0.0.1:{server_port}/e2-format-discovery.html"
         wait_page(base_url)

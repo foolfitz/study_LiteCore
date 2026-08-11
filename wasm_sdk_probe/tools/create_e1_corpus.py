@@ -88,6 +88,24 @@ FIXTURES = {
         "anchors": ["E1-STYLED-HEADING", "bold anchor", "italic anchor", "E1-LIST-ONE", "E1-STYLED-END"],
         "minimum": {"paragraphs": 4, "headings": 1, "lists": 1, "tables": 0},
     },
+    # Added 2026-08-11 for the format-barrier deadline work.  An empty paragraph
+    # is not an exotic shape -- "press the list button on a blank line" is one of
+    # the commonest editing gestures -- and .uno:EndOfParaSel has nothing to
+    # select there by construction.  Every other fixture's paragraphs carry text,
+    # which is why 375 judged dispatches never touched this.
+    #
+    # A new fixture rather than an edit to an existing one: the fixture sha256 is
+    # recorded in every run's evidence, so editing one would detach the A3/A4/A5
+    # verdicts from the documents they were measured on.
+    "empty-paragraph": {
+        "body": """
+ <text:p>E1-EMPTY-BEFORE</text:p>
+ <text:p/>
+ <text:p>E1-EMPTY-AFTER</text:p>
+""",
+        "anchors": ["E1-EMPTY-BEFORE", "E1-EMPTY-AFTER"],
+        "minimum": {"paragraphs": 3, "headings": 0, "lists": 0, "tables": 0},
+    },
     "table-boundary": {
         "body": """
  <text:p>E1-TABLE-BEFORE</text:p>

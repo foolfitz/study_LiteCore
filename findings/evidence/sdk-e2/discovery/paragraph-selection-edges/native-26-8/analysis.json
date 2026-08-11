@@ -1,0 +1,91 @@
+{
+  "what": "is the barrier's GoToStartOfPara + EndOfParaSel pair correct for every caret offset?",
+  "build": "native LibreOffice 26.8 (build-native-26-8), svp",
+  "fixture": "test-docs/e1/empty-paragraph.odt",
+  "coreCommit": "671c848b1bb8",
+  "finding": "No. .uno:GoToStartOfPara is not idempotent: with the caret already at offset 0 it moves to the PREVIOUS paragraph, so the pair then selects the wrong paragraph (or spans two). Core states this outright in sw/source/core/crsr/pam.cxx:1246 GoCurrPara(): 'if already at beginning/end then to the next/previous'. The mirror pair (GoToEndOfPara + StartOfParaSel) has the symmetric flaw at offset Len().",
+  "whyNeverSeen": "caretAtAnchor() places the caret at rectangle.x + width -- the END of the anchor text -- so every one of the 375 judged A3/A4 dispatches started at a non-zero offset, where SttPara() behaves as assumed.",
+  "notAWedge": "The empty-paragraph wedge hypothesis is REFUTED. A selection does arrive (of the neighbouring paragraph), so AwaitingSelection completes. Measured on WASM too: the barrier failed closed in 38ms and the handle stayed usable (barrier-deadline/chrome/empty-paragraph).",
+  "rows": [
+    {
+      "case": "control-text-paragraph",
+      "anchor": "E1-EMPTY-BEFORE",
+      "goDown": 0,
+      "caretY": 1418,
+      "caretYAfterStartOfPara": 1418,
+      "startOfParaMovedCaret": true,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1418, 1418, 2160, 275",
+      "before": {
+        "selectionType": 0,
+        "htmlBytes": 0,
+        "text": ""
+      },
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 495,
+        "text": "E1-EMPTY-BEFORE"
+      }
+    },
+    {
+      "case": "empty-paragraph",
+      "anchor": "E1-EMPTY-BEFORE",
+      "goDown": 1,
+      "caretY": 1807,
+      "caretYAfterStartOfPara": 1418,
+      "startOfParaMovedCaret": true,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1418, 1418, 2160, 275",
+      "before": {
+        "selectionType": 0,
+        "htmlBytes": 0,
+        "text": ""
+      },
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 495,
+        "text": "E1-EMPTY-BEFORE"
+      }
+    },
+    {
+      "case": "control-text-paragraph-below",
+      "anchor": "E1-EMPTY-BEFORE",
+      "goDown": 2,
+      "caretY": 2196,
+      "caretYAfterStartOfPara": 2196,
+      "startOfParaMovedCaret": true,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1418, 2196, 1999, 275",
+      "before": {
+        "selectionType": 0,
+        "htmlBytes": 0,
+        "text": ""
+      },
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 494,
+        "text": "E1-EMPTY-AFTER"
+      }
+    },
+    {
+      "case": "text-paragraph-caret-at-offset-zero",
+      "anchor": "E1-EMPTY-AFTER",
+      "goDown": 0,
+      "caretY": 2196,
+      "caretYAfterStartOfPara": 1807,
+      "startOfParaMovedCaret": true,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1417, 2196, 2000, 275; 1418, 1807, 9972, 275; 1417, 2083, 9973, 0; 1417, 2084, 9973, 111",
+      "before": {
+        "selectionType": 0,
+        "htmlBytes": 0,
+        "text": ""
+      },
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 561,
+        "text": "\nE1-EMPTY-AFTER"
+      }
+    }
+  ]
+}
