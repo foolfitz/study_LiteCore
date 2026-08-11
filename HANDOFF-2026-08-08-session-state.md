@@ -613,3 +613,85 @@ multi-paragraph／plain-grapheme 的 PASS 才是健全的（錨點是 body，劫
 
 修 `sdk-worker.js` 的 error 轉發 → 重跑 table-boundary 拿 `readback.html` 歸因卡點二 →
 依歸因決定卡點一走「原子化＋結果後擷取」或書籤 → 補 firefox 負向輪 → 才寫卡點三的修訂條目。
+
+
+---
+
+## 2026-08-11（續）：crosstalk 已關閉，A5 首次有判定，A4 重綁中
+
+fable 的建議順序全部走完，**除了「依歸因決定卡點一走原子化或書籤」——歸因結果讓那一步不需要了**。
+
+### 做了什麼
+
+引擎 `25761ff0…`（`902379ba…` 是中途版，`68590548…` 是修法前）。兩層：
+
+1. **BUSY 閘**——`search`／`editor-select` 在 `formatBarrierActive()` 期間一律 `BUSY`。
+   `search` 也在內：`.uno:ExecuteSearch` **會選起命中處**，它是 caret mover，
+   而且正是 crosstalk 案例實際走的那條路。
+2. **commandName 歸屬**——`EndOfParaSel` 以 `notify=true` 派送，
+   `AwaitingSelection` 推進條件改為「收到 `.uno:EndOfParaSel` 的 result **且** 選取非空」。
+
+### 關掉它的是第 1 層。第 2 層沒有被獨立證實。
+
+`caretMoveAccepted=false`（search 被擋，游標根本沒動），
+而 `selectionBeforeResultCount` **每一次 barrier 都是 0**——
+在自己的 result 到達前沒有任何非空選取抵達，所以歸屬那一層沒有攔到任何東西。
+它是縱深防禦。文件與 commit 都照這樣寫，**不宣稱它修好了什麼**；
+引擎那個計數器叫 `selectionBeforeResultCount` 而不是 `unattributedSelectionCount`，
+就是為了不把判讀寫進名字。
+
+### 途中撞到、且值得記住的事：`notify` 是兩條派送路徑
+
+第一版只把 `EndOfParaSel` 改成 `notify=true`（理由是「少一個 result 比較乾淨」）。
+A5 styled-list attempt-04：
+
+- `stale-revision` 的 readback 是 `<p>D-END</p>`，段落實為 `E1-STYLED-END`
+  ——選取錨點落在字中間，`EndOfParaSel` 比 `GoToStartOfPara` 先生效。
+- `list-teardown` **30 秒逾時**：游標本來就在段尾，選取為空，非空選取的回呼永不到來。
+
+兩個都不是 flake，是同一個原因。兩個命令都改 `notify=true` 後五案例全數回復。
+**代價是多一個 command result，而那正是推進條件必須比對 `commandName` 的原因**
+——`GoToStartOfPara` 也會回 result（acdffee 的原生量測 8/8）。
+當時看起來像註腳的那一列，現在是承重的。
+
+### fable 建議的「文字回聲檢查」採用了，但放在 validator
+
+readback 的 markup **本來就帶著段落文字**，所以判準寫成
+「markup 含有被派送段落的文字，且不含 caller 想移去的段落文字」。
+這是零 API 的段落身分代理，而且**兩邊都通過的可能性直接消失**。
+
+同一判準跑過所有既有證據的分佈：**現行 build 11/11 通過，之前三個 build 0/9**。
+這是從真實證據取得的鑑別控制，不是合成的。
+
+### A5 首次有判定
+
+`validate_e2_a.py` 之前只判 A3／A4，A5 跑完是**人工看的**。
+現在 A5 走同一套機制：required cells 由矩陣展開、覆蓋解析成 covered／missing、綁定現行 build。
+
+過程中我自己寫錯一條並在出貨前修掉：`stale-revision` 我斷言「revision 沒動」，
+但該案例**故意先做一個真的動作**把 revision 弄舊。「零 mutation」是對**被拒絕的那次派送**的宣稱，
+不是對整個案例的。
+
+### 現況
+
+| 判定 | 狀態 |
+|---|---|
+| A3 | **A3_PASS**（兩瀏覽器 × 三 fixture，各 3/3，綁定 `25761ff0…`） |
+| A5 | **A5_PASS**（兩瀏覽器 × 四 fixture）——**Firefox 負向輪由零變成有** |
+| A4 | 重綁中（sweep 執行中） |
+
+凍結文件的漂移已補：SPEC E2-A v12（A5 表格的 `table-boundary` 期望改寫＋範圍限制）、
+矩陣新增第二筆 `revisions`（含 `superseded` 與 `openAfterThisRevision`）、
+finding 033 與 findings README 就地修訂。
+
+### 未結
+
+- **A6／A7 未開始。**
+- **引擎沒有 format barrier 自有期限。** client 逾時後引擎側 barrier 仍 active，
+  之後每個 caret mover 都收到 `BUSY`——整個 document handle 卡死。
+  上面 attempt-04 觀察到一次。正常路徑碰不到（順序修好後五案例全通），
+  但形狀是「一次逾時毀掉整個 session」。矩陣有
+  `boundaryReadbackDeadlineMs: 250` 與 `deadlineCanDeclareMutationSuccess: false`，
+  方向清楚（期限只能判失敗），只是 format barrier 沒接上。
+- **座標殘留仍在。** BUSY 閘縮小可達性，沒消除它：還原點是派送**前**的文件座標，
+  而派送本身改變幾何。要真正關掉需要段落身分定位，LOK 沒有提供。
