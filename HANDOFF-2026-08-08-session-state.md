@@ -489,7 +489,15 @@ completion 為 `verified-format-readback`、`changed` 未宣稱（null）、
 同一個順序錯誤在原生分析器也有，一併修掉；以修好的判讀重跑原生已存證據，
 **九個案例判定完全不變**（先確認再說不變，不是假設）。
 
+## A4 也完成：`A4_PASS`
+
+每個 action 先驅動到目標，再在**已在目標狀態的段落上**連按兩次。
+2 瀏覽器 × 3 fixture × 3 次 × 15 派送＝**270 次**全過（四項條件同前）。
+冪等與無聲 no-op 兩題同時關閉，且是矩陣證據不是單點示範。
+突變（把 repeat-1 的期望改成 toggle 的行為）使 19 次 run 全紅。
+
 ### 下一步
 
-A4～A7。A4 的瀏覽器證據其實已存在（`state-readback/wasm` 那輪的 4 次重複派送），
-但還沒有自己的矩陣式 run 與判定；A5 負向與邊界、A6 次要能力、A7 round-trip 與回歸都未跑。
+A5 負向與邊界（`state-crosstalk`／`stale-revision`／`timeout-after-dispatch`／
+`table-boundary`／`unsupported-action`／`list-teardown`）、A6 次要能力、
+A7 round-trip 與回歸。A5 的 `table-boundary` 就是那份還沒用到的 fixture。

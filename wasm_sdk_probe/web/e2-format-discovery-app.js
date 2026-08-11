@@ -127,6 +127,29 @@ const A3_STEPS = [
   { label: "roundtrip-body", anchor: a3Anchor, action: "set-paragraph-body" },
 ];
 
+// A4: repeat dispatch (SPEC E2-A section 5, rewritten v11).
+//
+// Route C removed the precondition read, so a second press dispatches a second
+// time.  Each action is driven to its target once and then pressed twice more
+// on a paragraph that is already there, which asks both questions at once:
+// does the document stay put (a toggle would invert), and does the barrier
+// still complete when core broadcasts nothing because nothing changed.
+//
+// Generated rather than written out, so an action cannot be added to the closed
+// set and silently left without repeats.
+const A4_ACTIONS = [
+  { action: "set-list-unordered", key: "list-unordered" },
+  { action: "set-list-ordered", key: "list-ordered" },
+  { action: "set-list-none", key: "list-none" },
+  { action: "set-paragraph-heading", key: "paragraph-heading" },
+  { action: "set-paragraph-body", key: "paragraph-body" },
+];
+const A4_STEPS = A4_ACTIONS.flatMap(({ action, key }) => [
+  { label: `${key}-set`, anchor: a3Anchor, action },
+  { label: `${key}-repeat-1`, anchor: a3Anchor, action },
+  { label: `${key}-repeat-2`, anchor: a3Anchor, action },
+]);
+
 const DISPATCH_STEPS = [
   { label: "bullet-on", anchor: "E1-STYLED-END", action: "set-list-unordered" },
   { label: "numbering-on", anchor: "E1-STYLED-END", action: "set-list-ordered" },
@@ -371,7 +394,10 @@ async function runControl(client) {
 }
 
 async function runDispatch(documentHandle, client) {
-  for (const step of (mode === "a3" ? A3_STEPS : DISPATCH_STEPS)) {
+  const sequence = mode === "a3" ? A3_STEPS
+    : mode === "a4" ? A4_STEPS
+      : DISPATCH_STEPS;
+  for (const step of sequence) {
     const entry = { label: step.label, action: step.action, anchor: step.anchor, status: "running" };
     metrics.dispatch.push(entry);
     try {

@@ -53,6 +53,24 @@ EXPECTED_POSTCONDITIONS = {
     "cycle-list-none": {"insideList": False},
     "roundtrip-heading": {"resolvedParagraphStyle": "Heading_20_1"},
     "roundtrip-body": {"resolvedParagraphStyle": "Text_20_body"},
+    # A4: the set and both repeats share one expectation on purpose.  A repeat
+    # that lands anywhere else is a toggle, and a toggle is the defect finding
+    # 030 was about.
+    "list-unordered-set": {'insideList': True, 'listKind': 'bullet'},
+    "list-unordered-repeat-1": {'insideList': True, 'listKind': 'bullet'},
+    "list-unordered-repeat-2": {'insideList': True, 'listKind': 'bullet'},
+    "list-ordered-set": {'insideList': True, 'listKind': 'number'},
+    "list-ordered-repeat-1": {'insideList': True, 'listKind': 'number'},
+    "list-ordered-repeat-2": {'insideList': True, 'listKind': 'number'},
+    "list-none-set": {'insideList': False},
+    "list-none-repeat-1": {'insideList': False},
+    "list-none-repeat-2": {'insideList': False},
+    "paragraph-heading-set": {'resolvedParagraphStyle': 'Heading_20_1'},
+    "paragraph-heading-repeat-1": {'resolvedParagraphStyle': 'Heading_20_1'},
+    "paragraph-heading-repeat-2": {'resolvedParagraphStyle': 'Heading_20_1'},
+    "paragraph-body-set": {'resolvedParagraphStyle': 'Text_20_body'},
+    "paragraph-body-repeat-1": {'resolvedParagraphStyle': 'Text_20_body'},
+    "paragraph-body-repeat-2": {'resolvedParagraphStyle': 'Text_20_body'},
 }
 
 
@@ -208,6 +226,8 @@ def main() -> None:
             "locale-attribution",
             # A3: the frozen positive matrix (SPEC E2-A section 5).
             "a3",
+            # A4: repeat dispatch, the case route C created.
+            "a4",
             "mainloop-attribution",
             "mainloop-pei-attribution",
             "mainloop-move-attribution",
@@ -238,16 +258,17 @@ def main() -> None:
     result: dict[str, Any] = {}
     if args.mode == "a2":
         root = args.evidence_root
-    elif args.mode == "a3":
+    elif args.mode in ("a3", "a4"):
         # SPEC E2-A section 6 gives A3 its own tree, keyed by fixture, because
         # the verdict has to be able to say which fixtures were covered rather
         # than average over whatever happened to run.
-        root = args.evidence_root.parent.parent / "browser"
+        root = args.evidence_root.parent.parent / (
+            "browser" if args.mode == "a3" else "repeat")
         root = root / args.browser / args.fixture
     else:
         root = args.evidence_root.parent / args.mode
     evidence = next_evidence_directory(
-        root if args.mode == "a3" else root / args.browser)
+        root if args.mode in ("a3", "a4") else root / args.browser)
     try:
         base_url = f"http://127.0.0.1:{server_port}/e2-format-discovery.html"
         wait_page(base_url)

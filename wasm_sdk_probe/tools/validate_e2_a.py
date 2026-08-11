@@ -44,9 +44,17 @@ A5_ONLY_FIXTURES = ("table-boundary",)
 
 COMPLETION = "verified-format-readback"
 
+# A4's sequence, mirroring the app: drive each action to its target, then press
+# it twice more on a paragraph already there.
+A4_ACTIONS = ("list-unordered", "list-ordered", "list-none",
+              "paragraph-heading", "paragraph-body")
+A4_STEPS = tuple(f"{key}-{suffix}" for key in A4_ACTIONS
+                 for suffix in ("set", "repeat-1", "repeat-2"))
 
-def attempts(root: Path, browser: str, fixture: str) -> list[Path]:
-    base = root / "browser" / browser / fixture
+
+def attempts(root: Path, browser: str, fixture: str,
+             tree: str = "browser") -> list[Path]:
+    base = root / tree / browser / fixture
     if not base.is_dir():
         return []
     found = []
@@ -57,11 +65,12 @@ def attempts(root: Path, browser: str, fixture: str) -> list[Path]:
     return found
 
 
-def judge_attempt(path: Path, fixture: str) -> dict[str, Any]:
+def judge_attempt(path: Path, fixture: str,
+                  labels: tuple = A3_STEPS) -> dict[str, Any]:
     result = json.loads((path / "result.json").read_text(encoding="utf-8"))
     dispatch = {entry.get("label"): entry for entry in result.get("dispatch", [])}
     steps: list[dict[str, Any]] = []
-    for label in A3_STEPS:
+    for label in labels:
         entry = dispatch.get(label)
         if entry is None:
             steps.append({"label": label, "present": False, "pass": False,
@@ -105,7 +114,7 @@ def judge_attempt(path: Path, fixture: str) -> dict[str, Any]:
         "wasmSha256": (result.get("manifest") or {}).get(
             "diagnostic", {}).get("wasmSha256"),
         "steps": steps,
-        "pass": all(step["pass"] for step in steps) and len(steps) == len(A3_STEPS),
+        "pass": all(step["pass"] for step in steps) and len(steps) == len(labels),
     }
 
 
@@ -144,6 +153,20 @@ def main() -> int:
                           "short" if passing < required else "covered"),
             }
 
+    a4_coverage: dict[str, Any] = {}
+    a4_runs: list[dict[str, Any]] = []
+    for browser in browsers:
+        for fixture in A3_FIXTURES:
+            found = attempts(args.evidence_root, browser, fixture, tree="repeat")
+            judged = [judge_attempt(path, fixture, A4_STEPS) for path in found]
+            a4_runs.extend(judged)
+            passing = sum(1 for item in judged if item["pass"])
+            a4_coverage[f"{browser}/{fixture}"] = {
+                "required": required, "found": len(found), "passing": passing,
+                "state": ("missing" if not found else
+                          "short" if passing < required else "covered"),
+            }
+
     covered = [key for key, value in coverage.items() if value["state"] == "covered"]
     gaps = {key: value for key, value in coverage.items()
             if value["state"] != "covered"}
@@ -154,6 +177,13 @@ def main() -> int:
         decision = "A3_PARTIAL_COVERAGE"
     else:
         decision = "A3_PASS"
+
+    a4_gaps = {key: value for key, value in a4_coverage.items()
+               if value["state"] != "covered"}
+    a4_covered = [key for key, value in a4_coverage.items()
+                  if value["state"] == "covered"]
+    a4_decision = ("A4_NOT_RUN" if not a4_covered else
+                   "A4_PARTIAL_COVERAGE" if a4_gaps else "A4_PASS")
 
     summary = {
         "schemaVersion": 1,
@@ -168,6 +198,16 @@ def main() -> int:
         # Named so a reader does not have to infer why table-boundary is absent.
         "fixturesDeferredToA5": list(A5_ONLY_FIXTURES),
         "runs": runs,
+        "a4": {
+            "decision": a4_decision,
+            "coverage": a4_coverage,
+            "gaps": a4_gaps,
+            "runs": a4_runs,
+            "asks": "each action driven to its target once, then pressed twice more"
+                    " on a paragraph already there: the document must stay put"
+                    " (a toggle would invert) and the barrier must still complete"
+                    " even though core broadcasts nothing when nothing changes",
+        },
         "narrowings": [
             "set-paragraph-body's postcondition is 'not a heading', not 'is Text body':"
             " the serialiser writes <p> for both Text body and the default style"
@@ -179,8 +219,6 @@ def main() -> int:
             " and is not validated here.",
         ],
         "notValidated": [
-            "A4 (repeat dispatch) has browser evidence under state-readback/wasm but no"
-            " frozen matrix run of its own yet.",
             "A5 negative and boundary cases have not run.",
             "A6 secondary capabilities have not run.",
             "A7 round-trip and regression have not run.",
@@ -190,19 +228,23 @@ def main() -> int:
     args.output.write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n",
                            encoding="utf-8")
 
-    print(f"decision: {decision}")
+    print(f"A3 decision: {decision}")
     print(f"required per browser per fixture: {required}")
     for key, value in coverage.items():
         print(f"   {key:<28} {value['state']:<8} "
               f"found={value['found']} passing={value['passing']}")
-    failing = [item for item in runs if not item["pass"]]
+    print(f"A4 decision: {a4_decision}")
+    for key, value in a4_coverage.items():
+        print(f"   {key:<28} {value['state']:<8} "
+              f"found={value['found']} passing={value['passing']}")
+    failing = [item for item in runs + a4_runs if not item["pass"]]
     if failing:
         print("\nfailing runs:")
         for item in failing:
             bad = [step["label"] for step in item["steps"] if not step["pass"]]
             print(f"   {item['path']}: {bad}")
     print(f"\nwritten: {args.output}")
-    return 0 if decision == "A3_PASS" else 1
+    return 0 if decision == "A3_PASS" and a4_decision == "A4_PASS" else 1
 
 
 if __name__ == "__main__":
