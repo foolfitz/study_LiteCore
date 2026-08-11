@@ -234,6 +234,11 @@ def main() -> None:
             # open gap).  Its own tree, because it is the same measurement run
             # against two engines and both answers are evidence.
             "deadline",
+            # Finding 034: the caret-offset discriminators.  Its own tree
+            # because the same case list is run against two engines and both
+            # answers are evidence -- the old build is what proves the gesture
+            # reaches offset 0 at all.
+            "discriminator",
             "mainloop-attribution",
             "mainloop-pei-attribution",
             "mainloop-move-attribution",
@@ -264,18 +269,19 @@ def main() -> None:
     result: dict[str, Any] = {}
     if args.mode == "a2":
         root = args.evidence_root
-    elif args.mode in ("a3", "a4", "a5", "deadline"):
+    elif args.mode in ("a3", "a4", "a5", "deadline", "discriminator"):
         # SPEC E2-A section 6 gives A3 its own tree, keyed by fixture, because
         # the verdict has to be able to say which fixtures were covered rather
         # than average over whatever happened to run.
         root = args.evidence_root.parent.parent / {
             "a3": "browser", "a4": "repeat", "a5": "negative",
-            "deadline": "barrier-deadline"}[args.mode]
+            "deadline": "barrier-deadline",
+            "discriminator": "caret-offset-discriminator"}[args.mode]
         root = root / args.browser / args.fixture
     else:
         root = args.evidence_root.parent / args.mode
     evidence = next_evidence_directory(
-        root if args.mode in ("a3", "a4", "a5", "deadline")
+        root if args.mode in ("a3", "a4", "a5", "deadline", "discriminator")
         else root / args.browser)
     try:
         base_url = f"http://127.0.0.1:{server_port}/e2-format-discovery.html"

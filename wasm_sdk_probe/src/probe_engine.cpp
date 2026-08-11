@@ -439,6 +439,16 @@ struct FormatReadback {
   bool unknownTag = false;
   std::string listTag;   // "ul", "ol", or empty
   std::string blockTag;  // "h1" or "p", or empty
+  // Finding 034.  The select step can cover more than one paragraph -- measured
+  // on an empty paragraph mid-document, where the selection spans it and the
+  // paragraph after it (native 26.8, selecttext-result/, and the same shape
+  // through the old GoToStartOfPara pair).  The tag scan above answers with the
+  // *first* block tag it meets, so a two-paragraph read is reported as if it
+  // described one paragraph, and whichever verdict follows is a verdict about
+  // an unknown mixture.  Counted here so the barrier can refuse instead.
+  std::uint32_t blockCount = 0;  // <p> and <h1>
+  std::uint32_t itemCount = 0;   // <li>
+  bool multiBlock = false;
 };
 
 FormatReadback parseFormatReadback(const std::string &html) {
@@ -480,10 +490,18 @@ FormatReadback parseFormatReadback(const std::string &html) {
       if (tag == "ul" || tag == "ol")
         readback.listTag = tag;
     }
+    if (tag == "h1" || tag == "p")
+      ++readback.blockCount;
+    else if (tag == "li")
+      ++readback.itemCount;
     if (readback.blockTag.empty() && (tag == "h1" || tag == "p"))
       readback.blockTag = tag;
     index = end - 1;
   }
+  // Either count above one means the selection was not one paragraph.  Both are
+  // checked: a two-paragraph plain read shows up as two block tags, and two
+  // list items show up as two <li> even when the serialiser writes one <ul>.
+  readback.multiBlock = readback.blockCount > 1 || readback.itemCount > 1;
   return readback;
 }
 
@@ -548,6 +566,38 @@ struct FormatStateBarrier {
   // makes no claim about that half".
   std::string expectedListTag;   // "ul" / "ol" / "none"
   std::string expectedBlockTag;  // "h1" / "p"
+  // Finding 033's open gap, made reachable by finding 034's repair.
+  //
+  // The barrier had no deadline of its own: a stage that never advanced left it
+  // active forever, and because the BUSY gate refuses every caret mover while a
+  // barrier is in flight, one stall wedged the whole document handle (observed,
+  // A5 styled-list attempt-04).  That was reachable only through a command
+  // ordering bug.  Adopting .uno:SelectText *creates* a reachable stall on
+  // purpose: on the document's last paragraph, if it is empty, the command
+  // returns its result and no selection callback ever arrives (native 26.8,
+  // selectionType 0, selecttext-result/).  So the deadline is a required part
+  // of that change, not a defence against something hypothetical.
+  //
+  // 5000ms, not the 250 the matrix records for the selection barrier's boundary
+  // readback: that number was measured for a different question (how long a
+  // structural boundary probe needs) and reusing it because it is nearby is how
+  // a measurement becomes a habit.  This one only has to be longer than any
+  // healthy stage; every barrier measured so far completes in under 40ms.
+  std::chrono::steady_clock::time_point stageDeadline{};
+  bool stageDeadlineArmed = false;
+  // Which shape of failure ended this barrier.  The code the caller sees is
+  // deliberately coarse -- three different stalls all mean "do not replay" --
+  // so the distinction that matters for diagnosis lives here instead of being
+  // smuggled into the code.
+  std::string failureShape;
+  // Containment, recorded whether or not it decides anything, because "the
+  // selection did not cover the caret" and "we never worked out where either
+  // was" must not both report as a bare false.
+  bool containmentChecked = false;
+  bool containmentHeld = false;
+  long selectionTop = 0;
+  long selectionBottom = 0;
+  long restoreCentre = 0;
   FormatReadback readback;
   std::size_t readbackBytes = 0;
   // Kept verbatim and bounded.  A postcondition that failed is only auditable
@@ -557,6 +607,29 @@ struct FormatStateBarrier {
 };
 
 constexpr std::size_t FormatReadbackEvidenceLimit = 2048;
+constexpr int FormatBarrierStageDeadlineMs = 5000;
+
+// The command the barrier posts to select the paragraph it is about to read.
+// Named once so the dispatch and the attribution cannot drift apart.
+//
+// Finding 034 replaced the pair .uno:GoToStartOfPara + .uno:EndOfParaSel with
+// this one command.  The pair is not idempotent at the paragraph edges --
+// GoCurrPara moves to the *previous* paragraph when the caret is already at
+// offset 0 (sw/source/core/crsr/pam.cxx:1238, and core's own comment says so),
+// with the mirror flaw at offset Len() -- so "move to one end, select to the
+// other" has two blind spots by construction.  FN_SELECT_PARA carries the clamp
+// in core's dispatch handler (26.8 sw/source/uibase/shells/textsh1.cxx:1975),
+// and measuring it across every reachable caret offset showed no escape and no
+// regression at offset Len(), where all 375 previously judged dispatches sat.
+//
+// One dispatch also removes, as a class, the ordering bug finding 033 recorded:
+// there are no longer two dispatch paths that can take effect out of order.
+//
+// It returns a UNO command result on every dispatch (native 26.8, 10/10,
+// findings/evidence/sdk-e2/discovery/selecttext-result/), which is what the
+// AwaitingSelection attribution needs and was measured before this switch
+// rather than assumed from the pair's behaviour.
+const char *const kFormatBarrierSelectCommand = ".uno:SelectText";
 
 FormatStateBarrier gFormatBarrier;
 std::uint64_t gNextFormatBarrierSerial = 1;
@@ -910,18 +983,44 @@ bool formatBarrierWatches(const std::string &command) {
   return false;
 }
 
+const char *formatBarrierStageName(FormatBarrierStage stage) {
+  switch (stage) {
+  case FormatBarrierStage::Idle: return "idle";
+  case FormatBarrierStage::AwaitingResult: return "awaiting-result";
+  case FormatBarrierStage::SelectQueued: return "select-queued";
+  case FormatBarrierStage::AwaitingSelection: return "awaiting-selection";
+  case FormatBarrierStage::ReadQueued: return "read-queued";
+  case FormatBarrierStage::AwaitingRestore: return "awaiting-restore";
+  }
+  return "unknown";
+}
+
 void appendFormatBarrierDetails(std::ostringstream &json,
                                 const FormatStateBarrier &barrier) {
   json << "\"formatBarrier\":{\"command\":\""
        << jsonEscape(barrier.command.c_str())
+       << "\",\"selectCommand\":\""
+       << jsonEscape(kFormatBarrierSelectCommand)
        << "\",\"dispatchSequence\":" << barrier.dispatchSequence
-       << ",\"crosstalkCount\":" << barrier.crosstalkCount
+       // The stage the barrier was in when it ended.  Without it a deadline
+       // failure cannot be told from a containment failure in the evidence,
+       // and both arrive under the same caller-facing code on purpose.
+       << ",\"stage\":\"" << formatBarrierStageName(barrier.stage)
+       << "\",\"failureShape\":\"" << jsonEscape(barrier.failureShape.c_str())
+       << "\",\"crosstalkCount\":" << barrier.crosstalkCount
        << ",\"earlyStateCount\":" << barrier.earlyStateCount
+       << ",\"resultSeen\":" << (barrier.resultSeen ? "true" : "false")
        << ",\"selectionResultSeen\":"
        << (barrier.selectionResultSeen ? "true" : "false")
        << ",\"selectionBeforeResultCount\":"
        << barrier.selectionBeforeResultCount
-       << ",\"resultSuccess\":" << (barrier.resultSuccess ? "true" : "false")
+       << ",\"containment\":{\"checked\":"
+       << (barrier.containmentChecked ? "true" : "false")
+       << ",\"held\":" << (barrier.containmentHeld ? "true" : "false")
+       << ",\"selectionTop\":" << barrier.selectionTop
+       << ",\"selectionBottom\":" << barrier.selectionBottom
+       << ",\"restoreCentre\":" << barrier.restoreCentre
+       << "},\"resultSuccess\":" << (barrier.resultSuccess ? "true" : "false")
        << ",\"resultModified\":" << (barrier.resultModified ? "true" : "false")
        << ",\"expectedStyles\":[";
   for (std::size_t index = 0; index < barrier.expectedStyles.size(); ++index) {
@@ -933,6 +1032,10 @@ void appendFormatBarrierDetails(std::ostringstream &json,
        << (barrier.readback.parsed ? "true" : "false")
        << ",\"unknownTag\":"
        << (barrier.readback.unknownTag ? "true" : "false")
+       << ",\"multiBlock\":"
+       << (barrier.readback.multiBlock ? "true" : "false")
+       << ",\"blockCount\":" << barrier.readback.blockCount
+       << ",\"itemCount\":" << barrier.readback.itemCount
        << ",\"listTag\":\"" << jsonEscape(barrier.readback.listTag.c_str())
        << "\",\"blockTag\":\"" << jsonEscape(barrier.readback.blockTag.c_str())
        << "\",\"expectedListTag\":\""
@@ -986,6 +1089,9 @@ void failFormatBarrier(const char *code, const char *message) {
   const FormatStateBarrier barrier = gFormatBarrier;
   gFormatBarrier = FormatStateBarrier{};
   std::ostringstream json;
+  // `code` is what the caller branches on and `failureShape` is what a reader
+  // diagnoses from; both are emitted, and appendFormatBarrierDetails carries
+  // the shape.
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
        << ",\"type\":\"error\",\"requestId\":" << barrier.requestId
        << ",\"documentHandle\":" << barrier.documentHandle
@@ -1212,10 +1318,6 @@ bool commandResultSucceeded(const char *payload) {
 #ifdef OXSDK_E2_FORMAT_BARRIER
 void queueFormatBarrierStep(FormatBarrierStage next);
 void maybeAdvanceFormatBarrierSelection();
-
-// The command the barrier posts to select the paragraph it is about to read.
-// Named once so the dispatch and the attribution cannot drift apart.
-const char *const kFormatBarrierSelectCommand = ".uno:EndOfParaSel";
 
 void handleFormatBarrierUnoResult(const char *payload) {
   if (!formatBarrierActive())
@@ -2796,6 +2898,43 @@ const char *const kListOnArguments = "{\"On\":{\"type\":\"boolean\","
 void startFormatBarrierActionResolved(const Command &command,
                                       std::uint32_t action, const char *name);
 
+// One caller-facing code for every way the barrier ends without a clean read
+// of a single paragraph.  The caller's only decision is the same in all of them
+// -- do not replay, the document's state is unknown to us -- and giving each
+// shape its own code would invite branching on distinctions the caller cannot
+// act on.  EDITOR_FORMAT_POSTCONDITION_FAILED keeps its narrower meaning: one
+// paragraph was read cleanly and it is not in the state the action asked for.
+const char *const kFormatMutationOutcomeUnknown = "MUTATION_OUTCOME_UNKNOWN";
+
+// Every awaiting stage gets a fresh deadline as it is entered, so a barrier
+// that keeps making progress is never cut off by a clock started three stages
+// ago; only a stage that stops advancing runs out.
+void armFormatBarrierDeadline() {
+  gFormatBarrier.stageDeadline = std::chrono::steady_clock::now() +
+                                 std::chrono::milliseconds(
+                                     FormatBarrierStageDeadlineMs);
+  gFormatBarrier.stageDeadlineArmed = true;
+}
+
+void failFormatBarrierAtDeadline() {
+  // Re-checked by the caller as well; repeated here because this function is
+  // reachable from two loops and neither is allowed to end a barrier that has
+  // already moved on.
+  if (!formatBarrierActive() || !gFormatBarrier.stageDeadlineArmed)
+    return;
+  gFormatBarrier.failureShape =
+      std::string("stage-deadline:") +
+      formatBarrierStageName(gFormatBarrier.stage);
+  // Never a success.  At the document-end empty paragraph getTextSelection
+  // still returns 490 bytes of markup with no selection at all (native 26.8),
+  // a single <p> -- so a deadline that fell back to "read whatever is there"
+  // would satisfy the set-paragraph-body postcondition without any selection
+  // having existed.  The rule has an instance, not just a principle behind it.
+  failFormatBarrier(kFormatMutationOutcomeUnknown,
+                    "the format barrier stopped advancing before it could read "
+                    "the paragraph, so what the dispatch did is unknown");
+}
+
 void queueFormatBarrierStep(FormatBarrierStage next) {
   gFormatBarrier.stage = next;
   Command step{CommandType::EditorFormatBarrierStep};
@@ -2813,27 +2952,66 @@ void queueFormatBarrierStep(FormatBarrierStage next) {
 // heading style rewraps the text, and a line-relative walk would then select
 // something else and read back a postcondition for a paragraph nobody touched.
 //
-// Both commands go out with notify=true, and that is not a stylistic choice.
-// EndOfParaSel needs it because its command result is what attributes the
-// selection the next stage reads.  Dispatching only that one with notify=true
-// was measured to break the pair: the readback came back as <p>D-END</p> for a
-// paragraph reading "E1-STYLED-END" -- a selection anchored mid-word, i.e.
-// EndOfParaSel taking effect before GoToStartOfPara -- and where the caret
-// happened to already sit at the paragraph end the selection came back empty
-// and the barrier waited for a callback that never arrived (30s timeout, A5
-// styled-list attempt-04).  The two flags are two dispatch paths, and mixing
-// them does not preserve order.  The native probe that established this
-// readback used notify=true for both; this matches it.
+// One dispatch, notify=true.  The flag is load-bearing rather than stylistic:
+// this command's result is what attributes the selection the next stage reads.
 //
-// The cost is a second command result, and it is exactly why the attribution
-// test matches the command *name*: GoToStartOfPara returns a result too
-// (measured, 8/8, findings/evidence/sdk-e2/discovery/endofparasel-result/).
+// This used to be two commands, and the pair taught two things worth keeping in
+// view.  Mixing the notify flags across them reordered their effects (finding
+// 033), because the two values are two dispatch paths; and the pair escaped to
+// a neighbouring paragraph whenever the caret already sat at a paragraph edge
+// (finding 034).  A single dispatch has neither problem to have.
 void postFormatBarrierParagraphSelection() {
-  gState.document->pClass->postUnoCommand(gState.document,
-                                          ".uno:GoToStartOfPara", nullptr,
-                                          true);
   gState.document->pClass->postUnoCommand(
       gState.document, kFormatBarrierSelectCommand, nullptr, true);
+}
+
+// Does the selection the read is about to serialise actually cover the caret
+// the action was dispatched from?
+//
+// The readback describes whatever is selected, and nothing else in this barrier
+// ties that back to the paragraph the command changed.  Comparing the two is
+// the cheapest available identity check: the restore point is the caret as it
+// was *before* the dispatch, and if the selection does not span it then the
+// selection is somewhere else and the verdict would be about another paragraph.
+//
+// Vertical only.  Horizontal position within a line says nothing about which
+// paragraph is selected, and a selection that wraps has rectangles at every
+// x.  This does not survive an extreme reflow -- the dispatch itself changes
+// the paragraph's height, which is the residual finding 033 records and which
+// needs a paragraph identity LOK does not expose -- so it is a check that can
+// fail, not a proof.
+void checkFormatBarrierContainment() {
+  gFormatBarrier.containmentChecked = false;
+  gFormatBarrier.containmentHeld = false;
+  if (!gFormatBarrier.restorePointValid ||
+      gEditorState.selectionRectangles.empty())
+    return;
+  long top = 0;
+  long bottom = 0;
+  bool first = true;
+  for (const EditorRect &rectangle : gEditorState.selectionRectangles) {
+    if (!rectangle.available)
+      continue;
+    const long rectangleTop = rectangle.y;
+    const long rectangleBottom = rectangle.y + rectangle.height;
+    if (first) {
+      first = false;
+      top = rectangleTop;
+      bottom = rectangleBottom;
+      continue;
+    }
+    top = std::min(top, rectangleTop);
+    bottom = std::max(bottom, rectangleBottom);
+  }
+  if (first)
+    return;
+  gFormatBarrier.selectionTop = top;
+  gFormatBarrier.selectionBottom = bottom;
+  gFormatBarrier.restoreCentre =
+      gFormatBarrier.restorePoint.y + gFormatBarrier.restorePoint.height / 2;
+  gFormatBarrier.containmentChecked = true;
+  gFormatBarrier.containmentHeld =
+      gFormatBarrier.restoreCentre >= top && gFormatBarrier.restoreCentre <= bottom;
 }
 
 void readFormatBarrierPostcondition() {
@@ -2880,7 +3058,29 @@ void postFormatBarrierRestore() {
 
 void finishFormatBarrierAfterRestore() {
   gFormatBarrier.restoreConfirmed = gEditorState.selectionRectangles.empty();
+  // Ordered by what each answer is about.  The first two say the read does not
+  // describe one known paragraph, so no verdict about the postcondition is
+  // available at all; only after both hold does "is it in the target state"
+  // become a question with a meaning.  Reversing the order would let a
+  // two-paragraph read that happens to start with the right tag report success.
+  if (gFormatBarrier.readback.multiBlock) {
+    gFormatBarrier.failureShape = "multi-block-readback";
+    failFormatBarrier(
+        kFormatMutationOutcomeUnknown,
+        "the postcondition read covered more than one paragraph, so it does "
+        "not describe the paragraph this action was dispatched on");
+    return;
+  }
+  if (gFormatBarrier.containmentChecked && !gFormatBarrier.containmentHeld) {
+    gFormatBarrier.failureShape = "selection-does-not-contain-restore-point";
+    failFormatBarrier(
+        kFormatMutationOutcomeUnknown,
+        "the paragraph selected for the postcondition read does not cover the "
+        "caret this action was dispatched from");
+    return;
+  }
   if (!formatBarrierReadbackSatisfied()) {
+    gFormatBarrier.failureShape = "postcondition-not-met";
     failFormatBarrier(
         "EDITOR_FORMAT_POSTCONDITION_FAILED",
         "the document does not show the state this action asked for");
@@ -2891,6 +3091,7 @@ void finishFormatBarrierAfterRestore() {
     // still there.  Reporting success would leave the caller holding a
     // selection it never made, so this is a failure with a distinct code --
     // the mutation happened and the evidence says so.
+    gFormatBarrier.failureShape = "selection-not-restored";
     failFormatBarrier(
         "EDITOR_SELECTION_NOT_RESTORED",
         "the postcondition read left a selection the barrier could not undo");
@@ -2906,9 +3107,19 @@ void handleFormatBarrierStep(const Command &command) {
       command.correlation != gFormatBarrier.serial ||
       command.documentHandle != gState.documentHandle)
     return;
+  // values[0] == 1 is a step nobody queued: the loop synthesised it because an
+  // awaiting stage ran out of time.  The identity checks above already proved
+  // it belongs to *this* barrier; the stage check inside re-proves it has not
+  // moved on since the loop decided to wake, which it can have done between the
+  // wait returning and this running.
+  if (command.values[0] == 1) {
+    failFormatBarrierAtDeadline();
+    return;
+  }
   switch (gFormatBarrier.stage) {
   case FormatBarrierStage::SelectQueued:
     gFormatBarrier.stage = FormatBarrierStage::AwaitingSelection;
+    armFormatBarrierDeadline();
     // Go back to where the caret was when the action was dispatched, *before*
     // selecting the paragraph to read.
     //
@@ -2928,8 +3139,12 @@ void handleFormatBarrierStep(const Command &command) {
     postFormatBarrierParagraphSelection();
     return;
   case FormatBarrierStage::ReadQueued:
+    // Containment before the restore, because the restore collapses the very
+    // selection the check is about.
+    checkFormatBarrierContainment();
     readFormatBarrierPostcondition();
     gFormatBarrier.stage = FormatBarrierStage::AwaitingRestore;
+    armFormatBarrierDeadline();
     postFormatBarrierRestore();
     if (!gFormatBarrier.restorePointValid) {
       // Nothing was ever recorded to restore to, so waiting for a collapse
@@ -3062,6 +3277,7 @@ void startFormatBarrierActionResolved(const Command &command,
   barrier.stage = FormatBarrierStage::AwaitingResult;
   barrier.serial = gNextFormatBarrierSerial++;
   gFormatBarrier = barrier;
+  armFormatBarrierDeadline();
   markAsynchronous(command.requestId);
   gState.document->pClass->postUnoCommand(
       gState.document, gFormatBarrier.command.c_str(),
@@ -3662,6 +3878,34 @@ void engineLoop(Command initialReady) {
           continue;
         }
 #endif
+#ifdef OXSDK_E2_FORMAT_BARRIER
+        // Finding 034: adopting .uno:SelectText makes a stall reachable on
+        // purpose (an empty last paragraph produces no selection at all), and
+        // the BUSY gate means a stalled barrier wedges the whole handle.  Same
+        // shape as the selection barrier's deadline above, including the
+        // re-check after waking: the barrier may have advanced while the wait
+        // was returning, and ending one that has moved on would be worse than
+        // the stall.
+        if (formatBarrierActive() && gFormatBarrier.stageDeadlineArmed) {
+          const auto deadline = gFormatBarrier.stageDeadline;
+          const std::uint64_t serial = gFormatBarrier.serial;
+          if (!gState.condition.wait_until(
+                  lock, deadline,
+                  [] { return !gState.commands.empty(); }) &&
+              formatBarrierActive() && gFormatBarrier.serial == serial &&
+              gFormatBarrier.stageDeadlineArmed &&
+              std::chrono::steady_clock::now() >= deadline) {
+            command = Command{CommandType::EditorFormatBarrierStep};
+            command.requestId = gFormatBarrier.requestId;
+            command.documentHandle = gFormatBarrier.documentHandle;
+            command.correlation = gFormatBarrier.serial;
+            command.values[0] = 1;
+            syntheticSelectionDeadline = true;
+            break;
+          }
+          continue;
+        }
+#endif
         gState.condition.wait(lock,
                               [] { return !gState.commands.empty(); });
       }
@@ -3803,6 +4047,21 @@ int mainLoopDrainCommands() {
           synthetic = true;
         }
 #endif
+#ifdef OXSDK_E2_FORMAT_BARRIER
+        // The same deadline under the main-loop engine profile.  It shares the
+        // barrier code, so leaving it without one would give the two profiles
+        // different failure behaviour for the same source.
+        if (!synthetic && formatBarrierActive() &&
+            gFormatBarrier.stageDeadlineArmed &&
+            std::chrono::steady_clock::now() >= gFormatBarrier.stageDeadline) {
+          command = Command{CommandType::EditorFormatBarrierStep};
+          command.requestId = gFormatBarrier.requestId;
+          command.documentHandle = gFormatBarrier.documentHandle;
+          command.correlation = gFormatBarrier.serial;
+          command.values[0] = 1;
+          synthetic = true;
+        }
+#endif
         if (!synthetic)
           break;
       }
@@ -3884,6 +4143,11 @@ int mainLoopPollCallbackImpl(void *, int timeoutUs) {
           SelectionBarrierStage::AwaitingUnitSelection &&
       gSelectionBarrier.boundaryDeadline < waitUntil)
     waitUntil = gSelectionBarrier.boundaryDeadline;
+#endif
+#ifdef OXSDK_E2_FORMAT_BARRIER
+  if (formatBarrierActive() && gFormatBarrier.stageDeadlineArmed &&
+      gFormatBarrier.stageDeadline < waitUntil)
+    waitUntil = gFormatBarrier.stageDeadline;
 #endif
   {
     std::unique_lock<std::mutex> lock(gState.mutex);

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認（原生實測 ＋ core 原始碼對照）／修法已定案、尚未實作** |
+| **狀態** | **已確認並已修（2026-08-11 實測關閉，引擎 `38168306…`）——見〈修法已實作並實測關閉〉** |
 | **Bugzilla** | —（upstream 部分見末節，低優先） |
 | **發現日** | 2026-08-11 |
 | **嚴重度** | 嚴重（可對錯誤段落回報成功，且無訊號；觸發手勢是「在行首點一下再按格式鈕」） |
@@ -72,7 +72,7 @@ barrier 回報 `EDITOR_FORMAT_POSTCONDITION_FAILED`，而**存檔 ODT 顯示 mut
 最鋒利的表述：對 offset-0 這類輸入，現行檢查**對「讀對段」與「讀錯段」會給出同一結果**
 ——本 repo 紀律裡最核心的那句話的實物展示。
 
-## 修法（已定案，尚未實作）
+## 修法（已實作，見下一節的實測）
 
 1. **選取動作換成單一派送 `.uno:SelectText`（`FN_SELECT_PARA`）。**
    clamp 在 stock core 的 dispatch handler 裡（26.8 baseline
@@ -107,6 +107,66 @@ typed 的不可驗證，**永不回報成功**。開放項（記錄、不實作�
 375 次派送量了什麼就主張什麼，沒有任何一筆被否證。要做的是**書面收窄＋補覆蓋**：
 矩陣加 `caretOffsetCoverage` 軸（非空 × {0, 中間, Len} ＋ 空段落 × {中段, 末段}），
 走既有 revision 機制記錄「既有證據僅覆蓋 offset `Len()`」。
+
+## 修法已實作並實測關閉（2026-08-11，**已觀察**）
+
+引擎 `38168306b20891e9…`（修法前同源的 `bd102b4a…`，見 [036](036-the-shipped-wasm-hash-is-not-a-function-of-the-source.md)）。
+四個改動全部進同一個 build：`.uno:SelectText` 單一派送、多段防護、containment、
+三個 awaiting stage 的 5000 ms 期限。
+
+### 先量了一件沒人量過、而整個修法都靠它的事
+
+`AwaitingSelection` 的推進條件要求「收到 `commandName == kFormatBarrierSelectCommand`
+的 result」。**`.uno:SelectText` 會不會回 result，從來沒有人量過**——若不會，
+每一次派送都會卡到期限，修法等於把功能改死。
+
+原生 26.8 實測：**10 次派送 / 10 次 result**。順帶量到 result 一律早於非空選取
+（每一列都早 3 個回呼事件），以及五個封閉動作透過 `SelectText` 讀回的 markup
+形狀完全不變。證據 `findings/evidence/sdk-e2/discovery/selecttext-result/native-26-8/`。
+
+控制組：`.uno:GoDown`／`.uno:GoToStartOfDoc` 以 `notify=false` 派送，計數為 0
+——計數器能印出不同的值。
+
+### 鑑別器：同一份案例清單，修法前後各跑一次
+
+`findings/evidence/sdk-e2/discovery/caret-offset-discriminator/`，Chrome 150。
+判準是**讀回 markup 裡是哪一段的文字**，不是「讀回是否符合目標狀態」
+——後者在鄰段剛好符合時兩邊都會過，033 就是栽在那裡。
+
+| fixture ／ 案例 | 修法前 `bd102b4a` | 修法後 `38168306` |
+|---|---|---|
+| styled-list ／ `offset-len-control` | 成功，讀對段 | **相同（無退步）** |
+| multi-paragraph ／ `offset-len-control` | 成功，讀對段 | **相同（無退步）** |
+| styled-list ／ `offset-zero-verifies-wrong-paragraph` | **回報成功，而 markup 是 `E1-LIST-ONE`**（派送的是 `E1-LIST-TWO`） | 成功，**讀對段** |
+| multi-paragraph ／ `offset-zero-escapes-to-previous` | 讀**上一段** | **讀對段** |
+| empty-paragraph ／ `empty-mid-document` | 讀上一段，`POSTCONDITION_FAILED` | `MUTATION_OUTCOME_UNKNOWN`／`multi-block-readback`，39 ms |
+| empty-paragraph ／ `empty-document-end` | 讀上一段，`POSTCONDITION_FAILED` | `MUTATION_OUTCOME_UNKNOWN`／`stage-deadline:awaiting-selection`，**5010 ms**，handle 仍可用 |
+
+第三列是本單最尖銳的形式：**修法前一次按鍵（Home）就能讓 barrier 回報
+`verified-format-readback`，而它驗證的是另一段**——033 需要呼叫端併發才能到達的失效，
+這裡不需要任何併發。
+
+（那一列不主張「文件變錯了」：`E1-LIST-TWO` 本來就是清單項，結果碰巧是對的。
+假的是**「已驗證」這個宣稱**。要讓結果也錯，還需要一次失敗的派送，那是另一個條件。）
+
+### 期限是這次修法**製造**出來的需求，不是預防性設計
+
+`empty-document-end` 那一列：`SelectText` 回了 result，**選取回呼永遠不來**（原生 selType 0）。
+沒有期限的話 `AwaitingSelection` 不會結束，而 BUSY 閘會讓整個 document handle 卡死。
+5010 ms 就是 5000 ms 的期限加來回；handle 事後仍可用。
+
+期限**永不判成功**，而且這條有實物：文件末段空段落上 `getTextSelection` 在
+**完全沒有選取**時仍回 490 bytes、單一 `<p>`——期限若「就地讀一下」會讓
+`set-paragraph-body` 的後置條件被無中生有地滿足。
+
+### 修法逼出了另一個更廣的缺陷
+
+第一次跑鑑別器時，`offset-zero` 案例在新 build 仍然失敗，我一度以為是退步。
+用 offset `Len()`（不可能逃逸）重跑同一段：**兩個 build 都失敗、`unknownTag` 都是 true**。
+
+那是 [035](035-the-postcondition-read-fails-closed-on-any-formatted-or-cjk-paragraph.md)：
+readback 的封閉標籤集不含 `<b>`／`<i>`／`<font>`／`<span>`，所以**任何有字元格式或
+含中文的段落都 fail closed**。既有缺陷，非本次造成，**未併入本 build**。
 
 ## upstream 註記（低優先，尚未回報）
 

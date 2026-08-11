@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認並已修（2026-08-11 實測關閉）——關掉它的是 BUSY 閘，不是歸屬；見〈修法已實作〉** |
+| **狀態** | **已確認並已修（2026-08-11 實測關閉）——關掉它的是 BUSY 閘，不是歸屬；見〈修法已實作〉。未結的期限缺口亦已於同日補上** |
 | **Bugzilla** | — |
 | **發現日** | 2026-08-11 |
 | **嚴重度** | 嚴重（可能對錯誤的段落回報成功，且不會有任何錯誤訊號） |
@@ -143,7 +143,14 @@ markup 自己帶著段落文字（`E1-CELL-A1`），所以「讀到哪一段」�
 `GoToStartOfPara` 也會回 result（原生 8/8，見上表）。那條當時看起來像註腳的量測，
 現在是承重的。
 
-### 順帶暴露的缺口：barrier 卡住會讓引擎永久 BUSY（**已觀察**，未修）
+**2026-08-11 補記：這一對命令已經不存在了。**
+[034](034-paragraph-selection-escapes-at-the-offset-the-test-never-used.md) 把選取步驟
+換成單一的 `.uno:SelectText`，於是「兩條派送路徑可以亂序」這一整類問題連同本節記錄的
+症狀一起消失——不是修好，是沒有兩條路徑可以亂。`commandName` 歸屬**保留**且仍然必要
+（動作自己的命令也會回 result），而 `SelectText` 同樣每次都回 result（原生 10/10）。
+本節保留原樣，因為它記錄的是「`notify` 是兩條派送路徑」這件仍然為真的事。
+
+### 順帶暴露的缺口：barrier 卡住會讓引擎永久 BUSY（**已觀察**，2026-08-11 已修）
 
 `list-teardown` 逾時的是 client（30 秒），引擎那側的 barrier **仍然是 active**，
 於是下一個案例的 `search` 收到 `BUSY`——整個 document handle 就此卡死。
@@ -152,6 +159,21 @@ markup 自己帶著段落文字（`E1-CELL-A1`），所以「讀到哪一段」�
 `deadlineCanDeclareMutationSuccess: false`，方向是清楚的（期限只能判失敗，不能判成功），
 但 format barrier 沒接上。這條**在正常路徑上碰不到**（上述順序修好後五案例全通），
 但它是「一次逾時就毀掉整個 session」的形狀，列為未結項。
+
+**2026-08-11 已修（引擎 `38168306…`）。** 三個 awaiting stage 各有自己的期限，
+進入每個 stage 時重新起算，期限只能判失敗。
+
+兩件與上面這段不同的事，記下來因為它們改變了這條的性質：
+
+1. **期限值是 5000 ms，不是這裡寫的 250。** 250 是為了另一個問題量的
+   （selection barrier 的結構邊界探測需要多久），因為就在旁邊而沿用它，
+   就是把一次量測變成習慣。目前所有健康的 barrier 都在 40 ms 內完成。
+2. **它不再是「碰不到的防禦」。** [034](034-paragraph-selection-escapes-at-the-offset-the-test-never-used.md)
+   的修法改用 `.uno:SelectText`，而該命令在**文件末段的空段落上完全不產生選取**
+   （原生實測 selType 0，result 照回）——`AwaitingSelection` 於是有了一條
+   **確定會發生**的卡死路徑。期限從此是那個修法的必要配件，不是預防性設計。
+   實測：`MUTATION_OUTCOME_UNKNOWN`／`stage-deadline:awaiting-selection`，
+   5010 ms，document handle 事後仍可用。
 
 ## 未消除的殘留（**推論，未實測**）
 

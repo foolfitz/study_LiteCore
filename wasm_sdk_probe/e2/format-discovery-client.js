@@ -20,6 +20,27 @@ const ACTION_SET = new Set(E2_FORMAT_ACTIONS);
 // measuring.  They are not E2 candidates and must never be reported as such.
 const CONTROL_ACTIONS = new Set(["set-bold", "set-italic"]);
 
+// Caret placement by keystroke rather than by geometry.  Finding 034 turns on a
+// caret offset, and every existing placement path in this harness lands on
+// offset Len(): caretAtAnchor uses rectangle.x + width, and a search leaves the
+// caret after its match.  Nothing here could reach offset 0, which is why 375
+// judged dispatches never did.
+//
+// HOME is a real product gesture -- click a line, press Home, press the format
+// button -- so the discriminator uses the closed action rather than a
+// coordinate this harness would have to argue is offset 0.  On a single-line
+// paragraph line-home and paragraph offset 0 are the same place; the
+// discriminator cases are written against single-line paragraphs for that
+// reason and record the caret rectangle either side of the press.
+const CARET_MOVE_ACTIONS = new Set([
+  "move-line-home",
+  "move-line-end",
+  "move-line-up",
+  "move-line-down",
+  "move-character-left",
+  "move-character-right",
+]);
+
 // Three isolated profiles use this client: the A2 measurement profile, the
 // finding 021 attribution profile that adds the Finding 016 scheduler drain,
 // and the finding 021 candidate-1 profile whose engine runs the upstream
@@ -127,6 +148,28 @@ export class FormatDiscoveryClient {
       endXTwips: integerTwips(xTwips, "xTwips"),
       endYTwips: integerTwips(yTwips, "yTwips"),
     }, options);
+  }
+
+  // Finding 034 discriminator.  Not folded into action(): the closed format set
+  // is what E2-A is measuring and must not quietly grow a movement command.
+  async moveCaret(action, options = {}) {
+    this.document._assertUsable();
+    if (!CARET_MOVE_ACTIONS.has(action)) {
+      throw new DocumentSdkError(
+        "EDITOR_ACTION_UNSUPPORTED",
+        `not a caret movement action: ${String(action)}`,
+      );
+    }
+    const result = await this.document._engine._request("editorDiscoveryAction", {
+      documentHandle: this.document.handle,
+      expectedRevision: options.expectedRevision ?? this.document.revision,
+      action,
+      extendSelection: false,
+      option: false,
+    }, options);
+    if (Number.isInteger(result.revision))
+      this.document.revision = result.revision;
+    return result;
   }
 
   async getState(options = {}) {

@@ -777,13 +777,47 @@ level 2／3 為 number），第一版 validator 問「這個樣式含不含 numb
 
 兩個未結的引擎缺口（都已記在 finding 033，都不擋 A3～A5 的判定）：
 
-1. **format barrier 沒有引擎側期限。** client 逾時後引擎側 barrier 仍 active，
-   之後每個 caret mover 都收到 `BUSY`——整個 document handle 卡死。已觀察過一次
-   （A5 styled-list attempt-04，派送路徑修好之前）。正常路徑碰不到，但形狀是
-   「一次逾時毀掉整個 session」。矩陣的 `deadlineCanDeclareMutationSuccess: false`
-   已經寫好方向（期限只能判失敗），只是 format barrier 沒接上。
+1. ~~**format barrier 沒有引擎側期限。**~~ **2026-08-11 已修**，見下方 10.11。
 2. **座標殘留仍在。** 還原點是派送**前**擷取的文件座標，而派送本身改變幾何。
-   BUSY 閘縮小可達性，沒有消除它。
+   BUSY 閘縮小可達性，沒有消除它。**containment 檢查（10.11）縮小了它的後果**
+   ——選取縱向範圍不含還原點時改為 typed 失敗——但沒有消除成因。
+
+### 10.11 barrier 選取步驟改版與兩條覆蓋軸（2026-08-11，引擎 `38168306…`）
+
+上表三個 PASS 原本綁定 `25761ff0…`。引擎改動後**全部重跑重綁**，見 10.12。
+
+**改了什麼（四項，同一個 build）：**
+
+1. 選取步驟由 `.uno:GoToStartOfPara` ＋ `.uno:EndOfParaSel` 改為單一 `.uno:SelectText`。
+2. `parseFormatReadback` 加多段防護：第二個 block tag 或第二個 `li` → `multiBlock` → fail closed。
+3. containment 檢查：選取的縱向範圍必須包含還原點。
+4. 三個 awaiting stage 各有 5000 ms 期限，進入時重新起算，**永不判成功**。
+
+失敗碼：期限／containment／`multiBlock` 一律 `MUTATION_OUTCOME_UNKNOWN`
+（呼叫端的決定在三者都相同：不要重放）；診斷差異放 `formatBarrier.failureShape`。
+`EDITOR_FORMAT_POSTCONDITION_FAILED` 收窄為「乾淨讀到單一段落、但不在目標狀態」。
+
+**為什麼（finding 034）：** `.uno:GoToStartOfPara` 不冪等，游標已在 offset 0 時會跳到上一段。
+既有 375 次判定派送**全部落在 offset `Len()`**——現行序列唯一正確的位置。
+`caretAtAnchor` 放在 `rectangle.x + width`，search 把游標留在命中處之後，兩邊一致。
+
+**兩條本來不存在的覆蓋軸（矩陣第 3 筆 revision）：**
+
+- `caretOffsetCoverage`——非空段落 × {0, 中間, `Len`} ＋ 空段落 × {文件中段, 文件末段}。
+- `paragraphContentCoverage`——{純 ASCII 無 run, 行內字元格式, 中日韓文字}。
+
+第二條是修法逼出來的：改對之後 barrier 開始讀對的段落，而那一段帶 `<b>`／`<i>`，
+於是撞上 [finding 035](../findings/035-the-postcondition-read-fails-closed-on-any-formatted-or-cjk-paragraph.md)
+——readback 的封閉標籤集只收 `ul/ol/li/h1/p`，**任何有字元格式或含中文的段落都 fail closed**
+（序列化器把中日韓 run 包在 `<font><span>` 裡）。既有缺陷，兩個 build 行為相同，
+**本次未修**：它是下一個 build 加下一次重掃，混進同一個 artifact 會讓兩個改動都無法
+對應到自己的證據（finding 027）。
+
+因此 `paragraphContentCoverage` 的後兩欄**沒有通過的格子**，不得當作已覆蓋報告。
+
+**空段落是規格層收窄，不是實作缺陷。** 空段落沒有可選取的內容，任何以游標移動為基礎的
+選取都定址不到它。路線 C 的 readback 驗證定義在非空段落上；空段落的 mutation 一律回報
+typed 的不可驗證，**永不回報成功**。
 
 ### 10.4 尚未執行
 

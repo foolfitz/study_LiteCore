@@ -1,0 +1,96 @@
+{
+  "what": "does the finding 034 repair actually close the escape, and what does it cost?",
+  "why": "the same case list is run against two engines built from the same source either side of the change, so every row answers by contrast rather than by assertion. The pre-change build is also the instrument that proves the gesture reaches caret offset 0 at all: if HOME did not get there, no escape would fire and the pre-change rows would look exactly like the post-change ones.",
+  "builds": {
+    "preChange": {
+      "wasmSha256Prefix": "bd102b4a3ecc47c3",
+      "source": "commit 3bd6108 (unchanged engine)",
+      "archived": "wasm_sdk_probe/build/archive/e2-format-discovery-prechange/"
+    },
+    "postChange": {
+      "wasmSha256Prefix": "38168306b20891e9",
+      "changes": [
+        "select step is one .uno:SelectText dispatch",
+        "multi-block readback guard",
+        "containment check against the restore point",
+        "5000ms per-stage deadline on the three awaiting stages"
+      ],
+      "archived": "wasm_sdk_probe/build/archive/e2-format-discovery-new/"
+    }
+  },
+  "browser": "Chrome 150.0.7871.128",
+
+  "readTheseFieldsThisWay": {
+    "readsDispatched / readsPrevious": "recomputed here from the readback markup stored in each result.json, NOT taken from the run's own markupHas*Text fields. The harness searched the raw markup for a contiguous string, and the serialiser splits a paragraph across <font>/<span> for every CJK run -- so a run whose markup plainly carried the paragraph text reported false for both. The raw markup is unchanged evidence; only this derived flag was wrong, and the harness has since been fixed to strip tags before searching.",
+    "why identity and not state": "asking 'is the readback in the target state' passes whichever paragraph was read whenever the neighbour happens to match -- finding 033 was written after that check passed on both answers. The markup carries the paragraph's own text, so which paragraph was read is directly visible."
+  },
+
+  "rows": [
+    {
+      "fixture": "styled-list",
+      "case": "offset-len-control",
+      "preChange": {"code": "verified-format-readback", "ms": 39, "readsDispatched": true},
+      "postChange": {"code": "verified-format-readback", "ms": 31, "readsDispatched": true},
+      "reading": "no regression at offset Len(), which is where all 375 previously judged dispatches sat. Without this row a failure elsewhere could be the suite rather than the offset."
+    },
+    {
+      "fixture": "multi-paragraph",
+      "case": "offset-len-control",
+      "preChange": {"code": "verified-format-readback", "ms": 38, "readsDispatched": true},
+      "postChange": {"code": "verified-format-readback", "ms": 39, "readsDispatched": true},
+      "reading": "same, on a fixture with no lists and no styles of its own."
+    },
+    {
+      "fixture": "styled-list",
+      "case": "offset-zero-verifies-wrong-paragraph",
+      "preChange": {"code": "verified-format-readback", "ms": 28, "readsDispatched": false, "readsPrevious": true},
+      "postChange": {"code": "verified-format-readback", "ms": 28, "readsDispatched": true, "readsPrevious": false},
+      "reading": "the headline. The pre-change build reports a VERIFIED success whose markup carries E1-LIST-ONE while the action was dispatched on E1-LIST-TWO -- the claim to have verified is false even though the outcome happens to be right, because the neighbour was already a list item. One keystroke (HOME) reaches what finding 033 could only reach through caller concurrency. Closed on the new build.",
+      "notClaimed": "this is not 'the document ended up wrong'. An outcome-level false positive additionally needs a dispatch that fails, which is a separate condition."
+    },
+    {
+      "fixture": "multi-paragraph",
+      "case": "offset-zero-escapes-to-previous",
+      "preChange": {"code": "EDITOR_FORMAT_POSTCONDITION_FAILED", "ms": 28, "readsDispatched": false, "readsPrevious": true, "unknownTag": true},
+      "postChange": {"code": "EDITOR_FORMAT_POSTCONDITION_FAILED", "ms": 29, "readsDispatched": true, "readsPrevious": false, "unknownTag": true},
+      "reading": "the escape is closed here too -- readsDispatched flips false to true. The code does not change, because this paragraph runs into a different and older defect: its CJK text is serialised inside <font>/<span>, neither of which formatTagIsKnown accepts, so the read sets unknownTag and fails closed on both builds. Two causes, separated by the identity flag rather than by the code."
+    },
+    {
+      "fixture": "styled-list",
+      "case": "inline-formatting-readback",
+      "preChange": {"code": "EDITOR_FORMAT_POSTCONDITION_FAILED", "ms": 28, "readsDispatched": true, "unknownTag": true},
+      "postChange": {"code": "EDITOR_FORMAT_POSTCONDITION_FAILED", "ms": 29, "readsDispatched": true, "unknownTag": true},
+      "reading": "the control for that older defect, at offset Len where no escape is possible. Identical on both builds, reading the correct paragraph, failing on <b>/<i>. This is what proves the tag-set defect is not something this change introduced.",
+      "openFinding": "the postcondition read fails closed on any paragraph carrying character formatting or CJK text. Not fixed in this build on purpose -- see the note below."
+    },
+    {
+      "fixture": "empty-paragraph",
+      "case": "empty-mid-document",
+      "preChange": {"code": "EDITOR_FORMAT_POSTCONDITION_FAILED", "ms": 36, "readsPrevious": true},
+      "postChange": {"code": "MUTATION_OUTCOME_UNKNOWN", "ms": 39, "failureShape": "multi-block-readback", "blockCount": 2, "readsPrevious": false},
+      "reading": "the pre-change build read the paragraph above and called it a postcondition failure -- a verdict about the wrong paragraph, reported as if it were about the right one. The new build selects the empty paragraph and the one after it, sees two block tags, and refuses to have an opinion. Both fail; only one of them says what it does not know."
+    },
+    {
+      "fixture": "empty-paragraph",
+      "case": "empty-document-end",
+      "preChange": {"code": "EDITOR_FORMAT_POSTCONDITION_FAILED", "ms": 28, "readsPrevious": true},
+      "postChange": {"code": "MUTATION_OUTCOME_UNKNOWN", "ms": 5010, "failureShape": "stage-deadline:awaiting-selection", "handleUsableAfter": true},
+      "reading": "the stall the deadline exists for, and the one this change creates: .uno:SelectText returns its command result and no selection callback ever arrives on the document's last paragraph when it is empty (native 26.8, selectionType 0). 5010ms is the 5000ms stage deadline plus round trip -- the barrier ends because the deadline ends it, and the document handle still works afterwards, which is the property that makes this a failure rather than a wedged session."
+    }
+  ],
+
+  "verdict": {
+    "escapeClosed": "yes, on both fixtures that could show it, by markup identity",
+    "regressionAtOffsetLen": "none, on both fixtures",
+    "multiBlockGuard": "fires, typed, 39ms",
+    "deadline": "fires at 5010ms, never declares success, handle survives",
+    "costsPaid": "the empty-paragraph cases now take 5s instead of 30ms to fail. That is the price of not declaring an outcome we cannot see, and SPEC E2-A narrows empty paragraphs out of the verified set for the same reason."
+  },
+
+  "notFixedInThisBuild": {
+    "what": "formatTagIsKnown accepts ul/ol/li/h1/p and nothing else, so <b>, <i>, <font> and <span> all set unknownTag and the read fails closed",
+    "reach": "any paragraph with character formatting, and every paragraph containing CJK text, because the serialiser wraps CJK runs in <font face=...><span lang=...>",
+    "whyItWasNeverSeen": "every A3/A4/A5 anchor is plain ASCII inside a paragraph with no runs -- the same coverage hole finding 034 came out of, one axis over",
+    "whyNotNow": "this build's change set is validated and about to be bound to an A3-A5 sweep. Widening the tag set is a design decision about what the closed readback accepts, and mixing it into the same artifact would mean neither change could be attributed to its own evidence. It is a second build and a second sweep, not a rider on this one."
+  }
+}

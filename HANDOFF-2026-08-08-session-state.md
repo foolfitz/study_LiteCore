@@ -756,3 +756,114 @@ finding 034 已寫完並記錄修法定案，所以下一個 session 可以直�
 - fixture `empty-paragraph`（**新增，未動任何既有 fixture**——既有四個重生成後逐位元相同，已驗）。
   含文件中段與**文件末段**兩個空段落，因為那是兩種不同的失敗。
 - `run_e2_discovery.py --mode deadline` ＋ app 的 `runDeadline()`。
+
+
+---
+
+## 2026-08-11（續三）：034 的修法已出貨並實測關閉，途中冒出 035 與 036
+
+fable 第二版判斷的四項改動**全部完成並驗證**，另外撞出兩張新單，其中一張是我自己造成的。
+
+### 引擎 `38168306b20891e9…`（修法前同源的 `bd102b4a…`）
+
+四項全進同一個 build：`.uno:SelectText` 單一派送、多段防護、containment、
+三個 awaiting stage 的 5000 ms 期限（`MUTATION_OUTCOME_UNKNOWN` ＋ `failureShape`）。
+
+**動手前補了一件沒人量過、而整個修法都靠它的事。** `AwaitingSelection` 的推進要求
+收到選取命令自己的 result——**`.uno:SelectText` 會不會回 result 從未量測**。
+若不會，每次派送都卡到期限，修法等於把功能改死。原生 26.8：**10/10**。
+控制組（`GoDown` 以 `notify=false`）計數為 0，所以計數器能印出不同的值。
+證據 `findings/evidence/sdk-e2/discovery/selecttext-result/native-26-8/`。
+
+### 鑑別器：同一份案例清單，兩個引擎各跑一次
+
+`findings/evidence/sdk-e2/discovery/caret-offset-discriminator/`（`analysis.json` 有七列對照）。
+判準是 **markup 裡是哪一段的文字**，不是「是否符合目標狀態」——後者在鄰段剛好符合時
+兩邊都會過，033 就栽在那裡。
+
+最尖銳的一列：**修法前一次 Home 鍵就能讓 barrier 回報 `verified-format-readback`，
+而它驗證的是另一段**（markup 是 `E1-LIST-ONE`，派送的是 `E1-LIST-TWO`）。
+033 需要呼叫端併發才到得了的失效，這裡不需要任何併發。修法後讀對段。
+
+空段落末段：`stage-deadline:awaiting-selection`，**5010 ms**，handle 事後仍可用。
+offset `Len()` 兩個 fixture 皆無退步。
+
+### 測試與隔離
+
+`tests/test_e2_profile.py` 45 項全過（新增兩個 class）。**12 個突變全部被抓**——
+其中兩個第一輪**沒被抓**：我的測試用「子字串存在」判斷，而突變是 `if (false && ...)`，
+子字串全都還在。改成比對整個 guard 才抓到。**能在被檢查的東西被關掉時仍然通過的檢查，不是檢查。**
+
+隔離用前處理 TU 比對（finding 032）：非 E2 組態逐位元相同，凍結 artifact
+（`e1-editor-v1` = `835b453d…`）未受影響。
+
+### 新單 035：readback 對「有字元格式或含中文」的段落一律 fail closed
+
+**不是想到的，是 034 的修法逼出來的。** 修對之後 barrier 開始讀對的段落，
+而那一段帶 `<b>`／`<i>`，於是撞上 `formatTagIsKnown` 只收 `ul/ol/li/h1/p`。
+用 offset `Len()`（不可能逃逸）重跑，**兩個 build 都失敗**→既有缺陷不是退步。
+
+**產品面可能比 034 更重**：序列化器把中日韓 run 包在 `<font><span>` 裡，
+所以**中文文件的每一段都會踩到**。375 次判定派送沒碰到，因為錨點全是純 ASCII
+且所在段落沒有 run——fixture 裡明明有中文，但沒有一段是被派送的那一段。
+
+**未併入本 build**：混進同一個 artifact 會讓兩個改動都無法對應到自己的證據（027）。
+下一個 build 加下一次重掃。修法選項三條已列在單子裡（傾向第一條）。
+
+### 新單 036：出貨 wasm 的 hash 不是原始碼的函數——而我因此毀掉了 `25761ff0`
+
+改引擎前要先在舊 build 跑基線，我卻**先跑了一次 `make`**（目的只是複製 JS 資產）。
+`probe_engine.cpp` 的 mtime 剛好較新（內容與 HEAD 完全相同、`git diff` 為空），make 重編，
+`dist` 的 wasm 由 `25761ff0…` 變成 `bd102b4a…`。**沒有備份，無法重建。**
+
+032 早就確認重編會得到不同目的檔；我沒有把它推到「所以連結後的 hash 也不是原始碼的函數」。
+量測：連續兩次完整 build 逐位元相同（不是每次都擲），但直接測編譯步驟**四次得到四個不同目的檔**。
+
+A3/A4/A5 的 `25761ff0` 判定**沒有失效**（它們是關於那份 artifact 產生的證據的陳述），
+失去的是**再對那份 artifact 提問**的能力。基線因此改跑在同源重建的 `bd102b4a`，並已註明。
+
+**已改的作業方式**：改引擎前先把 profile 四件複製到 `build/archive/<name>/`。
+現有兩份：`e2-format-discovery-prechange`（`bd102b4a…`）、`e2-format-discovery-new`（`38168306…`）。
+
+### 文件
+
+矩陣第 3 筆 revision（新增 `caretOffsetCoverage` 與 `paragraphContentCoverage` 兩軸，
+並註明後者的後兩欄**沒有通過的格子**）、SPEC 10.10 修訂＋新增 10.11、
+findings 033／034 就地修訂、README 新增 035／036。
+
+### 順帶發現、未修、不在本輪範圍
+
+`make finding-016-scheduler-profile` 的旗標組合（`-DOXSDK_EDITOR_DISCOVERY
+-DOXSDK_FINDING_016_SCHEDULER_PROBE`，無 E2）**在 HEAD 就編不過**：
+`gEditorState.stateChangedTotal` 由 `OXSDK_E2_FORMAT_BARRIER` 守著，
+使用處卻在 `OXSDK_FINDING_016_SCHEDULER_PROBE` 底下。與本輪無關，未動。
+
+### 進度
+
+| 步驟 | 狀態 |
+|---|---|
+| 原生量 `SelectText` result 與 readback 形狀 | **完成**（10/10） |
+| 引擎四項改動 ＋ 測試 ＋ 前處理 TU 隔離 | **完成**（45 tests、12 突變全抓） |
+| 鑑別器基線（修法前）＋ 修法後對照 | **完成**（七列，兩個 build） |
+| A3–A5 重掃重綁到 `38168306…` | **完成，三個全 PASS** |
+| 矩陣／SPEC／findings 修訂 | **完成** |
+| **A6／A7** | **仍未開始，E2-A 仍無總判定** |
+| **finding 035 修法** | **未定案**，下一個 build |
+
+### 重掃結果（綁定 `38168306b20891e9…`）
+
+| 判定 | 覆蓋 | 數量 |
+|---|---|---|
+| **A3_PASS** | 兩瀏覽器 × 三 fixture，每格 3/3 | 18 runs／90 次派送 |
+| **A4_PASS** | 兩瀏覽器 × 三 fixture，每格 3/3 | 18 runs／270 次派送 |
+| **A5_PASS** | 兩瀏覽器 × 四 fixture，每格 1/1 | 8 runs／42 個案例 |
+
+`verdictCountsOnlyCurrentBuild: true`、`gaps: {}`。A5 的 `state-crosstalk` 與
+`table-boundary` 兩案例在新 build 上 `containment.held=true`——**containment 檢查是活的且沒有誤擊**。
+
+矩陣 `statusProvenance` 已重綁，舊的 `25761ff0` 綁定移入 `supersededBinding` 並註明
+**那份 artifact 已不存在且無法重建**（036），所以那組數字只能引用、不能重現。
+
+`notValidated` 仍列著三項：A6、A7，以及**「commandName 歸屬這一層仍未被獨立證實」**
+——`selectionBeforeResultCount` 每一次都是 0，沒有外來選取抵達過。這句話從 033 起
+就沒變過，換了選取命令之後依然成立。

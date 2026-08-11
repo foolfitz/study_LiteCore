@@ -252,17 +252,19 @@ class TestFormatBarrierSelectionAttribution(unittest.TestCase):
     Two properties are pinned here because both were learned by breaking them,
     and neither is visible from any other layer.
 
-    The advance out of AwaitingSelection must require this barrier's own
-    `.uno:EndOfParaSel` result *and* a non-empty selection.  Accepting any
-    non-empty selection is the original defect: a caller's search selects its
-    match, and the barrier would read that paragraph instead.
+    The advance out of AwaitingSelection must require this barrier's own select
+    command result *and* a non-empty selection.  Accepting any non-empty
+    selection is the original defect: a caller's search selects its match, and
+    the barrier would read that paragraph instead.
 
-    Both selection commands must be dispatched with the same notify flag.  With
-    only EndOfParaSel notified, the pair reordered: A5 styled-list attempt-04
-    read back `<p>D-END</p>` for a paragraph reading `E1-STYLED-END` -- a
-    selection anchored mid-word -- and where the caret already sat at the
-    paragraph end the selection came back empty and the barrier waited 30s for
-    a callback that never arrived.
+    The select step must be one dispatch.  It was two (GoToStartOfPara +
+    EndOfParaSel) and that shape had two faults, each learned by breaking it:
+    dispatching them with different notify flags reordered their effects (A5
+    styled-list attempt-04 read back `<p>D-END</p>` for a paragraph reading
+    `E1-STYLED-END`, a selection anchored mid-word), and the pair escaped to the
+    neighbouring paragraph whenever the caret already sat at a paragraph edge
+    (finding 034).  A single dispatch has neither fault available to it, so the
+    test pins the count as well as the name.
     """
 
     @classmethod
@@ -273,12 +275,17 @@ class TestFormatBarrierSelectionAttribution(unittest.TestCase):
         start = self.source.index("void postFormatBarrierParagraphSelection() {")
         return self.source[start:self.source.index("\n}\n", start)]
 
-    def test_both_selection_commands_share_a_dispatch_path(self):
+    def test_the_select_step_is_exactly_one_dispatch(self):
         body = self.selection_dispatch()
-        self.assertIn('".uno:GoToStartOfPara", nullptr,\n                                          true)',
-                      body)
+        self.assertEqual(body.count("postUnoCommand("), 1)
         self.assertIn("kFormatBarrierSelectCommand, nullptr, true)", body)
+        # notify=true is what makes the command result exist to attribute with;
+        # a false here would leave AwaitingSelection with nothing to advance on
+        # and every dispatch would end at the deadline instead.
         self.assertNotIn("false)", body)
+        # The pair is gone, not merely unreferenced by name.
+        self.assertNotIn("GoToStartOfPara", body)
+        self.assertNotIn("EndOfParaSel", body)
 
     def test_the_advance_requires_the_result_and_the_selection(self):
         start = self.source.index("void maybeAdvanceFormatBarrierSelection() {")
@@ -287,10 +294,11 @@ class TestFormatBarrierSelectionAttribution(unittest.TestCase):
         self.assertIn("gEditorState.selectionRectangles.empty()", body)
 
     def test_attribution_matches_the_command_name(self):
-        # GoToStartOfPara returns a command result too (measured natively, 8
-        # dispatches / 8 results), so "a result arrived" would attribute the
-        # wrong command.
-        self.assertIn('const char *const kFormatBarrierSelectCommand = ".uno:EndOfParaSel";',
+        # The action's own command also returns a result, so "a result arrived"
+        # would attribute the wrong one.  .uno:SelectText returns one on every
+        # dispatch (native 26.8, 10/10, selecttext-result/), which is what makes
+        # the name comparison work after the switch.
+        self.assertIn('const char *const kFormatBarrierSelectCommand = ".uno:SelectText";',
                       self.source)
         self.assertIn("commandResultMatches(payload, kFormatBarrierSelectCommand)",
                       self.source)
@@ -306,6 +314,166 @@ class TestFormatBarrierSelectionAttribution(unittest.TestCase):
                     f'                     "a verified format-state action is still in flight");')
                 guard = self.source.rindex("if (formatBarrierActive()) {", 0, index)
                 self.assertLess(index - guard, 200)
+
+
+class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
+    """Finding 034: the three ways the barrier now declines to have an opinion.
+
+    Each corresponds to a shape that was measured, not imagined:
+
+    * multi-block -- .uno:SelectText on an empty paragraph mid-document selects
+      it *and* the paragraph after it (native 26.8), so the markup carries two
+      block tags and the first-tag scan would describe an unknown mixture as if
+      it were one paragraph.
+    * containment -- the readback describes whatever is selected, and nothing
+      else ties that to the paragraph the command changed.  The pre-change build
+      reported `verified-format-readback` on a run whose markup carried the
+      neighbour's text (caret-offset-discriminator/chrome/styled-list).
+    * deadline -- at the document's last paragraph, if empty, the select command
+      returns its result and no selection callback ever arrives (native 26.8,
+      selectionType 0).  Nothing would ever advance the barrier, and the BUSY
+      gate turns that into a wedged document handle.
+
+    All three report one code.  The caller's decision is identical in all three
+    -- do not replay -- and a code per shape would invite branching on a
+    distinction the caller cannot act on.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.source = (PROJECT / "src" / "probe_engine.cpp").read_text(encoding="utf-8")
+
+    def finish_body(self) -> str:
+        start = self.source.index("void finishFormatBarrierAfterRestore() {")
+        return self.source[start:self.source.index("\n}\n", start)]
+
+    def test_multi_block_is_computed_from_both_counts(self):
+        start = self.source.index("FormatReadback parseFormatReadback(")
+        body = self.source[start:self.source.index("\n}\n", start)]
+        # Two block tags is the plain two-paragraph read; two <li> is the same
+        # thing inside a single <ul>, where the block count alone would be 2 as
+        # well but the list shape is what makes it legible.
+        self.assertIn("readback.blockCount > 1 || readback.itemCount > 1", body)
+
+    def test_the_three_unknown_outcomes_share_one_code(self):
+        self.assertIn(
+            'const char *const kFormatMutationOutcomeUnknown = "MUTATION_OUTCOME_UNKNOWN";',
+            self.source)
+        body = self.finish_body()
+        self.assertEqual(body.count("kFormatMutationOutcomeUnknown"), 2)
+        start = self.source.index("void failFormatBarrierAtDeadline() {")
+        self.assertIn("kFormatMutationOutcomeUnknown",
+                      self.source[start:self.source.index("\n}\n", start)])
+
+    def test_postcondition_failed_keeps_its_narrow_meaning(self):
+        # It must be reached only after both "is this one paragraph" questions
+        # have been answered yes; otherwise a two-paragraph read that happens to
+        # start with the right tag would be judged as a postcondition.
+        body = self.finish_body()
+        # The guards are matched whole, not by substring.  A mutation that
+        # disabled the multi-block check with `if (false && ...)` left every
+        # substring in place and every ordering unchanged, and an earlier
+        # version of this test passed on it -- a check that survives the thing
+        # it checks being switched off is not a check.
+        self.assertIn("  if (gFormatBarrier.readback.multiBlock) {", body)
+        self.assertIn(
+            "  if (gFormatBarrier.containmentChecked && !gFormatBarrier.containmentHeld) {",
+            body)
+        multi = body.index("readback.multiBlock")
+        contain = body.index("containmentChecked")
+        judged = body.index("formatBarrierReadbackSatisfied()")
+        self.assertLess(multi, judged)
+        self.assertLess(contain, judged)
+        self.assertEqual(body.count("EDITOR_FORMAT_POSTCONDITION_FAILED"), 1)
+
+    def test_containment_runs_before_the_restore_collapses_the_selection(self):
+        # Anchored inside the step handler: the stage-name table above also
+        # contains a line starting "  case FormatBarrierStage::ReadQueued:",
+        # and slicing from the first match measured that instead.
+        handler = self.source.index("void handleFormatBarrierStep(const Command &command) {")
+        start = self.source.index("  case FormatBarrierStage::ReadQueued:", handler)
+        body = self.source[start:self.source.index("    return;", start)]
+        self.assertLess(body.index("checkFormatBarrierContainment()"),
+                        body.index("postFormatBarrierRestore()"))
+
+    def test_containment_records_why_it_did_not_check(self):
+        # "The selection did not cover the caret" and "we never worked out where
+        # either was" must not both surface as a bare false.
+        start = self.source.index("void checkFormatBarrierContainment() {")
+        body = self.source[start:self.source.index("\n}\n", start)]
+        self.assertIn("gFormatBarrier.containmentChecked = false;", body)
+        self.assertIn("gFormatBarrier.containmentChecked = true;", body)
+        finish = self.finish_body()
+        self.assertIn("gFormatBarrier.containmentChecked && !gFormatBarrier.containmentHeld",
+                      finish)
+
+
+class TestFormatBarrierDeadline(unittest.TestCase):
+    """Finding 033's open gap, closed because finding 034's repair reopens it."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.source = (PROJECT / "src" / "probe_engine.cpp").read_text(encoding="utf-8")
+
+    def test_the_deadline_is_its_own_number(self):
+        # Explicitly not the selection barrier's 250ms: that was measured for a
+        # different question, and reusing a nearby number is how a measurement
+        # turns into a habit.
+        self.assertIn("constexpr int FormatBarrierStageDeadlineMs = 5000;", self.source)
+
+    def test_every_awaiting_stage_arms_it(self):
+        for marker in (
+            "barrier.stage = FormatBarrierStage::AwaitingResult;",
+            "gFormatBarrier.stage = FormatBarrierStage::AwaitingSelection;",
+            "gFormatBarrier.stage = FormatBarrierStage::AwaitingRestore;",
+        ):
+            with self.subTest(stage=marker):
+                index = self.source.index(marker)
+                following = self.source[index:index + 400]
+                self.assertIn("armFormatBarrierDeadline();", following)
+
+    def test_the_deadline_can_only_fail(self):
+        start = self.source.index("void failFormatBarrierAtDeadline() {")
+        body = self.source[start:self.source.index("\n}\n", start)]
+        self.assertIn("failFormatBarrier(", body)
+        self.assertNotIn("completeFormatBarrier", body)
+        # getTextSelection returns markup at the document-end empty paragraph
+        # even with no selection (490 bytes, a single <p>), so a fallback read
+        # would satisfy the set-paragraph-body postcondition out of nothing.
+        self.assertNotIn("readFormatBarrierPostcondition", body)
+
+    def test_the_synthesised_step_reproves_the_barrier_it_belongs_to(self):
+        start = self.source.index("void handleFormatBarrierStep(const Command &command) {")
+        body = self.source[start:self.source.index("\n  switch (gFormatBarrier.stage)", start)]
+        self.assertIn("command.correlation != gFormatBarrier.serial", body)
+        self.assertIn("if (command.values[0] == 1) {", body)
+        # And again inside, because the barrier can advance between the wait
+        # returning and the step running.
+        deadline = self.source.index("void failFormatBarrierAtDeadline() {")
+        self.assertIn("gFormatBarrier.stageDeadlineArmed",
+                      self.source[deadline:self.source.index("\n}\n", deadline)])
+
+    def test_both_engine_loops_carry_it(self):
+        # The main-loop profile shares this barrier code; leaving it without a
+        # deadline would give two profiles different failure behaviour from one
+        # source.
+        #
+        # Matched on the whole guard.  Searching for the field name inside a
+        # window passed on a branch prefixed with `if (false && ...)`, because
+        # every substring was still present -- the same way the multi-block
+        # ordering test failed, and worth stating twice.
+        for loop, guard in (
+            ("void engineLoop(Command initialReady) {",
+             "        if (formatBarrierActive() && gFormatBarrier.stageDeadlineArmed) {"),
+            ("int mainLoopDrainCommands() {",
+             "        if (!synthetic && formatBarrierActive() &&\n"
+             "            gFormatBarrier.stageDeadlineArmed &&"),
+        ):
+            with self.subTest(loop=loop):
+                start = self.source.index(loop)
+                body = self.source[start:start + 6000]
+                self.assertIn(guard, body)
+                self.assertIn("command.values[0] = 1;", body)
 
 
 class TestLocaleAttributionProfile(unittest.TestCase):

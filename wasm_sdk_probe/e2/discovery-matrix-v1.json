@@ -352,6 +352,40 @@
         "The format barrier has no engine-side deadline. A client timeout leaves it active and every later caret mover gets BUSY -- observed once (A5 styled-list attempt-04, before the dispatch-path fix). Unreachable on the normal path now, but the shape is 'one timeout wedges the session'.",
         "The caret restore is a document coordinate captured before dispatch, and the dispatch changes the paragraph's geometry. BUSY narrows who can reach it; it does not close it. A paragraph-identity anchor would, and LOK exposes none."
       ]
+    },
+    {
+      "date": "2026-08-11",
+      "why": "Findings 034 and 035. The matrix had no axis for where the caret sits inside the paragraph, nor for what the paragraph contains, so both were free to be wrong in every run without a single cell going red. Recorded as a revision with the coverage the existing evidence actually has, rather than added quietly as if it had always been measured.",
+      "changes": [
+        {
+          "field": "caretOffsetCoverage (new)",
+          "from": "absent -- no axis for caret position within the paragraph",
+          "to": "an explicit axis, with the pre-2026-08-11 evidence marked as covering offset Len() only",
+          "because": "finding 034 -- .uno:GoToStartOfPara is not idempotent, so the old select pair read the previous paragraph whenever the caret already sat at offset 0. Every one of the 375 judged dispatches placed the caret at offset Len() (caretAtAnchor uses rectangle.x + width, and a search leaves the caret after its match), which is the single offset where the old sequence is correct."
+        },
+        {
+          "field": "paragraphContentCoverage (new)",
+          "from": "absent -- no axis for what the dispatched paragraph contains",
+          "to": "an explicit axis, with the existing evidence marked as plain-ASCII-runless only",
+          "because": "finding 035 -- the readback's closed tag set accepts ul/ol/li/h1/p and nothing else, so <b>, <i>, <font> and <span> all fail closed. Every A3/A4/A5 anchor is plain ASCII in a paragraph with no runs, and the serialiser wraps every CJK run in <font><span>, so a Chinese paragraph fails."
+        },
+        {
+          "field": "dispatchMap.selectCommand",
+          "from": ".uno:GoToStartOfPara + .uno:EndOfParaSel",
+          "to": ".uno:SelectText",
+          "because": "finding 034. FN_SELECT_PARA carries the offset-0 clamp in core's dispatch handler; one dispatch also removes the two-path ordering bug finding 033 recorded. Measured to return a UNO command result on every dispatch (10/10 native) before the switch, because the attribution depends on it."
+        },
+        {
+          "field": "completionRule.timeout / completionRule.unknownOutcome",
+          "from": "MUTATION_OUTCOME_UNKNOWN, no retry -- client timeout only",
+          "to": "the engine has its own per-stage deadline (5000ms, three awaiting stages), and multi-block and containment failures report the same code",
+          "because": "adopting .uno:SelectText creates a reachable stall: an empty last paragraph produces no selection at all, so AwaitingSelection would never advance and the BUSY gate would wedge the handle. The three shapes share one code because the caller's decision is the same in all of them; formatBarrier.failureShape carries the distinction for diagnosis."
+        }
+      ],
+      "openAfterThisRevision": [
+        "finding 035 is not fixed -- the tag set still rejects formatted and CJK paragraphs. Deliberately left for its own build and its own sweep so the two changes stay attributable to separate artifacts (finding 027).",
+        "paragraphContentCoverage therefore has no passing cells for the formatted or CJK columns, and must not be reported as if it did."
+      ]
     }
   ],
   "negativeCaseExpectations": {
@@ -364,17 +398,58 @@
   },
   "statusProvenance": {
     "replaced": "A2-complete-A3-ready-route-c-readback-postcondition",
-    "date": "2026-08-11",
+    "date": "2026-08-11 (re-swept after the finding 034 engine change)",
     "decidedBy": "wasm_sdk_probe/tools/validate_e2_a.py against the evidence tree",
-    "boundTo": "engine wasm 25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+    "boundTo": "engine wasm 38168306b20891e90217a83444dcd192552605e9fde5d595cdbfc101465ecba1",
     "counts": {
-      "a3": "21 runs / 105 dispatches, 3+ passing per browser per fixture",
-      "a4": "18 runs / 270 dispatches",
-      "a5": "11 runs / 58 cases, both browsers, all four fixtures"
+      "a3": "18 runs / 90 dispatches, 3 passing per browser per fixture",
+      "a4": "18 runs / 270 dispatches, 3 passing per browser per fixture",
+      "a5": "8 runs / 42 cases, both browsers, all four fixtures"
     },
     "notCovered": [
       "A6 secondary capabilities",
-      "A7 round-trip and regression"
-    ]
+      "A7 round-trip and regression",
+      "paragraphContentCoverage: inline character formatting and CJK text both FAIL (finding 035, unfixed) -- covered by measurement, not passing"
+    ],
+    "supersededBinding": {
+      "boundTo": "engine wasm 25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "counts": {
+        "a3": "21 runs / 105 dispatches, 3+ passing per browser per fixture",
+        "a4": "18 runs / 270 dispatches",
+        "a5": "11 runs / 58 cases, both browsers, all four fixtures"
+      },
+      "why": "the engine changed on 2026-08-11 (finding 034), so every run above became evidence about a different artifact (finding 027). The artifact itself is gone and cannot be rebuilt -- see finding 036 -- so these counts can never be reproduced, only cited."
+    }
+  },
+  "caretOffsetCoverage": {
+    "why": "finding 034: the defect is selected by an input, not by timing, and the input is the caret offset.",
+    "axis": [
+      "offset-0",
+      "offset-middle",
+      "offset-len"
+    ],
+    "evidenceBefore20260811": "offset-len only, in all 375 judged dispatches",
+    "nonEmptyParagraph": {
+      "offset-0": "covered 2026-08-11, caret-offset-discriminator/, both builds, styled-list and multi-paragraph",
+      "offset-middle": "covered natively only (paragraph-selection-edges/native-26-8), not in a browser",
+      "offset-len": "covered by A3/A4/A5 and by the discriminator controls"
+    },
+    "emptyParagraph": {
+      "mid-document": "covered 2026-08-11; must fail typed via multiBlock, never succeed",
+      "document-end": "covered 2026-08-11; must fail typed via the stage deadline, never succeed",
+      "note": "SPEC E2-A narrows empty paragraphs out of the verified set: they have no selectable content, so no cursor-movement selection can address them."
+    }
+  },
+  "paragraphContentCoverage": {
+    "why": "finding 035: the readback's closed tag set decides what a paragraph may contain, and it was written to fit the fixtures rather than documents.",
+    "axis": [
+      "plain-ascii-no-runs",
+      "inline-character-formatting",
+      "cjk-text"
+    ],
+    "evidenceBefore20260811": "plain-ascii-no-runs only, in all 375 judged dispatches",
+    "plain-ascii-no-runs": "covered, passing",
+    "inline-character-formatting": "covered 2026-08-11, FAILING on both builds (unknownTag on <b>/<i>) -- finding 035, unfixed",
+    "cjk-text": "covered 2026-08-11, FAILING on both builds (unknownTag on <font>/<span>) -- finding 035, unfixed"
   }
 }

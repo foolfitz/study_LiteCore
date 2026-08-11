@@ -68,6 +68,7 @@ const metrics = {
   formatStateEvents: [],
   readback: [],
   a5: null,
+  discriminator: null,
   closeMs: null,
   control: [],
   readbackAfterControl: [],
@@ -533,6 +534,265 @@ async function runDeadline(client, documentHandle) {
   return [entry];
 }
 
+// Finding 034 discriminators.
+//
+// The barrier reads whichever paragraph its select step lands on, and until now
+// nothing in this harness could put the caret anywhere but offset Len() --
+// caretAtAnchor places at rectangle.x + width, and a search leaves the caret
+// after its match.  That is the one offset where the current selection pair is
+// correct, which is why 375 judged dispatches never saw this.
+//
+// Each case names both the text of the paragraph it dispatches on and the text
+// of the paragraph the escape would land on, and the judgement is which of the
+// two appears in the readback markup.  That check is impossible to satisfy from
+// both sides at once -- unlike "is the readback in the target state", which
+// finding 033 already showed passes whichever paragraph was read whenever the
+// neighbour happens to match.
+//
+// The cases are written to give different answers on the two builds they run
+// against, and the old build doubles as the instrument that proves the gesture
+// reaches offset 0 at all: if HOME did not get there, the escape would not fire
+// and the old-build run would look exactly like the new one.
+const DISCRIMINATOR_CASES = {
+  "styled-list": [
+    {
+      case: "offset-len-control",
+      anchor: "E1-STYLED-END",
+      dispatchedText: "E1-STYLED-END",
+      escapeText: "E1-LIST-TWO",
+      home: false,
+      action: "set-list-unordered",
+      expects: "passes on both builds; without it a failure below could be the suite rather than the offset",
+    },
+    {
+      // Not an offset case at all -- the caret stays at offset Len, where the
+      // old select pair is correct -- and it is here because the offset version
+      // of it was measured first and its failure had a second cause.
+      //
+      // This paragraph is the only one in any E2 fixture carrying character
+      // formatting, and formatTagIsKnown accepts ul/ol/li/h1/p and nothing
+      // else, so the read meets <b>, sets unknownTag and fails closed.  That is
+      // a defect in the readback's closed tag set, not in the select step, and
+      // it predates this build: every A3/A4/A5 anchor is a plain paragraph,
+      // which is why 375 judged dispatches never met it.  Kept as its own case
+      // so the two causes cannot be confused for each other again.
+      case: "inline-formatting-readback",
+      anchor: "bold anchor",
+      dispatchedText: "bold anchor",
+      escapeText: "E1-STYLED-HEADING",
+      home: false,
+      action: "set-list-unordered",
+      expects: "fails on both builds, unknownTag=true -- the readback's tag set, not the caret offset",
+    },
+    {
+      // The paragraph above is already a bulleted list item, so an escaped read
+      // finds the target state and the barrier reports verified success for a
+      // paragraph it never looked at.  This is the shape finding 033 named and
+      // could only reach through caller concurrency; here one keystroke does it.
+      //
+      // Named for what it demonstrates and no more.  It is NOT "the document
+      // ended up wrong": E1-LIST-TWO is already a list item in the fixture, so
+      // the outcome is right by construction.  What is false is the claim to
+      // have verified it -- the markup carries the other paragraph's text.  An
+      // outcome-level false positive additionally needs a dispatch that fails,
+      // which is a separate condition (A5 reaches one at the table boundary).
+      case: "offset-zero-verifies-wrong-paragraph",
+      anchor: "E1-LIST-TWO",
+      dispatchedText: "E1-LIST-TWO",
+      escapeText: "E1-LIST-ONE",
+      home: true,
+      action: "set-list-unordered",
+      expects: "old build: reports verified-format-readback while the markup carries E1-LIST-ONE",
+    },
+  ],
+  // The escape case moved here from styled-list.  multi-paragraph has five
+  // plain paragraphs, no lists and no character formatting, so an escape shows
+  // up as an escape and nothing else can also be failing.
+  "multi-paragraph": [
+    {
+      case: "offset-len-control",
+      anchor: "E1-MULTI-END omega",
+      dispatchedText: "E1-MULTI-END omega",
+      escapeText: "\u7b2c\u56db\u6bb5\u843d delta",
+      home: false,
+      action: "set-list-unordered",
+      expects: "passes on both builds",
+    },
+    {
+      case: "offset-zero-escapes-to-previous",
+      anchor: "\u7b2c\u4e09\u6bb5\u8de8\u884c gamma",
+      dispatchedText: "\u7b2c\u4e09\u6bb5\u8de8\u884c gamma",
+      escapeText: "\u7b2c\u4e8c\u6bb5\u4e2d\u6587 beta",
+      home: true,
+      action: "set-list-unordered",
+      expects: "old build: reads the paragraph above and reports failure while the document did become a list",
+    },
+  ],
+  "empty-paragraph": [
+    {
+      // Placement by keystroke, not by geometry.  The geometric attempt in the
+      // deadline mode landed on the paragraph above and its own check validated
+      // the coordinate it had asked for rather than where the caret went.
+      case: "empty-mid-document",
+      anchor: "E1-EMPTY-BEFORE",
+      dispatchedText: null,
+      escapeText: "E1-EMPTY-BEFORE",
+      down: 1,
+      home: false,
+      action: "set-list-unordered",
+      expects: "selection spans two paragraphs; must fail closed, and on a build with the multi-block guard it must say so by type",
+    },
+    {
+      // The last paragraph of the document, where finding 034 measured no
+      // selection at all (selType 0).  Nothing will ever advance the barrier
+      // out of AwaitingSelection here.
+      case: "empty-document-end",
+      anchor: "E1-EMPTY-AFTER",
+      dispatchedText: null,
+      escapeText: "E1-EMPTY-AFTER",
+      down: 1,
+      home: false,
+      action: "set-list-unordered",
+      expects: "the stall the deadline exists to end; must fail typed and quickly, and the handle must still work",
+    },
+  ],
+};
+
+function barrierOf(outcome, error) {
+  return outcome?.formatBarrier || error?.details?.formatBarrier || null;
+}
+
+// Counts the block-level tags in the readback markup.  Two of them means the
+// selection covered more than one paragraph, so whatever the barrier concluded
+// was concluded about an unknown mixture.
+function blockTagCensus(html) {
+  const text = String(html || "");
+  const count = (pattern) => (text.match(pattern) || []).length;
+  return {
+    p: count(/<p[\s>]/gi),
+    h1: count(/<h1[\s>]/gi),
+    li: count(/<li[\s>]/gi),
+    ul: count(/<ul[\s>]/gi),
+    ol: count(/<ol[\s>]/gi),
+  };
+}
+
+async function runDiscriminator(client, documentHandle) {
+  const cases = DISCRIMINATOR_CASES[fixtureId];
+  if (!cases)
+    throw new Error(`no discriminator cases for fixture: ${fixtureId}`);
+  const results = [];
+  for (const definition of cases) {
+    const entry = {
+      case: definition.case,
+      expects: definition.expects,
+      action: definition.action,
+      dispatchedText: definition.dispatchedText,
+      escapeText: definition.escapeText,
+      status: "running",
+    };
+    try {
+      // Resync first: a case that ended in a rejection leaves the cached
+      // revision behind the engine's, and the next one then dies of
+      // STALE_REVISION before dispatching anything -- a harness artefact in the
+      // costume of a product result.
+      const before = await client.getState();
+      if (Number.isInteger(before?.revision))
+        documentHandle.revision = before.revision;
+
+      entry.placement = await caretAtAnchor(
+        documentHandle, client, definition.anchor, "search");
+      for (let step = 0; step < (definition.down || 0); ++step)
+        await client.moveCaret("move-line-down");
+
+      const caretBefore = (await client.getState())?.caret || null;
+      if (definition.home) {
+        await client.moveCaret("move-line-home");
+        const caretAfter = (await client.getState())?.caret || null;
+        entry.caret = { before: caretBefore, after: caretAfter };
+        // Recorded, not asserted.  It answers "did the keystroke move the caret
+        // towards the start of the same line", which is what makes a null
+        // result readable; it does not by itself prove offset 0, and saying it
+        // did would repeat the mistake caretRequestedBetweenAnchors made.
+        //
+        // Tested on the coordinates, not on an `available` flag: the worker's
+        // normalised caret carries x/y/width/height and no such field, so the
+        // first version of this line read false on a run where the caret had
+        // demonstrably moved 2026 twips left on the same line.  A flag that is
+        // false whether or not the thing happened is not a check.
+        const finite = (rect) => Number.isFinite(rect?.x) && Number.isFinite(rect?.y);
+        entry.caretMovedLeftOnSameLine = Boolean(
+          finite(caretBefore) && finite(caretAfter)
+          && caretAfter.x < caretBefore.x && caretAfter.y === caretBefore.y);
+      } else {
+        entry.caret = { before: caretBefore, after: caretBefore };
+      }
+
+      const started = performance.now();
+      try {
+        entry.outcome = await client.action(definition.action, { timeoutMs: 20000 });
+        entry.status = "completed";
+      } catch (error) {
+        entry.error = errorValue(error);
+        entry.status = "rejected";
+      }
+      entry.elapsedMs = Math.round(performance.now() - started);
+
+      const barrier = barrierOf(entry.outcome, entry.error);
+      const html = barrier?.readback?.html || "";
+      entry.readback = {
+        html,
+        bytes: barrier?.readback?.bytes ?? null,
+        listTag: barrier?.readback?.listTag ?? null,
+        blockTag: barrier?.readback?.blockTag ?? null,
+        parsed: barrier?.readback?.parsed ?? null,
+        restoreConfirmed: barrier?.readback?.restoreConfirmed ?? null,
+        blockTags: blockTagCensus(html),
+      };
+      // The whole point of the suite.  Both flags are recorded even when they
+      // agree, because "neither text is present" is its own answer and must not
+      // be reported as "the right one was".
+      // Searched with the tags stripped.  The serialiser splits a paragraph
+      // across <font>/<span> whenever a run needs a different font -- which it
+      // does for every CJK run -- so "第三段跨行 gamma" is never contiguous in
+      // the markup, and a raw includes() reported false for both texts on a run
+      // where the markup plainly carried one of them.  Whitespace is collapsed
+      // for the same reason: the split leaves a space inside the span.
+      const flat = html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ");
+      const carries = (needle) => flat.includes(needle.replace(/\s+/g, " "));
+      entry.markupHasDispatchedText = definition.dispatchedText
+        ? carries(definition.dispatchedText) : null;
+      entry.markupHasEscapeText = definition.escapeText
+        ? carries(definition.escapeText) : null;
+      // Recorded so a false above stays distinguishable from "the retained
+      // markup stopped before the body".  2048 bytes is the cap and these
+      // readbacks are ~600, but a longer paragraph would reach it.
+      entry.readback.retainedReachedBody = html.includes("<body");
+
+      // The wedge signature: is the handle still usable?  A search is the
+      // cheapest caret mover and is exactly what the BUSY gate refuses while a
+      // barrier is in flight.
+      try {
+        const probe = await documentHandle.search(definition.anchor);
+        entry.handleUsableAfter = Boolean(probe?.found);
+      } catch (error) {
+        entry.handleUsableAfter = false;
+        entry.handleError = errorValue(error);
+      }
+      const after = await client.getState();
+      if (Number.isInteger(after?.revision))
+        documentHandle.revision = after.revision;
+      entry.stateAfter = formatOf(after);
+    } catch (error) {
+      entry.status = "failed";
+      entry.setupError = errorValue(error);
+    }
+    results.push(entry);
+    log(entry);
+  }
+  return results;
+}
+
 async function caretAtAnchor(documentHandle, client, anchor, method) {
   const search = await documentHandle.search(anchor);
   if (!search.found)
@@ -775,7 +1035,20 @@ async function run() {
     await runControl(client);
     checkpoint("readback-after-control");
     await runReadback(documentHandle, client, metrics.readbackAfterControl, "search");
-    if (mode === "deadline") {
+    if (mode === "discriminator") {
+      checkpoint("discriminator");
+      metrics.discriminator = await runDiscriminator(client, documentHandle);
+      // One save at the end.  The false-failure case is judged on the gap
+      // between what the barrier reported and what the document became, so the
+      // file is not optional evidence here -- it is half the case.
+      try {
+        const buffer = await documentHandle.save({ format: "odt" }, { timeoutMs: 180000 });
+        outputs.set("discriminator-final", buffer);
+        metrics.outputs.push({ label: "discriminator-final", bytes: buffer.byteLength });
+      } catch (error) {
+        metrics.discriminatorSaveError = errorValue(error);
+      }
+    } else if (mode === "deadline") {
       checkpoint("deadline");
       metrics.deadline = await runDeadline(client, documentHandle);
       try {

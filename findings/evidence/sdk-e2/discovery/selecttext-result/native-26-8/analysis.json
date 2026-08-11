@@ -1,0 +1,85 @@
+{
+  "what": "can .uno:SelectText replace the barrier's GoToStartOfPara + EndOfParaSel pair -- attribution, readback shape, and the empty-paragraph stall?",
+  "why": "finding 034 measured which paragraph SelectText selects, at every reachable caret offset. It did not measure the two properties the barrier runs on: whether the command returns a UNO command result to attribute the selection with (finding 033's advance condition), and whether the readback taken through it still carries the tags parseFormatReadback keys on. Substituting the select step and assuming those hold would be assuming the answer.",
+  "build": "native LibreOffice 26.8 (build-native-26-8), svp",
+  "coreCommit": "671c848b1bb8",
+  "fixtures": [
+    "test-docs/e1/styled-list.odt",
+    "test-docs/e1/empty-paragraph.odt"
+  ],
+  "probe": "e2_a_native_selecttext_result.cpp (copied here verbatim)",
+
+  "answer1_attribution": {
+    "question": "does .uno:SelectText emit LOK_CALLBACK_UNO_COMMAND_RESULT with commandName '.uno:SelectText'?",
+    "result": "YES, on every dispatch: 10 dispatches / 10 results",
+    "unoCommandResults": {
+      ".uno:DefaultBullet": 1,
+      ".uno:DefaultNumbering": 1,
+      ".uno:RemoveBullets": 1,
+      ".uno:SelectText": 10,
+      ".uno:StyleApply": 2
+    },
+    "dispatches": {
+      ".uno:DefaultBullet": 1,
+      ".uno:DefaultNumbering": 1,
+      ".uno:GoDown": 2,
+      ".uno:RemoveBullets": 1,
+      ".uno:SelectText": 10,
+      ".uno:StyleApply": 2
+    },
+    "note": "commandName is extracted the same way the engine's commandResultMatches does -- find the field, expect a quoted value -- so this measures the property the engine actually tests for and not a looser one. .uno:GoDown and .uno:GoToStartOfDoc were dispatched with notify=false and correctly produce no result, which is the control: the counter can report zero.",
+    "consequence": "the commandName attribution added for finding 033 carries over unchanged. kFormatBarrierSelectCommand can point at .uno:SelectText without touching the advance condition."
+  },
+
+  "answer2_ordering": {
+    "question": "does the result arrive before or after the non-empty TEXT_SELECTION?",
+    "result": "result first, every time, by 3 callback events (resultSeq N, selectionSeq N+3 in all 8 rows that produced a selection)",
+    "consequence": "selectionBeforeResultCount stays 0 by construction on this path, and the advance fires from the TEXT_SELECTION handler. The barrier does not assume either order -- both halves are checked from whichever side arrives last -- so this is a recorded fact, not a dependency."
+  },
+
+  "answer3_readback_shape": {
+    "question": "does the readback through SelectText still carry the tags parseFormatReadback keys on, for all five closed actions?",
+    "result": "YES, unchanged for all five",
+    "rows": {
+      "after-list-unordered": "<ul><li><p ...>Normal <b>bold anchor</b> and <i>italic anchor</i>.</p></li></ul>",
+      "after-list-ordered": "<ol><li><p ...>...</p></li></ol>",
+      "after-list-none": "<p ...>...</p>",
+      "after-paragraph-heading": "<h1 class=\"western\">...</h1>",
+      "after-paragraph-body": "<p>...</p>"
+    },
+    "selectOnlyRows": {
+      "select-heading": "<h1 class=\"western\">E1-STYLED-HEADING</h1>",
+      "select-body": "<p ...>Normal <b>bold anchor</b> and <i>italic anchor</i>.</p>",
+      "select-list-item": "<ul><li><p ...>E1-LIST-ONE</p></li></ul>"
+    },
+    "consequence": "SPEC E2-A 2.8's feasibility measurement was taken through the pair; it holds through the single dispatch. No change to formatTagIsKnown or the listTag/blockTag split is required."
+  },
+
+  "answer4_empty_paragraphs": {
+    "midDocument": {
+      "case": "select-empty-mid-document",
+      "selectTextResults": 1,
+      "selectionType": 1,
+      "text": "\\nE1-EMPTY-AFTER",
+      "htmlBytes": 561,
+      "body": "<p ...><br/><br/></p> <p ...>E1-EMPTY-AFTER</p>",
+      "reading": "the selection spans TWO paragraphs, so the markup carries two block tags. This is the case the multi-block guard has to fail closed on; the containment check does not catch it, because the restore point is inside the spanned range."
+    },
+    "documentEnd": {
+      "case": "select-empty-document-end",
+      "selectTextResults": 1,
+      "selectionType": 0,
+      "selectionCallbackSeen": false,
+      "selectionPayload": "",
+      "htmlBytes": 490,
+      "body": "<p ...><br/><br/></p>",
+      "reading": "the command result arrives and no selection ever does. The barrier therefore sits in AwaitingSelection with selectionResultSeen=true and no rectangles -- a stall with no callback coming. This is the reachable stall the engine-side deadline exists to end, and it is created by adopting SelectText, so the deadline is a required part of this change and not a defence against something unmeasured."
+    },
+    "whyTheDeadlineMustNeverDeclareSuccess": "getTextSelection returned 490 bytes of markup at document end even with selectionType 0 -- a single <p>, the empty paragraph's own. A deadline that fell back to reading whatever is there would parse blockTag='p' and satisfy the set-paragraph-body postcondition without any selection ever having existed. The rule 'the deadline can only fail' has a concrete instance here, not just a principle."
+  },
+
+  "notMeasuredHere": [
+    "caret offsets: covered by findings/evidence/sdk-e2/discovery/paragraph-selection-edges/native-26-8 (finding 034), not repeated",
+    "WASM behaviour: native answers 'does core do this'; the profile run answers 'does our build receive it'"
+  ]
+}
