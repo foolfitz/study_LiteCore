@@ -98,13 +98,18 @@ FIXTURES = {
     # recorded in every run's evidence, so editing one would detach the A3/A4/A5
     # verdicts from the documents they were measured on.
     "empty-paragraph": {
+        # Two empty paragraphs, and the difference between them is the point:
+        # mid-document, a selection that escapes lands on a neighbour; at the
+        # document end there is no next paragraph to escape to, so it may
+        # produce no selection at all.  Those are different failures.
         "body": """
  <text:p>E1-EMPTY-BEFORE</text:p>
  <text:p/>
  <text:p>E1-EMPTY-AFTER</text:p>
+ <text:p/>
 """,
         "anchors": ["E1-EMPTY-BEFORE", "E1-EMPTY-AFTER"],
-        "minimum": {"paragraphs": 3, "headings": 0, "lists": 0, "tables": 0},
+        "minimum": {"paragraphs": 4, "headings": 0, "lists": 0, "tables": 0},
     },
     "table-boundary": {
         "body": """

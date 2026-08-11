@@ -108,17 +108,79 @@ bool positionAtAnchor(LibreOfficeKitDocument *document, const char *anchor) {
       anchor +
       "\"},\"SearchItem.Backward\":{\"type\":\"boolean\",\"value\":false},"
       "\"SearchItem.Command\":{\"type\":\"unsigned short\",\"value\":0}}";
+  // Start every case from the top of the document.  Without this, a search for
+  // text that the previous case already selected produces no movement and no
+  // callback, placement is skipped, and the case measures from wherever the
+  // previous one left the caret -- which silently poisoned a whole matrix run
+  // (a case named offset-zero reported caretY 1807, the empty paragraph two
+  // paragraphs away).
+  document->pClass->postUnoCommand(document, ".uno:GoToStartOfDoc", nullptr,
+                                   false);
+  drain(400);
   gCaret = Rectangle{};
+  gSelectionPayload.clear();
+  gSelectionSeen = false;
   document->pClass->postUnoCommand(document, ".uno:ExecuteSearch",
                                    arguments.c_str(), false);
   drain(700);
-  const Rectangle hit = gCaret;
+  Rectangle hit = gCaret;
+  // A search whose match is already selected produces no cursor callback, and
+  // the caret then silently stays wherever the previous case left it -- which
+  // is how two rows came back with caretY -1 and had to be discarded.  The
+  // match's own selection rectangle answers the same question, so fall back to
+  // it rather than to the previous case's state.
+  if (!hit.valid && gSelectionSeen) {
+    Rectangle parsed;
+    if (std::sscanf(gSelectionPayload.c_str(), "%ld, %ld, %ld, %ld", &parsed.x,
+                    &parsed.y, &parsed.width, &parsed.height) == 4) {
+      parsed.valid = true;
+      hit = parsed;
+    }
+  }
   if (!hit.valid)
     return false;
   document->pClass->setTextSelection(document, LOK_SETTEXTSELECTION_RESET,
                                      hit.x, hit.y + hit.height / 2);
   drain(400);
   return true;
+}
+
+// Where in the paragraph to put the caret before measuring.  This used to be a
+// bool meaning "offset 0", with the default silently described as "caret at the
+// end" -- but placement lands on the anchor rectangle's LEFT edge, so those
+// rows measured something near the start and were named for the opposite.
+//
+// Offset Len() matters most: it is where the WASM harness puts the caret
+// (caretAtAnchor uses rectangle.x + width), so it is the position all 375
+// judged dispatches started from, and a repair that broke it would break
+// everything currently passing.
+// A search leaves the caret AFTER the match, so placement at the caret
+// rectangle lands on offset Len() -- measured: asking for CaretAt::End from
+// there escaped to the next paragraph (caretY 2196 -> 2585), which is
+// GoCurrPara doing exactly what this probe exists to document.  There is
+// therefore no separate "End": as-placed already is it.
+//
+// This matters beyond the probe: the WASM harness places the caret at
+// rectangle.x + width, also offset Len.  Both agree, which is why every one of
+// the 375 judged dispatches started from the one offset where the current
+// sequence is correct.
+enum class CaretAt { Len, Zero, Middle };
+
+void putCaret(LibreOfficeKitDocument *document, CaretAt where) {
+  if (where == CaretAt::Zero)
+    dispatch(document, ".uno:GoToStartOfPara", false);
+  else if (where == CaretAt::Middle)
+    // One character back from Len, i.e. strictly inside the paragraph -- the
+    // offset where neither edge rule can fire.
+    dispatch(document, ".uno:GoLeft", false);
+}
+
+const char *caretName(CaretAt where) {
+  switch (where) {
+  case CaretAt::Zero: return "offset-zero";
+  case CaretAt::Middle: return "offset-middle";
+  default: return "offset-len";
+  }
 }
 
 // A snapshot of what a reader would see right now.
@@ -156,16 +218,20 @@ void emitSnapshot(const char *name, const Snapshot &value) {
 // nothing and this was already on screen" -- and the first run of this probe
 // produced exactly that ambiguity.
 void measure(LibreOfficeKitDocument *document, const char *label,
-             const char *anchor, int down, bool caretToParagraphStart = false) {
+             const char *anchor, int down, CaretAt where = CaretAt::Len) {
   const bool placed = positionAtAnchor(document, anchor);
+  if (!placed) {
+    // Not a measurement.  Saying so beats emitting a row whose caret
+    // position is whatever the previous case happened to leave behind.
+    std::cout << "{\"case\":\"" << label
+              << "\",\"sequence\":\"pair\",\"placed\":false,"
+                 "\"skipped\":true}\n";
+    std::cout.flush();
+    return;
+  }
   for (int step = 0; step < down; ++step)
     dispatch(document, ".uno:GoDown", false);
-  // Put the caret exactly at offset 0 before measuring.  An empty paragraph is
-  // always at offset 0, so if that is what makes GoToStartOfPara leave the
-  // paragraph, a text paragraph with the caret at its start must behave the
-  // same -- and clicking at the start of a line is not a rare gesture.
-  if (caretToParagraphStart)
-    dispatch(document, ".uno:GoToStartOfPara", false);
+  putCaret(document, where);
   const Rectangle caretBefore = gCaret;
   const Snapshot before = snapshot(document);
 
@@ -181,6 +247,7 @@ void measure(LibreOfficeKitDocument *document, const char *label,
   const Snapshot after = snapshot(document);
 
   std::cout << "{\"case\":\"" << label << "\",\"anchor\":\"" << anchor
+            << "\",\"caretAt\":\"" << caretName(where)
             << "\",\"goDown\":" << down
             << ",\"caretY\":" << (caretBefore.valid ? caretBefore.y : -1)
             << ",\"caretYAfterStartOfPara\":"
@@ -206,12 +273,20 @@ void measure(LibreOfficeKitDocument *document, const char *label,
 // ends, so both moves leave the paragraph) and is included precisely so the
 // prediction can fail visibly instead of being assumed.
 void measureTriple(LibreOfficeKitDocument *document, const char *label,
-                   const char *anchor, int down, bool caretToParagraphStart) {
+                   const char *anchor, int down, CaretAt where) {
   const bool placed = positionAtAnchor(document, anchor);
+  if (!placed) {
+    // Not a measurement.  Saying so beats emitting a row whose caret
+    // position is whatever the previous case happened to leave behind.
+    std::cout << "{\"case\":\"" << label
+              << "\",\"sequence\":\"triple\",\"placed\":false,"
+                 "\"skipped\":true}\n";
+    std::cout.flush();
+    return;
+  }
   for (int step = 0; step < down; ++step)
     dispatch(document, ".uno:GoDown", false);
-  if (caretToParagraphStart)
-    dispatch(document, ".uno:GoToStartOfPara", false);
+  putCaret(document, where);
   const Rectangle caretBefore = gCaret;
 
   dispatch(document, ".uno:GoToEndOfPara", true);
@@ -223,10 +298,57 @@ void measureTriple(LibreOfficeKitDocument *document, const char *label,
 
   std::cout << "{\"case\":\"" << label << "\",\"sequence\":\"triple\""
             << ",\"placed\":" << (placed ? "true" : "false")
+            << ",\"caretAt\":\"" << caretName(where) << "\""
             << ",\"caretY\":" << (caretBefore.valid ? caretBefore.y : -1)
             << ",\"caretYAfterEndOfPara\":" << (afterEnd.valid ? afterEnd.y : -1)
             << ",\"caretYAfterStartOfPara\":"
             << (afterStart.valid ? afterStart.y : -1);
+  emitSnapshot("after", after);
+  std::cout << "}\n";
+  std::cout.flush();
+}
+
+// The candidate fable found: .uno:SelectText (FN_SELECT_PARA).  Core's dispatch
+// handler carries the offset-0 clamp itself --
+// sw/source/uibase/shells/textsh1.cxx:1975 in this baseline:
+//
+//     if ( !rWrtSh.IsSttOfPara() ) rWrtSh.SttPara();
+//     else                         rWrtSh.EnterStdMode();
+//     rWrtSh.EndPara( true );
+//
+// so the escape that breaks both motion pairs is already handled upstream, on
+// the dispatch path, for a non-empty paragraph at any offset.  Reading that is
+// not the same as measuring it, which is what this does.
+void measureSelectText(LibreOfficeKitDocument *document, const char *label,
+                       const char *anchor, int down, CaretAt where) {
+  const bool placed = positionAtAnchor(document, anchor);
+  if (!placed) {
+    // Not a measurement.  Saying so beats emitting a row whose caret
+    // position is whatever the previous case happened to leave behind.
+    std::cout << "{\"case\":\"" << label
+              << "\",\"sequence\":\"selecttext\",\"placed\":false,"
+                 "\"skipped\":true}\n";
+    std::cout.flush();
+    return;
+  }
+  for (int step = 0; step < down; ++step)
+    dispatch(document, ".uno:GoDown", false);
+  putCaret(document, where);
+  const Rectangle caretBefore = gCaret;
+
+  gSelectionSeen = false;
+  gSelectionPayload.clear();
+  dispatch(document, ".uno:SelectText", true);
+  const Snapshot after = snapshot(document);
+
+  std::cout << "{\"case\":\"" << label << "\",\"sequence\":\"selecttext\""
+            << ",\"placed\":" << (placed ? "true" : "false")
+            << ",\"caretAt\":\"" << caretName(where) << "\""
+            << ",\"caretY\":" << (caretBefore.valid ? caretBefore.y : -1)
+            << ",\"selectionCallbackSeen\":"
+            << (gSelectionSeen ? "true" : "false")
+            << ",\"selectionPayload\":\""
+            << jsonEscape(gSelectionPayload.c_str()) << "\"";
   emitSnapshot("after", after);
   std::cout << "}\n";
   std::cout.flush();
@@ -268,16 +390,32 @@ int main(int argc, char **argv) {
   // readable: the same sequence on a paragraph that *has* text must produce a
   // selection, or the probe is measuring its own dispatch and not the shape of
   // the paragraph.
-  measure(document, "control-text-paragraph", "E1-EMPTY-BEFORE", 0);
-  measure(document, "empty-paragraph", "E1-EMPTY-BEFORE", 1);
-  measure(document, "control-text-paragraph-below", "E1-EMPTY-BEFORE", 2);
-  measure(document, "text-paragraph-caret-at-offset-zero", "E1-EMPTY-AFTER", 0,
-          true);
+  // The full matrix.  Two sequences x three caret offsets on a non-empty
+  // paragraph, then the two empty paragraphs -- which are different failures
+  // and must not be collapsed into one row.
+  //
+  // offset-len is the position every one of the 375 judged A3/A4 dispatches
+  // started from, so it is the regression guard: a repair that fixes offset-zero
+  // and breaks offset-len is worse than no repair.
+  for (int variant = 0; variant < 3; ++variant) {
+    const CaretAt where = variant == 0   ? CaretAt::Zero
+                          : variant == 1 ? CaretAt::Middle
+                                         : CaretAt::Len;
+    const std::string suffix = std::string("-") + caretName(where);
+    measure(document, (std::string("pair-text") + suffix).c_str(),
+            "E1-EMPTY-AFTER", 0, where);
+    measureSelectText(document, (std::string("selecttext-text") + suffix).c_str(),
+                      "E1-EMPTY-AFTER", 0, where);
+  }
 
-  measureTriple(document, "triple-text-caret-at-end", "E1-EMPTY-AFTER", 0, false);
-  measureTriple(document, "triple-text-caret-at-offset-zero", "E1-EMPTY-AFTER", 0,
-                true);
-  measureTriple(document, "triple-empty-paragraph", "E1-EMPTY-BEFORE", 1, false);
+  measure(document, "pair-empty-mid-document", "E1-EMPTY-BEFORE", 1,
+          CaretAt::Len);
+  measureSelectText(document, "selecttext-empty-mid-document", "E1-EMPTY-BEFORE", 1,
+                    CaretAt::Len);
+  measure(document, "pair-empty-document-end", "E1-EMPTY-AFTER", 1,
+          CaretAt::Len);
+  measureSelectText(document, "selecttext-empty-document-end", "E1-EMPTY-AFTER", 1,
+                    CaretAt::Len);
 
   document->pClass->destroy(document);
   kit->pClass->destroy(kit);

@@ -8,68 +8,9 @@
   "notAWedge": "The empty-paragraph wedge hypothesis is REFUTED. A selection does arrive (of the neighbouring paragraph), so AwaitingSelection completes. Measured on WASM too: the barrier failed closed in 38ms and the handle stayed usable (barrier-deadline/chrome/empty-paragraph).",
   "rows": [
     {
-      "case": "control-text-paragraph",
-      "anchor": "E1-EMPTY-BEFORE",
-      "goDown": 0,
-      "caretY": 1418,
-      "caretYAfterStartOfPara": 1418,
-      "startOfParaMovedCaret": true,
-      "selectionCallbackSeen": true,
-      "selectionPayload": "1418, 1418, 2160, 275",
-      "before": {
-        "selectionType": 0,
-        "htmlBytes": 0,
-        "text": ""
-      },
-      "after": {
-        "selectionType": 1,
-        "htmlBytes": 495,
-        "text": "E1-EMPTY-BEFORE"
-      }
-    },
-    {
-      "case": "empty-paragraph",
-      "anchor": "E1-EMPTY-BEFORE",
-      "goDown": 1,
-      "caretY": 1807,
-      "caretYAfterStartOfPara": 1418,
-      "startOfParaMovedCaret": true,
-      "selectionCallbackSeen": true,
-      "selectionPayload": "1418, 1418, 2160, 275",
-      "before": {
-        "selectionType": 0,
-        "htmlBytes": 0,
-        "text": ""
-      },
-      "after": {
-        "selectionType": 1,
-        "htmlBytes": 495,
-        "text": "E1-EMPTY-BEFORE"
-      }
-    },
-    {
-      "case": "control-text-paragraph-below",
-      "anchor": "E1-EMPTY-BEFORE",
-      "goDown": 2,
-      "caretY": 2196,
-      "caretYAfterStartOfPara": 2196,
-      "startOfParaMovedCaret": true,
-      "selectionCallbackSeen": true,
-      "selectionPayload": "1418, 2196, 1999, 275",
-      "before": {
-        "selectionType": 0,
-        "htmlBytes": 0,
-        "text": ""
-      },
-      "after": {
-        "selectionType": 1,
-        "htmlBytes": 494,
-        "text": "E1-EMPTY-AFTER"
-      }
-    },
-    {
-      "case": "text-paragraph-caret-at-offset-zero",
+      "case": "pair-text-offset-zero",
       "anchor": "E1-EMPTY-AFTER",
+      "caretAt": "offset-zero",
       "goDown": 0,
       "caretY": 2196,
       "caretYAfterStartOfPara": 1807,
@@ -88,42 +29,157 @@
       }
     },
     {
-      "case": "triple-text-caret-at-end",
-      "sequence": "triple",
-      "placed": false,
-      "caretY": -1,
-      "caretYAfterEndOfPara": -1,
-      "caretYAfterStartOfPara": 2196,
-      "after": {
-        "selectionType": 1,
-        "htmlBytes": 494,
-        "text": "E1-EMPTY-AFTER"
-      }
-    },
-    {
-      "case": "triple-text-caret-at-offset-zero",
-      "sequence": "triple",
-      "placed": false,
-      "caretY": 2196,
-      "caretYAfterEndOfPara": 2196,
-      "caretYAfterStartOfPara": 2196,
-      "after": {
-        "selectionType": 1,
-        "htmlBytes": 494,
-        "text": "E1-EMPTY-AFTER"
-      }
-    },
-    {
-      "case": "triple-empty-paragraph",
-      "sequence": "triple",
+      "case": "selecttext-text-offset-zero",
+      "sequence": "selecttext",
       "placed": true,
-      "caretY": 1807,
-      "caretYAfterEndOfPara": 2196,
-      "caretYAfterStartOfPara": 2196,
+      "caretAt": "offset-zero",
+      "caretY": 2196,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1418, 2196, 1999, 275",
       "after": {
         "selectionType": 1,
         "htmlBytes": 494,
         "text": "E1-EMPTY-AFTER"
+      }
+    },
+    {
+      "case": "pair-text-offset-middle",
+      "anchor": "E1-EMPTY-AFTER",
+      "caretAt": "offset-middle",
+      "goDown": 0,
+      "caretY": 2196,
+      "caretYAfterStartOfPara": 2196,
+      "startOfParaMovedCaret": true,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1418, 2196, 1999, 275",
+      "before": {
+        "selectionType": 0,
+        "htmlBytes": 0,
+        "text": ""
+      },
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 494,
+        "text": "E1-EMPTY-AFTER"
+      }
+    },
+    {
+      "case": "selecttext-text-offset-middle",
+      "sequence": "selecttext",
+      "placed": true,
+      "caretAt": "offset-middle",
+      "caretY": 2196,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1418, 2196, 1999, 275",
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 494,
+        "text": "E1-EMPTY-AFTER"
+      }
+    },
+    {
+      "case": "pair-text-offset-len",
+      "anchor": "E1-EMPTY-AFTER",
+      "caretAt": "offset-len",
+      "goDown": 0,
+      "caretY": 2196,
+      "caretYAfterStartOfPara": 2196,
+      "startOfParaMovedCaret": true,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1418, 2196, 1999, 275",
+      "before": {
+        "selectionType": 0,
+        "htmlBytes": 0,
+        "text": ""
+      },
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 494,
+        "text": "E1-EMPTY-AFTER"
+      }
+    },
+    {
+      "case": "selecttext-text-offset-len",
+      "sequence": "selecttext",
+      "placed": true,
+      "caretAt": "offset-len",
+      "caretY": 2196,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1418, 2196, 1999, 275",
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 494,
+        "text": "E1-EMPTY-AFTER"
+      }
+    },
+    {
+      "case": "pair-empty-mid-document",
+      "anchor": "E1-EMPTY-BEFORE",
+      "caretAt": "offset-len",
+      "goDown": 1,
+      "caretY": 1807,
+      "caretYAfterStartOfPara": 1418,
+      "startOfParaMovedCaret": true,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1418, 1418, 2160, 275",
+      "before": {
+        "selectionType": 0,
+        "htmlBytes": 0,
+        "text": ""
+      },
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 495,
+        "text": "E1-EMPTY-BEFORE"
+      }
+    },
+    {
+      "case": "selecttext-empty-mid-document",
+      "sequence": "selecttext",
+      "placed": true,
+      "caretAt": "offset-len",
+      "caretY": 1807,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1417, 2196, 2000, 275; 1418, 1807, 9972, 275; 1417, 2083, 9973, 0; 1417, 2084, 9973, 111",
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 561,
+        "text": "\nE1-EMPTY-AFTER"
+      }
+    },
+    {
+      "case": "pair-empty-document-end",
+      "anchor": "E1-EMPTY-AFTER",
+      "caretAt": "offset-len",
+      "goDown": 1,
+      "caretY": 2585,
+      "caretYAfterStartOfPara": 2196,
+      "startOfParaMovedCaret": true,
+      "selectionCallbackSeen": true,
+      "selectionPayload": "1418, 2196, 1999, 275",
+      "before": {
+        "selectionType": 0,
+        "htmlBytes": 0,
+        "text": ""
+      },
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 494,
+        "text": "E1-EMPTY-AFTER"
+      }
+    },
+    {
+      "case": "selecttext-empty-document-end",
+      "sequence": "selecttext",
+      "placed": true,
+      "caretAt": "offset-len",
+      "caretY": 2585,
+      "selectionCallbackSeen": false,
+      "selectionPayload": "",
+      "after": {
+        "selectionType": 0,
+        "htmlBytes": 490,
+        "text": ""
       }
     }
   ],
@@ -144,5 +200,34 @@
     },
     "reading": "an empty paragraph has nothing to select, so no caret-movement-based selection can address it. If the readback postcondition is kept, empty paragraphs are a scope limit of the design, not an implementation bug."
   },
-  "probeLimitation": "positionAtAnchor() places the caret only if an INVALIDATE_VISIBLE_CURSOR arrived within 700ms of the search; it reports `placed` now instead of skipping silently. On most rows it is false, meaning the caret came from where the search left it plus the GoDown steps. The rows above are still evidence because caretY was recorded and matched the intended paragraph in every case except triple-text-caret-at-end, which is marked inconclusive for exactly that reason."
+  "probeLimitation": "positionAtAnchor() places the caret only if an INVALIDATE_VISIBLE_CURSOR arrived within 700ms of the search; it reports `placed` now instead of skipping silently. On most rows it is false, meaning the caret came from where the search left it plus the GoDown steps. The rows above are still evidence because caretY was recorded and matched the intended paragraph in every case except triple-text-caret-at-end, which is marked inconclusive for exactly that reason.",
+  "matrix": {
+    "note": "Final matrix. Every row's caret landed on the intended paragraph (caretY column); rows whose caret could not be placed are emitted as skipped rather than measured from wherever the previous case left off.",
+    "clampEvidence": "sw/source/uibase/shells/textsh1.cxx:1975 (26.8 baseline): FN_SELECT_PARA does `if (!IsSttOfPara()) SttPara(); else EnterStdMode(); EndPara(true);` -- upstream carries the offset-0 clamp on the dispatch path.",
+    "results": {
+      "text-offset-zero": {
+        "pair": "SPANS TWO PARAGRAPHS",
+        "selectText": "correct"
+      },
+      "text-offset-middle": {
+        "pair": "correct",
+        "selectText": "correct"
+      },
+      "text-offset-len": {
+        "pair": "correct",
+        "selectText": "correct"
+      },
+      "empty-mid-document": {
+        "pair": "previous paragraph",
+        "selectText": "spans two paragraphs"
+      },
+      "empty-document-end": {
+        "pair": "previous paragraph",
+        "selectText": "NO SELECTION (selType 0)"
+      }
+    },
+    "decision": ".uno:SelectText fixes offset zero and regresses neither of the other two offsets -- offset-len is where all 375 judged dispatches sat, so that row is the regression guard, not a formality. Empty paragraphs stay wrong under both sequences and are a scope limit of the readback design.",
+    "consequenceForTheDeadline": "Adopting SelectText CREATES a reachable stall: a document-end empty paragraph yields no selection at all, so AwaitingSelection never advances. The engine-side deadline stops being speculative defence and becomes a required companion to this repair.",
+    "caretPlacementNote": "A search leaves the caret AFTER the match, so placement lands on offset Len. Asking for one more GoToEndOfPara from there escaped to the next paragraph (2196 -> 2585) -- GoCurrPara doing the very thing this file documents. The WASM harness places at rectangle.x + width, also offset Len: both agree, which is why existing evidence only ever covered the one offset where the current sequence is correct."
+  }
 }
