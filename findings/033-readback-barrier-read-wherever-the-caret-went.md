@@ -53,6 +53,19 @@ barrier in-flight 期間，`search`／`placeCaret`／`select` **目前不被 `BU
 
 **座標殘留仍是真的**（見下節），但它與本節是兩件事，本案例否證的是座標成因。
 
+### 而且「其他 fixture 通過」也是假的
+
+我原本寫「其他 fixture 修好後會通過，只有 table-boundary 仍失敗」。**那是錨點選得不健全造成的**：
+`A5_CROSSTALK_ANCHORS["styled-list"]` 原本指向 `E1-STYLED-HEADING`，而那一段**本來就是
+`Heading_20_1`**，案例派送的又是 `set-paragraph-heading`——**讀對段與讀錯段都會得到 `h1`**，
+案例兩種情況都通過。我把本單警告的那個陷阱直接蓋進了它自己的測試裡。
+
+改成非 heading 的 `E1-LIST-ONE` 後重跑：**styled-list 的 crosstalk 一樣失敗**，
+`blockTag='p'`——讀到的正是 crosstalk 段落。
+
+所以：**這個缺陷不分 fixture，本單原本的修法（讀前先還原游標）在任何 fixture 都沒有關掉它。**
+劫持穩定地贏過還原。
+
 ## 未消除的殘留（**推論，未實測**）
 
 還原用的是**文件座標**，而派送本身可能改變該段的高度或縮排（套用 heading 會變高、

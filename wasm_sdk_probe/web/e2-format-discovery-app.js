@@ -178,8 +178,14 @@ const DISPATCH_STEPS = [
 // These are run through the real client, never by hand-crafting an engine
 // message -- a rejection that only a fabricated request can trigger says
 // nothing about what a caller can actually reach.
+// Where the crosstalk case moves the caret to.  It must NOT be a paragraph
+// already in the state the case dispatches, or the test cannot tell a correct
+// restore from a hijacked read of this very paragraph -- the case would pass
+// either way.  styled-list originally pointed at E1-STYLED-HEADING, which is a
+// Heading 1 in the fixture while the case dispatches set-paragraph-heading:
+// exactly the trap finding 033 describes, built into its own test.
 const A5_CROSSTALK_ANCHORS = {
-  "styled-list": "E1-STYLED-HEADING",
+  "styled-list": "E1-LIST-ONE",
   "multi-paragraph": "E1-MULTI-START",
   "plain-grapheme": "E1-PLAIN-START",
   "table-boundary": "E1-TABLE-BEFORE",
