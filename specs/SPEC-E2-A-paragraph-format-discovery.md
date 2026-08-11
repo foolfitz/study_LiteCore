@@ -391,6 +391,28 @@ step          ── getTextSelection("text/html")，解析 body 內的開標籤
 這正是 2.7 節那輪 scheduler-attribution 重跑**答不出來**的問題（全是跨狀態轉換），現在有答案。
 （二）**無聲 no-op**——重複派送不再逾時，barrier 照常完成。第 4 節的缺口關閉。
 
+#### `changed` 不再宣稱（同日稍後更正）
+
+第一版實作照舊送 `"changed":true`。**那是一個沒有任何檢查支持的宣稱**：
+readback 回答的是「文件現在是不是目標狀態」，不是「是不是這次派送把它變成這樣」——
+重複按下時文件本來就對，讀回來一模一樣，`changed:true` 就是假的。
+
+v10 其實早就決定「不宣稱有沒有變」（`documented-state-noop` 被移除正是因為那個宣稱撐不住），
+只是程式還在宣稱。已改為 `"changed":null`。重跑兩瀏覽器：9/9 完成、`changed` 全為 null、
+`restoreConfirmed` 9/9、postcondition 9/9（WASM `80b48abf…`）。
+
+#### 凍結矩陣已就地修訂並保留被取代的值
+
+`e2/discovery-matrix-v1.json` 與實作在兩處已不一致（派送參數、completion 規則）。
+矩陣是凍結契約，**不能默默改**，因此加了 `revisions` 區塊：逐項記錄改了什麼、為什麼、
+以及**完整保留被取代的舊值**（`superseded`）。兩項都是**依實測修正，不是放寬門檻**——
+`thresholds` 一個字沒動，且 A3 尚未產生正式結果，沒有已判定的東西受影響。
+
+另移除 `requiredProperties` 的 `fail-closed-unknown-precondition`：路線 C 不讀前置條件，
+該性質**變成恆真而非被滿足**，留著會讓一個空洞的性質被算成通過的性質。
+改列兩項 readback 設計真正產生的義務：`postcondition-read-from-the-document`、
+`selection-restored-and-confirmed`。`tests/test_e2_profile.py` 有五個測試把矩陣與 engine 釘在一起。
+
 ## 5. 凍結矩陣
 
 數量與項目以 [`e2/discovery-matrix-v1.json`](../wasm_sdk_probe/e2/discovery-matrix-v1.json) 為準，

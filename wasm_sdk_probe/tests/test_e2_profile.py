@@ -323,6 +323,57 @@ class TestPostconditionResolvesAutomaticStyles(unittest.TestCase):
         self.assertIn("resolvedStyle", analyzer.describe.__code__.co_consts)
 
 
+class TestFrozenMatrixMatchesTheEngine(unittest.TestCase):
+    """The matrix is the frozen contract; drift makes it decoration.
+
+    It was revised on 2026-08-11 for finding 030 and route C, deliberately and
+    with the superseded values kept.  These check the engine still dispatches
+    and judges what the revised matrix says -- the failure mode being guarded
+    against is a later code change that quietly leaves the matrix behind.
+    """
+
+    MATRIX = json.loads(
+        (PROJECT / "e2" / "discovery-matrix-v1.json").read_text(encoding="utf-8"))
+    ENGINE = (PROJECT / "src" / "probe_engine.cpp").read_text(encoding="utf-8")
+
+    def test_list_actions_carry_the_on_parameter_in_both_places(self):
+        for action in ("set-list-unordered", "set-list-ordered"):
+            with self.subTest(action=action):
+                self.assertEqual(
+                    self.MATRIX["dispatchMap"][action]["arguments"], {"On": True})
+        self.assertIn('"\\"value\\":true}}"', self.ENGINE)
+
+    def test_completion_requires_the_readback_not_the_broadcast(self):
+        rule = self.MATRIX["completionRule"]
+        self.assertIn("document-readback-postcondition", rule["requires"])
+        self.assertNotIn("expected-state-postcondition", rule["requires"])
+        self.assertIn("verified-format-readback", self.ENGINE)
+
+    def test_changed_is_not_claimed(self):
+        # A repeat press lands on an already-correct document and reads back the
+        # same thing, so claiming changed:true would assert what nothing checked.
+        self.assertIn("null", self.MATRIX["completionRule"]["changedClaim"])
+        self.assertIn('\\"changed\\":null', self.ENGINE)
+
+    def test_the_revision_keeps_what_it_replaced(self):
+        revision = self.MATRIX["revisions"][0]
+        self.assertEqual(revision["date"], "2026-08-11")
+        superseded = revision["superseded"]
+        self.assertIsNone(superseded["dispatchMap"]["set-list-unordered"]["arguments"])
+        self.assertIn("expected-state-postcondition",
+                      superseded["completionRule"]["requires"])
+        self.assertIn("fail-closed-unknown-precondition",
+                      superseded["requiredProperties"])
+
+    def test_thresholds_were_not_relaxed(self):
+        thresholds = self.MATRIX["thresholds"]
+        self.assertEqual(thresholds["positiveRepetitionsPerBrowser"], 3)
+        self.assertEqual(thresholds["negativeRepetitionsPerBrowser"], 1)
+        self.assertEqual(thresholds["callbackBarrierMs"], 10000)
+        self.assertEqual(thresholds["operationTimeoutMs"], 30000)
+        self.assertEqual(thresholds["roundtripDocumentsPerBrowser"], 3)
+
+
 class TestFinding031Tripwire(unittest.TestCase):
     """Fails when the latent defect in finding 031 becomes reachable.
 

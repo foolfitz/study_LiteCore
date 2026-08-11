@@ -42,18 +42,31 @@
   "dispatchMap": {
     "set-list-unordered": {
       "command": ".uno:DefaultBullet",
-      "arguments": null,
-      "expectedState": ".uno:DefaultBullet=true"
+      "arguments": {
+        "On": true
+      },
+      "expectedStateSuperseded": ".uno:DefaultBullet=true",
+      "expectedReadback": {
+        "listTag": "ul"
+      }
     },
     "set-list-ordered": {
       "command": ".uno:DefaultNumbering",
-      "arguments": null,
-      "expectedState": ".uno:DefaultNumbering=true"
+      "arguments": {
+        "On": true
+      },
+      "expectedStateSuperseded": ".uno:DefaultNumbering=true",
+      "expectedReadback": {
+        "listTag": "ol"
+      }
     },
     "set-list-none": {
       "command": ".uno:RemoveBullets",
       "arguments": null,
-      "expectedState": ".uno:DefaultBullet=false and .uno:DefaultNumbering=false"
+      "expectedStateSuperseded": ".uno:DefaultBullet=false and .uno:DefaultNumbering=false",
+      "expectedReadback": {
+        "listTag": "none"
+      }
     },
     "set-paragraph-heading": {
       "command": ".uno:StyleApply",
@@ -61,7 +74,10 @@
         "Style": "Heading 1",
         "FamilyName": "ParagraphStyles"
       },
-      "expectedState": ".uno:StyleApply=Heading 1"
+      "expectedStateSuperseded": ".uno:StyleApply=Heading 1",
+      "expectedReadback": {
+        "blockTag": "h1"
+      }
     },
     "set-paragraph-body": {
       "command": ".uno:StyleApply",
@@ -69,22 +85,32 @@
         "Style": "Text body",
         "FamilyName": "ParagraphStyles"
       },
-      "expectedState": ".uno:StyleApply=Body Text"
+      "expectedStateSuperseded": ".uno:StyleApply=Body Text",
+      "expectedReadback": {
+        "blockTag": "p"
+      }
     }
   },
   "dispatchMapProvenance": "Measured natively on 2026-08-05, not inferred. The three strings for one style differ (sent 'Text body', stored 'Text_20_body', reported 'Body Text'), so none may be substituted for another. Evidence: findings/evidence/sdk-e2/discovery/state-readback/native-26-8/",
   "completionRule": {
     "requires": [
       "matching-uno-command-result",
-      "expected-state-postcondition"
+      "document-readback-postcondition"
     ],
+    "readbackSource": "getTextSelection(text/html) over the selected paragraph",
+    "readbackJudges": [
+      "listTag (ul/ol/none)",
+      "blockTag (h1/p)"
+    ],
+    "judgedSeparatelyBecause": "a heading inside a list reads listTag=ul with blockTag=h1; taking only the first tag would make the paragraph-style postcondition unsatisfiable inside a list",
     "ignoredFields": [
       "success",
       "wasModified"
     ],
     "ignoredBecause": "finding 020 -- .uno:RemoveBullets reports success:false and .uno:DefaultBullet reports wasModified:false while both change the document",
-    "noopCompletion": "documented-state-noop",
-    "unknownPrecondition": "EDITOR_FORMAT_STATE_UNAVAILABLE",
+    "changedClaim": "null -- the readback answers 'is the document in the target state', not 'did this dispatch put it there'",
+    "postconditionFailure": "EDITOR_FORMAT_POSTCONDITION_FAILED, carries the observed tags and the raw markup",
+    "restoreFailure": "EDITOR_SELECTION_NOT_RESTORED",
     "timeout": "MUTATION_OUTCOME_UNKNOWN, no retry"
   },
   "negativeCases": [
@@ -112,11 +138,12 @@
     "documented-callback-payload-only",
     "attributable-completion",
     "noop-distinguishable-from-missing",
-    "fail-closed-unknown-precondition",
     "no-automatic-replay-after-unknown-outcome",
     "odt-roundtrip",
     "r6-r8-e1-regression",
-    "bounded-worker-generation"
+    "bounded-worker-generation",
+    "postcondition-read-from-the-document",
+    "selection-restored-and-confirmed"
   ],
   "decisionPolicy": {
     "listAndParagraphStyleBothProven": "GO_TO_E2_B",
@@ -140,7 +167,7 @@
     "evidence": "findings/evidence/sdk-e2/discovery/state-readback/wasm/",
     "profileWasmSha256Note": "A2 results were measured on this build; the same profile was later rebuilt as 9b6e9c587e1224ed... when raw STATE_CHANGED counters were added for finding 021 attribution."
   },
-  "status": "frozen-A2-complete-partial-A3-blocked-pending-scheduler-pump-decision",
+  "status": "A2-complete-A3-ready-route-c-readback-postcondition",
   "finding021Attribution": {
     "date": "2026-08-05",
     "conclusion": "our-engine-loop-does-not-pump-the-vcl-scheduler",
@@ -210,5 +237,94 @@
     "residualGap": "one formatStateStale flag guards five fields: any watched payload (e.g. .uno:Bold) clears it, after which a list precondition may read a listBullet never re-broadcast for this paragraph. Per-field generation marking is what is missing. INFERRED, no instance observed; deprioritised under product route C, mandatory if route A is ever enabled.",
     "productRoute": "C -- the product does not read precondition state. Closed actions dispatch unconditionally and are judged by postcondition only (post-dispatch state + saved ODT, verified 5/5). documented-state-noop is dropped rather than promised. Removes the pump dependency entirely. Route A (product calls the pump itself) is deferred, not rejected. Decided 2026-08-06; the user also decided not to file upstream.",
     "supportedEntryPointCorrection": "the earlier claim that no supported refresh entry point exists was wrong: Scheduler::ProcessEventsToIdle() is public API (include/vcl/scheduler.hxx:65, class VCL_DLLPUBLIC Scheduler final) with production callers in sw/source/uibase/dbui/dbmgr.cxx:1375, sw/source/ui/dbui/mmresultdialogs.cxx:712 and vcl/source/app/svmain.cxx:438. Only the C wrapper unit_lok_process_events_to_idle (svapp.cxx:485-491) is labelled test-only. The real constraint is the header's own busy-lock warning, which is ours to bound. Note the doc comment claiming it calls Application::Reschedule(true) is stale; the implementation uses InnerYield(false, true)."
-  }
+  },
+  "revisions": [
+    {
+      "date": "2026-08-11",
+      "why": "Two corrections forced by measurement, recorded rather than applied silently. Neither relaxes a threshold; both make the matrix describe a check that can fail for the right reason. No formal A3 result existed when this was written, so nothing already judged is affected.",
+      "changes": [
+        {
+          "field": "dispatchMap.set-list-unordered.arguments / set-list-ordered.arguments",
+          "from": "null (bare command name)",
+          "to": "{\"On\": true}",
+          "because": "finding 030 -- dispatched bare, FN_NUM_BULLET_ON takes !SelectionHasBullet(), so the closed enum inverts on the second press. The On parameter is core's documented explicit mode (svx/sdi/svx.sdi:2251, :4985)."
+        },
+        {
+          "field": "completionRule",
+          "from": "state broadcast as the postcondition, with documented-state-noop and EDITOR_FORMAT_STATE_UNAVAILABLE",
+          "to": "document readback as the postcondition",
+          "because": "product route C (2026-08-06) removed the precondition read, and finding 030 showed the state broadcast is silent whenever the value did not change -- so a repeat press was indistinguishable from a lost command, which decisionPolicy calls STOP_OR_RESCOPE. The user chose the readback route on 2026-08-11; feasibility was measured before implementing (SPEC E2-A 2.8)."
+        },
+        {
+          "field": "requiredProperties",
+          "from": "included fail-closed-unknown-precondition",
+          "to": "dropped it; added postcondition-read-from-the-document and selection-restored-and-confirmed",
+          "because": "route C reads no precondition, so the old property is vacuous rather than met -- leaving it in would let a vacuous property count as a passing one. The two new properties are the obligations the readback design actually creates."
+        }
+      ],
+      "superseded": {
+        "dispatchMap": {
+          "set-list-unordered": {
+            "command": ".uno:DefaultBullet",
+            "arguments": null,
+            "expectedState": ".uno:DefaultBullet=true"
+          },
+          "set-list-ordered": {
+            "command": ".uno:DefaultNumbering",
+            "arguments": null,
+            "expectedState": ".uno:DefaultNumbering=true"
+          },
+          "set-list-none": {
+            "command": ".uno:RemoveBullets",
+            "arguments": null,
+            "expectedState": ".uno:DefaultBullet=false and .uno:DefaultNumbering=false"
+          },
+          "set-paragraph-heading": {
+            "command": ".uno:StyleApply",
+            "arguments": {
+              "Style": "Heading 1",
+              "FamilyName": "ParagraphStyles"
+            },
+            "expectedState": ".uno:StyleApply=Heading 1"
+          },
+          "set-paragraph-body": {
+            "command": ".uno:StyleApply",
+            "arguments": {
+              "Style": "Text body",
+              "FamilyName": "ParagraphStyles"
+            },
+            "expectedState": ".uno:StyleApply=Body Text"
+          }
+        },
+        "completionRule": {
+          "requires": [
+            "matching-uno-command-result",
+            "expected-state-postcondition"
+          ],
+          "ignoredFields": [
+            "success",
+            "wasModified"
+          ],
+          "ignoredBecause": "finding 020 -- .uno:RemoveBullets reports success:false and .uno:DefaultBullet reports wasModified:false while both change the document",
+          "noopCompletion": "documented-state-noop",
+          "unknownPrecondition": "EDITOR_FORMAT_STATE_UNAVAILABLE",
+          "timeout": "MUTATION_OUTCOME_UNKNOWN, no retry"
+        },
+        "requiredProperties": [
+          "closed-operation-taxonomy",
+          "no-raw-uno-or-arbitrary-keycode",
+          "no-command-string-across-abi",
+          "documented-callback-payload-only",
+          "attributable-completion",
+          "noop-distinguishable-from-missing",
+          "fail-closed-unknown-precondition",
+          "no-automatic-replay-after-unknown-outcome",
+          "odt-roundtrip",
+          "r6-r8-e1-regression",
+          "bounded-worker-generation"
+        ],
+        "status": "frozen-A2-complete-partial-A3-blocked-pending-scheduler-pump-decision"
+      }
+    }
+  ]
 }

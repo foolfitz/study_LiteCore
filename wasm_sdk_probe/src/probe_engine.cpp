@@ -934,7 +934,17 @@ void completeFormatBarrier() {
        << barrier.documentHandle << ",\"beforeRevision\":"
        << barrier.beforeRevision << ",\"revision\":" << gState.revision
        << ",\"action\":\"" << jsonEscape(barrier.action.c_str())
-       << "\",\"option\":false,\"changed\":true"
+       // `changed` is null on purpose, and this is the whole point of route C.
+       //
+       // The readback answers "is the document in the target state now".  It
+       // does not answer "did this dispatch put it there" -- a repeat press
+       // lands on a document that was already correct and reads back exactly
+       // the same.  The previous shape emitted changed:true unconditionally,
+       // which asserted something no check performed: on a repeat it was
+       // simply false.  SPEC E2-A v10 already decided not to claim it
+       // (documented-state-noop was removed precisely because the claim was
+       // not supportable); the code was still making the claim anyway.
+       << "\",\"option\":false,\"changed\":null"
        // Route C reports what it verified, and it verified the document, not a
        // broadcast.  The name changed with the source deliberately: evidence
        // recorded under the old name was produced by a different check.
