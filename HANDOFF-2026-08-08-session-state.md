@@ -501,3 +501,44 @@ completion 為 `verified-format-readback`、`changed` 未宣稱（null）、
 A5 負向與邊界（`state-crosstalk`／`stale-revision`／`timeout-after-dispatch`／
 `table-boundary`／`unsupported-action`／`list-teardown`）、A6 次要能力、
 A7 round-trip 與回歸。A5 的 `table-boundary` 就是那份還沒用到的 fixture。
+
+## A5：六個案例都跑起來了，其中兩件要處理
+
+| 案例 | 實測 |
+|---|---|
+| `unsupported-action` | `EDITOR_ACTION_UNSUPPORTED`，派送前擋掉 |
+| `stale-revision` | `STALE_REVISION`，帶實際新舊值 |
+| `state-crosstalk` | 見 [finding 033](findings/033-readback-barrier-read-wherever-the-caret-went.md)——抓到真缺陷並已修 |
+| `table-boundary` | **`verified-format-readback`（完成，不是拒絕）** |
+| `list-teardown` | 清單三態循環後 close **11～14 ms**，無 finding 012 類阻塞 |
+| `timeout-after-dispatch` | 呼叫端 `TIMEOUT` → 不重試 → 下一個動作 `BUSY` |
+
+### 待處理一：`table-boundary` 的結果與凍結矩陣相反
+
+矩陣寫「typed 拒絕，之後 fresh Worker」——那是**舊設計（選取 barrier）時代寫的期望**。
+路線 C ＋ readback 之下，表格儲存格內的段落**照常套用並通過驗證**：
+存檔 ODT 顯示 `E1-CELL-A1` 確實進了清單並套上 Heading 1，
+而**相鄰儲存格與表格外的段落都沒被動到**。
+
+**這是實測推翻預設，不是缺陷**，但矩陣不能默默跟著改——要照 2026-08-11 那次的做法
+補一筆 `revisions`，保留舊期望。**尚未做。**
+
+### 待處理二：`state-crosstalk` 在 table-boundary fixture 仍失敗
+
+其他 fixture 修好後會通過，這份仍回 `EDITOR_FORMAT_POSTCONDITION_FAILED`。
+crosstalk 錨點在表格外、派送錨點在儲存格內，finding 033 的座標式還原跨表格邊界時
+可能落不回原處——**與 finding 033 記的殘留是同一條**，未歸因。
+
+### 我在 A5 犯的錯
+
+`table-boundary` 第一次跑回 `STALE_REVISION`，看起來像產品結果，**其實是我的 harness**：
+`timeout-after-dispatch` 讓一個動作在呼叫端逾時後才完成並推進 revision，
+排在它後面的案例就全都拿著過期的 revision 被擋下。試過在案例前後重新同步——
+**`getState` 根本不回傳 revision，那個同步是靜默的 no-op**。
+真正的修法是把會去同步化的案例排到最後。
+
+## 尚未執行
+
+**A6（次要能力）與 A7（round-trip ＋ 桌面 reopen／PDF ＋ R6～R8／E1 回歸）完全沒動。**
+A5 的六個案例只在 Chrome × table-boundary 跑過完整一輪，
+其他 fixture 與 Firefox 尚未補齊，也還沒寫進 validator 判定。

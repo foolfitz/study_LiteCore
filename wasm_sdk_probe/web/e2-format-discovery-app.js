@@ -68,6 +68,7 @@ const metrics = {
   formatStateEvents: [],
   readback: [],
   a5: null,
+  closeMs: null,
   control: [],
   readbackAfterControl: [],
   dispatch: [],
@@ -181,6 +182,13 @@ const A5_CROSSTALK_ANCHORS = {
   "styled-list": "E1-STYLED-HEADING",
   "multi-paragraph": "E1-MULTI-START",
   "plain-grapheme": "E1-PLAIN-START",
+  "table-boundary": "E1-TABLE-BEFORE",
+};
+// The anchor A5 drives its cases from, per fixture.  table-boundary points at
+// a table cell on purpose: that is the boundary case.
+const A5_ANCHORS = {
+  ...A3_ANCHORS,
+  "table-boundary": "E1-CELL-A1",
 };
 
 async function runA5(client, documentHandle, anchorText) {
@@ -190,6 +198,18 @@ async function runA5(client, documentHandle, anchorText) {
 
   async function record(name, expectation, body) {
     const entry = { case: name, expects: expectation };
+    // Resync before the case as well as after it.  An action that the caller
+    // timed out on can still complete afterwards and advance the revision, so
+    // a value sampled at the end of the previous case is already behind by the
+    // time this one dispatches.
+    try {
+      const before = await client.getState();
+      if (Number.isInteger(before?.revision))
+        documentHandle.revision = before.revision;
+      entry.revisionBefore = documentHandle.revision;
+    } catch (error) {
+      entry.revisionBeforeError = errorValue(error);
+    }
     try {
       entry.outcome = await body(entry);
       entry.status = "completed";
@@ -198,7 +218,16 @@ async function runA5(client, documentHandle, anchorText) {
       entry.status = "rejected";
     }
     try {
-      entry.stateAfter = formatOf(await client.getState());
+      const state = await client.getState();
+      entry.stateAfter = formatOf(state);
+      // Resync the revision between cases.  A case that ends in a rejection
+      // leaves the client's cached revision behind whatever the engine did,
+      // and the next case then fails with STALE_REVISION before it dispatches
+      // anything -- which is a harness artefact wearing the costume of a
+      // product result.  The table-boundary case was reported that way once.
+      if (Number.isInteger(state?.revision))
+        documentHandle.revision = state.revision;
+      entry.revisionAfter = documentHandle.revision;
     } catch (error) {
       entry.stateAfterError = errorValue(error);
     }
@@ -236,7 +265,40 @@ async function runA5(client, documentHandle, anchorText) {
       return pending;
     });
 
-  // 4. timeout-after-dispatch: a caller timeout while the barrier is in
+  // 5. table-boundary: a paragraph inside a table cell.  The matrix says a
+  //    typed rejection followed by a fresh Worker; what it must never be is a
+  //    completion the document does not support, so the outcome is recorded
+  //    either way and the saved file settles it.
+  if (fixtureId === "table-boundary") {
+    await record("table-boundary", "typed outcome, and the document agrees",
+      async (entry) => {
+        entry.placement = await place(anchorText);
+        return client.action("set-list-unordered");
+      });
+  }
+
+  // 6. list-teardown: finding 012 was a close that never returned on a styled
+  //    document.  Toggling a list rewrites the paragraph into <text:list>
+  //    wrappers, which is the same class of structure, so the close after this
+  //    cycle is timed rather than assumed.
+  await record("list-teardown", "close returns well inside the timeout",
+    async (entry) => {
+      await place(anchorText);
+      await client.action("set-list-unordered");
+      await place(anchorText);
+      await client.action("set-list-ordered");
+      await place(anchorText);
+      await client.action("set-list-none");
+      entry.cycleComplete = true;
+      return null;
+    });
+
+  // Last on purpose.  A caller timeout leaves an action still in flight, and
+  // when it completes it advances the revision past what the client cached --
+  // so every case after this one starts stale and gets refused before it
+  // dispatches anything.  That is how table-boundary first reported
+  // STALE_REVISION and looked, briefly, like a product result.
+  // timeout-after-dispatch: a caller timeout while the barrier is in
   //    flight.  No retry may be issued, and the next action must be refused
   //    as BUSY rather than queued behind it.
   await record("timeout-after-dispatch", "caller timeout, then BUSY, no retry",
@@ -624,7 +686,8 @@ async function run() {
     await runReadback(documentHandle, client, metrics.readbackAfterControl, "search");
     if (mode === "a5") {
       checkpoint("negative");
-      metrics.a5 = await runA5(client, documentHandle, a3Anchor);
+      metrics.a5 = await runA5(
+        client, documentHandle, A5_ANCHORS[fixtureId] || a3Anchor);
       // One save at the end: the negative cases are judged on what the
       // document did *not* become, so the file is the evidence for all of them
       // together rather than per case.
@@ -641,7 +704,14 @@ async function run() {
     }
 
     checkpoint("close");
-    await documentHandle.close({ timeoutMs: 30000 });
+    // Timed, because finding 012 was a close that never returned on a styled
+    // document and "it closed" is not the same claim as "it closed promptly".
+    {
+      const started = performance.now();
+      await documentHandle.close({ timeoutMs: 30000 });
+      metrics.closeMs = Math.round(performance.now() - started);
+      log({ checkpoint: "close", closeMs: metrics.closeMs });
+    }
     documentHandle = null;
     engine.dispose();
     engine = null;
