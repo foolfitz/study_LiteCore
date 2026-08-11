@@ -66,6 +66,37 @@ barrier in-flight 期間，`search`／`placeCaret`／`select` **目前不被 `BU
 所以：**這個缺陷不分 fixture，本單原本的修法（讀前先還原游標）在任何 fixture 都沒有關掉它。**
 劫持穩定地贏過還原。
 
+## 修法的前置量測已完成（2026-08-11，已觀察）
+
+覆核判定：**`sourceSequence` 時序過濾不是歸屬**——它在回呼**送達時**遞增，而所有危險來自
+**未來才送達**的外來回呼，它們全都拿到更大的序號、全都通過檢查。
+那會產生「已加歸屬」的紀錄而實際上什麼都沒歸屬，**比不加更糟**。此方案作廢。
+
+最小充分機制是 **commandName 歸屬**：`EndOfParaSel` 改以 `notify=true` 派送，
+`AwaitingSelection` 的推進條件改為「收到 `commandName == ".uno:EndOfParaSel"` 的
+`UNO_COMMAND_RESULT` **且** 選取非空」。基礎設施已存在（`commandResultMatches`）。
+
+**前置量測**（這類「命令不回 result」的說法在 2026-08-05 被原生實測推翻過一次，不用猜的）：
+
+證據 `findings/evidence/sdk-e2/discovery/endofparasel-result/native-26-8/`。原生 26.8，
+以 `notify=true` 派送，逐一計數 `LOK_CALLBACK_UNO_COMMAND_RESULT` 的 `commandName`：
+
+| commandName | 次數 |
+|---|---|
+| `.uno:EndOfParaSel` | **8**（＝派送次數） |
+| `.uno:GoToStartOfPara` | 8 |
+| `.uno:StyleApply` | 2 |
+| `.uno:DefaultBullet`／`.uno:DefaultNumbering`／`.uno:RemoveBullets` | 各 1 |
+
+**`EndOfParaSel` 會回 result，每次都回。** 機制可行，退路（文字回聲檢查）不必動用。
+
+一併記下：**`GoToStartOfPara` 也會回 result**，所以推進條件必須比對 `commandName` 本身，
+不能寫成「收到任何 result」——`commandResultMatches` 正是做這件事。
+
+**尚未實作。** 還需要：BUSY 閘擋住 barrier in-flight 期間的移動游標命令（覆核判定為
+**必要但不充分**，兩層各管一段：歸屬管「推進那一刻」，BUSY 管「推進之後到讀取之間」），
+以及以 crosstalk 案例（含 table fixture）驗證。
+
 ## 未消除的殘留（**推論，未實測**）
 
 還原用的是**文件座標**，而派送本身可能改變該段的高度或縮排（套用 heading 會變高、
