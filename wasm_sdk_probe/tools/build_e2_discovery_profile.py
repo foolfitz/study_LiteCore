@@ -56,6 +56,25 @@ WORKER_BARRIER_AFTER = """        if (operation !== "editorActionV1") {
           result.formatBarrier = event.formatBarrier;
         }"""
 
+# A failed postcondition is only auditable if the markup it judged survives the
+# trip.  The engine already puts the whole readback -- tags, restore flag and up
+# to 2048 bytes of raw markup -- into the error payload, and the shared worker
+# forwards a fixed five fields and drops it.  The frozen matrix promises the
+# opposite ("carries the observed tags and the raw markup"), so this is the
+# pipeline breaking a contract the engine keeps.
+#
+# Patched on the E2 copy rather than in sdk/sdk-worker.js: the shared file is
+# what the frozen E1 profiles are built from, and E2 must diverge on its own
+# copy only.
+WORKER_ERROR_BEFORE = """          expectedRevision: event.expectedRevision,
+          currentRevision: event.currentRevision,
+        });"""
+
+WORKER_ERROR_AFTER = """          expectedRevision: event.expectedRevision,
+          currentRevision: event.currentRevision,
+          formatBarrier: event.formatBarrier,
+        });"""
+
 # The drain result now carries which pump actually did anything; without this
 # the attribution run cannot tell a working pump from a silent no-op.
 WORKER_DRAIN_BEFORE = """          before: event.before,
@@ -76,6 +95,7 @@ def write_e2_worker(source: Path, destination: Path) -> dict[str, object]:
         ("discovery-gate-message", WORKER_MESSAGE_BEFORE, WORKER_MESSAGE_AFTER),
         ("format-barrier-counters", WORKER_BARRIER_BEFORE, WORKER_BARRIER_AFTER),
         ("scheduler-drain-pump", WORKER_DRAIN_BEFORE, WORKER_DRAIN_AFTER),
+        ("format-barrier-error-details", WORKER_ERROR_BEFORE, WORKER_ERROR_AFTER),
     ):
         occurrences = text.count(before)
         if occurrences != 1:

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認（A5 負向案例實測）／已修並實測驗證** |
+| **狀態** | **已確認（A5 負向案例實測）／修法不完整——成因已改判為選取回呼不可歸屬，見下** |
 | **Bugzilla** | — |
 | **發現日** | 2026-08-11 |
 | **嚴重度** | 嚴重（可能對錯誤的段落回報成功，且不會有任何錯誤訊號） |
@@ -31,6 +31,27 @@ A5 的 `state-crosstalk` 案例（派送後立刻把游標移到別段）實測�
 修後同一個案例：`state-crosstalk` 由 `EDITOR_FORMAT_POSTCONDITION_FAILED`
 變成 `verified-format-readback`，且存檔 ODT 顯示 **heading 落在被派送的那一段**
 （`E1-STYLED-END` → `Heading_20_1`），不是游標移去的那一段。
+
+## 2026-08-11 更正：修法不完整，真正的洞不是座標
+
+上面的修法**沒有關掉這個缺陷**，而我當時的成因判斷也錯了。
+
+恢復 error payload 的 readback 轉發後（引擎本來就送，是 `sdk-worker.js` 把整包
+`formatBarrier` 丟掉——矩陣的 `postconditionFailure` 明寫要帶原始 markup，是管線毀約），
+重跑 table-boundary 的 crosstalk 案例，失敗當下讀到的 markup 是：
+
+```html
+<p style="margin-bottom: 0.08in; line-height: 100%">E1-TABLE-BEFORE</p>
+```
+
+**那是 crosstalk 段落本身**（`parsed:true`、`unknownTag:false`、`restoreConfirmed:true`）。
+不是座標落錯、不是表格 API——**是 barrier 消費了一個它無法歸屬的 `TEXT_SELECTION` 回呼**：
+`AwaitingSelection` 階段見到任何非空選取就前進，而 crosstalk 的 `search` 正好產生一個。
+
+barrier in-flight 期間，`search`／`placeCaret`／`select` **目前不被 `BUSY` 擋**，
+所以 caller 可以替 barrier「按下一步」。其他 fixture 通過只是時序沒對上，不是修好了。
+
+**座標殘留仍是真的**（見下節），但它與本節是兩件事，本案例否證的是座標成因。
 
 ## 未消除的殘留（**推論，未實測**）
 
