@@ -87,5 +87,12 @@
         "text": "\nE1-EMPTY-AFTER"
       }
     }
-  ]
+  ],
+  "consequenceMeasured": {
+    "run": "findings/evidence/sdk-e2/discovery/barrier-deadline/chrome/empty-paragraph",
+    "reported": "EDITOR_FORMAT_POSTCONDITION_FAILED (readback was <p>E1-EMPTY-BEFORE</p>)",
+    "documentActually": "<text:list><text:list-item><text:p text:style-name=\"P1\"/></text:list-item></text:list> -- the empty paragraph DID become a list item",
+    "soToday": "false negative: the action succeeded and the caller is told it failed.",
+    "andTheInverse": "if the neighbour the barrier reads happens to already be in the target state, the same mechanism reports SUCCESS for a mutation applied to a different paragraph, with no signal -- finding 033's failure mode, reached without any concurrency at all."
+  }
 }
