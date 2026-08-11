@@ -698,3 +698,61 @@ finding 033 與 findings README 就地修訂。
   方向清楚（期限只能判失敗），只是 format barrier 沒接上。
 - **座標殘留仍在。** BUSY 閘縮小可達性，沒消除它：還原點是派送**前**的文件座標，
   而派送本身改變幾何。要真正關掉需要段落身分定位，LOK 沒有提供。
+
+
+---
+
+## 2026-08-11（續二）：fable 的 deadline 判斷 → 前提被實測否證 → 換成 finding 034
+
+使用者要求由 fable 下判斷、我執行。跑完 fable 排的**第一步**（先量測）之後，
+**它的前提被否證，它自己重下了判斷**，方向也換了。完整經過在
+[finding 034](findings/034-paragraph-selection-escapes-at-the-offset-the-test-never-used.md)。
+
+### 一句話
+
+barrier 的 `GoToStartOfPara` + `EndOfParaSel` 在游標 **offset 0** 時會讀到**別的段落**，
+而**既有 375 次判定全部落在 offset `Len()`**——唯一一個現行序列剛好正確的位置。
+
+### fable 第一版判斷（前提已否證，保留供追溯）
+
+「現在修 deadline，三個 awaiting stage，5000 ms（明確反對沿用 250——那是別的量測的數字），
+期限永不判成功，不強制 fresh worker」，並主張**空段落會 wedge** 是自然觸發器。
+
+實測：**空段落不 wedge**（WASM 38 ms fail-closed、handle 可用）。
+遮蔽機制是**逃逸餵飽了 barrier**——選錯段落也算「有選取」。
+
+### fable 第二版判斷（現行，已據以執行）
+
+1. **段落選取改成單一派送 `.uno:SelectText`**（`FN_SELECT_PARA`）。clamp 在 stock core
+   的 dispatch handler 裡（26.8 `sw/source/uibase/shells/textsh1.cxx:1975`）。
+   fable **駁回**我量過的三命令候選（`GoToEndOfPara`→`GoToStartOfPara`→`EndOfParaSel`）
+   ——它在 offset `Len()` 逃逸，而那正是我們每次測試放游標的位置。
+   我那一列當時標為 inconclusive，fable 的駁回與它一致。
+2. 配套：**多段 readback 防護**（第二個 block tag → fail closed）、
+   **containment 檢查**（selection 縱向範圍須含 restore point）。
+3. **deadline 照做，理由換了**：採用 `SelectText` 會**製造出**可達的 stall
+   ——文件末段空段落**完全沒有 selection**（實測 selType 0）。
+4. **獨立成 finding 034**，不併進 033（機制不同：確定性邊界語意 vs 呼叫端併發）。
+5. **A3/A4/A5 不降級**，改為書面收窄＋矩陣加 `caretOffsetCoverage` 軸。
+6. **一個 build、一次重掃**：全部改動進同一個 wasm hash。
+
+### 進度
+
+| 步驟 | 狀態 |
+|---|---|
+| 原生量測 `SelectText` 邊界行為 | **完成**（`paragraph-selection-edges/native-26-8/`） |
+| 引擎改動（SelectText＋多段防護＋containment＋deadline） | **未開始** |
+| 鑑別器案例在舊 build 跑失敗基線 | 未開始 |
+| 新 build 全套 ＋ 重掃 A3–A5 重綁 | 未開始 |
+| 矩陣 revision ＋ SPEC 10.10／033 修訂 | 未開始 |
+
+**引擎目前仍是 `25761ff0`**，A3/A4/A5 的 PASS 仍然綁在它上面、仍然有效。
+finding 034 已寫完並記錄修法定案，所以下一個 session 可以直接從引擎改動接手。
+
+### 新增的量測資產
+
+- `wasm_sdk_probe/tools/e2_a_native_empty_paragraph.cpp`——序列 × 游標 offset 的矩陣探針。
+  放不到位的案例輸出 `skipped`，不拿殘留游標硬測。
+- fixture `empty-paragraph`（**新增，未動任何既有 fixture**——既有四個重生成後逐位元相同，已驗）。
+  含文件中段與**文件末段**兩個空段落，因為那是兩種不同的失敗。
+- `run_e2_discovery.py --mode deadline` ＋ app 的 `runDeadline()`。
