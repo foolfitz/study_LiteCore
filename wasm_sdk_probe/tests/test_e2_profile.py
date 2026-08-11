@@ -246,6 +246,68 @@ class TestFormatDispatchForm(unittest.TestCase):
         self.assertNotIn("barrier.arguments =", segment)
 
 
+class TestFormatBarrierSelectionAttribution(unittest.TestCase):
+    """Finding 033: what may advance the barrier, and by which dispatch path.
+
+    Two properties are pinned here because both were learned by breaking them,
+    and neither is visible from any other layer.
+
+    The advance out of AwaitingSelection must require this barrier's own
+    `.uno:EndOfParaSel` result *and* a non-empty selection.  Accepting any
+    non-empty selection is the original defect: a caller's search selects its
+    match, and the barrier would read that paragraph instead.
+
+    Both selection commands must be dispatched with the same notify flag.  With
+    only EndOfParaSel notified, the pair reordered: A5 styled-list attempt-04
+    read back `<p>D-END</p>` for a paragraph reading `E1-STYLED-END` -- a
+    selection anchored mid-word -- and where the caret already sat at the
+    paragraph end the selection came back empty and the barrier waited 30s for
+    a callback that never arrived.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.source = (PROJECT / "src" / "probe_engine.cpp").read_text(encoding="utf-8")
+
+    def selection_dispatch(self) -> str:
+        start = self.source.index("void postFormatBarrierParagraphSelection() {")
+        return self.source[start:self.source.index("\n}\n", start)]
+
+    def test_both_selection_commands_share_a_dispatch_path(self):
+        body = self.selection_dispatch()
+        self.assertIn('".uno:GoToStartOfPara", nullptr,\n                                          true)',
+                      body)
+        self.assertIn("kFormatBarrierSelectCommand, nullptr, true)", body)
+        self.assertNotIn("false)", body)
+
+    def test_the_advance_requires_the_result_and_the_selection(self):
+        start = self.source.index("void maybeAdvanceFormatBarrierSelection() {")
+        body = self.source[start:self.source.index("\n}\n", start)]
+        self.assertIn("!gFormatBarrier.selectionResultSeen ||", body)
+        self.assertIn("gEditorState.selectionRectangles.empty()", body)
+
+    def test_attribution_matches_the_command_name(self):
+        # GoToStartOfPara returns a command result too (measured natively, 8
+        # dispatches / 8 results), so "a result arrived" would attribute the
+        # wrong command.
+        self.assertIn('const char *const kFormatBarrierSelectCommand = ".uno:EndOfParaSel";',
+                      self.source)
+        self.assertIn("commandResultMatches(payload, kFormatBarrierSelectCommand)",
+                      self.source)
+
+    def test_caret_movers_are_refused_while_a_barrier_is_in_flight(self):
+        # Search is a caret mover -- .uno:ExecuteSearch selects its match --
+        # and is the path A5's crosstalk case actually takes, so it is gated
+        # alongside the selection command rather than treated as a read.
+        for operation in ('"editor-select"', '"editor-action"', '"search"'):
+            with self.subTest(operation=operation):
+                index = self.source.index(
+                    f'emitCommandError(command, {operation}, "BUSY",\n'
+                    f'                     "a verified format-state action is still in flight");')
+                guard = self.source.rindex("if (formatBarrierActive()) {", 0, index)
+                self.assertLess(index - guard, 200)
+
+
 class TestLocaleAttributionProfile(unittest.TestCase):
     """Finding 031: the UI language is a build-level experiment, not a surface."""
 

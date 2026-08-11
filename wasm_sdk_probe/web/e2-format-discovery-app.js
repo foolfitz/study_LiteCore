@@ -262,12 +262,24 @@ async function runA5(client, documentHandle, anchorText) {
   //    after dispatching.  The barrier reads the document itself now, so the
   //    risk is that it reads the paragraph the caret moved to.  The saved file
   //    is what settles it, judged by the runner.
+  //
+  //    The caret move is now refused while a barrier is in flight (finding 033
+  //    BUSY gate), so the attempt is recorded either way rather than aborting
+  //    the case.  The case does not assert the refusal: what it asserts is that
+  //    the completion describes the dispatched paragraph, and that has to hold
+  //    whether the move was refused or let through.
   await record("state-crosstalk", "completion describes the dispatched paragraph",
     async (entry) => {
       await place(anchorText);
       const pending = client.action("set-paragraph-heading");
-      await place(crosstalkAnchor);
       entry.movedTo = crosstalkAnchor;
+      try {
+        entry.crosstalkPlacement = await place(crosstalkAnchor);
+        entry.caretMoveAccepted = true;
+      } catch (error) {
+        entry.caretMoveAccepted = false;
+        entry.caretMoveError = errorValue(error);
+      }
       return pending;
     });
 

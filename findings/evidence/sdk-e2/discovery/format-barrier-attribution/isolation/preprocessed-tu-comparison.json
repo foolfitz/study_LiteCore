@@ -1,0 +1,36 @@
+{
+  "what": "does the EndOfParaSel attribution + BUSY gate change any build but E2?",
+  "method": "em++ -E -P (preprocessed translation unit, no line markers), compared before/after; object-file bytes are NOT used -- finding 032 measured them to be a coin flip (8 builds, 2 distinct outputs 4/4).",
+  "baseline": "acdffee0fe170061d2ec569be666f579d0960918",
+  "rows": [
+    {
+      "profileDefines": "E1",
+      "beforeSha256": "da075d8b6c0bf073ec7f9d3590a409b52d1c2ab322592d297d7efd1c38adab22",
+      "afterSha256": "da075d8b6c0bf073ec7f9d3590a409b52d1c2ab322592d297d7efd1c38adab22",
+      "identical": true,
+      "bytes": 4355327
+    },
+    {
+      "profileDefines": "R5",
+      "beforeSha256": "8ef0ac361f3f90c4bc370285fb799242ace2e678bbb78de8455172d762a35b97",
+      "afterSha256": "8ef0ac361f3f90c4bc370285fb799242ace2e678bbb78de8455172d762a35b97",
+      "identical": true,
+      "bytes": 4295223
+    },
+    {
+      "profileDefines": "SCHED016",
+      "beforeSha256": "3138061d54d42c4544c7dee983cd90a20bc44c49d508247a092fbbee5ee9532e",
+      "afterSha256": "3138061d54d42c4544c7dee983cd90a20bc44c49d508247a092fbbee5ee9532e",
+      "identical": true,
+      "bytes": 4344101
+    },
+    {
+      "profileDefines": "E2",
+      "beforeSha256": "e2197f4ae68b0ce93315109d0aaf356a185657635048372901660ced0ae05af7",
+      "afterSha256": "1f5b834078e1906b20523783a9fb2a8fa302e4d2dc080916479e4f229d2a5d2e",
+      "identical": false,
+      "bytes": 4376766
+    }
+  ],
+  "reading": "the three non-E2 define sets are byte-identical, and the E2 set is not: the comparison can distinguish builds, so 'identical' is a measurement rather than a comparison that cannot fail."
+}

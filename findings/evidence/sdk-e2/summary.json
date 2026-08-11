@@ -2,79 +2,123 @@
   "schemaVersion": 1,
   "release": "E2-A",
   "phase": "A3",
-  "decision": "A3_PASS",
+  "decision": "A3_NOT_RUN",
   "matrixStatus": "A2-complete-A3-ready-route-c-readback-postcondition",
   "requiredPerBrowserPerFixture": 3,
   "coverage": {
     "chrome/styled-list": {
       "required": 3,
-      "found": 6,
-      "bound": 3,
-      "superseded": 3,
-      "passing": 3,
-      "state": "covered"
+      "found": 7,
+      "bound": 1,
+      "superseded": 6,
+      "passing": 1,
+      "state": "short"
     },
     "chrome/multi-paragraph": {
       "required": 3,
       "found": 6,
-      "bound": 3,
-      "superseded": 3,
-      "passing": 3,
-      "state": "covered"
+      "bound": 0,
+      "superseded": 6,
+      "passing": 0,
+      "state": "short"
     },
     "chrome/plain-grapheme": {
       "required": 3,
       "found": 6,
-      "bound": 3,
-      "superseded": 3,
-      "passing": 3,
-      "state": "covered"
+      "bound": 0,
+      "superseded": 6,
+      "passing": 0,
+      "state": "short"
     },
     "firefox/styled-list": {
       "required": 3,
       "found": 6,
-      "bound": 3,
-      "superseded": 3,
-      "passing": 3,
-      "state": "covered"
+      "bound": 0,
+      "superseded": 6,
+      "passing": 0,
+      "state": "short"
     },
     "firefox/multi-paragraph": {
       "required": 3,
       "found": 6,
-      "bound": 3,
-      "superseded": 3,
-      "passing": 3,
-      "state": "covered"
+      "bound": 0,
+      "superseded": 6,
+      "passing": 0,
+      "state": "short"
     },
     "firefox/plain-grapheme": {
       "required": 3,
       "found": 6,
-      "bound": 3,
-      "superseded": 3,
-      "passing": 3,
-      "state": "covered"
+      "bound": 0,
+      "superseded": 6,
+      "passing": 0,
+      "state": "short"
     }
   },
   "artifactBinding": {
-    "currentProfileWasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+    "currentProfileWasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
     "evidenceWasmSha256": [
+      "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
       "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
       "80b48abfd045aae5c277ff08c52a66454825ef9c2e7a530ba3001140fac1a27c"
     ],
     "boundToCurrentBuild": false,
     "staleBuilds": [
+      "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
       "80b48abfd045aae5c277ff08c52a66454825ef9c2e7a530ba3001140fac1a27c"
     ]
   },
-  "coveredCells": [
-    "chrome/styled-list",
-    "chrome/multi-paragraph",
-    "chrome/plain-grapheme",
-    "firefox/styled-list",
-    "firefox/multi-paragraph",
-    "firefox/plain-grapheme"
-  ],
-  "gaps": {},
+  "coveredCells": [],
+  "gaps": {
+    "chrome/styled-list": {
+      "required": 3,
+      "found": 7,
+      "bound": 1,
+      "superseded": 6,
+      "passing": 1,
+      "state": "short"
+    },
+    "chrome/multi-paragraph": {
+      "required": 3,
+      "found": 6,
+      "bound": 0,
+      "superseded": 6,
+      "passing": 0,
+      "state": "short"
+    },
+    "chrome/plain-grapheme": {
+      "required": 3,
+      "found": 6,
+      "bound": 0,
+      "superseded": 6,
+      "passing": 0,
+      "state": "short"
+    },
+    "firefox/styled-list": {
+      "required": 3,
+      "found": 6,
+      "bound": 0,
+      "superseded": 6,
+      "passing": 0,
+      "state": "short"
+    },
+    "firefox/multi-paragraph": {
+      "required": 3,
+      "found": 6,
+      "bound": 0,
+      "superseded": 6,
+      "passing": 0,
+      "state": "short"
+    },
+    "firefox/plain-grapheme": {
+      "required": 3,
+      "found": 6,
+      "bound": 0,
+      "superseded": 6,
+      "passing": 0,
+      "state": "short"
+    }
+  },
   "fixturesDeferredToA5": [
     "table-boundary"
   ],
@@ -980,6 +1024,185 @@
       "browserVersion": "Chrome/150.0.7871.128",
       "profile": "e2-format-discovery",
       "wasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+      "steps": [
+        {
+          "label": "cycle-list-unordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ul",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "bullet",
+            "listLevel": 1,
+            "paragraphStyle": "P1",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "bullet"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "bullet"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-ordered",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "ol",
+            "blockTag": "p",
+            "bytes": 518
+          },
+          "document": {
+            "insideList": true,
+            "listKind": "number",
+            "listLevel": 1,
+            "paragraphStyle": "P2",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": true,
+              "listKind": "number"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": true,
+            "listKind": "number"
+          },
+          "pass": true
+        },
+        {
+          "label": "cycle-list-none",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 498
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Standard",
+            "resolvedParagraphStyle": "Standard"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "insideList": false
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "insideList": false
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-heading",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "h1",
+            "bytes": 552
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Heading_20_1",
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Heading_20_1"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Heading_20_1"
+          },
+          "pass": true
+        },
+        {
+          "label": "roundtrip-body",
+          "present": true,
+          "completion": "verified-format-readback",
+          "completionOk": true,
+          "changedClaim": null,
+          "changedNotClaimed": true,
+          "restoreConfirmed": true,
+          "readback": {
+            "listTag": "",
+            "blockTag": "p",
+            "bytes": 449
+          },
+          "document": {
+            "insideList": false,
+            "listKind": null,
+            "listLevel": null,
+            "paragraphStyle": "Text_20_body",
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "postcondition": {
+            "judged": true,
+            "met": true,
+            "expected": {
+              "resolvedParagraphStyle": "Text_20_body"
+            },
+            "mismatches": {}
+          },
+          "expected": {
+            "resolvedParagraphStyle": "Text_20_body"
+          },
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/browser/chrome/styled-list/attempt-07",
+      "browser": "chrome",
+      "browserVersion": "Chrome/150.0.7871.128",
+      "profile": "e2-format-discovery",
+      "wasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
       "steps": [
         {
           "label": "cycle-list-unordered",
@@ -6525,69 +6748,119 @@
     }
   ],
   "a4": {
-    "decision": "A4_PASS",
+    "decision": "A4_NOT_RUN",
     "coverage": {
       "chrome/styled-list": {
         "required": 3,
         "found": 6,
-        "bound": 3,
-        "superseded": 3,
-        "passing": 3,
-        "state": "covered"
+        "bound": 0,
+        "superseded": 6,
+        "passing": 0,
+        "state": "missing"
       },
       "chrome/multi-paragraph": {
         "required": 3,
         "found": 7,
-        "bound": 3,
-        "superseded": 4,
-        "passing": 3,
-        "state": "covered"
+        "bound": 0,
+        "superseded": 7,
+        "passing": 0,
+        "state": "missing"
       },
       "chrome/plain-grapheme": {
         "required": 3,
         "found": 6,
-        "bound": 3,
-        "superseded": 3,
-        "passing": 3,
-        "state": "covered"
+        "bound": 0,
+        "superseded": 6,
+        "passing": 0,
+        "state": "missing"
       },
       "firefox/styled-list": {
         "required": 3,
         "found": 9,
-        "bound": 6,
-        "superseded": 3,
-        "passing": 6,
-        "state": "covered"
+        "bound": 0,
+        "superseded": 9,
+        "passing": 0,
+        "state": "missing"
       },
       "firefox/multi-paragraph": {
         "required": 3,
         "found": 9,
-        "bound": 6,
-        "superseded": 3,
-        "passing": 6,
-        "state": "covered"
+        "bound": 0,
+        "superseded": 9,
+        "passing": 0,
+        "state": "missing"
       },
       "firefox/plain-grapheme": {
         "required": 3,
         "found": 7,
-        "bound": 4,
-        "superseded": 3,
-        "passing": 4,
-        "state": "covered"
+        "bound": 0,
+        "superseded": 7,
+        "passing": 0,
+        "state": "missing"
       }
     },
     "artifactBinding": {
-      "currentProfileWasmSha256": "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
+      "currentProfileWasmSha256": "25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
       "evidenceWasmSha256": [
         "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
         "d9f50d25f9c144d84cb2721ff81edf8e8735661046f162ca6bf70817e3eccd97"
       ],
       "boundToCurrentBuild": false,
       "staleBuilds": [
+        "68590548484c1cee64205b4514a72478d84deda9a095b06ebf1b228a108c1d92",
         "d9f50d25f9c144d84cb2721ff81edf8e8735661046f162ca6bf70817e3eccd97"
       ]
     },
-    "gaps": {},
+    "gaps": {
+      "chrome/styled-list": {
+        "required": 3,
+        "found": 6,
+        "bound": 0,
+        "superseded": 6,
+        "passing": 0,
+        "state": "missing"
+      },
+      "chrome/multi-paragraph": {
+        "required": 3,
+        "found": 7,
+        "bound": 0,
+        "superseded": 7,
+        "passing": 0,
+        "state": "missing"
+      },
+      "chrome/plain-grapheme": {
+        "required": 3,
+        "found": 6,
+        "bound": 0,
+        "superseded": 6,
+        "passing": 0,
+        "state": "missing"
+      },
+      "firefox/styled-list": {
+        "required": 3,
+        "found": 9,
+        "bound": 0,
+        "superseded": 9,
+        "passing": 0,
+        "state": "missing"
+      },
+      "firefox/multi-paragraph": {
+        "required": 3,
+        "found": 9,
+        "bound": 0,
+        "superseded": 9,
+        "passing": 0,
+        "state": "missing"
+      },
+      "firefox/plain-grapheme": {
+        "required": 3,
+        "found": 7,
+        "bound": 0,
+        "superseded": 7,
+        "passing": 0,
+        "state": "missing"
+      }
+    },
     "runs": [
       {
         "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/repeat/chrome/styled-list",

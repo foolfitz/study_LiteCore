@@ -512,6 +512,25 @@ struct FormatStateBarrier {
   bool resultSeen = false;
   bool resultSuccess = false;
   bool resultModified = false;
+  // Finding 033.  The barrier used to advance out of AwaitingSelection on any
+  // TEXT_SELECTION carrying rectangles, and a search dispatched by the caller
+  // selects its match -- so the caller's own caret move could hand the barrier
+  // a selection and the read would describe that paragraph instead.
+  //
+  // .uno:EndOfParaSel returns a UNO command result on every dispatch (measured
+  // natively, 8 dispatches / 8 results, findings/evidence/sdk-e2/discovery/
+  // endofparasel-result/native-26-8), and .uno:GoToStartOfPara returns one too
+  // -- which is why the condition matches the command *name* rather than "a
+  // result arrived".
+  bool selectionResultSeen = false;
+  // Non-empty selections seen while this barrier's own EndOfParaSel was still
+  // unacknowledged.  Deliberately *not* called "unattributed": the delivery
+  // order of TEXT_SELECTION versus UNO_COMMAND_RESULT has been measured for the
+  // five format commands (result first, by ~300ms) and never for this one, so
+  // the barrier's own selection may well land here.  The number is reported
+  // raw; what it means is a reading of the evidence, not a verdict baked into
+  // the name.
+  std::uint32_t selectionBeforeResultCount = 0;
   std::vector<std::string> expectedStyles;
   std::string action;
   std::string command;
@@ -898,6 +917,10 @@ void appendFormatBarrierDetails(std::ostringstream &json,
        << "\",\"dispatchSequence\":" << barrier.dispatchSequence
        << ",\"crosstalkCount\":" << barrier.crosstalkCount
        << ",\"earlyStateCount\":" << barrier.earlyStateCount
+       << ",\"selectionResultSeen\":"
+       << (barrier.selectionResultSeen ? "true" : "false")
+       << ",\"selectionBeforeResultCount\":"
+       << barrier.selectionBeforeResultCount
        << ",\"resultSuccess\":" << (barrier.resultSuccess ? "true" : "false")
        << ",\"resultModified\":" << (barrier.resultModified ? "true" : "false")
        << ",\"expectedStyles\":[";
@@ -1188,9 +1211,25 @@ bool commandResultSucceeded(const char *payload) {
 
 #ifdef OXSDK_E2_FORMAT_BARRIER
 void queueFormatBarrierStep(FormatBarrierStage next);
+void maybeAdvanceFormatBarrierSelection();
+
+// The command the barrier posts to select the paragraph it is about to read.
+// Named once so the dispatch and the attribution cannot drift apart.
+const char *const kFormatBarrierSelectCommand = ".uno:EndOfParaSel";
 
 void handleFormatBarrierUnoResult(const char *payload) {
-  if (!formatBarrierActive() || gFormatBarrier.resultSeen ||
+  if (!formatBarrierActive())
+    return;
+  // The barrier's own selection command, acknowledged.  Checked before the
+  // action's command so a build where the two are ever the same command still
+  // resolves the selection half here rather than silently skipping it.
+  if (gFormatBarrier.stage == FormatBarrierStage::AwaitingSelection &&
+      commandResultMatches(payload, kFormatBarrierSelectCommand)) {
+    gFormatBarrier.selectionResultSeen = true;
+    maybeAdvanceFormatBarrierSelection();
+    return;
+  }
+  if (gFormatBarrier.resultSeen ||
       !commandResultMatches(payload, gFormatBarrier.command))
     return;
   gFormatBarrier.resultSeen = true;
@@ -2065,6 +2104,16 @@ void handleSearch(const Command &command) {
                      "another search request is still in flight");
     return;
   }
+#ifdef OXSDK_E2_FORMAT_BARRIER
+  // Search is a caret mover, not just a query: .uno:ExecuteSearch selects its
+  // match.  That is the concrete path A5's crosstalk case takes, and it is how
+  // a caller could hand the barrier someone else's selection to read.
+  if (formatBarrierActive()) {
+    emitCommandError(command, "search", "BUSY",
+                     "a verified format-state action is still in flight");
+    return;
+  }
+#endif
 
   gSearchQuery = command.text;
   gSearchRequestId.store(command.requestId, std::memory_order_release);
@@ -2763,12 +2812,28 @@ void queueFormatBarrierStep(FormatBarrierStage next) {
 // be selected first.  Paragraph-relative, not line-relative -- applying a
 // heading style rewraps the text, and a line-relative walk would then select
 // something else and read back a postcondition for a paragraph nobody touched.
+//
+// Both commands go out with notify=true, and that is not a stylistic choice.
+// EndOfParaSel needs it because its command result is what attributes the
+// selection the next stage reads.  Dispatching only that one with notify=true
+// was measured to break the pair: the readback came back as <p>D-END</p> for a
+// paragraph reading "E1-STYLED-END" -- a selection anchored mid-word, i.e.
+// EndOfParaSel taking effect before GoToStartOfPara -- and where the caret
+// happened to already sit at the paragraph end the selection came back empty
+// and the barrier waited for a callback that never arrived (30s timeout, A5
+// styled-list attempt-04).  The two flags are two dispatch paths, and mixing
+// them does not preserve order.  The native probe that established this
+// readback used notify=true for both; this matches it.
+//
+// The cost is a second command result, and it is exactly why the attribution
+// test matches the command *name*: GoToStartOfPara returns a result too
+// (measured, 8/8, findings/evidence/sdk-e2/discovery/endofparasel-result/).
 void postFormatBarrierParagraphSelection() {
   gState.document->pClass->postUnoCommand(gState.document,
                                           ".uno:GoToStartOfPara", nullptr,
-                                          false);
-  gState.document->pClass->postUnoCommand(gState.document, ".uno:EndOfParaSel",
-                                          nullptr, false);
+                                          true);
+  gState.document->pClass->postUnoCommand(
+      gState.document, kFormatBarrierSelectCommand, nullptr, true);
 }
 
 void readFormatBarrierPostcondition() {
@@ -2881,13 +2946,35 @@ void handleFormatBarrierStep(const Command &command) {
   }
 }
 
+// Both halves of the advance condition, checked from whichever side arrived
+// last.  Native ordering puts the command result after the state broadcast for
+// the format commands, but that was measured for those five and not for this
+// one, so neither order is assumed here.
+//
+// Two conditions, because each answers a question the other cannot: the result
+// says *this* barrier's selection command ran, the rectangles say there is
+// something to read.  Either alone was the defect -- rectangles alone accepted
+// the caller's search, and a result alone would read before the selection
+// materialised.
+void maybeAdvanceFormatBarrierSelection() {
+  if (gFormatBarrier.stage != FormatBarrierStage::AwaitingSelection)
+    return;
+  if (!gFormatBarrier.selectionResultSeen ||
+      gEditorState.selectionRectangles.empty())
+    return;
+  queueFormatBarrierStep(FormatBarrierStage::ReadQueued);
+}
+
 void handleFormatBarrierStateCallback(int callbackType) {
   if (!formatBarrierActive())
     return;
   if (gFormatBarrier.stage == FormatBarrierStage::AwaitingSelection) {
     if (callbackType == LOK_CALLBACK_TEXT_SELECTION &&
-        !gEditorState.selectionRectangles.empty())
-      queueFormatBarrierStep(FormatBarrierStage::ReadQueued);
+        !gEditorState.selectionRectangles.empty()) {
+      if (!gFormatBarrier.selectionResultSeen)
+        ++gFormatBarrier.selectionBeforeResultCount;
+      maybeAdvanceFormatBarrierSelection();
+    }
     return;
   }
   if (gFormatBarrier.stage == FormatBarrierStage::AwaitingRestore &&
@@ -3173,6 +3260,18 @@ void handleEditorSelect(const Command &command) {
   if (selectionBarrierActive()) {
     emitCommandError(command, "editor-select", "BUSY",
                      "a verified selection delete is still in flight");
+    return;
+  }
+#endif
+#ifdef OXSDK_E2_FORMAT_BARRIER
+  // Finding 033's second layer.  Attribution decides what may advance the
+  // barrier out of AwaitingSelection; this decides what may run at all while
+  // it is in flight.  They cover different intervals -- attribution covers the
+  // instant of advancing, this covers everything between advancing and the
+  // read -- so neither one alone closes the case.
+  if (formatBarrierActive()) {
+    emitCommandError(command, "editor-select", "BUSY",
+                     "a verified format-state action is still in flight");
     return;
   }
 #endif
