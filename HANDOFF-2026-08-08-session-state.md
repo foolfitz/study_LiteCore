@@ -542,3 +542,74 @@ crosstalk 錨點在表格外、派送錨點在儲存格內，finding 033 的座�
 **A6（次要能力）與 A7（round-trip ＋ 桌面 reopen／PDF ＋ R6～R8／E1 回歸）完全沒動。**
 A5 的六個案例只在 Chrome × table-boundary 跑過完整一輪，
 其他 fixture 與 Firefox 尚未補齊，也還沒寫進 validator 判定。
+
+## 2026-08-11 覆核（fable）：三個卡點的結論，以及我一個要更正的說法
+
+### 更正：table-boundary 的證據被我歸錯案例
+
+我寫「存檔 ODT 顯示 `E1-CELL-A1` 確實進了清單並套上 Heading 1」。**兩半都歸錯了**：
+
+- **Heading 1 是 `state-crosstalk` 案例做的**，不是 table-boundary 做的。crosstalk 在同一個錨點
+  （`E1-CELL-A1`）派送 `set-paragraph-heading`，**mutation 成功、只有讀取失敗**。
+  table-boundary 案例只派送 `set-list-unordered`，判定也只看 `listTag`。
+- **最終 ODT 的清單狀態是 `timeout-after-dispatch` 留下的**（它最後派送 `set-list-ordered` 並完成）。
+  我拿「所有案例跑完的最終存檔」去驗一個中間案例——那份檔案描述的不是它。
+
+**結論本身不變**（表格儲存格內是完成不是拒絕），但**站得住的證據是該案例自己的 readback**
+（`listTag='ul'`），不是最終 ODT。這反過來也證明 crosstalk 的 **mutation 是對的、錯的只有讀取**——
+是偽陰性。
+
+### 卡點一：殘留是真的，但我把量級寫反了
+
+`restorePoint` 在派送**前**擷取、還原在 mutation **後**執行，座標跨越一次 reflow——**這是結構性的**。
+**縮高類**（heading→body、離開清單）平常就會踩到；**增高／縮排類**不會，這解釋了為何
+555 次正向派送一次都沒碰到。finding 033 寫「極端重排」是低估。
+
+我 2970 行的註解推理也有瑕疵：「派送可能移動游標所以要在派送前擷取」——這五個封閉動作
+**不會**把游標移出目標段落，真正需要的不變量是「還原回同一段」，派送前擷取反而保證幾何過期。
+
+**LOK 並非沒有身分錨點**：`.uno:InsertBookmark`／`.uno:JumpToMark`／`.uno:DeleteBookmark` 都是可派送 slot，
+`getCommandValues(".uno:Bookmarks")` 已實作。代價是多一筆 model mutation。
+
+**更便宜的修法（不需新 API）**：barrier in-flight 時 `search`／`placeCaret`／`select` **目前不被 BUSY 擋**，
+這正是 crosstalk 能存在的原因。把移動游標類命令也納入 BUSY 閘之後，
+`restorePoint` 就可以改在**命令結果返回後、選段落前**擷取——capture 與 restore 之間不再有 reflow，
+座標殘留整個消失。
+
+### 卡點二：我的座標假說站不住，而且證據被 harness 丟掉了
+
+**引擎失敗時已經送出完整 readback（含 2048 bytes 的原始 HTML），但 `sdk-worker.js` 的
+`case "error"` 只轉發五個固定欄位，`formatBarrier` 整包被丟掉。**
+這同時違反矩陣自己的 `postconditionFailure`（明寫「carries the observed tags and the raw markup」）
+與 engine 註解自陳的理由。**程式碼知道，管線把它弄丟了。**
+
+最便宜的判別實驗因此不是新實驗：**改 `sdk-worker.js` 一處（純 JS、不重編 wasm）**，重跑一次，
+用 `readback.html` 直接分辨三個假說（讀到 crosstalk 段＝時序劫持／空 markup＝選取被塌掉／
+儲存格段但 tag 不符＝才輪到座標假說）。
+
+更強的對手假說：barrier 狀態機靠**無歸屬的** `TEXT_SELECTION` 回呼推進，
+crosstalk 的 search 會產生選取，**可以替 barrier「按下一步」**。
+
+### 卡點三：方向同意，但範圍比我寫的窄，且漂移已逾期
+
+- 已證的只有**收合游標、單一儲存格、Chrome**。`negative/` 底下**沒有 firefox**，
+  矩陣門檻 `negativeRepetitionsPerBrowser: 1 × 兩瀏覽器`**尚未滿足**。
+- 凍結預期的正文在 **SPEC E2-A 的 A5 表格**，不只矩陣的 `negativeCases` 名單——兩處都要補。
+- **harness 已經先行實作了新預期**（app 的 expects 寫「typed outcome, and the document agrees」，
+  註解自承與矩陣相反）。凍結文件與執行中的 harness **今天就是分歧的**——補修訂不是選項，是逾期。
+- `requiredProperties`／`decisionPolicy` 不用動。
+
+### 我沒問、但更嚴重：styled-list 的 crosstalk PASS 不健全
+
+`A5_CROSSTALK_ANCHORS["styled-list"] = "E1-STYLED-HEADING"`，而那段**本來就是 `Heading_20_1`**，
+crosstalk 派送的又是 `set-paragraph-heading`。**我把 finding 033 警告的那個陷阱直接蓋進了測試裡**：
+styled-list 的 PASS 無法區分「還原成功讀對段」與「劫持讀到 crosstalk 段（也是 h1）」。
+multi-paragraph／plain-grapheme 的 PASS 才是健全的（錨點是 body，劫持會失敗）。
+
+便宜修法：換一個非 heading 的 crosstalk 錨點，或在 readback 加**文字回聲檢查**
+（比對派送段的已知文字——fixture 文字唯一，這本身就是零 API 的段落身分代理，也能反哺卡點一）。
+
+### 建議動作順序（fable）
+
+修 `sdk-worker.js` 的 error 轉發 → 重跑 table-boundary 拿 `readback.html` 歸因卡點二 →
+依歸因決定卡點一走「原子化＋結果後擷取」或書籤 → 補 firefox 負向輪 → 才寫卡點三的修訂條目。
