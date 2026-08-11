@@ -96,7 +96,12 @@ void dispatch(LibreOfficeKitDocument *document, const char *command,
   drain(400);
 }
 
-void positionAtAnchor(LibreOfficeKitDocument *document, const char *anchor) {
+// Returns whether the caret was actually placed.  It used to return nothing and
+// skip the placement when no cursor callback had arrived, which made a case
+// silently measure from wherever the previous one left off -- `triple-text-
+// caret-at-end` did exactly that on the first run (caretY -1) and its result
+// was not evidence about the position it named.
+bool positionAtAnchor(LibreOfficeKitDocument *document, const char *anchor) {
   const std::string arguments =
       std::string("{\"SearchItem.SearchString\":{\"type\":\"string\","
                   "\"value\":\"") +
@@ -108,10 +113,12 @@ void positionAtAnchor(LibreOfficeKitDocument *document, const char *anchor) {
                                    arguments.c_str(), false);
   drain(700);
   const Rectangle hit = gCaret;
-  if (hit.valid)
-    document->pClass->setTextSelection(document, LOK_SETTEXTSELECTION_RESET,
-                                       hit.x, hit.y + hit.height / 2);
+  if (!hit.valid)
+    return false;
+  document->pClass->setTextSelection(document, LOK_SETTEXTSELECTION_RESET,
+                                     hit.x, hit.y + hit.height / 2);
   drain(400);
+  return true;
 }
 
 // A snapshot of what a reader would see right now.
@@ -150,7 +157,7 @@ void emitSnapshot(const char *name, const Snapshot &value) {
 // produced exactly that ambiguity.
 void measure(LibreOfficeKitDocument *document, const char *label,
              const char *anchor, int down, bool caretToParagraphStart = false) {
-  positionAtAnchor(document, anchor);
+  const bool placed = positionAtAnchor(document, anchor);
   for (int step = 0; step < down; ++step)
     dispatch(document, ".uno:GoDown", false);
   // Put the caret exactly at offset 0 before measuring.  An empty paragraph is
@@ -185,6 +192,41 @@ void measure(LibreOfficeKitDocument *document, const char *label,
             << ",\"selectionPayload\":\""
             << jsonEscape(gSelectionPayload.c_str()) << "\"";
   emitSnapshot("before", before);
+  emitSnapshot("after", after);
+  std::cout << "}\n";
+  std::cout.flush();
+}
+
+// Candidate repair: nudge the caret off whichever edge it is sitting on before
+// selecting.  GoCurrPara() only leaves the paragraph when the caret is ALREADY
+// at the edge it is being sent to, so EndOfPara-then-StartOfPara should be safe
+// for any non-empty paragraph from any offset.  Should is why this is measured.
+//
+// An empty paragraph is predicted to stay broken (nOld == nNew == 0 at both
+// ends, so both moves leave the paragraph) and is included precisely so the
+// prediction can fail visibly instead of being assumed.
+void measureTriple(LibreOfficeKitDocument *document, const char *label,
+                   const char *anchor, int down, bool caretToParagraphStart) {
+  const bool placed = positionAtAnchor(document, anchor);
+  for (int step = 0; step < down; ++step)
+    dispatch(document, ".uno:GoDown", false);
+  if (caretToParagraphStart)
+    dispatch(document, ".uno:GoToStartOfPara", false);
+  const Rectangle caretBefore = gCaret;
+
+  dispatch(document, ".uno:GoToEndOfPara", true);
+  const Rectangle afterEnd = gCaret;
+  dispatch(document, ".uno:GoToStartOfPara", true);
+  const Rectangle afterStart = gCaret;
+  dispatch(document, ".uno:EndOfParaSel", true);
+  const Snapshot after = snapshot(document);
+
+  std::cout << "{\"case\":\"" << label << "\",\"sequence\":\"triple\""
+            << ",\"placed\":" << (placed ? "true" : "false")
+            << ",\"caretY\":" << (caretBefore.valid ? caretBefore.y : -1)
+            << ",\"caretYAfterEndOfPara\":" << (afterEnd.valid ? afterEnd.y : -1)
+            << ",\"caretYAfterStartOfPara\":"
+            << (afterStart.valid ? afterStart.y : -1);
   emitSnapshot("after", after);
   std::cout << "}\n";
   std::cout.flush();
@@ -231,6 +273,11 @@ int main(int argc, char **argv) {
   measure(document, "control-text-paragraph-below", "E1-EMPTY-BEFORE", 2);
   measure(document, "text-paragraph-caret-at-offset-zero", "E1-EMPTY-AFTER", 0,
           true);
+
+  measureTriple(document, "triple-text-caret-at-end", "E1-EMPTY-AFTER", 0, false);
+  measureTriple(document, "triple-text-caret-at-offset-zero", "E1-EMPTY-AFTER", 0,
+                true);
+  measureTriple(document, "triple-empty-paragraph", "E1-EMPTY-BEFORE", 1, false);
 
   document->pClass->destroy(document);
   kit->pClass->destroy(kit);

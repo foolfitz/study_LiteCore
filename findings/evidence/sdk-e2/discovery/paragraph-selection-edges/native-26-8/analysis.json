@@ -86,6 +86,45 @@
         "htmlBytes": 561,
         "text": "\nE1-EMPTY-AFTER"
       }
+    },
+    {
+      "case": "triple-text-caret-at-end",
+      "sequence": "triple",
+      "placed": false,
+      "caretY": -1,
+      "caretYAfterEndOfPara": -1,
+      "caretYAfterStartOfPara": 2196,
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 494,
+        "text": "E1-EMPTY-AFTER"
+      }
+    },
+    {
+      "case": "triple-text-caret-at-offset-zero",
+      "sequence": "triple",
+      "placed": false,
+      "caretY": 2196,
+      "caretYAfterEndOfPara": 2196,
+      "caretYAfterStartOfPara": 2196,
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 494,
+        "text": "E1-EMPTY-AFTER"
+      }
+    },
+    {
+      "case": "triple-empty-paragraph",
+      "sequence": "triple",
+      "placed": true,
+      "caretY": 1807,
+      "caretYAfterEndOfPara": 2196,
+      "caretYAfterStartOfPara": 2196,
+      "after": {
+        "selectionType": 1,
+        "htmlBytes": 494,
+        "text": "E1-EMPTY-AFTER"
+      }
     }
   ],
   "consequenceMeasured": {
@@ -94,5 +133,16 @@
     "documentActually": "<text:list><text:list-item><text:p text:style-name=\"P1\"/></text:list-item></text:list> -- the empty paragraph DID become a list item",
     "soToday": "false negative: the action succeeded and the caller is told it failed.",
     "andTheInverse": "if the neighbour the barrier reads happens to already be in the target state, the same mechanism reports SUCCESS for a mutation applied to a different paragraph, with no signal -- finding 033's failure mode, reached without any concurrency at all."
-  }
+  },
+  "repairCandidate": {
+    "sequence": "GoToEndOfPara -> GoToStartOfPara -> EndOfParaSel",
+    "why": "GoCurrPara only leaves the paragraph when the caret is ALREADY at the edge it is sent to, so nudging to the far edge first should make the second move safe.",
+    "measured": {
+      "textParagraphCaretAtOffsetZero": "FIXED -- selects E1-EMPTY-AFTER instead of spanning two paragraphs",
+      "emptyParagraph": "STILL WRONG, and now in the other direction: the caret leaves to the NEXT paragraph (1807 -> 2196) and E1-EMPTY-AFTER is selected. Predicted before measuring: with Len()==0 both edges are offset 0, so both moves leave the paragraph.",
+      "textParagraphCaretAtEnd": "INCONCLUSIVE -- caret position was not recorded for this row (caretY -1), so it is not evidence about the position it is named for."
+    },
+    "reading": "an empty paragraph has nothing to select, so no caret-movement-based selection can address it. If the readback postcondition is kept, empty paragraphs are a scope limit of the design, not an implementation bug."
+  },
+  "probeLimitation": "positionAtAnchor() places the caret only if an INVALIDATE_VISIBLE_CURSOR arrived within 700ms of the search; it reports `placed` now instead of skipping silently. On most rows it is false, meaning the caret came from where the search left it plus the GoDown steps. The rows above are still evidence because caretY was recorded and matched the intended paragraph in every case except triple-text-caret-at-end, which is marked inconclusive for exactly that reason."
 }
