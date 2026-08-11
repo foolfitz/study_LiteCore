@@ -67,6 +67,7 @@ const metrics = {
   editorStateEvents: [],
   formatStateEvents: [],
   readback: [],
+  a5: null,
   control: [],
   readbackAfterControl: [],
   dispatch: [],
@@ -170,6 +171,94 @@ const DISPATCH_STEPS = [
   { label: "heading-on-repeat-1", anchor: "E1-STYLED-END", action: "set-paragraph-heading" },
   { label: "heading-on-repeat-2", anchor: "E1-STYLED-END", action: "set-paragraph-heading" },
 ];
+
+// A5: the negative and boundary cases the frozen matrix names.
+//
+// These are run through the real client, never by hand-crafting an engine
+// message -- a rejection that only a fabricated request can trigger says
+// nothing about what a caller can actually reach.
+const A5_CROSSTALK_ANCHORS = {
+  "styled-list": "E1-STYLED-HEADING",
+  "multi-paragraph": "E1-MULTI-START",
+  "plain-grapheme": "E1-PLAIN-START",
+};
+
+async function runA5(client, documentHandle, anchorText) {
+  const crosstalkAnchor = A5_CROSSTALK_ANCHORS[fixtureId] || null;
+  const place = (target) => caretAtAnchor(documentHandle, client, target, "search");
+  const cases = [];
+
+  async function record(name, expectation, body) {
+    const entry = { case: name, expects: expectation };
+    try {
+      entry.outcome = await body(entry);
+      entry.status = "completed";
+    } catch (error) {
+      entry.error = errorValue(error);
+      entry.status = "rejected";
+    }
+    try {
+      entry.stateAfter = formatOf(await client.getState());
+    } catch (error) {
+      entry.stateAfterError = errorValue(error);
+    }
+    cases.push(entry);
+    log(entry);
+  }
+
+  // 1. unsupported-action: a name outside the closed set must be refused by
+  //    type, before anything is dispatched.
+  await record("unsupported-action", "typed rejection, nothing dispatched",
+    async () => client.action("set-paragraph-subtitle"));
+
+  // 2. stale-revision: an action carrying a revision the document has moved
+  //    past must not mutate.  The revision is captured, then deliberately
+  //    aged by performing a real action.
+  await record("stale-revision", "typed rejection, zero mutation", async (entry) => {
+    await place(anchorText);
+    const stale = documentHandle.revision;
+    await client.action("set-list-unordered");
+    entry.staleRevision = stale;
+    entry.currentRevision = documentHandle.revision;
+    return client.action("set-list-ordered", { expectedRevision: stale });
+  });
+
+  // 3. state-crosstalk: move the caret to an unrelated paragraph immediately
+  //    after dispatching.  The barrier reads the document itself now, so the
+  //    risk is that it reads the paragraph the caret moved to.  The saved file
+  //    is what settles it, judged by the runner.
+  await record("state-crosstalk", "completion describes the dispatched paragraph",
+    async (entry) => {
+      await place(anchorText);
+      const pending = client.action("set-paragraph-heading");
+      await place(crosstalkAnchor);
+      entry.movedTo = crosstalkAnchor;
+      return pending;
+    });
+
+  // 4. timeout-after-dispatch: a caller timeout while the barrier is in
+  //    flight.  No retry may be issued, and the next action must be refused
+  //    as BUSY rather than queued behind it.
+  await record("timeout-after-dispatch", "caller timeout, then BUSY, no retry",
+    async (entry) => {
+      await place(anchorText);
+      try {
+        await client.action("set-list-ordered", { timeoutMs: 1 });
+        entry.timedOut = false;
+      } catch (error) {
+        entry.timedOut = true;
+        entry.timeoutError = errorValue(error);
+      }
+      try {
+        return await client.action("set-list-none", { timeoutMs: 30000 });
+      } catch (error) {
+        entry.followUpError = errorValue(error);
+        return null;
+      }
+    });
+
+  return cases;
+}
 
 function log(value) {
   const text = typeof value === "string" ? value : JSON.stringify(value);
@@ -533,8 +622,23 @@ async function run() {
     await runControl(client);
     checkpoint("readback-after-control");
     await runReadback(documentHandle, client, metrics.readbackAfterControl, "search");
-    checkpoint("dispatch");
-    await runDispatch(documentHandle, client);
+    if (mode === "a5") {
+      checkpoint("negative");
+      metrics.a5 = await runA5(client, documentHandle, a3Anchor);
+      // One save at the end: the negative cases are judged on what the
+      // document did *not* become, so the file is the evidence for all of them
+      // together rather than per case.
+      try {
+        const buffer = await documentHandle.save({ format: "odt" }, { timeoutMs: 180000 });
+        outputs.set("a5-final", buffer);
+        metrics.outputs.push({ label: "a5-final", bytes: buffer.byteLength });
+      } catch (error) {
+        metrics.a5SaveError = errorValue(error);
+      }
+    } else {
+      checkpoint("dispatch");
+      await runDispatch(documentHandle, client);
+    }
 
     checkpoint("close");
     await documentHandle.close({ timeoutMs: 30000 });

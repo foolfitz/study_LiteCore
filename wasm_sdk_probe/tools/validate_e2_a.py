@@ -131,6 +131,18 @@ def main() -> int:
                         / "sdk-e2" / "summary.json")
     args = parser.parse_args()
 
+    # Finding 027's rule, applied to E2-A: recompute the identity of the thing
+    # under test at verdict time instead of trusting what the evidence says
+    # about itself.  A3 and A4 passed on one engine build; changing the engine
+    # afterwards does not make their evidence wrong, it makes it evidence about
+    # a different artifact, and the verdict has to say so out loud.
+    profile_manifest = (project / "dist" / "profiles" / "e2-format-discovery"
+                        / "sdk-manifest.json")
+    current_wasm = None
+    if profile_manifest.is_file():
+        current_wasm = json.loads(profile_manifest.read_text(encoding="utf-8"))[
+            "diagnostic"]["wasmSha256"]
+
     matrix = json.loads(args.matrix.read_text(encoding="utf-8"))
     required = matrix["thresholds"]["positiveRepetitionsPerBrowser"]
     browsers = list(matrix["browsers"])
@@ -142,10 +154,17 @@ def main() -> int:
             found = attempts(args.evidence_root, browser, fixture)
             judged = [judge_attempt(path, fixture) for path in found]
             runs.extend(judged)
-            passing = sum(1 for item in judged if item["pass"])
+            # Only runs of the engine that is in dist/ right now can cover a
+            # cell.  Older runs are kept and counted as superseded rather than
+            # deleted -- they are real measurements, of a different artifact.
+            bound = [item for item in judged
+                     if item.get("wasmSha256") == current_wasm]
+            passing = sum(1 for item in bound if item["pass"])
             coverage[f"{browser}/{fixture}"] = {
                 "required": required,
                 "found": len(found),
+                "bound": len(bound),
+                "superseded": len(judged) - len(bound),
                 "passing": passing,
                 # Missing is a distinct state from failing, and the verdict has
                 # to be able to say which one it is.
@@ -160,12 +179,25 @@ def main() -> int:
             found = attempts(args.evidence_root, browser, fixture, tree="repeat")
             judged = [judge_attempt(path, fixture, A4_STEPS) for path in found]
             a4_runs.extend(judged)
-            passing = sum(1 for item in judged if item["pass"])
+            bound = [item for item in judged
+                     if item.get("wasmSha256") == current_wasm]
+            passing = sum(1 for item in bound if item["pass"])
             a4_coverage[f"{browser}/{fixture}"] = {
-                "required": required, "found": len(found), "passing": passing,
-                "state": ("missing" if not found else
+                "required": required, "found": len(found), "bound": len(bound),
+                "superseded": len(judged) - len(bound), "passing": passing,
+                "state": ("missing" if not bound else
                           "short" if passing < required else "covered"),
             }
+
+    def binding(runs_: list) -> dict[str, Any]:
+        seen = sorted({item.get("wasmSha256") for item in runs_ if item.get("wasmSha256")})
+        stale = [value for value in seen if value != current_wasm]
+        return {
+            "currentProfileWasmSha256": current_wasm,
+            "evidenceWasmSha256": seen,
+            "boundToCurrentBuild": bool(seen) and not stale,
+            "staleBuilds": stale,
+        }
 
     covered = [key for key, value in coverage.items() if value["state"] == "covered"]
     gaps = {key: value for key, value in coverage.items()
@@ -193,6 +225,7 @@ def main() -> int:
         "matrixStatus": matrix["status"],
         "requiredPerBrowserPerFixture": required,
         "coverage": coverage,
+        "artifactBinding": binding(runs),
         "coveredCells": covered,
         "gaps": gaps,
         # Named so a reader does not have to infer why table-boundary is absent.
@@ -201,6 +234,7 @@ def main() -> int:
         "a4": {
             "decision": a4_decision,
             "coverage": a4_coverage,
+            "artifactBinding": binding(a4_runs),
             "gaps": a4_gaps,
             "runs": a4_runs,
             "asks": "each action driven to its target once, then pressed twice more"
@@ -231,12 +265,12 @@ def main() -> int:
     print(f"A3 decision: {decision}")
     print(f"required per browser per fixture: {required}")
     for key, value in coverage.items():
-        print(f"   {key:<28} {value['state']:<8} "
-              f"found={value['found']} passing={value['passing']}")
+        print(f"   {key:<28} {value['state']:<8} bound={value.get('bound')} "
+              f"superseded={value.get('superseded')} passing={value['passing']}")
     print(f"A4 decision: {a4_decision}")
     for key, value in a4_coverage.items():
-        print(f"   {key:<28} {value['state']:<8} "
-              f"found={value['found']} passing={value['passing']}")
+        print(f"   {key:<28} {value['state']:<8} bound={value.get('bound')} "
+              f"superseded={value.get('superseded')} passing={value['passing']}")
     failing = [item for item in runs + a4_runs if not item["pass"]]
     if failing:
         print("\nfailing runs:")

@@ -2844,6 +2844,22 @@ void handleFormatBarrierStep(const Command &command) {
   switch (gFormatBarrier.stage) {
   case FormatBarrierStage::SelectQueued:
     gFormatBarrier.stage = FormatBarrierStage::AwaitingSelection;
+    // Go back to where the caret was when the action was dispatched, *before*
+    // selecting the paragraph to read.
+    //
+    // A5's state-crosstalk case is what forced this: move the caret away while
+    // the barrier is in flight and the read lands on whatever paragraph the
+    // caret reached, not the one the command changed.  Failing closed there is
+    // right, but it is right by luck -- move to a paragraph that happens to be
+    // in the target state already and the barrier would report success for a
+    // mutation that landed somewhere else.
+    //
+    // This does not make the read immune to geometry: the point is in document
+    // coordinates and the dispatch may have changed the paragraph's height or
+    // indent, so an extreme reflow could still land elsewhere.  It closes the
+    // caret-moved-away path, which is the one a caller can actually cause.
+    if (gFormatBarrier.restorePointValid)
+      postFormatBarrierRestore();
     postFormatBarrierParagraphSelection();
     return;
   case FormatBarrierStage::ReadQueued:
