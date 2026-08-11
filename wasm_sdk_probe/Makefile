@@ -1363,7 +1363,7 @@ test-e2-a-static:
 	python3 -m json.tool e2/discovery-matrix-v1.json >/dev/null
 	python3 -m py_compile tools/build_e2_discovery_profile.py \
 		tools/run_e2_discovery.py tools/analyze_e2_a_native_caret.py \
-		tools/analyze_e2_a_native_reissue.py \
+		tools/analyze_e2_a_native_reissue.py tools/validate_e2_a.py \
 		tests/test_e2_profile.py
 	bash -n tools/run_e2_a_native_caret.sh
 	bash -n tools/run_e2_a_native_reissue.sh

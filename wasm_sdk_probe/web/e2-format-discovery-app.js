@@ -98,6 +98,35 @@ const READBACK_POSITIONS = [
 
 // Each entry dispatches once and then saves, so the postcondition is judged
 // from file bytes by the runner rather than from the state we are testing.
+// A3's positive matrix: the three-state list cycle and the two-state style
+// round trip, exactly as SPEC E2-A section 5 freezes them.  Kept separate from
+// the A2 list rather than bolted onto it -- A2 measures what arrives, A3 judges
+// the barrier, and a shared sequence would make the evidence for one depend on
+// edits made for the other.
+//
+// Every step names the state it must land in, so the runner judges the saved
+// document per step instead of only at the end of a cycle.  A cycle that ends
+// correctly after a step went the wrong way and got corrected is not a pass.
+//
+// The anchor is per fixture, because the same closed action has to be shown
+// working on more than one document shape and the three fixtures share no text.
+// styled-list's anchor sits directly after an existing list, which is worth
+// knowing: applying a list there merges with the neighbour.  The other two have
+// no list at all, so they measure the same action without that confound.
+const A3_ANCHORS = {
+  "styled-list": "E1-STYLED-END",
+  "multi-paragraph": "E1-MULTI-END",
+  "plain-grapheme": "E1-PLAIN-END",
+};
+const a3Anchor = A3_ANCHORS[fixtureId] || null;
+const A3_STEPS = [
+  { label: "cycle-list-unordered", anchor: a3Anchor, action: "set-list-unordered" },
+  { label: "cycle-list-ordered", anchor: a3Anchor, action: "set-list-ordered" },
+  { label: "cycle-list-none", anchor: a3Anchor, action: "set-list-none" },
+  { label: "roundtrip-heading", anchor: a3Anchor, action: "set-paragraph-heading" },
+  { label: "roundtrip-body", anchor: a3Anchor, action: "set-paragraph-body" },
+];
+
 const DISPATCH_STEPS = [
   { label: "bullet-on", anchor: "E1-STYLED-END", action: "set-list-unordered" },
   { label: "numbering-on", anchor: "E1-STYLED-END", action: "set-list-ordered" },
@@ -342,7 +371,7 @@ async function runControl(client) {
 }
 
 async function runDispatch(documentHandle, client) {
-  for (const step of DISPATCH_STEPS) {
+  for (const step of (mode === "a3" ? A3_STEPS : DISPATCH_STEPS)) {
     const entry = { label: step.label, action: step.action, anchor: step.anchor, status: "running" };
     metrics.dispatch.push(entry);
     try {

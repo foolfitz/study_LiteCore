@@ -39,25 +39,31 @@ def tag(namespace: str, name: str) -> str:
 
 
 def list_style_kinds(root: ElementTree.Element) -> dict[str, str]:
-    """Map each list style name to bullet or number.
+    """Map (list style name, level) to bullet or number.
+
+    Per level, not per style: LibreOffice writes mixed definitions -- one style
+    in this fixture is a bullet at level 1 and numbers below it -- so asking
+    whether a style contains any numbered level answers "yes" for a bullet
+    list.  The browser runner read a correct bullet list as numbered that way.
 
     A paragraph's own markup says it is in a list but not which kind, and
     unordered vs ordered is precisely the distinction two of the closed actions
     promise.  Resolve it from the list style definition rather than from the
     command that was dispatched, which would assume the answer.
     """
-    kinds: dict[str, str] = {}
+    kinds: dict[tuple[str, str], str] = {}
     for style in root.iter(tag(TEXT_NS, "list-style")):
         name = style.get(tag(STYLE_NS, "name"))
         if not name:
             continue
-        levels = {child.tag for child in style}
-        if tag(TEXT_NS, "list-level-style-number") in levels:
-            kinds[name] = "number"
-        elif tag(TEXT_NS, "list-level-style-bullet") in levels:
-            kinds[name] = "bullet"
-        else:
-            kinds[name] = "other"
+        for child in style:
+            level = child.get(tag(TEXT_NS, "level"))
+            if not level:
+                continue
+            if child.tag == tag(TEXT_NS, "list-level-style-number"):
+                kinds[(name, level)] = "number"
+            elif child.tag == tag(TEXT_NS, "list-level-style-bullet"):
+                kinds[(name, level)] = "bullet"
     return kinds
 
 
@@ -113,7 +119,8 @@ def describe(path: Path, anchor: str) -> dict[str, Any]:
                 "resolvedStyle": style_parents.get(style_name, style_name),
                 "inList": bool(containers),
                 "listStyle": list_style,
-                "listKind": kinds.get(list_style) if list_style else None,
+                "listKind": (kinds.get((list_style, str(len(containers))))
+                             if list_style else None),
                 "listDepth": len(containers),
             }
     return {"found": False}

@@ -47,6 +47,12 @@ EXPECTED_POSTCONDITIONS = {
     "bullet-on-repeat-2": {"insideList": True},
     "heading-on-repeat-1": {"resolvedParagraphStyle": "Heading_20_1"},
     "heading-on-repeat-2": {"resolvedParagraphStyle": "Heading_20_1"},
+    # A3: every step of the cycle is judged, not just where the cycle ends.
+    "cycle-list-unordered": {"insideList": True, "listKind": "bullet"},
+    "cycle-list-ordered": {"insideList": True, "listKind": "number"},
+    "cycle-list-none": {"insideList": False},
+    "roundtrip-heading": {"resolvedParagraphStyle": "Heading_20_1"},
+    "roundtrip-body": {"resolvedParagraphStyle": "Text_20_body"},
 }
 
 
@@ -58,6 +64,23 @@ def next_evidence_directory(base: Path) -> Path:
     while (base / f"attempt-{attempt:02d}").exists():
         attempt += 1
     return base / f"attempt-{attempt:02d}"
+
+
+def _ancestors(parents: dict, node: Any):
+    current = parents.get(node)
+    while current is not None:
+        yield current
+        current = parents.get(current)
+
+
+# The A3 anchor per fixture, mirroring the app.  Two copies of one table is how
+# a fixture gets added on one side and silently judged against the wrong
+# paragraph on the other, so a test pins them equal.
+A3_ANCHORS = {
+    "styled-list": "E1-STYLED-END",
+    "multi-paragraph": "E1-MULTI-END",
+    "plain-grapheme": "E1-PLAIN-END",
+}
 
 
 def inspect_target_paragraph(path: Path, anchor: str) -> dict[str, Any]:
@@ -72,6 +95,8 @@ def inspect_target_paragraph(path: Path, anchor: str) -> dict[str, Any]:
         "resolvedParagraphStyle": None,
         "insideList": None,
         "listStyle": None,
+        "listKind": None,
+        "listLevel": None,
         "totalLists": None,
         "totalHeadings": None,
     }
@@ -91,6 +116,29 @@ def inspect_target_paragraph(path: Path, anchor: str) -> dict[str, Any]:
     # mistake was fixed in analyze_e2_a_native_reissue.py earlier the same day
     # and not carried across to here, which is how a correct barrier ended up
     # judged as a failure.
+    # unordered vs ordered is the promise; the generated list style name (L1,
+    # L2, ...) is renumbered on every save and says nothing.  Resolve the kind
+    # from the list style definition rather than from the command dispatched,
+    # which would assume the answer the postcondition is supposed to check.
+    #
+    # Per level, not per style.  A list style defines every level it supports,
+    # and LibreOffice writes mixed ones -- L1 in this fixture is a bullet at
+    # level 1 and numbers at levels 2 and 3.  Asking "does this style contain a
+    # numbered level" answers "yes" for a bullet list, which is how a correct
+    # document first read as the wrong kind here.
+    list_kinds: dict[tuple[str, str], str] = {}
+    for node in root.iter(f"{{{TEXT_NS}}}list-style"):
+        name = node.get(f"{{{STYLE_NS}}}name")
+        if not name:
+            continue
+        for child in node:
+            level = child.get(f"{{{TEXT_NS}}}level")
+            if not level:
+                continue
+            if child.tag == f"{{{TEXT_NS}}}list-level-style-number":
+                list_kinds[(name, level)] = "number"
+            elif child.tag == f"{{{TEXT_NS}}}list-level-style-bullet":
+                list_kinds[(name, level)] = "bullet"
     style_parents = {
         node.get(f"{{{STYLE_NS}}}name"): node.get(f"{{{STYLE_NS}}}parent-style-name")
         for node in root.iter(f"{{{STYLE_NS}}}style")
@@ -112,10 +160,16 @@ def inspect_target_paragraph(path: Path, anchor: str) -> dict[str, Any]:
         result["resolvedParagraphStyle"] = style_parents.get(style_name, style_name)
         ancestor = parents.get(node)
         inside = False
+        # Nesting depth, so the kind is read at the level the paragraph is
+        # actually on rather than at level 1 by assumption.
+        depth = sum(1 for node_ in _ancestors(parents, node)
+                    if node_.tag == f"{{{TEXT_NS}}}list")
         while ancestor is not None:
             if ancestor.tag == f"{{{TEXT_NS}}}list":
                 inside = True
                 result["listStyle"] = ancestor.get(f"{{{TEXT_NS}}}style-name")
+                result["listKind"] = list_kinds.get((result["listStyle"], str(depth)))
+                result["listLevel"] = depth
                 break
             ancestor = parents.get(ancestor)
         result["insideList"] = inside
@@ -152,6 +206,8 @@ def main() -> None:
             # compiled into the engine.  Same sequence, same drain, so the two
             # modes are directly comparable.
             "locale-attribution",
+            # A3: the frozen positive matrix (SPEC E2-A section 5).
+            "a3",
             "mainloop-attribution",
             "mainloop-pei-attribution",
             "mainloop-move-attribution",
@@ -180,9 +236,18 @@ def main() -> None:
     )
     session = None
     result: dict[str, Any] = {}
-    root = args.evidence_root if args.mode == "a2" else (
-        args.evidence_root.parent / args.mode)
-    evidence = next_evidence_directory(root / args.browser)
+    if args.mode == "a2":
+        root = args.evidence_root
+    elif args.mode == "a3":
+        # SPEC E2-A section 6 gives A3 its own tree, keyed by fixture, because
+        # the verdict has to be able to say which fixtures were covered rather
+        # than average over whatever happened to run.
+        root = args.evidence_root.parent.parent / "browser"
+        root = root / args.browser / args.fixture
+    else:
+        root = args.evidence_root.parent / args.mode
+    evidence = next_evidence_directory(
+        root if args.mode == "a3" else root / args.browser)
     try:
         base_url = f"http://127.0.0.1:{server_port}/e2-format-discovery.html"
         wait_page(base_url)
@@ -228,7 +293,8 @@ def main() -> None:
                 continue
             output_path = evidence / f"after-{label}.odt"
             output_path.write_bytes(base64.b64decode(encoded))
-            inspection = inspect_target_paragraph(output_path, "E1-STYLED-END")
+            inspection = inspect_target_paragraph(
+                output_path, A3_ANCHORS.get(args.fixture, "E1-STYLED-END"))
             outputs.append({
                 "label": label,
                 "retrieved": True,

@@ -673,9 +673,41 @@ artifact 全程未受影響。
 WASM 都回報 true（且原生同時回報 `style='Heading 1'`，與 outline numbering 一致）。改為只判定
 fixture 保證會變的兩個轉換（進清單、出清單），不對 heading 的清單狀態做斷言。
 
+### 10.7 已完成：A3 正向矩陣（2026-08-11）
+
+判定：**`A3_PASS`**。摘要 `findings/evidence/sdk-e2/summary.json`，
+證據樹 `findings/evidence/sdk-e2/discovery/browser/<browser>/<fixture>/<attempt>/`。
+
+| | 每格要求 | 實得 |
+|---|---|---|
+| chrome × styled-list／multi-paragraph／plain-grapheme | 3 | 3／3／3 全通過 |
+| firefox × 同上 | 3 | 3／3／3 全通過 |
+
+**18 次 run × 5 個派送＝90 次**，每次都要同時滿足四項才算通過：
+completion 為 `verified-format-readback`、**`changed` 未被宣稱**（null）、
+`restoreConfirmed` 為 true、**存檔 ODT 的後置條件相符**。
+每一步各自判定，不是只看循環結尾——中途走錯再被改回來不算通過。
+
+`table-boundary` 未列入 A3，它是 A5 的負向案例；摘要以 `fixturesDeferredToA5`
+明寫，不是省略。
+
+**validator 以矩陣展開必要格，不是列舉找得到的 run**：沒跑過的 fixture 會被標成
+`missing` 而不是靜靜消失，`A3_NOT_RUN`／`A3_PARTIAL_COVERAGE`／`A3_PASS` 三態分開。
+突變控制：把 `cycle-list-ordered` 的期望改成 bullet，18 次 run 全數轉為失敗並逐格指名。
+
+**清單種類要逐層讀。** `styled-list` 的 `L1` 是**混合定義**（level 1 為 bullet、
+level 2／3 為 number），第一版 validator 問「這個樣式含不含 numbered level」，
+於是把一份正確的 bullet 清單讀成 number。改為讀段落所在層級的定義。
+同一個順序錯誤在 `analyze_e2_a_native_reissue.py` 也存在，一併修掉並以修好的判讀
+重跑原生已存證據——**九個案例判定完全不變**。
+
+**styled-list 的錨點緊鄰既有清單，套用清單會與鄰居合併**；另外兩份 fixture 沒有清單，
+量的是同一個動作但沒有這個混淆。三份都通過。
+
 ### 10.4 尚未執行
 
-A3～A7 尚未執行。**A3 仍不啟動**：finding 021 已歸因且產品級主迴圈候選已實測可跑
+~~A3～A7 尚未執行。~~ **A3 已完成（10.7 節，`A3_PASS`）；A4～A7 尚未執行。**
+以下 08-06 的原文保留：A3～A7 尚未執行。**A3 仍不啟動**：finding 021 已歸因且產品級主迴圈候選已實測可跑
 （2.6 節），但 caret 移動後的 freshness 來源未定（PEI 與活迴圈的行為差異未歸因），
 且推進點若進入共用路徑需先跑完整回歸。E2-A 目前**沒有**判定；第 8 節的三個結果都還不成立。
 

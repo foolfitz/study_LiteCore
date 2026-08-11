@@ -463,3 +463,33 @@ Chrome 150.0.7871.128 與 Firefox 153.0.1 **逐項相同**：
 A3～A7 尚未執行。A3 的兩項前置（路線 C 契約、no-op 可判定性）都已解除，
 可以開始跑正式矩陣。第 8 節判定要記得明列 2.8 節的縮限（`set-paragraph-body`
 只承諾「不是 heading」）與未驗證項（HTML 是序列化器輸出，跨版本穩定性屬 A7）。
+
+
+## A3 已完成：`A3_PASS`（2026-08-11）
+
+2 瀏覽器 × 3 fixture × 3 次 = **18 run × 5 派送 = 90 次**，每次同時滿足四項：
+completion 為 `verified-format-readback`、`changed` 未宣稱（null）、
+`restoreConfirmed` 為 true、存檔 ODT 後置條件相符。每一步各自判定。
+
+新增 `tools/validate_e2_a.py`：**以矩陣展開必要格，不是列舉找得到的 run**——
+沒跑過的 fixture 標 `missing` 而不是消失。突變（把 ordered 的期望改成 bullet）
+使 18 次 run 全數失敗並逐格指名。
+
+### 又一個「檢查會說謊」的坑（第三個）
+
+`python3 -m py_compile tools/x.py` 會留下 `__pycache__/*.pyc`。若之後在**同一秒內**
+改回原檔，Python 會認為快取仍有效而**繼續用舊的 .pyc**——我因此看到「已還原但驗證仍失敗」，
+差點把它當成真的失敗。`rm -rf tools/__pycache__` 後恢復正常。
+**跑突變控制前後，先清 `__pycache__`。**
+
+### 清單種類要逐層讀
+
+`styled-list` 的 `L1` 是混合定義（level 1 bullet、level 2／3 number）。
+第一版 validator 問「這個樣式含不含 numbered level」，把正確的 bullet 清單讀成 number。
+同一個順序錯誤在原生分析器也有，一併修掉；以修好的判讀重跑原生已存證據，
+**九個案例判定完全不變**（先確認再說不變，不是假設）。
+
+### 下一步
+
+A4～A7。A4 的瀏覽器證據其實已存在（`state-readback/wasm` 那輪的 4 次重複派送），
+但還沒有自己的矩陣式 run 與判定；A5 負向與邊界、A6 次要能力、A7 round-trip 與回歸都未跑。
