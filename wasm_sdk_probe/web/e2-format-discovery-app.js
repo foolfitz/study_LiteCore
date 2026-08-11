@@ -490,7 +490,18 @@ async function runDeadline(client, documentHandle) {
     const x = beforeRect.x + 1;
     const y = Math.round((beforeRect.y + beforeRect.height + afterRect.y) / 2);
     entry.caret = { x, y };
-    entry.caretIsBetweenAnchors =
+    // Named for what it actually checks.  It was `caretIsBetweenAnchors`, which
+    // reads as a statement about where the caret went -- and it passed on a run
+    // whose readback proved the caret was on the paragraph *above* the empty
+    // one.  It only ever validated the coordinate we asked for.
+    //
+    // Where the caret really landed is answerable, but only from the readback
+    // markup, which is recorded in `outcome`/`error` below.  This case does not
+    // assert it; the native probe at
+    // findings/evidence/sdk-e2/discovery/paragraph-selection-edges/ is what
+    // settles caret position, because there the caret can be walked paragraph
+    // by paragraph instead of guessed at from geometry.
+    entry.caretRequestedBetweenAnchors =
       y > beforeRect.y + beforeRect.height && y < afterRect.y;
     await client.placeCaret(x, y);
 
