@@ -111,6 +111,34 @@ FIXTURES = {
         "anchors": ["E1-EMPTY-BEFORE", "E1-EMPTY-AFTER"],
         "minimum": {"paragraphs": 4, "headings": 0, "lists": 0, "tables": 0},
     },
+    # Added 2026-08-11 for finding 035.  text/markdown turned out to express all
+    # five closed actions with three prefixes ("- ", "1. ", "# ") and -- unlike
+    # the HTML flavour -- to write CJK text with no font-run wrapper at all, so
+    # it is a candidate for replacing the readback entirely.  That only holds if
+    # the exporter escapes a paragraph whose *text* begins with those same
+    # characters.  If it does not, an ordinary paragraph reads back as a list
+    # item and the barrier reports a list that is not there: a false positive,
+    # which is the direction that matters.
+    #
+    # The fixture pairs each look-alike with the real thing, because the
+    # question is not "what does a plain paragraph produce" but "can the two be
+    # told apart".  A check that cannot distinguish them is the shape this
+    # project keeps having to retract.
+    "markdown-syntax": {
+        "body": """
+ <text:p>MD-CONTROL ordinary paragraph</text:p>
+ <text:p>- MD-DASH is a plain paragraph</text:p>
+ <text:p>1. MD-NUMBER is a plain paragraph</text:p>
+ <text:p># MD-HASH is a plain paragraph</text:p>
+ <text:p>&gt; MD-QUOTE is a plain paragraph</text:p>
+ <text:p>* MD-STAR is a plain paragraph</text:p>
+ <text:list><text:list-item><text:p>MD-REAL-ITEM is a real list item</text:p></text:list-item></text:list>
+ <text:h text:outline-level="1" text:style-name="Heading_20_1">MD-REAL-HEADING is a real heading</text:h>
+""",
+        "anchors": ["MD-CONTROL", "MD-DASH", "MD-NUMBER", "MD-HASH", "MD-QUOTE",
+                    "MD-STAR", "MD-REAL-ITEM", "MD-REAL-HEADING"],
+        "minimum": {"paragraphs": 7, "headings": 1, "lists": 1, "tables": 0},
+    },
     "table-boundary": {
         "body": """
  <text:p>E1-TABLE-BEFORE</text:p>

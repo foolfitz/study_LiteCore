@@ -1,0 +1,129 @@
+{
+  "what": "for finding 035: what can the postcondition selection be read back AS, and what does the HTML flavour really contain?",
+  "why": "the readback's closed tag set was written to fit the fixtures rather than documents, so it rejects <b>/<i> and -- because the serialiser wraps every CJK run in <font><span> -- every paragraph of a Chinese document. odfdom's answer to the same classification problem is to generate it from the ODF RelaxNG schema (paragraph-content alone has 163 refs) and to keep a tiny set of structural roots (nine elements declare isComponentRoot). That says a hand-written inline allowlist is the wrong shape, and raises the question this probe measures: is a format with a schema reachable at all?",
+  "build": "native LibreOffice 26.8 (build-native-26-8), svp",
+  "coreCommit": "671c848b1bb8",
+  "corpus": [
+    "styled-list",
+    "multi-paragraph",
+    "plain-grapheme",
+    "table-boundary",
+    "empty-paragraph",
+    "markdown-syntax (added 2026-08-11 for this question)",
+    "r7-t2-styled"
+  ],
+  "candidateListProvenance": "derived from source, not guessed: SwTransferable::SetDataForDragAndDrop adds EMBED_SOURCE, RTF, RICHTEXT, HTML, MARKDOWN, STRING for a text selection (sw/source/uibase/dochdl/swdtflvr.cxx:3734-3746); mime strings from sot/source/base/exchange.cxx:136,200.",
+  "answer1_canWeReadOdf": {
+    "shortAnswer": "yes, but only through getClipboard, and at a price",
+    "getTextSelection": {
+      "mimeType": "application/x-openoffice-embed-source-xml;windows_formatname=\"Star Embed Source (XML)\"",
+      "returned": true,
+      "strlenLowerBound": 5,
+      "prefixHex": "504b030414",
+      "reading": "PK\\x03\\x04 -- a ZIP, i.e. the real ODF package. strlen stops at 5 because byte 6 is NUL. convertOString memcpy's the whole payload and tolerates NULs (init.cxx:377), but getTextSelection returns no length, so the caller cannot know where the data ends. Reachable in principle, unusable through this API."
+    },
+    "getClipboard": {
+      "enumeratedFlavours": 8,
+      "note": "pMimeTypes=NULL makes core enumerate getTransferDataFlavors() (init.cxx:6082) -- the offer measured rather than listed by us. It reads the LOK clipboard, so .uno:Copy must run first.",
+      "rows": {
+        "application/x-openoffice-embed-source-xml;...": 6411,
+        "text/rtf": 3354,
+        "text/richtext": 3354,
+        "text/html": 638,
+        "text/markdown": 21,
+        "text/plain;charset=utf-8": 17,
+        "application/x-openoffice-link;...": 240,
+        "application/x-openoffice-objectdescriptor-xml;...": 175
+      }
+    },
+    "negativeControl": {
+      "mimeType": "application/vnd.oasis.opendocument.text",
+      "returned": false,
+      "why": "a plausible-looking ODF mime type that appears nowhere in the exchange table. It fails, so a run where everything else succeeds is distinguishable from a probe that cannot report failure."
+    },
+    "costOfTakingIt": [
+      "the payload is a ZIP: the engine would need to unpack content.xml in WASM",
+      "getClipboard reads the clipboard, so every format action would have to dispatch .uno:Copy and clobber the user's clipboard -- a visible side effect worse than the caret move route C already has to restore"
+    ]
+  },
+  "answer2_htmlTagInventory": {
+    "shortAnswer": "the structural/inline split odfdom uses does hold here, on this corpus",
+    "method": "every open tag recorded with its nesting context across 17 anchors in 6 fixtures; a tag seen at body level cannot be ignored by a rule that says 'ignore anything inside an open block'",
+    "structuralAtBodyLevel": {
+      "p": 14,
+      "h1": 1,
+      "ul": 1
+    },
+    "nested": {
+      "li": "1 (inside ul)",
+      "b": 3,
+      "font": 6,
+      "i": 1,
+      "span": 3
+    },
+    "violations": "none -- b, i, font and span appeared only inside an already-open block, never at body level",
+    "boundedBy": "the corpus. No hyperlink, footnote, comment anchor or inline image appeared inside a probed paragraph, and table/td never appeared at all (SelectText inside a table cell serialises as a bare <p>). 'No violations' is evidence over the shapes measured, not a proof over ODF."
+  },
+  "answer3_markdown": {
+    "shortAnswer": "text/markdown expresses all five closed actions, and the finding 035 defect does not exist in it",
+    "whyItMatters": "Markdown has no font runs, so the CJK wrapper that breaks the HTML read has nothing to correspond to. The postcondition would stop needing a tag classification at all.",
+    "fiveActions": {
+      "list-unordered": "- TEXT\\n",
+      "list-ordered": "1. TEXT\\n",
+      "list-none": "TEXT\\n",
+      "paragraph-heading": "# TEXT\\n",
+      "paragraph-body": "TEXT\\n"
+    },
+    "acrossParagraphShapes": {
+      "plain-ascii": "as above",
+      "inline-formatted": "- Normal **bold anchor** and *italic anchor*. -- same prefixes, inline markers inside",
+      "cjk": "- 第二段中文 beta -- NO wrapper of any kind, where HTML writes <font face=\"DejaVu Sans\"><span lang=\"zh-TW\">"
+    },
+    "twoAxesStillSeparate": "listTag from the leading '- ' / '1. ' / neither; blockTag from the leading '# ' / neither. The same split the HTML read already makes, and the same narrowing (heading-ness is answerable, 'Text body vs default' is not).",
+    "multiBlockSignature": {
+      "singleParagraph": "'- E1-STYLED-END\\n' -- one trailing newline, no blank line",
+      "selectAll": "'# E1-STYLED-HEADING\\n\\nNormal **bold anchor** and *italic anchor*.\\n\\n- E1-LIST-ONE\\n\\n- E1-LIST-TWO\\n\\nE1-STYLED-END\\n'",
+      "reading": "blocks are separated by a blank line, so finding 034's multi-block guard survives the change: 'the payload contains \\n\\n' replaces 'more than one block tag'."
+    }
+  },
+  "notMeasured": [
+    "hyperlinks, footnotes, comment anchors and inline images inside a selected paragraph -- absent from the corpus, so the tag inventory's 'no violations' is bounded by that",
+    "whether a hard line break inside a paragraph emits \\n\\n and so trips the multi-block guard (fails closed, so the safe direction, but unmeasured)",
+    "whether the Markdown export is stable across versions -- it is a serialiser output with no documented contract, the same objection SPEC E2-A 2.8 already records against the HTML read. The exposed surface is three tokens instead of an open tag set, which is smaller, not zero.",
+    "nested list levels"
+  ],
+  "answer4_markdownEscaping": {
+    "shortAnswer": "PARTIAL, and the half that is missing is the half that matters -- the Markdown route is refused",
+    "why": "the whole route rests on a plain paragraph never reading back as a list item or heading. The exporter escapes three of the five characters and not the other two.",
+    "fixture": "markdown-syntax: each look-alike paired with the real thing, because the question is whether the two can be told apart, not what either produces alone",
+    "escaped": {
+      "# MD-HASH is a plain paragraph": "\\# MD-HASH is a plain paragraph  (hex 5c23)",
+      "> MD-QUOTE is a plain paragraph": "\\> MD-QUOTE is a plain paragraph  (hex 5c3e)",
+      "* MD-STAR is a plain paragraph": "\\* MD-STAR is a plain paragraph  (hex 5c2a)"
+    },
+    "notEscaped": {
+      "- MD-DASH is a plain paragraph": "- MD-DASH is a plain paragraph  (hex 2d20 -- a bare '- ')",
+      "1. MD-NUMBER is a plain paragraph": "1. MD-NUMBER is a plain paragraph  (hex 312e)"
+    },
+    "theCollision": {
+      "plainParagraph": "- MD-DASH is a plain paragraph\\n",
+      "realListItem": "- MD-REAL-ITEM is a real list item\\n",
+      "reading": "byte-identical in shape. A paragraph whose text merely begins with '- ' is indistinguishable from a bulleted list item, so set-list-unordered would read back as satisfied on a paragraph that never joined a list. That is a false POSITIVE -- the direction the whole barrier exists to prevent. Same for '1. ' and ordered lists. The heading axis is safe ('#' is escaped), but one safe axis does not rescue the design."
+    },
+    "theRescueThatWasConsideredAndRefused": {
+      "mechanism": "text/plain does NOT carry the marker for a real list item ('MD-REAL-ITEM is a real list item') while text/markdown does, so markdown-minus-plain recovers the marker and would in principle discriminate.",
+      "whyRefused": [
+        "it needs two reads and a prefix-subtraction rule made fragile by the escape backslashes and the trailing newline",
+        "it depends on the escaping being incomplete. If upstream fixes the exporter to write '\\\\-', the subtraction silently changes meaning -- building on a bug and calling it a contract"
+      ]
+    },
+    "upstreamNote": "the Markdown export escapes #, > and * at the start of a paragraph but not - or 1., so its own output does not round-trip: exporting a plain paragraph beginning '- ' and reimporting yields a list item. Not searched for duplicates, not reported. Low priority, same standing as the SwWrtShell::SelPara note in finding 034."
+  },
+  "decision": {
+    "chosen": "HTML with an odfdom-shaped structural classification (option B)",
+    "markdown": "REFUSED on the escaping measurement above -- not on taste",
+    "odf": "REFUSED on cost: reachable only through getClipboard, which means clobbering the user's clipboard on every format action and unpacking a ZIP inside the WASM engine",
+    "structuralTagsFromMeasurement": "p, h1, ul, ol, li -- the tags observed at body level across 17 anchors, plus ol which the action sweep produces. Everything inside an open block is ignored; an unknown STRUCTURAL tag still fails closed.",
+    "openForDecision": "whether to include table/td/h2-h6/blockquote. They never appeared: SelectText inside a table cell serialises as a bare <p>, and the closed action set has one heading level. Adding them now would be listing from imagination rather than measurement, which is what this probe exists to avoid."
+  }
+}
