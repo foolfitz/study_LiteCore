@@ -297,6 +297,35 @@ Chrome 的 profiler 不必重編就能分辨——所以這一輪排在「要一
 卡死之前也是 100%。另外初版把 V8 的 `(idle)` 偽框當成樣本計，於是**每一條停等的執行緒
 都會被判成 spinning**，那是一個兩種答案都會通過的判準。
 
+## 那條在等什麼：已經縮到三個候選（2026-08-12）
+
+停等之後的下一個問題是「等誰」。**這個 build 能用來停等的東西是可以列舉的**——
+wasm 只有 82 個 import，而 **import 即使在剝掉名稱的 build 裡也保留名字**
+（`tools/inspect_wasm_function.py` 直接從二進位讀，不必重編）。
+把 `probe.js` 裡被壓縮過的 import 物件對回去，整個「停等／代理」介面只有這些：
+
+| import | 是什麼 |
+|---|---|
+| `__emscripten_thread_mailbox_await` | 執行緒把自己停在自己的信箱上 |
+| `__emscripten_receive_on_main_thread_js` | **主執行緒**這一側收代理呼叫 |
+| `_emscripten_asm_const_int_sync_on_main_thread` | `MAIN_THREAD_EM_ASM` 的代理 |
+| `_emscripten_check_blocking_allowed` | emscripten 對「這裡可以阻塞嗎」的檢查 |
+
+順帶把上一節那個 `wasm-function[36295]` 也認出來了：**它呼叫
+`_emscripten_check_blocking_allowed`**，所以它是 emscripten 的**阻塞原語**之一
+（mutex／futex／join 這一類）。三條執行緒長期停在那裡＝一個 thread pool 在等工作，
+卡死前後都一樣——**與卡點無關這件事因此不只是「兩欄一樣」，也有了結構上的理由**。
+
+**代理假設被現有證據削弱（推論，不是量測）**：如果引擎執行緒是在等一個代理到模組主執行緒的
+呼叫，那個佇列是由主執行緒的事件迴圈抽的，而活性梯已經證明那條執行緒活著、
+還能被呼叫進 wasm。所以「代理排隊沒人服務」說不太通——**但沒有直接量過**，
+所以它還在候選裡。
+
+**下一步要 emscripten 自己講**：`-sPTHREADS_DEBUG=1` 是**連結期**設定，會把 futex 等待、
+信箱活動與代理呼叫都印出來，正好覆蓋上面三種停法。**不必動 core、不必動引擎原始碼**，
+Makefile 已備好 `e2-wait-diagnostic`（自己的 build 與 dist，加 `--profiling-funcs`
+讓輸出印得出函式名而不是 `wasm-function[36295]`）。
+
 ## 沒有做的事（誠實界線）
 
 - **`getTextSelection` 裡面卡在 core 的哪一段，沒有量到。** 現在有的是「這個呼叫不返回」

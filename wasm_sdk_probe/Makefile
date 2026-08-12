@@ -57,6 +57,12 @@ E2_OBJECTS := $(patsubst src/%.cpp,$(E2_BUILD)/%.o,$(E1_SOURCES))
 # Finding 021 attribution: same as E2 plus the Finding 016 scheduler drain, so
 # the run can ask whether the missing state is core not computing it or this
 # build never pumping the scheduler that would.
+# Finding 037 / task 032: same sources and defines as e2-format-discovery, but
+# linked with emscripten's pthread tracing.  Its own artifact, so the shipped
+# one is never rebuilt.
+E2_WAIT_BUILD := build/e2/wait-diagnostic
+E2_WAIT_DIST := dist/profiles/e2-wait-diagnostic
+E2_WAIT_OBJECTS := $(patsubst src/%.cpp,$(E2_WAIT_BUILD)/%.o,$(E1_SOURCES))
 E2_SCHED_BUILD := build/e2/scheduler-attribution
 E2_SCHED_DIST := dist/profiles/e2-scheduler-attribution
 E2_SCHED_OBJECTS := $(patsubst src/%.cpp,$(E2_SCHED_BUILD)/%.o,$(E1_SOURCES))
@@ -103,6 +109,7 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	demo-editor-assets f018-line-nav-assets e1-drag-select-gate-assets \
 	e1-noopfix-profile e1-noopfix-assets \
 	e2-format-discovery-profile e2-format-discovery-assets \
+	e2-wait-diagnostic-profile e2-wait-diagnostic-assets \
 	e2-scheduler-attribution-profile e2-scheduler-attribution-assets \
 	e2-mainloop-attribution-profile e2-mainloop-attribution-assets \
 	e2-mainloop-pei-attribution-profile e2-mainloop-pei-attribution-assets \
@@ -416,7 +423,8 @@ $(FINDING_012_BUILD) $(FINDING_012_DIAGNOSTIC_BUILD) \
 		$(E1_B_BUILD) $(E1_B_DIST) $(E1_FIX_BUILD) $(E1_FIX_DIST) \
 		$(FINDING_016_SCHEDULER_BUILD) $(FINDING_016_SCHEDULER_DIST) \
 		$(FINDING_016_SELECTION_BUILD) $(FINDING_016_SELECTION_DIST) \
-		$(E2_BUILD) $(E2_DIST) $(E2_SCHED_BUILD) $(E2_SCHED_DIST) \
+		$(E2_BUILD) $(E2_DIST) $(E2_WAIT_BUILD) $(E2_WAIT_DIST) \
+		$(E2_SCHED_BUILD) $(E2_SCHED_DIST) \
 		$(E2_MAINLOOP_BUILD) $(E2_MAINLOOP_DIST) \
 		$(E2_MLPEI_BUILD) $(E2_MLPEI_DIST) \
 		$(E2_LOCALE_BUILD) $(E2_LOCALE_DIST):
@@ -447,6 +455,42 @@ $(E2_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(E2
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
 		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
 		-c $< -o $@
+
+$(E2_WAIT_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(E2_WAIT_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-c $< -o $@
+
+$(E2_WAIT_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(E2_WAIT_BUILD)
+	cp $< $@
+
+$(E2_WAIT_BUILD)/probe.js: $(E2_WAIT_OBJECTS) $(E2_WAIT_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_e2_wait_diagnostic,$(E2_WAIT_OBJECTS),$(E2_WAIT_BUILD)/exports.txt,$@)
+
+$(E2_WAIT_BUILD)/probe.wasm: $(E2_WAIT_BUILD)/probe.js
+	@test -s $@
+
+$(E2_WAIT_DIST)/sdk-manifest.json: $(E2_WAIT_BUILD)/probe.js \
+		$(E2_WAIT_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e2_discovery_profile.py \
+		tools/e1_support.py | $(E2_WAIT_DIST)
+	python3 tools/build_e2_discovery_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_WAIT_BUILD)/probe.js --wasm $(E2_WAIT_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(E2_WAIT_DIST) \
+		--profile-name e2-wait-diagnostic --lok-trace
+	@test -s $(E2_WAIT_DIST)/probe.js
+	@test -s $(E2_WAIT_DIST)/probe.wasm
+	@test -s $(E2_WAIT_DIST)/sdk-worker.js
+
+e2-wait-diagnostic-profile: $(E2_WAIT_DIST)/sdk-manifest.json
+
+e2-wait-diagnostic-assets: e2-wait-diagnostic-profile \
+	dist/e2-format-discovery.html dist/e2-format-discovery-app.js \
+	dist/e2/format-discovery-client.js dist/e2/discovery-matrix-v1.json \
+	dist/sdk/document-sdk.js dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
 
 $(E2_SCHED_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(E2_SCHED_BUILD)
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
@@ -535,6 +579,39 @@ define link_r5_product
 		-o $(3)
 endef
 
+# Finding 037 / 032.  The stuck thread is parked, not spinning (measured: a CPU
+# profile during the hang is identical to one taken before it), so profiling is
+# exhausted and the question is what it is waiting for.  Emscripten already
+# knows how to answer that -- PTHREADS_DEBUG is a link-time setting that traces
+# futex waits, mailbox activity and calls proxied to the main thread, which are
+# exactly the three ways a thread can park here.
+#
+# Link-level only: no core change, no engine source change, and its own build
+# and dist directories.  The shipped e2-format-discovery must not be rebuilt --
+# A3/A4/A5 are bound to c89f069e and a rebuild unbinds all three (finding 027,
+# finding 036).
+#
+# --profiling-funcs keeps the function names, so the trace names functions
+# instead of wasm-function[36295].  ASSERTIONS=1 turns on a second batch of
+# pthread checks that share the same #if.
+define link_e2_wait_diagnostic
+	$(CXX) $(1) \
+		-L$(LOBUILD)/instdir/program $$(cat $(LINKDEPS)) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=65536 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sEXIT_RUNTIME=0 \
+		-sPTHREADS_DEBUG=1 -sASSERTIONS=1 --profiling-funcs \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(2) \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(FS_PRE_JS) \
+		-o $(3)
+endef
+
 $(R5_BUILD)/writer-review/probe.js: $(R5_REVIEW_OBJECTS) \
 		$(R5_BUILD)/writer-review/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
 	$(call link_r5_product,$(R5_REVIEW_OBJECTS),$(R5_BUILD)/writer-review/exports.txt,$@)
@@ -601,8 +678,27 @@ $(E1_FIX_BUILD)/probe.wasm: $(E1_FIX_BUILD)/probe.js
 $(E2_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(E2_BUILD)
 	cp $< $@
 
+# Relinking this one is never incidental.  The wasm hash is not a function of
+# the source (finding 036), so a new link is a new artifact, and every E2-A
+# verdict is bound to the artifact it was measured on (finding 027) -- A3, A4
+# and A5 all go back to NOT_RUN the moment this file changes, and the way that
+# has happened before is a Makefile edit for some other profile making this
+# target out of date.  So it has to be asked for:
+#
+#     make ALLOW_E2_REBUILD=1 e2-format-discovery-assets
+#
+# and then re-swept with tools/sweep_e2_a.py, which is 44 runs.
 $(E2_BUILD)/probe.js: $(E2_OBJECTS) $(E2_BUILD)/exports.txt \
 		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	@if [ "$(ALLOW_E2_REBUILD)" != "1" ]; then \
+		echo ""; \
+		echo "refusing to relink the shipped e2-format-discovery engine."; \
+		echo "a new link mints a new artifact and unbinds A3/A4/A5 (findings 027, 036)."; \
+		echo "if that is what you want:  make ALLOW_E2_REBUILD=1 $@"; \
+		echo "then re-sweep:             python3 tools/sweep_e2_a.py --expect-wasm <new sha256>"; \
+		echo ""; \
+		exit 1; \
+	fi
 	$(call link_r5_product,$(E2_OBJECTS),$(E2_BUILD)/exports.txt,$@)
 
 $(E2_BUILD)/probe.wasm: $(E2_BUILD)/probe.js
