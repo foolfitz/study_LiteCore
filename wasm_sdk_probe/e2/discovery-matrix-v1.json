@@ -111,7 +111,9 @@
     "changedClaim": "null -- the readback answers 'is the document in the target state', not 'did this dispatch put it there'",
     "postconditionFailure": "EDITOR_FORMAT_POSTCONDITION_FAILED, carries the observed tags and the raw markup",
     "restoreFailure": "EDITOR_SELECTION_NOT_RESTORED",
-    "timeout": "MUTATION_OUTCOME_UNKNOWN, no retry"
+    "timeout": "MUTATION_OUTCOME_UNKNOWN, no retry",
+    "readbackPrecondition": "selection type must be LOK_SELTYPE_TEXT. finding 037: getTextSelection(text/html) does not return on a selection containing an as-char image, and the engine thread dies inside it, so the stage deadline cannot fire -- it is only consulted when the command queue is empty. The type query itself was measured safe on exactly that selection (1ms, 2/2), which is what makes a guard possible at all.",
+    "readbackRefusal": "selection-type-not-readable, MUTATION_OUTCOME_UNKNOWN, judged before every readback shape because when it fires there is no readback: parsed is false and every count is zero"
   },
   "negativeCases": [
     "state-crosstalk",
@@ -398,16 +400,17 @@
   },
   "statusProvenance": {
     "replaced": "A2-complete-A3-ready-route-c-readback-postcondition",
-    "date": "2026-08-12 (re-swept after the finding 035 structural-set engine change)",
+    "date": "2026-08-12 (re-swept after the finding 037 selection-type guard)",
     "decidedBy": "wasm_sdk_probe/tools/validate_e2_a.py against the evidence tree",
-    "boundTo": "engine wasm ee185b3d5972cac761acbcbc19cbafe916962788822e7cbae87bfe771d62a566",
+    "boundTo": "engine wasm c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f",
     "counts": {
-      "a3": "18 runs / 90 dispatches, 3 passing per browser per fixture",
-      "a4": "18 runs / 270 dispatches, 3 passing per browser per fixture",
-      "a5": "8 runs / 42 cases, both browsers, all four fixtures"
+      "a3": "18 runs / 3 passing per browser per fixture",
+      "a4": "18 runs / 3 passing per browser per fixture",
+      "a5": "8 runs, both browsers, all four fixtures",
+      "sweepMinutes": 18.8
     },
-    "noRegression": "every suite that passed on 38168306 passes here with the same counts. The structural set was widened, which can only let more shapes through; the sweep is what turns that from an argument into a measurement.",
-    "sweepGuard": "the driver recomputed the artifact sha256 before every one of the 44 runs and would have aborted on a mismatch. Two artifact swaps happened in the same session -- the finding 037 dual-build control -- so a stale binding was a live risk, not a hypothetical.",
+    "noRegression": "every suite that passed on ee185b3d passes here with the same shape. The guard only removes a call; the one paragraph it refuses is the one that previously wedged the engine thread.",
+    "sweepGuard": "tools/sweep_e2_a.py re-hashes dist/profiles/e2-format-discovery/probe.wasm before EVERY run and aborts if it changed; 44/44 runs recorded the same artifact, and every run left evidence behind (checked by counting the cell's result.json files, not by reading the runner's exit code -- that code follows metrics.pass, which carries A2's caret question and is false on every passing a3/a4/a5 run)",
     "notCovered": [
       "A6 secondary capabilities",
       "A7 round-trip and regression",
@@ -430,6 +433,13 @@
         },
         "why": "the engine changed on 2026-08-11 (finding 034), so every run above became evidence about a different artifact (finding 027). The artifact itself is gone and cannot be rebuilt -- see finding 036 -- so these counts can never be reproduced, only cited."
       }
+    },
+    "guardBlastRadius": {
+      "measuredFrom": "formatBarrier.selectionType, now emitted on every barrier",
+      "barriersOnThisArtifact": 428,
+      "selectionTypeText": 426,
+      "selectionTypeComplex": 2,
+      "complexRows": "PC-IMAGE only; no paragraph in any swept fixture, table-boundary cells included, was refused"
     }
   },
   "caretOffsetCoverage": {

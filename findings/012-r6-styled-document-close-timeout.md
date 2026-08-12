@@ -114,6 +114,38 @@ stress ODT lifecycle 可正常 close。
 本輪不以 `Worker.terminate()` 取代成功 close；若 R6 正式 corpus 的 t1／t3 也重現，需重新評估
 R6-A lifecycle gate。
 
+## 2026-08-12：在另一份 fixture、另一個引擎上重現，且旁邊出現同軸的第二個 hang
+
+E2-A 的 `paragraph-content` fixture（**獨立寫的、與 t2 無關**）在
+`wasm_sdk_probe/tools/create_e1_corpus.py` 裡自帶一張**手寫的 1×1 PNG**，
+以 `draw:frame` `text:anchor-type="as-char"` 掛在 `text:p` 底下——就是本單第二階段
+最小化出來的那個軸。
+
+**16/16 次 close 都要走 SDK 的 10 秒 bounded recovery**（`document-close-recovery-complete`），
+其他每一份 E2 fixture 都是 6–25 ms、零次 recovery：
+
+| fixture | 輪數 | recovery | closeMs |
+|---|---|---|---|
+| empty-paragraph | 3 | 0 | 10–11 |
+| multi-paragraph | 45 | 0 | 6–17 |
+| plain-grapheme | 42 | 0 | 6–25 |
+| styled-list | 51 | 0 | 6–18 |
+| table-boundary | 12 | 0 | 8–16 |
+| **paragraph-content** | **16** | **16** | **10782–11622** |
+
+這批補上了本單原本沒有的東西：**t2 那張圖片的任何屬性都不是必要條件**。
+新 fixture 的圖片是另外做的、內容不同、樣式不同，唯一相同的是那個 wrapper 形狀。
+引擎也換過兩代（`ee185b3d`、`c89f069e`），行為不變。
+
+**旁邊還有一個同軸的 hang**：
+[037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md) 量到
+`getTextSelection(…, "text/html", …)` 在**含同一種 frame 的選取**上不返回，
+原生同一個呼叫 1 ms 回傳 798 bytes。兩單的形狀一模一樣——
+**WASM 特有、原生正常、觸發點是同一個內容特徵，只是進入點不同**（一個是 `destroy()`，
+一個是選取序列化）。這是推論不是證明：兩處都沒有堆疊，也沒有人證明它們共用同一段程式碼。
+但要找 `wasm-fix` 的人應該先看這一點——**兩個獨立入口在同一個內容特徵上停住，
+比一個入口更能指出是共用的下層**。
+
 ## 環境
 
 - Core commit：`671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb`
@@ -156,3 +188,8 @@ R6-A lifecycle gate。
   `EMSCRIPTEN_SPECIFIC_DOCUMENT_DESTROY`、next action為`wasm-fix`。Finding歸因階段結束，R7待修復仍STOP。
 - 2026-08-04：R7 remediation以bounded Worker recycle完成；原始t2 Chrome／Firefox各3/3 close recovery，
   Worker與handle歸零且engine可再開文件。Finding 012不再阻斷normal／known S5；底層destroy root cause仍保留。
+- 2026-08-12：E2-A 的 `paragraph-content`（另一份 fixture、另一張圖、另外兩代引擎）
+  **16/16 走 close recovery**，其餘五份 fixture 共 153 輪零次；`frame.wrapper` 軸因此
+  不再依賴 t2 的任何屬性。同日 [037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md)
+  在同一個內容特徵上量到第二個 WASM 特有的 hang（`getTextSelection("text/html")` 不返回，
+  原生 1 ms），兩個入口指向同一個下層是**推論**，兩處都還沒有堆疊。

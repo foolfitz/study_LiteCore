@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認並已定位到單一呼叫**（`getTextSelection(…, "text/html", …)`）／**未修** |
+| **狀態** | **已確認、已定位到單一呼叫、我方已擋並實測關閉**（引擎 `c89f069e…`）／**core 端未修** |
 | **Bugzilla** | —（尚未查上游；卡住的呼叫是 core 的，barrier 只是唯一的呼叫者） |
 | **發現日** | 2026-08-12 |
 | **嚴重度** | **嚴重**——不是拒絕而是**卡死**，引擎執行緒之後不再處理任何命令，只有重啟 worker 能救 |
@@ -279,7 +279,52 @@ Chrome，五個封閉動作各一輪，每輪都帶 `PC-PLAIN` 對照：
 - **沒有量「圖片有多大才會卡」**：fixture 裡是一張手寫的 1×1 PNG，
   所以卡死跟資料量無關，但也還沒試過別種圖片來源（連結圖、SVG、metafile）。
 
-## 可以怎麼修（尚未實作）
+## 已擋並實測關閉（2026-08-12，引擎 `c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f`）
+
+擋法就是一個 `if`：讀取那一步先問 selection type，只有 `LOK_SELTYPE_TEXT` 才呼叫
+`getTextSelection(…, "text/html", …)`。**這條路可行的唯一理由是型別查詢在會卡死的那個選取上
+量過是安全的**（1 ms，2/2）——如果連問型別都會卡，就沒有東西可以問。
+
+拒絕在 `finishFormatBarrierAfterRestore()` 判，而且**排在所有 readback 形狀之前**：
+擋下來的時候根本沒有 readback，`parsed` 是 false、每個計數都是 0，排在後面會被判成
+「文件不是你要的狀態」——那是一個沒有看過文件的 build 對文件下的結論。
+擋法**只跳過讀取**，還原照跑，所以呼叫端不會拿到一個自己沒做的選取。
+
+**同一列，修前修後：**
+
+| | 修前（`ee185b3d`） | 修後（`c89f069e`） |
+|---|---|---|
+| `PC-IMAGE` 動作 | **20001 ms 卡死** | **37 ms 具名拒絕** |
+| `failureShape` | 無（barrier 沒回來） | `selection-type-not-readable` |
+| `selectionType` | 沒有這個欄位 | `3`，`readable=false` |
+| 事後 handle | **不回應**，close 要重啟 worker | **可用** |
+| 之後每一列 | 全部逾時 | 照跑 |
+
+**`paragraph-content` 21 種形態全部跑完**（先前這一列會把後面的都拖下水）：19 列 verified、
+`pc-footnote` 走 [035](035-the-postcondition-read-fails-closed-on-any-formatted-or-cjk-paragraph.md) 的
+`footnote-apparatus-readback`、`pc-image` 走這一單的擋法，**每一列 37–42 ms，21/21 事後 handle 可用**。
+`blockTag` 逐列與 035 定案相同（`h2`–`h6`、outline 7/10 讀回 `p`、`pre`、`blockquote`…），
+所以擋法沒有動到那一輪的結論。
+
+**A3／A4／A5 重掃並重綁**：44 輪（A3 18／A4 18／A5 8）、18.8 分鐘、
+**每一輪跑之前都重新核對 artifact 雜湊**（44/44 同一個），零輪沒留下證據，
+`validate_e2_a.py` 發 **A3_PASS／A4_PASS／A5_PASS**，全部 cell covered。
+
+**殺傷範圍是量出來的，不是推論的。** `selectionType` 現在每一次 barrier 都會寫進證據，
+於是「這個擋法會拒絕哪些段落」變成任何一次 sweep 都回答得了的問題。
+`c89f069e` 上的 428 次 barrier：
+
+| selectionType | readable | 次數 |
+|---|---|---|
+| 1（TEXT） | true | **426** |
+| 3（COMPLEX） | false | **2** |
+
+那 2 次都是 `PC-IMAGE`。**四份被掃的 fixture（含 `table-boundary` 的儲存格段落）
+沒有任何一段被擋法碰到。**
+
+**還是要開上游單**：擋的是我方不再呼叫，不是 core 不再卡。
+
+## 原本的擋法設計（保留，已實作如上）
 
 拆解實驗順帶量到一件有用的事：**`getSelectionTypeAndText` 在會卡死的那個選取上 1 ms 回傳
 `complex`**。所以 barrier 在讀之前先問型別是安全的，於是有一條不需要 core 修好就能擋下卡死的路：
@@ -288,17 +333,25 @@ Chrome，五個封閉動作各一輪，每輪都帶 `PC-PLAIN` 對照：
 > **不要叫 `getTextSelection("text/html")`**，改走還原＋`MUTATION_OUTCOME_UNKNOWN`
 > 具名失敗（形狀比照 035 的 `footnote-apparatus-readback`）。
 
-代價與界線都要先講清楚：
+代價與界線（**都已發生，記在這裡是為了讓下一個同類決定有前例**）：
 
-- 這會讓「含行內圖片的段落」變成**具名拒絕**，動作已經派送出去、文件可能已經改了
-  ——跟註腳那一刀同一個形狀，錯誤訊息也要照那個樣子寫。
-- **要重編引擎**，於是 A3／A4／A5 三個判定全部解綁、要重掃一輪（[036](036-the-shipped-wasm-hash-is-not-a-function-of-the-source.md)）。
+- 這讓「含行內圖片的段落」變成**具名拒絕**，動作已經派送出去、文件可能已經改了
+  ——跟註腳那一刀同一個形狀，錯誤訊息也照那個樣子寫了。
+- **重編了引擎**，A3／A4／A5 三個判定全部解綁並重掃一輪（[036](036-the-shipped-wasm-hash-is-not-a-function-of-the-source.md)）：
+  44 輪、18.8 分鐘，比事前估的便宜很多。
 - **擋的是我方不再呼叫，不是 core 不再卡**。上游那一單還是要開。
 
 ## 相關
 
 - [034](034-paragraph-selection-escapes-at-the-offset-the-test-never-used.md)——deadline 就是那一輪加的，這裡是它沒接住的一個 stall。
 - [035](035-the-postcondition-read-fails-closed-on-any-formatted-or-cjk-paragraph.md)——同一批 M2 量測逼出來的；那一單是 fail closed，這一單是卡死。
+- **[012](012-r6-styled-document-close-timeout.md)——同一個內容特徵，另一個入口。** 那一單量到
+  `destroy()` 在「`draw:frame` 直接掛在 `text:p` 底下」的文件上不返回，原生正常、WASM 跨瀏覽器重現；
+  這一單量到 `getTextSelection("text/html")` 在**含同一種 frame 的選取**上不返回，原生 1 ms。
+  這一輪順帶替 012 補上它缺的一塊：`paragraph-content` 是另外寫的 fixture、另外一張手寫 PNG、
+  另外兩代引擎，**16/16 都要走 10 秒 close recovery**，而其餘五份 fixture 共 153 輪零次
+  ——所以那個軸與 t2 那張圖片的任何屬性都無關。**兩個入口停在同一個內容特徵上，
+  比一個入口更能指出是共用的下層**；但這是推論，兩處都沒有堆疊。
 - [016](016-lok-forward-delete-completion-gap.md)、[018](018-lok-line-navigation-completion-nondeterministic.md)——同屬「completion 訊號不來」這一族。**這一單不是**：它不是訊號不來，是呼叫不返回。
 - [027](027-verdicts-are-bound-to-an-artifact-not-to-a-source-tree.md)／[036](036-the-shipped-wasm-hash-is-not-a-function-of-the-source.md)——為什麼這一輪的診斷刻意做成「不重編」。
 - [SPEC E2-A](../specs/SPEC-E2-A-paragraph-format-discovery.md)
@@ -324,3 +377,12 @@ Chrome，五個封閉動作各一輪，每輪都帶 `PC-PLAIN` 對照：
   擋法上線後那個讀取不會再被呼叫，這些就再也量不到。
   順帶量到 `set-paragraph-heading` 的 `.uno:StyleApply` **成功了才卡**
   （游標矩形 275→413），所以是「改了、驗不了、復原時丟掉」。
+- **2026-08-12（我方已擋，實測關閉）**：引擎 `c89f069e…`，讀取前先取 selection type，
+  非 `TEXT` 即以 `selection-type-not-readable` 具名拒絕。同一列由 20001 ms 卡死變成
+  37 ms 拒絕、事後 handle 可用；`paragraph-content` 21 種形態全部跑完且 blockTag 與 035 定案一致；
+  A3／A4／A5 重掃 44 輪全過並重綁。**殺傷範圍改成量的**：`selectionType` 進了每一次 barrier 的證據，
+  428 次裡 426 次是 TEXT，被擋的 2 次都是 `PC-IMAGE`。core 端未修，上游單未開。
+- **2026-08-12（順帶）**：比較各 fixture 的 close 時間時發現
+  [012](012-r6-styled-document-close-timeout.md) 在 `paragraph-content` 上 16/16 重現，
+  且擋法上線後仍然重現——**那是另一個缺陷，不是這一單的餘波**（擋法生效那一輪，
+  引擎在 close 之前是活的、save 也成功了）。

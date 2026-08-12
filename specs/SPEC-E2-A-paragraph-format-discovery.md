@@ -839,7 +839,13 @@ level 2／3 為 number），第一版 validator 問「這個樣式含不含 numb
 > | `malformed-readback-nesting` | 深度 0 關閉了沒開過的區塊 | 3 |
 > | `multi-block-readback` | 讀到超過一個段落（finding 034） | 4 |
 > | `selection-does-not-contain-restore-point` | containment | 5 |
+> | `selection-type-not-readable` | 選取型別不是 `TEXT`，**html 讀取會不返回，所以沒有讀** | 0（最先） |
 > | `stage-deadline:<stage>` | 期限 | 任一 awaiting stage |
+>
+> **2026-08-12 追加（finding 037）。** `selection-type-not-readable` 排在**所有**
+> readback 形狀之前，理由比其他三個更強：其他三個是「掃描中止、計數被截斷」，
+> 這一個是**根本沒有掃描**——`parsed` 是 false、每個計數都是 0。排在後面會被判成
+> 「文件不是你要的狀態」，那是一個沒有看過文件的 build 對文件下的結論。
 >
 > **為什麼是三個通道而不是一個**：這三句話——「我們拒絕驗證一個量過的形狀」、
 > 「我們遇到沒人量過的標籤」、「這份 markup 不像任何看過的樣本」——是不同的訊號。
@@ -910,7 +916,7 @@ typed 的不可驗證，**永不回報成功**。
 | Quotations | `blockquote` | 通過 |
 | 清單項 | `ul` → `li` → `p` | 通過（`itemCount=1`、`blockCount=1`） |
 | **註腳／尾註** | `p` 然後 `div` | **設計上拒絕**（見下） |
-| **行內圖片** | — | **讀取本身不返回，引擎執行緒就此停住**（[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)，未修） |
+| **行內圖片** | —（讀取前即擋下） | **`selection-type-not-readable` 具名拒絕**（[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)；擋法已上線，core 端未修） |
 
 行內標籤（`a` 4 次、`b`、`i`、`br`、`img`、`font`、`span`、`sup`）**在 body 層出現 0 次**。
 
@@ -999,3 +1005,4 @@ scope 共用同一份 worker patch，manifest 新增 `engineLoop` 診斷欄位�
 | 2026-08-11 | v12 續（A5 判定與 artifact 重綁）。A5 首次有判定（10.9 節）：`validate_e2_a.py` 之前只判 A3／A4，A5 跑完是人工看的。`state-crosstalk` 改以 readback markup 自己的文字判定，鑑別控制取自既有證據——現行 build 11/11、之前三個 build 0/9。引擎改動使 A3／A4 既有證據變成別的 artifact 的證據（finding 027 規則），兩瀏覽器 × 三 fixture 全數重跑：**A3_PASS（105 次派送）、A4_PASS（270 次派送）、A5_PASS（兩瀏覽器 × 四 fixture）**，全部綁定 `25761ff0…`。新增 10.10 節總結，並列出兩個未結的引擎缺口（barrier 無引擎側期限、座標殘留）。矩陣 `status` 由 `A2-complete-A3-ready-…` 改為 `A3-A4-A5-pass-…-A6-A7-not-run`，附 `statusProvenance`。另修 summary 的 `boundToCurrentBuild` 欄位名——它印 false 卻與 `A3_PASS` 並排，同一份報告的兩個欄位互相矛盾；它問的一直是「樹裡每一次 run 都是現行 build 嗎」，改名為 `allEvidenceIsCurrentBuild` 並補上 `verdictCountsOnlyCurrentBuild`。 |
 | 2026-08-12 | v13（結構集合由實測決定；[finding 035](../findings/035-the-postcondition-read-fails-closed-on-any-formatted-or-cjk-paragraph.md) 已修）。2.8 節就地補修訂註記：它的封閉標籤集是照三個 fixture 量的，而那三個 fixture 的被派送段落全是純 ASCII 無 run，於是**每個帶字元格式或中日韓文字的段落都被判未知標籤**——中文文件的常態；該節不是被推翻而是被證明取樣不足。新增 **2.10 節**：新 fixture `paragraph-content`、21 種段落形態、原生 26.8 與 WASM 各一輪。結構集合定為 `p`／`h1`–`h6`／`pre`／`blockquote`／`ul`／`ol`／`li`（**每一個都是實際在 body 層出現才收，成員資格是規則不是清單**），並確立兩條不可拆的規則：**結構標籤在任何深度都計數、只有非結構標籤依深度分流**（反過來寫會把 `li` 與清單內的 `<p>` 一起忽略，拆掉 034 多段防護的一半），以及**進集合就必須計入 `blockCount`**（收了不計數，選取跨進 `pre` 鄰居時防護會漏）。`pre`／`blockquote` 收錄**不新增放行路徑**（滿足判定要 `blockTag`∈{p,h1} 或首標籤是 ul/ol），只是把「未知標籤」換成「現況不是目標」。**兩項新收窄入條文**：ODF outline level 7–10 讀回 `<p>`，故 level ≥7 的標題與內文無法區分（今天無害，一旦有「套用第 N 級標題」即無法驗證）；**帶註腳／尾註的段落設計上拒絕**（註腳本文是第二個 body 層區塊），採外部覆核裁決＝`div` 不進集合、依 `sw/source/filter/html/htmlftn.cxx:344-365` 的簽名（`id` 以 `sdfootnote`／`sdendnote` 開頭）以專屬 `failureShape` 拒絕，駁回「div 內不計入 `blockCount`」（034 的失效是無聲誤報成功，而深度 0 div 的樣本數是 1）與「沿用既有失敗碼」（會讓「034 攔到跨段」與「使用者碰了註腳」在遙測上不可區分）。**失敗碼表由三個 `failureShape` 增為六個並定序**：三個「掃描中止」形狀必須排在 `multiBlock` 與 containment 之前，因為中止時計數已被截斷。2.8 第 3 項（序列化器不是契約）**在同版本內量到實例**：同 `coreCommit` 的原生與 WASM 兩 build，`style` 裡 CSS 屬性順序相反、`lang` 在 zh-CN／zh-TW 間漂移，標籤結構一致——**markup 永不可逐位元組比對**。引擎一次 build（`ee185b3d…`），A3／A4／A5 全部重掃並重綁（18 輪／90 派送、18 輪／270 派送、8 輪／42 case，零失敗，44 輪每輪都先核對 artifact sha256），`paragraphContentCoverage` 由 3 欄擴為 15 欄。**掃描途中掉出 [finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)**：含行內圖片的段落會**卡死 document handle**（動作 20 s 逾時而非 5 s 的 `stage-deadline:*`），舊 build 同樣重現故為既存缺陷，**未修**，已入 10.x 的未涵蓋清單。 |
 | 2026-08-12 | v14（10.11 第 4 項的界線；[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md) 已定位）。**5000 ms per-stage 期限防的是「停止推進的 awaiting stage」，不是「不返回的 LOK 呼叫」**——`engineLoop` 只在 `gState.commands.empty()` 的等待分支裡檢查期限，卡在 `dispatch()` 的執行緒回不到那裡，命令佇列也不再被清空（main-loop 版同理，它從 poll callback 進去）。已有實例：`getTextSelection(…, "text/html", …)` 在含行內圖片的段落上不返回。條文因此收窄為**「stage 不會無限期等下去」，不是「barrier 一定會收場」**。定位方式刻意不重編引擎（`ee185b3d…` 未動）：引擎本來就把每個 LOK callback 在處理前送出，只是出貨 worker 丟掉，診斷 profile 用同一份 wasm 加兩行轉發即可；串流 2/2 停在同一筆，活性梯證明 worker JS、wasm 主執行緒與 `gState.mutex` 都活著。拆解實驗（同端點選取上 `setTextSelection(RESET)` 17 ms、`getSelectionTypeAndText` 1 ms，2/2）把候選收斂到 html 讀取那一次。**未修**；擋法（讀取前先取 selection type，COMPLEX 即具名拒絕）已記在 finding 裡，需重編＝A3／A4／A5 全部重掃。 |
+| 2026-08-12 | v15（[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md) 我方擋法上線；引擎 `c89f069e…`）。讀取那一步**先取 selection type，只有 `LOK_SELTYPE_TEXT` 才呼叫 `getTextSelection(…, "text/html", …)`**；非 TEXT 走新的 `selection-type-not-readable`，**排在所有 readback 形狀之前**（擋下來時根本沒有掃描，`parsed` false、計數全 0，排在後面會被判成「文件不是你要的狀態」）。擋法只跳過讀取，還原照跑，所以呼叫端不會拿到自己沒做的選取。`LOK_SELTYPE_LARGE_TEXT` 不收——header 註明它 unused、等同 COMPLEX，收它等於收一個 core 不會產生的值。**同一列由 20001 ms 卡死變成 37 ms 具名拒絕、事後 handle 可用**；`paragraph-content` 21 種形態首次全部跑完（19 verified、註腳走 035 的通道、圖片走這一條，每列 37–42 ms、21/21 事後可用），`blockTag` 逐列與 v13 定案相同。A3／A4／A5 重掃 44 輪（18.8 分鐘，**每輪跑前重新核對 artifact 雜湊**，44/44 同一個，零輪無證據）並重綁至 `c89f069e…`，`validate_e2_a.py` 發 A3_PASS／A4_PASS／A5_PASS。**殺傷範圍是量的不是推的**：`selectionType` 現在寫進每一次 barrier 的證據，428 次裡 426 次是 TEXT，被擋的 2 次都是 `PC-IMAGE`，四份被掃 fixture（含 `table-boundary` 儲存格段落）無一被碰到。**core 端未修**，擋的是我方不再呼叫。 |
