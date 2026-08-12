@@ -50,6 +50,12 @@ const caseFilter = (params.get("cases") || "")
 // wedge-trace, so a traced run cannot be started without it.
 const engineDebug = params.get("debug") === "1"
   || mode === "wedge-trace" || mode === "wedge-split";
+// Finding 037.  The five closed actions share one read step, so all five are
+// expected to wedge on the same paragraph -- but "expected" is not "measured",
+// and once a guard ships the wedge stops being reachable at all.  So the other
+// four have to be measured before the fix or never.  wedge-trace only: the
+// discriminator's own cases declare their action for a reason.
+const actionOverride = mode === "wedge-trace" ? params.get("action") : null;
 // Finding 021 discriminating experiments.  "mainloop-pei-attribution" runs
 // the scheduler drain (ProcessEventsToIdle) under the live loop; if it still
 // releases watched payloads the PEI-vs-loop difference is PEI's own
@@ -859,11 +865,18 @@ async function runDiscriminator(client, documentHandle) {
     ? declared.filter((definition) => caseFilter.includes(definition.case))
     : declared;
   const results = [];
-  for (const definition of cases) {
+  for (const declaredCase of cases) {
+    const definition = actionOverride
+      ? { ...declaredCase, action: actionOverride }
+      : declaredCase;
     const entry = {
       case: definition.case,
       expects: definition.expects,
       action: definition.action,
+      // Recorded whenever it is in force, so a row cannot be read as if it had
+      // run the action its `expects` was written for.
+      actionOverride: actionOverride || null,
+      declaredAction: declaredCase.action,
       dispatchedText: definition.dispatchedText,
       escapeText: definition.escapeText,
       status: "running",

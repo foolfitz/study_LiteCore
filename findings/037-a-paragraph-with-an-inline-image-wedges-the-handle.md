@@ -235,6 +235,34 @@ char *html = gState.document->pClass->getTextSelection(gState.document, "text/ht
 `<img src="data:image/png;base64,…">`——**圖片是就地 base64 進去的**，
 所以 html 這條路會叫到圖形匯出，plain 那條不會。差別落在那裡。
 
+## 覆蓋：五個動作與兩個瀏覽器（2026-08-12）
+
+**這批必須在修法之前量。** 擋法一旦上線，那個讀取就不會再被呼叫，
+「其餘四個動作會不會卡」從此無法量測——不是懶得補，是補不到。
+
+Chrome，五個封閉動作各一輪，每輪都帶 `PC-PLAIN` 對照：
+
+| 動作 | `PC-PLAIN` | `PC-IMAGE` |
+|---|---|---|
+| `set-list-none` | 完成 40 ms | **20001 ms 逾時** |
+| `set-list-unordered` | 完成 40 ms | **20001 ms 逾時** |
+| `set-list-ordered` | 完成 49 ms | **20000 ms 逾時** |
+| `set-paragraph-heading` | 完成 50 ms | **20000 ms 逾時** |
+| `set-paragraph-body` | 完成 48 ms | **20000 ms 逾時** |
+
+五輪的 callback 串流**停在同一個位置**：段落選好（`TEXT_SELECTION` 寬 4380）之後、還原之前。
+
+**`set-paragraph-heading` 那一輪順便回答了一個產品問題**：串流裡
+`.uno:StyleApply` 的 result 是 `success: true`，游標矩形高度由 275 變成 413
+——**樣式真的套上去了，然後引擎才死在驗證那一步**。所以這不是「動作沒發生」，
+是「動作發生了、驗證卡死、復原手段（重啟 worker）把它丟掉」。
+這正是路線 C 的失敗碼一律 `MUTATION_OUTCOME_UNKNOWN` 的理由，
+只是這裡連那個碼都送不出來。
+
+**Firefox 153.0.1 同一個形狀**：`PC-PLAIN` 完成 38 ms、`PC-IMAGE` 20005 ms 逾時，
+串流最後六筆與 Chrome 逐筆相同，活性梯也相同（worker JS alive／wasm 主執行緒 alive／
+引擎逾時）。**不是瀏覽器特有的。**
+
 ## 沒有做的事（誠實界線）
 
 - **`getTextSelection` 裡面卡在 core 的哪一段，沒有量到。** 現在有的是「這個呼叫不返回」，
@@ -244,10 +272,10 @@ char *html = gState.document->pClass->getTextSelection(gState.document, "text/ht
   而且用輪詢加 sleep 推進、不在引擎的主迴圈裡跑，**所以它證明的是「這一串序列在 LOK 層做得完」**。
   現在有了 callback 串流，這一點的地位從「範圍縮小」變成「原生對照」：
   **同一個呼叫在原生 1 ms 回來，在 WASM 不回來。**
-- **原生只重放了 `.uno:RemoveBullets`**，其餘四個封閉動作沒跑。不過現在知道卡點在讀取那一步，
-  而五個動作共用同一段讀取，所以預期五個都會卡——**這是推論，沒有量。**
-- **只量了 Chrome。** Firefox 沒跑。
+- **原生只重放了 `.uno:RemoveBullets`**，其餘四個原生沒跑（WASM 側五個都跑了，見上一節）。
 - **沒查上游重複單。**
+- **`getTextSelection` 的逾時上限沒量**：所有觀察都停在用戶端的 20 秒／30 秒逾時，
+  沒有人讓它跑一小時看會不會回來。**「不返回」的證據上限是 86 秒。**
 - **沒有量「圖片有多大才會卡」**：fixture 裡是一張手寫的 1×1 PNG，
   所以卡死跟資料量無關，但也還沒試過別種圖片來源（連結圖、SVG、metafile）。
 
@@ -291,3 +319,8 @@ char *html = gState.document->pClass->getTextSelection(gState.document, "text/ht
   5. **拆解實驗**把三個候選收斂到 `getTextSelection(…, "text/html", …)`：同一個選取上
      `setTextSelection(RESET)` 17 ms、`getSelectionTypeAndText` 1 ms，2/2。
   6. 補上一條**不需要 core 先修**的擋法，以及它的代價（重編＝重掃）。
+- **2026-08-12（覆蓋）**：五個封閉動作在 Chrome 各跑一輪、每輪帶對照，**五個全卡、
+  串流停在同一個位置**；Firefox 153.0.1 同一形狀。這批刻意排在修法之前——
+  擋法上線後那個讀取不會再被呼叫，這些就再也量不到。
+  順帶量到 `set-paragraph-heading` 的 `.uno:StyleApply` **成功了才卡**
+  （游標矩形 275→413），所以是「改了、驗不了、復原時丟掉」。

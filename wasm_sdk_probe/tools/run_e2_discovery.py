@@ -260,6 +260,12 @@ def main() -> None:
         help="comma-separated discriminator case ids to run (default: all)",
     )
     parser.add_argument(
+        "--action",
+        default="",
+        help="wedge-trace only: dispatch this closed action instead of the "
+             "one each case declares (finding 037 coverage)",
+    )
+    parser.add_argument(
         "--evidence-dir",
         type=Path,
         default=None,
@@ -317,6 +323,8 @@ def main() -> None:
         query = f"?fixture={args.fixture}&mode={args.mode}"
         if args.cases:
             query += f"&cases={args.cases}"
+        if args.action:
+            query += f"&action={args.action}"
         session.navigate(f"{base_url}{query}")
         deadline = time.monotonic() + args.timeout
         metrics = None
