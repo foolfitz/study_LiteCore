@@ -426,6 +426,19 @@ FIXTURES = {
     # paragraphs.  "Frames in table cells and footnotes were not measured" was
     # written down as a limit; this is that limit, measured.  Both are places a
     # paragraph can live that the barrier can still be pointed at.
+    # The endnote counterpart of frame-contexts' FX-NOTE.  Endnotes were listed
+    # as unmeasured in finding 038, and a note class is one attribute, so this is
+    # that document with that one attribute changed.
+    "endnote-frame": {
+        "body": """
+ <text:p>EN-PLAIN ordinary paragraph with no note</text:p>
+ <text:p>EN-NOTE paragraph whose endnote holds a frame<text:note text:id="en-note" text:note-class="endnote"><text:note-citation>i</text:note-citation><text:note-body><text:p>endnote body with a frame <draw:frame draw:name="en-frame" text:anchor-type="as-char" svg:width="0.4in" svg:height="0.16in"><draw:text-box><text:p>boxed</text:p></draw:text-box></draw:frame></text:p></text:note-body></text:note></text:p>
+ <text:p>EN-TAIL ordinary paragraph after it</text:p>
+""",
+        "anchors": ["EN-PLAIN", "EN-NOTE", "EN-TAIL"],
+        "minimum": {"paragraphs": 5, "headings": 0, "lists": 0, "tables": 0},
+        "extra_namespaces": IMAGE_VARIANTS_NAMESPACES,
+    },
     "frame-contexts": {
         "body": """
  <text:p>FX-PLAIN ordinary paragraph with no frame</text:p>

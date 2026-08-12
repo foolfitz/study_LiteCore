@@ -164,7 +164,10 @@ export class FormatDiscoveryClient {
       documentHandle: this.document.handle,
       expectedRevision: options.expectedRevision ?? this.document.revision,
       action,
-      extendSelection: false,
+      // Finding 038 needs the keyboard *selection* path, which is this
+      // same action with the flag set.  Default unchanged, so every
+      // existing caller keeps sending false.
+      extendSelection: options.extendSelection === true,
       option: false,
     }, options);
     if (Number.isInteger(result.revision))

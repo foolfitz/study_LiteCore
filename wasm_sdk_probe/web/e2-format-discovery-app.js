@@ -852,6 +852,26 @@ const DISCRIMINATOR_CASES = {
   // the question the type cannot answer for it.  It runs LAST for the same
   // reason PC-IMAGE does: if it wedges, the rows after it go unmeasured rather
   // than measured.
+  // Finding 038: does dispatching a format action wedge too?  The barrier
+  // selects the paragraph before it reads, and three different ways of making a
+  // selection all wedge, so the prediction is yes -- and a prediction is not a
+  // measurement.  fx-note runs LAST, because a wedge takes the rest with it.
+  "frame-contexts": [
+    ...[
+      ["FX-PLAIN", "FX-TAIL", "verified: no frame anywhere"],
+      ["FX-CELL", "FX-PLAIN", "REFUSED selection-type-not-readable: the 037 guard covers a frame in a table cell"],
+      ["FX-TAIL", "FX-PLAIN", "verified: the paragraph after them"],
+      ["FX-NOTE", "FX-TAIL", "OPEN: three selection methods wedge on this paragraph (038). Does the barrier's own selection do it too?"],
+    ].map(([anchor, neighbour, expects]) => ({
+      case: anchor.toLowerCase(),
+      anchor,
+      dispatchedText: anchor,
+      escapeText: neighbour,
+      home: false,
+      action: "set-list-none",
+      expects,
+    })),
+  ],
   "image-variants": [
     ...[
       ["IV-PLAIN", "IV-TAIL", "verified: no frame anywhere, the control that says the run worked"],
@@ -1079,8 +1099,18 @@ const WEDGE_SPLIT_ANCHORS = {
   "frame-paragraph-anchored": ["FPA-PLAIN", "FPA-FRAME", "FPA-TAIL"],
   "frame-char-anchored": ["FCA-PLAIN", "FCA-FRAME", "FCA-TAIL"],
   "frame-contexts": ["FX-PLAIN", "FX-CELL", "FX-NOTE", "FX-TAIL"],
+  "endnote-frame": ["EN-PLAIN", "EN-NOTE", "EN-TAIL"],
 };
 const WEDGE_SPLIT_TIMEOUT_MS = 10000;
+// Finding 038: which ways of selecting trigger the wedge?  One per run, because
+// a wedge takes the rest of the run with it.
+//
+//   mouse-drag    postMouseEvent down/move/up -- the one that wedged
+//   text-handles  setTextSelection RESET then END, the handle-drag path
+//   reset-only    setTextSelection RESET alone: a caret, no selection
+//   caret-only    the harness's own placeCaret and nothing else
+//   keyboard      place the caret, then move-line-end with extendSelection
+const selectMethod = params.get("select") || "mouse-drag";
 
 async function runWedgeSplit(client, documentHandle) {
   const declared = WEDGE_SPLIT_ANCHORS[fixtureId];
@@ -1129,14 +1159,36 @@ async function runWedgeSplit(client, documentHandle) {
     // follows the anchor text, which on PC-IMAGE is the image.
     const endX = rectangle.x + 8000;
 
-    await step("drag-select", () => activeEngine._request("editorDiscoverySelect", {
-      documentHandle: documentHandle.handle,
-      method: "mouse-drag",
-      startXTwips: rectangle.x,
-      startYTwips: midY,
-      endXTwips: endX,
-      endYTwips: midY,
-    }, { timeoutMs: WEDGE_SPLIT_TIMEOUT_MS }));
+    entry.selectMethod = selectMethod;
+    await step(`select:${selectMethod}`, async () => {
+      const select = (method, coordinates) => activeEngine._request(
+        "editorDiscoverySelect",
+        { documentHandle: documentHandle.handle, method, ...coordinates },
+        { timeoutMs: WEDGE_SPLIT_TIMEOUT_MS });
+      const span = {
+        startXTwips: rectangle.x, startYTwips: midY,
+        endXTwips: endX, endYTwips: midY,
+      };
+      if (selectMethod === "mouse-drag")
+        return select("mouse-drag", span);
+      if (selectMethod === "text-handles")
+        return select("text-handles-unstable", span);
+      if (selectMethod === "reset-only")
+        return select("selection-reset-unstable", {
+          startXTwips: rectangle.x, startYTwips: midY,
+          endXTwips: rectangle.x, endYTwips: midY,
+        });
+      if (selectMethod === "caret-only")
+        return client.placeCaret(rectangle.x + 1, midY,
+                                 { timeoutMs: WEDGE_SPLIT_TIMEOUT_MS });
+      if (selectMethod === "keyboard") {
+        await client.placeCaret(rectangle.x + 1, midY,
+                                { timeoutMs: WEDGE_SPLIT_TIMEOUT_MS });
+        return client.moveCaret("move-line-end", {
+          extendSelection: true, timeoutMs: WEDGE_SPLIT_TIMEOUT_MS });
+      }
+      throw new Error(`unknown select method: ${selectMethod}`);
+    });
 
     // What actually got selected.  Without this the two rows cannot be
     // compared: a drag that selected a different span would make any
@@ -1152,6 +1204,24 @@ async function runWedgeSplit(client, documentHandle) {
       timeoutMs: WEDGE_SPLIT_TIMEOUT_MS }));
 
     // Probe R: the barrier's restore call, alone.
+    //
+    // Skipped for the two methods that never make a selection.  The diagnostic
+    // select path is deliberately not bounded by a readback deadline, so a
+    // reset with nothing to clear produces no TEXT_SELECTION callback and never
+    // completes -- which showed up as this step failing on EVERY row of those
+    // two runs, plain paragraphs included, and had to be told apart from a real
+    // wedge by the liveness ladder.  A step that fails identically whatever the
+    // document contains is not measuring the document.
+    if (selectMethod === "caret-only" || selectMethod === "reset-only") {
+      entry.steps.push({
+        step: "selection-reset",
+        status: "skipped",
+        reason: "no selection was made, and an unbounded reset with nothing to clear never completes",
+      });
+      entry.liveness = await livenessLadder(client);
+      results.push(entry);
+      continue;
+    }
     await step("selection-reset", () => activeEngine._request("editorDiscoverySelect", {
       documentHandle: documentHandle.handle,
       method: "selection-reset-unstable",
