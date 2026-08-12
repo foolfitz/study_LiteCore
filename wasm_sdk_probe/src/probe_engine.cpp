@@ -695,6 +695,14 @@ struct FormatStateBarrier {
   long selectionTop = 0;
   long selectionBottom = 0;
   long restoreCentre = 0;
+  // Finding 037.  The selection type as it was immediately before the read,
+  // recorded on every barrier and not only on the refused ones: it is the
+  // field that answers "which paragraph shapes would this guard refuse?" out
+  // of ordinary sweep evidence, instead of needing its own measurement every
+  // time somebody asks.  -1 means the guard never ran (the barrier ended
+  // before reaching the read step).
+  int selectionType = -1;
+  bool selectionTypeReadable = false;
   FormatReadback readback;
   std::size_t readbackBytes = 0;
   // Kept verbatim and bounded.  A postcondition that failed is only auditable
@@ -1117,7 +1125,15 @@ void appendFormatBarrierDetails(std::ostringstream &json,
        << ",\"selectionTop\":" << barrier.selectionTop
        << ",\"selectionBottom\":" << barrier.selectionBottom
        << ",\"restoreCentre\":" << barrier.restoreCentre
-       << "},\"resultSuccess\":" << (barrier.resultSuccess ? "true" : "false")
+       // Finding 037.  Emitted on every barrier, not only the refused ones:
+       // this is the field that makes "which paragraph shapes does the guard
+       // refuse?" answerable from any sweep's evidence.  -1 means the barrier
+       // ended before the read step, so the guard never ran -- which is not
+       // the same as "the selection was fine".
+       << "},\"selectionType\":" << barrier.selectionType
+       << ",\"selectionTypeReadable\":"
+       << (barrier.selectionTypeReadable ? "true" : "false")
+       << ",\"resultSuccess\":" << (barrier.resultSuccess ? "true" : "false")
        << ",\"resultModified\":" << (barrier.resultModified ? "true" : "false")
        << ",\"expectedStyles\":[";
   for (std::size_t index = 0; index < barrier.expectedStyles.size(); ++index) {
@@ -3120,6 +3136,37 @@ void checkFormatBarrierContainment() {
       gFormatBarrier.restoreCentre >= top && gFormatBarrier.restoreCentre <= bottom;
 }
 
+// Finding 037: is this selection one the html readback is known to survive?
+//
+// getTextSelection(…, "text/html", …) does not return on a selection that
+// contains an as-char image.  Not "is slow" -- does not return: the engine
+// thread stops inside the call, the command queue is never drained again, and
+// the 5000ms stage deadline cannot fire because it is only consulted in the
+// branch the loop takes when that queue is empty.  Measured on both browsers,
+// on both engines that have ever run this fixture, for all five closed
+// actions, and natively the identical call on the identical paragraph returns
+// 798 bytes in 1ms.  So this is not a timeout to tune; it is a call that must
+// not be made.
+//
+// The guard reads the selection type first, which is safe on exactly the
+// selection that wedges: getSelectionTypeAndText("text/plain…") returned
+// "complex" in 1ms there, twice, with the paragraph selected to the same
+// endpoints the barrier selects.  That is the whole reason a guard is possible
+// at all -- if asking the type had wedged too, there would be nothing to ask.
+//
+// TEXT only.  LOK_SELTYPE_LARGE_TEXT is documented in
+// LibreOfficeKitEnums.h:56 as "unused (same as LOK_SELTYPE_COMPLEX)", so
+// accepting it would be accepting a value core does not produce; NONE means
+// there is nothing to read.  Refusing everything that is not TEXT is the
+// fail-closed rule this barrier uses everywhere else, and here it has an
+// instance behind it rather than a principle.
+bool formatBarrierSelectionIsReadable() {
+  const SelectionReadback selection = readSelection();
+  gFormatBarrier.selectionType = selection.type;
+  gFormatBarrier.selectionTypeReadable = selection.type == LOK_SELTYPE_TEXT;
+  return gFormatBarrier.selectionTypeReadable;
+}
+
 void readFormatBarrierPostcondition() {
   char *html = gState.document->pClass->getTextSelection(
       gState.document, "text/html", nullptr);
@@ -3138,8 +3185,11 @@ bool formatBarrierReadbackSatisfied() {
   // unknownTag, malformedNesting and footnoteApparatus are judged before this
   // function is reached, each with its own failure shape.  They are still
   // tested here so that this predicate cannot report satisfaction from a scan
-  // that aborted, whatever order a future caller uses.
-  if (!readback.parsed || readback.unknownTag || readback.malformedNesting ||
+  // that aborted, whatever order a future caller uses.  Finding 037's guard is
+  // in the same list for the same reason, and it is the strongest case of it:
+  // when the guard refuses, no scan happened at all.
+  if (!gFormatBarrier.selectionTypeReadable || !readback.parsed ||
+      readback.unknownTag || readback.malformedNesting ||
       readback.footnoteApparatus)
     return false;
   if (!gFormatBarrier.expectedListTag.empty()) {
@@ -3182,6 +3232,24 @@ void finishFormatBarrierAfterRestore() {
   // verify", "we met a tag nobody has ever measured" and "the markup is not
   // shaped like anything we have seen" are different signals, and folding them
   // together would make the last one invisible under the traffic of the first.
+  // Finding 037 comes first, before every readback shape, because when the
+  // guard refuses there IS no readback -- the html read was never made, so
+  // `parsed` is false and every count is zero.  Judged in any later position,
+  // this refusal would be reported as whatever an empty scan looks like
+  // (multiBlock false, blockTag empty, therefore "postcondition not met"),
+  // which says the document is in the wrong state when what actually happened
+  // is that nobody looked.
+  if (!gFormatBarrier.selectionTypeReadable) {
+    gFormatBarrier.failureShape = "selection-type-not-readable";
+    failFormatBarrier(
+        kFormatMutationOutcomeUnknown,
+        "this paragraph contains an image or another object, and reading it "
+        "back would stop this document responding, so the check was not made. "
+        "The action was dispatched and the paragraph may already have changed "
+        "-- check it and use undo if it is not what you wanted. This is a "
+        "limit of the check, not a problem with the document");
+    return;
+  }
   if (gFormatBarrier.readback.footnoteApparatus) {
     gFormatBarrier.failureShape = "footnote-apparatus-readback";
     failFormatBarrier(
@@ -3288,7 +3356,14 @@ void handleFormatBarrierStep(const Command &command) {
     // Containment before the restore, because the restore collapses the very
     // selection the check is about.
     checkFormatBarrierContainment();
-    readFormatBarrierPostcondition();
+    // Finding 037.  The guard skips the read and nothing else: the restore
+    // still runs, the stage machine still advances, and the refusal is judged
+    // in finishFormatBarrierAfterRestore() with every other refusal.  Failing
+    // here instead would end the barrier with the paragraph still selected --
+    // a selection the caller never made, which is the defect
+    // EDITOR_SELECTION_NOT_RESTORED exists to report.
+    if (formatBarrierSelectionIsReadable())
+      readFormatBarrierPostcondition();
     gFormatBarrier.stage = FormatBarrierStage::AwaitingRestore;
     armFormatBarrierDeadline();
     postFormatBarrierRestore();

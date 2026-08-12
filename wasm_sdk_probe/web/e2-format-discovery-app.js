@@ -820,14 +820,16 @@ const DISCRIMINATOR_CASES = {
       // COMPLEX (LOK_SELTYPE_COMPLEX, measured natively in M2), and the 5 s
       // per-stage deadline did not rescue it, which is a defect in its own
       // right.  Kept in the suite because dropping it would hide the wedge;
-      // kept last so it cannot take the other rows down with it again.
+      // kept last so it cannot take the other rows down with it again -- and
+      // still last now that the guard exists, because "the guard held" is a
+      // claim about this row that the rows after it must not depend on.
       case: "pc-image",
       anchor: "PC-IMAGE",
       dispatchedText: "PC-IMAGE",
       escapeText: "PC-BREAK",
       home: false,
       action: "set-list-none",
-      expects: "UNKNOWN -- wedged the handle on the first run; whether that predates this build is a separate control",
+      expects: "REFUSED with failureShape selection-type-not-readable and selectionType 3, in under a second -- finding 037's guard. Before the guard this row wedged the engine thread at 20 s and took the handle with it",
     },
   ],
 };
@@ -951,6 +953,13 @@ async function runDiscriminator(client, documentHandle) {
         restoreConfirmed: barrier?.readback?.restoreConfirmed ?? null,
         blockTags: blockTagCensus(html),
       };
+      // Finding 037.  Recorded on every row, not only the refused ones: this
+      // is what makes "which paragraph shapes does the guard refuse?" a
+      // question ordinary sweep evidence answers.  -1 means the barrier ended
+      // before the read step, which is not the same as "the selection was
+      // fine".
+      entry.selectionType = barrier?.selectionType ?? null;
+      entry.selectionTypeReadable = barrier?.selectionTypeReadable ?? null;
       // The whole point of the suite.  Both flags are recorded even when they
       // agree, because "neither text is present" is its own answer and must not
       // be reported as "the right one was".

@@ -420,7 +420,10 @@ class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
         # is the same in all of them; they carry different failure shapes
         # because the person reading the telemetry has to be able to tell "the
         # cross-paragraph guard fired" from "a user touched a footnote".
-        self.assertEqual(body.count("kFormatMutationOutcomeUnknown"), 5)
+        # Six since finding 037 added the selection-type guard, which is the
+        # same kind of answer as the other five: the action was dispatched and
+        # nobody could check what it did.
+        self.assertEqual(body.count("kFormatMutationOutcomeUnknown"), 6)
         start = self.source.index("void failFormatBarrierAtDeadline() {")
         self.assertIn("kFormatMutationOutcomeUnknown",
                       self.source[start:self.source.index("\n}\n", start)])
@@ -446,6 +449,67 @@ class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
         self.assertLess(contain, judged)
         self.assertEqual(body.count("EDITOR_FORMAT_POSTCONDITION_FAILED"), 1)
 
+    def test_the_html_read_is_reachable_only_through_the_selection_type_guard(self):
+        """Finding 037.
+
+        getTextSelection(..., "text/html", ...) does not return on a selection
+        containing an as-char image, and the engine thread dies inside it, so
+        the 5000ms stage deadline cannot fire -- it is only consulted when the
+        command queue is empty.  There is no timeout that rescues this; the
+        call must not be made.  The whole fix is one `if`, which makes it
+        exactly the kind of thing a later edit removes without noticing.
+        """
+        # The definition, not the forward declaration above it.
+        start = self.source.index(
+            "void handleFormatBarrierStep(const Command &command) {")
+        body = self.source[start:self.source.index("\n}\n", start)]
+        # Matched whole, with the call on its own indented line: a substring
+        # test would pass on `if (false && formatBarrierSelectionIsReadable())`.
+        self.assertIn(
+            "    if (formatBarrierSelectionIsReadable())\n"
+            "      readFormatBarrierPostcondition();\n",
+            body)
+        # And nowhere else, in the whole engine, is the read called unguarded:
+        # its definition plus this one call site.
+        self.assertEqual(self.source.count("readFormatBarrierPostcondition()"), 2)
+        # Counted on the call, not on the string: `"text/html"` also appears in
+        # the comment explaining why the guard exists, and a test that broke
+        # when someone wrote a comment would get the comment deleted.
+        read_start = self.source.index("void readFormatBarrierPostcondition() {")
+        read_body = self.source[read_start:self.source.index("\n}\n", read_start)]
+        self.assertEqual(read_body.count('"text/html"'), 1)
+        self.assertEqual(self.source.count("pClass->getTextSelection("), 2)
+
+    def test_the_guard_accepts_only_a_plain_text_selection(self):
+        # LOK_SELTYPE_LARGE_TEXT is documented in LibreOfficeKitEnums.h as
+        # "unused (same as LOK_SELTYPE_COMPLEX)", so accepting it would be
+        # accepting a value core does not produce; NONE has nothing to read.
+        start = self.source.index("bool formatBarrierSelectionIsReadable() {")
+        body = self.source[start:self.source.index("\n}\n", start)]
+        self.assertIn("selection.type == LOK_SELTYPE_TEXT", body)
+        for rejected in ("LOK_SELTYPE_COMPLEX", "LOK_SELTYPE_LARGE_TEXT",
+                         "LOK_SELTYPE_NONE"):
+            self.assertNotIn(rejected, body)
+        # The type it read is recorded whether or not it refused, so ordinary
+        # sweep evidence answers "what would this guard refuse?".
+        self.assertIn("gFormatBarrier.selectionType = selection.type", body)
+        self.assertIn('"selectionType\\":" << barrier.selectionType', self.source)
+
+    def test_the_unreadable_selection_is_judged_before_every_readback_shape(self):
+        # When the guard refuses there is no readback at all: parsed is false
+        # and every count is zero.  Judged anywhere later, the refusal would be
+        # reported as "the document is not in the state you asked for", which
+        # is a claim about the document made by a build that did not look at it.
+        body = self.finish_body()
+        self.assertIn("  if (!gFormatBarrier.selectionTypeReadable) {", body)
+        self.assertEqual(body.count('"selection-type-not-readable"'), 1)
+        guard = body.index("selectionTypeReadable")
+        for later in ("readback.footnoteApparatus", "readback.unknownTag",
+                      "readback.malformedNesting", "readback.multiBlock",
+                      "containmentChecked", "formatBarrierReadbackSatisfied()"):
+            self.assertLess(guard, body.index(later),
+                            f"the selection-type guard must be judged before {later}")
+
     def test_an_aborted_scan_is_judged_before_the_counts_it_truncated(self):
         # The three abort cases stop the scan where they are met, so blockCount
         # and itemCount stop there too.  Judged after multiBlock, a footnote
@@ -468,10 +532,17 @@ class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
         # Ordering in the caller is not the only defence.  A future caller that
         # reordered the guards must not be able to reach satisfaction from a
         # scan that stopped early.
+        # Finding 037's guard is in the same list and is the strongest case:
+        # when it refuses, no scan happened at all.
+        satisfied_start = self.source.index("bool formatBarrierReadbackSatisfied() {")
+        satisfied = self.source[
+            satisfied_start:self.source.index("\n}\n", satisfied_start)]
+        self.assertIn("!gFormatBarrier.selectionTypeReadable", satisfied)
         start = self.source.index("bool formatBarrierReadbackSatisfied() {")
         body = self.source[start:self.source.index("\n}\n", start)]
         self.assertIn(
-            "  if (!readback.parsed || readback.unknownTag || readback.malformedNesting ||\n"
+            "  if (!gFormatBarrier.selectionTypeReadable || !readback.parsed ||\n"
+            "      readback.unknownTag || readback.malformedNesting ||\n"
             "      readback.footnoteApparatus)\n    return false;",
             body)
 
