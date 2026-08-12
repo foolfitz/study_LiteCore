@@ -239,11 +239,31 @@ def main() -> None:
             # answers are evidence -- the old build is what proves the gesture
             # reaches offset 0 at all.
             "discriminator",
+            # Finding 037: the discriminator cases against the same artifact
+            # through a worker copy that forwards the LOK callback stream.  Its
+            # own mode rather than a flag on "discriminator" because the two
+            # produce different records of the same run and mixing them into
+            # one tree would make "which rows were traced" unanswerable.
+            "wedge-trace",
+            # Finding 037 stage two: the two LOK calls inside the barrier's
+            # read step, driven one at a time without the barrier.
+            "wedge-split",
             "mainloop-attribution",
             "mainloop-pei-attribution",
             "mainloop-move-attribution",
         ),
         default="a2",
+    )
+    parser.add_argument(
+        "--cases",
+        default="",
+        help="comma-separated discriminator case ids to run (default: all)",
+    )
+    parser.add_argument(
+        "--evidence-dir",
+        type=Path,
+        default=None,
+        help="exact evidence directory, overriding the per-mode tree",
     )
     parser.add_argument("--timeout", type=float, default=600)
     parser.add_argument(
@@ -267,28 +287,37 @@ def main() -> None:
     )
     session = None
     result: dict[str, Any] = {}
+    keyed_modes = ("a3", "a4", "a5", "deadline", "discriminator", "wedge-trace",
+                   "wedge-split")
     if args.mode == "a2":
         root = args.evidence_root
-    elif args.mode in ("a3", "a4", "a5", "deadline", "discriminator"):
+    elif args.mode in keyed_modes:
         # SPEC E2-A section 6 gives A3 its own tree, keyed by fixture, because
         # the verdict has to be able to say which fixtures were covered rather
         # than average over whatever happened to run.
         root = args.evidence_root.parent.parent / {
             "a3": "browser", "a4": "repeat", "a5": "negative",
             "deadline": "barrier-deadline",
-            "discriminator": "caret-offset-discriminator"}[args.mode]
+            "discriminator": "caret-offset-discriminator",
+            "wedge-trace": "wedge-trace",
+            "wedge-split": "wedge-split"}[args.mode]
         root = root / args.browser / args.fixture
     else:
         root = args.evidence_root.parent / args.mode
-    evidence = next_evidence_directory(
-        root if args.mode in ("a3", "a4", "a5", "deadline", "discriminator")
-        else root / args.browser)
+    if args.evidence_dir is not None:
+        evidence = next_evidence_directory(args.evidence_dir)
+    else:
+        evidence = next_evidence_directory(
+            root if args.mode in keyed_modes else root / args.browser)
     try:
         base_url = f"http://127.0.0.1:{server_port}/e2-format-discovery.html"
         wait_page(base_url)
         session_class = ChromeSession if args.browser == "chrome" else FirefoxSession
         session = session_class("cold")
-        session.navigate(f"{base_url}?fixture={args.fixture}&mode={args.mode}")
+        query = f"?fixture={args.fixture}&mode={args.mode}"
+        if args.cases:
+            query += f"&cases={args.cases}"
+        session.navigate(f"{base_url}{query}")
         deadline = time.monotonic() + args.timeout
         metrics = None
         while time.monotonic() < deadline:
@@ -369,11 +398,17 @@ def main() -> None:
         "evidence": str(evidence / "result.json"),
         "pass": result.get("pass") is True,
         "mode": args.mode,
+        "cases": args.cases or "all",
         "a2": result.get("a2"),
         "documentPostconditions": result.get("documentPostconditions"),
         "error": result.get("error"),
     }, ensure_ascii=False, indent=2))
-    if result.get("pass") is not True:
+    # wedge-trace is the one mode whose expected outcome is a failure: it runs a
+    # case that stops answering on purpose, so a non-zero exit would report the
+    # measurement working as if it had gone wrong.  Every other mode still fails
+    # the process when the page does not pass.
+    if args.mode not in ("wedge-trace", "wedge-split") \
+            and result.get("pass") is not True:
         raise SystemExit(1)
 
 

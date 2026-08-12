@@ -810,6 +810,19 @@ level 2／3 為 number），第一版 validator 問「這個樣式含不含 numb
 3. containment 檢查：選取的縱向範圍必須包含還原點。
 4. 三個 awaiting stage 各有 5000 ms 期限，進入時重新起算，**永不判成功**。
 
+> **2026-08-12 修訂（finding 037）——第 4 項的界線。**
+> 那個期限防的是**一個停止推進的 awaiting stage**，**防不到一個不返回的 LOK 呼叫**。
+> 兩者對呼叫端長得一樣（動作沒回來），可修性完全不同。
+>
+> 成因是結構性的：`engineLoop` 只在 `gState.commands.empty()` 的等待分支裡看
+> `stageDeadline`，而卡在 `dispatch()` 裡的執行緒永遠回不到那個分支
+> ——沒有東西去檢查任何期限，命令佇列也不再被清空。
+> main-loop 版（`mainLoopDrainCommands`）同理，它是從 poll callback 進去的。
+>
+> 已有實例：`getTextSelection(…, "text/html", …)` 在**含行內圖片的段落**上不返回，
+> 引擎執行緒就此停住，唯一復原手段是重啟 worker。
+> **所以第 4 項可以宣稱的是「stage 不會無限期等下去」，不是「barrier 一定會收場」。**
+
 失敗碼：期限／containment／`multiBlock` 一律 `MUTATION_OUTCOME_UNKNOWN`
 （呼叫端的決定在三者都相同：不要重放）；診斷差異放 `formatBarrier.failureShape`。
 `EDITOR_FORMAT_POSTCONDITION_FAILED` 收窄為「乾淨讀到單一段落、但不在目標狀態」。
@@ -897,7 +910,7 @@ typed 的不可驗證，**永不回報成功**。
 | Quotations | `blockquote` | 通過 |
 | 清單項 | `ul` → `li` → `p` | 通過（`itemCount=1`、`blockCount=1`） |
 | **註腳／尾註** | `p` 然後 `div` | **設計上拒絕**（見下） |
-| **行內圖片** | — | **卡死 handle**（[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)，未修） |
+| **行內圖片** | — | **讀取本身不返回，引擎執行緒就此停住**（[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)，未修） |
 
 行內標籤（`a` 4 次、`b`、`i`、`br`、`img`、`font`、`span`、`sup`）**在 body 層出現 0 次**。
 
@@ -985,3 +998,4 @@ scope 共用同一份 worker patch，manifest 新增 `engineLoop` 診斷欄位�
 | 2026-08-11 | v12（crosstalk 關閉＋`table-boundary` 期望改寫）。[finding 033](../findings/033-readback-barrier-read-wherever-the-caret-went.md) 的修法實作並實測關閉：barrier in-flight 期間 `search`／`editor-select` 一律 `BUSY`（`.uno:ExecuteSearch` **會選起命中處**，它是 caret mover，也是 crosstalk 案例實際走的路），`EndOfParaSel` 以 `notify=true` 派送且推進條件比對 `commandName`。**關掉它的是 BUSY 閘**——`selectionBeforeResultCount` 全為 0，歸屬那一層在這批證據裡沒有攔到東西，本規格不宣稱它修好了什麼。附帶量到：`notify` 是兩條派送路徑，只改一個命令會使 `EndOfParaSel` 先於 `GoToStartOfPara` 生效（readback 讀到 `<p>D-END</p>`，段落實為 `E1-STYLED-END`），游標在段尾時選取為空、barrier 永久等待。A5 表格的 `table-boundary` 期望由「typed 拒絕，之後 fresh Worker」改為「typed 結果，且文件必須同意」——儲存格內的段落在 26.8 **接受** `set-list-unordered`，原期望是寫矩陣時的預期而非量到的行為；修訂已附範圍限制。A5 首次覆蓋兩瀏覽器 × 四 fixture，**Firefox 負向輪由零變成有**。 |
 | 2026-08-11 | v12 續（A5 判定與 artifact 重綁）。A5 首次有判定（10.9 節）：`validate_e2_a.py` 之前只判 A3／A4，A5 跑完是人工看的。`state-crosstalk` 改以 readback markup 自己的文字判定，鑑別控制取自既有證據——現行 build 11/11、之前三個 build 0/9。引擎改動使 A3／A4 既有證據變成別的 artifact 的證據（finding 027 規則），兩瀏覽器 × 三 fixture 全數重跑：**A3_PASS（105 次派送）、A4_PASS（270 次派送）、A5_PASS（兩瀏覽器 × 四 fixture）**，全部綁定 `25761ff0…`。新增 10.10 節總結，並列出兩個未結的引擎缺口（barrier 無引擎側期限、座標殘留）。矩陣 `status` 由 `A2-complete-A3-ready-…` 改為 `A3-A4-A5-pass-…-A6-A7-not-run`，附 `statusProvenance`。另修 summary 的 `boundToCurrentBuild` 欄位名——它印 false 卻與 `A3_PASS` 並排，同一份報告的兩個欄位互相矛盾；它問的一直是「樹裡每一次 run 都是現行 build 嗎」，改名為 `allEvidenceIsCurrentBuild` 並補上 `verdictCountsOnlyCurrentBuild`。 |
 | 2026-08-12 | v13（結構集合由實測決定；[finding 035](../findings/035-the-postcondition-read-fails-closed-on-any-formatted-or-cjk-paragraph.md) 已修）。2.8 節就地補修訂註記：它的封閉標籤集是照三個 fixture 量的，而那三個 fixture 的被派送段落全是純 ASCII 無 run，於是**每個帶字元格式或中日韓文字的段落都被判未知標籤**——中文文件的常態；該節不是被推翻而是被證明取樣不足。新增 **2.10 節**：新 fixture `paragraph-content`、21 種段落形態、原生 26.8 與 WASM 各一輪。結構集合定為 `p`／`h1`–`h6`／`pre`／`blockquote`／`ul`／`ol`／`li`（**每一個都是實際在 body 層出現才收，成員資格是規則不是清單**），並確立兩條不可拆的規則：**結構標籤在任何深度都計數、只有非結構標籤依深度分流**（反過來寫會把 `li` 與清單內的 `<p>` 一起忽略，拆掉 034 多段防護的一半），以及**進集合就必須計入 `blockCount`**（收了不計數，選取跨進 `pre` 鄰居時防護會漏）。`pre`／`blockquote` 收錄**不新增放行路徑**（滿足判定要 `blockTag`∈{p,h1} 或首標籤是 ul/ol），只是把「未知標籤」換成「現況不是目標」。**兩項新收窄入條文**：ODF outline level 7–10 讀回 `<p>`，故 level ≥7 的標題與內文無法區分（今天無害，一旦有「套用第 N 級標題」即無法驗證）；**帶註腳／尾註的段落設計上拒絕**（註腳本文是第二個 body 層區塊），採外部覆核裁決＝`div` 不進集合、依 `sw/source/filter/html/htmlftn.cxx:344-365` 的簽名（`id` 以 `sdfootnote`／`sdendnote` 開頭）以專屬 `failureShape` 拒絕，駁回「div 內不計入 `blockCount`」（034 的失效是無聲誤報成功，而深度 0 div 的樣本數是 1）與「沿用既有失敗碼」（會讓「034 攔到跨段」與「使用者碰了註腳」在遙測上不可區分）。**失敗碼表由三個 `failureShape` 增為六個並定序**：三個「掃描中止」形狀必須排在 `multiBlock` 與 containment 之前，因為中止時計數已被截斷。2.8 第 3 項（序列化器不是契約）**在同版本內量到實例**：同 `coreCommit` 的原生與 WASM 兩 build，`style` 裡 CSS 屬性順序相反、`lang` 在 zh-CN／zh-TW 間漂移，標籤結構一致——**markup 永不可逐位元組比對**。引擎一次 build（`ee185b3d…`），A3／A4／A5 全部重掃並重綁（18 輪／90 派送、18 輪／270 派送、8 輪／42 case，零失敗，44 輪每輪都先核對 artifact sha256），`paragraphContentCoverage` 由 3 欄擴為 15 欄。**掃描途中掉出 [finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)**：含行內圖片的段落會**卡死 document handle**（動作 20 s 逾時而非 5 s 的 `stage-deadline:*`），舊 build 同樣重現故為既存缺陷，**未修**，已入 10.x 的未涵蓋清單。 |
+| 2026-08-12 | v14（10.11 第 4 項的界線；[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md) 已定位）。**5000 ms per-stage 期限防的是「停止推進的 awaiting stage」，不是「不返回的 LOK 呼叫」**——`engineLoop` 只在 `gState.commands.empty()` 的等待分支裡檢查期限，卡在 `dispatch()` 的執行緒回不到那裡，命令佇列也不再被清空（main-loop 版同理，它從 poll callback 進去）。已有實例：`getTextSelection(…, "text/html", …)` 在含行內圖片的段落上不返回。條文因此收窄為**「stage 不會無限期等下去」，不是「barrier 一定會收場」**。定位方式刻意不重編引擎（`ee185b3d…` 未動）：引擎本來就把每個 LOK callback 在處理前送出，只是出貨 worker 丟掉，診斷 profile 用同一份 wasm 加兩行轉發即可；串流 2/2 停在同一筆，活性梯證明 worker JS、wasm 主執行緒與 `gState.mutex` 都活著。拆解實驗（同端點選取上 `setTextSelection(RESET)` 17 ms、`getSelectionTypeAndText` 1 ms，2/2）把候選收斂到 html 讀取那一次。**未修**；擋法（讀取前先取 selection type，COMPLEX 即具名拒絕）已記在 finding 裡，需重編＝A3／A4／A5 全部重掃。 |

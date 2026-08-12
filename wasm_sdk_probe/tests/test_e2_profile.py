@@ -14,6 +14,7 @@ sys.path.insert(0, str(PROJECT / "tools"))
 from build_e2_discovery_profile import (  # noqa: E402
     WORKER_BARRIER_BEFORE,
     WORKER_GATE_BEFORE,
+    WORKER_LOK_TRACE_BEFORE,
     WORKER_MESSAGE_BEFORE,
     write_e2_worker,
 )
@@ -72,6 +73,44 @@ class TestSharedWorkerUntouched(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 write_e2_worker(source, Path(directory) / "out.js")
 
+    def test_lok_trace_anchor_still_matches_exactly_once(self):
+        text = (PROJECT / "sdk" / "sdk-worker.js").read_text(encoding="utf-8")
+        self.assertEqual(text.count(WORKER_LOK_TRACE_BEFORE), 1)
+
+    def test_lok_trace_is_off_by_default_and_only_adds_forwarding(self):
+        """Finding 037.
+
+        The traced profile's whole value is that it measures the shipped
+        artifact rather than a rebuilt one, which only holds if the trace is
+        additive and opt-in.  A default that quietly forwarded the callback
+        stream would change what every other profile reports.
+        """
+        import tempfile
+
+        source = PROJECT / "sdk" / "sdk-worker.js"
+        with tempfile.TemporaryDirectory() as directory:
+            plain = Path(directory) / "plain.js"
+            traced = Path(directory) / "traced.js"
+            write_e2_worker(source, plain)
+            write_e2_worker(source, traced, lok_trace=True)
+            plain_text = plain.read_text(encoding="utf-8")
+            traced_text = traced.read_text(encoding="utf-8")
+            self.assertNotIn("lok-trace", plain_text)
+            self.assertIn("lok-trace", traced_text)
+            # Line count, not set difference: `if (debugEnabled)` already
+            # appears elsewhere in the worker, so a set difference would report
+            # one added line and quietly pass a patch that added ten.
+            self.assertEqual(
+                len(traced_text.split("\n")) - len(plain_text.split("\n")), 2)
+            # Removing the two added lines must give the untraced worker back:
+            # anything else means the patch edited something it did not declare.
+            self.assertEqual(
+                traced_text.replace(
+                    '      if (debugEnabled)\n'
+                    '        postEvent("diagnostic", { level: "lok-trace", detail: event });\n',
+                    ""),
+                plain_text)
+
 
 class TestFrozenArtifacts(unittest.TestCase):
     """E2 discovery must not replace any artifact an earlier release validated."""
@@ -83,6 +122,20 @@ class TestFrozenArtifacts(unittest.TestCase):
                 self.skipTest(f"{relative} not built in this workspace")
             with self.subTest(artifact=relative):
                 self.assertEqual(sha256(path), expected)
+
+    def test_the_wedge_trace_profile_is_the_shipped_artifact(self):
+        """Finding 037.
+
+        Every conclusion the wedge trace supports is a conclusion about the
+        engine the verdicts are bound to, and that is only true while the two
+        profiles carry the same wasm byte for byte.  A rebuilt diagnostic would
+        be answering a different artifact's question (finding 027).
+        """
+        traced = PROJECT / "dist" / "profiles" / "e2-wedge-trace" / "probe.wasm"
+        shipped = PROJECT / "dist" / "profiles" / "e2-format-discovery" / "probe.wasm"
+        if not traced.is_file() or not shipped.is_file():
+            self.skipTest("wedge-trace or format-discovery profile not built")
+        self.assertEqual(sha256(traced), sha256(shipped))
 
 
 class TestE2Profile(unittest.TestCase):

@@ -86,17 +86,43 @@ WORKER_DRAIN_AFTER = """          before: event.before,
           delta: event.delta,
           pump: event.pump,"""
 
+# Finding 037 only, and only when --lok-trace is passed.
+#
+# The engine emits every LOK callback as a {"type":"lok"} event before it
+# handles it (probe_engine.cpp onLokCallback), so the callback stream is
+# already there; the shared worker forwards two ids as document-invalidated and
+# six more only under debug, and drops the rest.  A barrier that never returns
+# writes no evidence of its own, so this stream is the only record of how far
+# the engine got before it stopped -- and it costs no rebuild, which means the
+# run stays bound to the same artifact as the run it is explaining.
+#
+# Additive: the existing document-invalidated and lok-review paths are left
+# exactly as they are, so a traced profile differs from an untraced one by what
+# it reports and not by what it does.
+WORKER_LOK_TRACE_BEFORE = """    case "lok":
+      if (event.id === 0 || event.id === 1) {"""
 
-def write_e2_worker(source: Path, destination: Path) -> dict[str, object]:
+WORKER_LOK_TRACE_AFTER = """    case "lok":
+      if (debugEnabled)
+        postEvent("diagnostic", { level: "lok-trace", detail: event });
+      if (event.id === 0 || event.id === 1) {"""
+
+
+def write_e2_worker(source: Path, destination: Path,
+                    lok_trace: bool = False) -> dict[str, object]:
     text = source.read_text(encoding="utf-8")
-    edits = []
-    for name, before, after in (
+    patches = [
         ("discovery-scope-gate", WORKER_GATE_BEFORE, WORKER_GATE_AFTER),
         ("discovery-gate-message", WORKER_MESSAGE_BEFORE, WORKER_MESSAGE_AFTER),
         ("format-barrier-counters", WORKER_BARRIER_BEFORE, WORKER_BARRIER_AFTER),
         ("scheduler-drain-pump", WORKER_DRAIN_BEFORE, WORKER_DRAIN_AFTER),
         ("format-barrier-error-details", WORKER_ERROR_BEFORE, WORKER_ERROR_AFTER),
-    ):
+    ]
+    if lok_trace:
+        patches.append(
+            ("lok-callback-trace", WORKER_LOK_TRACE_BEFORE, WORKER_LOK_TRACE_AFTER))
+    edits = []
+    for name, before, after in patches:
         occurrences = text.count(before)
         if occurrences != 1:
             raise SystemExit(
@@ -110,6 +136,7 @@ def write_e2_worker(source: Path, destination: Path) -> dict[str, object]:
         "sourceSha256": sha256(source),
         "edits": edits,
         "sharedWorkerModified": False,
+        "lokCallbackTrace": lok_trace,
     }
 
 
@@ -117,12 +144,13 @@ def build_profile(source_manifest: Path, loader: Path, wasm: Path, worker: Path,
                   output: Path, profile_name: str = "e2-format-discovery",
                   scope: str = "e2-paragraph-format-discovery",
                   extra_capabilities: list[str] | None = None,
-                  ui_language: str | None = None) -> dict[str, object]:
+                  ui_language: str | None = None,
+                  lok_trace: bool = False) -> dict[str, object]:
     manifest = json.loads(source_manifest.read_text(encoding="utf-8"))
     output.mkdir(parents=True, exist_ok=True)
     shutil.copy2(loader, output / "probe.js")
     shutil.copy2(wasm, output / "probe.wasm")
-    worker_patch = write_e2_worker(worker, output / "sdk-worker.js")
+    worker_patch = write_e2_worker(worker, output / "sdk-worker.js", lok_trace)
     manifest["profile"] = profile_name
     manifest["sdkVersion"] = f'{manifest["sdkVersion"]}+{profile_name}'
     manifest["artifactFiles"] = {
@@ -189,10 +217,15 @@ def main() -> None:
     parser.add_argument("--scope", default="e2-paragraph-format-discovery")
     parser.add_argument("--extra-capability", action="append", default=[])
     parser.add_argument("--ui-language", default=None)
+    parser.add_argument(
+        "--lok-trace",
+        action="store_true",
+        help="forward every LOK callback as a diagnostic event (finding 037)",
+    )
     args = parser.parse_args()
     build_profile(args.source_manifest, args.loader, args.wasm, args.worker,
                   args.output, args.profile_name, args.scope,
-                  args.extra_capability, args.ui_language)
+                  args.extra_capability, args.ui_language, args.lok_trace)
 
 
 if __name__ == "__main__":

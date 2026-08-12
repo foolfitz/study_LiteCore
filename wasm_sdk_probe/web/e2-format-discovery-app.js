@@ -22,6 +22,13 @@ const mode = params.get("mode") || "a2";
 // drain, the sequence, the postcondition checks -- is identical, so the two
 // runs are directly comparable and any difference in the reported style strings
 // is the language (finding 031).
+// "wedge-trace" is finding 037's diagnostic: the same discriminator cases
+// against the SAME wasm artifact as e2-format-discovery -- byte-identical,
+// hash checked at packaging time -- with a worker copy that forwards the LOK
+// callback stream the shipped one drops.  A barrier that never returns writes
+// no evidence of its own, so the callback stream is the only record of how far
+// the engine got; running it on a rebuilt engine would have answered a
+// different artifact's question (finding 027).
 const profile = mode === "scheduler-attribution"
   ? "e2-scheduler-attribution"
   : mode === "locale-attribution"
@@ -30,7 +37,19 @@ const profile = mode === "scheduler-attribution"
       ? "e2-mainloop-pei-attribution"
       : mode === "mainloop-attribution" || mode === "mainloop-move-attribution"
         ? "e2-mainloop-attribution"
-        : "e2-format-discovery";
+        : mode === "wedge-trace" || mode === "wedge-split"
+          ? "e2-wedge-trace"
+          : "e2-format-discovery";
+// Which discriminator cases to run, in the order the table declares them.  A
+// case that wedges the handle takes every later case down with it (finding
+// 037), so being able to run one row plus its control is what makes the wedge
+// measurable at all rather than a thing that happens at the end of a long run.
+const caseFilter = (params.get("cases") || "")
+  .split(",").map((value) => value.trim()).filter(Boolean);
+// The worker only forwards the callback stream under debug.  Implied by
+// wedge-trace, so a traced run cannot be started without it.
+const engineDebug = params.get("debug") === "1"
+  || mode === "wedge-trace" || mode === "wedge-split";
 // Finding 021 discriminating experiments.  "mainloop-pei-attribution" runs
 // the scheduler drain (ProcessEventsToIdle) under the live loop; if it still
 // releases watched payloads the PEI-vs-loop difference is PEI's own
@@ -69,6 +88,17 @@ const metrics = {
   readback: [],
   a5: null,
   discriminator: null,
+  // Finding 037.  The last engineTrace entry before the record ends is the
+  // last thing the engine reported doing, which for a barrier that never
+  // returns is the only evidence there is.  A ring rather than a list: the
+  // preamble emits thousands of tile invalidations and keeping them all would
+  // trade the answer for the noise in front of it.  Counting by id separately
+  // means the ring can drop entries without the totals losing them.
+  engineTrace: [],
+  engineTraceDropped: 0,
+  engineTraceCounts: {},
+  cancelResults: [],
+  wedgeSplit: null,
   closeMs: null,
   control: [],
   readbackAfterControl: [],
@@ -78,6 +108,9 @@ const metrics = {
   pass: false,
 };
 const outputs = new Map();
+// The liveness ladder needs the engine itself, not a document handle: two of
+// its three rungs are about whether anything below the handle still answers.
+let activeEngine = null;
 globalThis.__e2_discovery = metrics;
 // Shared ChromeSession.navigate() uses this generic readiness sentinel.
 globalThis.__probe_metrics = metrics;
@@ -344,6 +377,52 @@ async function runA5(client, documentHandle, anchorText) {
 function log(value) {
   const text = typeof value === "string" ? value : JSON.stringify(value);
   logNode.textContent += `${text}\n`;
+}
+
+// LibreOfficeKitEnums.h, copied for the ids this diagnostic can actually meet.
+// An id with no name here still records as a number -- naming is for reading
+// the trace, not for deciding what to keep, and a filter that dropped unnamed
+// ids would hide exactly the callback nobody expected.
+const LOK_CALLBACK_NAMES = {
+  0: "INVALIDATE_TILES", 1: "INVALIDATE_VISIBLE_CURSOR", 2: "TEXT_SELECTION",
+  3: "TEXT_SELECTION_START", 4: "TEXT_SELECTION_END", 5: "CURSOR_VISIBLE",
+  6: "GRAPHIC_SELECTION", 8: "STATE_CHANGED", 9: "STATUS_INDICATOR_START",
+  10: "STATUS_INDICATOR_SET_VALUE", 11: "STATUS_INDICATOR_FINISH",
+  12: "SEARCH_NOT_FOUND", 13: "DOCUMENT_SIZE_CHANGED",
+  15: "SEARCH_RESULT_SELECTION", 16: "UNO_COMMAND_RESULT", 18: "MOUSE_POINTER",
+  22: "ERROR", 23: "CONTEXT_MENU", 24: "INVALIDATE_VIEW_CURSOR",
+  25: "TEXT_VIEW_SELECTION", 27: "GRAPHIC_VIEW_SELECTION",
+  28: "VIEW_CURSOR_VISIBLE", 33: "INVALIDATE_HEADER", 35: "RULER_UPDATE",
+  36: "WINDOW", 38: "CLIPBOARD_CHANGED", 39: "CONTEXT_CHANGED",
+  45: "REFERENCE_MARKS", 48: "TAB_STOP_LIST", 52: "DOCUMENT_BACKGROUND_COLOR",
+  55: "CONTENT_CONTROL", 57: "FONTS_MISSING", 60: "VIEW_RENDER_STATE",
+  70: "CORE_LOG", 71: "TOOLTIP",
+};
+
+const ENGINE_TRACE_LIMIT = 900;
+
+// Finding 037.  Each entry is one LOK callback as the engine saw it, stamped
+// on arrival at the page.  The stamp is what makes a gap readable: "the last
+// callback was UNO_COMMAND_RESULT at 41 200 ms and the run ended at 61 300 ms"
+// is a measurement, while the same list without times is just an ordering.
+function recordEngineTrace(detail) {
+  const id = Number(detail?.id);
+  const key = `${id}:${LOK_CALLBACK_NAMES[id] || "UNNAMED"}`;
+  metrics.engineTraceCounts[key] = (metrics.engineTraceCounts[key] || 0) + 1;
+  metrics.engineTrace.push({
+    id,
+    name: LOK_CALLBACK_NAMES[id] || null,
+    atMs: Math.round(performance.now()),
+    // Truncated, not dropped: UNO_COMMAND_RESULT carries which command
+    // finished and TEXT_SELECTION carries whether anything is selected, and
+    // both of those are the difference between "a callback arrived" and
+    // "the barrier could have advanced on it".
+    payload: String(detail?.payload || "").slice(0, 240),
+  });
+  while (metrics.engineTrace.length > ENGINE_TRACE_LIMIT) {
+    metrics.engineTrace.shift();
+    ++metrics.engineTraceDropped;
+  }
 }
 
 function checkpoint(name, detail = {}) {
@@ -767,9 +846,18 @@ function blockTagCensus(html) {
 }
 
 async function runDiscriminator(client, documentHandle) {
-  const cases = DISCRIMINATOR_CASES[fixtureId];
-  if (!cases)
+  const declared = DISCRIMINATOR_CASES[fixtureId];
+  if (!declared)
     throw new Error(`no discriminator cases for fixture: ${fixtureId}`);
+  // A named case that does not exist is a typo, and a typo that silently runs
+  // nothing looks exactly like a case that passed.
+  for (const name of caseFilter) {
+    if (!declared.some((definition) => definition.case === name))
+      throw new Error(`unknown discriminator case: ${name}`);
+  }
+  const cases = caseFilter.length
+    ? declared.filter((definition) => caseFilter.includes(definition.case))
+    : declared;
   const results = [];
   for (const definition of cases) {
     const entry = {
@@ -888,10 +976,164 @@ async function runDiscriminator(client, documentHandle) {
       entry.status = "failed";
       entry.setupError = errorValue(error);
     }
+    // Outside the try on purpose: the rung that matters most is the one after a
+    // case that threw.
+    if (mode === "wedge-trace")
+      entry.liveness = await livenessLadder(client);
     results.push(entry);
     log(entry);
   }
   return results;
+}
+
+// Finding 037, second stage.  The callback trace located the wedge inside the
+// barrier's read step, which contains exactly two LOK calls that could fail to
+// return -- getTextSelection("text/html") and setTextSelection(RESET) -- and
+// the callback stream cannot separate them, because neither emits anything on
+// the way in.  So drive each one on its own, on the same paragraph, without the
+// barrier: mouse-drag the selection into place, ask for the selection text
+// (which is the same getFromTransferable machinery the html read uses), then
+// issue the reset by itself.
+//
+// PC-PLAIN runs the identical sequence first.  A step that hangs on both rows
+// is a property of the probe, not of the image.
+const WEDGE_SPLIT_ANCHORS = ["PC-PLAIN", "PC-IMAGE"];
+const WEDGE_SPLIT_TIMEOUT_MS = 10000;
+
+async function runWedgeSplit(client, documentHandle) {
+  const results = [];
+  for (const anchor of WEDGE_SPLIT_ANCHORS) {
+    const entry = { anchor, steps: [] };
+    const step = async (name, fn) => {
+      const started = performance.now();
+      const record = { step: name, atMs: Math.round(started) };
+      try {
+        record.value = await fn();
+        record.status = "completed";
+      } catch (error) {
+        record.status = "failed";
+        record.error = errorValue(error);
+      }
+      record.elapsedMs = Math.round(performance.now() - started);
+      entry.steps.push(record);
+      log({ wedgeSplit: anchor, ...record });
+      return record;
+    };
+
+    const located = await step("locate", async () => {
+      const search = await documentHandle.search(anchor, {
+        timeoutMs: WEDGE_SPLIT_TIMEOUT_MS });
+      const rectangle = firstRectangle(search);
+      if (!rectangle)
+        throw new Error(`anchor rectangle unavailable: ${anchor}`);
+      return rectangle;
+    });
+    const rectangle = located.value;
+    if (!rectangle) {
+      results.push(entry);
+      continue;
+    }
+    const midY = rectangle.y + Math.max(1, Math.floor(rectangle.height / 2));
+    // Past the end of the line on purpose: the point is to cover whatever
+    // follows the anchor text, which on PC-IMAGE is the image.
+    const endX = rectangle.x + 8000;
+
+    await step("drag-select", () => activeEngine._request("editorDiscoverySelect", {
+      documentHandle: documentHandle.handle,
+      method: "mouse-drag",
+      startXTwips: rectangle.x,
+      startYTwips: midY,
+      endXTwips: endX,
+      endYTwips: midY,
+    }, { timeoutMs: WEDGE_SPLIT_TIMEOUT_MS }));
+
+    // What actually got selected.  Without this the two rows cannot be
+    // compared: a drag that selected a different span would make any
+    // difference downstream a difference in the input, not in the call.
+    await step("selection-rectangles", async () => {
+      const state = await client.getState({ timeoutMs: WEDGE_SPLIT_TIMEOUT_MS });
+      return state?.state?.selection || state?.selection || null;
+    });
+
+    // Probe G: getSelectionTypeAndText("text/plain;charset=utf-8"), which is
+    // the transferable path the html readback also goes through.
+    await step("get-selection-text", () => documentHandle.getSelection({
+      timeoutMs: WEDGE_SPLIT_TIMEOUT_MS }));
+
+    // Probe R: the barrier's restore call, alone.
+    await step("selection-reset", () => activeEngine._request("editorDiscoverySelect", {
+      documentHandle: documentHandle.handle,
+      method: "selection-reset-unstable",
+      startXTwips: rectangle.x + rectangle.width,
+      startYTwips: midY,
+      endXTwips: rectangle.x + rectangle.width,
+      endYTwips: midY,
+    }, { timeoutMs: WEDGE_SPLIT_TIMEOUT_MS }));
+
+    entry.liveness = await livenessLadder(client);
+    results.push(entry);
+  }
+  return results;
+}
+
+// Finding 037.  "The handle stopped answering" does not say what stopped, and
+// the answer decides what a fix could even look like.  Three rungs, ordered by
+// how much of the stack each one needs:
+//
+//   workerJs   an operation the Worker rejects in its own JS, before it calls
+//              into wasm at all.  Alive means the Worker thread still runs.
+//   engine     a real operation, which only completes if the engine thread
+//              pops it off the queue.
+//   wasmMain   the cancel the SDK posts automatically when a request times
+//              out.  The Worker answers it by calling oxsdk_request_cancel
+//              from its own thread, so a reply means the module is still
+//              callable and the engine's global mutex is not held.
+//
+// Run after every case, the passing ones included: rungs that have only ever
+// been run against a broken state cannot show that they can fail.
+async function livenessLadder(client) {
+  const ladder = { atMs: Math.round(performance.now()) };
+
+  const workerJsStarted = performance.now();
+  try {
+    await activeEngine._request(
+      "oxsdkLivenessProbeNoSuchOperation", {}, { timeoutMs: 5000 });
+    // A worker that accepts this is not the worker this probe was written
+    // against, and reporting it as liveness would be reporting a guess.
+    ladder.workerJs = "unexpected-success";
+  } catch (error) {
+    ladder.workerJs = error?.code === "UNKNOWN_OPERATION" ? "alive" : "other";
+    ladder.workerJsError = errorValue(error);
+  }
+  ladder.workerJsMs = Math.round(performance.now() - workerJsStarted);
+
+  const cancelsBefore = metrics.cancelResults.length;
+  const engineStarted = performance.now();
+  try {
+    await client.getState({ timeoutMs: 5000 });
+    ladder.engine = "alive";
+  } catch (error) {
+    ladder.engine = error?.code === "TIMEOUT" ? "timed-out" : "other";
+    ladder.engineError = errorValue(error);
+  }
+  ladder.engineMs = Math.round(performance.now() - engineStarted);
+
+  // Only meaningful when the rung above timed out, because that timeout is
+  // what makes the SDK post the cancel this rung is waiting for.
+  if (ladder.engine === "timed-out") {
+    const waitStarted = performance.now();
+    while (metrics.cancelResults.length === cancelsBefore
+        && performance.now() - waitStarted < 5000)
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    ladder.wasmMain = metrics.cancelResults.length > cancelsBefore
+      ? "alive" : "no-reply";
+    ladder.wasmMainMs = Math.round(performance.now() - waitStarted);
+    ladder.cancelResult = metrics.cancelResults[cancelsBefore] || null;
+  } else {
+    ladder.wasmMain = "not-probed";
+  }
+  log({ liveness: ladder });
+  return ladder;
 }
 
 async function caretAtAnchor(documentHandle, client, anchor, method) {
@@ -1079,9 +1321,23 @@ async function run() {
       workerUrl: `./profiles/${profile}/sdk-worker.js`,
       timeoutMs: 30000,
       closeRecoveryTimeoutMs: 10000,
+      debug: engineDebug,
     });
+    activeEngine = engine;
     metrics.manifest = engine.manifest;
     engine.onEvent((event) => {
+      if (event.event === "diagnostic" && event.level === "lok-trace") {
+        recordEngineTrace(event.detail);
+        return;
+      }
+      if (event.event === "cancel-result") {
+        metrics.cancelResults.push({
+          requestId: event.requestId,
+          status: event.status,
+          atMs: Math.round(performance.now()),
+        });
+        return;
+      }
       if (event.event === "editor-state") {
         const record = {
           source: event.source,
@@ -1136,14 +1392,23 @@ async function run() {
     await runControl(client);
     checkpoint("readback-after-control");
     await runReadback(documentHandle, client, metrics.readbackAfterControl, "search");
-    if (mode === "discriminator") {
+    if (mode === "wedge-split") {
+      checkpoint("wedge-split");
+      metrics.wedgeSplit = await runWedgeSplit(client, documentHandle);
+    } else if (mode === "discriminator" || mode === "wedge-trace") {
       checkpoint("discriminator");
       metrics.discriminator = await runDiscriminator(client, documentHandle);
       // One save at the end.  The false-failure case is judged on the gap
       // between what the barrier reported and what the document became, so the
       // file is not optional evidence here -- it is half the case.
       try {
-        const buffer = await documentHandle.save({ format: "odt" }, { timeoutMs: 180000 });
+        // Shorter under wedge-trace: the point of that mode is the callback
+        // stream, and it deliberately runs a case that stops answering, so a
+        // three-minute save timeout would only add three minutes of silence to
+        // the record.  The attempt itself is kept -- whether a wedged handle
+        // still saves is part of what the mode measures.
+        const buffer = await documentHandle.save(
+          { format: "odt" }, { timeoutMs: mode === "wedge-trace" ? 30000 : 180000 });
         outputs.set("discriminator-final", buffer);
         metrics.outputs.push({ label: "discriminator-final", bytes: buffer.byteLength });
       } catch (error) {
