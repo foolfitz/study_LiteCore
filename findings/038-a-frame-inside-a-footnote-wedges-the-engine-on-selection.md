@@ -10,7 +10,7 @@
 | **Bugzilla** | —（與 [037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md)／[012](012-r6-styled-document-close-timeout.md) 同族，未送） |
 | **發現日** | 2026-08-12 |
 | **嚴重度** | **嚴重**——引擎執行緒之後不再回應任何命令，只有重啟 worker 能救 |
-| **可重現** | Chrome 2/2；Firefox 1/1；三種選取方式各 1/1；尾註 1/1；派送動作 1/1；靜置 8 秒不下命令一樣死 1/1 |
+| **可重現** | Chrome 2/2；Firefox 1/1；三種選取方式各 1/1；尾註 1/1；派送動作 1/1；靜置 8 秒一樣死 1/1；**出貨 artifact `835b453d` 上 1/1** |
 | **是否上游** | **是**（我方只發了一個滑鼠拖曳選取） |
 
 ## 摘要
@@ -119,6 +119,38 @@ FX-TAIL  locate               failed    10000 ms   search 逾時（下一列連�
 （約 513 twips），兩列都回 `selectionType=none`——**拖曳距離太短，根本沒有形成選取**。
 如果我只看「有沒有卡」，那一輪會被讀成「部分選取不會卡」，而它其實什麼都沒選。
 **一個沒有做到事情的探針，看起來和「做了但沒事」一模一樣。**
+
+## 出貨編輯器也會卡——已在它自己的 artifact 上量到（2026-08-12，證據 `sdk-e1/note-frame-select/`）
+
+**在這之前，「出貨的範圍選取會觸發 038」是跨 artifact 的推論，不是量測。** 038 每一格都跑在
+`c89f069e`（E2 探索引擎）上，走的是 `editorDiscoverySelect`；而出貨編輯器**根本沒有那條路**
+（`e1-editor-v1` 宣告 `narrow-editor-v1`，沒有 `editor-discovery-closed-actions`）。
+外部覆核（fable）指出這一點，並要求在動任何修法之前先補這一格——修法一旦上線，
+「今天的使用者會遇到什麼」就永遠問不到了（同 037 那一輪「必須在修法之前量」的理由）。
+
+出貨 artifact `835b453d`，出貨客戶端 `NarrowEditorClient.selectRange`
+（走 `editorSelectRangeV1`），每個案例各開一個新引擎：
+
+| case | 形狀 | `selectRange` | 事後編輯器 |
+|---|---|---|---|
+| `plain-full` | 沒有 frame 的段落（對照） | 完成 7 ms | **可用**，讀回段落文字 |
+| `note-partial` | 註腳段落，只選到 2400 twips | 完成 6 ms | **可用**，讀回 `FX-NOTE paragraph wh` |
+| **`note-full`** | **註腳段落，選取涵蓋引用記號** | **TIMEOUT，15004 ms** | **不可用**（`getState` 也逾時） |
+
+**所以出貨面確實暴露，而且四格結構與探索引擎上量到的一致。**
+
+**一處自我更正**：我給覆核者的簡報說「產品在死掉之前最後一個對外訊息是 `completed`」。
+那對**診斷路徑**成立（`editorDiscoverySelect` 回報完成後引擎才死），**對出貨路徑不成立**——
+出貨的 `selectRange` 在請求之後還會讀回選取狀態，所以呼叫端拿到的是 **`TIMEOUT`，不是成功**。
+覆核者「文件帶過不可接受」的最強論據因此在出貨面**比我描述的弱**：
+使用者的操作會失敗並且說它失敗了，壞的是**之後整個編輯器不再回應、未存檔內容只能靠重啟 worker 拿回**——
+那仍然嚴重，但理由不是「謊報成功」。
+
+**順帶再一次確認 [012](012-r6-styled-document-close-timeout.md)**：三個案例（含兩個沒卡的）
+`close` 全部走 `document-close-recovery`、各約 10.9 秒——因為這份文件裡有 as-char frame。
+
+**沒量到的**：這一輪用的是 `NarrowEditorClient` 直接對 document handle，**沒有跑完整的
+`EditorSession` 狀態機**，所以「產品會不會自己升級成 `restart-required`」仍然沒有答案。
 
 ## 沒有做的事（誠實界線）
 
