@@ -398,27 +398,38 @@
   },
   "statusProvenance": {
     "replaced": "A2-complete-A3-ready-route-c-readback-postcondition",
-    "date": "2026-08-11 (re-swept after the finding 034 engine change)",
+    "date": "2026-08-12 (re-swept after the finding 035 structural-set engine change)",
     "decidedBy": "wasm_sdk_probe/tools/validate_e2_a.py against the evidence tree",
-    "boundTo": "engine wasm 38168306b20891e90217a83444dcd192552605e9fde5d595cdbfc101465ecba1",
+    "boundTo": "engine wasm ee185b3d5972cac761acbcbc19cbafe916962788822e7cbae87bfe771d62a566",
     "counts": {
       "a3": "18 runs / 90 dispatches, 3 passing per browser per fixture",
       "a4": "18 runs / 270 dispatches, 3 passing per browser per fixture",
       "a5": "8 runs / 42 cases, both browsers, all four fixtures"
     },
+    "noRegression": "every suite that passed on 38168306 passes here with the same counts. The structural set was widened, which can only let more shapes through; the sweep is what turns that from an argument into a measurement.",
+    "sweepGuard": "the driver recomputed the artifact sha256 before every one of the 44 runs and would have aborted on a mismatch. Two artifact swaps happened in the same session -- the finding 037 dual-build control -- so a stale binding was a live risk, not a hypothetical.",
     "notCovered": [
       "A6 secondary capabilities",
       "A7 round-trip and regression",
-      "paragraphContentCoverage: inline character formatting and CJK text both FAIL (finding 035, unfixed) -- covered by measurement, not passing"
+      "paragraphContentCoverage: a paragraph with a footnote or endnote is refused by design (footnote-apparatus-readback); a paragraph with an inline image wedges the handle (finding 037, unfixed)"
     ],
     "supersededBinding": {
-      "boundTo": "engine wasm 25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+      "boundTo": "engine wasm 38168306b20891e90217a83444dcd192552605e9fde5d595cdbfc101465ecba1",
       "counts": {
-        "a3": "21 runs / 105 dispatches, 3+ passing per browser per fixture",
-        "a4": "18 runs / 270 dispatches",
-        "a5": "11 runs / 58 cases, both browsers, all four fixtures"
+        "a3": "18 runs / 90 dispatches, 3 passing per browser per fixture",
+        "a4": "18 runs / 270 dispatches, 3 passing per browser per fixture",
+        "a5": "8 runs / 42 cases, both browsers, all four fixtures"
       },
-      "why": "the engine changed on 2026-08-11 (finding 034), so every run above became evidence about a different artifact (finding 027). The artifact itself is gone and cannot be rebuilt -- see finding 036 -- so these counts can never be reproduced, only cited."
+      "why": "the engine changed on 2026-08-12 (finding 035 structural set), so every run bound to 38168306 became evidence about a different artifact (finding 027). That artifact IS retained this time -- build/archive/e2-format-discovery-38168306/ -- so unlike the 25761ff0 case its runs can still be reproduced rather than only cited.",
+      "supersededBinding": {
+        "boundTo": "engine wasm 25761ff0a93d32f53583b371b734bc29efb12f9a33f3a5fa3bfc4f17a3365b2d",
+        "counts": {
+          "a3": "21 runs / 105 dispatches, 3+ passing per browser per fixture",
+          "a4": "18 runs / 270 dispatches",
+          "a5": "11 runs / 58 cases, both browsers, all four fixtures"
+        },
+        "why": "the engine changed on 2026-08-11 (finding 034), so every run above became evidence about a different artifact (finding 027). The artifact itself is gone and cannot be rebuilt -- see finding 036 -- so these counts can never be reproduced, only cited."
+      }
     }
   },
   "caretOffsetCoverage": {
@@ -445,11 +456,36 @@
     "axis": [
       "plain-ascii-no-runs",
       "inline-character-formatting",
-      "cjk-text"
+      "cjk-text",
+      "heading-levels",
+      "preformatted",
+      "quotations",
+      "title-subtitle",
+      "hyperlink",
+      "bookmark",
+      "footnote-or-endnote",
+      "comment-annotation",
+      "inline-image",
+      "hard-line-break",
+      "paragraph-in-a-section",
+      "list-item"
     ],
     "evidenceBefore20260811": "plain-ascii-no-runs only, in all 375 judged dispatches",
+    "measuredBy": "M2, 21 paragraph shapes: native 26.8 in paragraph-content/native-26-8/, then the same shapes on the shipped WASM engine in paragraph-content/wasm-ee185b3d/, with the pre-change artifact re-run as a control in paragraph-content/wasm-38168306-control/",
     "plain-ascii-no-runs": "covered, passing",
-    "inline-character-formatting": "covered 2026-08-11, FAILING on both builds (unknownTag on <b>/<i>) -- finding 035, unfixed",
-    "cjk-text": "covered 2026-08-11, FAILING on both builds (unknownTag on <font>/<span>) -- finding 035, unfixed"
+    "inline-character-formatting": "covered 2026-08-11, FAILED on 38168306 and bd102b4a; PASSING on ee185b3d",
+    "cjk-text": "covered 2026-08-11, FAILED on both older builds; PASSING on ee185b3d (the <b> inside the CJK font run is nested, so it is ignored)",
+    "heading-levels": "covered 2026-08-12: ODF outline 2-6 read back as h2-h6 and pass; levels 7 and 10 read back as a plain <p>, so a level-7 heading is INDISTINGUISHABLE from body text -- harmless while the closed set has one heading level, load-bearing the moment it does not",
+    "preformatted": "covered 2026-08-12, passing (blockTag pre)",
+    "quotations": "covered 2026-08-12, passing (blockTag blockquote)",
+    "title-subtitle": "covered 2026-08-12, passing, but both read back as <p>: indistinguishable from body text on the block-tag axis",
+    "hyperlink": "covered 2026-08-12, passing (<a> is nested)",
+    "bookmark": "covered 2026-08-12, passing (<a name=...> is nested)",
+    "footnote-or-endnote": "covered 2026-08-12, REFUSED BY DESIGN: the note body is a second body-level block, so the read is refused under footnote-apparatus-readback. A deliberate narrowing decided by external review, not a defect -- see finding 035",
+    "comment-annotation": "covered 2026-08-12, passing (the annotation serialises as an HTML comment, which carries no tag name)",
+    "inline-image": "covered 2026-08-12, WEDGES THE HANDLE on both builds -- finding 037, unfixed. Not a refusal: the action times out at 20 s and every later operation fails",
+    "hard-line-break": "covered 2026-08-12, passing (<br/> opens no block)",
+    "paragraph-in-a-section": "covered 2026-08-12, passing (text:section leaves no wrapper)",
+    "list-item": "covered 2026-08-12, passing (listTag ul, itemCount 1, blockCount 1 -- structural tags counted at every depth)"
   }
 }

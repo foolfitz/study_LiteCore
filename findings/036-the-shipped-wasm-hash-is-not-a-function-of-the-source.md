@@ -86,4 +86,4 @@
 ## 相關
 
 - [032](032-object-file-comparison-is-a-coin-flip-not-an-isolation-check.md)——同一個不確定性，第一個後果（逐位元比對不是隔離檢查）。隔離檢查改用前處理 TU 比對，本輪照做且通過。
-- [027](027-verdicts-must-be-recomputed-against-the-artifact-that-produced-them.md)——判定必須綁定產生它的 artifact。
+- [027](027-r8d-verdict-silently-outlived-its-release.md)——判定必須綁定產生它的 artifact。

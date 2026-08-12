@@ -27,8 +27,8 @@
       "note": "pMimeTypes=NULL makes core enumerate getTransferDataFlavors() (init.cxx:6082) -- the offer measured rather than listed by us. It reads the LOK clipboard, so .uno:Copy must run first.",
       "rows": {
         "application/x-openoffice-embed-source-xml;...": 6411,
-        "text/rtf": 3354,
-        "text/richtext": 3354,
+        "text/rtf": "3354 bytes -- ENUMERATED, NOT ANALYSED (size only, payload never read)",
+        "text/richtext": "3354 bytes -- ENUMERATED, NOT ANALYSED (size only, payload never read)",
         "text/html": 638,
         "text/markdown": 21,
         "text/plain;charset=utf-8": 17,
@@ -86,7 +86,29 @@
       "reading": "blocks are separated by a blank line, so finding 034's multi-block guard survives the change: 'the payload contains \\n\\n' replaces 'more than one block tag'."
     }
   },
+  "answer5_nestingAudit": {
+    "shortAnswer": "the depth rule option (B) needs is computable on this data -- open/close balance, no self-closing structural tags, and zero non-structural tags at depth 0",
+    "addedOn": "2026-08-11 (M1). The tag inventory above counted OPEN tags only, but rule 2 is stated in terms of DEPTH, and depth needs close tags. Re-scanned the same saved readbacks.",
+    "artifacts": {
+      "script": "analyze_readback_nesting.py",
+      "result": "nesting-audit.json",
+      "mutationInput": "nesting-audit-mutation-input.jsonl",
+      "mutationControl": "nesting-audit-mutation-control.json"
+    },
+    "input": {"readbackRecords": 25, "anchorsAnalyzed": 24, "skipped": 1, "skippedWhich": "plain-grapheme/combining é boundary (record carries skipped=true from the original run)", "tagOccurrences": 82},
+    "results": {
+      "allFinalDepthsZero": true,
+      "anyWentNegative": false,
+      "selfClosingStructuralTags": 0,
+      "nesting": "well-formed: 0 mismatched close tags, 0 unclosed tags",
+      "nonStructuralTagDepths": "b 6, font 12, i 2, span 6 tag events -- ALL at depth 1, ZERO at depth 0",
+      "reading": "(B)'s premise -- that a non-structural tag never appears at body level -- holds over every shape measured so far."
+    },
+    "mutationControl": "the script was run against six synthetic violations and reported all six: non-structural tag at depth 0, negative depth, self-closing structural tag (<p/>), void tag without a slash (<br>), stack mismatch (<p><b>x</p></b>), and an unclosed tag. It is a check that can fail, not a script that prints green.",
+    "boundedBy": "br occurs 0 times in these bodies, which must NOT be read as 'no void tags exist': the earlier selecttext-result probe measured an empty paragraph as <p><br/><br/></p>, and the empty-paragraph fixture's anchors here are its two TEXT-bearing paragraphs -- the empty ones were never read back. ol likewise appears only in the action sweep, not in these readbacks. The parser still has to handle void tags."
+  },
   "notMeasured": [
+    "text/rtf and text/richtext -- enumerated in the flavour list with a size, never opened. Three formats were ANALYSED (ODF, HTML, Markdown), not the eight enumerated; commit 78d6ac3's message 'three readback formats measured' is accurate only in that narrow reading. Not pursued because RTF list detection needs the \\listoverride tables plus style state -- much heavier than a tag scan -- and the HTML route has a workable answer. This is the unopened door if option (B) fails M2.",
     "hyperlinks, footnotes, comment anchors and inline images inside a selected paragraph -- absent from the corpus, so the tag inventory's 'no violations' is bounded by that",
     "whether a hard line break inside a paragraph emits \\n\\n and so trips the multi-block guard (fails closed, so the safe direction, but unmeasured)",
     "whether the Markdown export is stable across versions -- it is a serialiser output with no documented contract, the same objection SPEC E2-A 2.8 already records against the HTML read. The exposed surface is three tokens instead of an open tag set, which is smaller, not zero.",
@@ -123,7 +145,9 @@
     "chosen": "HTML with an odfdom-shaped structural classification (option B)",
     "markdown": "REFUSED on the escaping measurement above -- not on taste",
     "odf": "REFUSED on cost: reachable only through getClipboard, which means clobbering the user's clipboard on every format action and unpacking a ZIP inside the WASM engine",
-    "structuralTagsFromMeasurement": "p, h1, ul, ol, li -- the tags observed at body level across 17 anchors, plus ol which the action sweep produces. Everything inside an open block is ignored; an unknown STRUCTURAL tag still fails closed.",
+    "structuralTagsFromMeasurement": "p, h1, ul, ol, li -- the tags observed at body level across 17 anchors, plus ol which the action sweep produces. Structural tags are recognised and counted at EVERY depth (blockCount/itemCount/listTag/blockTag keep their current semantics); only NON-structural tags are filtered by position: ignored at structural depth >= 1, and unknown/fail-closed at depth 0.",
+    "correction2026-08-11": "an earlier version of this decision read 'everything inside an open block is ignored'. That is wrong and would have removed half of finding 034's fix: li is never at body level (atBodyLevel=0, always inside ul/ol) and the <p> inside a list item is nested too, so both would have been ignored -- itemCount 0, blockCount 0, blockTag empty, A3/A4 broken. Caught by external review (fable) and confirmed by recomputation.",
+    "unknownTagOrdering": "unknownTag must be judged FIRST, before multiBlock and containment. It currently hides inside formatBarrierReadbackSatisfied(), and on an abort the counts are truncated, so multiBlock is meaningless at that point. Failure code MUTATION_OUTCOME_UNKNOWN, failureShape 'unknown-structural-tag', and the offending tag name recorded in evidence.",
     "openForDecision": "whether to include table/td/h2-h6/blockquote. They never appeared: SelectText inside a table cell serialises as a bare <p>, and the closed action set has one heading level. Adding them now would be listing from imagination rather than measurement, which is what this probe exists to avoid."
   }
 }

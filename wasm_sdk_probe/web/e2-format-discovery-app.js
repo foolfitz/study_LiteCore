@@ -656,6 +656,95 @@ const DISCRIMINATOR_CASES = {
       expects: "the stall the deadline exists to end; must fail typed and quickly, and the handle must still work",
     },
   ],
+  // Finding 035 / M2, run on the WASM engine.  Two jobs at once.
+  //
+  // One: the structural set was decided from a NATIVE 26.8 sweep, and the
+  // barrier ships in WASM.  Same coreCommit and no worktree patch touches sw/,
+  // but the two builds are not byte-identical -- the CSS property order inside
+  // a style attribute is reversed between them -- so "same serialiser" is an
+  // inference until each shape is read on this side too.
+  //
+  // Two: the parser was verified by slicing it out of probe_engine.cpp and
+  // compiling that text natively.  That tests the source.  This tests the
+  // artifact that ships, which is the thing a verdict can be bound to.
+  //
+  // set-list-none is the action throughout, because on a paragraph that is not
+  // a list item it changes nothing while still driving the full postcondition
+  // read.  PC-LIST-ITEM is the one row where it really mutates, so it is last.
+  "paragraph-content": [
+    ...[
+      ["PC-PLAIN", "PC-H2", "verified: the shape the old tag set already accepted"],
+      ["PC-H2", "PC-H3", "verified, blockTag h2: refused as an unknown tag before this build"],
+      ["PC-H3", "PC-H4", "verified, blockTag h3"],
+      ["PC-H4", "PC-H5", "verified, blockTag h4"],
+      ["PC-H5", "PC-H6", "verified, blockTag h5"],
+      ["PC-H6", "PC-H7", "verified, blockTag h6"],
+      ["PC-H7", "PC-H10", "verified, blockTag p: ODF outline level 7 has no HTML tag and serialises as a paragraph"],
+      ["PC-H10", "PC-PRE", "verified, blockTag p: same narrowing at level 10"],
+      ["PC-PRE", "PC-QUOTE", "verified, blockTag pre"],
+      ["PC-QUOTE", "PC-TITLE", "verified, blockTag blockquote"],
+      ["PC-TITLE", "PC-SUBTITLE", "verified, blockTag p: Title is indistinguishable from body text here"],
+      ["PC-SUBTITLE", "PC-LINK", "verified, blockTag p"],
+      ["PC-LINK", "PC-BOOKMARK", "verified: <a> is nested, so it is ignored rather than fatal"],
+      ["PC-BOOKMARK", "PC-FOOTNOTE", "verified: the bookmark's <a name=...> is nested too"],
+      ["PC-COMMENT", "PC-IMAGE", "verified: the annotation serialises as an HTML comment, which carries no tag name"],
+      ["PC-BREAK", "PC-CJK-BOLD", "verified: <br/> does not open a block"],
+      ["PC-CJK-BOLD", "PC-SECTION", "verified: the CJK font run and its <b> are nested -- the paragraph finding 035 was written about"],
+      ["PC-SECTION", "PC-LIST-ITEM", "verified: text:section leaves no wrapper in the readback"],
+    ].map(([anchor, neighbour, expects]) => ({
+      case: anchor.toLowerCase(),
+      anchor,
+      dispatchedText: anchor,
+      escapeText: neighbour,
+      home: false,
+      action: "set-list-none",
+      expects,
+    })),
+    {
+      // The one row that must still be refused, and the reason the whole
+      // structural set had to be decided rather than guessed.  A footnote's
+      // body is a second body-level block, so either the div is unknown or the
+      // block count is two; it is refused under its own shape so that neither
+      // the cross-paragraph channel nor the unmeasured-tag channel has to carry
+      // traffic that belongs to a measured, deliberate refusal.
+      case: "pc-footnote",
+      anchor: "PC-FOOTNOTE",
+      dispatchedText: "PC-FOOTNOTE",
+      escapeText: "PC-COMMENT",
+      home: false,
+      action: "set-list-none",
+      expects: "REFUSED with failureShape footnote-apparatus-readback and footnoteApparatus true, not multi-block-readback and not unknown-structural-tag",
+    },
+    {
+      // Last on purpose: this is the only row where set-list-none is not a
+      // no-op, so running it earlier would edit the document the later rows are
+      // read from.
+      case: "pc-list-item",
+      anchor: "PC-LIST-ITEM",
+      dispatchedText: "PC-LIST-ITEM",
+      escapeText: "PC-SECTION",
+      home: false,
+      action: "set-list-none",
+      expects: "verified: the list is removed, so the read comes back with no list tag",
+    },
+    {
+      // LAST, and not for tidiness.  On the first run of this suite this row
+      // timed out at 20 s, the handle stopped answering, and every row after it
+      // died on getState -- so five shapes went unmeasured because of where one
+      // shape sat in the list.  It is the only row whose selection type is
+      // COMPLEX (LOK_SELTYPE_COMPLEX, measured natively in M2), and the 5 s
+      // per-stage deadline did not rescue it, which is a defect in its own
+      // right.  Kept in the suite because dropping it would hide the wedge;
+      // kept last so it cannot take the other rows down with it again.
+      case: "pc-image",
+      anchor: "PC-IMAGE",
+      dispatchedText: "PC-IMAGE",
+      escapeText: "PC-BREAK",
+      home: false,
+      action: "set-list-none",
+      expects: "UNKNOWN -- wedged the handle on the first run; whether that predates this build is a separate control",
+    },
+  ],
 };
 
 function barrierOf(outcome, error) {
@@ -746,6 +835,18 @@ async function runDiscriminator(client, documentHandle) {
         listTag: barrier?.readback?.listTag ?? null,
         blockTag: barrier?.readback?.blockTag ?? null,
         parsed: barrier?.readback?.parsed ?? null,
+        // Finding 035 / M2.  The scan now has three ways to stop early and each
+        // reports a different shape; recording only "it failed" would put them
+        // back into the one bucket the split exists to break up.  unknownTagName
+        // is the one field that turns "we refused" into something actionable.
+        unknownTag: barrier?.readback?.unknownTag ?? null,
+        unknownTagName: barrier?.readback?.unknownTagName ?? null,
+        malformedNesting: barrier?.readback?.malformedNesting ?? null,
+        footnoteApparatus: barrier?.readback?.footnoteApparatus ?? null,
+        multiBlock: barrier?.readback?.multiBlock ?? null,
+        blockCount: barrier?.readback?.blockCount ?? null,
+        itemCount: barrier?.readback?.itemCount ?? null,
+        failureShape: barrier?.failureShape ?? null,
         restoreConfirmed: barrier?.readback?.restoreConfirmed ?? null,
         blockTags: blockTagCensus(html),
       };

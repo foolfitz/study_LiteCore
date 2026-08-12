@@ -419,12 +419,35 @@ enum class FormatBarrierStage {
   AwaitingRestore,
 };
 
-// The closed set of block tags this build will accept from the selection
-// serialiser.  Anything outside it is not "probably fine", it is a shape this
-// barrier has never measured, so it fails closed.
-bool formatTagIsKnown(const std::string &tag) {
-  return tag == "ul" || tag == "ol" || tag == "li" || tag == "h1" || tag == "p";
+// The structural set, and every member of it was measured at body level rather
+// than listed from imagination (M2, evidence paragraph-content/native-26-8/,
+// 21 paragraph shapes).  The previous set was ul/ol/li/h1/p, which was measured
+// against three fixtures whose paragraphs happen to carry no character
+// formatting -- finding 035.
+//
+// h7 and above are deliberately absent: HTML has no such tags, and ODF outline
+// levels 7-10 were measured to serialise as a plain <p>.  A level-7 heading is
+// therefore indistinguishable from body text here, the same narrowing that
+// already applies to Title and Subtitle.
+bool formatTagIsStructural(const std::string &tag) {
+  return tag == "p" || tag == "h1" || tag == "h2" || tag == "h3" ||
+         tag == "h4" || tag == "h5" || tag == "h6" || tag == "pre" ||
+         tag == "blockquote" || tag == "ul" || tag == "ol" || tag == "li";
 }
+
+// Membership and counting are one decision, not two.  A structural tag that did
+// not contribute to blockCount would let a selection that ran into a <pre>
+// neighbour read as a single block and walk straight past finding 034's guard.
+// ul/ol stay containers and li is counted separately, as before.
+bool formatTagIsBlock(const std::string &tag) {
+  return tag == "p" || tag == "h1" || tag == "h2" || tag == "h3" ||
+         tag == "h4" || tag == "h5" || tag == "h6" || tag == "pre" ||
+         tag == "blockquote";
+}
+
+// No void-tag table here on purpose.  Void tags are all non-structural, so they
+// are already ignored inside an open block and already fail closed outside one;
+// a separate list would be a second place to keep correct for no gain.
 
 // Reads the open-tag sequence inside <body>, which is all the postcondition
 // needs and far less than parsing HTML.
@@ -437,8 +460,21 @@ bool formatTagIsKnown(const std::string &tag) {
 struct FormatReadback {
   bool parsed = false;
   bool unknownTag = false;
+  // Which tag stopped the scan.  "we refused" cannot answer "refused what"
+  // without this, and that question is the whole point of a fail-closed set.
+  std::string unknownTagName;
+  // A structural close tag met at depth 0: the markup is not shaped the way
+  // every measured sample is shaped.  Kept apart from unknownTag because the
+  // two say different things about what went wrong.
+  bool malformedNesting = false;
+  // Finding 035 / M2.  A paragraph carrying a footnote or endnote serialises as
+  // TWO body-level blocks: the paragraph, then <div id="sdfootnoteN"> holding
+  // the note body.  Either way the read is refused, but it is refused for a
+  // reason we measured, so it gets its own channel instead of flooding the two
+  // that exist to report a cross-paragraph read and a genuinely unmeasured tag.
+  bool footnoteApparatus = false;
   std::string listTag;   // "ul", "ol", or empty
-  std::string blockTag;  // "h1" or "p", or empty
+  std::string blockTag;  // the first block-level structural tag, or empty
   // Finding 034.  The select step can cover more than one paragraph -- measured
   // on an empty paragraph mid-document, where the selection spans it and the
   // paragraph after it (native 26.8, selecttext-result/, and the same shape
@@ -446,10 +482,30 @@ struct FormatReadback {
   // *first* block tag it meets, so a two-paragraph read is reported as if it
   // described one paragraph, and whichever verdict follows is a verdict about
   // an unknown mixture.  Counted here so the barrier can refuse instead.
-  std::uint32_t blockCount = 0;  // <p> and <h1>
+  std::uint32_t blockCount = 0;  // block-level structural tags
   std::uint32_t itemCount = 0;   // <li>
   bool multiBlock = false;
 };
+
+// The footnote/endnote container, recognised from what the writer actually
+// emits rather than from the shape of the markup.  sw/source/filter/html/
+// htmlftn.cxx:344-365 writes <div id="sdfootnoteN"> for footnotes and
+// "sdendnoteN" for endnotes, where N is a plain incrementing counter -- a
+// literal and an integer, with no container iteration and no locale in the
+// path, so this is stable by construction rather than by having been seen once.
+//
+// Reading the id is required, not fastidious: the same writer emits <div> from
+// at least seven other places (fly frames, paragraph attributes, sections and
+// multi-column, tables), so treating any body-level div as note apparatus would
+// mislabel six of them.
+bool formatDivIsFootnoteApparatus(const std::string &attributes) {
+  const std::size_t id = attributes.find("id=\"");
+  if (id == std::string::npos)
+    return false;
+  const std::size_t value = id + 4;
+  return attributes.compare(value, 10, "sdfootnote") == 0 ||
+         attributes.compare(value, 9, "sdendnote") == 0;
+}
 
 FormatReadback parseFormatReadback(const std::string &html) {
   FormatReadback readback;
@@ -459,6 +515,13 @@ FormatReadback parseFormatReadback(const std::string &html) {
   std::size_t index = html.find('>', body);
   if (index == std::string::npos)
     return readback;
+  // Structural nesting depth.  Only structural tags move it, and only
+  // non-structural tags are filtered by it.  A structural tag is recognised and
+  // counted at EVERY depth: <li> is never at body level, and the <p> inside a
+  // list item never is either, so a rule that ignored everything inside an open
+  // block would zero itemCount and blockCount and take finding 034's
+  // multi-block guard down with them.
+  int depth = 0;
   bool first = true;
   for (++index; index < html.size(); ++index) {
     if (html[index] != '<')
@@ -466,37 +529,71 @@ FormatReadback parseFormatReadback(const std::string &html) {
     std::size_t start = index + 1;
     if (start >= html.size())
       break;
-    if (html[start] == '/')
-      continue;
+    const bool closing = html[start] == '/';
+    if (closing)
+      ++start;
     std::size_t end = start;
     while (end < html.size() &&
            ((html[end] >= 'a' && html[end] <= 'z') ||
             (html[end] >= 'A' && html[end] <= 'Z') ||
             (html[end] >= '0' && html[end] <= '9')))
       ++end;
+    // No tag name: <!-- a comment --> or <!DOCTYPE ...>.  A comment is what the
+    // serialiser writes for an annotation, measured in M2, so this path is
+    // reached by an ordinary document and must not be a refusal.
     if (end == start)
       continue;
     std::string tag = html.substr(start, end - start);
     for (char &character : tag)
       if (character >= 'A' && character <= 'Z')
         character = static_cast<char>(character - 'A' + 'a');
-    if (!formatTagIsKnown(tag)) {
-      readback.unknownTag = true;
+    const std::size_t bracket = html.find('>', end);
+    const std::string attributes =
+        bracket == std::string::npos ? std::string()
+                                     : html.substr(end, bracket - end);
+    const bool selfClosing = !attributes.empty() && attributes.back() == '/';
+    index = (bracket == std::string::npos ? end : bracket) - 1;
+
+    if (formatTagIsStructural(tag)) {
+      readback.parsed = true;
+      if (closing) {
+        if (depth == 0) {
+          readback.malformedNesting = true;
+          break;
+        }
+        --depth;
+        continue;
+      }
+      if (first) {
+        first = false;
+        if (tag == "ul" || tag == "ol")
+          readback.listTag = tag;
+      }
+      if (formatTagIsBlock(tag)) {
+        ++readback.blockCount;
+        if (readback.blockTag.empty())
+          readback.blockTag = tag;
+      } else if (tag == "li") {
+        ++readback.itemCount;
+      }
+      if (!selfClosing)
+        ++depth;
+      continue;
+    }
+
+    // Non-structural.  Inside an open block it cannot change any answer this
+    // barrier asks, so it is ignored -- that, and only that, is finding 035's
+    // fix.  Outside one it can, so it fails closed.  Closing forms are ignored
+    // either way: an inline close tag answers nothing.
+    if (depth > 0 || closing)
+      continue;
+    if (tag == "div" && formatDivIsFootnoteApparatus(attributes)) {
+      readback.footnoteApparatus = true;
       break;
     }
-    readback.parsed = true;
-    if (first) {
-      first = false;
-      if (tag == "ul" || tag == "ol")
-        readback.listTag = tag;
-    }
-    if (tag == "h1" || tag == "p")
-      ++readback.blockCount;
-    else if (tag == "li")
-      ++readback.itemCount;
-    if (readback.blockTag.empty() && (tag == "h1" || tag == "p"))
-      readback.blockTag = tag;
-    index = end - 1;
+    readback.unknownTag = true;
+    readback.unknownTagName = tag;
+    break;
   }
   // Either count above one means the selection was not one paragraph.  Both are
   // checked: a two-paragraph plain read shows up as two block tags, and two
@@ -1032,6 +1129,15 @@ void appendFormatBarrierDetails(std::ostringstream &json,
        << (barrier.readback.parsed ? "true" : "false")
        << ",\"unknownTag\":"
        << (barrier.readback.unknownTag ? "true" : "false")
+       // Which tag stopped the scan.  Without it the evidence can say the read
+       // was refused but not what it was refused over, which is the one thing
+       // the next person needs in order to decide whether to measure it.
+       << ",\"unknownTagName\":\""
+       << jsonEscape(barrier.readback.unknownTagName.c_str())
+       << "\",\"malformedNesting\":"
+       << (barrier.readback.malformedNesting ? "true" : "false")
+       << ",\"footnoteApparatus\":"
+       << (barrier.readback.footnoteApparatus ? "true" : "false")
        << ",\"multiBlock\":"
        << (barrier.readback.multiBlock ? "true" : "false")
        << ",\"blockCount\":" << barrier.readback.blockCount
@@ -3029,7 +3135,12 @@ void readFormatBarrierPostcondition() {
 
 bool formatBarrierReadbackSatisfied() {
   const FormatReadback &readback = gFormatBarrier.readback;
-  if (!readback.parsed || readback.unknownTag)
+  // unknownTag, malformedNesting and footnoteApparatus are judged before this
+  // function is reached, each with its own failure shape.  They are still
+  // tested here so that this predicate cannot report satisfaction from a scan
+  // that aborted, whatever order a future caller uses.
+  if (!readback.parsed || readback.unknownTag || readback.malformedNesting ||
+      readback.footnoteApparatus)
     return false;
   if (!gFormatBarrier.expectedListTag.empty()) {
     const std::string observed =
@@ -3063,6 +3174,41 @@ void finishFormatBarrierAfterRestore() {
   // available at all; only after both hold does "is it in the target state"
   // become a question with a meaning.  Reversing the order would let a
   // two-paragraph read that happens to start with the right tag report success.
+  // Finding 035 / M2.  These three come FIRST, before multiBlock and before
+  // containment, because each of them means the scan stopped early: the counts
+  // are truncated at that point, so multiBlock is not a fact about the document
+  // but an artefact of where the scan gave up.  They are three channels rather
+  // than one on purpose -- "we refused a shape we measured and chose not to
+  // verify", "we met a tag nobody has ever measured" and "the markup is not
+  // shaped like anything we have seen" are different signals, and folding them
+  // together would make the last one invisible under the traffic of the first.
+  if (gFormatBarrier.readback.footnoteApparatus) {
+    gFormatBarrier.failureShape = "footnote-apparatus-readback";
+    failFormatBarrier(
+        kFormatMutationOutcomeUnknown,
+        "this paragraph carries a footnote or endnote. The action was "
+        "dispatched and the paragraph may already have changed, but this build "
+        "does not verify paragraphs with notes -- check the paragraph and use "
+        "undo if it is not what you wanted. This is a limit of the check, not "
+        "a problem with the document");
+    return;
+  }
+  if (gFormatBarrier.readback.unknownTag) {
+    gFormatBarrier.failureShape = "unknown-structural-tag";
+    failFormatBarrier(
+        kFormatMutationOutcomeUnknown,
+        "the postcondition read met a tag at body level that this build has "
+        "never measured, so no verdict about it is available");
+    return;
+  }
+  if (gFormatBarrier.readback.malformedNesting) {
+    gFormatBarrier.failureShape = "malformed-readback-nesting";
+    failFormatBarrier(
+        kFormatMutationOutcomeUnknown,
+        "the postcondition read closed a block that was never opened, so the "
+        "markup is not shaped like any sample this build was measured against");
+    return;
+  }
   if (gFormatBarrier.readback.multiBlock) {
     gFormatBarrier.failureShape = "multi-block-readback";
     failFormatBarrier(

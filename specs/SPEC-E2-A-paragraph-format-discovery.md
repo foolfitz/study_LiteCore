@@ -352,6 +352,23 @@ track changes），**沒有游標所在段落的樣式或清單狀態**。剩下
 3. **這串 HTML 是序列化器輸出，不是有文件的契約。** 整串比對等於把序列化器釘成 ABI，
    跨版本可能變。**未驗證**，是 A7 回歸該涵蓋的事。
 
+> **2026-08-12 修訂（M2，[finding 035](../findings/035-the-postcondition-read-fails-closed-on-any-formatted-or-cjk-paragraph.md)）。**
+> 上表是照三個 fixture 量的，而那三個 fixture 的**被派送段落全是純 ASCII 且沒有任何 run**。
+> 照它訂出來的封閉標籤集（`ul/ol/li/h1/p`）因此把**每一個帶字元格式或中日韓文字的段落**
+> 都判成未知標籤——中文文件的常態。**本節不是被推翻，是被證明取樣不足**。
+>
+> 重量的做法見 2.10 節：新 fixture `paragraph-content`、21 種段落形態、原生與 WASM 各一輪。
+> 上面第 2 項的縮限**擴大了**：除了「Text body 對 Standard」分不出，
+> **ODF outline level 7–10 也讀回 `<p>`**，Title 與 Subtitle 亦然——
+> 也就是說「不是 heading」這個判準在 level ≥ 7 的標題上會答錯邊。
+> 現行封閉動作集只有一級標題，所以今天無害；
+> **一旦出現「套用第 N 級標題」，N ≥ 7 就是根本無法驗證。**
+>
+> 上面第 3 項（序列化器不是契約）**在同版本內已量到一個實例**：
+> 同一份文件在原生與 WASM 兩個 build（同 `coreCommit`）讀回的
+> `style` 屬性裡 CSS 屬性順序**相反**，`lang` 也會在 `zh-CN` 與 `zh-TW` 之間漂移。
+> 標籤結構一致，所以掃描器不受影響——但**markup 永遠不可以逐位元組比對**。
+
 ### 2.9 readback barrier 已實作並實測（2026-08-11，已觀察）
 
 engine 的 `OXSDK_E2_FORMAT_BARRIER` 已改為路線 C ＋ 文件後置條件：
@@ -797,6 +814,29 @@ level 2／3 為 number），第一版 validator 問「這個樣式含不含 numb
 （呼叫端的決定在三者都相同：不要重放）；診斷差異放 `formatBarrier.failureShape`。
 `EDITOR_FORMAT_POSTCONDITION_FAILED` 收窄為「乾淨讀到單一段落、但不在目標狀態」。
 
+> **2026-08-12 修訂（2.10 節）。** `MUTATION_OUTCOME_UNKNOWN` 底下的 `failureShape`
+> 由三個增為六個，判定順序也改了。**三個「掃描中止」的形狀必須排在
+> `multiBlock` 與 containment 之前**——中止時計數是被截斷的，那時的 `multiBlock`
+> 不是關於文件的事實，而是「掃描在哪裡放棄」的產物。
+>
+> | `failureShape` | 意思 | 判定順序 |
+> |---|---|---|
+> | `footnote-apparatus-readback` | 段落帶註腳／尾註，**量過而裁定不驗證** | 1 |
+> | `unknown-structural-tag` | body 層遇到**沒人量過**的標籤（附標籤名） | 2 |
+> | `malformed-readback-nesting` | 深度 0 關閉了沒開過的區塊 | 3 |
+> | `multi-block-readback` | 讀到超過一個段落（finding 034） | 4 |
+> | `selection-does-not-contain-restore-point` | containment | 5 |
+> | `stage-deadline:<stage>` | 期限 | 任一 awaiting stage |
+>
+> **為什麼是三個通道而不是一個**：這三句話——「我們拒絕驗證一個量過的形狀」、
+> 「我們遇到沒人量過的標籤」、「這份 markup 不像任何看過的樣本」——是不同的訊號。
+> 併成一個之後，註腳的流量會把第二個通道淹掉，而那個通道存在的唯一目的
+> 就是讓**真正沒量過的東西**被看見。
+>
+> **失敗碼本身維持 `MUTATION_OUTCOME_UNKNOWN`，這是正確而非將就**：路線 C 無條件派送，
+> 讀回失敗時**變更可能已經發生**。發明一個「已拒絕執行」的碼會把
+> 「派送了但無法驗證」謊報成「沒動你的文件」。
+
 **為什麼（finding 034）：** `.uno:GoToStartOfPara` 不冪等，游標已在 offset 0 時會跳到上一段。
 既有 375 次判定派送**全部落在 offset `Len()`**——現行序列唯一正確的位置。
 `caretAtAnchor` 放在 `rectangle.x + width`，search 把游標留在命中處之後，兩邊一致。
@@ -815,9 +855,64 @@ level 2／3 為 number），第一版 validator 問「這個樣式含不含 numb
 
 因此 `paragraphContentCoverage` 的後兩欄**沒有通過的格子**，不得當作已覆蓋報告。
 
+> **2026-08-12 修訂。** 上面那句「後兩欄沒有通過的格子」**已不成立**：
+> finding 035 已修（引擎 `ee185b3d…`），行內字元格式與中日韓文字兩欄都通過。
+> 該軸同時由 3 欄擴為 **15 欄**，見 2.10 節。原文保留以維持修訂可追。
+
 **空段落是規格層收窄，不是實作缺陷。** 空段落沒有可選取的內容，任何以游標移動為基礎的
 選取都定址不到它。路線 C 的 readback 驗證定義在非空段落上；空段落的 mutation 一律回報
 typed 的不可驗證，**永不回報成功**。
+
+### 2.10 結構集合由實測決定（2026-08-12，已觀察）
+
+證據：[`paragraph-content/native-26-8/`](../findings/evidence/sdk-e2/discovery/paragraph-content/native-26-8/)、
+[`wasm-ee185b3d/`](../findings/evidence/sdk-e2/discovery/paragraph-content/wasm-ee185b3d/)、
+對照組 [`wasm-38168306-control/`](../findings/evidence/sdk-e2/discovery/paragraph-content/wasm-38168306-control/)。
+
+2.8 的封閉標籤集是照 fixture 量的，不是照文件量的。修法**不是把行內標籤加進集合**
+（那會污染 `blockCount` 與 `blockTag` 的計數），而是分兩層：
+
+1. **結構集合**：`p`、`h1`–`h6`、`pre`、`blockquote`、`ul`、`ol`、`li`。
+   每一個都是在 21 種段落形態裡**實際出現在 body 層**才收的；成員資格是**規則不是清單**。
+   `h7`–`h10` 不收：HTML 沒有那些標籤。`table`／`td` 不收：儲存格裡 `SelectText`
+   序列化成單純的 `<p>`，那個形狀到不了。
+2. **結構標籤在任何深度都辨識與計數**（`blockCount`／`itemCount`／`listTag`／`blockTag`
+   語意不變）；**只有非結構標籤依深度分流**——深度 ≥1 忽略，深度 0 則 fail closed。
+   反過來寫（「進了結構標籤就忽略裡面所有標籤」）會把 `li` 與清單裡的 `<p>` 一起忽略，
+   **034 的多段防護會被拆掉一半**。
+
+**進集合就必須計入 `blockCount`，兩者不可拆。** 收了卻不計數，選取跨進 `pre` 鄰居時
+`blockCount` 仍是 1，防護漏過。`pre`／`blockquote` 收進來**不新增任何放行路徑**：
+滿足判定要求 `blockTag == expected`（expected 只會是 `p`／`h1`）或第一個標籤是 `ul`／`ol`，
+它們永遠滿足不了——收錄只是把「未知標籤」這句謊話換成「現況不是目標」這句實話。
+
+**量到的形態與結果（21 種，原生與 WASM 一致）：**
+
+| 形態 | body 層 | 結果 |
+|---|---|---|
+| 普通段落／Title／Subtitle／超連結／書籤／註解／硬斷行／中文＋粗體／section 內段落 | `p` | 通過 |
+| ODF outline 2–6 | `h2`–`h6` | 通過 |
+| **ODF outline 7、10** | **`p`** | 通過，但**與內文無法區分**（見 2.8 修訂） |
+| Preformatted Text | `pre` | 通過 |
+| Quotations | `blockquote` | 通過 |
+| 清單項 | `ul` → `li` → `p` | 通過（`itemCount=1`、`blockCount=1`） |
+| **註腳／尾註** | `p` 然後 `div` | **設計上拒絕**（見下） |
+| **行內圖片** | — | **卡死 handle**（[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)，未修） |
+
+行內標籤（`a` 4 次、`b`、`i`、`br`、`img`、`font`、`span`、`sup`）**在 body 層出現 0 次**。
+
+**註腳／尾註是明列的收窄，不是缺陷。** 帶註腳的段落讀回來是**兩個 body 層區塊**
+（段落本身，然後 `<div id="sdfootnoteN">` 裝註腳本文），所以 `div` 收或不收都會被拒絕。
+本規格採外部覆核的裁決：`div` **不進**結構集合，深度 0 的 `div` 若符合已量測的簽名
+（`id` 以 `sdfootnote` 或 `sdendnote` 開頭，來源 `sw/source/filter/html/htmlftn.cxx:344-365`）
+以**專屬** `failureShape: footnote-apparatus-readback` 拒絕。
+**駁回「`div` 內的區塊不計入 `blockCount`」**：034 的失效模式是無聲的誤報成功，
+而深度 0 `div` 的樣本數是 1，拿 n=1 的假設豁免一道已量測的防護，方向錯了。
+**駁回沿用既有失敗碼**：那會讓「034 攔到跨段」與「使用者碰了註腳」在遙測上不可區分。
+
+**結論：帶註腳或尾註的段落無法套用清單或標題**，回報 `MUTATION_OUTCOME_UNKNOWN`。
+要改成放行必須先量註腳邊界（游標在註腳本文內、多顆註腳、尾註、跨段時 `div` 是否仍尾隨），
+不是重新論證。
 
 ### 10.4 尚未執行
 
@@ -889,3 +984,4 @@ scope 共用同一份 worker patch，manifest 新增 `engineLoop` 診斷欄位�
 | 2026-08-11 | v11（路線 C 的前置條件契約）。把 v10 的產品決定落成條文：第 4 節作廢前置狀態讀取與 `documented-state-noop`（原文保留於引用區），A4 由「no-op 與 fail-closed」改寫為「重複派送」。新增 2.7 節，記錄路線 C 兩個前提的原生實測（[finding 030](../findings/030-closed-list-actions-dispatch-the-toggle-form-and-a-noop-is-silent.md)）：（一）不帶參數的 `.uno:DefaultBullet`／`.uno:DefaultNumbering` **是 toggle**，第二次按下會反轉，帶 `On=true` 則四案例全為 setter（含跨種類轉換）——已修，engine 改派參數化形式，測試釘住並通過突變控制，E1-B 目的檔逐位元不變；（二）**值沒變就沒有 STATE_CHANGED**，合法 no-op 因此沒有後置條件可等，barrier 逾時成 `MUTATION_OUTCOME_UNKNOWN`。（二）尚未有解，第 4 節新增〈路線 C 未決事項〉列四條出路並註明本規格不預設；第 7 節因此給 A3 加上「未決事項先有決定」的前置，第 8 節註明出路 1 本身就落在 STOP 條款上。**擋住 A3 的理由由 freshness 換成 no-op 的可判定性**，10.4 節已就地更新。 |
 | 2026-08-11 | v12（crosstalk 關閉＋`table-boundary` 期望改寫）。[finding 033](../findings/033-readback-barrier-read-wherever-the-caret-went.md) 的修法實作並實測關閉：barrier in-flight 期間 `search`／`editor-select` 一律 `BUSY`（`.uno:ExecuteSearch` **會選起命中處**，它是 caret mover，也是 crosstalk 案例實際走的路），`EndOfParaSel` 以 `notify=true` 派送且推進條件比對 `commandName`。**關掉它的是 BUSY 閘**——`selectionBeforeResultCount` 全為 0，歸屬那一層在這批證據裡沒有攔到東西，本規格不宣稱它修好了什麼。附帶量到：`notify` 是兩條派送路徑，只改一個命令會使 `EndOfParaSel` 先於 `GoToStartOfPara` 生效（readback 讀到 `<p>D-END</p>`，段落實為 `E1-STYLED-END`），游標在段尾時選取為空、barrier 永久等待。A5 表格的 `table-boundary` 期望由「typed 拒絕，之後 fresh Worker」改為「typed 結果，且文件必須同意」——儲存格內的段落在 26.8 **接受** `set-list-unordered`，原期望是寫矩陣時的預期而非量到的行為；修訂已附範圍限制。A5 首次覆蓋兩瀏覽器 × 四 fixture，**Firefox 負向輪由零變成有**。 |
 | 2026-08-11 | v12 續（A5 判定與 artifact 重綁）。A5 首次有判定（10.9 節）：`validate_e2_a.py` 之前只判 A3／A4，A5 跑完是人工看的。`state-crosstalk` 改以 readback markup 自己的文字判定，鑑別控制取自既有證據——現行 build 11/11、之前三個 build 0/9。引擎改動使 A3／A4 既有證據變成別的 artifact 的證據（finding 027 規則），兩瀏覽器 × 三 fixture 全數重跑：**A3_PASS（105 次派送）、A4_PASS（270 次派送）、A5_PASS（兩瀏覽器 × 四 fixture）**，全部綁定 `25761ff0…`。新增 10.10 節總結，並列出兩個未結的引擎缺口（barrier 無引擎側期限、座標殘留）。矩陣 `status` 由 `A2-complete-A3-ready-…` 改為 `A3-A4-A5-pass-…-A6-A7-not-run`，附 `statusProvenance`。另修 summary 的 `boundToCurrentBuild` 欄位名——它印 false 卻與 `A3_PASS` 並排，同一份報告的兩個欄位互相矛盾；它問的一直是「樹裡每一次 run 都是現行 build 嗎」，改名為 `allEvidenceIsCurrentBuild` 並補上 `verdictCountsOnlyCurrentBuild`。 |
+| 2026-08-12 | v13（結構集合由實測決定；[finding 035](../findings/035-the-postcondition-read-fails-closed-on-any-formatted-or-cjk-paragraph.md) 已修）。2.8 節就地補修訂註記：它的封閉標籤集是照三個 fixture 量的，而那三個 fixture 的被派送段落全是純 ASCII 無 run，於是**每個帶字元格式或中日韓文字的段落都被判未知標籤**——中文文件的常態；該節不是被推翻而是被證明取樣不足。新增 **2.10 節**：新 fixture `paragraph-content`、21 種段落形態、原生 26.8 與 WASM 各一輪。結構集合定為 `p`／`h1`–`h6`／`pre`／`blockquote`／`ul`／`ol`／`li`（**每一個都是實際在 body 層出現才收，成員資格是規則不是清單**），並確立兩條不可拆的規則：**結構標籤在任何深度都計數、只有非結構標籤依深度分流**（反過來寫會把 `li` 與清單內的 `<p>` 一起忽略，拆掉 034 多段防護的一半），以及**進集合就必須計入 `blockCount`**（收了不計數，選取跨進 `pre` 鄰居時防護會漏）。`pre`／`blockquote` 收錄**不新增放行路徑**（滿足判定要 `blockTag`∈{p,h1} 或首標籤是 ul/ol），只是把「未知標籤」換成「現況不是目標」。**兩項新收窄入條文**：ODF outline level 7–10 讀回 `<p>`，故 level ≥7 的標題與內文無法區分（今天無害，一旦有「套用第 N 級標題」即無法驗證）；**帶註腳／尾註的段落設計上拒絕**（註腳本文是第二個 body 層區塊），採外部覆核裁決＝`div` 不進集合、依 `sw/source/filter/html/htmlftn.cxx:344-365` 的簽名（`id` 以 `sdfootnote`／`sdendnote` 開頭）以專屬 `failureShape` 拒絕，駁回「div 內不計入 `blockCount`」（034 的失效是無聲誤報成功，而深度 0 div 的樣本數是 1）與「沿用既有失敗碼」（會讓「034 攔到跨段」與「使用者碰了註腳」在遙測上不可區分）。**失敗碼表由三個 `failureShape` 增為六個並定序**：三個「掃描中止」形狀必須排在 `multiBlock` 與 containment 之前，因為中止時計數已被截斷。2.8 第 3 項（序列化器不是契約）**在同版本內量到實例**：同 `coreCommit` 的原生與 WASM 兩 build，`style` 裡 CSS 屬性順序相反、`lang` 在 zh-CN／zh-TW 間漂移，標籤結構一致——**markup 永不可逐位元組比對**。引擎一次 build（`ee185b3d…`），A3／A4／A5 全部重掃並重綁（18 輪／90 派送、18 輪／270 派送、8 輪／42 case，零失敗，44 輪每輪都先核對 artifact sha256），`paragraphContentCoverage` 由 3 欄擴為 15 欄。**掃描途中掉出 [finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)**：含行內圖片的段落會**卡死 document handle**（動作 20 s 逾時而非 5 s 的 `stage-deadline:*`），舊 build 同樣重現故為既存缺陷，**未修**，已入 10.x 的未涵蓋清單。 |

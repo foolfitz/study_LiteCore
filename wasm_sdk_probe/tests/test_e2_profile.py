@@ -360,7 +360,14 @@ class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
             'const char *const kFormatMutationOutcomeUnknown = "MUTATION_OUTCOME_UNKNOWN";',
             self.source)
         body = self.finish_body()
-        self.assertEqual(body.count("kFormatMutationOutcomeUnknown"), 2)
+        # Five, not two: M2 split the single "unknown tag" outcome into three
+        # channels -- a footnote or endnote apparatus (measured, and refused on
+        # purpose), a tag nobody has measured, and markup that is not shaped
+        # like any sample.  They report one code because the caller's decision
+        # is the same in all of them; they carry different failure shapes
+        # because the person reading the telemetry has to be able to tell "the
+        # cross-paragraph guard fired" from "a user touched a footnote".
+        self.assertEqual(body.count("kFormatMutationOutcomeUnknown"), 5)
         start = self.source.index("void failFormatBarrierAtDeadline() {")
         self.assertIn("kFormatMutationOutcomeUnknown",
                       self.source[start:self.source.index("\n}\n", start)])
@@ -385,6 +392,72 @@ class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
         self.assertLess(multi, judged)
         self.assertLess(contain, judged)
         self.assertEqual(body.count("EDITOR_FORMAT_POSTCONDITION_FAILED"), 1)
+
+    def test_an_aborted_scan_is_judged_before_the_counts_it_truncated(self):
+        # The three abort cases stop the scan where they are met, so blockCount
+        # and itemCount stop there too.  Judged after multiBlock, a footnote
+        # would be reported as a cross-paragraph read -- a fact about where the
+        # scan gave up, dressed as a fact about the document.
+        body = self.finish_body()
+        self.assertIn("  if (gFormatBarrier.readback.footnoteApparatus) {", body)
+        self.assertIn("  if (gFormatBarrier.readback.unknownTag) {", body)
+        self.assertIn("  if (gFormatBarrier.readback.malformedNesting) {", body)
+        for guard in ("footnoteApparatus", "unknownTag", "malformedNesting"):
+            self.assertLess(body.index(guard), body.index("readback.multiBlock"),
+                            f"{guard} must be judged before multiBlock")
+            self.assertLess(body.index(guard), body.index("containmentChecked"))
+        for shape in ("footnote-apparatus-readback", "unknown-structural-tag",
+                      "malformed-readback-nesting", "multi-block-readback"):
+            self.assertEqual(body.count(f'"{shape}"'), 1,
+                             f"{shape} must be one channel, used once")
+
+    def test_the_readback_predicate_cannot_pass_an_aborted_scan(self):
+        # Ordering in the caller is not the only defence.  A future caller that
+        # reordered the guards must not be able to reach satisfaction from a
+        # scan that stopped early.
+        start = self.source.index("bool formatBarrierReadbackSatisfied() {")
+        body = self.source[start:self.source.index("\n}\n", start)]
+        self.assertIn(
+            "  if (!readback.parsed || readback.unknownTag || readback.malformedNesting ||\n"
+            "      readback.footnoteApparatus)\n    return false;",
+            body)
+
+    def test_the_footnote_signature_reads_the_id_and_covers_endnotes(self):
+        # sw/source/filter/html/htmlftn.cxx writes "sdendnote" for endnotes and
+        # "sdfootnote" for footnotes.  Matching only the latter would drop every
+        # endnote paragraph into the unmeasured-tag channel, which is the exact
+        # pollution the separate channels exist to prevent.  And the same writer
+        # emits <div> from six other places, so the id has to be read: a blanket
+        # rule on body-level <div> would mislabel all of them.
+        start = self.source.index("bool formatDivIsFootnoteApparatus(")
+        body = self.source[start:self.source.index("\n}\n", start)]
+        self.assertIn('attributes.find("id=\\"")', body)
+        self.assertIn('"sdfootnote"', body)
+        self.assertIn('"sdendnote"', body)
+
+    def test_structural_tags_are_counted_at_every_depth(self):
+        # The rule filters non-structural tags by depth and structural tags not
+        # at all.  Reversed -- "once inside a block, ignore everything" -- <li>
+        # and the <p> inside a list item both vanish, itemCount and blockCount
+        # go to zero, and finding 034's guard goes with them.
+        start = self.source.index("FormatReadback parseFormatReadback(")
+        body = self.source[start:self.source.index("\n}\n", start)]
+        self.assertIn("    if (depth > 0 || closing)\n      continue;", body)
+        structural = body.index("if (formatTagIsStructural(tag)) {")
+        filtered = body.index("    if (depth > 0 || closing)")
+        self.assertLess(structural, filtered,
+                        "structural tags must be handled before the depth filter")
+        # The counters are matched whole and carry no depth condition.  Adding
+        # one is exactly how this fix would be undone.
+        self.assertIn(
+            "      if (formatTagIsBlock(tag)) {\n"
+            "        ++readback.blockCount;\n"
+            "        if (readback.blockTag.empty())\n"
+            "          readback.blockTag = tag;\n"
+            "      } else if (tag == \"li\") {\n"
+            "        ++readback.itemCount;\n"
+            "      }\n",
+            body)
 
     def test_containment_runs_before_the_restore_collapses_the_selection(self):
         # Anchored inside the step handler: the stage-name table above also

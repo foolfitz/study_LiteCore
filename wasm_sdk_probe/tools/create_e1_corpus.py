@@ -24,9 +24,9 @@ NAMESPACES = (
 )
 
 
-def xml_document(body: str) -> str:
+def xml_document(body: str, extra_namespaces: str = "") -> str:
     return f'''<?xml version="1.0" encoding="UTF-8"?>
-<office:document-content {NAMESPACES}>
+<office:document-content {NAMESPACES}{extra_namespaces}>
  <office:automatic-styles>
   <style:style style:name="E1Bold" style:family="text"><style:text-properties fo:font-weight="bold"/></style:style>
   <style:style style:name="E1Italic" style:family="text"><style:text-properties fo:font-style="italic"/></style:style>
@@ -52,6 +52,74 @@ MANIFEST_XML = f'''<?xml version="1.0" encoding="UTF-8"?>
  <manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>
 </manifest:manifest>
 '''
+
+
+PARAGRAPH_CONTENT_NAMESPACES = (
+    ' xmlns:xlink="http://www.w3.org/1999/xlink"'
+    ' xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"'
+    ' xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"'
+    ' xmlns:dc="http://purl.org/dc/elements/1.1/"'
+)
+
+PARAGRAPH_CONTENT_STYLES = '''  <style:style style:name="Heading_20_2" style:display-name="Heading 2" style:family="paragraph" style:default-outline-level="2">
+   <style:paragraph-properties fo:margin-top="0.35cm" fo:margin-bottom="0.15cm"/>
+   <style:text-properties fo:font-size="16pt" fo:font-weight="bold"/>
+  </style:style>
+  <style:style style:name="Heading_20_3" style:display-name="Heading 3" style:family="paragraph" style:default-outline-level="3">
+   <style:paragraph-properties fo:margin-top="0.3cm" fo:margin-bottom="0.15cm"/>
+   <style:text-properties fo:font-size="14pt" fo:font-weight="bold"/>
+  </style:style>
+  <style:style style:name="Heading_20_6" style:display-name="Heading 6" style:family="paragraph" style:default-outline-level="6">
+   <style:paragraph-properties fo:margin-top="0.2cm" fo:margin-bottom="0.1cm"/>
+   <style:text-properties fo:font-size="11pt" fo:font-weight="bold"/>
+  </style:style>
+  <style:style style:name="Preformatted_20_Text" style:display-name="Preformatted Text" style:family="paragraph">
+   <style:paragraph-properties fo:margin-top="0cm" fo:margin-bottom="0cm"/>
+   <style:text-properties fo:font-family="monospace"/>
+  </style:style>
+  <style:style style:name="Quotations" style:display-name="Quotations" style:family="paragraph">
+   <style:paragraph-properties fo:margin-left="1cm" fo:margin-right="1cm"/>
+  </style:style>
+  <style:style style:name="Title" style:display-name="Title" style:family="paragraph">
+   <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.4cm"/>
+   <style:text-properties fo:font-size="24pt" fo:font-weight="bold"/>
+  </style:style>
+  <style:style style:name="Subtitle" style:display-name="Subtitle" style:family="paragraph">
+   <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.3cm"/>
+   <style:text-properties fo:font-size="14pt" fo:font-style="italic"/>
+  </style:style>
+  <style:style style:name="Heading_20_4" style:display-name="Heading 4" style:family="paragraph" style:default-outline-level="4">
+   <style:text-properties fo:font-size="12pt" fo:font-weight="bold"/>
+  </style:style>
+  <style:style style:name="Heading_20_5" style:display-name="Heading 5" style:family="paragraph" style:default-outline-level="5">
+   <style:text-properties fo:font-size="11pt" fo:font-weight="bold"/>
+  </style:style>
+  <style:style style:name="Heading_20_7" style:display-name="Heading 7" style:family="paragraph" style:default-outline-level="7">
+   <style:text-properties fo:font-size="10pt" fo:font-weight="bold"/>
+  </style:style>
+  <style:style style:name="Heading_20_10" style:display-name="Heading 10" style:family="paragraph" style:default-outline-level="10">
+   <style:text-properties fo:font-size="10pt" fo:font-style="italic"/>
+  </style:style>
+  <style:style style:name="PCCjkBold" style:display-name="PC CJK Bold" style:family="text">
+   <style:text-properties fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold"/>
+  </style:style>
+'''
+
+# Only the picture.  The manifest deliberately does not list itself: ODF 1.3
+# part 3 keeps /META-INF/ out of the file entries, no real producer writes such
+# an entry, and the other six fixtures do not have one.  A fixture whose package
+# shape differs from the rest of the corpus would be a confound in a measurement
+# whose whole subject is what the serialiser does with ordinary documents.
+PARAGRAPH_CONTENT_MANIFEST_ENTRIES = ''' <manifest:file-entry manifest:full-path="Pictures/pc-dot.png" manifest:media-type="image/png"/>
+'''
+
+# Keeping the complete PNG as bytes makes the image member independent of the
+# host's image libraries and their encoder metadata.
+PC_DOT_PNG = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\xdac\xf8\xcf"
+    b"\xc0\xf0\x1f\x00\x05\x00\x01\xffV\xc7/\r\x00\x00\x00\x00IEND\xaeB`\x82"
+)
 
 
 FIXTURES = {
@@ -152,6 +220,52 @@ FIXTURES = {
         "anchors": ["E1-TABLE-BEFORE", "E1-CELL-A1", "E1-CELL-B2", "E1-TABLE-AFTER"],
         "minimum": {"paragraphs": 6, "headings": 0, "lists": 0, "tables": 1},
     },
+    # The namespace, style and package additions stay on this fixture because
+    # the older fixture bytes are evidence identifiers for published findings.
+    #
+    # PC-CJK-BOLD uses its own PCCjkBold rather than the shared E1Bold, and the
+    # difference is not cosmetic.  E1Bold sets fo:font-weight only, which is the
+    # *Western* weight: measured on 2026-08-12, the CJK run came back as
+    # <font><span>...</span></font> with no <b> anywhere, i.e. the fixture did
+    # not carry the thing it was named after.  A row like that reads as "CJK
+    # bold produces no <b>" when it actually means "this document has no CJK
+    # bold" -- the failure mode this corpus exists to make impossible.
+    # style:font-weight-asian is the attribute that applies to CJK text.
+    "paragraph-content": {
+        "body": """
+ <text:p>PC-PLAIN ordinary paragraph</text:p>
+ <text:h text:outline-level="2" text:style-name="Heading_20_2">PC-H2 level two heading</text:h>
+ <text:h text:outline-level="3" text:style-name="Heading_20_3">PC-H3 level three heading</text:h>
+ <text:h text:outline-level="4" text:style-name="Heading_20_4">PC-H4 level four heading</text:h>
+ <text:h text:outline-level="5" text:style-name="Heading_20_5">PC-H5 level five heading</text:h>
+ <text:h text:outline-level="6" text:style-name="Heading_20_6">PC-H6 level six heading</text:h>
+ <text:h text:outline-level="7" text:style-name="Heading_20_7">PC-H7 level seven heading</text:h>
+ <text:h text:outline-level="10" text:style-name="Heading_20_10">PC-H10 level ten heading</text:h>
+ <text:p text:style-name="Preformatted_20_Text">PC-PRE preformatted paragraph</text:p>
+ <text:p text:style-name="Quotations">PC-QUOTE quotation paragraph</text:p>
+ <text:p text:style-name="Title">PC-TITLE title paragraph</text:p>
+ <text:p text:style-name="Subtitle">PC-SUBTITLE subtitle paragraph</text:p>
+ <text:p>PC-LINK paragraph with a <text:a xlink:href="https://example.invalid/pc" xlink:type="simple">hyperlink</text:a></text:p>
+ <text:p>PC-BOOKMARK paragraph with <text:bookmark-start text:name="pc-bookmark"/>bookmarked text<text:bookmark-end text:name="pc-bookmark"/></text:p>
+ <text:p>PC-FOOTNOTE paragraph with a note<text:note text:id="pc-footnote" text:note-class="footnote"><text:note-citation>1</text:note-citation><text:note-body><text:p>Footnote body text.</text:p></text:note-body></text:note></text:p>
+ <text:p>PC-COMMENT paragraph with a comment<office:annotation office:name="pc-comment"><dc:creator>E1 corpus</dc:creator><dc:date>2026-08-12T00:00:00Z</dc:date><text:p>Comment body text.</text:p></office:annotation></text:p>
+ <text:p>PC-IMAGE paragraph with an inline image <draw:frame draw:name="pc-dot" text:anchor-type="as-char" svg:width="0.08in" svg:height="0.08in"><draw:image xlink:href="Pictures/pc-dot.png" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" draw:mime-type="image/png"/></draw:frame></text:p>
+ <text:p>PC-BREAK before the break<text:line-break/>after the break</text:p>
+ <text:p>PC-CJK-BOLD 臺灣與 <text:span text:style-name="PCCjkBold">粗體中文</text:span> mixed with ASCII</text:p>
+ <text:section text:name="pc-section"><text:p>PC-SECTION paragraph inside a section</text:p></text:section>
+ <text:list><text:list-item><text:p>PC-LIST-ITEM paragraph inside a real list item</text:p></text:list-item></text:list>
+""",
+        "anchors": ["PC-PLAIN", "PC-H2", "PC-H3", "PC-H4", "PC-H5", "PC-H6",
+                    "PC-H7", "PC-H10", "PC-PRE", "PC-QUOTE",
+                    "PC-TITLE", "PC-SUBTITLE", "PC-LINK", "PC-BOOKMARK", "PC-FOOTNOTE",
+                    "PC-COMMENT", "PC-IMAGE", "PC-BREAK", "PC-CJK-BOLD", "PC-SECTION",
+                    "PC-LIST-ITEM"],
+        "minimum": {"paragraphs": 20, "headings": 7, "lists": 1, "tables": 0},
+        "extra_namespaces": PARAGRAPH_CONTENT_NAMESPACES,
+        "extra_styles": PARAGRAPH_CONTENT_STYLES,
+        "extra_manifest_entries": PARAGRAPH_CONTENT_MANIFEST_ENTRIES,
+        "extra_members": (("Pictures/pc-dot.png", PC_DOT_PNG),),
+    },
 }
 
 
@@ -162,12 +276,39 @@ def write_member(archive: zipfile.ZipFile, name: str, data: bytes, compress: int
     archive.writestr(info, data)
 
 
-def create_odt(path: Path, body: str) -> None:
+def styles_document(extra_styles: str = "") -> str:
+    if not extra_styles:
+        return STYLES_XML
+    return STYLES_XML.replace(" </office:styles>", f"{extra_styles} </office:styles>", 1)
+
+
+def manifest_document(extra_entries: str = "") -> str:
+    if not extra_entries:
+        return MANIFEST_XML
+    return MANIFEST_XML.replace("</manifest:manifest>", f"{extra_entries}</manifest:manifest>", 1)
+
+
+def create_odt(
+    path: Path,
+    body: str,
+    *,
+    extra_namespaces: str = "",
+    extra_styles: str = "",
+    extra_manifest_entries: str = "",
+    extra_members: tuple[tuple[str, bytes], ...] = (),
+) -> None:
     with zipfile.ZipFile(path, "w") as archive:
         write_member(archive, "mimetype", MIMETYPE.encode(), zipfile.ZIP_STORED)
-        write_member(archive, "content.xml", xml_document(body).encode(), zipfile.ZIP_DEFLATED)
-        write_member(archive, "styles.xml", STYLES_XML.encode(), zipfile.ZIP_DEFLATED)
-        write_member(archive, "META-INF/manifest.xml", MANIFEST_XML.encode(), zipfile.ZIP_DEFLATED)
+        write_member(archive, "content.xml", xml_document(body, extra_namespaces).encode(), zipfile.ZIP_DEFLATED)
+        write_member(archive, "styles.xml", styles_document(extra_styles).encode(), zipfile.ZIP_DEFLATED)
+        write_member(
+            archive,
+            "META-INF/manifest.xml",
+            manifest_document(extra_manifest_entries).encode(),
+            zipfile.ZIP_DEFLATED,
+        )
+        for name, data in extra_members:
+            write_member(archive, name, data, zipfile.ZIP_DEFLATED)
 
 
 def frozen_valid(manifest_path: Path) -> bool:
@@ -196,7 +337,14 @@ def main() -> None:
     entries = []
     for identifier, definition in FIXTURES.items():
         path = output / f"{identifier}.odt"
-        create_odt(path, definition["body"])
+        create_odt(
+            path,
+            definition["body"],
+            extra_namespaces=definition.get("extra_namespaces", ""),
+            extra_styles=definition.get("extra_styles", ""),
+            extra_manifest_entries=definition.get("extra_manifest_entries", ""),
+            extra_members=definition.get("extra_members", ()),
+        )
         entries.append({
             "id": identifier,
             "path": path.name,
@@ -230,4 +378,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

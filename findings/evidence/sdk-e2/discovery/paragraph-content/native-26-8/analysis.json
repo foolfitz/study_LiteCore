@@ -1,0 +1,91 @@
+{
+  "what": "M2 for finding 035: across 21 paragraph shapes, which HTML tags does the selection serialiser write at BODY level (structural depth 0)?",
+  "why": "Option (B) -- the odfdom-shaped structural classification -- rests on one premise: a non-structural (inline) tag never appears outside an open block. M1 showed that held over the old corpus, but that corpus contained only plain paragraphs, one heading and one list. If a hyperlink, footnote, comment anchor or inline image turns up at body level, (B)'s premise is refuted and the parser must not be written. This measures the shapes M1 could not.",
+  "build": "native LibreOffice 26.8 (build-native-26-8), svp",
+  "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+  "productVersion": "LibreOfficeDev 26.8.0.1.0",
+  "fixture": {
+    "id": "paragraph-content",
+    "sha256": "920ca5d51ef5e52605af16e8aa98178daee87ec3ab309bcc6ea94ccfd248d28b",
+    "addedOn": "2026-08-12",
+    "note": "New fixture rather than an edit to an existing one. The six pre-existing fixtures regenerate byte-identical -- verified against the git HEAD blobs, and the corpus manifest diff contains additions only, no modified lines. Their sha256 values identify the documents past A3/A4/A5 verdicts were measured on, so changing them would silently detach published verdicts from their evidence.",
+    "packaging": "The extra namespaces, paragraph styles, manifest entries and the picture member are fixture-local and opt-in; a fixture that declares no extras serialises exactly as before. The manifest deliberately does not list itself -- ODF keeps /META-INF/ out of the file entries and the other six fixtures have no such entry, so listing it would have made this fixture's package shape differ from the rest of the corpus."
+  },
+  "method": "One anchor paragraph at a time: locate it, dispatch .uno:SelectText (the same command the shipped barrier uses), read getTextSelection(\"text/html\"), store the whole payload. Tag classification is then done offline by analyze_readback_nesting.py over the stored markup, so it can be recomputed without re-running.",
+  "controls": {
+    "readTheRightParagraph": "every row records anchorTextInReadback: the anchor's own text, compared after stripping tags and collapsing whitespace. Contiguous search over raw markup would give false negatives, because the serialiser splits CJK runs across <font>/<span> -- that mistake has already been made once on this corpus. Result: 21/21 true.",
+    "noRowCarriesAnotherRowsText": "the audit cross-checks every row's tag-stripped text against every OTHER anchor token. A selection that quietly covered a neighbouring paragraph would show up here even though the depth bookkeeping stays perfectly balanced. Result: 0 rows carry foreign anchor text.",
+    "exactlyOneBlockPerRow": "the audit records the structural tags opened at depth 0 per anchor. A two-paragraph read is well formed and depth-balanced, so nothing else in the report distinguishes it from a clean single-paragraph read. Result: exactly one block for every anchor except PC-FOOTNOTE, which has two by construction (see below).",
+    "featurePresence": "every row records raw booleans for <a, href=, <img, <br, <b>, <div, <pre, <blockquote, name=, heading tags, list tags, <i>, <span, <font, <sup. These say whether the fixture actually carried the feature. A row whose feature marker is false is inconclusive, NOT evidence that the shape produces no such tag.",
+    "negativeControl": "an anchor that does not exist, PC-DOES-NOT-EXIST, must be reported as not found rather than silently reading whatever was selected last. Result: found=false, selectionType=0, htmlBytes=0, skipped=true.",
+    "analyzerMutationControl": "the audit script was run against nine synthetic violations and reported all of them: non-structural tag at depth 0, negative depth, self-closing structural tag, void tag without a slash, stack mismatch, unclosed tag, two blocks at depth 0, a row carrying another anchor's text, and -- as a negative -- bold inside a heading NOT reported at depth 0. Input and output retained as nesting-audit-mutation-*.",
+    "probeExitStatus": "an earlier revision of the probe called std::_Exit(0) on the grounds that this build crashes during process-static teardown. That did not reproduce: four runs with a plain return all exited 0 with a full record set. The _Exit was removed, because a constant exit status means a real crash could never be reported."
+  },
+  "answer_depthZeroTags": {
+    "shortAnswer": "(B)'s premise HOLDS: across 21 shapes the only non-structural tag ever seen at body level is div, and its only cause is the footnote apparatus",
+    "blockTagsAtBodyLevel": {
+      "p": "plain, Title, Subtitle, hyperlink, bookmark, comment, inline image, hard line break, CJK+bold, paragraph inside a section, AND outline levels 7 and 10",
+      "h1": "not in this fixture; measured in the older corpus",
+      "h2/h3/h4/h5/h6": "ODF outline levels 2-6, one to one",
+      "pre": "Preformatted Text",
+      "blockquote": "Quotations",
+      "ul": "a real list item (li nested inside)"
+    },
+    "nonStructuralAtBodyLevel": {
+      "div": "PC-FOOTNOTE only -- <div id=\"sdfootnote1\"> carrying the footnote body",
+      "everythingElse": "none. a (4 occurrences), b, i, br, img, font, span and sup all appear only at depth >= 1."
+    },
+    "inlineTagsAtDepthZero": 0,
+    "nestingHealth": "all final depths 0, no negative depth, no self-closing structural tags, no mismatched closes, no unclosed tags"
+  },
+  "answer_headingLevels": {
+    "shortAnswer": "outline levels 1-6 map one to one onto h1-h6; levels 7 and 10 come back as a plain <p>",
+    "measured": {"2": "h2", "3": "h3", "4": "h4", "5": "h5", "6": "h6", "7": "p", "10": "p"},
+    "whyItMatters": "HTML has no h7, so the serialiser had to do something and the something is not obvious: it neither clamps to h6 nor invents a tag, it degrades to a paragraph. A level-7 heading is therefore INDISTINGUISHABLE from body text in the readback -- the same narrowing that already applies to Title and Subtitle. Harmless today because the closed action set has one heading level; it would become load-bearing the moment an 'apply heading level N' action existed.",
+    "note": "h1 and h4/h5/h7/h10 were added after the first sweep. Guessing 'h1 through h6, obviously' would have produced the right structural set and still missed this."
+  },
+  "answer_perShape": {
+    "hyperlink": "<a href=\"...\"> nested inside <p>. Never at body level.",
+    "bookmark": "<a name=\"pc-bookmark\"></a> nested inside <p>, at the start of the paragraph.",
+    "footnote": "TWO body-level blocks: <p>...<a class=\"sdfootnoteanc\"><sup>1</sup></a></p> then <div id=\"sdfootnote1\"><p class=\"sdfootnote\">...</p></div>. The footnote body is a second block. See the consequence section.",
+    "comment": "serialised as an HTML comment, <!-- Comment body text. -->, not as an element. The shipped scanner requires a tag name to be alphanumeric, so <! is skipped rather than treated as an unknown tag -- read from the source, NOT executed against these captures.",
+    "inlineImage": "<img ... /> nested inside <p>, as a void tag with a slash. This is the only row whose selectionType is 3 (LOK_SELTYPE_COMPLEX); every other row is 1. The barrier's verdict does not read the selection type.",
+    "hardLineBreak": "<br/> nested inside <p>. Does not create a second block.",
+    "cjkPlusBold": "<p>...<font face=\"DejaVu Sans\"><span lang=\"zh-TW\">臺灣與 <b>粗體中文</b> </span></font>...</p> -- <b> at depth 3. The combination does not push anything to body level.",
+    "sectionParagraph": "a bare <p>. The text:section container does not appear in the readback at all.",
+    "titleAndSubtitle": "both come back as <p>. Indistinguishable from body text on the block-tag axis; a known narrowing, unchanged."
+  },
+  "consequence_footnote": {
+    "observed": "a paragraph carrying a footnote reads back as two body-level blocks",
+    "effectUnderTheCurrentBuild": "the shipped scanner meets <a class=\"sdfootnoteanc\"> first, which is outside its closed tag set, so the action is refused as an unknown tag -- the finding 035 defect, not a footnote-specific path.",
+    "effectUnderOptionB": "either way the paragraph is refused. If div stays out of the structural set, depth 0 meets a non-structural tag and the scan aborts. If div goes in, the footnote body's <p> makes blockCount 2 and finding 034's multi-block guard refuses. A paragraph containing a footnote therefore cannot be turned into a list item or a heading.",
+    "adjudication": "escalated to external review (2026-08-12) rather than decided here, because it trades product usability against a measured guard.",
+    "ruling": "(a') fail closed with a named refusal -- div stays OUT of the structural set, and a depth-0 div matching the measured footnote signature (id beginning sdfootnote) is refused under its own failureShape, footnote-apparatus-readback, distinct from both multi-block-readback and unknown-structural-tag. Rejected: counting div's contents out of blockCount, because that would trade a measured guard whose failure mode is a SILENT false success for an assumption with a sample size of one. Also rejected: reusing multi-block-readback, because every footnote paragraph would then flood the very telemetry channel that tells you finding 034's guard caught a real cross-paragraph read.",
+    "failureCode": "MUTATION_OUTCOME_UNKNOWN is retained and is the correct code, not a compromise: route C dispatches unconditionally, so when the read fails the mutation may already have happened. Inventing a 'refused to run' code would misreport 'dispatched but unverifiable' as 'your document was not touched'.",
+    "reopeningRequires": "the footnote boundary sweep listed under gaps -- caret inside the footnote body, several footnotes, endnotes, and a footnote-bearing neighbour under a cross-paragraph selection."
+  },
+  "structuralSet": {
+    "admitted": ["p", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "blockquote", "ul", "ol", "li"],
+    "rule": "membership is a rule, not a list: a tag observed at body level is thereby measured and admitted; anything unobserved stays out.",
+    "admittedMeansCounted": "a tag in the structural set MUST also contribute to blockCount (ul/ol stay containers, li stays on itemCount). Admitting without counting would let a selection that ran into a <pre> neighbour read as a single block and slip past finding 034's guard.",
+    "whyPreAndBlockquoteAreSafeToAdmit": "they can never satisfy a postcondition: satisfaction requires blockTag == expected, where expected is only ever p or h1, or that the FIRST tag is ul/ol. pre and blockquote are start states, never target states. Admitting them adds no path to success; it converts a dishonest 'unknown tag' into an honest 'the document is not in the target state'.",
+    "excluded": {
+      "table/td/tr/th": "unreachable -- SelectText inside a table cell serialises as a bare <p>",
+      "div": "see the footnote ruling above",
+      "h7-h10": "no such HTML tags exist; ODF outline levels 7-10 serialise as p"
+    }
+  },
+  "gaps": [
+    "BUILD GAP, the largest one: this is native 26.8. The barrier ships in the WASM engine 38168306. 'Same serialiser source' is an inference, not a measurement, in a repo whose own rules record that the worktree carries patches and that WASM builds are not reproducible. Before the structural-set revision ships, re-run at least the footnote, CJK+bold, h2, pre, blockquote and list rows on the WASM engine.",
+    "THE SHIPPED SCANNER WAS NEVER RUN OVER THESE CAPTURES. All tag classification here is done by a Python reimplementation. 'The C++ scanner skips <! because a tag name must be alphanumeric' is read from source, not executed. Turn these 21 payloads into a native unit test for parseFormatReadback and run it before and after the change.",
+    "BEFORE-ACTION ONLY. The barrier judges the readback AFTER the action. Not one row here is a post-action shape. The closed-comparison argument above is what makes admission safe; it is not a substitute for measuring what each newly admitted shape looks like once an action has run on it.",
+    "FOOTNOTE BOUNDARIES UNSWEPT. One selection, one footnote, caret in the main paragraph. Caret inside the footnote body, several footnotes in one paragraph, endnotes, and whether the div still trails when the selection spans two paragraphs -- all unmeasured. Finding 034 was found at the one offset nobody had tested.",
+    "SERIALISER OUTPUT IS NOT A PURE FUNCTION OF THE DOCUMENT: the lang attribute moved between zh-CN and zh-TW across two runs of the same file. Tag structure was identical, so the tag scan is unaffected, but markup must never be compared byte-wise, and the footnote signature's id numbering should be checked for stability before it is relied on.",
+    "PC-COMMENT is a point annotation with no annotation-end; a ranged comment was not measured.",
+    "Nested list levels, and lists inside table cells, remain unmeasured."
+  ],
+  "correctionsMadeDuringThisSweep": {
+    "cjkBoldFixtureWasNotBold": "PC-CJK-BOLD originally reused the shared E1Bold style, which sets fo:font-weight only -- the WESTERN weight. The first sweep came back with no <b> anywhere, which reads as 'CJK bold produces no <b>' when it actually means 'this document has no CJK bold'. style:font-weight-asian is the attribute that applies to CJK text. Fixed with a fixture-local style; <b> then appears at depth 3. Caught by the feature-marker control, which is what it exists for.",
+    "analyzerDepthArithmeticUsedTheEnginesNarrowSet": "the audit incremented depth only for p/h1/ul/ol/li, so a heading stayed at depth 0 and a bold word inside a Heading 2 was reported as an inline tag at BODY level -- a false refutation of the premise under test. Demonstrated, not assumed: the same synthetic input through the old set reports b at depth 0, through the new set it does not. The audit's structural set now matches the block containers the serialiser was measured to write."
+  }
+}
