@@ -129,11 +129,32 @@ Documents with no draw:frame at all close in 6-25 ms across 153 runs with no
 recovery; every document carrying an as-char frame needs the worker restarted.
 
 
+The thread is parked, not spinning
+---------------------------------
+
+Chrome's CPU profiler, run against the worker targets during the hang and
+again earlier in the same run as a control:
+
+  worker threads           before the hang        during the hang
+  ----------------------   --------------------   --------------------
+  five of eight            parked, no samples     parked, no samples
+  three of eight           100% in one wasm fn    100% in the same fn
+
+The two columns are identical.  No thread does anything new when the call
+hangs, so the stuck thread is waiting, not looping.  (The three threads at
+100% are already at 100% before the hang -- some pool's busy-wait in this
+build, not the hang.)
+
+So this is a wait that never completes rather than a runaway loop, and
+profiling cannot say more about it.
+
+
 What we do NOT know
 -------------------
 
-No stack, for either symptom.  We know the calls do not return and where they
-are called from; we do not know where inside core they stop.
+No stack, for either symptom.  We know the calls do not return, where they are
+called from, and that the thread is parked rather than spinning; we do not know
+what it is waiting for.
 
 The two symptoms turn on the same one attribute, reached independently from
 the read side and the teardown side, which is why they are reported together.

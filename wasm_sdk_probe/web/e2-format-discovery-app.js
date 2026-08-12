@@ -40,6 +40,13 @@ const profile = mode === "scheduler-attribution"
         : mode === "wedge-trace" || mode === "wedge-split"
           ? "e2-wedge-trace"
           : "e2-format-discovery";
+// Finding 037.  The guard shipped in c89f069e makes the hang unreachable, which
+// is the point of it -- and also means the hang can only be studied on an
+// earlier artifact.  Overriding the profile is how a diagnostic run reaches the
+// pre-guard engine without any of this being rebuilt; the override is recorded
+// in the metrics so a run can never be read as if it used the shipped one.
+const profileOverride = params.get("profileOverride");
+const activeProfile = profileOverride || profile;
 // Which discriminator cases to run, in the order the table declares them.  A
 // case that wedges the handle takes every later case down with it (finding
 // 037), so being able to run one row plus its control is what makes the wedge
@@ -79,7 +86,8 @@ const metrics = {
   release: "E2-A-paragraph-format-discovery",
   stage: "A2-wasm",
   mode,
-  profile,
+  profile: activeProfile,
+  profileOverride: profileOverride || null,
   fixture: fixtureId,
   userAgent: navigator.userAgent,
   crossOriginIsolated: globalThis.crossOriginIsolated,
@@ -1397,7 +1405,7 @@ async function run() {
 
     checkpoint("initialize-engine");
     engine = await createDocumentEngine({
-      workerUrl: `./profiles/${profile}/sdk-worker.js`,
+      workerUrl: `./profiles/${activeProfile}/sdk-worker.js`,
       timeoutMs: 30000,
       closeRecoveryTimeoutMs: 10000,
       debug: engineDebug,
