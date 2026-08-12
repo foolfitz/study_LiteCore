@@ -832,6 +832,39 @@ const DISCRIMINATOR_CASES = {
       expects: "REFUSED with failureShape selection-type-not-readable and selectionType 3, in under a second -- finding 037's guard. Before the guard this row wedged the engine thread at 20 s and took the handle with it",
     },
   ],
+  // Finding 037, guard coverage.  The wedge-split census (2026-08-12) read each
+  // of these selection types without ever making the html read: as-char png,
+  // svg, unresolvable link and char-anchored frames are all COMPLEX, so the
+  // guard refuses them -- and so is IV-TEXTBOX, a frame with no image in it at
+  // all, which is why "inline image" turned out to be the wrong name for the
+  // trigger.
+  //
+  // IV-PARAGRAPH is why this table exists.  It reads back as TEXT, so the guard
+  // lets it through to the html read, and whether that read returns is exactly
+  // the question the type cannot answer for it.  It runs LAST for the same
+  // reason PC-IMAGE does: if it wedges, the rows after it go unmeasured rather
+  // than measured.
+  "image-variants": [
+    ...[
+      ["IV-PLAIN", "IV-TAIL", "verified: no frame anywhere, the control that says the run worked"],
+      ["IV-ASCHAR", "IV-PLAIN", "REFUSED selection-type-not-readable, selectionType 3"],
+      ["IV-SVG", "IV-PLAIN", "REFUSED selection-type-not-readable: a vector graphic is COMPLEX too"],
+      ["IV-LINKED", "IV-PLAIN", "REFUSED selection-type-not-readable: an unresolvable link is still COMPLEX"],
+      ["IV-CHAR", "IV-PLAIN", "REFUSED selection-type-not-readable: char anchoring is COMPLEX"],
+      ["IV-TEXTBOX", "IV-PLAIN", "REFUSED selection-type-not-readable: a frame with NO image is COMPLEX, so the trigger is the frame"],
+      ["IV-LIST", "IV-PLAIN", "REFUSED selection-type-not-readable: inside a list item as well"],
+      ["IV-TAIL", "IV-PLAIN", "verified: the paragraph after the frames still reads back"],
+      ["IV-PARAGRAPH", "IV-TAIL", "OPEN: reads back as TEXT, so the guard does not refuse it -- does the html read return?"],
+    ].map(([anchor, neighbour, expects]) => ({
+      case: anchor.toLowerCase(),
+      anchor,
+      dispatchedText: anchor,
+      escapeText: neighbour,
+      home: false,
+      action: "set-list-none",
+      expects,
+    })),
+  ],
 };
 
 function barrierOf(outcome, error) {
@@ -1019,12 +1052,31 @@ async function runDiscriminator(client, documentHandle) {
 //
 // PC-PLAIN runs the identical sequence first.  A step that hangs on both rows
 // is a property of the probe, not of the image.
-const WEDGE_SPLIT_ANCHORS = ["PC-PLAIN", "PC-IMAGE"];
+// Per fixture.  image-variants pulls the frame apart one property at a time,
+// because finding 037's guard keys on the selection type and the only shape
+// ever measured as COMPLEX is an as-char embedded PNG -- one sample.  A shape
+// that reports TEXT and hangs anyway would walk straight through the guard, and
+// this mode is the safe way to ask: it selects and reads the type, and never
+// makes the html read that does not return.
+const WEDGE_SPLIT_ANCHORS = {
+  "paragraph-content": ["PC-PLAIN", "PC-IMAGE"],
+  "image-variants": ["IV-PLAIN", "IV-ASCHAR", "IV-SVG", "IV-LINKED", "IV-CHAR",
+                     "IV-PARAGRAPH", "IV-TEXTBOX", "IV-LIST", "IV-TAIL"],
+};
 const WEDGE_SPLIT_TIMEOUT_MS = 10000;
 
 async function runWedgeSplit(client, documentHandle) {
+  const declared = WEDGE_SPLIT_ANCHORS[fixtureId];
+  if (!declared)
+    throw new Error(`no wedge-split anchors for fixture: ${fixtureId}`);
+  for (const name of caseFilter) {
+    if (!declared.includes(name))
+      throw new Error(`unknown wedge-split anchor: ${name}`);
+  }
+  const anchors = caseFilter.length
+    ? declared.filter((name) => caseFilter.includes(name)) : declared;
   const results = [];
-  for (const anchor of WEDGE_SPLIT_ANCHORS) {
+  for (const anchor of anchors) {
     const entry = { anchor, steps: [] };
     const step = async (name, fn) => {
       const started = performance.now();

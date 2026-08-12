@@ -146,6 +146,20 @@ E2-A 的 `paragraph-content` fixture（**獨立寫的、與 t2 無關**）在
 但要找 `wasm-fix` 的人應該先看這一點——**兩個獨立入口在同一個內容特徵上停住，
 比一個入口更能指出是共用的下層**。
 
+### 待驗證（2026-08-12 新增）：卡的是 frame 還是 image？
+
+[037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md) 在**選取型別**這條軸上量到
+**一個完全沒有圖片的 as-char frame（只裝文字方塊）同樣回報 `LOK_SELTYPE_COMPLEX`**，
+也就是說在那一單裡，觸發的是 frame 不是 image。
+
+本單的最小化止於「image frame 作為 `text:p` 直接子節點」，**但從來沒有試過「frame 但沒有 image」**。
+新的 `image-variants` fixture 同樣 close 逾時（`closeMs` 10829，走 recovery），可是它裡面
+既有圖片也有文字方塊，**分不開**。
+
+**要分開只需要一份只含文字方塊 frame、完全沒有圖片的 fixture，開了再關。**
+若它也逾時，本單的名字與最小化結論都要跟著改（trigger axis 是 `frame.wrapper` 而非 image）；
+若它正常，那 037 與本單就不是同一個下層，現在的「兩個入口指向共用下層」那段推論要收回。
+
 ## 環境
 
 - Core commit：`671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb`

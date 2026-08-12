@@ -497,5 +497,52 @@
     "hard-line-break": "covered 2026-08-12, passing (<br/> opens no block)",
     "paragraph-in-a-section": "covered 2026-08-12, passing (text:section leaves no wrapper)",
     "list-item": "covered 2026-08-12, passing (listTag ul, itemCount 1, blockCount 1 -- structural tags counted at every depth)"
+  },
+  "imageVariantCoverage": {
+    "why": "finding 037's guard keys on the selection type, and the only shape ever measured as COMPLEX was an as-char embedded PNG. A shape that reports TEXT and hangs anyway would walk straight through the guard, so the frame was pulled apart one property at a time.",
+    "fixture": "image-variants",
+    "measuredWithoutTheHtmlRead": "wedge-split mode selects and reads the selection type only; it never makes the call that does not return",
+    "rows": {
+      "IV-PLAIN": {
+        "selectionType": "text",
+        "dispatch": "completed 39ms, 526 bytes"
+      },
+      "IV-ASCHAR": {
+        "selectionType": "complex",
+        "dispatch": "refused 29ms"
+      },
+      "IV-SVG": {
+        "selectionType": "complex",
+        "dispatch": "refused 30ms"
+      },
+      "IV-LINKED": {
+        "selectionType": "complex",
+        "dispatch": "refused 29ms"
+      },
+      "IV-CHAR": {
+        "selectionType": "complex",
+        "dispatch": "refused 29ms"
+      },
+      "IV-TEXTBOX": {
+        "selectionType": "complex",
+        "dispatch": "refused 29ms",
+        "note": "no image in the frame at all -- the trigger is the frame"
+      },
+      "IV-LIST": {
+        "selectionType": "complex",
+        "dispatch": "refused 28ms"
+      },
+      "IV-TAIL": {
+        "selectionType": "text",
+        "dispatch": "completed 28ms, 528 bytes"
+      },
+      "IV-PARAGRAPH": {
+        "selectionType": "text",
+        "dispatch": "completed 29ms, 524 bytes",
+        "note": "paragraph-anchored: the only shape the guard lets through, and it does not hang"
+      }
+    },
+    "conclusion": "no measured shape reports TEXT and hangs, so the guard's premise holds across every frame shape constructed here",
+    "notMeasured": "frames in table cells, frames in footnotes, OLE objects, charts, draw:g groups -- no counterexample is not the same as no counterexample exists"
   }
 }

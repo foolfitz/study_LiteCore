@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-A-paragraph-format-discovery",
+  "stage": "A2-wasm",
+  "mode": "wedge-split",
+  "profile": "e2-wedge-trace",
+  "fixture": "image-variants",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "phase": "complete",
+  "complete": true,
+  "checkpoints": [
+    {
+      "name": "load-manifest"
+    },
+    {
+      "name": "initialize-engine"
+    },
+    {
+      "name": "open",
+      "bytes": 2188
+    }
+  ],
+  "editorStateEvents": [],
+  "formatStateEvents": [],
+  "readback": [],
+  "a5": null,
+  "discriminator": null,
+  "engineTrace": [],
+  "engineTraceDropped": 0,
+  "engineTraceCounts": {},
+  "cancelResults": [],
+  "wedgeSplit": null,
+  "closeMs": null,
+  "control": [],
+  "readbackAfterControl": [],
+  "dispatch": [],
+  "outputs": [],
+  "error": {
+    "name": "SdkTimeoutError",
+    "code": "TIMEOUT",
+    "message": "open timed out after 180000 ms",
+    "details": {
+      "operation": "open",
+      "timeoutMs": 180000
+    }
+  },
+  "pass": false,
+  "fixtureManifest": {
+    "id": "image-variants",
+    "path": "image-variants.odt",
+    "bytes": 2188,
+    "sha256": "bf20818ba35f1fd95d0aca6334ca6a2dae8d17515203678304bbe2c1bada4af8",
+    "anchors": [
+      "IV-PLAIN",
+      "IV-ASCHAR",
+      "IV-SVG",
+      "IV-LINKED",
+      "IV-CHAR",
+      "IV-PARAGRAPH",
+      "IV-TEXTBOX",
+      "IV-LIST",
+      "IV-TAIL"
+    ],
+    "minimum": {
+      "paragraphs": 8,
+      "headings": 0,
+      "lists": 1,
+      "tables": 0
+    },
+    "source": "project-generated deterministic ODT"
+  },
+  "manifest": {
+    "abiVersion": 65537,
+    "abiVersionText": "1.1",
+    "artifactFiles": {
+      "probe.js": "./probe.js",
+      "probe.wasm": "./probe.wasm",
+      "soffice.data": "../resources/base-r5.ba15a988a7fec468.data",
+      "soffice.data.js.metadata": "../resources/base-r5.ef11ef80faf373bc.metadata"
+    },
+    "capabilities": [
+      "open-odt",
+      "rgba-tile",
+      "insert-text",
+      "save-odt",
+      "cancel-queued",
+      "search",
+      "selection-text",
+      "replace-selection",
+      "undo",
+      "comments",
+      "tracked-changes",
+      "provider-contract-1.0",
+      "provider-worker",
+      "validated-provider-operation",
+      "editor-discovery-closed-actions",
+      "verified-selection-delete",
+      "verified-format-state"
+    ],
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "expectedCapabilityBits": 2047,
+    "profile": "e2-wedge-trace",
+    "protocolVersion": 1,
+    "providerContractVersion": "1.0",
+    "resourcePacks": [
+      {
+        "bytes": 19484784,
+        "data": "../resources/cjk-r5.b76b0433203017ca.data",
+        "id": "cjk-r5",
+        "loadAtStartup": true,
+        "metadata": "../resources/cjk-r5.fafab99558ab6f8b.metadata",
+        "purpose": "CJK corpus",
+        "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+      },
+      {
+        "bytes": 49102042,
+        "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+        "id": "fallback-fonts-r5",
+        "loadAtStartup": false,
+        "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+        "purpose": "optional complex-script and fidelity fallback",
+        "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+      }
+    ],
+    "sdkVersion": "0.6.0-r6-worker+e2-wedge-trace",
+    "diagnostic": {
+      "scope": "e2-paragraph-format-discovery",
+      "contract": "closed-actions-v1-candidate-not-product-abi",
+      "loaderSha256": "7d425a30f450d3effc4cc3ac8a166aa7285704efe1220a2a6ff86b029a4c54ad",
+      "wasmSha256": "c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f",
+      "workerSha256": "32c3c2b6eb137a8e791fa5cd1bcba4478d2a3108e6d0d7e7dc4b75bcd83354d4",
+      "productionArtifactReplaced": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "automaticRetry": false,
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "formatBarrier": "verified-format-state-v1",
+      "formatCompletionRequiresCommandResultAndState": true,
+      "formatResultVerdictFieldsUsedForCompletion": false,
+      "stateWordCountUsedForCompletion": false,
+      "boundaryReadbackDeadlineMs": 250,
+      "deadlineCanDeclareMutationSuccess": false,
+      "boundaryRejectionRequiresFreshWorker": true,
+      "engineLoop": "blocking-command-loop",
+      "uiLanguage": null,
+      "workerPatch": {
+        "sourceSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+        "edits": [
+          {
+            "name": "discovery-scope-gate",
+            "occurrences": 1
+          },
+          {
+            "name": "discovery-gate-message",
+            "occurrences": 1
+          },
+          {
+            "name": "format-barrier-counters",
+            "occurrences": 1
+          },
+          {
+            "name": "scheduler-drain-pump",
+            "occurrences": 1
+          },
+          {
+            "name": "format-barrier-error-details",
+            "occurrences": 1
+          },
+          {
+            "name": "lok-callback-trace",
+            "occurrences": 1
+          }
+        ],
+        "sharedWorkerModified": false,
+        "lokCallbackTrace": true
+      }
+    },
+    "capabilityBits": 2047
+  },
+  "documentPostconditions": {
+    "judged": 0,
+    "met": 0,
+    "allMet": false
+  },
+  "browser": "chrome",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e2/discovery/wedge-split/chrome/image-variants"
+}

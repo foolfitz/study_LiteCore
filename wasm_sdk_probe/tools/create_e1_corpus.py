@@ -121,6 +121,42 @@ PC_DOT_PNG = (
     b"\xc0\xf0\x1f\x00\x05\x00\x01\xffV\xc7/\r\x00\x00\x00\x00IEND\xaeB`\x82"
 )
 
+# Finding 037's guard keys on the selection type, and the only shape ever
+# measured as COMPLEX is an as-char embedded PNG.  That is one sample, and the
+# guard's whole premise is that the shapes which hang are exactly the ones that
+# report non-TEXT.  A shape that reports TEXT and hangs anyway would go straight
+# through the guard -- so the anchoring modes and graphic kinds get pulled apart
+# here and each one is asked for its selection type.
+#
+# Its own fixture, not more rows in paragraph-content: adding to that file would
+# change its bytes, and every M2 and finding 035 measurement is evidence about
+# the file with those bytes.
+IMAGE_VARIANTS_NAMESPACES = PARAGRAPH_CONTENT_NAMESPACES
+
+IMAGE_VARIANTS_MANIFEST_ENTRIES = (
+    ' <manifest:file-entry manifest:full-path="Pictures/iv-dot.png"'
+    ' manifest:media-type="image/png"/>\n'
+    ' <manifest:file-entry manifest:full-path="Pictures/iv-dot.svg"'
+    ' manifest:media-type="image/svg+xml"/>\n'
+)
+
+# Hand-written rather than produced by a library, for the same reason as the
+# PNG: the bytes have to be a property of this file, not of whatever was
+# installed on the machine that last regenerated the corpus.
+IV_DOT_SVG = (
+    b'<?xml version="1.0" encoding="UTF-8"?>\n'
+    b'<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"'
+    b' viewBox="0 0 8 8"><rect width="8" height="8" fill="#336699"/></svg>\n'
+)
+
+
+def image_frame(name: str, anchor: str, href: str, mime: str) -> str:
+    return (
+        f'<draw:frame draw:name="{name}" text:anchor-type="{anchor}"'
+        f' svg:width="0.08in" svg:height="0.08in">'
+        f'<draw:image xlink:href="{href}" xlink:type="simple" xlink:show="embed"'
+        f' xlink:actuate="onLoad" draw:mime-type="{mime}"/></draw:frame>')
+
 
 FIXTURES = {
     "plain-grapheme": {
@@ -260,11 +296,69 @@ FIXTURES = {
                     "PC-TITLE", "PC-SUBTITLE", "PC-LINK", "PC-BOOKMARK", "PC-FOOTNOTE",
                     "PC-COMMENT", "PC-IMAGE", "PC-BREAK", "PC-CJK-BOLD", "PC-SECTION",
                     "PC-LIST-ITEM"],
-        "minimum": {"paragraphs": 20, "headings": 7, "lists": 1, "tables": 0},
+        # 16, not 20.  The first version wrote 20 by counting the 21 anchors,
+        # but seven of those anchors are <text:h> and two of the paragraphs are
+        # the footnote and comment bodies -- the file has 16 <text:p> and always
+        # did.  Nothing caught it because validate_e1_corpus.py had no target
+        # that ran it: the committed baseline still described five fixtures,
+        # three fixtures after this one was added.  A gate nobody runs is not a
+        # gate, so the corpus check is now wired into test-e1-a-static.
+        "minimum": {"paragraphs": 16, "headings": 7, "lists": 1, "tables": 0},
         "extra_namespaces": PARAGRAPH_CONTENT_NAMESPACES,
         "extra_styles": PARAGRAPH_CONTENT_STYLES,
         "extra_manifest_entries": PARAGRAPH_CONTENT_MANIFEST_ENTRIES,
         "extra_members": (("Pictures/pc-dot.png", PC_DOT_PNG),),
+    },
+    # Finding 037.  One axis per row, so a difference in the answer is a
+    # difference in one property:
+    #
+    #   IV-PLAIN      no frame at all -- the control that says the run worked
+    #   IV-ASCHAR     as-char embedded PNG -- the shape already measured COMPLEX
+    #   IV-SVG        same anchoring, vector graphic instead of a bitmap
+    #   IV-LINKED     same anchoring, href to a file:// URL that resolves to
+    #                 nothing -- the ordinary "the linked picture moved" case.
+    #                 It must be an absolute URL: the first version pointed at a
+    #                 relative name with xlink:show="embed" and no such member in
+    #                 the package, and LibreOffice then refuses to load the whole
+    #                 document (0.5 s, "source file could not be loaded").  That
+    #                 is a broken file, not a linked picture, and it took the
+    #                 other eight rows down with it.
+    #   IV-CHAR       anchored to a character rather than being one
+    #   IV-PARAGRAPH  anchored to the paragraph
+    #   IV-TEXTBOX    an as-char frame with no image in it at all
+    #   IV-LIST       an as-char image inside a real list item
+    #   IV-TAIL       plain paragraph after them, so every row has a neighbour
+    #                 to escape to
+    #
+    # IV-TEXTBOX is the one that decides how the finding should be worded: if a
+    # frame with no graphic in it also reports COMPLEX, the trigger is the
+    # frame, and calling this "the inline image bug" would be naming the wrong
+    # thing.
+    "image-variants": {
+        "body": """
+ <text:p>IV-PLAIN ordinary paragraph with no frame</text:p>
+ <text:p>IV-ASCHAR as-char embedded png """ + image_frame(
+            "iv-aschar", "as-char", "Pictures/iv-dot.png", "image/png") + """</text:p>
+ <text:p>IV-SVG as-char embedded svg """ + image_frame(
+            "iv-svg", "as-char", "Pictures/iv-dot.svg", "image/svg+xml") + """</text:p>
+ <text:p>IV-LINKED as-char link to a file outside the package """ + image_frame(
+            "iv-linked", "as-char", "file:///nonexistent/iv-linked.png", "image/png") + """</text:p>
+ <text:p>IV-CHAR anchored to a character """ + image_frame(
+            "iv-char", "char", "Pictures/iv-dot.png", "image/png") + """</text:p>
+ <text:p>IV-PARAGRAPH anchored to the paragraph """ + image_frame(
+            "iv-paragraph", "paragraph", "Pictures/iv-dot.png", "image/png") + """</text:p>
+ <text:p>IV-TEXTBOX as-char frame with no image <draw:frame draw:name="iv-textbox" text:anchor-type="as-char" svg:width="0.4in" svg:height="0.16in"><draw:text-box><text:p>boxed</text:p></draw:text-box></draw:frame></text:p>
+ <text:list><text:list-item><text:p>IV-LIST list item with an image """ + image_frame(
+            "iv-list", "as-char", "Pictures/iv-dot.png", "image/png") + """</text:p></text:list-item></text:list>
+ <text:p>IV-TAIL ordinary paragraph after the frames</text:p>
+""",
+        "anchors": ["IV-PLAIN", "IV-ASCHAR", "IV-SVG", "IV-LINKED", "IV-CHAR",
+                    "IV-PARAGRAPH", "IV-TEXTBOX", "IV-LIST", "IV-TAIL"],
+        "minimum": {"paragraphs": 8, "headings": 0, "lists": 1, "tables": 0},
+        "extra_namespaces": IMAGE_VARIANTS_NAMESPACES,
+        "extra_manifest_entries": IMAGE_VARIANTS_MANIFEST_ENTRIES,
+        "extra_members": (("Pictures/iv-dot.png", PC_DOT_PNG),
+                          ("Pictures/iv-dot.svg", IV_DOT_SVG)),
     },
 }
 

@@ -1,4 +1,9 @@
-# 037 — 對「含行內圖片的段落」派送格式動作會卡死 document handle，而 deadline 沒有救到
+# 037 — 對「含 as-char frame 的段落」派送格式動作會卡死 document handle，而 deadline 沒有救到
+
+> **標題裡的「行內圖片」是錯的名字，2026-08-12 已更正。** 檔名保留（連結太多），
+> 但觸發條件不是圖片：`image-variants` fixture 量到**一個完全沒有圖片、只裝文字方塊的
+> as-char `draw:frame` 同樣是 `LOK_SELTYPE_COMPLEX`、同樣被擋**。
+> 觸發的是 **as-char／char 錨定的 frame**，圖片只是最常見的一種內容。見〈擋法涵蓋範圍〉。
 
 | | |
 |---|---|
@@ -324,6 +329,39 @@ Chrome，五個封閉動作各一輪，每輪都帶 `PC-PLAIN` 對照：
 
 **還是要開上游單**：擋的是我方不再呼叫，不是 core 不再卡。
 
+## 擋法涵蓋範圍：把 frame 拆開量（2026-08-12，證據 `wedge-split/`＋`wedge-trace/chrome/image-variants/`）
+
+**擋法的前提是「會卡的形狀恰好就是回報非 TEXT 的那些」，而那個前提原本只有一個樣本。**
+一個回報 `TEXT` 卻照樣卡死的形狀會直接穿過擋法——所以新開一份 fixture `image-variants`，
+一列一個屬性，先用 `wedge-split`（**只選取、只問型別，永遠不做 html 讀取**）安全地問過一輪，
+再真的派送一次。
+
+| 錨點 | 形狀 | selectionType | 派送結果 |
+|---|---|---|---|
+| `IV-PLAIN` | 沒有 frame（對照） | `text` | 完成 39 ms，526 bytes |
+| `IV-ASCHAR` | as-char 內嵌 PNG | **complex** | 拒絕 29 ms |
+| `IV-SVG` | as-char 內嵌 SVG | **complex** | 拒絕 30 ms |
+| `IV-LINKED` | as-char 連結到 `file:///` 解不出來的檔 | **complex** | 拒絕 29 ms |
+| `IV-CHAR` | `text:anchor-type="char"` | **complex** | 拒絕 29 ms |
+| **`IV-TEXTBOX`** | **as-char frame，裡面完全沒有圖片** | **complex** | **拒絕 29 ms** |
+| `IV-LIST` | 清單項裡的 as-char 圖片 | **complex** | 拒絕 28 ms |
+| `IV-TAIL` | frame 後面的純段落（對照） | `text` | 完成 28 ms，528 bytes |
+| **`IV-PARAGRAPH`** | **`text:anchor-type="paragraph"`** | **`text`** | **完成 29 ms，524 bytes** |
+
+兩個結論：
+
+1. **觸發的是 frame，不是圖片。** `IV-TEXTBOX` 沒有任何圖片，一樣 COMPLEX、一樣被擋。
+   擋法當初是照**型別**設計的而不是照「有沒有圖片」，所以它涵蓋的範圍比推導它的那個樣本更寬
+   ——**這次是運氣好，但也正是「照量到的性質設計、不要照故事設計」的理由**。
+2. **`IV-PARAGRAPH` 是唯一穿過擋法的形狀，而它不會卡。** 段落錨定的 frame 讀回 `TEXT`，
+   html 讀取 29 ms 回傳 524 bytes——**frame 沒有進到那個選取的序列化裡**，所以沒有東西可卡。
+   它排在最後跑，就是因為萬一它卡了，前面八列才不會跟著變成「未量測」。
+
+**九種形狀裡沒有任何一種是「回報 TEXT 卻卡死」。** 擋法的前提在目前量得到的範圍內成立。
+
+**界線**：這九種是我想得到的形狀，不是 ODF 允許的全部（沒有量表格內的 frame、
+註腳裡的 frame、OLE 物件、圖表、`draw:g` 群組）。**「沒有反例」不等於「不存在反例」。**
+
 ## 原本的擋法設計（保留，已實作如上）
 
 拆解實驗順帶量到一件有用的事：**`getSelectionTypeAndText` 在會卡死的那個選取上 1 ms 回傳
@@ -382,6 +420,14 @@ Chrome，五個封閉動作各一輪，每輪都帶 `PC-PLAIN` 對照：
   37 ms 拒絕、事後 handle 可用；`paragraph-content` 21 種形態全部跑完且 blockTag 與 035 定案一致；
   A3／A4／A5 重掃 44 輪全過並重綁。**殺傷範圍改成量的**：`selectionType` 進了每一次 barrier 的證據，
   428 次裡 426 次是 TEXT，被擋的 2 次都是 `PC-IMAGE`。core 端未修，上游單未開。
+- **2026-08-12（擋法涵蓋範圍）**：新 fixture `image-variants` 把 frame 拆成九列量。
+  **觸發的是 as-char／char 錨定的 frame 而不是圖片**——一個完全沒有圖片的文字方塊 frame
+  同樣 COMPLEX、同樣被擋；標題因此更正（檔名保留）。段落錨定的 frame 讀回 `TEXT`、
+  html 讀取 29 ms 正常回傳，是唯一穿過擋法的形狀而它不會卡。**九種形狀裡沒有
+  「回報 TEXT 卻卡死」的**。過程中我自己寫壞了 fixture：`IV-LINKED` 原本用相對路徑
+  ＋`xlink:show="embed"` 指向不在包裡的檔，**LibreOffice 直接拒收整份文件**，
+  而 WASM 那邊看起來像「open 逾時 180 秒」。用系統 soffice 0.5 秒就分辨出「我的檔壞了」
+  與「core 卡住」；已加上不需要 LibreOffice 也能查的 gate（見 `validate_e1_corpus.py`）。
 - **2026-08-12（順帶）**：比較各 fixture 的 close 時間時發現
   [012](012-r6-styled-document-close-timeout.md) 在 `paragraph-content` 上 16/16 重現，
   且擋法上線後仍然重現——**那是另一個缺陷，不是這一單的餘波**（擋法生效那一輪，

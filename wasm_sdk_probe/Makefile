@@ -1331,6 +1331,7 @@ test-e1-a-static:
 	node --check web/e1-manual-delete-app.js
 	python3 -m json.tool e1/discovery-matrix-v1.json >/dev/null
 	c++ -std=c++17 -Isrc -fsyntax-only tests/editor_discovery_abi_header_test.cpp
+	python3 tools/validate_e1_corpus.py
 	python3 -m py_compile tools/e1_support.py \
 		tools/build_e1_discovery_profile.py tools/create_e1_corpus.py \
 		tools/validate_e1_corpus.py tools/validate_e1_preflight.py \
