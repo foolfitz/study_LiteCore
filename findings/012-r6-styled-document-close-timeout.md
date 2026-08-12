@@ -169,9 +169,25 @@ E2-A 的 `paragraph-content` fixture（**獨立寫的、與 t2 無關**）在
 **所以 image 不是必要條件，frame 才是。** 本單第一階段的 `image` 只是比較粗的名字，
 第二階段的 `frame.wrapper` 才是對的，而且現在有正面證據而不只是「移掉 wrapper 就好了」。
 
-**還沒分開的**：as-char 是不是必要的。`frame-no-image` 用的是 as-char；
-037 那邊量到**段落錨定**的 frame 在選取型別上表現得像純文字，但**沒有量過它的 close**。
-下一個窄化就是這一刀。
+### 再一刀：錨定方式，一個屬性的邊界
+
+`frame-paragraph-anchored` 與 `frame-no-image` **只差一個屬性**——
+`text:anchor-type` 由 `as-char` 換成 `paragraph`，其餘逐字相同（同樣三段、同樣的
+`draw:text-box`、同樣沒有圖片）：
+
+| fixture | 錨定 | 選取型別 | closeMs | recovery |
+|---|---|---|---|---|
+| `frame-no-image` | **`as-char`** | **complex** | **10829** | **要** |
+| `frame-paragraph-anchored` | `paragraph` | `text` | **11** | 不用 |
+
+**所以觸發條件是「as-char 錨定的 frame」，不是任何 frame。** 這是目前為止最窄的一刀：
+一個屬性、兩個答案、其餘全部相同。
+
+而且**兩單的觸發條件在同一個屬性上重合**：037 那邊的選取型別也正好在 as-char 是 `complex`、
+在 paragraph 是 `text`。「兩個入口共用下層」的推論因此又強一階——**仍然是推論**，
+兩處都還沒有堆疊。
+
+**還沒量**：`text:anchor-type="char"` 的 close（037 那邊量過它的選取型別是 `complex`）。
 
 ## 環境
 
@@ -215,11 +231,14 @@ E2-A 的 `paragraph-content` fixture（**獨立寫的、與 t2 無關**）在
   `EMSCRIPTEN_SPECIFIC_DOCUMENT_DESTROY`、next action為`wasm-fix`。Finding歸因階段結束，R7待修復仍STOP。
 - 2026-08-04：R7 remediation以bounded Worker recycle完成；原始t2 Chrome／Firefox各3/3 close recovery，
   Worker與handle歸零且engine可再開文件。Finding 012不再阻斷normal／known S5；底層destroy root cause仍保留。
-- 2026-08-12：**觸發條件收窄為 frame 本身**。`frame-no-image`（三段文字＋一個只裝
+- 2026-08-12：**觸發條件收窄為「as-char 錨定的 frame」**，兩刀。第一刀 frame vs image：`frame-no-image`（三段文字＋一個只裝
   `draw:text-box` 的 as-char frame，**全檔零張圖片**）在 WASM 一樣 `closeMs` 10829 走 recovery；
   六份完全沒有 `draw:frame` 的 fixture 共 153 輪 6–25 ms、零次 recovery。
   第一階段的 `image` 軸其實是「整個 image frame」（`draw:image` 只能長在 `draw:frame` 裡），
-  第二階段的 `frame.wrapper` 才是對的名字。**尚未分開 as-char 是否必要。**
+  第二階段的 `frame.wrapper` 才是對的名字。第二刀錨定方式：`frame-paragraph-anchored`
+  與前者**只差一個 `text:anchor-type` 屬性**，`closeMs` **11 ms、零 recovery**
+  ——**as-char 是必要的**。兩單的觸發條件在同一個屬性上重合（037 的選取型別同樣在
+  as-char 是 complex、paragraph 是 text）。**未量 `char` 錨定的 close。**
 - 2026-08-12：E2-A 的 `paragraph-content`（另一份 fixture、另一張圖、另外兩代引擎）
   **16/16 走 close recovery**，其餘五份 fixture 共 153 輪零次；`frame.wrapper` 軸因此
   不再依賴 t2 的任何屬性。同日 [037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md)

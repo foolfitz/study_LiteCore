@@ -1066,6 +1066,7 @@ const WEDGE_SPLIT_ANCHORS = {
   // is for is the close at the end of it, on a document that has frames and no
   // images anywhere.
   "frame-no-image": ["FNI-PLAIN", "FNI-TEXTBOX", "FNI-TAIL"],
+  "frame-paragraph-anchored": ["FPA-PLAIN", "FPA-FRAME", "FPA-TAIL"],
 };
 const WEDGE_SPLIT_TIMEOUT_MS = 10000;
 

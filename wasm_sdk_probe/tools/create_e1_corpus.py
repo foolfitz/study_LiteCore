@@ -386,6 +386,25 @@ FIXTURES = {
         "minimum": {"paragraphs": 4, "headings": 0, "lists": 0, "tables": 0},
         "extra_namespaces": IMAGE_VARIANTS_NAMESPACES,
     },
+    # The other half of the same cut.  frame-no-image showed the close hang
+    # needs a frame and not an image; it used as-char anchoring, so "as-char" and
+    # "frame" were still varying together.  This file is identical except that
+    # its one frame is anchored to the paragraph -- the anchoring 037 measured
+    # behaving like plain text for selection purposes.
+    #
+    # If this closes promptly, as-char (or char) anchoring is part of the
+    # trigger and 012's minimisation gets narrower again.  If it hangs, the
+    # anchoring is irrelevant and any frame will do.
+    "frame-paragraph-anchored": {
+        "body": """
+ <text:p>FPA-PLAIN ordinary paragraph before the frame</text:p>
+ <text:p>FPA-FRAME paragraph-anchored frame holding text only <draw:frame draw:name="fpa-textbox" text:anchor-type="paragraph" svg:width="0.6in" svg:height="0.2in"><draw:text-box><text:p>boxed text</text:p></draw:text-box></draw:frame></text:p>
+ <text:p>FPA-TAIL ordinary paragraph after the frame</text:p>
+""",
+        "anchors": ["FPA-PLAIN", "FPA-FRAME", "FPA-TAIL"],
+        "minimum": {"paragraphs": 4, "headings": 0, "lists": 0, "tables": 0},
+        "extra_namespaces": IMAGE_VARIANTS_NAMESPACES,
+    },
 }
 
 
