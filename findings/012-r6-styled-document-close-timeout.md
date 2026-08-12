@@ -146,19 +146,32 @@ E2-A 的 `paragraph-content` fixture（**獨立寫的、與 t2 無關**）在
 但要找 `wasm-fix` 的人應該先看這一點——**兩個獨立入口在同一個內容特徵上停住，
 比一個入口更能指出是共用的下層**。
 
-### 待驗證（2026-08-12 新增）：卡的是 frame 還是 image？
+**2026-08-12 補**：那個「同一個內容特徵」現在兩邊都獨立量到是 **frame 而不是 image**
+（本單見下一節；037 見它的〈擋法涵蓋範圍〉），所以這條推論比初寫時強——
+但**仍然是推論**，兩處都沒有堆疊。
 
-[037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md) 在**選取型別**這條軸上量到
-**一個完全沒有圖片的 as-char frame（只裝文字方塊）同樣回報 `LOK_SELTYPE_COMPLEX`**，
-也就是說在那一單裡，觸發的是 frame 不是 image。
+### 2026-08-12：卡的是 frame，不是 image——已量
 
-本單的最小化止於「image frame 作為 `text:p` 直接子節點」，**但從來沒有試過「frame 但沒有 image」**。
-新的 `image-variants` fixture 同樣 close 逾時（`closeMs` 10829，走 recovery），可是它裡面
-既有圖片也有文字方塊，**分不開**。
+第一階段的 2⁴ matrix 把「image」當成一個特徵在開關，而 **ODF 裡 `draw:image` 只能長在
+`draw:frame` 裡面**，所以那條軸從來是「整個 image frame」；第二階段自己也把候選寫成
+`frame.wrapper`。**沒有試過的是「有 frame 但裡面沒有 image」。**
 
-**要分開只需要一份只含文字方塊 frame、完全沒有圖片的 fixture，開了再關。**
-若它也逾時，本單的名字與最小化結論都要跟著改（trigger axis 是 `frame.wrapper` 而非 image）；
-若它正常，那 037 與本單就不是同一個下層，現在的「兩個入口指向共用下層」那段推論要收回。
+新 fixture `frame-no-image`：三段文字，中間那段帶一個 as-char `draw:frame`，
+裡面只有 `draw:text-box`。**整份文件沒有任何圖片**——沒有 `Pictures/` 成員、
+`draw:image` 出現 0 次、manifest 只有兩個 XML 部件。系統 LibreOffice 正常開啟並轉出 PDF。
+
+**WASM：`closeMs` 10829，走 `document-close-recovery-complete`。**
+
+對照乾淨：六份**完全沒有 `draw:frame`** 的 fixture 共 153 輪，closeMs 6–25 ms、零次 recovery；
+三份**有 frame** 的（`paragraph-content` 1 個、`image-variants` 7 個、`frame-no-image` 1 個）
+每一輪都要 recovery。
+
+**所以 image 不是必要條件，frame 才是。** 本單第一階段的 `image` 只是比較粗的名字，
+第二階段的 `frame.wrapper` 才是對的，而且現在有正面證據而不只是「移掉 wrapper 就好了」。
+
+**還沒分開的**：as-char 是不是必要的。`frame-no-image` 用的是 as-char；
+037 那邊量到**段落錨定**的 frame 在選取型別上表現得像純文字，但**沒有量過它的 close**。
+下一個窄化就是這一刀。
 
 ## 環境
 
@@ -202,6 +215,11 @@ E2-A 的 `paragraph-content` fixture（**獨立寫的、與 t2 無關**）在
   `EMSCRIPTEN_SPECIFIC_DOCUMENT_DESTROY`、next action為`wasm-fix`。Finding歸因階段結束，R7待修復仍STOP。
 - 2026-08-04：R7 remediation以bounded Worker recycle完成；原始t2 Chrome／Firefox各3/3 close recovery，
   Worker與handle歸零且engine可再開文件。Finding 012不再阻斷normal／known S5；底層destroy root cause仍保留。
+- 2026-08-12：**觸發條件收窄為 frame 本身**。`frame-no-image`（三段文字＋一個只裝
+  `draw:text-box` 的 as-char frame，**全檔零張圖片**）在 WASM 一樣 `closeMs` 10829 走 recovery；
+  六份完全沒有 `draw:frame` 的 fixture 共 153 輪 6–25 ms、零次 recovery。
+  第一階段的 `image` 軸其實是「整個 image frame」（`draw:image` 只能長在 `draw:frame` 裡），
+  第二階段的 `frame.wrapper` 才是對的名字。**尚未分開 as-char 是否必要。**
 - 2026-08-12：E2-A 的 `paragraph-content`（另一份 fixture、另一張圖、另外兩代引擎）
   **16/16 走 close recovery**，其餘五份 fixture 共 153 輪零次；`frame.wrapper` 軸因此
   不再依賴 t2 的任何屬性。同日 [037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md)

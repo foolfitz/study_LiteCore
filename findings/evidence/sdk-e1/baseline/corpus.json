@@ -2,11 +2,12 @@
   "schemaVersion": 1,
   "release": "E1-A-editing-discovery",
   "manifest": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/manifest.json",
-  "manifestSha256": "4dae4c841daf6836f6d36acb93b6cfc94a589f0688eaef4a254b14a3b74567f6",
+  "manifestSha256": "8097d3701028ef69f84fb071d8c3f5df9cecc1d3390c886585017d48047e6193",
   "schemaPass": true,
   "frozenFixturesMissing": [],
   "addedSinceE1A": [
     "empty-paragraph",
+    "frame-no-image",
     "image-variants",
     "markdown-syntax",
     "paragraph-content"
@@ -477,6 +478,49 @@
         "lists": {
           "actual": 1,
           "minimum": 1,
+          "pass": true
+        },
+        "tables": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        }
+      },
+      "danglingEmbeddedHrefs": [],
+      "pass": true
+    },
+    {
+      "id": "frame-no-image",
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/frame-no-image.odt",
+      "sha256": "957ad760eeb090a71631f712df1f2cec207604a5782bf17c9dbeeaa97ed24416",
+      "anchors": [
+        {
+          "text": "FNI-PLAIN",
+          "found": true
+        },
+        {
+          "text": "FNI-TEXTBOX",
+          "found": true
+        },
+        {
+          "text": "FNI-TAIL",
+          "found": true
+        }
+      ],
+      "structure": {
+        "paragraphs": {
+          "actual": 4,
+          "minimum": 4,
+          "pass": true
+        },
+        "headings": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "lists": {
+          "actual": 0,
+          "minimum": 0,
           "pass": true
         },
         "tables": {

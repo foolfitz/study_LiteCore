@@ -360,6 +360,32 @@ FIXTURES = {
         "extra_members": (("Pictures/iv-dot.png", PC_DOT_PNG),
                           ("Pictures/iv-dot.svg", IV_DOT_SVG)),
     },
+    # Finding 012's open question, and it needs its own file to answer.
+    #
+    # 012 minimised its close hang to "an image frame as a direct child of
+    # text:p" and stopped there -- it never tried a frame with no image in it.
+    # Finding 037 then measured an as-char frame containing only a text box
+    # reporting COMPLEX exactly like the image ones, so on that axis the trigger
+    # is the frame.  image-variants cannot settle it for 012 because it carries
+    # both, and it does need the close recovery.
+    #
+    # This file has frames and no images anywhere: no Pictures/ member, no
+    # draw:image, nothing in the manifest but the two XML parts.  Open it and
+    # close it.  A close that hangs says 012's trigger is the frame and its
+    # minimisation needs redoing; a close that returns says the image is
+    # required after all, and the "two entry points, one shared layer" reading
+    # of 012-plus-037 has to be withdrawn.  Both answers change something,
+    # which is the point.
+    "frame-no-image": {
+        "body": """
+ <text:p>FNI-PLAIN ordinary paragraph before the frame</text:p>
+ <text:p>FNI-TEXTBOX as-char frame holding text only <draw:frame draw:name="fni-textbox" text:anchor-type="as-char" svg:width="0.6in" svg:height="0.2in"><draw:text-box><text:p>boxed text</text:p></draw:text-box></draw:frame></text:p>
+ <text:p>FNI-TAIL ordinary paragraph after the frame</text:p>
+""",
+        "anchors": ["FNI-PLAIN", "FNI-TEXTBOX", "FNI-TAIL"],
+        "minimum": {"paragraphs": 4, "headings": 0, "lists": 0, "tables": 0},
+        "extra_namespaces": IMAGE_VARIANTS_NAMESPACES,
+    },
 }
 
 

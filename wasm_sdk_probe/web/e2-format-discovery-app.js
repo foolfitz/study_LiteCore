@@ -1062,6 +1062,10 @@ const WEDGE_SPLIT_ANCHORS = {
   "paragraph-content": ["PC-PLAIN", "PC-IMAGE"],
   "image-variants": ["IV-PLAIN", "IV-ASCHAR", "IV-SVG", "IV-LINKED", "IV-CHAR",
                      "IV-PARAGRAPH", "IV-TEXTBOX", "IV-LIST", "IV-TAIL"],
+  // Finding 012's open question.  The rows barely matter here -- what the run
+  // is for is the close at the end of it, on a document that has frames and no
+  // images anywhere.
+  "frame-no-image": ["FNI-PLAIN", "FNI-TEXTBOX", "FNI-TAIL"],
 };
 const WEDGE_SPLIT_TIMEOUT_MS = 10000;
 
