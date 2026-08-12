@@ -405,6 +405,41 @@ FIXTURES = {
         "minimum": {"paragraphs": 4, "headings": 0, "lists": 0, "tables": 0},
         "extra_namespaces": IMAGE_VARIANTS_NAMESPACES,
     },
+    # The third value on the anchoring axis, and the last one ODF offers for a
+    # frame inside a paragraph.  as-char hangs the close, paragraph does not,
+    # and char was left unmeasured -- recorded as a gap in finding 012 rather
+    # than guessed, because 037 measured char as COMPLEX for selection and
+    # "probably behaves like as-char" is not a measurement.
+    #
+    # Identical to frame-no-image apart from text:anchor-type.
+    "frame-char-anchored": {
+        "body": """
+ <text:p>FCA-PLAIN ordinary paragraph before the frame</text:p>
+ <text:p>FCA-FRAME char-anchored frame holding text only <draw:frame draw:name="fca-textbox" text:anchor-type="char" svg:width="0.6in" svg:height="0.2in"><draw:text-box><text:p>boxed text</text:p></draw:text-box></draw:frame></text:p>
+ <text:p>FCA-TAIL ordinary paragraph after the frame</text:p>
+""",
+        "anchors": ["FCA-PLAIN", "FCA-FRAME", "FCA-TAIL"],
+        "minimum": {"paragraphs": 4, "headings": 0, "lists": 0, "tables": 0},
+        "extra_namespaces": IMAGE_VARIANTS_NAMESPACES,
+    },
+    # Finding 037's guard was measured against frames sitting directly in body
+    # paragraphs.  "Frames in table cells and footnotes were not measured" was
+    # written down as a limit; this is that limit, measured.  Both are places a
+    # paragraph can live that the barrier can still be pointed at.
+    "frame-contexts": {
+        "body": """
+ <text:p>FX-PLAIN ordinary paragraph with no frame</text:p>
+ <table:table table:name="FXTable">
+  <table:table-column table:number-columns-repeated="2"/>
+  <table:table-row><table:table-cell><text:p>FX-CELL frame in a table cell <draw:frame draw:name="fx-cell" text:anchor-type="as-char" svg:width="0.4in" svg:height="0.16in"><draw:text-box><text:p>boxed</text:p></draw:text-box></draw:frame></text:p></table:table-cell><table:table-cell><text:p>FX-CELL-B plain cell</text:p></table:table-cell></table:table-row>
+ </table:table>
+ <text:p>FX-NOTE paragraph whose footnote holds a frame<text:note text:id="fx-note" text:note-class="footnote"><text:note-citation>1</text:note-citation><text:note-body><text:p>note body with a frame <draw:frame draw:name="fx-note-frame" text:anchor-type="as-char" svg:width="0.4in" svg:height="0.16in"><draw:text-box><text:p>boxed</text:p></draw:text-box></draw:frame></text:p></text:note-body></text:note></text:p>
+ <text:p>FX-TAIL ordinary paragraph after them</text:p>
+""",
+        "anchors": ["FX-PLAIN", "FX-CELL", "FX-NOTE", "FX-TAIL"],
+        "minimum": {"paragraphs": 6, "headings": 0, "lists": 0, "tables": 1},
+        "extra_namespaces": IMAGE_VARIANTS_NAMESPACES,
+    },
 }
 
 

@@ -187,7 +187,19 @@ E2-A 的 `paragraph-content` fixture（**獨立寫的、與 t2 無關**）在
 在 paragraph 是 `text`。「兩個入口共用下層」的推論因此又強一階——**仍然是推論**，
 兩處都還沒有堆疊。
 
-**還沒量**：`text:anchor-type="char"` 的 close（037 那邊量過它的選取型別是 `complex`）。
+**`char` 錨定已補量，而且它把兩件事拆開了**：`frame-char-anchored`
+（與 `frame-no-image` 只差 `text:anchor-type`）的 **`closeMs` 12 ms、零 recovery**，
+但它的選取型別**是 `complex`**。
+
+| 錨定 | 選取型別 | close |
+|---|---|---|
+| `as-char` | `complex` | **卡（10829 ms ＋ 重啟 worker）** |
+| `char` | `complex` | 正常（12 ms） |
+| `paragraph` | `text` | 正常（11 ms） |
+
+**「選取型別是 COMPLEX」與「close 會卡」不是同一件事**：`char` 兩者只中一個。
+本單的觸發條件因此收窄到 **`as-char`**，而 037 的擋法判準（非 `TEXT` 即拒絕）
+比它寬——那是保守，不是錯，但代價要記在 037 那邊。
 
 ## 環境
 

@@ -2,11 +2,13 @@
   "schemaVersion": 1,
   "release": "E1-A-editing-discovery",
   "manifest": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/manifest.json",
-  "manifestSha256": "3326d18c5e0f1e99da6216288a12e6f1c3f76e7a6397845056d0ddf30cc10235",
+  "manifestSha256": "377d7c8b4f3cbbd7fa65a11f02f4bb05248772ec596557c1f2479f0649244e85",
   "schemaPass": true,
   "frozenFixturesMissing": [],
   "addedSinceE1A": [
     "empty-paragraph",
+    "frame-char-anchored",
+    "frame-contexts",
     "frame-no-image",
     "frame-paragraph-anchored",
     "image-variants",
@@ -570,6 +572,96 @@
         "tables": {
           "actual": 0,
           "minimum": 0,
+          "pass": true
+        }
+      },
+      "danglingEmbeddedHrefs": [],
+      "pass": true
+    },
+    {
+      "id": "frame-char-anchored",
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/frame-char-anchored.odt",
+      "sha256": "4edbc659be9fe43415008ac628082f134b82204db0738bb06cbd6b303d2b25e3",
+      "anchors": [
+        {
+          "text": "FCA-PLAIN",
+          "found": true
+        },
+        {
+          "text": "FCA-FRAME",
+          "found": true
+        },
+        {
+          "text": "FCA-TAIL",
+          "found": true
+        }
+      ],
+      "structure": {
+        "paragraphs": {
+          "actual": 4,
+          "minimum": 4,
+          "pass": true
+        },
+        "headings": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "lists": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "tables": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        }
+      },
+      "danglingEmbeddedHrefs": [],
+      "pass": true
+    },
+    {
+      "id": "frame-contexts",
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/frame-contexts.odt",
+      "sha256": "bf58ea34a56691264f89c03edde2d1ea01df2affd91e60949f8f130756be590a",
+      "anchors": [
+        {
+          "text": "FX-PLAIN",
+          "found": true
+        },
+        {
+          "text": "FX-CELL",
+          "found": true
+        },
+        {
+          "text": "FX-NOTE",
+          "found": true
+        },
+        {
+          "text": "FX-TAIL",
+          "found": true
+        }
+      ],
+      "structure": {
+        "paragraphs": {
+          "actual": 8,
+          "minimum": 6,
+          "pass": true
+        },
+        "headings": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "lists": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        },
+        "tables": {
+          "actual": 1,
+          "minimum": 1,
           "pass": true
         }
       },

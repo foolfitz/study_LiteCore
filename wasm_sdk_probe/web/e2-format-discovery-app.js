@@ -1067,7 +1067,9 @@ async function runDiscriminator(client, documentHandle) {
 // this mode is the safe way to ask: it selects and reads the type, and never
 // makes the html read that does not return.
 const WEDGE_SPLIT_ANCHORS = {
-  "paragraph-content": ["PC-PLAIN", "PC-IMAGE"],
+  // PC-FOOTNOTE is the control for the FX-NOTE wedge: a footnote with no frame
+  // in it, selected the same way.
+  "paragraph-content": ["PC-PLAIN", "PC-FOOTNOTE", "PC-IMAGE"],
   "image-variants": ["IV-PLAIN", "IV-ASCHAR", "IV-SVG", "IV-LINKED", "IV-CHAR",
                      "IV-PARAGRAPH", "IV-TEXTBOX", "IV-LIST", "IV-TAIL"],
   // Finding 012's open question.  The rows barely matter here -- what the run
@@ -1075,6 +1077,8 @@ const WEDGE_SPLIT_ANCHORS = {
   // images anywhere.
   "frame-no-image": ["FNI-PLAIN", "FNI-TEXTBOX", "FNI-TAIL"],
   "frame-paragraph-anchored": ["FPA-PLAIN", "FPA-FRAME", "FPA-TAIL"],
+  "frame-char-anchored": ["FCA-PLAIN", "FCA-FRAME", "FCA-TAIL"],
+  "frame-contexts": ["FX-PLAIN", "FX-CELL", "FX-NOTE", "FX-TAIL"],
 };
 const WEDGE_SPLIT_TIMEOUT_MS = 10000;
 
