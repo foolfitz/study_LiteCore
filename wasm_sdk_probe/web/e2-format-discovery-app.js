@@ -1111,6 +1111,19 @@ const WEDGE_SPLIT_TIMEOUT_MS = 10000;
 //   caret-only    the harness's own placeCaret and nothing else
 //   keyboard      place the caret, then move-line-end with extendSelection
 const selectMethod = params.get("select") || "mouse-drag";
+// Finding 038.  Two knobs the scope run left open:
+//
+//   idleAfterSelect  do nothing at all for N ms after the selection, then ask
+//                    the liveness ladder.  If the engine is already gone with
+//                    no further command issued, the selection killed it; if it
+//                    answers, the wedge needs whatever command comes next.
+//   span             "full" selects past the end of the line (the default, and
+//                    what wedged).  "prefix" selects only the first part of the
+//                    anchor text, which on FX-NOTE does not reach the footnote
+//                    citation -- so it separates "this paragraph has a note
+//                    with a frame" from "the selection covers the citation".
+const idleAfterSelect = Number(params.get("idleAfterSelect") || 0);
+const selectSpan = params.get("span") || "full";
 
 async function runWedgeSplit(client, documentHandle) {
   const declared = WEDGE_SPLIT_ANCHORS[fixtureId];
@@ -1157,7 +1170,16 @@ async function runWedgeSplit(client, documentHandle) {
     const midY = rectangle.y + Math.max(1, Math.floor(rectangle.height / 2));
     // Past the end of the line on purpose: the point is to cover whatever
     // follows the anchor text, which on PC-IMAGE is the image.
-    const endX = rectangle.x + 8000;
+    // "full" runs past the end of the line.  A number is an explicit width in
+    // twips, which is what the first prefix attempt needed: half the anchor
+    // word (~513 twips) produced selectionType "none" on BOTH rows -- the drag
+    // was too short to be a drag, so it selected nothing and answered nothing.
+    const spanTwips = Number(selectSpan);
+    const endX = Number.isFinite(spanTwips) && spanTwips > 0
+      ? rectangle.x + spanTwips
+      : rectangle.x + 8000;
+    entry.selectSpan = selectSpan;
+    entry.selectEndX = endX;
 
     entry.selectMethod = selectMethod;
     await step(`select:${selectMethod}`, async () => {
@@ -1189,6 +1211,14 @@ async function runWedgeSplit(client, documentHandle) {
       }
       throw new Error(`unknown select method: ${selectMethod}`);
     });
+
+    if (idleAfterSelect > 0) {
+      // Deliberately no engine command in between.  This is the whole point:
+      // anything asked of the engine here would be a candidate for having
+      // caused the wedge.
+      await new Promise((resolve) => setTimeout(resolve, idleAfterSelect));
+      entry.livenessAfterIdle = await livenessLadder(client);
+    }
 
     // What actually got selected.  Without this the two rows cannot be
     // compared: a drag that selected a different span would make any

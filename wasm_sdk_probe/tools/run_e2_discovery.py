@@ -270,6 +270,8 @@ def main() -> None:
         default="",
         help="wedge-split only: which way to select (finding 038 scope)",
     )
+    parser.add_argument("--idle-after-select", type=int, default=0)
+    parser.add_argument("--span", default="")
     parser.add_argument(
         "--evidence-dir",
         type=Path,
@@ -332,6 +334,10 @@ def main() -> None:
             query += f"&action={args.action}"
         if args.select_method:
             query += f"&select={args.select_method}"
+        if args.idle_after_select:
+            query += f"&idleAfterSelect={args.idle_after_select}"
+        if args.span:
+            query += f"&span={args.span}"
         session.navigate(f"{base_url}{query}")
         deadline = time.monotonic() + args.timeout
         metrics = None
