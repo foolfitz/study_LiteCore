@@ -63,6 +63,10 @@ FX-TAIL  locate               failed    10000 ms   search 逾時（下一列連�
   所以卡點在「選取完成之後」到「下一個命令被取走之前」，那中間是引擎自己的迴圈與
   callback 處理。與 037 不同，那裡沒有一個明顯的 LOK 呼叫可以指。
 - **尾註沒量。**
+- **在帶名稱的 build（`150de122`）上重現過一次並取樣**，但那一輪**八條 worker 裡有四條
+  的 CDP session 在取樣途中消失**（`Session with given id not found`），所以那一輪的
+  「四條 parked」**是不完整的觀察，不是完整的盤點**。可比的只有控制組那一半：
+  兩條 `__pthread_cond_timedwait`、五條 idle。
 
 ## 相關
 

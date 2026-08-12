@@ -1,0 +1,6 @@
+150de122810c44bdcc7e2c8049709af16e78b15d085a00d86aebaf120fed6a30  wasm_sdk_probe/dist/profiles/e2-wait-diagnostic/probe.wasm
+
+# The diagnostic build: shipped sources linked with -sPTHREADS_DEBUG=1 -sASSERTIONS=1
+# --profiling-funcs.  It carries the finding 037 guard, so the read hang is not
+# reachable on it; the wedge traced here is finding 038, which the guard does not
+# cover.  The shipped e2-format-discovery artifact was not rebuilt.

@@ -195,6 +195,7 @@ def main() -> None:
     parser.add_argument("--fixture", default="paragraph-content")
     parser.add_argument("--cases", default="pc-plain,pc-image")
     parser.add_argument("--profile", default="e2-preguard-diagnostic")
+    parser.add_argument("--fixture-mode", default="wedge-trace")
     parser.add_argument("--profile-seconds", type=float, default=6.0)
     parser.add_argument("--timeout", type=float, default=300)
     parser.add_argument(
@@ -215,8 +216,9 @@ def main() -> None:
         wait_page(base)
         session = ChromeSession("cold")
         session.navigate(
-            f"{base}?fixture={args.fixture}&mode=wedge-trace"
-            f"&cases={args.cases}&profileOverride={args.profile}")
+            f"{base}?fixture={args.fixture}&mode={args.fixture_mode}"
+            + (f"&cases={args.cases}" if args.cases else "")
+            + f"&profileOverride={args.profile}")
 
         # Attach BEFORE the hang, so the same worker set can be profiled
         # twice: once while the engine is alive and working normally, and once
