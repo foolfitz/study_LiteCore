@@ -594,6 +594,25 @@ endef
 # --profiling-funcs keeps the function names, so the trace names functions
 # instead of wasm-function[36295].  ASSERTIONS=1 turns on a second batch of
 # pthread checks that share the same #if.
+# Relinking a frozen profile is never incidental.  The wasm hash is not a
+# function of the source (finding 036) and every verdict binds to the artifact
+# it was measured on (finding 027), so a new link silently invalidates whatever
+# that profile carries.  The way it happens is never "someone decided to": it is
+# a Makefile edit for an unrelated profile making these targets out of date.
+#
+#   $(1)  what the profile carries, for the message
+define refuse_unasked_relink
+	@if [ "$(ALLOW_FROZEN_RELINK)" != "1" ]; then \
+		echo ""; \
+		echo "refusing to relink a frozen profile: $@"; \
+		echo "it carries: $(1)"; \
+		echo "a new link mints a new artifact and unbinds that (findings 027, 036)."; \
+		echo "if that is really what you want:  make ALLOW_FROZEN_RELINK=1 $@"; \
+		echo ""; \
+		exit 1; \
+	fi
+endef
+
 define link_e2_wait_diagnostic
 	$(CXX) $(1) \
 		-L$(LOBUILD)/instdir/program $$(cat $(LINKDEPS)) \
@@ -646,6 +665,7 @@ $(E1_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile | $(E1_B
 
 $(E1_BUILD)/probe.js: $(E1_OBJECTS) $(E1_BUILD)/exports.txt \
 		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the e1-editor-discovery artifact 679def61 that E1-A/E1-B evidence binds to)
 	$(call link_r5_product,$(E1_OBJECTS),$(E1_BUILD)/exports.txt,$@)
 
 $(E1_BUILD)/probe.wasm: $(E1_BUILD)/probe.js
@@ -660,6 +680,7 @@ $(E1_B_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile | $(E1
 
 $(E1_B_BUILD)/probe.js: $(E1_B_OBJECTS) $(E1_B_BUILD)/exports.txt \
 		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the SHIPPED editor artifact 835b453d and the E1_GO_ODT_EDITOR verdict)
 	$(call link_r5_product,$(E1_B_OBJECTS),$(E1_B_BUILD)/exports.txt,$@)
 
 $(E1_B_BUILD)/probe.wasm: $(E1_B_BUILD)/probe.js
@@ -685,20 +706,12 @@ $(E2_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(E2_BUILD)
 # has happened before is a Makefile edit for some other profile making this
 # target out of date.  So it has to be asked for:
 #
-#     make ALLOW_E2_REBUILD=1 e2-format-discovery-assets
+#     make ALLOW_FROZEN_RELINK=1 e2-format-discovery-assets
 #
 # and then re-swept with tools/sweep_e2_a.py, which is 44 runs.
 $(E2_BUILD)/probe.js: $(E2_OBJECTS) $(E2_BUILD)/exports.txt \
 		$(LINKDEPS) $(FS_PRE_JS) Makefile
-	@if [ "$(ALLOW_E2_REBUILD)" != "1" ]; then \
-		echo ""; \
-		echo "refusing to relink the shipped e2-format-discovery engine."; \
-		echo "a new link mints a new artifact and unbinds A3/A4/A5 (findings 027, 036)."; \
-		echo "if that is what you want:  make ALLOW_E2_REBUILD=1 $@"; \
-		echo "then re-sweep:             python3 tools/sweep_e2_a.py --expect-wasm <new sha256>"; \
-		echo ""; \
-		exit 1; \
-	fi
+	$(call refuse_unasked_relink,the shipped E2 engine c89f069e and the A3/A4/A5 verdicts -- re-sweep with tools/sweep_e2_a.py after)
 	$(call link_r5_product,$(E2_OBJECTS),$(E2_BUILD)/exports.txt,$@)
 
 $(E2_BUILD)/probe.wasm: $(E2_BUILD)/probe.js
