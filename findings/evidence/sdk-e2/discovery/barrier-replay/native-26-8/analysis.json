@@ -1,0 +1,27 @@
+{
+  "what": "finding 037: which stage of the format barrier stalls on a paragraph carrying an inline image?",
+  "why": "The WASM run only says the action never returned. The engine writes its barrier evidence when the barrier finishes, so a barrier that never finishes writes nothing -- and the stage it died in is precisely the field that is missing. Rebuilding the WASM engine with a diagnostic would answer it and would also mint a new artifact, unbinding the A3/A4/A5 verdicts just re-swept onto ee185b3d (finding 027's trap, paid for a diagnostic). Native replay costs nothing and binds nothing.",
+  "build": "native LibreOffice 26.8 (build-native-26-8), svp",
+  "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+  "fixture": "paragraph-content.odt 920ca5d51ef5e52605af16e8aa98178daee87ec3ab309bcc6ea94ccfd248d28b",
+  "method": "the barrier's stages in order, each with its own deadline and its own timing: dispatch the action and wait for a command result, dispatch .uno:SelectText and wait for its result, wait for the selection callback, read text/html, setTextSelection(RESET) and wait for the selection to clear, then probe whether the handle still answers. Six anchors, not one: a step that is slow everywhere is a property of the sequence; a step slow on one shape is a property of that shape. Without the other rows, '20 seconds' has nothing to be compared against.",
+  "result": {
+    "shortAnswer": "the sequence does NOT stall natively on the image paragraph -- every stage completes in 10 ms or less, on every anchor",
+    "perAnchorMs": "actionResult 10, selectResult 10, selectionCallback 0, read 1-2, restoreCleared 10, handle probe 10 -- identical across PC-PLAIN, PC-CJK-BOLD, PC-LINK, PC-FOOTNOTE, PC-IMAGE and PC-BREAK",
+    "imageRow": "readBytes 798, selectionType 3 (LOK_SELTYPE_COMPLEX), restore cleared in 10 ms, handle usable afterwards",
+    "reading": "what LOK does with a COMPLEX selection is not the stall. The wedge is specific to the WASM engine's stage machine or its event pumping, not to the command sequence itself."
+  },
+  "correctionDuringThisRun": {
+    "what": "the first version probed handle usability by re-searching the SAME anchor, and reported handleUsableAfter=false on five rows out of six -- including PC-PLAIN, the plain-paragraph control",
+    "why": "a search starting from a cursor already past its only match does not find it again. Nothing was wedged.",
+    "fix": "probe with a different anchor. All six rows then report usable=true.",
+    "lesson": "a signature that fires on the control is not a signature. Had the image row alone been run, its false would have read as confirmation of the wedge."
+  },
+  "boundedBy": [
+    "This is a replay, not the engine. It waits for ANY UNO command result rather than matching the dispatched command's name, and it polls with sleeps instead of running inside the engine's main loop, so it does not reproduce the engine's exact waiting conditions or its scheduling.",
+    "It therefore shows that the LOK-level sequence CAN complete on this paragraph. It does not show that the engine's sequence is the same sequence.",
+    "Only .uno:RemoveBullets was replayed; the other four closed actions were not.",
+    "The stage the WASM engine actually died in is still unmeasured. Getting it needs a diagnostic engine build -- which must be its OWN profile, never the shipped e2-format-discovery one, or the verdicts move again."
+  ],
+  "nextStep": "a diagnostic WASM profile that prints the current FormatBarrierStage when a stage deadline is armed and when it expires, plus whether the engine loop is still turning. The 5 s per-stage deadline not firing at all suggests the stall may be upstream of the barrier -- if the engine loop is not turning, nothing arms or checks a deadline."
+}
