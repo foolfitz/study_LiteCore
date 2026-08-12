@@ -1,0 +1,156 @@
+================================================================
+Bugzilla: https://bugs.documentfoundation.org
+================================================================
+Product:        LibreOffice
+Component:      ???                    [送出前確認。候選：Writer / framework
+                                        （沒有 WASM component；012 當年也沒定）]
+Version:        26.8.0.1 rc            [core 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb]
+Hardware:       x86-64
+OS:             Linux (Ubuntu 26.04)
+Severity:       critical
+Summary:        WASM: an as-char draw:frame makes getTextSelection("text/html")
+                and destroy() never return; native returns in milliseconds
+================================================================
+
+重複單查詢（2026-08-12，Bugzilla REST API）
+------------------------------------------
+summary 含 "wasm"        → 2 筆，皆無關（README 錯字、pptx autoscale）
+summary 含 "emscripten"  → 0 筆
+summary 含 "getTextSelection" → 0 筆
+comment 含 "emscripten hang"  → 2 筆，皆無關
+未找到重複單。（界線：只查了 summary 與少數 comment 片語，不是窮舉。）
+
+
+Description
+-----------
+
+In an Emscripten/WASM build, two different LibreOfficeKit calls never return
+when the document contains a draw:frame anchored text:anchor-type="as-char"
+inside a text:p:
+
+  (1) getTextSelection(doc, "text/html", nullptr), over a selection covering
+      that paragraph.
+  (2) destroy(doc), on the same document.
+
+Both return in single-digit milliseconds in a native build of the same commit.
+
+No image is involved.  The attached fixtures' frame holds only a
+draw:text-box: there is no Pictures/ member, draw:image appears zero times,
+and the manifest lists only content.xml and styles.xml.  An embedded image is
+how we first met this, not what triggers it.
+
+The calling thread stops inside the call.  It is not waiting on a callback:
+the LOK callback stream ends mid-sequence and nothing arrives for the rest of
+the run (86 s observed).  The worker's JS thread stays responsive, the wasm
+module is still callable from that thread, and our engine's global mutex is
+free -- only the thread that entered the call is stuck.
+
+
+Steps to Reproduce
+------------------
+
+1. Build LibreOffice for WASM per static/README.wasm.md.
+2. Through LibreOfficeKit, from the thread that owns the document:
+     a. documentLoad("file:.../frame-no-image.odt")
+     b. .uno:ExecuteSearch for "FNI-TEXTBOX" to place the caret
+     c. .uno:SelectText to select that paragraph
+     d. getTextSelection(doc, "text/html", nullptr)
+3. Repeat with frame-paragraph-anchored.odt and the anchor "FPA-FRAME".
+   That fixture differs by exactly one attribute -- the frame is anchored to
+   the paragraph rather than as-char -- and everything else is identical.
+
+For symptom (2), call destroy(doc) at the end.
+
+  Note on (2): on THESE fixtures the destroy hang was observed after a
+  selection sequence, not after a bare load -- we have not run open->destroy
+  alone on them.  It was measured on a bare open->close for a different
+  document (an as-char image frame), Chrome and Firefox, both timing out at
+  the full 180 s.  So "no selection needed" is carried over from that
+  document, not established on these two.
+
+The attached lok_frame_hang.cpp does all of this and prints an "enter" line
+before each call and an "exit" line after it, so the hanging step is the one
+whose enter has no exit.
+
+
+Actual Results
+--------------
+
+WASM, frame-no-image.odt (as-char):
+
+  [   ... ] info   selectionType=3
+  [   ... ] enter  getTextSelection(text/html)
+                                            <- no exit line, ever
+
+and separately:
+
+  [   ... ] enter  destroy(document)
+                                            <- no exit line, ever
+
+Client-side timeouts of 20 s and 30 s expire; the document handle answers
+nothing afterwards.  The only recovery we have is terminating the worker.
+
+
+Expected Results
+----------------
+
+Both calls return, as they do natively and as they do for the
+paragraph-anchored control in the same WASM build.
+
+
+Isolation
+---------
+
+One attribute separates pass from hang.  The two fixtures are identical apart
+from text:anchor-type on the single frame:
+
+  fixture                        anchoring   getSelectionType   WASM html read   WASM destroy
+  frame-no-image.odt             as-char     3 (COMPLEX)        never returns    never returns
+  frame-paragraph-anchored.odt   paragraph   1 (TEXT)           returns 524 B    returns, 11 ms
+
+Native control, LibreOffice 26.2.4.2, both fixtures, every step returning:
+
+  as-char:    getTextSelection 4 ms / 624 B   destroy 2 ms
+  paragraph:  getTextSelection 1 ms / 528 B   destroy 2 ms
+
+The selection type differs natively as well, so that part is ordinary core
+behaviour; only the hang is specific to the WASM build.
+
+Same-commit native (26.8.0.1.0, core 671c848b) was also measured earlier on
+this pair of symptoms and did not reproduce either: the html read returned
+798 bytes in 1 ms on an equivalent as-char paragraph, and document destroy
+entered and returned 3/3 for the document that hangs under WASM.
+
+Browsers: Chrome 150.0.7871.128 and Firefox 153.0.1, identical signatures.
+Two independently built WASM engine artifacts of the same commit, identical
+behaviour.
+
+Documents with no draw:frame at all close in 6-25 ms across 153 runs with no
+recovery; every document carrying an as-char frame needs the worker restarted.
+
+
+What we do NOT know
+-------------------
+
+No stack, for either symptom.  We know the calls do not return and where they
+are called from; we do not know where inside core they stop.
+
+The two symptoms turn on the same one attribute, reached independently from
+the read side and the teardown side, which is why they are reported together.
+That is an inference about a shared cause, not an attribution -- nobody has
+shown they run through the same code, and if you would rather have them as two
+bugs we can split them.
+
+Not measured: text:anchor-type="char" for the destroy symptom (its selection
+type is COMPLEX like as-char), frames in table cells or footnotes, OLE
+objects, charts, draw:g groups.
+
+
+Attachments
+-----------
+
+  frame-no-image.odt              957ad760eeb090a71631f712df1f2cec207604a5782bf17c9dbeeaa97ed24416
+  frame-paragraph-anchored.odt    f4b085f762fff887b99d9292a8d6eb5e0cbc4f5f487c25f01f729773cfedb5c0
+  lok_frame_hang.cpp              minimal reproducer, native and WASM
+
+（都在 findings/repro/037-as-char-frame-hang/）
