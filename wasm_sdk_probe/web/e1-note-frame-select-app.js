@@ -39,6 +39,14 @@ const params = new URLSearchParams(location.search);
 const profile = params.get("profile") || "e1-editor-v1";
 const fixture = params.get("fixture") || "frame-contexts.odt";
 const stepTimeoutMs = Number.parseInt(params.get("timeoutMs") || "15000", 10);
+// "selectRange" is the E1-D range gesture.  "keyboard" is the OTHER selection
+// path the shipped contract has, and it predates E1-D: shift-extend, which the
+// client restricts to move-character-left/right.  That restriction turns the
+// measurement sharper rather than weaker -- extending one character at a time
+// says WHICH extension kills the engine, and the prediction is "the one that
+// crosses the citation".
+const method = params.get("method") || "selectRange";
+const maxSteps = Number.parseInt(params.get("steps") || "60", 10);
 
 const status = document.querySelector("#status");
 const logNode = document.querySelector("#log");
@@ -50,6 +58,7 @@ const metrics = {
   profile,
   fixture,
   stepTimeoutMs,
+  method,
   userAgent: navigator.userAgent,
   manifest: null,
   cases: [],
@@ -79,11 +88,19 @@ function firstRectangle(search) {
   return { x: numbers[0], y: numbers[1], width: numbers[2], height: numbers[3] };
 }
 
-const CASES = [
-  { label: "plain-full", anchor: "FX-PLAIN", spanTwips: null },
-  { label: "note-partial", anchor: "FX-NOTE", spanTwips: 2400 },
-  { label: "note-full", anchor: "FX-NOTE", spanTwips: null },
-];
+// Per fixture, because the fourth cell of the 2x2 -- a footnote with NO frame,
+// selected all the way across its citation -- lives in a different document.
+const CASES_BY_FIXTURE = {
+  "frame-contexts.odt": [
+    { label: "plain-full", anchor: "FX-PLAIN", spanTwips: null },
+    { label: "note-partial", anchor: "FX-NOTE", spanTwips: 2400 },
+    { label: "note-full", anchor: "FX-NOTE", spanTwips: null },
+  ],
+  "paragraph-content.odt": [
+    { label: "plain-control", anchor: "PC-PLAIN", spanTwips: null },
+    { label: "footnote-no-frame-full", anchor: "PC-FOOTNOTE", spanTwips: null },
+  ],
+};
 
 /** Is the editor still answering, and does it still hold a usable selection? */
 async function probeUsable(client, documentHandle) {
@@ -151,15 +168,34 @@ async function runCase(fixtureBuffer, spec) {
     entry.before = await probeUsable(client, documentHandle);
 
     const selectStarted = performance.now();
-    try {
-      await client.selectRange(
-        { xTwips: rectangle.x, yTwips: midY },
-        { xTwips: endX, yTwips: midY },
-        { timeoutMs: stepTimeoutMs });
-      entry.selectRange = "completed";
-    } catch (error) {
-      entry.selectRange = "failed";
-      entry.selectRangeError = errorValue(error);
+    if (method === "keyboard") {
+      // Caret to the start of the anchor, then extend one character at a time.
+      await documentHandle.click(rectangle.x + 1, midY, { timeoutMs: stepTimeoutMs });
+      entry.extends = [];
+      for (let step = 1; step <= maxSteps; ++step) {
+        try {
+          await client.action("move-character-right",
+            { extendSelection: true, timeoutMs: stepTimeoutMs });
+          entry.extends.push({ step, status: "ok" });
+        } catch (error) {
+          entry.extends.push({ step, status: "failed", error: errorValue(error) });
+          entry.failedAtStep = step;
+          break;
+        }
+      }
+      entry.selectRange = entry.failedAtStep ? "failed" : "completed";
+      entry.stepsRun = entry.extends.length;
+    } else {
+      try {
+        await client.selectRange(
+          { xTwips: rectangle.x, yTwips: midY },
+          { xTwips: endX, yTwips: midY },
+          { timeoutMs: stepTimeoutMs });
+        entry.selectRange = "completed";
+      } catch (error) {
+        entry.selectRange = "failed";
+        entry.selectRangeError = errorValue(error);
+      }
     }
     entry.selectRangeMs = Math.round(performance.now() - selectStarted);
 
@@ -198,7 +234,10 @@ async function main() {
     if (!response.ok)
       throw new Error(`fixture fetch failed: ${response.status}`);
     const buffer = await response.arrayBuffer();
-    for (const spec of CASES) {
+    const cases = CASES_BY_FIXTURE[fixture];
+    if (!cases)
+      throw new Error(`no cases for fixture: ${fixture}`);
+    for (const spec of cases) {
       status.textContent = spec.label;
       await runCase(buffer, spec);
     }

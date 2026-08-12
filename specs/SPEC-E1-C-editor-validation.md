@@ -221,6 +221,39 @@ findings/evidence/sdk-e1/editor-validation/
 或crash後自動重播、舊generation污染新文件、required ODT silent loss／損壞、Worker無界增長，或完成流程需要禁止
 surface。保存失敗bytes／trace並建立finding，不以last-write-wins、sleep或retry掩蓋。
 
+### 9.1 判定不涵蓋的內容軸（2026-08-12 具名收窄，[finding 038](../findings/038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md)）
+
+**`E1_GO_ODT_EDITOR` 不涵蓋「選取涵蓋某個註腳／尾註的引用記號，而那個註腳本文裡有
+`text:anchor-type="as-char"` 的 `draw:frame`」這個組合。在該組合上，出貨的範圍選取會讓
+引擎執行緒停止回應，之後只有重啟 worker 能復原，未存檔內容遺失。**
+
+**這是覆蓋範圍之外，不是被證偽的結果。** C3 語料五份 ODT 的內容軸實際盤點：
+`l0-t2-styled.odt` 有 1 個 as-char `draw:frame`、`l4-stress-100.odt` 有 100 個，
+但**五份沒有任何一份含 `text:note`**——所以這個組合在語料裡不可能出現，
+沒有任何一格記錄過的 PASS 因此變成錯的。判定依 034／035／037 的前例**重新界定而非撤銷**
+（對照：022 是記錄結果被證偽→重建重跑；027 是綁定斷裂→STOP）。
+
+**已在出貨 artifact 上量到，不是跨 artifact 的推論**（`findings/evidence/sdk-e1/note-frame-select/`，
+`835b453d…`，走出貨路徑 `editorSelectRangeV1`／`narrow-editor-v1`）：
+
+| case | 形狀 | 結果 |
+|---|---|---|
+| `plain-full` | 沒有 frame 的段落 | `selectRange` 7 ms，事後可用 |
+| `note-partial` | 註腳段落，選取**不**涵蓋引用記號 | `selectRange` 6 ms，事後可用 |
+| `footnote-no-frame-full` | 註腳**沒有** frame，選取涵蓋引用記號 | `selectRange` 8 ms，事後可用 |
+| **`note-full`** | **註腳有 frame，選取涵蓋引用記號** | **`selectRange` TIMEOUT 15004 ms，事後不可用** |
+
+出貨的鍵盤選取（`extendSelection`，限 `move-character-left/right`）在同一個段落上
+最終同樣不可用（2/2），但形狀不同：擴選全部成功、死在之後的讀取；該輪的純段落對照
+**因為擴選越出段落進到表格而不乾淨**，已記在 finding 038 裡。
+
+**因此本判定的效力範圍是：C3 語料涵蓋的內容軸。** 任何含註腳／尾註且註腳本文帶
+as-char frame 的文件不在其內，在該缺陷修好之前也不會被納入。
+
+**同族**：[037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)（後置條件讀取不返回，我方已擋）、
+[012](../findings/012-r6-styled-document-close-timeout.md)（`destroy()` 不返回，SDK 以有界 close recovery 處理）。
+三者的觸發都是 as-char 錨定的 frame。
+
 ## 10. 實作檔案
 
 本輪新增：
@@ -357,3 +390,4 @@ pipe）之後，§11.4 要求的重跑全數完成，全部對出貨 artifact `8
 | 2026-08-07 | v5。新增§11.5。重跑自動相位撞上finding 023（session深度固定後SDK init卡死）；撤回「主機負載偶發」歸因。 |
 | 2026-08-07 | v6。新增§11.6。finding 023修復後全部相位＋雙瀏覽器人工輪對`835b453d…`重跑完畢，48/48綁定、0 superseded，裁決回到`E1_GO_ODT_EDITOR`；關閉Chrome `trustedPaste`的finding候選。 |
 | 2026-08-08 | v7。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |
+| 2026-08-12 | 9.1 具名收窄（[finding 038](../findings/038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md)）。判定**不涵蓋**「選取涵蓋註腳／尾註引用記號，且該註腳本文含 as-char `draw:frame`」；在該組合上出貨的範圍選取會讓引擎停止回應，只有重啟 worker 能復原。**覆蓋範圍之外而非被證偽**——C3 五份語料盤點：`l0-t2` 1 個 as-char frame、`l4-stress-100` 100 個，但**五份都沒有 `text:note`**，所以該組合不可能出現，沒有任何記錄過的 PASS 因此變錯；依 034／035／037 前例重新界定而非撤銷。**已在出貨 artifact `835b453d…` 上實測**（走 `editorSelectRangeV1`／`narrow-editor-v1`，四格：無 frame 段落 7 ms、不涵蓋引用記號 6 ms、註腳無 frame 8 ms 皆事後可用；**涵蓋引用記號且註腳有 frame → TIMEOUT 15004 ms、事後不可用**），在此之前是跨 artifact 推論，由外部覆核指出並要求在動修法之前補量。48 個綁定不重跑：這是補充覆蓋，不是重新驗證。 |

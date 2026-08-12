@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "release": "e1-note-frame-select",
+  "finding": "038 on the shipped artifact",
+  "profile": "e1-editor-v1",
+  "fixture": "paragraph-content.odt",
+  "stepTimeoutMs": 15000,
+  "method": "selectRange",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "manifest": {
+    "abiVersion": 65537,
+    "abiVersionText": "1.1",
+    "artifactFiles": {
+      "probe.js": "./probe.js",
+      "probe.wasm": "./probe.wasm",
+      "soffice.data": "../resources/base-r5.ba15a988a7fec468.data",
+      "soffice.data.js.metadata": "../resources/base-r5.ef11ef80faf373bc.metadata"
+    },
+    "capabilities": [
+      "open-odt",
+      "rgba-tile",
+      "insert-text",
+      "save-odt",
+      "cancel-queued",
+      "search",
+      "selection-text",
+      "replace-selection",
+      "undo",
+      "comments",
+      "tracked-changes",
+      "provider-contract-1.0",
+      "provider-worker",
+      "validated-provider-operation",
+      "narrow-editor-v1",
+      "verified-selection-delete"
+    ],
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "expectedCapabilityBits": 2047,
+    "profile": "e1-editor-v1",
+    "protocolVersion": 1,
+    "providerContractVersion": "1.0",
+    "resourcePacks": [
+      {
+        "bytes": 19484784,
+        "data": "../resources/cjk-r5.b76b0433203017ca.data",
+        "id": "cjk-r5",
+        "loadAtStartup": true,
+        "metadata": "../resources/cjk-r5.fafab99558ab6f8b.metadata",
+        "purpose": "CJK corpus",
+        "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+      },
+      {
+        "bytes": 49102042,
+        "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+        "id": "fallback-fonts-r5",
+        "loadAtStartup": false,
+        "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+        "purpose": "optional complex-script and fidelity fallback",
+        "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+      }
+    ],
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-v1",
+    "editorContract": {
+      "version": 1,
+      "abiVersion": 1,
+      "actions": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic",
+        "set-underline",
+        "set-strikethrough"
+      ],
+      "textCommit": "document-sdk-insert-text",
+      "undo": "document-sdk-undo",
+      "state": "typed-editor-state-v1",
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "boundaryRejectionRequiresFreshWorker": true,
+      "automaticRetry": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "diagnosticOperationsExposed": false,
+      "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+      "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+      "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761"
+    },
+    "capabilityBits": 2047
+  },
+  "cases": [
+    {
+      "label": "plain-control",
+      "anchor": "PC-PLAIN",
+      "spanTwips": null,
+      "status": "editor-survived",
+      "rectangle": {
+        "x": 1418,
+        "y": 1418,
+        "width": 1080,
+        "height": 275
+      },
+      "selectTo": 9418,
+      "before": {
+        "getState": "answered",
+        "selection": {
+          "collapsed": false,
+          "rectangles": 1
+        },
+        "selectionType": "text",
+        "selectionText": "PC-PLAIN",
+        "elapsedMs": 16,
+        "usable": true
+      },
+      "selectRange": "completed",
+      "selectRangeMs": 6,
+      "after": {
+        "getState": "answered",
+        "selection": {
+          "collapsed": false,
+          "rectangles": 1
+        },
+        "selectionType": "text",
+        "selectionText": "PC-PLAIN ordinary paragraph",
+        "elapsedMs": 4,
+        "usable": true
+      },
+      "engineEvents": [
+        "document-close-recovery-started",
+        "document-close-recovery-complete"
+      ],
+      "close": "completed",
+      "closeMs": 10934,
+      "elapsedMs": 12594
+    },
+    {
+      "label": "footnote-no-frame-full",
+      "anchor": "PC-FOOTNOTE",
+      "spanTwips": null,
+      "status": "editor-survived",
+      "rectangle": {
+        "x": 1418,
+        "y": 7687,
+        "width": 1640,
+        "height": 275
+      },
+      "selectTo": 9418,
+      "before": {
+        "getState": "answered",
+        "selection": {
+          "collapsed": false,
+          "rectangles": 1
+        },
+        "selectionType": "text",
+        "selectionText": "PC-FOOTNOTE",
+        "elapsedMs": 5,
+        "usable": true
+      },
+      "selectRange": "completed",
+      "selectRangeMs": 8,
+      "after": {
+        "getState": "answered",
+        "selection": {
+          "collapsed": false,
+          "rectangles": 1
+        },
+        "selectionType": "text",
+        "selectionText": "PC-FOOTNOTE paragraph with a note1",
+        "elapsedMs": 4,
+        "usable": true
+      },
+      "engineEvents": [
+        "document-close-recovery-started",
+        "document-close-recovery-complete"
+      ],
+      "close": "completed",
+      "closeMs": 10941,
+      "elapsedMs": 11982
+    }
+  ],
+  "complete": true,
+  "error": null
+}

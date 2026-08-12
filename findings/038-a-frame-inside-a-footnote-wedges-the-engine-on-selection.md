@@ -149,6 +149,23 @@ FX-TAIL  locate               failed    10000 ms   search 逾時（下一列連�
 **順帶再一次確認 [012](012-r6-styled-document-close-timeout.md)**：三個案例（含兩個沒卡的）
 `close` 全部走 `document-close-recovery`、各約 10.9 秒——因為這份文件裡有 as-char frame。
 
+**四格已在出貨 artifact 上補齊**（第二輪，`chrome-no-frame-note/`）：
+`footnote-no-frame-full`＝註腳但**沒有 frame**、整行選取涵蓋引用記號，
+`selectRange` **8 ms 完成、編輯器可用、讀回段落文字**。所以探索引擎上量到的 2×2
+在 `835b453d` 上逐格複製成立。
+
+**出貨的鍵盤選取路徑也會卡，但形狀不同**（`chrome-keyboard/`）。出貨客戶端把
+`extendSelection` 限制在 `move-character-left/right`，所以出貨的鍵盤選取是**逐字元 shift**。
+從 `FX-NOTE` 起點連擴 60 次：**60 次全部成功**，然後**下一次讀狀態（`getState`）逾時**，
+編輯器不可用（2/2）。這與拖曳那條路不同——拖曳是**選完之後靜置 8 秒就已經死了**，
+逐字元這條是**命令一路都被回應、死在之後的讀取**。兩者最終狀態相同，但**觸發時機不同，
+成因是否相同沒有證據**，不要合併敘述。
+
+**那一輪的對照組不乾淨，記在這裡而不是當成通過**：`plain-full` 從 `FX-PLAIN` 起點擴 60 個字元，
+**已經擴出那個段落、進到表格**（事後 `selectionType=complex`、4 個矩形、文字為空）——
+它沒有卡，但它證不了「純段落的鍵盤選取安全」，因為它選到的不只是純段落。
+要有乾淨的對照，得用一份「後面沒有 frame 可以擴進去」的文件重跑。
+
 **沒量到的**：這一輪用的是 `NarrowEditorClient` 直接對 document handle，**沒有跑完整的
 `EditorSession` 狀態機**，所以「產品會不會自己升級成 `restart-required`」仍然沒有答案。
 
