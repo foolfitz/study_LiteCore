@@ -207,6 +207,28 @@ e2-format-discovery-assets: e2-format-discovery-profile \
 	dist/sdk/document-sdk.js dist/e1-fixtures/manifest.json \
 	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
 
+# Task 036, route B.  Headings and lists shown on the artifact whose evidence
+# describes them, because contract v2 is E2-B and E2-000 section 5 does not
+# authorise E2-B before E2-A has a verdict.
+#
+# No `e2-format-discovery-profile` prerequisite, and that is the point: the
+# demo is pinned to c89f069e and refuses to start against anything else, so a
+# rule that could relink the profile out from under it would turn a deliberate
+# expiry into a silent substitution.  Same reason as demo-editor-assets.
+demo-structure-assets: dist/demo-structure.html dist/demo-structure-app.js \
+	dist/e2/demo-structure-client.js dist/e2/format-discovery-client.js \
+	dist/sdk/document-sdk.js dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+# Finding 039 reproduction.  Same rule as the demo: no profile prerequisite,
+# because the behaviour is a property of the artifact already in dist and a
+# relink would answer a different question.
+f039-caret-reset-assets: dist/f039-caret-reset-repro.html \
+	dist/f039-caret-reset-repro-app.js \
+	dist/e2/format-discovery-client.js dist/sdk/document-sdk.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
 e2-scheduler-attribution-assets: e2-scheduler-attribution-profile \
 	dist/e2-format-discovery.html dist/e2-format-discovery-app.js \
 	dist/e2/format-discovery-client.js dist/sdk/document-sdk.js \
@@ -1206,6 +1228,9 @@ dist/e1/editor-discovery-client.js: e1/editor-discovery-client.js | dist/e1
 dist/e2/format-discovery-client.js: e2/format-discovery-client.js | dist/e2
 	cp $< $@
 
+dist/e2/demo-structure-client.js: e2/demo-structure-client.js | dist/e2
+	cp $< $@
+
 dist/e2/discovery-matrix-v1.json: e2/discovery-matrix-v1.json | dist/e2
 	cp $< $@
 
@@ -1213,6 +1238,18 @@ dist/e1-bold-noop-check.html: web/e1-bold-noop-check.html | dist
 	cp $< $@
 
 dist/e1-bold-noop-app.js: web/e1-bold-noop-app.js | dist
+	cp $< $@
+
+dist/demo-structure.html: web/demo-structure.html | dist
+	cp $< $@
+
+dist/f039-caret-reset-repro.html: web/f039-caret-reset-repro.html | dist
+	cp $< $@
+
+dist/f039-caret-reset-repro-app.js: web/f039-caret-reset-repro-app.js | dist
+	cp $< $@
+
+dist/demo-structure-app.js: web/demo-structure-app.js | dist
 	cp $< $@
 
 dist/e2-format-discovery.html: web/e2-format-discovery.html | dist
@@ -1515,7 +1552,11 @@ test-e1-b-static:
 # runnable without touching any artifact.
 test-e2-a-static:
 	python3 -m unittest tests/test_e2_profile.py tests/test_e2_a_roundtrip.py
+	node --test e2/tests/*.test.mjs
 	node --check e2/format-discovery-client.js
+	node --check e2/demo-structure-client.js
+	node --check web/demo-structure-app.js
+	node --check web/f039-caret-reset-repro-app.js
 	node --check web/e2-format-discovery-app.js
 	node --check sdk/sdk-worker.js
 	python3 -m json.tool e2/discovery-matrix-v1.json >/dev/null

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>LiteCore 結構編輯 — discovery build 展示</title>
+<style>
+  :root {
+    --bg: #f4f6f8; --bar: #fff; --line: #dbe3ea; --ink: #1d2b36; --muted: #6b7c8a;
+    --accent: #3178c6; --accent-soft: #e8f1fb; --warn: #8a6d1c; --bad: #a8342a;
+    --ok: #2b7a4b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.5 system-ui, "Noto Sans CJK TC", sans-serif;
+    display: flex; flex-direction: column; height: 100vh;
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+    background: var(--bar); border-bottom: 1px solid var(--line);
+  }
+  .brand { font-weight: 650; }
+  .brand small { font-weight: 400; color: var(--muted); margin-left: 8px; }
+  .spacer { flex: 1; }
+  .pill {
+    padding: 3px 9px; border-radius: 999px; font-size: 12px;
+    background: #eef2f6; color: var(--muted); border: 1px solid var(--line);
+  }
+  .pill[data-state="ready"] { background: #e7f4ec; color: var(--ok); border-color: #bfe0cc; }
+  .pill[data-state="busy"] { background: #fdf3e3; color: var(--warn); border-color: #ecd6ac; }
+  .pill[data-state="error"], .pill[data-state="expired"] {
+    background: #fbeae9; color: var(--bad); border-color: #eec4c1;
+  }
+
+  /* The provenance strip is not decoration.  It is the difference between
+     "a demo of the shipped editor" and "a demo of a measured experiment", and
+     it is the first thing a screenshot should carry. */
+  .provenance {
+    padding: 8px 14px; font-size: 12.5px; line-height: 1.6;
+    background: #fdf3e3; color: #6b551c; border-bottom: 1px solid #ecd6ac;
+  }
+  .provenance code {
+    font-family: ui-monospace, Menlo, monospace; font-size: 11.5px;
+    background: #fff8e8; padding: 1px 5px; border-radius: 4px; word-break: break-all;
+  }
+  .provenance b { font-weight: 650; }
+
+  .toolbar {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding: 6px 14px; background: var(--bar); border-bottom: 1px solid var(--line);
+  }
+  .toolbar .sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; }
+  button, select, input[type=text] {
+    font: inherit; color: inherit; background: #fff;
+    border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px;
+  }
+  button { cursor: pointer; }
+  button:hover:not(:disabled) { border-color: #a9bccd; background: #f6f9fc; }
+  button:disabled { opacity: .4; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.icon.b { font-weight: 700; min-width: 34px; }
+  button.icon.i { font-style: italic; font-family: Georgia, serif; min-width: 34px; }
+
+  .desk { flex: 1; overflow: auto; display: flex; align-items: flex-start;
+          justify-content: center; padding: 20px; }
+  .paper { position: relative; background: #fff; box-shadow: 0 1px 6px rgba(20,40,60,.14); }
+  canvas { display: block; }
+  #caret { position: absolute; width: 2px; background: var(--accent); display: none; }
+
+  .statusbar {
+    display: flex; gap: 18px; align-items: center; padding: 5px 14px;
+    background: var(--bar); border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--muted);
+  }
+  .statusbar b { color: var(--ink); font-weight: 600; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    background: #24333f; color: #fff; padding: 8px 14px; border-radius: 8px;
+    font-size: 13px; opacity: 0; transition: opacity .18s; pointer-events: none;
+    max-width: 80vw;
+  }
+  #toast.show { opacity: 1; }
+  #toast.bad { background: #8c2f26; }
+
+  #expired {
+    margin: 40px auto; max-width: 640px; padding: 20px 24px; background: #fff;
+    border: 1px solid #eec4c1; border-radius: 10px; display: none;
+  }
+  #expired h2 { margin: 0 0 8px; font-size: 16px; color: var(--bad); }
+  #expired code { font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+                  word-break: break-all; }
+</style>
+</head>
+<body>
+  <div class="titlebar">
+    <span class="brand">LiteCore 結構編輯<small>標題與清單，跑在 discovery build 上</small></span>
+    <span class="spacer"></span>
+    <span class="pill" id="state-pill" data-state="loading">啟動中</span>
+  </div>
+
+  <div class="provenance" style="background:#fbeae9;color:#7a2c25;border-bottom-color:#eec4c1">
+    <b>這個頁面目前不能用，原因是 <a href="../findings/039-the-discovery-selection-path-completes-at-most-once.md">finding 039</a>。</b>
+    在這條 discovery ABI 上，<b>點一下段落把游標放過去這件事沒有可用的做法</b>：
+    reset 方法第二次呼叫就永遠不返回並把 handle 帶走、Document SDK 的 <code>click</code>
+    回報成功卻五次都沒移動游標、range 選取在第一個格式動作之後也開始逾時。
+    唯一還活著的是掃描 harness 的配方（每次定位前先搜尋一個文件裡一定存在的字串），
+    而那不是一個能拿給人看的手勢，而且<b>在非收合選取上派送格式動作，A3／A4／A5 從來沒有量過</b>。
+    工具鏈、契約收窄與釘死 hash 的機制都已就位並有測試；缺的是一個能定位的手勢。
+  </div>
+
+  <div class="provenance">
+    <b>這不是產品契約，是一個被量過的實驗檯。</b>
+    標題與清單這五個動作在 <code id="pinned-hash">—</code> 上量過
+    （SPEC E2-A 的 A3／A4／A5 與 A7 round-trip 切片，兩瀏覽器），
+    但 <b>E2-A 還沒有總判定</b>（A6 與 A7 的回歸半沒跑），所以它們<b>沒有</b>進出貨的
+    <code>e1-editor-v1</code> 契約。這個頁面釘死在上面那個 build：
+    discovery 引擎一往前走，這裡就會拒絕啟動而不是跟著跑。
+  </div>
+
+  <div class="toolbar" id="toolbar">
+    <select id="fixture" title="範例文件"></select>
+    <div class="sep"></div>
+    <button data-action="set-paragraph-heading">標題</button>
+    <button data-action="set-paragraph-body">內文</button>
+    <div class="sep"></div>
+    <button data-action="set-list-unordered">• 項目符號</button>
+    <button data-action="set-list-ordered">1. 編號</button>
+    <button data-action="set-list-none">移除清單</button>
+    <div class="sep"></div>
+    <button data-action="set-bold" class="icon b">B</button>
+    <button data-action="set-italic" class="icon i">I</button>
+    <div class="sep"></div>
+    <input type="text" id="text" placeholder="要插入的文字" size="14">
+    <button data-action="insert-text">插入</button>
+    <span class="spacer"></span>
+    <button data-action="save" class="primary">儲存 ODT</button>
+  </div>
+
+  <div class="desk" id="desk">
+    <div class="paper" id="paper">
+      <canvas id="canvas" aria-label="ODT 文件畫面"></canvas>
+      <div id="caret"></div>
+    </div>
+    <div id="expired">
+      <h2>這個展示已經過期</h2>
+      <p>它釘死在證據所描述的那一版引擎。目前提供的 profile 是另一個 build，
+         所以它<strong>拒絕啟動</strong>——跟著跑會變成展示一個沒有任何證據描述的東西。</p>
+      <p>需要的：<code id="expected-hash">—</code><br>
+         實際的：<code id="actual-hash">—</code></p>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span>狀態 <b id="s-state">—</b></span>
+    <span>修訂 <b id="s-revision">—</b></span>
+    <span>游標 <b id="s-caret">—</b></span>
+    <span>上次操作 <b id="s-latency">—</b></span>
+    <span class="spacer" style="flex:1"></span>
+    <span id="s-doc">—</span>
+  </div>
+
+  <div id="toast" role="status"></div>
+  <script type="module" src="./demo-structure-app.js"></script>
+</body>
+</html>

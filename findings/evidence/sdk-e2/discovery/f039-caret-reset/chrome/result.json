@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 1,
+  "finding": "039-caret-reset-with-nothing-to-clear-never-returns",
+  "fixture": "list-contexts.odt",
+  "stepTimeoutMs": 8000,
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "arms": [
+    {
+      "name": "two resets, different points",
+      "expects": "the second times out",
+      "steps": [
+        {
+          "step": "reset-A",
+          "outcome": "ok",
+          "ms": 19
+        },
+        {
+          "step": "reset-B",
+          "outcome": "TIMEOUT",
+          "ms": 8000,
+          "message": "editorDiscoverySelect timed out after 8000 ms"
+        }
+      ]
+    },
+    {
+      "name": "two resets, the same point",
+      "expects": "the second times out; the point is not what matters",
+      "steps": [
+        {
+          "step": "reset-A",
+          "outcome": "ok",
+          "ms": 18
+        },
+        {
+          "step": "reset-A-again",
+          "outcome": "TIMEOUT",
+          "ms": 8000,
+          "message": "editorDiscoverySelect timed out after 8000 ms"
+        }
+      ]
+    },
+    {
+      "name": "a state read between the resets",
+      "expects": "the second still times out; reading changes nothing",
+      "steps": [
+        {
+          "step": "reset-A",
+          "outcome": "ok",
+          "ms": 18
+        },
+        {
+          "step": "getState",
+          "outcome": "ok",
+          "ms": 0
+        },
+        {
+          "step": "reset-B",
+          "outcome": "TIMEOUT",
+          "ms": 8000,
+          "message": "editorDiscoverySelect timed out after 8000 ms"
+        }
+      ]
+    },
+    {
+      "name": "a search between the resets",
+      "expects": "the second completes: a search leaves a selection to clear",
+      "steps": [
+        {
+          "step": "reset-A",
+          "outcome": "ok",
+          "ms": 18
+        },
+        {
+          "step": "search",
+          "outcome": "ok",
+          "ms": 20
+        },
+        {
+          "step": "reset-B",
+          "outcome": "ok",
+          "ms": 10
+        }
+      ]
+    },
+    {
+      "name": "a range selection between the resets",
+      "expects": "the second completes, with no search involved",
+      "steps": [
+        {
+          "step": "reset-A",
+          "outcome": "ok",
+          "ms": 19
+        },
+        {
+          "step": "range",
+          "outcome": "ok",
+          "ms": 10
+        },
+        {
+          "step": "reset-B",
+          "outcome": "ok",
+          "ms": 10
+        }
+      ]
+    },
+    {
+      "name": "range selections only, never a reset",
+      "expects": "all three complete: the range path does not have this problem",
+      "steps": [
+        {
+          "step": "range-1",
+          "outcome": "ok",
+          "ms": 19
+        },
+        {
+          "step": "range-2",
+          "outcome": "ok",
+          "ms": 9
+        },
+        {
+          "step": "range-3",
+          "outcome": "ok",
+          "ms": 10
+        }
+      ]
+    },
+    {
+      "name": "a format action between the resets",
+      "expects": "the second still times out; a mutation is not a selection",
+      "steps": [
+        {
+          "step": "reset-A",
+          "outcome": "ok",
+          "ms": 18
+        },
+        {
+          "step": "set-list-unordered",
+          "outcome": "ok",
+          "ms": 30
+        },
+        {
+          "step": "reset-B",
+          "outcome": "TIMEOUT",
+          "ms": 8000,
+          "message": "editorDiscoverySelect timed out after 8000 ms"
+        }
+      ]
+    },
+    {
+      "name": "a range selection after a format action",
+      "expects": "it times out too: the barrier, not the method, is what blocks it",
+      "steps": [
+        {
+          "step": "range-1",
+          "outcome": "ok",
+          "ms": 18
+        },
+        {
+          "step": "set-list-unordered",
+          "outcome": "ok",
+          "ms": 30
+        },
+        {
+          "step": "range-2",
+          "outcome": "TIMEOUT",
+          "ms": 8000,
+          "message": "editorDiscoverySelect timed out after 8000 ms"
+        }
+      ]
+    },
+    {
+      "name": "search then reset, three rounds with an action each",
+      "expects": "every step completes: a search always leaves a selection to clear",
+      "steps": [
+        {
+          "step": "search-1",
+          "outcome": "ok",
+          "ms": 28
+        },
+        {
+          "step": "reset-1",
+          "outcome": "ok",
+          "ms": 9
+        },
+        {
+          "step": "action-1",
+          "outcome": "ok",
+          "ms": 28
+        },
+        {
+          "step": "search-2",
+          "outcome": "ok",
+          "ms": 19
+        },
+        {
+          "step": "reset-2",
+          "outcome": "ok",
+          "ms": 11
+        },
+        {
+          "step": "action-2",
+          "outcome": "ok",
+          "ms": 29
+        },
+        {
+          "step": "search-3",
+          "outcome": "ok",
+          "ms": 19
+        },
+        {
+          "step": "reset-3",
+          "outcome": "ok",
+          "ms": 9
+        },
+        {
+          "step": "action-3",
+          "outcome": "ok",
+          "ms": 29
+        }
+      ]
+    },
+    {
+      "name": "the SDK click, five times",
+      "expects": "never fails and never moves the caret; carets are recorded",
+      "steps": [
+        {
+          "step": "click-0",
+          "outcome": "ok",
+          "ms": 1
+        },
+        {
+          "step": "caret-after-click-0",
+          "outcome": "read",
+          "caret": "1418,1418"
+        },
+        {
+          "step": "click-1",
+          "outcome": "ok",
+          "ms": 0
+        },
+        {
+          "step": "caret-after-click-1",
+          "outcome": "read",
+          "caret": "1418,1418"
+        },
+        {
+          "step": "click-2",
+          "outcome": "ok",
+          "ms": 0
+        },
+        {
+          "step": "caret-after-click-2",
+          "outcome": "read",
+          "caret": "1418,1418"
+        },
+        {
+          "step": "click-3",
+          "outcome": "ok",
+          "ms": 0
+        },
+        {
+          "step": "caret-after-click-3",
+          "outcome": "read",
+          "caret": "1418,1418"
+        },
+        {
+          "step": "click-4",
+          "outcome": "ok",
+          "ms": 0
+        },
+        {
+          "step": "caret-after-click-4",
+          "outcome": "read",
+          "caret": "1418,1418"
+        }
+      ]
+    }
+  ],
+  "artifact": "c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f",
+  "profile": "e2-format-discovery",
+  "clickMovedTheCaret": false,
+  "reproduced": true,
+  "complete": true
+}

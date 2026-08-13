@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>finding 039 — 沒有東西可清的 caret reset 不會返回</title>
+<style>
+  body { margin: 0; padding: 18px; background: #f4f6f8; color: #1d2b36;
+         font: 13px/1.6 system-ui, "Noto Sans CJK TC", sans-serif; }
+  h1 { font-size: 16px; margin: 0 0 4px; }
+  p { margin: 0 0 12px; color: #6b7c8a; max-width: 70ch; }
+  #status { display: inline-block; padding: 3px 9px; border-radius: 999px;
+            background: #fdf3e3; color: #8a6d1c; border: 1px solid #ecd6ac; }
+  pre { background: #fff; border: 1px solid #dbe3ea; border-radius: 8px;
+        padding: 12px; overflow: auto; font-size: 12px; max-height: 70vh; }
+</style>
+</head>
+<body>
+  <h1>finding 039 — 沒有東西可清的 caret reset 不會返回</h1>
+  <p>七組實驗，每組各自開一顆引擎（卡住的 reset 會把 handle 一起帶走，共用引擎會讓
+     前一組的損壞決定後一組的答案）。判準寫在頁面裡：前三組必須逾時、後三組必須不逾時，
+     <code>reproduced</code> 才會是 true。</p>
+  <p><span id="status">starting</span></p>
+  <pre id="out">…</pre>
+  <script type="module" src="./f039-caret-reset-repro-app.js"></script>
+</body>
+</html>
