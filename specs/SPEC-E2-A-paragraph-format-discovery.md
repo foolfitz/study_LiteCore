@@ -1,11 +1,11 @@
 # SPEC E2-A：段落層級格式的 completion barrier discovery
 
-> **日期**：2026-08-05（最後修訂 2026-08-13，v17）  
-> **狀態**（2026-08-13 v17）：A1（部分）、A2、**A3／A4／A5 已執行且全數通過**
+> **日期**：2026-08-05（最後修訂 2026-08-13，v18）  
+> **狀態**（2026-08-13 v18）：A1（部分）、A2、**A3／A4／A5 已執行且全數通過**
 > ——綁定引擎 `c89f069e…`，兩瀏覽器 × 三 fixture（A5 四 fixture）。
-> **A6 已執行（Chrome，兩項都維持 unsupported，不列入判定）；
-> A7 的 round-trip 前半已執行且通過（10.12 節）；A7 的回歸後半未執行，
-> E2-A 因此仍無總判定。**
+> **A6 已執行（兩項維持 unsupported，不列入判定）；A7 已完成
+> （round-trip 10.12 節、回歸 10.13 節）。第 8 節要求的每一項現在都有結果，
+> 但總判定尚未發布——見 10.13 節末的〈判定前要先消化的事〉。**
 >
 > > **2026-08-13 更正**：這段抬頭原本停在「v12、綁定 `25761ff0…`」，
 > > 而 v13 與 v15 各重掃重綁過一次，最後一次已綁到 `c89f069e…`。
@@ -549,7 +549,10 @@ line navigation（Finding 018）與 mouse drag selection 各跑一輪，只收�
 > 空區域與零長度都留下可用的 handle。**這正是產品 ABI 把方法寫死成 TEXT_HANDLES 的理由**，
 > 現在有了同一顆引擎上的對照。
 >
-> **Firefox 未跑**：本輪只有 Chrome。A6 不列入判定，所以這不擋任何閘門，但要說清楚。
+> **Firefox 153.0.1 已補跑拖曳那一半**（`discovery/secondary/firefox.json`）：
+> 單次拖曳同樣完成卻選不到（1040 ms 內輪詢全空），text-handles 同樣正確、
+> 四個遞增區間讀回同一組 `A`／`ASC`／`ASCII`／`ASCII a`。**兩瀏覽器逐格相同。**
+> 行導覽那一半只有 Chrome；A6 不列入判定，這不擋任何閘門，但要說清楚。
 
 ### A7：round-trip 與回歸
 
@@ -576,6 +579,23 @@ LibreOffice reopen 與 PDF export。回歸 R6～R8、E1-A／B／C 與 before／a
 >
 > 證據與工具：[`discovery/a7-roundtrip/`](../findings/evidence/sdk-e2/discovery/a7-roundtrip/)、
 > `wasm_sdk_probe/tools/validate_e2_a_roundtrip.py`、`tests/test_e2_a_roundtrip.py`。
+
+> **2026-08-13 後半（回歸）亦已執行且通過。A7 因此完成。**
+> 證據 [`discovery/a7-regression/`](../findings/evidence/sdk-e2/discovery/a7-regression/)。
+>
+> 15 個 target 全綠：`test-r5`、`test-r6-a/b/c`、`test-r7-a/b/c/d-static`、
+> `test-r8-a/b/c/d-static`、`test-e1-a-static`、`test-e1-b-static`、`test-e2-a-static`。
+> before／after workspace preflight 四支（e1／r6／r7／r8）全部 `pass`（`--phase after`）。
+> 三個凍結 artifact 跑完整套之後 hash 未變（`835b453d…`／`c89f069e…`／`679def61…`）。
+>
+> **`test-e1-c-static` 沒有以 target 形式跑**：它相依 `e1-editor-validation-assets`，
+> `make -n` 顯示那會發出 **6 條連結命令**，等於重建凍結的 `e1-editor-v1`
+> 並毀掉 `E1_GO_ODT_EDITOR` 的綁定。改為**直接執行它的檢查本身**
+> （12 個 python 測試、83 個 node 測試、5 個語法檢查，全過），並在證據裡寫明差別。
+>
+> **這一半涵蓋的是什麼要說清楚**：15 個 target 全是靜態的——單元測試、`node --check`、
+> `py_compile`。沒有任何一個開瀏覽器。所以它是對殼層與工具鏈的回歸，
+> **不是**任何瀏覽器矩陣的第二次執行。
 
 ### 門檻
 
@@ -836,8 +856,8 @@ level 2／3 為 number），第一版 validator 問「這個樣式含不含 numb
 | A3 | **A3_PASS** | 21 runs／105 次派送 |
 | A4 | **A4_PASS** | 18 runs／270 次派送 |
 | A5 | **A5_PASS** | 11 runs／58 個案例 |
-| A6 | **已執行（不列入判定）** | Chrome 一輪：line nav 3/6 輪逾時、mouse drag 完成卻沒選到 |
-| A7 | **round-trip 前半 PASS；回歸後半未執行** | 406 份 ODT、406/406 桌面重開 |
+| A6 | **已執行（不列入判定）** | 兩項維持 unsupported；拖曳半段兩瀏覽器逐格相同 |
+| A7 | **已完成（round-trip ＋ 回歸皆通過）** | 406 份 ODT、406/406 桌面重開；15 個 target 全綠 |
 
 **E2-A 仍無總判定**：第 8 節要求 A6／A7 也有結果。
 
@@ -1087,6 +1107,33 @@ deflate 流損壞時 `testzip()` 是丟例外不是回傳，原本會讓整輪�
 **A7 因此仍未完成**：回歸那一半（R6～R8、E1-A／B／C、workspace preflight）沒有跑，
 第 8 節的 `GO_TO_E2_B` 仍未達成，**E2-A 仍無總判定**。
 
+### 10.13 已完成：A7 的回歸後半，A7 因此完成（2026-08-13）
+
+判定：**`A7_REGRESSION_PASS`**。證據
+[`discovery/a7-regression/`](../findings/evidence/sdk-e2/discovery/a7-regression/)。
+細節與範圍限制見第 5 節 A7 的註記；一句話：**15 個 target 全綠、四支 workspace
+preflight 全 `pass`、三個凍結 artifact hash 未變**，而 `test-e1-c-static` 因為會重連結
+凍結 artifact，改以直接執行其檢查的方式跑（12＋83 個測試全過），差別已寫進證據。
+
+### 判定前要先消化的事
+
+**第 8 節要求的每一項現在都有結果了**（A2 部分通過、A3／A4／A5 通過、A7 通過），
+所以 E2-A 已經可以發判定。本節不代發，因為發判定會直接打開 E2-B，
+而下面四件事會決定它是 `GO_TO_E2_B` 還是 `PARTIAL_GO_TO_E2_B`，必須先明列：
+
+1. **`set-paragraph-body` 的後置條件是「不是 heading」**，不是「是 Text body」（2.8 縮限 2）。
+2. **heading 只承諾第 1 級**；ODF outline level ≥7 讀回 `<p>`，無法與內文區分（2.10）。
+3. **readback markup 是序列化器輸出，不是有文件的契約**。A7 的 round-trip 說的是
+   package 換一個 LibreOffice 打得開，**不是**這串 markup 跨版本穩定（10.12 的不得外推第三項）。
+4. **新的一項，來自 [finding 039](../findings/039-the-discovery-selection-path-completes-at-most-once.md)**：
+   **barrier 收尾的選取還原，會讓緊接著的下一次選取請求永遠不返回**（該篇第 8 臂）。
+   已歸因為我方 engine 等錯條件（core 只在有選取可清時廣播，那是正確行為），**未修**。
+   E2-B 要把同一個 barrier 編進產品，所以這一格是 B 的直接輸入：
+   不先處理，v2 出貨的會是「格式化一次、選取路徑陪葬」。
+   這一項在 A3～A5 判定當時**還不知道**，是本輪蓋 demo 時撞出來的。
+
+第 8 節的 `PARTIAL_GO_TO_E2_B` 條款寫的是「縮限項目必須明列」——上面四項就是待明列的清單。
+
 ## 11. 修訂紀錄
 
 | 日期 | 內容 |
@@ -1109,3 +1156,4 @@ deflate 流損壞時 `testzip()` 是丟例外不是回傳，原本會讓整輪�
 | 2026-08-12 | v14（10.11 第 4 項的界線；[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md) 已定位）。**5000 ms per-stage 期限防的是「停止推進的 awaiting stage」，不是「不返回的 LOK 呼叫」**——`engineLoop` 只在 `gState.commands.empty()` 的等待分支裡檢查期限，卡在 `dispatch()` 的執行緒回不到那裡，命令佇列也不再被清空（main-loop 版同理，它從 poll callback 進去）。已有實例：`getTextSelection(…, "text/html", …)` 在含行內圖片的段落上不返回。條文因此收窄為**「stage 不會無限期等下去」，不是「barrier 一定會收場」**。定位方式刻意不重編引擎（`ee185b3d…` 未動）：引擎本來就把每個 LOK callback 在處理前送出，只是出貨 worker 丟掉，診斷 profile 用同一份 wasm 加兩行轉發即可；串流 2/2 停在同一筆，活性梯證明 worker JS、wasm 主執行緒與 `gState.mutex` 都活著。拆解實驗（同端點選取上 `setTextSelection(RESET)` 17 ms、`getSelectionTypeAndText` 1 ms，2/2）把候選收斂到 html 讀取那一次。**未修**；擋法（讀取前先取 selection type，COMPLEX 即具名拒絕）已記在 finding 裡，需重編＝A3／A4／A5 全部重掃。 |
 | 2026-08-12 | v15（[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md) 我方擋法上線；引擎 `c89f069e…`）。讀取那一步**先取 selection type，只有 `LOK_SELTYPE_TEXT` 才呼叫 `getTextSelection(…, "text/html", …)`**；非 TEXT 走新的 `selection-type-not-readable`，**排在所有 readback 形狀之前**（擋下來時根本沒有掃描，`parsed` false、計數全 0，排在後面會被判成「文件不是你要的狀態」）。擋法只跳過讀取，還原照跑，所以呼叫端不會拿到自己沒做的選取。`LOK_SELTYPE_LARGE_TEXT` 不收——header 註明它 unused、等同 COMPLEX，收它等於收一個 core 不會產生的值。**同一列由 20001 ms 卡死變成 37 ms 具名拒絕、事後 handle 可用**；`paragraph-content` 21 種形態首次全部跑完（19 verified、註腳走 035 的通道、圖片走這一條，每列 37–42 ms、21/21 事後可用），`blockTag` 逐列與 v13 定案相同。A3／A4／A5 重掃 44 輪（18.8 分鐘，**每輪跑前重新核對 artifact 雜湊**，44/44 同一個，零輪無證據）並重綁至 `c89f069e…`，`validate_e2_a.py` 發 A3_PASS／A4_PASS／A5_PASS。**殺傷範圍是量的不是推的**：`selectionType` 現在寫進每一次 barrier 的證據，428 次裡 426 次是 TEXT，被擋的 2 次都是 `PC-IMAGE`，四份被掃 fixture（含 `table-boundary` 儲存格段落）無一被碰到。**core 端未修**，擋的是我方不再呼叫。 |
 | 2026-08-13 | v16（A7 的 round-trip 前半已執行，判定 `A7_ROUNDTRIP_PASS`；見 10.12 節）。起因是任務 #36 想把標題／清單併進 `e1-editor-v1` 的下一版 ABI，而那**逐字就是 [SPEC E2-000](./SPEC-E2-000-overview.md) 第 129–133 行定義的 E2-B**，其第 133–134 行既固定了 E2-A → E2-B → E2-C 的順序，也明講「**A 未完成前不凍結新 ABI**」「B 與 C 的規格待 A 有結果後另寫，**本文件不預先授權**」。所以先補 A7，而不是先凍 ABI。**沒有跑新的瀏覽器輪**：材料是既有證據樹裡由 `c89f069e…` 產出的 406 份存檔 ODT（Chrome 222、Firefox 184），綁到舊 build 的 2 153 份逐個 hash 記為略過（finding 027）。七類結構檢查 406／406 通過，桌面版 LibreOffice 26.2.4.2 重開＋PDF 匯出 406／406 成功；結構檢查實際看到帶清單 254 份、帶標題 149 份、帶可解析樣式參照 406 份。**兩個檢查各帶控制組**：結構檢查對真文件做五種破壞全被抓，桌面重開對一份 XML 不成對的文件**被 soffice 拒絕**——沒有後者，「406 份都轉出 PDF」只證明 soffice 願意對任何東西吐 PDF。**第一版的自我測試是壞的**：它改名 content.xml 裡第一個樣式宣告，而樣本一個樣式都沒宣告，於是 `unresolved-style`（正對著 E2-000 第 10 節「清單切換造成 silent structure loss」那條停止條款的檢查）回報通過卻從未執行；改為改名一個**確實被參照**的樣式、樣本改挑表達力最高者、並要求樣本本身能表達每一種突變否則自我測試不通過。合成文件的單元測試（`tests/test_e2_a_roundtrip.py`，17 個）另抓到工具一個真缺陷：deflate 流損壞時 `testzip()` 丟例外而非回傳，原會讓整輪中斷而非讓一份判失敗。**不得外推四項**：桌面版是 26.2 而引擎是 26.8（**跨版本**重開，同版本對照沒有）；只驗開得起來，判準是 `%PDF-` 檔頭與大小，**未比對頁數或文字**；**2.8 節縮限 3 沒有解除**（說的是 package 重開得了，不是 readback markup 跨版本穩定）；**A6 仍未執行**。**A7 的回歸後半（R6～R8、E1-A／B／C、workspace preflight）未跑，A7 因此未完成，第 8 節的 `GO_TO_E2_B` 仍未達成，E2-A 仍無總判定。** `validate_e2_a.py` 的 `notValidated` 與 `narrowings` 兩句已就地改寫並重跑，三個判定（A3_PASS／A4_PASS／A5_PASS）逐位元不變。 |
+| 2026-08-13 | v18（A6 已執行、A7 已完成；E2-A 的每一項閘門條件現在都有結果，總判定待發布）。**A6**（不列入判定）：沒有寫新 harness——`f018-line-nav` 與 `e1-drag-select-gate` 本來就吃 `?profile=`、兩個 asset target 都不重連結。行導覽 6 輪 24 動作、21 完成、**3 個 30 秒逾時**、3／6 輪完整，[finding 018](../findings/018-lok-line-navigation-completion-nondeterministic.md) 在此 profile 重現；拖曳選取**完成卻選不到**（單次拖曳回 `documented-callback-text-selection`，1019／1040 ms 內輪詢全是 `selectionType: none`），但重複拖曳有時會留下選取——所以要說的是 **completion 不追蹤有沒有選到**，[SPEC E1-D](./SPEC-E1-D-range-selection.md) 2.1 在這顆引擎上重現；對照組 text-handles 全程正確（四個遞增區間讀回 `A`／`ASC`／`ASCII`／`ASCII a`）。**Chrome 150 與 Firefox 153.0.1 逐格相同。**兩項都維持 unsupported，並且這是**同一顆引擎上**第一次有證據說明產品 ABI 為何把選取方法寫死成 TEXT_HANDLES。**A7 回歸半**：15 個 target 全綠、四支 workspace preflight `pass`、三個凍結 artifact hash 未變；`test-e1-c-static` 會發 6 條連結命令重建凍結 artifact，因此改為直接跑它的檢查（12＋83 個測試全過），差別寫進證據。這一半**全是靜態檢查、沒有開瀏覽器**，是殼層與工具鏈的回歸，不是瀏覽器矩陣重跑。**同輪新增 [finding 039](../findings/039-the-discovery-selection-path-completes-at-most-once.md) 並已歸因**：discovery 的選取路徑在「沒有選取變化可廣播」時不返回且不清 `gEditorPending`；原生 26.8 對照（`tools/f039_native_caret_reset.cpp`，兩次執行逐格相同）證明**core 只在有選取可清時廣播、那是正確行為**，等待它無條件到來的是我方 engine——**上游判為否**。其中一格（**格式動作之後連 range 選取都逾時**，擋住它的是 barrier 收尾的選取還原）是 E2-B 的直接輸入，已列入判定前要明列的縮限清單（10.13 節末）。 |

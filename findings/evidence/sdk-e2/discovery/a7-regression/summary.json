@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-A-paragraph-format-discovery",
+  "phase": "A7-regression-half",
+  "date": "2026-08-13",
+  "decision": "A7_REGRESSION_PASS",
+  "targetsRun": {
+    "test-r5": "pass",
+    "test-r6-a": "pass",
+    "test-r6-b": "pass",
+    "test-r6-c": "pass",
+    "test-r7-a-static": "pass",
+    "test-r7-b-static": "pass",
+    "test-r7-c-static": "pass",
+    "test-r7-d-static": "pass",
+    "test-r8-a-static": "pass",
+    "test-r8-b-static": "pass",
+    "test-r8-c-static": "pass",
+    "test-r8-d-static": "pass",
+    "test-e1-a-static": "pass",
+    "test-e1-b-static": "pass",
+    "test-e2-a-static": "pass"
+  },
+  "e1cStatic": {
+    "ranAs": "commands only, prerequisite skipped",
+    "why": "test-e1-c-static depends on e1-editor-validation-assets, which relinks the frozen e1-editor-v1 artifact -- `make -n` shows 6 link commands.  Running the target would have destroyed the binding E1_GO_ODT_EDITOR rests on, so its checks were run directly instead.",
+    "result": "pass (12 python tests, 83 node tests, 5 syntax checks)"
+  },
+  "workspacePreflight": {
+    "phase": "after",
+    "validate_e1_preflight": "pass",
+    "validate_r6_preflight": "pass",
+    "validate_r7_preflight": "pass",
+    "validate_r8_preflight": "pass"
+  },
+  "artifactsAfter": {
+    "e1-editor-v1": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+    "e2-format-discovery": "c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f",
+    "e1-editor-discovery": "679def61e7848a6d678b6bcc2b4fad7acb37904cdcd0e615afb3405fb5afb634"
+  },
+  "notValidated": [
+    "Every target here is static: unit tests, node --check, py_compile.  None of them opens a browser, so this is a regression check on the shell and tooling, not a second run of any browser matrix.",
+    "test-e1-c-static was not run as a target.  Its checks were, but the asset build it normally forces was deliberately skipped."
+  ]
+}

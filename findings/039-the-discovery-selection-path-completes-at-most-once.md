@@ -2,12 +2,12 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認（我方 engine／discovery ABI）；未修** |
+| **狀態** | **已確認並已歸因：缺陷在我方 engine，core 行為正確；未修** |
 | **Bugzilla** | — |
 | **發現日** | 2026-08-13 |
 | **嚴重度** | 嚴重（讓「點一下段落再按按鈕」這種一般手勢在第二次就死掉） |
-| **可重現** | 11 組全部如預期（自判定重現頁，Chrome 150，引擎 `c89f069e…`） |
-| **是否上游** | **尚未歸因**。目前只證明我方 engine 等的那個 callback 沒有到，沒有證明 core 該送而沒送 |
+| **可重現** | 11 組全部如預期，**Chrome 150 與 Firefox 153.0.1 逐格相同**；原生 26.8 對照 2/2 |
+| **是否上游** | **否——已用原生對照證明**。core 只在「有選取可清」時廣播，那是正確行為；等待它無條件到來的是我方 engine |
 
 ## 摘要
 
@@ -132,6 +132,37 @@ harness 的 search-prime 配方（先搜尋再 reset）也是活的，
 > 外部覆核在我更正之前就已指出「關閉理由應該是誤導而非不可行」，
 > 那個修正在當時的事實下是對的；現在事實變了，兩個版本的關閉理由都不再適用。
 
+## 已歸因：core 沒有錯，錯的是我方等待的條件（2026-08-13）
+
+原生 26.8 探針（`tools/f039_native_caret_reset.cpp`，跑在 `build-native-26-8/instdir`）
+直接註冊 callback 數，同一份 fixture、同樣的五個情境。**兩次獨立執行結果逐格相同。**
+
+| arm | `selectionTypeBeforeReset` | `TEXT_SELECTION` | 有沒有選取 callback |
+|---|---|---|---|
+| `reset-1` | **1** | 1 | **有** |
+| `reset-2` | 0 | 0 | 沒有 |
+| `reset-3` | 0 | 0 | 沒有 |
+| `range-then-reset` | **1** | 1 | **有** |
+| `format-then-reset` | 0 | 0 | 沒有 |
+
+`resetWithNothingToClearIsSilent: true`。
+
+**結論：core 只在「有選取可以清」的時候廣播選取變更，這是正確行為**——沒有變更就沒有事件。
+我方 engine 卻在每一次 RESET 之後都無條件等那個 callback，於是在選取已空時等到天荒地老，
+並且不清 `gEditorPending`。**缺陷是我方的，上游欄位因此改判為「否」。**
+
+**修法的判準已經在資料裡**：`selectionTypeBeforeReset` 就是那個區分子——
+兩個有 callback 的 arm 它是 1，三個沒有的它是 0。引擎在 RESET 之前本來就讀得到選取型別
+（037 的擋法用的就是同一個呼叫），所以「選取已經是空的就不要等」是可以判的，不必猜。
+兩次有 callback 的 arm，`TEXT_SELECTION` 的 payload 都是**空字串**——
+也就是說那個事件本身只說「現在沒有選取了」，正好是 RESET 該有的語意。
+
+順帶記一個環境事實：這顆原生 build 在 process-static clipboard teardown 會 Signal 11
+（SAL stack 落在 `desktop_LOKClipboard_get_implementation`），與本探針要量的東西無關。
+探針在**銷毀 document 與 kit、且 summary 已經 flush 之後**才 `_Exit(0)` 跳過那段靜態解構；
+載入或開檔失敗仍然回非零。這件事寫在這裡，是因為「用 `_Exit` 換到 exit 0」是很容易變成
+掩蓋失敗的手法，所以它的位置與適用範圍要看得見。
+
 ## 第 8 臂是這裡面對 E2-B 最要命的一格
 
 「一個格式動作之後，連 range 選取都逾時」不是 demo 的麻煩，是**規格的輸入**。
@@ -145,11 +176,13 @@ discovery 本來就會發生的 relink。）
 
 ## 還不知道的
 
-1. **歸因未做。** 只證明我方等的 callback 沒到。是 core 不送、還是我方等錯了條件（例如
-   `LOK_CALLBACK_TEXT_SELECTION` 在空選取轉空選取時本來就不送），沒有做原生對照。
-   下一步應該是原生 26.8 的 `lok_frame_hang.cpp` 風格探針。**零 relink，且是 E2-B 的直接輸入。**
+1. ~~**歸因未做。**~~ **已完成**（見上一節）：core 正確，我方等錯條件。
+   **修法未實作**——那要動引擎，於是要 relink discovery profile 並重掃 A3／A4／A5，
+   可以等到下一次本來就會發生的 relink。
 2. ~~**產品 profile 沒有量。**~~ **已補量**（見〈影響〉），這一條結案。
 3. ~~**`click` 為什麼在這顆 artifact 上不動游標。**~~ **問題本身不成立**——它會動，
    是我讀得太早（見第 10 組的撤回）。兩顆 artifact 行為相同。
-4. **只有 Chrome。** 全部 11 組都是 Chrome 150 一輪。Firefox 未跑；
-   若這條要進 E2-A 的具名收窄，措辭要嘛標明「僅 Chrome」，要嘛補一輪。
+4. ~~**只有 Chrome。**~~ **Firefox 153.0.1 已補跑**，11 組逐格相同
+   （`evidence/…/f039-caret-reset/firefox/result.json`）。這一條結案。
+5. **修法之後 barrier 會怎樣，沒有量。** 第 8 臂說 barrier 收尾會悶死下一次選取；
+   如果修法是「空選取就不等」，那第 8 臂應該一併好轉——但那是預測，不是量測。

@@ -1566,11 +1566,14 @@ test-e2-a-static:
 		tools/validate_e2_a_roundtrip.py \
 		tests/test_e2_profile.py tests/test_e2_a_roundtrip.py
 	bash -n tools/run_e2_a_native_caret.sh
+	bash -n tools/run_f039_native.sh
 	bash -n tools/run_e2_a_native_reissue.sh
 	c++ -std=c++17 -fsyntax-only -I$(LOSRC)/include \
 		tools/e2_a_native_caret_tracking.cpp
 	c++ -std=c++17 -fsyntax-only -I$(LOSRC)/include \
 		tools/e2_a_native_reissue.cpp
+	c++ -std=c++17 -fsyntax-only -I$(LOSRC)/include \
+		tools/f039_native_caret_reset.cpp
 
 test-e1-c-static: e1-editor-validation-assets
 	python3 -m unittest tests/test_e1_c.py
