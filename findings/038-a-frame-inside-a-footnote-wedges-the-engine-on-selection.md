@@ -270,6 +270,34 @@ FX-TAIL  locate               failed    10000 ms   search 逾時（下一列連�
 確認的方法就是會卡死的那個讀取。可以說的是：四格用的是同一組座標與同一個手勢，
 而同一個手勢在 `getState` 那一格確實卡了，所以差別在探針、不在輸入。
 
+### 同 commit 原生對照：`getSelectionTypeAndText` 2 ms 回來（證據 `evidence/038/native-26-8-control/`）
+
+把出貨路徑的那兩個 `setTextSelection(RESET/END)` 加同一個抽取呼叫，搬到
+**WASM 引擎所編自的同一個 commit** 的原生建置上（`build-native-26-8`，
+buildid `671c848b…`），用 `findings/repro/037-as-char-frame-hang/lok_frame_hang.cpp`
+的新 `range` 模式跑：
+
+| fixture／錨點／span | 呼叫 | 原生 | WASM |
+|---|---|---|---|
+| `frame-contexts` `FX-NOTE` 8000 tw | `getSelectionTypeAndText` | **2 ms、47 B** | **不返回** |
+| `frame-contexts` `FX-NOTE` 2400 tw | 同上 | 2 ms、20 B | 正常 |
+| `frame-contexts` `FX-PLAIN` 8000 tw | 同上 | 2 ms、41 B | 正常 |
+
+**而且原生這一輪自己證明了選取確實踩到觸發**——兩個 span 抽出來的文字是：
+
+```
+2400 twips → "FX-NOTE paragraph wh"                             （20 bytes）
+8000 twips → "FX-NOTE paragraph whose footnote holds a frame1"  （47 bytes）
+```
+
+**結尾那個 `1` 就是註腳的引用記號**，而且它出現在抽取出來的純文字裡——
+所以抽取確實走進了註腳裝置。20 bytes 那一列與 WASM 上量到的
+「不會卡的那個 span」讀回一字不差。
+
+**這一格必須有，因為「對照組通過」有兩種讀法**：一種是「原生沒事」，
+另一種是「拖曳根本沒選到」——後者正是這一單犯過一次的錯（513 twips 那次）。
+把文字印出來才分得開。
+
 ## 沒有做的事（誠實界線）
 
 - ~~**不知道卡在哪個呼叫**。選取的 callback 全部出來了、`.uno:SelectText` 的 result 也出來了，

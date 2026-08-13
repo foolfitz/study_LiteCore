@@ -482,6 +482,15 @@ Makefile 已備好 `e2-wait-diagnostic`（自己的 build 與 dist，加 `--prof
   **2026-08-12 再收窄**：`frame-no-image`（全檔零張圖片、只有一個裝文字方塊的 as-char frame）
   在 WASM 一樣 close 逾時走 recovery，而六份完全沒有 `draw:frame` 的 fixture 共 153 輪零次
   ——**012 那一單的觸發條件也是 frame 不是 image**，與這一單在選取型別上量到的完全一致。
+- **[038](038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md)——同一條抽取路徑，
+  型別檢查那一側的反例。** 2026-08-13 量到 038 卡的是
+  `readSelection()` → `getSelectionTypeAndText(…, "text/plain;charset=utf-8", …)`，
+  也就是**本單拿來當擋法前提的那個呼叫**。兩單的差別在 frame 相對於選取的位置：
+  本單的 frame 直接在選取裡 → 型別 `COMPLEX` → 文字不會被隱式抽取，要顯式要 html 才卡；
+  038 的 frame 只能經由註腳引用記號到達 → 型別 `TEXT` → **抽取自己走進註腳本文碰到 frame**。
+  **所以本單的擋法（非 TEXT 就不讀）在 038 上會直接放行，而且已實測放行。**
+  這不推翻本單的擋法——`image-variants` 九種形狀裡沒有「回報 TEXT 卻卡死」仍然成立——
+  但它把那句話的界線講清楚了：**成立範圍是「frame 在選取裡」，不是「frame 在文件裡」。**
 - [016](016-lok-forward-delete-completion-gap.md)、[018](018-lok-line-navigation-completion-nondeterministic.md)——同屬「completion 訊號不來」這一族。**這一單不是**：它不是訊號不來，是呼叫不返回。
 - [027](027-r8d-verdict-silently-outlived-its-release.md)／[036](036-the-shipped-wasm-hash-is-not-a-function-of-the-source.md)——為什麼這一輪的診斷刻意做成「不重編」。
 - [SPEC E2-A](../specs/SPEC-E2-A-paragraph-format-discovery.md)

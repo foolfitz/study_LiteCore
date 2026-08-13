@@ -8,8 +8,9 @@ Version:        26.8.0.1 rc            [core 671c848b1bb81e5b1a90d97675db9a0f3ae
 Hardware:       x86-64
 OS:             Linux (Ubuntu 26.04)
 Severity:       critical
-Summary:        WASM: an as-char draw:frame makes getTextSelection("text/html")
-                and destroy() never return; native returns in milliseconds
+Summary:        WASM: selection-text extraction and destroy() never return when
+                an as-char draw:frame is reachable from the selection; native
+                returns in milliseconds
 ================================================================
 
 重複單查詢（2026-08-12，Bugzilla REST API）
@@ -24,26 +25,72 @@ comment 含 "emscripten hang"  → 2 筆，皆無關
 Description
 -----------
 
-In an Emscripten/WASM build, two different LibreOfficeKit calls never return
-when the document contains a draw:frame anchored text:anchor-type="as-char"
-inside a text:p:
+In an Emscripten/WASM build, three LibreOfficeKit calls never return when a
+draw:frame anchored text:anchor-type="as-char" is reachable from the current
+selection:
 
   (1) getTextSelection(doc, "text/html", nullptr), over a selection covering
-      that paragraph.
+      the paragraph that holds the frame.
   (2) destroy(doc), on the same document.
+  (3) getSelectionTypeAndText(doc, "text/plain;charset=utf-8", &text, nullptr),
+      over a selection that covers the CITATION MARK of a footnote whose body
+      holds the frame.  Here the frame is not in the selected text at all --
+      it is in the note body, which is not on the selected line.
 
-Both return in single-digit milliseconds in a native build of the same commit.
+All three return in single-digit milliseconds in a native build of the same
+commit.
 
-No image is involved.  The attached fixtures' frame holds only a
-draw:text-box: there is no Pictures/ member, draw:image appears zero times,
+(1) and (3) look like one defect reached two ways: the selection-text
+extraction path.  The difference is where the frame sits relative to the
+selection, and it shows up in the selection type:
+
+  (1) frame directly inside the selection -> type COMPLEX -> the text is never
+      extracted implicitly, and the hang needs an explicit text/html request.
+  (3) frame only reachable through a footnote citation -> type TEXT -> the
+      extraction walks into the note body by itself and meets the frame there.
+
+That distinction is not cosmetic for anyone writing a client: a guard that
+refuses to read when the selection type is not TEXT stops (1) and does not stop
+(3).  We shipped exactly that guard for (1) and it does not help here.
+
+No image is involved.  The frame in the attached frame-no-image.odt holds only
+a draw:text-box: there is no Pictures/ member, draw:image appears zero times,
 and the manifest lists only content.xml and styles.xml.  An embedded image is
 how we first met this, not what triggers it.
 
-The calling thread stops inside the call.  It is not waiting on a callback:
-the LOK callback stream ends mid-sequence and nothing arrives for the rest of
-the run (86 s observed).  The worker's JS thread stays responsive, the wasm
-module is still callable from that thread, and our engine's global mutex is
-free -- only the thread that entered the call is stuck.
+The calling thread stops inside the call and does not come back.  It is not
+waiting on a callback: the LOK callback stream ends mid-sequence and nothing
+arrives for the rest of the run (86 s observed).  The worker's JS thread stays
+responsive, the wasm module is still callable from that thread, and our
+engine's global mutex is free -- only the thread that entered the call is
+stuck.
+
+
+The engine is healthy right up to the call, and dead from it onwards
+---------------------------------------------------------------------
+
+This is the part that most narrows where to look, and it is measured rather
+than inferred.  For symptom (3), on the WASM build, driving the trigger
+selection and then issuing exactly ONE further call, with a fresh engine per
+probe and the same drag over an ordinary frameless paragraph as the control:
+
+  call issued after the trigger selection   control paragraph   trigger selection
+  ---------------------------------------   -----------------   -----------------
+  getSelectionTypeAndText(text/plain)        2 ms                never returns
+  editor state read (same extraction path)   13 ms               never returns
+  ExecuteSearch                              18 ms               19 ms
+  paintTile                                  88 ms               45 ms
+  paste (text insertion)                     9 ms                4 ms
+  saveAs (ODT)                               215 ms              141 ms
+
+So the selection does not break the document or the engine.  Search, render,
+edit and SAVE all still work after it.  The extraction call is the only thing
+that hangs -- and once it has hung, the same six calls all stop returning,
+because the thread that owns the document is inside it.
+
+We had this backwards until we controlled for it: our own liveness probe was
+an editor-state read, which is the same extraction path, so "the engine is
+already dead after the selection" was our probe killing it.
 
 
 Steps to Reproduce
@@ -51,13 +98,29 @@ Steps to Reproduce
 
 1. Build LibreOffice for WASM per static/README.wasm.md.
 2. Through LibreOfficeKit, from the thread that owns the document:
+
+   For symptom (1):
      a. documentLoad("file:.../frame-no-image.odt")
      b. .uno:ExecuteSearch for "FNI-TEXTBOX" to place the caret
      c. .uno:SelectText to select that paragraph
      d. getTextSelection(doc, "text/html", nullptr)
-3. Repeat with frame-paragraph-anchored.odt and the anchor "FPA-FRAME".
-   That fixture differs by exactly one attribute -- the frame is anchored to
-   the paragraph rather than as-char -- and everything else is identical.
+
+   Repeat with frame-paragraph-anchored.odt and the anchor "FPA-FRAME".  That
+   fixture differs by exactly one attribute -- the frame is anchored to the
+   paragraph rather than as-char -- and everything else is identical.
+
+   For symptom (3):
+     a. documentLoad("file:.../frame-contexts.odt")
+     b. .uno:ExecuteSearch for "FX-NOTE"; keep the rectangle it reports
+     c. setTextSelection(LOK_SETTEXTSELECTION_RESET, x, midY)
+        setTextSelection(LOK_SETTEXTSELECTION_END,   x + 8000, midY)
+        (8000 twips is past the end of the line, so the selection covers the
+        citation mark; a text-handle client's drag does exactly this)
+     d. getSelectionTypeAndText(doc, "text/plain;charset=utf-8", &text, nullptr)
+
+   Repeat with the anchor "FX-PLAIN" -- an ordinary paragraph in the SAME
+   document -- as the control, and with a span of 2400 twips on FX-NOTE, which
+   stops before the citation mark and does not hang.
 
 For symptom (2), call destroy(doc) at the end.
 
@@ -70,7 +133,7 @@ For symptom (2), call destroy(doc) at the end.
 
 The attached lok_frame_hang.cpp does all of this and prints an "enter" line
 before each call and an "exit" line after it, so the hanging step is the one
-whose enter has no exit.
+whose enter has no exit.  Pass "range" as its fifth argument for symptom (3).
 
 
 Actual Results
@@ -82,44 +145,70 @@ WASM, frame-no-image.odt (as-char):
   [   ... ] enter  getTextSelection(text/html)
                                             <- no exit line, ever
 
+WASM, frame-contexts.odt, anchor FX-NOTE, span 8000:
+
+  [   ... ] enter  getSelectionTypeAndText(text/plain)
+                                            <- no exit line, ever
+
 and separately:
 
   [   ... ] enter  destroy(document)
                                             <- no exit line, ever
 
-Client-side timeouts of 20 s and 30 s expire; the document handle answers
-nothing afterwards.  The only recovery we have is terminating the worker.
+Client-side timeouts of 15 s, 20 s and 30 s expire; the document handle
+answers nothing afterwards.  The only recovery we have is terminating the
+worker, which loses everything not already saved.
 
 
 Expected Results
 ----------------
 
-Both calls return, as they do natively and as they do for the
-paragraph-anchored control in the same WASM build.
+All three calls return, as they do natively and as they do for the controls in
+the same WASM build.
 
 
 Isolation
 ---------
 
-One attribute separates pass from hang.  The two fixtures are identical apart
-from text:anchor-type on the single frame:
+Symptom (1) and (2): one attribute separates pass from hang.  The two fixtures
+are identical apart from text:anchor-type on the single frame:
 
   fixture                        anchoring   getSelectionType   WASM html read   WASM destroy
   frame-no-image.odt             as-char     3 (COMPLEX)        never returns    never returns
   frame-paragraph-anchored.odt   paragraph   1 (TEXT)           returns 524 B    returns, 11 ms
 
-Native control, LibreOffice 26.2.4.2, both fixtures, every step returning:
+Symptom (3): two conditions, both necessary, all four cells measured under
+WASM.  The selection must cover the footnote's citation mark, AND that
+footnote's body must hold the frame:
 
-  as-char:    getTextSelection 4 ms / 624 B   destroy 2 ms
-  paragraph:  getTextSelection 1 ms / 528 B   destroy 2 ms
+                                    note body HAS frame   note body has NO frame
+  selection covers the citation     never returns         returns, 8 ms
+  selection stops short of it       returns, 6 ms         --
+
+The short-span row matters because it rules out "any selection in that
+paragraph": the same paragraph, the same kind of drag, 2400 twips instead of
+8000, reads back normally.  Natively the two spans produce
+
+  2400 twips -> "FX-NOTE paragraph wh"                    (20 bytes)
+  8000 twips -> "FX-NOTE paragraph whose footnote holds a frame1"  (47 bytes)
+
+and that trailing "1" is the citation mark, in the extracted plain text.  So
+the extraction demonstrably walks the note apparatus, which is presumably where
+it meets the frame.
+
+Native controls, SAME COMMIT (26.8.0.1.0, core 671c848b, built from the same
+tree as the WASM engine), every step returning:
+
+  frame-no-image.odt            getTextSelection(html)     3 ms / 629 B   destroy 2 ms
+  frame-paragraph-anchored.odt  getTextSelection(html)     1 ms / 533 B   destroy 2 ms
+  frame-contexts.odt FX-NOTE    getSelectionTypeAndText    2 ms /  47 B   destroy 3 ms
+  frame-contexts.odt FX-PLAIN   getSelectionTypeAndText    2 ms /  41 B   destroy 2 ms
+
+An older native control on LibreOffice 26.2.4.2 gave the same shape (624 B /
+528 B, destroy 2 ms), so this is not new in 26.8.
 
 The selection type differs natively as well, so that part is ordinary core
 behaviour; only the hang is specific to the WASM build.
-
-Same-commit native (26.8.0.1.0, core 671c848b) was also measured earlier on
-this pair of symptoms and did not reproduce either: the html read returned
-798 bytes in 1 ms on an equivalent as-char paragraph, and document destroy
-entered and returned 3/3 for the document that hangs under WASM.
 
 Browsers: Chrome 150.0.7871.128 and Firefox 153.0.1, identical signatures.
 Two independently built WASM engine artifacts of the same commit, identical
@@ -145,26 +234,32 @@ hangs, so the stuck thread is waiting, not looping.  (The three threads at
 100% are already at 100% before the hang -- some pool's busy-wait in this
 build, not the hang.)
 
-So this is a wait that never completes rather than a runaway loop, and
-profiling cannot say more about it.
+A build with a name section identifies that function as
+__pthread_cond_timedwait.  So this is a wait that never completes rather than a
+runaway loop, and profiling cannot say more about it.
 
 
 What we do NOT know
 -------------------
 
-No stack, for either symptom.  We know the calls do not return, where they are
-called from, and that the thread is parked rather than spinning; we do not know
-what it is waiting for.
+No stack, for any of the three symptoms.  We know the calls do not return,
+where they are called from, that everything else works until the call is made,
+and that the thread is parked rather than spinning; we do not know what it is
+waiting for.
 
-The two symptoms turn on the same one attribute, reached independently from
-the read side and the teardown side, which is why they are reported together.
-That is an inference about a shared cause, not an attribution -- nobody has
-shown they run through the same code, and if you would rather have them as two
-bugs we can split them.
+The three symptoms turn on the same content feature, reached independently
+from the html read, the plain-text read and the teardown side, which is why
+they are reported together.  (1) and (3) share an extraction path in the API
+surface, which is a stronger link than we have for (2).  None of that is an
+attribution -- nobody has shown they run through the same code -- and if you
+would rather have them as separate bugs we can split them.
 
 Not measured: text:anchor-type="char" for the destroy symptom (its selection
-type is COMPLEX like as-char), frames in table cells or footnotes, OLE
-objects, charts, draw:g groups.
+type is COMPLEX like as-char), frames in table cells reached through symptom
+(3) (a frame in a table cell reports COMPLEX and so goes down path (1)
+instead -- we do not know why the footnote case does not), OLE objects,
+charts, draw:g groups, and how deeply nested a frame can be and still trigger
+this (only one level of footnote body was tried).
 
 
 Attachments
@@ -172,6 +267,7 @@ Attachments
 
   frame-no-image.odt              957ad760eeb090a71631f712df1f2cec207604a5782bf17c9dbeeaa97ed24416
   frame-paragraph-anchored.odt    f4b085f762fff887b99d9292a8d6eb5e0cbc4f5f487c25f01f729773cfedb5c0
+  frame-contexts.odt              bf58ea34a56691264f89c03edde2d1ea01df2affd91e60949f8f130756be590a
   lok_frame_hang.cpp              minimal reproducer, native and WASM
 
 （都在 findings/repro/037-as-char-frame-hang/）
