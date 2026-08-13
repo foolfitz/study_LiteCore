@@ -431,11 +431,17 @@ def main() -> int:
             " are recorded separately rather than merged.",
             "The readback markup is a serialiser output, not a documented contract."
             " Matching it whole pins a serialiser; cross-version stability is A7's job"
-            " and is not validated here.",
+            " and is not validated here. A7's round-trip slice has since measured the"
+            " saved documents against a different LibreOffice version (see"
+            " discovery/a7-roundtrip/report.json), which narrows this but does not"
+            " close it: it says the packages reopen, not that the readback markup this"
+            " barrier matches on is stable across versions.",
         ],
         "notValidated": [
             "A6 secondary capabilities have not run.",
-            "A7 round-trip and regression have not run.",
+            "A7's round-trip slice has run (discovery/a7-roundtrip/report.json);"
+            " A7's regression half -- R6-R8, E1-A/B/C, workspace preflight -- has not,"
+            " so A7 as a whole is still unmet and there is still no E2-A verdict.",
             "The commandName attribution added for finding 033 is not demonstrated by"
             " this evidence: selectionBeforeResultCount is 0 on every run, so no foreign"
             " selection ever reached it. The BUSY gate is what the crosstalk case shows.",

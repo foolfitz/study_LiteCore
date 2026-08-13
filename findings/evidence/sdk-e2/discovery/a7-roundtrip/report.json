@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-A-paragraph-format-discovery",
+  "phase": "A7-roundtrip-slice",
+  "decision": "A7_ROUNDTRIP_PASS",
+  "artifactBinding": {
+    "currentProfileWasmSha256": "c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f",
+    "documentsBoundToIt": 406,
+    "documentsSkippedByArtifact": {
+      "other-artifact:25761ff0": 387,
+      "other-artifact:80b48abf": 108,
+      "other-artifact:68590548": 472,
+      "other-artifact:38168306": 371,
+      "other-artifact:ee185b3d": 373,
+      "other-artifact:bd102b4a": 3,
+      "other-artifact:902379ba": 1,
+      "other-artifact:d9f50d25": 286,
+      "other-artifact:8adca798": 5,
+      "other-artifact:681b8a1d": 5,
+      "other-artifact:a696f0d6": 10,
+      "other-artifact:1b64d70b": 5,
+      "other-artifact:3d87eb36": 10,
+      "other-artifact:ae0ba02c": 5,
+      "other-artifact:13a6a454": 5,
+      "other-artifact:7c5b8e5c": 10,
+      "other-artifact:38d15ed4": 10,
+      "other-artifact:1b6a3dd2": 10,
+      "other-artifact:45f2372b": 35,
+      "other-artifact:9b6e9c58": 10,
+      "other-artifact:044975a7": 5,
+      "other-artifact:7665308a": 32
+    }
+  },
+  "coverage": {
+    "chrome": {
+      "documents": 222,
+      "passed": 222
+    },
+    "firefox": {
+      "documents": 184,
+      "passed": 184
+    }
+  },
+  "structureSeen": {
+    "withList": 254,
+    "withHeading": 149,
+    "withResolvableStyles": 406
+  },
+  "minimumPerBrowser": 3,
+  "structuralPass": true,
+  "selfTest": {
+    "sample": "../findings/evidence/sdk-e2/discovery/wedge-trace/chrome/paragraph-content-guarded-c89f069e/after-discriminator-final.odt",
+    "sampleCarries": {
+      "resolvableStyleReferences": 21,
+      "listItems": 1,
+      "lists": 1,
+      "headings": 7
+    },
+    "sampleCanExpressEveryMutation": true,
+    "cleanSampleProblems": [],
+    "mutations": [
+      {
+        "mutation": "mimetype-last",
+        "expects": "mimetype-not-first",
+        "caught": true,
+        "reported": [
+          "mimetype-not-first"
+        ]
+      },
+      {
+        "mutation": "malformed-xml",
+        "expects": "xml-malformed:content.xml",
+        "caught": true,
+        "reported": [
+          "xml-malformed:content.xml:mismatched tag: line 2, column 11509",
+          "xml-malformed:content.xml:mismatched tag: line 2, column 11509"
+        ]
+      },
+      {
+        "mutation": "dangling-style",
+        "expects": "unresolved-style:",
+        "caught": true,
+        "reported": [
+          "unresolved-style:Footnote"
+        ]
+      },
+      {
+        "mutation": "unlisted-part",
+        "expects": "manifest-missing-entry:content.xml",
+        "caught": true,
+        "reported": [
+          "manifest-missing-entry:content.xml"
+        ]
+      },
+      {
+        "mutation": "orphan-list-item",
+        "expects": "orphan-list-item",
+        "caught": true,
+        "reported": [
+          "empty-list",
+          "orphan-list-item"
+        ]
+      }
+    ],
+    "pass": true
+  },
+  "desktopReopen": {
+    "ran": true,
+    "version": "LibreOffice 26.2.4.2 620(Build:2)",
+    "converted": 406,
+    "failed": [],
+    "why": null,
+    "refusesABrokenDocument": {
+      "ran": true,
+      "refused": true,
+      "mutation": "malformed-xml"
+    }
+  },
+  "failures": [],
+  "notValidated": [
+    "The regression half of A7 (R6-R8, E1-A/B/C, workspace preflight) is not run here; this covers the round-trip half only.",
+    "The desktop reopen uses whichever LibreOffice is installed, which is a cross-version check.  A same-version (26.8) desktop control is not available on this machine."
+  ]
+}

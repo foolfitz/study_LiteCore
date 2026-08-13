@@ -1,9 +1,14 @@
 # SPEC E2-A：段落層級格式的 completion barrier discovery
 
-> **日期**：2026-08-05（最後修訂 2026-08-11，v12）  
-> **狀態**（2026-08-11 v12）：A1（部分）、A2、**A3／A4／A5 已執行且全數通過**
-> ——綁定引擎 `25761ff0…`，兩瀏覽器 × 三 fixture（A5 四 fixture）。
-> **A6／A7 未執行，E2-A 因此尚無總判定。**
+> **日期**：2026-08-05（最後修訂 2026-08-13，v16）  
+> **狀態**（2026-08-13 v16）：A1（部分）、A2、**A3／A4／A5 已執行且全數通過**
+> ——綁定引擎 `c89f069e…`，兩瀏覽器 × 三 fixture（A5 四 fixture）。
+> **A7 的 round-trip 前半已執行且通過（10.12 節）；A7 的回歸後半與 A6 未執行，
+> E2-A 因此仍無總判定。**
+>
+> > **2026-08-13 更正**：這段抬頭原本停在「v12、綁定 `25761ff0…`」，
+> > 而 v13 與 v15 各重掃重綁過一次，最後一次已綁到 `c89f069e…`。
+> > 抬頭是最多人只讀這一段就走的地方，卻是全篇最舊的一段；已就地更新。
 > A3 的前置（第 4 節〈路線 C 未決事項〉）已由使用者選定路線並實作完成。  
 > **上層規格**：[SPEC E2-000](./SPEC-E2-000-overview.md)  
 > **前置閘門**：[E1](./SPEC-E1-000-overview.md) 已判定 `E1_GO_ODT_EDITOR`  
@@ -528,6 +533,27 @@ line navigation（Finding 018）與 mouse drag selection 各跑一輪，只收�
 每個瀏覽器至少 3 份輸出 ODT 通過 ZIP CRC、XML、anchor 與 `<text:list>`／樣式結構檢查，再由 desktop
 LibreOffice reopen 與 PDF export。回歸 R6～R8、E1-A／B／C 與 before／after workspace preflight。
 
+> **2026-08-13：前半（round-trip）已執行，判定 `A7_ROUNDTRIP_PASS`；後半（回歸）未執行，
+> 因此 A7 未完成、第 8 節的 `GO_TO_E2_B` 仍未達成。**
+>
+> 材料是既有證據樹裡由現行引擎 `c89f069e…` 產出的存檔 ODT，**沒有跑新的瀏覽器輪**：
+> 406 份（Chrome 222、Firefox 184，門檻是每瀏覽器 3 份），結構檢查 406／406 通過，
+> 桌面版重開＋PDF 匯出 406／406 成功。綁到舊 build 的 2 153 份**逐個 hash 記為略過而非涵蓋**
+> （finding 027）。結構檢查實際看到的：帶清單 254 份、帶標題 149 份、帶可解析樣式參照 406 份。
+>
+> 兩個檢查各有控制組：結構檢查對真文件做五種破壞（`mimetype` 非首筆、XML 不成對、
+> 把**被參照的**樣式改名、manifest 缺 `content.xml`、list-item 脫離 list），五種全被抓；
+> 桌面重開餵一份 XML 不成對的文件，**soffice 拒絕**——沒有這一條，「406 份都轉出 PDF」
+> 只證明 soffice 願意對任何東西吐 PDF。
+>
+> **四項不得外推**：（一）桌面版是 **26.2.4.2**，引擎是 26.8，這是**跨版本**重開，
+> 同版本對照這台機器上沒有；（二）只驗 package 開得起來，判準是 `%PDF-` 檔頭與大小，
+> **沒有比對頁數或文字**；（三）**2.8 節縮限 3 沒有解除**——這一輪說的是 package 重開得了，
+> 不是 barrier 比對的那串 readback markup 跨版本穩定；（四）A6 仍未執行。
+>
+> 證據與工具：[`discovery/a7-roundtrip/`](../findings/evidence/sdk-e2/discovery/a7-roundtrip/)、
+> `wasm_sdk_probe/tools/validate_e2_a_roundtrip.py`、`tests/test_e2_a_roundtrip.py`。
+
 ### 門檻
 
 | 項目 | 值 |
@@ -801,7 +827,12 @@ level 2／3 為 number），第一版 validator 問「這個樣式含不含 numb
 
 ### 10.11 barrier 選取步驟改版與兩條覆蓋軸（2026-08-11，引擎 `38168306…`）
 
-上表三個 PASS 原本綁定 `25761ff0…`。引擎改動後**全部重跑重綁**，見 10.12。
+上表三個 PASS 原本綁定 `25761ff0…`。引擎改動後**全部重跑重綁**，逐輪結果記在第 11 節
+v13～v15 各列（最後一次是 v15，重綁至 `c89f069e…`）。
+
+> **2026-08-13 更正**：這句原本寫「見 10.12」，而本規格從來沒有 10.12 節——那是一個
+> 指向不存在章節的前向參照。重跑重綁的紀錄實際在修訂紀錄裡，已改指過去。
+> （現在的 10.12 節是同日新增的 A7 round-trip，與這句無關。）
 
 **改了什麼（四項，同一個 build）：**
 
@@ -935,7 +966,9 @@ typed 的不可驗證，**永不回報成功**。
 
 ### 10.4 尚未執行
 
-~~A3～A7 尚未執行。~~ ~~**A3（10.7 節）與 A4（10.8 節）已完成，皆 PASS；A5～A7 尚未執行。**~~ **2026-08-11 再更新：A5（10.9 節）亦已完成且 PASS；A6／A7 尚未執行，見 10.10 節。**
+~~A3～A7 尚未執行。~~ ~~**A3（10.7 節）與 A4（10.8 節）已完成，皆 PASS；A5～A7 尚未執行。**~~ ~~**2026-08-11 再更新：A5（10.9 節）亦已完成且 PASS；A6／A7 尚未執行，見 10.10 節。**~~
+**2026-08-13 再更新：A7 的 round-trip 前半已執行且 PASS（10.12 節）；A7 的回歸後半與 A6 仍未執行，
+E2-A 因此仍無總判定。**
 以下 08-06 的原文保留：A3～A7 尚未執行。**A3 仍不啟動**：finding 021 已歸因且產品級主迴圈候選已實測可跑
 （2.6 節），但 caret 移動後的 freshness 來源未定（PEI 與活迴圈的行為差異未歸因），
 且推進點若進入共用路徑需先跑完整回歸。E2-A 目前**沒有**判定；第 8 節的三個結果都還不成立。
@@ -985,6 +1018,50 @@ scope 共用同一份 worker patch，manifest 新增 `engineLoop` 診斷欄位�
 是本輪歸因的主要儀器；engine pthread 的 stderr 到不了可捕捉的 console，診斷一律走
 `MAIN_THREAD_EM_ASM`。
 
+### 10.12 已完成：A7 的 round-trip 切片（2026-08-13，綁定 `c89f069e…`）
+
+判定：**`A7_ROUNDTRIP_PASS`**。證據 [`discovery/a7-roundtrip/`](../findings/evidence/sdk-e2/discovery/a7-roundtrip/)，
+工具 `tools/validate_e2_a_roundtrip.py`，測試 `tests/test_e2_a_roundtrip.py`（17 個）。
+
+A3～A5 全部是用**讀回檔案**回答「這一段有沒有進到目標狀態」。**沒有一項問過 package
+健不健全，也沒有一項問過換一個 LibreOffice 打不打得開。** 那是 A7 的事，
+也是 2.8 節縮限 3 明講「A7 的工作、目前沒驗」的那件事，
+更是 E2-000 第 10 節列為停止條件級的「清單切換造成 ODT 結構 silent loss」該對著的檢查。
+
+**沒有跑新的瀏覽器輪**：材料是既有證據樹裡由 `c89f069e…` 產出的 406 份存檔 ODT
+（Chrome 222、Firefox 184；門檻是每瀏覽器 3 份）。綁到舊 build 的 2 153 份**逐個 hash
+記為略過而非涵蓋**（finding 027）。
+
+| | 實得 |
+|---|---|
+| 結構檢查 | 406／406 |
+| 桌面版重開＋PDF 匯出 | 406／406（LibreOffice 26.2.4.2） |
+| 結構檢查實際看到 | 帶清單 254 份、帶標題 149 份、帶可解析樣式參照 406 份 |
+
+七類檢查：ZIP CRC；`mimetype` 首筆且未壓縮；所有 `*.xml` 可解析；zip 成員與
+`META-INF/manifest.xml` 雙向相符；anchor 文字仍在；**每個樣式參照都解析得到宣告**；
+`text:list-item` 必有 `text:list` 父節點、`text:list` 非空、`text:h` 有合法 outline level。
+
+**兩個檢查各自帶控制組。** 結構檢查對真文件做五種破壞（`mimetype` 非首筆、XML 不成對、
+把**被參照的**樣式改名、manifest 缺 `content.xml`、list-item 脫離 list），五種全被抓；
+桌面重開餵一份 XML 不成對的文件，**soffice 拒絕**——沒有這一條，「406 份都轉出 PDF」
+只證明 soffice 願意對任何東西吐 PDF。
+
+**第一版的自我測試是壞的。** 它把 content.xml 裡第一個樣式宣告改名，而挑到的樣本
+**一個樣式都沒宣告**，於是突變什麼都沒改、`unresolved-style` 回報通過卻從未執行——
+而那正是對著 silent structure loss 的檢查。改成「改名一個**確實被參照**的樣式」，
+樣本改挑表達力最高的一份，並要求樣本至少帶一個可解析樣式與一個 list-item，
+否則自我測試直接判不通過。合成文件的單元測試另外抓到工具一個真缺陷：
+deflate 流損壞時 `testzip()` 是丟例外不是回傳，原本會讓整輪掃描中斷而非讓一份文件判失敗。
+
+**四項不得外推**：（一）桌面版 26.2、引擎 26.8，這是**跨版本**重開，同版本對照沒有；
+（二）只驗開得起來，判準是 `%PDF-` 檔頭與大小，**沒有比對頁數或文字**；
+（三）**縮限 3 沒有解除**——說的是 package 重開得了，不是 barrier 比對的 readback markup
+跨版本穩定；（四）A6 仍未執行。
+
+**A7 因此仍未完成**：回歸那一半（R6～R8、E1-A／B／C、workspace preflight）沒有跑，
+第 8 節的 `GO_TO_E2_B` 仍未達成，**E2-A 仍無總判定**。
+
 ## 11. 修訂紀錄
 
 | 日期 | 內容 |
@@ -1006,3 +1083,4 @@ scope 共用同一份 worker patch，manifest 新增 `engineLoop` 診斷欄位�
 | 2026-08-12 | v13（結構集合由實測決定；[finding 035](../findings/035-the-postcondition-read-fails-closed-on-any-formatted-or-cjk-paragraph.md) 已修）。2.8 節就地補修訂註記：它的封閉標籤集是照三個 fixture 量的，而那三個 fixture 的被派送段落全是純 ASCII 無 run，於是**每個帶字元格式或中日韓文字的段落都被判未知標籤**——中文文件的常態；該節不是被推翻而是被證明取樣不足。新增 **2.10 節**：新 fixture `paragraph-content`、21 種段落形態、原生 26.8 與 WASM 各一輪。結構集合定為 `p`／`h1`–`h6`／`pre`／`blockquote`／`ul`／`ol`／`li`（**每一個都是實際在 body 層出現才收，成員資格是規則不是清單**），並確立兩條不可拆的規則：**結構標籤在任何深度都計數、只有非結構標籤依深度分流**（反過來寫會把 `li` 與清單內的 `<p>` 一起忽略，拆掉 034 多段防護的一半），以及**進集合就必須計入 `blockCount`**（收了不計數，選取跨進 `pre` 鄰居時防護會漏）。`pre`／`blockquote` 收錄**不新增放行路徑**（滿足判定要 `blockTag`∈{p,h1} 或首標籤是 ul/ol），只是把「未知標籤」換成「現況不是目標」。**兩項新收窄入條文**：ODF outline level 7–10 讀回 `<p>`，故 level ≥7 的標題與內文無法區分（今天無害，一旦有「套用第 N 級標題」即無法驗證）；**帶註腳／尾註的段落設計上拒絕**（註腳本文是第二個 body 層區塊），採外部覆核裁決＝`div` 不進集合、依 `sw/source/filter/html/htmlftn.cxx:344-365` 的簽名（`id` 以 `sdfootnote`／`sdendnote` 開頭）以專屬 `failureShape` 拒絕，駁回「div 內不計入 `blockCount`」（034 的失效是無聲誤報成功，而深度 0 div 的樣本數是 1）與「沿用既有失敗碼」（會讓「034 攔到跨段」與「使用者碰了註腳」在遙測上不可區分）。**失敗碼表由三個 `failureShape` 增為六個並定序**：三個「掃描中止」形狀必須排在 `multiBlock` 與 containment 之前，因為中止時計數已被截斷。2.8 第 3 項（序列化器不是契約）**在同版本內量到實例**：同 `coreCommit` 的原生與 WASM 兩 build，`style` 裡 CSS 屬性順序相反、`lang` 在 zh-CN／zh-TW 間漂移，標籤結構一致——**markup 永不可逐位元組比對**。引擎一次 build（`ee185b3d…`），A3／A4／A5 全部重掃並重綁（18 輪／90 派送、18 輪／270 派送、8 輪／42 case，零失敗，44 輪每輪都先核對 artifact sha256），`paragraphContentCoverage` 由 3 欄擴為 15 欄。**掃描途中掉出 [finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)**：含行內圖片的段落會**卡死 document handle**（動作 20 s 逾時而非 5 s 的 `stage-deadline:*`），舊 build 同樣重現故為既存缺陷，**未修**，已入 10.x 的未涵蓋清單。 |
 | 2026-08-12 | v14（10.11 第 4 項的界線；[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md) 已定位）。**5000 ms per-stage 期限防的是「停止推進的 awaiting stage」，不是「不返回的 LOK 呼叫」**——`engineLoop` 只在 `gState.commands.empty()` 的等待分支裡檢查期限，卡在 `dispatch()` 的執行緒回不到那裡，命令佇列也不再被清空（main-loop 版同理，它從 poll callback 進去）。已有實例：`getTextSelection(…, "text/html", …)` 在含行內圖片的段落上不返回。條文因此收窄為**「stage 不會無限期等下去」，不是「barrier 一定會收場」**。定位方式刻意不重編引擎（`ee185b3d…` 未動）：引擎本來就把每個 LOK callback 在處理前送出，只是出貨 worker 丟掉，診斷 profile 用同一份 wasm 加兩行轉發即可；串流 2/2 停在同一筆，活性梯證明 worker JS、wasm 主執行緒與 `gState.mutex` 都活著。拆解實驗（同端點選取上 `setTextSelection(RESET)` 17 ms、`getSelectionTypeAndText` 1 ms，2/2）把候選收斂到 html 讀取那一次。**未修**；擋法（讀取前先取 selection type，COMPLEX 即具名拒絕）已記在 finding 裡，需重編＝A3／A4／A5 全部重掃。 |
 | 2026-08-12 | v15（[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md) 我方擋法上線；引擎 `c89f069e…`）。讀取那一步**先取 selection type，只有 `LOK_SELTYPE_TEXT` 才呼叫 `getTextSelection(…, "text/html", …)`**；非 TEXT 走新的 `selection-type-not-readable`，**排在所有 readback 形狀之前**（擋下來時根本沒有掃描，`parsed` false、計數全 0，排在後面會被判成「文件不是你要的狀態」）。擋法只跳過讀取，還原照跑，所以呼叫端不會拿到自己沒做的選取。`LOK_SELTYPE_LARGE_TEXT` 不收——header 註明它 unused、等同 COMPLEX，收它等於收一個 core 不會產生的值。**同一列由 20001 ms 卡死變成 37 ms 具名拒絕、事後 handle 可用**；`paragraph-content` 21 種形態首次全部跑完（19 verified、註腳走 035 的通道、圖片走這一條，每列 37–42 ms、21/21 事後可用），`blockTag` 逐列與 v13 定案相同。A3／A4／A5 重掃 44 輪（18.8 分鐘，**每輪跑前重新核對 artifact 雜湊**，44/44 同一個，零輪無證據）並重綁至 `c89f069e…`，`validate_e2_a.py` 發 A3_PASS／A4_PASS／A5_PASS。**殺傷範圍是量的不是推的**：`selectionType` 現在寫進每一次 barrier 的證據，428 次裡 426 次是 TEXT，被擋的 2 次都是 `PC-IMAGE`，四份被掃 fixture（含 `table-boundary` 儲存格段落）無一被碰到。**core 端未修**，擋的是我方不再呼叫。 |
+| 2026-08-13 | v16（A7 的 round-trip 前半已執行，判定 `A7_ROUNDTRIP_PASS`；見 10.12 節）。起因是任務 #36 想把標題／清單併進 `e1-editor-v1` 的下一版 ABI，而那**逐字就是 [SPEC E2-000](./SPEC-E2-000-overview.md) 第 129–133 行定義的 E2-B**，其第 133–134 行既固定了 E2-A → E2-B → E2-C 的順序，也明講「**A 未完成前不凍結新 ABI**」「B 與 C 的規格待 A 有結果後另寫，**本文件不預先授權**」。所以先補 A7，而不是先凍 ABI。**沒有跑新的瀏覽器輪**：材料是既有證據樹裡由 `c89f069e…` 產出的 406 份存檔 ODT（Chrome 222、Firefox 184），綁到舊 build 的 2 153 份逐個 hash 記為略過（finding 027）。七類結構檢查 406／406 通過，桌面版 LibreOffice 26.2.4.2 重開＋PDF 匯出 406／406 成功；結構檢查實際看到帶清單 254 份、帶標題 149 份、帶可解析樣式參照 406 份。**兩個檢查各帶控制組**：結構檢查對真文件做五種破壞全被抓，桌面重開對一份 XML 不成對的文件**被 soffice 拒絕**——沒有後者，「406 份都轉出 PDF」只證明 soffice 願意對任何東西吐 PDF。**第一版的自我測試是壞的**：它改名 content.xml 裡第一個樣式宣告，而樣本一個樣式都沒宣告，於是 `unresolved-style`（正對著 E2-000 第 10 節「清單切換造成 silent structure loss」那條停止條款的檢查）回報通過卻從未執行；改為改名一個**確實被參照**的樣式、樣本改挑表達力最高者、並要求樣本本身能表達每一種突變否則自我測試不通過。合成文件的單元測試（`tests/test_e2_a_roundtrip.py`，17 個）另抓到工具一個真缺陷：deflate 流損壞時 `testzip()` 丟例外而非回傳，原會讓整輪中斷而非讓一份判失敗。**不得外推四項**：桌面版是 26.2 而引擎是 26.8（**跨版本**重開，同版本對照沒有）；只驗開得起來，判準是 `%PDF-` 檔頭與大小，**未比對頁數或文字**；**2.8 節縮限 3 沒有解除**（說的是 package 重開得了，不是 readback markup 跨版本穩定）；**A6 仍未執行**。**A7 的回歸後半（R6～R8、E1-A／B／C、workspace preflight）未跑，A7 因此未完成，第 8 節的 `GO_TO_E2_B` 仍未達成，E2-A 仍無總判定。** `validate_e2_a.py` 的 `notValidated` 與 `narrowings` 兩句已就地改寫並重跑，三個判定（A3_PASS／A4_PASS／A5_PASS）逐位元不變。 |
