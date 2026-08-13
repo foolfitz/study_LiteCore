@@ -2,9 +2,9 @@
 
 > **日期**：2026-08-02  
 > **狀態**：執行完成（GO）  
-> **依據**：[R5 結果](../DEVLOG-2026-08-01-wasm-sdk-r5.md)、
-> [Document SDK 主報告 §9～§11](../RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)、
-> [協作編輯器研究 §6～§7](../RESEARCH-2026-08-01-wasm-collaboration-editor.md)
+> **依據**：[R5 結果](../devlog/DEVLOG-2026-08-01-wasm-sdk-r5.md)、
+> [Document SDK 主報告 §9～§11](../research/RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)、
+> [協作編輯器研究 §6～§7](../research/RESEARCH-2026-08-01-wasm-collaboration-editor.md)
 
 ## 1. 目標
 

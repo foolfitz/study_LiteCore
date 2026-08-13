@@ -503,15 +503,15 @@ ArrayBuffer → open ODT → paint tile → 定位／輸入一個中文字 → s
 - 執行緒模型：`-pthread`，模組先在主執行緒 host、運算在 pthreads；不用 JSPI、不用 PROXY_TO_PTHREAD，與 Qt6 線組態明確切開；Worker host 留到 R2。
 - embind 不連結：最終核外 probe 確實未連 `unoembind`，但 core exports 不能原樣沿用；需排除
   bridge RTTI、保留檔案載入 catch 必需的單一 UCB exception RTTI，並 wrap 未使用的 JS UNO
-  scripting 初始化。詳見 [finding 010](./findings/010-probe-export-list-requires-unoembind.md)。
+  scripting 初始化。詳見 [finding 010](../findings/010-probe-export-list-requires-unoembind.md)。
 - CJK 閘門措辭：「輸入一個中文字」指以 LOK API 程式化插入；真 IME composition 屬 R2+ 的 JS UI 工程，不作為 R1 的 No-Go 判準。
-- 執行 spec：[specs/SPEC-R1-000-overview.md](./specs/SPEC-R1-000-overview.md)（A 建置／B 探針程式／C 量測驗收，2026-08-01 定稿）。
+- 執行 spec：[specs/SPEC-R1-000-overview.md](../specs/SPEC-R1-000-overview.md)（A 建置／B 探針程式／C 量測驗收，2026-08-01 定稿）。
 
 **2026-08-01 結果：GO。** Chrome 150 與 Firefox 152 均可自動完成完整五步驟；三份文件
 共 24 份輸出全數通過桌面 round-trip。Probe runtime raw 259.72 MiB、gzip 84.58 MiB，較
 Qt6-WASM 基線分別小 8.74%／5.96%；可行性成立，但體積降幅尚不足以宣稱已達輕量產品目標。
 完整數字、限制與 R2 建議見
-[R1 實測 DEVLOG](./DEVLOG-2026-08-01-wasm-sdk-probe.md)。
+[R1 實測 DEVLOG](../devlog/DEVLOG-2026-08-01-wasm-sdk-probe.md)。
 
 ### R2：穩定 binding 與 Worker runtime
 
@@ -527,14 +527,14 @@ Qt6-WASM 基線分別小 8.74%／5.96%；可行性成立，但體積降幅尚不
 
 **2026-08-01 執行決策**：R2 只處理 binding、Worker 隔離與 lifecycle；體積最佳化已確認
 延後至 R5，不在建立 ABI／protocol 的同時改動 link graph 或資源集合。可執行邊界與驗收見
-[SPEC R2-000](./specs/SPEC-R2-000-overview.md)。
+[SPEC R2-000](../specs/SPEC-R2-000-overview.md)。
 
 **2026-08-01 結果：GO。** C ABI 1.0、Worker protocol v1、Dedicated Worker 與
 TypeScript-first SDK 已完成。Chrome 150／Firefox 152 各 3 次正式垂直切片及兩邊 13 項
 lifecycle／ownership／error-boundary conformance 全數通過；closure hardening 再增加各 1 次
 完整流程與 round-trip。主執行緒未暴露 Emscripten runtime。R2 runtime 相較 R1 raw／gzip
 只增加約 0.012%，依決策僅記錄漂移、不做最佳化。完整數字、限制與 R3 交接見
-[R2 DEVLOG](./DEVLOG-2026-08-01-wasm-sdk-r2.md)。
+[R2 DEVLOG](../devlog/DEVLOG-2026-08-01-wasm-sdk-r2.md)。
 
 ### R3：review operations
 
@@ -552,7 +552,7 @@ lifecycle／ownership／error-boundary conformance 全數通過；closure harden
 search／selection／replace／undo／comment／tracked-change 語意方法與單調 revision guard；不提供
 任意 UNO command passthrough。Markdown parser 不納入本輪，先以 validated
 `replaceSelection` operation 驗證結構化結果寫入。可執行邊界見
-[SPEC R3-000](./specs/SPEC-R3-000-overview.md)。
+[SPEC R3-000](../specs/SPEC-R3-000-overview.md)。
 
 **2026-08-01 結果：GO。** ABI 1.1 semantic review SDK 已完成 search／selection／replace／
 undo／comment／tracked-change 與單調 revision guard。Chrome 150、Firefox 152 各 3 次完整流程
@@ -560,7 +560,7 @@ undo／comment／tracked-change 與單調 revision guard。Chrome 150、Firefox 
 全數通過。1.0 client 相容、較新 minor／不同 major 拒絕、R2 conformance 與 R1 legacy flow
 也都跨兩個瀏覽器通過。Runtime 相較 R2 raw／gzip 僅增加約 0.0084%／0.0111%，依決策只記錄
 漂移。完整結果與 R4 交接見
-[R3 DEVLOG](./DEVLOG-2026-08-01-wasm-sdk-r3.md)。
+[R3 DEVLOG](../devlog/DEVLOG-2026-08-01-wasm-sdk-r3.md)。
 
 ### R4：Provider SDK
 
@@ -573,7 +573,7 @@ undo／comment／tracked-change 與單調 revision guard。Chrome 150、Firefox 
 `replaceSelection` operation。瀏覽器 Provider 使用獨立 Dedicated Worker；Host 持有 Web／desktop
 document adapter 並在套用前驗證 operation。完整 schema UI、identity／secret、remote transport、
 streaming、scaffolder 與完整 hostile-code sandbox 不納入本輪。可執行邊界見
-[SPEC R4-000](./specs/SPEC-R4-000-overview.md)。
+[SPEC R4-000](../specs/SPEC-R4-000-overview.md)。
 
 **2026-08-01 結果：GO。** Provider registry／host／validator、Worker transport、Web／desktop
 contract adapters 與共用 fixture 已完成；同一 fixture 在兩種 adapter 得到相同 operation。Chrome
@@ -581,7 +581,7 @@ contract adapters 與共用 fixture 已完成；同一 fixture 在兩種 adapter
 rejection、undo recovery 與 validated replace。6 份 ODT 均通過桌面 round-trip，R3／R2／R1 回歸
 也全部跨兩個瀏覽器通過。Core artifacts 與 R3 byte-for-byte 相同；R4 browser layer raw 新增
 45,229 bytes，僅記錄、不在本輪最佳化。完整結果與 R5 交接見
-[R4 DEVLOG](./DEVLOG-2026-08-01-wasm-sdk-r4.md)。
+[R4 DEVLOG](../devlog/DEVLOG-2026-08-01-wasm-sdk-r4.md)。
 
 ### R5：資源與體積 profile
 
@@ -600,13 +600,13 @@ R1 實測後已確認：所有體積最佳化集中於本階段；R2～R4 只持
 **2026-08-01 執行決策**：R5 產出 `full-qa`、`writer-review`、`writer-reader`，但
 `writer-automation` 在受控 operation／權限契約定義前保持 `not-shippable`。資源拆為 base、startup
 CJK 與 optional fallback-font packs，hash artifact 與 entry／manifest 採不同 cache policy。可執行
-邊界見 [SPEC R5-000](./specs/SPEC-R5-000-overview.md)。
+邊界見 [SPEC R5-000](../specs/SPEC-R5-000-overview.md)。
 
 **2026-08-01 結果：GO。** Review WASM raw 由 169.26 MB 降為 115.27 MB；中文首載資源由
 102.77 MB 降為 base 34.18 MB + CJK 19.48 MB，其餘 49.10 MB fallback fonts 延後載入。Chrome 150／
 Firefox 152 的 review 6/6、reader cold 6/6、reader warm-cache 6/6 通過，18 份產品 profile ODT 均通過
 ZIP／XML、內容與桌面 LibreOffice round-trip；R1～R4 回歸、profile exports、resource integrity 與
-cache contract 也全數通過。完整限制與數據見 [R5 DEVLOG](./DEVLOG-2026-08-01-wasm-sdk-r5.md)。
+cache contract 也全數通過。完整限制與數據見 [R5 DEVLOG](../devlog/DEVLOG-2026-08-01-wasm-sdk-r5.md)。
 
 ### R6：協作 reference application
 
@@ -617,8 +617,8 @@ CRDT，也不允許 last-write-wins。
 **2026-08-02 執行規劃**：R6 分成 reader shell、collaboration contract／reference service，以及雙
 client reference app 驗收。建議 anchor 只在 base version 相符且 quote 唯一時自動套用；selection
 token、tile 座標與頁碼不視為跨版本穩定 ID。重要失敗、架構限制與瀏覽器差異必須在發現當下寫入
-DEVLOG／finding 並保存原始 evidence。可執行邊界見 [SPEC R6-000](./specs/SPEC-R6-000-overview.md)，
-後續候選與進入條件見 [R6+ 路線圖](./specs/SPEC-R6+-roadmap.md)。
+DEVLOG／finding 並保存原始 evidence。可執行邊界見 [SPEC R6-000](../specs/SPEC-R6-000-overview.md)，
+後續候選與進入條件見 [R6+ 路線圖](../specs/SPEC-R6+-roadmap.md)。
 
 若 R6 只能靠修改 LibreOffice core、暴露 raw UNO／Emscripten surface、靜默猜測 anchor 或放寬成
 last-write-wins 才成立，應停止並評估 server-native LOK + 精簡 JS UI，而不是為維持 WASM 名義擴大
@@ -714,7 +714,7 @@ fork。
 真正開始實作時，建議順序如下：
 
 1. 凍結一個可重現的 LibreOffice 26.8 + Emscripten toolchain 基線。
-2. 對現有 26.8 worktree 的 Qt6-WASM 修補先分類，避免與 SDK 實驗混線。**已完成（2026-08-01）**：五個修改已落成具名 patch 並分類兩線歸屬，見 [INVENTORY.md](./wasm-lite/patches/INVENTORY.md)。
+2. 對現有 26.8 worktree 的 Qt6-WASM 修補先分類，避免與 SDK 實驗混線。**已完成（2026-08-01）**：五個修改已落成具名 patch 並分類兩線歸屬，見 [INVENTORY.md](../wasm-lite/patches/INVENTORY.md)。
 3. 建立 Writer-only、`--disable-gui` 的 headless build profile。
 4. 盤點產物是否實際含 LOK init、document load、tile、input、callback 與 save 路徑。
 5. 寫最小 `wasm_sdk_probe`，只完成 `open → paintTile → input → save`。
@@ -767,15 +767,15 @@ Pivot 不代表整個 SDK 概念失敗。TypeScript Document API、Provider cont
 ### 17.1 本研究工作區
 
 - [LibreOffice WASM 輕量協作編輯器研究報告](./RESEARCH-2026-08-01-wasm-collaboration-editor.md)
-- [Qt6-WASM 開發紀錄](./DEVLOG-2026-08-01-qt6-wasm.md)
-- [LibreOffice 26.8 WASM 建置說明](./libreoffice-26-8/static/README.wasm.md)
-- [LibreOfficeKit 說明](./libreoffice-26-8/libreofficekit/README.md)
-- [LibreOfficeKit C API](./libreoffice-26-8/include/LibreOfficeKit/LibreOfficeKit.h)
-- [LibreOfficeKit callbacks／events](./libreoffice-26-8/include/LibreOfficeKit/LibreOfficeKitEnums.h)
-- [Emscripten `soffice` 連結設定](./libreoffice-26-8/desktop/Executable_soffice_bin.mk)
-- [Emscripten filesystem image 規則](./libreoffice-26-8/static/CustomTarget_emscripten_fs_image.mk)
+- [Qt6-WASM 開發紀錄](../devlog/DEVLOG-2026-08-01-qt6-wasm.md)
+- [LibreOffice 26.8 WASM 建置說明](../libreoffice-26-8/static/README.wasm.md)
+- [LibreOfficeKit 說明](../libreoffice-26-8/libreofficekit/README.md)
+- [LibreOfficeKit C API](../libreoffice-26-8/include/LibreOfficeKit/LibreOfficeKit.h)
+- [LibreOfficeKit callbacks／events](../libreoffice-26-8/include/LibreOfficeKit/LibreOfficeKitEnums.h)
+- [Emscripten `soffice` 連結設定](../libreoffice-26-8/desktop/Executable_soffice_bin.mk)
+- [Emscripten filesystem image 規則](../libreoffice-26-8/static/CustomTarget_emscripten_fs_image.mk)
 - [COWASM co-26.04 參考研究筆記](./RESEARCH-2026-08-01-cowasm-co-26-04-reference.md)
-- [worktree patch inventory](./wasm-lite/patches/INVENTORY.md)
+- [worktree patch inventory](../wasm-lite/patches/INVENTORY.md)
 
 ### 17.2 OxOffice 參考資料
 

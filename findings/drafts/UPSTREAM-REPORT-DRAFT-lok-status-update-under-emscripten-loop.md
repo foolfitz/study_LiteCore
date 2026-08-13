@@ -2,7 +2,7 @@
 
 > **狀態**：草稿，**尚未送出**。2026-08-06 使用者決定整組實驗結束後再評估是否送出。
 > **不要因為這份草稿存在就送出**——送出前的必要條件列在第 7 節，目前一項都沒完成。
-> **來源**：[finding 021](findings/021-wasm-format-state-not-refreshed-by-caret-movement.md)。
+> **來源**：[finding 021](../021-wasm-format-state-not-refreshed-by-caret-movement.md)。
 > 該 finding 是 canonical，本檔是它的對外裁剪版；兩者衝突時以 finding 為準。
 
 ## 1. 一句話
@@ -106,6 +106,6 @@ scheduler 帶起來的地方。`ProcessEventsToIdle()` 則以 `bHandleAllCurrent
 
 ## 9. 不屬於本報告的東西
 
-- [finding 022](findings/022-e1-release-set-bold-false-noop.md)（我方 SDK 的假 no-op）
+- [finding 022](../022-e1-release-set-bold-false-noop.md)（我方 SDK 的假 no-op）
   是**我方缺陷**，與上游無關，不得混入。
 - 產品路線 C（不讀前置狀態）是我方決定，與上游訴求無關。

@@ -6,16 +6,16 @@
 > （full 45/45＋30/30、minimal 120/120，牆全部消失）、位元組對帳吻合。
 > 本檔 §2「為什麼值得修」的產品影響推論**已撤回**；§1 末句「剩下只有引擎那層」
 > **已否證**（`minimal` rung 零 LibreOffice 程式碼也撞牆）。完整第二次歸因見
-> [finding 023（第二版）](findings/023-sdk-init-wedges-at-fixed-session-depth.md)；
-> 過程見 [DEVLOG](DEVLOG-2026-08-06-wasm-sdk-e2-mainloop.md) 最末節。過程中挖出
+> [finding 023（第二版）](../findings/023-sdk-init-wedges-at-fixed-session-depth.md)；
+> 過程見 [DEVLOG](../devlog/DEVLOG-2026-08-06-wasm-sdk-e2-mainloop.md) 最末節。過程中挖出
 > 兩個真的 Firefox 側問題（與 pipe 無關），見
-> [finding 024](findings/024-firefox-lazy-reclaim-of-navigated-away-engine-workers.md)。
+> [finding 024](../findings/024-firefox-lazy-reclaim-of-navigated-away-engine-workers.md)。
 > 以下原文保留為「當時相信什麼」的紀錄。
 
 > **給接手的人**：這份是進入點。全部背景在
-> [finding 023](findings/023-sdk-init-wedges-at-fixed-session-depth.md)，
+> [finding 023](../findings/023-sdk-init-wedges-at-fixed-session-depth.md)，
 > 過程與踩過的坑在
-> [DEVLOG 2026-08-06](DEVLOG-2026-08-06-wasm-sdk-e2-mainloop.md) 最後兩節。
+> [DEVLOG 2026-08-06](../devlog/DEVLOG-2026-08-06-wasm-sdk-e2-mainloop.md) 最後兩節。
 > 本檔的每一句都標了**已觀察／推論／待驗證**，請維持這個習慣。
 
 ## 1. 一句話
@@ -195,4 +195,4 @@ E1-C 的證據**同時**還有另一個問題：2026-08-07 的兩次重連結（
 Chewing**，全部對 `835b453d…`。人工輪需要 `ssh -L 8765:127.0.0.1:8765`（頁面 gate 在
 `crossOriginIsolated` 且用真的 `navigator.clipboard`，改 bind 到 LAN 位址會讓案例直接死掉）。
 
-詳見 [SPEC E1-C §11.4／§11.5](specs/SPEC-E1-C-editor-validation.md)。
+詳見 [SPEC E1-C §11.4／§11.5](../specs/SPEC-E1-C-editor-validation.md)。

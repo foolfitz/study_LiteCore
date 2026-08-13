@@ -2,8 +2,8 @@
 
 > **日期**：2026-08-01  
 > **狀態**：已完成（GO）  
-> **依據**：[R3 結果](../DEVLOG-2026-08-01-wasm-sdk-r3.md)、
-> [SDK 主報告 §4.3、§10](../RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)
+> **依據**：[R3 結果](../devlog/DEVLOG-2026-08-01-wasm-sdk-r3.md)、
+> [SDK 主報告 §4.3、§10](../research/RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)
 
 ## 1. 目標
 
@@ -163,5 +163,5 @@ contract 與 sink boundary；真正 UNO binding、SolarMutex 與 `.oxt` packagin
 - `libreoffice-26-8` tracked 狀態與進場前相同，未修改 core 或 Qt6 build。
 
 完整數字與限制見
-[R4 DEVLOG](../DEVLOG-2026-08-01-wasm-sdk-r4.md)及
+[R4 DEVLOG](../devlog/DEVLOG-2026-08-01-wasm-sdk-r4.md)及
 [機器可讀摘要](../findings/evidence/sdk-r4/summary.json)。

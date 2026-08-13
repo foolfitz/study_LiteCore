@@ -210,7 +210,7 @@ R1 閘門措辭修訂（併入 SDK 報告）：「輸入一個中文字」指**�
 - `libreoffice-26-8/solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk`（auxtargets）
 - `libreoffice-26-8/desktop/util/Executable_soffice_bin-emscripten-exports`
 - `libreoffice-26-8/static/emscripten/environment.js`、`uno.js`
-- [patch inventory](./wasm-lite/patches/INVENTORY.md)
+- [patch inventory](../wasm-lite/patches/INVENTORY.md)
 
 ## 11. 修訂紀錄
 

@@ -25,7 +25,7 @@ R10 唯一的輸入是「產品確定會用到什麼」。這份清單要到 E2�
 | P2 | E3 判定完成，讀取能力與 unsupported 邊界凍結 | **未成立**（規格剛立，未授權） |
 | P3 | E4 判定完成，markdown 濾鏡去留凍結 | **未成立**（規格剛立，未授權） |
 | P4 | 功能 corpus 聯集凍結：R7-C corpus 加 E2／E3／E4 追加 fixture 合併為單一版本化 manifest | 未成立（依賴 P1～P3） |
-| P5 | 基線 build 可重建：R10 依賴 A/B 建置，進場前所有作為 baseline 的 profile 必須能從現有 source 重建出與凍結 hash 一致的 artifact | **未成立**——已觀察：R5 `writer-review` 目前無法從現有 source 重建（`SelectionReadback` 的 `#ifdef` 範圍與 boost include 兩個既存問題，見 [E2 DEVLOG](../DEVLOG-2026-08-05-wasm-sdk-e2.md) 與 [SPEC E2-A 第 10.3 節](./SPEC-E2-A-paragraph-format-discovery.md)） |
+| P5 | 基線 build 可重建：R10 依賴 A/B 建置，進場前所有作為 baseline 的 profile 必須能從現有 source 重建出與凍結 hash 一致的 artifact | **未成立**——已觀察：R5 `writer-review` 目前無法從現有 source 重建（`SelectionReadback` 的 `#ifdef` 範圍與 boost include 兩個既存問題，見 [E2 DEVLOG](../devlog/DEVLOG-2026-08-05-wasm-sdk-e2.md) 與 [SPEC E2-A 第 10.3 節](./SPEC-E2-A-paragraph-format-discovery.md)） |
 
 P1～P3 的「定案」指該里程碑留下正式判定（GO／部分 GO／停止都算）；停止也是定案——例如 E4
 判 `STOP_OR_RESCOPE`，則 markdown 濾鏡確定不在不可移除集合內，這對 R10 是可用的輸入。

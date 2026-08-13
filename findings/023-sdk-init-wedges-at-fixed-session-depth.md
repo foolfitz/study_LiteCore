@@ -187,6 +187,6 @@ full／chrome 卡在第 34 次導覽的當下，從 `/proc` 直接看：
 - 2026-08-07（第二版，接手改寫）：歸因由「LibreOffice WASM 模組載入初始化層」
   改為「探針基礎設施 pipe 阻塞」；撤回產品影響段；補全階梯、現場證據、對帳、
   驗證輪；狀態改「已修」。第一版全文脈絡保留於
-  [HANDOFF-2026-08-07-finding-023.md](../HANDOFF-2026-08-07-finding-023.md)。
+  [HANDOFF-2026-08-07-finding-023.md](../handoff/HANDOFF-2026-08-07-finding-023.md)。
   （原文寫「保留於 git 歷史與 HANDOFF」——**當時沒有 git 歷史**，本樹到 2026-08-08
   才建 repo，第一版原文只存在於那份 HANDOFF。已更正，不留錯誤指路。）

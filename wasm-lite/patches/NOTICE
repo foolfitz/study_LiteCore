@@ -1,0 +1,41 @@
+本目錄的 `.patch` 檔是上游原始碼的衍生作品，**不適用本 repo 根目錄的 CC-BY-4.0 授權**。
+每一份 diff 沿用它所修改的上游檔案的授權條款。
+
+以下對應關係是從各上游檔案的授權標頭實際讀出來的（非推定）：
+
+## LibreOffice 26.8 — MPL-2.0
+
+上游檔案標頭：`This Source Code Form is subject to the terms of the Mozilla
+Public License, v. 2.0.`
+
+| patch | 修改的上游檔案 |
+|---|---|
+| `libreoffice-26.8-emscripten-emdwp-partial-symbols.patch` | `solenv/gbuild/platform/unxgcc.mk` |
+| `libreoffice-26.8-emscripten-fs-image-extra-fonts.patch` | `static/CustomTarget_emscripten_fs_image.mk` |
+| `libreoffice-26.8-emscripten-fs-image-multilang-registry.patch` | `static/CustomTarget_emscripten_fs_image.mk` |
+| `libreoffice-26.8-emscripten-jspi-stale-eventlistener-export.patch` | `desktop/CustomTarget_soffice_bin-emscripten-exports.mk` |
+| `libreoffice-26.8-qt-wasm-inputcontext-main-thread.patch` | `vcl/qt5/QtFrame.cxx` |
+
+上游：<https://git.libreoffice.org/core>
+
+## qtbase 6.10.2 — 三份的授權並不相同，請逐份看
+
+**注意**：qtbase 各檔案的 SPDX 標頭不一致。platform plugin 底下那兩個檔案
+**沒有 LGPL 選項**，只有商業授權或 GPL-3.0-only。
+
+| patch | 修改的上游檔案 | 該檔 SPDX-License-Identifier |
+|---|---|---|
+| `qtbase-6.10.2-wasm-inputcontext-ecmastring.patch` | `src/plugins/platforms/wasm/qwasminputcontext.cpp` | `LicenseRef-Qt-Commercial OR GPL-3.0-only` |
+| `qtbase-6.10.2-wasm-pointerenter-null-dom-node.patch` | `src/plugins/platforms/wasm/qwasmwindow.cpp` | `LicenseRef-Qt-Commercial OR GPL-3.0-only` |
+| `qtbase-6.10.2-wasm-suspendresume-reentrant.patch` | `src/corelib/platform/wasm/qwasmsuspendresumecontrol.cpp` | `LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only` |
+
+Copyright (C) The Qt Company Ltd.（各檔標頭年份 2018／2019／2025）
+
+上游：<https://code.qt.io/cgit/qt/qtbase.git>
+
+---
+
+這些 patch 收在這裡是為了**紀錄研究過程中為了讓建置走通所做的改動**，供他人重現用；
+它們尚未送交上游，也不代表上游接受。相關的問題紀錄見 [`../../findings/`](../../findings/)。
+
+若要重新散布這些 diff，請依上表各自的上游授權條款辦理。

@@ -3,7 +3,7 @@
 > **日期**：2026-08-01
 > **狀態**：可執行 spec（v1）
 > **目標讀者**：執行本計畫的 agents 與工程師
-> **背景研究**：[SDK 主報告](../RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)、[COWASM 參考筆記](../RESEARCH-2026-08-01-cowasm-co-26-04-reference.md)、[協作編輯器報告](../RESEARCH-2026-08-01-wasm-collaboration-editor.md)
+> **背景研究**：[SDK 主報告](../research/RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)、[COWASM 參考筆記](../research/RESEARCH-2026-08-01-cowasm-co-26-04-reference.md)、[協作編輯器報告](../research/RESEARCH-2026-08-01-wasm-collaboration-editor.md)
 
 ---
 

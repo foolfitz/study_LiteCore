@@ -1,8 +1,8 @@
 # DEVLOG 2026-08-06 — E2-A 候選 1：主迴圈跑起來了，freshness 假設卻死在自己的探針下
 
 > 對象：一起看 E2 的同事。接續 [DEVLOG-2026-08-05-wasm-sdk-e2-a2-wasm](DEVLOG-2026-08-05-wasm-sdk-e2-a2-wasm.md)。  
-> 相關：[SPEC E2-A](specs/SPEC-E2-A-paragraph-format-discovery.md)（已改 v7）、
-> [finding 021](findings/021-wasm-format-state-not-refreshed-by-caret-movement.md)
+> 相關：[SPEC E2-A](../specs/SPEC-E2-A-paragraph-format-discovery.md)（已改 v7）、
+> [finding 021](../findings/021-wasm-format-state-not-refreshed-by-caret-movement.md)
 
 ## 這一輪做了什麼
 
@@ -306,7 +306,7 @@ release 可能已經在產生假 no-op。
 | exposure-click | **click** 進粗體字 | **`true`** | **`documented-state-noop`** | **未變** |
 
 Chrome 150 與 Firefox 153 逐欄相同。已立
-[finding 022](findings/022-e1-release-set-bold-false-noop.md)。
+[finding 022](../findings/022-e1-release-set-bold-false-noop.md)。
 
 第一版用 search 定位沒踩到，一度以為 release 是安全的——查下去才發現原因是快取
 **根本沒被填過**（`bold` 全程 `null`）。**那不是防護，是巧合**：同一個缺陷讓那條
@@ -808,7 +808,7 @@ lifecycle 相位存在的理由，正是證明「反覆開檔存檔關檔」有�
 會踩到同一件事：開到第二十幾份之後再也開不起來，沒有錯誤訊息，只有一個永遠不回來的
 init。所以不能用「每 N 次換 session」了事 —— 那會讓驗收永遠測不到產品真正的處境。
 
-寫成 [finding 023](findings/023-sdk-init-wedges-at-fixed-session-depth.md)，下一步在那裡：
+寫成 [finding 023](../findings/023-sdk-init-wedges-at-fixed-session-depth.md)，下一步在那裡：
 先用不載入 core 的最小 wasm 模組跑同一階梯，切開「載入大 wasm」與「LibreOffice 初始化」。
 
 ### 補上階梯缺的一格，然後交接（2026-08-07）
@@ -856,7 +856,7 @@ rung 共用同一個帶 bug 的 server，而 rung 之間的差異恰好改變請
 「中性」的共用層裡，把 harness bug 化裝成了「引擎那一層的問題」。
 
 過程中順帶挖出兩個**真的**瀏覽器側問題（Firefox；與 pipe 無關、修復後仍在），
-獨立成 [finding 024](findings/024-firefox-lazy-reclaim-of-navigated-away-engine-workers.md)：
+獨立成 [finding 024](../findings/024-firefox-lazy-reclaim-of-navigated-away-engine-workers.md)：
 惰性回收已導覽離開頁面的引擎 worker（記憶體階梯 +0.9 GB/導覽、第 8 次實例化
 abort）；worker 名額惰性釋放（`dom.workers.maxPerDomain=64` 時牆從 55 移到 9，
 超額 `new Worker()` 靜默排隊）。產品的對策是 pagehide 時明確 `dispose()`。

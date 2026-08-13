@@ -1,9 +1,9 @@
 # DEVLOG 2026-08-05 — E2 起步：段落層級格式與一次前提翻案
 
 > 對象：一起看 E1／E2 的同事。  
-> 相關：[SPEC E2-000](specs/SPEC-E2-000-overview.md)、[SPEC E2-A](specs/SPEC-E2-A-paragraph-format-discovery.md)、
-> [finding 019](findings/019-e1a-paragraph-style-mapped-to-ui-alias.md)、
-> [finding 020](findings/020-lok-list-command-result-contradicts-document.md)
+> 相關：[SPEC E2-000](../specs/SPEC-E2-000-overview.md)、[SPEC E2-A](../specs/SPEC-E2-A-paragraph-format-discovery.md)、
+> [finding 019](../findings/019-e1a-paragraph-style-mapped-to-ui-alias.md)、
+> [finding 020](../findings/020-lok-list-command-result-contradicts-document.md)
 
 ## 這一輪做了什麼
 
@@ -48,12 +48,12 @@ E2-A v1 的整個設計建立在一句從 E1-A 繼承的話上：「paragraph／
 `.uno:StyleApply?Style:string=Heading 1&FamilyName:string=ParagraphStyles`。派送別名字串等於什麼都沒做。
 
 E1-A 因此把段落樣式歸類成 completion 缺口 —— **歸因是錯的**。不是命令沒回應，是那個字串不是命令。
-E1-A 從來沒有真正派送過段落樣式。記為 [finding 019](findings/019-e1a-paragraph-style-mapped-to-ui-alias.md)，
+E1-A 從來沒有真正派送過段落樣式。記為 [finding 019](../findings/019-e1a-paragraph-style-mapped-to-ui-alias.md)，
 並已回頭在 `SPEC-E1-A` 第 11.3 節就地標註撤回。
 
 **2. command result 會說謊。** `RemoveBullets` 回 `success:false` 卻確實生效；`DefaultBullet` 回
 `wasModified:false` 卻確實修改了文件。記為
-[finding 020](findings/020-lok-list-command-result-contradicts-document.md)，是本專案目前唯一的上游候選單。
+[finding 020](../findings/020-lok-list-command-result-contradicts-document.md)，是本專案目前唯一的上游候選單。
 
 **3. 一個樣式三種字串。** 送出用 `Text body`、ODT 存成 `Text_20_body`、state 回報 `Body Text`。
 任何一個拿來當另一個用都會失敗。這正是「先量再寫」救回來的東西。

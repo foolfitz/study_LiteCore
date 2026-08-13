@@ -21,9 +21,9 @@ ODT bytes → MEMFS → LibreOfficeKit open → RGBA paintTile → click → pas
   體積只比 Qt6 PoC 小約 6%，不能把 R1 結果解讀成已達輕量產品目標。
 
 原始彙整資料在
-[`findings/evidence/probe-r1/metrics.json`](./findings/evidence/probe-r1/metrics.json)，
+[`findings/evidence/probe-r1/metrics.json`](../findings/evidence/probe-r1/metrics.json)，
 round-trip 細節在
-[`findings/evidence/probe-r1/roundtrip.json`](./findings/evidence/probe-r1/roundtrip.json)。
+[`findings/evidence/probe-r1/roundtrip.json`](../findings/evidence/probe-r1/roundtrip.json)。
 
 ## 建置與產物
 
@@ -31,8 +31,8 @@ round-trip 細節在
 R1-A configure 38.90 秒；第一次 `make -j12` 在 1.83 秒撞到既知
 UnpackedTarball 目錄競態，完全不改輸入重跑後於 35 分 42.67 秒成功，max RSS
 5,906,588 KiB、swap 0。詳細交接雜湊見
-[`wasm-lite/build-headless-probe/PROBE-BASELINE.md`](./wasm-lite/build-headless-probe/PROBE-BASELINE.md)，
-競態見 [`findings/003-unpackedtarball-dir-race.md`](./findings/003-unpackedtarball-dir-race.md)。
+[`wasm-lite/build-headless-probe/PROBE-BASELINE.md`](../wasm-lite/build-headless-probe/PROBE-BASELINE.md)，
+競態見 [`findings/003-unpackedtarball-dir-race.md`](../findings/003-unpackedtarball-dir-race.md)。
 
 外部 probe 最終驗證連結 2.68 秒、max RSS 1,928,252 KiB、swap 0；使用核外 linkdeps，不進
 gbuild，也沒有修改 core tracked files。正式組態沒有 yrs、JSPI、`PROXY_TO_PTHREAD` 或
@@ -54,7 +54,7 @@ probe 反而大 17.80%／4.80%。主要差異包含獨立重連結、probe 的 a
 
 ## 實作切片
 
-[`wasm_sdk_probe`](./wasm_sdk_probe/) 提供九個窄版非同步 C exports：start、open、paint、
+[`wasm_sdk_probe`](../wasm_sdk_probe/) 提供九個窄版非同步 C exports：start、open、paint、
 click、insert、key、save、close、free。公開函式只驗證參數及 enqueue；所有 LOK 呼叫均由
 同一支 detached engine pthread 依序執行，主執行緒不阻塞。文件與輸出只經 MEMFS，事件以
 JSON callback 回 JavaScript。
@@ -124,7 +124,7 @@ R2。
   全部排除後又會使 `InteractiveAugmentedIOException` 越過 catch。最小處置是排除 bridge
   exports、補回單一 UCB exception RTTI，並 wrap 不適用的 JS UNO scripting 初始化。完整
   A/B 與邊界見
-  [`findings/010-probe-export-list-requires-unoembind.md`](./findings/010-probe-export-list-requires-unoembind.md)。
+  [`findings/010-probe-export-list-requires-unoembind.md`](../findings/010-probe-export-list-requires-unoembind.md)。
 - t2 的早期診斷版同時帶向量與點陣圖片，兩個瀏覽器都停在 `documentLoad`。Spec 只要求一張
   嵌入圖，因此 fixture 收斂為單一 PNG 後即通過。這次沒有建立上游 finding：目前不足以區分
   是特定 SVG、混合格式、fixture 生成方式或 importer 問題，不能把猜測寫成 core 結論。
@@ -157,7 +157,7 @@ R2 應優先做：
 4. 補 allocator high-water mark、browser process RSS 與長時間重複 open/close soak test。
 5. **已確認**尺寸最佳化留在可重現的 R5 A/B；先分離 assertions／profiling、最佳化層級、
    scripting、字型與 registry 的貢獻，不在 R2 邊做 API 邊盲目減肥。R2 執行規格見
-   [`specs/SPEC-R2-000-overview.md`](./specs/SPEC-R2-000-overview.md)。
+   [`specs/SPEC-R2-000-overview.md`](../specs/SPEC-R2-000-overview.md)。
 
 此 GO 只回答 R1 的技術可行性，不等於已證明 production security、多人協作、IME、無障礙、
 列印一致性或低階裝置可承受性。

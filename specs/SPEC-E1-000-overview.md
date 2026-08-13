@@ -175,7 +175,7 @@ structural editing、DOCX與rich clipboard仍不承諾。完整交接見
 [E1-B spec](./SPEC-E1-B-narrow-editor-contract.md)、
 [E1-C spec](./SPEC-E1-C-editor-validation.md)、
 [E1-C machine summary](../findings/evidence/sdk-e1/editor-validation/summary.json)與
-[2026-08-05 WASM SDK E1 DEVLOG](../DEVLOG-2026-08-05-wasm-sdk-e1.md)。
+[2026-08-05 WASM SDK E1 DEVLOG](../devlog/DEVLOG-2026-08-05-wasm-sdk-e1.md)。
 
 ## 11. 修訂紀錄
 

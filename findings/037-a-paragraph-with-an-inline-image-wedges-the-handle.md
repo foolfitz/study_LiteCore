@@ -483,7 +483,7 @@ Makefile 已備好 `e2-wait-diagnostic`（自己的 build 與 dist，加 `--prof
   在 WASM 一樣 close 逾時走 recovery，而六份完全沒有 `draw:frame` 的 fixture 共 153 輪零次
   ——**012 那一單的觸發條件也是 frame 不是 image**，與這一單在選取型別上量到的完全一致。
 - [016](016-lok-forward-delete-completion-gap.md)、[018](018-lok-line-navigation-completion-nondeterministic.md)——同屬「completion 訊號不來」這一族。**這一單不是**：它不是訊號不來，是呼叫不返回。
-- [027](027-verdicts-are-bound-to-an-artifact-not-to-a-source-tree.md)／[036](036-the-shipped-wasm-hash-is-not-a-function-of-the-source.md)——為什麼這一輪的診斷刻意做成「不重編」。
+- [027](027-r8d-verdict-silently-outlived-its-release.md)／[036](036-the-shipped-wasm-hash-is-not-a-function-of-the-source.md)——為什麼這一輪的診斷刻意做成「不重編」。
 - [SPEC E2-A](../specs/SPEC-E2-A-paragraph-format-discovery.md)
 
 ## 修訂紀錄

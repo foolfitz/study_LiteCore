@@ -277,7 +277,7 @@ E1-B／C仍不得啟動。
   callback未被flush；此推論使Finding 016的「是否上游」先改為**否**，不可送Bugzilla。
 - 上述WASM主迴圈解釋在當時仍只是原生／WASM表面對照支持的**推論**，所以先要求隔離最小實驗，而未直接改架構。
 - 完整證據與方法交接見
-  [DEVLOG-2026-08-05-lok-readback-and-completion.md](../DEVLOG-2026-08-05-lok-readback-and-completion.md)。
+  [DEVLOG-2026-08-05-lok-readback-and-completion.md](../devlog/DEVLOG-2026-08-05-lok-readback-and-completion.md)。
 
 ### 11.7 Finding 016 scheduler最小實驗
 

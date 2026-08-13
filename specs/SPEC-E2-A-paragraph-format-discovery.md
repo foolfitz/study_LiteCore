@@ -652,7 +652,7 @@ LibreOffice core 不修改。
   E1-B `e1-editor-v1` 三個凍結 artifact hash 均與原記錄一致。
 - 執行期間曾因 `make test-e1-b-static` 的相依鏈重建 `e1-editor-v1`，且新增狀態欄位未完全隔離，導致該產品
   profile 的 WASM 與行為被改動。已將全部新增項移入 `OXSDK_E2_FORMAT_BARRIER` 並逐字還原原函式，重建後
-  hash 回到 E1-C 記錄值 `94b38437…`。詳見 [DEVLOG](../DEVLOG-2026-08-05-wasm-sdk-e2.md)。
+  hash 回到 E1-C 記錄值 `94b38437…`。詳見 [DEVLOG](../devlog/DEVLOG-2026-08-05-wasm-sdk-e2.md)。
 
 ### 10.2 已完成：A2-wasm（2026-08-05）
 

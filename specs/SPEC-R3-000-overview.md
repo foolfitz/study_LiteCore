@@ -2,8 +2,8 @@
 
 > **日期**：2026-08-01  
 > **狀態**：已完成（GO）  
-> **依據**：[R2 結果](../DEVLOG-2026-08-01-wasm-sdk-r2.md)、
-> [SDK 主報告 §10](../RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)
+> **依據**：[R2 結果](../devlog/DEVLOG-2026-08-01-wasm-sdk-r2.md)、
+> [SDK 主報告 §10](../research/RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)
 
 ## 1. 目標
 
@@ -136,5 +136,5 @@ save round-trip 造成可重現壞檔。
 - `libreoffice-26-8` tracked 狀態與進場前相同，未修改 core 或 Qt6 build。
 
 完整數字與整合行為見
-[R3 DEVLOG](../DEVLOG-2026-08-01-wasm-sdk-r3.md)及
+[R3 DEVLOG](../devlog/DEVLOG-2026-08-01-wasm-sdk-r3.md)及
 [機器可讀摘要](../findings/evidence/sdk-r3/summary.json)。

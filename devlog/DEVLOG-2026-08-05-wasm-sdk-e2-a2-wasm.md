@@ -1,9 +1,9 @@
 # DEVLOG 2026-08-05（下半）— E2-A A2-wasm：payload 到了，但它不看 caret
 
 > 對象：一起看 E2 的同事。接續 [DEVLOG-2026-08-05-wasm-sdk-e2](DEVLOG-2026-08-05-wasm-sdk-e2.md)。  
-> 相關：[SPEC E2-A](specs/SPEC-E2-A-paragraph-format-discovery.md)（已改 v5）、
-> [finding 021](findings/021-wasm-format-state-not-refreshed-by-caret-movement.md)、
-> [finding 020](findings/020-lok-list-command-result-contradicts-document.md)
+> 相關：[SPEC E2-A](../specs/SPEC-E2-A-paragraph-format-discovery.md)（已改 v5）、
+> [finding 021](../findings/021-wasm-format-state-not-refreshed-by-caret-movement.md)、
+> [finding 020](../findings/020-lok-list-command-result-contradicts-document.md)
 
 ## 這一輪做了什麼
 
@@ -19,7 +19,7 @@ payload 到底會不會抵達。這是把上一輪「barrier 在瀏覽器中仍�
   回報的是上一段留在快取裡的值。caret 實際位在 `<text:list>` 內時，引擎從未回報過「在清單內」。
 
 第二點推翻了 A2-native 的觀察在 WASM 的適用性，記為
-[finding 021](findings/021-wasm-format-state-not-refreshed-by-caret-movement.md)。
+[finding 021](../findings/021-wasm-format-state-not-refreshed-by-caret-movement.md)。
 **A3 因此暫不啟動。**
 
 ## 順帶把 finding 020 從原生觀察變成跨平台事實

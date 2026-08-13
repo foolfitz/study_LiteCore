@@ -2,8 +2,8 @@
 
 > **日期**：2026-08-01  
 > **狀態**：完成（GO）  
-> **依據**：[R4 結果](../DEVLOG-2026-08-01-wasm-sdk-r4.md)、
-> [SDK 主報告 §6、§10](../RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)
+> **依據**：[R4 結果](../devlog/DEVLOG-2026-08-01-wasm-sdk-r4.md)、
+> [SDK 主報告 §6、§10](../research/RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)
 
 ## 1. 目標
 
@@ -145,5 +145,5 @@ pack、content hash 與 cache contract 全部成立。Chrome 150／Firefox 152 �
 LibreOffice 26.2.4.2 開啟驗證。R1～R4 回歸、Provider conformance、reader capability／exports、pack
 integrity 與 core 工作區狀態也全部通過。
 
-完整數據見 [R5 DEVLOG](../DEVLOG-2026-08-01-wasm-sdk-r5.md)與
+完整數據見 [R5 DEVLOG](../devlog/DEVLOG-2026-08-01-wasm-sdk-r5.md)與
 [machine summary](../findings/evidence/sdk-r5/summary.json)。

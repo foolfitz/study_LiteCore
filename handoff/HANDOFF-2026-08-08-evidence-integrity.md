@@ -1,10 +1,10 @@
 # HANDOFF 2026-08-08 — 證據與它所描述的東西會靜靜脫鉤：三個待決事項
 
 > 對象：接手評估並**做決定**的人（本輪指定 fable）。
-> 相關：[finding 027](findings/027-r8d-verdict-silently-outlived-its-release.md)（主檔）、
-> [finding 026](findings/026-generation-cap-means-two-different-things.md)、
-> [finding 025](findings/025-webdriver-script-injection-never-ran-on-firefox.md)、
-> [finding 023](findings/023-sdk-init-wedges-at-fixed-session-depth.md)
+> 相關：[finding 027](../findings/027-r8d-verdict-silently-outlived-its-release.md)（主檔）、
+> [finding 026](../findings/026-generation-cap-means-two-different-things.md)、
+> [finding 025](../findings/025-webdriver-script-injection-never-ran-on-firefox.md)、
+> [finding 023](../findings/023-sdk-init-wedges-at-fixed-session-depth.md)
 
 ## 這份文件要什麼
 

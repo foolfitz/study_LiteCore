@@ -80,7 +80,7 @@ worktree 共用同一個 git object store。
 > 已由 t1/t2 涵蓋，結論也記在 findings/001。真要重建就是再跑一次 stock configure。
 
 **注意**：`build-t3/` 的 `workdir/installation/` 是**不完整的** —— 打包步驟在複製 `.dwp` 時失敗
-（見 [findings/004](findings/004-emscripten-install-partial-symbols.md)），`soffice.wasm` 之後的檔案沒複製到。
+（見 [findings/004](../findings/004-emscripten-install-partial-symbols.md)），`soffice.wasm` 之後的檔案沒複製到。
 **要跑 t3 請用 `build-t3/instdir/program/`。**
 
 **t3 是決定性的一輪**：跟崩潰的 lite 只差符號設定，且符號只開給一個 target，其餘 `.o` 逐位元組相同（ccache 全命中）。

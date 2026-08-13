@@ -137,7 +137,7 @@ TDF 於 2026 年 5 月公布的 Web／Mobile 策略提案，本身也明確表�
 
 ### 3.1 已完成事項
 
-依本機 [DEVLOG-2026-08-01-qt6-wasm.md](./DEVLOG-2026-08-01-qt6-wasm.md)：
+依本機 [DEVLOG-2026-08-01-qt6-wasm.md](../devlog/DEVLOG-2026-08-01-qt6-wasm.md)：
 
 - LibreOffice 26.8 已用 Qt 6.10.2 與 Emscripten 4.0.10 完成 WASM 建置。
 - Start Center 與 Writer 已能在瀏覽器啟動。
@@ -847,17 +847,17 @@ jq -r \
 
 ### 16.1 本機資料
 
-- [DEVLOG-2026-07-31-wasm.md](./DEVLOG-2026-07-31-wasm.md)
-- [DEVLOG-2026-08-01-qt6-wasm.md](./DEVLOG-2026-08-01-qt6-wasm.md)
-- [litecore-analysis.md](./litecore-analysis.md)
+- [DEVLOG-2026-07-31-wasm.md](../devlog/DEVLOG-2026-07-31-wasm.md)
+- [DEVLOG-2026-08-01-qt6-wasm.md](../devlog/DEVLOG-2026-08-01-qt6-wasm.md)
+- [litecore-analysis.md](../litecore-analysis.md)
 - [COWASM co-26.04 參考研究筆記](./RESEARCH-2026-08-01-cowasm-co-26-04-reference.md)
-- [worktree patch inventory](./wasm-lite/patches/INVENTORY.md)
+- [worktree patch inventory](../wasm-lite/patches/INVENTORY.md)
 - [LibreOffice WASM 切分策略參考](/home/jiajun/Downloads/libreoffice-wasm-切分策略參考.md)
-- [LibreOffice upstream `static/README.wasm.md`](./libreoffice-26-8/static/README.wasm.md)
-- [LibreOfficeKit C API](./libreoffice-26-8/include/LibreOfficeKit/LibreOfficeKit.h)
-- [LibreOfficeKit callbacks／events](./libreoffice-26-8/include/LibreOfficeKit/LibreOfficeKitEnums.h)
-- [Qt 6.10.2 WASM font database](./wasm-lite/tools/qtbase-everywhere-src-6.10.2/src/plugins/platforms/wasm/qwasmfontdatabase.cpp)
-- [Qt 6.10.2 loader 設定](./wasm-lite/tools/qtbase-everywhere-src-6.10.2/src/plugins/platforms/wasm/qtloader.js)
+- [LibreOffice upstream `static/README.wasm.md`](../libreoffice-26-8/static/README.wasm.md)
+- [LibreOfficeKit C API](../libreoffice-26-8/include/LibreOfficeKit/LibreOfficeKit.h)
+- [LibreOfficeKit callbacks／events](../libreoffice-26-8/include/LibreOfficeKit/LibreOfficeKitEnums.h)
+- [Qt 6.10.2 WASM font database](../wasm-lite/tools/qtbase-everywhere-src-6.10.2/src/plugins/platforms/wasm/qwasmfontdatabase.cpp)
+- [Qt 6.10.2 loader 設定](../wasm-lite/tools/qtbase-everywhere-src-6.10.2/src/plugins/platforms/wasm/qtloader.js)
 
 ### 16.2 LibreOffice／TDF／Collabora
 

@@ -28,13 +28,13 @@ Application
   體積最佳化全部延後至 R5。
 
 機器可讀摘要見
-[`findings/evidence/sdk-r2/summary.json`](./findings/evidence/sdk-r2/summary.json)。
+[`findings/evidence/sdk-r2/summary.json`](../findings/evidence/sdk-r2/summary.json)。
 
 ## 實作內容
 
 ### C ABI 1.0
 
-[`wasm_sdk_probe/src/sdk_api.h`](./wasm_sdk_probe/src/sdk_api.h) 使用 `oxsdk_` prefix、固定寬度
+[`wasm_sdk_probe/src/sdk_api.h`](../wasm_sdk_probe/src/sdk_api.h) 使用 `oxsdk_` prefix、固定寬度
 整數及 opaque `uint32_t` document handle。ABI 版本為 `0x00010000`，capability bits 明列
 open ODT、RGBA tile、insert、save 與 queued cancel。
 
@@ -49,15 +49,15 @@ id 70 只在內部轉譯成 `view-ready`，不成為 public protocol。
 
 ### Dedicated Worker 與 public SDK
 
-[`wasm_sdk_probe/sdk/sdk-worker.js`](./wasm_sdk_probe/sdk/sdk-worker.js) 是唯一載入 Emscripten
+[`wasm_sdk_probe/sdk/sdk-worker.js`](../wasm_sdk_probe/sdk/sdk-worker.js) 是唯一載入 Emscripten
 loader、存取 heap／FS、呼叫 C ABI 的 context。訊息以 protocol version、request ID 與
 structured-clone object 對應，ODT、RGBA pixels 與 save output 都使用 transferable
 ArrayBuffer。
 
-[`wasm_sdk_probe/sdk/document-sdk.js`](./wasm_sdk_probe/sdk/document-sdk.js) 提供
+[`wasm_sdk_probe/sdk/document-sdk.js`](../wasm_sdk_probe/sdk/document-sdk.js) 提供
 `createDocumentEngine`、`DocumentEngine`、`DocumentHandle` 與 typed errors；對外操作是 Promise，
 支援 timeout、AbortSignal、明確 input ownership、restart 與 dispose。完整 TypeScript surface
-在 [`document-sdk.d.ts`](./wasm_sdk_probe/sdk/document-sdk.d.ts)，不需把 TypeScript compiler
+在 [`document-sdk.d.ts`](../wasm_sdk_probe/sdk/document-sdk.d.ts)，不需把 TypeScript compiler
 或 npm dependency 加入 R2 技術閘門。
 
 Timeout／AbortSignal 會立即拒絕 Promise 並送 best-effort cancel。C queue 尚未 dispatch 的
@@ -91,7 +91,7 @@ Worker crash 會拒絕全部 pending work；restart 會提升 generation，使�
 
 每輪都確認 `input_transferred=true`、`main_thread_isolated=true`，插入路徑為 paste。原始 JSON、
 console 與 screenshots 位於
-[`findings/evidence/sdk-r2/browser-raw`](./findings/evidence/sdk-r2/browser-raw)。
+[`findings/evidence/sdk-r2/browser-raw`](../findings/evidence/sdk-r2/browser-raw)。
 
 ### Lifecycle／ownership／boundary conformance
 
@@ -114,23 +114,23 @@ Chrome 與 Firefox 對下列 13 項皆回報 PASS：
 | 真實 browser Worker 丟出 error | pending request 拒絕、crash event、restart 後真實 WASM 可重開 |
 
 兩個瀏覽器同時確認主執行緒的 `createProbeModule`、`FS`、`HEAPU8` 都是 undefined。證據位於
-[`findings/evidence/sdk-r2/conformance`](./findings/evidence/sdk-r2/conformance)。
+[`findings/evidence/sdk-r2/conformance`](../findings/evidence/sdk-r2/conformance)。
 
 Closure hardening 後另以兩個瀏覽器各重跑 1 次完整垂直切片，2/2 通過；其輸出亦通過相同
 ZIP/XML、中文字增量、文字相似度與桌面 PDF round-trip。新增證據在
-[`findings/evidence/sdk-r2/hardening-regression`](./findings/evidence/sdk-r2/hardening-regression)
+[`findings/evidence/sdk-r2/hardening-regression`](../findings/evidence/sdk-r2/hardening-regression)
 與
-[`findings/evidence/sdk-r2/hardening-roundtrip.json`](./findings/evidence/sdk-r2/hardening-roundtrip.json)。
+[`findings/evidence/sdk-r2/hardening-roundtrip.json`](../findings/evidence/sdk-r2/hardening-roundtrip.json)。
 
 ### Round-trip
 
 正式 6 份輸出全部滿足：ODT ZIP CRC 正常、`content.xml` 可 parse、「測」增量 +1、文字
 相似度 0.998609，且桌面 LibreOffice 26.2.4.2 能無互動轉成 PDF。細節見
-[`findings/evidence/sdk-r2/roundtrip.json`](./findings/evidence/sdk-r2/roundtrip.json)。
+[`findings/evidence/sdk-r2/roundtrip.json`](../findings/evidence/sdk-r2/roundtrip.json)。
 
 R1 legacy harness 另以 Chrome 重跑 1 次，相同 runtime 仍完成五步驟與 round-trip，表示新增
 ABI 沒有破壞既有 probe 路徑；證據在
-[`findings/evidence/sdk-r2/r1-compat-smoke`](./findings/evidence/sdk-r2/r1-compat-smoke)。
+[`findings/evidence/sdk-r2/r1-compat-smoke`](../findings/evidence/sdk-r2/r1-compat-smoke)。
 
 ## 產物與體積漂移
 

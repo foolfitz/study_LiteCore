@@ -2,8 +2,8 @@
 
 > **日期**：2026-08-01  
 > **狀態**：已完成（GO，v1）  
-> **依據**：[R1 實測](../DEVLOG-2026-08-01-wasm-sdk-probe.md)、
-> [SDK 主報告 §5、§10](../RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)
+> **依據**：[R1 實測](../devlog/DEVLOG-2026-08-01-wasm-sdk-probe.md)、
+> [SDK 主報告 §5、§10](../research/RESEARCH-2026-08-01-oxoffice-wasm-document-sdk.md)
 
 ## 1. 目標
 
@@ -145,5 +145,5 @@ engine.dispose()
 - R2 runtime 較 R1 raw／gzip 僅增加約 0.012%；依決策只記錄，體積最佳化維持延後至 R5。
 
 完整數字與限制見
-[`DEVLOG-2026-08-01-wasm-sdk-r2.md`](../DEVLOG-2026-08-01-wasm-sdk-r2.md)，機器可讀證據見
+[`DEVLOG-2026-08-01-wasm-sdk-r2.md`](../devlog/DEVLOG-2026-08-01-wasm-sdk-r2.md)，機器可讀證據見
 [`findings/evidence/sdk-r2/summary.json`](../findings/evidence/sdk-r2/summary.json)。

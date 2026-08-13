@@ -461,7 +461,7 @@ python3 tools/validate_finding_016_selection_barrier.py --desktop-roundtrip
 詳見[`Finding 016`](../findings/016-lok-forward-delete-completion-gap.md)、
 [`selection-barrier summary`](../findings/evidence/016/selection-barrier-wasm/summary.json)與
 [`E1 A6 summary`](../findings/evidence/sdk-e1/discovery/summary.json)、
-[`E1 DEVLOG`](../DEVLOG-2026-08-05-wasm-sdk-e1.md)。
+[`E1 DEVLOG`](../devlog/DEVLOG-2026-08-05-wasm-sdk-e1.md)。
 
 ### Finding 012 native／WASM 歸因
 
@@ -505,7 +505,7 @@ R5 技術閘門判定 **GO**。`writer-review` WASM raw 從 169.26 MB 降為 115
 從 45.59 MB 降為 40.86 MB；base+CJK 首載資源從 102.77 MB 降為 53.66 MB。Chrome 150／
 Firefox 152 的 review 6/6、reader cold 6/6、reader warm-cache 6/6 全部通過，18 份產品 profile
 輸出 ODT 都通過桌面 round-trip。完整資料見
-[`../DEVLOG-2026-08-01-wasm-sdk-r5.md`](../DEVLOG-2026-08-01-wasm-sdk-r5.md)與
+[`../DEVLOG-2026-08-01-wasm-sdk-r5.md`](../devlog/DEVLOG-2026-08-01-wasm-sdk-r5.md)與
 [`../findings/evidence/sdk-r5/summary.json`](../findings/evidence/sdk-r5/summary.json)。
 
 ### R4 基線
@@ -521,9 +521,9 @@ Provider layer 新增 raw 45,229 bytes、各檔 gzip -9 合計 12,028 bytes。�
 optimization、scripting、字型、registry、filter、cache 與分包 A/B 全部延後到 R5。
 
 完整結果見
-[`../DEVLOG-2026-08-01-wasm-sdk-r4.md`](../DEVLOG-2026-08-01-wasm-sdk-r4.md)、
+[`../DEVLOG-2026-08-01-wasm-sdk-r4.md`](../devlog/DEVLOG-2026-08-01-wasm-sdk-r4.md)、
 [`../specs/SPEC-R4-000-overview.md`](../specs/SPEC-R4-000-overview.md)與
 [`../findings/evidence/sdk-r4/summary.json`](../findings/evidence/sdk-r4/summary.json)。
 
 R1 的完整 24 份文件結果仍保留於
-[`../DEVLOG-2026-08-01-wasm-sdk-probe.md`](../DEVLOG-2026-08-01-wasm-sdk-probe.md)。
+[`../DEVLOG-2026-08-01-wasm-sdk-probe.md`](../devlog/DEVLOG-2026-08-01-wasm-sdk-probe.md)。

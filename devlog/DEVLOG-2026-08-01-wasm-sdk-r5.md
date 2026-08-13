@@ -29,13 +29,13 @@ full-qa ── product link ──► writer-review / writer-reader
   `.uno:*` surface。
 
 機器可讀摘要見
-[`findings/evidence/sdk-r5/summary.json`](./findings/evidence/sdk-r5/summary.json)。
+[`findings/evidence/sdk-r5/summary.json`](../findings/evidence/sdk-r5/summary.json)。
 
 ## 實作內容
 
 ### Product link profiles
 
-[`Makefile`](./wasm_sdk_probe/Makefile) 新增 `r5`／`r5-profiles` target，直接鎖定專案內
+[`Makefile`](../wasm_sdk_probe/Makefile) 新增 `r5`／`r5-profiles` target，直接鎖定專案內
 Emscripten 4.0.10。這也修掉先前容易誤用系統 Emscripten 3.1.69、導致 libc++ filesystem ABI
 不相容的建置陷阱。
 
@@ -54,7 +54,7 @@ memory ceiling、filesystem 與 strict undefined-symbol check。`writer-reader` 
 
 ### Resource packs 與 integrity
 
-[`build_r5_profiles.py`](./wasm_sdk_probe/tools/build_r5_profiles.py) 直接解析完整 Emscripten metadata，
+[`build_r5_profiles.py`](../wasm_sdk_probe/tools/build_r5_profiles.py) 直接解析完整 Emscripten metadata，
 依實際 `/instdir/share/fonts/truetype/` 路徑分類：
 
 | Pack | 檔案 | raw bytes | gzip -9 bytes | 首載 |
@@ -82,7 +82,7 @@ R5 沒有刪 Writer UI、registry、filter、configuration 或其他非字型資
 logical name 映射到 16 hex content-hashed filename；optional packs 也使用相同命名。Builder 會安全
 移除 profile 目錄內舊版 hashed 大型產物，避免每次重建累積重複 binary。
 
-[`serve.py`](./wasm_sdk_probe/web/serve.py) 只對符合 hash pattern 的 JS／WASM／data／metadata 發：
+[`serve.py`](../wasm_sdk_probe/web/serve.py) 只對符合 hash pattern 的 JS／WASM／data／metadata 發：
 
 ```text
 Cache-Control: public, max-age=31536000, immutable
@@ -93,7 +93,7 @@ manifest 引用的 hashed artifacts 與四個 entry paths 做 HEAD 驗證，全�
 
 ### Reader harness 與 Worker gating
 
-[`r5-reader.html`](./wasm_sdk_probe/web/r5-reader.html) 執行：
+[`r5-reader.html`](../wasm_sdk_probe/web/r5-reader.html) 執行：
 
 ```text
 verified CJK pack → init → open → Latin/CJK search → reject replace/comment

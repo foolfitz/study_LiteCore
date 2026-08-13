@@ -6,7 +6,7 @@ Qt6-WASM 環境準備、LibreOffice 完整建置，到 Writer 首次成功啟動
 > 最重要的狀態：**Qt6-WASM Writer 已能開啟且可輸入中文。**
 > 原本會使應用程式退出的 `invalid handle: 32` 已由 LibreOffice 本地修補排除；目前的新阻斷是
 > 英文按鍵一次輸入兩個字元，另記為
-> [`finding 009`](findings/009-qt6-wasm-duplicate-english-key-input.md)。
+> [`finding 009`](../findings/009-qt6-wasm-duplicate-english-key-input.md)。
 
 ---
 
@@ -45,7 +45,7 @@ Host            Ubuntu 26.04 LTS / x86-64
 ```
 
 LibreOffice 的完整 configure 參數保存在
-[`wasm-lite/build-qt6-poc/autogen.input`](wasm-lite/build-qt6-poc/autogen.input)。關鍵部分是：
+[`wasm-lite/build-qt6-poc/autogen.input`](../wasm-lite/build-qt6-poc/autogen.input)。關鍵部分是：
 
 ```text
 --enable-qt6
@@ -72,7 +72,7 @@ SHA-256  7e281e46d6867399d470e84f7152e441647ac027dca99e46f5e9904439bce6d9
 ```
 
 完整建置與執行期驗證紀錄見
-[`findings/evidence/008/main-thread-proxy-validation.txt`](findings/evidence/008/main-thread-proxy-validation.txt)。
+[`findings/evidence/008/main-thread-proxy-validation.txt`](../findings/evidence/008/main-thread-proxy-validation.txt)。
 
 ---
 
@@ -106,7 +106,7 @@ _ZN10emscripten8internal13MethodInvoker...qstdweb13EventListener...
 
 LibreOffice 原始碼中兩處硬編碼該 Qt 內部符號。移除舊匯出後，`soffice.js` 與
 `uri-encode.js` 完成連結。詳見
-[`finding 006`](findings/006-qt6-wasm-stale-eventlistener-export.md)。
+[`finding 006`](../findings/006-qt6-wasm-stale-eventlistener-export.md)。
 
 #### finding 004：部分 symbols 未產生 `.dwp`
 
@@ -128,7 +128,7 @@ cp: cannot stat '.../soffice.wasm.debug.wasm.dwp': No such file or directory
 [build ALL] top level modules: build-non-l10n-only build-l10n-only
 ```
 
-詳見 [`finding 004`](findings/004-emscripten-install-partial-symbols.md)。該 finding 的狀態欄與
+詳見 [`finding 004`](../findings/004-emscripten-install-partial-symbols.md)。該 finding 的狀態欄與
 核取清單尚需另行依最終成功結果整理，這不是本次 008 Bugzilla 草稿的一部分。
 
 ---
@@ -154,7 +154,7 @@ TypeError: Cannot read properties of null (reading 'getBoundingClientRect')
 Qt 在 JSPI 模式延後處理 pointer event；處理時 event target 或 screen element 已失效。
 本地加入 null/undefined 防護後，這個 TypeError 消失，但 `invalid handle: 32` 仍由另一條路徑
 獨立重現。詳見
-[`finding 007`](findings/007-qt6-wasm-pointerenter-null-dom-node.md)。
+[`finding 007`](../findings/007-qt6-wasm-pointerenter-null-dom-node.md)。
 
 ### 3. finding 008：input context 跨 pthread 使用 DOM emval
 
@@ -181,7 +181,7 @@ vcl::Window::ImplNewInputContext()
 - 因此不是字串轉換、premature decref 或 finding 007 的殘留錯誤。
 
 原始生命週期證據見
-[`findings/evidence/008/emval32-cross-thread-lifecycle.txt`](findings/evidence/008/emval32-cross-thread-lifecycle.txt)。
+[`findings/evidence/008/emval32-cross-thread-lifecycle.txt`](../findings/evidence/008/emval32-cross-thread-lifecycle.txt)。
 
 Emscripten 的 `emscripten::val` 代表特定 JavaScript context 中的值，必須在擁有它的執行緒
 使用。相關上游說明：<https://github.com/emscripten-core/emscripten/issues/20610>。
@@ -211,7 +211,7 @@ LibreOffice 已有相近先例：commit `46cadd6b0329` 以同一 helper 修正�
 `invalid handle`：<https://github.com/LibreOffice/core/commit/46cadd6b0329>。
 
 本地 patch：
-[`wasm-lite/patches/libreoffice-26.8-qt-wasm-inputcontext-main-thread.patch`](wasm-lite/patches/libreoffice-26.8-qt-wasm-inputcontext-main-thread.patch)
+[`wasm-lite/patches/libreoffice-26.8-qt-wasm-inputcontext-main-thread.patch`](../wasm-lite/patches/libreoffice-26.8-qt-wasm-inputcontext-main-thread.patch)
 
 ### 4. 修補後結果
 
@@ -226,7 +226,7 @@ LibreOffice 已有相近先例：commit `46cadd6b0329` 以同一 helper 修正�
 - 中文輸入成功。
 - 英文按一次會出現兩個字元。
 
-最後一項已拆成 [`finding 009`](findings/009-qt6-wasm-duplicate-english-key-input.md)，不可混進
+最後一項已拆成 [`finding 009`](../findings/009-qt6-wasm-duplicate-english-key-input.md)，不可混進
 008 crash 的 Bugzilla ticket。
 
 ---
@@ -265,7 +265,7 @@ LibreOffice 已有相近先例：commit `46cadd6b0329` 以同一 helper 修正�
 7. 若可行，對非 WASM Qt6 組態執行編譯與 `make check`，確認 helper 的直接執行路徑無回歸。
 8. 搜尋 LibreOffice Bugzilla／Gerrit 是否已有重複。
 9. 確認 Bugzilla Component、Hardware／OS 欄位。
-10. 補齊 [`findings/drafts/008-bugzilla.txt`](findings/drafts/008-bugzilla.txt)，再送出。
+10. 補齊 [`findings/drafts/008-bugzilla.txt`](../findings/drafts/008-bugzilla.txt)，再送出。
 
 送出程式修補時應先進 `master`；master 合併後再以 `git cherry-pick -x` 提議回移
 `libreoffice-26-8`。2026-08-01 已在 26.8 hard code freeze 時段，是否能進

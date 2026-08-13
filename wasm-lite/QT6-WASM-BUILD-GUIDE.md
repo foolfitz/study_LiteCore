@@ -8,7 +8,7 @@
 
 相關背景見：
 
-- [`../DEVLOG-2026-07-31-wasm.md`](../DEVLOG-2026-07-31-wasm.md)
+- [`../DEVLOG-2026-07-31-wasm.md`](../devlog/DEVLOG-2026-07-31-wasm.md)
 - [`../findings/001-wasm-configmgrwriter-crash.md`](../findings/001-wasm-configmgrwriter-crash.md)
 - [`../findings/004-emscripten-install-partial-symbols.md`](../findings/004-emscripten-install-partial-symbols.md)
 - [`../findings/005-qt5-wasm-no-input-context.md`](../findings/005-qt5-wasm-no-input-context.md)

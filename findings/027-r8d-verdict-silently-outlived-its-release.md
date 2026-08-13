@@ -128,7 +128,7 @@ compatibility 的每一項與 08-04 歷史紀錄**逐項相同**（28／6／12�
 ## 待處理（未做）——已寫成交接文件待決
 
 三件都會改動 Makefile 語意、證據擺放慣例或驗證判準，屬流程決定，因此只記錄未動手。
-交接文件：[`HANDOFF-2026-08-08-evidence-integrity.md`](../HANDOFF-2026-08-08-evidence-integrity.md)
+交接文件：[`HANDOFF-2026-08-08-evidence-integrity.md`](../handoff/HANDOFF-2026-08-08-evidence-integrity.md)
 （含硬約束、驗證判準，以及一個更上層的問題：本檔與 025／026 的四個缺陷是不是同一個病、
 有沒有一條通則能一次擋掉）。
 

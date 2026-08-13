@@ -477,7 +477,7 @@ C 包裝（內容三行：取 SolarMutex ＋ 呼叫它）。「不得用 unit-te
 > 正因為繞過 `Reschedule` 的閘門才有效。若日後啟用 A，依賴的是實作而非文件承諾。
 
 接手順序建議：先讀本節與「已觀察（2026-08-06 判別實驗一與二）」，再讀
-[DEVLOG 2026-08-06](../DEVLOG-2026-08-06-wasm-sdk-e2-mainloop.md)。
+[DEVLOG 2026-08-06](../devlog/DEVLOG-2026-08-06-wasm-sdk-e2-mainloop.md)。
 
 > **接手前必讀（2026-08-06 兩次覆核）。** 本 finding 的 2026-08-06 章節初版有三處
 > 錯誤，已在原地修訂並標示：(1) 「重算根本沒被排進 scheduler」對最終 build 的證據
@@ -561,7 +561,7 @@ C 包裝（內容三行：取 SolarMutex ＋ 呼叫它）。「不得用 unit-te
 - harness：`wasm_sdk_probe/web/e2-format-discovery-app.js`（`mode` 參數；`mainloop-attribution`
   的 refresh 是有界等待而非 pump）
 - 規格：[SPEC E2-A](../specs/SPEC-E2-A-paragraph-format-discovery.md) 第 2.4、10.3 節（v6）
-- 經過：[DEVLOG 2026-08-05 下半](../DEVLOG-2026-08-05-wasm-sdk-e2-a2-wasm.md)
+- 經過：[DEVLOG 2026-08-05 下半](../devlog/DEVLOG-2026-08-05-wasm-sdk-e2-a2-wasm.md)
 - 機器可讀：`wasm_sdk_probe/e2/discovery-matrix-v1.json` 的 `finding021Attribution`／
   `finding021Remediation`
 

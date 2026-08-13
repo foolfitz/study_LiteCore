@@ -26,13 +26,13 @@ search → selection → replace → stale revision guard → undo
   只記錄漂移，體積最佳化維持延後至 R5。
 
 機器可讀摘要見
-[`findings/evidence/sdk-r3/summary.json`](./findings/evidence/sdk-r3/summary.json)。
+[`findings/evidence/sdk-r3/summary.json`](../findings/evidence/sdk-r3/summary.json)。
 
 ## 實作內容
 
 ### C ABI 1.1 與相容規則
 
-[`wasm_sdk_probe/src/sdk_api.h`](./wasm_sdk_probe/src/sdk_api.h) 將 ABI 編碼升為
+[`wasm_sdk_probe/src/sdk_api.h`](../wasm_sdk_probe/src/sdk_api.h) 將 ABI 編碼升為
 `0x00010001`，並新增 search、selection text、replace selection、undo、comments、tracked
 changes 六組 capability bits。ABI handshake 採 same-major、client-minor 不高於 runtime 的規則，
 所以既有 1.0 client 不必因 1.1 runtime 重編；不同 major 或較新的 client minor 回報
@@ -56,7 +56,7 @@ oxsdk_document_list_changes
 
 ### Semantic adapter 與 revision guard
 
-[`wasm_sdk_probe/src/probe_engine.cpp`](./wasm_sdk_probe/src/probe_engine.cpp) 只包含固定 adapter：
+[`wasm_sdk_probe/src/probe_engine.cpp`](../wasm_sdk_probe/src/probe_engine.cpp) 只包含固定 adapter：
 
 - search 固定使用 `.uno:ExecuteSearch`，結果轉為 found／rectangles／revision；
 - selection 只讀 `getTextSelection("text/plain;charset=utf-8")`；
@@ -68,14 +68,14 @@ oxsdk_document_list_changes
 與 track-changes 都先比較 `expectedRevision`；成功 mutation 才將 adapter-local revision 加一，
 undo 也不會讓 revision 倒退。
 
-[`wasm_sdk_probe/sdk/sdk-worker.js`](./wasm_sdk_probe/sdk/sdk-worker.js) 把 search rectangles、comments
+[`wasm_sdk_probe/sdk/sdk-worker.js`](../wasm_sdk_probe/sdk/sdk-worker.js) 把 search rectangles、comments
 與 redlines 正規化為 structured-clone data；
-[`document-sdk.js`](./wasm_sdk_probe/sdk/document-sdk.js) 則提供 Promise API、revision propagation
+[`document-sdk.js`](../wasm_sdk_probe/sdk/document-sdk.js) 則提供 Promise API、revision propagation
 與 typed `StaleRevisionError`。TypeScript declarations 同步更新。
 
 ### R3 browser harness
 
-[`wasm_sdk_probe/web/r3.html`](./wasm_sdk_probe/web/r3.html) 的 **Run R3 Review Flow** 使用一份真實
+[`wasm_sdk_probe/web/r3.html`](../wasm_sdk_probe/web/r3.html) 的 **Run R3 Review Flow** 使用一份真實
 ODT 依序驗證：
 
 1. 搜尋並讀回 `LibreOfficeKit` selection。
@@ -100,7 +100,7 @@ ODT 依序驗證：
   主執行緒沒有 Emscripten runtime，公開 SDK 沒有 generic UNO surface。
 
 ABI 證據位於
-[`findings/evidence/sdk-r3/conformance`](./findings/evidence/sdk-r3/conformance)。
+[`findings/evidence/sdk-r3/conformance`](../findings/evidence/sdk-r3/conformance)。
 
 ### 瀏覽器 semantic flow
 
@@ -115,11 +115,11 @@ production SLA。
 每輪的 input transfer、Worker isolation、search/selection、replace/undo、stale guard、comment
 round-trip、tracked changes 與 final revision 7 都是 PASS。原始 JSON、console、輸出 ODT 與
 screenshots 位於
-[`findings/evidence/sdk-r3/browser-raw`](./findings/evidence/sdk-r3/browser-raw)。
+[`findings/evidence/sdk-r3/browser-raw`](../findings/evidence/sdk-r3/browser-raw)。
 最終 strict link 與文件收斂後，兩個瀏覽器又各重跑 1 次相同流程及 desktop round-trip，2/2
 通過；證據位於
-[`findings/evidence/sdk-r3/final-smoke`](./findings/evidence/sdk-r3/final-smoke)與
-[`final-smoke-roundtrip.json`](./findings/evidence/sdk-r3/final-smoke-roundtrip.json)。
+[`findings/evidence/sdk-r3/final-smoke`](../findings/evidence/sdk-r3/final-smoke)與
+[`final-smoke-roundtrip.json`](../findings/evidence/sdk-r3/final-smoke-roundtrip.json)。
 
 ### ODT 與桌面 round-trip
 
@@ -132,7 +132,7 @@ screenshots 位於
 - 桌面 LibreOffice 26.2.4.2 均可無互動輸出非空 PDF。
 
 完整結果見
-[`findings/evidence/sdk-r3/roundtrip.json`](./findings/evidence/sdk-r3/roundtrip.json)。
+[`findings/evidence/sdk-r3/roundtrip.json`](../findings/evidence/sdk-r3/roundtrip.json)。
 
 ### R2／R1 回歸
 
@@ -141,8 +141,8 @@ screenshots 位於
 - R1 legacy harness 在 Chrome、Firefox 各跑一次，2/2 完成 paste 路徑並通過桌面 round-trip。
 
 證據分別位於
-[`findings/evidence/sdk-r3/r2-regression`](./findings/evidence/sdk-r3/r2-regression)與
-[`findings/evidence/sdk-r3/r1-regression`](./findings/evidence/sdk-r3/r1-regression)。
+[`findings/evidence/sdk-r3/r2-regression`](../findings/evidence/sdk-r3/r2-regression)與
+[`findings/evidence/sdk-r3/r1-regression`](../findings/evidence/sdk-r3/r1-regression)。
 
 ## 產物與體積漂移
 

@@ -29,13 +29,13 @@ discover → selection snapshot → Provider Worker transform/progress/cancel
   45,229 bytes、分檔 gzip -9 合計 12,028 bytes。依決策只記錄，體積最佳化仍在 R5。
 
 機器可讀摘要見
-[`findings/evidence/sdk-r4/summary.json`](./findings/evidence/sdk-r4/summary.json)。
+[`findings/evidence/sdk-r4/summary.json`](../findings/evidence/sdk-r4/summary.json)。
 
 ## 實作內容
 
 ### Provider contract 1.0
 
-[`provider-sdk.js`](./wasm_sdk_probe/provider-sdk/provider-sdk.js) 定義獨立於 Document C ABI／Worker
+[`provider-sdk.js`](../wasm_sdk_probe/provider-sdk/provider-sdk.js) 定義獨立於 Document C ABI／Worker
 protocol 的 Provider contract 1.0。R4 的 closed surface 只有：
 
 - reverse-DNS provider identity、semver、`text.translate` capability；
@@ -66,7 +66,7 @@ Web adapter 最終只映射到 R3 `DocumentHandle.replaceSelection()`。Desktop 
 ### 獨立 Provider Worker
 
 瀏覽器範例的主執行緒只載入 descriptor；實際轉換程式由
-[`text-translate-worker.js`](./wasm_sdk_probe/providers/text-translate-worker.js) 在另一個 Dedicated
+[`text-translate-worker.js`](../wasm_sdk_probe/providers/text-translate-worker.js) 在另一個 Dedicated
 Worker 執行。Provider Worker protocol 支援 ready handshake、request ID、progress、result、error
 與 cancel。Runtime evidence 顯示該 Worker 的 `document`、`createProbeModule`、`FS`、`HEAPU8` 都是
 `undefined`，也沒有載入 Document SDK。
@@ -76,7 +76,7 @@ Worker 執行。Provider Worker protocol 支援 ready handshake、request ID、p
 
 ### R4 browser harness
 
-[`r4.html`](./wasm_sdk_probe/web/r4.html) 的正式流程使用真實 ODT：
+[`r4.html`](../wasm_sdk_probe/web/r4.html) 的正式流程使用真實 ODT：
 
 1. 搜尋 `English words`，Host 建立 revision 0 selection snapshot。
 2. Provider Worker 回報第一筆 progress 後，測試端先寫入 `R4-CONCURRENT-EDIT`，revision 變為 1。
@@ -112,8 +112,8 @@ surface、input 不可變、取消不落地，以及 Worker handshake／progress
 
 全部 6 輪的 input transfer、main／Provider Worker isolation、discovery、三段 progress、stale
 rejection、undo recovery、validated replace、output selection 與 final revision 3 都是 PASS。正式證據
-位於 [`browser-raw`](./findings/evidence/sdk-r4/browser-raw)。Strict link 後又各跑 1 次，2/2 與
-desktop round-trip 通過，位於 [`final-smoke`](./findings/evidence/sdk-r4/final-smoke)。
+位於 [`browser-raw`](../findings/evidence/sdk-r4/browser-raw)。Strict link 後又各跑 1 次，2/2 與
+desktop round-trip 通過，位於 [`final-smoke`](../findings/evidence/sdk-r4/final-smoke)。
 
 ### Provider public-surface conformance
 
@@ -125,7 +125,7 @@ Chrome／Firefox 都確認：
 - Worker invocation 取消得到 `PROVIDER_ABORTED` 且沒有 late mutation；
 - public Provider API 沒有 generic UNO 或 raw document handle surface。
 
-證據位於 [`conformance`](./findings/evidence/sdk-r4/conformance)。
+證據位於 [`conformance`](../findings/evidence/sdk-r4/conformance)。
 
 ### ODT 與桌面 round-trip
 
@@ -136,7 +136,7 @@ Chrome／Firefox 都確認：
 - `R4-CONCURRENT-EDIT` 與 `.uno:Paste` 不存在；
 - 桌面 LibreOffice 26.2.4.2 可無互動輸出非空 PDF。
 
-完整結果見 [`roundtrip.json`](./findings/evidence/sdk-r4/roundtrip.json)。
+完整結果見 [`roundtrip.json`](../findings/evidence/sdk-r4/roundtrip.json)。
 
 ### R3／R2／R1 回歸
 
@@ -146,9 +146,9 @@ Chrome／Firefox 都確認：
   recovery 與每邊 10/10 open-render-close soak。
 - R1 legacy flow 各 1 次、2/2 通過；兩份 ODT 通過 ZIP/XML、文字保留與桌面 PDF round-trip。
 
-證據位於 [`r3-regression`](./findings/evidence/sdk-r4/r3-regression)、
-[`r2-regression`](./findings/evidence/sdk-r4/r2-regression)與
-[`r1-regression`](./findings/evidence/sdk-r4/r1-regression)。
+證據位於 [`r3-regression`](../findings/evidence/sdk-r4/r3-regression)、
+[`r2-regression`](../findings/evidence/sdk-r4/r2-regression)與
+[`r1-regression`](../findings/evidence/sdk-r4/r1-regression)。
 
 ## 產物與體積漂移
 

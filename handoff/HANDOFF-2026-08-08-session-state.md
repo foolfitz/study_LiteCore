@@ -11,7 +11,7 @@
 |---|---|---|
 | **E1-C** | **`E1_GO_ODT_EDITOR`** | 48/48 綁定、0 superseded、`automaticPass: true`。本輪未動其閘門 |
 | **R8-C** | `PARTIAL_GO` | 兩瀏覽器全過 |
-| **R8-B** | **`STOP`** | **唯一失敗項是 [finding 028](findings/028-cancel-during-manifest-body-read-reported-as-corrupt-manifest.md)**（產品缺陷，未修，待你決定） |
+| **R8-B** | **`STOP`** | **唯一失敗項是 [finding 028](../findings/028-cancel-during-manifest-body-read-reported-as-corrupt-manifest.md)**（產品缺陷，未修，待你決定） |
 | **R8-D** | **`STOP`** | 連帶自 R8-B。**release 綁定本身已修好：六家族全 bound／0 superseded** |
 | R7-D | pass（Firefox 正式九輪） | 仍是部分 GO，卡在 accessibility，與本輪無關 |
 
@@ -47,8 +47,8 @@
 
 ### finding 014 全數撤回並結案
 
-三組觀察沒有一組是 Firefox 缺陷：`s2-fresh`／`s3`／R7-C 是 [023](findings/023-sdk-init-wedges-at-fixed-session-depth.md) 的
-unread `serve.py` pipe，R8-D 900 秒是 [025](findings/025-webdriver-script-injection-never-ran-on-firefox.md) 的注入腳本從未執行。
+三組觀察沒有一組是 Firefox 缺陷：`s2-fresh`／`s3`／R7-C 是 [023](../findings/023-sdk-init-wedges-at-fixed-session-depth.md) 的
+unread `serve.py` pipe，R8-D 900 秒是 [025](../findings/025-webdriver-script-injection-never-ran-on-firefox.md) 的注入腳本從未執行。
 兩個待驗證本輪結案：
 
 - **待驗證 9（位元組帳閉合）**：獨立量到 `s1`×3＋`s2-reuse` 的 serve.log 前綴 **10,033 B**
@@ -61,7 +61,7 @@ unread `serve.py` pipe，R8-D 900 秒是 [025](findings/025-webdriver-script-inj
   （我的 1.4～2.6／207～374、以及複核修正後的 1.9～2.6／207～281——複核修對了分母，
   但被除的量本身是視窗太短造成的假象）。單頁實測深度 50 → **100**。
 
-### generation 上限：維持 3，「每頁」承諾撤除（[finding 026](findings/026-generation-cap-means-two-different-things.md)）
+### generation 上限：維持 3，「每頁」承諾撤除（[finding 026](../findings/026-generation-cap-means-two-different-things.md)）
 
 規格寫的是「每頁引擎實例化次數」，**產品從來沒實作過它**；唯一實作的是
 `editor-shell/editor-session.js` 的 `maxWorkerGenerations ?? 3`＝**同一個 `EditorSession`
@@ -83,7 +83,7 @@ unread `serve.py` pipe，R8-D 900 秒是 [025](findings/025-webdriver-script-inj
 2. `run_r8_production.py` 拿寫死的 `4` 比 `<= 4`、`3` 比 `<= 3`（兩個恆真閘門）
    → 改成頁面自數 `window.__r8_worker_generations`，**實測是 3 不是 4**。
    收下的判準是「讀數由 1 變成 3」。
-3. [finding 027](findings/027-r8d-verdict-silently-outlived-its-release.md)：R8-D 的判定在
+3. [finding 027](../findings/027-r8d-verdict-silently-outlived-its-release.md)：R8-D 的判定在
    08-07 `sdk-worker.js` 變更後**靜靜過期四天**。已由 fable 加上真正的 release 閘門，
    並重跑六個家族全部綁到現行 release `writer-review-d6bee07b960a942d`。
 
@@ -230,8 +230,8 @@ catch（`:400-408`）轉出來的。**修好之後，取消落在 fetch 或 body
   08-08 寫的解鎖條件（R8-C 已在 `sdk-r8` 綁對）確實滿足了，但逐路徑查證發現
   **另一個當時沒列到的阻擋因素**：`driver-stderr/`、
   `service-worker-firefox-injected-path/`、`service-worker-unified/`
-  **只存在於舊根**，分別是 [025](findings/025-webdriver-script-injection-never-ran-on-firefox.md)
-  與 [014](findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md) 的主要證據，
+  **只存在於舊根**，分別是 [025](../findings/025-webdriver-script-injection-never-ran-on-firefox.md)
+  與 [014](../findings/014-firefox-long-lived-wasm-worker-init-exhaustion.md) 的主要證據，
   `specs/SPEC-R8-D-production-validation.md:259` 還整棵引用。
   刪了會讓三份已結案文件失去證據。已加
   `findings/evidence/sdk-r8-post-023-fix/README.md` 標明退休狀態與不可刪除的理由
@@ -447,7 +447,7 @@ Chrome 150.0.7871.128 與 Firefox 153.0.1 **逐項相同**：
 
 ## 兩個我犯的錯，都已更正並釘住
 
-1. **「目的檔逐位元相同」不是隔離檢查，是擲硬幣**（[finding 032](findings/032-object-file-comparison-is-a-coin-flip-not-an-isolation-check.md)）。
+1. **「目的檔逐位元相同」不是隔離檢查，是擲硬幣**（[finding 032](../findings/032-object-file-comparison-is-a-coin-flip-not-an-isolation-check.md)）。
    同源同旗標連編 8 次得到兩種目的檔各 4 次，固定差 37 bytes。
    我本輪用它下過三次保證，全部降級；SPEC E2-A 10.6 節更早的同方法保證同樣打折。
    **改用前置處理後的翻譯單元比對**（`-E -P`），E1-B 組態下與 `HEAD` 4,355,327 bytes 逐位元相同——
@@ -508,7 +508,7 @@ A7 round-trip 與回歸。A5 的 `table-boundary` 就是那份還沒用到的 fi
 |---|---|
 | `unsupported-action` | `EDITOR_ACTION_UNSUPPORTED`，派送前擋掉 |
 | `stale-revision` | `STALE_REVISION`，帶實際新舊值 |
-| `state-crosstalk` | 見 [finding 033](findings/033-readback-barrier-read-wherever-the-caret-went.md)——抓到真缺陷並已修 |
+| `state-crosstalk` | 見 [finding 033](../findings/033-readback-barrier-read-wherever-the-caret-went.md)——抓到真缺陷並已修 |
 | `table-boundary` | **`verified-format-readback`（完成，不是拒絕）** |
 | `list-teardown` | 清單三態循環後 close **11～14 ms**，無 finding 012 類阻塞 |
 | `timeout-after-dispatch` | 呼叫端 `TIMEOUT` → 不重試 → 下一個動作 `BUSY` |
@@ -706,7 +706,7 @@ finding 033 與 findings README 就地修訂。
 
 使用者要求由 fable 下判斷、我執行。跑完 fable 排的**第一步**（先量測）之後，
 **它的前提被否證，它自己重下了判斷**，方向也換了。完整經過在
-[finding 034](findings/034-paragraph-selection-escapes-at-the-offset-the-test-never-used.md)。
+[finding 034](../findings/034-paragraph-selection-escapes-at-the-offset-the-test-never-used.md)。
 
 ### 一句話
 
