@@ -106,6 +106,34 @@ CONTENT: dict[str, Any] = {
         qname("text", "change"), qname("text", "change-start")},
 }
 
+PARAGRAPH_TAGS = {qname("text", "p"), qname("text", "h")}
+
+# Axes that need to know where the element sits, not just what it is.
+#
+# `text:anchor-type="as-char"` on a frame that is NOT inside a paragraph does
+# not mean what it says: as-char anchoring is a position in a text flow, and at
+# body level there is none.  Counting the attribute alone gave a badly wrong
+# answer the first time this tool was used for a coverage claim --
+# l4-stress-100 carries 100 as-char-attributed frames directly under
+# office:text and closes in 4 ms, while l0-t2-styled's single one inside a
+# text:p needs the 10.8 s close recovery of finding 012.  On the attribute
+# alone the corpus looked like it had 101 samples of the construct behind
+# findings 012/037/038.  It has one.
+#
+# Kept as their own axes rather than as a `paragraph` container in the
+# co-occurrence grid: nearly every construct in a text document is inside a
+# paragraph, so that container would add a full row of noise to hide one signal.
+CONTEXTUAL_CONTENT: dict[str, Any] = {
+    "frame-as-char-in-paragraph": lambda e, ancestors: (
+        e.tag == qname("draw", "frame")
+        and attribute(e, "text", "anchor-type") == "as-char"
+        and any(a.tag in PARAGRAPH_TAGS for a in ancestors)),
+    "frame-as-char-body-level": lambda e, ancestors: (
+        e.tag == qname("draw", "frame")
+        and attribute(e, "text", "anchor-type") == "as-char"
+        and not any(a.tag in PARAGRAPH_TAGS for a in ancestors)),
+}
+
 # Script axes, counted over text rather than elements.  035 was a CJK paragraph
 # failing closed; a corpus that is all Latin cannot show that.
 SCRIPT_RANGES = {
@@ -144,7 +172,8 @@ def walk(root: ElementTree.Element) -> list[tuple[ElementTree.Element, list[Elem
 
 
 def inventory(path: Path) -> dict[str, Any]:
-    axes = {name: 0 for name in CONTAINERS} | {name: 0 for name in CONTENT}
+    axes = ({name: 0 for name in CONTAINERS} | {name: 0 for name in CONTENT}
+            | {name: 0 for name in CONTEXTUAL_CONTENT})
     composites = {
         container: {content: 0 for content in CONTENT} for container in CONTAINERS
     }
@@ -166,6 +195,9 @@ def inventory(path: Path) -> dict[str, Any]:
                 axes[name] += 1
                 for container in enclosing:
                     composites[container][name] += 1
+            for name, predicate in CONTEXTUAL_CONTENT.items():
+                if predicate(element, ancestors):
+                    axes[name] += 1
             for chunk in (element.text, element.tail):
                 if not chunk:
                     continue
@@ -186,7 +218,8 @@ def inventory(path: Path) -> dict[str, Any]:
 
 
 def roll_up(entries: list[dict[str, Any]]) -> dict[str, Any]:
-    axes = {name: 0 for name in CONTAINERS} | {name: 0 for name in CONTENT}
+    axes = ({name: 0 for name in CONTAINERS} | {name: 0 for name in CONTENT}
+            | {name: 0 for name in CONTEXTUAL_CONTENT})
     composites = {
         container: {content: 0 for content in CONTENT} for container in CONTAINERS
     }

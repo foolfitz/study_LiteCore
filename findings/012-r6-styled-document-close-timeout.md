@@ -201,6 +201,30 @@ E2-A 的 `paragraph-content` fixture（**獨立寫的、與 t2 無關**）在
 本單的觸發條件因此收窄到 **`as-char`**，而 037 的擋法判準（非 `TEXT` 即拒絕）
 比它寬——那是保守，不是錯，但代價要記在 037 那邊。
 
+## 2026-08-13 再一刀：frame 要**在段落裡**，屬性本身不算（證據 `sdk-e1/checkpoint-cost/`）
+
+量存檔成本那一輪順帶收到六份文件的 close 時間，而它們分成清楚的兩群：
+
+| 文件 | as-char frame（屬性） | **在段落裡的** | closeMs |
+|---|---|---|---|
+| `frame-contexts` | 2 | **2** | **10848（走 recovery）** |
+| `l0-t2-styled` | 1 | **1** | **10777（走 recovery）** |
+| **`l4-stress-100`** | **100** | **0** | **4** |
+| `l0-t1-plain-zh`／`l0-t3-long`／`l1-review` | 0 | 0 | 4／4／7 |
+
+**`l4-stress-100` 有一百個帶 `text:anchor-type="as-char"` 的 `draw:frame`，close 只要 4 ms。**
+差別在它們**直接掛在 `office:text` 底下，不在任何段落裡**——as-char 是「文字流裡的一個位置」，
+在那裡沒有意義，core 顯然也是這樣處理的。
+
+**所以觸發條件是「段落裡的 as-char frame」，不是「檔案裡有 as-char 屬性」。**
+這比先前那一刀更窄，而且是 **100 比 1 的樣本數對上兩個相反的行為**——
+先前所有「這份文件有 as-char frame 所以會卡」的推理，都要先確認那個 frame 在段落裡。
+
+**同一批數字也修掉了我自己的盤點工具**：`tools/inventory_corpus_axes.py` 初版只數屬性，
+於是 SPEC-E1-C 9.1 的「C3 語料有 101 個 as-char frame」在行為上其實是 **1 個**
+（`l0-t2-styled` 那一個）。工具已加 `frame-as-char-in-paragraph`／`-body-level` 兩軸，
+9.1 已就地更正。
+
 ## 環境
 
 - Core commit：`671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb`

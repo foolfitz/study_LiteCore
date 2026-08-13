@@ -40,6 +40,11 @@ HARNESSES = {
         "global": "__e1_post_wedge",
         "evidence": "post-wedge-liveness",
     },
+    "checkpoint-cost": {
+        "page": "e1-checkpoint-cost.html",
+        "global": "__e1_checkpoint_cost",
+        "evidence": "checkpoint-cost",
+    },
 }
 
 
@@ -58,7 +63,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--browser", choices=("chrome", "firefox"), required=True)
     parser.add_argument(
-        "--harness", choices=("session-wedge", "post-wedge-liveness"),
+        "--harness",
+        choices=("session-wedge", "post-wedge-liveness", "checkpoint-cost"),
         default="session-wedge")
     parser.add_argument("--profile", default="e1-editor-v1")
     parser.add_argument("--fixture", default="frame-contexts.odt")

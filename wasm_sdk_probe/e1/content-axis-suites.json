@@ -15,9 +15,12 @@
       "expect": {
         "footnote": "absent",
         "endnote": "absent",
-        "frame-as-char": "present"
+        "frame-as-char": "present",
+        "frame-as-char-in-paragraph": 1,
+        "frame-as-char-body-level": 100,
+        "list": "absent"
       },
-      "why": "SPEC-E1-C 9.1 narrows the verdict on the strength of exactly this pair of facts: the corpus carries as-char frames, and it carries no notes at all, so finding 038's combination could never have appeared. Written by hand on 2026-08-12; computed here."
+      "why": "SPEC-E1-C 9.1 narrows the verdict on the strength of exactly this pair of facts: the corpus carries as-char frames, and it carries no notes at all, so finding 038's combination could never have appeared. Written by hand on 2026-08-12; computed here. The in-paragraph/body-level split was added on 2026-08-13 after the checkpoint-cost run: 9.1 says the corpus carries 101 as-char frames, and 100 of those sit directly under office:text where as-char anchoring means nothing -- l4-stress-100 closes in 4 ms while l0-t2-styled's single in-paragraph one needs 10.8 s recovery. The effective count is 1, and pinning both numbers here is what stops the misleading one being quoted again. `list: absent` is pinned so that adding a list fixture to C3 has to be a deliberate edit here rather than a silent change of what the verdict covers."
     },
     "E1-A-frozen": {
       "source": "tools/validate_e1_corpus.py E1_A_FROZEN_FIXTURES",

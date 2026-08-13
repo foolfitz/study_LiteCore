@@ -241,6 +241,17 @@ surface。保存失敗bytes／trace並建立finding，不以last-write-wins、sl
 沒有任何一格記錄過的 PASS 因此變成錯的。判定依 034／035／037 的前例**重新界定而非撤銷**
 （對照：022 是記錄結果被證偽→重建重跑；027 是綁定斷裂→STOP）。
 
+> **2026-08-13 更正上面那個「101 個」**：那是**屬性**的數量，不是**行為**的數量。
+> `l4-stress-100` 那 100 個 `draw:frame` **直接掛在 `office:text` 底下、不在任何段落裡**，
+> 而 as-char 是「文字流裡的一個位置」，在那裡等於沒有意義。實測佐證：
+> **`l4-stress-100` close 4 ms、`l0-t2-styled`（唯一一個在 `text:p` 裡的）close 10777 ms
+> 走 recovery**（[finding 012](../findings/012-r6-styled-document-close-timeout.md) 的形狀）。
+> **所以本語料對 012／037／038 那個構造的覆蓋是 1 個樣本，不是 101 個。**
+> 這不改變 9.1 的收窄理由（那建立在「五份都沒有 `text:note`」上），
+> 但它改變「語料對 as-char frame 覆蓋得不錯」這個印象——**沒有**。
+> 兩個數字現在都釘在 `e1/content-axis-suites.json` 與
+> `tests/test_content_axis_inventory.py` 裡，改動要是刻意的。
+
 **已在出貨 artifact 上量到，不是跨 artifact 的推論**（`findings/evidence/sdk-e1/note-frame-select/`，
 `835b453d…`，走出貨路徑 `editorSelectRangeV1`／`narrow-editor-v1`）：
 
@@ -282,6 +293,14 @@ C3 五份語料帶著 101 個 as-char frame 與 0 個 `text:note`，所以 038 �
 首次執行即發現一個**本規格先前沒有記載**的盲區：**C3 五份語料完全沒有 `text:list`／
 `text:list-item`**（`text:h` 有 125 個）。目前出貨契約沒有清單動作所以無害；
 **清單動作要進出貨契約之前，必須先補語料或依 9.1 的形式具名排除。**
+
+**第二次修正來自另一個量測，而且修的是這個工具本身**（2026-08-13）：初版只數
+**屬性**，於是把 `l4-stress-100` 那 100 個掛在 `office:text` 底下的
+`draw:frame` 也算成 as-char——**它們的 close 是 4 ms，不是 10.8 秒**。
+工具現在把 `frame-as-char-in-paragraph` 與 `frame-as-char-body-level` 分開算，
+9.1 的數字已就地更正。**教訓寫在這裡而不是只寫在工具註解裡**：
+一個從位元組算出來的數字仍然可能量錯東西——`draw:frame` 上有 `as-char`
+不等於它是 as-char 錨定的。**盤點軸的定義本身也要有反例測試。**
 
 ## 10. 實作檔案
 
@@ -421,3 +440,4 @@ pipe）之後，§11.4 要求的重跑全數完成，全部對出貨 artifact `8
 | 2026-08-08 | v7。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |
 | 2026-08-12 | 9.1 具名收窄（[finding 038](../findings/038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md)）。判定**不涵蓋**「選取涵蓋註腳／尾註引用記號，且該註腳本文含 as-char `draw:frame`」；在該組合上出貨的範圍選取會讓引擎停止回應，只有重啟 worker 能復原。**覆蓋範圍之外而非被證偽**——C3 五份語料盤點：`l0-t2` 1 個 as-char frame、`l4-stress-100` 100 個，但**五份都沒有 `text:note`**，所以該組合不可能出現，沒有任何記錄過的 PASS 因此變錯；依 034／035／037 前例重新界定而非撤銷。**已在出貨 artifact `835b453d…` 上實測**（走 `editorSelectRangeV1`／`narrow-editor-v1`，四格：無 frame 段落 7 ms、不涵蓋引用記號 6 ms、註腳無 frame 8 ms 皆事後可用；**涵蓋引用記號且註腳有 frame → TIMEOUT 15004 ms、事後不可用**），在此之前是跨 artifact 推論，由外部覆核指出並要求在動修法之前補量。48 個綁定不重跑：這是補充覆蓋，不是重新驗證。 |
 | 2026-08-13 | 新增 9.2：**發 GO 前必跑語料內容軸盤點**（`tools/inventory_corpus_axes.py --check`），盲區清單須寫進判定。工具首跑即補到一個本規格先前沒記載的盲區：**C3 五份語料沒有任何 `text:list`／`text:list-item`**。9.1 手寫的兩項語料事實（0 個 `text:note`、101 個 as-char frame）改由 `tests/test_content_axis_inventory.py` 每次檢查。未動任何閘門，判定不變。 |
+| 2026-08-13 | 9.1 的「101 個 as-char frame」**就地更正為「屬性 101、有效 1」**：`l4-stress-100` 那 100 個掛在 `office:text` 底下不在段落裡，實測 close 4 ms，而 `l0-t2-styled` 唯一一個在 `text:p` 裡的 close 10777 ms 走 recovery。收窄理由不變（建立在「五份都沒有 `text:note`」上），改變的是「語料對這個構造覆蓋得不錯」的印象。盤點工具同時修正（新增 `frame-as-char-in-paragraph`／`-body-level` 兩軸與反例測試）。未動任何閘門，判定不變。 |

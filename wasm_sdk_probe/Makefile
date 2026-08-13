@@ -271,6 +271,7 @@ demo-editor-assets: dist/demo-editor.html dist/demo-editor-app.js \
 e1-session-wedge-assets: dist/e1-session-wedge-recovery.html \
 	dist/e1-session-wedge-recovery-app.js \
 	dist/e1-post-wedge-liveness.html dist/e1-post-wedge-liveness-app.js \
+	dist/e1-checkpoint-cost.html dist/e1-checkpoint-cost-app.js \
 	dist/sdk/document-sdk.js \
 	dist/editor-shell/editor-client.js dist/editor-shell/state-machine.js \
 	dist/editor-shell/editor-session.js \
@@ -1161,6 +1162,12 @@ dist/e1-post-wedge-liveness.html: web/e1-post-wedge-liveness.html | dist
 	cp $< $@
 
 dist/e1-post-wedge-liveness-app.js: web/e1-post-wedge-liveness-app.js | dist
+	cp $< $@
+
+dist/e1-checkpoint-cost.html: web/e1-checkpoint-cost.html | dist
+	cp $< $@
+
+dist/e1-checkpoint-cost-app.js: web/e1-checkpoint-cost-app.js | dist
 	cp $< $@
 
 dist/f018-line-nav-check.html: web/f018-line-nav-check.html | dist

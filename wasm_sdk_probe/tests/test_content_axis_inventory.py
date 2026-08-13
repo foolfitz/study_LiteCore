@@ -97,6 +97,28 @@ class ContentAxisInventoryTest(unittest.TestCase):
         self.assertEqual(together["composites"]["footnote"]["frame-as-char"], 1)
         self.assertEqual(apart["composites"]["footnote"]["frame-as-char"], 0)
 
+    def test_separates_an_as_char_frame_in_a_paragraph_from_one_at_body_level(self) -> None:
+        """The attribute is not the behaviour, and this cost a wrong number once.
+
+        `text:anchor-type="as-char"` on a frame directly under `office:text`
+        says nothing: as-char is a position in a text flow, and there is none
+        there.  Counting the attribute made E1-C's corpus look like it held 101
+        samples of the construct behind findings 012/037/038.  It holds one.
+        """
+        in_paragraph = inventory(odt(f"<text:p>a {FRAME}</text:p>"))
+        body_level = inventory(odt(FRAME))
+        for entry in (in_paragraph, body_level):
+            self.assertEqual(entry["axes"]["frame-as-char"], 1)
+        self.assertEqual(in_paragraph["axes"]["frame-as-char-in-paragraph"], 1)
+        self.assertEqual(in_paragraph["axes"]["frame-as-char-body-level"], 0)
+        self.assertEqual(body_level["axes"]["frame-as-char-in-paragraph"], 0)
+        self.assertEqual(body_level["axes"]["frame-as-char-body-level"], 1)
+
+    def test_a_frame_in_a_heading_counts_as_in_a_paragraph(self) -> None:
+        """`text:h` is a text flow too; as-char anchoring is meaningful there."""
+        entry = inventory(odt(f'<text:h text:outline-level="1">h {FRAME}</text:h>'))
+        self.assertEqual(entry["axes"]["frame-as-char-in-paragraph"], 1)
+
     def test_endnote_is_not_counted_as_a_footnote(self) -> None:
         entry = inventory(odt(
             '<text:p><text:note text:note-class="endnote">'
@@ -163,6 +185,20 @@ class ShippedCorpusTest(unittest.TestCase):
     def test_c3_does_carry_as_char_frames(self) -> None:
         """The other half of 9.1: the corpus is not innocent of frames."""
         self.assertGreater(self.rollup()["axes"]["frame-as-char"], 0)
+
+    def test_c3_has_exactly_one_effective_as_char_frame(self) -> None:
+        """9.1 says 101. On the attribute that is right; on behaviour it is one.
+
+        100 of those 101 are l4-stress-100's, sitting directly under
+        office:text.  Measured 2026-08-13: l4-stress-100 closes in 4 ms,
+        l0-t2-styled -- one as-char frame, inside a text:p -- takes the 10.8 s
+        close recovery of finding 012.  So the corpus's coverage of the
+        construct that findings 012/037/038 turn on is a single sample.
+        """
+        rollup = self.rollup()
+        self.assertEqual(rollup["axes"]["frame-as-char"], 101)
+        self.assertEqual(rollup["axes"]["frame-as-char-in-paragraph"], 1)
+        self.assertEqual(rollup["axes"]["frame-as-char-body-level"], 100)
 
     def test_c3_carries_no_lists(self) -> None:
         """Not in any spec yet -- found by this tool on its first run.
