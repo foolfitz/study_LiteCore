@@ -21,6 +21,7 @@
 
 import { createDocumentEngine } from "./sdk/document-sdk.js";
 import { EditorSession } from "./editor-shell/editor-session.js";
+import { recoveryNotice } from "./editor-shell/recovery-notice.js";
 
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -40,6 +41,9 @@ const el = {
   toast: $("#toast"),
   about: $("#about"),
   aboutFacts: $("#about-facts"),
+  recovery: $("#recovery"),
+  recoveryText: $("#recovery-text"),
+  rescue: $("#rescue"),
   s: {
     state: $("#s-state"),
     revision: $("#s-revision"),
@@ -124,6 +128,37 @@ function refreshFormatButtons() {
   }
 }
 
+// Wording only.  Whether to speak at all, and whether a rescue or a restart may
+// be offered, is decided by recoveryNotice() so that it can be tested without a
+// DOM -- the mistake to guard against here is telling a user work was preserved
+// when it was not, and that is a decision, not a sentence.
+function updateRecovery(snapshot) {
+  const notice = recoveryNotice(snapshot);
+  el.recovery.hidden = !notice.visible;
+  if (!notice.visible)
+    return;
+  el.recovery.classList.toggle("saved", notice.hasCheckpoint);
+  el.rescue.hidden = !notice.canRescue;
+  const stopped = notice.restartPossible
+    ? "引擎沒有回應"
+    : "引擎沒有回應，而且重新啟動次數已用盡";
+  if (!notice.hasCheckpoint) {
+    el.recoveryText.innerHTML = `${stopped}。<b>最後一次儲存之後的編輯沒有存檔點</b>——`
+      + (notice.restartPossible
+        ? "重新啟動會回到最後一次儲存的內容。"
+        : "請重新整理頁面，從最後一次存出的 ODT 繼續。");
+    return;
+  }
+  const at = notice.checkpointRevision === null
+    ? ""
+    : `（存檔點在修訂 ${notice.checkpointRevision}）`;
+  el.recoveryText.innerHTML = notice.restartPossible
+    ? `${stopped}，但你最後那段編輯<b>已經保住了</b>${at}。`
+      + "按「重新啟動引擎」會從那份繼續，也可以先下載搶救檔留一份在本機。"
+    : `${stopped}。你最後那段編輯<b>還在</b>${at}，`
+      + "<b>下載搶救檔是把它取出的唯一方法</b>；取出後請重新整理頁面。";
+}
+
 function updateState(snapshot) {
   const label = STATE_LABEL[snapshot.state] || snapshot.state;
   el.statePill.dataset.state = snapshot.state;
@@ -150,6 +185,7 @@ function updateState(snapshot) {
       button.disabled = !usable;
   }
   el.fixture.disabled = snapshot.state === "loading";
+  updateRecovery(snapshot);
 
   if (snapshot.error)
     toast(`${snapshot.error.code}：${snapshot.error.message}`, true);
@@ -566,18 +602,35 @@ function applyFormat(format) {
   });
 }
 
-async function saveDocument() {
-  const saved = await run("儲存", () => session.save());
-  const blob = new Blob([saved.bytes], {
+function downloadOdt(bytes, suffix) {
+  const blob = new Blob([bytes], {
     type: "application/vnd.oasis.opendocument.text",
   });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = documentName.replace(/\.odt$/i, "") + "-edited.odt";
+  anchor.download = documentName.replace(/\.odt$/i, "") + suffix;
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
-  toast(`已存出 ${(saved.bytes.byteLength / 1024).toFixed(1)} KB，可用桌面版 LibreOffice 開啟`);
+  return (bytes.byteLength / 1024).toFixed(1);
+}
+
+async function saveDocument() {
+  const saved = await run("儲存", () => session.save());
+  toast(`已存出 ${downloadOdt(saved.bytes, "-edited.odt")} KB，可用桌面版 LibreOffice 開啟`);
+}
+
+// Deliberately not routed through run(): the session is in an error state by
+// definition here, and checkpointBytes() is a plain accessor over bytes the
+// session already holds -- it touches neither the engine nor the queue, which
+// is exactly why it still works when nothing else does.
+function rescueCheckpoint() {
+  const bytes = session?.checkpointBytes();
+  if (!bytes) {
+    toast("沒有可搶救的存檔點", true);
+    return;
+  }
+  toast(`已存出搶救檔 ${downloadOdt(bytes, "-rescued.odt")} KB，可用桌面版 LibreOffice 開啟`);
 }
 
 const ACTIONS = {
@@ -604,6 +657,11 @@ async function changeZoom(delta) {
   paintComments();
   await renderDocument();
 }
+
+// The banner lives outside #toolbar on purpose: updateState() disables every
+// button in there whenever the session is not usable, and this is the one
+// control that has to work precisely then.
+el.rescue.addEventListener("click", () => rescueCheckpoint());
 
 el.toolbar.addEventListener("click", (event) => {
   const action = event.target.closest("button")?.dataset.action;

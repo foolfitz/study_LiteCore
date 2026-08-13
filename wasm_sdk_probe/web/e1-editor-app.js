@@ -59,9 +59,16 @@ function updateState(snapshot) {
   elements.status.textContent = snapshot.state;
   elements.revision.value = snapshot.revision ?? "—";
   elements.revision.textContent = snapshot.revision ?? "—";
+  // With a checkpoint present the error is not the whole story -- the work that
+  // was unsaved when the engine stopped answering is still held by the session
+  // and comes back on restart.  The full snapshot, `hasCheckpoint` included, is
+  // already pushed to metrics.states above, so E1-C evidence records it too.
+  const checkpoint = snapshot.hasCheckpoint
+    ? `，存檔點在修訂 ${snapshot.checkpointRevision}`
+    : "";
   elements.message.textContent = snapshot.error
-    ? `${snapshot.error.code}: ${snapshot.error.message}`
-    : snapshot.dirty ? "尚未儲存" : "已同步到最近一次authority bytes";
+    ? `${snapshot.error.code}: ${snapshot.error.message}${checkpoint}`
+    : snapshot.dirty ? `尚未儲存${checkpoint}` : "已同步到最近一次authority bytes";
   elements.message.classList.toggle("error", Boolean(snapshot.error));
   const disabled = !["ready", "busy"].includes(snapshot.state);
   for (const button of elements.toolbar.querySelectorAll("button")) {

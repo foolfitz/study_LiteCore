@@ -258,7 +258,7 @@ e1-bold-noop-assets: dist/e1-bold-noop-check.html dist/e1-bold-noop-app.js \
 demo-editor-assets: dist/demo-editor.html dist/demo-editor-app.js \
 	dist/sdk/document-sdk.js \
 	dist/editor-shell/editor-client.js dist/editor-shell/state-machine.js \
-	dist/editor-shell/editor-session.js \
+	dist/editor-shell/editor-session.js dist/editor-shell/recovery-notice.js \
 	dist/input/input-adapter.js dist/input/clipboard-adapter.js \
 	dist/reader-shell/tile-scheduler.js \
 	dist/e1-fixtures/manifest.json \
@@ -1233,6 +1233,9 @@ dist/editor-shell/state-machine.js: editor-shell/state-machine.js | dist/editor-
 dist/editor-shell/editor-session.js: editor-shell/editor-session.js | dist/editor-shell
 	cp $< $@
 
+dist/editor-shell/recovery-notice.js: editor-shell/recovery-notice.js | dist/editor-shell
+	cp $< $@
+
 dist/sdk/document-sdk.js: sdk/document-sdk.js | dist/sdk
 	cp $< $@
 
@@ -1497,7 +1500,12 @@ test-e1-b-static:
 	node --check editor-shell/editor-client.js
 	node --check editor-shell/state-machine.js
 	node --check editor-shell/editor-session.js
+	node --check editor-shell/recovery-notice.js
 	node --check web/e1-editor-app.js
+	# The demo shell ships from this tree and imports the same editor-shell
+	# modules, so it belongs under the same gate as the harness that validated
+	# them.  It was outside every static target until 2026-08-13.
+	node --check web/demo-editor-app.js
 	c++ -std=c++17 -Isrc -fsyntax-only tests/editor_abi_header_test.cpp
 	python3 -m py_compile tools/build_e1_b_profile.py tools/run_e1_b.py \
 		tools/validate_e1_b.py tests/test_e1_b_profile.py tests/test_e1_b.py

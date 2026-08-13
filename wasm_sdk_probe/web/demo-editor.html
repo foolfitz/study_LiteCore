@@ -80,6 +80,20 @@
     button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
     button.primary:hover:not(:disabled) { background: #2a629d; border-color: #2a629d; }
 
+    /* ---------- recovery banner ----------
+       A toast is wrong for this one: it disappears after 2.6 s, and the thing
+       it would be announcing is whether the user's unsaved work still exists.
+       This stays on screen until the state that produced it is gone. */
+    .recovery {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 9px 12px; font-size: 13px; line-height: 1.5;
+      background: #fbeae9; color: #7a2c25; border-bottom: 1px solid #eec4c1;
+    }
+    .recovery[hidden] { display: none; }
+    .recovery.saved { background: #fdf3e3; color: #7a5a1c; border-bottom-color: #ecd6ac; }
+    .recovery b { font-weight: 650; }
+    .recovery .spacer { flex: 1; }
+
     /* ---------- document ---------- */
     /* align-items must not be the flex default here: `stretch` sizes the paper
        to the *viewport* rather than to the canvas it contains, so any document
@@ -263,6 +277,12 @@
     <input type="file" id="file" accept=".odt,application/vnd.oasis.opendocument.text" hidden>
   </div>
 
+  <div class="recovery" id="recovery" role="alert" hidden>
+    <span id="recovery-text"></span>
+    <span class="spacer"></span>
+    <button data-action="rescue" id="rescue">下載搶救檔</button>
+  </div>
+
   <div class="desk" id="desk">
     <div class="paper" id="paper">
       <canvas id="canvas" aria-label="ODT 文件畫面"></canvas>
@@ -303,6 +323,7 @@
         <li>粗體、斜體、底線、刪除線（明確開關，非切換猜測）</li>
         <li>復原（Undo）、純文字複製貼上</li>
         <li>存成 ODT，桌面版 LibreOffice 可直接開</li>
+        <li>引擎卡住時保住最後一段未存編輯：重新啟動會從那份續編，也可以直接下載搶救檔</li>
       </ul>
       <h3>本版不支援（刻意不做，不是壞掉）</h3>
       <ul>
