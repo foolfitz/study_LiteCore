@@ -200,16 +200,33 @@ class ShippedCorpusTest(unittest.TestCase):
         self.assertEqual(rollup["axes"]["frame-as-char-in-paragraph"], 1)
         self.assertEqual(rollup["axes"]["frame-as-char-body-level"], 100)
 
-    def test_c3_carries_no_lists(self) -> None:
-        """Not in any spec yet -- found by this tool on its first run.
+    def test_c3_as_measured_carries_no_lists(self) -> None:
+        """Found by this tool on its first run, and left standing on purpose.
 
-        The five documents E1_GO_ODT_EDITOR rests on contain no `text:list`.
-        That matters the moment list actions are promoted into the shipped
-        contract: the verdict's own corpus could not exercise them.
+        The five documents E1_GO_ODT_EDITOR was measured on contain no
+        `text:list`.  A sixth fixture now exists to close that gap from the
+        next rebinding onwards, but this assertion is about the FIVE -- what a
+        shipped verdict covered is a historical fact, and quietly widening it
+        because the corpus grew later is exactly finding 027.
         """
         rollup = self.rollup()
         self.assertEqual(rollup["axes"]["list"], 0)
         self.assertEqual(rollup["axes"]["list-item"], 0)
+
+    def test_the_next_c3_does_carry_lists(self) -> None:
+        """list-contexts closes the list gap, and both list kinds are in it."""
+        corpus = PROJECT / "test-docs" / "e1"
+        entry = inventory(corpus / "list-contexts.odt")
+        self.assertEqual(entry["axes"]["list"], 2)
+        self.assertEqual(entry["axes"]["list-item"], 4)
+        self.assertEqual(entry["axes"]["heading"], 1)
+        # 035 was a CJK paragraph failing closed; a new fixture that is all
+        # Latin would quietly narrow the corpus on a different axis.
+        self.assertGreater(entry["scripts"]["han"], 0)
+        # It closes the LIST gap, not finding 038's.  Saying so here stops the
+        # next reader assuming one new fixture covered both.
+        self.assertEqual(entry["axes"]["footnote"], 0)
+        self.assertEqual(entry["axes"]["frame-as-char"], 0)
 
 
 if __name__ == "__main__":

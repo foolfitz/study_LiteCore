@@ -192,6 +192,51 @@ FIXTURES = {
         "anchors": ["E1-STYLED-HEADING", "bold anchor", "italic anchor", "E1-LIST-ONE", "E1-STYLED-END"],
         "minimum": {"paragraphs": 4, "headings": 1, "lists": 1, "tables": 0},
     },
+    # Added 2026-08-13 for E1-C's list coverage gap (task 038).  The content-axis
+    # inventory found that the five C3 documents the E1_GO_ODT_EDITOR verdict
+    # rests on contain no `text:list` at all -- 125 headings, zero lists -- so
+    # promoting the list actions into the shipped contract would ship them over
+    # an axis the verdict's own corpus cannot exercise.  That is the shape of
+    # 034, 035, 037 and 038, and this is the cheap half of not repeating it.
+    #
+    # styled-list is not a substitute.  SPEC-E2-A section 11 records that its
+    # list anchor sits directly beside an existing list, so applying a list
+    # there MERGES with the neighbour and the postcondition cannot separate
+    # "the action worked" from "the action joined the list next door".  So this
+    # fixture's action anchor is deliberately isolated: E1-LC-ISOLATED has a
+    # heading before it and a plain paragraph after it, and neither is a list.
+    #
+    # Both list kinds, because the contract would gain set-list-unordered AND
+    # set-list-ordered, and a bullet list says nothing about numbering.
+    # E1-LC-BETWEEN is the opposite case on purpose -- a plain paragraph with a
+    # list on each side -- so the merge behaviour has somewhere to be measured
+    # rather than only being written down.
+    "list-contexts": {
+        "extra_styles": (
+            '  <text:list-style style:name="E1LCBullet">'
+            '<text:list-level-style-bullet text:level="1" text:bullet-char="•"/>'
+            "</text:list-style>\n"
+            '  <text:list-style style:name="E1LCNumber">'
+            '<text:list-level-style-number text:level="1" style:num-format="1"'
+            ' style:num-suffix="."/>'
+            "</text:list-style>\n"
+        ),
+        "body": """
+ <text:h text:outline-level="1" text:style-name="Heading_20_1">E1-LC-HEADING</text:h>
+ <text:p>E1-LC-ISOLATED 前後都不是清單的段落</text:p>
+ <text:p>E1-LC-SPACER</text:p>
+ <text:list text:style-name="E1LCBullet"><text:list-item><text:p>E1-LC-BULLET-ONE</text:p></text:list-item><text:list-item><text:p>E1-LC-BULLET-TWO 中文項目</text:p></text:list-item></text:list>
+ <text:p>E1-LC-BETWEEN</text:p>
+ <text:list text:style-name="E1LCNumber"><text:list-item><text:p>E1-LC-NUMBER-ONE</text:p></text:list-item><text:list-item><text:p>E1-LC-NUMBER-TWO</text:p></text:list-item></text:list>
+ <text:p>E1-LC-END</text:p>
+""",
+        "anchors": [
+            "E1-LC-HEADING", "E1-LC-ISOLATED", "E1-LC-BULLET-ONE",
+            "E1-LC-BULLET-TWO 中文項目", "E1-LC-BETWEEN", "E1-LC-NUMBER-ONE",
+            "E1-LC-END",
+        ],
+        "minimum": {"paragraphs": 8, "headings": 1, "lists": 2, "tables": 0},
+    },
     # Added 2026-08-11 for the format-barrier deadline work.  An empty paragraph
     # is not an exotic shape -- "press the list button on a blank line" is one of
     # the commonest editing gestures -- and .uno:EndOfParaSel has nothing to

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "release": "E1-A-editing-discovery",
   "manifest": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/manifest.json",
-  "manifestSha256": "b32325ac1fa2fb2808697dfd14816ba37a5708cf3c24aba7286213d341755e4b",
+  "manifestSha256": "b83cb923f68c91c9c20f6ea0e7d609bb0401a20a5317396aed56404ea7fe834f",
   "schemaPass": true,
   "frozenFixturesMissing": [],
   "addedSinceE1A": [
@@ -13,6 +13,7 @@
     "frame-no-image",
     "frame-paragraph-anchored",
     "image-variants",
+    "list-contexts",
     "markdown-syntax",
     "paragraph-content"
   ],
@@ -151,6 +152,65 @@
         "lists": {
           "actual": 1,
           "minimum": 1,
+          "pass": true
+        },
+        "tables": {
+          "actual": 0,
+          "minimum": 0,
+          "pass": true
+        }
+      },
+      "danglingEmbeddedHrefs": [],
+      "pass": true
+    },
+    {
+      "id": "list-contexts",
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/list-contexts.odt",
+      "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+      "anchors": [
+        {
+          "text": "E1-LC-HEADING",
+          "found": true
+        },
+        {
+          "text": "E1-LC-ISOLATED",
+          "found": true
+        },
+        {
+          "text": "E1-LC-BULLET-ONE",
+          "found": true
+        },
+        {
+          "text": "E1-LC-BULLET-TWO 中文項目",
+          "found": true
+        },
+        {
+          "text": "E1-LC-BETWEEN",
+          "found": true
+        },
+        {
+          "text": "E1-LC-NUMBER-ONE",
+          "found": true
+        },
+        {
+          "text": "E1-LC-END",
+          "found": true
+        }
+      ],
+      "structure": {
+        "paragraphs": {
+          "actual": 8,
+          "minimum": 8,
+          "pass": true
+        },
+        "headings": {
+          "actual": 1,
+          "minimum": 1,
+          "pass": true
+        },
+        "lists": {
+          "actual": 2,
+          "minimum": 2,
           "pass": true
         },
         "tables": {

@@ -22,6 +22,25 @@
       },
       "why": "SPEC-E1-C 9.1 narrows the verdict on the strength of exactly this pair of facts: the corpus carries as-char frames, and it carries no notes at all, so finding 038's combination could never have appeared. Written by hand on 2026-08-12; computed here. The in-paragraph/body-level split was added on 2026-08-13 after the checkpoint-cost run: 9.1 says the corpus carries 101 as-char frames, and 100 of those sit directly under office:text where as-char anchoring means nothing -- l4-stress-100 closes in 4 ms while l0-t2-styled's single in-paragraph one needs 10.8 s recovery. The effective count is 1, and pinning both numbers here is what stops the misleading one being quoted again. `list: absent` is pinned so that adding a list fixture to C3 has to be a deliberate edit here rather than a silent change of what the verdict covers."
     },
+    "E1-C-C3-next": {
+      "source": "SPEC-E1-C section 5, C3 as it will stand from the next rebinding onwards -- the five above plus list-contexts",
+      "fixtures": [
+        "l0-t1-plain-zh.odt",
+        "l0-t2-styled.odt",
+        "l0-t3-long.odt",
+        "l1-review.odt",
+        "l4-stress-100.odt",
+        "list-contexts.odt"
+      ],
+      "expect": {
+        "list": "present",
+        "list-item": "present",
+        "footnote": "absent",
+        "endnote": "absent"
+      },
+      "note": "list-contexts.odt lives in test-docs/e1, not test-docs/r7-compat, because SPEC-E1-C section 5 forbids E1-C from regenerating or rewriting the R7 corpus source bytes.",
+      "why": "Kept separate from E1-C-C3 on purpose. The shipped E1_GO_ODT_EDITOR verdict was measured on five documents and that is a historical fact, not something to rewrite once a sixth is added -- 027 is what happens when a verdict quietly outlives the thing it was measured on. This suite is the target for the next rebinding; E1-C-C3 stays as the record of what the current verdict actually covered. Note the note axes stay absent: list-contexts closes the list gap, not finding 038's."
+    },
     "E1-A-frozen": {
       "source": "tools/validate_e1_corpus.py E1_A_FROZEN_FIXTURES",
       "fixtures": [

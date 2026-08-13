@@ -155,6 +155,23 @@ Chrome／Firefox各三次完整sequence：
 新增／刪除postcondition、ZIP CRC、XML、禁止內容未出現、desktop reopen與PDF export。E1-C不重生成或改寫R7
 corpus source bytes。
 
+**2026-08-13 新增第六份 `list-contexts`（下一次重綁起生效）**，理由與界線見 9.2：
+
+| ID | 目的 | 允許編輯位置 |
+|---|---|---|
+| `list-contexts` | 清單內容軸（無序＋有序）與**孤立的清單動作錨點** | `E1-LC-ISOLATED`（前為標題、後為普通段落，**兩側都不是清單**） |
+
+**它放在 `test-docs/e1/` 而不是 `test-docs/r7-compat/`**，因為本節明訂 E1-C 不重生成或改寫
+R7 corpus source bytes；新增一份 E1 自有語料不碰那條規則。**`styled-list` 不能代替**：
+[SPEC E2-A](./SPEC-E2-A-paragraph-format-discovery.md) 第 11 節記過它的錨點緊鄰既有清單，
+套用清單會與鄰居合併，後置條件分不出「動作成功」與「併進隔壁那串」。
+`E1-LC-BETWEEN`（兩側都是清單的普通段落）刻意留著，讓合併行為有地方可量。
+
+**目前的 `E1_GO_ODT_EDITOR` 是在五份上量的，不涵蓋這一份**——它是下一次重綁的目標，
+不是對既有判定的追認。盤點檔因此有兩個套件：`E1-C-C3`（判定實際跑過的五份，
+`list` 釘成 absent）與 `E1-C-C3-next`（六份，`list` 釘成 present）。
+**既有判定跑過什麼是歷史事實，不因為後來補了語料就改寫**（前例：[027](../findings/027-r8d-verdict-silently-outlived-its-release.md)）。
+
 ### C4：Bounded lifecycle與回歸
 
 - 每個browser跑10個獨立edit→save→reopen session、4種crash barrier與2種boundary restart；每頁不超過三個
@@ -293,6 +310,7 @@ C3 五份語料帶著 101 個 as-char frame 與 0 個 `text:note`，所以 038 �
 首次執行即發現一個**本規格先前沒有記載**的盲區：**C3 五份語料完全沒有 `text:list`／
 `text:list-item`**（`text:h` 有 125 個）。目前出貨契約沒有清單動作所以無害；
 **清單動作要進出貨契約之前，必須先補語料或依 9.1 的形式具名排除。**
+**已補**：新 fixture `list-contexts`（第 5 節 C3），從下一次重綁起是 C3 的第六份。
 
 **第二次修正來自另一個量測，而且修的是這個工具本身**（2026-08-13）：初版只數
 **屬性**，於是把 `l4-stress-100` 那 100 個掛在 `office:text` 底下的
@@ -440,4 +458,5 @@ pipe）之後，§11.4 要求的重跑全數完成，全部對出貨 artifact `8
 | 2026-08-08 | v7。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |
 | 2026-08-12 | 9.1 具名收窄（[finding 038](../findings/038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md)）。判定**不涵蓋**「選取涵蓋註腳／尾註引用記號，且該註腳本文含 as-char `draw:frame`」；在該組合上出貨的範圍選取會讓引擎停止回應，只有重啟 worker 能復原。**覆蓋範圍之外而非被證偽**——C3 五份語料盤點：`l0-t2` 1 個 as-char frame、`l4-stress-100` 100 個，但**五份都沒有 `text:note`**，所以該組合不可能出現，沒有任何記錄過的 PASS 因此變錯；依 034／035／037 前例重新界定而非撤銷。**已在出貨 artifact `835b453d…` 上實測**（走 `editorSelectRangeV1`／`narrow-editor-v1`，四格：無 frame 段落 7 ms、不涵蓋引用記號 6 ms、註腳無 frame 8 ms 皆事後可用；**涵蓋引用記號且註腳有 frame → TIMEOUT 15004 ms、事後不可用**），在此之前是跨 artifact 推論，由外部覆核指出並要求在動修法之前補量。48 個綁定不重跑：這是補充覆蓋，不是重新驗證。 |
 | 2026-08-13 | 新增 9.2：**發 GO 前必跑語料內容軸盤點**（`tools/inventory_corpus_axes.py --check`），盲區清單須寫進判定。工具首跑即補到一個本規格先前沒記載的盲區：**C3 五份語料沒有任何 `text:list`／`text:list-item`**。9.1 手寫的兩項語料事實（0 個 `text:note`、101 個 as-char frame）改由 `tests/test_content_axis_inventory.py` 每次檢查。未動任何閘門，判定不變。 |
+| 2026-08-13 | C3 新增第六份 `list-contexts`（第 5 節），**下一次重綁起生效，不追認既有判定**：盤點檔分成 `E1-C-C3`（判定實際跑過的五份，`list` 釘 absent）與 `E1-C-C3-next`（六份，`list` 釘 present）。fixture 放在 `test-docs/e1/`，不碰 R7 corpus source bytes；`styled-list` 不能代替（錨點緊鄰既有清單會合併，SPEC-E2-A 第 11 節）。已驗：既有 14 份 fixture 對 git HEAD 逐份位元組相同、原生 LOK 開得起來且 `E1-LC-ISOLATED` 讀得回、desktop round-trip 後兩種清單樣式都還在。 |
 | 2026-08-13 | 9.1 的「101 個 as-char frame」**就地更正為「屬性 101、有效 1」**：`l4-stress-100` 那 100 個掛在 `office:text` 底下不在段落裡，實測 close 4 ms，而 `l0-t2-styled` 唯一一個在 `text:p` 裡的 close 10777 ms 走 recovery。收窄理由不變（建立在「五份都沒有 `text:note`」上），改變的是「語料對這個構造覆蓋得不錯」的印象。盤點工具同時修正（新增 `frame-as-char-in-paragraph`／`-body-level` 兩軸與反例測試）。未動任何閘門，判定不變。 |
