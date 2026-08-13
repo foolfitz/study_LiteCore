@@ -227,6 +227,14 @@ surface。保存失敗bytes／trace並建立finding，不以last-write-wins、sl
 `text:anchor-type="as-char"` 的 `draw:frame`」這個組合。在該組合上，出貨的範圍選取會讓
 引擎執行緒停止回應，之後只有重啟 worker 能復原，未存檔內容遺失。**
 
+> **2026-08-13 機制更正（不改變本節收窄的範圍）**：停止回應的不是選取，是**選取之後
+> 出貨客戶端自動做的那次選取讀回**（`getState`／`getSelection` → `readSelection()`）。
+> 選取之後引擎仍正常回應 `search`／`render`／`insertText`／**`save`（141 ms）**；
+> 那次讀回逾時之後才永久停止回應。使用者可見的結果不變（出貨的 `selectRange` 自己會做讀回），
+> **但「未存檔內容遺失」是產品的處置造成的，不是缺陷本身強迫的**——見
+> [finding 038](../findings/038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md)
+> 〈更正：殺死引擎的不是選取，是選取之後的讀取〉。
+
 **這是覆蓋範圍之外，不是被證偽的結果。** C3 語料五份 ODT 的內容軸實際盤點：
 `l0-t2-styled.odt` 有 1 個 as-char `draw:frame`、`l4-stress-100.odt` 有 100 個，
 但**五份沒有任何一份含 `text:note`**——所以這個組合在語料裡不可能出現，
@@ -253,6 +261,27 @@ as-char frame 的文件不在其內，在該缺陷修好之前也不會被納入
 **同族**：[037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)（後置條件讀取不返回，我方已擋）、
 [012](../findings/012-r6-styled-document-close-timeout.md)（`destroy()` 不返回，SDK 以有界 close recovery 處理）。
 三者的觸發都是 as-char 錨定的 frame。
+
+### 9.2 發 GO 的必要輸入：語料內容軸盤點（2026-08-13 新增）
+
+**任何 GO／PARTIAL GO 判定前，必須跑
+[`tools/inventory_corpus_axes.py --check`](../wasm_sdk_probe/tools/inventory_corpus_axes.py)，
+並把該次語料的內容軸盤點與盲區清單一併寫進判定。**
+
+理由不是流程潔癖。034、035、037、038 是同一種失敗，而且**都不是「矩陣有一格沒跑」，
+是「矩陣沒有這條軸，而且沒有人看得出它不在」**。9.1 這段收窄本身就是證據：
+C3 五份語料帶著 101 個 as-char frame 與 0 個 `text:note`，所以 038 的組合
+再跑一百次也不會出現。**這件事從測試清單上看不出來，從位元組上看得出來。**
+
+工具做的事：把每份 fixture 的**容器 ×內容**共現格算出來（註腳／尾註／表格儲存格／
+文字方塊／頁首頁尾／區段／清單項／註解／修訂 × 依錨定型別分開的 frame／圖片／標題／
+清單／表格／…），加上文字腳本軸；`e1/content-axis-suites.json` 宣告每個驗證套件實際
+跑過哪幾份文件，並把規格裡用文字寫的宣稱改寫成會失敗的斷言。**數字一律從位元組算，
+不從文件抄。**
+
+首次執行即發現一個**本規格先前沒有記載**的盲區：**C3 五份語料完全沒有 `text:list`／
+`text:list-item`**（`text:h` 有 125 個）。目前出貨契約沒有清單動作所以無害；
+**清單動作要進出貨契約之前，必須先補語料或依 9.1 的形式具名排除。**
 
 ## 10. 實作檔案
 
@@ -391,3 +420,4 @@ pipe）之後，§11.4 要求的重跑全數完成，全部對出貨 artifact `8
 | 2026-08-07 | v6。新增§11.6。finding 023修復後全部相位＋雙瀏覽器人工輪對`835b453d…`重跑完畢，48/48綁定、0 superseded，裁決回到`E1_GO_ODT_EDITOR`；關閉Chrome `trustedPaste`的finding候選。 |
 | 2026-08-08 | v7。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |
 | 2026-08-12 | 9.1 具名收窄（[finding 038](../findings/038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md)）。判定**不涵蓋**「選取涵蓋註腳／尾註引用記號，且該註腳本文含 as-char `draw:frame`」；在該組合上出貨的範圍選取會讓引擎停止回應，只有重啟 worker 能復原。**覆蓋範圍之外而非被證偽**——C3 五份語料盤點：`l0-t2` 1 個 as-char frame、`l4-stress-100` 100 個，但**五份都沒有 `text:note`**，所以該組合不可能出現，沒有任何記錄過的 PASS 因此變錯；依 034／035／037 前例重新界定而非撤銷。**已在出貨 artifact `835b453d…` 上實測**（走 `editorSelectRangeV1`／`narrow-editor-v1`，四格：無 frame 段落 7 ms、不涵蓋引用記號 6 ms、註腳無 frame 8 ms 皆事後可用；**涵蓋引用記號且註腳有 frame → TIMEOUT 15004 ms、事後不可用**），在此之前是跨 artifact 推論，由外部覆核指出並要求在動修法之前補量。48 個綁定不重跑：這是補充覆蓋，不是重新驗證。 |
+| 2026-08-13 | 新增 9.2：**發 GO 前必跑語料內容軸盤點**（`tools/inventory_corpus_axes.py --check`），盲區清單須寫進判定。工具首跑即補到一個本規格先前沒記載的盲區：**C3 五份語料沒有任何 `text:list`／`text:list-item`**。9.1 手寫的兩項語料事實（0 個 `text:note`、101 個 as-char frame）改由 `tests/test_content_axis_inventory.py` 每次檢查。未動任何閘門，判定不變。 |

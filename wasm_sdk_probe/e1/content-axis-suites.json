@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "release": "content-axis-inventory",
+  "note": "Which documents each validated suite actually ran on, so tools/inventory_corpus_axes.py can compute what those suites could and could not reach. The fixture lists are transcribed from the specs; the axis numbers are never transcribed -- they are read out of the bytes. `expect` entries are claims a spec makes in prose, restated so they fail loudly when they stop being true.",
+  "suites": {
+    "E1-C-C3": {
+      "source": "SPEC-E1-C section 5, C3 -- the five positive ODTs the E1_GO_ODT_EDITOR verdict rests on",
+      "fixtures": [
+        "l0-t1-plain-zh.odt",
+        "l0-t2-styled.odt",
+        "l0-t3-long.odt",
+        "l1-review.odt",
+        "l4-stress-100.odt"
+      ],
+      "expect": {
+        "footnote": "absent",
+        "endnote": "absent",
+        "frame-as-char": "present"
+      },
+      "why": "SPEC-E1-C 9.1 narrows the verdict on the strength of exactly this pair of facts: the corpus carries as-char frames, and it carries no notes at all, so finding 038's combination could never have appeared. Written by hand on 2026-08-12; computed here."
+    },
+    "E1-A-frozen": {
+      "source": "tools/validate_e1_corpus.py E1_A_FROZEN_FIXTURES",
+      "fixtures": [
+        "plain-grapheme.odt",
+        "multi-paragraph.odt",
+        "styled-list.odt",
+        "table-boundary.odt",
+        "r7-t2-styled.odt"
+      ],
+      "expect": {
+        "footnote": "absent",
+        "endnote": "absent"
+      }
+    },
+    "E2-A-A3-A4": {
+      "source": "SPEC-E2-A section 11 -- the three fixtures A3 and A4 swept",
+      "fixtures": [
+        "styled-list.odt",
+        "multi-paragraph.odt",
+        "plain-grapheme.odt"
+      ],
+      "expect": {
+        "list": "present",
+        "footnote": "absent"
+      }
+    },
+    "E2-A-A5": {
+      "source": "SPEC-E2-A section 11 -- A5 adds table-boundary as the negative case",
+      "fixtures": [
+        "styled-list.odt",
+        "multi-paragraph.odt",
+        "plain-grapheme.odt",
+        "table-boundary.odt"
+      ],
+      "expect": {
+        "table": "present"
+      }
+    },
+    "finding-038-repro": {
+      "source": "the two fixtures that isolate finding 038's two conditions",
+      "fixtures": [
+        "frame-contexts.odt",
+        "paragraph-content.odt"
+      ],
+      "expect": {
+        "footnote/frame-as-char": "present"
+      },
+      "why": "The one suite in this file that DOES fill the footnote x as-char-frame cell. If this expectation ever stops holding, the 038 repro has stopped reproducing the shape it claims to."
+    }
+  }
+}

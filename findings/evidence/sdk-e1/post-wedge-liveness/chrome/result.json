@@ -1,0 +1,333 @@
+{
+  "schemaVersion": 1,
+  "release": "e1-post-wedge-liveness",
+  "question": "after the 038 selection, is the engine dead or only the state read",
+  "profile": "e1-editor-v1",
+  "fixture": "frame-contexts.odt",
+  "probeTimeoutMs": 15000,
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "manifest": {
+    "abiVersion": 65537,
+    "abiVersionText": "1.1",
+    "artifactFiles": {
+      "probe.js": "./probe.js",
+      "probe.wasm": "./probe.wasm",
+      "soffice.data": "../resources/base-r5.ba15a988a7fec468.data",
+      "soffice.data.js.metadata": "../resources/base-r5.ef11ef80faf373bc.metadata"
+    },
+    "capabilities": [
+      "open-odt",
+      "rgba-tile",
+      "insert-text",
+      "save-odt",
+      "cancel-queued",
+      "search",
+      "selection-text",
+      "replace-selection",
+      "undo",
+      "comments",
+      "tracked-changes",
+      "provider-contract-1.0",
+      "provider-worker",
+      "validated-provider-operation",
+      "narrow-editor-v1",
+      "verified-selection-delete"
+    ],
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "expectedCapabilityBits": 2047,
+    "profile": "e1-editor-v1",
+    "protocolVersion": 1,
+    "providerContractVersion": "1.0",
+    "resourcePacks": [
+      {
+        "bytes": 19484784,
+        "data": "../resources/cjk-r5.b76b0433203017ca.data",
+        "id": "cjk-r5",
+        "loadAtStartup": true,
+        "metadata": "../resources/cjk-r5.fafab99558ab6f8b.metadata",
+        "purpose": "CJK corpus",
+        "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+      },
+      {
+        "bytes": 49102042,
+        "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+        "id": "fallback-fonts-r5",
+        "loadAtStartup": false,
+        "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+        "purpose": "optional complex-script and fidelity fallback",
+        "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+      }
+    ],
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-v1",
+    "editorContract": {
+      "version": 1,
+      "abiVersion": 1,
+      "actions": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic",
+        "set-underline",
+        "set-strikethrough"
+      ],
+      "textCommit": "document-sdk-insert-text",
+      "undo": "document-sdk-undo",
+      "state": "typed-editor-state-v1",
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "boundaryRejectionRequiresFreshWorker": true,
+      "automaticRetry": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "diagnosticOperationsExposed": false,
+      "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+      "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+      "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761"
+    },
+    "capabilityBits": 2047
+  },
+  "cases": [
+    {
+      "arm": "plain",
+      "probe": "get-state",
+      "status": "measured",
+      "rawSelect": "resolved",
+      "rawSelectMs": 9,
+      "probe_status": "resolved",
+      "probeValue": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 9,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 5810,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 5810,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 1418,
+              "width": 4392,
+              "height": 275
+            }
+          ]
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "text",
+        "selectionTextMissing": false,
+        "selectionText": "FX-PLAIN ordinary paragraph with no frame"
+      },
+      "probeMs": 10
+    },
+    {
+      "arm": "plain",
+      "probe": "get-selection",
+      "status": "measured",
+      "rawSelect": "resolved",
+      "rawSelectMs": 9,
+      "probe_status": "resolved",
+      "probeValue": {
+        "selectionType": "text",
+        "text": "FX-PLAIN ordinary paragraph with no frame",
+        "mimeType": "text/plain;charset=utf-8",
+        "revision": 0
+      },
+      "probeMs": 2
+    },
+    {
+      "arm": "plain",
+      "probe": "search",
+      "status": "measured",
+      "rawSelect": "resolved",
+      "rawSelectMs": 10,
+      "probe_status": "resolved",
+      "probeValue": {
+        "found": true,
+        "query": "FX-PLAIN",
+        "selections": [
+          {
+            "part": "0",
+            "rectangles": "1418, 1418, 1093, 275"
+          }
+        ],
+        "revision": 0
+      },
+      "probeMs": 19
+    },
+    {
+      "arm": "plain",
+      "probe": "render",
+      "status": "measured",
+      "rawSelect": "resolved",
+      "rawSelectMs": 10,
+      "probe_status": "resolved",
+      "probeValue": {
+        "bytes": 1048576
+      },
+      "probeMs": 79
+    },
+    {
+      "arm": "plain",
+      "probe": "insert-text",
+      "status": "measured",
+      "rawSelect": "resolved",
+      "rawSelectMs": 9,
+      "probe_status": "resolved",
+      "probeValue": {
+        "method": "paste",
+        "revision": 1
+      },
+      "probeMs": 19
+    },
+    {
+      "arm": "note",
+      "probe": "get-state",
+      "status": "measured",
+      "rawSelect": "resolved",
+      "rawSelectMs": 9,
+      "probe_status": "rejected",
+      "probeError": {
+        "name": "SdkTimeoutError",
+        "code": "TIMEOUT",
+        "message": "editorGetStateV1 timed out after 15000 ms"
+      },
+      "probeMs": 15000
+    },
+    {
+      "arm": "note",
+      "probe": "get-selection",
+      "status": "measured",
+      "rawSelect": "resolved",
+      "rawSelectMs": 9,
+      "probe_status": "rejected",
+      "probeError": {
+        "name": "SdkTimeoutError",
+        "code": "TIMEOUT",
+        "message": "getSelection timed out after 15000 ms"
+      },
+      "probeMs": 15000
+    },
+    {
+      "arm": "note",
+      "probe": "search",
+      "status": "measured",
+      "rawSelect": "resolved",
+      "rawSelectMs": 9,
+      "probe_status": "resolved",
+      "probeValue": {
+        "found": true,
+        "query": "FX-PLAIN",
+        "selections": [
+          {
+            "part": "0",
+            "rectangles": "1418, 1418, 1093, 275"
+          }
+        ],
+        "revision": 0
+      },
+      "probeMs": 20
+    },
+    {
+      "arm": "note",
+      "probe": "render",
+      "status": "measured",
+      "rawSelect": "resolved",
+      "rawSelectMs": 10,
+      "probe_status": "resolved",
+      "probeValue": {
+        "bytes": 1048576
+      },
+      "probeMs": 45
+    },
+    {
+      "arm": "note",
+      "probe": "insert-text",
+      "status": "measured",
+      "rawSelect": "resolved",
+      "rawSelectMs": 9,
+      "probe_status": "resolved",
+      "probeValue": {
+        "method": "paste",
+        "revision": 1
+      },
+      "probeMs": 3
+    }
+  ],
+  "summary": {
+    "probes": {
+      "get-state": {
+        "plain": "resolved",
+        "plainMs": 10,
+        "note": "rejected",
+        "noteMs": 15000,
+        "controlled": true
+      },
+      "get-selection": {
+        "plain": "resolved",
+        "plainMs": 2,
+        "note": "rejected",
+        "noteMs": 15000,
+        "controlled": true
+      },
+      "search": {
+        "plain": "resolved",
+        "plainMs": 19,
+        "note": "resolved",
+        "noteMs": 20,
+        "controlled": true
+      },
+      "render": {
+        "plain": "resolved",
+        "plainMs": 79,
+        "note": "resolved",
+        "noteMs": 45,
+        "controlled": true
+      },
+      "insert-text": {
+        "plain": "resolved",
+        "plainMs": 19,
+        "note": "resolved",
+        "noteMs": 3,
+        "controlled": true
+      }
+    },
+    "verdict": "partially-alive",
+    "survivingProbes": [
+      "search",
+      "render",
+      "insert-text"
+    ],
+    "rawSelectResolvedInNoteArm": true
+  },
+  "complete": true,
+  "error": null,
+  "browserName": "chrome",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "artifactSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/post-wedge-liveness/chrome"
+}

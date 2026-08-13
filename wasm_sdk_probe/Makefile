@@ -107,6 +107,7 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	e1-discovery-profile e1-discovery-assets \
 	e1-editor-profile e1-editor-assets e1-editor-validation-assets \
 	demo-editor-assets f018-line-nav-assets e1-drag-select-gate-assets \
+	e1-session-wedge-assets \
 	e1-noopfix-profile e1-noopfix-assets \
 	e2-format-discovery-profile e2-format-discovery-assets \
 	e2-wait-diagnostic-profile e2-wait-diagnostic-assets \
@@ -255,6 +256,21 @@ e1-bold-noop-assets: dist/e1-bold-noop-check.html dist/e1-bold-noop-app.js \
 # the frozen artifact must not be rebuilt, because rebuilding it invalidates the
 # manual Chewing evidence that E1-C's verdict depends on.
 demo-editor-assets: dist/demo-editor.html dist/demo-editor-app.js \
+	dist/sdk/document-sdk.js \
+	dist/editor-shell/editor-client.js dist/editor-shell/state-machine.js \
+	dist/editor-shell/editor-session.js \
+	dist/input/input-adapter.js dist/input/clipboard-adapter.js \
+	dist/reader-shell/tile-scheduler.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+# Task 035: the finding 038 wedge driven through the product EditorSession
+# rather than a bare NarrowEditorClient, to size option (d).  Same rule as
+# demo-editor-assets -- no profile prerequisite, because the whole question is
+# what today's frozen 835b453d does, and a rebuild would answer a different one.
+e1-session-wedge-assets: dist/e1-session-wedge-recovery.html \
+	dist/e1-session-wedge-recovery-app.js \
+	dist/e1-post-wedge-liveness.html dist/e1-post-wedge-liveness-app.js \
 	dist/sdk/document-sdk.js \
 	dist/editor-shell/editor-client.js dist/editor-shell/state-machine.js \
 	dist/editor-shell/editor-session.js \
@@ -1135,6 +1151,18 @@ dist/e1-drag-select-gate.html: web/e1-drag-select-gate.html | dist
 dist/e1-drag-select-gate-app.js: web/e1-drag-select-gate-app.js | dist
 	cp $< $@
 
+dist/e1-session-wedge-recovery.html: web/e1-session-wedge-recovery.html | dist
+	cp $< $@
+
+dist/e1-session-wedge-recovery-app.js: web/e1-session-wedge-recovery-app.js | dist
+	cp $< $@
+
+dist/e1-post-wedge-liveness.html: web/e1-post-wedge-liveness.html | dist
+	cp $< $@
+
+dist/e1-post-wedge-liveness-app.js: web/e1-post-wedge-liveness-app.js | dist
+	cp $< $@
+
 dist/f018-line-nav-check.html: web/f018-line-nav-check.html | dist
 	cp $< $@
 
@@ -1431,6 +1459,7 @@ test-r8-d-static: test-r8-c-static
 test-e1-a-static:
 	python3 -m unittest tests/test_e1_corpus.py \
 		tests/test_e1_discovery_profile.py tests/test_e1_a.py \
+		tests/test_content_axis_inventory.py \
 		tests/test_finding_016_remediation.py
 	node --test e1/tests/editor-discovery-client.test.mjs \
 		sdk/tests/document-sdk.test.mjs
@@ -1441,13 +1470,17 @@ test-e1-a-static:
 	python3 -m json.tool e1/discovery-matrix-v1.json >/dev/null
 	c++ -std=c++17 -Isrc -fsyntax-only tests/editor_discovery_abi_header_test.cpp
 	python3 tools/validate_e1_corpus.py
+	python3 -m json.tool e1/content-axis-suites.json >/dev/null
+	python3 tools/inventory_corpus_axes.py --check
 	python3 -m py_compile tools/e1_support.py \
 		tools/build_e1_discovery_profile.py tools/create_e1_corpus.py \
 		tools/validate_e1_corpus.py tools/validate_e1_preflight.py \
 		tools/run_e1_discovery.py tools/validate_e1_roundtrip.py \
 		tools/validate_e1_a.py tools/validate_finding_016_remediation.py \
+		tools/inventory_corpus_axes.py tools/run_e1_wedge_harness.py \
 		tests/test_e1_corpus.py tests/test_e1_discovery_profile.py \
-		tests/test_e1_a.py tests/test_finding_016_remediation.py
+		tests/test_e1_a.py tests/test_content_axis_inventory.py \
+		tests/test_finding_016_remediation.py
 
 test-e1-b-static:
 	python3 -m unittest tests/test_e1_b_profile.py tests/test_e1_b.py

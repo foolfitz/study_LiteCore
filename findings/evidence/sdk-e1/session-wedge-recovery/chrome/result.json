@@ -1,0 +1,859 @@
+{
+  "schemaVersion": 1,
+  "release": "e1-session-wedge-recovery",
+  "task": "035 -- does EditorSession escalate and recover from the 038 wedge",
+  "profile": "e1-editor-v1",
+  "fixture": "frame-contexts.odt",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "manifest": {
+    "abiVersion": 65537,
+    "abiVersionText": "1.1",
+    "artifactFiles": {
+      "probe.js": "./probe.js",
+      "probe.wasm": "./probe.wasm",
+      "soffice.data": "../resources/base-r5.ba15a988a7fec468.data",
+      "soffice.data.js.metadata": "../resources/base-r5.ef11ef80faf373bc.metadata"
+    },
+    "capabilities": [
+      "open-odt",
+      "rgba-tile",
+      "insert-text",
+      "save-odt",
+      "cancel-queued",
+      "search",
+      "selection-text",
+      "replace-selection",
+      "undo",
+      "comments",
+      "tracked-changes",
+      "provider-contract-1.0",
+      "provider-worker",
+      "validated-provider-operation",
+      "narrow-editor-v1",
+      "verified-selection-delete"
+    ],
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "expectedCapabilityBits": 2047,
+    "profile": "e1-editor-v1",
+    "protocolVersion": 1,
+    "providerContractVersion": "1.0",
+    "resourcePacks": [
+      {
+        "bytes": 19484784,
+        "data": "../resources/cjk-r5.b76b0433203017ca.data",
+        "id": "cjk-r5",
+        "loadAtStartup": true,
+        "metadata": "../resources/cjk-r5.fafab99558ab6f8b.metadata",
+        "purpose": "CJK corpus",
+        "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+      },
+      {
+        "bytes": 49102042,
+        "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+        "id": "fallback-fonts-r5",
+        "loadAtStartup": false,
+        "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+        "purpose": "optional complex-script and fidelity fallback",
+        "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+      }
+    ],
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-v1",
+    "editorContract": {
+      "version": 1,
+      "abiVersion": 1,
+      "actions": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic",
+        "set-underline",
+        "set-strikethrough"
+      ],
+      "textCommit": "document-sdk-insert-text",
+      "undo": "document-sdk-undo",
+      "state": "typed-editor-state-v1",
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "boundaryRejectionRequiresFreshWorker": true,
+      "automaticRetry": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "diagnosticOperationsExposed": false,
+      "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+      "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+      "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761"
+    },
+    "capabilityBits": 2047
+  },
+  "states": [
+    {
+      "at": 32,
+      "state": "loading",
+      "generation": 0,
+      "revision": null,
+      "dirty": false,
+      "pending": 0,
+      "error": null
+    },
+    {
+      "at": 1562,
+      "state": "ready",
+      "generation": 1,
+      "revision": 0,
+      "dirty": false,
+      "pending": 0,
+      "error": null
+    },
+    {
+      "at": 1597,
+      "state": "ready",
+      "generation": 1,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 1597,
+      "state": "busy",
+      "generation": 1,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 1597,
+      "state": "busy",
+      "generation": 1,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 1623,
+      "state": "busy",
+      "generation": 1,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 1623,
+      "state": "ready",
+      "generation": 1,
+      "revision": 0,
+      "dirty": false,
+      "pending": 0,
+      "error": null
+    },
+    {
+      "at": 1623,
+      "state": "ready",
+      "generation": 1,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 1623,
+      "state": "busy",
+      "generation": 1,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 1623,
+      "state": "busy",
+      "generation": 1,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 1632,
+      "state": "busy",
+      "generation": 1,
+      "revision": 1,
+      "dirty": true,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 1632,
+      "state": "ready",
+      "generation": 1,
+      "revision": 1,
+      "dirty": true,
+      "pending": 0,
+      "error": null
+    },
+    {
+      "at": 1665,
+      "state": "ready",
+      "generation": 1,
+      "revision": 1,
+      "dirty": true,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 1665,
+      "state": "busy",
+      "generation": 1,
+      "revision": 1,
+      "dirty": true,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 1665,
+      "state": "busy",
+      "generation": 1,
+      "revision": 1,
+      "dirty": true,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 31675,
+      "state": "recoverable-error",
+      "generation": 1,
+      "revision": 1,
+      "dirty": true,
+      "pending": 0,
+      "error": {
+        "code": "TIMEOUT",
+        "message": "editorGetStateV1 timed out after 30000 ms",
+        "details": {
+          "operation": "editorGetStateV1",
+          "timeoutMs": 30000
+        }
+      }
+    },
+    {
+      "at": 31676,
+      "state": "loading",
+      "generation": 1,
+      "revision": 1,
+      "dirty": true,
+      "pending": 0,
+      "error": null
+    },
+    {
+      "at": 32638,
+      "state": "ready",
+      "generation": 2,
+      "revision": 0,
+      "dirty": false,
+      "pending": 0,
+      "error": null
+    },
+    {
+      "at": 32685,
+      "state": "ready",
+      "generation": 2,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 32685,
+      "state": "busy",
+      "generation": 2,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 32685,
+      "state": "busy",
+      "generation": 2,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 32698,
+      "state": "busy",
+      "generation": 2,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 32698,
+      "state": "ready",
+      "generation": 2,
+      "revision": 0,
+      "dirty": false,
+      "pending": 0,
+      "error": null
+    },
+    {
+      "at": 32698,
+      "state": "ready",
+      "generation": 2,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 32698,
+      "state": "busy",
+      "generation": 2,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 32698,
+      "state": "busy",
+      "generation": 2,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 32701,
+      "state": "busy",
+      "generation": 2,
+      "revision": 1,
+      "dirty": true,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 32701,
+      "state": "ready",
+      "generation": 2,
+      "revision": 1,
+      "dirty": true,
+      "pending": 0,
+      "error": null
+    },
+    {
+      "at": 32724,
+      "state": "ready",
+      "generation": 2,
+      "revision": 1,
+      "dirty": true,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 32724,
+      "state": "busy",
+      "generation": 2,
+      "revision": 1,
+      "dirty": true,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 32724,
+      "state": "busy",
+      "generation": 2,
+      "revision": 1,
+      "dirty": true,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 62734,
+      "state": "recoverable-error",
+      "generation": 2,
+      "revision": 1,
+      "dirty": true,
+      "pending": 0,
+      "error": {
+        "code": "TIMEOUT",
+        "message": "editorGetStateV1 timed out after 30000 ms",
+        "details": {
+          "operation": "editorGetStateV1",
+          "timeoutMs": 30000
+        }
+      }
+    },
+    {
+      "at": 62734,
+      "state": "loading",
+      "generation": 2,
+      "revision": 1,
+      "dirty": true,
+      "pending": 0,
+      "error": null
+    },
+    {
+      "at": 63683,
+      "state": "ready",
+      "generation": 3,
+      "revision": 0,
+      "dirty": false,
+      "pending": 0,
+      "error": null
+    },
+    {
+      "at": 63712,
+      "state": "ready",
+      "generation": 3,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 63712,
+      "state": "busy",
+      "generation": 3,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 63712,
+      "state": "busy",
+      "generation": 3,
+      "revision": 0,
+      "dirty": false,
+      "pending": 1,
+      "error": null
+    },
+    {
+      "at": 93723,
+      "state": "recoverable-error",
+      "generation": 3,
+      "revision": 0,
+      "dirty": false,
+      "pending": 0,
+      "error": {
+        "code": "TIMEOUT",
+        "message": "editorGetStateV1 timed out after 30000 ms",
+        "details": {
+          "operation": "editorGetStateV1",
+          "timeoutMs": 30000
+        }
+      }
+    },
+    {
+      "at": 93723,
+      "state": "loading",
+      "generation": 3,
+      "revision": 0,
+      "dirty": false,
+      "pending": 0,
+      "error": null
+    },
+    {
+      "at": 93723,
+      "state": "recoverable-error",
+      "generation": 3,
+      "revision": 0,
+      "dirty": false,
+      "pending": 0,
+      "error": {
+        "code": "WORKER_GENERATION_LIMIT",
+        "message": "Worker generation limit 3 reached; reload the page",
+        "details": {
+          "generation": 3,
+          "maximumWorkerGenerations": 3,
+          "requiresPageReload": true
+        }
+      }
+    },
+    {
+      "at": 93724,
+      "state": "closed",
+      "generation": 3,
+      "revision": 0,
+      "dirty": false,
+      "pending": 0,
+      "error": {
+        "code": "WORKER_GENERATION_LIMIT",
+        "message": "Worker generation limit 3 reached; reload the page",
+        "details": {
+          "generation": 3,
+          "maximumWorkerGenerations": 3,
+          "requiresPageReload": true
+        }
+      }
+    }
+  ],
+  "engineEvents": [
+    {
+      "at": 1561,
+      "event": "view-ready"
+    },
+    {
+      "at": 1561,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 1598,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 1606,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 1631,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 1665,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 1675,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 32638,
+      "event": "view-ready"
+    },
+    {
+      "at": 32638,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 32686,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 32695,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 32704,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 32724,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 32733,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 63683,
+      "event": "view-ready"
+    },
+    {
+      "at": 63683,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 63713,
+      "event": "document-invalidated"
+    },
+    {
+      "at": 63722,
+      "event": "document-invalidated"
+    }
+  ],
+  "steps": [
+    {
+      "label": "open",
+      "at": 32,
+      "status": "resolved",
+      "value": {
+        "state": "ready",
+        "generation": 1
+      },
+      "elapsedMs": 1530,
+      "stateAfter": "ready",
+      "generationAfter": 1
+    },
+    {
+      "label": "control-select-plain",
+      "at": 1597,
+      "status": "resolved",
+      "value": {
+        "collapsed": false,
+        "text": "FX-PLAIN ordinary paragraph with no frame",
+        "rectangles": [
+          {
+            "x": 1418,
+            "y": 1418,
+            "width": 4392,
+            "height": 275
+          }
+        ],
+        "caret": {
+          "x": 5810,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "revision": 0
+      },
+      "elapsedMs": 26,
+      "stateAfter": "ready",
+      "generationAfter": 1
+    },
+    {
+      "label": "commit-marker",
+      "at": 1623,
+      "status": "resolved",
+      "value": {
+        "method": "paste",
+        "revision": 1
+      },
+      "elapsedMs": 9,
+      "stateAfter": "ready",
+      "generationAfter": 1
+    },
+    {
+      "label": "marker-before-wedge",
+      "at": 1632,
+      "status": "resolved",
+      "value": true,
+      "elapsedMs": 14,
+      "stateAfter": "ready",
+      "generationAfter": 1
+    },
+    {
+      "label": "wedge-1-select-note",
+      "at": 1665,
+      "status": "rejected",
+      "error": {
+        "name": "SdkTimeoutError",
+        "code": "TIMEOUT",
+        "message": "editorGetStateV1 timed out after 30000 ms",
+        "details": {
+          "operation": "editorGetStateV1",
+          "timeoutMs": 30000
+        }
+      },
+      "elapsedMs": 30011,
+      "stateAfter": "recoverable-error",
+      "generationAfter": 1
+    },
+    {
+      "label": "operation-while-blocked",
+      "at": 31676,
+      "status": "rejected",
+      "error": {
+        "name": "Error",
+        "code": "EDITOR_NOT_READY",
+        "message": "editor operation select-range is unavailable in recoverable-error",
+        "details": null
+      },
+      "elapsedMs": 0,
+      "stateAfter": "recoverable-error",
+      "generationAfter": 1
+    },
+    {
+      "label": "restart-1",
+      "at": 31676,
+      "status": "resolved",
+      "value": {
+        "state": "ready",
+        "generation": 2
+      },
+      "elapsedMs": 963,
+      "stateAfter": "ready",
+      "generationAfter": 2
+    },
+    {
+      "label": "marker-after-restart",
+      "at": 32638,
+      "status": "resolved",
+      "value": false,
+      "elapsedMs": 27,
+      "stateAfter": "ready",
+      "generationAfter": 2
+    },
+    {
+      "label": "post-restart-select",
+      "at": 32665,
+      "status": "resolved",
+      "value": {
+        "collapsed": false,
+        "text": "FX-PLAIN ordinary paragraph with no frame",
+        "rectangles": [
+          {
+            "x": 1418,
+            "y": 1418,
+            "width": 4392,
+            "height": 275
+          }
+        ],
+        "caret": {
+          "x": 5810,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "revision": 0
+      },
+      "elapsedMs": 33,
+      "stateAfter": "ready",
+      "generationAfter": 2
+    },
+    {
+      "label": "post-restart-commit",
+      "at": 32698,
+      "status": "resolved",
+      "value": {
+        "method": "paste",
+        "revision": 1
+      },
+      "elapsedMs": 3,
+      "stateAfter": "ready",
+      "generationAfter": 2
+    },
+    {
+      "label": "wedge-2-select-note",
+      "at": 32724,
+      "status": "rejected",
+      "error": {
+        "name": "SdkTimeoutError",
+        "code": "TIMEOUT",
+        "message": "editorGetStateV1 timed out after 30000 ms",
+        "details": {
+          "operation": "editorGetStateV1",
+          "timeoutMs": 30000
+        }
+      },
+      "elapsedMs": 30009,
+      "stateAfter": "recoverable-error",
+      "generationAfter": 2
+    },
+    {
+      "label": "restart-2",
+      "at": 62734,
+      "status": "resolved",
+      "value": {
+        "state": "ready",
+        "generation": 3
+      },
+      "elapsedMs": 950,
+      "stateAfter": "ready",
+      "generationAfter": 3
+    },
+    {
+      "label": "wedge-3-select-note",
+      "at": 63712,
+      "status": "rejected",
+      "error": {
+        "name": "SdkTimeoutError",
+        "code": "TIMEOUT",
+        "message": "editorGetStateV1 timed out after 30000 ms",
+        "details": {
+          "operation": "editorGetStateV1",
+          "timeoutMs": 30000
+        }
+      },
+      "elapsedMs": 30011,
+      "stateAfter": "recoverable-error",
+      "generationAfter": 3
+    },
+    {
+      "label": "restart-3",
+      "at": 93723,
+      "status": "rejected",
+      "error": {
+        "name": "Error",
+        "code": "WORKER_GENERATION_LIMIT",
+        "message": "Worker generation limit 3 reached; reload the page",
+        "details": {
+          "generation": 3,
+          "maximumWorkerGenerations": 3,
+          "requiresPageReload": true
+        }
+      },
+      "elapsedMs": 0,
+      "stateAfter": "recoverable-error",
+      "generationAfter": 3
+    }
+  ],
+  "predictions": {
+    "1-wedge-rejects-timeout-near-30s": {
+      "predicted": {
+        "code": "TIMEOUT",
+        "deadlineMs": 30000
+      },
+      "observed": {
+        "code": "TIMEOUT",
+        "deadlineMs": 30000
+      },
+      "held": true
+    },
+    "2-state-is-recoverable-error": {
+      "predicted": "recoverable-error",
+      "observed": "recoverable-error",
+      "held": true
+    },
+    "3-next-operation-refused-fast": {
+      "predicted": {
+        "code": "EDITOR_NOT_READY",
+        "fast": true
+      },
+      "observed": {
+        "code": "EDITOR_NOT_READY",
+        "fast": true
+      },
+      "held": true
+    },
+    "4-restart-succeeds": {
+      "predicted": {
+        "status": "resolved",
+        "state": "ready"
+      },
+      "observed": {
+        "status": "resolved",
+        "state": "ready"
+      },
+      "held": true
+    },
+    "5-unsaved-work-lost": {
+      "predicted": {
+        "beforeWedge": true,
+        "afterRestart": false
+      },
+      "observed": {
+        "beforeWedge": true,
+        "afterRestart": false
+      },
+      "held": true
+    },
+    "6-third-restart-hits-generation-limit": {
+      "predicted": {
+        "status": "rejected",
+        "code": "WORKER_GENERATION_LIMIT"
+      },
+      "observed": {
+        "status": "rejected",
+        "code": "WORKER_GENERATION_LIMIT"
+      },
+      "held": true
+    }
+  },
+  "complete": true,
+  "error": null,
+  "browserName": "chrome",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "artifactSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/session-wedge-recovery/chrome"
+}

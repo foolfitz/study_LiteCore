@@ -3,6 +3,15 @@
 > **2026-08-12 收窄**：初版說法是「段落的註腳裡有 frame 就會卡」。
 > 實測後**兩個條件缺一不可**——選取要**涵蓋引用記號**，而那個註腳本文裡要**有 frame**。
 > 四格全部有實測，見〈兩個條件，缺一不可〉。
+>
+> **2026-08-13 更正（重要）**：本檔原本寫「**選取本身就殺死引擎**，靜置 8 秒引擎已經死了」。
+> **那句話是錯的，而且是我的探針自己造成的。** 出貨 artifact 上做了對照式的活性梯之後：
+> 選取之後引擎**還活著**——`search`／`render`／`insertText`／**`save` 全部正常回應**；
+> 真正殺死引擎的是**選取之後第一個「讀選取」的呼叫**（`getState`／`getSelection`，
+> 都走 `readSelection()` → `getSelectionTypeAndText`）。那一次讀取逾時之後，
+> 引擎才**永久停止回應任何命令**（六個探針全部逾時）。
+> 原本那個「靜置 8 秒」的量測，用的是 `livenessLadder()`，而它的 engine 級**就是 `client.getState`**
+> ——**探針殺死了它要觀察的東西**。見〈更正：殺死引擎的不是選取，是選取之後的讀取〉。
 
 | | |
 |---|---|
@@ -28,6 +37,11 @@ FX-TAIL  locate               failed    10000 ms   search 逾時（下一列連�
 ```
 
 活性梯與 037 完全同型：**worker JS 活著、wasm 模組從主執行緒仍可呼叫、只有引擎 pthread 不動**。
+
+> **上面這段的因果順序在 2026-08-13 被更正。** 那五列裡，真正把引擎弄死的是
+> `selection-rectangles` 那一列（`getState`）；在它之前引擎還活著。
+> 它下面每一列都逾時，是**它**造成的，不是選取造成的。
+> 見〈更正：殺死引擎的不是選取，是選取之後的讀取〉。
 
 ## 為什麼這一單要跟 037 分開
 
@@ -90,10 +104,15 @@ FX-TAIL  locate               failed    10000 ms   search 逾時（下一列連�
 
 ## 兩個條件，缺一不可（2026-08-12，證據 `038-scope/idle-after-select`、`span-2400`）
 
-**選取本身就殺死引擎，不需要下一個命令。** 選好之後**什麼都不做，靜置 8 秒**，
+> **以下這一段在 2026-08-13 被推翻，保留原文以便對照。** 那個「靜置 8 秒」的活性梯，
+> engine 級就是 `client.getState`，也就是會殺死引擎的那個呼叫本身。
+> 對照列 `FX-PLAIN` 的 `alive` 只證明探針在健康引擎上會回答，不證明有毒引擎在被問之前就死了。
+> **本節的 2×2 觸發矩陣不受影響**（那是同一種讀取在四種內容上的差別）；被推翻的只有這一段的因果。
+
+~~**選取本身就殺死引擎，不需要下一個命令。** 選好之後**什麼都不做，靜置 8 秒**，
 活性梯就已經是 `engine=timed-out`（對照列 `FX-PLAIN` 同樣靜置 8 秒後 `alive` 10 ms）。
 所以卡死是選取的後果，不是「下一個命令踩到什麼」——這也解釋了為什麼串流裡
-選取的 callback 都出來了、然後才靜默。
+選取的 callback 都出來了、然後才靜默。~~
 
 **而且選取必須涵蓋註腳的引用記號。** 同一個段落、同一種拖曳，只把範圍縮到 2400 twips
 （讀回 `selectionType=text`、文字是 `FX-NOTE paragraph wh…`，確實選到東西了）
@@ -114,6 +133,11 @@ FX-TAIL  locate               failed    10000 ms   search 逾時（下一列連�
 **這對修法是壞消息**：要擋就得知道「這個選取有沒有涵蓋一個註腳的引用記號、
 而那個註腳裡有沒有 frame」——**光看 selection type 是問不出來的**
 （會卡的那一列連 type 都取不到）。
+
+> **2026-08-13：上面這句「對修法是壞消息」的結論已經不成立。** 它建立在
+> 「選取本身致命，所以只能事前擋」之上；實測是選取無害、致命的是之後的讀取，
+> 而**讀取之前 `save` 只要 141 ms**。修法因此不必去認出文件形狀，
+> 也不必拒絕手勢——見〈更正〉一節與 task #33。
 
 **第一次量這一格量錯了，被 `selectionType` 抓到。** 初版把「部分選取」設成錨點字寬的一半
 （約 513 twips），兩列都回 `selectionType=none`——**拖曳距離太短，根本沒有形成選取**。
@@ -168,12 +192,91 @@ FX-TAIL  locate               failed    10000 ms   search 逾時（下一列連�
 
 **沒量到的**：這一輪用的是 `NarrowEditorClient` 直接對 document handle，**沒有跑完整的
 `EditorSession` 狀態機**，所以「產品會不會自己升級成 `restart-required`」仍然沒有答案。
+**已補**，見下一節。
+
+## 完整 `EditorSession` 的反應（2026-08-13，證據 `sdk-e1/session-wedge-recovery/`）
+
+出貨 artifact `835b453d`、`frame-contexts.odt`、產品用的那個狀態機
+（`demo-editor-app.js` 與 `e1-editor-app.js` 都走它）。**六項預測在跑之前寫進探針原始碼，
+六項全中**——寫下來是因為事後才編的解釋不算預測。
+
+| 時間 | 步驟 | 結果 |
+|---|---|---|
+| 32 ms | `open` | `ready`，generation 1 |
+| 1597 ms | 對 `FX-PLAIN` 選取（對照） | 26 ms，讀回整段文字 |
+| 1623 ms | `commitText` 打進 marker | 9 ms，revision 1，文件變髒 |
+| 1632 ms | 搜尋 marker | **在** |
+| 1665 ms | 對 `FX-NOTE` 選取（觸發） | **TIMEOUT 30011 ms**，`editorGetStateV1` 逾時 |
+| 31676 ms | 再下一個命令 | **0 ms 立刻拒絕**，`EDITOR_NOT_READY` |
+| 31676 ms | `restart()` | **963 ms 成功**，generation 2，`ready` |
+| 32638 ms | 搜尋 marker | **不見了** |
+| 32665 ms | 重啟後選取＋輸入 | 33 ms／3 ms，正常 |
+| 62734 ms | 第二次 `restart()` | 950 ms，generation 3 |
+| 93723 ms | 第三次 `restart()` | **`WORKER_GENERATION_LIMIT`，要求重新載入頁面** |
+
+四件對修法直接有影響的事：
+
+1. **狀態機進的是 `recoverable-error`，不是 `restart-required`**——`TIMEOUT` 在
+   `RECOVERY_ERRORS` 裡（`editor-shell/editor-session.js:15`），`restart-required` 保留給
+   `EDITOR_BOUNDARY_UNSUPPORTED`。所以 (d) 的型別**已經存在**，不必新蓋一套。
+2. **凍結 30 秒。** 逾時用的是 SDK 預設 `_defaultTimeoutMs = 30000`
+   （`EditorSession.selectRange` 不轉傳 options）。使用者看到的是整整半分鐘沒有反應。
+3. **未存檔內容全部遺失**——`_openFresh` 重開的是 `_authorityBytes`，而那只有 `save()` 會更新。
+   對照上一節：**在讀回發生之前 `save` 只要 141 ms 就能把它救回來。**
+4. **一個 session 只能撐兩次。** `maxWorkerGenerations` 預設 3，第三次 `restart()` 就要求重新載入頁面。
+   demo 的意思是：踩到三次就只剩 F5。
+
+## 更正：殺死引擎的不是選取，是選取之後的讀取（2026-08-13，證據 `sdk-e1/post-wedge-liveness/`）
+
+出貨 artifact `835b453d`。每一格開一個新引擎，發**原始的** `editorSelectRangeV1`
+（不經 `NarrowEditorClient.selectRange`，因為它自己會做讀回，那樣就問不出這一題了），
+然後**只發一個探針**。`plain` 是同一份文件、同一個手勢、沒有 frame 的段落——
+**在兩條列上都不回應的探針是壞探針，不是發現**。
+
+| 探針 | `plain`（對照） | `note`：卡死選取之後 | `note-poisoned`：卡死選取＋一次失敗的讀取之後 |
+|---|---|---|---|
+| `getState` | 13 ms | **逾時 15001 ms** | 逾時 15000 ms |
+| `getSelection` | 2 ms | **逾時 15001 ms** | 逾時 15001 ms |
+| `search` | 18 ms | **19 ms 正常** | 逾時 15000 ms |
+| `render` | 88 ms | **45 ms 正常**（1 MB 像素） | 逾時 15000 ms |
+| `insertText` | 9 ms | **4 ms 正常**（revision 0→1） | 逾時 15001 ms |
+| **`save`** | 215 ms（11695 bytes） | **141 ms 正常（11691 bytes）** | 逾時 15000 ms |
+
+`editorSelectRangeV1` 自己在**每一格**都正常返回（9～11 ms）。三件事因此成立：
+
+1. **選取沒有殺死引擎。** 選取之後引擎照常搜尋、算圖、改內容、**存檔**。
+2. **殺死引擎的是第一次「讀選取」。** 那一次讀取逾時之後，引擎**永久**不再回應——
+   六個探針全部逾時，包含 `save`。
+3. **所以未存檔內容是產品自己丟掉的。** 出貨的 `selectRange` 在選取之後**自動**做讀回，
+   於是產品自己開了那一槍；然後 `EditorSession` 以重啟 worker 回應，
+   把**在讀回之前還救得回來**的內容丟掉（[task 035 的量測](evidence/sdk-e1/session-wedge-recovery/)：
+   marker 在卡死前讀得到、重啟後不見了）。
+
+**機制在原始碼裡對得上**：`handleGetSelection` 與 `handleEditorGetState` 都呼叫
+`readSelection()` → `getSelectionTypeAndText(…, "text/plain;charset=utf-8", …)`
+（`src/probe_engine.cpp:2371`、`:2732`、`:3773`）。這正是 037 用來當**擋法**的那個呼叫：
+037 的觸發形狀讓選取型別回 **非 TEXT**，於是根本不會去取文字；038 的形狀讓型別是 **TEXT**，
+取文字時走進註腳本文、碰到 as-char frame，就不回來了。**同一個抽取路徑，兩種入口**——
+這也解釋了為什麼 037 的擋法擋不到這裡：型別檢查在這條路上會通過。
+
+**這一格推翻了本檔原本的一句話，而且成因是方法問題。** 原本的「靜置 8 秒引擎已經死了」，
+量法是 `livenessLadder()`，它的 engine 級是 `client.getState({timeoutMs: 5000})`
+（`web/e2-format-discovery-app.js:1304`）——**就是會殺死引擎的那個呼叫**。
+所以那一輪量到的不是「引擎在靜置期間死了」，是「我的活性探針把它殺了」。
+2×2 觸發矩陣**不受影響**（它比較的是同一種讀取在四種內容上的差別），受影響的只有
+「選取本身即致命」這個因果敘述——以及從它推出的所有修法方向。
+
+**沒有量到的**：`note` 列的探針執行時，那個有毒的選取**是否仍然在位**，無法直接確認——
+確認的方法就是會卡死的那個讀取。可以說的是：四格用的是同一組座標與同一個手勢，
+而同一個手勢在 `getState` 那一格確實卡了，所以差別在探針、不在輸入。
 
 ## 沒有做的事（誠實界線）
 
-- **不知道卡在哪個呼叫**。選取的 callback 全部出來了、`.uno:SelectText` 的 result 也出來了，
-  然後靜默；靜置 8 秒不下任何命令，引擎已經死了。所以卡點在**引擎處理完選取之後**，
-  而那之後引擎自己還會做什麼（callback 處理、狀態廣播）沒有一個明顯的 LOK 呼叫可以指。
+- ~~**不知道卡在哪個呼叫**。選取的 callback 全部出來了、`.uno:SelectText` 的 result 也出來了，
+  然後靜默；靜置 8 秒不下任何命令，引擎已經死了。~~
+  **2026-08-13 已知**：卡的是 `readSelection()` →
+  `getSelectionTypeAndText(…, "text/plain;charset=utf-8", …)`，由 `getState`／`getSelection`
+  觸發；選取本身不卡。仍然不知道的是 core 在那個抽取路徑裡停在哪一行。
 - **在帶名稱的 build（`150de122`）上重現過一次並取樣**，但那一輪**八條 worker 裡有四條
   的 CDP session 在取樣途中消失**（`Session with given id not found`），所以那一輪的
   「四條 parked」**是不完整的觀察，不是完整的盤點**。可比的只有控制組那一半：
@@ -195,3 +298,9 @@ FX-TAIL  locate               failed    10000 ms   search 逾時（下一列連�
 
 - **2026-08-12（初版）**：`frame-contexts` fixture 量到；2/2 重現；
   `PC-FOOTNOTE`（沒有 frame 的註腳）作為控制組正常。
+- **2026-08-13（更正 ＋ 補量）**：**推翻本檔原本的因果敘述**——殺死引擎的不是選取，
+  是選取之後第一次「讀選取」；選取之後 `search`／`render`／`insertText`／`save` 全部正常。
+  原本的相反結論來自 `livenessLadder()` 的 engine 級**就是那個會殺死引擎的 `getState`**，
+  探針殺死了觀察對象。2×2 觸發矩陣不受影響。同一輪補上完整 `EditorSession` 的反應
+  （`recoverable-error`、30 秒凍結、restart 可用但丟掉未存檔內容、一個 session 只撐兩次）。
+  兩份新證據：`sdk-e1/post-wedge-liveness/`、`sdk-e1/session-wedge-recovery/`。
