@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-A-paragraph-format-discovery",
+  "phase": "A6",
+  "date": "2026-08-13",
+  "browser": "chrome",
+  "browserVersion": "Chrome/150.0.0.0 (Playwright)",
+  "artifact": "c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f",
+  "profile": "e2-format-discovery",
+  "countsTowardsVerdict": false,
+  "note": "SPEC E2-A section 5 A6: evidence only. It must not raise or lower A3-A5.",
+  "lineNavigation": {
+    "harness": "web/f018-line-nav-app.js?profile=e2-format-discovery&rounds=6",
+    "rounds": 6,
+    "roundsFullyCompleted": 3,
+    "actions": 24,
+    "completed": 21,
+    "timeout": 3,
+    "busy": 0,
+    "engineErrors": 0,
+    "medianCompletedMs": 37,
+    "actionTimeoutMs": 30000,
+    "shape": "rounds 1-3 completed all six actions at 37-42 ms; rounds 4-6 each reported move-line-home completed in 0 ms and then move-line-end timed out at 30000 ms",
+    "conclusion": "finding 018 reproduces on this profile; stays unsupported"
+  },
+  "dragSelection": {
+    "schemaVersion": 1,
+    "release": "e1-drag-select-gate",
+    "browser": "Chrome/150.0.0.0",
+    "crossOriginIsolated": true,
+    "profile": "e2-format-discovery",
+    "timeoutMs": 10000,
+    "verdict": {
+      "happyPathCompletes": true,
+      "happyPathSelectedText": "",
+      "happyPathSelectionType": "none",
+      "repeatsAllComplete": true,
+      "zeroLengthStatus": "completed",
+      "zeroLengthLeavesUsable": true,
+      "emptyAreaStatus": "completed",
+      "emptyAreaLeavesUsable": true,
+      "recoversAfterDegenerate": "completed",
+      "pollSettledAtMs": 1019,
+      "pollSettledText": "",
+      "pollSamples": 40,
+      "pollFirstSample": {
+        "atMs": 0,
+        "type": "none",
+        "text": ""
+      },
+      "handlesFirstText": "ASCII abc XY",
+      "handlesFirstAtMs": 2,
+      "handlesSecondText": "ASCII abc XY",
+      "handlesSecondAtMs": 2,
+      "handlesZeroLength": "completed",
+      "handlesZeroLeavesUsable": true,
+      "handlesEmptyArea": "completed",
+      "handlesEmptyLeavesUsable": true,
+      "handlesRecoverSecond": "completed",
+      "handlesRecoverText": "ASCII abc XY",
+      "handlesDistinctRanges": [
+        {
+          "span": 200,
+          "status": "completed",
+          "type": "text",
+          "text": "A"
+        },
+        {
+          "span": 400,
+          "status": "completed",
+          "type": "text",
+          "text": "ASC"
+        },
+        {
+          "span": 600,
+          "status": "completed",
+          "type": "text",
+          "text": "ASCII"
+        },
+        {
+          "span": 800,
+          "status": "completed",
+          "type": "text",
+          "text": "ASCII a"
+        }
+      ]
+    },
+    "caseAfterStates": {
+      "drag-across-text": {
+        "selectionType": "none",
+        "selectionText": ""
+      },
+      "drag-repeated": {
+        "selectionType": "text",
+        "selectionText": "ASCII"
+      },
+      "drag-zero-length": {
+        "selectionType": "none",
+        "selectionText": ""
+      },
+      "drag-empty-area": {
+        "selectionType": "none",
+        "selectionText": ""
+      },
+      "drag-after-degenerate": {
+        "selectionType": "text",
+        "selectionText": "ASCII abc XY"
+      },
+      "handles-zero-length": {
+        "selectionType": "none",
+        "selectionText": ""
+      },
+      "handles-empty-area": {
+        "selectionType": "none",
+        "selectionText": ""
+      },
+      "handles-recover-after-empty": {
+        "selectionType": "text",
+        "selectionText": "ASCII abc XY"
+      },
+      "handles-distinct-ranges": {
+        "selectionType": "text",
+        "selectionText": "ASCII a"
+      }
+    },
+    "everyCaseCompletedWithoutTimeout": true,
+    "everyCaseLeftTheHandleUsable": true,
+    "conclusion": "the mouse-drag method completes while selecting nothing: the single happy-path drag reported documented-callback-text-selection and 40 polls over 1019 ms all read selectionType none with empty text.  Repeated drags did leave a selection, so the completion does not track whether a selection happened -- SPEC E1-D 2.1 reproduced on this engine.  The text-handles method behaved correctly throughout, including four distinct spans reading back A / ASC / ASCII / ASCII a.  Both stay as they are: mouse-drag unsupported, text-handles is what the product ABI already hardwires."
+  }
+}

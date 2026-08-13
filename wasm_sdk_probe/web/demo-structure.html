@@ -99,16 +99,6 @@
     <span class="pill" id="state-pill" data-state="loading">啟動中</span>
   </div>
 
-  <div class="provenance" style="background:#fbeae9;color:#7a2c25;border-bottom-color:#eec4c1">
-    <b>這個頁面目前不能用，原因是 <a href="../findings/039-the-discovery-selection-path-completes-at-most-once.md">finding 039</a>。</b>
-    在這條 discovery ABI 上，<b>點一下段落把游標放過去這件事沒有可用的做法</b>：
-    reset 方法第二次呼叫就永遠不返回並把 handle 帶走、Document SDK 的 <code>click</code>
-    回報成功卻五次都沒移動游標、range 選取在第一個格式動作之後也開始逾時。
-    唯一還活著的是掃描 harness 的配方（每次定位前先搜尋一個文件裡一定存在的字串），
-    而那不是一個能拿給人看的手勢，而且<b>在非收合選取上派送格式動作，A3／A4／A5 從來沒有量過</b>。
-    工具鏈、契約收窄與釘死 hash 的機制都已就位並有測試；缺的是一個能定位的手勢。
-  </div>
-
   <div class="provenance">
     <b>這不是產品契約，是一個被量過的實驗檯。</b>
     標題與清單這五個動作在 <code id="pinned-hash">—</code> 上量過

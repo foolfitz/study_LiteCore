@@ -24,19 +24,32 @@ function manifest(sha = PINNED_WASM_SHA256) {
 
 function handle(sha = PINNED_WASM_SHA256) {
   const requests = [];
+  const clicks = [];
+  let caret = { x: 100, y: 100 };
   const document = {
     handle: 1,
     revision: 3,
     _assertUsable() {},
+    async click(xTwips, yTwips) {
+      clicks.push({ xTwips, yTwips });
+      // Fire-and-forget, like the real one: the caret arrives later.
+      setTimeout(() => { caret = { x: xTwips, y: yTwips }; }, 20);
+    },
     _engine: {
       manifest: manifest(sha),
       async _request(operation, payload) {
         requests.push({ operation, ...payload });
+        if (operation === "editorDiscoveryGetState")
+          return { revision: document.revision, caret };
         return { revision: document.revision + 1 };
       },
     },
   };
-  return { document, requests };
+  const context = { document, requests, clicks };
+  Object.defineProperty(context, "client", {
+    get() { return new StructureDemoClient(document); },
+  });
+  return context;
 }
 
 test("the demo refuses any build but the one its evidence describes", () => {
@@ -126,26 +139,26 @@ test("an inline format carries the explicit boolean the contract requires", asyn
   assert.equal(context.requests[1].option, false);
 });
 
-test("pointing at a line uses neither the mouse-drag nor the reset method", async () => {
+test("placing the caret uses the product's click path, not the dead ones", async () => {
   // mouse-drag reports selections it did not make (SPEC E1-D 2.1); the reset
-  // method hangs the handle from its second call onwards (finding 039).  The
-  // range method is the only one this demo may use, and it is worth pinning
-  // because both alternatives are one word away.
+  // method hangs the handle from its second call onwards and a range selection
+  // dies after the first format action (finding 039).  What is left is the
+  // Document SDK click, which is what the shipped shell uses.  Worth pinning:
+  // all three alternatives are one line away.
   const context = handle();
-  const client = new StructureDemoClient(context.document);
-  await client.selectLineAt(1000, 2000);
-  const request = context.requests[0];
-  assert.equal(request.operation, "editorDiscoverySelect");
-  assert.equal(request.method, "text-handles-unstable");
-  assert.equal(request.startYTwips, 2000);
-  assert.equal(request.endYTwips, 2000);
-  assert.ok(request.startXTwips < request.endXTwips,
-            "a degenerate range is a collapsed selection, which is the case that hangs");
+  await context.client.placeCaretByClick(1000, 2000, { timeoutMs: 1000, settleMs: 50 });
+  assert.equal(context.clicks.length, 1);
+  assert.deepEqual(context.clicks[0], { xTwips: 1000, yTwips: 2000 });
+  for (const request of context.requests)
+    assert.notEqual(request.operation, "editorDiscoverySelect");
 });
 
-test("a line near the left edge does not ask for a negative coordinate", async () => {
+test("the caret is polled, not read once", async () => {
+  // Reading the state the instant `click` returns gives the caret from before
+  // the click.  That mistake produced a whole withdrawn finding, so the poll
+  // is pinned: one state read is not enough.
   const context = handle();
-  const client = new StructureDemoClient(context.document);
-  await client.selectLineAt(10, 500);
-  assert.equal(context.requests[0].startXTwips, 0);
+  await context.client.placeCaretByClick(1000, 2000, { timeoutMs: 1000, settleMs: 400 });
+  const reads = context.requests.filter((r) => r.operation === "editorDiscoveryGetState");
+  assert.ok(reads.length > 1, `expected repeated state reads, saw ${reads.length}`);
 });

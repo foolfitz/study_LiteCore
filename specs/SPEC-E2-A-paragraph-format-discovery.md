@@ -1,9 +1,10 @@
 # SPEC E2-A：段落層級格式的 completion barrier discovery
 
-> **日期**：2026-08-05（最後修訂 2026-08-13，v16）  
-> **狀態**（2026-08-13 v16）：A1（部分）、A2、**A3／A4／A5 已執行且全數通過**
+> **日期**：2026-08-05（最後修訂 2026-08-13，v17）  
+> **狀態**（2026-08-13 v17）：A1（部分）、A2、**A3／A4／A5 已執行且全數通過**
 > ——綁定引擎 `c89f069e…`，兩瀏覽器 × 三 fixture（A5 四 fixture）。
-> **A7 的 round-trip 前半已執行且通過（10.12 節）；A7 的回歸後半與 A6 未執行，
+> **A6 已執行（Chrome，兩項都維持 unsupported，不列入判定）；
+> A7 的 round-trip 前半已執行且通過（10.12 節）；A7 的回歸後半未執行，
 > E2-A 因此仍無總判定。**
 >
 > > **2026-08-13 更正**：這段抬頭原本停在「v12、綁定 `25761ff0…`」，
@@ -528,6 +529,28 @@ Chrome／Firefox 各 3 次，每個 fixture：
 line navigation（Finding 018）與 mouse drag selection 各跑一輪，只收集證據。允許結論為「維持 unsupported」；
 **不得**因為它們失敗而降低 A3～A5 的判定。
 
+> **2026-08-13 已執行（Chrome，引擎 `c89f069e…`）。結論：兩項都維持 unsupported。**
+> 證據 [`discovery/secondary/chrome.json`](../findings/evidence/sdk-e2/discovery/secondary/chrome.json)。
+> **沒有寫新的 harness**：`f018-line-nav-app.js` 與 `e1-drag-select-gate-app.js` 本來就吃
+> `?profile=`，兩份都對著 dist 裡既有的 artifact 跑，零重連結。
+>
+> **line navigation**：6 輪 24 個動作，21 完成、**3 個 30 秒逾時**，3／6 輪跑完整。
+> 形狀是第 1～3 輪六個動作全部 37–42 ms 完成，第 4～6 輪
+> **`move-line-home` 回報 0 ms 完成、接著 `move-line-end` 逾時**。
+> [finding 018](../findings/018-lok-line-navigation-completion-nondeterministic.md) 在這個 profile 上重現。
+>
+> **mouse drag selection**：**完成了，但什麼都沒選到**——單次拖曳回
+> `documented-callback-text-selection`，之後 1019 ms 內輪詢 40 次，
+> **每一次都是 `selectionType: none`、文字空字串**。不是時序問題，是真的沒選到。
+> 但重複拖曳**有時**會留下選取（`drag-repeated` 之後讀到 `ASCII`），
+> 所以要說的不是「拖曳一定選不到」，而是**completion 不追蹤「到底有沒有選到」**
+> ——[SPEC E1-D](./SPEC-E1-D-range-selection.md) 2.1 的閘門結果在這顆引擎上重現。
+> 對照組 text-handles 全程正確：四個遞增區間讀回 `A`／`ASC`／`ASCII`／`ASCII a`，
+> 空區域與零長度都留下可用的 handle。**這正是產品 ABI 把方法寫死成 TEXT_HANDLES 的理由**，
+> 現在有了同一顆引擎上的對照。
+>
+> **Firefox 未跑**：本輪只有 Chrome。A6 不列入判定，所以這不擋任何閘門，但要說清楚。
+
 ### A7：round-trip 與回歸
 
 每個瀏覽器至少 3 份輸出 ODT 通過 ZIP CRC、XML、anchor 與 `<text:list>`／樣式結構檢查，再由 desktop
@@ -813,8 +836,8 @@ level 2／3 為 number），第一版 validator 問「這個樣式含不含 numb
 | A3 | **A3_PASS** | 21 runs／105 次派送 |
 | A4 | **A4_PASS** | 18 runs／270 次派送 |
 | A5 | **A5_PASS** | 11 runs／58 個案例 |
-| A6 | 未執行 | — |
-| A7 | 未執行 | — |
+| A6 | **已執行（不列入判定）** | Chrome 一輪：line nav 3/6 輪逾時、mouse drag 完成卻沒選到 |
+| A7 | **round-trip 前半 PASS；回歸後半未執行** | 406 份 ODT、406/406 桌面重開 |
 
 **E2-A 仍無總判定**：第 8 節要求 A6／A7 也有結果。
 
@@ -967,8 +990,10 @@ typed 的不可驗證，**永不回報成功**。
 ### 10.4 尚未執行
 
 ~~A3～A7 尚未執行。~~ ~~**A3（10.7 節）與 A4（10.8 節）已完成，皆 PASS；A5～A7 尚未執行。**~~ ~~**2026-08-11 再更新：A5（10.9 節）亦已完成且 PASS；A6／A7 尚未執行，見 10.10 節。**~~
-**2026-08-13 再更新：A7 的 round-trip 前半已執行且 PASS（10.12 節）；A7 的回歸後半與 A6 仍未執行，
-E2-A 因此仍無總判定。**
+~~**2026-08-13 再更新：A7 的 round-trip 前半已執行且 PASS（10.12 節）；A7 的回歸後半與 A6 仍未執行，
+E2-A 因此仍無總判定。**~~
+**同日再更新：A6 亦已執行（第 5 節 A6 的註記，Chrome，兩項維持 unsupported）。
+只剩 A7 的回歸後半，E2-A 仍無總判定。**
 以下 08-06 的原文保留：A3～A7 尚未執行。**A3 仍不啟動**：finding 021 已歸因且產品級主迴圈候選已實測可跑
 （2.6 節），但 caret 移動後的 freshness 來源未定（PEI 與活迴圈的行為差異未歸因），
 且推進點若進入共用路徑需先跑完整回歸。E2-A 目前**沒有**判定；第 8 節的三個結果都還不成立。

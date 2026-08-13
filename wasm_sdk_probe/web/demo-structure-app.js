@@ -1,16 +1,6 @@
-// LiteCore structure demo -- BLOCKED, see finding 039.
+// LiteCore structure demo.
 //
 // Headings and lists, on the artifact whose evidence describes them.
-//
-// It does not work yet, and the reason is not in this file: on the discovery
-// ABI there is no usable way to put the insertion point where the user
-// clicked.  The reset method never returns from its second call and takes the
-// handle with it; the SDK click reports success and moves nothing; a range
-// selection starts timing out after the first format action.  The only path
-// still standing is the sweep harness's (search for known text, then reset),
-// which is not a gesture and dispatches from a selection state A3/A4/A5 never
-// measured.  Everything else here -- the artifact pin, the narrowed surface,
-// the serialised queue, the tests -- is finished and correct.
 //
 // Task #36 asked for these in the shipped editor.  That is E2-B by SPEC
 // E2-000's own definition, and E2-000 section 5 fixes the order E2-A -> E2-B,
@@ -27,6 +17,10 @@
 //   * Its surface is narrower than the ABI underneath it.  The forbidden set
 //     and the reasons live in e2/demo-structure-client.js.
 //   * It never claims to be the product editor, in the page and in the code.
+//
+// Caret placement goes through click-then-poll, the product shell's own path.
+// Two other paths on this ABI are measured dead and deliberately unused; see
+// finding 039 and the comment on placeCaretByClick.
 //
 // Text insertion and save go through the Document SDK's own capabilities, not
 // the diagnostic editor ABI: those are product paths R5/E1 validated, and
@@ -258,7 +252,7 @@ el.canvas.addEventListener("pointerdown", (event) => {
     (event.clientY - rectangle.top) / rectangle.height * document_.heightTwips));
   for (const key of Object.keys(intent))
     intent[key] = null;
-  void run("選取這一行", () => client.selectLineAt(xTwips, yTwips, { timeoutMs: 30000 }))
+  void run("定位游標", () => client.placeCaretByClick(xTwips, yTwips, { timeoutMs: 30000 }))
     .catch(() => {});
 });
 

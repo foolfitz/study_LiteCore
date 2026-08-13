@@ -142,39 +142,43 @@ export class StructureDemoClient {
   }
 
   /**
-   * Put the insertion point on the line the user clicked.
+   * Put the insertion point where the user clicked.
    *
-   * Not `placeCaret`, and not the Document SDK's `click`, because on this
-   * profile neither one works for a click-driven UI (finding 039, measured on
-   * this artifact):
+   * This is the Document SDK click followed by a poll of the editor state --
+   * exactly what EditorSession.placeCaret does for the shipped editor, so it
+   * is a product-validated path rather than a gesture invented to dodge a
+   * defect.  Measured here: the caret settles about 245 ms after the click and
+   * tracks the clicked line, and four click-then-dispatch rounds in a row all
+   * complete (finding 039, arms 10 and 11).
    *
-   *   * `selection-reset-unstable` completes once per freshly opened document
-   *     and then hangs for ever, taking the handle with it -- it waits for a
-   *     selection-change callback that core does not send when the selection
-   *     is already empty.
-   *   * The SDK `click` returns in under a millisecond and leaves the caret
-   *     exactly where it was, 5 clicks out of 5.  Reporting success while
-   *     doing nothing is worse than hanging, so it is not used here either.
+   * The poll is not optional and the reason is worth keeping: `click` is
+   * fire-and-forget, and reading the state the instant it returns gives the
+   * *previous* caret.  Doing exactly that is how this file first concluded,
+   * wrongly, that clicking did nothing at all.
    *
-   * A range selection is the one path that is repeatable: three in a row, 19,
-   * 9 and 10 ms.  So a click becomes a short selection across the clicked
-   * line, which lands the format actions on the paragraph the user pointed at.
-   *
-   * The cost is named rather than hidden: A3/A4/A5 dispatched every one of
-   * their 375 judged actions from a *collapsed* caret, so dispatching from a
-   * non-collapsed selection is outside what they measured.  What that does to
-   * the saved document is recorded with this demo's evidence.
+   * The two paths deliberately not used, both measured dead on this artifact:
+   * `selection-reset-unstable` hangs from its second call onwards, and a range
+   * selection starts timing out once a format action has run.
    */
-  selectLineAt(xTwips, yTwips, options = {}) {
-    const start = Math.max(0, xTwips - 240);
-    return this.document._engine._request("editorDiscoverySelect", {
-      documentHandle: this.document.handle,
-      method: "text-handles-unstable",
-      startXTwips: start,
-      startYTwips: yTwips,
-      endXTwips: xTwips + 240,
-      endYTwips: yTwips,
-    }, options);
+  async placeCaretByClick(xTwips, yTwips, options = {}) {
+    const settleMs = options.settleMs ?? 3000;
+    await this.document.click(xTwips, yTwips, options);
+    const deadline = Date.now() + settleMs;
+    let previous = null;
+    let stable = 0;
+    while (Date.now() < deadline) {
+      const state = await this.getState(options);
+      const here = `${state?.caret?.x},${state?.caret?.y}`;
+      stable = here === previous ? stable + 1 : 0;
+      previous = here;
+      if (stable >= 3)
+        return state;
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    }
+    // Settling is a convenience, not a postcondition: the caret may legitimately
+    // still be moving on a slow document, and refusing the gesture over that
+    // would be worse than dispatching a beat later.
+    return this.getState(options);
   }
 
   getState(options = {}) {

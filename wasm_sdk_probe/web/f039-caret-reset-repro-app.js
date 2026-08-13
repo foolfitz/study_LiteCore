@@ -169,18 +169,64 @@ const ARMS = [
     },
   },
   {
-    // The Document SDK click is how the product shell places its caret.  Here
-    // it returns instantly and moves nothing, which is the finding 022 shape:
-    // reporting success while doing nothing is worse than hanging, because
-    // the next action lands on a paragraph nobody chose.
-    name: "the SDK click, five times",
-    expects: "never fails and never moves the caret; carets are recorded",
+    // The Document SDK click is how the product shell places its caret, and it
+    // WORKS -- but only if you wait for it.  The first version of this arm read
+    // the state once, immediately, saw the caret unmoved five times running and
+    // recorded "reports success and does nothing".  That was the probe, not the
+    // engine: the click is fire-and-forget and the caret arrives by callback a
+    // few hundred milliseconds later.  EditorSession.placeCaret has always
+    // polled for exactly this reason.
+    //
+    // Kept as an arm because the withdrawn claim is worth being unable to make
+    // again: this one records both the immediate read and the settled one.
+    name: "the SDK click, read immediately and then polled",
+    expects: "the immediate read is stale; the polled caret tracks the click",
     async plan(handle, client, step, steps) {
-      for (const [index, y] of [1600, 2200, 2800, 3400, 1600].entries()) {
+      for (const [index, y] of [1600, 2800, 3600].entries()) {
         await step(`click-${index}`, () => handle.click(1800, y, { timeoutMs: stepTimeoutMs }));
-        const state = await client.getState({ timeoutMs: stepTimeoutMs });
+        const immediate = await client.getState({ timeoutMs: stepTimeoutMs });
+        const started = performance.now();
+        let settled = null, previous = null, stable = 0;
+        while (performance.now() - started < 3000) {
+          const state = await client.getState({ timeoutMs: stepTimeoutMs });
+          const here = `${state?.caret?.x},${state?.caret?.y}`;
+          stable = here === previous ? stable + 1 : 0;
+          previous = here;
+          if (stable >= 3) { settled = here; break; }
+          await new Promise((resolve) => setTimeout(resolve, 60));
+        }
         steps.push({ step: `caret-after-click-${index}`, outcome: "read",
-                     caret: `${state?.caret?.x},${state?.caret?.y}` });
+                     clickedY: y,
+                     immediate: `${immediate?.caret?.x},${immediate?.caret?.y}`,
+                     settled: settled ?? previous,
+                     settledAfterMs: Math.round(performance.now() - started) });
+      }
+    },
+  },
+  {
+    // What the demo actually needs, and what the withdrawn arm 10 wrongly ruled
+    // out: place the caret by clicking, then dispatch.  Four paragraphs, four
+    // actions, no reset and no search anywhere.
+    name: "click-place then dispatch, four times",
+    expects: "every step completes; this is a usable gesture after all",
+    async plan(handle, client, step) {
+      for (const [index, y] of [1600, 2400, 3000, 3600].entries()) {
+        await step(`click-place-${index}`, async () => {
+          await handle.click(1800, y, { timeoutMs: stepTimeoutMs });
+          const started = performance.now();
+          let previous = null, stable = 0;
+          while (performance.now() - started < 3000) {
+            const state = await client.getState({ timeoutMs: stepTimeoutMs });
+            const here = `${state?.caret?.x},${state?.caret?.y}`;
+            stable = here === previous ? stable + 1 : 0;
+            previous = here;
+            if (stable >= 3) return;
+            await new Promise((resolve) => setTimeout(resolve, 60));
+          }
+        });
+        await step(`action-${index}`, () => client.action(
+          index % 2 ? "set-paragraph-heading" : "set-list-unordered",
+          { timeoutMs: stepTimeoutMs }));
       }
     },
   },
@@ -218,9 +264,13 @@ void (async () => {
     ?.steps.some((step) => step.outcome === "TIMEOUT");
   // The reproduction judges itself, so a run that quietly stopped reproducing
   // says so instead of leaving a reader to compare seven arms by eye.
-  const carets = report.arms.find((arm) => arm.name === "the SDK click, five times")
-    ?.steps.filter((step) => step.outcome === "read").map((step) => step.caret) ?? [];
-  report.clickMovedTheCaret = new Set(carets).size > 1;
+  const clicks = report.arms
+    .find((arm) => arm.name === "the SDK click, read immediately and then polled")
+    ?.steps.filter((step) => step.outcome === "read") ?? [];
+  report.clickMovedTheCaret = new Set(clicks.map((step) => step.settled)).size > 1;
+  // The withdrawn claim, restated as the thing that must stay false: reading
+  // once, immediately, is not a measurement of where the caret went.
+  report.immediateReadIsStale = clicks.some((step) => step.immediate !== step.settled);
   report.reproduced = timedOut("two resets, different points")
     && timedOut("two resets, the same point")
     && timedOut("a state read between the resets")
@@ -230,7 +280,9 @@ void (async () => {
     && !timedOut("a range selection between the resets")
     && !timedOut("range selections only, never a reset")
     && !timedOut("search then reset, three rounds with an action each")
-    && report.clickMovedTheCaret === false;
+    && !timedOut("click-place then dispatch, four times")
+    && report.clickMovedTheCaret === true
+    && report.immediateReadIsStale === true;
   report.complete = true;
   status.textContent = report.reproduced
     ? "reproduced" : "NOT reproduced — read the arms";
