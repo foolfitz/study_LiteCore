@@ -7,6 +7,9 @@ function fixture(options = {}) {
   const calls = [];
   const listeners = new Set();
   const clipboardWrites = [];
+  const openedBytes = [];
+  const requests = [];
+  const saveRequests = [];
   let revision = 0;
   const state = () => ({
     documentHandle: 1,
@@ -45,7 +48,11 @@ function fixture(options = {}) {
       return { revision, method: "paste" };
     },
     async undo() { calls.push("undo"); this.revision = ++revision; return { revision }; },
-    async save() { calls.push("save"); return new ArrayBuffer(24); },
+    async save(formatOptions, requestOptions) {
+      calls.push("save");
+      saveRequests.push({ formatOptions, requestOptions });
+      return new ArrayBuffer(24);
+    },
     async close() { calls.push("close"); },
   };
   const engine = {
@@ -55,11 +62,20 @@ function fixture(options = {}) {
       editorContract: { version: 1 },
     },
     onEvent(listener) { listeners.add(listener); return () => listeners.delete(listener); },
-    async open() { calls.push("open"); return document; },
-    async _request(operation, payload) {
+    async open(bytes) {
+      calls.push("open");
+      openedBytes.push(bytes.slice(0));
+      revision = 0;
+      document.revision = 0;
+      return document;
+    },
+    async _request(operation, payload, requestOptions) {
       calls.push(`${operation}:${payload.action || "state"}`);
+      requests.push({ operation, payload: { ...payload }, options: requestOptions });
       if (operation === "editorGetStateV1")
         return state();
+      if (operation === "editorSelectRangeV1")
+        return { revision };
       if (payload.action === "delete-forward" && fixture.boundaryFailure) {
         const error = new Error("boundary");
         error.code = "EDITOR_BOUNDARY_UNSUPPORTED";
@@ -87,10 +103,15 @@ function fixture(options = {}) {
     calls,
     clipboardWrites,
     document,
+    engine,
     listeners,
+    openedBytes,
+    requests,
+    saveRequests,
     session: new EditorSession({
       engineFactory: async () => engine,
       maxWorkerGenerations: options.maxWorkerGenerations,
+      selectionTimeoutMs: options.selectionTimeoutMs,
       secureContext: true,
       clipboard: options.clipboard || {
         async writeText(text) { clipboardWrites.push(text); },
@@ -110,6 +131,241 @@ function deferred() {
   });
   return { promise, resolve, reject };
 }
+
+const selectionStart = Object.freeze({ xTwips: 10, yTwips: 20 });
+const selectionEnd = Object.freeze({ xTwips: 30, yTwips: 40 });
+
+function rejectSelectionReadback(value) {
+  const request = value.engine._request.bind(value.engine);
+  let selectionIssued = false;
+  value.engine._request = async (...args) => {
+    const [operation] = args;
+    const result = await request(...args);
+    if (operation === "editorSelectRangeV1")
+      selectionIssued = true;
+    else if (operation === "editorGetStateV1" && selectionIssued) {
+      selectionIssued = false;
+      const error = new Error("selection readback timed out");
+      error.code = "TIMEOUT";
+      throw error;
+    }
+    return result;
+  };
+  return () => { value.engine._request = request; };
+}
+
+test("selectRange applies the bounded selection timeout by default", async () => {
+  const value = fixture();
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.selectRange(selectionStart, selectionEnd);
+  const request = value.requests.find((entry) => entry.operation === "editorSelectRangeV1");
+  assert.equal(request.options.timeoutMs, 5000);
+  assert.notEqual(request.options.timeoutMs, 30000);
+  await value.session.close();
+});
+
+test("selectRange preserves a caller timeout over the configured selection timeout", async () => {
+  const value = fixture({ selectionTimeoutMs: 4321 });
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.selectRange(selectionStart, selectionEnd, { timeoutMs: 1234 });
+  await value.session.selectRange(selectionStart, selectionEnd);
+  const requests = value.requests.filter((entry) => entry.operation === "editorSelectRangeV1");
+  assert.deepEqual(requests.map((entry) => entry.options.timeoutMs), [1234, 4321]);
+  await value.session.close();
+});
+
+test("only selection-extending character movement gets the selection timeout", async () => {
+  const value = fixture();
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.moveCharacter("right", { extendSelection: true });
+  await value.session.moveCharacter("right");
+  const requests = value.requests.filter((entry) => entry.operation === "editorActionV1"
+    && entry.payload.action === "move-character-right");
+  assert.equal(requests[0].options.timeoutMs, 5000);
+  assert.equal(requests[1].options.timeoutMs, undefined);
+  await value.session.close();
+});
+
+test("a dirty session checkpoints before issuing a selection", async () => {
+  const value = fixture();
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.commitText("檢查點");
+  await value.session.selectRange(selectionStart, selectionEnd);
+  assert.ok(value.calls.indexOf("save") < value.calls.indexOf("editorSelectRangeV1:state"));
+  assert.equal(value.saveRequests[0].requestOptions.timeoutMs, 5000);
+  assert.equal(value.session.state.snapshot.hasCheckpoint, true);
+  assert.equal(value.session.state.snapshot.checkpointRevision, 1);
+  const bytes = value.session.checkpointBytes();
+  assert.equal(bytes.byteLength, 24);
+  new Uint8Array(bytes)[0] = 255;
+  assert.equal(new Uint8Array(value.session.checkpointBytes())[0], 0);
+  await value.session.close();
+});
+
+test("a clean session does not take a selection checkpoint", async () => {
+  const value = fixture();
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.selectRange(selectionStart, selectionEnd);
+  assert.equal(value.calls.includes("save"), false);
+  assert.equal(value.session.state.snapshot.hasCheckpoint, false);
+  assert.equal(value.session.state.snapshot.checkpointRevision, null);
+  assert.equal(value.session.checkpointBytes(), null);
+  await value.session.close();
+});
+
+test("a second selection at the checkpointed revision does not save again", async () => {
+  const value = fixture();
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.commitText("只存一次");
+  await value.session.selectRange(selectionStart, selectionEnd);
+  await value.session.selectRange(selectionEnd, selectionStart);
+  assert.equal(value.calls.filter((entry) => entry === "save").length, 1);
+  assert.equal(value.requests.filter((entry) => entry.operation === "editorSelectRangeV1").length, 2);
+  await value.session.close();
+});
+
+test("a rejected checkpoint does not prevent the selection", async () => {
+  const value = fixture();
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.commitText("仍可選取");
+  value.document.save = async () => {
+    value.calls.push("save-rejected");
+    const error = new Error("checkpoint save failed");
+    error.code = "SAVE_FAILED";
+    throw error;
+  };
+  await value.session.selectRange(selectionStart, selectionEnd);
+  assert.equal(value.calls.includes("save-rejected"), true);
+  assert.equal(value.calls.includes("editorSelectRangeV1:state"), true);
+  assert.equal(value.session._checkpointError.code, "SAVE_FAILED");
+  assert.equal(value.session.state.snapshot.hasCheckpoint, false);
+  assert.equal(value.session.state.snapshot.state, "ready");
+  await value.session.close();
+});
+
+test("a selection TIMEOUT enters recovery without saving after the timeout", async () => {
+  const value = fixture();
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.commitText("逾時前保存");
+  rejectSelectionReadback(value);
+  await assert.rejects(
+    () => value.session.selectRange(selectionStart, selectionEnd),
+    { code: "TIMEOUT" },
+  );
+  const timedOutReadback = value.calls.lastIndexOf("editorGetStateV1:state");
+  assert.equal(value.calls.filter((entry) => entry === "save").length, 1);
+  assert.equal(value.calls.slice(timedOutReadback + 1).includes("save"), false);
+  assert.equal(value.session.state.snapshot.state, "recoverable-error");
+  await value.session.close();
+});
+
+test("restart reopens newer checkpoint bytes after a selection TIMEOUT", async () => {
+  const value = fixture();
+  const authorityBytes = new ArrayBuffer(16);
+  new Uint8Array(authorityBytes)[0] = 17;
+  await value.session.open({ bytes: authorityBytes });
+  await value.session.commitText("保留的內容");
+  rejectSelectionReadback(value);
+  await assert.rejects(
+    () => value.session.selectRange(selectionStart, selectionEnd),
+    { code: "TIMEOUT" },
+  );
+  await value.session.restart();
+  assert.equal(value.openedBytes.length, 2);
+  assert.equal(value.openedBytes[0].byteLength, 16);
+  assert.equal(value.openedBytes[1].byteLength, 24);
+  assert.equal(new Uint8Array(value.openedBytes[1])[0], 0);
+  assert.equal(value.session.state.snapshot.hasCheckpoint, true);
+  await value.session.close();
+});
+
+test("a repeated post-recovery revision still creates a new checkpoint", async () => {
+  const value = fixture();
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.commitText("第一世代");
+  const restoreReadback = rejectSelectionReadback(value);
+  await assert.rejects(
+    () => value.session.selectRange(selectionStart, selectionEnd),
+    { code: "TIMEOUT" },
+  );
+  await value.session.restart();
+  restoreReadback();
+  assert.equal(value.document.revision, 0);
+
+  await value.session.commitText("第二世代");
+  assert.equal(value.document.revision, 1);
+  await value.session.selectRange(selectionStart, selectionEnd);
+  assert.equal(value.calls.filter((entry) => entry === "save").length, 2);
+  assert.equal(value.session.state.snapshot.checkpointRevision, 1);
+  await value.session.close();
+});
+
+test("restart opens the newest bytes when Worker revisions restart", async () => {
+  const value = fixture();
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.commitText("權威版本一");
+  await value.session.commitText("權威版本二");
+  value.document.save = async () => {
+    const bytes = new ArrayBuffer(32);
+    new Uint8Array(bytes)[0] = 51;
+    return bytes;
+  };
+  await value.session.save();
+  for (const listener of value.listeners) {
+    listener({
+      event: "worker-crashed",
+      error: { code: "WORKER_CRASHED", message: "fixture crash" },
+    });
+  }
+  await value.session.restart();
+  assert.equal(value.document.revision, 0);
+  assert.equal(new Uint8Array(value.openedBytes[1])[0], 51);
+
+  await value.session.commitText("較新的檢查點");
+  value.document.save = async () => {
+    const bytes = new ArrayBuffer(24);
+    new Uint8Array(bytes)[0] = 92;
+    return bytes;
+  };
+  rejectSelectionReadback(value);
+  await assert.rejects(
+    () => value.session.selectRange(selectionStart, selectionEnd),
+    { code: "TIMEOUT" },
+  );
+  await value.session.restart();
+  assert.equal(value.openedBytes.length, 3);
+  assert.equal(value.openedBytes[2].byteLength, 24);
+  assert.equal(new Uint8Array(value.openedBytes[2])[0], 92);
+  await value.session.close();
+});
+
+test("a successful save supersedes an older checkpoint for restart", async () => {
+  const value = fixture();
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.commitText("舊檢查點");
+  await value.session.selectRange(selectionStart, selectionEnd);
+  await value.session.commitText("更新權威版本");
+  value.document.save = async () => {
+    value.calls.push("save-authority");
+    const bytes = new ArrayBuffer(32);
+    new Uint8Array(bytes)[0] = 91;
+    return bytes;
+  };
+  await value.session.save();
+  assert.equal(value.session.state.snapshot.hasCheckpoint, false);
+  assert.equal(value.session.state.snapshot.checkpointRevision, null);
+  assert.equal(value.session.checkpointBytes(), null);
+  for (const listener of value.listeners) {
+    listener({
+      event: "worker-crashed",
+      error: { code: "WORKER_CRASHED", message: "fixture crash" },
+    });
+  }
+  await value.session.restart();
+  assert.equal(value.openedBytes[1].byteLength, 32);
+  assert.equal(new Uint8Array(value.openedBytes[1])[0], 91);
+  await value.session.close();
+});
 
 test("session serializes committed text and editor mutations", async () => {
   const value = fixture();

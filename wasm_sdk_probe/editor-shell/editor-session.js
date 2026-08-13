@@ -32,6 +32,9 @@ export class EditorSession {
     this._maxWorkerGenerations = options.maxWorkerGenerations ?? 3;
     if (!Number.isInteger(this._maxWorkerGenerations) || this._maxWorkerGenerations < 1)
       throw new TypeError("maxWorkerGenerations must be a positive integer");
+    this._selectionTimeoutMs = options.selectionTimeoutMs ?? 5000;
+    if (!Number.isInteger(this._selectionTimeoutMs) || this._selectionTimeoutMs < 1)
+      throw new TypeError("selectionTimeoutMs must be a positive integer");
     this.state = new EditorStateMachine(options.onState);
     this.engine = null;
     this.document = null;
@@ -57,7 +60,18 @@ export class EditorSession {
       onTrace: options.onClipboardTrace,
     });
     this._authorityBytes = null;
+    this._authorityStamp = 0;
     this._authorityName = null;
+    this._checkpointBytes = null;
+    this._checkpointRevision = null;
+    this._checkpointStamp = null;
+    this._checkpointError = null;
+    // Document revisions restart at zero with every Worker.  Content stamps
+    // are session-owned and never reset, so byte snapshots from different
+    // Worker generations can be ordered without comparing unrelated counters.
+    this._contentSequence = 0;
+    this._currentContentStamp = 0;
+    this.state.update({ hasCheckpoint: false, checkpointRevision: null });
     this._unsubscribe = null;
     this._queue = [];
     this._drainSequence = 0;
@@ -97,11 +111,17 @@ export class EditorSession {
       this.engine = await this._engineFactory();
       this._generation += 1;
       this._unsubscribe = this.engine.onEvent((event) => this._handleEngineEvent(event));
-      this.document = await this.engine.open(this._authorityBytes.slice(0), {
+      const useCheckpoint = this._checkpointBytes !== null
+        && this._checkpointStamp !== null
+        && this._checkpointStamp > this._authorityStamp;
+      const sourceBytes = useCheckpoint ? this._checkpointBytes : this._authorityBytes;
+      const sourceStamp = useCheckpoint ? this._checkpointStamp : this._authorityStamp;
+      this.document = await this.engine.open(sourceBytes.slice(0), {
         name: this._authorityName,
         transfer: true,
         timeoutMs: 180000,
       });
+      this._currentContentStamp = sourceStamp;
       this.editor = new NarrowEditorClient(this.document);
       this.scheduler = new TileScheduler({
         ...this._tileOptions,
@@ -121,7 +141,7 @@ export class EditorSession {
       this.input.setBlocked(false);
       this.state.transition("ready", {
         revision: this.document.revision,
-        dirty: false,
+        dirty: useCheckpoint,
         generation: this._generation,
         pending: 0,
         editorState,
@@ -232,6 +252,8 @@ export class EditorSession {
           const editorState = result?.state
             || await item.runtime.editor.getState({ timeoutMs: 30000 });
           this._assertDrainOwner(drain, item);
+          if (item.mutation)
+            this._currentContentStamp = ++this._contentSequence;
           item.runtime.scheduler?.invalidateRevision(item.runtime.document.revision);
           this.state.update({
             revision: item.runtime.document.revision,
@@ -248,6 +270,9 @@ export class EditorSession {
           } else if (error?.code === "EDITOR_BOUNDARY_UNSUPPORTED") {
             this._blockQueue(error, "restart-required", "editor-boundary");
           } else if (RECOVERY_ERRORS.has(error?.code)) {
+            // A selection readback TIMEOUT means the engine thread is already
+            // dead.  Saving on the way down would only consume another full
+            // deadline; the pre-gesture checkpoint is the last safe save.
             this._blockQueue(error, "recoverable-error", "editor-recovery");
           }
         }
@@ -308,10 +333,51 @@ export class EditorSession {
   // selected.  Goes through the queue anyway so it cannot interleave with a
   // mutation that is still in flight.
   selectRange(start, end, options = {}) {
+    // Healthy selections finish in 6-33 ms while the broken engine path never
+    // returns.  Five seconds bounds that failure and matches the engine's
+    // existing FormatBarrierStageDeadlineMs.
+    const selectionOptions = {
+      ...options,
+      timeoutMs: options.timeoutMs ?? this._selectionTimeoutMs,
+    };
     return this._enqueue(
       "select-range",
-      ({ editor }) => editor.selectRange(start, end, options),
+      async ({ document, editor }) => {
+        await this._checkpointBeforeSelection(document);
+        return editor.selectRange(start, end, selectionOptions);
+      },
     );
+  }
+
+  async _checkpointBeforeSelection(document) {
+    const revision = document.revision;
+    const contentStamp = this._currentContentStamp;
+    if (!this.state.snapshot.dirty || contentStamp === this._checkpointStamp)
+      return;
+    try {
+      const bytes = await document.save(
+        { format: "odt" },
+        { timeoutMs: this._selectionTimeoutMs },
+      );
+      if (document !== this.document || contentStamp !== this._currentContentStamp)
+        return;
+      this._checkpointBytes = bytes.slice(0);
+      this._checkpointRevision = revision;
+      this._checkpointStamp = contentStamp;
+      this._checkpointError = null;
+      this.state.update({
+        hasCheckpoint: true,
+        checkpointRevision: revision,
+      });
+    } catch (error) {
+      // A background checkpoint must never turn a user's selection gesture
+      // into a save failure.  Keep the failure for diagnostics and continue.
+      this._checkpointError = publicError(error, "CHECKPOINT_FAILED");
+    }
+  }
+
+  checkpointBytes() {
+    return this._checkpointBytes?.slice(0) ?? null;
   }
 
   commitText(text, options = {}) {
@@ -321,9 +387,16 @@ export class EditorSession {
   }
 
   moveCharacter(direction, options = {}) {
+    const selectionOptions = options.extendSelection
+      ? { ...options, timeoutMs: options.timeoutMs ?? this._selectionTimeoutMs }
+      : options;
     return this._enqueue(
       `move-character-${direction}`,
-      ({ editor }) => editor.moveCharacter(direction, options),
+      async ({ document, editor }) => {
+        if (options.extendSelection)
+          await this._checkpointBeforeSelection(document);
+        return editor.moveCharacter(direction, selectionOptions);
+      },
     );
   }
 
@@ -361,11 +434,24 @@ export class EditorSession {
         { format: "odt" },
         { timeoutMs: options.timeoutMs ?? 180000, signal: options.signal },
       );
-      return { bytes, revision: document.revision };
+      return { bytes, revision: document.revision, contentStamp: this._currentContentStamp };
     }, { finalize: (result) => {
-      const { bytes } = result;
+      const { bytes, contentStamp } = result;
       this._authorityBytes = bytes.slice(0);
-      this.state.update({ dirty: false, hasSavedBytes: true });
+      this._authorityStamp = contentStamp;
+      // This save ran after any checkpoint in the same FIFO, so authority now
+      // contains at least that content.  Retaining the checkpoint could later
+      // resurrect older bytes after revisions restart with a fresh Worker.
+      this._checkpointBytes = null;
+      this._checkpointRevision = null;
+      this._checkpointStamp = null;
+      this._checkpointError = null;
+      this.state.update({
+        dirty: false,
+        hasSavedBytes: true,
+        hasCheckpoint: false,
+        checkpointRevision: null,
+      });
       return result;
     } });
   }
