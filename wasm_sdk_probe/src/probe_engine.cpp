@@ -659,6 +659,22 @@ struct FormatStateBarrier {
   EditorRect restorePoint;
   bool restorePointValid = false;
   bool restoreConfirmed = false;
+  // SPEC E2-A 10.14 narrowing 7.  "All 395 dispatches came from a collapsed
+  // caret" was inferred from the harness shape and never recorded, and the two
+  // fields that look like they answer it do not: `selectionType` is read at
+  // ReadQueued, one stage AFTER the barrier posted its own paragraph selection,
+  // and `state.selection.collapsed` is emitted after the restore, so being
+  // collapsed there just means the restore worked.  These two are read at the
+  // dispatch itself, next to restorePoint, which is the only moment that can
+  // answer what the CALLER had selected.
+  //
+  // Read from the engine's tracked rectangles rather than by asking LOK: a
+  // readSelection() here would be the call measured to hang forever on finding
+  // 038's construct (findings/040, third entry point), so a field added to
+  // record evidence would have introduced a wedge.
+  bool dispatchSelectionCollapsed = true;
+  bool dispatchSelectionObserved = false;
+  std::size_t dispatchSelectionRectangles = 0;
   // What the postcondition demands of the readback.  Empty means "this action
   // makes no claim about that half".
   std::string expectedListTag;   // "ul" / "ol" / "none"
@@ -1133,6 +1149,16 @@ void appendFormatBarrierDetails(std::ostringstream &json,
        << "},\"selectionType\":" << barrier.selectionType
        << ",\"selectionTypeReadable\":"
        << (barrier.selectionTypeReadable ? "true" : "false")
+       // SPEC E2-A 10.14 narrowing 7.  Named `dispatch*` on purpose: the field
+       // above it is read after the barrier selected the paragraph, so a reader
+       // comparing them must be able to tell which moment each describes
+       // without going to the source.
+       << ",\"dispatchSelectionCollapsed\":"
+       << (barrier.dispatchSelectionCollapsed ? "true" : "false")
+       << ",\"dispatchSelectionObserved\":"
+       << (barrier.dispatchSelectionObserved ? "true" : "false")
+       << ",\"dispatchSelectionRectangles\":"
+       << barrier.dispatchSelectionRectangles
        << ",\"resultSuccess\":" << (barrier.resultSuccess ? "true" : "false")
        << ",\"resultModified\":" << (barrier.resultModified ? "true" : "false")
        << ",\"expectedStyles\":[";
@@ -3509,6 +3535,12 @@ void startFormatBarrierActionResolved(const Command &command,
   // ended up would put it back to the wrong place and still look like success.
   barrier.restorePoint = gEditorState.caret;
   barrier.restorePointValid = gEditorState.caret.available;
+  // Same instant, same reason (SPEC E2-A 10.14 narrowing 7).  Recorded here and
+  // nowhere later: every later moment describes a selection the barrier itself
+  // made.
+  barrier.dispatchSelectionCollapsed = gEditorState.selectionRectangles.empty();
+  barrier.dispatchSelectionObserved = gEditorState.selectionObserved;
+  barrier.dispatchSelectionRectangles = gEditorState.selectionRectangles.size();
   barrier.stage = FormatBarrierStage::AwaitingResult;
   barrier.serial = gNextFormatBarrierSerial++;
   gFormatBarrier = barrier;

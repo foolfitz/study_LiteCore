@@ -71,6 +71,25 @@ E2_WAIT_OBJECTS := $(patsubst src/%.cpp,$(E2_WAIT_BUILD)/%.o,$(E1_SOURCES))
 E2_PREGUARD_BUILD := build/e2/preguard-profiling
 E2_PREGUARD_DIST := dist/profiles/e2-preguard-profiling
 E2_PREGUARD_OBJECTS := $(patsubst src/%.cpp,$(E2_PREGUARD_BUILD)/%.o,$(E1_SOURCES))
+# Task #47 / SPEC E2-A 10.14's E2-B entry condition, under the C-plus ruling.
+# The combination E2-B would actually ship, and which exists on no artifact
+# today: the PRODUCT select ABI (the one that arms the bounded readback,
+# editor_api.cpp:123) together with the format barrier, while still exporting
+# the discovery ABI so the A3/A4/A5 harness can drive it unchanged.
+#
+# Both symbol sets on ONE hash on purpose.  The entry condition has two clauses
+# -- "039 fixed" and "A3/A4/A5 re-swept and passing" -- and satisfying them on
+# two different artifacts would satisfy neither.  Both API translation units put
+# their helpers in anonymous namespaces, so linking them together is clean.
+#
+# Measurement profile: never shipped, and it does NOT change the discovery
+# profile, which keeps pure callback semantics and keeps finding 039 by design
+# (probe_engine.hpp:69-72).
+E2_COMBO_BUILD := build/e2/combination
+E2_COMBO_DIST := dist/profiles/e2-combination
+E2_COMBO_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp \
+	src/editor_api.cpp src/editor_discovery_api.cpp
+E2_COMBO_OBJECTS := $(patsubst src/%.cpp,$(E2_COMBO_BUILD)/%.o,$(E2_COMBO_SOURCES))
 E2_SCHED_BUILD := build/e2/scheduler-attribution
 E2_SCHED_DIST := dist/profiles/e2-scheduler-attribution
 E2_SCHED_OBJECTS := $(patsubst src/%.cpp,$(E2_SCHED_BUILD)/%.o,$(E1_SOURCES))
@@ -116,6 +135,7 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	e1-editor-profile e1-editor-assets e1-editor-validation-assets \
 	demo-editor-assets f018-line-nav-assets e1-drag-select-gate-assets \
 	f039-product-readback-assets \
+	e2-combination-profile \
 	e1-session-wedge-assets \
 	e1-noopfix-profile e1-noopfix-assets \
 	e2-format-discovery-profile e2-format-discovery-assets \
@@ -484,6 +504,7 @@ $(FINDING_012_BUILD) $(FINDING_012_DIAGNOSTIC_BUILD) \
 		$(FINDING_016_SELECTION_BUILD) $(FINDING_016_SELECTION_DIST) \
 		$(E2_BUILD) $(E2_DIST) $(E2_WAIT_BUILD) $(E2_WAIT_DIST) \
 		$(E2_PREGUARD_BUILD) $(E2_PREGUARD_DIST) \
+		$(E2_COMBO_BUILD) $(E2_COMBO_DIST) \
 		$(E2_SCHED_BUILD) $(E2_SCHED_DIST) \
 		$(E2_MAINLOOP_BUILD) $(E2_MAINLOOP_DIST) \
 		$(E2_MLPEI_BUILD) $(E2_MLPEI_DIST) \
@@ -574,6 +595,53 @@ $(E2_PREGUARD_DIST)/sdk-manifest.json: $(E2_PREGUARD_BUILD)/probe.js \
 	@test -s $(E2_PREGUARD_DIST)/probe.js
 	@test -s $(E2_PREGUARD_DIST)/probe.wasm
 	@test -s $(E2_PREGUARD_DIST)/sdk-worker.js
+
+$(E2_COMBO_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/editor_discovery_api.h Makefile | $(E2_COMBO_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-c $< -o $@
+
+# The union of both export lists, written out rather than copied from either
+# side: copying one and appending the other would hide which symbols this
+# artifact is actually meant to expose.
+$(E2_COMBO_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_COMBO_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_discovery_action \
+		_oxsdk_editor_discovery_select \
+		_oxsdk_editor_discovery_get_state >> $@
+
+$(E2_COMBO_BUILD)/probe.js: $(E2_COMBO_OBJECTS) $(E2_COMBO_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_r5_product,$(E2_COMBO_OBJECTS),$(E2_COMBO_BUILD)/exports.txt,$@)
+
+$(E2_COMBO_BUILD)/probe.wasm: $(E2_COMBO_BUILD)/probe.js
+	@test -s $@
+
+# narrow-editor-v1 has to be declared as well, or sdk-worker.js refuses every
+# product-ABI method on this profile and the combination could not be driven at
+# all -- the capability gate is the worker's, not the engine's.
+$(E2_COMBO_DIST)/sdk-manifest.json: $(E2_COMBO_BUILD)/probe.js \
+		$(E2_COMBO_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e2_discovery_profile.py \
+		tools/e1_support.py | $(E2_COMBO_DIST)
+	python3 tools/build_e2_discovery_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_COMBO_BUILD)/probe.js --wasm $(E2_COMBO_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(E2_COMBO_DIST) \
+		--profile-name e2-combination --extra-capability narrow-editor-v1
+	@test -s $(E2_COMBO_DIST)/probe.js
+	@test -s $(E2_COMBO_DIST)/probe.wasm
+	@test -s $(E2_COMBO_DIST)/sdk-worker.js
+	@grep -q narrow-editor-v1 $(E2_COMBO_DIST)/sdk-manifest.json
+	@grep -q editor-discovery-closed-actions $(E2_COMBO_DIST)/sdk-manifest.json
+
+e2-combination-profile: $(E2_COMBO_DIST)/sdk-manifest.json
 
 e2-preguard-profiling-profile: $(E2_PREGUARD_DIST)/sdk-manifest.json
 
