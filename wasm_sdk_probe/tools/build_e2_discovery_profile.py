@@ -21,6 +21,11 @@ from e1_support import sha256, write_json
 # Substitution is exact and must match exactly once.  A silent no-op here would
 # produce a profile whose Worker rejects the very operations E2-A is measuring,
 # and the failure would look like a missing capability rather than a build bug.
+# Imported, not retyped: two copies of the closed action set would be free to
+# drift, and the whole point of the combination profile is that its product half
+# is the same contract the product ships.
+from build_e1_b_profile import EDITOR_ACTIONS as E1_EDITOR_ACTIONS  # noqa: E402
+
 WORKER_GATE_BEFORE = """function editorDiscoveryEnabled() {
   return activeManifest?.diagnostic?.scope === "e1-odt-editing-discovery"
     && activeManifest?.capabilities?.includes("editor-discovery-closed-actions");
@@ -166,6 +171,37 @@ def build_profile(source_manifest: Path, loader: Path, wasm: Path, worker: Path,
     ])
     capabilities.extend(extra_capabilities or [])
     manifest["capabilities"] = capabilities
+
+    # Task #47.  Declaring narrow-editor-v1 is not enough to make the product
+    # ABI reachable: sdk-worker.js gates it on capability AND
+    # editorContract.version === 1 (sdk-worker.js:98-101), and this builder
+    # never emitted an editorContract at all.  The first combination profile
+    # therefore came out with the capability listed and every product method
+    # refused at 0 ms with "editor v1 operations require the isolated narrow
+    # editor profile" -- a failure that reads like a missing capability while
+    # the capability is right there.
+    #
+    # Only emitted when the caller actually asked for that capability, so every
+    # other diagnostic profile's manifest stays byte-identical.
+    if "narrow-editor-v1" in (extra_capabilities or []):
+        manifest["editorContract"] = {
+            "version": 1,
+            "abiVersion": 1,
+            "actions": E1_EDITOR_ACTIONS,
+            "textCommit": "document-sdk-insert-text",
+            "undo": "document-sdk-undo",
+            "state": "typed-editor-state-v1",
+            "selectionBarrier": "verified-single-writer-unit-v1",
+            "boundaryRejectionRequiresFreshWorker": True,
+            "automaticRetry": False,
+            "rawCallbackExposed": False,
+            "arbitraryKeyCodeAccepted": False,
+            "arbitraryUnoCommandAccepted": False,
+            "diagnosticOperationsExposed": False,
+            "loaderSha256": sha256(output / "probe.js"),
+            "wasmSha256": sha256(output / "probe.wasm"),
+            "workerSha256": sha256(output / "sdk-worker.js"),
+        }
     manifest["diagnostic"] = {
         "scope": scope,
         "contract": "closed-actions-v1-candidate-not-product-abi",

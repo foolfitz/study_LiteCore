@@ -135,6 +135,7 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	e1-editor-profile e1-editor-assets e1-editor-validation-assets \
 	demo-editor-assets f018-line-nav-assets e1-drag-select-gate-assets \
 	f039-product-readback-assets \
+	f039-composition-scan-assets \
 	e2-combination-profile \
 	e1-session-wedge-assets \
 	e1-noopfix-profile e1-noopfix-assets \
@@ -344,6 +345,16 @@ e1-drag-select-gate-assets: dist/e1-drag-select-gate.html \
 # be rebuilt, so this depends on the page, the SDK and the fixtures -- and on no
 # profile target at all.  finding 041: read the whole chain with `make -n`, not
 # just this recipe, before believing that.
+# Task #47 P2.  Runs against BOTH the archived e2-format-discovery (as the
+# control that must still fail) and the new e2-combination, so it depends on
+# neither profile target -- pointing --profile at a profile that has not been
+# built is a runner error, not a reason to rebuild one.
+f039-composition-scan-assets: dist/f039-composition-scan.html \
+	dist/f039-composition-scan-app.js dist/sdk/document-sdk.js \
+	dist/e2/format-discovery-client.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
 f039-product-readback-assets: dist/f039-product-readback.html \
 	dist/f039-product-readback-app.js dist/sdk/document-sdk.js \
 	dist/e1-fixtures/manifest.json \
@@ -640,6 +651,10 @@ $(E2_COMBO_DIST)/sdk-manifest.json: $(E2_COMBO_BUILD)/probe.js \
 	@test -s $(E2_COMBO_DIST)/sdk-worker.js
 	@grep -q narrow-editor-v1 $(E2_COMBO_DIST)/sdk-manifest.json
 	@grep -q editor-discovery-closed-actions $(E2_COMBO_DIST)/sdk-manifest.json
+	# The capability alone does not open the gate: sdk-worker.js also requires
+	# editorContract.version === 1, and the first build of this profile shipped
+	# without it and refused every product method at 0 ms.
+	@python3 -c "import json,sys; m=json.load(open('$(E2_COMBO_DIST)/sdk-manifest.json')); sys.exit(0 if m.get('editorContract',{}).get('version')==1 else 1)"
 
 e2-combination-profile: $(E2_COMBO_DIST)/sdk-manifest.json
 
@@ -1316,6 +1331,12 @@ dist/e1-drag-select-gate.html: web/e1-drag-select-gate.html | dist
 	cp $< $@
 
 dist/e1-drag-select-gate-app.js: web/e1-drag-select-gate-app.js | dist
+	cp $< $@
+
+dist/f039-composition-scan.html: web/f039-composition-scan.html | dist
+	cp $< $@
+
+dist/f039-composition-scan-app.js: web/f039-composition-scan-app.js | dist
 	cp $< $@
 
 dist/f039-product-readback.html: web/f039-product-readback.html | dist
