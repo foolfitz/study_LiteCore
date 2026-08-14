@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from probe_wedge_thread_state import (  # noqa: E402
-    BrowserSession, wait_for_checkpoint, wait_for_the_hang,
+    BrowserSession, evaluate, wait_for_checkpoint, wait_for_the_hang,
 )
 from r7_support import wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, free_port  # noqa: E402
@@ -144,6 +144,30 @@ def main() -> None:
             # instead of for the engine to be healthy.
             result["hang"] = wait_for_the_hang(session, args.timeout)
             result["engineAlive"] = False
+            # A stack alone cannot say WHICH step wedged.  Without this, the
+            # only evidence tying the parked thread to a particular case is the
+            # coordinates in the last callback -- which have to be matched
+            # against a different run on a different profile to mean anything.
+            #
+            # `metrics.wedgeSplit` is NO USE here: the page assigns it only
+            # after the whole phase returns, and the whole point is that the
+            # phase never returns.  The page's log node, on the other hand, is
+            # appended to as each step finishes, so it is the one ledger that
+            # exists WHILE the engine is wedged.  Measured, not assumed: the
+            # first run with the metrics-object version came back with an empty
+            # array from a run that had plainly already wedged.
+            result["pageSteps"] = evaluate(session, """
+              (() => {
+                const node = document.querySelector("#log");
+                const m = globalThis.__e2_discovery || null;
+                return {
+                  phase: m && m.phase, fixture: m && m.fixture,
+                  profileOverride: m && m.profileOverride,
+                  stepLog: (node ? node.textContent : "").split("\\n")
+                    .filter((line) => line.includes("wedgeSplit")),
+                };
+              })()
+            """)
         else:
             result["engineAlive"] = wait_for_checkpoint(
                 session, "readback-caret-only", args.timeout)

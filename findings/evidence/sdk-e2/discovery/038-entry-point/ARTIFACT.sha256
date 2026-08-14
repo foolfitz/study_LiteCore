@@ -1,0 +1,16 @@
+e05fd156180e205037990591bab4d94b4199b8d378a970795d0a0aa8ff7365ca  wasm_sdk_probe/dist/profiles/e2-preguard-profiling/probe.wasm
+
+# The same diagnostic artifact finding 037's named stack came from, reused
+# unchanged for finding 038.  Reusing it is the point: 037's stack and 038's
+# stack are then frame-for-frame comparable on one link, with no cross-build
+# index mapping in between.
+#
+# OXSDK_037_GUARD_OFF is compiled in, but for THIS question it is not what
+# makes the run possible: the guard never sat on 038's path.  The guard's own
+# first act is readSelection() -- the very call that wedges here -- so on this
+# construct the guard is a trigger, not a defence.  What the artifact is needed
+# for is the name section (--profiling-funcs).
+#
+# Diagnostic only: never shipped, never bound to a verdict.  The three frozen
+# artifacts were not touched by this round (835b453d / 679def61 / c89f069e);
+# no link ran at all, the profile was already built by task #42.

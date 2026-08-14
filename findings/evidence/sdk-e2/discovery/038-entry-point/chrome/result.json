@@ -1,0 +1,1033 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-032-wait-primitive-names",
+  "profile": "e2-preguard-profiling",
+  "wasmSha256": "e05fd156180e205037990591bab4d94b4199b8d378a970795d0a0aa8ff7365ca",
+  "hang": {
+    "traceEntries": 247,
+    "lastCallback": {
+      "id": 1,
+      "name": "INVALIDATE_VISIBLE_CURSOR",
+      "atMs": 3939,
+      "payload": "6432, 2430, 0, 276"
+    },
+    "quietSeconds": 4.1,
+    "phase": "wedge-split"
+  },
+  "engineAlive": false,
+  "rounds": [
+    {
+      "round": 0,
+      "atSeconds": 0.0,
+      "workers": [
+        {
+          "url": "127.0.0.1:59643/profiles/e2-preguard-profiling/sdk-worker.js",
+          "sessionId": "DF7C25AF",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "32C5F625",
+          "paused": true,
+          "frames": [
+            {
+              "functionName": "MainLoop_runner",
+              "offset": null
+            }
+          ],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "91BB76BD",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "38FB0B1F",
+          "paused": true,
+          "frames": [
+            {
+              "functionName": "$emscripten_futex_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$__timedwait_cp",
+              "offset": null
+            },
+            {
+              "functionName": "$__pthread_cond_timedwait",
+              "offset": null
+            },
+            {
+              "functionName": "$pthread_cond_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::__libcpp_condvar_wait[abi:ne200100](pthread_cond_t*, pthread_mutex_t*)",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+              "offset": null
+            },
+            {
+              "functionName": "$osl_waitCondition",
+              "offset": null
+            },
+            {
+              "functionName": "$Scheduler::IdlesLockGuard::IdlesLockGuard()",
+              "offset": null
+            },
+            {
+              "functionName": "$sw::DocumentLayoutManager::DelLayoutFormat(SwFrameFormat*)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTextNode::DestroyAttr(SwTextAttr*)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTextNode::EraseText(SwContentIndex const&, long, SwInsertFlags)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTextNode::DeleteAttribute(SwTextAttr*)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwNodes::RemoveNode(o3tl::strong_int<long, Tag_SwNodeOffset>, o3tl::strong_int<long, Tag_SwNodeOffset>, bool)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwNodes::DelNodes(SwNodeIndex const&, o3tl::strong_int<long, Tag_SwNodeOffset>)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwDoc::~SwDoc()",
+              "offset": null
+            },
+            {
+              "functionName": "$SwDoc::release()",
+              "offset": null
+            },
+            {
+              "functionName": "$rtl::Reference<SwDoc>::~Reference()",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTransferable::~SwTransferable()",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTransferable::~SwTransferable()_151845",
+              "offset": null
+            },
+            {
+              "functionName": "$cppu::OWeakObject::release()",
+              "offset": null
+            },
+            {
+              "functionName": "$non-virtual thunk to cppu::WeakImplHelper<com::sun::star::lang::XServiceInfo, com::sun::star::frame::XTerminateListener>::release()_1486",
+              "offset": null
+            },
+            {
+              "functionName": "$doc_getSelectionTypeAndText(LibreOfficeKitDocumentStruct*, char const*, char**, char**)",
+              "offset": null
+            },
+            {
+              "functionName": "$probe::(anonymous namespace)::readSelection()",
+              "offset": null
+            },
+            {
+              "functionName": "$probe::(anonymous namespace)::dispatch(probe::(anonymous namespace)::Command const&)",
+              "offset": null
+            },
+            {
+              "functionName": "$probe::(anonymous namespace)::engineLoop(probe::(anonymous namespace)::Command)",
+              "offset": null
+            },
+            {
+              "functionName": "$void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)",
+              "offset": null
+            },
+            {
+              "functionName": "invokeEntryPoint",
+              "offset": null
+            },
+            {
+              "functionName": "handleMessage",
+              "offset": null
+            }
+          ],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "7D3B6AD2",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "1FCA937F",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "501333AC",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "84B77399",
+          "paused": true,
+          "frames": [
+            {
+              "functionName": "$emscripten_futex_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$__timedwait_cp",
+              "offset": null
+            },
+            {
+              "functionName": "$__pthread_cond_timedwait",
+              "offset": null
+            },
+            {
+              "functionName": "$pthread_cond_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::__libcpp_condvar_wait[abi:ne200100](pthread_cond_t*, pthread_mutex_t*)",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+              "offset": null
+            },
+            {
+              "functionName": "$configmgr::Components::WriteThread::execute()",
+              "offset": null
+            },
+            {
+              "functionName": "$non-virtual thunk to salhelper::Thread::run()",
+              "offset": null
+            },
+            {
+              "functionName": "$threadFunc",
+              "offset": null
+            },
+            {
+              "functionName": "$osl_thread_start_Impl(void*)",
+              "offset": null
+            },
+            {
+              "functionName": "invokeEntryPoint",
+              "offset": null
+            },
+            {
+              "functionName": "handleMessage",
+              "offset": null
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "atSeconds": 8.0,
+      "workers": [
+        {
+          "url": "127.0.0.1:59643/profiles/e2-preguard-profiling/sdk-worker.js",
+          "sessionId": "DF7C25AF",
+          "paused": true,
+          "frames": [
+            {
+              "functionName": "(anonymous)",
+              "offset": null
+            }
+          ],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "32C5F625",
+          "paused": true,
+          "frames": [
+            {
+              "functionName": "MainLoop_runner",
+              "offset": null
+            }
+          ],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "91BB76BD",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "38FB0B1F",
+          "paused": true,
+          "frames": [
+            {
+              "functionName": "$emscripten_futex_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$__timedwait_cp",
+              "offset": null
+            },
+            {
+              "functionName": "$__pthread_cond_timedwait",
+              "offset": null
+            },
+            {
+              "functionName": "$pthread_cond_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::__libcpp_condvar_wait[abi:ne200100](pthread_cond_t*, pthread_mutex_t*)",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+              "offset": null
+            },
+            {
+              "functionName": "$osl_waitCondition",
+              "offset": null
+            },
+            {
+              "functionName": "$Scheduler::IdlesLockGuard::IdlesLockGuard()",
+              "offset": null
+            },
+            {
+              "functionName": "$sw::DocumentLayoutManager::DelLayoutFormat(SwFrameFormat*)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTextNode::DestroyAttr(SwTextAttr*)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTextNode::EraseText(SwContentIndex const&, long, SwInsertFlags)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTextNode::DeleteAttribute(SwTextAttr*)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwNodes::RemoveNode(o3tl::strong_int<long, Tag_SwNodeOffset>, o3tl::strong_int<long, Tag_SwNodeOffset>, bool)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwNodes::DelNodes(SwNodeIndex const&, o3tl::strong_int<long, Tag_SwNodeOffset>)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwDoc::~SwDoc()",
+              "offset": null
+            },
+            {
+              "functionName": "$SwDoc::release()",
+              "offset": null
+            },
+            {
+              "functionName": "$rtl::Reference<SwDoc>::~Reference()",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTransferable::~SwTransferable()",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTransferable::~SwTransferable()_151845",
+              "offset": null
+            },
+            {
+              "functionName": "$cppu::OWeakObject::release()",
+              "offset": null
+            },
+            {
+              "functionName": "$non-virtual thunk to cppu::WeakImplHelper<com::sun::star::lang::XServiceInfo, com::sun::star::frame::XTerminateListener>::release()_1486",
+              "offset": null
+            },
+            {
+              "functionName": "$doc_getSelectionTypeAndText(LibreOfficeKitDocumentStruct*, char const*, char**, char**)",
+              "offset": null
+            },
+            {
+              "functionName": "$probe::(anonymous namespace)::readSelection()",
+              "offset": null
+            },
+            {
+              "functionName": "$probe::(anonymous namespace)::dispatch(probe::(anonymous namespace)::Command const&)",
+              "offset": null
+            },
+            {
+              "functionName": "$probe::(anonymous namespace)::engineLoop(probe::(anonymous namespace)::Command)",
+              "offset": null
+            },
+            {
+              "functionName": "$void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)",
+              "offset": null
+            },
+            {
+              "functionName": "invokeEntryPoint",
+              "offset": null
+            },
+            {
+              "functionName": "handleMessage",
+              "offset": null
+            }
+          ],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "7D3B6AD2",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "1FCA937F",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "501333AC",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "84B77399",
+          "paused": true,
+          "frames": [
+            {
+              "functionName": "$emscripten_futex_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$__timedwait_cp",
+              "offset": null
+            },
+            {
+              "functionName": "$__pthread_cond_timedwait",
+              "offset": null
+            },
+            {
+              "functionName": "$pthread_cond_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::__libcpp_condvar_wait[abi:ne200100](pthread_cond_t*, pthread_mutex_t*)",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+              "offset": null
+            },
+            {
+              "functionName": "$configmgr::Components::WriteThread::execute()",
+              "offset": null
+            },
+            {
+              "functionName": "$non-virtual thunk to salhelper::Thread::run()",
+              "offset": null
+            },
+            {
+              "functionName": "$threadFunc",
+              "offset": null
+            },
+            {
+              "functionName": "$osl_thread_start_Impl(void*)",
+              "offset": null
+            },
+            {
+              "functionName": "invokeEntryPoint",
+              "offset": null
+            },
+            {
+              "functionName": "handleMessage",
+              "offset": null
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "atSeconds": 16.0,
+      "workers": [
+        {
+          "url": "127.0.0.1:59643/profiles/e2-preguard-profiling/sdk-worker.js",
+          "sessionId": "DF7C25AF",
+          "paused": true,
+          "frames": [
+            {
+              "functionName": "(anonymous)",
+              "offset": null
+            }
+          ],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "32C5F625",
+          "paused": true,
+          "frames": [
+            {
+              "functionName": "MainLoop_runner",
+              "offset": null
+            }
+          ],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "91BB76BD",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "38FB0B1F",
+          "paused": true,
+          "frames": [
+            {
+              "functionName": "$emscripten_futex_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$__timedwait_cp",
+              "offset": null
+            },
+            {
+              "functionName": "$__pthread_cond_timedwait",
+              "offset": null
+            },
+            {
+              "functionName": "$pthread_cond_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::__libcpp_condvar_wait[abi:ne200100](pthread_cond_t*, pthread_mutex_t*)",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+              "offset": null
+            },
+            {
+              "functionName": "$osl_waitCondition",
+              "offset": null
+            },
+            {
+              "functionName": "$Scheduler::IdlesLockGuard::IdlesLockGuard()",
+              "offset": null
+            },
+            {
+              "functionName": "$sw::DocumentLayoutManager::DelLayoutFormat(SwFrameFormat*)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTextNode::DestroyAttr(SwTextAttr*)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTextNode::EraseText(SwContentIndex const&, long, SwInsertFlags)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTextNode::DeleteAttribute(SwTextAttr*)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwNodes::RemoveNode(o3tl::strong_int<long, Tag_SwNodeOffset>, o3tl::strong_int<long, Tag_SwNodeOffset>, bool)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwNodes::DelNodes(SwNodeIndex const&, o3tl::strong_int<long, Tag_SwNodeOffset>)",
+              "offset": null
+            },
+            {
+              "functionName": "$SwDoc::~SwDoc()",
+              "offset": null
+            },
+            {
+              "functionName": "$SwDoc::release()",
+              "offset": null
+            },
+            {
+              "functionName": "$rtl::Reference<SwDoc>::~Reference()",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTransferable::~SwTransferable()",
+              "offset": null
+            },
+            {
+              "functionName": "$SwTransferable::~SwTransferable()_151845",
+              "offset": null
+            },
+            {
+              "functionName": "$cppu::OWeakObject::release()",
+              "offset": null
+            },
+            {
+              "functionName": "$non-virtual thunk to cppu::WeakImplHelper<com::sun::star::lang::XServiceInfo, com::sun::star::frame::XTerminateListener>::release()_1486",
+              "offset": null
+            },
+            {
+              "functionName": "$doc_getSelectionTypeAndText(LibreOfficeKitDocumentStruct*, char const*, char**, char**)",
+              "offset": null
+            },
+            {
+              "functionName": "$probe::(anonymous namespace)::readSelection()",
+              "offset": null
+            },
+            {
+              "functionName": "$probe::(anonymous namespace)::dispatch(probe::(anonymous namespace)::Command const&)",
+              "offset": null
+            },
+            {
+              "functionName": "$probe::(anonymous namespace)::engineLoop(probe::(anonymous namespace)::Command)",
+              "offset": null
+            },
+            {
+              "functionName": "$void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)",
+              "offset": null
+            },
+            {
+              "functionName": "invokeEntryPoint",
+              "offset": null
+            },
+            {
+              "functionName": "handleMessage",
+              "offset": null
+            }
+          ],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "7D3B6AD2",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "1FCA937F",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "501333AC",
+          "paused": false,
+          "frames": [],
+          "error": null
+        },
+        {
+          "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+          "sessionId": "84B77399",
+          "paused": true,
+          "frames": [
+            {
+              "functionName": "$emscripten_futex_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$__timedwait_cp",
+              "offset": null
+            },
+            {
+              "functionName": "$__pthread_cond_timedwait",
+              "offset": null
+            },
+            {
+              "functionName": "$pthread_cond_wait",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::__libcpp_condvar_wait[abi:ne200100](pthread_cond_t*, pthread_mutex_t*)",
+              "offset": null
+            },
+            {
+              "functionName": "$std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+              "offset": null
+            },
+            {
+              "functionName": "$configmgr::Components::WriteThread::execute()",
+              "offset": null
+            },
+            {
+              "functionName": "$non-virtual thunk to salhelper::Thread::run()",
+              "offset": null
+            },
+            {
+              "functionName": "$threadFunc",
+              "offset": null
+            },
+            {
+              "functionName": "$osl_thread_start_Impl(void*)",
+              "offset": null
+            },
+            {
+              "functionName": "invokeEntryPoint",
+              "offset": null
+            },
+            {
+              "functionName": "handleMessage",
+              "offset": null
+            }
+          ],
+          "error": null
+        }
+      ]
+    }
+  ],
+  "workers": [
+    {
+      "url": "127.0.0.1:59643/profiles/e2-preguard-profiling/sdk-worker.js",
+      "sessionId": "DF7C25AF",
+      "paused": false,
+      "frames": [],
+      "error": null
+    },
+    {
+      "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+      "sessionId": "32C5F625",
+      "paused": true,
+      "frames": [
+        {
+          "functionName": "MainLoop_runner",
+          "offset": null
+        }
+      ],
+      "error": null
+    },
+    {
+      "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+      "sessionId": "91BB76BD",
+      "paused": false,
+      "frames": [],
+      "error": null
+    },
+    {
+      "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+      "sessionId": "38FB0B1F",
+      "paused": true,
+      "frames": [
+        {
+          "functionName": "$emscripten_futex_wait",
+          "offset": null
+        },
+        {
+          "functionName": "$__timedwait_cp",
+          "offset": null
+        },
+        {
+          "functionName": "$__pthread_cond_timedwait",
+          "offset": null
+        },
+        {
+          "functionName": "$pthread_cond_wait",
+          "offset": null
+        },
+        {
+          "functionName": "$std::__2::__libcpp_condvar_wait[abi:ne200100](pthread_cond_t*, pthread_mutex_t*)",
+          "offset": null
+        },
+        {
+          "functionName": "$std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+          "offset": null
+        },
+        {
+          "functionName": "$osl_waitCondition",
+          "offset": null
+        },
+        {
+          "functionName": "$Scheduler::IdlesLockGuard::IdlesLockGuard()",
+          "offset": null
+        },
+        {
+          "functionName": "$sw::DocumentLayoutManager::DelLayoutFormat(SwFrameFormat*)",
+          "offset": null
+        },
+        {
+          "functionName": "$SwTextNode::DestroyAttr(SwTextAttr*)",
+          "offset": null
+        },
+        {
+          "functionName": "$SwTextNode::EraseText(SwContentIndex const&, long, SwInsertFlags)",
+          "offset": null
+        },
+        {
+          "functionName": "$SwTextNode::DeleteAttribute(SwTextAttr*)",
+          "offset": null
+        },
+        {
+          "functionName": "$SwNodes::RemoveNode(o3tl::strong_int<long, Tag_SwNodeOffset>, o3tl::strong_int<long, Tag_SwNodeOffset>, bool)",
+          "offset": null
+        },
+        {
+          "functionName": "$SwNodes::DelNodes(SwNodeIndex const&, o3tl::strong_int<long, Tag_SwNodeOffset>)",
+          "offset": null
+        },
+        {
+          "functionName": "$SwDoc::~SwDoc()",
+          "offset": null
+        },
+        {
+          "functionName": "$SwDoc::release()",
+          "offset": null
+        },
+        {
+          "functionName": "$rtl::Reference<SwDoc>::~Reference()",
+          "offset": null
+        },
+        {
+          "functionName": "$SwTransferable::~SwTransferable()",
+          "offset": null
+        },
+        {
+          "functionName": "$SwTransferable::~SwTransferable()_151845",
+          "offset": null
+        },
+        {
+          "functionName": "$cppu::OWeakObject::release()",
+          "offset": null
+        },
+        {
+          "functionName": "$non-virtual thunk to cppu::WeakImplHelper<com::sun::star::lang::XServiceInfo, com::sun::star::frame::XTerminateListener>::release()_1486",
+          "offset": null
+        },
+        {
+          "functionName": "$doc_getSelectionTypeAndText(LibreOfficeKitDocumentStruct*, char const*, char**, char**)",
+          "offset": null
+        },
+        {
+          "functionName": "$probe::(anonymous namespace)::readSelection()",
+          "offset": null
+        },
+        {
+          "functionName": "$probe::(anonymous namespace)::dispatch(probe::(anonymous namespace)::Command const&)",
+          "offset": null
+        },
+        {
+          "functionName": "$probe::(anonymous namespace)::engineLoop(probe::(anonymous namespace)::Command)",
+          "offset": null
+        },
+        {
+          "functionName": "$void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)",
+          "offset": null
+        },
+        {
+          "functionName": "invokeEntryPoint",
+          "offset": null
+        },
+        {
+          "functionName": "handleMessage",
+          "offset": null
+        }
+      ],
+      "error": null
+    },
+    {
+      "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+      "sessionId": "7D3B6AD2",
+      "paused": false,
+      "frames": [],
+      "error": null
+    },
+    {
+      "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+      "sessionId": "1FCA937F",
+      "paused": false,
+      "frames": [],
+      "error": null
+    },
+    {
+      "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+      "sessionId": "501333AC",
+      "paused": false,
+      "frames": [],
+      "error": null
+    },
+    {
+      "url": "tp://127.0.0.1:59643/profiles/e2-preguard-profiling/probe.js",
+      "sessionId": "84B77399",
+      "paused": true,
+      "frames": [
+        {
+          "functionName": "$emscripten_futex_wait",
+          "offset": null
+        },
+        {
+          "functionName": "$__timedwait_cp",
+          "offset": null
+        },
+        {
+          "functionName": "$__pthread_cond_timedwait",
+          "offset": null
+        },
+        {
+          "functionName": "$pthread_cond_wait",
+          "offset": null
+        },
+        {
+          "functionName": "$std::__2::__libcpp_condvar_wait[abi:ne200100](pthread_cond_t*, pthread_mutex_t*)",
+          "offset": null
+        },
+        {
+          "functionName": "$std::__2::condition_variable::wait(std::__2::unique_lock<std::__2::mutex>&)",
+          "offset": null
+        },
+        {
+          "functionName": "$configmgr::Components::WriteThread::execute()",
+          "offset": null
+        },
+        {
+          "functionName": "$non-virtual thunk to salhelper::Thread::run()",
+          "offset": null
+        },
+        {
+          "functionName": "$threadFunc",
+          "offset": null
+        },
+        {
+          "functionName": "$osl_thread_start_Impl(void*)",
+          "offset": null
+        },
+        {
+          "functionName": "invokeEntryPoint",
+          "offset": null
+        },
+        {
+          "functionName": "handleMessage",
+          "offset": null
+        }
+      ],
+      "error": null
+    }
+  ],
+  "stability": {
+    "DF7C25AF": {
+      "roundsPaused": 2,
+      "identicalAcrossRounds": true,
+      "depths": [
+        null,
+        1,
+        1
+      ],
+      "top": "(anonymous)",
+      "bottomApplicationFrame": null
+    },
+    "32C5F625": {
+      "roundsPaused": 3,
+      "identicalAcrossRounds": true,
+      "depths": [
+        1,
+        1,
+        1
+      ],
+      "top": "MainLoop_runner",
+      "bottomApplicationFrame": null
+    },
+    "91BB76BD": {
+      "roundsPaused": 0,
+      "identicalAcrossRounds": false,
+      "depths": [
+        null,
+        null,
+        null
+      ],
+      "top": null,
+      "bottomApplicationFrame": null
+    },
+    "38FB0B1F": {
+      "roundsPaused": 3,
+      "identicalAcrossRounds": true,
+      "depths": [
+        28,
+        28,
+        28
+      ],
+      "top": "$emscripten_futex_wait",
+      "bottomApplicationFrame": "$void* std::__2::__thread_proxy[abi:ne200100]<std::__2::tuple<std::__2::unique_ptr<std::__2::__thread_struct, std::__2::default_delete<std::__2::__thread_struct>>, void (*)(probe::(anonymous namespace)::Command), probe::(anonymous namespace)::Command>>(void*)"
+    },
+    "7D3B6AD2": {
+      "roundsPaused": 0,
+      "identicalAcrossRounds": false,
+      "depths": [
+        null,
+        null,
+        null
+      ],
+      "top": null,
+      "bottomApplicationFrame": null
+    },
+    "1FCA937F": {
+      "roundsPaused": 0,
+      "identicalAcrossRounds": false,
+      "depths": [
+        null,
+        null,
+        null
+      ],
+      "top": null,
+      "bottomApplicationFrame": null
+    },
+    "501333AC": {
+      "roundsPaused": 0,
+      "identicalAcrossRounds": false,
+      "depths": [
+        null,
+        null,
+        null
+      ],
+      "top": null,
+      "bottomApplicationFrame": null
+    },
+    "84B77399": {
+      "roundsPaused": 3,
+      "identicalAcrossRounds": true,
+      "depths": [
+        12,
+        12,
+        12
+      ],
+      "top": "$emscripten_futex_wait",
+      "bottomApplicationFrame": "$osl_thread_start_Impl(void*)"
+    }
+  },
+  "anyNamedFrames": true
+}
