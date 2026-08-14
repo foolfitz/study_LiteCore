@@ -1,0 +1,7 @@
+150de122810c44bdcc7e2c8049709af16e78b15d085a00d86aebaf120fed6a30  wasm_sdk_probe/dist/profiles/e2-wait-diagnostic/probe.wasm
+
+# The --profiling-funcs build, used here ONLY because it carries a name section.
+# It also carries the finding 037 guard, so finding 037's own hang is not
+# reachable on it; what these stacks name is finding 012's close path, plus the
+# wait primitive that finding 037's parked thread shares with it.
+# Function indices do NOT correspond between this build and ee185b3d.

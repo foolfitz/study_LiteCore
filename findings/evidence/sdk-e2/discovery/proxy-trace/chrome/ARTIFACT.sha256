@@ -1,0 +1,7 @@
+ee185b3d5972cac761acbcbc19cbafe916962788822e7cbae87bfe771d62a566  wasm_sdk_probe/dist/profiles/e2-proxy-trace/probe.wasm
+ee185b3d5972cac761acbcbc19cbafe916962788822e7cbae87bfe771d62a566  wasm_sdk_probe/dist/profiles/e2-preguard-diagnostic/probe.wasm
+
+# Two paths, one file: e2-proxy-trace/probe.wasm is a HARDLINK of the pre-guard
+# artifact, so "same bytes" is not a comparison that could drift -- it is the
+# same inode. Only probe.js and sdk-worker.js are patched, and the patch is
+# JS-only instrumentation. No relink of anything.

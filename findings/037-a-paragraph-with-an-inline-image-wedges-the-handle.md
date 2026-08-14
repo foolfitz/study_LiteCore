@@ -183,6 +183,37 @@ worker 的 JS 執行緒活著、**wasm 模組從 worker 執行緒仍可呼叫**�
 `executingRequest` 和 `asynchronousRequests` 回同一個碼，而 barrier 動作一律
 `markAsynchronous()`，所以**不管卡不卡都會是這個碼**。它不是證據。
 
+## 它在等什麼：futex，而且不是在等主執行緒服務（2026-08-14）
+
+證據：[proxy-trace](evidence/sdk-e2/discovery/proxy-trace/chrome/README.md)、
+[wait-primitive-names](evidence/sdk-e2/discovery/wait-primitive-names/chrome/README.md)。
+
+上一輪把問題交成「它在等什麼」，並列了兩條可能。這一輪把兩條分開了：
+
+- **不是在等代理到主執行緒的呼叫**。卡死當下**沒有任何未完成的 proxied call**
+  （`unmatchedProxyIssuesAtCapture` 與 `unmatchedReceivesAtCapture` 皆空），
+  而且 wasm 主 runtime 執行緒只剩 `MainLoop_runner` 一格＝閒置、有能力服務。
+- **是停在 wasm 內部的 futex**。引擎執行緒最內側 frame 的位移 7064008 處是
+  `fe 01 02 00`＝`memory.atomic.wait32`，前面剛推入 `f64.const +inf`。
+
+**`Debugger.pause` 對卡死當下的 worker 有效**——這是上一輪認為做不到而停下來的地方。
+V8 的 inspector 可以中斷 `memory.atomic.wait32`，所以停等執行緒的堆疊一直都拿得到。
+同一輪自帶控制組：兩條 pool 執行緒卡死前後**逐格相同**，只有引擎那一條從 10 格變 27 格。
+
+跨 build 對應（`tools/map_wait_frames_across_builds.py`，同角色配對，零歧義）把前綴六格
+取出名字：`emscripten_futex_wait / __timedwait_cp / __pthread_cond_timedwait /
+pthread_cond_wait / __libcpp_condvar_wait / condition_variable::wait`。
+
+**候選根因**：[finding 040](040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md)
+——非主執行緒建構的 `Scheduler::IdlesLockGuard` 等一個 Emscripten build 永遠不會設定的條件。
+040 在 [012](012-r6-styled-document-close-timeout.md) 的關檔路徑上是**量到的**；
+落到本篇則**還沒證實**：本篇停等堆疊的第 7 格（`$func54740`）在 `ee185b3d…` 上仍只有索引。
+
+> **可否證的預測**：把 pre-guard 原始碼帶 `--profiling-funcs` 重連結一次再跑
+> `tools/probe_wait_primitive_names.py`，**第 7 格會是
+> `Scheduler::IdlesLockGuard::IdlesLockGuard()`**。不是的話這一節要撤。
+> 這一次重編是有量測當理由的——不像 `-sPTHREADS_DEBUG` 那一次是對旗標猜錯。
+
 ## deadline 為什麼結構上不可能生效
 
 `engineLoop` 只在**命令佇列空著、正要去等**的時候才看 `stageDeadline`：

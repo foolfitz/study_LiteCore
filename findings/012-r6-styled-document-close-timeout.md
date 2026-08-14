@@ -2,12 +2,32 @@
 
 | | |
 |---|---|
-| **狀態** | 歸因完成：same-commit native正常、WASM停在document destroy；下一步`wasm-fix`，R7 STOP |
-| **Bugzilla** | — |
+| **狀態** | **根因已找到（2026-08-14）**，見 [finding 040](040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md)。此前：歸因完成、same-commit native 正常、WASM 停在 document destroy |
+| **Bugzilla** | —（報告草稿在 040 第 7 節） |
 | **發現日** | 2026-08-02 |
 | **嚴重度** | 嚴重 |
 | **可重現** | 100%（內容軸與diagnostic destroy stage跨瀏覽器一致；180秒邊界確認一致） |
-| **是否上游** | 未確認 |
+| **是否上游** | ~~未確認~~ **是**（2026-08-14，死結完全在 core 裡） |
+
+> **2026-08-14 更新：停在 document destroy 的哪一行，現在知道了。**
+>
+> ```
+> emscripten_futex_wait ← … ← osl_waitCondition
+>   ← Scheduler::IdlesLockGuard::IdlesLockGuard()
+>   ← sw::DocumentLayoutManager::DelLayoutFormat(SwFrameFormat*)
+>   ← SwTextNode::DestroyAttr ← … ← ~SwDoc ← doc_destroy ← probe::engineLoop
+> ```
+>
+> 那個 guard 在非主執行緒時等 `m_inExecuteCondtion`，而全樹唯一設定它的那一行在
+> `Application::Execute()` 裡 `if (!DoExecute(...))` 的 body——Emscripten 的 `DoExecute`
+> 標了 `O3TL_UNREACHABLE`，**永遠不返回**，那個 body 進不去。條件永遠不會被設。
+>
+> 具名堆疊取自 `150de122…`（帶 name section 的診斷 build），兩次獨立取得逐格相同；
+> 原始碼引自基線樹 `671c848b…`，相關六個檔皆無本地修改。
+> 證據：[wait-primitive-names](evidence/sdk-e2/discovery/wait-primitive-names/chrome/README.md)。
+>
+> **下一步不再是 `wasm-fix`**：我方沒有任何一行參與這個死結，可做的只有繞開
+> （不在非主執行緒上關帶 frame 的文件）或等上游修。
 
 ## 現象
 
