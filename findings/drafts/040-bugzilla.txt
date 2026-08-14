@@ -1,0 +1,218 @@
+================================================================
+Bugzilla: https://bugs.documentfoundation.org
+================================================================
+Product:        LibreOffice
+Component:      framework              [送出前確認。這是 vcl/scheduler 的缺陷，
+                                        不是 Writer 的；037 那份才是 Writer 入口]
+Version:        26.8.0.1 rc            [core 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb]
+Hardware:       Other
+OS:             All                    [任何 Emscripten build]
+Severity:       critical
+Summary:        Emscripten: Scheduler::IdlesLockGuard deadlocks permanently when
+                constructed off the main thread -- the condition it waits for is
+                only set in a loop that a system-event-loop build never enters
+================================================================
+
+重複單查詢（2026-08-14，Bugzilla REST API quicksearch）
+------------------------------------------------------
+summary:IdlesLockGuard        → 0
+summary:m_inExecuteCondtion   → 0
+summary:DoExecute             → 0
+summary:"system event loop"   → 0
+summary:emscripten + hang     → 0
+summary:emscripten + deadlock → 0
+summary:wasm + freeze         → 0
+未找到重複單。（界線：只查 summary，不是窮舉。）
+
+
+Description
+-----------
+
+On an Emscripten build, `Scheduler::IdlesLockGuard` constructed on any thread
+other than the main thread never returns from its constructor.
+
+The guard waits for a condition that this platform's main loop never sets.  It
+is not a race and not a timing window: the code that would set it is
+unreachable on Emscripten by construction.
+
+    vcl/source/app/scheduler.cxx:280
+      Scheduler::IdlesLockGuard::IdlesLockGuard()
+      {
+          ...
+          if (!Application::IsMainThread())
+          {
+              // Make sure that main thread has reached the main message loop [...]
+              // Only main thread returning to Application::Execute guarantees that
+              // the flag really took effect.
+              pSVData->m_inExecuteCondtion.reset();
+              Application::PostUserEvent({});
+              SolarMutexReleaser releaser;
+              pSVData->m_inExecuteCondtion.wait();      // <-- never returns
+          }
+      }
+
+`m_inExecuteCondtion` appears in exactly four places in the tree:
+
+    vcl/inc/svdata.hxx:414          declaration
+    vcl/source/app/svapp.cxx:366    the ONLY set()
+    vcl/source/app/scheduler.cxx:292  reset(), in the guard
+    vcl/source/app/scheduler.cxx:297  wait(), in the guard
+
+and the only set() sits inside a branch Emscripten cannot enter:
+
+    vcl/source/app/svapp.cxx:355
+      if (!pSVData->mpDefInst->DoExecute(nExitCode))
+      {
+          if (Application::IsUseSystemEventLoop()) { ...; std::abort(); }
+          while (!pSVData->maAppData.mbAppQuit)
+          {
+              Application::Yield();
+              SolarMutexReleaser releaser;
+              pSVData->m_inExecuteCondtion.set();       // <-- the only set()
+          }
+      }
+
+    vcl/headless/svpinst.cxx:308  (#if defined __EMSCRIPTEN__)
+      bool SvpSalInstance::DoExecute(int &) {
+          assert(Application::IsUseSystemEventLoop());
+          ReleaseYieldMutex(false);
+          emscripten_set_main_loop_arg(loop, this, 100, 1);
+          O3TL_UNREACHABLE;                             // <-- never returns
+      }
+
+`emscripten_set_main_loop_arg` unwinds the stack by throwing a JS exception, so
+`DoExecute` never returns, the `if (!...)` body is never entered, and the
+condition is never set.  `Application::PostUserEvent({})` does not help: it
+makes the main loop run an iteration, but the code that sets the condition is
+not in the main loop -- it is in the `while` that cannot be reached.
+
+`m_bUseSystemLoop` is set unconditionally for this platform
+(vcl/headless/svpinst.cxx:103, under `#if defined __EMSCRIPTEN__`), so this is
+not a configuration that can be avoided.
+
+
+How we hit it
+-------------
+
+Closing a Writer document that contains a frame, from a LibreOfficeKit thread:
+
+    doc_destroy()
+      -> SwXTextDocument::close -> SfxBaseModel::dispose -> ~SwDocShell
+      -> SwDoc::release -> ~SwDoc
+      -> SwNodes::DelNodes -> SwNodes::RemoveNode
+      -> SwTextNode::DeleteAttribute -> EraseText -> DestroyAttr
+      -> sw::DocumentLayoutManager::DelLayoutFormat(SwFrameFormat*)
+           (sw/source/core/doc/DocumentLayoutManager.cxx:197 -- Scheduler::IdlesLockGuard g;)
+      -> Scheduler::IdlesLockGuard::IdlesLockGuard()
+      -> osl_waitCondition
+      -> std::condition_variable::wait -> __libcpp_condvar_wait
+      -> pthread_cond_wait -> __pthread_cond_timedwait -> __timedwait_cp
+      -> emscripten_futex_wait
+
+`close()` therefore never returns.  The document, the engine thread and every
+subsequent call on that document are lost; the only recovery available to a
+client is to terminate the worker.
+
+The stack above is read from a build linked with `--profiling-funcs`, captured
+with Chrome DevTools Protocol `Debugger.pause` against the parked worker.  The
+innermost frame is `memory.atomic.wait32` (verified independently by reading the
+module bytes at the frame's offset: `fe 01`).  Two independent runs produced the
+same 35 frames.
+
+DelLayoutFormat is not special -- it is simply the first place we happened to
+reach the guard from a non-main thread.  Any other off-main-thread caller of
+`Scheduler::IdlesLockGuard` on this platform has the same fate.
+
+
+History
+-------
+
+  3e0a2239e977  2024-03-13  Mike Kaganski
+                "Introduce a guard to delay processing of idles"
+                -- added IdlesLockGuard, to fix a Windows OLE re-layout crash.
+
+  858fed2a98ad  2024-08-28  Stephan Bergmann
+                "Emscripten: Support --disable-gui"
+                -- added the Emscripten SvpSalInstance::DoExecute that installs
+                   emscripten_set_main_loop_arg and never returns.
+
+The guard predates the Emscripten headless main loop by five months, so this is
+an interaction that appeared later, not an oversight at the time the guard was
+written.
+
+
+Reproduction
+------------
+
+Any Emscripten LibreOfficeKit build, off the main thread:
+
+  1. lok_init, documentLoad an ODT containing a draw:frame with
+     text:anchor-type="as-char" inside a paragraph.
+  2. Call doc_destroy() from a thread that is not the VCL main thread.
+  3. It does not return.  (We observe 180 s and give up; there is nothing to
+     wait for.)
+
+A frame at body level (directly under office:text) is NOT enough -- a document
+with 100 such frames closes in 4 ms.  The frame has to be inside a paragraph,
+so that ~SwDoc reaches it through SwTextNode::DestroyAttr.
+
+Native builds of the same commit close the same document in single-digit
+milliseconds; there `Application::Execute`'s while loop runs and sets the
+condition.
+
+
+Suggested directions (not a patch)
+----------------------------------
+
+Anything that makes the wait terminate on a build whose main thread never
+returns to `Application::Execute` would do.  Three shapes, in the order we would
+rank them:
+
+  1. Set `m_inExecuteCondtion` from the system-event-loop path as well -- e.g.
+     in `SvpSalInstance`'s `loop()` callback, which is exactly "the main thread
+     has reached the main message loop" for this platform.  This preserves the
+     guard's meaning rather than bypassing it.
+
+  2. Have the guard skip the wait when `Application::IsUseSystemEventLoop()` is
+     true and the main loop is known to be running.  Weaker: it drops the
+     guarantee the guard exists to provide.
+
+  3. Give the wait a timeout.  Weakest -- it converts a deadlock into a stall
+     and a silent loss of the invariant.
+
+We have not sent a patch because the right answer depends on what guarantee the
+guard must keep for the Windows OLE scenario it was written for, and that is
+better judged by its author.
+
+
+What we are NOT claiming
+------------------------
+
+Two further hangs in our tracker share the same six innermost frames but their
+seventh frame is not yet named, because the artifact that reproduces them has no
+name section:
+
+  - getTextSelection(doc, "text/html", nullptr) over a selection covering a
+    paragraph that holds an as-char frame;
+  - getSelectionTypeAndText over a selection covering the citation mark of a
+    footnote whose body holds such a frame.
+
+They are plausibly the same defect reached by other paths, but we have not shown
+it, and this report does not depend on them.  See the separate report for those
+two symptoms.
+
+
+================================================================
+內部備註（不送出）
+================================================================
+- 本篇的量測依據：
+    findings/040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md
+    findings/evidence/sdk-e2/discovery/wait-primitive-names/chrome/   （具名堆疊）
+    findings/evidence/sdk-e2/discovery/proxy-trace/chrome/            （排除代理呼叫）
+    findings/012-r6-styled-document-close-timeout.md                  （180 秒逾時，100% 重現）
+- 「frame 要在段落裡」這條來自任務 #39 的 close 計時：l4-stress-100 有 100 個
+  as-char 屬性的 frame 但全在 body 層，4 ms 關掉；l0-t2-styled 只有一個在段落裡，
+  10777 ms 並觸發復原。
+- 附件候選：findings/repro/037-as-char-frame-hang/ 的 frame-no-image.odt 可直接用
+  （它證明與圖片無關），另需補一支「非主執行緒 doc_destroy」的最小重現。
+- 037 那份草稿要加一句指向本篇（症狀 (2) 的根因已找到）。

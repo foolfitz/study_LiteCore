@@ -40,6 +40,18 @@ selection:
 All three return in single-digit milliseconds in a native build of the same
 commit.
 
+2026-08-14 UPDATE -- symptom (2) now has a root cause, and it is not about
+frames at all.  destroy() parks in Scheduler::IdlesLockGuard's constructor,
+waiting for ImplSVData::m_inExecuteCondtion, which on Emscripten is never set:
+the only set() lives in a branch of Application::Execute() that this platform
+cannot enter, because SvpSalInstance::DoExecute never returns.  Filed
+separately -- see the IdlesLockGuard report (draft: 040-bugzilla.txt).  That
+report stands on its own and does not depend on this one.
+
+Symptoms (1) and (3) share the same six innermost frames as (2), but their
+seventh frame is not yet named, so this report still claims them as their own
+defect rather than as instances of the IdlesLockGuard deadlock.
+
 (1) and (3) look like one defect reached two ways: the selection-text
 extraction path.  The difference is where the frame sits relative to the
 selection, and it shows up in the selection type:
