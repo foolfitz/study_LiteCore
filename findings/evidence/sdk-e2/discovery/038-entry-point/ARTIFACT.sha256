@@ -7,10 +7,18 @@ e05fd156180e205037990591bab4d94b4199b8d378a970795d0a0aa8ff7365ca  wasm_sdk_probe
 #
 # OXSDK_037_GUARD_OFF is compiled in, but for THIS question it is not what
 # makes the run possible: the guard never sat on 038's path.  The guard's own
-# first act is readSelection() -- the very call that wedges here -- so on this
-# construct the guard is a trigger, not a defence.  What the artifact is needed
-# for is the name section (--profiling-funcs).
+# first act is readSelection() -- the very call that is measured to wedge here
+# -- so on this construct it is a trigger rather than a defence.  That last
+# step is a source-level inference, NOT a measurement: these runs called
+# getState, not the guard.  What the artifact is needed for is the name section
+# (--profiling-funcs).
 #
 # Diagnostic only: never shipped, never bound to a verdict.  The three frozen
 # artifacts were not touched by this round (835b453d / 679def61 / c89f069e);
 # no link ran at all, the profile was already built by task #42.
+
+# 三個凍結 artifact 的 after 讀數（2026-08-15 00:2x，本輪三次執行全部結束之後手動量測；
+# 三份 result JSON 各自只記錄上面那顆診斷 wasm 的 SHA，不記錄這三個，所以放在這裡）：
+835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d  dist/profiles/e1-editor-v1/probe.wasm
+679def61e7848a6d678b6bcc2b4fad7acb37904cdcd0e615afb3405fb5afb634  dist/profiles/e1-editor-discovery/probe.wasm
+c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f  dist/profiles/e2-format-discovery/probe.wasm

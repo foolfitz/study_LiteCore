@@ -127,11 +127,16 @@ the LOK entry point; the two differ only in which of the two functions appears
 there.  Both were captured on the same build, so this is a direct comparison
 rather than an alignment of two descriptions.
 
-The extraction itself succeeds.  doc_getSelectionTypeAndText writes its
-out-parameter (init.cxx:6028) before returning, so the text has already been
-placed in the caller's memory -- but the call never returns, so the caller is
-still blocked inside it and never learns that.  The hang is in the cleanup on
-the way out, not in reading.
+The hang is in the cleanup on the way out, not in reading.  We are deliberately
+not claiming more than that: these functions have several early returns after
+the reference is taken (isComplex at init.cxx:6011, transfer failure, the 10000
+character cap, empty text), every one of which releases the same locals, and a
+stack does not say which branch was taken.  For doc_getTextSelection a native
+build of the same commit returns 798 bytes in 1 ms for the same paragraph and
+the same selection, so there at least the extraction is known to be possible;
+for doc_getSelectionTypeAndText we have no such control.
+
+Either way the call never returns, so the caller stays blocked inside it.
 
 We did not measure doc_getSelectionType, only its two siblings; our client
 calls the combined function.  It holds the same locals in the same shape.
@@ -139,10 +144,11 @@ calls the combined function.  It holds the same locals in the same shape.
 Worth noting for anyone looking for a client-side mitigation: asking for the
 selection *type* first, and refusing to read the text when it is not plain
 text, does not avoid this.  That check goes through the very same function.
-We tried exactly that as a workaround for entry point (1a); it works for a
-paragraph holding an as-char frame, and it does not work when the frame is
-inside a footnote whose citation mark the selection covers, because then the
-type query itself is the call that hangs.
+We ship exactly that workaround; it holds for a paragraph containing an
+as-char frame, and by inspection it cannot hold when the frame is inside a
+footnote whose citation mark the selection covers, because there the type
+query is itself the call that hangs.  (Inspection, not measurement: we have
+not driven the guard through that case.)
 
 **(2) doc_destroy.** Closing a Writer document that contains a frame, from a
 LibreOfficeKit thread:

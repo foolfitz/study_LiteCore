@@ -235,7 +235,14 @@ pthread_cond_wait / __libcpp_condvar_wait / condition_variable::wait`。
 `~SwTransferable`（`sw/source/uibase/dochdl/swdtflvr.cxx:283`）→ `m_pClpDocFac.reset()`
 → 銷毀那份 SwDoc → 走到 `DelLayoutFormat` → guard → 永遠等下去。
 
-**所以卡死不在「讀」，在讀完之後的清理。文字其實已經取出來了。**
+**所以卡死不在「讀」，在函式返回前的清理。**
+
+> **2026-08-15 收窄一句措辭。** 原文接著寫「文字其實已經取出來了」。
+> **堆疊本身證不出這件事**——`doc_getTextSelection` 在 `getFromTransferable` 失敗時
+> 也會 `return nullptr`，而那條路一樣走到解構。支持「取出來了」的是**原生對照**
+> （同段落同選取，原生 26.8 回傳 798 bytes／1 ms），不是這條堆疊。
+> 它是合理推論，不是量測，引用時要帶著這個區別。
+> 038 那個入口連對照都沒有，見 [finding 038](038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md)。
 而 [012](012-r6-styled-document-close-timeout.md) 是同一個缺陷的另一個入口
 （銷毀的是使用者的文件而不是這份暫時副本）。**037 與 012 現在是同一件事。**
 

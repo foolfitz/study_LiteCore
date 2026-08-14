@@ -76,9 +76,16 @@ emscripten_futex_wait … osl_waitCondition
 ```
 
 **與 037 的堆疊第 0～20 格逐格完全相同**（同一顆 artifact 上比對，不是引用敘述），
-只在第 21 格分岔：037 是 `doc_getTextSelection`，038 是 `doc_getSelectionTypeAndText`。
+第 21 格分岔：037 是 `doc_getTextSelection`，038 是 `doc_getSelectionTypeAndText`；
+038 另外多一格 `probe::readSelection()`（27 對 28 的差別就是這一格）。
 兩者都從 `pDoc->getSelection()` 取**區域** UNO reference，函式返回時釋放，
-`SwTransferable` 連同自己那份剪貼簿 `SwDoc` 一起銷毀——**所以卡的是取值之後的清理**。
+`SwTransferable` 連同自己那份剪貼簿 `SwDoc` 一起銷毀——
+**所以卡的是函式返回前的清理**。
+
+> **不要寫成「文字已經取出來了」。** 那個函式在 `isComplex()`、傳輸失敗、
+> 長度超過 10000、空字串四個分支都會提前 return，而那些路徑一樣走到解構，
+> **全部都在寫 out-parameter 之前**；堆疊不說它走到哪一個分支。
+> 同一次執行裡 FX-CELL 的選取型態就是 `complex`。
 
 三次獨立執行 × 每次三輪暫停 ＝ **九次逐格相同**。
 「哪一步卡住」由**同一次執行**的頁面步驟帳證明：FX-PLAIN 與 FX-CELL 在幾十毫秒前
@@ -87,6 +94,8 @@ emscripten_futex_wait … osl_waitCondition
 
 **擋法在這裡是觸發器，不是防線**：`formatBarrierSelectionIsReadable()`
 （`probe_engine.cpp:3163`）第一件事就是 `readSelection()`，也就是堆疊第 22 格。
+**但這一步是原始碼推論，不是本輪量到的**——三次執行跑的都是 `getState`，
+擋法一次都沒被呼叫。要變成量測，得在這顆 artifact 上對 FX-NOTE 派送格式動作。
 
 ## 鑑別：是註腳，還是註腳裡的 frame
 

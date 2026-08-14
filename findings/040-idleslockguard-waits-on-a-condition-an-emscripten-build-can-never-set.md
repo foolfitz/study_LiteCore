@@ -23,7 +23,7 @@
 - **`doc_destroy`**：關閉使用者的文件（[finding 012](012-r6-styled-document-close-timeout.md)，
   `close()` 180 秒不回應）。
 - **`doc_getTextSelection`**：它內部造一份 `SwTransferable`（帶自己的 `SwDoc` 副本），
-  函式返回時解構——**看起來是唯讀 API，而且文字已經取出來了，卡的是收尾**
+  函式返回時解構——**看起來是唯讀 API，卡的是返回前的清理**
   （[finding 037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md)）。
 
 ## 一、停等的位置（量測，引擎 `ee185b3d…`）
@@ -241,7 +241,9 @@ returning to `Application::Execute`**，因為它根本沒從 `DoExecute` 回來
 - **`doc_destroy`**：使用者明確要求關檔，客戶端至少知道自己在做危險的事。
 - **`doc_getTextSelection`**：**看起來是唯讀的**。它在內部造一份 `SwTransferable`
   （帶自己的 `SwDoc` 副本），函式返回時解構，於是走同一條 `DelLayoutFormat` →
-  `IdlesLockGuard`。**文字已經取出來了，卡的是收尾。**
+  `IdlesLockGuard`。**卡的是返回前的清理。**
+  （「文字已經取出來了」這句 2026-08-15 收窄：堆疊證不出走到哪個分支，
+  支持它的是原生對照 798 bytes／1 ms，不是堆疊。見第六之三節末。）
 
 ~~`doc_getSelectionType`（`init.cxx:5966`）也呼叫同一個 `pDoc->getSelection()`，
 所以它很可能是 038 的入口——**未取得堆疊，這是推論**。~~
@@ -256,8 +258,9 @@ returning to `Application::Execute`**，因為它根本沒從 `DoExecute` 回來
 它不是修好了什麼，只是不去踩。
 
 > **但這句話有邊界，038 就在邊界之外。** 擋法問型態用的是 `readSelection()`
-> → `getSelectionTypeAndText`——**那正是 038 卡死的那個呼叫**。
+> → `getSelectionTypeAndText`——**那正是 038 量到會卡死的那個呼叫**。
 > 所以在 038 的構造上，擋法不是「涵蓋不到」，是**自己會踩下去**。
+> **這一步是原始碼推論**：038 那三次執行走的是 `getState`，擋法沒有被呼叫過。
 
 ## 六之三、第三個入口：`doc_getSelectionTypeAndText`（2026-08-15，量到的）
 
@@ -288,10 +291,15 @@ artifact 同樣是 `e2-preguard-profiling`（`e05fd156…`，**沒有重連結**
 每個函式其實持**兩個**區域 reference——`XTransferable` 加上 query 出來的
 `XTransferable2`（如 `init.cxx:6004`／`6011`）——解構發生在兩者逆序釋放之後。
 
-**「文字已經取出來了」要講精確**：`doc_getSelectionTypeAndText` 在返回前就寫了
-out-parameter（`init.cxx:6028`），所以字串已經進了呼叫端的記憶體；
-但**函式從未返回**，呼叫端還卡在裡面。取值完成、卡在返回前的清理——
-不是「已經交付給呼叫端」。
+**「文字已經取出來了」這句話要收回。** `doc_getSelectionTypeAndText` 確實在返回前才寫
+out-parameter（`init.cxx:6028`），但**堆疊不告訴我們它走到哪一個分支**：
+`isComplex()`（`init.cxx:6011`）、傳輸失敗、長度超過 10000、空字串**四個提前 return**
+一樣會釋放區域 reference、一樣走到解構，而且全部在寫 out-param 之前。
+同一次執行裡 FX-CELL 的選取型態就是 `complex`，所以那不是可以順帶假設的事。
+
+**能說的只有：卡的是函式返回前釋放區域 reference 的那段清理。**
+037 那一段原本寫的「文字已經取出來了，卡的是收尾」也一併收窄成這句
+（外部對抗性覆核指出）。
 
 **`SolarMutexGuard` 不會讓工程執行緒變成主執行緒。** 三個函式都先取 Solar mutex，
 而 `IdlesLockGuard` 判定非主執行緒之後會先 `SolarMutexReleaser` 再等

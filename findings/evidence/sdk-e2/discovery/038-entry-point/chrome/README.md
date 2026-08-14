@@ -2,7 +2,8 @@
 
 **日期**：2026-08-14 23:59 ～ 2026-08-15 00:06（三次獨立執行）
 **artifact**：`e2-preguard-profiling` ＝ `e05fd156…`（**本輪沒有任何連結動作**，
-profile 是任務 #42 建好的；三個凍結 artifact 執行前後皆逐一核對未變）
+profile 是任務 #42 建好的。三個凍結 artifact 未變的核對**不在這三份 JSON 裡**
+——JSON 只記診斷 wasm 自己的 SHA——讀數寫在 [`../ARTIFACT.sha256`](../ARTIFACT.sha256)）
 **fixture**：`frame-contexts.odt`　**模式**：`wedge-split`　**選取法**：`mouse-drag`（預設）
 **預測**：[../PREDICTION.md](../PREDICTION.md)，commit `90cc23d`，**寫在第一次執行之前**
 
@@ -55,8 +56,10 @@ profile 是任務 #42 建好的；三個凍結 artifact 執行前後皆逐一核
 | 第 21 格 | 037 ＝ `doc_getTextSelection`／038 ＝ `doc_getSelectionTypeAndText` |
 | 之後 | 038 多一格 `probe::readSelection()`，這就是深度 27 對 28 的全部差別 |
 
-**所以「與 037 只差一個函式名」是量出來的，範圍是第 0～20 格**——
-比我初稿寫的「第 7～19 格」還寬，初稿把自己講小了。
+精確的說法是：**第 0～20 格相同；第 21 格是不同的 LOK API；038 另外多一格
+`readSelection()`。** 不要說成「只差一個函式名」——那會漏掉多出來的那一格。
+（初稿寫「第 7～19 格相同」，把範圍講小了；改寫後又寫成「只差一個函式名」，
+把差異講小了。兩次都由外部覆核指出。）
 
 > **精確一點：那個函式持有的是兩個區域 reference，不是一個。**
 > `doc_getSelectionTypeAndText` 先取 `XTransferable`（`init.cxx:6004`），
@@ -71,8 +74,9 @@ profile 是任務 #42 建好的；三個凍結 artifact 執行前後皆逐一核
 `phase: "wedge-split"`，而 `wedge-split` 對 `frame-contexts` 會依序跑四個 anchor。
 外部對抗性覆核就是以此把主張判為未成立，**判得對**。
 
-`result-run3-with-step-log.json` 的 `pageSteps.stepLog` 是**暫停當下**從頁面 `#log`
-節點讀出來的，逐步 append、不是事後補的：
+`result-run3-with-step-log.json` 的 `pageSteps.stepLog` 是從頁面 `#log` 節點讀出來的，
+逐步 append、不是事後補的。**時點要講清楚：它讀在偵測到 callback 靜默之後、
+三輪 `Debugger.pause` 之前**，不是「暫停當下」（初稿這樣寫，錯了）：
 
 | anchor | 步驟 | 結果 |
 |---|---|---|
@@ -83,10 +87,20 @@ profile 是任務 #42 建好的；三個凍結 artifact 執行前後皆逐一核
 所以「引擎在 FX-NOTE 之前是活的」由**同一次執行**證明：前兩個 anchor 剛剛才各做了一次
 同樣的讀選取。這不是拿別的 profile、別的 run 的數字來對。
 
+**但最後一行本身不足以推到「下一步已經送出去了」，補上的是控制流：**
+`step()` 只在 `await fn()` 成功或丟錯之後才 append，**沒有 started 紀錄**。
+接得起來的是三件事：預設 `idleAfterSelect=0`，所以 select 之後緊接著就是
+`selection-rectangles` 的 `client.getState()`；引擎那一側 get-state 的 handler
+第一件事就是 `readSelection()`（`probe_engine.cpp:3787`）；而堆疊尾端正是
+`dispatch → readSelection → doc_getSelectionTypeAndText`。
+頁面的 event handler 只記錄事件、不另外送 request，所以沒有第二個候選來源。
+
 > **第一次改版也是錯的，一併記著。** 我原本讀 `metrics.wedgeSplit`——
 > 那個陣列頁面**要等整個相位返回才指派**，而整件事的前提就是它永遠不返回，
 > 於是跑回來是一個空陣列，配上一個明明已經卡死的 run。
-> 改讀 `#log` 節點才對：它是逐步 append 的，是**卡死期間唯一存在的帳**。
+> 改讀 `#log` 節點才對：它是逐步 append 的，是**卡死期間唯一存在的逐步帳**
+> （不是「唯一存在的帳」——`metrics.engineTrace` 一樣在，偵測靜默用的就是它；
+> 但那是 callback 流水帳，不說步驟）。
 > （`result-run2-with-page-steps.json` 保留了那個空陣列的版本，沒有刪。）
 
 ## 穩定度：三次執行 × 每次三輪 ＝ 九次逐格相同
@@ -132,15 +146,28 @@ profile 是任務 #42 建好的；三個凍結 artifact 執行前後皆逐一核
 加上 `_1486`／`_1489` 後綴，**且 `WeakImplHelper<XTransferable2, …>::release()`
 的 thunk 符號根本不存在**。
 
-兩邊對起來就是連結器折疊的指紋：這些 release thunk 的函式體本來就一模一樣，
-被折成一份，共用第一個看到的名字，重複的再加數字後綴。
+> **初稿在這裡下了一個錯的結論，而且是被反組譯直接推翻的。** 我原本寫
+> ~~「同名加數字後綴是連結器把內容相同的函式折成一份的指紋」~~。
+> 對這顆 artifact 跑 `wasm-dis` 之後，那三個同名 thunk 的函式體是：
+>
+> | 符號 | body |
+> |---|---|
+> | 無後綴 | `OWeakObject::release(this - 16)` |
+> | `_1486` | `OWeakObject::release(this - 20)` |
+> | `_1489` | `OWeakObject::release(this - 24)` |
+>
+> **偏移量不同，所以它們是三個不同的函式，不是一份折疊的副本。**
+> `_NNNN` 是**名稱去重編號**：不同 secondary-base 偏移的 thunk 會 demangle 成
+> 同一段可讀名稱，工具必須為撞名加唯一化 ID。（外部對抗性覆核先指出，我自己重跑
+> `wasm-dis` 確認過才寫在這裡。）
 
-**所以第 20 格是折疊後的名字，不能拿來認型別。** 物件的身分由第 17～18 格認：
-`SwTransferable::~SwTransferable` 與 `SwTransferable::~SwTransferable_151845`
-是同一個解構子的 D1／D0 對，**那是正面指認**。
+**留下來的結論只有一句，但它就夠了：第 20 格的名字不能拿來認型別**
+——已經證明這個名字本身就會撞，而且該出現的那個名字不在模組裡。
+物件的身分由第 17～18 格認：`SwTransferable::~SwTransferable` 與
+`SwTransferable::~SwTransferable_151845` 是同一個解構子的 D1／D0 對，**那是正面指認**。
 
-（誠實記一句：折疊仍是**推論**，只是現在兩側都有實測撐著——
-名字指向一個不相干的類別、該有的名字不存在。本輪沒有取函式位址或反組譯去做最後一步。）
+**仍未解決**：`SwTransferable` 自己那個 release thunk 是被 ICF 併進了偏移 20 那一個、
+還是以別的方式失去名字。這不影響任何結論，但也不要說成已經知道。
 
 ## 040 有一句要更正，不是補充
 
@@ -155,22 +182,35 @@ profile 是任務 #42 建好的；三個凍結 artifact 執行前後皆逐一核
 > **ABI 缺該欄位時會 fallback 到 `getSelectionType` ＋ `getTextSelection`**。
 > 正確的說法是：**這顆 artifact 上實測走的是 combined API**。
 
-## 一併量到的：037 的擋法在這個構造上是**觸發器**，不是防線
+## 037 的擋法在這個構造上是**觸發器**，不是防線——**但這是推論，不是本輪量到的**
 
 `formatBarrierSelectionIsReadable()`（`probe_engine.cpp:3163`）第一件事就是
-`readSelection()`——也就是第 22 格。**擋法要問的那個問題，本身就是會卡死的那個呼叫。**
+`readSelection()`——也就是第 22 格。**擋法要問的那個問題，走的就是被量到會卡死的那個呼叫。**
 
 以前 038 檔案裡寫的是「037 的擋法涵蓋不到這條路」。涵蓋不到是輕的說法：
-在這個構造上，**擋法自己會把引擎弄死**。這是量到的，不是推論——堆疊裡就有那一格。
+在這個構造上，擋法自己會踩下去。
 
-## 「文字已經取出來了」要怎麼說才對
+> **這一格的證據強度要標清楚（外部覆核指出，初稿寫成「量到的」）。**
+> 本輪三次執行跑的是 `selection-rectangles → getState`，
+> **`formatBarrierSelectionIsReadable()` 一次都沒有被呼叫**。
+> 量到的是 `readSelection()` 在這個構造上不返回；「所以呼叫 `readSelection()` 的擋法
+> 也會不返回」是一步**原始碼層級的推論**。要把它變成量測，得在這顆 artifact 上
+> 對 FX-NOTE 派送一次格式動作，讓 barrier 自己走過去。**沒有做。**
 
-`doc_getSelectionTypeAndText` 在返回之前就寫了 out-parameter
-（`init.cxx:6028` 的 `*pText = convertOString(aRet)`），所以**字串已經寫進呼叫端的記憶體**；
-但**函式從來沒有返回**，呼叫端還卡在這個呼叫裡，拿不到回傳的型別、也無從得知該讀 out-param。
+## 「文字已經取出來了」——這句話本輪**證不出來**
 
-所以正確的說法是：**取值本身完成了，卡的是返回前的清理**——
-不是「文字已經交付給呼叫端」。
+`doc_getSelectionTypeAndText` 確實在返回前才寫 out-parameter
+（`init.cxx:6028` 的 `*pText = convertOString(aRet)`）。但**堆疊不告訴我們它走到哪裡**：
+同一個函式在 `isComplex()`（`init.cxx:6011`）、傳輸失敗、長度超過 10000、
+以及空字串這四個分支都會**提前 return**，而那些路徑一樣會釋放區域 reference、
+一樣走到解構——**全部都在 `*pText` 之前**。
+
+同一次執行裡 FX-CELL 的選取型態就是 `complex`，所以「FX-NOTE 走到了寫 out-param 那一行」
+不是可以順帶假設的事。
+
+**所以能說的只有：卡的是函式返回前釋放區域 reference 的那段清理。**
+不能說文字已經取完，也不能說已經寫進呼叫端。（037 那一篇與 040 §六之二
+也有同樣措辭，一併改了。）
 
 ## 這一輪不宣稱
 
@@ -180,4 +220,18 @@ profile 是任務 #42 建好的；三個凍結 artifact 執行前後皆逐一核
   （`init.cxx:6074`），但**來源不同**（剪貼簿，不是 `pDoc->getSelection()`）。
 - **不宣稱產品界定有變。** SPEC-E1-C §9.1 對 038 的具名收窄照舊。
 - **不宣稱擋法要怎麼改。** 入口相同不等於防法相同。
-- **這顆 artifact 不支持任何判定**，它是診斷用的。
+- **不宣稱「註腳裡的 frame 是必要條件」。** 本輪證明的是那個停等堆疊屬於 FX-NOTE 這一格；
+  必要性來自 038 早先的 2×2 矩陣（無 frame 的註腳、不涵蓋引用記號的選取），不是這三次執行。
+- **這顆 artifact 不支持任何產品／出貨判定**（它自己就是診斷結論的載體，
+  所以不能寫成「不支持任何判定」——初稿那樣寫是自相矛盾的）。
+
+## 引用這三份檔案時，以下每一句都不成立
+
+1. 「result.json 記錄了 FX-NOTE」——run 1 沒有，歸因在 run 3。
+2. 「暫停與步驟帳是同一瞬間」——步驟帳讀在暫停之前。
+3. 「`selection-rectangles` 在 DOM 留下了 started 紀錄」——`step()` 沒有 started。
+4. 「擋法在這一輪被呼叫過」——沒有，那是推論。
+5. 「out-parameter 已寫入／文字已取完」——四個提前 return 分支都沒被排除。
+6. 「`_1486`／`_1489` 證明了 ICF」——反組譯顯示是三個不同偏移的函式。
+7. 「十六秒取樣證明了永遠」——永久性來自條件設定路徑的原始碼分析。
+8. 「診斷 artifact 的行為就是出貨 artifact 的行為」——不同的 build。
