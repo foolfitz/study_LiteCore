@@ -17,6 +17,53 @@
 **三個凍結 artifact 全程未變**：`835b453d`／`679def61`／`c89f069e`，每次動作前後都核對過。
 **兩個 E1 凍結 profile 本輪才補進 `build/archive/`**——它們原本沒有封存，是這輪發現的。
 
+## 短期目標：**做到可以找同事看 demo**（2026-08-15 由使用者定調，不急但要當方向）
+
+排優先順序時以這個為準。**它會改變「哪一個 bug 比較重要」的答案**——
+擋住 demo 的不一定是技術上最深的那個。
+
+### 「看 demo」有兩種，成熟度差很多
+
+| | 現況 |
+|---|---|
+| **你自己驅動、用準備好的文件** | **今天就可以**。兩個 demo 都在 `dist/`，跑得起來 |
+| **同事自己動手** | **還不行**，卡在下面四件事 |
+
+### 兩個 demo 是不同的東西，不要混著講
+
+- **`demo-editor`（出貨的 E1，`835b453d`）**：打字／注音 IME／剪貼簿／undo／存檔／
+  粗體斜體底線刪除線。`E1_GO_ODT_EDITOR`、50 格全綁、兩瀏覽器人工輪都過。
+  **這個今天就經得起同事動手**——但它**沒有 heading／list**，那不在產品 ABI 裡。
+- **`demo-structure`（heading／list，跑在**診斷** artifact `e2-format-discovery` 上）**：
+  九顆按鈕（標題／內文／項目符號／編號／移除清單／粗體／斜體／插入文字／儲存 ODT），
+  手勢是**點一下段落 → 按按鈕**。
+  **2026-08-13 已經做得出來**（先前一度以為做不出來，那個狀態已過期）：三次手勢經 demo 自己的
+  UI 跑完，**判準是存出來的 13 KB ODT 逐段比對段落樣式與清單種類**，不是狀態列；
+  今日 P2 的 `click-gesture` 臂又在編進 barrier 的組合上跑三輪全過。
+
+### 擋住「同事自己動手」的四件事
+
+1. **他一定會拖曳選一段再按按鈕。** 那正是 E2-A 縮限 7 那一格——**A3～A5 從來沒量過**，
+   而且本輪 P2 量到：**一個格式動作之後，範圍選取會返回但選不到東西**。
+   → **這就是 #49，也是 demo 這條線的第一優先。**
+2. **`demo-structure` 沒有 undo 按鈕。** 同事一定會按錯。**（未開任務）**
+3. **它跑在診斷 artifact 上**，所以不能說「這就是我們要出的東西」。
+4. **如果他開自己的文件**：段落含 as-char frame → 具名拒絕（優雅）；
+   但**註腳裡有 frame 的段落 → 引擎直接死**，只有重啟 worker 能救
+   （[finding 038](../findings/038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md)／
+   [040](../findings/040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md)，
+   上游缺陷、未修）。
+
+**不是缺口、是刻意的**：工具列**不會**顯示「這段現在是什麼格式」——路線 C 的產品決定
+（縮限 6、finding 021 未修），按鈕只反映我們自己上次設了什麼。
+**展示時要先講**，否則同事會以為它壞了。
+
+### 建議的展示方式（在 #49 修好之前）
+
+用 `list-contexts.odt` 這份已經驗過的 fixture，走
+**點一下 → 按按鈕 → 存檔 → 用桌面版 LibreOffice 打開**。
+最後一步最有說服力，因為判準是真的檔案，不是畫面。
+
 ## 動手之前必讀（本輪新增的坑）
 
 1. **改一行 Makefile 就會重連結所有相依 artifact**（[finding 042](../findings/042-editing-the-makefile-relinks-every-artifact-that-depends-on-it.md)）。
@@ -134,7 +181,8 @@
 
 | # | 事情 | 卡在誰 |
 |---|---|---|
-| **49** | **讓格式動作之後的選取真的選得到**（barrier 收尾的還原語意）。看 `postFormatBarrierRestore`／`finishFormatBarrierAfterRestore`（`probe_engine.cpp:3251`／`:3260`——**本輪編輯後的行號，我自己重查過**） | 可做；**擋著 #48** |
+| **49** | **讓格式動作之後的選取真的選得到**（barrier 收尾的還原語意）。看 `postFormatBarrierRestore`／`finishFormatBarrierAfterRestore`（`probe_engine.cpp:3251`／`:3260`——**本輪編輯後的行號，我自己重查過**） | 可做；**擋著 #48，也是 demo 目標的第一優先**——同事會用的手勢就是它 |
+| — | **`demo-structure` 加 undo 按鈕**（未開任務） | 可做；擋「同事自己動手」 |
 | **48** | 寫 SPEC-E2-B | 被 #49 擋 |
 | **46** | **finding 040 上游未送**（三個入口、重複單查過七組皆零，**日期是 08-14，送前要重查**） | 使用者 08-15 決定暫緩 |
 | — | `doc_getSelectionType` 是不是第四個入口 | 結構相同、**未量**；我方引擎只在 ABI 缺 combined API 時才走它 |
