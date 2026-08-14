@@ -1,0 +1,8 @@
+e05fd156180e205037990591bab4d94b4199b8d378a970795d0a0aa8ff7365ca  wasm_sdk_probe/dist/profiles/e2-preguard-profiling/probe.wasm
+
+# Built for exactly one question: finding 040 predicted frame 7 of the parked
+# thread, and no existing artifact could both reach finding 037's hang and name
+# its own frames.  The 037 guard is compiled out via OXSDK_037_GUARD_OFF, which
+# is defined by this profile and nothing else.  Diagnostic only: never shipped,
+# never bound to a verdict.  The three frozen artifacts were unchanged by this
+# build (835b453d / 679def61 / c89f069e, verified before and after).

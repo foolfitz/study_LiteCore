@@ -2,8 +2,8 @@
 Bugzilla: https://bugs.documentfoundation.org
 ================================================================
 Product:        LibreOffice
-Component:      framework              [送出前確認。這是 vcl/scheduler 的缺陷，
-                                        不是 Writer 的；037 那份才是 Writer 入口]
+Component:      framework              [送出前確認。缺陷在 vcl/scheduler；
+                                        Writer 只是踩到它的兩個入口]
 Version:        26.8.0.1 rc            [core 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb]
 Hardware:       Other
 OS:             All                    [任何 Emscripten build]
@@ -91,10 +91,36 @@ not in the main loop -- it is in the `while` that cannot be reached.
 not a configuration that can be avoided.
 
 
-How we hit it
--------------
+How we hit it -- two entry points, and the second one looks read-only
+---------------------------------------------------------------------
 
-Closing a Writer document that contains a frame, from a LibreOfficeKit thread:
+Both are the same thing underneath: destroying an SwDoc that contains a frame,
+from a thread that is not the VCL main thread.
+
+**(1) doc_getTextSelection.** This is the one that should worry a client most,
+because nothing about it suggests it destroys a document. It takes
+pDoc->getSelection() into a local css::uno::Reference; for Writer that is an
+SwTransferable holding its own clipboard SwDoc (m_pClpDocFac). When the local
+goes out of scope, ~SwTransferable resets that factory and the clipboard SwDoc
+is destroyed -- through the same DelLayoutFormat path.
+
+    doc_getTextSelection(doc, "text/html", nullptr)
+      -> cppu::OWeakObject::release -> SwTransferable::~SwTransferable
+      -> rtl::Reference<SwDoc>::~Reference -> SwDoc::release -> ~SwDoc
+      -> SwNodes::DelNodes -> RemoveNode -> DeleteAttribute -> EraseText
+      -> SwTextNode::DestroyAttr
+      -> sw::DocumentLayoutManager::DelLayoutFormat(SwFrameFormat*)
+      -> Scheduler::IdlesLockGuard::IdlesLockGuard()
+      -> osl_waitCondition -> ... -> emscripten_futex_wait
+
+The text has already been extracted at that point. The call hangs on the way
+out, during cleanup.
+
+doc_getSelectionType calls the same pDoc->getSelection(), so we expect it to be
+a third entry point; we have not captured a stack for it.
+
+**(2) doc_destroy.** Closing a Writer document that contains a frame, from a
+LibreOfficeKit thread:
 
     doc_destroy()
       -> SwXTextDocument::close -> SfxBaseModel::dispose -> ~SwDocShell
@@ -109,15 +135,17 @@ Closing a Writer document that contains a frame, from a LibreOfficeKit thread:
       -> pthread_cond_wait -> __pthread_cond_timedwait -> __timedwait_cp
       -> emscripten_futex_wait
 
-`close()` therefore never returns.  The document, the engine thread and every
-subsequent call on that document are lost; the only recovery available to a
-client is to terminate the worker.
+Neither call returns.  The document, the engine thread and every subsequent
+call on that document are lost; the only recovery available to a client is to
+terminate the worker.
 
-The stack above is read from a build linked with `--profiling-funcs`, captured
-with Chrome DevTools Protocol `Debugger.pause` against the parked worker.  The
-innermost frame is `memory.atomic.wait32` (verified independently by reading the
-module bytes at the frame's offset: `fe 01`).  Two independent runs produced the
-same 35 frames.
+Both stacks are read from builds linked with `--profiling-funcs`, captured with
+Chrome DevTools Protocol `Debugger.pause` against the parked worker -- V8's
+inspector can interrupt `memory.atomic.wait32`, so a parked thread is still
+introspectable.  The innermost frame is that instruction, verified independently
+by reading the module bytes at the frame's offset (`fe 01`).  The doc_destroy
+stack is 35 frames and was captured twice, identically; the getTextSelection
+stack is 27 frames.
 
 DelLayoutFormat is not special -- it is simply the first place we happened to
 reach the guard from a non-main thread.  Any other off-main-thread caller of
@@ -188,18 +216,16 @@ better judged by its author.
 What we are NOT claiming
 ------------------------
 
-Two further hangs in our tracker share the same six innermost frames but their
-seventh frame is not yet named, because the artifact that reproduces them has no
-name section:
+One further hang in our tracker shares the same six innermost frames but has no
+stack of its own yet: getSelectionTypeAndText over a selection covering the
+citation mark of a footnote whose body holds an as-char frame.  Since
+doc_getSelectionType calls the same pDoc->getSelection(), we expect it to be the
+same defect, but expecting is not showing, and this report does not depend on
+it.
 
-  - getTextSelection(doc, "text/html", nullptr) over a selection covering a
-    paragraph that holds an as-char frame;
-  - getSelectionTypeAndText over a selection covering the citation mark of a
-    footnote whose body holds such a frame.
-
-They are plausibly the same defect reached by other paths, but we have not shown
-it, and this report does not depend on them.  See the separate report for those
-two symptoms.
+We are also not claiming the guard is wrong to exist.  It was added for a real
+Windows crash and the invariant it protects is presumably still needed; what is
+broken is that on this platform the condition it waits for cannot be set.
 
 
 ================================================================

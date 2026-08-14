@@ -65,3 +65,25 @@ emscripten_futex_wait ← __timedwait_cp ← __pthread_cond_timedwait ← pthrea
 
 「它停住不動」目前靠的是三條互相獨立的證據：finding 012 的 180 秒逾時（100% 重現、
 兩瀏覽器）、這裡的堆疊落在那條路上、以及 040 第四節那條原始碼上不可達的 `set()`。
+
+## f037-preguard-named.json（2026-08-14）：037 自己的具名堆疊
+
+上面兩輪都只拿到 012 的關檔堆疊。這一份是專為此建的 **`e2-preguard-profiling`**
+（wasm `e05fd156…`：現行原始碼把 037 擋法以 `OXSDK_037_GUARD_OFF` 編掉，加 `--profiling-funcs`；
+**刻意不帶 `-sPTHREADS_DEBUG`**——那是上一輪的死路），在 **037 自己的卡死當下**暫停取得。
+
+`--wait-for-hang` 是為此加的：命名這一招原本靠閒置執行緒共用等待點，
+但要看的那一格在**共用前綴之上**，只有引擎真的卡住時才存在。
+
+**27 格，與當初那條沒有名字的堆疊逐格對齊**，第 7 格正是預測的
+`Scheduler::IdlesLockGuard::IdlesLockGuard()`；先前靠消去法推出的
+`$func2290 = osl_waitCondition` 一併證實。
+
+**第 21 格是 `doc_getTextSelection`，第 17 格是 `SwTransferable::~SwTransferable`。**
+所以 037 卡的不是讀取，是讀完之後銷毀那份剪貼簿 `SwDoc` 的清理路徑——
+與 [012](../../../../012-r6-styled-document-close-timeout.md) 是同一個缺陷的兩個入口。
+歸因與原始碼見 [finding 040](../../../../040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md)。
+
+**界線**：這個 build 與 `ee185b3d` **不是同一份原始碼**（一個是擋法編掉，一個是擋法還沒寫），
+兩者在該呼叫點等價但不是同一份；函式索引也不可互相對應——不過現在不需要了，
+這一份自己就有名字。

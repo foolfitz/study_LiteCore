@@ -12,7 +12,7 @@
 | **發現日** | 2026-08-12 |
 | **嚴重度** | **嚴重**——不是拒絕而是**卡死**，引擎執行緒之後不再處理任何命令，只有重啟 worker 能救 |
 | **可重現** | 2/2（`ee185b3d` 與 `38168306`）；callback 串流 2/2；拆解實驗 2/2 |
-| **是否上游** | **是**（呼叫在 core 裡不返回；我方的責任是 barrier 沒有辦法從中脫身） |
+| **是否上游** | **是**，根因已定位＝[finding 040](040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md)（2026-08-14）；與 [012](012-r6-styled-document-close-timeout.md) 是同一個缺陷的兩個入口 |
 
 ## 摘要
 
@@ -34,8 +34,13 @@ handleUsableAfter       false
 一節說明這不是漏接，是那個 deadline 從來就防不到這一類。**
 
 卡住的是 `getTextSelection(gState.document, "text/html", nullptr)`
-（`wasm_sdk_probe/src/probe_engine.cpp:3124`），也就是後置條件讀取本身。
+（`wasm_sdk_probe/src/probe_engine.cpp:3124`），~~也就是後置條件讀取本身~~。
 **同一段落、同一個選取，原生 26.8 這個呼叫 1 ms 回傳 798 bytes；WASM 這邊不回傳。**
+
+> **2026-08-14 就地更正**：「讀取本身」是錯的。具名堆疊顯示**文字已經取出來了**，
+> 卡的是 `getTextSelection` 返回時 `~SwTransferable` 銷毀它自己那份剪貼簿 `SwDoc`
+> 的清理路徑。見下方〈根因已量到〉。這個區別很要緊：任何**複製**一段含 frame 選取的路徑
+> 都會中招，不只是這一個讀取 API。
 
 ## 更正：文件並沒有關掉（2026-08-12）
 
@@ -204,15 +209,39 @@ V8 的 inspector 可以中斷 `memory.atomic.wait32`，所以停等執行緒的�
 取出名字：`emscripten_futex_wait / __timedwait_cp / __pthread_cond_timedwait /
 pthread_cond_wait / __libcpp_condvar_wait / condition_variable::wait`。
 
-**候選根因**：[finding 040](040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md)
-——非主執行緒建構的 `Scheduler::IdlesLockGuard` 等一個 Emscripten build 永遠不會設定的條件。
-040 在 [012](012-r6-styled-document-close-timeout.md) 的關檔路徑上是**量到的**；
-落到本篇則**還沒證實**：本篇停等堆疊的第 7 格（`$func54740`）在 `ee185b3d…` 上仍只有索引。
+## 根因已量到（2026-08-14），而且它不是「圖片」也不是「讀取」
 
-> **可否證的預測**：把 pre-guard 原始碼帶 `--profiling-funcs` 重連結一次再跑
-> `tools/probe_wait_primitive_names.py`，**第 7 格會是
-> `Scheduler::IdlesLockGuard::IdlesLockGuard()`**。不是的話這一節要撤。
-> 這一次重編是有量測當理由的——不像 `-sPTHREADS_DEBUG` 那一次是對旗標猜錯。
+預測命中：專為此建的 `e2-preguard-profiling`（wasm `e05fd156…`，037 擋法編掉 ＋
+`--profiling-funcs`）在卡死當下取到 **27 格具名堆疊**，第 7 格正是
+`Scheduler::IdlesLockGuard::IdlesLockGuard()`
+（[finding 040](040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md)）。
+
+**但真正的答案在第 17 與第 21 格**：
+
+```
+ 7 Scheduler::IdlesLockGuard::IdlesLockGuard()
+ 8 sw::DocumentLayoutManager::DelLayoutFormat(SwFrameFormat*)
+ …  DestroyAttr → EraseText → DeleteAttribute → RemoveNode → DelNodes
+14 SwDoc::~SwDoc → SwDoc::release
+16 rtl::Reference<SwDoc>::~Reference
+17 SwTransferable::~SwTransferable
+20 cppu::OWeakObject::release
+21 doc_getTextSelection(...)
+```
+
+`doc_getTextSelection` 把 `pDoc->getSelection()` 取到一個**區域** reference
+（`desktop/source/lib/init.cxx:5926`）；對 Writer 那是一個 `SwTransferable`，
+它持有自己的剪貼簿 `SwDoc`（`m_pClpDocFac`）。函式返回時區域變數出範圍 →
+`~SwTransferable`（`sw/source/uibase/dochdl/swdtflvr.cxx:283`）→ `m_pClpDocFac.reset()`
+→ 銷毀那份 SwDoc → 走到 `DelLayoutFormat` → guard → 永遠等下去。
+
+**所以卡死不在「讀」，在讀完之後的清理。文字其實已經取出來了。**
+而 [012](012-r6-styled-document-close-timeout.md) 是同一個缺陷的另一個入口
+（銷毀的是使用者的文件而不是這份暫時副本）。**037 與 012 現在是同一件事。**
+
+這也解釋了我方擋法為什麼有效：它在讀取**之前**先問選取型態並拒絕，
+於是 `getTextSelection` 根本沒被呼叫，那份會卡死的副本從來沒有被造出來。
+**它不是修好了什麼，只是不去踩。**
 
 ## deadline 為什麼結構上不可能生效
 

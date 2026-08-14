@@ -6,7 +6,7 @@
 | **Bugzilla** | —（尚未送出；本篇第 7 節就是報告草稿） |
 | **發現日** | 2026-08-14 |
 | **嚴重度** | **嚴重**——不是拒絕而是**永久停等**，只有殺掉 worker 重開能救 |
-| **可重現** | [012](012-r6-styled-document-close-timeout.md) 100%；本篇的具名堆疊 1/1 取得 |
+| **可重現** | [012](012-r6-styled-document-close-timeout.md) 100%；具名堆疊兩個入口各 1/1（`doc_destroy` 與 `doc_getTextSelection`） |
 | **是否上游** | **是。** 死結完全在 core 裡，我方沒有任何一行參與 |
 
 ## 摘要
@@ -17,11 +17,14 @@
 `O3TL_UNREACHABLE`——**它永遠不返回**，那個迴圈因此結構上進不去。
 
 **條件永遠不會被設定。** 於是任何在非主執行緒上走到
-`DocumentLayoutManager::DelLayoutFormat()` 的程式碼——例如關閉一份帶 frame 的文件——
-就停在那裡不動了。
+`DocumentLayoutManager::DelLayoutFormat()` 的程式碼就停在那裡不動了——而走到那裡的方式
+不只一種，**已量到兩個入口，都是「銷毀一份含 frame 的 `SwDoc`」**：
 
-這解釋了 [finding 012](012-r6-styled-document-close-timeout.md)（`close()` 180 秒不回應，
-「WASM 停在 document destroy」），而且是**量到的**：具名堆疊就落在 `doc_destroy` 裡面。
+- **`doc_destroy`**：關閉使用者的文件（[finding 012](012-r6-styled-document-close-timeout.md)，
+  `close()` 180 秒不回應）。
+- **`doc_getTextSelection`**：它內部造一份 `SwTransferable`（帶自己的 `SwDoc` 副本），
+  函式返回時解構——**看起來是唯讀 API，而且文字已經取出來了，卡的是收尾**
+  （[finding 037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md)）。
 
 ## 一、停等的位置（量測，引擎 `ee185b3d…`）
 
@@ -170,14 +173,59 @@ returning to `Application::Execute`**，因為它根本沒從 `DoExecute` 回來
 
 | finding | 現況 |
 |---|---|
-| [012](012-r6-styled-document-close-timeout.md) `close()` 不回應 | **已解釋，且是量到的**——具名堆疊就在 `doc_destroy` 的這條路上 |
-| [037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md) as-char frame 段落格式動作卡死 | **候選，未證實**。前綴六格已具名且相同，但第 7 格（`$func54740`）在 `ee185b3d…` 上仍只有索引 |
-| [038](038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md) 註腳內 frame 選取卡死 | 同上 |
+| [012](012-r6-styled-document-close-timeout.md) `close()` 不回應 | **已解釋，量到的**——`doc_destroy` 這條路 |
+| [037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md) as-char frame 段落格式動作卡死 | **已解釋，量到的**（2026-08-14）——見下 |
+| [038](038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md) 註腳內 frame 選取卡死 | 極可能同一個，**未取得堆疊** |
 
-**可否證的預測**：把 pre-guard 那份原始碼帶 `--profiling-funcs` 重連結一次，再跑一次
-`tools/probe_wait_primitive_names.py`，**037 停等堆疊的第 7 格會是
-`Scheduler::IdlesLockGuard::IdlesLockGuard()`**。如果不是，本節這一列就要撤回，而第一到
-第四節不受影響（它們是 012 的證據，不是 037 的）。
+### 預測命中，而且答案比預測本身重要（2026-08-14）
+
+原本寫的可否證預測是：把 pre-guard 原始碼帶 `--profiling-funcs` 重連結，
+**037 停等堆疊的第 7 格會是 `Scheduler::IdlesLockGuard::IdlesLockGuard()`**。
+
+**建了（`e2-preguard-profiling`，wasm `e05fd156…`，`OXSDK_037_GUARD_OFF` ＋
+`--profiling-funcs`），跑了，第 7 格就是它。** 深度也對得上：27 格，與當初那條沒有名字的
+堆疊逐格對齊。先前靠消去法推出的 `$func2290 = osl_waitCondition` 也一併證實。
+
+**但第 21 格才是這一輪真正的收穫**：
+
+```
+ 0 emscripten_futex_wait          ← 停在這裡
+ 1 __timedwait_cp
+ 2 __pthread_cond_timedwait
+ 3 pthread_cond_wait
+ 4 std::__2::__libcpp_condvar_wait
+ 5 std::__2::condition_variable::wait
+ 6 osl_waitCondition
+ 7 Scheduler::IdlesLockGuard::IdlesLockGuard()      ← 預測的那一格
+ 8 sw::DocumentLayoutManager::DelLayoutFormat(SwFrameFormat*)
+ 9 SwTextNode::DestroyAttr → EraseText → DeleteAttribute
+12 SwNodes::RemoveNode → DelNodes
+14 SwDoc::~SwDoc → SwDoc::release
+16 rtl::Reference<SwDoc>::~Reference
+17 SwTransferable::~SwTransferable                  ← 沒有預料到
+20 cppu::OWeakObject::release
+21 doc_getTextSelection(...)                        ← 這確實是 037，不是關檔
+22 probe::dispatch → engineLoop
+```
+
+**037 和 012 不是「共用同一個等待原語」，是同一個缺陷。** 兩者都是
+**在非主執行緒上銷毀一份含 frame 的 `SwDoc`**；差別只在那份 SwDoc 是誰的：
+
+- **012**：使用者的文件，經 `doc_destroy`。
+- **037**：`getTextSelection` **自己造的暫時副本**。
+
+核心那一段可以逐行對上（基線樹 `671c848b`）：`doc_getTextSelection`
+（`desktop/source/lib/init.cxx:5926`）把 `pDoc->getSelection()` 取到一個**區域**
+`css::uno::Reference`，函式返回時它出範圍 → `~SwTransferable`
+（`sw/source/uibase/dochdl/swdtflvr.cxx:283`）→ `m_pClpDocFac.reset()`（`:295`）
+→ 銷毀剪貼簿 `SwDoc`。
+
+**所以卡死發生在資料已經取出之後的清理路上。** 這對客戶端的意義比「某個讀取會卡」大得多：
+任何會複製一段含 frame 選取的路徑，都會在收尾時卡死，而那一段看起來是唯讀 API。
+
+> **這個 build 與 `ee185b3d` 不是同一份原始碼**——它是現行原始碼把擋法用
+> `OXSDK_037_GUARD_OFF` 編掉，`ee185b3d` 則是擋法還沒寫的時候。兩者在**這個呼叫點**等價
+> （關掉時照樣讀型態、照樣記錄，只是不拒絕），但這是等價不是同一份，寫在這裡不含糊帶過。
 
 ## 六、為什麼 per-stage deadline 接不到
 
@@ -185,6 +233,23 @@ returning to `Application::Execute`**，因為它根本沒從 `DoExecute` 回來
 **命令佇列空著、正要去等**的時候才看。停在 `dispatch()` 裡的一個不返回的呼叫，
 永遠回不到那個檢查點。**任何以「引擎自己會逾時」為前提的復原設計，對這一類都無效**——
 唯一有效的是宿主側的期限加上換掉 worker，也就是任務 #33 出貨的那條路。
+
+## 六之二、對上游報告的影響（2026-08-14）
+
+原本的報告只舉 `doc_destroy` 一個入口。現在有兩個，而且第二個更難防：
+
+- **`doc_destroy`**：使用者明確要求關檔，客戶端至少知道自己在做危險的事。
+- **`doc_getTextSelection`**：**看起來是唯讀的**。它在內部造一份 `SwTransferable`
+  （帶自己的 `SwDoc` 副本），函式返回時解構，於是走同一條 `DelLayoutFormat` →
+  `IdlesLockGuard`。**文字已經取出來了，卡的是收尾。**
+
+`doc_getSelectionType`（`init.cxx:5966`）也呼叫同一個 `pDoc->getSelection()`，
+所以它很可能是 [038](038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md)
+的入口——**未取得堆疊，這是推論**。
+
+**這也解釋了我方擋法為什麼有效**：037 的擋法在讀取之前先問選取型態並拒絕，
+於是根本不呼叫 `getTextSelection`，那份會卡死的副本就從來沒有被造出來。
+它不是修好了什麼，只是不去踩。
 
 ## 七、上游報告草稿
 

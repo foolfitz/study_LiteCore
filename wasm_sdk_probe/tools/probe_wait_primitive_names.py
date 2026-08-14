@@ -29,7 +29,9 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from probe_wedge_thread_state import BrowserSession, wait_for_checkpoint  # noqa: E402
+from probe_wedge_thread_state import (  # noqa: E402
+    BrowserSession, wait_for_checkpoint, wait_for_the_hang,
+)
 from r7_support import wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, free_port  # noqa: E402
 
@@ -81,6 +83,9 @@ def main() -> None:
     parser.add_argument("--cases", default="pc-plain")
     parser.add_argument("--fixture-mode", default="wedge-trace")
     parser.add_argument("--timeout", type=float, default=240)
+    parser.add_argument(
+        "--wait-for-hang", action="store_true",
+        help="pause while the engine is wedged rather than while it is alive")
     parser.add_argument("--pause-rounds", type=int, default=3)
     parser.add_argument("--pause-gap", type=float, default=8.0)
     parser.add_argument(
@@ -131,8 +136,17 @@ def main() -> None:
                     pass
             browser.drain(1.5)
 
-        result["engineAlive"] = wait_for_checkpoint(
-            session, "readback-caret-only", args.timeout)
+        if args.wait_for_hang:
+            # The naming trick works on idle threads because they share the wait
+            # site.  Finding 040's prediction is about the frame ABOVE that
+            # shared prefix, which only exists while the engine is actually
+            # wedged -- so this waits for the callback stream to go quiet
+            # instead of for the engine to be healthy.
+            result["hang"] = wait_for_the_hang(session, args.timeout)
+            result["engineAlive"] = False
+        else:
+            result["engineAlive"] = wait_for_checkpoint(
+                session, "readback-caret-only", args.timeout)
         # One pause cannot tell "parked" from "passing through": a thread caught
         # inside a call it completes a millisecond later looks identical to one
         # that never leaves.  Sample the same threads several times, spaced out,
