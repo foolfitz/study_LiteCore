@@ -92,6 +92,12 @@ E1-C不再擴充Editor ABI；它要證明E1-B的窄版產品contract在真實hos
   與queued input）不恢復、不重播。checkpoint永不寫入authority；authority只由顯式save更新，
   顯式save後checkpoint作廢。checkpoint save失敗不得使手勢失敗，但必須以typed state揭露
   （`checkpointError`），不得只留在session內部欄位。（原文與修訂理由見修訂紀錄v8。）
+  > **這一項不是擴 surface，跟被否決的那條路不同。** `checkpointError` 是**殼層 session
+  > snapshot** 的欄位，不是 Editor ABI——§3 守的是 raw UNO／任意 `.uno:*`／key code／
+  > WASM pointer／未分類 callback 那一類**引擎面**擴充，一個唯讀的狀態欄位不在其中。
+  > 被否決的 (B) 之所以算擴 surface，是因為它需要 `restart({source})`：一個讓呼叫端
+  > **選擇復原來源**的新入口。**多告訴 host 一件已經發生的事，和多給 host 一個新的控制項，
+  > 不是同一件事。**
 
 ### 4.2 明確不承諾
 
