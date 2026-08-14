@@ -1491,7 +1491,13 @@ test-r8-b-static: r8-delivery-assets
 		tools/validate_r8_b.py tests/test_r8_bundle.py \
 		tests/test_r8_delivery_server.py tests/test_r8_b.py
 
-test-r8-c-static: r8-service-worker-assets
+# No asset prerequisite, on purpose (SPEC-E1-C v9, finding 041).  That
+# prerequisite reached a .PHONY chain ending in build_r8_release_manifest.py
+# and build_r8_bundles.py, so running this *test* target minted an R8 release
+# id as a side effect -- and E1-C's regression property runs it, meaning
+# validate_e1_c.py --run-regression minted one on every invocation.  Minting
+# was never an assertion here; it was routing.  The recipe is unchanged.
+test-r8-c-static:
 	python3 -m unittest tests/test_r8_bundle.py tests/test_r8_c.py
 	node --test delivery/tests/verified-loader.test.mjs \
 		delivery/tests/release-state.test.mjs
@@ -1579,7 +1585,17 @@ test-e2-a-static:
 	c++ -std=c++17 -fsyntax-only -I$(LOSRC)/include \
 		tools/f039_native_caret_reset.cpp
 
-test-e1-c-static: e1-editor-validation-assets
+# No asset prerequisite, on purpose (SPEC-E1-C v9).  Pulling
+# e1-editor-validation-assets made this target depend on the build tree's
+# mtimes being self-consistent, and line 486 lists Makefile itself as a
+# prerequisite of every object -- so any Makefile edit, including one that
+# adds an unrelated copy rule, drove it into a relink the frozen guard must
+# refuse.  While the artifact is frozen the only way to make it green was to
+# relink the frozen artifact: the exact thing the guard exists to prevent.
+# The recipe below is unchanged, byte for byte; only the dependency on build
+# freshness is gone.  test-e1-c-frozen-guard replaces it with an assertion
+# that can actually go red.
+test-e1-c-static:
 	python3 -m unittest tests/test_e1_c.py
 	node --test editor-shell/tests/*.test.mjs sdk/tests/document-sdk.test.mjs \
 		input/tests/*.test.mjs reader-shell/tests/tile-scheduler.test.mjs
@@ -1591,6 +1607,15 @@ test-e1-c-static: e1-editor-validation-assets
 	python3 -m json.tool e1/editor-shell-bundle-v1.json >/dev/null
 	python3 -m py_compile tools/run_e1_c.py tools/validate_e1_c.py \
 		tests/test_e1_c.py
+
+# The guard has to be asserted, not assumed.  --always-make -n makes this
+# independent of every mtime in the tree: it asks "if this were rebuilt right
+# now, would the link be refused?" and fails if the answer is no.  Delete the
+# guard and this goes red; that is the property the old asset dependency was
+# accidentally standing in for, stated directly.
+test-e1-c-frozen-guard:
+	make --always-make -n build/e1/editor-v1/probe.js 2>&1 \
+		| grep -q "refusing to relink a frozen profile"
 
 test-finding-016-scheduler-static:
 	python3 -m unittest tests/test_finding_016_scheduler.py

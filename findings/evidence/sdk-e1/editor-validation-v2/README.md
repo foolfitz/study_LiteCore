@@ -1,13 +1,13 @@
-# E1-C 重綁輪（矩陣 v2）——自動與人工兩半都已完成
+# E1-C 重綁輪（矩陣 v2）——**已完成，判定重發 `E1_GO_ODT_EDITOR`**
 
 **日期**：2026-08-14　**引擎**：`835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d`
 （出貨中的 `e1-editor-v1`，**全程未重連結**）
 **殼層 bundle**：`f9b1a52f3ff2e2a3f35eae4366993f40b2035f309509aac0a3b7b6864a8cfeb9`
 **矩陣**：`e1/validation-matrix-v2.json`　**瀏覽器**：Chrome 150、Firefox 153
 
-> **這是候選樹，不是正式樹。** `findings/evidence/sdk-e1/editor-validation/` 與現行的
-> `E1_GO_ODT_EDITOR`（連同它 2026-08-14 的具名界定）都沒有被改寫。人工那一輪補上、
-> 判定重發之後才談取代。
+> **2026-08-14：這棵樹現在就是正式證據樹。** 八個屬性全真、`automaticPass: true`、
+> `decision: E1_GO_ODT_EDITOR`。前一輪（08-07、三個雜湊）的 `editor-validation/`
+> **原封保留、未被覆寫**——證據不覆寫，只增加。
 
 ## 為什麼要重綁
 
@@ -66,7 +66,10 @@ after 當 before 寫。裁決也否決了「從正式樹搬一份 before 過來�
 **`preflight-after` 重擷了一次。** 原本那份是自動那半跑完當下擷的，而人工這半在它之後才發生，
 所以它不是這一輪真正的結尾。原檔保留為 `preflight-after-automatic-half.json`，**沒有覆寫**。
 
-## validator 判 `E1_STOP_OR_RESCOPE`，只剩一個未達成
+## validator：八個屬性全真，`E1_GO_ODT_EDITOR`
+
+> 下表是**修好 `regression` 屬性之前**的狀態，保留作為過程紀錄。
+> 修法與最終結果見本節末〈屬性修好之後〉。
 
 | 性質 | 結果 | |
 |---|---|---|
@@ -136,3 +139,46 @@ after 當 before 寫。裁決也否決了「從正式樹搬一份 before 過來�
   沒有註記的 `E1_GO_ODT_EDITOR`，是判斷題，已送外部裁決，**不由跑這一輪的人決定**。
 - 回歸替代**不是**那個屬性。它跑的是同一批檢查，但少掉建置新鮮度那一層，
   而且第 8 個目標被排除——這兩件事都寫在上面，不要在引用時省略。
+
+## 屬性修好之後：八項全真（2026-08-14 16:26）
+
+外部裁決確認成因分析成立，並裁定 **7/8 不得發 GO**（替代 log 不折抵屬性），
+但門檻是**修屬性後單獨重跑 regression 相位**，不是讓那個反向檢查變綠。
+修法四項全數落地（見 SPEC-E1-C 修訂紀錄 v9），其中第二項是**淨收緊的關鍵**：
+
+- **`test-e1-c-frozen-guard`**：`make --always-make -n build/e1/editor-v1/probe.js`
+  必須印出 `refusing to relink a frozen profile`。它與 mtime 拓撲完全無關，
+  問的是「如果現在重建，連結會不會被擋」。**實測：把防護那一行拿掉即紅（exit 2），
+  還原即綠（exit 0）。** 舊相依那個只能靠違規變綠的「反向訊號」，換成一個正向斷言。
+
+重跑結果：
+
+```
+{"automaticPass": true, "complete": true, "decision": "E1_GO_ODT_EDITOR",
+ "failedProperties": [], "artifactBinding": {"boundCases": 50, ...}}
+```
+
+兩項新收緊的閘門**都是真的跑了、不是被跳過**：
+
+- 錨點數在 `== 1` 判準下實測 **1／1／1／1**（兩瀏覽器），取消字串 0 次；
+- 人工輸出的 desktop reopen 產出 `chrome-output.desktop.pdf`／`firefox-output.desktop.pdf`
+  各 38999 bytes、`pass: true`。**這是 E1-C 歷來第一次真的對人工輸出做桌面重開**
+  ——§6 項目 5 字面要求它，而之前每一次 GO 都沒有執行過。
+
+`regression` 這次 `returnCode: 0`，而且**重跑之後 `dist/r8/release-manifest.json` 的
+sha256 不變**——finding 041 的副作用確實消失了。
+
+## 外部覆核糾正了我兩處，記在這裡
+
+1. **kill 點**：我原本寫「在 bundle builder 動手前停掉」。`dist/releases/index.json`
+   的 mtime 15:44 證明 **`build_r8_bundles.py` 已經跑完**，被 Terminated 的是再下一步的
+   `build_r8_c_release_set.py`。已更正。
+2. **損害面要拆成兩句**：綁定面為零（已量測），但 `dist/r8/release-manifest.json`
+   的 15:44 之前內容**不可知**——`dist/` 不進 git 也沒有 checksum 基線。
+   「沒有損害」是過寬的說法。詳見 [finding 041](../../../041-static-test-targets-build-and-mint-through-a-phony-asset-chain.md)。
+
+還有五條它替我補查的人工證據，最重要的一條是：**`hasCheckpoint` 在人工輪裡真的武裝了**
+——兩瀏覽器各 **37 個 state 為 true**、首見於 `checkpointRevision: 4`／`dirty: true`。
+這是整次重跑存在的理由：如果 operator 的順序碰巧讓文件不 dirty，就沒有見證到新手勢形狀，
+而九項照樣會全綠。**我沒查這一項，是它替我查的。**
+（順帶更正：搜尋是**五筆**不是三筆——第五筆是取消字串在輸出位元組上為 0 次。）

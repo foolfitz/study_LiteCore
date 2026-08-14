@@ -669,7 +669,13 @@ def manual_gate(
         ]
         content = {
             "required": [
-                {"text": item, "count": text.count(item), "pass": text.count(item) >= 1}
+                # SPEC-E1-C section 6 item 5 says "exact anchor count", and this
+                # said ">= 1" until 2026-08-14: a duplicated commit landing the
+                # same anchor twice would have passed, which is exactly the
+                # exactly-once property the whole milestone is about.  Both
+                # browsers measure 1 for all four, so tightening costs nothing
+                # and is not a moved goalpost (SPEC-E1-C v9).
+                {"text": item, "count": text.count(item), "pass": text.count(item) == 1}
                 for item in required
             ],
             "cancelledCount": text.count("E1C人工取消不得出現"),
@@ -684,9 +690,20 @@ def manual_gate(
             and any(observed.values())
             and observed == {key: profile.get(key) for key in keys}
         )
+        # Section 6 item 5 asks for a desktop reopen of the manual output, and
+        # until 2026-08-14 no gate ever performed one: the manual ODT is not in
+        # the roundtrip phase, and this gate stopped at zip/crc/xml plus anchor
+        # counts.  That literal gap was present in every previous GO.  One
+        # soffice invocation per browser, no operator cost (SPEC-E1-C v9).
+        desktop = desktop_pdf_roundtrip(
+            output_path, output_path.with_suffix(".desktop.pdf"),
+        ) if inspected.get("exists") is True else {
+            "pass": False, "reason": "manual output missing",
+        }
+        content["desktop"] = desktop
         output_pass = all(
             inspected.get(key) is True for key in ("exists", "zip", "crc", "xml")
-        ) and content["pass"]
+        ) and content["pass"] and desktop.get("pass") is True
         checks = {
             "operatorConfirmedChewing": manual.get("operatorInputMethod")
             == "Fcitx5 Chewing (operator-confirmed)",
