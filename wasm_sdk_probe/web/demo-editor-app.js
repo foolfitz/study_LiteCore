@@ -143,7 +143,14 @@ function updateRecovery(snapshot) {
     ? "引擎沒有回應"
     : "引擎沒有回應，而且重新啟動次數已用盡";
   if (!notice.hasCheckpoint) {
-    el.recoveryText.innerHTML = `${stopped}。<b>最後一次儲存之後的編輯沒有存檔點</b>——`
+    // "There was nothing to protect" and "we tried and the save failed" both
+    // land here, and only the second one is the user's own work going missing.
+    // Saying the same sentence to both is how the person with something to
+    // lose gets told nothing.
+    const why = notice.checkpointFailed
+      ? "<b>手勢前的存檔點沒有建立成功</b>——"
+      : "<b>最後一次儲存之後的編輯沒有存檔點</b>——";
+    el.recoveryText.innerHTML = `${stopped}。${why}`
       + (notice.restartPossible
         ? "重新啟動會回到最後一次儲存的內容。"
         : "請重新整理頁面，從最後一次存出的 ODT 繼續。");

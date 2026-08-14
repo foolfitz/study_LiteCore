@@ -1,7 +1,14 @@
 # SPEC E1-C：窄版 ODT Editor 整合與產品驗證
 
-> **日期**：2026-08-05  
-> **狀態**：現行裁決 **`E1_GO_ODT_EDITOR`**（2026-08-07 23:48，對出貨 artifact `835b453d…`／10 actions）——
+> **日期**：2026-08-05（最後修訂 2026-08-14，v8）  
+> **狀態**：現行裁決 **`E1_GO_ODT_EDITOR`**（2026-08-07 23:48，對出貨 artifact `835b453d…`／10 actions）。
+>
+> > **2026-08-14 具名界定（依 9.1 前例重新界定，不是撤銷）**：這個 GO 描述的是
+> > **2026-08-07 人工輪當時的殼層** ＋ `835b453d…`。**它不涵蓋 2026-08-13 之後的殼層**
+> > ——任務 #33（`68227e1`，手勢前 checkpoint ＋ restart 可自 checkpoint 重開）與宿主側
+> > `f458a67`。在下一次重綁完成之前，**任何對外引用 `e1-editor-v1` 的 GO 都必須帶這一句**。
+> > 不判 STOP 的理由與重綁的完整內容見修訂紀錄 v8。
+>
 > 曾三度判定 GO（2026-08-05、2026-08-06、2026-08-07）。中間因 E1-D 範圍選取與底線／刪除線兩次重連結
 > 一度降為 `E1_STOP_OR_RESCOPE`，重跑期間又撞上 finding 023；兩者皆已結案。
 > 沿革見 §11.4／§11.5，收復經過見 §11.6。  
@@ -78,7 +85,13 @@ E1-C不再擴充Editor ABI；它要證明E1-B的窄版產品contract在真實hos
 - Backspace／Delete verified-selection barrier、paragraph／line break、Undo、explicit bold／italic與save。
 - Plain-text copy／paste、permission denied／empty／unsupported MIME零mutation。
 - Boundary rejection後`restart-required`、fresh Worker、舊handle失效且queued mutation不重播。
-- Crash前未保存內容不恢復；crash前已保存authority可重開；pending composition與queued input不重播。
+- ~~Crash前未保存內容不恢復；crash前已保存authority可重開；pending composition與queued input不重播。~~
+  **（2026-08-14 修訂，v8，生效於下一次重綁）** Crash後只能重開引擎自己save出的bytes：
+  authority與selection手勢前checkpoint兩者取content stamp較新者；自checkpoint重開時session
+  必須標dirty且typed state揭露`hasCheckpoint`。不在這兩份bytes內的內容（含pending composition
+  與queued input）不恢復、不重播。checkpoint永不寫入authority；authority只由顯式save更新，
+  顯式save後checkpoint作廢。checkpoint save失敗不得使手勢失敗，但必須以typed state揭露
+  （`checkpointError`），不得只留在session內部欄位。（原文與修訂理由見修訂紀錄v8。）
 
 ### 4.2 明確不承諾
 
@@ -114,9 +127,17 @@ Chrome／Firefox各三次完整sequence：
 
 - stale editor revision與stale document handle零mutation；
 - structure boundary回`EDITOR_BOUNDARY_UNSUPPORTED`，session進`restart-required`並拒絕已排隊操作；
-- fresh Worker只重開authority bytes，boundary action與queue不重播；
-- composing、queued mutation、unsaved local edit、saved authority四個crash barrier；
-- unsaved內容明確不可恢復，saved authority可恢復，舊handle／舊generation結果不可污染新session；
+- ~~fresh Worker只重開authority bytes，boundary action與queue不重播；~~
+  **（2026-08-14 修訂，v8）** fresh Worker只重開引擎save出的bytes（authority或checkpoint，
+  取content stamp較新者），boundary action與queue不重播；
+- ~~composing、queued mutation、unsaved local edit、saved authority四個crash barrier；~~
+  **（2026-08-14 修訂，v8）** composing、queued mutation、unsaved local edit、checkpointed edit、
+  saved authority**五**個crash barrier；
+- ~~unsaved內容明確不可恢復，saved authority可恢復，舊handle／舊generation結果不可污染新session；~~
+  **（2026-08-14 修訂，v8）** 既未進authority亦未進checkpoint的內容明確不可恢復；saved authority
+  可恢復；checkpoint較authority新時restart重開checkpoint並標dirty（`crash-after-checkpoint`格釘住）；
+  顯式save後checkpoint作廢、不得復活（`crash-saved`格的新assertion釘住）；
+  舊handle／舊generation結果不可污染新session；
 - **每個`EditorSession`**最多3個Worker generation（首次open為第1代，其後每次崩潰／boundary
   `restart()`＋1），達上限時以typed `WORKER_GENERATION_LIMIT`＋`requiresPageReload`要求完整page
   reload，不以無界restart規避。
@@ -460,3 +481,4 @@ pipe）之後，§11.4 要求的重跑全數完成，全部對出貨 artifact `8
 | 2026-08-13 | 新增 9.2：**發 GO 前必跑語料內容軸盤點**（`tools/inventory_corpus_axes.py --check`），盲區清單須寫進判定。工具首跑即補到一個本規格先前沒記載的盲區：**C3 五份語料沒有任何 `text:list`／`text:list-item`**。9.1 手寫的兩項語料事實（0 個 `text:note`、101 個 as-char frame）改由 `tests/test_content_axis_inventory.py` 每次檢查。未動任何閘門，判定不變。 |
 | 2026-08-13 | C3 新增第六份 `list-contexts`（第 5 節），**下一次重綁起生效，不追認既有判定**：盤點檔分成 `E1-C-C3`（判定實際跑過的五份，`list` 釘 absent）與 `E1-C-C3-next`（六份，`list` 釘 present）。fixture 放在 `test-docs/e1/`，不碰 R7 corpus source bytes；`styled-list` 不能代替（錨點緊鄰既有清單會合併，SPEC-E2-A 第 11 節）。已驗：既有 14 份 fixture 對 git HEAD 逐份位元組相同、原生 LOK 開得起來且 `E1-LC-ISOLATED` 讀得回、desktop round-trip 後兩種清單樣式都還在。 |
 | 2026-08-13 | 9.1 的「101 個 as-char frame」**就地更正為「屬性 101、有效 1」**：`l4-stress-100` 那 100 個掛在 `office:text` 底下不在段落裡，實測 close 4 ms，而 `l0-t2-styled` 唯一一個在 `text:p` 裡的 close 10777 ms 走 recovery。收窄理由不變（建立在「五份都沒有 `text:note`」上），改變的是「語料對這個構造覆蓋得不錯」的印象。盤點工具同時修正（新增 `frame-as-char-in-paragraph`／`-body-level` 兩軸與反例測試）。未動任何閘門，判定不變。 |
+| 2026-08-14 | **v8。§4.1／C2 的 crash 恢復性質就地修訂（外部裁決代使用者決策，使用者授權）。** 起因：任務 #33（`68227e1`）出貨「選取手勢前 checkpoint ＋ `restart()` 可自 checkpoint 重開」，與原文「Crash前未保存內容不恢復」**正面矛盾**；且 `crash-unsaved` 那一格現在靠**腳本形狀**變綠——它沒有做選取手勢所以 checkpoint 不 arm——**不管 resurrect 語意怎麼改它都會綠**，是一個打不開的檢查。矛盾與這一格的性質是外部覆核在 `shell-change-recheck` 那一輪挑出來的。**採 (A)：修訂條文＋新增會變紅的格**；否決 (B)「判 resurrect 違反凍結範圍、要求顯式徵詢」——`restart({source})` 這類選源 API 會擴 closed contract（§3 底線），而在這個形狀下的徵詢是**答案恆為是的對話框**，不是同意；(B) 是 (A) 的規格工作全集再加產品工作與更多要凍的格，買到的事前同意在揭露充分之下沒有安全增量。**新性質**＝只能重開引擎 save 出的 bytes（authority／checkpoint 取 content stamp 較新者）、自 checkpoint 重開必標 dirty 且揭露 `hasCheckpoint`、checkpoint 永不寫入 authority、顯式 save 後 checkpoint 作廢、checkpoint 失敗須進 typed state。**否決 (B) 的承重事實已逐條在程式碼核對**（不是轉述）：`_authorityBytes` 全檔只有 `open()`（`editor-session.js:87`）與 `save()` finalize（`:440`）兩個賦值點；restart 選源為 `dirty: useCheckpoint`；save finalize 已會作廢 checkpoint；`_checkpointError` 確實從不進 state。**矩陣 v2**：新增 `crash-after-checkpoint`（每瀏覽器 recovery 6→7 格，48→50），`crash-saved` 加「arm checkpoint」步驟與「save 後 `hasCheckpoint === false`」assertion，`crash-unsaved` **原格與腳本逐字保留**、效力具名限縮為「未 arm 選取手勢的順序」（刪掉它才是放寬——它仍是「無 checkpoint 時未保存內容不得回來」的唯一瀏覽器級證據）。**兩條強制附款**：(一) checkpoint 失敗必須進 typed state（`checkpointError`），否則 `recovery-notice.js` 會把「沒東西可救」與「試過保存但失敗」混為一談、對保存失敗的使用者沉默；(二) **殼層 bundle hash 納入 per-case 綁定與 preflight**——這次矛盾能出貨整整一天而所有自動閘門綠著，唯一原因是殼層對三個 artifact hash 隱形。**零新增人工項目**（checkpoint 語意與 `isTrusted` 無涉，合成事件即可）。**無任何既有格被削弱、改寫或刪除，矩陣只增不減**，§5 不得放寬那一關正面通過。#39 的成本數據支持不動 5000 ms 期限：穩態 71–128 ms、不隨頁數成長，最差 first-save 661 ms 有 7.5 倍餘裕。全部**生效於下一次重綁**。**本列有一處超出裁定逐字範圍並在此標明**：裁定只引了 §4.1 與 C2 的三行，而同段「fresh Worker 只重開 authority bytes」是同一個矛盾的第四行，我依同一原則一併修訂。 |

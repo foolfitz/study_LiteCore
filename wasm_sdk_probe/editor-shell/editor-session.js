@@ -368,11 +368,18 @@ export class EditorSession {
       this.state.update({
         hasCheckpoint: true,
         checkpointRevision: revision,
+        checkpointError: null,
       });
     } catch (error) {
       // A background checkpoint must never turn a user's selection gesture
-      // into a save failure.  Keep the failure for diagnostics and continue.
+      // into a save failure, so this is swallowed as far as the gesture is
+      // concerned -- but it must not be swallowed as far as the host is
+      // concerned.  Keeping it in a private field made "nothing to rescue"
+      // and "we tried to protect your work and failed" the same observable
+      // state, and the recovery banner then stays silent at exactly the
+      // moment it has something worth saying (SPEC-E1-C 4.1, v8).
       this._checkpointError = publicError(error, "CHECKPOINT_FAILED");
+      this.state.update({ checkpointError: this._checkpointError });
     }
   }
 
@@ -451,6 +458,7 @@ export class EditorSession {
         hasSavedBytes: true,
         hasCheckpoint: false,
         checkpointRevision: null,
+        checkpointError: null,
       });
       return result;
     } });

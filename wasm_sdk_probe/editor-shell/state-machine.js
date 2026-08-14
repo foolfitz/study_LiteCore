@@ -20,6 +20,15 @@ export class EditorStateMachine {
       pending: 0,
       editorState: null,
       hasSavedBytes: false,
+      // The checkpoint fields are part of the shape from idle onwards, not
+      // added on first use.  A host that reads hasCheckpoint before any
+      // gesture has happened should get false, not undefined; and
+      // checkpointError has to exist for "we tried to protect your work and
+      // could not" to be distinguishable from "there was nothing to protect"
+      // (SPEC-E1-C 4.1, v8).
+      hasCheckpoint: false,
+      checkpointRevision: null,
+      checkpointError: null,
       error: null,
     });
   }

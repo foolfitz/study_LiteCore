@@ -20,6 +20,7 @@ export function recoveryNotice(snapshot = {}) {
     checkpointRevision: null,
     canRescue: false,
     restartPossible: false,
+    checkpointFailed: false,
   };
   const stopped = snapshot.state === "recoverable-error"
     || snapshot.state === "restart-required";
@@ -36,6 +37,12 @@ export function recoveryNotice(snapshot = {}) {
   // restart button here is sending the user to a control that will refuse them.
   const exhausted = snapshot.error?.code === "WORKER_GENERATION_LIMIT"
     || snapshot.error?.details?.requiresPageReload === true;
+  // "There is nothing to rescue" and "we tried to protect your work and the
+  // save failed" both arrive here as canRescue: false, and they are not the
+  // same thing to say to someone.  The second one is the case where the user
+  // is about to lose work they believe is safe, so it gets its own decision
+  // rather than being folded into silence (SPEC-E1-C 4.1, v8).
+  const checkpointFailed = !hasCheckpoint && Boolean(snapshot.checkpointError);
   return {
     visible: true,
     hasCheckpoint,
@@ -44,5 +51,6 @@ export function recoveryNotice(snapshot = {}) {
       : null,
     canRescue: hasCheckpoint,
     restartPossible: !exhausted,
+    checkpointFailed,
   };
 }

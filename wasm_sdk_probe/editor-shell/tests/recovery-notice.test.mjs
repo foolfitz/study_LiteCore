@@ -93,3 +93,45 @@ test("a non-integer checkpoint revision is reported as unknown, not printed", ()
     assert.equal(notice.checkpointRevision, null);
   }
 });
+
+test("a checkpoint that was attempted and failed is not the same as none", () => {
+  // Both arrive as canRescue: false, and a host that only reads canRescue says
+  // nothing in either case.  One of those users has lost work they believe is
+  // safe (SPEC-E1-C 4.1, v8).
+  const nothingToSave = recoveryNotice({
+    ...stopped, hasCheckpoint: false, checkpointError: null,
+  });
+  assert.equal(nothingToSave.canRescue, false);
+  assert.equal(nothingToSave.checkpointFailed, false);
+
+  const triedAndFailed = recoveryNotice({
+    ...stopped,
+    hasCheckpoint: false,
+    checkpointError: { code: "SAVE_FAILED", message: "checkpoint save failed" },
+  });
+  assert.equal(triedAndFailed.canRescue, false);
+  assert.equal(triedAndFailed.checkpointFailed, true);
+  assert.equal(triedAndFailed.visible, true);
+});
+
+test("a stale failure alongside a good checkpoint does not raise the alarm", () => {
+  // The session clears checkpointError on success, but the decision must not
+  // depend on that: warning about work that is in fact protected is the
+  // mirror-image error.
+  const notice = recoveryNotice({
+    ...stopped,
+    hasCheckpoint: true,
+    checkpointError: { code: "SAVE_FAILED", message: "older attempt" },
+  });
+  assert.equal(notice.canRescue, true);
+  assert.equal(notice.checkpointFailed, false);
+});
+
+test("a running session reports no checkpoint failure either", () => {
+  const notice = recoveryNotice({
+    state: "ready", generation: 1, hasCheckpoint: false,
+    checkpointError: { code: "SAVE_FAILED", message: "x" },
+  });
+  assert.equal(notice.visible, false);
+  assert.equal(notice.checkpointFailed, false);
+});

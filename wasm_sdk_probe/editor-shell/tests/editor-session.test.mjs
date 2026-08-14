@@ -238,8 +238,37 @@ test("a rejected checkpoint does not prevent the selection", async () => {
   assert.equal(value.calls.includes("save-rejected"), true);
   assert.equal(value.calls.includes("editorSelectRangeV1:state"), true);
   assert.equal(value.session._checkpointError.code, "SAVE_FAILED");
+  // The gesture survives the failed checkpoint, but the host has to be able to
+  // see that it failed: without this, "nothing to rescue" and "we tried to
+  // protect your work and could not" are the same observable state, and the
+  // recovery banner stays silent for the user who has most to lose
+  // (SPEC-E1-C 4.1, v8).
+  assert.equal(value.session.state.snapshot.checkpointError.code, "SAVE_FAILED");
   assert.equal(value.session.state.snapshot.hasCheckpoint, false);
   assert.equal(value.session.state.snapshot.state, "ready");
+  await value.session.close();
+});
+
+test("a later successful checkpoint clears the reported failure", async () => {
+  const value = fixture();
+  await value.session.open({ bytes: new ArrayBuffer(16) });
+  await value.session.commitText("先失敗");
+  const working = value.document.save;
+  value.document.save = async () => {
+    const error = new Error("checkpoint save failed");
+    error.code = "SAVE_FAILED";
+    throw error;
+  };
+  await value.session.selectRange(selectionStart, selectionEnd);
+  assert.equal(value.session.state.snapshot.checkpointError.code, "SAVE_FAILED");
+
+  value.document.save = working;
+  await value.session.commitText("再成功");
+  await value.session.selectRange(selectionStart, selectionEnd);
+  assert.equal(value.session.state.snapshot.hasCheckpoint, true);
+  // A stale failure left behind would make the banner warn about work that is
+  // in fact protected -- the opposite error, and just as misleading.
+  assert.equal(value.session.state.snapshot.checkpointError, null);
   await value.session.close();
 });
 
