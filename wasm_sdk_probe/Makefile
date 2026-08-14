@@ -63,6 +63,14 @@ E2_OBJECTS := $(patsubst src/%.cpp,$(E2_BUILD)/%.o,$(E1_SOURCES))
 E2_WAIT_BUILD := build/e2/wait-diagnostic
 E2_WAIT_DIST := dist/profiles/e2-wait-diagnostic
 E2_WAIT_OBJECTS := $(patsubst src/%.cpp,$(E2_WAIT_BUILD)/%.o,$(E1_SOURCES))
+# Finding 040 / task 042: the E2 discovery family with the finding 037 guard
+# compiled OUT and --profiling-funcs on.  037's hang is only reachable without
+# the guard, and naming its parked frames needs a name section -- no existing
+# artifact has both.  This is the build that decides the prediction in finding
+# 040 section 5.  Diagnostic only: never shipped, never bound to a verdict.
+E2_PREGUARD_BUILD := build/e2/preguard-profiling
+E2_PREGUARD_DIST := dist/profiles/e2-preguard-profiling
+E2_PREGUARD_OBJECTS := $(patsubst src/%.cpp,$(E2_PREGUARD_BUILD)/%.o,$(E1_SOURCES))
 E2_SCHED_BUILD := build/e2/scheduler-attribution
 E2_SCHED_DIST := dist/profiles/e2-scheduler-attribution
 E2_SCHED_OBJECTS := $(patsubst src/%.cpp,$(E2_SCHED_BUILD)/%.o,$(E1_SOURCES))
@@ -464,6 +472,7 @@ $(FINDING_012_BUILD) $(FINDING_012_DIAGNOSTIC_BUILD) \
 		$(FINDING_016_SCHEDULER_BUILD) $(FINDING_016_SCHEDULER_DIST) \
 		$(FINDING_016_SELECTION_BUILD) $(FINDING_016_SELECTION_DIST) \
 		$(E2_BUILD) $(E2_DIST) $(E2_WAIT_BUILD) $(E2_WAIT_DIST) \
+		$(E2_PREGUARD_BUILD) $(E2_PREGUARD_DIST) \
 		$(E2_SCHED_BUILD) $(E2_SCHED_DIST) \
 		$(E2_MAINLOOP_BUILD) $(E2_MAINLOOP_DIST) \
 		$(E2_MLPEI_BUILD) $(E2_MLPEI_DIST) \
@@ -525,6 +534,43 @@ $(E2_WAIT_DIST)/sdk-manifest.json: $(E2_WAIT_BUILD)/probe.js \
 	@test -s $(E2_WAIT_DIST)/sdk-worker.js
 
 e2-wait-diagnostic-profile: $(E2_WAIT_DIST)/sdk-manifest.json
+
+$(E2_PREGUARD_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_discovery_api.h Makefile | $(E2_PREGUARD_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_037_GUARD_OFF \
+		-c $< -o $@
+
+$(E2_PREGUARD_BUILD)/exports.txt: $(E1_BUILD)/exports.txt Makefile | $(E2_PREGUARD_BUILD)
+	cp $< $@
+
+$(E2_PREGUARD_BUILD)/probe.js: $(E2_PREGUARD_OBJECTS) $(E2_PREGUARD_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call link_e2_preguard_profiling,$(E2_PREGUARD_OBJECTS),$(E2_PREGUARD_BUILD)/exports.txt,$@)
+
+$(E2_PREGUARD_BUILD)/probe.wasm: $(E2_PREGUARD_BUILD)/probe.js
+	@test -s $@
+
+$(E2_PREGUARD_DIST)/sdk-manifest.json: $(E2_PREGUARD_BUILD)/probe.js \
+		$(E2_PREGUARD_BUILD)/probe.wasm sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e2_discovery_profile.py \
+		tools/e1_support.py | $(E2_PREGUARD_DIST)
+	python3 tools/build_e2_discovery_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_PREGUARD_BUILD)/probe.js --wasm $(E2_PREGUARD_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --output $(E2_PREGUARD_DIST) \
+		--profile-name e2-preguard-profiling --lok-trace
+	@test -s $(E2_PREGUARD_DIST)/probe.js
+	@test -s $(E2_PREGUARD_DIST)/probe.wasm
+	@test -s $(E2_PREGUARD_DIST)/sdk-worker.js
+
+e2-preguard-profiling-profile: $(E2_PREGUARD_DIST)/sdk-manifest.json
+
+e2-preguard-profiling-assets: e2-preguard-profiling-profile \
+	dist/e2-format-discovery.html dist/e2-format-discovery-app.js \
+	dist/e2/format-discovery-client.js dist/e2/discovery-matrix-v1.json \
+	dist/sdk/document-sdk.js dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
 
 e2-wait-diagnostic-assets: e2-wait-diagnostic-profile \
 	dist/e2-format-discovery.html dist/e2-format-discovery-app.js \
@@ -663,6 +709,24 @@ define link_e2_wait_diagnostic
 		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
 		-sEXIT_RUNTIME=0 \
 		-sPTHREADS_DEBUG=1 -sASSERTIONS=1 --profiling-funcs \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(2) \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(FS_PRE_JS) \
+		-o $(3)
+endef
+
+define link_e2_preguard_profiling
+	$(CXX) $(1) \
+		-L$(LOBUILD)/instdir/program $$(cat $(LINKDEPS)) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=65536 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sEXIT_RUNTIME=0 \
+		--profiling-funcs \
 		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
 		-sEXPORTED_FUNCTIONS=@$(2) \
 		-Wl,--wrap=_Z18initJsUnoScriptingv \

@@ -3164,7 +3164,21 @@ bool formatBarrierSelectionIsReadable() {
   const SelectionReadback selection = readSelection();
   gFormatBarrier.selectionType = selection.type;
   gFormatBarrier.selectionTypeReadable = selection.type == LOK_SELTYPE_TEXT;
+#ifdef OXSDK_037_GUARD_OFF
+  // Diagnostic builds only, and never defined for any shipped or verdict-bound
+  // profile.  Finding 040 predicts that the thread parked during finding 037
+  // sits at Scheduler::IdlesLockGuard, but the artifact that reproduces 037 has
+  // no name section and the one that has names carries this guard, so the two
+  // can never be the same build.  Turning the guard off is the only way to make
+  // 037 reachable on a build that can name its own frames -- and the prediction
+  // is falsifiable precisely because that build has to be made.
+  //
+  // The type is still read and still recorded; only the refusal is skipped, so
+  // evidence from such a build still says what the selection type was.
+  return true;
+#else
   return gFormatBarrier.selectionTypeReadable;
+#endif
 }
 
 void readFormatBarrierPostcondition() {
