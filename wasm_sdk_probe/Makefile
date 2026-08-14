@@ -115,6 +115,7 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	e1-discovery-profile e1-discovery-assets \
 	e1-editor-profile e1-editor-assets e1-editor-validation-assets \
 	demo-editor-assets f018-line-nav-assets e1-drag-select-gate-assets \
+	f039-product-readback-assets \
 	e1-session-wedge-assets \
 	e1-noopfix-profile e1-noopfix-assets \
 	e2-format-discovery-profile e2-format-discovery-assets \
@@ -316,6 +317,15 @@ e1-session-wedge-assets: dist/e1-session-wedge-recovery.html \
 # whether a rebuild of e1-editor-v1 is worth paying for, so it must not need one.
 e1-drag-select-gate-assets: dist/e1-drag-select-gate.html \
 	dist/e1-drag-select-gate-app.js dist/sdk/document-sdk.js \
+	dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
+# Task #47 P1.  Runs against the FROZEN e1-editor-v1 and must never cause it to
+# be rebuilt, so this depends on the page, the SDK and the fixtures -- and on no
+# profile target at all.  finding 041: read the whole chain with `make -n`, not
+# just this recipe, before believing that.
+f039-product-readback-assets: dist/f039-product-readback.html \
+	dist/f039-product-readback-app.js dist/sdk/document-sdk.js \
 	dist/e1-fixtures/manifest.json \
 	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
 
@@ -1238,6 +1248,12 @@ dist/e1-drag-select-gate.html: web/e1-drag-select-gate.html | dist
 	cp $< $@
 
 dist/e1-drag-select-gate-app.js: web/e1-drag-select-gate-app.js | dist
+	cp $< $@
+
+dist/f039-product-readback.html: web/f039-product-readback.html | dist
+	cp $< $@
+
+dist/f039-product-readback-app.js: web/f039-product-readback-app.js | dist
 	cp $< $@
 
 dist/e1-session-wedge-recovery.html: web/e1-session-wedge-recovery.html | dist

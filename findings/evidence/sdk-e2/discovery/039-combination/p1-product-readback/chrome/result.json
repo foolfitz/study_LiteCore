@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "release": "task-047-P1-product-readback",
+  "prediction": "findings/evidence/sdk-e2/discovery/039-combination/PREDICTION.md",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "profile": "e1-editor-v1",
+  "fixture": "plain-grapheme.odt",
+  "timeoutMs": 15000,
+  "arms": [
+    {
+      "arm": "five-selects",
+      "steps": [
+        {
+          "step": "select-1",
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 9,
+          "revision": 0
+        },
+        {
+          "step": "select-2",
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 9,
+          "revision": 0
+        },
+        {
+          "step": "select-3",
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 9,
+          "revision": 0
+        },
+        {
+          "step": "select-4",
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 10,
+          "revision": 0
+        },
+        {
+          "step": "select-5",
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 9,
+          "revision": 0
+        }
+      ],
+      "selectionAfter": {
+        "selectionType": "text",
+        "text": "ASCII abc XYZ 01234567",
+        "length": 22
+      },
+      "elapsedMs": 1620
+    },
+    {
+      "arm": "identical-range-twice",
+      "steps": [
+        {
+          "step": "select-R",
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 9,
+          "revision": 0
+        },
+        {
+          "step": "select-R-again",
+          "status": "completed",
+          "completion": "verified-selection-readback",
+          "elapsedMs": 251,
+          "revision": 0
+        }
+      ],
+      "selectionAfterFirst": {
+        "selectionType": "text",
+        "text": "ASCII abc XY",
+        "length": 12
+      },
+      "selectionAfterSecond": {
+        "selectionType": "text",
+        "text": "ASCII abc XY",
+        "length": 12
+      },
+      "stillUsable": {
+        "selectionType": "text",
+        "text": "ASCII abc XY",
+        "length": 12
+      },
+      "elapsedMs": 1376
+    },
+    {
+      "arm": "changing-range",
+      "steps": [
+        {
+          "step": "select-half",
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 9,
+          "revision": 0
+        },
+        {
+          "step": "select-full",
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 10,
+          "revision": 0
+        }
+      ],
+      "selectionAfter": {
+        "selectionType": "text",
+        "text": "ASCII abc XYZ 0123456789",
+        "length": 24
+      },
+      "elapsedMs": 983
+    }
+  ],
+  "outcome": {
+    "code": "A",
+    "label": "readback deadline fired",
+    "detail": "251 ms (armed deadline 250 ms)"
+  },
+  "complete": true,
+  "error": null,
+  "artifact": {
+    "profile": "e1-editor-v1",
+    "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+    "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+    "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761"
+  }
+}

@@ -222,10 +222,24 @@ discovery profile 沒有它是**設計決定**：把純 callback 語意留給拿
 一句話：E2-A 縮限 4 寫的「已知在 **discovery 引擎上**為假」用字是準的，
 而「修好 039」現在有三條意思不同的路，選哪一條會決定 E2-B 繼承到什麼。**未定，見任務 #47。**
 
-> **順帶一個假說，沒證實**：039〈影響〉那一節量產品時，`editorSelectRangeV1` 五次是
-> 112／19／**251**／8／10 ms。**251 很接近 250 ms 的 readback 期限**，若屬實，
-> 那一次就是靠這條路完成的、不是靠 callback。**現有證據不含 completion 欄位，查不到**，
-> 要證實得重跑一次並記下 `completion`。
+> ~~**順帶一個假說，沒證實**：039〈影響〉那一節量產品時，`editorSelectRangeV1` 五次是
+> 112／19／**251**／8／10 ms。**251 很接近 250 ms 的 readback 期限**⋯⋯~~
+>
+> **2026-08-15 當天就量了，假說成立。** 證據
+> [`039-combination/p1-product-readback/`](evidence/sdk-e2/discovery/039-combination/p1-product-readback/README.md)，
+> 在凍結的 `835b453d…` 上（**沒有任何重建**），兩個瀏覽器逐格相同：
+>
+> | 步驟 | completion | 耗時 |
+> |---|---|---|
+> | 選一個範圍 R | `documented-callback-text-selection` | 9 ms |
+> | **再選一次同一個 R** | **`verified-selection-readback`** | **251 ms** |
+> | 對照：選取真的會變的兩次 | 兩次都走 callback | 9／10 ms |
+>
+> 而且**那個 bounded completion 沒有說謊**：兩次之後讀回的選取都是 `"ASCII abc XY"`，
+> pending slot 也沒卡住。
+>
+> **但這不算補上原本那五個數字的證據**——我跑的是不同序列。
+> 落地的是**機制**與「251 ms 出自那條路徑」這件事；`112／19／251／8／10` 仍然未落地。
 
 ## 還不知道的
 
