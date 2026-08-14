@@ -252,6 +252,12 @@ def main() -> int:
                         / "sdk-e2" / "discovery")
     parser.add_argument("--matrix", type=Path,
                         default=project / "e2" / "discovery-matrix-v1.json")
+    parser.add_argument(
+        "--profile", default="e2-format-discovery",
+        help="which built profile's hash counts as 'the engine in dist right "
+             "now'.  Task #47 P3 re-runs the same matrix against "
+             "e2-combination; without this the binding check would compare "
+             "those runs to the discovery hash and score every cell zero.")
     parser.add_argument("--output", type=Path,
                         default=project.parent / "findings" / "evidence"
                         / "sdk-e2" / "summary.json")
@@ -262,7 +268,7 @@ def main() -> int:
     # about itself.  A3 and A4 passed on one engine build; changing the engine
     # afterwards does not make their evidence wrong, it makes it evidence about
     # a different artifact, and the verdict has to say so out loud.
-    profile_manifest = (project / "dist" / "profiles" / "e2-format-discovery"
+    profile_manifest = (project / "dist" / "profiles" / args.profile
                         / "sdk-manifest.json")
     current_wasm = None
     if profile_manifest.is_file():

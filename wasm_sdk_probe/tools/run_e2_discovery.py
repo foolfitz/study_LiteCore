@@ -270,6 +270,14 @@ def main() -> None:
         default="",
         help="wedge-split only: which way to select (finding 038 scope)",
     )
+    parser.add_argument(
+        "--profile-override",
+        default="",
+        help="run the sweep against a different built profile (task #47 P3: "
+             "the A3/A4/A5 matrix on the e2-combination artifact).  The page "
+             "already accepts profileOverride; without this the runner could "
+             "only ever drive the profile its mode maps to.",
+    )
     parser.add_argument("--idle-after-select", type=int, default=0)
     parser.add_argument("--span", default="")
     parser.add_argument(
@@ -317,6 +325,21 @@ def main() -> None:
         root = root / args.browser / args.fixture
     else:
         root = args.evidence_root.parent / args.mode
+    # Task #47.  --evidence-root is interpreted relative to the a2 tree
+    # (.parent.parent), so for the keyed modes it resolves back into the
+    # verdict-bound trees no matter what you pass -- which is how a run against
+    # e2-combination landed in browser/chrome/styled-list as attempt-28, beside
+    # 27 attempts bound to c89f069e.  Nothing was overwritten, but evidence from
+    # a different artifact does not belong in a tree the verdict cites.
+    #
+    # A run against an overridden profile must therefore name its directory
+    # outright.  Refusing is the point: defaulting it somewhere sensible would
+    # make the next person's mistake quieter, not rarer.
+    if args.profile_override and args.evidence_dir is None:
+        parser.error(
+            "--profile-override needs an explicit --evidence-dir: for the keyed "
+            "modes --evidence-root resolves into the verdict-bound tree, and "
+            "evidence from another artifact must not land there")
     if args.evidence_dir is not None:
         evidence = next_evidence_directory(args.evidence_dir)
     else:
@@ -338,6 +361,8 @@ def main() -> None:
             query += f"&idleAfterSelect={args.idle_after_select}"
         if args.span:
             query += f"&span={args.span}"
+        if args.profile_override:
+            query += f"&profileOverride={args.profile_override}"
         session.navigate(f"{base_url}{query}")
         deadline = time.monotonic() + args.timeout
         metrics = None
