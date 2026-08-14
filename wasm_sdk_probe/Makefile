@@ -131,6 +131,7 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	test-r7-c-static test-r7-d-static test-r8-a-static test-r8-b-static \
 	test-r8-c-static test-r8-d-static \
 	test-e1-a-static test-e1-b-static test-e1-c-static test-e2-a-static \
+	test-e1-c-frozen-guard test-e1-c-shell-bundle-tool \
 	test-finding-016-scheduler-static \
 	test-finding-016-selection-barrier-static \
 	test-finding-012-static \
@@ -1670,7 +1671,15 @@ test-e1-c-static:
 	python3 -m json.tool e1/validation-matrix-v2.json >/dev/null
 	python3 -m json.tool e1/editor-shell-bundle-v1.json >/dev/null
 	python3 -m py_compile tools/run_e1_c.py tools/validate_e1_c.py \
-		tests/test_e1_c.py
+		tests/test_e1_c.py tools/regenerate_shell_bundle.py
+	python3 tools/regenerate_shell_bundle.py
+
+# The regenerate tool's own self-test.  Separate from test-e1-c-static because
+# it copies the tree four times and runs the unit suite inside each copy, so it
+# is slow -- but it is the only thing that checks the tool cannot quietly widen
+# what the manifest covers.  No prerequisites on purpose: finding 041.
+test-e1-c-shell-bundle-tool:
+	python3 tools/regenerate_shell_bundle.py --self-test
 
 # The guard has to be asserted, not assumed.  --always-make -n makes this
 # independent of every mtime in the tree: it asks "if this were rebuilt right

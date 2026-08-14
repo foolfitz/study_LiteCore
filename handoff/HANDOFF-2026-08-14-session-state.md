@@ -22,8 +22,14 @@
 1. **殼層現在綁進證據了。** `e1/editor-shell-bundle-v1.json` 逐檔記下驗證頁**實際 import**
    的五個模組＋一個彙總雜湊，進 preflight 與 per-case 綁定。改 `editor-shell/` 或 `input/`
    任一位元組，**三個檢查會紅**（其中一個指名檔案與 source／dist 哪一側）。
-   **但沒有重算工具**——要手改三個地方（manifest、matrix v2 baseline、`tests/test_e1_c.py`
-   裡釘死的字面值）。**最省事的路是「把檢查放寬」，請不要走那條**（任務 #43）。
+   ~~**但沒有重算工具**——要手改三個地方（manifest、matrix v2 baseline、`tests/test_e1_c.py`
+   裡釘死的字面值）。**最省事的路是「把檢查放寬」，請不要走那條**（任務 #43）。~~
+   > **2026-08-15：工具做好了**（`tools/regenerate_shell_bundle.py`，任務 #43 結案）。
+   > 預設印 diff 並回非零，`--write` 才會動；**改位元組是一個旗標，改「哪些模組算數」不是**
+   > ——那要 `--allow-set-change`，而且每個新排除的檔案都要在命令列上寫理由。
+   > source 與 dist 不一致時**拒絕寫入**（就是下面第 5 條那個坑）。
+   > 自帶 `--self-test`（16 項，含「寫完之後既有閘門不能多壞一項」），
+   > 並已接進 `test-e1-c-static`；**實測改一個位元組就紅（make exit 2）**。
 2. **`test-e1-c-static` 不再相依 assets。** 它以前經由 `Makefile:486`（`Makefile` 自己是每個
    `.o` 的相依）耦合到 build 樹的 mtime，於是**凍結期間唯一可達值是 false，
    而唯一變綠的路是重連結凍結 artifact**。取而代之的是 **`test-e1-c-frozen-guard`**：
