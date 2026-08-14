@@ -1,0 +1,25 @@
+938b4ff33518383a2ac216b9fe23338b8563539074b66fd175d27362a1e0535d  wasm_sdk_probe/dist/profiles/e2-combination/probe.wasm
+573534f4dbc3d183faf498e613b728cda1023163263cff9cfb797a65d2de6765  wasm_sdk_probe/dist/profiles/e2-combination/probe.js
+750a670d661d64de975e91b232919d05f5adf17c792df26b7784d3b6c8ba0f08  wasm_sdk_probe/dist/profiles/e2-combination/sdk-worker.js
+
+# The combination SPEC E2-A 10.14's E2-B entry condition is actually about, and
+# which existed on no artifact before 2026-08-15: the product select ABI (which
+# arms the bounded readback) plus -DOXSDK_E2_FORMAT_BARRIER, with the discovery
+# ABI still exported so the A3/A4/A5 harness drives it unchanged.  Both symbol
+# sets on ONE hash: the entry condition has two clauses, and satisfying them on
+# two artifacts would satisfy neither.
+#
+# Capabilities declared: editor-discovery-closed-actions AND narrow-editor-v1.
+# Without the second the worker's gate refuses every product-ABI method, so the
+# recipe greps for both rather than trusting the builder.
+#
+# Also carries the dispatch-time selection field (SPEC E2-A 10.14 narrowing 7).
+#
+# Measurement profile: never shipped.  It does NOT change the discovery profile,
+# which keeps pure callback semantics and keeps finding 039 by design
+# (probe_engine.hpp:69-72) -- that is the ruling, not an omission.
+#
+# The three frozen artifacts, verified before AND after this build:
+835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d  wasm_sdk_probe/dist/profiles/e1-editor-v1/probe.wasm
+679def61e7848a6d678b6bcc2b4fad7acb37904cdcd0e615afb3405fb5afb634  wasm_sdk_probe/dist/profiles/e1-editor-discovery/probe.wasm
+c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f  wasm_sdk_probe/dist/profiles/e2-format-discovery/probe.wasm
