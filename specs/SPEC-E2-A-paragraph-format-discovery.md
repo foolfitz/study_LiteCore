@@ -1,7 +1,7 @@
 # SPEC E2-A：段落層級格式的 completion barrier discovery
 
-> **日期**：2026-08-05（最後修訂 2026-08-15，v20）  
-> **狀態**（2026-08-15 v20；判定與七項縮限自 v19 未變）：**總判定已發＝`PARTIAL_GO_TO_E2_B`，縮限七項，見 10.14 節。**
+> **日期**：2026-08-05（最後修訂 2026-08-15，v21）  
+> **狀態**（2026-08-15 v21；判定自 v19 未變，縮限仍是七項、第 4 項措辭已改）：**總判定已發＝`PARTIAL_GO_TO_E2_B`，縮限七項，見 10.14 節。**
 > A1（部分）、A2（部分通過，前置狀態不成立且不擋——見 10.14）、
 > **A3／A4／A5 已執行且全數通過**——綁定引擎 `c89f069e…`，
 > 兩瀏覽器 × 三 fixture（A5 四 fixture），**A3 25 runs／125 次派送、A4 18／270、A5 8／42**。
@@ -1222,11 +1222,29 @@ barrier 無從建立**」。**閘門守的是後置狀態**，而 A2 不成立�
 3. **readback markup 是序列化器輸出，不是有文件的契約。** A7 的 round-trip 證明的是 package
    換一個 LibreOffice 打得開（26.2 開 26.8 寫的檔），**不是**這串 markup 跨版本穩定；
    同版本內已量到 CSS 屬性順序與 `lang` 會漂移（2.8 縮限 3、10.12 不得外推第三項）。
-4. **barrier 收尾的選取還原，會讓緊接著的下一次選取請求永遠不返回**
+4. **barrier 收尾的選取還原，會讓緊接著的下一次選取請求失敗**——
+   在 discovery 引擎上是**永遠不返回**，在有 bounded readback 的產品路徑上是
+   **會返回但選不到東西**（2026-08-15 實測，見本項下方的更新）
    （[finding 039](../findings/039-the-discovery-selection-path-completes-at-most-once.md) 第 8 臂，
    兩瀏覽器逐格相同，原生 26.8 對照兩次執行逐格相同）。已歸因為我方 engine 等錯條件——
    core 只在有選取可清時廣播，那是正確行為——**未修**。因此 E2-A 驗證的是**單次格式動作**的
    completion；「格式動作可與後續選取請求組合」**未驗證，且已知在 discovery 引擎上為假**。
+   > **2026-08-15 已在 E2-B 真正要出貨的組合上量過，這一項因此不撤、但要改措辭。**
+   > 依外部裁決建了 `e2-combination`（`ba1a5dd5…`：產品 select ABI ＋ format barrier ＋
+   > discovery ABI 仍匯出，同一個 hash）。同一顆 artifact、同一份文件、同一個格式動作、
+   > 同一組座標，只差進入點：
+   >
+   > | 進入點 | 結果 | 回報的選取 |
+   > |---|---|---|
+   > | discovery（**照裁決保留不 buffered**） | 逾時 10 000 ms | — |
+   > | 產品（有 bounded readback） | 完成、`verified-selection-readback`、251 ms | **`none`** |
+   > | 同一選取但**不先做格式動作**（歸因控制） | 完成、callback、20 ms | `"moji 😀 graphe"` |
+   >
+   > 兩瀏覽器逐格相同；工具**先在封存的 `c89f069e` 上重現了逾時**才去量新 artifact。
+   > 所以 bounded readback 把「掛住」換成「誠實地說沒選到」——**引擎不再卡**
+   > （pending slot 有清、後續操作 1 ms 完成），**但選取仍然不成立**。
+   > 「格式化一次、選取路徑陪葬」照舊，只是從卡死變成大聲失敗。
+   > 證據 `findings/evidence/sdk-e2/discovery/039-combination/p2-composition-scan-ba1a5dd5/`。
 5. **`changed` 永遠不宣稱**（一律 `null`）。這是路線 C 的直接後果，不是遺漏（2.9、10.x）。
 6. **不提供前置格式狀態讀取。** 產品**無法回答「目前這一段是什麼格式」**（v10 的產品決定、
    finding 021 未修）。
@@ -1269,6 +1287,28 @@ v2 出貨的會是「格式化一次、選取路徑陪葬」。
 
 修好之後縮限 4 可以撤——**但要憑重掃撤，不是憑修法看起來對**。
 
+> ### 2026-08-15：第一次嘗試已執行，**進場條件仍未滿足**
+>
+> 這一段的「修」原本假設引擎漏了一個判斷。**實際不是**：那個判斷早就實作也出貨了
+> （產品 `oxsdk_editor_select_range` 傳 `boundedReadback=true`，`editor_api.cpp:123`），
+> **discovery 是刻意不裝它**（`probe_engine.hpp:69`–`72`）。所以「修 039」有三種
+> 意思不同的做法，經外部裁決取 **Option C-plus**：不動 discovery 的語意，
+> 改為把 E2-B 真正要出貨的組合建出來量。
+>
+> 做了，結果是**預先寫下的失敗分支**（縮限 4 上方的表）：產品路徑不再掛住，
+> 但**選不到東西**。因此：
+>
+> - **縮限 4 不撤**，措辭已改為「會返回但選不到東西」。
+> - **E2-B 的 ABI 不得凍結。**
+> - 「修 039」的定義要重寫：目標**不是**讓那次選取呼叫返回——它已經會返回了——
+>   而是**讓格式動作之後的選取真的選得到**。這是 barrier 收尾的還原語意問題，
+>   不是完成語意問題。
+> - **A3／A4／A5 的重掃（P3）尚未執行。** 它不是目前的瓶頸：P2 已經擋住凍結，
+>   而重掃的用途是「確認組合沒有改壞共用引擎」，屬於下一輪的事。
+>
+> 預測與判準（含撤縮限 4 的六項門檻）寫在
+> `findings/evidence/sdk-e2/discovery/039-combination/PREDICTION.md`，**執行之前就寫好了**。
+
 #### 這份判定的來源，以及我自己覆算了什麼
 
 判定由外部覆核（fable）裁決，我的傾向與它一致，但**它的三項關鍵論據我逐項覆算過**，
@@ -1305,3 +1345,4 @@ v2 出貨的會是「格式化一次、選取路徑陪葬」。
 | 2026-08-13 | v18（A6 已執行、A7 已完成；E2-A 的每一項閘門條件現在都有結果，總判定待發布）。**A6**（不列入判定）：沒有寫新 harness——`f018-line-nav` 與 `e1-drag-select-gate` 本來就吃 `?profile=`、兩個 asset target 都不重連結。行導覽 6 輪 24 動作、21 完成、**3 個 30 秒逾時**、3／6 輪完整，[finding 018](../findings/018-lok-line-navigation-completion-nondeterministic.md) 在此 profile 重現；拖曳選取**完成卻選不到**（單次拖曳回 `documented-callback-text-selection`，1019／1040 ms 內輪詢全是 `selectionType: none`），但重複拖曳有時會留下選取——所以要說的是 **completion 不追蹤有沒有選到**，[SPEC E1-D](./SPEC-E1-D-range-selection.md) 2.1 在這顆引擎上重現；對照組 text-handles 全程正確（四個遞增區間讀回 `A`／`ASC`／`ASCII`／`ASCII a`）。**Chrome 150 與 Firefox 153.0.1 逐格相同。**兩項都維持 unsupported，並且這是**同一顆引擎上**第一次有證據說明產品 ABI 為何把選取方法寫死成 TEXT_HANDLES。**A7 回歸半**：15 個 target 全綠、四支 workspace preflight `pass`、三個凍結 artifact hash 未變；`test-e1-c-static` 會發 6 條連結命令重建凍結 artifact，因此改為直接跑它的檢查（12＋83 個測試全過），差別寫進證據。這一半**全是靜態檢查、沒有開瀏覽器**，是殼層與工具鏈的回歸，不是瀏覽器矩陣重跑。**同輪新增 [finding 039](../findings/039-the-discovery-selection-path-completes-at-most-once.md) 並已歸因**：discovery 的選取路徑在「沒有選取變化可廣播」時不返回且不清 `gEditorPending`；原生 26.8 對照（`tools/f039_native_caret_reset.cpp`，兩次執行逐格相同）證明**core 只在有選取可清時廣播、那是正確行為**，等待它無條件到來的是我方 engine——**上游判為否**。其中一格（**格式動作之後連 range 選取都逾時**，擋住它的是 barrier 收尾的選取還原）是 E2-B 的直接輸入，已列入判定前要明列的縮限清單（10.13 節末）。 |
 | 2026-08-14 | **v19（總判定已發：`PARTIAL_GO_TO_E2_B`，縮限七項，見 10.14 節）。** 判定經外部覆核裁決，三項關鍵論據逐項覆算後採納，另一項就地更正。**（一）第 8 節「teardown 阻塞」是母規格 `SPEC-E2-000-overview.md:168`「觸發 **Finding 012 類** teardown 阻塞」的縮寫，抄寫時掉了四個字**；Finding 012 是關檔路徑逾時，其操作化是 A5 的 `list-teardown` 且通過，故 [finding 039](../findings/039-the-discovery-selection-path-completes-at-most-once.md) 不屬此款——**這是條文說的，不是讀法**，STOP 因此不成立。**（二）10.10 表的 A3／A5 兩列引錯 build**：「21 runs／105 次派送」與「11 runs／58 個案例」是 `25761ff0…` 時代的數字，經兩次重綁後沒有跟著改，2026-08-13 的判定包直接抄了過去（finding 027 的形狀）。依 `summary.json` 對 `c89f069e…` 重算為 **A3 25／125、A5 8／42**（A4 的 18／270 本來就對），三個 PASS 的成立不受影響；已就地更正並補上 `tools/check_e2_a_summary_numbers.py`，它帶 `--self-test`（六個單欄變異必須各自只點名被改的那一列，且基準取自 JSON 而非規格現況——用當時已經錯的規格當基準，變異會連帶點名別列，那證不了鑑別力）。**（三）縮限 2 併寫了兩件事**：「承諾第 1 級」是 closed action set 的選擇，「level ≥7 不可分」是量測極限，而 **2–6 讀得回 `h2`–`h6`**（2.10 的表），已拆開，免得把縮限寫得比實測嚴。**明列清單由四項增為七項**，補上路線 C 自己的兩項承諾縮限（`changed` 永不宣稱、不提供前置格式狀態讀取）與「只驗證過從收合游標派送」的範圍宣告；第七項另標明**「全部從收合游標出發」是從 harness 設計推論的，不是量到的**——run 與 step 沒有任何欄位記錄選取型態，所以這一格連事後判讀都不行，E2-B 補掃時要一併補這個欄位。依 SPEC-E2-000 第 10 節部分 GO 款，七項縮限必須以 capability 與 UI 明示。**E2-B 進場條件**：finding 039 修復（判準 `selectionTypeBeforeReset`）並於 relink 後重掃 A3／A4／A5 通過，方可凍結 B 的 ABI；修好之後縮限 4 憑重掃撤，不憑修法看起來對。 |
 | 2026-08-15 | **v20。10.14 縮限 7 的憑據句就地更正，縮限與判定不變。** 原文寫「`summary.json` 的 run 與 step 沒有任何欄位記錄選取型態（`selectionType`／`collapsed` 皆為 0 次出現）」——**在 `summary.json` 裡是 0，但綁定 `c89f069e…` 的每一份 `result.json` 都有這兩個名字**（抽樣一份：17 次／7 次），照原文去查證的人會找到它們並以為縮限站不住。真正的理由是**讀取時點**：`formatBarrier.selectionType` 讀在 `ReadQueued`（`probe_engine.cpp:3379`），而 barrier 自己的整段選取在前一階段就送出去了（`:3366`），所以它量的是 barrier 選的那一段；`state.selection.collapsed` 讀在 barrier 結果送出時（`:1203`），已在 `postFormatBarrierRestore()` 之後，恆為收合才正常。**要補的欄位必須讀在 `postUnoCommand` 之前**，即 `:3510` 記 `restorePoint` 的那一行旁邊。這一列同時把該欄位釘進 E2-B 進場 relink 的批次（任務 #47）：它不是「欄位已存在、重掃就有」，是一項真的引擎改動。 |
+| 2026-08-15 | **v21。縮限 4 改措辭並保留；E2-B 進場條件加註「第一次嘗試已執行、仍未滿足」。判定 `PARTIAL_GO_TO_E2_B` 不變。** 起因：進場條件原本假設「修 039」＝補一個引擎漏掉的判斷，而實際上那個判斷早已實作並出貨（`editor_api.cpp:123` 的 `boundedReadback=true`），**discovery 是刻意不裝**（`probe_engine.hpp:69`–`72`），所以「修」有三種意思不同的做法。經外部裁決取 **Option C-plus**：不動 discovery 語意，改建 E2-B 真正要出貨的組合來量（`e2-combination`，`ba1a5dd5…`：產品 select ABI ＋ format barrier ＋ discovery ABI 仍匯出，同一個 hash；capability 與 `editorContract.version` 兩者都要，否則 worker 閘門會拒絕產品半邊）。**預測與六項撤限門檻在執行之前就寫好**（`039-combination/PREDICTION.md`）。**結果落在預先寫下的失敗分支**：同一顆 artifact／同一份文件／同一個格式動作／同一組座標，discovery 路徑逾時 10 000 ms、產品路徑 251 ms 完成但**回報選取為 `none`**，而**歸因控制**（同一個選取、不先做格式動作）20 ms 完成並選到 `"moji 😀 graphe"`——**兩瀏覽器逐格相同**，且工具**先在封存的 `c89f069e` 上重現逾時**才去量新 artifact。所以 bounded readback 把「掛住」換成「誠實地說沒選到」：引擎不再卡（pending slot 有清、後續操作 1 ms），**但選取仍不成立**。**縮限 4 因此不撤**，只把「永遠不返回」擴寫為「會返回但選不到東西」；**E2-B 的 ABI 不得凍結**；「修 039」的定義改寫為「讓格式動作之後的選取真的選得到」，那是 barrier 收尾的**還原語意**問題而非完成語意問題。同一次 relink 一併落地縮限 7 要求的派送當下欄位（`dispatchSelectionCollapsed` 等，記在 `postUnoCommand` 之前）。**A3／A4／A5 重掃（P3）未執行**，理由記在進場條件下方。過程中另記 [finding 042](../findings/042-editing-the-makefile-relinks-every-artifact-that-depends-on-it.md)：編輯 Makefile 會重連結所有相依 artifact，量測中途發生過一次（`938b4ff3`→`ba1a5dd5`），損害盤點為零但屬運氣。 |
