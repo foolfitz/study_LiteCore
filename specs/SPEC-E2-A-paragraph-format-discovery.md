@@ -1,11 +1,12 @@
 # SPEC E2-A：段落層級格式的 completion barrier discovery
 
-> **日期**：2026-08-05（最後修訂 2026-08-13，v18）  
-> **狀態**（2026-08-13 v18）：A1（部分）、A2、**A3／A4／A5 已執行且全數通過**
-> ——綁定引擎 `c89f069e…`，兩瀏覽器 × 三 fixture（A5 四 fixture）。
-> **A6 已執行（兩項維持 unsupported，不列入判定）；A7 已完成
-> （round-trip 10.12 節、回歸 10.13 節）。第 8 節要求的每一項現在都有結果，
-> 但總判定尚未發布——見 10.13 節末的〈判定前要先消化的事〉。**
+> **日期**：2026-08-05（最後修訂 2026-08-14，v19）  
+> **狀態**（2026-08-14 v19）：**總判定已發＝`PARTIAL_GO_TO_E2_B`，縮限七項，見 10.14 節。**
+> A1（部分）、A2（部分通過，前置狀態不成立且不擋——見 10.14）、
+> **A3／A4／A5 已執行且全數通過**——綁定引擎 `c89f069e…`，
+> 兩瀏覽器 × 三 fixture（A5 四 fixture），**A3 25 runs／125 次派送、A4 18／270、A5 8／42**。
+> A6 已執行（兩項維持 unsupported，不列入判定）；A7 已完成（round-trip 10.12、回歸 10.13）。
+> **E2-B 的進場條件：finding 039 修復後重掃 A3／A4／A5 通過，方可凍結 B 的 ABI。**
 >
 > > **2026-08-13 更正**：這段抬頭原本停在「v12、綁定 `25761ff0…`」，
 > > 而 v13 與 v15 各重掃重綁過一次，最後一次已綁到 `c89f069e…`。
@@ -849,17 +850,29 @@ level 2／3 為 number），第一版 validator 問「這個樣式含不含 numb
 ——`selectionBeforeResultCount` 每次都是 0，歸屬那一層沒有攔到任何東西，
 它是縱深防禦，本規格不宣稱它修好了什麼。
 
-### 10.10 目前總結（2026-08-11）
+### 10.10 目前總結（2026-08-11，數字於 2026-08-14 更正）
+
+> **2026-08-14 就地更正（外部覆核指出）**：下表的 A3 與 A5 兩列原本寫
+> 「21 runs／105 次派送」與「11 runs／58 個案例」，那是 **`25761ff0…` 時代的數字**。
+> 三個 PASS 之後經過兩次重綁（`38168306…`→`c89f069e…`），表卻沒有跟著改，
+> 於是 2026-08-13 的判定包直接把它抄了過去——**一份判定引用了它沒有量過的 build**，
+> 正是 [finding 027](../findings/027-r8d-verdict-silently-outlived-its-release.md) 的形狀。
+> 依 `summary.json` 對 `c89f069e…` 重算後為 **A3 25 runs／125 次派送、A5 8 runs／42 個案例**；
+> A4 的 18／270 本來就對。**三個 PASS 的成立與否不受影響**（門檻每格分別是 3、3、1，重算後每格仍達標）。
+>
+> 這個表以後由 `tools/check_e2_a_summary_numbers.py` 對著 `summary.json` 核，
+> 該檢查帶 `--self-test`：六個單欄變異必須各自只點名被改的那一列，否則自己先失敗。
 
 | 相位 | 判定 | 綁定證據 |
 |---|---|---|
-| A3 | **A3_PASS** | 21 runs／105 次派送 |
+| A3 | **A3_PASS** | 25 runs／125 次派送 |
 | A4 | **A4_PASS** | 18 runs／270 次派送 |
-| A5 | **A5_PASS** | 11 runs／58 個案例 |
+| A5 | **A5_PASS** | 8 runs／42 個案例 |
 | A6 | **已執行（不列入判定）** | 兩項維持 unsupported；拖曳半段兩瀏覽器逐格相同 |
 | A7 | **已完成（round-trip ＋ 回歸皆通過）** | 406 份 ODT、406/406 桌面重開；15 個 target 全綠 |
 
-**E2-A 仍無總判定**：第 8 節要求 A6／A7 也有結果。
+~~**E2-A 仍無總判定**：第 8 節要求 A6／A7 也有結果。~~
+**2026-08-14 已發總判定＝`PARTIAL_GO_TO_E2_B`，見 10.14。**
 
 兩個未結的引擎缺口（都已記在 finding 033，都不擋 A3～A5 的判定）：
 
@@ -1106,6 +1119,8 @@ deflate 流損壞時 `testzip()` 是丟例外不是回傳，原本會讓整輪�
 
 **A7 因此仍未完成**：回歸那一半（R6～R8、E1-A／B／C、workspace preflight）沒有跑，
 第 8 節的 `GO_TO_E2_B` 仍未達成，**E2-A 仍無總判定**。
+（**2026-08-14**：這兩句是當日狀態。回歸那一半在 10.13 完成，總判定在 10.14 已發，
+且不是 `GO_TO_E2_B` 而是 `PARTIAL_GO_TO_E2_B`。）
 
 ### 10.13 已完成：A7 的回歸後半，A7 因此完成（2026-08-13）
 
@@ -1134,6 +1149,120 @@ preflight 全 `pass`、三個凍結 artifact hash 未變**，而 `test-e1-c-stat
 
 第 8 節的 `PARTIAL_GO_TO_E2_B` 條款寫的是「縮限項目必須明列」——上面四項就是待明列的清單。
 
+> **2026-08-14**：判定已發，見 10.14。上面四項不是最終清單——明列清單是七項，
+> 這裡漏了路線 C 自己的兩項承諾縮限與「只驗過收合游標派送」的範圍宣告。
+
+### 10.14 E2-A 總判定：`PARTIAL_GO_TO_E2_B`（2026-08-14）
+
+**判定：`PARTIAL_GO_TO_E2_B`**，縮限七項，明列於下；並依 SPEC-E2-000 第 10 節部分 GO 款的
+要求（「限制以 capability 與 UI 明示」），這七項必須落到 E2-B 的 capability 宣告與 UI，
+不是只寫在規格裡。
+
+#### 為什麼是 PARTIAL：掛在哪兩句條文上
+
+第 8 節 `PARTIAL_GO_TO_E2_B` 款有兩個**字面**掛鉤，不需要對任何條文寬讀：
+
+- 「清單或段落樣式其中一組成立、**另一組必須縮限**」← 縮限 1（`set-paragraph-body`
+  的後置條件只能是「不是 heading」）。清單那一組成立。
+- 「或 **heading 只能承諾單一層級**」← 縮限 2。
+
+`GO_TO_E2_B` 拿不到，因為它要求「A2 三個狀態**全部可靠抵達**」，而前置狀態不追隨 caret
+（[finding 021](../findings/021-wasm-format-state-not-refreshed-by-caret-movement.md)，已歸因、未修、
+產品路線 C 直接不讀它）；縮限 1 與 2 的存在本身也與 GO 不相容。
+
+#### STOP 五款逐條對勘，無一照字面成立
+
+| `STOP_OR_RESCOPE` 的款 | 現況 | 憑據 |
+|---|---|---|
+| A2 狀態不抵達或不穩定 | 三個 payload 抵達、派送後穩定、兩瀏覽器一致 | 2.3 |
+| completion 不可歸屬（含 `state-crosstalk` 失敗） | A5 通過；判準是 readback 自己的文字，鑑別控制現行 build 11/11 對前三個 build 0/9 | 10.9 |
+| no-op 與遺失不可區分 | A4 以矩陣關閉：重複派送 barrier 完成而非逾時，遺失會讀到非目標而 typed 失敗 | 10.8 |
+| 清單切換造成結構 silent loss 或 teardown 阻塞 | 結構 406/406 且五種突變控制全被抓；`list-teardown` 通過 | 10.12、A5 |
+| 補齊需要禁止 surface | 039 的修法是改等待條件（判準 `selectionTypeBeforeReset`），不需要禁止任何 surface | finding 039 |
+
+**第四款要特別講清楚，因為它是這次判定唯一真正的岔路。** 第 8 節寫的是「teardown 阻塞」，
+而本規格的這一段是 SPEC-E2-000 第 10 節的縮寫；**母規格原文是「觸發 Finding 012 類
+teardown 阻塞」**（`SPEC-E2-000-overview.md:168`），抄寫時掉了「Finding 012 類」四個字。
+Finding 012 是 **styled document 的關檔路徑**逾時，而這一款的操作化就是 A5 的
+`list-teardown`（清單切換後 open→close 不得重現 012 類阻塞），它通過了。
+
+finding 039 不在關檔路徑上：文件關得掉，卡的是活 session 內「派送後的下一次**選取請求**
+不返回」。**所以 039 不屬於這一款**——這是條文說的，不是讀法。
+
+> **這裡本來會走錯的地方**：把「阻塞」在判定當下擴張到涵蓋 039，等於回頭擴寫一款凍結條文。
+> 那和為了閃避 STOP 而縮讀條文是同一種違紀，只是方向相反。本規格第 8 節 v11 註已經立過
+> 規矩：條文外的新失敗模式要**具名記錄、編進下一階段的進場條件**，不是套進不合身的舊款。
+
+#### A2「部分通過」為什麼不擋，以及附帶的條件
+
+第 5 節把 A2 寫成先決條件，理由句是完整的：「A2 不通過就直接停止：**沒有可靠的後置狀態，
+barrier 無從建立**」。**閘門守的是後置狀態**，而 A2 不成立的那一半是前置（caret 追隨）。
+成立的那一半正是理由句指的東西。
+
+「這是用『我們沒測那半』來繞過『那半不成立』嗎？」——不是，三點都可查：
+
+1. 那半**不是沒測，是測了、失敗了、歸因了**：finding 021 存在、歸因到我方 engine 不推
+   VCL scheduler、core 計算正確，連修法可行性都量過（host 驅動 refresh 之下 5/5 成立，2.4）。
+   繞過的前提是把失敗藏起來；這裡是反過來，失敗被寫成了規格條文。
+2. **順序對**：棄用前置狀態是 2026-08-06 的產品決定（v10），A3 起跑是 08-11。
+   縮限定在通過之前，不是為了讓通過成立而事後發明的。
+3. **A3～A5 的宣稱不依賴那半**：readback barrier 讀文件不讀廣播、定位驗證走 search ＋座標、
+   `state-crosstalk` 專測廣播干擾且通過。
+
+**條件**：判定必須把路線 C 寫成**範圍宣告**而不是只留在內文——見下面縮限 5、6。
+不寫，未來讀者會把「A2 先決條件已滿足」讀成「狀態回讀可用」，那時才真的變成繞過。
+
+#### 明列縮限，七項（第 8 節：「縮限項目必須明列」）
+
+1. **`set-paragraph-body` 的後置條件是「不是 heading」**，不是「是 Text body」——序列化器
+   對 Text body 與預設樣式都寫 `<p>`（2.8 縮限 2）。
+2. **heading 只承諾第 1 級。** 這一句是兩件事，不要併著讀：**承諾範圍**是 H1（closed action
+   set 的選擇）；**量測極限**是 ODF outline level ≥7 讀回 `<p>`、與內文不可分，Title／Subtitle
+   亦然——**而 2–6 讀得回 `h2`–`h6`、是可驗證的**（2.10 的表）。
+3. **readback markup 是序列化器輸出，不是有文件的契約。** A7 的 round-trip 證明的是 package
+   換一個 LibreOffice 打得開（26.2 開 26.8 寫的檔），**不是**這串 markup 跨版本穩定；
+   同版本內已量到 CSS 屬性順序與 `lang` 會漂移（2.8 縮限 3、10.12 不得外推第三項）。
+4. **barrier 收尾的選取還原，會讓緊接著的下一次選取請求永遠不返回**
+   （[finding 039](../findings/039-the-discovery-selection-path-completes-at-most-once.md) 第 8 臂，
+   兩瀏覽器逐格相同，原生 26.8 對照兩次執行逐格相同）。已歸因為我方 engine 等錯條件——
+   core 只在有選取可清時廣播，那是正確行為——**未修**。因此 E2-A 驗證的是**單次格式動作**的
+   completion；「格式動作可與後續選取請求組合」**未驗證，且已知在 discovery 引擎上為假**。
+5. **`changed` 永遠不宣稱**（一律 `null`）。這是路線 C 的直接後果，不是遺漏（2.9、10.x）。
+6. **不提供前置格式狀態讀取。** 產品**無法回答「目前這一段是什麼格式」**（v10 的產品決定、
+   finding 021 未修）。
+7. **只驗證過從收合游標派送。** A3 與 A4 合計 395 次派送、A5 另有 42 個具名案例，
+   定位一律走 search-prime；**在 range 選取上派送這一格從來沒有進過矩陣**。
+   > **這一項的證據等級要標清楚**：「全部從收合游標出發」是**從 harness 設計推論的**
+   > （search-prime 之後派送），**不是逐輪量到的**——`summary.json` 的 run 與 step
+   > **沒有任何欄位記錄選取型態**（`selectionType`／`collapsed` 皆為 0 次出現）。
+   > 也就是說，這一格不只是「沒通過」，是**連能不能事後從證據裡判讀都不行**。
+   > E2-B 的產品側掃描矩陣要補的是這一格，而且該補上把選取型態記進 run 的欄位。
+   而「選一段再按按鈕」是 v2 使用者的主手勢，所以這是**產品**的缺口，不是學術問題。
+
+**另外，本規格既有的 typed 拒絕清單一併繼承**，E2-B 不得漏接：空段落一律回報失敗
+（**規格層收窄不是實作缺陷**，10.11）、帶註腳／尾註的段落設計上拒絕（2.10）、含 as-char frame
+的段落具名拒絕（[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md)，
+**core 端未修**）、per-stage 期限只保「stage 不會無限等」而**不保「barrier 一定收場」**（v14）。
+
+#### E2-B 的進場條件
+
+**finding 039 必須先修**（判準 `selectionTypeBeforeReset`），並在 relink 之後**重掃 A3／A4／A5
+並通過**，才可以凍結 E2-B 的 ABI。理由是 E2-B 要把**同一個 barrier** 編進產品；不先處理，
+v2 出貨的會是「格式化一次、選取路徑陪葬」。
+
+修好之後縮限 4 可以撤——**但要憑重掃撤，不是憑修法看起來對**。
+
+#### 這份判定的來源，以及我自己覆算了什麼
+
+判定由外部覆核（fable）裁決，我的傾向與它一致，但**它的三項關鍵論據我逐項覆算過**，
+不是照抄：
+
+- 母規格「Finding 012 類」的原文——親自讀 `SPEC-E2-000-overview.md:168`，**成立**。
+- 10.10 表的數字引錯 build——依 `summary.json` 對 `c89f069e…` 重算，**成立**，已就地更正，
+  並補上會失敗的檢查（`tools/check_e2_a_summary_numbers.py`）。
+- heading 縮限把「承諾範圍」與「量測極限」併寫——對照 2.10 的表，`h2`–`h6` 確實通過，**成立**，
+  已在縮限 2 拆開。
+
 ## 11. 修訂紀錄
 
 | 日期 | 內容 |
@@ -1157,3 +1286,4 @@ preflight 全 `pass`、三個凍結 artifact hash 未變**，而 `test-e1-c-stat
 | 2026-08-12 | v15（[finding 037](../findings/037-a-paragraph-with-an-inline-image-wedges-the-handle.md) 我方擋法上線；引擎 `c89f069e…`）。讀取那一步**先取 selection type，只有 `LOK_SELTYPE_TEXT` 才呼叫 `getTextSelection(…, "text/html", …)`**；非 TEXT 走新的 `selection-type-not-readable`，**排在所有 readback 形狀之前**（擋下來時根本沒有掃描，`parsed` false、計數全 0，排在後面會被判成「文件不是你要的狀態」）。擋法只跳過讀取，還原照跑，所以呼叫端不會拿到自己沒做的選取。`LOK_SELTYPE_LARGE_TEXT` 不收——header 註明它 unused、等同 COMPLEX，收它等於收一個 core 不會產生的值。**同一列由 20001 ms 卡死變成 37 ms 具名拒絕、事後 handle 可用**；`paragraph-content` 21 種形態首次全部跑完（19 verified、註腳走 035 的通道、圖片走這一條，每列 37–42 ms、21/21 事後可用），`blockTag` 逐列與 v13 定案相同。A3／A4／A5 重掃 44 輪（18.8 分鐘，**每輪跑前重新核對 artifact 雜湊**，44/44 同一個，零輪無證據）並重綁至 `c89f069e…`，`validate_e2_a.py` 發 A3_PASS／A4_PASS／A5_PASS。**殺傷範圍是量的不是推的**：`selectionType` 現在寫進每一次 barrier 的證據，428 次裡 426 次是 TEXT，被擋的 2 次都是 `PC-IMAGE`，四份被掃 fixture（含 `table-boundary` 儲存格段落）無一被碰到。**core 端未修**，擋的是我方不再呼叫。 |
 | 2026-08-13 | v16（A7 的 round-trip 前半已執行，判定 `A7_ROUNDTRIP_PASS`；見 10.12 節）。起因是任務 #36 想把標題／清單併進 `e1-editor-v1` 的下一版 ABI，而那**逐字就是 [SPEC E2-000](./SPEC-E2-000-overview.md) 第 129–133 行定義的 E2-B**，其第 133–134 行既固定了 E2-A → E2-B → E2-C 的順序，也明講「**A 未完成前不凍結新 ABI**」「B 與 C 的規格待 A 有結果後另寫，**本文件不預先授權**」。所以先補 A7，而不是先凍 ABI。**沒有跑新的瀏覽器輪**：材料是既有證據樹裡由 `c89f069e…` 產出的 406 份存檔 ODT（Chrome 222、Firefox 184），綁到舊 build 的 2 153 份逐個 hash 記為略過（finding 027）。七類結構檢查 406／406 通過，桌面版 LibreOffice 26.2.4.2 重開＋PDF 匯出 406／406 成功；結構檢查實際看到帶清單 254 份、帶標題 149 份、帶可解析樣式參照 406 份。**兩個檢查各帶控制組**：結構檢查對真文件做五種破壞全被抓，桌面重開對一份 XML 不成對的文件**被 soffice 拒絕**——沒有後者，「406 份都轉出 PDF」只證明 soffice 願意對任何東西吐 PDF。**第一版的自我測試是壞的**：它改名 content.xml 裡第一個樣式宣告，而樣本一個樣式都沒宣告，於是 `unresolved-style`（正對著 E2-000 第 10 節「清單切換造成 silent structure loss」那條停止條款的檢查）回報通過卻從未執行；改為改名一個**確實被參照**的樣式、樣本改挑表達力最高者、並要求樣本本身能表達每一種突變否則自我測試不通過。合成文件的單元測試（`tests/test_e2_a_roundtrip.py`，17 個）另抓到工具一個真缺陷：deflate 流損壞時 `testzip()` 丟例外而非回傳，原會讓整輪中斷而非讓一份判失敗。**不得外推四項**：桌面版是 26.2 而引擎是 26.8（**跨版本**重開，同版本對照沒有）；只驗開得起來，判準是 `%PDF-` 檔頭與大小，**未比對頁數或文字**；**2.8 節縮限 3 沒有解除**（說的是 package 重開得了，不是 readback markup 跨版本穩定）；**A6 仍未執行**。**A7 的回歸後半（R6～R8、E1-A／B／C、workspace preflight）未跑，A7 因此未完成，第 8 節的 `GO_TO_E2_B` 仍未達成，E2-A 仍無總判定。** `validate_e2_a.py` 的 `notValidated` 與 `narrowings` 兩句已就地改寫並重跑，三個判定（A3_PASS／A4_PASS／A5_PASS）逐位元不變。 |
 | 2026-08-13 | v18（A6 已執行、A7 已完成；E2-A 的每一項閘門條件現在都有結果，總判定待發布）。**A6**（不列入判定）：沒有寫新 harness——`f018-line-nav` 與 `e1-drag-select-gate` 本來就吃 `?profile=`、兩個 asset target 都不重連結。行導覽 6 輪 24 動作、21 完成、**3 個 30 秒逾時**、3／6 輪完整，[finding 018](../findings/018-lok-line-navigation-completion-nondeterministic.md) 在此 profile 重現；拖曳選取**完成卻選不到**（單次拖曳回 `documented-callback-text-selection`，1019／1040 ms 內輪詢全是 `selectionType: none`），但重複拖曳有時會留下選取——所以要說的是 **completion 不追蹤有沒有選到**，[SPEC E1-D](./SPEC-E1-D-range-selection.md) 2.1 在這顆引擎上重現；對照組 text-handles 全程正確（四個遞增區間讀回 `A`／`ASC`／`ASCII`／`ASCII a`）。**Chrome 150 與 Firefox 153.0.1 逐格相同。**兩項都維持 unsupported，並且這是**同一顆引擎上**第一次有證據說明產品 ABI 為何把選取方法寫死成 TEXT_HANDLES。**A7 回歸半**：15 個 target 全綠、四支 workspace preflight `pass`、三個凍結 artifact hash 未變；`test-e1-c-static` 會發 6 條連結命令重建凍結 artifact，因此改為直接跑它的檢查（12＋83 個測試全過），差別寫進證據。這一半**全是靜態檢查、沒有開瀏覽器**，是殼層與工具鏈的回歸，不是瀏覽器矩陣重跑。**同輪新增 [finding 039](../findings/039-the-discovery-selection-path-completes-at-most-once.md) 並已歸因**：discovery 的選取路徑在「沒有選取變化可廣播」時不返回且不清 `gEditorPending`；原生 26.8 對照（`tools/f039_native_caret_reset.cpp`，兩次執行逐格相同）證明**core 只在有選取可清時廣播、那是正確行為**，等待它無條件到來的是我方 engine——**上游判為否**。其中一格（**格式動作之後連 range 選取都逾時**，擋住它的是 barrier 收尾的選取還原）是 E2-B 的直接輸入，已列入判定前要明列的縮限清單（10.13 節末）。 |
+| 2026-08-14 | **v19（總判定已發：`PARTIAL_GO_TO_E2_B`，縮限七項，見 10.14 節）。** 判定經外部覆核裁決，三項關鍵論據逐項覆算後採納，另一項就地更正。**（一）第 8 節「teardown 阻塞」是母規格 `SPEC-E2-000-overview.md:168`「觸發 **Finding 012 類** teardown 阻塞」的縮寫，抄寫時掉了四個字**；Finding 012 是關檔路徑逾時，其操作化是 A5 的 `list-teardown` 且通過，故 [finding 039](../findings/039-the-discovery-selection-path-completes-at-most-once.md) 不屬此款——**這是條文說的，不是讀法**，STOP 因此不成立。**（二）10.10 表的 A3／A5 兩列引錯 build**：「21 runs／105 次派送」與「11 runs／58 個案例」是 `25761ff0…` 時代的數字，經兩次重綁後沒有跟著改，2026-08-13 的判定包直接抄了過去（finding 027 的形狀）。依 `summary.json` 對 `c89f069e…` 重算為 **A3 25／125、A5 8／42**（A4 的 18／270 本來就對），三個 PASS 的成立不受影響；已就地更正並補上 `tools/check_e2_a_summary_numbers.py`，它帶 `--self-test`（六個單欄變異必須各自只點名被改的那一列，且基準取自 JSON 而非規格現況——用當時已經錯的規格當基準，變異會連帶點名別列，那證不了鑑別力）。**（三）縮限 2 併寫了兩件事**：「承諾第 1 級」是 closed action set 的選擇，「level ≥7 不可分」是量測極限，而 **2–6 讀得回 `h2`–`h6`**（2.10 的表），已拆開，免得把縮限寫得比實測嚴。**明列清單由四項增為七項**，補上路線 C 自己的兩項承諾縮限（`changed` 永不宣稱、不提供前置格式狀態讀取）與「只驗證過從收合游標派送」的範圍宣告；第七項另標明**「全部從收合游標出發」是從 harness 設計推論的，不是量到的**——run 與 step 沒有任何欄位記錄選取型態，所以這一格連事後判讀都不行，E2-B 補掃時要一併補這個欄位。依 SPEC-E2-000 第 10 節部分 GO 款，七項縮限必須以 capability 與 UI 明示。**E2-B 進場條件**：finding 039 修復（判準 `selectionTypeBeforeReset`）並於 relink 後重掃 A3／A4／A5 通過，方可凍結 B 的 ABI；修好之後縮限 4 憑重掃撤，不憑修法看起來對。 |
