@@ -1,7 +1,7 @@
 # SPEC E2-A：段落層級格式的 completion barrier discovery
 
-> **日期**：2026-08-05（最後修訂 2026-08-14，v19）  
-> **狀態**（2026-08-14 v19）：**總判定已發＝`PARTIAL_GO_TO_E2_B`，縮限七項，見 10.14 節。**
+> **日期**：2026-08-05（最後修訂 2026-08-15，v20）  
+> **狀態**（2026-08-15 v20；判定與七項縮限自 v19 未變）：**總判定已發＝`PARTIAL_GO_TO_E2_B`，縮限七項，見 10.14 節。**
 > A1（部分）、A2（部分通過，前置狀態不成立且不擋——見 10.14）、
 > **A3／A4／A5 已執行且全數通過**——綁定引擎 `c89f069e…`，
 > 兩瀏覽器 × 三 fixture（A5 四 fixture），**A3 25 runs／125 次派送、A4 18／270、A5 8／42**。
@@ -1233,10 +1233,27 @@ barrier 無從建立**」。**閘門守的是後置狀態**，而 A2 不成立�
 7. **只驗證過從收合游標派送。** A3 與 A4 合計 395 次派送、A5 另有 42 個具名案例，
    定位一律走 search-prime；**在 range 選取上派送這一格從來沒有進過矩陣**。
    > **這一項的證據等級要標清楚**：「全部從收合游標出發」是**從 harness 設計推論的**
-   > （search-prime 之後派送），**不是逐輪量到的**——`summary.json` 的 run 與 step
-   > **沒有任何欄位記錄選取型態**（`selectionType`／`collapsed` 皆為 0 次出現）。
+   > （search-prime 之後派送），**不是逐輪量到的**。
    > 也就是說，這一格不只是「沒通過」，是**連能不能事後從證據裡判讀都不行**。
    > E2-B 的產品側掃描矩陣要補的是這一格，而且該補上把選取型態記進 run 的欄位。
+   >
+   > > **2026-08-15 就地更正這一段的憑據句，結論不變。** 原文寫
+   > > ~~「`summary.json` 的 run 與 step 沒有任何欄位記錄選取型態
+   > > （`selectionType`／`collapsed` 皆為 0 次出現）」~~。**在 `summary.json` 裡確實是 0，
+   > > 但那句話會誤導**：綁定 `c89f069e…` 的**每一份 `result.json` 都有這兩個名字**
+   > > （抽樣一份：`selectionType` 17 次、`collapsed` 7 次）。
+   > >
+   > > 它們仍然答不了這個問題，理由是**讀取時點**，不是欄位不存在：
+   > >
+   > > | 欄位 | 讀在什麼時候 | 為什麼答不了 |
+   > > |---|---|---|
+   > > | `formatBarrier.selectionType` | `ReadQueued` 階段（`probe_engine.cpp:3379`），而 barrier 自己的整段選取是在**上一個**階段送出去的（`:3366` `postFormatBarrierParagraphSelection()`） | 它量的是 **barrier 自己選的那一段**，不是呼叫端派送當下的選取 |
+   > > | `state.selection.collapsed` | barrier 結果送出時（`:1203` `appendEditorState`），已在 `postFormatBarrierRestore()` **之後** | 它量的是**還原之後**的狀態，恆為收合才是正常 |
+   > >
+   > > 所以要補的欄位必須讀在 **`postUnoCommand` 之前**——也就是 `:3510`
+   > > 記 `restorePoint` 的那一行旁邊，那裡本來就已經在讀派送當下的狀態。
+   > > **縮限本身、判定、以及 E2-B 的進場條件都不變**；改的是「沒有欄位」這個憑據句，
+   > > 因為照原文去查證的人會找到那兩個名字，然後以為這項縮限站不住。
    而「選一段再按按鈕」是 v2 使用者的主手勢，所以這是**產品**的缺口，不是學術問題。
 
 **另外，本規格既有的 typed 拒絕清單一併繼承**，E2-B 不得漏接：空段落一律回報失敗
@@ -1287,3 +1304,4 @@ v2 出貨的會是「格式化一次、選取路徑陪葬」。
 | 2026-08-13 | v16（A7 的 round-trip 前半已執行，判定 `A7_ROUNDTRIP_PASS`；見 10.12 節）。起因是任務 #36 想把標題／清單併進 `e1-editor-v1` 的下一版 ABI，而那**逐字就是 [SPEC E2-000](./SPEC-E2-000-overview.md) 第 129–133 行定義的 E2-B**，其第 133–134 行既固定了 E2-A → E2-B → E2-C 的順序，也明講「**A 未完成前不凍結新 ABI**」「B 與 C 的規格待 A 有結果後另寫，**本文件不預先授權**」。所以先補 A7，而不是先凍 ABI。**沒有跑新的瀏覽器輪**：材料是既有證據樹裡由 `c89f069e…` 產出的 406 份存檔 ODT（Chrome 222、Firefox 184），綁到舊 build 的 2 153 份逐個 hash 記為略過（finding 027）。七類結構檢查 406／406 通過，桌面版 LibreOffice 26.2.4.2 重開＋PDF 匯出 406／406 成功；結構檢查實際看到帶清單 254 份、帶標題 149 份、帶可解析樣式參照 406 份。**兩個檢查各帶控制組**：結構檢查對真文件做五種破壞全被抓，桌面重開對一份 XML 不成對的文件**被 soffice 拒絕**——沒有後者，「406 份都轉出 PDF」只證明 soffice 願意對任何東西吐 PDF。**第一版的自我測試是壞的**：它改名 content.xml 裡第一個樣式宣告，而樣本一個樣式都沒宣告，於是 `unresolved-style`（正對著 E2-000 第 10 節「清單切換造成 silent structure loss」那條停止條款的檢查）回報通過卻從未執行；改為改名一個**確實被參照**的樣式、樣本改挑表達力最高者、並要求樣本本身能表達每一種突變否則自我測試不通過。合成文件的單元測試（`tests/test_e2_a_roundtrip.py`，17 個）另抓到工具一個真缺陷：deflate 流損壞時 `testzip()` 丟例外而非回傳，原會讓整輪中斷而非讓一份判失敗。**不得外推四項**：桌面版是 26.2 而引擎是 26.8（**跨版本**重開，同版本對照沒有）；只驗開得起來，判準是 `%PDF-` 檔頭與大小，**未比對頁數或文字**；**2.8 節縮限 3 沒有解除**（說的是 package 重開得了，不是 readback markup 跨版本穩定）；**A6 仍未執行**。**A7 的回歸後半（R6～R8、E1-A／B／C、workspace preflight）未跑，A7 因此未完成，第 8 節的 `GO_TO_E2_B` 仍未達成，E2-A 仍無總判定。** `validate_e2_a.py` 的 `notValidated` 與 `narrowings` 兩句已就地改寫並重跑，三個判定（A3_PASS／A4_PASS／A5_PASS）逐位元不變。 |
 | 2026-08-13 | v18（A6 已執行、A7 已完成；E2-A 的每一項閘門條件現在都有結果，總判定待發布）。**A6**（不列入判定）：沒有寫新 harness——`f018-line-nav` 與 `e1-drag-select-gate` 本來就吃 `?profile=`、兩個 asset target 都不重連結。行導覽 6 輪 24 動作、21 完成、**3 個 30 秒逾時**、3／6 輪完整，[finding 018](../findings/018-lok-line-navigation-completion-nondeterministic.md) 在此 profile 重現；拖曳選取**完成卻選不到**（單次拖曳回 `documented-callback-text-selection`，1019／1040 ms 內輪詢全是 `selectionType: none`），但重複拖曳有時會留下選取——所以要說的是 **completion 不追蹤有沒有選到**，[SPEC E1-D](./SPEC-E1-D-range-selection.md) 2.1 在這顆引擎上重現；對照組 text-handles 全程正確（四個遞增區間讀回 `A`／`ASC`／`ASCII`／`ASCII a`）。**Chrome 150 與 Firefox 153.0.1 逐格相同。**兩項都維持 unsupported，並且這是**同一顆引擎上**第一次有證據說明產品 ABI 為何把選取方法寫死成 TEXT_HANDLES。**A7 回歸半**：15 個 target 全綠、四支 workspace preflight `pass`、三個凍結 artifact hash 未變；`test-e1-c-static` 會發 6 條連結命令重建凍結 artifact，因此改為直接跑它的檢查（12＋83 個測試全過），差別寫進證據。這一半**全是靜態檢查、沒有開瀏覽器**，是殼層與工具鏈的回歸，不是瀏覽器矩陣重跑。**同輪新增 [finding 039](../findings/039-the-discovery-selection-path-completes-at-most-once.md) 並已歸因**：discovery 的選取路徑在「沒有選取變化可廣播」時不返回且不清 `gEditorPending`；原生 26.8 對照（`tools/f039_native_caret_reset.cpp`，兩次執行逐格相同）證明**core 只在有選取可清時廣播、那是正確行為**，等待它無條件到來的是我方 engine——**上游判為否**。其中一格（**格式動作之後連 range 選取都逾時**，擋住它的是 barrier 收尾的選取還原）是 E2-B 的直接輸入，已列入判定前要明列的縮限清單（10.13 節末）。 |
 | 2026-08-14 | **v19（總判定已發：`PARTIAL_GO_TO_E2_B`，縮限七項，見 10.14 節）。** 判定經外部覆核裁決，三項關鍵論據逐項覆算後採納，另一項就地更正。**（一）第 8 節「teardown 阻塞」是母規格 `SPEC-E2-000-overview.md:168`「觸發 **Finding 012 類** teardown 阻塞」的縮寫，抄寫時掉了四個字**；Finding 012 是關檔路徑逾時，其操作化是 A5 的 `list-teardown` 且通過，故 [finding 039](../findings/039-the-discovery-selection-path-completes-at-most-once.md) 不屬此款——**這是條文說的，不是讀法**，STOP 因此不成立。**（二）10.10 表的 A3／A5 兩列引錯 build**：「21 runs／105 次派送」與「11 runs／58 個案例」是 `25761ff0…` 時代的數字，經兩次重綁後沒有跟著改，2026-08-13 的判定包直接抄了過去（finding 027 的形狀）。依 `summary.json` 對 `c89f069e…` 重算為 **A3 25／125、A5 8／42**（A4 的 18／270 本來就對），三個 PASS 的成立不受影響；已就地更正並補上 `tools/check_e2_a_summary_numbers.py`，它帶 `--self-test`（六個單欄變異必須各自只點名被改的那一列，且基準取自 JSON 而非規格現況——用當時已經錯的規格當基準，變異會連帶點名別列，那證不了鑑別力）。**（三）縮限 2 併寫了兩件事**：「承諾第 1 級」是 closed action set 的選擇，「level ≥7 不可分」是量測極限，而 **2–6 讀得回 `h2`–`h6`**（2.10 的表），已拆開，免得把縮限寫得比實測嚴。**明列清單由四項增為七項**，補上路線 C 自己的兩項承諾縮限（`changed` 永不宣稱、不提供前置格式狀態讀取）與「只驗證過從收合游標派送」的範圍宣告；第七項另標明**「全部從收合游標出發」是從 harness 設計推論的，不是量到的**——run 與 step 沒有任何欄位記錄選取型態，所以這一格連事後判讀都不行，E2-B 補掃時要一併補這個欄位。依 SPEC-E2-000 第 10 節部分 GO 款，七項縮限必須以 capability 與 UI 明示。**E2-B 進場條件**：finding 039 修復（判準 `selectionTypeBeforeReset`）並於 relink 後重掃 A3／A4／A5 通過，方可凍結 B 的 ABI；修好之後縮限 4 憑重掃撤，不憑修法看起來對。 |
+| 2026-08-15 | **v20。10.14 縮限 7 的憑據句就地更正，縮限與判定不變。** 原文寫「`summary.json` 的 run 與 step 沒有任何欄位記錄選取型態（`selectionType`／`collapsed` 皆為 0 次出現）」——**在 `summary.json` 裡是 0，但綁定 `c89f069e…` 的每一份 `result.json` 都有這兩個名字**（抽樣一份：17 次／7 次），照原文去查證的人會找到它們並以為縮限站不住。真正的理由是**讀取時點**：`formatBarrier.selectionType` 讀在 `ReadQueued`（`probe_engine.cpp:3379`），而 barrier 自己的整段選取在前一階段就送出去了（`:3366`），所以它量的是 barrier 選的那一段；`state.selection.collapsed` 讀在 barrier 結果送出時（`:1203`），已在 `postFormatBarrierRestore()` 之後，恆為收合才正常。**要補的欄位必須讀在 `postUnoCommand` 之前**，即 `:3510` 記 `restorePoint` 的那一行旁邊。這一列同時把該欄位釘進 E2-B 進場 relink 的批次（任務 #47）：它不是「欄位已存在、重掃就有」，是一項真的引擎改動。 |
