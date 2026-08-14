@@ -174,6 +174,47 @@ E2-B 要把**同一個 barrier** 編進產品；如果 barrier 收尾的選取�
 歸因本身**不需要 relink、不解綁任何證據**；貴的是之後的修復與重掃，那可以延到下一次
 discovery 本來就會發生的 relink。）
 
+## 2026-08-15：修法要的機制**早就存在而且已經出貨了**，discovery 是**刻意**不裝它
+
+準備任務 #47（修 039 ＋ 批次 relink）時去讀了兩條 ABI 的進入點，結果是：
+
+| ABI | 進入點 | `boundedReadback` |
+|---|---|---|
+| **產品** `editorSelectRangeV1` | `src/editor_api.cpp:123` | **`true`** |
+| **discovery** `editorDiscoverySelect` | `src/editor_discovery_api.cpp:58` | 省略 ⇒ 預設 `false` |
+
+`boundedReadback` 開著的時候，`handleEditorSelect` 會武裝一個 250 ms 的 readback 期限
+（`probe_engine.cpp:3756`、`EditorSelectReadbackDeadlineMs`），到期由
+`completePendingEditorSelectByReadback()` 以**具名的** `verified-selection-readback`
+完成——它不是把逾時當成功，而是**回報當下實際讀到的選取**，讓呼叫端自己判斷。
+
+而 `probe_engine.hpp:69`–`72` 把這個取捨寫得很清楚：
+
+> boundedReadback: complete from a selection readback if the requested range
+> changes nothing and core therefore emits no selection callback (SPEC E1-D).
+> **The product range-select sets it; the diagnostic path does not, so the
+> profiles the findings were measured on keep pure callback semantics.**
+
+**所以 039 不是「引擎忘了判斷」。** 那個判斷已經寫好、已經出貨、而且 SPEC E1-D 說的
+情境（「請求的範圍什麼都沒改，於是 core 不廣播」）**逐字就是 039 的情境**。
+discovery profile 沒有它是**設計決定**：把純 callback 語意留給拿來量 core 行為的 profile。
+
+### 這件事改寫了 E2-B 進場條件真正在問什麼
+
+- **出貨的 `e1-editor-v1` 根本沒有編進 format barrier**（`OXSDK_E2_FORMAT_BARRIER`
+  只出現在 E2 系列的 build 規則，`Makefile:504` 起；`E1_B_BUILD` 沒有）。
+  所以**第 8 臂在今天的產品上不可能發生**——它沒有格式動作。
+- 而 E2-B 要送進產品的組合是**barrier ＋ 產品那條有 buffered readback 的 select**。
+  **那個組合目前不存在於任何 artifact 上，所以第 8 臂在它上面會不會發生，是未量的。**
+
+一句話：E2-A 縮限 4 寫的「已知在 **discovery 引擎上**為假」用字是準的，
+而「修好 039」現在有三條意思不同的路，選哪一條會決定 E2-B 繼承到什麼。**未定，見任務 #47。**
+
+> **順帶一個假說，沒證實**：039〈影響〉那一節量產品時，`editorSelectRangeV1` 五次是
+> 112／19／**251**／8／10 ms。**251 很接近 250 ms 的 readback 期限**，若屬實，
+> 那一次就是靠這條路完成的、不是靠 callback。**現有證據不含 completion 欄位，查不到**，
+> 要證實得重跑一次並記下 `completion`。
+
 ## 還不知道的
 
 1. ~~**歸因未做。**~~ **已完成**（見上一節）：core 正確，我方等錯條件。
