@@ -1,0 +1,152 @@
+# 交接 — 2026-08-15（038 併進 040、039 的「修」被重新定義、E2-B 仍不得凍結）
+
+接手前先讀這一份。上一份是 [`260814 的 session state`](HANDOFF-2026-08-14-session-state.md)
+（仍然有效，本份只增補與更正）。
+
+## 現在的狀態
+
+| | |
+|---|---|
+| 分支 | `main`，工作樹乾淨，本輪 18 個 commit（`4d90f66..8fd5c9d`） |
+| **E1 出貨編輯器** | `835b453d…`＋殼層 `f9b1a52f…`；`E1_GO_ODT_EDITOR` 不變 |
+| **E2 出貨引擎** | `c89f069e…`；**E2-A ＝ `PARTIAL_GO_TO_E2_B` 不變**，規格已到 **v22** |
+| **E2-B** | **仍不得凍結 ABI**——擋住的是縮限 4，見〈#47 的結論〉 |
+| 上游缺陷 | **finding 040**，現在有**三個量到的入口**；草稿 `findings/drafts/040-bugzilla.txt`，**未送**（使用者 08-15 決定暫緩） |
+| 新的診斷 artifact | **`e2-combination` ＝ `ba1a5dd5…`**（產品 select ABI ＋ format barrier ＋ discovery ABI，同一個 hash）。**永不出貨** |
+
+**三個凍結 artifact 全程未變**：`835b453d`／`679def61`／`c89f069e`，每次動作前後都核對過。
+**兩個 E1 凍結 profile 本輪才補進 `build/archive/`**——它們原本沒有封存，是這輪發現的。
+
+## 動手之前必讀（本輪新增的坑）
+
+1. **改一行 Makefile 就會重連結所有相依 artifact**（[finding 042](../findings/042-editing-the-makefile-relinks-every-artifact-that-depends-on-it.md)）。
+   `Makefile` 在每個 `.o` 的相依清單裡，所以「編輯建置腳本」對 make 而言等同「改原始碼」。
+   **我在量測中途踩了**：為了加一行斷言改 Makefile，`e2-combination` 就從 `938b4ff3`
+   變成 `ba1a5dd5`。**`make -n` 有印出六行 `em++`，我沒讀。**
+   → **任何 relink 之後還要動 Makefile，先跑 `make -n <target>` 並讀完。**
+2. **`run_e2_discovery.py --evidence-root` 對 keyed 模式會走回判定綁定的證據樹。**
+   它做 `.parent.parent`，所以不管你傳什麼，`a3/a4/a5` 都落在
+   `discovery/{browser,repeat,negative}/…`。組合 artifact 的第一輪因此變成
+   `browser/chrome/styled-list/attempt-28`。**已加防護**：`--profile-override`
+   沒有 `--evidence-dir` 就拒跑。**要跑非預設 artifact，一定要自己指名目錄。**
+3. **A3 單輪的 `pass: false` 是常態**，凍結的 `attempt-27` 也是 false。
+   A3／A4／A5 的判定來自 `validate_e2_a.py` 對整棵樹的判讀，**不是那個欄位**。
+   我差一點把 shakedown 的 `pass: false` 當成 P3 失敗報出去。
+4. **`ChromeSession.navigate()` 等的是 `globalThis.__probe_metrics`**
+   （`run_browser_probe.py:281`）。新頁面只發佈自己的名字會卡在
+   `Chrome page did not finish loading`，而那看起來像頁面壞掉。
+5. **`FormatDiscoveryClient` 認的是 `diagnostic.scope` ＋ `verified-format-state`**；
+   產品 ABI 另外還要 **`editorContract.version === 1`**（`sdk-worker.js:98`–`101`），
+   **只宣告 capability 不夠**。第一顆組合 artifact 就是這樣做出來的：capability 列著，
+   每個產品方法在 0 ms 被拒，錯誤訊息讀起來像「少了 capability」。
+
+## 本輪做完的事
+
+### #45：038 的堆疊取到了，是 040 的第三個入口
+
+預測先寫再驗（`90cc23d`，跑之前），落在預先寫好的**結局 A**。
+三次獨立執行 × 每次三輪暫停 ＝ **九次 28 格逐格相同**，入口 `doc_getSelectionTypeAndText`，
+**與 037 的堆疊第 0～20 格完全相同**，只在第 21 格分岔、038 多一格 `readSelection()`。
+
+**040 有一句是更正不是補充**：它原本猜 038 的入口是 `doc_getSelectionType`，
+**量到的是它的鄰居**。類別層級的推論成立，點名的函式錯了。
+
+**codex 對抗性覆核跑了兩輪，第二輪打掉我四句話**，全部已降級：
+
+| 我寫的 | 實際 |
+|---|---|
+| `_1486`／`_1489` 是連結器折疊的指紋 | **反組譯否定**：三個同名 thunk 分別是 `this-16`／`-20`／`-24`，是三個不同函式。我自己跑 `wasm-dis` 確認覆核是對的。留下的結論只有「那個名字不能認型別」 |
+| 步驟帳是「暫停當下」讀的 | 讀在**靜默偵測之後、三輪暫停之前** |
+| 「擋法是觸發器」是量到的 | **推論**——那三輪跑的是 `getState`，擋法一次都沒被呼叫 |
+| 「文字已經取出來了」 | 堆疊證不出來：四個提前 return 分支都在寫 out-param 之前。037 有原生對照撐著，**038 沒有** |
+
+### #43：殼層 manifest 重算工具
+
+預設印 diff 回非零；**改位元組是一個旗標，改「哪些模組算數」不是**（要
+`--allow-set-change` ＋每個新排除檔案在命令列寫理由）；source 與 dist 不一致直接拒寫。
+16 項 `--self-test`，**其中兩項第一次跑就抓到我自己的錯**。已接進 `test-e1-c-static`，
+**實測改一個位元組就紅（make exit 2）**。
+
+### #47：039 的「修」被重新定義，E2-B 仍不得凍結
+
+**三個發現改變了這件事的形狀：**
+
+1. **E2-A 縮限 7 的憑據句是錯的**（已修，v20）。原文說「run 與 step 沒有任何欄位記錄
+   選取型態」，但綁 `c89f069e` 的每一份 `result.json` 都有 `selectionType` 與 `collapsed`。
+   真正的理由是**讀取時點**：前者讀在 barrier 選完整段之後，後者讀在還原之後。
+   → 那個欄位**不是 relink 就自動有**，是一項真的引擎改動（已隨本輪落地）。
+2. **039 要的機制早就出貨了**：產品 `editor_api.cpp:123` 傳 `boundedReadback=true`，
+   discovery 沒有，而 `probe_engine.hpp:69`–`72` 白紙黑字說那是**刻意**的
+   （「讓 findings 據以量測的 profile 保持純 callback 語意」）。
+   所以「修 039」有三種意思不同的做法。
+3. **039 那句「已由對照實測」沒有證據檔**：追到加它的 commit（`b8270c8`），
+   新增的兩份證據都不含那顆 artifact 也不含那些時間。結論不撤（另有程式碼層根據），
+   但 `112／19／251／8／10` 標成**未落地**。
+
+**外部裁決（fable）取 Option C-plus**，並先糾正我的利益衝突聲明：
+**最誘人的是 A（打開 boundedReadback）不是 C**——A 只要改一個字，discovery 重掃一過，
+縮限 4 就照字面可以撤，而產品組合從沒被量過。
+
+**P1（凍結的 `835b453d`，兩瀏覽器逐格相同）**：同一範圍再選一次 →
+`verified-selection-readback` **251 ms**；選取真的會變 → callback 9 ms。
+**對照臂是關鍵**——沒有它，「readback 有動作」也可能只是這顆 build 每次都這樣標。
+順帶把 039 的 251 ms 假說結掉。
+
+**P2 ＝ 預先寫下的失敗分支。** 同一顆 artifact、同一份文件、同一個格式動作、同一組座標：
+
+| 進入點 | 結果 | 回報的選取 |
+|---|---|---|
+| discovery（照裁決保留不 buffered） | 逾時 10 000 ms | — |
+| 產品（有 bounded readback） | 完成、251 ms | **`none`** |
+| 同一選取但**不先做格式動作**（歸因控制） | 完成、20 ms | `"moji 😀 graphe"` |
+
+兩瀏覽器逐格相同；工具**先在封存的 `c89f069e` 上重現逾時**才去量新 artifact。
+**bounded readback 把「掛住」換成「誠實地說沒選到」——不是修好。**
+
+**P3 ＝ A3／A4／A5 全部通過**（41 輪、每輪 exit 0，同一支 validator）：
+`A3_PASS`／`A4_PASS`／`A5_PASS`、`gaps` 空、每格 `bound 3 / passing 3 / superseded 0`。
+**組合沒有改壞共用引擎**；擋住凍結的是 P2 不是這個。
+
+> **P3 有一個數字會被讀錯**：A3 raw 是 25 runs／125 派送對 **18／90**。
+> **那不是覆蓋變少**——門檻每格 3，凍結那棵有兩格當初多跑成 8 和 5（盈餘），
+> 本輪每格剛好 3，而**每輪派送數兩邊都是 5、每格都 covered**。A4 兩邊 18／270、A5 兩邊 8。
+
+**結論**：縮限 4 **不撤**，措辭從「永遠不返回」改成「**會返回但選不到東西**」；
+**E2-B 的 ABI 不得凍結**；「修 039」重新定義為
+**「讓格式動作之後的選取真的選得到」**——那是 barrier 收尾的**還原語意**問題，
+不是完成語意問題。
+
+## 我這一輪的錯，以及它們是怎麼被抓到的
+
+| | 抓到的人 |
+|---|---|
+| thunk 折疊的解釋（反組譯直接否定） | codex，**我自己跑 `wasm-dis` 確認它對** |
+| 步驟帳時點／擋法是推論／out-param 未證 | codex 第二輪 |
+| **歸因控制漏掉**：「格式動作後選到 `none`」和「y=2600 是空行」讀數一模一樣，我原本就要據此下結論 | **我自己**，寫結論前補的 |
+| **量測中途重連結了正在量的 artifact** | 我自己，事後核 hash 時 |
+| 第一輪 sweep 寫進判定綁定的證據樹 | 我自己，找不到輸出時 |
+| 差點把 A3 常態的 `pass: false` 當成 P3 失敗 | 我自己，去比對凍結那輪時 |
+
+**利益衝突那一次值得記**：我在送裁決時聲明「C 是對我最有利的」，
+**裁決指出我連自己的偏誤都標錯了**——真正好走的是 A。
+
+## 還開著的
+
+| # | 事情 | 卡在誰 |
+|---|---|---|
+| **49** | **讓格式動作之後的選取真的選得到**（barrier 收尾的還原語意）。看 `postFormatBarrierRestore`／`finishFormatBarrierAfterRestore`（`probe_engine.cpp:3251`／`:3260`——**本輪編輯後的行號，我自己重查過**） | 可做；**擋著 #48** |
+| **48** | 寫 SPEC-E2-B | 被 #49 擋 |
+| **46** | **finding 040 上游未送**（三個入口、重複單查過七組皆零，**日期是 08-14，送前要重查**） | 使用者 08-15 決定暫緩 |
+| — | `doc_getSelectionType` 是不是第四個入口 | 結構相同、**未量**；我方引擎只在 ABI 缺 combined API 時才走它 |
+| — | 039 產品對照那五個數字 | **未落地**，下次動產品 profile 時順手補並記 `completion` |
+
+## 這一輪的 artifact 帳
+
+出貨三個**全程未動**：`835b453d`／`679def61`／`c89f069e`。
+新增兩顆診斷用的，**都永不出貨、不綁任何判定**：
+
+- **`e2-combination` ＝ `938b4ff3…`**——**已作廢**，manifest 少 `editorContract`，
+  產品 ABI 全被閘門拒絕。封存保留，**它上面唯一一輪證據沒有量到任何東西**。
+- **`e2-combination` ＝ `ba1a5dd5…`**——**現行**，P2／P3 都綁在它上面。
+
+`build/archive/` 現在有八顆，含本輪補封存的兩個 E1 凍結 profile。
