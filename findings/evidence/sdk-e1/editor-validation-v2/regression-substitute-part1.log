@@ -1,0 +1,302 @@
+=== make test-r6-release ===
+python3 tools/validate_r6_release.py
+{
+  "schemaVersion": 1,
+  "release": "R6",
+  "decision": "GO",
+  "checks": {
+    "r6ADiscovery": true,
+    "r6AReaderChrome3of3": true,
+    "r6AReaderFirefox3of3": true,
+    "r6BDomain12of12": true,
+    "r6BHttp12of12": true,
+    "r6BAdaptersEquivalent": true,
+    "r6CChromeChrome3of3": true,
+    "r6CFirefoxFirefox3of3": true,
+    "r6CMixedRequiredScenarios": true,
+    "r6CEditAfterAcceptChrome": true,
+    "r6CEditAfterAcceptFirefox": true,
+    "r6CRoundtrip": true,
+    "r1ToR5Regression": true,
+    "coreAndR5ArtifactsUnchanged": true
+  },
+  "regressions": {
+    "r5UnitAbiProfileAndArtifactContract": true,
+    "r5ReviewChrome": true,
+    "r5ReviewFirefox": true,
+    "r5ReaderChrome": true,
+    "r5ReaderFirefox": true,
+    "providerChrome": true,
+    "providerFirefox": true,
+    "r3Abi": true,
+    "r3SemanticFlow": true,
+    "r3Roundtrip": true,
+    "r2LifecycleCrash": true,
+    "r1Legacy": true,
+    "r1Roundtrip": true
+  },
+  "counts": {
+    "r6AReaderSamples": 6,
+    "r6BConformanceScenarios": 24,
+    "r6CFullScenarioRuns": 6,
+    "r6CMixedRuns": 1,
+    "r6CManualEditRegressions": 2,
+    "r6COdtPdfSamples": 7
+  },
+  "artifacts": {
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "writerReviewLoaderSha256": "35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566",
+    "writerReviewWasmSha256": "ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6",
+    "desktopLibreOffice": "LibreOffice 26.2.4.2 620(Build:2)"
+  },
+  "knownLimitation": {
+    "finding": 12,
+    "status": "open",
+    "scope": "t2-styled close timeout after discovery operations; required t1/t3 paths pass"
+  },
+  "pass": true
+}
+=== make test-r7-b-static ===
+node --test input/tests/*.test.mjs
+✔ copy uses public plain-text selection and a browser write (1.545256ms)
+✔ denied clipboard read is typed and causes zero mutation (1.231492ms)
+✔ paste requires a user gesture and empty reads cause zero mutation (0.249424ms)
+✔ plain text wins over HTML and commits exactly once (0.800631ms)
+✔ non-text clipboard is rejected without mutation (0.246068ms)
+✔ composition commits exactly once and suppresses duplicate beforeinput (2.121389ms)
+✔ cancel, empty composition and teardown cause zero mutation (0.473201ms)
+✔ plain text clipboard ignores HTML and preserves Unicode (0.384165ms)
+✔ empty and oversized input generate no mutation (0.477398ms)
+✔ commits are serialized and Unicode summary distinguishes combining forms (0.328181ms)
+✔ bounded queue rejects newest input without dropping accepted commits (0.355262ms)
+✔ stale invalidation cancels queued input and does not replay it (0.50493ms)
+✔ blocked state cancels composition and rejects commits (0.274781ms)
+✔ composition buffer disagreement is typed and causes zero mutation (0.354229ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 60.597741
+node --test r7/tests/page-navigation.test.mjs
+✔ page intents clamp to first and last page (0.521822ms)
+✔ scroll produces an explicitly approximate page hint (0.167071ms)
+✔ hyperlink policy allows HTTP and bookmarks but blocks dangerous schemes (0.142335ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 49.774763
+node --check input/input-adapter.js
+node --check input/clipboard-adapter.js
+node --check web/r7-reference-app.js
+python3 -m py_compile tools/r7_support.py tools/run_r7_input.py tools/validate_r7_b.py
+=== make test-r7-c-static ===
+node --test input/tests/*.test.mjs
+✔ copy uses public plain-text selection and a browser write (1.050807ms)
+✔ denied clipboard read is typed and causes zero mutation (4.086909ms)
+✔ paste requires a user gesture and empty reads cause zero mutation (0.270483ms)
+✔ plain text wins over HTML and commits exactly once (0.78431ms)
+✔ non-text clipboard is rejected without mutation (0.222725ms)
+✔ composition commits exactly once and suppresses duplicate beforeinput (2.12221ms)
+✔ cancel, empty composition and teardown cause zero mutation (0.309917ms)
+✔ plain text clipboard ignores HTML and preserves Unicode (0.202297ms)
+✔ empty and oversized input generate no mutation (0.331798ms)
+✔ commits are serialized and Unicode summary distinguishes combining forms (0.292654ms)
+✔ bounded queue rejects newest input without dropping accepted commits (0.385808ms)
+✔ stale invalidation cancels queued input and does not replay it (0.288357ms)
+✔ blocked state cancels composition and rejects commits (0.16627ms)
+✔ composition buffer disagreement is typed and causes zero mutation (0.228245ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54.756748
+node --test r7/tests/page-navigation.test.mjs
+✔ page intents clamp to first and last page (0.635362ms)
+✔ scroll produces an explicitly approximate page hint (0.16657ms)
+✔ hyperlink policy allows HTTP and bookmarks but blocks dangerous schemes (0.154979ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39.941698
+node --check input/input-adapter.js
+node --check input/clipboard-adapter.js
+node --check web/r7-reference-app.js
+python3 -m py_compile tools/r7_support.py tools/run_r7_input.py tools/validate_r7_b.py
+node --test r7/tests/*.test.mjs
+✔ valid project ODT passes closed-format preflight (3.443561ms)
+✔ public DOCX name and disguised DOCX bytes are rejected (1.373447ms)
+✔ truncated ODT and unsafe names receive typed failures (1.513167ms)
+✔ compressed file limit rejects before parsing and does not truncate (0.235839ms)
+✔ page intents clamp to first and last page (0.512103ms)
+✔ scroll produces an explicitly approximate page hint (0.239246ms)
+✔ hyperlink policy allows HTTP and bookmarks but blocks dangerous schemes (0.140712ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 44.678866
+python3 -m unittest tests/test_r7_compatibility_corpus.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.065s
+
+OK
+node --check r7/document-preflight.js
+node --check web/r7-compatibility-app.js
+python3 -m py_compile tools/create_r7_compatibility_corpus.py \
+	tools/validate_r7_compatibility_corpus.py tools/run_r7_compatibility.py \
+	tools/validate_r7_c.py tests/test_r7_compatibility_corpus.py
+=== make test-r7-d-static ===
+node --test input/tests/*.test.mjs
+✔ copy uses public plain-text selection and a browser write (0.994912ms)
+✔ denied clipboard read is typed and causes zero mutation (0.889496ms)
+✔ paste requires a user gesture and empty reads cause zero mutation (0.157914ms)
+✔ plain text wins over HTML and commits exactly once (0.527312ms)
+✔ non-text clipboard is rejected without mutation (0.149097ms)
+✔ composition commits exactly once and suppresses duplicate beforeinput (2.442727ms)
+✔ cancel, empty composition and teardown cause zero mutation (0.419471ms)
+✔ plain text clipboard ignores HTML and preserves Unicode (0.288156ms)
+✔ empty and oversized input generate no mutation (0.475164ms)
+✔ commits are serialized and Unicode summary distinguishes combining forms (0.329063ms)
+✔ bounded queue rejects newest input without dropping accepted commits (0.33837ms)
+✔ stale invalidation cancels queued input and does not replay it (0.410835ms)
+✔ blocked state cancels composition and rejects commits (0.218616ms)
+✔ composition buffer disagreement is typed and causes zero mutation (0.387281ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 56.824968
+node --test r7/tests/page-navigation.test.mjs
+✔ page intents clamp to first and last page (0.50468ms)
+✔ scroll produces an explicitly approximate page hint (0.149127ms)
+✔ hyperlink policy allows HTTP and bookmarks but blocks dangerous schemes (0.142275ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42.056654
+node --check input/input-adapter.js
+node --check input/clipboard-adapter.js
+node --check web/r7-reference-app.js
+python3 -m py_compile tools/r7_support.py tools/run_r7_input.py tools/validate_r7_b.py
+node --test r7/tests/*.test.mjs
+✔ valid project ODT passes closed-format preflight (2.79876ms)
+✔ public DOCX name and disguised DOCX bytes are rejected (0.777267ms)
+✔ truncated ODT and unsafe names receive typed failures (4.485952ms)
+✔ compressed file limit rejects before parsing and does not truncate (0.160108ms)
+✔ page intents clamp to first and last page (0.517222ms)
+✔ scroll produces an explicitly approximate page hint (0.150049ms)
+✔ hyperlink policy allows HTTP and bookmarks but blocks dangerous schemes (0.133949ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41.766444
+python3 -m unittest tests/test_r7_compatibility_corpus.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.059s
+
+OK
+node --check r7/document-preflight.js
+node --check web/r7-compatibility-app.js
+python3 -m py_compile tools/create_r7_compatibility_corpus.py \
+	tools/validate_r7_compatibility_corpus.py tools/run_r7_compatibility.py \
+	tools/validate_r7_c.py tests/test_r7_compatibility_corpus.py
+node --check web/r7-longevity-app.js
+python3 -m unittest tests/test_r7_longevity.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+OK
+python3 -m py_compile tools/r7_longevity_analysis.py tools/run_r7_usability.py \
+	tools/run_r7_longevity.py tools/validate_r7_d.py tests/test_r7_longevity.py
+=== make test-r8-d-static ===
+python3 tools/build_r8_release_manifest.py --output dist/r8/release-manifest.json
+{"output": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/r8/release-manifest.json", "releaseId": "writer-review-c9f3c6fb73e6df9e", "manifestSha256": "4ed639dbecadade075fd1eccb4978860348acc31b272ebde12f9a20a45e8eb85", "artifacts": 17, "requiredArtifacts": 15, "rawBytes": 218483680, "pass": true}
+python3 tools/build_r8_bundles.py --output dist/releases
+{
+  "output": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/releases",
+  "index": {
+    "schemaVersion": 1,
+    "release": "R8-B-versioned-artifact-delivery",
+    "createdAt": "2026-08-04T00:00:00+08:00",
+    "releases": [
+      {
+        "policy": "standard",
+        "releaseId": "writer-review-d6bee07b960a942d",
+        "manifestUrl": "releases/writer-review-d6bee07b960a942d/release-manifest.json",
+        "manifestSha256": "344860a31349847085b70bdbc2d6f758b506d9d6143e1a8a86f67bcc3e9749f5",
+        "requiredRawBytes": 169368534,
+        "gzipEncodedBytes": 83768035,
+        "pass": true
+      },
+      {
+        "policy": "full-fidelity",
+        "releaseId": "writer-review-da9e9a18e2e6cc8f",
+        "manifestUrl": "releases/writer-review-da9e9a18e2e6cc8f/release-manifest.json",
+        "manifestSha256": "475e18b1be091a6c8d2c4639a61bb6354f7829cc1c600d8cf3a445d9eea0ac67",
+        "requiredRawBytes": 218486240,
+        "gzipEncodedBytes": 83768031,
+        "pass": true
+      }
+    ],
+    "pass": true
+  },
+  "validation": {
+    "schemaVersion": 1,
+    "releases": [
+      {
+        "schemaVersion": 1,
+        "policy": "standard",
+        "releaseId": "writer-review-d6bee07b960a942d",
+        "artifactCount": 17,
+        "requiredArtifactCount": 15,
+        "errors": [],
+        "pass": true
+      },
+      {
+        "schemaVersion": 1,
+        "policy": "full-fidelity",
+        "releaseId": "writer-review-da9e9a18e2e6cc8f",
+        "artifactCount": 17,
+        "requiredArtifactCount": 17,
+        "errors": [],
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "pass": true
+  },
+  "pass": true
+}
+python3 tools/build_r8_c_release_set.py --output dist/r8c
+make: *** [Makefile:1299: dist/r8c/release-set.json] Terminated

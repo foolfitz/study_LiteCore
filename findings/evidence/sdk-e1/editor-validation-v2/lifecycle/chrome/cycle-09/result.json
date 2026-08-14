@@ -1,0 +1,1420 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-C-editor-validation",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "scenario": "lifecycle",
+  "fixture": "plain-grapheme",
+  "repetition": 9,
+  "manual": false,
+  "artifact": {
+    "profile": "e1-editor-v1",
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-v1",
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "loader": "./probe.js",
+    "wasm": "./probe.wasm",
+    "editorContract": {
+      "version": 1,
+      "abiVersion": 1,
+      "actions": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic",
+        "set-underline",
+        "set-strikethrough"
+      ],
+      "textCommit": "document-sdk-insert-text",
+      "undo": "document-sdk-undo",
+      "state": "typed-editor-state-v1",
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "boundaryRejectionRequiresFreshWorker": true,
+      "automaticRetry": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "diagnosticOperationsExposed": false,
+      "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+      "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+      "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761"
+    },
+    "shellBundleSha256": "f9b1a52f3ff2e2a3f35eae4366993f40b2035f309509aac0a3b7b6864a8cfeb9",
+    "shellBundle": {
+      "manifest": "./e1/editor-shell-bundle-v1.json",
+      "shellBundleSha256": "f9b1a52f3ff2e2a3f35eae4366993f40b2035f309509aac0a3b7b6864a8cfeb9",
+      "modules": [
+        {
+          "path": "editor-shell/editor-client.js",
+          "expectedSha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+          "observedSha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+          "pass": true
+        },
+        {
+          "path": "editor-shell/editor-session.js",
+          "expectedSha256": "56f2be28563c74442a50877f4ad074e8bbabb20fffbae14a46fa9bc1d45631ea",
+          "observedSha256": "56f2be28563c74442a50877f4ad074e8bbabb20fffbae14a46fa9bc1d45631ea",
+          "pass": true
+        },
+        {
+          "path": "editor-shell/state-machine.js",
+          "expectedSha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+          "observedSha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+          "pass": true
+        },
+        {
+          "path": "input/clipboard-adapter.js",
+          "expectedSha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+          "observedSha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+          "pass": true
+        },
+        {
+          "path": "input/input-adapter.js",
+          "expectedSha256": "ff35c56074e9a14d8c5d6ee9130030cc59601db18d374e8cd133abadb6c5c41b",
+          "observedSha256": "ff35c56074e9a14d8c5d6ee9130030cc59601db18d374e8cd133abadb6c5c41b",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "operations": [
+    {
+      "name": "lifecycle-insert",
+      "status": "passed",
+      "beforeRevision": 0,
+      "revision": 1,
+      "result": {
+        "method": "paste",
+        "revision": 1
+      }
+    },
+    {
+      "name": "lifecycle-save",
+      "status": "passed",
+      "beforeRevision": 1,
+      "revision": 1,
+      "result": {
+        "bytes": 10501,
+        "sha256": "1fe7a156d601fd333c7d82adb08e77f5f699b35483b7e2670120f6d99050bbde"
+      }
+    },
+    {
+      "name": "lifecycle-close",
+      "status": "passed",
+      "result": {
+        "beforeClose": {
+          "generation": 1,
+          "workers": {
+            "created": 1,
+            "terminated": 0,
+            "intentionalCrashes": 0
+          }
+        },
+        "workers": {
+          "created": 1,
+          "terminated": 1,
+          "intentionalCrashes": 0
+        }
+      }
+    }
+  ],
+  "states": [
+    {
+      "atMs": 39.70000000298023,
+      "state": "idle",
+      "documentName": null,
+      "revision": null,
+      "dirty": false,
+      "generation": 0,
+      "pending": 0,
+      "editorState": null,
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 39.78999999165535,
+      "state": "loading",
+      "documentName": "plain-grapheme.odt",
+      "revision": null,
+      "dirty": false,
+      "generation": 0,
+      "pending": 0,
+      "editorState": null,
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 960.75,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1029.625,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1029.6700000017881,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1029.6850000023842,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1057.155000001192,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1057.2000000029802,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1057.2249999940395,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1057.2300000041723,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1057.2300000041723,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1059.094999998808,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1059.125,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1059.4500000029802,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1059.4599999934435,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1059.4650000035763,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1198.8949999958277,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": true,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1198.9749999940395,
+      "state": "busy",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": true,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1198.9800000041723,
+      "state": "ready",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": true,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1203.7000000029802,
+      "state": "closed",
+      "documentName": "plain-grapheme.odt",
+      "revision": 1,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 1,
+        "sourceSequence": 7,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 3311,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3311,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": true,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    }
+  ],
+  "sdkEvents": [
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "view-ready",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    }
+  ],
+  "inputTrace": [
+    {
+      "type": "blocked-change",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "blocked": false,
+      "reason": null
+    },
+    {
+      "type": "compositioncancel",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "wasComposing": false
+    },
+    {
+      "type": "queue-invalidated",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "cancelled": 0
+    },
+    {
+      "type": "detach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    },
+    {
+      "type": "attach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    },
+    {
+      "type": "compositioncancel",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "wasComposing": false
+    },
+    {
+      "type": "queue-invalidated",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "cancelled": 0
+    },
+    {
+      "type": "detach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    }
+  ],
+  "clipboardTrace": [],
+  "workers": {
+    "created": 1,
+    "terminated": 1,
+    "intentionalCrashes": 0
+  },
+  "output": {
+    "bytes": 10501,
+    "sha256": "1fe7a156d601fd333c7d82adb08e77f5f699b35483b7e2670120f6d99050bbde"
+  },
+  "manualEvidence": null,
+  "complete": true,
+  "pass": true,
+  "error": null,
+  "browserName": "chrome",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "case": {
+    "phase": "lifecycle",
+    "name": "cycle-09",
+    "scenario": "lifecycle",
+    "fixture": "plain-grapheme",
+    "repetition": 9
+  },
+  "savedOutput": {
+    "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-v2/lifecycle/chrome/cycle-09/output.odt",
+    "bytes": 10501,
+    "sha256": "1fe7a156d601fd333c7d82adb08e77f5f699b35483b7e2670120f6d99050bbde"
+  },
+  "processSamples": [
+    {
+      "monotonicSeconds": 107448.482442149,
+      "rootPid": 1434990,
+      "processes": [
+        {
+          "pid": 1434990,
+          "ppid": 1434987,
+          "name": "chrome",
+          "rssBytes": 334798848,
+          "pssBytes": 143556608,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1434994,
+          "ppid": 1434990,
+          "name": "cat",
+          "rssBytes": 7655424,
+          "pssBytes": 2215936,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1434995,
+          "ppid": 1434990,
+          "name": "cat",
+          "rssBytes": 7675904,
+          "pssBytes": 2188288,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435005,
+          "ppid": 1434990,
+          "name": "chrome",
+          "rssBytes": 71884800,
+          "pssBytes": 12166144,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435006,
+          "ppid": 1434990,
+          "name": "chrome",
+          "rssBytes": 72769536,
+          "pssBytes": 7450624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435032,
+          "ppid": 1434990,
+          "name": "chrome",
+          "rssBytes": 125509632,
+          "pssBytes": 30069760,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435008,
+          "ppid": 1435006,
+          "name": "chrome",
+          "rssBytes": 19558400,
+          "pssBytes": 3531776,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435033,
+          "ppid": 1435008,
+          "name": "chrome",
+          "rssBytes": 56074240,
+          "pssBytes": 6771712,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435069,
+          "ppid": 1435008,
+          "name": "chrome",
+          "rssBytes": 1450864640,
+          "pssBytes": 1309284352,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1438150,
+          "ppid": 1435008,
+          "name": "chrome",
+          "rssBytes": 78454784,
+          "pssBytes": 12348416,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435030,
+          "ppid": 1435005,
+          "name": "chrome",
+          "rssBytes": 159449088,
+          "pssBytes": 46720000,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "before-cycle-09",
+      "cycle": 9,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": null,
+      "activeHandles": null,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 11,
+      "rssBytes": 2384695296,
+      "pssBytes": 1576303616
+    },
+    {
+      "monotonicSeconds": 107449.805788331,
+      "rootPid": 1434990,
+      "processes": [
+        {
+          "pid": 1434990,
+          "ppid": 1434987,
+          "name": "chrome",
+          "rssBytes": 334667776,
+          "pssBytes": 143425536,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1434994,
+          "ppid": 1434990,
+          "name": "cat",
+          "rssBytes": 7655424,
+          "pssBytes": 2215936,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1434995,
+          "ppid": 1434990,
+          "name": "cat",
+          "rssBytes": 7675904,
+          "pssBytes": 2188288,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435005,
+          "ppid": 1434990,
+          "name": "chrome",
+          "rssBytes": 71884800,
+          "pssBytes": 12166144,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435006,
+          "ppid": 1434990,
+          "name": "chrome",
+          "rssBytes": 72769536,
+          "pssBytes": 7450624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435032,
+          "ppid": 1434990,
+          "name": "chrome",
+          "rssBytes": 125063168,
+          "pssBytes": 29623296,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435008,
+          "ppid": 1435006,
+          "name": "chrome",
+          "rssBytes": 19558400,
+          "pssBytes": 3531776,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435033,
+          "ppid": 1435008,
+          "name": "chrome",
+          "rssBytes": 56074240,
+          "pssBytes": 6771712,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435069,
+          "ppid": 1435008,
+          "name": "chrome",
+          "rssBytes": 1505939456,
+          "pssBytes": 1364334592,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1438205,
+          "ppid": 1435008,
+          "name": "chrome",
+          "rssBytes": 78458880,
+          "pssBytes": 12352512,
+          "status": "sleeping"
+        },
+        {
+          "pid": 1435030,
+          "ppid": 1435005,
+          "name": "chrome",
+          "rssBytes": 159354880,
+          "pssBytes": 46601216,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "after-cycle-09",
+      "cycle": 9,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": null,
+      "activeHandles": null,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 11,
+      "rssBytes": 2439102464,
+      "pssBytes": 1630661632
+    }
+  ],
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-v2/lifecycle/chrome/cycle-09"
+}

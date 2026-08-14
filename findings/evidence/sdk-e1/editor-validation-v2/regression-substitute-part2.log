@@ -1,0 +1,306 @@
+=== make test-e1-a-static ===
+python3 -m unittest tests/test_e1_corpus.py \
+	tests/test_e1_discovery_profile.py tests/test_e1_a.py \
+	tests/test_content_axis_inventory.py \
+	tests/test_finding_016_remediation.py
+.....................
+----------------------------------------------------------------------
+Ran 21 tests in 0.341s
+
+OK
+node --test e1/tests/editor-discovery-client.test.mjs \
+	sdk/tests/document-sdk.test.mjs
+✔ closed action request never carries key codes or UNO commands (1.237484ms)
+✔ unknown actions and malformed selection coordinates fail closed (1.266468ms)
+✔ format state is explicit and the candidate action list is frozen (0.214429ms)
+✔ manual delete observation remains a closed diagnostic action (0.286553ms)
+✔ scheduler drain is capability-gated and carries only the document handle (0.262518ms)
+✔ version handshake and request correlation expose no runtime internals (2.609819ms)
+✔ open makes transfer ownership explicit and close is idempotent (0.889035ms)
+✔ close timeout recycles the owning Worker and keeps the engine reusable (6.731061ms)
+✔ aborted close remains a typed failure and does not claim recovery (0.471538ms)
+✔ timeout rejects and emits a best-effort cancel (5.990272ms)
+✔ AbortSignal rejects and emits cancel (0.410844ms)
+✔ worker crash rejects pending work and restart invalidates old handles (0.514087ms)
+✔ protocol mismatch is treated as a worker crash (0.241189ms)
+✔ R3 semantic review operations propagate monotonic revisions (0.643338ms)
+✔ R3 stale revision is a typed error with current revision details (0.415213ms)
+✔ unsupported profile operations remain typed SDK errors (0.263741ms)
+✔ an empty selection reads back as a success, not a LOK error (0.19874ms)
+✔ a complex selection is never reported as an empty selection (0.142576ms)
+✔ a text selection still carries its text (0.140692ms)
+✔ a typed readback failure stays a typed error (0.19333ms)
+✔ a missing selection type never surfaces as an empty selection (0.14499ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 71.340922
+node --check e1/editor-discovery-client.js
+node --check sdk/sdk-worker.js
+node --check web/e1-discovery-app.js
+node --check web/e1-manual-delete-app.js
+python3 -m json.tool e1/discovery-matrix-v1.json >/dev/null
+c++ -std=c++17 -Isrc -fsyntax-only tests/editor_discovery_abi_header_test.cpp
+python3 tools/validate_e1_corpus.py
+{"output": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/baseline/corpus.json", "pass": true}
+python3 -m json.tool e1/content-axis-suites.json >/dev/null
+python3 tools/inventory_corpus_axes.py --check
+{
+  "output": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/baseline/content-axes.json",
+  "fixtures": 29,
+  "unreadable": 2,
+  "suites": {
+    "E1-C-C3": {
+      "absentAxes": 13,
+      "emptyComposites": 36
+    },
+    "E1-C-C3-next": {
+      "absentAxes": 11,
+      "emptyComposites": 50
+    },
+    "E1-A-frozen": {
+      "absentAxes": 19,
+      "emptyComposites": 15
+    },
+    "E2-A-A3-A4": {
+      "absentAxes": 25,
+      "emptyComposites": 2
+    },
+    "E2-A-A5": {
+      "absentAxes": 23,
+      "emptyComposites": 6
+    },
+    "finding-038-repro": {
+      "absentAxes": 12,
+      "emptyComposites": 51
+    }
+  },
+  "pass": true,
+  "failures": []
+}
+python3 -m py_compile tools/e1_support.py \
+	tools/build_e1_discovery_profile.py tools/create_e1_corpus.py \
+	tools/validate_e1_corpus.py tools/validate_e1_preflight.py \
+	tools/run_e1_discovery.py tools/validate_e1_roundtrip.py \
+	tools/validate_e1_a.py tools/validate_finding_016_remediation.py \
+	tools/inventory_corpus_axes.py tools/run_e1_wedge_harness.py \
+	tests/test_e1_corpus.py tests/test_e1_discovery_profile.py \
+	tests/test_e1_a.py tests/test_content_axis_inventory.py \
+	tests/test_finding_016_remediation.py
+=== make test-e1-b-static ===
+python3 -m unittest tests/test_e1_b_profile.py tests/test_e1_b.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+OK
+node --test editor-shell/tests/*.test.mjs sdk/tests/document-sdk.test.mjs \
+	input/tests/input-adapter.test.mjs reader-shell/tests/tile-scheduler.test.mjs
+✔ product action list is frozen and contains only the approved actions (2.402312ms)
+✔ closed movement request carries no key code or UNO escape hatch (0.648708ms)
+✔ delete requires the verified-selection completion and advances revision once (0.721554ms)
+✔ format requires an explicit boolean and always reports a change (0.321178ms)
+✔ unsupported capabilities and malformed options fail before dispatch (0.396448ms)
+✔ typed state readback updates the document revision (0.267639ms)
+✔ a documented-state-noop reply is rejected: finding 022 must not come back (0.292024ms)
+✔ selectRange reports what the engine read back, not that the call returned (0.467961ms)
+✔ a range that selects nothing is a reported outcome, not an error (0.391569ms)
+✔ a readback that contradicts itself is rejected (0.411486ms)
+✔ selectRange rejects non-integer and negative twips before dispatch (0.425232ms)
+✔ selectRange applies the bounded selection timeout by default (2.666144ms)
+✔ selectRange preserves a caller timeout over the configured selection timeout (2.119706ms)
+✔ only selection-extending character movement gets the selection timeout (0.801963ms)
+✔ a dirty session checkpoints before issuing a selection (1.919544ms)
+✔ a clean session does not take a selection checkpoint (0.449176ms)
+✔ a second selection at the checkpointed revision does not save again (0.587884ms)
+✔ a rejected checkpoint does not prevent the selection (0.459445ms)
+✔ a later successful checkpoint clears the reported failure (0.416165ms)
+✔ a selection TIMEOUT enters recovery without saving after the timeout (0.911006ms)
+✔ restart reopens newer checkpoint bytes after a selection TIMEOUT (0.696707ms)
+✔ a repeated post-recovery revision still creates a new checkpoint (0.596841ms)
+✔ restart opens the newest bytes when Worker revisions restart (1.025789ms)
+✔ a successful save supersedes an older checkpoint for restart (0.515379ms)
+✔ session serializes committed text and editor mutations (0.471297ms)
+✔ boundary rejection blocks queued mutations and restart does not replay them (0.501844ms)
+✔ save replaces restart authority bytes and clears dirty state (0.311399ms)
+✔ restart isolates a late old-generation drain from queued new-generation operations (0.517904ms)
+✔ a late old-generation rejection cannot re-enter recovery after restart (0.33306ms)
+✔ a late old-generation save cannot replace current authority bytes (0.36523ms)
+✔ plain-text clipboard copy is non-mutating and paste enters the FIFO input boundary (0.937726ms)
+✔ clipboard denial causes zero mutation (0.53682ms)
+✔ Worker generation ceiling fails closed and requires a page reload (0.464294ms)
+✔ composition replaces one selected unit exactly once and suppresses duplicate beforeinput (1.608214ms)
+✔ cancel after caret navigation causes zero mutation (0.671951ms)
+✔ HTML plus plain clipboard replaces selection only with plain text (0.567446ms)
+✔ E1-C frozen matrix matches the product action list and bounded manual policy (0.525748ms)
+✔ manual input sink exposes commit feedback and refreshes the rendered document (0.466769ms)
+✔ a stopped session holding a checkpoint offers the rescue and the restart (0.93987ms)
+✔ a running session says nothing (0.156301ms)
+✔ restart-required is stopped too (0.140813ms)
+✔ without a checkpoint the notice appears but promises no rescue (0.129271ms)
+✔ a failure before any engine existed is not reported as lost work (0.123169ms)
+✔ a checkpoint alone is enough to speak, whatever the generation says (0.133419ms)
+✔ an exhausted session must not point at its restart button (0.133068ms)
+✔ requiresPageReload alone exhausts the session (0.130153ms)
+✔ a non-integer checkpoint revision is reported as unknown, not printed (0.222424ms)
+✔ a checkpoint that was attempted and failed is not the same as none (0.231941ms)
+✔ a stale failure alongside a good checkpoint does not raise the alarm (0.219849ms)
+✔ a running session reports no checkpoint failure either (0.109373ms)
+✔ editor states allow only the frozen lifecycle (1.140694ms)
+✔ illegal transitions fail closed (0.122859ms)
+✔ composition commits exactly once and suppresses duplicate beforeinput (3.827286ms)
+✔ cancel, empty composition and teardown cause zero mutation (0.587644ms)
+✔ plain text clipboard ignores HTML and preserves Unicode (0.372073ms)
+✔ empty and oversized input generate no mutation (0.596611ms)
+✔ commits are serialized and Unicode summary distinguishes combining forms (0.353407ms)
+✔ bounded queue rejects newest input without dropping accepted commits (0.452171ms)
+✔ stale invalidation cancels queued input and does not replay it (0.544654ms)
+✔ blocked state cancels composition and rejects commits (0.272888ms)
+✔ composition buffer disagreement is typed and causes zero mutation (0.369428ms)
+✔ CSS/twips adapter and boundary clamp are deterministic (1.545648ms)
+✔ visible tiles precede prefetch and the in-flight ceiling is enforced (13.18205ms)
+✔ same key uses cache and revision invalidation clears it (0.949247ms)
+✔ late completion from an old generation never paints the new viewport (1.807715ms)
+✔ LRU cache respects its byte ceiling (0.374387ms)
+✔ version handshake and request correlation expose no runtime internals (6.375289ms)
+✔ open makes transfer ownership explicit and close is idempotent (0.817692ms)
+✔ close timeout recycles the owning Worker and keeps the engine reusable (5.861802ms)
+✔ aborted close remains a typed failure and does not claim recovery (0.334894ms)
+✔ timeout rejects and emits a best-effort cancel (4.720929ms)
+✔ AbortSignal rejects and emits cancel (0.496945ms)
+✔ worker crash rejects pending work and restart invalidates old handles (0.551197ms)
+✔ protocol mismatch is treated as a worker crash (0.235258ms)
+✔ R3 semantic review operations propagate monotonic revisions (0.665409ms)
+✔ R3 stale revision is a typed error with current revision details (0.412898ms)
+✔ unsupported profile operations remain typed SDK errors (0.190053ms)
+✔ an empty selection reads back as a success, not a LOK error (0.136844ms)
+✔ a complex selection is never reported as an empty selection (0.099105ms)
+✔ a text selection still carries its text (0.122408ms)
+✔ a typed readback failure stays a typed error (0.135942ms)
+✔ a missing selection type never surfaces as an empty selection (0.087042ms)
+ℹ tests 82
+ℹ suites 0
+ℹ pass 82
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 91.451791
+node --check sdk/sdk-worker.js
+node --check editor-shell/editor-client.js
+node --check editor-shell/state-machine.js
+node --check editor-shell/editor-session.js
+node --check editor-shell/recovery-notice.js
+node --check web/e1-editor-app.js
+# The demo shell ships from this tree and imports the same editor-shell
+# modules, so it belongs under the same gate as the harness that validated
+# them.  It was outside every static target until 2026-08-13.
+node --check web/demo-editor-app.js
+c++ -std=c++17 -Isrc -fsyntax-only tests/editor_abi_header_test.cpp
+python3 -m py_compile tools/build_e1_b_profile.py tools/run_e1_b.py \
+	tools/validate_e1_b.py tests/test_e1_b_profile.py tests/test_e1_b.py
+=== e1-c-static recipe body, run directly ===
+.....................
+----------------------------------------------------------------------
+Ran 21 tests in 0.120s
+
+OK
+✔ product action list is frozen and contains only the approved actions (2.418552ms)
+✔ closed movement request carries no key code or UNO escape hatch (0.632167ms)
+✔ delete requires the verified-selection completion and advances revision once (0.695194ms)
+✔ format requires an explicit boolean and always reports a change (0.313684ms)
+✔ unsupported capabilities and malformed options fail before dispatch (0.363617ms)
+✔ typed state readback updates the document revision (0.239526ms)
+✔ a documented-state-noop reply is rejected: finding 022 must not come back (0.267138ms)
+✔ selectRange reports what the engine read back, not that the call returned (0.557958ms)
+✔ a range that selects nothing is a reported outcome, not an error (0.248112ms)
+✔ a readback that contradicts itself is rejected (1.230631ms)
+✔ selectRange rejects non-integer and negative twips before dispatch (0.423749ms)
+✔ selectRange applies the bounded selection timeout by default (3.289614ms)
+✔ selectRange preserves a caller timeout over the configured selection timeout (2.055556ms)
+✔ only selection-extending character movement gets the selection timeout (0.873055ms)
+✔ a dirty session checkpoints before issuing a selection (0.717766ms)
+✔ a clean session does not take a selection checkpoint (0.396107ms)
+✔ a second selection at the checkpointed revision does not save again (0.455328ms)
+✔ a rejected checkpoint does not prevent the selection (1.19228ms)
+✔ a later successful checkpoint clears the reported failure (0.426323ms)
+✔ a selection TIMEOUT enters recovery without saving after the timeout (1.38045ms)
+✔ restart reopens newer checkpoint bytes after a selection TIMEOUT (0.673704ms)
+✔ a repeated post-recovery revision still creates a new checkpoint (1.18227ms)
+✔ restart opens the newest bytes when Worker revisions restart (1.293729ms)
+✔ a successful save supersedes an older checkpoint for restart (0.825507ms)
+✔ session serializes committed text and editor mutations (0.390046ms)
+✔ boundary rejection blocks queued mutations and restart does not replay them (0.416986ms)
+✔ save replaces restart authority bytes and clears dirty state (0.271285ms)
+✔ restart isolates a late old-generation drain from queued new-generation operations (0.46201ms)
+✔ a late old-generation rejection cannot re-enter recovery after restart (0.428708ms)
+✔ a late old-generation save cannot replace current authority bytes (0.309255ms)
+✔ plain-text clipboard copy is non-mutating and paste enters the FIFO input boundary (0.86468ms)
+✔ clipboard denial causes zero mutation (0.339883ms)
+✔ Worker generation ceiling fails closed and requires a page reload (0.502446ms)
+✔ composition replaces one selected unit exactly once and suppresses duplicate beforeinput (2.174779ms)
+✔ cancel after caret navigation causes zero mutation (0.837359ms)
+✔ HTML plus plain clipboard replaces selection only with plain text (0.688552ms)
+✔ E1-C frozen matrix matches the product action list and bounded manual policy (0.638569ms)
+✔ manual input sink exposes commit feedback and refreshes the rendered document (0.588436ms)
+✔ a stopped session holding a checkpoint offers the rescue and the restart (0.683963ms)
+✔ a running session says nothing (0.115405ms)
+✔ restart-required is stopped too (0.114783ms)
+✔ without a checkpoint the notice appears but promises no rescue (0.10728ms)
+✔ a failure before any engine existed is not reported as lost work (0.085169ms)
+✔ a checkpoint alone is enough to speak, whatever the generation says (0.097942ms)
+✔ an exhausted session must not point at its restart button (0.088194ms)
+✔ requiresPageReload alone exhausts the session (0.099605ms)
+✔ a non-integer checkpoint revision is reported as unknown, not printed (0.180025ms)
+✔ a checkpoint that was attempted and failed is not the same as none (0.226361ms)
+✔ a stale failure alongside a good checkpoint does not raise the alarm (0.125864ms)
+✔ a running session reports no checkpoint failure either (0.082604ms)
+✔ editor states allow only the frozen lifecycle (1.934291ms)
+✔ illegal transitions fail closed (0.204261ms)
+✔ copy uses public plain-text selection and a browser write (1.534436ms)
+✔ denied clipboard read is typed and causes zero mutation (1.706227ms)
+✔ paste requires a user gesture and empty reads cause zero mutation (0.227323ms)
+✔ plain text wins over HTML and commits exactly once (0.726232ms)
+✔ non-text clipboard is rejected without mutation (0.280622ms)
+✔ composition commits exactly once and suppresses duplicate beforeinput (4.285378ms)
+✔ cancel, empty composition and teardown cause zero mutation (0.518745ms)
+✔ plain text clipboard ignores HTML and preserves Unicode (0.357616ms)
+✔ empty and oversized input generate no mutation (0.543592ms)
+✔ commits are serialized and Unicode summary distinguishes combining forms (0.504779ms)
+✔ bounded queue rejects newest input without dropping accepted commits (0.372724ms)
+✔ stale invalidation cancels queued input and does not replay it (0.513677ms)
+✔ blocked state cancels composition and rejects commits (0.283147ms)
+✔ composition buffer disagreement is typed and causes zero mutation (0.385587ms)
+✔ CSS/twips adapter and boundary clamp are deterministic (1.994683ms)
+✔ visible tiles precede prefetch and the in-flight ceiling is enforced (13.911207ms)
+✔ same key uses cache and revision invalidation clears it (1.513347ms)
+✔ late completion from an old generation never paints the new viewport (1.74045ms)
+✔ LRU cache respects its byte ceiling (0.303836ms)
+✔ version handshake and request correlation expose no runtime internals (2.906261ms)
+✔ open makes transfer ownership explicit and close is idempotent (1.137839ms)
+✔ close timeout recycles the owning Worker and keeps the engine reusable (6.135131ms)
+✔ aborted close remains a typed failure and does not claim recovery (0.523064ms)
+✔ timeout rejects and emits a best-effort cancel (5.083173ms)
+✔ AbortSignal rejects and emits cancel (0.438195ms)
+✔ worker crash rejects pending work and restart invalidates old handles (0.536037ms)
+✔ protocol mismatch is treated as a worker crash (0.250987ms)
+✔ R3 semantic review operations propagate monotonic revisions (0.572035ms)
+✔ R3 stale revision is a typed error with current revision details (0.383995ms)
+✔ unsupported profile operations remain typed SDK errors (0.244325ms)
+✔ an empty selection reads back as a success, not a LOK error (0.149398ms)
+✔ a complex selection is never reported as an empty selection (0.122608ms)
+✔ a text selection still carries its text (0.115024ms)
+✔ a typed readback failure stays a typed error (0.24711ms)
+✔ a missing selection type never surfaces as an empty selection (0.132707ms)
+ℹ tests 87
+ℹ suites 0
+ℹ pass 87
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 92.929823
