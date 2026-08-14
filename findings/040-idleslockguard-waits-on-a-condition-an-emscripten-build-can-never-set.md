@@ -175,7 +175,7 @@ returning to `Application::Execute`**，因為它根本沒從 `DoExecute` 回來
 |---|---|
 | [012](012-r6-styled-document-close-timeout.md) `close()` 不回應 | **已解釋，量到的**——`doc_destroy` 這條路 |
 | [037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md) as-char frame 段落格式動作卡死 | **已解釋，量到的**（2026-08-14）——見下 |
-| [038](038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md) 註腳內 frame 選取卡死 | 極可能同一個，**未取得堆疊** |
+| [038](038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md) 註腳內 frame 選取卡死 | **已解釋，量到的**（2026-08-15）——`doc_getSelectionTypeAndText` 這條路，見第六之三節 |
 
 ### 預測命中，而且答案比預測本身重要（2026-08-14）
 
@@ -243,13 +243,59 @@ returning to `Application::Execute`**，因為它根本沒從 `DoExecute` 回來
   （帶自己的 `SwDoc` 副本），函式返回時解構，於是走同一條 `DelLayoutFormat` →
   `IdlesLockGuard`。**文字已經取出來了，卡的是收尾。**
 
-`doc_getSelectionType`（`init.cxx:5966`）也呼叫同一個 `pDoc->getSelection()`，
-所以它很可能是 [038](038-a-frame-inside-a-footnote-wedges-the-engine-on-selection.md)
-的入口——**未取得堆疊，這是推論**。
+~~`doc_getSelectionType`（`init.cxx:5966`）也呼叫同一個 `pDoc->getSelection()`，
+所以它很可能是 038 的入口——**未取得堆疊，這是推論**。~~
+
+> **2026-08-15 更正並取代**：038 的堆疊取到了，入口是**鄰居**
+> `doc_getSelectionTypeAndText`（`init.cxx:5988`），不是這裡點名的 `doc_getSelectionType`。
+> 類別層級的推論（一個從 `getSelection()` 取區域 reference 的讀取函式）成立，
+> **點名的那個函式錯了**。見第六之三節。
 
 **這也解釋了我方擋法為什麼有效**：037 的擋法在讀取之前先問選取型態並拒絕，
 於是根本不呼叫 `getTextSelection`，那份會卡死的副本就從來沒有被造出來。
 它不是修好了什麼，只是不去踩。
+
+> **但這句話有邊界，038 就在邊界之外。** 擋法問型態用的是 `readSelection()`
+> → `getSelectionTypeAndText`——**那正是 038 卡死的那個呼叫**。
+> 所以在 038 的構造上，擋法不是「涵蓋不到」，是**自己會踩下去**。
+
+## 六之三、第三個入口：`doc_getSelectionTypeAndText`（2026-08-15，量到的）
+
+證據 `findings/evidence/sdk-e2/discovery/038-entry-point/`，
+artifact 同樣是 `e2-preguard-profiling`（`e05fd156…`，**沒有重連結**，
+就是第六之二節那顆）。預測寫在執行之前（`PREDICTION.md`，commit `90cc23d`）。
+
+**與 037 的堆疊第 0～20 格逐格完全相同**——同一顆 artifact 上的直接比對，
+不是靠敘述對齊。只在第 21 格分岔：
+
+| | 第 21 格（LOK 入口） | 深度 |
+|---|---|---|
+| 037 | `doc_getTextSelection` | 27 |
+| 038 | `doc_getSelectionTypeAndText` | 28（多一格 `probe::readSelection()`） |
+
+**所以這不是三個缺陷，是一個缺陷的四個入口**（012 的 `doc_destroy` 算第一個）。
+`init.cxx` 裡從 `pDoc->getSelection()` 取區域 transferable 的函式**恰好三個**：
+
+| 函式 | `getSelection()` 行 | 狀態 |
+|---|---|---|
+| `doc_getTextSelection` | 5926 | **量到卡死**（037） |
+| `doc_getSelectionType` | 5966 | 結構相同，**未量到**——我方引擎只在 ABI 缺 combined API 時才走它 |
+| `doc_getSelectionTypeAndText` | 6004 | **量到卡死**（038） |
+
+（`doc_getClipboard`（`init.cxx:6074`）也持區域 `XTransferable`，但**來源不是**
+`pDoc->getSelection()`，不列入。）
+
+每個函式其實持**兩個**區域 reference——`XTransferable` 加上 query 出來的
+`XTransferable2`（如 `init.cxx:6004`／`6011`）——解構發生在兩者逆序釋放之後。
+
+**「文字已經取出來了」要講精確**：`doc_getSelectionTypeAndText` 在返回前就寫了
+out-parameter（`init.cxx:6028`），所以字串已經進了呼叫端的記憶體；
+但**函式從未返回**，呼叫端還卡在裡面。取值完成、卡在返回前的清理——
+不是「已經交付給呼叫端」。
+
+**`SolarMutexGuard` 不會讓工程執行緒變成主執行緒。** 三個函式都先取 Solar mutex，
+而 `IdlesLockGuard` 判定非主執行緒之後會先 `SolarMutexReleaser` 再等
+（`scheduler.cxx:296`–`297`），所以 off-main-thread 的分析不受影響。
 
 ## 七、上游報告草稿
 
@@ -268,7 +314,12 @@ returning to `Application::Execute`**，因為它根本沒從 `DoExecute` 回來
 > Any off-main-thread path reaching the guard therefore parks forever. The one we hit is
 > `DocumentLayoutManager::DelLayoutFormat()`, reached from `~SwDoc` while destroying a
 > document that contains a frame: closing such a document from a LOK thread never returns.
-> Measured stack and the reproduction are attached.
+> **Two of the three entry points we measured are selection readers**
+> (`doc_getTextSelection`, `doc_getSelectionTypeAndText`), which destroy a clipboard
+> `SwDoc` on the way out and so hang while looking read-only.
+> Measured stacks and the reproduction are attached.
+
+（完整版在 `findings/drafts/040-bugzilla.txt`；上面這段是摘要，兩份都要一起改。）
 >
 > Version: 26.8.0.1.0+ (`671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb`).
 

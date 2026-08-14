@@ -15,8 +15,8 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認（2/2）／未修**——**037 的擋法涵蓋不到這條路** |
-| **Bugzilla** | —（與 [037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md)／[012](012-r6-styled-document-close-timeout.md) 同族，未送） |
+| **狀態** | **已確認並已取得堆疊（2026-08-15）／未修**——**與 [037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md)／[012](012-r6-styled-document-close-timeout.md) 是同一個上游缺陷的第三個入口**，根因見 [finding 040](040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md) |
+| **Bugzilla** | —（與 037／012 同族，**同一份草稿 `findings/drafts/040-bugzilla.txt`，未送**） |
 | **發現日** | 2026-08-12 |
 | **嚴重度** | **嚴重**——引擎執行緒之後不再回應任何命令，只有重啟 worker 能救 |
 | **可重現** | Chrome 2/2；Firefox 1/1；三種選取方式各 1/1；尾註 1/1；派送動作 1/1；靜置 8 秒一樣死 1/1；**出貨 artifact `835b453d` 上 1/1** |
@@ -45,11 +45,48 @@ FX-TAIL  locate               failed    10000 ms   search 逾時（下一列連�
 
 ## 為什麼這一單要跟 037 分開
 
-**037 的擋法在 barrier 的讀取那一步**——讀之前先問 selection type，非 `TEXT` 就具名拒絕。
-**這一條路上根本沒有讀取。** 卡死發生在一次選取之後，而選取是產品surface
+> **2026-08-15：這一節的兩個理由現在都被實測取代了，保留作為過程紀錄。**
+> 堆疊已經取到（見〈堆疊：038 是 040 的第三個入口〉）。
+> 「這一條路上根本沒有讀取」在 08-13 就已被本檔自己的更正推翻——**卡的就是讀取**。
+> 而「擋法沒有壞，只是涵蓋不到」也講輕了：**擋法的第一件事就是那個會卡死的呼叫**，
+> 在這個構造上它是觸發器。分單仍然正確，但理由是**入口不同**，不是機制不同。
+
+~~**037 的擋法在 barrier 的讀取那一步**——讀之前先問 selection type，非 `TEXT` 就具名拒絕。
+**這一條路上根本沒有讀取。**~~ 卡死發生在一次選取之後，而選取是產品 surface
 （E1-D 的範圍選取，`E1_GO_ODT_EDITOR` 出貨的 48 個綁定之一）。
 
-所以：**擋法沒有壞，但它的涵蓋範圍不包含這裡。** 這是一個開著的產品洞。
+~~所以：**擋法沒有壞，但它的涵蓋範圍不包含這裡。**~~ 這是一個開著的產品洞。
+
+## 堆疊：038 是 040 的第三個入口（2026-08-15，證據 `sdk-e2/discovery/038-entry-point/`）
+
+**預測先寫再驗**（`PREDICTION.md`，commit `90cc23d`，寫在第一次執行之前），
+結果落在預先寫好的四個結局中的 A。
+
+在 `e2-preguard-profiling`（`e05fd156…`，帶 name section 的診斷 artifact，
+**本輪沒有任何連結動作**）上，FX-NOTE 卡死當下暫停引擎執行緒，取到 28 格具名堆疊：
+
+```
+emscripten_futex_wait … osl_waitCondition
+  ← Scheduler::IdlesLockGuard::IdlesLockGuard()          ← 040 那一格
+  ← sw::DocumentLayoutManager::DelLayoutFormat(SwFrameFormat*)
+  ← …SwDoc 解構…
+  ← SwTransferable::~SwTransferable                       ← 剪貼簿 SwDoc 的持有者
+  ← doc_getSelectionTypeAndText                           ← 038 的入口
+  ← probe::readSelection() ← dispatch ← engineLoop
+```
+
+**與 037 的堆疊第 0～20 格逐格完全相同**（同一顆 artifact 上比對，不是引用敘述），
+只在第 21 格分岔：037 是 `doc_getTextSelection`，038 是 `doc_getSelectionTypeAndText`。
+兩者都從 `pDoc->getSelection()` 取**區域** UNO reference，函式返回時釋放，
+`SwTransferable` 連同自己那份剪貼簿 `SwDoc` 一起銷毀——**所以卡的是取值之後的清理**。
+
+三次獨立執行 × 每次三輪暫停 ＝ **九次逐格相同**。
+「哪一步卡住」由**同一次執行**的頁面步驟帳證明：FX-PLAIN 與 FX-CELL 在幾十毫秒前
+才各自完成同樣的讀選取，FX-NOTE 停在 `select:mouse-drag` 之後、`selection-rectangles`
+送出去不再回來。
+
+**擋法在這裡是觸發器，不是防線**：`formatBarrierSelectionIsReadable()`
+（`probe_engine.cpp:3163`）第一件事就是 `readSelection()`，也就是堆疊第 22 格。
 
 ## 鑑別：是註腳，還是註腳裡的 frame
 
@@ -350,7 +387,9 @@ buildid `671c848b…`），用 `findings/repro/037-as-char-frame-hang/lok_frame_
   然後靜默；靜置 8 秒不下任何命令，引擎已經死了。~~
   **2026-08-13 已知**：卡的是 `readSelection()` →
   `getSelectionTypeAndText(…, "text/plain;charset=utf-8", …)`，由 `getState`／`getSelection`
-  觸發；選取本身不卡。仍然不知道的是 core 在那個抽取路徑裡停在哪一行。
+  觸發；選取本身不卡。~~仍然不知道的是 core 在那個抽取路徑裡停在哪一行。~~
+  **2026-08-15 也知道了**：停在 `Scheduler::IdlesLockGuard::IdlesLockGuard()`，
+  由 `doc_getSelectionTypeAndText` 返回時解構區域 `SwTransferable` 觸發。見上一節。
 - **在帶名稱的 build（`150de122`）上重現過一次並取樣**，但那一輪**八條 worker 裡有四條
   的 CDP session 在取樣途中消失**（`Session with given id not found`），所以那一輪的
   「四條 parked」**是不完整的觀察，不是完整的盤點**。可比的只有控制組那一半：
@@ -361,9 +400,11 @@ buildid `671c848b…`），用 `findings/repro/037-as-char-frame-hang/lok_frame_
 
 ## 相關
 
-- [037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md)——同一個內容特徵
-  （as-char frame），不同的入口；037 的擋法在讀取那一步，擋不到這裡。
-- [012](012-r6-styled-document-close-timeout.md)——同一個內容特徵的第三個入口（`destroy()`）。
+- [040](040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md)——
+  **根因**。038 是它的第三個入口，堆疊已取得（2026-08-15）。
+- [037](037-a-paragraph-with-an-inline-image-wedges-the-handle.md)——同一個缺陷的
+  另一個入口（`doc_getTextSelection`）；堆疊第 0～20 格與本篇逐格相同。
+- [012](012-r6-styled-document-close-timeout.md)——同一個缺陷的第一個入口（`doc_destroy`）。
 - [035](035-the-postcondition-read-fails-closed-on-any-formatted-or-cjk-paragraph.md)——
   帶註腳的段落在 barrier 那一側是**具名拒絕**（`footnote-apparatus-readback`），
   那條路徑不碰這個洞；這裡走的是選取，不是 barrier。
@@ -378,3 +419,10 @@ buildid `671c848b…`），用 `findings/repro/037-as-char-frame-hang/lok_frame_
   探針殺死了觀察對象。2×2 觸發矩陣不受影響。同一輪補上完整 `EditorSession` 的反應
   （`recoverable-error`、30 秒凍結、restart 可用但丟掉未存檔內容、一個 session 只撐兩次）。
   兩份新證據：`sdk-e1/post-wedge-liveness/`、`sdk-e1/session-wedge-recovery/`。
+- **2026-08-15（取得堆疊，歸入 040）**：預測先寫再驗（`PREDICTION.md`，commit `90cc23d`）。
+  在 `e2-preguard-profiling`（`e05fd156…`）上取到 28 格具名堆疊，
+  入口 `doc_getSelectionTypeAndText`，**與 037 第 0～20 格逐格相同**，
+  根因即 [finding 040](040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md)。
+  三次執行 × 三輪 ＝ 九次一致。「這一單要跟 037 分開」的兩個理由改判為過程紀錄：
+  分單理由是**入口不同**，不是機制不同；而 037 的擋法在這個構造上是**觸發器**。
+  證據：`sdk-e2/discovery/038-entry-point/`。

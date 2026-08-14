@@ -3,7 +3,7 @@ Bugzilla: https://bugs.documentfoundation.org
 ================================================================
 Product:        LibreOffice
 Component:      framework              [送出前確認。缺陷在 vcl/scheduler；
-                                        Writer 只是踩到它的兩個入口]
+                                        Writer 只是踩到它的三個入口]
 Version:        26.8.0.1 rc            [core 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb]
 Hardware:       Other
 OS:             All                    [任何 Emscripten build]
@@ -91,20 +91,28 @@ not in the main loop -- it is in the `while` that cannot be reached.
 not a configuration that can be avoided.
 
 
-How we hit it -- two entry points, and the second one looks read-only
----------------------------------------------------------------------
+How we hit it -- three measured entry points, and two of them look read-only
+----------------------------------------------------------------------------
 
-Both are the same thing underneath: destroying an SwDoc that contains a frame,
-from a thread that is not the VCL main thread.
+All three are the same thing underneath: destroying an SwDoc that contains a
+frame, from a thread that is not the VCL main thread.
 
-**(1) doc_getTextSelection.** This is the one that should worry a client most,
-because nothing about it suggests it destroys a document. It takes
-pDoc->getSelection() into a local css::uno::Reference; for Writer that is an
-SwTransferable holding its own clipboard SwDoc (m_pClpDocFac). When the local
-goes out of scope, ~SwTransferable resets that factory and the clipboard SwDoc
-is destroyed -- through the same DelLayoutFormat path.
+**(1) The selection readers.** These are the ones that should worry a client
+most, because nothing about them suggests they destroy a document.  Three
+functions in desktop/source/lib/init.cxx take pDoc->getSelection() into local
+UNO references:
 
-    doc_getTextSelection(doc, "text/html", nullptr)
+    doc_getTextSelection            getSelection() at init.cxx:5926   HANGS (measured)
+    doc_getSelectionType            getSelection() at init.cxx:5966   not measured
+    doc_getSelectionTypeAndText     getSelection() at init.cxx:6004   HANGS (measured)
+
+For Writer that reference is an SwTransferable holding its own clipboard SwDoc
+(m_pClpDocFac).  Each function actually holds two locals -- the XTransferable
+and the XTransferable2 queried from it.  When they release at return,
+~SwTransferable resets the factory (sw/source/uibase/dochdl/swdtflvr.cxx:295)
+and the clipboard SwDoc is destroyed, through the same DelLayoutFormat path.
+
+    doc_getSelectionTypeAndText(doc, "text/plain;charset=utf-8", &text, nullptr)
       -> cppu::OWeakObject::release -> SwTransferable::~SwTransferable
       -> rtl::Reference<SwDoc>::~Reference -> SwDoc::release -> ~SwDoc
       -> SwNodes::DelNodes -> RemoveNode -> DeleteAttribute -> EraseText
@@ -113,11 +121,28 @@ is destroyed -- through the same DelLayoutFormat path.
       -> Scheduler::IdlesLockGuard::IdlesLockGuard()
       -> osl_waitCondition -> ... -> emscripten_futex_wait
 
-The text has already been extracted at that point. The call hangs on the way
-out, during cleanup.
+doc_getTextSelection produces a stack that is frame-for-frame identical to this
+one from Scheduler::IdlesLockGuard downwards, and identical above it as far as
+the LOK entry point; the two differ only in which of the two functions appears
+there.  Both were captured on the same build, so this is a direct comparison
+rather than an alignment of two descriptions.
 
-doc_getSelectionType calls the same pDoc->getSelection(), so we expect it to be
-a third entry point; we have not captured a stack for it.
+The extraction itself succeeds.  doc_getSelectionTypeAndText writes its
+out-parameter (init.cxx:6028) before returning, so the text has already been
+placed in the caller's memory -- but the call never returns, so the caller is
+still blocked inside it and never learns that.  The hang is in the cleanup on
+the way out, not in reading.
+
+We did not measure doc_getSelectionType, only its two siblings; our client
+calls the combined function.  It holds the same locals in the same shape.
+
+Worth noting for anyone looking for a client-side mitigation: asking for the
+selection *type* first, and refusing to read the text when it is not plain
+text, does not avoid this.  That check goes through the very same function.
+We tried exactly that as a workaround for entry point (1a); it works for a
+paragraph holding an as-char frame, and it does not work when the frame is
+inside a footnote whose citation mark the selection covers, because then the
+type query itself is the call that hangs.
 
 **(2) doc_destroy.** Closing a Writer document that contains a frame, from a
 LibreOfficeKit thread:
@@ -139,13 +164,20 @@ Neither call returns.  The document, the engine thread and every subsequent
 call on that document are lost; the only recovery available to a client is to
 terminate the worker.
 
-Both stacks are read from builds linked with `--profiling-funcs`, captured with
+All stacks are read from builds linked with `--profiling-funcs`, captured with
 Chrome DevTools Protocol `Debugger.pause` against the parked worker -- V8's
 inspector can interrupt `memory.atomic.wait32`, so a parked thread is still
 introspectable.  The innermost frame is that instruction, verified independently
 by reading the module bytes at the frame's offset (`fe 01`).  The doc_destroy
-stack is 35 frames and was captured twice, identically; the getTextSelection
-stack is 27 frames.
+stack is 35 frames and was captured twice, identically; getTextSelection is 27
+frames; getSelectionTypeAndText is 28 frames and was captured in three separate
+runs, three pauses each, all nine identical.
+
+The wait is indefinite by construction, not merely slow: IdlesLockGuard calls
+the no-argument Condition::wait() (scheduler.cxx:297), whose default timeout is
+null (include/osl/conditn.hxx:121), and the null branch is an unbounded
+predicate wait (sal/osl/unx/conditn.cxx:125).  The `__timedwait_cp` frame in
+the stacks is musl's internal implementation, not a deadline set by the caller.
 
 DelLayoutFormat is not special -- it is simply the first place we happened to
 reach the guard from a non-main thread.  Any other off-main-thread caller of
@@ -216,12 +248,13 @@ better judged by its author.
 What we are NOT claiming
 ------------------------
 
-One further hang in our tracker shares the same six innermost frames but has no
-stack of its own yet: getSelectionTypeAndText over a selection covering the
-citation mark of a footnote whose body holds an as-char frame.  Since
-doc_getSelectionType calls the same pDoc->getSelection(), we expect it to be the
-same defect, but expecting is not showing, and this report does not depend on
-it.
+We are not claiming doc_getSelectionType hangs.  It holds the same locals in
+the same shape as its two measured siblings, so we expect it to, but expecting
+is not showing and nothing in this report depends on it.
+
+We are not claiming the three entry points are the only ones.  DelLayoutFormat
+is simply where we happened to reach the guard; the defect is in the guard's
+wait, and any off-main-thread caller of it on this platform has the same fate.
 
 We are also not claiming the guard is wrong to exist.  It was added for a real
 Windows crash and the invariant it protects is presumably still needed; what is
@@ -233,7 +266,8 @@ broken is that on this platform the condition it waits for cannot be set.
 ================================================================
 - 本篇的量測依據：
     findings/040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md
-    findings/evidence/sdk-e2/discovery/wait-primitive-names/chrome/   （具名堆疊）
+    findings/evidence/sdk-e2/discovery/wait-primitive-names/chrome/   （具名堆疊：012／037）
+    findings/evidence/sdk-e2/discovery/038-entry-point/chrome/        （具名堆疊：038）
     findings/evidence/sdk-e2/discovery/proxy-trace/chrome/            （排除代理呼叫）
     findings/012-r6-styled-document-close-timeout.md                  （180 秒逾時，100% 重現）
 - 「frame 要在段落裡」這條來自任務 #39 的 close 計時：l4-stress-100 有 100 個
@@ -242,3 +276,6 @@ broken is that on this platform the condition it waits for cannot be set.
 - 附件候選：findings/repro/037-as-char-frame-hang/ 的 frame-no-image.odt 可直接用
   （它證明與圖片無關），另需補一支「非主執行緒 doc_destroy」的最小重現。
 - 037 那份草稿要加一句指向本篇（症狀 (2) 的根因已找到）。
+- 038 的堆疊已於 2026-08-15 取得並併入本篇（入口 doc_getSelectionTypeAndText）。
+  原本〈What we are NOT claiming〉裡那一段「038 沒有堆疊」已刪，改成
+  doc_getSelectionType 未量。**重複單查詢的日期仍是 2026-08-14，送出前要重查一次。**
