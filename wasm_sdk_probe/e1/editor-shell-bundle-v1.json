@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-C-editor-shell-bundle",
+  "frozenDate": "2026-08-14",
+  "entrypoint": "web/e1-editor-validation-app.js",
+  "scope": "JavaScript modules under editor-shell/ and input/ reached by the E1-C validation page import graph",
+  "algorithm": "SHA-256 of UTF-8 path + NUL + lowercase file SHA-256 + LF for each included path in lexicographic order",
+  "included": [
+    {
+      "path": "editor-shell/editor-client.js",
+      "sha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a"
+    },
+    {
+      "path": "editor-shell/editor-session.js",
+      "sha256": "56f2be28563c74442a50877f4ad074e8bbabb20fffbae14a46fa9bc1d45631ea"
+    },
+    {
+      "path": "editor-shell/state-machine.js",
+      "sha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3"
+    },
+    {
+      "path": "input/clipboard-adapter.js",
+      "sha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8"
+    },
+    {
+      "path": "input/input-adapter.js",
+      "sha256": "ff35c56074e9a14d8c5d6ee9130030cc59601db18d374e8cd133abadb6c5c41b"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "editor-shell/recovery-notice.js",
+      "reason": "Host-side decision module not imported by the E1-C validation page; covered by editor-shell/tests/recovery-notice.test.mjs. Including it would invalidate browser evidence for code the matrix does not execute."
+    }
+  ],
+  "bundleSha256": "f9b1a52f3ff2e2a3f35eae4366993f40b2035f309509aac0a3b7b6864a8cfeb9"
+}

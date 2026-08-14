@@ -101,8 +101,13 @@ SPEC E1-C 第 6 節允許同 artifact 沿用人工證據，條件是
 per-case artifact binding 的輸出**逐位元組相同**。
 
 這就是為什麼這一輪需要人工裁決：**沿用與否是唯一會看到殼層 delta 的關卡**，
-而那一關只能 fail-closed。下次矩陣修訂應把殼層 bundle 的 hash 加進 per-case 記錄
-——同樣是收緊，不是放寬。
+而那一關只能 fail-closed。
+
+> **2026-08-14 已補**：`e1/editor-shell-bundle-v1.json` 逐檔記下驗證頁**實際載入**的
+> 五個模組與一個彙總 hash，納入 preflight 與 per-case 綁定（矩陣 v2 的 baseline）。
+> 排除的模組連同理由一併列在 manifest 的 `excluded` 裡——**沉默的排除會變成下一個同樣的洞**。
+> 已實測：`editor-shell/` 任一檔改一個位元組，三個檢查會紅，其中一個指名到檔案。
+> 生效於下一次重綁。
 
 順帶記一筆同一次覆核挑出的欠帳：存檔點失敗被靜默吞掉（`CHECKPOINT_FAILED` 只存進
 `this._checkpointError`，不進 state）。手勢不該因背景 save 失敗而失敗是對的，

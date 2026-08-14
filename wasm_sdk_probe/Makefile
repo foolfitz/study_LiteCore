@@ -363,6 +363,7 @@ f018-line-nav-assets: dist/f018-line-nav-check.html dist/f018-line-nav-app.js \
 
 e1-editor-validation-assets: e1-editor-assets \
 	dist/e1-editor-validation.html dist/e1-editor-validation-app.js \
+	dist/e1/editor-shell-bundle-v1.json \
 	$(addprefix dist/r7-compat-fixtures/,$(R7_COMPAT_FILES))
 
 finding-016-scheduler-assets: finding-016-scheduler-profile \
@@ -1210,6 +1211,9 @@ dist/e1-editor-validation.html: web/e1-editor-validation.html | dist
 dist/e1-editor-validation-app.js: web/e1-editor-validation-app.js | dist
 	cp $< $@
 
+dist/e1/editor-shell-bundle-v1.json: e1/editor-shell-bundle-v1.json | dist/e1
+	cp $< $@
+
 dist/finding-016-scheduler.html: web/finding-016-scheduler.html | dist
 	cp $< $@
 
@@ -1583,6 +1587,8 @@ test-e1-c-static: e1-editor-validation-assets
 	node --check web/e1-editor-app.js
 	node --check web/e1-editor-validation-app.js
 	python3 -m json.tool e1/validation-matrix-v1.json >/dev/null
+	python3 -m json.tool e1/validation-matrix-v2.json >/dev/null
+	python3 -m json.tool e1/editor-shell-bundle-v1.json >/dev/null
 	python3 -m py_compile tools/run_e1_c.py tools/validate_e1_c.py \
 		tests/test_e1_c.py
 

@@ -221,6 +221,48 @@ function publicError(error) {
   };
 }
 
+async function sha256Hex(bytes) {
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)]
+    .map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+async function loadShellBundleRecord() {
+  const manifestPath = "./e1/editor-shell-bundle-v1.json";
+  const response = await fetch(manifestPath, { cache: "no-store" });
+  if (!response.ok)
+    throw new Error(`shell bundle manifest failed with HTTP ${response.status}`);
+  const manifest = await response.json();
+  const modules = [];
+  for (const entry of manifest.included || []) {
+    const moduleResponse = await fetch(`./${entry.path}`, { cache: "no-store" });
+    if (!moduleResponse.ok)
+      throw new Error(`shell module ${entry.path} failed with HTTP ${moduleResponse.status}`);
+    const observedSha256 = await sha256Hex(await moduleResponse.arrayBuffer());
+    modules.push({
+      path: entry.path,
+      expectedSha256: entry.sha256,
+      observedSha256,
+      pass: observedSha256 === entry.sha256,
+    });
+  }
+  const aggregateInput = modules
+    .slice()
+    .sort((left, right) => left.path.localeCompare(right.path))
+    .map((entry) => `${entry.path}\0${entry.observedSha256}\n`).join("");
+  const shellBundleSha256 = await sha256Hex(new TextEncoder().encode(aggregateInput));
+  if (modules.length === 0
+      || modules.some((entry) => !entry.pass)
+      || shellBundleSha256 !== manifest.bundleSha256) {
+    throw new Error(`served shell bundle does not match ${manifestPath}`);
+  }
+  return {
+    manifest: manifestPath,
+    shellBundleSha256,
+    modules,
+  };
+}
+
 function updateState(snapshot) {
   metrics.states.push({ atMs: performance.now(), ...snapshot });
   elements.status.value = snapshot.state;
@@ -294,6 +336,7 @@ async function fetchFixture() {
 }
 
 async function createSession() {
+  const shellBundle = await loadShellBundleRecord();
   const value = new EditorSession({
     engineFactory,
     maxWorkerGenerations: generationLimit,
@@ -323,6 +366,8 @@ async function createSession() {
     loader: value.engine.manifest.artifactFiles?.["probe.js"],
     wasm: value.engine.manifest.artifactFiles?.["probe.wasm"],
     editorContract: value.engine.manifest.editorContract,
+    shellBundleSha256: shellBundle.shellBundleSha256,
+    shellBundle,
   };
   return value;
 }
@@ -665,9 +710,101 @@ async function waitForState(expected, timeoutMs = 5000) {
   throw new Error(`editor did not enter ${expected}`);
 }
 
+async function runCrashAfterCheckpoint(oldDocument) {
+  const survive = "E1C-CKPT-MUST-SURVIVE";
+  const mustNotReturn = "E1C-CKPT-MUST-NOT-RETURN";
+  const preeditForbidden = "E1C-CKPT-PREEDIT-FORBIDDEN";
+  const queuedForbidden = "E1C-CKPT-QUEUED";
+
+  await placeAtBoundary(fixture.editAnchor, "end");
+  await record("pre-checkpoint-commit", () => session.commitText(survive));
+  await record("checkpoint-selection-gesture", () => session.moveCharacter(
+    "left", { extendSelection: true },
+  ));
+  const checkpointState = session.state.snapshot;
+  const checkpointCreated = checkpointState.hasCheckpoint === true
+    && checkpointState.checkpointRevision !== null;
+  metrics.operations.push({
+    name: "checkpoint-created-before-selection",
+    status: checkpointCreated ? "passed" : "failed",
+    result: {
+      hasCheckpoint: checkpointState.hasCheckpoint,
+      checkpointRevision: checkpointState.checkpointRevision,
+      checkpointError: checkpointState.checkpointError,
+    },
+  });
+  if (!checkpointCreated)
+    throw new Error("selection gesture completed without creating a checkpoint");
+
+  await record("post-checkpoint-commit", () => session.commitText(mustNotReturn));
+  elements.input.value = preeditForbidden;
+  session.input.handleCompositionStart(syntheticEvent({ data: "" }));
+  session.input.handleCompositionUpdate(syntheticEvent({ data: preeditForbidden }));
+  const queued = session.commitText(queuedForbidden)
+    .then((result) => ({ status: "fulfilled", result }))
+    .catch((error) => ({ status: "rejected", error: publicError(error) }));
+
+  activeWorkerControl.crash("crash-after-checkpoint");
+  await waitForState("recoverable-error");
+  const recoveryState = session.state.snapshot;
+  await record("crash-restart", () => session.restart());
+
+  let staleCode = null;
+  try {
+    await oldDocument.search(fixture.editAnchor, { timeoutMs: 5000 });
+  } catch (error) {
+    staleCode = error.code;
+  }
+  const surviveSearch = await searchText(survive);
+  const mustNotReturnSearch = await searchText(mustNotReturn);
+  const preeditSearch = await searchText(preeditForbidden);
+  const queuedSearch = await searchText(queuedForbidden);
+  const queuedResult = await queued;
+  const recoveredState = session.state.snapshot;
+  const recovered = staleCode === "STALE_DOCUMENT"
+    && surviveSearch.found
+    && !mustNotReturnSearch.found
+    && !preeditSearch.found
+    && !queuedSearch.found
+    && recoveredState.dirty === true
+    && recoveredState.generation === 2;
+  metrics.operations.push({
+    name: "crash-after-checkpoint-authority-and-no-replay",
+    status: recovered ? "passed" : "failed",
+    result: {
+      recoveryState,
+      staleCode,
+      surviveSearch,
+      mustNotReturnSearch,
+      preeditSearch,
+      queuedSearch,
+      queuedResult,
+      dirty: recoveredState.dirty,
+      generation: recoveredState.generation,
+    },
+  });
+
+  await record("post-recovery-save", saveOutput);
+  const savedState = session.state.snapshot;
+  metrics.operations.push({
+    name: "post-recovery-save-clears-checkpoint-and-dirty",
+    status: savedState.hasCheckpoint === false && savedState.dirty === false
+      ? "passed" : "failed",
+    result: {
+      hasCheckpoint: savedState.hasCheckpoint,
+      checkpointRevision: savedState.checkpointRevision,
+      dirty: savedState.dirty,
+    },
+  });
+}
+
 async function runCrash() {
-  const marker = `E1C-${scenario.toUpperCase()}-MUST-${scenario === "crash-saved" ? "SURVIVE" : "NOT-REPLAY"}`;
   const oldDocument = session.document;
+  if (scenario === "crash-after-checkpoint") {
+    await runCrashAfterCheckpoint(oldDocument);
+    return;
+  }
+  const marker = `E1C-${scenario.toUpperCase()}-MUST-${scenario === "crash-saved" ? "SURVIVE" : "NOT-REPLAY"}`;
   let pending = [];
   if (scenario === "crash-preedit") {
     elements.input.value = marker;
@@ -681,8 +818,30 @@ async function runCrash() {
   } else {
     await placeAtBoundary(fixture.editAnchor, "end");
     await record("pre-crash-commit", () => session.commitText(marker));
-    if (scenario === "crash-saved")
+    if (scenario === "crash-saved") {
+      await record("pre-crash-checkpoint-arm", () => session.moveCharacter(
+        "left", { extendSelection: true },
+      ));
+      const armedState = session.state.snapshot;
+      metrics.operations.push({
+        name: "pre-crash-checkpoint-armed",
+        status: armedState.hasCheckpoint === true ? "passed" : "failed",
+        result: {
+          hasCheckpoint: armedState.hasCheckpoint,
+          checkpointRevision: armedState.checkpointRevision,
+        },
+      });
       await record("pre-crash-save", saveOutput);
+      const savedState = session.state.snapshot;
+      metrics.operations.push({
+        name: "pre-crash-save-clears-checkpoint",
+        status: savedState.hasCheckpoint === false ? "passed" : "failed",
+        result: {
+          hasCheckpoint: savedState.hasCheckpoint,
+          checkpointRevision: savedState.checkpointRevision,
+        },
+      });
+    }
   }
   activeWorkerControl.crash(scenario);
   await waitForState("recoverable-error");

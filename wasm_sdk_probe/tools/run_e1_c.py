@@ -41,6 +41,10 @@ RECOVERY = (
     Case("recovery", "crash-queued", "crash-queued", "plain-grapheme"),
     Case("recovery", "crash-unsaved", "crash-unsaved", "plain-grapheme"),
     Case("recovery", "crash-saved", "crash-saved", "plain-grapheme"),
+    Case(
+        "recovery", "crash-after-checkpoint", "crash-after-checkpoint",
+        "plain-grapheme",
+    ),
 )
 CORPUS = tuple(
     Case("corpus", fixture, "corpus", fixture)
