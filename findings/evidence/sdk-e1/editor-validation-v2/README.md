@@ -96,7 +96,7 @@ after 當 before 寫。裁決也否決了「從正式樹搬一份 before 過來�
 > **`Makefile` 自己是每個目的檔的相依。** 實測四個 `.o` **都比它們的 `.cpp` 新**
 > （objects 08-12 22:52，最新的 source 是 `probe_engine.cpp` 08-12 16:38），
 > 所以觸發重編的是 Makefile 的 mtime，不是原始碼。而 Makefile 自 08-08 凍結後
-> 被改過至少八次——包含今天為了矩陣 v2 加的一條 `cp` 規則與兩行 JSON 檢查。
+> 被改過 **15 次**（`git log 41d27fa..HEAD -- wasm_sdk_probe/Makefile`）——包含今天為了矩陣 v2 加的一條 `cp` 規則與兩行 JSON 檢查。
 >
 > **推論**：08-07 那次 GO 的 `regression: true` 之所以成立，是因為當時還沒有人改過
 > Makefile，**不是因為它驗到了比今天更多的東西**。加一條無關的複製規則就會讓這個屬性失敗，
