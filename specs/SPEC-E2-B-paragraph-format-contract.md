@@ -614,6 +614,19 @@ capability `narrow-editor-v1` ＋ `editorContract.version === 1`（`:98`）。
 manifest 兩者都宣告。** host 拿 `gestures` 決定按鈕要不要 disable
 （第 9 節的遷移條款要求的正是這個），而不是靠使用者按下去才發現沒作用。
 
+> **v10 補：engine 收不到那個宣告，所以要加一個入口。**
+> `probe_engine.cpp` 與 `editor_api.cpp` 對 `manifest` 的引用是 **0 次**——
+> engine 從來不讀 manifest。而 gesture mask 也**不能搭在每次派送的 options 上**：
+> 5.11／N7 要求動作 11–15 的兩個旗標嚴格為 0。
+> 因此需要一個**新的匯出 C symbol**（`oxsdk_editor_set_action_gestures(action, mask)`），
+> worker 在 init 時依 manifest 呼叫一次，engine 在路由時據以拒絕，
+> 拒絕要有自己的 shape 名稱。**這是 relink 的內容，不是 P2 的內容。**
+>
+> 沒有它，7.2 的 `PARTIAL_GO_TO_E2_C`（某個手勢類別不成立）
+> **在 manifest 上寫得出來、在 runtime 執行不了**——
+> 那正是第 10 項要殺掉的「manifest 只描述不約束」。
+> 而且它會在 P3 之後才被發現，**那就是一次必然的第二次 relink**。
+
 > **這一節全部是 JS／Python／資料，不重連結**——但依 5.2 必須在最終量測之前定稿。
 
 ### 5.8 第 11 項的決定：獨立的 `build_e2_b_profile.py`，而且它要**拒絕**產出不合格的三件組
@@ -686,6 +699,7 @@ v1 那半已補（`c5cde7d`）。v2 這半要跟著 5.5 的操作名走：
 | N8 | stale revision | stale revision 錯誤（`probe_engine.cpp:1651`） | 樂觀並行的守衛 |
 | N9 | 送 `unoCommand`／`keyCode`／`command` 欄位 | `INVALID_ARGUMENT`（forbidden-field 檢查） | forbidden-field inventory 的執行證據 |
 | N10 | 拿 `e2-combination` 當產品 artifact 餵給 builder | **builder 拒絕產出**（5.8） | 它匯出三個 discovery symbol（`Makefile:619`），永遠不合格 |
+| **N11** | manifest 把某動作限成 `[collapsed, single-range]`，卻在**跨段**範圍上派送 | **engine 拒絕**（gesture mask，5.7 v10 補） | **原本整張表沒有任何一列測 gesture 限制**——N1 測的是動作交集。沒有這一列，部分 GO 的手勢限制是不可證的 |
 
 **N1–N9 每一列都要存檔並證明 `<office:body>` 逐位元不變。**
 N10 不產生文件，判準是 builder 的非零退出。
@@ -802,7 +816,10 @@ finding 042：改 `Makefile` 會重連結。所以下列**必須同一次做完*
 
 - `src/editor_api.h`／`src/editor_api.cpp`：ABI 版本、外部 ID 11–15 與對應。
 - `src/probe_engine.cpp`：**跨段的處置**（3.5／9.5 的兩條路之一）、
-  G1 結果導出的範圍限制、以及第 12 項的 revision 決策。
+  ~~G1 結果導出的範圍限制~~、以及第 12 項的 revision 決策。
+  > **v10 更正**：G1 通過了（9.6），所以沒有「G1 導出的限制」要編進去。
+  > 7.1 已經把同段多矩形歸成 **fixture 變體**、走 `blocks == 1` 的同一條路由。
+  > 這一句是 v4 寫的、G1 還是 void 的時候留下的，**現在作廢**。
 - `Makefile`：**產品 v2 的 object／link／profile target，產品 objects 必須帶
   `-DOXSDK_E2_FORMAT_BARRIER`**，export list 只留產品 symbol（不得沿用
   combination 的聯集）；**同時補上兩件欠著的**——
