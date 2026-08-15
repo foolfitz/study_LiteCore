@@ -196,6 +196,20 @@ readback markup 不是有文件的契約；`changed` 永遠 `null`；不提供�
   > 的段落。E1-C 9.1 的四格量過，`footnote-no-frame-full` 是 8 ms 可用的，
   > `note-full`（註腳裡有 frame）才會卡死。**拿錯 fixture 這一格不會失敗，
   > 會讓引擎不回應**，然後這一輪什麼都證明不了。
+  >
+  > **具體是哪一份哪一個錨點**：`test-docs/e1/paragraph-content.odt` 的
+  > `PC-FOOTNOTE`（`web/e1-note-frame-select-app.js:99` 的 case 表）。
+  > 會卡死的那一份是 `frame-contexts.odt` 的 `FX-NOTE` 全選，**不要用它**。
+  >
+  > **為什麼它會落在「派送後」而不是被 B' 的派送前路由擋掉——原始碼層級的推論，
+  > D2 必須實測確認**：`routeFormatBarrier()`（`probe_engine.cpp:3273`）在派送前
+  > 只做兩件事——finding 037 的型態守衛與 gesture 判定——**它讀了 html 卻不看
+  > 註腳裝置**（`footnoteApparatus` 只在 `:3494` 被判，那是收尾階段）。
+  > 所以帶註腳的選取會**通過**派送前路由、被派送出去，再由收尾判成
+  > `MUTATION_OUTCOME_UNKNOWN`／`footnote-apparatus-readback`。
+  > **這正是這一格需要的形狀**（dispatched = true），但在 D2 實測到之前它是推論。
+  > 若實測發現它其實在派送前就被擋掉（`dispatched: false`），
+  > 那 D2 這一格要換機制，**不是把判準改成接受零 mutation**。
 - 每個 session 最多三個 Worker generation，第四次以 typed 錯誤擋下。
 
 ### D3：ODT corpus（每瀏覽器每份至少一次）
