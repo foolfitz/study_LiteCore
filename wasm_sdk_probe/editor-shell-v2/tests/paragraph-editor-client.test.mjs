@@ -124,7 +124,7 @@ test("a failure that never reached the engine does not roll the document back",
        // back would discard everything since the last checkpoint because a
        // caller passed a bad argument.
        for (const code of ["INVALID_ARGUMENT", "EDITOR_ACTION_UNSUPPORTED",
-                           "UNSUPPORTED_OPERATION"]) {
+                           "UNSUPPORTED_OPERATION", "STALE_REVISION"]) {
          assert.equal(formatFailureDisposition({ code }), "refused-no-mutation",
                       `${code} must not be treated as possibly-dispatched`);
        }

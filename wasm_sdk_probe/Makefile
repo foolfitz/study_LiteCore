@@ -1605,6 +1605,12 @@ dist/e2-c-d1.html: web/e2-c-d1.html | dist
 dist/e2-c-d1-app.js: web/e2-c-d1-app.js | dist
 	cp $< $@
 
+dist/e2-c-d2.html: web/e2-c-d2.html | dist
+	cp $< $@
+
+dist/e2-c-d2-app.js: web/e2-c-d2-app.js | dist
+	cp $< $@
+
 # E2's own fixtures.  A separate directory from e1-fixtures because E2-C may
 # not regenerate the E1 corpus, and a served copy so the harness fetches the
 # same bytes the manifest pins.
@@ -1621,6 +1627,7 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/e2-c-d0.html dist/e2-c-d0-app.js \
 	dist/e2-c-d1-probe.html dist/e2-c-d1-probe-app.js \
 	dist/e2-c-d1.html dist/e2-c-d1-app.js \
+	dist/e2-c-d2.html dist/e2-c-d2-app.js \
 	dist/e2-fixtures/manifest.json dist/e2-fixtures/list-split.odt \
 	dist/e2-fixtures/d1-anchors.odt \
 	dist/editor-shell-v2/narrow-editor-v2-client.js \
@@ -2002,6 +2009,7 @@ test-e2-c-static:
 	node --check web/e2-c-d0-app.js
 	node --check web/e2-c-d1-probe-app.js
 	node --check web/e2-c-d1-app.js
+	node --check web/e2-c-d2-app.js
 	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
 	# reachable by a shipped shell.  The four-way inventory check cannot see
 	# this -- its client side is the UNION of two shells and one of them

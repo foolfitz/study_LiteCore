@@ -216,10 +216,19 @@ export class ParagraphEditorClient {
 // A rollback here is not a harmless extra step: it reopens the document from
 // the last checkpoint and discards everything since, which for a typo in a
 // caller's argument is a strictly worse outcome than the typo.
+//   STALE_REVISION             the engine's revision gate, `requireRevision()`
+//                              at probe_engine.cpp:3857 -- it runs before the
+//                              action switch and emits the error instead of
+//                              dispatching.  Found by E2-C's D2 phase: a stale
+//                              revision is a caller mistake with a provably
+//                              untouched document, and telling the host to roll
+//                              back discards everything since the checkpoint
+//                              for it.
 const PRE_DISPATCH_CODES = new Set([
   "INVALID_ARGUMENT",
   "EDITOR_ACTION_UNSUPPORTED",
   "UNSUPPORTED_OPERATION",
+  "STALE_REVISION",
 ]);
 
 export function formatFailureDisposition(error) {

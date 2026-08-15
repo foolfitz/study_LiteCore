@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>E2-C D2 — Recovery 與 no-replay</title>
+<style>
+  body { margin: 0; font: 13px/1.5 ui-monospace, Menlo, monospace; padding: 12px;
+         background: #101820; color: #d7e2ea; }
+  h1 { font: 600 15px/1.4 system-ui, sans-serif; margin: 0 0 8px; }
+  p { font: 12px/1.5 system-ui, sans-serif; color: #93a6b5; margin: 0 0 12px;
+      max-width: 68em; }
+  #log { white-space: pre-wrap; word-break: break-all; }
+  #sink { position: absolute; width: 1px; height: 1px; opacity: 0; }
+</style>
+</head>
+<body>
+  <h1>E2-C D2 — Recovery 與 no-replay</h1>
+  <p>SPEC E2-C 第 5 節 D2。這一相位打的是**失敗路徑**：四個處置、五個 crash
+     barrier、boundary 拒絕、三代上限。判準在
+     <code>e2/validation-matrix-v1.json</code>，由
+     <code>tools/analyze_e2_c_d2.py</code> 離線套用。
+     這一頁不判定，只留下可判的觀測值與存出來的文件。</p>
+  <textarea id="sink" aria-label="輸入"></textarea>
+  <div id="log"></div>
+  <script type="module" src="./e2-c-d2-app.js"></script>
+</body>
+</html>
