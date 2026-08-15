@@ -262,6 +262,39 @@ el.toolbar.addEventListener("click", (event) => {
     void Promise.resolve(ACTIONS[action]()).catch(() => {});
 });
 
+/**
+ * Click, then wait for the engine to confirm a collapsed caret.
+ *
+ * This used to call `client.placeCaretByClick`, which exists on the DIAGNOSTIC
+ * client (`e2/demo-structure-client.js`) and not on the product one -- so from
+ * the migration to v2 until 2026-08-15 every click on this page threw
+ * TypeError.  The page had been checked for boot, and booting was what had
+ * broken the time before.
+ *
+ * The poll is not optional: `click` is fire-and-forget, and reading the state
+ * the instant it returns gives the PREVIOUS caret.  Doing exactly that is how
+ * the bench first concluded, wrongly, that clicking did nothing.  The
+ * postcondition here is the product one -- the same shape
+ * `EditorSession.placeCaret` waits for -- rather than the bench's "three
+ * identical reads", because a confirmed collapsed caret is a statement about
+ * the engine and a settled coordinate is a statement about the polling.
+ */
+async function placeCaret(xTwips, yTwips, options = {}) {
+  await document_.click(xTwips, yTwips, options);
+  const deadline = Date.now() + (options.caretTimeoutMs ?? 30000);
+  let state = null;
+  do {
+    state = await client.getState(options);
+    if (state.selectionType === "none" && state.selection?.observed === true
+        && state.selection?.collapsed === true)
+      return state;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  } while (Date.now() < deadline);
+  throw Object.assign(
+    new Error("click did not produce a callback-confirmed collapsed caret"),
+    { code: "EDITOR_STATE_UNAVAILABLE", details: { xTwips, yTwips, state } });
+}
+
 el.canvas.addEventListener("pointerdown", (event) => {
   if (!document_ || event.button !== 0)
     return;
@@ -271,7 +304,7 @@ el.canvas.addEventListener("pointerdown", (event) => {
     (event.clientX - rectangle.left) / rectangle.width * document_.widthTwips));
   const yTwips = Math.max(0, Math.round(
     (event.clientY - rectangle.top) / rectangle.height * document_.heightTwips));
-  void run("定位游標", () => client.placeCaretByClick(xTwips, yTwips, { timeoutMs: 30000 }))
+  void run("定位游標", () => placeCaret(xTwips, yTwips, { timeoutMs: 30000 }))
     .catch(() => {});
 });
 

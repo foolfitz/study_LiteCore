@@ -166,7 +166,7 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	test-r7-c-static test-r7-d-static test-r8-a-static test-r8-b-static \
 	test-r8-c-static test-r8-d-static \
 	test-e1-a-static test-e1-b-static test-e1-c-static test-e2-a-static \
-	test-e2-b-static test-e2-c-static \
+	test-e2-b-static test-e2-c-static e2-c-assets \
 	test-e1-c-frozen-guard test-e1-c-shell-bundle-tool \
 	test-finding-016-scheduler-static \
 	test-finding-016-selection-barrier-static \
@@ -1519,6 +1519,23 @@ dist/editor-shell-v2/narrow-editor-v2-session.js: \
 		editor-shell-v2/narrow-editor-v2-session.js | dist/editor-shell-v2
 	cp $< $@
 
+# SPEC E2-C 2.4.  The product page: fifteen actions on one session, and a
+# pointer drag that goes through the page's own handler rather than through a
+# harness -- D5 cannot measure the product on a page the product does not have.
+dist/e2-editor.html: web/e2-editor.html | dist
+	cp $< $@
+
+dist/e2-editor-app.js: web/e2-editor-app.js | dist
+	cp $< $@
+
+e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
+	dist/editor-shell-v2/narrow-editor-v2-client.js \
+	dist/editor-shell-v2/narrow-editor-v2-session.js \
+	dist/editor-shell-v2/paragraph-editor-client.js \
+	dist/editor-shell-v2/paragraph-editor-session.js \
+	dist/sdk/document-sdk.js dist/e1-fixtures/manifest.json \
+	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
+
 dist/demo-structure-discovery.html: web/demo-structure-discovery.html | dist
 	cp $< $@
 
@@ -1887,6 +1904,7 @@ test-e2-c-static:
 	node --test editor-shell-v2/tests/*.test.mjs
 	node --check editor-shell-v2/narrow-editor-v2-client.js
 	node --check editor-shell-v2/narrow-editor-v2-session.js
+	node --check web/e2-editor-app.js
 	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
 	# reachable by a shipped shell.  The four-way inventory check cannot see
 	# this -- its client side is the UNION of two shells and one of them
