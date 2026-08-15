@@ -3887,18 +3887,36 @@ void handleEditorAction(const Command &command) {
   // enforced it.  A declaration nobody executes is the same defect as an action
   // nobody can reach.
   //
-  // Classified WITHOUT a readback, on purpose.  An empty rectangle set is a
-  // collapsed caret; a non-empty one is a range.  Telling range-single from
-  // range-cross would need the html read, and adding that call site here is the
-  // wedge risk findings 037/038 describe -- so a range is checked against both
-  // range bits and a manifest that wants the finer distinction for these ten
-  // has to wait for a build that can afford the read.
+  // Classified WITHOUT a readback, on purpose: the html read that would tell
+  // range-single from range-cross is the wedge risk findings 037/038 describe.
+  // What that costs is spelled out below -- an unclassified range has to
+  // satisfy both range bits.
   {
+    // `selectionObserved` is load-bearing and the first version of this gate
+    // ignored it: an empty rectangle list means "no selection" ONLY once core
+    // has reported a selection at least once (see the field's own comment).
+    // Before that it means "nobody has said yet", and admitting that as a
+    // collapsed caret is classifying without an observation -- the thing this
+    // tree keeps having to relearn.
+    if (!gEditorState.selectionObserved) {
+      emitCommandError(
+          command, "editor-action", "EDITOR_FORMAT_GESTURE_UNSUPPORTED",
+          "no selection has been reported yet, so this action cannot be "
+          "classified; nothing was dispatched and the document is unchanged");
+      return;
+    }
     const bool collapsed = gEditorState.selectionRectangles.empty();
-    const std::uint32_t gesture =
-        collapsed ? kGestureCollapsed
-                  : (kGestureRangeSingle | kGestureRangeCross);
-    if (!editorGesturePermitted(action, gesture)) {
+    // An unclassified range must satisfy BOTH range bits, because
+    // editorGesturePermitted() accepts on any intersection: passing the OR of
+    // the two would let a profile that allows only range-single admit a range
+    // this build never classified, which may be a cross-paragraph one.
+    // Telling them apart needs the html read, and that read is the wedge risk
+    // findings 037/038 describe -- so the check is conservative instead.
+    const bool permitted =
+        collapsed ? editorGesturePermitted(action, kGestureCollapsed)
+                  : (editorGesturePermitted(action, kGestureRangeSingle) &&
+                     editorGesturePermitted(action, kGestureRangeCross));
+    if (!permitted) {
       emitCommandError(
           command, "editor-action", "EDITOR_FORMAT_GESTURE_UNSUPPORTED",
           "this action is not offered for this kind of selection in this "
