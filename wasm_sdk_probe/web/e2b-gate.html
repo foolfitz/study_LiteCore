@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <title>SPEC E2-B 第 3 節閘門 — 在範圍選取上派送格式動作</title>
+  <style>
+    body { font: 13px/1.5 system-ui, sans-serif; margin: 16px; color: #17202a; }
+    pre { background: #111820; color: #d6eeff; padding: 10px; white-space: pre-wrap;
+          max-height: 70vh; overflow: auto; }
+    h1 { font-size: 16px; }
+    b { color: #a4262c; }
+  </style>
+</head>
+<body>
+  <h1>SPEC E2-B 第 3 節閘門 — 在範圍選取上派送格式動作</h1>
+  <p>E2-A 縮限 7：所有量過的派送都從<strong>收合游標</strong>出發。
+     「拖曳選一段再按按鈕」從來沒有進過矩陣，而那是 v2 使用者的主手勢。</p>
+  <p><b>每一個正向臂都必須先證明範圍真的存在</b>——五個動作都是段落層級的，
+     範圍若悄悄退回收合游標，存出來的文件仍會完全符合後置條件，
+     檢查會在什麼都沒量到的情況下變綠。判準因此看的是
+     <strong>存出來的 ODT，尤其是沒被選到的那幾段</strong>。</p>
+  <p>預測與全部處置寫在
+     <code>findings/evidence/sdk-e2/discovery/e2b-gate/PREDICTION.md</code>，
+     <strong>在這支程式存在之前就 commit 了</strong>。</p>
+  <pre id="log">載入中⋯</pre>
+  <script type="module" src="./e2b-gate-app.js"></script>
+</body>
+</html>
