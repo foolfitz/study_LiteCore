@@ -111,7 +111,9 @@ make f039-caret-reset-assets && python3 web/serve.py
 
 **產品 `e1-editor-v1` 不受這條影響——已由對照實測，不再是推論。**
 在出貨 artifact `835b453d…` 上：`click` ×5 全部成功且**沒有任何逾時**、
-`editorSelectRangeV1` ×5 全部成功（112／19／251／8／10 ms）。
+`editorSelectRangeV1` ×5 全部成功（~~112／19／251／8／10 ms~~ →
+**Chrome 9／9／9／10／9、Firefox 9／10／10／10／10**，全部走 callback；
+2026-08-15 由 P1 的 `five-selects` 臂落地，原本那串已撤回，見下方）。
 產品根本沒有匯出壞掉的那條 discovery reset。
 （初版這裡寫「本輪沒有在產品 profile 上量過，根據是程式碼路徑不同」；已補量並改寫。）
 
@@ -126,6 +128,30 @@ make f039-caret-reset-assets && python3 web/serve.py
 > （`editor_api.cpp:123`），discovery 那條沒有——**機制上的差別是讀得到程式碼的**。
 > 但「五次全過、112／19／251／8／10 ms」這一串在補上證據之前應當標為**未落地**。
 > 下一次動產品 profile 時順手補一輪，並記下 `completion` 欄位（見本節末的 251 ms 假說）。
+
+> ### 2026-08-15 已結案：**結論落地，那五個數字撤回**
+>
+> 補的那一輪其實早就跑過了，只是沒有人把它接回這裡：任務 #47 的 **P1** 有一臂就叫
+> `five-selects`，跑在**凍結的 `835b453d…`** 上、兩個瀏覽器都有，證據在
+> [`evidence/sdk-e2/discovery/039-combination/p1-product-readback/`](evidence/sdk-e2/discovery/039-combination/p1-product-readback/)。
+>
+> | | Chrome | Firefox |
+> |---|---|---|
+> | `five-selects` 五次的 `elapsedMs` | **9／9／9／10／9** | **9／10／10／10／10** |
+> | 五次的 `completion` | 全部 `documented-callback-text-selection` | 同左 |
+>
+> **所以結論成立而且現在有證據可以指**：`editorSelectRangeV1` 在出貨 artifact 上
+> **五次全過**，全部走 callback 完成，沒有任何一次落到 readback 期限。
+>
+> **但原本那五個數字要撤回，而且撤回的理由比「找不到證據」更具體**：
+> `112／19／251／8／10` 裡的 **251 根本不屬於這一臂**。同一輪的另一臂
+> `identical-range-twice` 是 `9 / 251`——**251 是「同一個範圍再選一次」那一次的
+> readback 期限**（armed 250 ms），P1 的 `outcome` 欄位就是這樣寫的：
+> 「readback deadline fired, 251 ms (armed deadline 250 ms)」。
+> 也就是說，原本那一串**把兩個不同的臂混寫成一串**了。
+> `112`／`19`／`8` 三個數字兩個瀏覽器都沒有重現，一律撤回。
+>
+> 這一格因此不再是「未落地」，而是**已落地（結論）＋已撤回（那串數字）**。
 
 **對任務 #36 路線 B 的影響：不擋，但把可用的路徑縮到一條。**
 
