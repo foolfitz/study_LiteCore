@@ -936,6 +936,29 @@ $(E2_B_BUILD)/probe.js: $(E2_B_OBJECTS) $(E2_B_BUILD)/exports.txt \
 $(E2_B_BUILD)/probe.wasm: $(E2_B_BUILD)/probe.js
 	@test -s $@
 
+# The v2 product profile.  --cross-paragraph selects disposition B' (dispatch
+# and verify every block); without it the same artifact ships disposition A
+# (refuse cross-paragraph before dispatch).  That the choice is a builder flag
+# rather than a build flag is the point: it is decided AFTER the artifact
+# exists, so the wasm-parity question can be measured before it is answered.
+$(E2_B_DIST)/sdk-manifest.json: $(E2_B_BUILD)/probe.js $(E2_B_BUILD)/probe.wasm \
+		$(E2_B_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e2_b_profile.py \
+		tools/e1_support.py | $(E2_B_DIST)
+	python3 tools/build_e2_b_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_B_BUILD)/probe.js --wasm $(E2_B_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --exports $(E2_B_BUILD)/exports.txt \
+		--output $(E2_B_DIST) --cross-paragraph
+	@test -s $(E2_B_DIST)/probe.js
+	@test -s $(E2_B_DIST)/probe.wasm
+	@test -s $(E2_B_DIST)/sdk-worker.js
+	@grep -q narrow-editor-v2 $(E2_B_DIST)/sdk-manifest.json
+	@if grep -q '"narrow-editor-v1"' $(E2_B_DIST)/sdk-manifest.json; then \
+		echo "v2 profile must not declare narrow-editor-v1"; exit 1; fi
+
+e2-editor-v2-profile: $(E2_B_DIST)/sdk-manifest.json
+
 $(E1_FIX_BUILD)/exports.txt: $(E1_B_BUILD)/exports.txt Makefile | $(E1_FIX_BUILD)
 	cp $< $@
 
@@ -1797,7 +1820,8 @@ test-e2-b-static:
 	node --check web/e2b-gate-app.js
 	python3 -m py_compile tools/run_e2b_gate.py tools/analyze_e2b_gate.py \
 		tools/analyze_e2b_crossparagraph.py tools/analyze_e2b_identity_gate.py \
-		tools/create_e2b_fixtures.py
+		tools/create_e2b_fixtures.py tools/build_e2_b_profile.py
+	python3 -m unittest tests/test_e2_b_profile.py
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
 # and therefore rebuilds the frozen e1-editor-v1 profile; this target must stay
