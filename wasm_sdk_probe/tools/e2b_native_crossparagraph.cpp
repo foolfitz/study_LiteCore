@@ -215,16 +215,31 @@ void selectRange(LibreOfficeKitDocument *document, long x1, long y1, long x2,
 // "E1-MULTI-START", not "E1-MULTI-START alpha"), so it differed from the test
 // arm in two ways at once -- one paragraph versus two, AND partial versus
 // whole.  `wholeParagraph` adds the third arm that separates them.
+// Round 3 adds two arms.
+//
+// `partialHead` starts the range INSIDE paragraph 1 rather than at its head.
+// Every crossing selection measured before it -- these arms and the browser
+// gate's G3 -- started at a paragraph head, so only the trailing edge was ever
+// partial, and dragging from the middle of a line is the ordinary gesture.
+//
+// `ordered` dispatches .uno:DefaultNumbering instead of .uno:DefaultBullet, for
+// SAMPLING ONLY: the repaired verification needs a closed set of decoration
+// prefixes measured on this build, and "    \u2022 " is the only sample so far.
+// No prediction was committed for its value, so it is recorded, not judged.
 struct Arm {
   const char *name;
   bool crossParagraph;
   bool wholeParagraph;
+  bool partialHead;
+  bool ordered;
 };
 
 const Arm kArms[] = {
-    {"cross-paragraph", true, false},
-    {"single-paragraph-control", false, false},
-    {"single-paragraph-whole", false, true},
+    {"cross-paragraph", true, false, false, false},
+    {"single-paragraph-control", false, false, false, false},
+    {"single-paragraph-whole", false, true, false, false},
+    {"cross-paragraph-partial-head", true, false, true, false},
+    {"cross-paragraph-ordered-sample", true, false, false, true},
 };
 
 bool saveAs(LibreOfficeKitDocument *document, const std::string &path) {
@@ -253,7 +268,9 @@ void runArm(LibreOfficeKit *kit, const char *url, const Arm &arm, int round,
 
   const long y1 = first.y + first.height / 2;
   const long y2 = arm.crossParagraph ? second.y + second.height / 2 : y1;
-  const long x1 = first.x;
+  // Two thirds into the first anchor's width: unambiguously inside paragraph 1
+  // and past its first characters, without needing to know where a word ends.
+  const long x1 = arm.partialHead ? first.x + (first.width * 2) / 3 : first.x;
   // 9000 twips is what the browser gate uses: far enough right that the
   // endpoint clamps to the end of the line, so the range covers the whole
   // paragraph without needing to know where it ends.
@@ -287,8 +304,9 @@ void runArm(LibreOfficeKit *kit, const char *url, const Arm &arm, int round,
 
   // CHECK 2.  Nothing between the dispatch and the readback collapses or
   // re-selects anything: that is the whole point.
-  document->pClass->postUnoCommand(document, ".uno:DefaultBullet",
-                                   kListOnArguments, true);
+  document->pClass->postUnoCommand(
+      document, arm.ordered ? ".uno:DefaultNumbering" : ".uno:DefaultBullet",
+      kListOnArguments, true);
   drain(800);
   const std::string plainAfter = takeSelection(document,
                                                "text/plain;charset=utf-8");
