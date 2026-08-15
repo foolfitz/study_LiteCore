@@ -559,6 +559,56 @@ capability `narrow-editor-v1` ＋ `editorContract.version === 1`（`:98`）。
 > （`editor-client.js:16`），`action()` 在 `:92` 先丟 `EDITOR_ACTION_UNSUPPORTED`。
 > 所以第 3 項的實作順序是：先進 allowlist，才會撞到驗證器。
 
+### 5.7 第 6 ＋ 第 10 項的決定：manifest 從「描述」變成「約束」，但**只能收窄**
+
+這兩項是同一個改動。第 6 項說 capability 表達不了部分 GO 的限制，
+第 10 項說 manifest 的 action allowlist 在 runtime 根本不被執行——
+**而第 7 項的凍結條件要求「capability 缺一必須以文件 bytes 證明零 mutation」。
+只加 schema 達不到那個要求**：worker 只查自己寫死的 `EDITOR_V1_ACTION_IDS`
+（派送路徑 `sdk-worker.js:866`），**從來不讀 `activeManifest.editorContract.actions`**，
+所以 manifest 少寫一項，worker 照樣派送。
+
+#### v2 的 `editorContract.actions` 從名字清單改成 map
+
+現在是十個字串的陣列（`build_e1_b_profile.py:13`）。v2 改成：
+
+```
+"actions": {
+  "set-list-unordered": { "id": 12, "gestures": [...], "limits": [] },
+  "set-paragraph-heading": { "id": 14, "gestures": [...],
+                             "limits": ["heading-level-1-only",
+                                        "no-precondition-state"] },
+  ...
+}
+```
+
+`limits` 就是 2.2 那六項縮限的機器可讀形式——**部分 GO 靠這個欄位表達，
+不是靠 UI 文案**，這正是第 6 項要的東西。
+**v1 的 manifest 不動**：它是凍結的，而且 5.4 已經定案版本是身分不是區間。
+
+#### 執行的方向只有一個：**交集，manifest 只能收窄**
+
+```
+可派送 = worker 寫死的 map  ∩  manifest 的 actions
+```
+
+**這個方向是刻意的。** 反過來（manifest 說有就派送）會讓一份被改過的 manifest
+擴大 ABI；而交集語意下，manifest 最多只能把已經編進二進位檔的能力**關掉**，
+永遠打不開沒有的東西。**凍結的 negative matrix 因此變得可以做**：
+拿掉 manifest 裡的一項，那個動作就必須零 mutation，而且是**可證的**。
+
+#### gesture 由誰執行：**engine，不是 worker**
+
+`gestures` 欄位宣告的是「這個動作接受哪些手勢」
+（收合游標／單段範圍／跨段範圍）。**但 worker 判不了手勢**——它只看得到
+動作名與座標。判得了的是 engine：9.9 已經定案用**派送前的 block 數**路由。
+
+所以分工寫死：**worker 執行 `actions` 的交集，engine 執行 gesture，
+manifest 兩者都宣告。** host 拿 `gestures` 決定按鈕要不要 disable
+（第 9 節的遷移條款要求的正是這個），而不是靠使用者按下去才發現沒作用。
+
+> **這一節全部是 JS／Python／資料，不重連結**——但依 5.2 必須在最終量測之前定稿。
+
 ### 5.2 唯一一次 relink 要帶什麼進去
 
 finding 042：改 `Makefile` 會重連結。所以下列**必須同一次做完**，
