@@ -821,9 +821,84 @@ finding 042：改 `Makefile` 會重連結。所以下列**必須同一次做完*
 
 ## 7. 驗收與停止條件
 
-**`GO_TO_E2_C` 的具體門檻（含每個動作每個瀏覽器的次數、歸屬欄位、no-op 的 revision 方程式、
-negative matrix、forbidden-field inventory、validator 的突變控制）尚未訂定，
-必須在凍結之前補齊。** 現在寫「達門檻次數」而不寫門檻，等於不同執行者能用不同測試得到同一個 GO。
+### 7.1 門檻（2026-08-15 訂定）
+
+沿用 E2-A 第 5 節那張表的形狀與數字，**不另立一套**：
+
+| 項目 | 值 | 出處 |
+|---|---|---|
+| 正向重複次數／瀏覽器 | **3** | E2-A 門檻表 |
+| 負向重複次數／瀏覽器 | **1** | 同上（負向是確定性拒絕） |
+| barrier 上限 | 10,000 ms | 同上 |
+| operation timeout | 30,000 ms | 同上 |
+| open／save timeout | 180,000 ms | 同上 |
+| Worker generation 上限 | 3 | 同上（finding 026 更正後的意思） |
+
+#### 涵蓋面：**動作 × 手勢類別 × 瀏覽器**
+
+手勢類別就是 9.9 的路由分界，不是別的切法：
+
+| 類別 | 判準 |
+|---|---|
+| G-collapsed | 收合游標 |
+| G-single | 範圍，派送前 `blocks == 1` |
+| G-cross | 範圍，派送前 `blocks >= 2` |
+
+**五個動作 × 三個手勢 × 兩瀏覽器 × 3 次 ＝ 90 個正向 run。**
+
+> **同段多矩形不是第四個手勢類別**——它的 `blocks` 一樣是 1，走同一條路由
+> （9.6 實測 3 個矩形、1 個 block）。它是 **fixture 變體**，門檻另計：
+> `wrapped-paragraph.odt` 至少要在 `set-list-unordered` 上、每瀏覽器出現一次。
+
+#### 歸屬欄位
+
+「completion 無法歸屬到單一 request」是停止條件，所以它必須是**可檢查的**。
+每一個 run 的紀錄必須自帶：`requestId`、`action`、手勢類別、瀏覽器、
+以及 loader／wasm／worker **三個 hash**。validator 對現場 artifact **重算** hash
+（finding 027），輸出 `allEvidenceIsCurrentBuild` 與 `staleBuilds`，
+**任何 stale 或缺漏一律不計入門檻次數**。
+
+#### no-op 的 revision 方程式
+
+v4 撤回第 4 項之後，事實是：路線 C **每次成功都 `advanceRevision()`**，
+而 `changed` 恆為 `null`。所以方程式是——
+
+> **每一次 completed 的動作，`revision_after == revision_before + 1`，
+> 包含什麼都沒改變的那一次。**
+
+**這要量，不能假設。** no-op 臂：對同一段連續派送兩次 `set-list-unordered`，
+第二次必須**照樣** `+1`，且存出來的 `<office:body>` 與第一次之後**逐位元相同**。
+每瀏覽器 3 次。
+
+> 目前**沒有任何一輪測過重複派送**——閘門每一臂都是開檔、派送一次、存檔。
+> **這一格是新的，不是把既有資料換個說法。**
+
+#### forbidden-field inventory
+
+worker 現在擋三個欄位（`keyCode`／`unoCommand`／`command`，`sdk-worker.js:867` 一帶），
+manifest 也宣告 `arbitraryUnoCommandAccepted: false` 等旗標。門檻是：
+**清單裡每一個欄位各送一次**（每瀏覽器 1 次），必須 `INVALID_ARGUMENT`
+且 `<office:body>` 逐位元不變。**一次送一個**——一次送三個只證明「至少一個被擋」。
+
+#### validator 的突變控制
+
+**產生判定的每一支 validator 都要有突變測試**：把它檢查的那件事翻掉，
+確認它變紅。這不是新規矩，是本輪已經做過三次的做法
+（`analyze_e2b_identity_gate.py` 的四個抽取器對照、header test 的兩次突變、
+`declaration-drift.test.mjs` 的移除測試）。
+
+具體要求：validator 提供 `--self-test`，逐條翻掉自己的判準並斷言變紅，
+**其輸出列入凍結證據**。理由寫在本輪的錯誤表裡——
+**事後寫的分析器把預先登記的判準悄悄換掉過，而且換的方向讓那一臂變綠。**
+
+### 7.2 判定
+
+**`GO_TO_E2_C`**：90 個正向 run 全部達門檻；negative matrix（5.10）十列全過；
+no-op 方程式成立；forbidden-field inventory 全過；
+validator 的 `--self-test` 全紅；證據全部綁在同一顆產品 artifact 上。
+
+**`PARTIAL_GO_TO_E2_C`**：某個動作或某個手勢類別不成立，其餘成立。
+限制以 **5.7 的 `limits`／`gestures` 欄位**表達，**不是靠 UI 文案**。
 
 **部分 GO**：依 3.7 的決策規則，限制以 **capability 欄位**與 UI 同時明示。
 
