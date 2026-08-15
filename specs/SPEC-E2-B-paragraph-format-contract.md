@@ -334,12 +334,17 @@ A1–A5、G1、G2 每一臂在派送**之前**必須全部成立，否則該 run
     `OXSDK_EDITOR_ABI_VERSION` 只是 header 巨集（`editor_api.h:12`）。
     → 要明定它是 build-time inventory invariant，還是需要 runtime gate；
     **選後者就得在那唯一一次 relink 裡加 symbol。**
-14. **公開型別與 header 測試已經落後現行 v1。** `editor-client.d.ts:7` 只列到
-    `set-bold`／`set-italic`，沒有底線與刪除線；`setInlineFormat` 的型別同樣
-    只允許 bold／italic（`:64`）；`tests/editor_abi_header_test.cpp:6` 只 assert
-    動作 1–8。**現況已經表達不完整的十個 v1 動作**，v2 之前要先補齊。
-    另外 `EditorSession` 只有 `setInlineFormat()`、沒有清單／段落的方法
-    （`editor-session.js:426`），且固定實例化只接受 v1 的 `NarrowEditorClient`（`:125`）。
+14. ~~**公開型別與 header 測試已經落後現行 v1。**~~ —— **v1 的那一半已補（2026-08-15，`c5cde7d`）。**
+    `editor-client.d.ts` 曾只列到 `set-italic`、`setInlineFormat` 只允許
+    bold／italic，`tests/editor_abi_header_test.cpp` 只 assert 動作 1–8 且完全
+    沒碰 `oxsdk_editor_select_range`——**那支測試存在的理由就是釘住 header，
+    而它在兩顆出貨 artifact 期間只釘住十個動作裡的八個**。兩邊都補齊，
+    並新增 `editor-shell/tests/declaration-drift.test.mjs` 直接讀 `.d.ts` 與
+    runtime 比對，三個新檢查各做過突變控制。header test 是 `-fsyntax-only`，
+    不產生 object，不影響任何 artifact。
+    **仍然開著的是 v2 那一半**：`EditorSession` 只有 `setInlineFormat()`、
+    沒有清單／段落的方法（`editor-session.js:426`），
+    且固定實例化只接受 v1 的 `NarrowEditorClient`（`:125`）。
 
 ### 5.2 唯一一次 relink 要帶什麼進去
 
