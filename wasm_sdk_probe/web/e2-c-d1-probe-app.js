@@ -117,6 +117,20 @@ const CASES = [
   { format: "set-italic", anchor: "E2-D1-ITALIC-ON", marker: "ITALICPROBE" },
 ];
 
+// The second question, and it came out of D1's first smoke round: after
+// `set-bold(enabled: false)` at a caret in PLAIN text, the text typed next came
+// out bold.  Three readings fit -- the flag is not transmitted, the engine
+// toggles instead of setting, or the typing attribute from an earlier
+// `set-bold(true)` survived the caret move.  They are told apart by asking in a
+// FRESH document, where no earlier dispatch exists to leak.
+const OFF_CASES = [
+  { name: "off-in-plain-fresh-document",
+    steps: [{ action: "set-bold", enabled: false, marker: "OFFONLY" }] },
+  { name: "on-then-off-same-document",
+    steps: [{ action: "set-bold", enabled: true, marker: "ONFIRST" },
+            { action: "set-bold", enabled: false, marker: "OFFSECOND" }] },
+];
+
 void (async () => {
   try {
     // Every piece of evidence names the artifact it ran on, including a
@@ -195,6 +209,38 @@ void (async () => {
       }
       metrics.cells[spec.format] = entry;
       log({ cell: spec.format, ...entry });
+    }
+
+    for (const spec of OFF_CASES) {
+      const span = metrics.anchors["E2-D1-BOLD-ON"];
+      const entry = { name: spec.name, y: span?.first ?? null, steps: [] };
+      const engine = await createDocumentEngine({
+        workerUrl: `./profiles/${profile}/sdk-worker.js`, timeoutMs: 60000,
+      });
+      const handle = await openFixture(engine);
+      const client = new NarrowEditorV2Client(handle);
+      try {
+        for (const step of spec.steps) {
+          await client.selectRange({ xTwips: 2000, yTwips: span.first },
+                                   { xTwips: 2000, yTwips: span.first },
+                                   { timeoutMs: 30000 });
+          const result = await client.action(step.action,
+                                             { enabled: step.enabled });
+          await handle.insertText(step.marker, { timeoutMs: 30000 });
+          entry.steps.push({ action: step.action, enabled: step.enabled,
+                             marker: step.marker, revision: result.revision,
+                             changed: result.changed,
+                             completion: result.completion });
+        }
+        await snapshot(handle, `off-${spec.name}`);
+      } catch (error) {
+        entry.error = publicError(error);
+      } finally {
+        await handle.close({ timeoutMs: 30000 }).catch(() => {});
+        engine.dispose();
+      }
+      metrics.cells[spec.name] = entry;
+      log({ cell: spec.name, ...entry });
     }
 
     metrics.complete = true;

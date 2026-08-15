@@ -51,6 +51,9 @@ def main() -> int:
     # still reproduces the D0 evidence exactly.
     parser.add_argument("--page", default="e2-c-d0.html")
     parser.add_argument("--namespace", default="__e2c_d0")
+    parser.add_argument("--param", action="append", default=[],
+                        metavar="KEY=VALUE",
+                        help="extra query parameter for the page, repeatable")
     parser.add_argument("--output", type=Path,
                         default=PROJECT.parent / "findings" / "evidence" / "sdk-e2"
                         / "e2-c-validation" / "d0")
@@ -70,7 +73,10 @@ def main() -> int:
         wait_page(base)
         session_class = ChromeSession if args.browser == "chrome" else FirefoxSession
         session = session_class("cold")
-        session.navigate(f"{base}?profile={args.profile}&fixture={args.fixture}")
+        query = f"profile={args.profile}&fixture={args.fixture}"
+        for item in args.param:
+            query += f"&{item}"
+        session.navigate(f"{base}?{query}")
         deadline = time.monotonic() + args.timeout
         while time.monotonic() < deadline:
             metrics = evaluate(session, f"globalThis.{args.namespace} || null")

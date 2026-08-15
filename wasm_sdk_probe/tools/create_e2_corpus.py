@@ -35,6 +35,13 @@ FIXTURES = {
     # and a single shared anchor cannot tell those apart.  The `-OFF` anchors
     # start already formatted, so `enabled: false` has something to remove --
     # without them "turn it off" and "never turned it on" look identical.
+    # The edit targets carry a TAIL token (ZZDELB, ZZBRKP, ...) as well as their
+    # leading anchor.  The caret lands near the start of the line, so a delete
+    # or a break damages the leading anchor itself -- the first version of the
+    # D1 oracle looked for the full anchor after the edit and reported "the
+    # paragraph is gone" when the paragraph was right there, one character
+    # shorter.  The tail token is far from the caret and survives, so the
+    # analyzer can still say WHICH paragraph it is looking at.
     "d1-anchors": {
         "extra_automatic_styles": (
             '  <style:style style:name="E2Underline" style:family="text">'
@@ -61,10 +68,10 @@ FIXTURES = {
  <text:p>E2-D1-UNDERLINE-OFF <text:span text:style-name="E2Underline">already</text:span></text:p>
  <text:p>E2-D1-STRIKE-ON plain</text:p>
  <text:p>E2-D1-STRIKE-OFF <text:span text:style-name="E2Strike">already</text:span></text:p>
- <text:p>E2-D1-DELBACK ABCDEF</text:p>
- <text:p>E2-D1-DELFWD ABCDEF</text:p>
- <text:p>E2-D1-BREAKPARA ALPHAOMEGA</text:p>
- <text:p>E2-D1-BREAKLINE ALPHAOMEGA</text:p>
+ <text:p>E2-D1-DELBACK ZZDELB</text:p>
+ <text:p>E2-D1-DELFWD ZZDELF</text:p>
+ <text:p>E2-D1-BREAKPARA ZZBRKP</text:p>
+ <text:p>E2-D1-BREAKLINE ZZBRKL</text:p>
  <text:p>E2-D1-LIST-UNORDERED</text:p>
  <text:p>E2-D1-LIST-ORDERED</text:p>
  <text:list text:style-name="E2D1Number"><text:list-item><text:p>E2-D1-LIST-NONE</text:p></text:list-item></text:list>
@@ -82,8 +89,8 @@ FIXTURES = {
             "E2-D1-ITALIC-ON plain", "E2-D1-ITALIC-OFF",
             "E2-D1-UNDERLINE-ON plain", "E2-D1-UNDERLINE-OFF",
             "E2-D1-STRIKE-ON plain", "E2-D1-STRIKE-OFF",
-            "E2-D1-DELBACK ABCDEF", "E2-D1-DELFWD ABCDEF",
-            "E2-D1-BREAKPARA ALPHAOMEGA", "E2-D1-BREAKLINE ALPHAOMEGA",
+            "E2-D1-DELBACK ZZDELB", "E2-D1-DELFWD ZZDELF",
+            "E2-D1-BREAKPARA ZZBRKP", "E2-D1-BREAKLINE ZZBRKL",
             "E2-D1-LIST-UNORDERED", "E2-D1-LIST-ORDERED", "E2-D1-LIST-NONE",
             "E2-D1-HEAD-TARGET", "E2-D1-BODY-TARGET",
             "E2-D1-RANGE-ONE 第一段", "E2-D1-RANGE-TWO 第二段",

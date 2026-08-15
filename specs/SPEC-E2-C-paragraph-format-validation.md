@@ -1,7 +1,7 @@
 # SPEC E2-C：段落格式產品驗證（E2 里程碑判定）
 
 > **日期**：2026-08-15  
-> **狀態**：**v3**；**D0 已執行並通過**（9.2），D1～D5 未執行，判定尚未成立  
+> **狀態**：**v6**；**D0 通過、D1 已執行（23／28）**，D2～D5 未執行，判定尚未成立  
 > **前置閘門**：[E2-B](./SPEC-E2-B-paragraph-format-contract.md) 已判
 > **`GO_TO_E2_C`**（2026-08-15），產品 artifact `572035ac…`（profile `e2-editor-v2`）  
 > **上位規格**：[SPEC E2-000](./SPEC-E2-000-overview.md) 第 7 節——
@@ -763,10 +763,88 @@ XML 錨點、回滾的位元組相等、兩瀏覽器相等、no-replay、語料�
 > **矩陣可以在跑之前改，不能在跑之後改**；這一次是前者，而且理由是量出來的：
 > 原本的判準在契約宣告的手勢下沒有任何一輪能滿足，凍著它等於凍了四個必敗的格。
 
+### 9.5.3 D1 撞到一個出貨缺陷：[finding 045](../findings/045-inline-format-actions-discard-the-enabled-flag-and-toggle.md)
+
+**D1 的四個 `d1-set-*-false` 格在現行 artifact 上不可能通過，而理由不是判準寫錯。**
+
+`set-bold`／`set-italic`／`set-underline`／`set-strikethrough` 的 `enabled` 布林值
+**沒有被送到引擎之外**：`probe_engine.cpp:3034` 把它存進 `gEditorUnoOption`，
+`:3036` 派送的是**不帶參數**的 `.uno:Bold`，而 core 的 slot 宣告是
+`Toggle = TRUE`（`svx/sdi/svx.sdi:832,838`）。實測：全新引擎、全新文件、純文字
+游標上派送 `set-bold(enabled: false)`，之後打的字**是粗體**，兩瀏覽器逐字相同。
+
+**這是 [finding 030](../findings/030-closed-list-actions-dispatch-the-toggle-form-and-a-noop-is-silent.md)
+缺陷一的同一個形狀**，030 修了兩個清單命令、四個 inline 格式沒跟著修。
+
+**依 8.0 的判定表，這是 STOP 那一列**（manifest 宣告的動作失敗）。
+但修與縮限**兩條路都要 relink**，而第 3 節禁止 relink——所以這是一個
+**E2-C 範圍之外的決定，要使用者裁示**：
+
+| 路 | 代價 |
+|---|---|
+| **修**：照 030 的作法送參數 | 重連結 → 新 artifact → **E2-B 的 132 個 run 與 12 列全部斷綁**，E2-B 要重跑 |
+| **縮限**：manifest 的 `limits` 寫明「這四個是 toggle，`enabled` 不生效」 | 一樣要重連結（manifest 由 builder 產生），代價相同 |
+| **只記錄**：E2-C 判 `E2_STOP_OR_RESCOPE`，把修法留給下一版契約 | 不動任何 artifact，但 E2 這一輪沒有 GO |
+
+**不得把那四格的判準改成「接受粗體」讓它變綠。** 判準沒有錯——
+它問的正是契約承諾的東西。
+
+> **順帶必須一起看的兩件事**（同一份 finding）：這四個動作的 `changed` 是
+> `probe_engine.cpp:2085` **寫死的字面值**，而收合游標上的派送**根本不動
+> `<office:body>`**。合起來的意思是：**`changed: true` 在這裡既不代表文件變了，
+> 也沒有任何東西看過文件。** 出貨的 E1 契約走同一段程式碼，
+> E1-C 之所以沒抓到，是因為它驗 revision 與 typed 後置條件、
+> **沒有任何一格去存檔看那段文字變成什麼**。
+
+### 9.5.4 D1 的執行結果（2026-08-15）：**23／28，五格系統性地紅**
+
+三輪 × 兩瀏覽器跑完。**兩瀏覽器的比較投影 81 個項目逐項相同——連紅的那幾格都相同。**
+所以這五格不是 flake，是兩個獨立瀏覽器各三次給出同一個答案。
+
+| 紅的格 | 通過輪數 | 原因 |
+|---|---|---|
+| `d1-set-bold-false`／`-italic-`／`-underline-`／`-strikethrough-false` | 兩瀏覽器各 0/3 | **[finding 045](../findings/045-inline-format-actions-discard-the-enabled-flag-and-toggle.md)**，見 9.5.3 |
+| `d1-body-collapsed` | 兩瀏覽器各 0/3 | **未解**，見下 |
+
+**通過的 23 格包含**：四個 inline 格式的「開啟」方向（各自的錨點、各自的標記）、
+兩個 delete（段落恰好少一個字，而且是原文刪掉一個字得到的）、
+兩種斷行（分段：block 數 +1 且全文文字守恆；換行：`<text:line-break/>` 在、block 數不變）、
+三個清單動作與標題在收合游標上、標題在 range-single 與 range-cross 上（兩段都驗）、
+**`set-list-ordered` 打在兩段都已編號的跨段範圍**（E2-B 9.11 四個未涵蓋裡的第一個，
+**現在關掉了**）、以及交錯格（段落動作之後的 delete 與 bold 仍各自滿足 v1 的後置條件，
+路線 C 的放寬沒有外洩）。
+
+#### `d1-body-collapsed`：**派送前拒絕，零 mutation，原因未解**
+
+`set-paragraph-body` 在 `E2-D1-BODY-TARGET`（一個標題段落）的收合游標上，
+六次全部在派送前被 finding 037 的型態守衛擋下：
+
+```json
+{"failureShape": "routing-selection-not-readable", "dispatched": false,
+ "route": "collapsed", "preBlocks": 0}
+```
+
+兩件事要講精確：
+
+- **`dispatched: false`＝什麼都沒送出去**，這是乾淨的拒絕形狀，不是 outcome unknown。
+- **那個 payload 裡的 `route: "collapsed"` 是預設值，不是觀測值。**
+  這個 shape 只在「選取矩形非空」那條分支裡被設定，而那條分支**在指派 route 之前就
+  return 了**。所以那個欄位講的是 struct 的初值。**不可以讀成「引擎把它判成收合」。**
+
+**還不知道的是：為什麼是這個錨點，而另外五個收合格都過。**
+下一步是一個很窄的探針：把游標放在這個錨點上直接讀選取型態，
+與一個會過的錨點對照。
+
+> **判定影響**：依 8.0，這一格也是 STOP（宣告過的動作失敗）。
+> 但它與 045 不同——**045 已經知道機制、也知道兩條修法都要 relink；
+> 這一格連機制都還沒查清楚**，所以它先是一個待查項，不是一個待裁決項。
+
 ## 10. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-15 | **v6。D1 三輪 × 兩瀏覽器執行完畢（9.5.4）：23／28 通過，兩瀏覽器投影 81 項逐項相同。** 五格系統性地紅——四格是 finding 045，一格（`d1-body-collapsed`）是派送前的型態守衛，機制未解。順帶把 D1 分析器的自我測試改成「突變必須改變判定」而不是「突變必須讓它變紅」——只能在綠證據上跑的自我測試，會在最需要它的時候失效。 |
+| 2026-08-15 | **v5。D1 撞到 finding 045（9.5.3）**：四個 inline 格式動作把 `enabled` 丟掉、派送 toggle，所以 `d1-set-*-false` 四格在現行 artifact 上不可能通過。依 8.0 這是 STOP，而修與縮限兩條路都要 relink——**待使用者裁示**。同時修掉三個我自己的判準缺陷（編輯目標改用尾端 token 認段落、每一格用自己的 before 圖、before 圖要在建立手勢**之前**存）。 |
 | 2026-08-15 | **v4。D1 前置探針（9.5.2）。** 收合游標上的 inline 格式**不會動到文件位元組**，效果在之後提交的文字上；`changed: true` 在這裡的意思是「引擎接受且狀態前進」，不是「文件變了」。凍結矩陣的八個 inline 格式格因此**在 D1 執行之前**改判準。順帶把 runner 參數化（`--page`／`--namespace`）並補上探針自己的 artifact 歸屬。 |
 | 2026-08-15 | **v3。D0 執行完畢，兩瀏覽器全過（9.2）。** 進場三件工作在此之前已完成，凍結矩陣 `e2/validation-matrix-v1.json`（75 格）、殼層 bundle `b01d77da…`、以及 L7 需要的 `test-docs/e2/list-split.odt` 也都就位。D0 的分析器自我測試 11 個突變全紅並掛進 `make test-e2-c-static`。 |
 | 2026-08-15 | **v2。對抗性審查（codex）提了 16 項，全部處理過：15 項改寫規格或程式碼，1 項（重用 v1 客戶端的 facade）判為可行但不採用，連同否決理由寫進 2.2。這一版與 v1 差很多。** 最重的三項都是同一種錯：**我把「有一個能送出動作的客戶端」當成了「產品修好了」。**（1）v1 說新客戶端是「產品殼層」，但**沒有任何產品頁面在用它**，asset 目標也沒複製它（已補），而且 `demo-structure` **沒有拖曳選取**，所以 D5 的「真實指標拖曳」在產品頁面上做不到——新增 2.4。（2）**出貨的 `EditorSession` 在 v2 profile 上根本開不起來**（`:125` 建 v1 客戶端、`:140` 等它的 `getState`），`ParagraphEditorSession` 也補不上，**於是 D1／D2 承諾的 session、queue、checkpoint、rollback、三代上限在 v2 上沒有任何實作**——新增 2.3，並列為進場工作。（3）**判定只綁三個雜湊**，而 E2-C 要證的東西有一半在殼層；E1-C 早就學過要綁第四個——第 6 節改成要有 E2 自己的殼層 bundle。其餘：**PARTIAL 的定義原本會逼我去改凍結的 manifest**（縮限必須落在 `limits`／`gestures` 上，而本規格禁止 relink），所以宣告過的動作或手勢失敗一律 STOP，新增 8.0 完整判定表；**D3 原本在「沒有清單的段落」上驗清單動作**（唯一錨點 `E1-LC-ISOLATED` 前後都不是清單），改成 L1–L8 八個綁前狀態的目標格，並發現 L7 需要三項清單而現有語料**一份都沒有**，新增 `list-split.odt`；**D1 原本用 typed completion 當判準**，但四個 inline 格式回同一個 `uno-command-result`，映射錯了也會綠，改成逐動作錨點＋XML 判準；**D2 的四個處置只寫了一格**，補齊並把 `dispatched-rollback` 的斷言逐條寫死（含「先弄髒、確認 checkpoint 真的存在」）；**D4 的「無連續成長」不可否證**，換成斜率與絕對值門檻；**沒有凍結矩陣**，新增 9.1；**4.2 漏掉「任何帶註腳的段落都不支援」**（E2-B 2.3 早就寫著），補上並具名 manifest 沒宣告這一條的落差。另修一個真缺陷（2.6）：客戶端自己丟的 `INVALID_ARGUMENT` 會被判成 `unknown-rollback`，**呼叫端打錯參數的處置變成丟掉自 checkpoint 以來的全部編輯**。並補記第四條被否決的路（facade 重用 v1 客戶端）與否決理由。上位規格 [E2-000](./SPEC-E2-000-overview.md) 第 6 節的 no-op 條文同日就地修訂——`changed: null` 與它牴觸，而在此之前沒有任何條文說過話。 |
