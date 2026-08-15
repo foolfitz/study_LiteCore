@@ -248,15 +248,15 @@ A1–A5、G1、G2 每一臂在派送**之前**必須全部成立，否則該 run
 | 3 | 產品 client 拒絕路線 C 的結果 | **已定案 → 5.6**（逐動作放寬） |
 | 4 | ~~no-op 的 revision 語意~~ | **已撤回**（v4，判為錯誤） |
 | 5 | 產品 worker 不轉發 `formatBarrier` | **已定案 → 5.5**（與 1、9 同一個改動） |
-| 6 | capability 表達不了部分 GO | 未定案 |
-| 7 | freeze 的 negative matrix | 未定案 |
+| 6 | capability 表達不了部分 GO | **已定案 → 5.7**（`actions` 改成 map，帶 `limits`） |
+| 7 | freeze 的 negative matrix | **已定案 → 5.10**（十列，每列只動一件事）；第 7 節其餘門檻未訂 |
 | 8 | **產品 build 沒編路線 C** | 原則已定（要新的建置變體），Makefile 設計未寫 |
 | 9 | 產品 state 投影以字串相等判斷 | **已定案 → 5.5** |
-| 10 | manifest 的 action allowlist runtime 不執行 | 未定案 |
-| 11 | 沒有產品 v2 的 profile builder | 未定案 |
+| 10 | manifest 的 action allowlist runtime 不執行 | **已定案 → 5.7**（交集，只能收窄） |
+| 11 | 沒有產品 v2 的 profile builder | **已定案 → 5.8**（獨立 builder，fail closed） |
 | 12 | 派送後失敗的 revision／dirty／recovery | **提案已被打掉 → 5.3**；暫定「全部視為 B」，C 不進協定 |
 | 13 | `abiVersion` 沒有 consumer | **已定案 → 5.4**（新的 C symbol，必須進 relink） |
-| 14 | 公開型別與 header 測試落後 | v1 那一半**已補**（`c5cde7d`）；v2 那一半未定案 |
+| 14 | 公開型別與 header 測試落後 | v1 那半**已補**（`c5cde7d`）；v2 那半**已定案 → 5.9** |
 
 **會動到 relink 的只有 2、8、12、13。** 其餘是 JS／Python／資料，
 但依 5.2 一樣要在最終量測之前定稿。
@@ -652,6 +652,44 @@ v1 那半已補（`c5cde7d`）。v2 這半要跟著 5.5 的操作名走：
 **`declaration-drift.test.mjs` 已經會擋住宣告與 runtime 分家**（今天新增），
 所以這一項的回歸風險已經先降下來了。header test 是 `-fsyntax-only`，
 不產生 object，**不影響任何 artifact**。
+
+### 5.10 第 7 項的決定：negative matrix，每一列只動一件事，零 mutation 判在 bytes 上
+
+**兩條規則先寫死，因為它們決定這張表有沒有用：**
+
+1. **每一列都是從一個會通過的基準只改一件事得到的。** 一次改兩件，
+   「它拒絕了」就歸因不到任何一件。這是 #49 臂 G 被 codex 打掉的同一個毛病
+   （「中間什麼都沒發生」是假的），不要再犯第二次。
+2. **零 mutation 判在存出來的 bytes 上，不是判在回傳值上。**
+   基準＝同一顆引擎開檔即存（e2b-gate 的教訓：原始 fixture 不是基準）；
+   判準＝`<office:body>` **逐位元相同**。這個判準已經被 #50 用過並且穩定
+   （標題→復原、移除清單→復原兩次都逐位元相同），所以它不是新發明的門檻。
+
+#### 表
+
+| # | 動的那一件事 | 期望的 typed 拒絕 | 為什麼這一列存在 |
+|---|---|---|---|
+| N1 | manifest 的 `actions` 拿掉 `set-list-ordered` | `UNSUPPORTED_OPERATION`（worker 交集，5.7） | **證明 manifest 真的在約束**，不是在描述 |
+| N2 | manifest capability 拿掉 `narrow-editor-v2` | `UNSUPPORTED_OPERATION`（capability 閘門，`sdk-worker.js:729`） | 5.5 的第一道閘門 |
+| N3 | manifest `editorContract.version` 改成 1 | 拒絕（5.5 的操作表） | 版本是身分，不是區間（5.4） |
+| N4 | manifest `abiVersion` 與二進位檔不符 | 拒絕（`oxsdk_editor_abi_version()`，5.4） | **這一列是 5.4 存在的唯一理由**——沒有它，過期 wasm 配新 manifest 跑得起來 |
+| N5 | 把 action ID 11–15 送進 **v1** profile | `INVALID_ARGUMENT`（`internalAction()` 回 0，`editor_api.cpp:69`） | v1 不得被 v2 的動作污染 |
+| N6 | 未知 action 名 | `EDITOR_ACTION_UNSUPPORTED`（`editor-client.js:92`） | 現有行為，要釘住 |
+| N7 | 錯誤 options（對段落動作送 `extendSelection: true`） | `INVALID_ARGUMENT` | 現行 v1 已有此檢查（`sdk-worker.js:876` 一帶），v2 要涵蓋 11–15 |
+| N8 | stale revision | stale revision 錯誤（`probe_engine.cpp:1651`） | 樂觀並行的守衛 |
+| N9 | 送 `unoCommand`／`keyCode`／`command` 欄位 | `INVALID_ARGUMENT`（forbidden-field 檢查） | forbidden-field inventory 的執行證據 |
+| N10 | 拿 `e2-combination` 當產品 artifact 餵給 builder | **builder 拒絕產出**（5.8） | 它匯出三個 discovery symbol（`Makefile:619`），永遠不合格 |
+
+**N1–N9 每一列都要存檔並證明 `<office:body>` 逐位元不變。**
+N10 不產生文件，判準是 builder 的非零退出。
+
+> **N4 與 N10 是新的**，其餘是把現行行為釘住。
+> 新的那兩列各自對應一個今天量到的真實缺口：manifest 與二進位檔會分家
+> （finding 027／036），以及唯一同時具備產品 C API 與路線 C 的 artifact
+> 剛好是不合格的那一顆。
+
+**還沒訂的**：第 7 節的其餘門檻——每個動作每個瀏覽器的次數、歸屬欄位、
+no-op 的 revision 方程式、validator 的突變控制。**那是下一項。**
 
 ### 5.2 唯一一次 relink 要帶什麼進去
 
