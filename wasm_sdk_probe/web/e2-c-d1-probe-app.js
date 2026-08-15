@@ -112,6 +112,27 @@ async function survey(anchors) {
   return found;
 }
 
+// Why does `set-paragraph-body` get refused before dispatch at one anchor while
+// five other collapsed cells pass?  D1 saw it six times out of six, both
+// browsers, shape `routing-selection-not-readable` -- the finding 037 type guard
+// firing on a selection whose type is not TEXT.  The pair below asks the engine
+// directly, at an anchor that fails and at one that passes, and reads the
+// selection type BEFORE dispatching anything.
+const TYPE_CASES = [
+  { name: "body-target-alone", anchor: "E2-D1-BODY-TARGET",
+    action: "set-paragraph-body" },
+  { name: "head-target-alone", anchor: "E2-D1-HEAD-TARGET",
+    action: "set-paragraph-heading" },
+  // The D1 sequence: a paragraph action at ANOTHER anchor immediately before.
+  // If the refusal follows the sequence rather than the anchor, this
+  // reproduces it and the isolated case above does not -- which is the whole
+  // difference between "this anchor is special" and "the previous action left
+  // something behind" (findings 043 and 049 territory).
+  { name: "head-then-body", anchor: "E2-D1-BODY-TARGET",
+    action: "set-paragraph-body",
+    precursor: { anchor: "E2-D1-HEAD-TARGET", action: "set-paragraph-heading" } },
+];
+
 const CASES = [
   { format: "set-bold", anchor: "E2-D1-BOLD-ON", marker: "BOLDPROBE" },
   { format: "set-italic", anchor: "E2-D1-ITALIC-ON", marker: "ITALICPROBE" },
@@ -241,6 +262,56 @@ void (async () => {
       }
       metrics.cells[spec.name] = entry;
       log({ cell: spec.name, ...entry });
+    }
+
+    for (const spec of TYPE_CASES) {
+      const hits = await (async () => {
+        const engine = await createDocumentEngine({
+          workerUrl: `./profiles/${profile}/sdk-worker.js`, timeoutMs: 60000,
+        });
+        const handle = await openFixture(engine);
+        const client = new NarrowEditorV2Client(handle);
+        const entry = { anchor: spec.anchor, steps: [] };
+        try {
+          if (spec.precursor) {
+            const before = await findAnchor(handle, client, spec.precursor.anchor);
+            await client.selectRange({ xTwips: 2000, yTwips: before[0] },
+                                     { xTwips: 2000, yTwips: before[0] },
+                                     { timeoutMs: 30000 });
+            const first = await client.action(spec.precursor.action);
+            entry.steps.push({ step: "precursor", action: spec.precursor.action,
+                               completion: first.completion });
+          }
+          const found = await findAnchor(handle, client, spec.anchor);
+          entry.y = found[0] ?? null;
+          if (entry.y == null) throw new Error("anchor not found");
+          await client.selectRange({ xTwips: 2000, yTwips: entry.y },
+                                   { xTwips: 2000, yTwips: entry.y },
+                                   { timeoutMs: 30000 });
+          const selection = await handle.getSelection({ timeoutMs: 30000 });
+          const state = await client.getState({ timeoutMs: 30000 });
+          entry.steps.push({
+            step: "read-before-dispatch",
+            selectionType: selection.selectionType,
+            selectionText: (selection.text || "").slice(0, 40),
+            stateSelectionType: state.selectionType,
+            collapsed: state.selection?.collapsed ?? null,
+            rectangles: (state.selection?.rectangles || []).length,
+          });
+          const result = await client.action(spec.action);
+          entry.steps.push({ step: "dispatch", ok: true,
+                             completion: result.completion });
+        } catch (error) {
+          entry.steps.push({ step: "dispatch", ok: false,
+                             error: publicError(error) });
+        } finally {
+          await handle.close({ timeoutMs: 30000 }).catch(() => {});
+          engine.dispose();
+        }
+        return entry;
+      })();
+      metrics.cells[spec.name] = hits;
+      log({ cell: spec.name, ...hits });
     }
 
     metrics.complete = true;

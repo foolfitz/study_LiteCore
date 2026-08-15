@@ -60,9 +60,25 @@ precisely rather than loosely:
   struct was initialised to. It should not be read as "the engine classified this as
   collapsed".
 
-What is not yet known: why this anchor and not the five other collapsed cells that
-pass. The next probe is a narrow one — place the caret at this anchor, read the
-selection type directly, and compare with an anchor whose cell passes.
+**It is sequence-dependent, not anchor-dependent.** Measured the same day, on the
+same artifact and the same fixture:
+
+| probe | result |
+|---|---|
+| `set-paragraph-body` at that anchor, **alone in a fresh document** | **succeeds**, `verified-format-readback`; selection type read before dispatch is `none`, 0 rectangles |
+| `set-paragraph-heading` at the neighbouring anchor, alone | succeeds |
+| **heading at the neighbour, then body at this anchor**, one document | **succeeds** — the two-cell sequence does not reproduce it |
+
+So the cell that fails in D1 fails only after **more** of D1's sequence has run —
+nineteen cells, including inline formats, list actions and a cross-paragraph range.
+Two-cell reproduction is not enough, which rules out both "this anchor is special"
+and "the immediately preceding paragraph action leaves it broken".
+
+The neighbourhood to look at next is findings
+[043](../../../../043-fn-select-para-leaves-the-shell-in-selection-mode-and-the-next-lok-range-selection-is-silently-dropped.md)
+and 049: a format barrier ends by restoring a selection, and 043 is precisely "the
+shell stays in selection mode and the next range selection is silently dropped".
+The next step is a bisect of the D1 sequence, one full round per attempt.
 
 ## What passed
 
