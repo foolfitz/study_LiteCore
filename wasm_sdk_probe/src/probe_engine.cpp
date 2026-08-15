@@ -4865,6 +4865,49 @@ SubmitStatus editorSelect(std::uint32_t requestId,
   return submit(std::move(command));
 }
 
+#ifdef OXSDK_E2_FORMAT_BARRIER
+// SPEC E2-B 5.7: which gesture classes each action accepts.
+//
+// Keyed by INTERNAL action id, because that is what the engine routes on.  The
+// default is every class; the worker calls the setter once per action at init
+// from the profile manifest, and the setter INTERSECTS -- so a manifest can
+// withhold a class this binary implements and can never grant one it does not.
+// That direction is the whole point: it makes a partial GO enforceable at
+// runtime without letting an edited manifest widen the ABI.
+//
+// The A-versus-B' disposition for cross-paragraph ranges rides on this too.  A
+// is this mask with RANGE_CROSS withheld from all five actions; B' is the mask
+// left open.  Both are therefore a manifest choice made after the artifact
+// exists, which is why neither needs its own link.
+constexpr std::uint32_t kAllEditorGestures =
+    OXSDK_EDITOR_GESTURE_COLLAPSED | OXSDK_EDITOR_GESTURE_RANGE_SINGLE |
+    OXSDK_EDITOR_GESTURE_RANGE_CROSS;
+constexpr std::uint32_t kMaxInternalEditorAction = 21;
+std::uint32_t gEditorActionGestures[kMaxInternalEditorAction + 1] = {};
+bool gEditorActionGesturesInitialised = false;
+
+void editorSetActionGestures(std::uint32_t internalAction,
+                             std::uint32_t gestureMask) {
+  if (internalAction == 0 || internalAction > kMaxInternalEditorAction)
+    return;
+  if (!gEditorActionGesturesInitialised) {
+    for (std::uint32_t index = 0; index <= kMaxInternalEditorAction; ++index)
+      gEditorActionGestures[index] = kAllEditorGestures;
+    gEditorActionGesturesInitialised = true;
+  }
+  gEditorActionGestures[internalAction] &= gestureMask;
+}
+
+bool editorGesturePermitted(std::uint32_t internalAction,
+                            std::uint32_t gesture) {
+  if (internalAction == 0 || internalAction > kMaxInternalEditorAction)
+    return false;
+  if (!gEditorActionGesturesInitialised)
+    return true;
+  return (gEditorActionGestures[internalAction] & gesture) != 0;
+}
+#endif
+
 SubmitStatus editorGetState(std::uint32_t requestId,
                             std::uint32_t documentHandle) {
   Command command{CommandType::EditorGetState};

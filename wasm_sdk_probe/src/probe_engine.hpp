@@ -77,6 +77,17 @@ SubmitStatus editorSelect(std::uint32_t requestId,
                           bool boundedReadback = false);
 SubmitStatus editorGetState(std::uint32_t requestId,
                             std::uint32_t documentHandle);
+#ifdef OXSDK_E2_FORMAT_BARRIER
+// Restrict one INTERNAL action id to a set of gesture classes (SPEC E2-B 5.7).
+// The mask lives here rather than in editor_api.cpp because the engine is what
+// routes on gesture -- editor_api sees only an action name and coordinates.
+// Narrowing only: the setter intersects, so a mask can withhold a class the
+// binary implements but can never grant one it does not.
+void editorSetActionGestures(std::uint32_t internalAction,
+                             std::uint32_t gestureMask);
+bool editorGesturePermitted(std::uint32_t internalAction,
+                            std::uint32_t gesture);
+#endif
 #ifdef OXSDK_FINDING_016_SCHEDULER_PROBE
 SubmitStatus editorDrainScheduler(std::uint32_t requestId,
                                   std::uint32_t documentHandle);

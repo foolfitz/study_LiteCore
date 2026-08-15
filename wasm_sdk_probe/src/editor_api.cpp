@@ -18,7 +18,24 @@ enum InternalEditorAction : std::uint32_t {
   InternalSetItalic = 14,
   InternalSetUnderline = 20,
   InternalSetStrikethrough = 21,
+  // v2.  These five already exist in the engine -- they are what the E2-A
+  // discovery ABI drove -- so v2 exposes them rather than adding behaviour.
+  InternalSetParagraphBody = 15,
+  InternalSetParagraphHeading = 16,
+  InternalSetListNone = 17,
+  InternalSetListUnordered = 18,
+  InternalSetListOrdered = 19,
 };
+
+// The mask itself lives in the engine (probe::editorSetActionGestures): the
+// engine is what routes on gesture, and this translation unit sees only an
+// action name and coordinates.  What stays here is the validation, because
+// this is the ABI boundary and the boundary is where a bad argument is
+// supposed to die.
+constexpr std::uint32_t kAllGestures = OXSDK_EDITOR_GESTURE_COLLAPSED |
+                                       OXSDK_EDITOR_GESTURE_RANGE_SINGLE |
+                                       OXSDK_EDITOR_GESTURE_RANGE_CROSS;
+constexpr std::uint32_t kMaxExternalAction = 15;
 
 // The engine's selection methods, of which the narrow ABI exposes exactly one.
 // Mirrors oxsdk_editor_selection_method in editor_discovery_api.h; that header
@@ -65,6 +82,16 @@ std::uint32_t internalAction(std::uint32_t action) {
     return InternalSetUnderline;
   case OXSDK_EDITOR_V1_SET_STRIKETHROUGH:
     return InternalSetStrikethrough;
+  case OXSDK_EDITOR_V2_SET_LIST_NONE:
+    return InternalSetListNone;
+  case OXSDK_EDITOR_V2_SET_LIST_UNORDERED:
+    return InternalSetListUnordered;
+  case OXSDK_EDITOR_V2_SET_LIST_ORDERED:
+    return InternalSetListOrdered;
+  case OXSDK_EDITOR_V2_SET_PARAGRAPH_HEADING:
+    return InternalSetParagraphHeading;
+  case OXSDK_EDITOR_V2_SET_PARAGRAPH_BODY:
+    return InternalSetParagraphBody;
   default:
     return 0;
   }
@@ -98,6 +125,27 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::int32_t oxsdk_editor_action(
     return probe::editorAction(requestId, documentHandle, expectedRevision,
                                mapped, extendSelection != 0, enabled != 0);
   });
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE std::uint32_t oxsdk_editor_abi_version(void) {
+  return OXSDK_EDITOR_ABI_VERSION;
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE std::int32_t oxsdk_editor_set_action_gestures(
+    std::uint32_t action, std::uint32_t gestureMask) {
+  if (action == 0 || action > kMaxExternalAction || internalAction(action) == 0)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  if ((gestureMask & ~kAllGestures) != 0)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+#ifdef OXSDK_E2_FORMAT_BARRIER
+  probe::editorSetActionGestures(internalAction(action), gestureMask);
+  return OXSDK_STATUS_OK;
+#else
+  // No route C in this build, so there is no gesture routing to restrict and
+  // accepting the call would report a narrowing that nothing enforces.
+  (void)gestureMask;
+  return OXSDK_STATUS_INVALID_ARGUMENT;
+#endif
 }
 
 extern "C" EMSCRIPTEN_KEEPALIVE std::int32_t oxsdk_editor_get_state(
