@@ -127,11 +127,16 @@ verified-selection barrier 解除。E2 要驗證這個方法能不能一般化�
 | 階段 | 目的 | 完成訊號 |
 |---|---|---|
 | [E2-A](./SPEC-E2-A-paragraph-format-discovery.md) | verified-format-state barrier discovery：清單、標題，附帶重評 line navigation 與 drag selection | 凍結可實作的 closed operation 與縮限項目 |
-| E2-B | 將成立能力併入 `e1-editor-v1` 的後續版本 ABI、typed state 與 host shell | 不擴大 escape hatch 且 exactly-once 成立 |
+| [E2-B](./SPEC-E2-B-paragraph-format-contract.md) | 將成立能力併入 `e1-editor-v1` 的後續版本 ABI、typed state 與 host shell | 不擴大 escape hatch 且 exactly-once 成立 |
 | E2-C | 雙瀏覽器、ODT corpus、round-trip、recovery 與產品驗收 | 形成 E2 GO／部分 GO／停止判定 |
 
 順序固定為 **E2-A → E2-B → E2-C**。A 未完成前不凍結新 ABI；A 若證明某能力只能靠禁止 surface，B 必須縮小
 產品範圍。B 與 C 的規格待 A 有結果後另寫，本文件不預先授權。
+
+> **2026-08-15**：A 已有結果（`PARTIAL_GO_TO_E2_B`，08-14），進場條件於 08-15 滿足，
+> **B 的規格已撰寫**（[SPEC-E2-B](./SPEC-E2-B-paragraph-format-contract.md)，v1 草擬）。
+> 本節禁止的是**提前凍結**，不是提前撰寫——E2-B 第 3 節把 ABI 凍結明文閘在一個
+> 預先登錄的判別輪之後，而那個判別輪寫在規格裡面。
 
 ## 8. E2 v1 候選能力
 
