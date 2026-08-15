@@ -50,8 +50,15 @@ E2-A 的清單抄成自然語言會讓 host 做錯 recovery。照實際的 shape
 | **階段逾時** | per-stage 期限 | — | `stage-deadline:<stage>` | 不保證 |
 
 > **後三類的訊息是「動作已經送出去了，但我們驗不了」**，不是「什麼都沒做」。
-> host 的訊息必須叫使用者去看文件並在需要時 undo——引擎自己寫的字串就是這樣寫的。
 > per-stage 期限只保「stage 不會無限等」，**不保「barrier 一定收場」**。
+>
+> **v9 更正：~~host 的訊息必須叫使用者去看文件並在需要時 undo~~——那句話在
+> 現行 shell 不可執行。** `undo()` 自己也走 `_enqueue()`
+> （`editor-session.js:434`），而這幾類的 code 是 `MUTATION_OUTCOME_UNKNOWN`，
+> 它在 `RECOVERY_ERRORS` 裡（`:15`），會先把 queue 擋掉（`:272`）——
+> 所以使用者按下 undo 只會拿到 `EDITOR_NOT_READY`。引擎的字串那樣寫沒有錯
+> （它面對的是**人**），但**協定不能把它當成 host 的動作**。
+> 正確的處置見 5.13。
 
 ### 2.4 繼承的上游 workaround，**以及它的移除測試**
 
@@ -254,7 +261,7 @@ A1–A5、G1、G2 每一臂在派送**之前**必須全部成立，否則該 run
 | 9 | 產品 state 投影以字串相等判斷 | **已定案 → 5.5** |
 | 10 | manifest 的 action allowlist runtime 不執行 | **已定案 → 5.7**（交集，只能收窄） |
 | 11 | 沒有產品 v2 的 profile builder | **已定案 → 5.8**（獨立 builder，fail closed） |
-| 12 | 派送後失敗的 revision／dirty／recovery | **提案已被打掉 → 5.3**；暫定「全部視為 B」，C 不進協定 |
+| 12 | 派送後失敗的 revision／dirty／recovery | **已定案 → 5.13**（全部視為 B；B ＝ rollback 到 checkpoint，不前進 revision） |
 | 13 | `abiVersion` 沒有 consumer | **已定案 → 5.4**（新的 C symbol，必須進 relink） |
 | 14 | 公開型別與 header 測試落後 | v1 那半**已補**（`c5cde7d`）；v2 那半**已定案 → 5.9** |
 
@@ -740,6 +747,53 @@ no-op 的 revision 方程式、validator 的突變控制。**那是下一項。*
 
 **finding 042：`Makefile` 是每個 `.o` 的前置依賴，改它就會重編重連。**
 所以這三件事只有在同一次動 Makefile 時做才不用付第二次代價。
+
+### 5.13 第 12 項重做：**全部視為 B，而 B 的意思是「回到上一個安全點」**
+
+三分類提案已被打掉（5.3）。重做的結論很短：
+
+**一、所有派送後失敗一律是 B。** 不特別處理 `EDITOR_SELECTION_NOT_RESTORED`
+——它在既有 build 上幾乎不可達（正常 restore 失敗會走 stage deadline 變成 B），
+而且它「驗過」的只有 barrier 自己重選的那一段。
+**沒有可重現的紅之前，不給它獨立語意。**
+`EDITOR_STATE_UNAVAILABLE`（`:3093`）也是派送後的，**一併歸 B**——
+codex 指出它是我漏掉的第三個碼。
+
+**二、B 不前進 revision。** 提案原本要前進，理由是「文件可能變了而 revision
+沒動，守衛會放行」。**那個理由在 B 會擋 queue 的前提下不成立**：擋了 queue
+就沒有「下一個 mutation」，session generation 就結束了。
+而且 error payload 根本沒有 `revision`（`:1236`），worker 也不轉發——
+**要前進就得同時改 engine、worker、client、session 四層，換到的是一個
+走不到的錯誤路徑。** 不做。
+
+**三、B 的處置是 rollback，不是 undo。** host 進 `recoverable-error`，
+從**上一個 checkpoint bytes**（沒有就 authority bytes）重開。
+
+**這條之所以可以接受，是因為 checkpoint 的時機剛好**：
+`_checkpointBeforeSelection()` 在**每一次範圍選取之前**存檔
+（`editor-session.js:346`／`:352`，條件是文件已 dirty 且內容自上次 checkpoint
+後有變）。而 v2 的手勢就是「拖曳選取 → 按按鈕」——
+**checkpoint 落在那次拖曳，格式動作緊接在後。**
+所以 B 的 rollback **最多只損失那一個失敗的動作本身**，
+而那個動作的結果本來就是未知的。
+
+> **這是本規格第一次把「損失多少」算出來而不是含糊帶過。**
+> 前提是那個手勢順序；若 host 改成不經拖曳就派送（收合游標直接按按鈕），
+> **checkpoint 就不在那裡了**，這條理由跟著失效。
+> 因此第 9 節的遷移條款要加一條：**產品展示的格式按鈕必須跟在選取手勢之後**，
+> 或在派送前自行 checkpoint。
+
+**四、redo 不進 v2。** `SPEC-E1-B:33` 明訂 Redo unsupported，
+產品面 `DocumentHandle`／`NarrowEditorClient`／`EditorSession` 都沒有 redo。
+rollback 語意不需要 redo，**所以這一項不因 E2-B 而開**。
+
+#### 這個結論要的驗證，比原提案少得多
+
+只要一列：**B 發生後，從 checkpoint 重開，文件回到派送前的 `<office:body>`。**
+可製造的紅已經有了——註腳段落走 `footnote-apparatus-readback`
+（`native-round1` 已知可製造）。
+
+**不需要**「C 類的可重現紅」，因為 C 不進協定。
 
 ### 5.2 唯一一次 relink 要帶什麼進去
 
