@@ -629,6 +629,7 @@ $(E2_COMBO_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
 
 $(E2_COMBO_BUILD)/probe.js: $(E2_COMBO_OBJECTS) $(E2_COMBO_BUILD)/exports.txt \
 		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,e2-combination 940b7723 -- the #49 fix, the SPEC E2-B section 3 gate (both rounds) and every cross-paragraph record bind to it)
 	$(call link_r5_product,$(E2_COMBO_OBJECTS),$(E2_COMBO_BUILD)/exports.txt,$@)
 
 $(E2_COMBO_BUILD)/probe.wasm: $(E2_COMBO_BUILD)/probe.js
