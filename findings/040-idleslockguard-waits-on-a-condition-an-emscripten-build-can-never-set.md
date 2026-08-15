@@ -282,7 +282,7 @@ artifact 同樣是 `e2-preguard-profiling`（`e05fd156…`，**沒有重連結**
 | 函式 | `getSelection()` 行 | 狀態 |
 |---|---|---|
 | `doc_getTextSelection` | 5926 | **量到卡死**（037） |
-| `doc_getSelectionType` | 5966 | 結構相同，**未量到**——我方引擎只在 ABI 缺 combined API 時才走它 |
+| `doc_getSelectionType` | 5966 | **上游可達，我方不可達**（2026-08-15 覆核，見下） |
 | `doc_getSelectionTypeAndText` | 6004 | **量到卡死**（038） |
 
 （`doc_getClipboard`（`init.cxx:6074`）也持區域 `XTransferable`，但**來源不是**
@@ -298,6 +298,27 @@ out-parameter（`init.cxx:6028`），但**堆疊不告訴我們它走到哪一�
 同一次執行裡 FX-CELL 的選取型態就是 `complex`，所以那不是可以順帶假設的事。
 
 **能說的只有：卡的是函式返回前釋放區域 reference 的那段清理。**
+
+### `doc_getSelectionType` 這一格結掉了（2026-08-15）
+
+原本寫「結構相同，未量到」。**「未量到」在這裡是問錯了問題**——要問的不是能不能
+取到堆疊，而是這一格對上游與對我方是不是同一件事。兩者都能從原始碼答。
+
+**對上游：可達，而且前綴逐句相同。** 把 `doc_getSelectionType`（`init.cxx:5952`）
+與已量到卡死的 `doc_getSelectionTypeAndText`（`:5988`）從函式開頭比到
+`pDoc->getSelection()` 為止，去掉註解與 `ProfileZone` 的字串參數之後，
+**11 個敘述逐句相同**：`SolarMutexGuard`、`SetLastExceptionMsg()`、
+`getTiledRenderable()` 與其 null 檢查、然後同一個 `pDoc->getSelection()`。
+兩者取得區域 `XTransferable` 的路徑沒有任何差別，所以**沒有理由認為它會不卡**。
+這是原始碼比對，不是堆疊——標示為推論，但它是很短的一步。
+
+**對我方：不可達。** 我們的 `readSelection()`（`probe_engine.cpp:2400`）先檢查
+`LIBREOFFICEKIT_DOCUMENT_HAS(getSelectionTypeAndText)`，有才用組合 API，
+只有在 ABI 缺它時才退回 `getSelectionType()`（`:2404`）。26.8 有這支 API，
+**所以產品路徑走不到這個入口**。
+
+**因此這一格不需要再量。** 上游回報時它算第四個入口（以原始碼比對為據，
+不宣稱有堆疊）；我方的風險評估裡它是零。
 037 那一段原本寫的「文字已經取出來了，卡的是收尾」也一併收窄成這句
 （外部對抗性覆核指出）。
 
