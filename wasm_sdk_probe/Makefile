@@ -1929,8 +1929,13 @@ test-e2-c-static:
 		--corpus test-docs/e1 --corpus test-docs/r7-compat --corpus test-docs/e2 \
 		--suites e2/content-axis-suites.json \
 		--output build/e2c/content-axes.json --check > /dev/null
-	python3 -m unittest tests/test_e2_corpus.py
-	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py
+	python3 -m unittest tests/test_e2_corpus.py tests/test_e2_c_shell_bundle.py
+	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py \
+		tools/build_e2_c_shell_bundle.py
+	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
+	# to still be the shell on disk AND the shell in dist/ (serve.py serves
+	# dist/).  Read-only: --write is a deliberate act with its own diff.
+	python3 tools/build_e2_c_shell_bundle.py > /dev/null
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
 # and therefore rebuilds the frozen e1-editor-v1 profile; this target must stay
