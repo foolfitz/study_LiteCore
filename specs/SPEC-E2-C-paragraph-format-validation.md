@@ -656,7 +656,8 @@ python3 tools/inventory_corpus_axes.py \
 - `wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-client.d.ts`
 - `wasm_sdk_probe/editor-shell-v2/tests/manifest-reachability.test.mjs`（**已建立**）
 - `wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-client.test.mjs`（**已建立**）
-- `wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js`（2.3 的產品 session）
+- `wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js`（2.3 的產品 session，**已建立**）
+- `wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-session.test.mjs`（**已建立**）
 - `wasm_sdk_probe/web/e2-editor.html`／`-app.js`（2.4 的產品頁面，**含拖曳選取**）
 - `wasm_sdk_probe/web/e2-c-validation.html`／`-app.js`（D0～D4 的 harness）
 - `wasm_sdk_probe/e2/editor-shell-v2-bundle-v1.json`（第 6 節的殼層綁定）

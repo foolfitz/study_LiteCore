@@ -264,6 +264,7 @@ demo-structure-assets: dist/demo-structure.html dist/demo-structure-app.js \
 	dist/editor-shell-v2/paragraph-editor-client.js \
 	dist/editor-shell-v2/paragraph-editor-session.js \
 	dist/editor-shell-v2/narrow-editor-v2-client.js \
+	dist/editor-shell-v2/narrow-editor-v2-session.js \
 	dist/demo-structure-discovery.html dist/demo-structure-discovery-app.js \
 	dist/e2/demo-structure-client.js dist/e2/format-discovery-client.js \
 	dist/sdk/document-sdk.js dist/e1-fixtures/manifest.json \
@@ -1508,10 +1509,14 @@ dist/editor-shell-v2/paragraph-editor-session.js: \
 		editor-shell-v2/paragraph-editor-session.js | dist/editor-shell-v2
 	cp $< $@
 
-# SPEC E2-C 2.2.  The fifteen-action product client, staged for the same reason
-# and by the same kind of rule.
+# SPEC E2-C 2.2 and 2.3.  The fifteen-action product client and the session
+# that runs it, staged for the same reason and by the same kind of rule.
 dist/editor-shell-v2/narrow-editor-v2-client.js: \
 		editor-shell-v2/narrow-editor-v2-client.js | dist/editor-shell-v2
+	cp $< $@
+
+dist/editor-shell-v2/narrow-editor-v2-session.js: \
+		editor-shell-v2/narrow-editor-v2-session.js | dist/editor-shell-v2
 	cp $< $@
 
 dist/demo-structure-discovery.html: web/demo-structure-discovery.html | dist
@@ -1881,6 +1886,7 @@ test-e2-b-static:
 test-e2-c-static:
 	node --test editor-shell-v2/tests/*.test.mjs
 	node --check editor-shell-v2/narrow-editor-v2-client.js
+	node --check editor-shell-v2/narrow-editor-v2-session.js
 	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
 	# reachable by a shipped shell.  The four-way inventory check cannot see
 	# this -- its client side is the UNION of two shells and one of them
