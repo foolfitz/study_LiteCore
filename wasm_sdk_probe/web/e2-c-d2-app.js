@@ -514,6 +514,10 @@ void (async () => {
       const contract = engine.manifest?.editorContract || {};
       metrics.cells["d0-inventory"] = {
         profile: engine.manifest?.profile,
+        // The judge is build-aware: two cells answer differently before and
+        // after the round-two relink, and it has to know which artifact it is
+        // looking at rather than guess from the profile name.
+        abiVersion: contract.abiVersion,
         wasmSha256: contract.wasmSha256,
         loaderSha256: contract.loaderSha256,
         workerSha256: contract.workerSha256,
