@@ -1822,6 +1822,11 @@ test-e2-b-static:
 		tools/analyze_e2b_crossparagraph.py tools/analyze_e2b_identity_gate.py \
 		tools/create_e2b_fixtures.py tools/build_e2_b_profile.py
 	python3 -m unittest tests/test_e2_b_profile.py
+	node --test editor-shell-v2/tests/*.test.mjs
+	node --check editor-shell-v2/paragraph-editor-client.js
+	# E1-C's shell bundle must still bind: editor-shell/*.js is hash-registered
+	# and editor-shell-v2/ exists precisely so v2 never touches it.
+	python3 tools/validate_e1_c.py > /dev/null
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
 # and therefore rebuilds the frozen e1-editor-v1 profile; this target must stay
