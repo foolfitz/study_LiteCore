@@ -1,7 +1,7 @@
 # SPEC E2-C：段落格式產品驗證（E2 里程碑判定）
 
 > **日期**：2026-08-15  
-> **狀態**：v1 草擬；**尚未執行**，判定尚未成立  
+> **狀態**：**v2 草擬**（v1 經對抗性審查後改寫）；**尚未執行**，判定尚未成立  
 > **前置閘門**：[E2-B](./SPEC-E2-B-paragraph-format-contract.md) 已判
 > **`GO_TO_E2_C`**（2026-08-15），產品 artifact `572035ac…`（profile `e2-editor-v2`）  
 > **上位規格**：[SPEC E2-000](./SPEC-E2-000-overview.md) 第 7 節——
@@ -78,7 +78,78 @@ manifest 也宣告十五個。**洞只在殼層。**
 > 而且是 E2-B 判定涵蓋的那顆二進位檔。新增的只有一個 JS 檔案，
 > 它不新增任何 `.uno:*`、key code、WASM pointer 或未分類 callback。
 
-### 2.3 第二個「宣告了但沒有人執行」的東西：十個繼承動作的 gesture
+**第四條路，對抗性審查指出來的，記在這裡而不是省略掉**：把不可變的
+`NarrowEditorClient` 包在一個 facade 後面——facade 對它報 v1 的 manifest 形狀，
+再把 `editorActionV1` 轉成 `editorActionV2`。這條路**不必**改凍結檔、不必 relink、
+不出第二顆 profile，也**不必有第二份驗證規則**。
+
+**沒有採用，理由是它要對閘門說謊。** v1 客戶端那個
+`capabilities.includes("narrow-editor-v1") && version === 1` 的檢查，
+存在的目的就是「不要讓一個客戶端跑在沒有量過它的 profile 上」。
+facade 讓它以為自己在 v1 上，等於把那個閘門關掉——今天無害（兩邊的十個動作
+走同一段引擎程式碼），但**它會在兩邊哪天真的分岔時無聲地繼續通過**，
+而那正是這個閘門要抓的一天。複本＋行為差異測試把同一個風險換成
+「兩份規則必須逐格同意」，那是會紅的，說謊的 facade 不會。
+
+> **這條路仍然開著。** 如果差異測試的維護成本變得比它擋下的風險高，
+> 換回 facade 是一個有理由的決定——但要連同「閘門被關掉了」一起寫進記錄。
+
+#### 但是：**一個殼層不是一個產品**
+
+上面那個決定只解決「有沒有一個客戶端能送出這十五個動作」。
+對抗性審查指出，**它本身不構成產品修好了**，還差兩件（2.3、2.4），
+在那兩件完成之前，`narrow-editor-v2-client.js` 只是一個**測試用的原始碼模組**。
+
+### 2.3 進場阻擋二：**出貨的 session 在 v2 profile 上根本開不起來**
+
+**已觀察（2026-08-15，host 側）**：`EditorSession`（`editor-session.js`）在
+`_openFresh()` 裡建 `NarrowEditorClient`（`:125`），然後 `await this.editor.getState()`
+（`:140`）。v2 profile 上那個客戶端拒絕，於是**`open()` 直接失敗**，
+session 停在 `recoverable-error`、輸入被封鎖。
+
+| profile | `EditorSession.open()` | |
+|---|---|---|
+| `e2-editor-v2` | **失敗**，`UNSUPPORTED_OPERATION`，狀態 `recoverable-error` | |
+| `e1-editor-v1` | 成功，狀態 `ready` | **對照組** |
+
+`ParagraphEditorSession` **沒有補上這個洞**：它包著一個 `EditorSession`、
+讀 `session.document`（`paragraph-editor-session.js:74`），
+繞過 `_enqueue`，只在錯誤上加一個 `recovery` 標籤（`:87`）；
+它不更新 dirty／content stamp，也不從 checkpoint bytes 重開。
+
+> **所以 D1／D2 承諾的每一件事——一個 session、FIFO queue、選取手勢前的
+> checkpoint、rollback、三代上限——在 v2 上目前沒有任何實作。**
+> 這比 2.2 嚴重：2.2 是「宣告的東西沒有殼層」，這是
+> **「規格要驗的東西沒有實作」**。
+
+**進場工作（列入 3. 的「不重連結」範圍內，純殼層）**：`editor-shell-v2/` 要有一個
+**產品 v2 session**，它必須
+
+1. 用 `NarrowEditorV2Client`，兩族動作**走同一個 FIFO queue**；
+2. 在選取手勢前寫 checkpoint（E2-B 5.13 的損失計算就建立在這一步上）；
+3. 對**每一個派送後失敗**擋下 queue，並以 fresh worker 從 checkpoint bytes 重開；
+4. 執行三代上限，達上限回 typed `WORKER_GENERATION_LIMIT` ＋ `requiresPageReload`。
+
+**這四件要有自己的單元測試，而且測的是實作、不是 runner 裡另寫一份復原邏輯。**
+runner 自帶復原邏輯而產品沒有，是驗收會通過而產品仍然壞掉的標準作法。
+
+### 2.4 進場阻擋三：**沒有任何產品頁面在用它**
+
+`web/demo-structure-app.js` 仍然 import `ParagraphEditorClient`（`:30`），
+工具列只有五個段落動作（`:249`），插入與復原走 Document SDK；
+`Makefile` 的 `demo-structure-assets` 原本沒有把新客戶端複製進 `dist/`
+（**已補**）。而且那一頁**唯一的指標處理是 `pointerdown` → 放游標**（`:265`），
+**沒有拖曳選取**。
+
+> 後果直接打在 D5 上：**「用真實指標拖曳選一段再按格式鈕」在現行產品頁面上
+> 做不到**，因為那一頁沒有拖曳。D5 若在別的 harness 頁面上做，量到的就不是
+> 產品，而是 harness。
+
+**進場工作**：一個**從 `dist/` 服務**的產品頁面，import 合併後的客戶端與 2.3 的
+session，工具列有十五個動作，並且**指標拖曳走的是產品自己的處理器**。
+D0 與 D5 都必須跑在那一頁上。
+
+### 2.5 第二個「宣告了但沒有人執行」的東西：十個繼承動作的 gesture
 
 **已觀察（原始碼層級，2026-08-15）**：v2 manifest 給十個繼承動作的宣告是
 `gestures: ["collapsed"]`。builder 這樣寫是**刻意而且誠實的**——
@@ -110,7 +181,28 @@ E2-B 的 negative matrix 第 11 列證明這條路是通的）。**但引擎只�
 - 想讓宣告真的被執行，得等下一次 relink：把 mask 檢查移到十個動作也會經過的
   地方。**列入 E2-C 之後的契約版本，不在本輪。**
 
-### 2.4 一併繼承的縮限
+### 2.6 已修的殼層缺陷：**沒送出去的失敗會叫 host 回滾文件**
+
+**已觀察並已修（2026-08-15）**：`formatFailureDisposition()` 對任何**沒有帶
+barrier 欄位**的錯誤回 `unknown-rollback`，`recoveryFor()` 把它變成 `rollback`。
+但客戶端自己丟的 `INVALID_ARGUMENT`（參數寫錯）、`EDITOR_ACTION_UNSUPPORTED`、
+以及 capability 閘門的 `UNSUPPORTED_OPERATION`，**都沒有 barrier，也都從來沒有
+離開過客戶端**。於是「呼叫端打錯一個參數」的處置變成
+**從 checkpoint 重開、丟掉自那之後的所有編輯**。
+
+fail closed 是對的——**但它適用的是「不知道有沒有派送」**。這三個是知道的：
+
+- 客戶端的參數檢查在 `_request` 之前丟；
+- worker 的 typed-argument 閘與 manifest 閘都在 `accept()` **之前** return
+  （E2-B 9.10 在出貨 artifact 上量過 worker 那半：三個禁用欄位各一次，
+  全部 `INVALID_ARGUMENT`，`<office:body>` 逐位元不變）。
+
+**已修**：這三個碼落在 `refused-no-mutation`。**順序刻意排在 barrier 之後**
+——若引擎哪天真的帶著 `dispatched: true` 配上這三個碼之一，barrier 贏。
+測試同時測常數表與**客戶端真的丟出來的那些錯誤**，因為只測常數表的話，
+客戶端改丟別的碼也會通過。
+
+### 2.7 一併繼承的縮限
 
 **從 E2-A 繼承六項**（[SPEC E2-B](./SPEC-E2-B-paragraph-format-contract.md) 2.2）：
 `set-paragraph-body` 的後置條件是「不是 heading」；heading 只承諾第 1 級；
@@ -179,6 +271,22 @@ readback markup 不是有文件的契約；`changed` 永遠 `null`；不提供�
 - Redo、line up/down/home/end、表格／圖片／shape 的結構編輯。
 - DOCX 與其他格式（屬 E3）；markdown（屬 E4）。
 - **註腳本文帶 as-char frame 的文件**（9.2）。
+- **任何帶註腳／尾註的段落，段落格式動作一律不支援。**
+
+> **這一條是對抗性審查逼出來的，而且它比我原本寫的寬。** 我原本只排除
+> 「註腳本文裡有 as-char frame」那一格，但 E2-B 2.3 早就寫著：
+> **段落上有註腳／尾註，收尾就會回 `MUTATION_OUTCOME_UNKNOWN`／
+> `footnote-apparatus-readback`**——這與註腳裡有沒有 frame 無關。
+> D2 甚至刻意拿一個「註腳沒有 frame」的段落去示範它必須回滾。
+> **示範它會失敗、同時把它寫成支援，是自相矛盾的。**
+>
+> **未解的不一致，具名留著**：manifest 的
+> `set-paragraph-heading`／`set-paragraph-body` 的 `limits` **沒有**宣告這一條
+> （只有 `heading-level-1-only`、`no-precondition-state`），三個清單動作的
+> `limits` 是空的。要讓 manifest 說出來就得 relink，而本規格禁止 relink。
+> **處置**：這一條寫在規格與產品 UI 上，並列為下一次 relink 的必帶項目；
+> **`E2_GO_PARAGRAPH_FORMAT` 的敘述必須明寫「契約宣告與實際縮限有這一處落差」**，
+> 不得只寫在這裡就當成揭露過了。
 
 ## 5. 自動測試矩陣
 
@@ -191,8 +299,19 @@ readback markup 不是有文件的契約；`changed` 永遠 `null`；不提供�
 
 - 保存 core HEAD／dirty baseline、v2 manifest／export／artifact hash、
   瀏覽器與桌面版本。
-- **可達性**：manifest 宣告的十五個動作，十五個都要有殼層到得了；
-  自帶兩個對照（v1 殼層在 v1 profile 上十個全到；沒宣告過的動作誰都到不了）。
+- **可達性，而且判準比 host 側那個測試嚴**：
+  1. **單一客戶端**——`NarrowEditorV2Client` **一個人**要到得了十五個。
+     host 側的 `manifest-reachability.test.mjs` 取三個殼層的**聯集**，
+     那對「宣告有沒有人實作」是對的問題，對「產品能不能用」是錯的問題；
+     **聯集正是 2.2 那個缺陷之所以躲了一輪的原因，不能拿它當 D0 的判準。**
+  2. **跑在 `dist/` 服務出來的檔案上**，不是原始碼樹的檔案。
+  3. **比對整個請求信封**：operation、action、`extendSelection`、`enabled`、
+     `documentHandle`、`expectedRevision` 逐欄相符，
+     不是「有沒有送出去」。
+  4. **要拿到真 worker 回來的 typed 成功結果**，不是 stub 的回覆。
+  對照組保留兩個（沒宣告過的動作誰都到不了；v1 殼層在 v1 profile 上十個全到）。
+- **session 可達性**：2.3 的產品 session 必須在 v2 profile 上 `open()` 到 `ready`，
+  對照組是它在 v1 profile 上的行為。
 - 產品 profile 不得出現 diagnostic 操作；未知 action、`keyCode`、`unoCommand`、
   `command` 各送一次，全部 fail closed 且 `<office:body>` 逐位元不變。
 - **D0 不通過就停止，不跑任何內容 mutation。**
@@ -203,7 +322,15 @@ readback markup 不是有文件的契約；`changed` 永遠 `null`；不提供�
 
 1. click → typed collapsed caret；真實 mutation 前不得重送 click；
 2. 插入文字，字元左右移動，Shift 延伸選取；
-3. 十個 v1 動作各至少一次，每次驗 revision 與 typed 後置條件；
+3. 十個 v1 動作各至少一次，每次驗 revision 與 typed 後置條件，
+   **而且每一個都要有自己的錨點與獨立的前後 XML 判準**；
+   > **typed 後置條件不足以證明做對了事。** 四個 inline 格式動作回的都是
+   > 同一個 `uno-command-result`：**一個把 bold 接到 italic 的映射錯誤，
+   > 會回報你要求的 action 名稱、回報同一個 completion，然後改錯屬性。**
+   > 所以四個格式各要一個**只有它會動到**的錨點，
+   > `enabled: true` 與 `false` 各一次，判準是存出來的 XML 上那個屬性；
+   > 兩個 delete 與兩種斷行判在**文字內容**上（少了哪個字、斷在哪裡）。
+   > 一次混合序列跑完只存一次檔，**沒有辦法把結果歸屬到單一動作**。
 4. 選取手勢（座標範圍）→ 五個 v2 動作各至少一次，收合／單段／跨段三條路由各至少一次；
 5. **新增的一格**：兩段**都已經是編號清單**時，跨段派送 `set-list-ordered`
    （E2-B 9.11 的第一項未涵蓋）；
@@ -227,9 +354,31 @@ readback markup 不是有文件的契約；`changed` 永遠 `null`；不提供�
   並拒絕已排隊操作。
 - 五個 crash barrier（沿用 E1-C v8）：composing、queued mutation、unsaved local edit、
   checkpointed edit、saved authority。
-- **第六個 barrier，本輪新增：`dispatched-rollback`。** 造一個「派送出去但驗不了」
-  的格式動作，確認 `formatFailureDisposition()` 回 `dispatched-rollback`、
-  host 依 5.13 回到 checkpoint，且**回滾後的文件與 checkpoint bytes 逐位元相同**。
+- **四個處置各要一格，不是只有一格**（4.1 要求三個回答都量到，D2 v1 只寫了一個）：
+
+  | 格 | 怎麼造 | 必須成立 |
+  |---|---|---|
+  | `refused-no-mutation`（引擎判的） | 帶 as-char 圖的段落上派送 → 派送前路由拒絕 | `dispatched: false`、`<office:body>` 逐位元不變、session 仍 `ready` |
+  | `refused-no-mutation`（客戶端判的，2.6） | 傳一個壞參數 | **沒有任何請求送出**、文件與 session 狀態皆不變 |
+  | `unknown-rollback` | 人工把錯誤的 barrier 欄位拿掉 | 落在 rollback，**證明 fail-closed 還在**（2.6 的修法不得把它一起關掉） |
+  | `dispatched-rollback` | 見下 | 下面那串斷言 |
+
+- **`dispatched-rollback` 這一格的完整斷言**（缺一不可）：
+  1. **先做一次會弄髒文件的編輯**，並**確認 checkpoint 真的建立了**
+     （`hasCheckpoint`）——沒有 checkpoint 的回滾證明不了回滾；
+  2. 選一個**明確涵蓋註腳引用記號**的範圍（不是只選段落的一部分）；
+  3. 派送前路由必須是 `range-single`（記錄下來，不是假設）；
+  4. 結果必須是 `dispatched: true` **且** `failureShape` **逐字**是
+     `footnote-apparatus-readback`；
+  5. session 以 fresh worker 從 checkpoint bytes 重開；
+  6. **回滾後存出來的文件與 checkpoint bytes 逐位元相同**；
+  7. queue 裡的操作沒有重播。
+
+  > **不要拿 E1-C 的 8 ms 當這一格的依據。** 那個數字證明的是
+  > 「全選之後引擎還活著」，不是「格式動作會回 `footnote-apparatus-readback`」；
+  > 而且 E1-C 的 `note-partial`（**不**涵蓋引用記號）一樣是可用的，
+  > 它很可能根本不會觸發註腳裝置那一條。**活著與失敗成某個特定形狀，
+  > 是兩件事。**
   > **怎麼造這一格，答案在我自己的樹裡**：用**帶註腳、但註腳本文沒有 frame**
   > 的段落。E1-C 9.1 的四格量過，`footnote-no-frame-full` 是 8 ms 可用的，
   > `note-full`（註腳裡有 frame）才會卡死。**拿錯 fixture 這一格不會失敗，
@@ -261,24 +410,70 @@ readback markup 不是有文件的契約；`changed` 永遠 `null`；不提供�
 | `l0-t3` | 22 頁長文件 | 首／中／末 anchor |
 | `l1-review-odt` | comment／tracked-change 保存 | 未修訂普通段落 anchor |
 | `l4-stress-100` | 100 頁含圖片 | 固定頁面文字 anchor |
-| **`list-contexts`** | **清單內容軸與孤立的清單動作錨點** | `E1-LC-ISOLATED`（前後都不是清單） |
+| **`list-contexts`** | **清單內容軸與清單目標格** | 見下面的 L1–L8 表，**不只是 `E1-LC-ISOLATED`** |
+| **`list-split`（新，待建）** | **清單中段離開**（L7 需要三項的清單，現有語料沒有） | `E2-LS-MID` |
 
 > **第六份不是本輪想加的，是三天前就寫下的義務。** E1-C 9.2 的原文：
 > 「**清單動作要進出貨契約之前，必須先補語料或依 9.1 的形式具名排除**」。
 > 清單動作**現在就在**出貨契約裡（v2 的 11、12、13）。語料已經補好了
 > （`test-docs/e1/list-contexts.odt`，2026-08-13），E2-C 是它第一次真的被用到的地方。
-> `E1-LC-BETWEEN`（兩側都是清單）**刻意不當作允許編輯位置**——那一格是留給
-> 合併行為的量測，不是產品驗收。
-
 每份驗證：原始 required anchors、新增／刪除後置條件、ZIP CRC、XML、禁止內容未出現、
 桌面 LibreOffice 重開與 PDF 匯出。**不重生成或改寫任何既有 corpus source bytes。**
+
+#### D3 的清單目標格：**必須打在清單上，不是打在清單旁邊**
+
+對抗性審查抓到 v1 的 D3 有一個致命的空轉：唯一允許的編輯位置是
+`E1-LC-ISOLATED`，而那**刻意是一個前後都不是清單的普通段落**；
+`E1-LC-BETWEEN` 又被排除。於是「D3 驗過清單動作」實際上是
+**在沒有清單的段落上跑清單動作**，而 8.1 那個 `list: present` 斷言
+會因為 ZIP 裡別處有清單而照樣通過。
+
+**所以 D3 的清單那一半改成預先登記的目標格，每一格要綁「錨點 ＋ 派送前狀態」**：
+
+| 格 | 錨點 | 派送前狀態 | 動作 | 後置條件 |
+|---|---|---|---|---|
+| L1 | `E1-LC-ISOLATED` | 普通段落，前後都不是清單 | `set-list-unordered` | 該段成為 `<text:list-item>`，鄰居不變 |
+| L2 | `E1-LC-END` | 普通段落 | `set-list-ordered` | 同上，編號串 |
+| L3 | `E1-LC-BULLET-TWO` | **已在無序清單中** | `set-list-none` | 該項離開清單，同串其餘項不變 |
+| L4 | `E1-LC-NUMBER-TWO` | **已在有序清單中** | `set-list-none` | 同上 |
+| L5 | `E1-LC-BULLET-ONE` | **已在無序清單中** | `set-list-ordered` | 轉換，不是新開一串 |
+| L6 | `E1-LC-NUMBER-ONE` | **已在有序清單中** | `set-list-ordered` | **重複派送**：結構不得改變 |
+| L7 | `E2-LS-MID`（`list-split`） | **三項清單的中間那項** | `set-list-none` | 前後兩段仍各自成串，或依實測記錄成 typed 結果 |
+| L8 | `E1-LC-BETWEEN` | **兩側都是清單的普通段落** | `set-list-unordered` | 合併與否**都可以接受**，但**必須是預先寫下的那一個**；量到什麼就是什麼，不得事後選 |
+
+> **L7 需要一份新語料，因為現有的沒有一份能表達它。** `list-contexts.odt`
+> 的兩串清單**各只有兩項**，兩項的清單拿掉一項不會分裂。所以新增
+> `test-docs/e2/list-split.odt`（**新位元組，不改寫任何既有 corpus**，
+> 與 E1-C 新增 `list-contexts` 時同一條規矩），一串三項，中間那項是 `E2-LS-MID`。
+> **沒有這一份，L7 就是一格永遠跑不到的宣稱**——正是 034／035／037／038 那一類。
+
+> L6 與 L7 是停止條款直接指著的兩格（E2-000 第 10 節：
+> 「清單切換造成 ODT 結構 silent loss」）。**L8 不是通過條件**，
+> 它是把「相鄰清單會不會併」這件事從印象變成量測；
+> E1-C 之所以留著 `E1-LC-BETWEEN`，就是為了有地方量它。
+
+**盤點要綁到動作的目標錨點與前狀態，不是只綁文件層級的「有沒有清單」。**
 
 ### D4：Bounded lifecycle 與回歸
 
 - 每瀏覽器 10 個獨立 edit → save → reopen session；每頁不超過三個 generation，
   runner 自行 reload 新頁。
 - 每次結束 Worker／handle 歸零；記錄 process tree、PSS／RSS、WASM heap、latency。
-  只要求無連續成長與無 zombie。
+
+  > **「無連續成長」不是判準，這是對抗性審查點名的**：一次 GC 凹陷就能讓
+  > 一條真的在漏的曲線變成「不連續」，而 PSS／RSS 的雜訊可以解釋任何結果。
+  > 改成可否證的數字：
+  >
+  > | 量什麼 | 怎麼量 | 門檻 |
+  > |---|---|---|
+  > | 靜止點 | 每個 session `close()` 之後**等到沒有 in-flight 請求**再取樣，同一輪固定 3 秒後再取一次，取**較小值** | — |
+  > | 殘留 Worker | 取樣時 `dispose()` 後的 worker 數 | **0**，第 10 輪也是 0 |
+  > | 殘留 handle | session 自報 | **0** |
+  > | WASM heap | 10 輪的線性回歸斜率 | **≤ 2 MB／session**，且第 10 輪絕對值 ≤ 首輪 ＋ 20 MB |
+  > | 瀏覽器 PSS／RSS | 同上 | **≤ 8 MB／session**；R7 的單頁 50 代量到 +22.4 MB／block 且判為回收延遲，本輪 10 輪的門檻據此訂在同數量級 |
+  >
+  > **取不到記憶體數字時的處置也要先寫**：Firefox 拿不到 PSS 就記 `notValidated`
+  > 並**只**以 worker／handle 歸零與 WASM heap 判定，**不得**因為量不到就當作通過。
 - 回歸：R6 release、R7-B／C／D、R8-D、E1-A、E1-B、**E2-A、E2-B 的靜態目標**，
   before／after workspace preflight 必須通過。
   **不得跑 `test-e1-c-static`**（它會重建凍結的 `e1-editor-v1`）；E1-C 側改跑
@@ -316,8 +511,24 @@ findings/evidence/sdk-e2/e2-c-validation/
   summary.json
 ```
 
-- 每一份證據自帶它跑在哪顆 artifact 上（`wasmSha256`／`loaderSha256`／`workerSha256`），
-  判定工具**重算磁碟上的 hash 再比對**，不採信寫下來的（finding 027）。
+- 每一份證據自帶它跑在哪顆 artifact 上（`wasmSha256`／`loaderSha256`／`workerSha256`
+  ＋**殼層 bundle digest**，見下），判定工具**重算磁碟上的 hash 再比對**，
+  不採信寫下來的（finding 027）。
+
+> **綁定必須有第四個雜湊，而 v1 的規格漏掉了它。** E2-C 要證明的東西
+> **有一半在殼層**——2.2 的客戶端、2.3 的 session、2.4 的產品頁面。
+> 只綁 wasm／loader／worker 三個雜湊，等於允許那三樣在判定發出之後被改掉，
+> 而 `E2_GO_PARAGRAPH_FORMAT` 仍然是綠的。
+> **E1-C 已經學過這一課**：它的現行綁定是**四個**雜湊，第四個就是
+> 殼層 bundle `f9b1a52f…`。
+>
+> **所以 E2-C 要有自己的殼層 bundle**（`e2/editor-shell-v2-bundle-v1.json`），
+> 涵蓋**產品入口點可傳遞到達的每一個 JS 模組**與它們在 `dist/` 的複本：
+> `narrow-editor-v2-client.js`、產品 session、產品頁面的 app 模組、
+> 以及它們 import 的 `sdk/`、`input/` 模組。
+> 驗證方式沿用 E1-C：`available - included - excluded` 必須為空，
+> **在旁邊加一個檔案也會讓它紅**。
+> D1～D5 的每一份結果都要記這個 digest，`validate_e2_c.py` 要重算它。
 - 每次失敗 attempt 獨立保存不覆寫；每筆結果標 `observed`／`inferred`／`reused`／
   `notValidated`。
 - 判定由 `tools/validate_e2_c.py` **從證據重推**，且該工具必須實測會說 `NOT_YET`
@@ -325,9 +536,13 @@ findings/evidence/sdk-e2/e2-c-validation/
 
 ## 7. 執行順序與停止點
 
-順序固定為 **進場工作（2.2 的殼層）→ D0 → D1 → D2 → D3 → D4 → D5**。
+順序固定為 **進場工作（2.2 客戶端 ＋ 2.3 session ＋ 2.4 產品頁面）
+→ 凍結 `e2/validation-matrix-v1.json` → D0 → D1 → D2 → D3 → D4 → D5**。
 
-- 進場工作沒完成前不跑 D0：可達性測試是紅的，D0 只會重複說一次同一件事。
+- **三件進場工作全部完成之前不跑任何 D 相位。** 只做完 2.2 就開跑，
+  量到的是一個沒有 session、沒有頁面的客戶端，而 D1／D2 的每一條
+  都需要那兩樣。
+- **矩陣沒凍結之前不跑 D0**（9.1）。
 - D0 不過就停止，不跑內容 mutation。
 - D1／D2 觸發 silent mutation、重播或 outcome 不明時立即停止並建立編號 finding。
 - D3 required ODT 有 silent 內容／結構損失時停止。
@@ -336,16 +551,46 @@ findings/evidence/sdk-e2/e2-c-validation/
 ## 8. 判定
 
 **`E2_GO_PARAGRAPH_FORMAT`**：D0～D4 全部通過；D5 兩瀏覽器各一份 trusted 證據
-（或有同 artifact 的明確 `reused` 說明）；六份 ODT 皆桌面 round-trip；recovery、
-no-replay、generation 上限、回歸與 workspace 保護成立；且**不需要任何禁止 surface**。
+（或有同 artifact 的明確 `reused` 說明）；七份 ODT 皆桌面 round-trip；recovery、
+no-replay、generation 上限、回歸與 workspace 保護成立；**不需要任何禁止 surface**；
+且判定敘述**明寫 4.2 那一處契約宣告與實際縮限的落差**。
 
-**`E2_PARTIAL_GO_PARAGRAPH_FORMAT`**：十五個動作的核心成立，但單一瀏覽器的人工項、
-單一非必要 corpus、或某一條路由只能安全縮限。限制以 capability／UI 明示。
+**`E2_PARTIAL_GO_PARAGRAPH_FORMAT`**：**只有**下面 8.0 的表列出來的格才可能落在這裡。
 
-**`E2_STOP_OR_RESCOPE`**：文字重複／漏失、格式動作造成 ODT 結構 silent loss、
-cancel／denied／stale 之後仍 mutation、boundary 或 crash 後自動重播、
-舊 generation 污染新文件、Worker 無界增長，或完成流程需要禁止 surface。
-保存失敗 bytes／trace 並建立編號 finding。
+**`E2_STOP_OR_RESCOPE`**：其餘全部。保存失敗 bytes／trace 並建立編號 finding。
+
+### 8.0 判定表：**每一格失敗都指定一個判定，事前訂**
+
+對抗性審查指出 v1 的三個判定**不是全函數**——D1 的普通功能失敗、桌面重開失敗、
+回歸失敗、D4 資源失敗都不屬於任何一類，而「單一非必要 corpus」在跑之前
+**沒有指定哪一份是非必要的**。留白等於把判定權交給跑完之後的自己。
+
+| 失敗在哪 | 判定 |
+|---|---|
+| D0 任何一項（可達性、session 開不起來、diagnostic surface、forbidden field） | **STOP** |
+| **manifest 宣告的任何動作或手勢**在 D1／D3 失敗 | **STOP**——見下 |
+| D1 的兩瀏覽器逐格不一致 | **STOP** |
+| D1 第 8 項（範圍派送特徵量測） | **不影響判定**（2.5，它本來就不是通過條件） |
+| D2 四個處置格任何一個 | **STOP** |
+| D2 的 crash barrier／generation 上限 | **STOP** |
+| D3 的 L1–L7 任何一格 | **STOP** |
+| D3 的 **L8**（兩側都是清單） | 量到什麼記什麼；**與預先寫下的不同才是 STOP** |
+| D3 的桌面重開或 PDF 匯出 | **STOP** |
+| D4 資源門檻 | **STOP**；取不到記憶體數字 → `notValidated` ＋ **PARTIAL** |
+| D4 回歸任一項 | **STOP** |
+| **D5 的真 IME 那一項**（單一瀏覽器） | **PARTIAL** |
+| **D5 的實體拖曳那一項** | **PARTIAL**（它關的是 E2-B 已具名的未涵蓋格，不是契約承諾） |
+| operator 完全不可得 | **PARTIAL** |
+
+> **為什麼「宣告的動作失敗」不能是 PARTIAL。** PARTIAL 的定義是「安全縮限並
+> 以 capability／manifest 明示」，而 E2-B 7.1 要求縮限落在 manifest 的
+> `limits`／`gestures` 上、不是只有 UI。**本規格禁止改 manifest**（要 relink），
+> 所以一個已宣告的路由失敗之後，**沒有任何合法的方式把它縮限掉**——
+> 硬要縮就得動 manifest，而動 manifest 會把 E2-B 的綁定一起弄斷。
+> 因此那一類只有 STOP，然後由下一版契約決定要不要縮。
+>
+> **PARTIAL 只保留給事前就宣告在承諾之外的東西**（D5 的人工項、
+> 拿不到的量測），不保留給任何契約內的失敗。
 
 ### 8.1 判定前的必要輸入：語料內容軸盤點
 
@@ -410,9 +655,32 @@ python3 tools/inventory_corpus_axes.py \
 - `wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-client.js`（2.2 的產品殼層）
 - `wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-client.d.ts`
 - `wasm_sdk_probe/editor-shell-v2/tests/manifest-reachability.test.mjs`（**已建立**）
-- `wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-client.test.mjs`
-- `wasm_sdk_probe/web/e2-c-validation.html`／`-app.js`
+- `wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-client.test.mjs`（**已建立**）
+- `wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js`（2.3 的產品 session）
+- `wasm_sdk_probe/web/e2-editor.html`／`-app.js`（2.4 的產品頁面，**含拖曳選取**）
+- `wasm_sdk_probe/web/e2-c-validation.html`／`-app.js`（D0～D4 的 harness）
+- `wasm_sdk_probe/e2/editor-shell-v2-bundle-v1.json`（第 6 節的殼層綁定）
+- **`wasm_sdk_probe/e2/validation-matrix-v1.json`（凍結矩陣，見下）**
+- `wasm_sdk_probe/test-docs/e2/list-split.odt`（L7 用，新位元組）
 - `wasm_sdk_probe/tools/run_e2_c.py`、`tools/validate_e2_c.py`
+
+### 9.1 凍結矩陣：判準要在檔案裡，不在散文裡
+
+E1-C 有 `e1/validation-matrix-v2.json`，E2-B 有預先登記的門檻；
+**v1 的本規格兩個都沒有**，於是「各至少一次」「兩瀏覽器逐格相同」
+「無連續成長」「required ODT」這些話**要等跑完之後由判定器去解釋**
+——而判定器是我跑完之後寫的。E2-B 已經因為這個順序踩過一次
+（分析器悄悄換掉了預先登記的判準）。
+
+**`e2/validation-matrix-v1.json` 要在 D0 之前寫好並凍結**，內容：
+每一格的 id、重複次數、比較投影（哪些欄位參與「逐格相同」）、
+artifact 與殼層 bundle 的雜湊、每一格的判準（oracle）、
+以及**每一格失敗時對應 8.0 表的哪一列**。
+
+**`validate_e2_c.py` 的自我測試不得只有「改一個雜湊」與「拿掉一格」**
+（那是 v1 寫的，遠弱於判定本身）。**每一個會影響判定的述詞都要有突變測試**：
+XML 錨點、回滾的位元組相等、兩瀏覽器相等、no-replay、語料軸、
+資源門檻、L1–L8 的每一條後置條件。**改任何一條判準都必須看到它變紅。**
 
 本輪修改（預定）：
 
@@ -427,4 +695,5 @@ python3 tools/inventory_corpus_axes.py \
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-15 | **v2。對抗性審查（codex）提了 16 項，全部處理過：15 項改寫規格或程式碼，1 項（重用 v1 客戶端的 facade）判為可行但不採用，連同否決理由寫進 2.2。這一版與 v1 差很多。** 最重的三項都是同一種錯：**我把「有一個能送出動作的客戶端」當成了「產品修好了」。**（1）v1 說新客戶端是「產品殼層」，但**沒有任何產品頁面在用它**，asset 目標也沒複製它（已補），而且 `demo-structure` **沒有拖曳選取**，所以 D5 的「真實指標拖曳」在產品頁面上做不到——新增 2.4。（2）**出貨的 `EditorSession` 在 v2 profile 上根本開不起來**（`:125` 建 v1 客戶端、`:140` 等它的 `getState`），`ParagraphEditorSession` 也補不上，**於是 D1／D2 承諾的 session、queue、checkpoint、rollback、三代上限在 v2 上沒有任何實作**——新增 2.3，並列為進場工作。（3）**判定只綁三個雜湊**，而 E2-C 要證的東西有一半在殼層；E1-C 早就學過要綁第四個——第 6 節改成要有 E2 自己的殼層 bundle。其餘：**PARTIAL 的定義原本會逼我去改凍結的 manifest**（縮限必須落在 `limits`／`gestures` 上，而本規格禁止 relink），所以宣告過的動作或手勢失敗一律 STOP，新增 8.0 完整判定表；**D3 原本在「沒有清單的段落」上驗清單動作**（唯一錨點 `E1-LC-ISOLATED` 前後都不是清單），改成 L1–L8 八個綁前狀態的目標格，並發現 L7 需要三項清單而現有語料**一份都沒有**，新增 `list-split.odt`；**D1 原本用 typed completion 當判準**，但四個 inline 格式回同一個 `uno-command-result`，映射錯了也會綠，改成逐動作錨點＋XML 判準；**D2 的四個處置只寫了一格**，補齊並把 `dispatched-rollback` 的斷言逐條寫死（含「先弄髒、確認 checkpoint 真的存在」）；**D4 的「無連續成長」不可否證**，換成斜率與絕對值門檻；**沒有凍結矩陣**，新增 9.1；**4.2 漏掉「任何帶註腳的段落都不支援」**（E2-B 2.3 早就寫著），補上並具名 manifest 沒宣告這一條的落差。另修一個真缺陷（2.6）：客戶端自己丟的 `INVALID_ARGUMENT` 會被判成 `unknown-rollback`，**呼叫端打錯參數的處置變成丟掉自 checkpoint 以來的全部編輯**。並補記第四條被否決的路（facade 重用 v1 客戶端）與否決理由。上位規格 [E2-000](./SPEC-E2-000-overview.md) 第 6 節的 no-op 條文同日就地修訂——`changed: null` 與它牴觸，而在此之前沒有任何條文說過話。 |
 | 2026-08-15 | **v1 草擬。** 進場前先量了一件沒有人量過的事：**出貨的 v2 profile 上，E1 的十個動作沒有任何殼層到得了**（v1 殼層被自己的 capability＋version 閘擋掉，v2 殼層的 allowlist 只有五個），而**四路清單檢查看不到它**——那個檢查的「client」是兩個殼層的**聯集**，聯集裡有一個接不上這顆 profile。測試連同兩個對照組已建立且**當下是紅的**。因此本規格把「補上十五個動作的產品殼層」訂為**進場工作**而不是 D 相位的一部分，並寫明否決的另外兩條路（改 manifest 砍動作＝重建 artifact＋斷掉 132 個 run 的綁定；出兩顆 profile＝一份文件開不在兩個引擎裡）。相位前綴改用 `D` 以免與 E1-C 的 C0～C4 在同一棵證據樹裡同名。D3 語料六份，第六份 `list-contexts` **是 E1-C 9.2 在 08-13 就寫下的義務**（「清單動作要進出貨契約之前，必須先補語料或具名排除」）現在到期。E2-B 9.11 的四項未涵蓋各自有處置：跨段全編號進 D1、實體拖曳進 D5、H2–H6 與大綱參與維持不承諾。 |

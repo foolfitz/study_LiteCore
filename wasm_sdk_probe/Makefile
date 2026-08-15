@@ -263,6 +263,7 @@ e2-format-discovery-assets: e2-format-discovery-profile \
 demo-structure-assets: dist/demo-structure.html dist/demo-structure-app.js \
 	dist/editor-shell-v2/paragraph-editor-client.js \
 	dist/editor-shell-v2/paragraph-editor-session.js \
+	dist/editor-shell-v2/narrow-editor-v2-client.js \
 	dist/demo-structure-discovery.html dist/demo-structure-discovery-app.js \
 	dist/e2/demo-structure-client.js dist/e2/format-discovery-client.js \
 	dist/sdk/document-sdk.js dist/e1-fixtures/manifest.json \

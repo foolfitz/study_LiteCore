@@ -19,6 +19,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { NarrowEditorClient } from "../../editor-shell/editor-client.js";
+import { EditorSession } from "../../editor-shell/editor-session.js";
 import { ParagraphEditorClient } from "../paragraph-editor-client.js";
 import { NarrowEditorV2Client } from "../narrow-editor-v2-client.js";
 
@@ -123,3 +124,76 @@ test("control: an action no manifest declares is reachable by nobody",
        const reached = await reachableOn("e2-editor-v2", ["set-superscript"]);
        assert.deepEqual([...reached], []);
      });
+
+// ---------------------------------------------------------------------------
+// The session layer, asked the same question.
+//
+// A client is not a session.  Everything SPEC E2-C's D1 and D2 promise -- one
+// session, a FIFO queue, a checkpoint before the selection gesture, rollback,
+// the three-generation ceiling -- lives in EditorSession, and EditorSession
+// builds a NarrowEditorClient (editor-session.js:125) and awaits its getState
+// during open (:140).  On a v2 manifest that client refuses, so the open never
+// completes.  ParagraphEditorSession does not close the gap: it wraps an
+// EditorSession and reads `session.document`, so it inherits the same failure.
+
+function sessionEngineFor(manifest, stateOperation) {
+  const document = {
+    handle: 1,
+    revision: 0,
+    widthTwips: 1000,
+    heightTwips: 2000,
+    _assertUsable() {},
+    async render() { return { pixels: new ArrayBuffer(4), revision: 0 }; },
+    async close() {},
+  };
+  const engine = {
+    manifest,
+    onEvent() { return () => {}; },
+    async open() { return document; },
+    async _request(operation) {
+      if (operation === stateOperation) {
+        // The shape v1's client validates.  Getting it wrong makes the control
+        // fail for a reason that has nothing to do with the question, which is
+        // exactly what happened the first time this was written.
+        return { documentHandle: 1, revision: 0, caret: null,
+                 selection: { observed: true, collapsed: true, start: null,
+                              end: null, rectangles: [] },
+                 selectionType: "none", selectionTextMissing: false,
+                 selectionText: "", format: { bold: false, italic: false } };
+      }
+      throw new Error(`unexpected operation ${operation}`);
+    },
+    dispose() {},
+  };
+  document._engine = engine;
+  return engine;
+}
+
+async function openWith(profile, stateOperation) {
+  const engine = sessionEngineFor(manifestOf(profile), stateOperation);
+  const session = new EditorSession({
+    engineFactory: async () => engine,
+    secureContext: true,
+    clipboard: { async writeText() {}, async readText() { return ""; } },
+  });
+  try {
+    await session.open({ bytes: new ArrayBuffer(8), name: "d.odt" });
+    return { opened: true, state: session.state.snapshot.state, code: null };
+  } catch (error) {
+    return { opened: false, state: session.state.snapshot.state,
+             code: error.code || error.name };
+  }
+}
+
+test("the shipped session cannot open a document on the v2 profile", async () => {
+  const result = await openWith("e2-editor-v2", "editorGetStateV2");
+  assert.equal(result.opened, false);
+  assert.equal(result.code, "UNSUPPORTED_OPERATION");
+  assert.equal(result.state, "recoverable-error");
+});
+
+test("control: the shipped session opens on the v1 profile", async () => {
+  const result = await openWith("e1-editor-v1", "editorGetStateV1");
+  assert.equal(result.opened, true);
+  assert.equal(result.state, "ready");
+});

@@ -195,12 +195,45 @@ export class ParagraphEditorClient {
 // it may have changed the document, and the response to that is a rollback to
 // the last checkpoint -- NOT a prompt to undo, because undo goes through the
 // very queue the failure blocks.
+// Codes that cannot be post-dispatch, whatever else is missing from the error.
+//
+// SPEC E2-C 2.5.  The barrier field is the primary signal, but it only exists
+// once the engine has a barrier to report; a failure raised BEFORE the request
+// reaches the engine has no barrier and used to fall through to the
+// fail-closed default, so a caller who passed a bad argument was told to roll
+// the document back.  Fail-closed is right when "was it dispatched" is
+// genuinely unknown.  For these three it is known:
+//
+//   INVALID_ARGUMENT           the client's own option checks, and the worker's
+//                              typed-argument gate, both of which return before
+//                              `accept()` -- E2-B 9.10 measured the worker half
+//                              on the shipped artifact: three forbidden fields,
+//                              INVALID_ARGUMENT each, `<office:body>` unchanged
+//                              byte for byte
+//   EDITOR_ACTION_UNSUPPORTED  the action is not in the client's closed set
+//   UNSUPPORTED_OPERATION      the capability/contract gate, client or worker
+//
+// A rollback here is not a harmless extra step: it reopens the document from
+// the last checkpoint and discards everything since, which for a typo in a
+// caller's argument is a strictly worse outcome than the typo.
+const PRE_DISPATCH_CODES = new Set([
+  "INVALID_ARGUMENT",
+  "EDITOR_ACTION_UNSUPPORTED",
+  "UNSUPPORTED_OPERATION",
+]);
+
 export function formatFailureDisposition(error) {
   const barrier = error?.details?.formatBarrier ?? error?.formatBarrier ?? null;
   if (barrier && barrier.dispatched === false)
     return "refused-no-mutation";
   if (barrier && barrier.dispatched === true)
     return "dispatched-rollback";
+  // Checked after the barrier, never before: if the engine ever did attach a
+  // barrier saying `dispatched: true` alongside one of these codes, the
+  // barrier wins.  The code list is a fallback for errors that never got far
+  // enough to have a barrier, not an override for ones that did.
+  if (PRE_DISPATCH_CODES.has(error?.code))
+    return "refused-no-mutation";
   // No barrier field at all: the profile may be one that does not forward it,
   // and guessing would be worse than saying so.  Fail closed -- treat it as
   // possibly-mutated, because the cost of a needless rollback is one action and

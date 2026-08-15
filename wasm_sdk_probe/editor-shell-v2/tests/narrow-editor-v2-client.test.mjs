@@ -71,6 +71,20 @@ const REPLY_MUTATIONS = [
    (reply) => ({ ...reply, completion: "documented-state-noop" })],
   ["completion missing", (reply) => ({ ...reply, completion: undefined })],
   ["empty reply", () => ({})],
+  // The asynchronous failure paths.  Testing only resolved replies leaves the
+  // half of the surface where the engine says no untested, and that half is
+  // where the recovery decisions live.
+  ...[["MUTATION_OUTCOME_UNKNOWN", "the barrier could not verify"],
+      ["EDITOR_BOUNDARY_UNSUPPORTED", "structural boundary"],
+      ["EDITOR_STALE_REVISION", "revision moved"],
+      ["TIMEOUT", "no completion arrived"],
+      ["WORKER_CRASHED", "the worker died"],
+      ["ABORTED", "the caller aborted"]].map(([code, message]) =>
+        [`engine rejects: ${code}`, () => {
+          const error = new Error(message);
+          error.code = code;
+          return error;
+        }]),
 ];
 
 const OPTION_CASES = [
@@ -95,10 +109,17 @@ function handleFor(manifest, mutate) {
     _assertUsable() {},
     _engine: {
       manifest,
-      async _request(operation, payload) {
-        issued.push(operation);
+      async _request(operation, payload, options) {
+        // The whole envelope, not just the operation name.  Comparing only
+        // "did a request go out" would leave `enabled`, `extendSelection`,
+        // documentHandle, expectedRevision and the forwarded options free to
+        // drift between the two implementations without any test noticing --
+        // and a wrong `enabled` is a bold button that unbolds.
+        issued.push({ operation, payload: { ...payload }, options });
         const r = payload.expectedRevision;
-        return mutate(goodReply(payload.action, r), r);
+        const reply = mutate(goodReply(payload.action, r), r);
+        if (reply instanceof Error) throw reply;
+        return reply;
       },
     },
   };
@@ -108,13 +129,20 @@ function handleFor(manifest, mutate) {
 async function verdict(Client, manifest, action, options, mutate) {
   const handle = handleFor(manifest, mutate);
   const client = new Client(handle);
+  // The operation name is the ONE field allowed to differ: v1 dispatches
+  // editorActionV1, v2 dispatches editorActionV2.  Everything else in the
+  // envelope must match, so it is compared rather than dropped.
+  const envelope = handle.issued.map(({ payload, options: sent }) =>
+    ({ payload, options: sent }));
   try {
     const result = await client.action(action, options);
     return { outcome: "ok", revision: handle.revision,
-             completion: result.completion, issued: handle.issued.length };
+             completion: result.completion, changed: result.changed ?? null,
+             envelope };
   } catch (error) {
     return { outcome: error.code || error.name, revision: handle.revision,
-             completion: null, issued: handle.issued.length };
+             completion: null, changed: null,
+             message: error.message, envelope };
   }
 }
 
@@ -208,8 +236,10 @@ test("the convenience methods reach the same actions as v1's", async () => {
     const a = await call(new NarrowEditorClient(v1Handle));
     const b = await call(new NarrowEditorV2Client(v2Handle));
     assert.equal(b.action, a.action);
-    assert.equal(v2Handle.issued[0], "editorActionV2");
-    assert.equal(v1Handle.issued[0], "editorActionV1");
+    assert.equal(v2Handle.issued[0].operation, "editorActionV2");
+    assert.equal(v1Handle.issued[0].operation, "editorActionV1");
+    // Same envelope, different door.
+    assert.deepEqual(v2Handle.issued[0].payload, v1Handle.issued[0].payload);
   }
 });
 

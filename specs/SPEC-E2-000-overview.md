@@ -114,8 +114,31 @@ verified-selection barrier 解除。E2 要驗證這個方法能不能一般化�
   不因為某個 payload「看起來像」就採用。
 - completion 必須可歸屬到單一 request。**不得**以「下一個抵達的 state callback 就是我的」作 correlation，
   也不得以 sleep、固定 delay、tile invalidation 或 UI 外觀補成 completion。
-- 「已經是目標狀態」必須是 typed no-op（`changed:false`），不得與「callback 沒到」混為一談；前置狀態未知時
-  一律 fail closed，回 typed error，不猜。
+- ~~「已經是目標狀態」必須是 typed no-op（`changed:false`），不得與「callback 沒到」混為一談；前置狀態未知時
+  一律 fail closed，回 typed error，不猜。~~
+  **（2026-08-15 修訂）** 段落格式的五個動作改為：**不讀前置狀態，因此永遠不宣稱
+  `changed`（一律 `null`），並以引擎驗過的後置條件 `verified-format-readback` 代替。**
+
+  > **為什麼原文要改，而不是產品去符合它。** 原文預設「前置狀態讀得到而且可信」。
+  > [Finding 022](../findings/022-e1-release-set-bold-false-noop.md) 證明不是：
+  > 那個前置狀態來自一份快取，回答的是**游標之前在哪裡**的問題，於是
+  > `documented-state-noop` 會在文件其實沒變的情況下回報成功。引擎因此不再讀它
+  > （路線 C），客戶端也不再接受那個 completion。
+  >
+  > **原文的精神保住了，換了個位置**：它真正要防的是「什麼都沒發生」被講成
+  > 「已經是目標狀態」。路線 C 防同一件事的方法是**每一次成功都必須通過一次
+  > 後置條件讀回**，而且 revision 每次前進一格——包含改了等於沒改的那一次。
+  > 「前置狀態未知時 fail closed」這一句**仍然有效**：現在前置狀態一律未知，
+  > 而處置不是猜，是不宣稱。
+  >
+  > 這一條的實際決定在 [SPEC E2-B](./SPEC-E2-B-paragraph-format-contract.md) 5.6
+  > 與 E2-A 的縮限 5，出貨 artifact `572035ac…` 就是這樣做的。
+  > **本次修訂是把已經發生的事寫回上位規格**，不是新的決定——
+  > 對抗性審查點出，一個下位規格不能靠繼承悄悄改寫上位規格的不可退讓條件，
+  > 而在此之前這裡確實沒有任何條文說過話。
+  >
+  > **十個繼承動作不受影響**：它們的 `changed` 仍然是明確的布林值，
+  > delete 仍然要 `verified-selection-delete`。放寬是**逐動作**的。
 - timeout、abort、stale revision、boundary rejection、Worker crash 與 outcome unknown 皆不自動 retry／replay。
 - 不修改 LibreOffice core。不重建或覆寫 R5 `writer-review` 與 E1-B `e1-editor-v1` artifact；E2 discovery 只用
   隔離 artifact。
@@ -193,4 +216,5 @@ raw UNO／任意 command string／sleep／自動 retry。保存失敗 bytes 與 
 |---|---|
 | 2026-08-05 | v1。建立 E2 編號與段落層級補完主線；定義單一未知數、A／B／C 路由與 GO／部分 GO／停止條件。 |
 | 2026-08-05 | v2。A2-native 完成；未知數由「沒有回報」修正為「回報不可信」，並建立 finding 019／020。E2-A 尚無判定。 |
+| 2026-08-15 | **修訂第 6 節的 no-op 條文**（就地改寫，原文以刪除線保留）。原文要求「已經是目標狀態」回 typed `changed:false`；段落格式的五個動作**做不到而且刻意不做**——finding 022 證明前置狀態來自一份會說謊的快取，路線 C 因此不讀它，`changed` 一律 `null`，改以 `verified-format-readback` 這個驗過的後置條件代替。**這不是新決定**，出貨 artifact `572035ac…` 從 E2-B 起就是這樣；本次是把已經發生的事寫回上位規格。起因是 E2-C 草擬時的對抗性審查點出：下位規格不能靠繼承悄悄改寫上位規格的不可退讓條件，而在此之前這裡沒有任何條文說過話。**十個繼承動作不受影響**（放寬是逐動作的）。 |
 | 2026-08-08 | 更正。更正 Worker generation 上限的**語意**：規格原本寫「每頁」，但產品唯一實作的是每個 `EditorSession` 的崩潰／boundary 回復次數（`maxWorkerGenerations`，預設 3）。**產品維持 3，「每頁」承諾撤除**（無實作，且 finding 014 撤回後無已量測理由）。條文與註記已就地修訂；未動任何閘門，判定不變。見 finding 026。 |

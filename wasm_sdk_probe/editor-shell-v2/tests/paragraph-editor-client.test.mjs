@@ -116,6 +116,40 @@ test("failure disposition turns on whether anything was dispatched", () => {
                "unknown-rollback");
 });
 
+test("a failure that never reached the engine does not roll the document back",
+     async () => {
+       // SPEC E2-C 2.5.  Fail-closed is for "we do not know whether it was
+       // dispatched".  These three are known: they are raised before the
+       // request is accepted, so there is nothing to roll back, and rolling
+       // back would discard everything since the last checkpoint because a
+       // caller passed a bad argument.
+       for (const code of ["INVALID_ARGUMENT", "EDITOR_ACTION_UNSUPPORTED",
+                           "UNSUPPORTED_OPERATION"]) {
+         assert.equal(formatFailureDisposition({ code }), "refused-no-mutation",
+                      `${code} must not be treated as possibly-dispatched`);
+       }
+       // And the errors the client itself throws must classify the same way --
+       // testing the constant list alone would pass even if the client raised
+       // something else entirely.
+       const { client } = fixture();
+       for (const call of [() => client.setList("bulleted"),
+                           () => client.action("set-underline"),
+                           () => client.action("set-list-none",
+                                               { enabled: true })]) {
+         const error = await call().then(() => null, (e) => e);
+         assert.ok(error, "the call was expected to fail");
+         assert.equal(formatFailureDisposition(error), "refused-no-mutation");
+       }
+     });
+
+test("a barrier saying it was dispatched still wins over the code", () => {
+  // The code list is a fallback for errors with no barrier, not an override.
+  assert.equal(
+    formatFailureDisposition({ code: "INVALID_ARGUMENT",
+                               details: { formatBarrier: { dispatched: true } } }),
+    "dispatched-rollback");
+});
+
 test("setList and setParagraphStyle reject anything outside the closed set", async () => {
   const { client } = fixture();
   await assert.rejects(() => client.setList("bulleted"), (e) => e.code === "INVALID_ARGUMENT");
