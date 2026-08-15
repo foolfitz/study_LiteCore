@@ -346,6 +346,62 @@ A1–A5、G1、G2 每一臂在派送**之前**必須全部成立，否則該 run
     沒有清單／段落的方法（`editor-session.js:426`），
     且固定實例化只接受 v1 的 `NarrowEditorClient`（`:125`）。
 
+### 5.3 第 12 項的決定：**派送後失敗要分三類，不是兩類**（2026-08-15 提案）
+
+第 12 項必須和跨段處置**同時**定案，否則就是第二次 relink。以下是提案，
+**尚未經對抗性審查**。
+
+#### 先更正覆核報告裡的兩處不精確
+
+- `RECOVERY_ERRORS` 有**六個**成員（`TIMEOUT`／`WORKER_CRASHED`／
+  `WORKER_RESTARTED`／`STALE_DOCUMENT`／`MUTATION_OUTCOME_UNKNOWN`／
+  `EDITOR_RESULT_INVALID`，`editor-session.js:15`），不是一個。
+- barrier 的**十個**失敗點裡有**八個**發的是 `MUTATION_OUTCOME_UNKNOWN`
+  ——**那個碼本來就在 `RECOVERY_ERRORS` 裡**。所以缺口比報告寫的小得多，
+  真正沒被涵蓋的只有兩個碼。
+
+#### 沒被涵蓋的那兩個，而且它們不是同一類
+
+| 碼 | shape | 行 | 派送後文件的狀態 |
+|---|---|---|---|
+| `EDITOR_FORMAT_POSTCONDITION_FAILED` | `postcondition-not-met` | `:3338` | 讀回顯示**沒有**到達目標狀態——可能沒變、可能變了一半 |
+| `EDITOR_SELECTION_NOT_RESTORED` | `selection-not-restored` | `:3349` | **後置條件已經通過**（`:3336` 的檢查先跑），文件**已經到達目標**，錯的只有選取沒還原 |
+
+**第二個是這次讀出來的重點**：它在 `formatBarrierReadbackSatisfied()` 通過
+**之後**才可能發生，程式自己的註解也寫著「the mutation happened and the
+evidence says so」。**那不是「結果未知」，那是「結果已驗證、但旁狀態不對」。**
+把它和 postcondition 失敗歸成同一類會讓 host 對一份**內容正確**的文件做
+recovery——那是白付代價。
+
+#### 提案：三類，各有自己的 revision／dirty／queue 語意
+
+| 類 | 意思 | revision | dirty | queue |
+|---|---|---|---|---|
+| **A 派送前拒絕** | 零 mutation | **不前進** | 不設 | 不擋 |
+| **B 已派送、結果未驗證** | 可能變了 | **前進** | **設** | **擋（recoverable-error）**，host 提示 undo |
+| **C 已派送且已驗證、旁狀態未還原** | 內容正確，選取不是呼叫端留下的那個 | **前進** | **設** | **不擋**，但要明白告訴呼叫端選取不是它的 |
+
+**B 為什麼要前進 revision**：revision 的工作是辨識文件狀態。文件可能變了而
+revision 沒動，等於對下一個 mutation 說「上次之後什麼都沒發生」——
+而 `requireRevision`（`:1738`）只比對相等，**它會放行**，於是後續操作建立在
+一個假前提上。前進之後 host 手上的 expectedRevision 變成過期，
+下一個 mutation 得到 stale revision——**fail-closed，這是對的方向**。
+
+**現況與提案的差距**：現在**所有**失敗都不前進 revision（`failFormatBarrier`
+`:1236` 沒有 `advanceRevision()`），而 host 只在成功分支蓋 dirty 與 content
+stamp（`editor-session.js:249`–`259`）。所以今天 `selection-not-restored` 之後：
+**文件已經改了、host 認為它是乾淨的、revision 守衛會放行下一個 mutation。**
+
+> 這條路是 `OXSDK_E2_FORMAT_BARRIER` 才編進去的，**不在出貨的 v1 裡**，
+> 所以這是 E2-B 的設計項目，不是既有缺陷。
+
+#### 這個提案要自己的一輪
+
+三類各要一個能製造出來的紅：A 用跨段（B' 的派送前路由）、
+B 用註腳段落（`footnote-apparatus-readback`，已知可製造）、
+C 目前**沒有已知的製造方法**——**那是這個提案最弱的一格**，
+在找到之前 C 的語意是推理不是量測。
+
 ### 5.2 唯一一次 relink 要帶什麼進去
 
 finding 042：改 `Makefile` 會重連結。所以下列**必須同一次做完**，
