@@ -38,7 +38,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from validate_e1_c import sha256, shell_bundle_digest  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
-MANIFEST = Path("e2/editor-shell-v2-bundle-v1.json")
+# v1 is ROUND ONE's record and is frozen: `e2/validation-matrix-v1.json` names
+# its digest, and round one's evidence can only be revalidated against the shell
+# it actually ran on.  A legitimate shell change therefore writes a NEW manifest
+# rather than regenerating that one -- the same rule the artifacts follow.
+FROZEN_MANIFEST = Path("e2/editor-shell-v2-bundle-v1.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v2.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
@@ -176,6 +181,9 @@ def problems(project: Path, state: dict[str, Any],
 
 def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--manifest", type=Path, default=MANIFEST,
+                        help="which bundle manifest to check or write; the "
+                             "default is round two's, and round one's is frozen")
     parser.add_argument("--write", action="store_true",
                         help="write the manifest; the diff is printed either way")
     parser.add_argument("--exclude", action="append", default=[],
@@ -186,7 +194,7 @@ def main() -> int:
     args = parser.parse_args()
 
     state = compute(PROJECT)
-    manifest_path = PROJECT / MANIFEST
+    manifest_path = PROJECT / args.manifest
     manifest = (json.loads(manifest_path.read_text(encoding="utf-8"))
                 if manifest_path.is_file() else None)
 
@@ -197,7 +205,7 @@ def main() -> int:
 
     found = problems(PROJECT, state, manifest if not args.write else None)
     report = {
-        "manifest": str(MANIFEST),
+        "manifest": str(args.manifest),
         "included": state["included"],
         "excluded": [item["path"] for item in excluded],
         "bundleSha256": state["digest"],

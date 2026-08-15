@@ -88,6 +88,26 @@ class TestShellBundle(unittest.TestCase):
         second = bundle.shell_bundle_digest({"b.js": "1" * 64})
         self.assertNotEqual(first, second)
 
+    def test_round_ones_manifest_is_frozen(self) -> None:
+        # Round one's bundle is a historical record: e2/validation-matrix-v1.json
+        # names its digest, and round one's evidence can only be revalidated
+        # against the shell it actually ran on.  A legitimate shell change
+        # writes a NEW manifest; regenerating this one in place would leave the
+        # old evidence present but unverifiable, which is finding 027's shape
+        # applied to the shell.
+        frozen = json.loads(
+            (PROJECT / bundle.FROZEN_MANIFEST).read_text(encoding="utf-8"))
+        matrix = json.loads(
+            (PROJECT / "e2" / "validation-matrix-v1.json").read_text(encoding="utf-8"))
+        self.assertEqual(frozen["bundleSha256"],
+                         matrix["baseline"]["shellBundleSha256"],
+                         "round one's matrix and its bundle have come apart")
+        self.assertNotEqual(frozen["bundleSha256"],
+                            bundle.compute(PROJECT)["digest"],
+                            "if these are equal the shell has not changed and "
+                            "this test is not testing anything -- delete it "
+                            "rather than leaving a check that cannot fail")
+
     def test_the_real_manifest_matches_the_real_tree(self) -> None:
         manifest_path = PROJECT / bundle.MANIFEST
         self.assertTrue(manifest_path.is_file(), "the bundle has not been written")
