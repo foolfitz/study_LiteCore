@@ -330,3 +330,74 @@ Also recorded, not predicted: the A2 body shows text wrapped in `<font>` and
 `<span>`, so **extraction must concatenate across inline markup**. Whether that
 round-trips genuine text byte-exactly is a separate check and is not claimed
 here.
+
+---
+
+# Addendum, round 5: the misfire control
+
+**Written and committed before the fixture and the probe change.**
+
+This is the adjudicator's remaining flip condition: the gate must **pass** on
+text that would trip a naive implementation. A gate that only ever fires red is
+as useless as one that only ever fires green.
+
+## What is actually required, stated precisely
+
+The gate compares **pre-dispatch html text against post-dispatch html text**.
+It does **not** compare html text against the document's characters. So what has
+to hold is that the html extraction is **stable between the two reads** — not
+that it inverts back to the authored bytes.
+
+That is weaker than "byte-exact round-trip of genuine text", which is how I
+phrased it when I sent the question. Both are worth recording, and only the
+first is load-bearing:
+
+- **stability** (load-bearing): `blocks(htmlBefore) == blocks(htmlAfter)`
+- **fidelity** (recorded, not required): does the extracted text equal the
+  paragraph's authored text?
+
+Escaping does not threaten stability on its own: if `&` reads back as `&amp;` it
+does so on both sides. What could threaten it is escaping that differs **by
+context** — a `<p>` at body level versus the same `<p>` inside `<li>` — which is
+exactly what the dispatch changes.
+
+## The fixture
+
+`dist/e2b-fixtures/outline-prose.odt`, four paragraphs, chosen so that a naive
+implementation fails:
+
+1. `E2B-OUT-HEAD marker`
+2. four leading spaces (`text:s`) then `1. this line already looks numbered` —
+   **the shape a decoration-stripping gate would eat**
+3. `Ampersand & less-than < quote " and 12. mid-line` — entity-prone, plus an
+   outline-looking run that is not at the start
+4. `E2B-OUT-TAIL marker`
+
+Paragraphs 2 and 3 are the crossing range; `.uno:DefaultNumbering` is dispatched
+on them, so the serialiser's own numbering coexists with text that looks like
+numbering.
+
+## Prediction
+
+**The gate passes: per-block text identical before and after, 3/3.**
+
+*Basis.* Round 4 established that the number lives in `<ol>` and the text is left
+alone, and the html gate does no stripping at all, so there is nothing that
+could eat paragraph 2's leading `1.`. Escaping applies to both reads.
+
+*How it could be wrong.* `text:s` may serialise as `&nbsp;` at body level and as
+plain spaces inside `<li>`, or be dropped in one context — a context-dependent
+difference, which is the one thing that breaks stability.
+
+**Fidelity is not predicted.** Whether the extracted text equals the authored
+characters (entities unresolved, leading spaces preserved) is recorded as a
+measurement. If extraction turns out not to be faithful, that is a note for
+whoever implements the gate, not a failure of it.
+
+## Consequences
+
+| reading | consequence |
+|---|---|
+| per-block text identical 3/3 | flip condition 2 does not fire; the html gate is closed on both directions |
+| identical on some rounds only | unstable, not citable, re-run |
+| differs | **the gate misfires on ordinary prose → A** |
