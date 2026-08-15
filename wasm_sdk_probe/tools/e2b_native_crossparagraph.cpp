@@ -300,7 +300,11 @@ void runArm(LibreOfficeKit *kit, const char *url, const Arm &arm, int round,
             << jsonEscape(plainBefore.c_str()) << "\"}"
             << ",\"check1\":{\"htmlBytes\":" << html.size()
             << ",\"htmlMs\":" << htmlMs << ",\"blocks\":" << blocks.blocks
-            << ",\"items\":" << blocks.items << '}';
+            << ",\"items\":" << blocks.items
+            // Round 4: the counts were never enough.  The adjudicated identity
+            // gate runs on text extracted FROM this markup, so the markup
+            // itself is the evidence and a count of it is not.
+            << ",\"html\":\"" << jsonEscape(html.c_str()) << "\"}";
 
   // CHECK 2.  Nothing between the dispatch and the readback collapses or
   // re-selects anything: that is the whole point.
@@ -321,7 +325,8 @@ void runArm(LibreOfficeKit *kit, const char *url, const Arm &arm, int round,
             << (plainAfter == plainBefore ? "true" : "false")
             << ",\"survived\":" << (survived ? "true" : "false")
             << ",\"blocks\":" << blocksAfter.blocks
-            << ",\"items\":" << blocksAfter.items << '}';
+            << ",\"items\":" << blocksAfter.items
+            << ",\"html\":\"" << jsonEscape(htmlAfter.c_str()) << "\"}";
 
   const bool savedAfter = saveAs(document, stem + "-after.odt");
 
