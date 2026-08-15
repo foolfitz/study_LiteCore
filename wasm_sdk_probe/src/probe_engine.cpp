@@ -3806,6 +3806,45 @@ void handleEditorSelect(const Command &command) {
     gState.document->pClass->setTextSelection(
         gState.document, LOK_SETTEXTSELECTION_RESET, command.values[1],
         command.values[2]);
+    // The START is a workaround for a core defect, not part of the protocol.
+    //
+    // RESET followed by END is the documented way to build a selection, and it
+    // is what core's own test asserts:
+    // sw/qa/extras/tiledrendering/tiledrendering.cxx:151, "test that
+    // LOK_SETTEXTSELECTION_RESET + LOK_SETTEXTSELECTION_END can be used to
+    // create a selection".  So the two-call form is not a misuse.
+    //
+    // It stops working after .uno:SelectText.  FN_SELECT_PARA
+    // (sw/source/uibase/shells/textsh1.cxx:1975) ends in EndPara(true), which
+    // reaches SwWrtShell::SttSelect() through MoveCursor(true) and sets
+    // m_bInSelect -- and nothing on that path ever calls EndSelect().  A RESET
+    // does not clear it either: SwEditWin::SetCursorTwipPosition takes the
+    // bClearMark branch and skips both SttSelect and EndSelect
+    // (sw/source/uibase/docvw/edtwin.cxx:7102).  The caller's END then calls
+    // SttSelect(), returns early on `if (m_bInSelect)` (select.cxx:409), and
+    // SetMark() never runs.  No mark, no selection, and no callback -- which is
+    // the whole of finding 039's "the discovery selection path completes at
+    // most once" and of the E2-A narrowing 4 that blocks E2-B.
+    //
+    // The START rescues it because EndSelect() at the end of
+    // SetCursorTwipPosition is called on bCreateSelection rather than on
+    // whether SttSelect() did anything (edtwin.cxx:7121), so this call clears
+    // the flag the failed selection would otherwise have burned.
+    //
+    // Measured natively, four rounds, findings/evidence/sdk-e2/discovery/
+    // 049-selection-after-format/: the two-call form selects nothing after
+    // .uno:SelectText in every run, the three-call form selects the same
+    // characters whether or not the flag is stuck, and it anchors at the START
+    // position rather than the RESET one (arms AG/AH/AI, and AJ/AK for a range
+    // running right to left).  A markless RESET at the same coordinate does not
+    // rescue it (arm AF), so the rescue is EndSelect and not a plain SetCursor.
+    //
+    // Remove this when core pairs FN_SELECT_PARA's SttSelect with an EndSelect.
+    // Until then the extra call is free: with the flag clear it produces the
+    // identical selection, measured.
+    gState.document->pClass->setTextSelection(
+        gState.document, LOK_SETTEXTSELECTION_START, command.values[1],
+        command.values[2]);
     gState.document->pClass->setTextSelection(
         gState.document, LOK_SETTEXTSELECTION_END, command.values[3],
         command.values[4]);
