@@ -53,11 +53,33 @@ P2 量到：同一顆 artifact、同一份文件、同一組座標，
 | **B** `format-only` | 只派送 `.uno:DefaultBullet`（barrier 用的同一組參數） | **選得到文字**——格式指令本身不動 `m_bInSelect` |
 | **C** `select-text-only` | 只派送 `.uno:SelectText`，然後 `RESET` 回原位 | **選不到（空字串）** |
 | **D** `full-barrier` | `.uno:DefaultBullet` → `.uno:SelectText` → `RESET` → `getTextSelection(html)` → `RESET`，也就是 barrier 的完整形狀 | **選不到（空字串）** |
-| **E** `full-barrier + escape` | 同 D，最後多派送一次 `.uno:Escape`（`SID_ESCAPE` → `EnterStdMode`） | **選得到文字** |
+| **E** `full-barrier + escape` | 同 D，最後多派送一次 `.uno:Escape`（`SID_ESCAPE` → `EnterStdMode`） | ~~**選得到文字**~~ → **改判為「選不到」，見下面的修訂** |
+| **F** `full-barrier + go-left` | 同 D，最後多派送一次 `.uno:GoLeft` | **選得到文字**（本次新增） |
+
+### 修訂（2026-08-15，**仍在任何一次執行之前**）
+
+上面那一列 `commit a272f74` 寫的是「臂 E 選得到」，理由是 `.uno:Escape` 會走到
+`EnterStdMode()`。**那個前提在寫探針時被讀壞了，所以在跑之前先改。**
+
+`FN_ESCAPE`（`sw/sdi/swriter.sdi:1181`）的處理在
+`sw/source/uibase/uiview/view2.cxx:1220`，而 `EnterStdMode()` 只在
+**`else if (m_pWrtShell->HasSelection() || IsDrawMode())`**（`:1232`）這一支裡被呼叫（`:1251`）。
+barrier 還原完剛好**沒有**選取——那正是還原的目的——所以它會一路掉到最後一支去切換
+`SID_WIN_FULLSCREEN`，`m_bInSelect` 原封不動。
+
+**臂 E 的新預測：選不到，與 D 相同。** 保留這一臂不刪，因為它是原判斷的驗證。
+
+新增的 **臂 F** 用 `.uno:GoLeft`（`sw/sdi/swriter.sdi:1467` → `FN_CHAR_LEFT`
+→ `SwWrtShell::Left(…, bSelect=false, …)` → `ShellMoveCursor(this, false)`
+→ `MoveCursor(false)` → **`EndSelect()`**，`move.cxx:87`）。
+它移動一格游標，但 barrier 的還原本來就會把游標放回去，所以副作用可以吸收。
+
+> 這條修訂本身是**第二次**同一形狀的錯：原始碼看起來會走到某個分支，不等於它會走到。
+> 上一輪四句被打掉的話也是這樣來的。差別只在這次是在執行之前自己抓到的。
 
 ## 結局，以及各自的處置
 
-**結局 A（預測命中）：C、D 為空，A、B、E 有文字。**
+**結局 A（預測命中）：C、D、E 為空，A、B、F 有文字。**
 → 機制成立：起因是 `.uno:SelectText` 留下的 `m_bInSelect`，**與格式指令無關**
 （B 通過就是這句話的憑據）。處置：barrier 收尾補一次 `EnterStdMode` 等效的派送，
 重連結**組合** artifact（`e2-combination`，**不是**任何凍結的），重測 P2 那三臂。
@@ -71,10 +93,12 @@ P2 量到：同一顆 artifact、同一份文件、同一組座標，
 → 格式指令是必要的共同條件，我的推論不完整。處置：把 D 再拆成
 「格式 → SelectText → 選取」與「SelectText → 格式 → 選取」兩臂，先分清楚順序。
 
-**結局 D：E 也選不到。**
-→ `.uno:Escape` 不是可用的解法。處置：改試直接可達的其他路徑；
-若我方無路可走，這件事就只剩上游能修，**縮限 4 變成永久性的**，
-E2-B 的範圍要照這個重寫。
+**結局 D：F 也選不到。**
+→ 連 `MoveCursor(false)` 都關不掉它，我對 `m_bInSelect` 的整條推論就有問題
+（或者旗標不是唯一的必要條件）。處置：改用直接讀狀態的方式重問一次
+（原生可以在每一步之間呼叫 `getSelectionType()`／看 `HasSelection`），
+**先確定壞在哪一步再想修法**；若我方確實無路可走，這件事就只剩上游能修，
+**縮限 4 變成永久性的**，E2-B 的範圍要照這個重寫。
 
 **結局 E：A 或 B 為空。**
 → 探針自己就選不到，這一輪什麼都沒證明。處置：先修探針，
