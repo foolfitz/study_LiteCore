@@ -13,16 +13,22 @@ Summary:        Emscripten: Scheduler::IdlesLockGuard deadlocks permanently when
                 only set in a loop that a system-event-loop build never enters
 ================================================================
 
-重複單查詢（2026-08-14，Bugzilla REST API quicksearch）
-------------------------------------------------------
-summary:IdlesLockGuard        → 0
-summary:m_inExecuteCondtion   → 0
-summary:DoExecute             → 0
-summary:"system event loop"   → 0
-summary:emscripten + hang     → 0
-summary:emscripten + deadlock → 0
-summary:wasm + freeze         → 0
-未找到重複單。（界線：只查 summary，不是窮舉。）
+重複單查詢（2026-08-15 重查，Bugzilla REST API quicksearch）
+-----------------------------------------------------------
+summary:IdlesLockGuard          → 0
+summary:m_inExecuteCondtion     → 0
+summary:DoExecute               → 0
+summary:"system event loop"     → 0
+summary:emscripten + hang       → 0
+summary:emscripten + deadlock   → 0
+summary:wasm + freeze           → 0
+
+本次加查（08-14 那輪沒有的，涵蓋全狀態與內文而不只 summary）：
+ALL content:IdlesLockGuard      → 0
+ALL content:m_inExecuteCondtion → 0
+ALL summary:emscripten + thread → 0
+
+未找到重複單。（界線：十組查詢，不是窮舉；`content:` 兩組已涵蓋內文與已關閉的單。）
 
 
 Description
@@ -284,4 +290,11 @@ broken is that on this platform the condition it waits for cannot be set.
 - 037 那份草稿要加一句指向本篇（症狀 (2) 的根因已找到）。
 - 038 的堆疊已於 2026-08-15 取得並併入本篇（入口 doc_getSelectionTypeAndText）。
   原本〈What we are NOT claiming〉裡那一段「038 沒有堆疊」已刪，改成
-  doc_getSelectionType 未量。**重複單查詢的日期仍是 2026-08-14，送出前要重查一次。**
+  doc_getSelectionType 未量。
+- 重複單查詢已於 2026-08-15 重查，十組全零（含兩組 `content:` 全文與全狀態查詢，
+  那是 08-14 那輪沒有的）。**送出前剩下的三件事**：
+    (1) Component 欄位要確認——缺陷在 vcl/scheduler，Writer 只是踩到；
+    (2) 補一支「非主執行緒 doc_destroy」的最小重現當附件；
+    (3) 送出本身要使用者按，這是對外動作。
+  **時程**：QA-GUIDE 記的 26.8 正式版是 2026 年 8 月底，八月中之前送還有機會進正式版，
+  之後只能進 26.8.1。今天是 08-15，就在那條線上。
