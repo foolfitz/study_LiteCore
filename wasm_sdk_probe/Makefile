@@ -1826,7 +1826,12 @@ test-e2-b-static:
 	node --check editor-shell-v2/paragraph-editor-client.js
 	# E1-C's shell bundle must still bind: editor-shell/*.js is hash-registered
 	# and editor-shell-v2/ exists precisely so v2 never touches it.
-	python3 tools/validate_e1_c.py > /dev/null
+	#
+	# NOT validate_e1_c.py: that one writes its findings back into
+	# findings/evidence/, so calling it here would rewrite verdict-bound
+	# evidence as a side effect of a syntax check.  Re-deriving bound evidence
+	# is a deliberate act with its own note, never a thing `make` does.
+	python3 tools/check_e1_c_bundle_intact.py > /dev/null
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
 # and therefore rebuilds the frozen e1-editor-v1 profile; this target must stay
