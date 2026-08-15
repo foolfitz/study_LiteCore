@@ -615,6 +615,12 @@ FormatReadback parseFormatReadback(const std::string &html) {
 // because that barrier selects exactly one paragraph and would report success
 // for a mutation covering two.
 enum class FormatBarrierRoute {
+  // SPEC E2-C 9.5.4: the FIRST member is what the struct is initialised to, and
+  // the type guard returns before the route is ever assigned -- so every
+  // refusal on that path used to report `route: "collapsed"`, which is a
+  // default wearing an observation's clothes.  `Unclassified` first means the
+  // record says "nobody classified this" unless somebody did.
+  Unclassified,
   Collapsed,
   RangeSingle,
   RangeCross,
@@ -674,7 +680,7 @@ struct FormatStateBarrier {
   // cross route verifies against: per-block TEXT, because the plain-text
   // readback injects list decoration across a paragraph boundary and would
   // therefore differ on every SUCCESSFUL list dispatch.
-  FormatBarrierRoute route = FormatBarrierRoute::Collapsed;
+  FormatBarrierRoute route = FormatBarrierRoute::Unclassified;
   std::uint32_t preBlockCount = 0;
   std::vector<std::string> preBlockTexts;
   std::uint32_t postBlockCount = 0;
@@ -1201,11 +1207,12 @@ void appendFormatBarrierDetails(std::ostringstream &json,
   // and "completion cannot be attributed to a single request" is a stop
   // condition -- so the routing has to be in the record, not inferred by the
   // harness from coordinates it did not route on.
-  json << "],\"route\":\""
-       << (barrier.route == FormatBarrierRoute::Collapsed      ? "collapsed"
-           : barrier.route == FormatBarrierRoute::RangeSingle  ? "range-single"
-                                                               : "range-cross")
-       << "\",\"preBlocks\":" << barrier.preBlockCount
+  json << "],\"route\":"
+       << (barrier.route == FormatBarrierRoute::Unclassified   ? "null"
+           : barrier.route == FormatBarrierRoute::Collapsed    ? "\"collapsed\""
+           : barrier.route == FormatBarrierRoute::RangeSingle  ? "\"range-single\""
+                                                               : "\"range-cross\"")
+       << ",\"preBlocks\":" << barrier.preBlockCount
        << ",\"postBlocks\":" << barrier.postBlockCount
        << ",\"crossChecked\":"
        << (barrier.crossChecked ? "true" : "false")
@@ -3004,9 +3011,27 @@ void emitEditorActionResult(const Command &command, const char *action,
   emitJson(json.str());
 }
 
+// Finding 045: the inline format slots are declared `Toggle = TRUE`, and core
+// takes the toggle branch only when the argument set is EMPTY
+// (sfx2/source/control/unoctitm.cxx:733-737, "execute using bindings, enables
+// support for toggle/enum etc.").  With a single argument named for the slot,
+// TransformParameters hands it to PutValue(value, 0), and MemberId 0 is the
+// boolean accessor for all four items -- so the command becomes a setter.
+//
+// Measured natively before this was written, on core 671c848b: parameter false
+// at a caret in plain text produces `fo:font-weight="normal"`, parameter false
+// over an already-bold selection REMOVES the property, and the bare form
+// toggles relative to the state at the caret.  Evidence and the seven
+// registered predictions: findings/evidence/045/native/.
+std::string inlineFormatArgument(const char *slot, bool enabled) {
+  return std::string("{\"") + slot + "\":{\"type\":\"boolean\",\"value\":"
+         + (enabled ? "true" : "false") + "}}";
+}
+
 void startEditorUnoAction(const Command &command, const char *action,
                           const char *unoCommand,
-                          bool semanticReadback = false) {
+                          bool semanticReadback = false,
+                          const std::string &arguments = {}) {
   if (gUnoRequestId.load(std::memory_order_acquire) != 0) {
     emitCommandError(command, "editor-action", "BUSY",
                      "another UNO mutation is still in flight");
@@ -3033,7 +3058,7 @@ void startEditorUnoAction(const Command &command, const char *action,
   gEditorUnoBeforeSequence = gEditorState.sourceSequence;
   gEditorUnoOption = command.values[2] != 0;
   gEditorUnoSemanticReadback = semanticReadback;
-  startUnoMutation(command, "editor-action-completed", unoCommand, {});
+  startUnoMutation(command, "editor-action-completed", unoCommand, arguments);
 }
 
 #ifdef OXSDK_E2_FORMAT_BARRIER
@@ -3853,6 +3878,34 @@ void handleEditorAction(const Command &command) {
     startFormatBarrierAction(command, action, name);
     return;
   }
+
+  // SPEC E2-C 2.5: the gesture mask has to bind the ten inherited actions too.
+  //
+  // Until now `editorGesturePermitted` was consulted in exactly one place --
+  // routeFormatBarrier(), which only the five paragraph actions reach -- so the
+  // manifest could declare `gestures: ["collapsed"]` for these ten and nothing
+  // enforced it.  A declaration nobody executes is the same defect as an action
+  // nobody can reach.
+  //
+  // Classified WITHOUT a readback, on purpose.  An empty rectangle set is a
+  // collapsed caret; a non-empty one is a range.  Telling range-single from
+  // range-cross would need the html read, and adding that call site here is the
+  // wedge risk findings 037/038 describe -- so a range is checked against both
+  // range bits and a manifest that wants the finer distinction for these ten
+  // has to wait for a build that can afford the read.
+  {
+    const bool collapsed = gEditorState.selectionRectangles.empty();
+    const std::uint32_t gesture =
+        collapsed ? kGestureCollapsed
+                  : (kGestureRangeSingle | kGestureRangeCross);
+    if (!editorGesturePermitted(action, gesture)) {
+      emitCommandError(
+          command, "editor-action", "EDITOR_FORMAT_GESTURE_UNSUPPORTED",
+          "this action is not offered for this kind of selection in this "
+          "profile, so nothing was dispatched and the document is unchanged");
+      return;
+    }
+  }
 #endif
 
   switch (action) {
@@ -3895,20 +3948,32 @@ void handleEditorAction(const Command &command) {
     startEditorUnoAction(command, name, ".uno:Redo");
     return;
   case OXSDK_EDITOR_SET_BOLD:
-    startEditorUnoAction(command, name, ".uno:Bold");
+    // finding 045: the value has to reach core, or the command toggles.
+    startEditorUnoAction(command, name, ".uno:Bold", false,
+                         inlineFormatArgument("Bold",
+                                              command.values[2] != 0));
     return;
   case OXSDK_EDITOR_SET_ITALIC:
-    startEditorUnoAction(command, name, ".uno:Italic");
+    // finding 045: the value has to reach core, or the command toggles.
+    startEditorUnoAction(command, name, ".uno:Italic", false,
+                         inlineFormatArgument("Italic",
+                                              command.values[2] != 0));
     return;
   // Same shape as bold and italic: an explicit boolean, dispatched
   // unconditionally, judged by the saved document.  Neither command appears in
   // core's GetKitUnoCommandList(), so no format-state cache is kept for them --
   // which suits product route C, where the precondition is never read anyway.
   case OXSDK_EDITOR_SET_UNDERLINE:
-    startEditorUnoAction(command, name, ".uno:Underline");
+    // finding 045: the value has to reach core, or the command toggles.
+    startEditorUnoAction(command, name, ".uno:Underline", false,
+                         inlineFormatArgument("Underline",
+                                              command.values[2] != 0));
     return;
   case OXSDK_EDITOR_SET_STRIKETHROUGH:
-    startEditorUnoAction(command, name, ".uno:Strikeout");
+    // finding 045: the value has to reach core, or the command toggles.
+    startEditorUnoAction(command, name, ".uno:Strikeout", false,
+                         inlineFormatArgument("Strikeout",
+                                              command.values[2] != 0));
     return;
   case OXSDK_EDITOR_SET_PARAGRAPH_BODY:
     startEditorUnoAction(command, name, ".uno:TextBodyParaStyle");

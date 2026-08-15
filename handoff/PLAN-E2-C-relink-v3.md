@@ -22,7 +22,13 @@
 - [ ] 核對四顆凍結 artifact 的 hash 未變：`835b453d`／`679def61`／`c89f069e`／`940b7723`。
 - [ ] 記下 `e2-editor-v2 = 572035ac…`：E2-B 的判定與 E2-C 第一輪的全部證據綁在它上面，
       **這次連結之後它們仍然為真、但不再描述產品**（finding 027 的形狀）。
-- [ ] `dist/profiles/e2-editor-v2/` 與 `build/e2/editor-v2/` **不得被這次連結碰到**。
+- [x] `dist/profiles/e2-editor-v2/` **未被碰到**（連結後仍是 `572035ac…`，與 archive 相同）。
+- [ ] ~~`build/e2/editor-v2/` 不得被碰到~~ —— **我違反了這一條**：只編 object 的檢查
+      直接跑了 `make build/e2/editor-v2/probe_engine.o`，把 v2 的 object 換成新原始碼
+      編出來的。**artifact 沒事**（編 object 不連結，`dist/` 逐位元不變、與 archive 相同），
+      守衛也仍然擋著 v2 的連結。但那個 build 目錄現在是混的：一個新 object ＋三個舊的。
+      **v3 用自己的 build 目錄，所以不受影響；記在這裡是因為「沒事」不等於「沒發生」。**
+      往後只編 object 的檢查要編到 scratch 目錄，不要編進任何 profile 的 build 目錄。
 
 ## P1 — 引擎與 Makefile：**唯一一次 relink**
 

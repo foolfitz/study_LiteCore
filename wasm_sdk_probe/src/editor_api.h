@@ -18,8 +18,16 @@ extern "C" {
  * allowlist, and an allowlist's version is an identity, not a range.  Range
  * semantics are what let E1-C extend v1 in place while the freeze test kept
  * pinning only eight of the ten actions.
+ *
+ * 3 as of 2026-08-15.  The action list is unchanged -- what changed is the
+ * SEMANTICS of one field: `enabled` on the four inline format actions is now
+ * sent to core instead of being stored and discarded (finding 045), so a
+ * client that asks for `false` gets "off" rather than a toggle.  A caller
+ * cannot tell those two builds apart by looking at the action list, which is
+ * exactly why the version has to move: an allowlist's version is an identity,
+ * and the identity now includes what the fields mean.
  */
-#define OXSDK_EDITOR_ABI_VERSION 2u
+#define OXSDK_EDITOR_ABI_VERSION 3u
 
 typedef enum oxsdk_editor_v1_action {
   OXSDK_EDITOR_V1_MOVE_CHARACTER_LEFT = 1,

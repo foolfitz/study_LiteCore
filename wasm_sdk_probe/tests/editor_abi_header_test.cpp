@@ -9,7 +9,10 @@
  * pins them.  Editing those to accommodate v2 would be the move this file
  * exists to prevent.
  */
-static_assert(OXSDK_EDITOR_ABI_VERSION == 2u);
+// 3 since 2026-08-15: the action list did not change, the meaning of
+// `enabled` did (finding 045).  Pinned here so the bump is a deliberate
+// edit in two places rather than a silent drift in one.
+static_assert(OXSDK_EDITOR_ABI_VERSION == 3u);
 static_assert(OXSDK_EDITOR_V1_MOVE_CHARACTER_LEFT == 1);
 static_assert(OXSDK_EDITOR_V1_MOVE_CHARACTER_RIGHT == 2);
 static_assert(OXSDK_EDITOR_V1_DELETE_BACKWARD == 3);
