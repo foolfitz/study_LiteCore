@@ -148,5 +148,9 @@ CPPUNIT_ASSERT_EQUAL(u"Aaa b"_ustr, pShellCursor->GetText());
   量到的是它的**外部後果**：哪些前置會壞、失敗的那一次會自我修復、
   以及兩個把替代解釋排除掉的對照。要直接量得寫成核心樹裡的 cppunit 測試並重編 `sw`。
 - **不宣稱其他呼叫 `SttSelect()` 而不配對的地方也存在。** 只掃過**我方引擎會派送的**指令。
-- **不宣稱出貨的 `e1-editor-v1`（`835b453d`）受影響**——它沒有編進 format barrier，
-  而其他二十個指令都不毒化，所以那條路上這個組合不存在。
+- **不宣稱出貨的 `e1-editor-v1`（`835b453d`）受影響**，而且這一句是查到編譯層的：
+  `kFormatBarrierSelectCommand = ".uno:SelectText"`（`probe_engine.cpp:753`）
+  整段包在 `#ifdef OXSDK_EDITOR_DISCOVERY` → `#ifdef OXSDK_E2_FORMAT_BARRIER` 裡（`:367` 起），
+  而出貨 profile 的編譯旗標是 `-DOXSDK_EDITOR_DISCOVERY -DOXSDK_FINDING_016_SELECTION_BARRIER`，
+  **沒有 `-DOXSDK_E2_FORMAT_BARRIER`**——那個字串根本沒編進去。
+  再加上其他二十個指令都不毒化，所以出貨路徑上這個組合不存在。
