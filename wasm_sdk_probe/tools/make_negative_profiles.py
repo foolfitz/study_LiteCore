@@ -46,9 +46,22 @@ def set_contract_version(manifest: dict, version: int) -> str:
     return f"editorContract.version is {version}"
 
 
+# The mismatch value has to be one the binary CANNOT report, and that is a
+# moving target: it was 3 while the binary reported 2, and the round-two binary
+# reports 3 (finding 045 moved the ABI version because `enabled` changed
+# meaning).  Leaving it at 3 would have turned this row into "the manifest
+# agrees with the binary", i.e. a negative row that tests nothing and passes.
+#
+# So the value is derived from the profile rather than written down, and the
+# caller has to say what the binary reports.
 def set_abi_version(manifest: dict, version: int) -> str:
     manifest["editorContract"]["abiVersion"] = version
-    return f"editorContract.abiVersion is {version} (the binary reports 2)"
+    return f"editorContract.abiVersion is {version}, which no binary reports"
+
+
+def mismatched_abi_version(manifest: dict) -> str:
+    declared = int(manifest["editorContract"].get("abiVersion") or 0)
+    return set_abi_version(manifest, declared + 1)
 
 
 def restrict_gestures(manifest: dict, action: str, gestures: list[str]) -> str:
@@ -64,7 +77,7 @@ VARIANTS = {
     "n1-action-withheld": lambda m: drop_action(m, "set-list-ordered"),
     "n2-capability-withheld": lambda m: drop_capability(m, "narrow-editor-v2"),
     "n3-contract-version-1": lambda m: set_contract_version(m, 1),
-    "n4-abi-version-mismatch": lambda m: set_abi_version(m, 3),
+    "n4-abi-version-mismatch": mismatched_abi_version,
     "n11-gesture-withheld": lambda m: restrict_gestures(
         m, "set-list-unordered", ["collapsed", "range-single"]),
 }

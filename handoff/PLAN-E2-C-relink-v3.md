@@ -193,9 +193,17 @@ version 2，而 `ParagraphEditorClient:64` 又自己再檢查一次。
 
 ### 因此，連結之前還要做的事（新的 P1 完成條件）
 
-1. 改規格（#5）——**沒有這一步，連結是違反自己寫的邊界**。
-2. 第一輪證據補記「跨段特徵量測其實沒跨段」（#10）。
-3. Makefile 的 v3 變體 ＋ `build_e2_c_profile.py`（abiVersion 3、兩筆 `limits`）。
-4. manifest sha256 進矩陣與 D0 證據（#9）。
-5. E2-B 重認證工具版本化，不匹配值改 4（#7）。
-6. **D2～D5 全部寫好並在 v2 上跑過**（#8）。
+1. ~~改規格（#5）~~ **已做**：`SPEC-E2-C` 第 1、3 節就地修訂，新增第 11 節
+   （第二輪的範圍與身分），並補 9.5.7。
+2. ~~第一輪證據補記「跨段特徵量測其實沒跨段」（#10）~~ **已做**（9.5.7 ＋ D1 的
+   evidence README）。
+3. ~~Makefile 的 v3 變體 ＋ `build_e2_c_profile.py`~~ **已做**：
+   `E2_C_BUILD`／`E2_C_DIST`、自己的 exports 與**從第一次連結就掛守衛**、
+   builder 產出 abiVersion 3 ＋ 五個段落動作補 `no-note-paragraphs`、
+   十個繼承動作維持 `collapsed`（現在引擎真的會執行它）。
+4. ~~E2-B negative 產生器的 ABI 不匹配值~~ **已做，而且改成用推導的**：
+   原本寫死 3，而 v3 的二進位檔就報 3——**那一列會變成「manifest 與二進位檔一致」，
+   一個什麼都不測而且會過的 negative row**。現在取 `declared + 1`。
+5. **manifest sha256 進矩陣與 D0 證據**（#9）——builder 已經會印出來，
+   還要進第二輪的矩陣 baseline 與判定器。
+6. **D2～D5 全部寫好並在 v2 上跑過**（#8）——最大的一件，還沒開始。

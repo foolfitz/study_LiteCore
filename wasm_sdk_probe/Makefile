@@ -56,6 +56,15 @@ E2_B_DIST := dist/profiles/e2-editor-v2
 E2_B_SOURCES := $(E1_B_SOURCES)
 E2_B_OBJECTS := $(patsubst src/%.cpp,$(E2_B_BUILD)/%.o,$(E2_B_SOURCES))
 
+# SPEC E2-C section 11: round two's artifact.  Its own build and dist
+# directories, because v2 must stay byte-identical -- the E2-B verdict and every
+# scrap of round-one evidence bind to it.  Same sources and same flags: what
+# differs is the engine change finding 045 required, which is in the source.
+E2_C_BUILD := build/e2/editor-v3
+E2_C_DIST := dist/profiles/e2-editor-v3
+E2_C_SOURCES := $(E2_B_SOURCES)
+E2_C_OBJECTS := $(patsubst src/%.cpp,$(E2_C_BUILD)/%.o,$(E2_C_SOURCES))
+
 # finding 022 verification build: same flags as e1-editor-v1, separate output.
 # The frozen e1-editor-v1 must not be rebuilt (SPEC E2-A section 3), so the fix
 # is verified on its own artifact and the frozen one keeps carrying the bug
@@ -940,6 +949,53 @@ $(E2_B_BUILD)/probe.js: $(E2_B_OBJECTS) $(E2_B_BUILD)/exports.txt \
 
 $(E2_B_BUILD)/probe.wasm: $(E2_B_BUILD)/probe.js
 	@test -s $@
+
+$(E2_C_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/format_readback_text.hpp Makefile | $(E2_C_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-c $< -o $@
+
+$(E2_C_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_C_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# Guarded from the FIRST link, same as v2 was: no v3 artifact ever appears by
+# accident, including the one that later gets bound to.
+$(E2_C_BUILD)/probe.js: $(E2_C_OBJECTS) $(E2_C_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the E2-C round-two product v3 artifact -- every link mints a new hash and SPEC E2-C section 11 binds five identities to one)
+	$(call link_r5_product,$(E2_C_OBJECTS),$(E2_C_BUILD)/exports.txt,$@)
+
+$(E2_C_BUILD)/probe.wasm: $(E2_C_BUILD)/probe.js
+	@test -s $@
+
+# The v3 product profile.  Same packaging as v2 -- the builder copies bytes, it
+# does not link -- with abiVersion 3 and the two `limits` debts SPEC E2-C 4.2
+# and 2.5 recorded as owed to this relink.
+$(E2_C_DIST)/sdk-manifest.json: $(E2_C_BUILD)/probe.js $(E2_C_BUILD)/probe.wasm \
+		$(E2_C_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_C_DIST)
+	python3 tools/build_e2_c_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_C_BUILD)/probe.js --wasm $(E2_C_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --exports $(E2_C_BUILD)/exports.txt \
+		--output $(E2_C_DIST)
+	@test -s $(E2_C_DIST)/probe.js
+	@test -s $(E2_C_DIST)/probe.wasm
+	@test -s $(E2_C_DIST)/sdk-worker.js
+
+$(E2_C_BUILD) $(E2_C_DIST):
+	mkdir -p $@
 
 # The v2 product profile.  --cross-paragraph selects disposition B' (dispatch
 # and verify every block); without it the same artifact ships disposition A
