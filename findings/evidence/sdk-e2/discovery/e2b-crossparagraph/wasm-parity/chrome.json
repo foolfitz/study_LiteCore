@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "release": "spec-e2b-v2-smoke",
+  "profile": "e2-editor-v2",
+  "fixture": "list-contexts.odt",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "steps": [
+    {
+      "step": "engine-up",
+      "profile": "e2-editor-v2",
+      "capabilities": [
+        "open-odt",
+        "rgba-tile",
+        "insert-text",
+        "save-odt",
+        "cancel-queued",
+        "search",
+        "selection-text",
+        "replace-selection",
+        "undo",
+        "comments",
+        "tracked-changes",
+        "provider-contract-1.0",
+        "provider-worker",
+        "validated-provider-operation",
+        "narrow-editor-v2",
+        "verified-selection-delete"
+      ],
+      "contractVersion": 2,
+      "abiVersion": 2,
+      "actionCount": 15,
+      "crossParagraphDisposition": "verify-every-block",
+      "wasmSha256": "572035accd0f2754"
+    },
+    {
+      "step": "opened",
+      "revision": 0
+    },
+    {
+      "step": "manifest-read-through-client",
+      "gestures": [
+        "collapsed",
+        "range-single",
+        "range-cross"
+      ],
+      "headingLimits": [
+        "heading-level-1-only",
+        "no-precondition-state"
+      ]
+    },
+    {
+      "step": "dispatched",
+      "action": "set-list-none",
+      "ok": true,
+      "beforeRevision": 0,
+      "revision": 1,
+      "changed": null,
+      "completion": "verified-format-readback",
+      "route": "collapsed",
+      "preBlocks": 0
+    },
+    {
+      "step": "dispatched",
+      "action": "set-list-unordered",
+      "ok": true,
+      "beforeRevision": 1,
+      "revision": 2,
+      "changed": null,
+      "completion": "verified-format-readback",
+      "route": "collapsed",
+      "preBlocks": 0
+    },
+    {
+      "step": "dispatched",
+      "action": "set-list-ordered",
+      "ok": true,
+      "beforeRevision": 2,
+      "revision": 3,
+      "changed": null,
+      "completion": "verified-format-readback",
+      "route": "collapsed",
+      "preBlocks": 0
+    },
+    {
+      "step": "dispatched",
+      "action": "set-paragraph-heading",
+      "ok": true,
+      "beforeRevision": 3,
+      "revision": 4,
+      "changed": null,
+      "completion": "verified-format-readback",
+      "route": "collapsed",
+      "preBlocks": 0
+    },
+    {
+      "step": "dispatched",
+      "action": "set-paragraph-body",
+      "ok": true,
+      "beforeRevision": 4,
+      "revision": 5,
+      "changed": null,
+      "completion": "verified-format-readback",
+      "route": "collapsed",
+      "preBlocks": 0
+    },
+    {
+      "step": "saved",
+      "bytes": 12348
+    },
+    {
+      "step": "range",
+      "probe": "range-single",
+      "ok": true,
+      "selectionText": "E1-LC-ISOLATED 前後都不是清單的段落",
+      "route": "range-single",
+      "preBlocks": 1,
+      "postBlocks": 0,
+      "crossIdentityHeld": false,
+      "crossStateHeld": false,
+      "completion": "verified-format-readback"
+    },
+    {
+      "step": "range",
+      "probe": "range-cross",
+      "ok": true,
+      "selectionText": "E1-MULTI-START alpha\n第二段中文 beta",
+      "route": "range-cross",
+      "preBlocks": 2,
+      "postBlocks": 2,
+      "crossIdentityHeld": true,
+      "crossStateHeld": true,
+      "completion": "verified-format-readback"
+    },
+    {
+      "complete": true
+    }
+  ],
+  "complete": true,
+  "error": null
+}
