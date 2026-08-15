@@ -104,3 +104,74 @@ profile**。
    fixture。** E1-C 9.1 量過四格：`footnote-no-frame-full` 是 8 ms 可用的，
    `note-full`（註腳裡有 as-char frame）會讓引擎停止回應。
    **拿錯 fixture 這一格不會失敗，會讓引擎不回應**，然後整輪什麼都證明不了。
+
+---
+
+## 第二段：對抗性審查（codex）把「進場工作」的規模改掉了
+
+規格 v1 寫完之後送 codex 做對抗性審查。回來 16 項，**全部處理過**：
+15 項改寫規格或程式碼，1 項判為可行但不採用並記下理由。
+
+**最重的三項是同一種錯：我把「有一個能送出動作的客戶端」當成了「產品修好了」。**
+
+1. **沒有任何產品頁面在用那個客戶端。** asset 目標沒複製它，而
+   `demo-structure` 只有五個段落動作、**而且沒有拖曳選取**
+   ——D5 的「真實指標拖曳」在產品頁面上根本做不到。
+2. **出貨的 `EditorSession` 在 v2 profile 上開不起來。** 它在
+   `_openFresh()` 建 v1 客戶端（`:125`）然後 `await this.editor.getState()`
+   （`:140`），v2 上那個客戶端拒絕，`open()` 直接失敗停在 `recoverable-error`。
+   `ParagraphEditorSession` 包著它、繞過 `_enqueue`，補不上。
+   **於是 D1／D2 承諾的 session、queue、checkpoint、rollback、三代上限
+   在 v2 上沒有任何實作。**
+3. **判定只綁三個雜湊**，而 E2-C 要證的東西有一半在殼層。
+   E1-C 早就學過要綁第四個（殼層 bundle `f9b1a52f…`）。
+
+其餘幾項也都是真的：`PARTIAL` 的定義會逼我去改凍結的 manifest；
+D3 原本在「沒有清單的段落」上驗清單動作；D1 用 typed completion 當判準，
+但四個 inline 格式回同一個 `uno-command-result`；D2 四個處置只寫了一格；
+D4 的「無連續成長」不可否證；沒有凍結矩陣。
+
+### 一個真缺陷，跟著審查掉出來
+
+`formatFailureDisposition()` 對沒有 barrier 欄位的錯誤一律回 `unknown-rollback`，
+而客戶端自己丟的 `INVALID_ARGUMENT` 沒有 barrier ——
+**「呼叫端打錯一個參數」的處置變成從 checkpoint 重開、丟掉自那之後的全部編輯。**
+
+fail closed 是對的，但它適用的是「不知道有沒有派送」。三個碼是知道的
+（客戶端的參數檢查與 worker 的兩道閘都在 `accept()` 之前 return，
+E2-B 9.10 在出貨 artifact 上量過 worker 那半）。已修，順序排在 barrier 之後。
+
+## 第三段：三件進場工作做完
+
+**2.3 的 session 接在唯一真正有差別的那個接縫上。** v1 與 v2 的差別只有一處：
+建哪一個客戶端類別。之後一切都走 `{document, editor, scheduler}` 這個 runtime
+物件，而 `NarrowEditorV2Client` 對 `EditorSession` 會呼叫的每個方法都有答案。
+所以子類別攔截那一次指派——依賴基底的私有欄位，一般是壞交易，這裡不是：
+那個檔案由 E1-C 的 bundle 逐檔綁 hash，**它不可能在沒有人刻意解除一個已出貨
+判定的情況下改動**。而且依賴是釘住的：基底若不再指派，`clientReplacements`
+留在 0，測試會說。複製五百行 checkpoint 與 generation 邏輯才是比較大的風險。
+
+**2.4 的頁面做完之後，順手抓到一個已經出貨的缺陷。**
+`demo-structure-app.js` 遷到產品 v2 之後仍呼叫 `client.placeCaretByClick`，
+而那是**診斷客戶端**的方法。所以那一頁**每一次點擊都丟 TypeError**。
+上一輪檢查過「開得起來」——而開不起來正是它前一次壞掉的方式。
+
+> **這是同一個教訓的第三次**：檢查上一次壞掉的地方，不等於檢查這一次會壞的地方。
+> 新的通用檢查 `product-page-calls.test.mjs` 把頁面裡 `client.foo(` 的名字抽出來
+> 問類別有沒有；`node --check` 看不到，因為 `client.foo()` 不管 `client` 是什麼
+> 都是合法語法。
+
+**兩個瀏覽器都實際跑過**：`tools/run_e2_c_page_smoke.py` 各 `ok: true`——
+開到 `ready`、用頁面自己的指標處理器放游標（各 4 ms）、
+用頁面自己的工具列按「標題」（47 ms）、revision 0 → 1。
+
+## 本段我犯的錯
+
+| | 怎麼抓到的 |
+|---|---|
+| 可達性 stub 回 `{reached:true}`，被殼層的後置條件擋掉 | **對照組是紅的**——「到得了引擎」和「stub 的回覆能通過驗證」是兩件事 |
+| session 對照組的 state stub 少了 `documentHandle`、少了 `selectionText` 等欄位 | 同上，對照組紅了兩次才對 |
+| 規格 v1 把「客戶端能送出動作」當成產品修好了 | **對抗性審查**，三項都指著同一件事 |
+| 注入腳本用 `return` 但 Chrome 那條路是 evaluate 運算式 | 跑起來就是語法錯誤 |
+| 用 `pkill -f` 停伺服器，樣式打到自己的 shell | 指令回 144——**這條在上一份交接就寫過，我又做了一次** |
+| 產品頁面用 harness 的 `__probe_metrics` 慣例當載入判準 | navigate 逾時；改成等 `readyState`，產品不該為了 runner 帶欄位 |
