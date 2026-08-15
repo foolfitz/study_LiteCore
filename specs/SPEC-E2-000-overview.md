@@ -128,7 +128,7 @@ verified-selection barrier 解除。E2 要驗證這個方法能不能一般化�
 |---|---|---|
 | [E2-A](./SPEC-E2-A-paragraph-format-discovery.md) | verified-format-state barrier discovery：清單、標題，附帶重評 line navigation 與 drag selection | 凍結可實作的 closed operation 與縮限項目 |
 | [E2-B](./SPEC-E2-B-paragraph-format-contract.md) | 將成立能力併入 `e1-editor-v1` 的後續版本 ABI、typed state 與 host shell | 不擴大 escape hatch 且 exactly-once 成立 |
-| E2-C | 雙瀏覽器、ODT corpus、round-trip、recovery 與產品驗收 | 形成 E2 GO／部分 GO／停止判定 |
+| [E2-C](./SPEC-E2-C-paragraph-format-validation.md) | 雙瀏覽器、ODT corpus、round-trip、recovery 與產品驗收 | 形成 E2 GO／部分 GO／停止判定 |
 
 順序固定為 **E2-A → E2-B → E2-C**。A 未完成前不凍結新 ABI；A 若證明某能力只能靠禁止 surface，B 必須縮小
 產品範圍。B 與 C 的規格待 A 有結果後另寫，本文件不預先授權。
@@ -137,6 +137,12 @@ verified-selection barrier 解除。E2 要驗證這個方法能不能一般化�
 > **B 的規格已撰寫**（[SPEC-E2-B](./SPEC-E2-B-paragraph-format-contract.md)，v1 草擬）。
 > 本節禁止的是**提前凍結**，不是提前撰寫——E2-B 第 3 節把 ABI 凍結明文閘在一個
 > 預先登錄的判別輪之後，而那個判別輪寫在規格裡面。
+>
+> **2026-08-15（同日稍晚）**：B 已判 `GO_TO_E2_C`，產品 artifact `572035ac…`
+> （profile `e2-editor-v2`、contract v2、十五個動作）。
+> **C 的規格已撰寫**（[SPEC-E2-C](./SPEC-E2-C-paragraph-format-validation.md)，v1 草擬），
+> 尚未執行、尚無判定。C 帶著一件進場工作：出貨的 v2 profile 上，
+> E1 的十個動作**沒有任何殼層到得了**（E2-C 2.2）。
 
 ## 8. E2 v1 候選能力
 

@@ -166,7 +166,7 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	test-r7-c-static test-r7-d-static test-r8-a-static test-r8-b-static \
 	test-r8-c-static test-r8-d-static \
 	test-e1-a-static test-e1-b-static test-e1-c-static test-e2-a-static \
-	test-e2-b-static \
+	test-e2-b-static test-e2-c-static \
 	test-e1-c-frozen-guard test-e1-c-shell-bundle-tool \
 	test-finding-016-scheduler-static \
 	test-finding-016-selection-barrier-static \
@@ -1507,6 +1507,12 @@ dist/editor-shell-v2/paragraph-editor-session.js: \
 		editor-shell-v2/paragraph-editor-session.js | dist/editor-shell-v2
 	cp $< $@
 
+# SPEC E2-C 2.2.  The fifteen-action product client, staged for the same reason
+# and by the same kind of rule.
+dist/editor-shell-v2/narrow-editor-v2-client.js: \
+		editor-shell-v2/narrow-editor-v2-client.js | dist/editor-shell-v2
+	cp $< $@
+
 dist/demo-structure-discovery.html: web/demo-structure-discovery.html | dist
 	cp $< $@
 
@@ -1865,6 +1871,22 @@ test-e2-b-static:
 	# findings/evidence/, so calling it here would rewrite verdict-bound
 	# evidence as a side effect of a syntax check.  Re-deriving bound evidence
 	# is a deliberate act with its own note, never a thing `make` does.
+	python3 tools/check_e1_c_bundle_intact.py > /dev/null
+
+# SPEC E2-C.  No prerequisites, same reason as the two below: E2-C's whole
+# scope is shell, runner and judge, and nothing in it may relink or restage an
+# artifact.  If this target ever needs a profile to be built, that is the signal
+# that the change being made is not E2-C's.
+test-e2-c-static:
+	node --test editor-shell-v2/tests/*.test.mjs
+	node --check editor-shell-v2/narrow-editor-v2-client.js
+	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
+	# reachable by a shipped shell.  The four-way inventory check cannot see
+	# this -- its client side is the UNION of two shells and one of them
+	# refuses to attach to the v2 profile at all.
+	node --test editor-shell-v2/tests/manifest-reachability.test.mjs
+	# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
+	# target that rewrites verdict-bound evidence has happened here once.
 	python3 tools/check_e1_c_bundle_intact.py > /dev/null
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
