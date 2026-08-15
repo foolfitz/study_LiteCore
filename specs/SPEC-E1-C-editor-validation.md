@@ -486,10 +486,36 @@ pipe）之後，§11.4 要求的重跑全數完成，全部對出貨 artifact `8
 §11.2 的限制清單是 2026-08-05 當時的凍結敘述，保留原狀；**現行 contract 為 10 actions**，
 底線與刪除線已出貨並在本輪綁定範圍內。
 
+### 11.7 殼層綁定因 finding 048 的修法而斷開（2026-08-16）
+
+`E1_GO_ODT_EDITOR` 綁的第四個雜湊是殼層 bundle，而
+[finding 048](../findings/048-place-caret-confirms-before-the-click-takes-effect.md)
+的修法就落在其中一個檔案上：`editor-shell/editor-session.js`
+（`56f2be28…` → `c6580352…`）。**因此這個裁決的殼層那一半現在是斷的。**
+
+| | |
+|---|---|
+| 還成立的 | 四個自動相位綁的 wasm／loader／worker 三個雜湊。artifact 一個位元組都沒動 |
+| 斷掉的 | 殼層 bundle：`f9b1a52f…` → `4d482c00…`。人工輪與自動相位當時跑的那份 JS 已經不存在 |
+| 要怎麼收復 | 對現行殼層重跑 E1-C（自動相位＋雙瀏覽器各一輪人工 Chewing）。**本次沒有排定** |
+
+**為什麼修在共用的 session 而不是 v2 殼層**：缺陷在 E1 與 E2 共用的
+`EditorSession.placeCaret`，E1 的產品頁面走的是同一條路。只覆寫
+`editor-shell-v2/` 會保住這個綁定，代價是 E1 自己的產品頁面繼續帶著同一個
+缺陷，而且同一棵樹裡出現兩種游標手勢——那正是 9.5.6 記過的那類混淆。
+
+**凍結的 bundle manifest 沒有被改寫。** 改寫它會讓這個裁決看起來仍然綁在一份
+它從來沒跑過的殼層上，那是 finding 027 的形狀。改動記在
+`e1/editor-shell-bundle-v1-divergence.json`：路徑、原雜湊、現雜湊、日期、
+理由、以及它讓什麼失效。`tools/check_e1_c_bundle_intact.py` 據此把「已申報的
+改動」與「沒申報的改動」分開——**後者仍然是紅的**，而且申報過的檔案如果又動
+了一次，也會紅（那時申報描述的也是一份不存在的檔案）。
+
 ## 12. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-16 | **v7。新增§11.7。finding 048 的修法動到 `editor-shell/editor-session.js`，`E1_GO_ODT_EDITOR` 的殼層綁定因此斷開**（artifact 三個雜湊不受影響）。凍結的 bundle manifest 不改寫，改動申報在 `e1/editor-shell-bundle-v1-divergence.json`，守衛據此區分已申報與沒申報的改動。收復需要對現行殼層重跑自動相位＋雙瀏覽器人工輪，**本次沒有排定**。 |
 | 2026-08-05 | v1。凍結E1-B×R7整合、五份ODT、recovery／lifecycle、最小headed gate及E1最終判定。 |
 | 2026-08-05 | v2。回填48個browser cases、16份desktop round-trip、雙browser headed pass與`E1_GO_ODT_EDITOR`。 |
 | 2026-08-06 | v3（補記）。finding 022 迫使重建，全部相位與人工輪對`97e605ee…`重跑，仍為`E1_GO_ODT_EDITOR`。 |

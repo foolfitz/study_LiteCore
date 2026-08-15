@@ -25,6 +25,13 @@ import sys
 from pathlib import Path
 
 MANIFEST = Path("e1/editor-shell-bundle-v1.json")
+# A deliberate change to a bound file is not the same event as an accidental
+# one, and the guard has to be able to tell them apart or it gets switched off.
+# Every entry here names the path, the hash the verdict was bound to, the hash
+# it now has, why it moved, and WHAT THAT COSTS.  An undeclared change still
+# fails; so does a declared one that has drifted since it was declared, because
+# then the declaration is describing a file that no longer exists either.
+DIVERGENCE = Path("e1/editor-shell-bundle-v1-divergence.json")
 
 
 def sha256(path: Path) -> str | None:
@@ -40,14 +47,32 @@ def main() -> int:
     included = manifest.get("included") or []
     excluded = manifest.get("excluded") or []
 
+    divergence_path = project / DIVERGENCE
+    divergence = (json.loads(divergence_path.read_text(encoding="utf-8"))
+                  if divergence_path.is_file() else {"diverged": []})
+    declared = {str(item["path"]): item for item in divergence.get("diverged", [])}
+
     problems: list[str] = []
+    accepted: list[str] = []
     hashes: dict[str, str | None] = {}
     for item in included:
         path = str(item["path"])
         expected = item["sha256"]
+        note = declared.get(path)
         for side, base in (("source", project), ("dist", project / "dist")):
             actual = sha256(base / path)
-            if actual != expected:
+            if actual == expected:
+                continue
+            if note and actual == note.get("nowSha256"):
+                accepted.append(f"{side} {path}: diverged as declared "
+                                f"({note.get('reason')})")
+                continue
+            if note:
+                problems.append(
+                    f"{side} {path}: {actual} matches neither the registered "
+                    f"{expected} nor the declared {note.get('nowSha256')} -- "
+                    f"the declaration is out of date")
+            else:
                 problems.append(
                     f"{side} {path}: {actual} != registered {expected}")
         hashes[path] = sha256(project / path)
@@ -56,8 +81,11 @@ def main() -> int:
     payload = "".join(f"{p}\0{hashes[p]}\n" for p in sorted(hashes)).encode()
     digest = hashlib.sha256(payload).hexdigest()
     if digest != manifest.get("bundleSha256"):
-        problems.append(f"bundle digest {digest[:16]} != registered "
-                        f"{str(manifest.get('bundleSha256'))[:16]}")
+        message = (f"bundle digest {digest[:16]} != registered "
+                   f"{str(manifest.get('bundleSha256'))[:16]}")
+        (accepted if accepted and not problems else problems).append(
+            message + (" -- expected, the files above diverged as declared"
+                       if accepted and not problems else ""))
 
     # No unaccounted module: this is the condition a new file beside the v1
     # shell would break, which is the whole reason editor-shell-v2/ exists.
@@ -75,7 +103,14 @@ def main() -> int:
         "bundleSha256": digest[:16],
         "includedFiles": len(included),
         "availableModules": len(available),
-        "intact": not problems,
+        # `intact` stays false whenever the bytes moved, declared or not: the
+        # shipped verdict is bound to the registered ones and no amount of
+        # declaring changes that.  What a declaration buys is that the guard
+        # stops shouting about a change somebody already wrote down -- and it
+        # keeps shouting about every other one.
+        "intact": not problems and not accepted,
+        "divergedAsDeclared": accepted,
+        "unbinds": divergence.get("unbinds") if accepted else None,
         "problems": problems,
     }, indent=2, ensure_ascii=False))
     return 0 if not problems else 1

@@ -21,6 +21,25 @@ const RECOVERY_ERRORS = new Set([
   "EDITOR_RESULT_INVALID",
 ]);
 
+/**
+ * Is the reported caret on the line that was clicked?  (Finding 048.)
+ *
+ * Scaled by the caret's own rectangle rather than by a twips constant: the
+ * caret rectangle IS the line box, so half its height is half a line whatever
+ * the document's font size is.  A constant tuned on one corpus would silently
+ * mean "two lines" in another.
+ *
+ * Half rather than the whole height, and that is measured: the real landings
+ * sit up to 119 twips from the rectangle's top while the rectangles are 276-414
+ * twips tall, so half clears every real landing, and a caret stranded one line
+ * away (390 twips in that corpus) is further than half of any of them.
+ */
+export function caretIsOnLine(caret, yTwips) {
+  if (!caret || !Number.isFinite(caret.y) || !Number.isFinite(caret.height))
+    return false;
+  return Math.abs(yTwips - caret.y) <= Math.max(caret.height / 2, 1);
+}
+
 export class EditorSession {
   constructor(options = {}) {
     if (typeof options.engineFactory !== "function")
@@ -307,24 +326,74 @@ export class EditorSession {
       this._blockQueue(error, "recoverable-error", "runtime-recovery");
   }
 
+  /**
+   * Click, and return once the caret is where the click asked for it.
+   *
+   * FINDING 048.  This used to wait for
+   * `selectionType === "none" && observed && collapsed` -- three things that
+   * are already true when a document opens, so the wait ended immediately and
+   * the call reported success before the engine had processed the click.  A
+   * format action dispatched straight afterwards landed on whatever paragraph
+   * the caret was on BEFORE.  A predicate that would be equally true if the
+   * click had never happened is not a confirmation of the click.
+   *
+   * The engine takes 22-28 ms to process one (measured, both browsers).  Two
+   * signals are available to a product profile, and this uses both because
+   * neither is sufficient alone:
+   *
+   *   * `sourceSequence` -- the engine's count of callbacks that changed editor
+   *     state.  It advances for every click that changes the cursor, including
+   *     a click that lands on the line the caret is already on but at a
+   *     different character.  It does NOT advance for a click on the exact
+   *     point the cursor already occupies: the engine emits nothing, because
+   *     nothing changed.  It also advances for callbacks that have nothing to
+   *     do with the caret (a tile invalidation, say), which is why an advance
+   *     on its own is not enough.
+   *   * the caret rectangle against the clicked point.  Not enough on its own
+   *     either: a click can fall in the gap between two line boxes, so a
+   *     tolerance loose enough to accept every real landing also accepts the
+   *     line above -- which is exactly the stale caret this is guarding
+   *     against.
+   *
+   * So: return when the engine has said something AND the caret is on the
+   * clicked line.  After `caretAckGraceMs` of complete silence, accept a caret
+   * that is already on the clicked line -- that is the identical-point click,
+   * where the engine has nothing to say because there is nothing to change.
+   * Never return while the caret is somewhere else; time out instead.
+   */
   placeCaret(xTwips, yTwips, options = {}) {
     return this._enqueue("place-caret", async ({ document, editor }) => {
-      await document.click(xTwips, yTwips, options);
       const timeoutMs = Math.min(options.caretTimeoutMs ?? 30000, 30000);
-      const deadline = Date.now() + timeoutMs;
-      let state = null;
+      // An order of magnitude above the measured 22-28 ms.  It only bounds the
+      // identical-point case; every other click is confirmed by the engine.
+      const graceMs = Math.min(options.caretAckGraceMs ?? 400, timeoutMs);
+      const before = await editor.getState(options);
+      const beforeSequence = before?.sourceSequence ?? null;
+      const started = Date.now();
+      await document.click(xTwips, yTwips, options);
+      let state = before;
       do {
         state = await editor.getState(options);
-        if (state.selectionType === "none"
-            && state.selection?.observed === true
-            && state.selection?.collapsed === true) {
-          return { state, revision: document.revision };
+        const acknowledged = state?.sourceSequence !== beforeSequence;
+        const onTarget = caretIsOnLine(state?.caret, yTwips);
+        if (onTarget && (acknowledged || Date.now() - started >= graceMs)) {
+          return {
+            state,
+            revision: document.revision,
+            caretConfirmedBy: acknowledged ? "engine-acknowledged" : "already-at-target",
+            caretWaitedMs: Date.now() - started,
+          };
         }
-        await new Promise((resolve) => setTimeout(resolve, 10));
-      } while (Date.now() < deadline);
-      const error = new Error("click did not produce a callback-confirmed collapsed caret");
-      error.code = "EDITOR_STATE_UNAVAILABLE";
-      error.details = { xTwips, yTwips, timeoutMs, state };
+        await new Promise((resolve) => setTimeout(resolve, 5));
+      } while (Date.now() - started < timeoutMs);
+      const error = new Error(
+        "the caret did not reach the point that was clicked");
+      error.code = "EDITOR_CARET_NOT_PLACED";
+      error.details = {
+        xTwips, yTwips, timeoutMs, graceMs,
+        caret: state?.caret ?? null,
+        sequenceAdvanced: state?.sourceSequence !== beforeSequence,
+      };
       throw error;
     });
   }

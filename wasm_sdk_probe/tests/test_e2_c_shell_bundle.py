@@ -88,6 +88,22 @@ class TestShellBundle(unittest.TestCase):
         second = bundle.shell_bundle_digest({"b.js": "1" * 64})
         self.assertNotEqual(first, second)
 
+    def test_every_frozen_generation_stays_put(self) -> None:
+        # Each frozen manifest is the shell some round ran on.  Regenerating one
+        # in place would leave that round's evidence present but unverifiable --
+        # finding 027's shape applied to the shell -- so the only legal move is
+        # a NEW generation.  This asserts each frozen digest still differs from
+        # the tree, which is what makes it a record rather than a duplicate of
+        # the current manifest.
+        current = bundle.compute(PROJECT)["digest"]
+        for path in bundle.FROZEN_MANIFESTS:
+            frozen = json.loads((PROJECT / path).read_text(encoding="utf-8"))
+            self.assertNotEqual(
+                frozen["bundleSha256"], current,
+                f"{path} equals the current tree, so it is not recording "
+                f"anything -- either the generation was pointless or the tree "
+                f"was reverted")
+
     def test_round_ones_manifest_is_frozen(self) -> None:
         # Round one's bundle is a historical record: e2/validation-matrix-v1.json
         # names its digest, and round one's evidence can only be revalidated

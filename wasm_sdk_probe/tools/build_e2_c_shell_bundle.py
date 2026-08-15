@@ -42,8 +42,16 @@ PROJECT = Path(__file__).resolve().parent.parent
 # its digest, and round one's evidence can only be revalidated against the shell
 # it actually ran on.  A legitimate shell change therefore writes a NEW manifest
 # rather than regenerating that one -- the same rule the artifacts follow.
-FROZEN_MANIFEST = Path("e2/editor-shell-v2-bundle-v1.json")
-MANIFEST = Path("e2/editor-shell-v2-bundle-v2.json")
+# Each generation is the record of the shell some round actually ran on, so a
+# legitimate shell change writes a NEW manifest instead of regenerating one.
+#   v1 -- round one's shell; `e2/validation-matrix-v1.json` names its digest.
+#   v2 -- the shell the pre-relink D2/D3 defect sweeps ran on, including every
+#         arm of finding 048.  Frozen from 2026-08-16, when the fix landed.
+#   v3 -- the shell with finding 048's fix in EditorSession.placeCaret.
+FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
+                    Path("e2/editor-shell-v2-bundle-v2.json"))
+FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+MANIFEST = Path("e2/editor-shell-v2-bundle-v3.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

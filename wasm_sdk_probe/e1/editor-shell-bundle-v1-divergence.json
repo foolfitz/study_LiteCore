@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "about": "Deliberate changes to files that E1-C's shell bundle registered. The bundle manifest itself is NOT rewritten -- it is the record of what E1_GO_ODT_EDITOR was bound to, and rewriting it would leave that verdict looking bound to a shell it never ran on (finding 027's shape). This file records what moved, why, and what it costs.",
+  "unbinds": "E1_GO_ODT_EDITOR's shell binding. The four automatic phases bind wasm/loader/worker hashes and are unaffected; the SHELL half of the binding is broken until E1-C is requalified on the current shell.",
+  "diverged": [
+    {
+      "path": "editor-shell/editor-session.js",
+      "registeredSha256": "56f2be28563c74442a50877f4ad074e8bbabb20fffbae14a46fa9bc1d45631ea",
+      "nowSha256": "c658035212f6b1fbe78582e7e86709efa03fe0df3a4afe3317540d00f6d3a784",
+      "date": "2026-08-16",
+      "reason": "finding 048 -- placeCaret confirmed a click with a predicate that was already true before the click, so it returned before the engine had processed one and the next action landed on the previous caret's paragraph. The fix waits for the engine to acknowledge the click AND for the caret to be on the clicked line.",
+      "whyHere": "The defect is in the session E1 and E2 share. Overriding placeCaret in editor-shell-v2/ alone would have kept E1-C's binding intact and left E1's own product page clicking into the same defect, with two different caret gestures in one tree.",
+      "costsRequalification": "E1-C's manual rounds (nine checks per browser) plus whichever automatic phases the shell participates in, against the current shell bundle. Not scheduled here."
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>finding 048 — 點擊的確認訊號</title>
+<style>
+  body { margin: 0; font: 13px/1.5 ui-monospace, Menlo, monospace; padding: 12px;
+         background: #101820; color: #d7e2ea; }
+  h1 { font: 600 15px/1.4 system-ui, sans-serif; margin: 0 0 8px; }
+  p { font: 12px/1.5 system-ui, sans-serif; color: #93a6b5; margin: 0 0 12px;
+      max-width: 68em; }
+  #log { white-space: pre-wrap; word-break: break-all; }
+  #sink { position: absolute; width: 1px; height: 1px; opacity: 0; }
+</style>
+</head>
+<body>
+  <h1>finding 048 — 點擊的確認訊號</h1>
+  <p>產品的 <code>placeCaret</code> 要換掉一個「與點擊無關」的判準。這一頁量的是
+     替代訊號能不能用：<code>sourceSequence</code> 在<b>沒有移動游標的點擊</b>之後
+     會不會前進，以及它會不會自己前進。預測寫在
+     <code>findings/evidence/048/PREDICTION-ack.md</code>。</p>
+  <textarea id="sink" aria-label="輸入"></textarea>
+  <div id="log"></div>
+  <script type="module" src="./e2-c-caret-ack-app.js"></script>
+</body>
+</html>

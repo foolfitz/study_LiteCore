@@ -1623,6 +1623,12 @@ dist/e2-c-d3-app.js: web/e2-c-d3-app.js | dist
 dist/e2-c-caret.js: web/e2-c-caret.js | dist
 	cp $< $@
 
+dist/e2-c-caret-ack.html: web/e2-c-caret-ack.html | dist
+	cp $< $@
+
+dist/e2-c-caret-ack-app.js: web/e2-c-caret-ack-app.js | dist
+	cp $< $@
+
 # E2's own fixtures.  A separate directory from e1-fixtures because E2-C may
 # not regenerate the E1 corpus, and a served copy so the harness fetches the
 # same bytes the manifest pins.
@@ -1641,6 +1647,7 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/e2-c-d1.html dist/e2-c-d1-app.js \
 	dist/e2-c-d2.html dist/e2-c-d2-app.js \
 	dist/e2-c-d3.html dist/e2-c-d3-app.js dist/e2-c-caret.js \
+	dist/e2-c-caret-ack.html dist/e2-c-caret-ack-app.js \
 	dist/e1-fixtures/list-contexts.odt \
 	dist/e2-fixtures/manifest.json dist/e2-fixtures/list-split.odt \
 	dist/e2-fixtures/d1-anchors.odt \
