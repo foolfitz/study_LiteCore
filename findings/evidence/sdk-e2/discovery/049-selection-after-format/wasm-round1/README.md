@@ -41,6 +41,22 @@
 **那個 251 ms 的 readback 整個消失了。** 它本來是 bounded readback 在 250 ms 期限上
 誠實回報「沒選到」；現在選取真的成立，回呼在 10 ms 就到了。
 
+## 「非空」不等於「正確」，所以另外比了幾何
+
+多送一個 `START` 有一個**可以想像的壞法**：`START` 自己也可能廣播一次
+`LOK_CALLBACK_TEXT_SELECTION`，讓引擎的 pending 請求**在 `END` 之前就完成**，
+於是回報一個空的或錯的範圍。`arm8ProductSelectionNonEmpty: true` 這個判準**擋不住那個**。
+
+所以另外比了選取幾何：
+
+| | `collapsed` | 矩形數 | `start.x` | `end.x` |
+|---|---|---|---|---|
+| `arm8-product` range-2（**格式動作之後**） | false | 1 | **1524** | **2924** |
+| `select-y2600-without-format`（**從沒做過格式動作**的控制臂） | false | 1 | **1524** | **2924** |
+
+**兩瀏覽器都是這四個數字。** 所以修好之後選到的**不只是「有東西」，是與已知正確的那一個
+選取逐格相同的東西**——控制臂回報的文字是 `"moji 😀 graphe"`。
+
 ## `arm8-discovery` 那一格是這一輪最有訊息量的
 
 它**沒有** bounded readback（依裁決刻意保留不 buffered），所以它**只能**靠回呼完成。
