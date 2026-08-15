@@ -1,0 +1,108 @@
+# E2-C 執行計畫：一次 relink 鑄出 v3，然後重跑
+
+2026-08-15 訂。**這份是執行順序與風險，不是規格**——每一步的內容在
+`SPEC-E2-C` 與 finding 045 裡。
+
+前一份 [`PLAN-E2-B-relink-and-freeze.md`](PLAN-E2-B-relink-and-freeze.md)
+的規矩原樣適用，尤其那一句：**「P1 完成才能 relink。漏一項就是第二次 relink。」**
+
+## 為什麼現在可以排
+
+裁決要求的兩件量測都做完了，而且**其中一件把佇列變短了**：
+
+- **finding 045 的修法已原生確認**（`findings/evidence/045/native/`）：
+  帶參數就是 setter，兩個方向都是；**帶 `false` 打在已套用的選取上會把屬性移除**，
+  那是出貨產品今天做不到的事。七個預測六個成立。
+- **`d1-body-collapsed` 二分到底**（SPEC E2-C 9.5.6）：它量的是 **harness 的手勢**，
+  不是產品的。**不需要引擎修法，因此不進這次的佇列。**
+
+## P0 — 動手前（零風險，先做）
+
+- [ ] `build/archive/` 存一份現行 `e2-editor-v2` profile（改引擎前先 archive）。
+- [ ] 核對四顆凍結 artifact 的 hash 未變：`835b453d`／`679def61`／`c89f069e`／`940b7723`。
+- [ ] 記下 `e2-editor-v2 = 572035ac…`：E2-B 的判定與 E2-C 第一輪的全部證據綁在它上面，
+      **這次連結之後它們仍然為真、但不再描述產品**（finding 027 的形狀）。
+- [ ] `dist/profiles/e2-editor-v2/` 與 `build/e2/editor-v2/` **不得被這次連結碰到**。
+
+## P1 — 引擎與 Makefile：**唯一一次 relink**
+
+| # | 檔案 | 內容 | 依據 |
+|---|---|---|---|
+| 1 | `src/probe_engine.cpp` | 四個 inline 格式各送參數：`{"Bold":{"type":"boolean","value":<enabled>}}`（Italic／Underline／Strikeout 同形，slot 名對應）。`gEditorUnoOption` 從「只拿來回報」變成**真的被送出去** | finding 045，**原生驗證** |
+| 2 | `src/probe_engine.cpp` | **gesture mask 要對十個繼承動作也生效**——目前只有 `routeFormatBarrier()` 讀 mask，而那是五個段落動作專用路徑 | SPEC E2-C 2.5 |
+| 3 | `src/probe_engine.cpp` | barrier payload 的 `route` **不得把預設值當觀測值**回報：型態守衛在指派 route 之前 return，於是證據裡出現「`route: collapsed` 但其實沒有分類過」 | 9.5.4 |
+| 4 | `src/editor_api.h`／`.cpp` | ABI 版本常數 → **3**（flat、精確比對）。**動作列舉一個字不動**——這次改的是語意不是介面 | 「版本是身分」 |
+| 5 | `Makefile` | **新的建置變體 `e2-editor-v3`**：新的 build 目錄與 dist 目錄，掛 `refuse_unasked_relink`；**`e2-editor-v2` 的 target 一個字不動** | 5.12 的作法 |
+| 6 | `tools/build_e2_c_profile.py` | **新 builder**（不改 v2 的）：contract v3、`narrow-editor-v3`、`limits` 補兩筆（見 P2-1） | 5.8 的作法 |
+| 7 | `tests/editor_abi_header_test.cpp` | 斷言 ABI 常數 = 3（`-fsyntax-only`，不影響 artifact） | — |
+
+**`changed` 刻意不改**（fable 的建議，採納）：SPEC E2-C 9.5.2 已經把這四個動作的
+`changed: true` 定義成「引擎接受且狀態前進」，而不是「文件位元組變了」。
+把它改成觀測值會動到 v1 契約而換不到任何量到的好處。
+**這一條寫在這裡，是為了讓「沒改」是一個決定而不是一個遺漏。**
+
+**P1 完成才能 relink。漏一項就是第二次 relink。**
+
+### 動手順序（既有規矩）
+
+1. 先只編 object 不連結（`em++ -c`），證明改得過；
+2. 再 archive；
+3. 才連結，且**只連結 v3 的 target**。
+
+## P2 — JS／Python：不重連結，但必須在量測前定稿
+
+| # | 檔案 | 內容 | 依據 |
+|---|---|---|---|
+| 1 | 新 builder 的 `limits` | 兩筆債：**帶註腳／尾註的段落不支援**（4.2）、十個繼承動作的手勢宣告要與 P1-2 真的執行的東西一致（2.5） | 4.2、2.5 |
+| 2 | `editor-shell-v2/narrow-editor-v2-client.js` | 接受的 contract 版本改成 **3** | 見下面的〈唯一一個值得再看一眼的決定〉 |
+| 3 | `e2/editor-shell-v2-bundle-v1.json` | 重算（客戶端改了，摘要就變） | 第 6 節 |
+| 4 | `web/e2-editor-app.js` | 釘死的 hash 換成 v3 的 | 2.4 |
+| 5 | **`e2/validation-matrix-v2.json`** | **第二輪的凍結矩陣**，在第二輪 D0 之前寫好。與 v1 的差異至少三處：baseline 換成 v3 的四個雜湊、**新增「游標一律照產品的方式形成（click ＋ 確認輪詢）」**、新增一格把 9.5.6 量到的 `selectRange` 差別釘住 | 9.1、9.5.6 |
+| 6 | `tools/analyze_e2_c_d1.py` | 四個 `-false` 格的判準**不變**——它們現在應該會綠，而那正是修法的驗收 | — |
+
+## P3 — 量測（v3 上，開始之後不得再編）
+
+**這次連結作廢的東西要全部重跑**：
+
+- [ ] **E2-B**：132 個正向 run ＋ 12 列 negative matrix ＋ no-op 方程式 ＋ 四路清單，
+      全部在 v3 上重跑，`validate_e2_b.py` 重推判定。
+      （E2-B 對 v2 的判定仍然為真，但不再描述產品。）
+- [ ] **E2-C 第二輪**：D0 → D1 → D2 → D3 → D4 → D5，用 `validation-matrix-v2.json`。
+      D2～D5 的 harness **還沒寫**。
+- [ ] **E1-C**：**可分割，先不做**。等 v3 的參數化形式在產品上驗過再單獨決定
+      （`e1-editor-v1` 有同一個缺陷，但它是另一顆 artifact、另一套人工輪）。
+
+## P4 — 凍結與遷移
+
+- [ ] `demo-structure` 與 `e2-editor` 的 pin 換成 v3。
+- [ ] `e2-editor-v2` 進 `refuse_unasked_relink` 的守衛清單（它現在也是歷史 artifact）。
+- [ ] 舊證據**原封保留**，不覆寫：`e2-c-validation/` 是第一輪的紀錄，
+      第二輪寫到 `e2-c-validation-v3/`。
+
+## 唯一一個值得再看一眼的決定
+
+**客戶端要不要跟著改名成 v3？**
+
+「版本是身分」在 ABI、builder、profile 上我照做了（新常數、新 builder、新目錄）。
+**客戶端我沒有複製一份**，只把它接受的 contract 版本從 2 改成 3。理由：
+
+- 客戶端的**規則**一個字沒變（同樣十五個動作、同樣的後置條件）。變的是它被量在哪顆
+  artifact 上——而**那件事是由殼層 bundle 的摘要記錄的**，不是由檔名。
+- 複製一份就會有**兩份規則**，那正是 2.2 明確拒絕過的事（而且當時是為了避免
+  underline／strikethrough 那種漂移）。
+
+**代價要說清楚**：`e2-editor-v2` 從此沒有任何客戶端接得上——就像 `e1-editor-v1`
+現在的處境。v2 已經不是產品，所以我認為可以接受，**但這是這份計畫裡最該被質疑的
+一條**。
+
+## 三個風險
+
+1. **佇列漏項 → 第二次 relink。** 這是最貴的失敗。目前佇列的來源有三個：
+   finding 045、SPEC E2-C 的兩筆 manifest 債（4.2／2.5）、以及 9.5.4 的
+   `route` 回報缺陷。**D2～D5 還沒跑過，所以它們可能再生出佇列項**——
+   這就是為什麼 P3 的順序是「先 E2-B 再 E2-C」而不是反過來：
+   E2-B 的矩陣已經寫好，能最快把新 artifact 的基本面掃一遍。
+2. **改了 `Makefile` 就讓連結目標過期**（finding 042）。所以 Makefile 可以分次改，
+   **要只做一次的是「跑 make 去連結」**。
+3. **第二輪矩陣要在第二輪 D0 之前凍結**，而不是「等 D1 跑完再補上游標那條」。
+   第一輪就是這樣被咬的——27 格用了產品不會用的手勢，而矩陣沒規定過。
