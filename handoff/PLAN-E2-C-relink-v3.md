@@ -55,6 +55,27 @@
 2. 再 archive；
 3. 才連結，且**只連結 v3 的 target**。
 
+### P1-2 的後果：**inline 格式在範圍上會開始被拒絕**（自己覆核時發現的）
+
+把 mask 對十個動作生效之後，manifest 說 `collapsed` 就真的只有 collapsed 能用。
+**今天在範圍上按粗體是會成功的**——D1 的特徵量測格（3 輪 × 2 瀏覽器，**6/6**）
+記到 `set-bold` 在單段範圍上回 `uno-command-result`；原生 P6／P7 也量到選取上的
+文件效果。所以這是一個**產品行為的改變**，必須是刻意的。
+
+**決定：v3 的宣告維持 `collapsed`，也就是範圍上的 inline 格式會被派送前拒絕。**
+
+- **不宣告沒量過的東西**——builder 自己的註解就是這樣寫的。
+  WASM 那半只量到 typed 成功，**沒有任何一格去看存出來的文件**；
+  原生量到了文件效果，但那是原生。兩半都不夠。
+- 拒絕是**零 mutation 的 typed 拒絕**，而且 host 可以用 `gesturesFor()` 把按鈕
+  灰掉——不是「按了才失敗」。
+- **而且這個決定很便宜就能翻案**：mask 是 init 時從 manifest 推進引擎的，
+  所以**放寬宣告不需要 relink**（fable 已經確認 builder 是打包器）。
+  第二輪加一格**帶文件判準**去量範圍上的 inline 格式；量到了就放寬。
+
+**順帶記一個對照**：同一格量到 `delete-backward` 在範圍上 6/6 回
+`EDITOR_STATE_UNAVAILABLE`——引擎本來就拒絕，所以 delete 那兩個不受這次改動影響。
+
 ## P2 — JS／Python：不重連結，但必須在量測前定稿
 
 | # | 檔案 | 內容 | 依據 |
@@ -65,6 +86,7 @@
 | 4 | `web/e2-editor-app.js` | 釘死的 hash 換成 v3 的 | 2.4 |
 | 5 | **`e2/validation-matrix-v2.json`** | **第二輪的凍結矩陣**，在第二輪 D0 之前寫好。與 v1 的差異至少三處：baseline 換成 v3 的四個雜湊、**新增「游標一律照產品的方式形成（click ＋ 確認輪詢）」**、新增一格把 9.5.6 量到的 `selectRange` 差別釘住 | 9.1、9.5.6 |
 | 6 | `tools/analyze_e2_c_d1.py` | 四個 `-false` 格的判準**不變**——它們現在應該會綠，而那正是修法的驗收 | — |
+| 7 | `e2/validation-matrix-v2.json` | **新增一格：inline 格式打在單段範圍上，帶文件判準**。量到了才有資格在 v4 放寬宣告（放寬不需要 relink） | 見上 |
 
 ## P3 — 量測（v3 上，開始之後不得再編）
 
