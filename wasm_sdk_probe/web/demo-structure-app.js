@@ -199,6 +199,23 @@ async function applyInline(action) {
   intent[action] = next;
 }
 
+// Undo goes through the Document SDK, not through client.action("undo").
+//
+// The diagnostic build exports an undo action of its own, and
+// e2/demo-structure-client.js names it in FORBIDDEN rather than merely leaving
+// it out: it is not the path E1 validated.  A button people press after every
+// mistake is the last place to put an unmeasured path, so this calls the same
+// document_.undo() that demo-editor's 復原 calls -- the one the shipped editor's
+// evidence covers.
+//
+// The intent ledger is cleared for applyStructure's reason: after an undo, what
+// we last asked for is no longer what the paragraph is.
+async function undoLast() {
+  await run("復原", () => document_.undo({ timeoutMs: 30000 }));
+  for (const key of Object.keys(intent))
+    intent[key] = null;
+}
+
 async function insertText() {
   const text = el.text.value;
   if (!text) {
@@ -224,6 +241,7 @@ async function saveDocument() {
 }
 
 const ACTIONS = {
+  undo: () => undoLast(),
   "set-paragraph-heading": () => applyStructure("set-paragraph-heading"),
   "set-paragraph-body": () => applyStructure("set-paragraph-body"),
   "set-list-unordered": () => applyStructure("set-list-unordered"),
