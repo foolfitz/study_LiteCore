@@ -402,6 +402,38 @@ B 用註腳段落（`footnote-apparatus-readback`，已知可製造）、
 C 目前**沒有已知的製造方法**——**那是這個提案最弱的一格**，
 在找到之前 C 的語意是推理不是量測。
 
+### 5.4 第 13 項的決定：**`abiVersion` 要有 runtime consumer，而且那是一個新的 C symbol**
+
+**已有完全對稱的先例**，不是新發明：Document SDK 的 `oxsdk_abi_version()`
+是一個匯出的 C symbol（`src/sdk_api.h:43`、`src/sdk_api.cpp:39`，
+export list `Makefile:487`／`:708`／`:733`），worker 在 init 時 `ccall` 它
+（`sdk-worker.js:693`），拿**二進位檔實際回報的值**去比對 client 要求的值。
+
+現在的 editor 這一側沒有這個東西：`OXSDK_EDITOR_ABI_VERSION` 只是 header 巨集
+（`editor_api.h:12`），builder 把 `abiVersion` 寫進 manifest
+（`build_e1_b_profile.py:51`），而 worker 與 client 都只看 `editorContract.version`
+（`sdk-worker.js:98`、`editor-client.js:46`）。
+**manifest 是宣稱，二進位檔是事實**，而 finding 027／036 整個講的就是這兩者會分家：
+hash 不是原始碼的函數，profile 是組裝出來的，一顆過期的 wasm 配一份新的 manifest
+在今天**跑得起來而且沒有人會知道**。
+
+**決定：加 `oxsdk_editor_abi_version()`，匯出，worker 在 init 時比對。**
+所以**它必須在那唯一一次 relink 裡**——這正是第 13 項要現在決定的原因。
+
+#### 一個刻意不採用的做法：借用 major/minor 相容區間
+
+Document SDK 的規則是「major 相等且 requested minor ≤ actual minor」
+（`sdk-worker.js:695`）。照抄很誘人，因為 v2 剛好是 v1 的超集
+（動作 1–10 不動、11–15 新增），在那個規則下它是一次 minor bump。
+
+**不採用。** editor 契約是一份 **allowlist**，allowlist 的版本是**身分**不是區間。
+把區間語意混進來，正是 E1-C 能夠原地把底線刪除線擴進 v1、
+而**凍結測試只釘住十個裡的八個**還沒有人發現的那種鬆動（今天才補，`c5cde7d`）。
+
+所以：**flat integer，runtime 要求完全相等**。
+「v2 要不要服務 v1 的呼叫端」是**操作層**的問題（第 1 項），
+在那裡解決，不要用版本號的區間去含糊帶過。
+
 ### 5.2 唯一一次 relink 要帶什麼進去
 
 finding 042：改 `Makefile` 會重連結。所以下列**必須同一次做完**，
