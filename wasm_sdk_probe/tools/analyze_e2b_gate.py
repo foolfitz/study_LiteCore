@@ -128,21 +128,29 @@ def compare(before: list[dict], after: list[dict]) -> dict[str, Any]:
 
 # Which paragraph each arm selected, by the anchor its range was aimed at, and
 # how many paragraphs it is allowed to have changed.
+#
+# Keyed by (arm, fixture), not by arm alone.  G1 was first run against
+# multi-paragraph.odt and came back VOID -- `第三段跨行 gamma` is a tall
+# paragraph, not a wrapped one -- and was re-run against wrapped-paragraph.odt.
+# Keying on the arm alone would mean this file could no longer reproduce the
+# verdict it produced for the first run, which is the thing an after-the-fact
+# judge must never be allowed to do quietly.
 ARM_TARGETS = {
-    "A1-bullet-from-range": ("E1-LC-ISOLATED", 1),
-    "A2-ordered-from-range": ("E1-LC-ISOLATED", 1),
-    "A3-list-none-from-range": ("E1-LC-BULLET-ONE", 1),
-    "A4-heading-from-range": ("E1-LC-ISOLATED", 1),
-    "A5-body-from-range": ("E1-LC-HEADING", 1),
-    "G1-wrapped-line-range": ("G1WRAP", 1),
-    "G1c-single-line-control": ("E2B-WRAP-HEAD", 1),
-    "G2-reverse-range": ("E1-LC-ISOLATED", 1),
-    "G3-cross-paragraph-range": ("E1-MULTI-START", 2),
+    ("A1-bullet-from-range", "list-contexts.odt"): ("E1-LC-ISOLATED", 1),
+    ("A2-ordered-from-range", "list-contexts.odt"): ("E1-LC-ISOLATED", 1),
+    ("A3-list-none-from-range", "list-contexts.odt"): ("E1-LC-BULLET-ONE", 1),
+    ("A4-heading-from-range", "list-contexts.odt"): ("E1-LC-ISOLATED", 1),
+    ("A5-body-from-range", "list-contexts.odt"): ("E1-LC-HEADING", 1),
+    ("G1-wrapped-line-range", "multi-paragraph.odt"): ("gamma", 1),
+    ("G1-wrapped-line-range", "wrapped-paragraph.odt"): ("G1WRAP", 1),
+    ("G1c-single-line-control", "wrapped-paragraph.odt"): ("E2B-WRAP-HEAD", 1),
+    ("G2-reverse-range", "list-contexts.odt"): ("E1-LC-ISOLATED", 1),
+    ("G3-cross-paragraph-range", "multi-paragraph.odt"): ("E1-MULTI-START", 2),
 }
 
 
-def judge_round(arm: str, record: dict, diff: dict) -> dict[str, Any]:
-    anchor, allowed = ARM_TARGETS[arm]
+def judge_round(arm: str, fixture: str, record: dict, diff: dict) -> dict[str, Any]:
+    anchor, allowed = ARM_TARGETS[(arm, fixture)]
     verdict: dict[str, Any] = {"arm": arm, "round": record.get("round")}
 
     # 3.4 pre-dispatch quartet.  Failing these makes the run VOID, not failed:
@@ -239,11 +247,13 @@ def main() -> int:
                          ensure_ascii=False))
         return 1
     verdicts = []
+    judged: list[tuple[str, str]] = []
     for arm in result.get("arms") or []:
         name = arm.get("arm")
-        if name not in ARM_TARGETS:
-            continue
         fixture = arm.get("fixture")
+        if (name, fixture) not in ARM_TARGETS:
+            continue
+        judged.append((name, fixture))
         if fixture not in pristine:
             verdicts.append({"arm": name, "round": None,
                              "void": [f"no baseline save for {fixture}"]})
@@ -255,7 +265,7 @@ def main() -> int:
                                  "void": ["no saved document"]})
                 continue
             diff = compare(pristine[fixture], paragraphs(saved))
-            verdicts.append(judge_round(name, record, diff))
+            verdicts.append(judge_round(name, fixture, record, diff))
 
     summary: dict[str, Any] = {
         "artifact": result.get("artifact"),
@@ -263,7 +273,10 @@ def main() -> int:
         "verdicts": verdicts,
         "byArm": {},
     }
-    for name in ARM_TARGETS:
+    # Only the arms this result actually contains.  Reporting rounds: 0 for
+    # arms that belong to the other run's fixture would turn a reproduction of
+    # an earlier verdict into a failure.
+    for name in dict.fromkeys(name for name, _ in judged):
         rows = [v for v in verdicts if v["arm"] == name]
         summary["byArm"][name] = {
             "rounds": len(rows),

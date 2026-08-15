@@ -36,6 +36,10 @@ def main() -> int:
     parser.add_argument("--profile", default="e2-combination")
     parser.add_argument("--rounds", type=int, default=3)
     parser.add_argument("--timeout", type=float, default=1800)
+    # Fixture validation, not measurement: selects the spans, records the
+    # rectangles, dispatches nothing and saves nothing.  Point --output
+    # somewhere of its own; it must not land next to a verdict run.
+    parser.add_argument("--geometry-only", action="store_true")
     parser.add_argument(
         "--output", type=Path,
         default=workspace / "findings" / "evidence" / "sdk-e2" / "discovery"
@@ -63,8 +67,10 @@ def main() -> int:
         wait_page(base)
         session_class = ChromeSession if args.browser == "chrome" else FirefoxSession
         session = session_class("cold")
-        session.navigate(
-            f"{base}?autorun=1&profile={args.profile}&rounds={args.rounds}")
+        query = f"?autorun=1&profile={args.profile}&rounds={args.rounds}"
+        if args.geometry_only:
+            query += "&geometryOnly=1"
+        session.navigate(base + query)
         deadline = time.monotonic() + args.timeout
         while time.monotonic() < deadline:
             metrics = evaluate(session, "globalThis.__e2b_gate || null")
