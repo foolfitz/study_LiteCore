@@ -1827,6 +1827,11 @@ test-e2-b-static:
 	# once replaced a pre-registered criterion, and the replacement made the arm
 	# pass; ad hoc mutation checks catch that once, this catches it every time.
 	python3 tools/analyze_e2b_matrix.py --self-test > /dev/null
+	# SPEC E2-B section 5 item 7: the header, the manifest, the worker map and
+	# the client allowlist must name the same actions with the same ids.  Three
+	# of the four are hand-maintained in different languages, and the one time
+	# such a pair drifted here it went unnoticed across two shipped artifacts.
+	python3 tools/check_e2_b_inventory.py > /dev/null
 	node --test editor-shell-v2/tests/*.test.mjs
 	node --check editor-shell-v2/paragraph-editor-client.js
 	# E1-C's shell bundle must still bind: editor-shell/*.js is hash-registered
