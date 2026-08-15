@@ -54,12 +54,26 @@ def main() -> int:
     parser.add_argument("--param", action="append", default=[],
                         metavar="KEY=VALUE",
                         help="extra query parameter for the page, repeatable")
+    parser.add_argument("--overwrite", action="store_true",
+                        help="discard a completed run at --output "
+                             "instead of refusing to write over it")
     parser.add_argument("--output", type=Path,
                         default=PROJECT.parent / "findings" / "evidence" / "sdk-e2"
                         / "e2-c-validation" / "d0")
     args = parser.parse_args()
 
     artifact = artifact_hashes(args.profile)
+    evidence = args.output / f"{args.profile}-{artifact['wasmSha256'][:8]}" / args.browser
+    # Refuse to write over a completed run, and refuse BEFORE spending one:
+    # the same `--output` as a previous round silently replaced this phase's
+    # first D3 execution -- the round a finding had already been written from --
+    # and it took a `git status` to notice.  A round is a record; a second round
+    # gets its own directory.
+    if (evidence / "result.json").is_file() and not args.overwrite:
+        raise SystemExit(
+            f"{evidence} already holds a completed run.\n"
+            f"Point --output somewhere new, or pass --overwrite if you really "
+            f"mean to discard it.")
     port = free_port()
     server = subprocess.Popen(
         [sys.executable, str(PROJECT / "web" / "serve.py"), "--port", str(port)],
@@ -118,7 +132,6 @@ def main() -> int:
     }
     metrics["browserName"] = args.browser
 
-    evidence = args.output / f"{args.profile}-{artifact['wasmSha256'][:8]}" / args.browser
     (evidence / "saved").mkdir(parents=True, exist_ok=True)
     written = []
     for entry in saves:
