@@ -25,9 +25,18 @@
 //
 // Coordinates are not hardcoded.  A setup pass sweeps y, selects the full line
 // width, and records what each y reads back as -- so the arms address anchors
-// by text, and the map itself is evidence.  G1 needs a paragraph that wraps
-// across visual lines, which is why it uses multi-paragraph.odt: that fixture
-// carries one on purpose.
+// by text, and the map itself is evidence.
+//
+// G1 needs a paragraph that wraps across visual lines.  The first run of this
+// gate aimed it at `第三段跨行 gamma` in multi-paragraph.odt and recorded the arm
+// VOID: that paragraph is TALL, not wrapped, and a selection across its full
+// vertical extent still reports one rectangle.  No fixture in the frozen E1
+// corpus has a paragraph long enough to wrap at the page width, so G1 now uses
+// wrapped-paragraph.odt from dist/e2b-fixtures/ (tools/create_e2b_fixtures.py).
+// It arrives with a control arm, G1c: the same span mechanism aimed at a
+// paragraph that does NOT wrap.  Without it, "G1 saw more than one rectangle"
+// cannot be told apart from "this build reports more than one rectangle for
+// everything".
 
 import { createDocumentEngine } from "./sdk/document-sdk.js";
 import { FormatDiscoveryClient } from "./e2/format-discovery-client.js";
@@ -92,8 +101,29 @@ function rectanglesOf(state) {
   return (state?.selection?.rectangles || []).length;
 }
 
+// The count alone does not say the rectangles are stacked visual lines inside
+// one paragraph -- it is also what a cross-paragraph selection would produce.
+// Keeping the geometry lets the verdict show they are.
+function rectangleGeometry(state) {
+  // {x, y, width, height} per rectangle -- probe_engine.cpp:938.
+  return (state?.selection?.rectangles || []).map((rect) => rect ?? null);
+}
+
+// The E1 corpus is frozen (dist/e1-fixtures/manifest.json: frozenDate
+// 2026-08-04, mutationPolicy copy-only), so the wrapped-paragraph fixture lives
+// in its own directory rather than being added to it.  Fixture identifiers stay
+// bare filenames because they are used to build arm and file names.
+const FIXTURE_DIR = {
+  "list-contexts.odt": "e1-fixtures",
+  "multi-paragraph.odt": "e1-fixtures",
+  "wrapped-paragraph.odt": "e2b-fixtures",
+};
+
 async function openDocument(engine, fixture) {
-  const bytes = await fetch(`./e1-fixtures/${fixture}`, { cache: "no-cache" })
+  const dir = FIXTURE_DIR[fixture];
+  if (!dir)
+    throw new Error(`no directory registered for fixture ${fixture}`);
+  const bytes = await fetch(`./${dir}/${fixture}`, { cache: "no-cache" })
     .then((response) => response.arrayBuffer());
   return engine.open(bytes.slice(0), { name: fixture, timeoutMs: 180000 });
 }
@@ -229,6 +259,7 @@ function positiveArm(spec, anchors) {
       documentHandle: handle.handle,
     }, { timeoutMs: stepTimeoutMs }).catch(() => null);
     record.rectanglesBeforeDispatch = rectanglesOf(before);
+    record.rectangleGeometryBeforeDispatch = rectangleGeometry(before);
     record.collapsedBeforeDispatch = before?.selection?.collapsed ?? null;
 
     try {
@@ -253,6 +284,16 @@ function positiveArm(spec, anchors) {
 
 const LIST_FIXTURE = "list-contexts.odt";
 const MULTI_FIXTURE = "multi-paragraph.odt";
+const WRAP_FIXTURE = "wrapped-paragraph.odt";
+
+// Fixture construction is not measurement.  Whether wrapped-paragraph.odt
+// actually wraps at this build's page width is a property of the FIXTURE, and
+// finding out costs a span select -- which is also the first half of arm G1.
+// Running the gate to answer it would mean the same run both tuned the fixture
+// and produced the verdict.  So `?geometryOnly=1` selects the spans, records
+// the rectangles, dispatches nothing and saves nothing.
+const geometryOnly = params.get("geometryOnly") === "1";
+metrics.geometryOnly = geometryOnly;
 
 void (async () => {
   let engine = null;
@@ -266,25 +307,78 @@ void (async () => {
       editorContract: engine.manifest?.editorContract ?? null,
       diagnostic: engine.manifest?.diagnostic ?? null,
     };
-    metrics.setup[LIST_FIXTURE] = await surveyFixture(engine, LIST_FIXTURE);
-    metrics.setup[MULTI_FIXTURE] = await surveyFixture(engine, MULTI_FIXTURE);
+    if (!geometryOnly) {
+      metrics.setup[LIST_FIXTURE] = await surveyFixture(engine, LIST_FIXTURE);
+      metrics.setup[MULTI_FIXTURE] = await surveyFixture(engine, MULTI_FIXTURE);
+    }
+    metrics.setup[WRAP_FIXTURE] = await surveyFixture(engine, WRAP_FIXTURE);
   } finally {
     engine?.dispose();
   }
 
-  const listRows = metrics.setup[LIST_FIXTURE];
-  const multiRows = metrics.setup[MULTI_FIXTURE];
+  const listRows = metrics.setup[LIST_FIXTURE] || [];
+  const multiRows = metrics.setup[MULTI_FIXTURE] || [];
+  const wrapRows = metrics.setup[WRAP_FIXTURE] || [];
   const anchors = {
     isolated: findAnchor(listRows, "E1-LC-ISOLATED"),
     bulletOne: findAnchor(listRows, "E1-LC-BULLET-ONE"),
     heading: findAnchor(listRows, "E1-LC-HEADING"),
-    wrapped: findSpan(multiRows, "gamma"),
+    // G1WRAP is on every visual line of the wrapped paragraph, so the sweep
+    // recognises it line by line and findSpan gets a real top and bottom.
+    wrapped: findSpan(wrapRows, "G1WRAP"),
+    // The control: a paragraph in the same document that does not wrap.
+    wrapControl: findAnchor(wrapRows, "E2B-WRAP-HEAD"),
     multiStart: findAnchor(multiRows, "E1-MULTI-START"),
   };
   metrics.anchors = anchors;
   log({ anchors });
 
   const SPAN = { xStart: 1450, xEnd: 9000 };
+
+  if (geometryOnly) {
+    metrics.geometry = [];
+    engine = await createDocumentEngine({
+      workerUrl: `./profiles/${profile}/sdk-worker.js`, timeoutMs: 60000,
+    });
+    try {
+      for (const probe of [
+        { name: "wrapped", span: anchors.wrapped, expect: "more than one rectangle" },
+        { name: "control", span: anchors.wrapControl, expect: "exactly one rectangle" },
+      ]) {
+        const entry = { probe: probe.name, expect: probe.expect };
+        if (!probe.span) {
+          entry.void = "anchor not found in the sweep";
+          metrics.geometry.push(entry);
+          continue;
+        }
+        const handle = await openDocument(engine, WRAP_FIXTURE);
+        try {
+          const yTop = probe.span.yTop ?? probe.span.y;
+          const yBottom = probe.span.yBottom ?? probe.span.y;
+          entry.range = { x1: SPAN.xStart, y1: yTop, x2: SPAN.xEnd, y2: yBottom };
+          await rangeSelect(handle, SPAN.xStart, yTop, SPAN.xEnd, yBottom);
+          entry.selection = await readSelection(handle);
+          const state = await handle._engine._request("editorGetStateV1", {
+            documentHandle: handle.handle,
+          }, { timeoutMs: stepTimeoutMs }).catch(() => null);
+          entry.rectangles = rectanglesOf(state);
+          entry.rectangleGeometry = rectangleGeometry(state);
+          entry.collapsed = state?.selection?.collapsed ?? null;
+        } catch (error) {
+          entry.failed = publicError(error);
+        } finally {
+          await handle.close({ timeoutMs: 15000 }).catch(() => {});
+        }
+        log(entry);
+        metrics.geometry.push(entry);
+      }
+    } finally {
+      engine?.dispose();
+    }
+    metrics.complete = true;
+    log({ complete: true, geometryOnly: true });
+    return;
+  }
 
   // The comparison baseline, and it has to exist.
   //
@@ -294,7 +388,7 @@ void (async () => {
   // against the authored file reports every paragraph as changed and the
   // analyzer cannot see what the action actually did.  Same class of mistake as
   // task #50's first comparison, in the opposite direction.
-  for (const fixture of [LIST_FIXTURE, MULTI_FIXTURE]) {
+  for (const fixture of [LIST_FIXTURE, MULTI_FIXTURE, WRAP_FIXTURE]) {
     await runArm(`BASELINE-${fixture}`, {
       expects: "open and save, no action: this is what the analyzer compares against",
       fixture,
@@ -333,9 +427,20 @@ void (async () => {
   // Geometry dimension: action fixed at set-list-unordered.
   await runArm("G1-wrapped-line-range", {
     expects: "one paragraph, more than one selection rectangle",
-    fixture: MULTI_FIXTURE,
-  }, positiveArm({ xStart: 1450, xEnd: 9000, anchorKey: "wrapped", spanY: true,
-    anchor: "gamma", action: "set-list-unordered" }, anchors));
+    fixture: WRAP_FIXTURE,
+  }, positiveArm({ ...SPAN, anchorKey: "wrapped", spanY: true,
+    anchor: "G1WRAP", action: "set-list-unordered" }, anchors));
+
+  // The control for G1, in the same document and the same run: a paragraph that
+  // does not wrap, selected the same way, must report exactly one rectangle.
+  // It cannot show that the count tracks visual lines -- only that it is not
+  // stuck above one for this fixture and this build, which is the reading that
+  // would make G1's result mean nothing.
+  await runArm("G1c-single-line-control", {
+    expects: "a non-wrapping paragraph in the same fixture: exactly one rectangle",
+    fixture: WRAP_FIXTURE,
+  }, positiveArm({ ...SPAN, anchorKey: "wrapControl", anchor: "E2B-WRAP-HEAD",
+    action: "set-list-unordered" }, anchors));
 
   await runArm("G2-reverse-range", {
     expects: "END left of START", fixture: LIST_FIXTURE,

@@ -134,7 +134,8 @@ ARM_TARGETS = {
     "A3-list-none-from-range": ("E1-LC-BULLET-ONE", 1),
     "A4-heading-from-range": ("E1-LC-ISOLATED", 1),
     "A5-body-from-range": ("E1-LC-HEADING", 1),
-    "G1-wrapped-line-range": ("gamma", 1),
+    "G1-wrapped-line-range": ("G1WRAP", 1),
+    "G1c-single-line-control": ("E2B-WRAP-HEAD", 1),
     "G2-reverse-range": ("E1-LC-ISOLATED", 1),
     "G3-cross-paragraph-range": ("E1-MULTI-START", 2),
 }
@@ -158,6 +159,14 @@ def judge_round(arm: str, record: dict, diff: dict) -> dict[str, Any]:
     if arm == "G1-wrapped-line-range" and (rectangles or 0) < 2:
         reasons.append(f"only {rectangles} rectangle: the fixture did not "
                        "provide a wrapped line, so this case was not exercised")
+    # The control runs the same span mechanism over a paragraph that does not
+    # wrap.  More than one rectangle there would mean the count is not reading
+    # visual lines, and G1's own count would then say nothing -- so this is
+    # VOID for the control, and the summary reports it next to G1.
+    if arm == "G1c-single-line-control" and (rectangles or 0) != 1:
+        reasons.append(f"{rectangles} rectangles on a paragraph that does not "
+                       "wrap: the rectangle count is not reading visual lines, "
+                       "so G1's count cannot be read either")
     if arm == "G3-cross-paragraph-range" and "\n" not in text:
         reasons.append("selection did not span a paragraph break")
     if reasons:
