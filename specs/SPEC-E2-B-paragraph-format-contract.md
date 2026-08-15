@@ -254,7 +254,7 @@ A1–A5、G1、G2 每一臂在派送**之前**必須全部成立，否則該 run
 | 9 | 產品 state 投影以字串相等判斷 | **已定案 → 5.5** |
 | 10 | manifest 的 action allowlist runtime 不執行 | 未定案 |
 | 11 | 沒有產品 v2 的 profile builder | 未定案 |
-| 12 | 派送後失敗的 revision／dirty／recovery | **提案 → 5.3**，對抗性審查中 |
+| 12 | 派送後失敗的 revision／dirty／recovery | **提案已被打掉 → 5.3**；暫定「全部視為 B」，C 不進協定 |
 | 13 | `abiVersion` 沒有 consumer | **已定案 → 5.4**（新的 C symbol，必須進 relink） |
 | 14 | 公開型別與 header 測試落後 | v1 那一半**已補**（`c5cde7d`）；v2 那一半未定案 |
 
@@ -368,7 +368,48 @@ A1–A5、G1、G2 每一臂在派送**之前**必須全部成立，否則該 run
     沒有清單／段落的方法（`editor-session.js:426`），
     且固定實例化只接受 v1 的 `NarrowEditorClient`（`:125`）。
 
-### 5.3 第 12 項的決定：**派送後失敗要分三類，不是兩類**（2026-08-15 提案）
+### 5.3 第 12 項：~~三分類提案~~ **已被對抗性審查打掉，退回「全部視為 B」**
+
+> **2026-08-15 裁決：不要依這一節做 relink。** codex 的覆核打掉了提案的核心，
+> 我複驗全部屬實。**留原文在下面不刪**，因為打掉它的理由本身是要帶進 relink 的。
+>
+> **一、class C 的前提是錯的。** 我寫「後置條件通過所以文件已驗證正確」——
+> barrier 驗的只有**它自己用 `.uno:SelectText` 重選的那一段**的 html
+> （`:3210`／`:3223`），不驗呼叫端原選取涵蓋的所有段落、不驗鄰段未動、
+> 不驗文字身分、也不驗這個狀態**是不是這次 dispatch 造成的**（`:1213` 的註解明說）。
+> 跨段路徑套用兩段卻只驗一段——**那正是 3.5 已經寫著的洞**，我在提案裡把它忘了。
+>
+> **二、`restoreConfirmed` 不是我以為的東西。** 它就是
+> `restoreConfirmed = gEditorState.selectionRectangles.empty()`（`:3261`），
+> 不比對 caret 是否回到 restorePoint、不比對原 range 是否恢復。
+> 所以「選取不是呼叫端留下的那個」這個描述不準確。
+>
+> **三、C 幾乎是死碼。** 正常 restore 失敗時 finish 根本不會被呼叫，
+> 會走 stage deadline 變成 `MUTATION_OUTCOME_UNKNOWN`（B），不是 C。
+> 唯一明確可達的是 `!restorePointValid` 那條（`:3410`），
+> 而 `restorePointValid` 只是 dispatch 當下 `caret.available`（`:3533`）。
+> **在找到 deterministic 重現之前，C 不成立。**
+>
+> **四、B 前進 revision 得不到我寫的那個 stale error。** B 會 `_blockQueue()`，
+> 所以根本沒有「下一個 mutation」——對那個 session generation 而言就是結束。
+> 而且 error payload 完全沒有 `revision`（`:1236`），worker 也不轉發。
+>
+> **五、「提示使用者 undo」在現行 shell 不可執行。** `undo()` 自己也走
+> `_enqueue()`（`editor-session.js:434`），queue 一擋就先被 `EDITOR_NOT_READY` 拒掉。
+> 所以 B 只能二選一：**「這個 generation 結束、只能 rollback／restart」**，
+> 或**提供受限的 resync／undo 流程**——不能兩句話一起寫。
+>
+> **六、我自己的「更正」算錯了。** 我寫十個失敗點裡八個發
+> `MUTATION_OUTCOME_UNKNOWN`——**是七個**，而沒被涵蓋的是**三個**不是兩個
+> （多一個 `EDITOR_STATE_UNAVAILABLE`，`:3093`，也發生在派送之後）。
+> **數字就在我自己印出來的那張表裡，我數錯了。**
+>
+> **暫定裁決**：A 維持不前進 revision／不 dirty／不擋；
+> **所有現存的派送後失敗一律視為 B**；C 不凍結進協定，
+> 直到（a）逐 block 驗證涵蓋完整作用範圍、（b）有可重現的紅、
+> （c）C 改成 success-with-warning 或 error payload 能原子帶上 revision／state／dirty。
+
+#### 以下為原提案，保留備查（2026-08-15）
 
 第 12 項必須和跨段處置**同時**定案，否則就是第二次 relink。以下是提案，
 **尚未經對抗性審查**。
