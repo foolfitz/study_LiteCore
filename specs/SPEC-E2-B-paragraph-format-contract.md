@@ -468,6 +468,34 @@ capability `narrow-editor-v1` ＋ `editorContract.version === 1`（`:98`）。
 **這一節全部是 JS，不重連結**——但依 5.2，它必須在最終量測**之前**定稿，
 否則 evidence 一樣會 stale。
 
+### 5.6 第 3 項的決定：v2 的結果驗證**逐動作**放寬，不是整條放寬
+
+現行 client 對每個 mutation 要求 `changed === true` ＋ revision `+1` ＋
+`completion === "uno-command-result"`（`editor-client.js:78`），
+而路線 C 回 `changed: null` ＋ `verified-format-readback`
+（`probe_engine.cpp:1200`–`1211`）。
+
+**決定：v2 的驗證器對這五個段落動作接受
+`changed === null` ＋ `completion === "verified-format-readback"` ＋ revision `+1`，
+其餘動作的判準一個字都不動。**
+
+理由要說清楚，因為「放寬驗證」聽起來就是壞事：
+
+- `changed: null` **不是「不知道有沒有成功」**，是「**沒有讀前置狀態**，
+  所以說不出它變了沒有」。那是 finding 022 之後**刻意**的設計
+  （`probe_engine.cpp:3595` 的註解：停止讀前置狀態，而不是讓它變可信）。
+- 這五個動作的**後置條件是 barrier 驗過的**——`verified-format-readback`
+  這個字面意思就是它。所以 client 放棄的是一個**它本來就拿不到**的前置狀態宣稱，
+  換到的是一個**引擎已經驗證過的後置條件**。
+- **但這必須逐動作。** 若把 `changed === null` 對 delete 也放行，
+  finding 022 的無聲 no-op 就整個回來了——delete 的判準
+  （`completion === "verified-selection-delete"` ＋ `changed === true`）
+  是 E1-B 明文凍結的，**不在本規格的變更範圍內**。
+
+> **順帶**：五個動作現在連結果驗證都到不了——它們不在 `ACTION_SET`
+> （`editor-client.js:16`），`action()` 在 `:92` 先丟 `EDITOR_ACTION_UNSUPPORTED`。
+> 所以第 3 項的實作順序是：先進 allowlist，才會撞到驗證器。
+
 ### 5.2 唯一一次 relink 要帶什麼進去
 
 finding 042：改 `Makefile` 會重連結。所以下列**必須同一次做完**，
