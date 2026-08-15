@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "release": "spec-e2c-d1-preflight",
+  "phase": "D1-preflight",
+  "profile": "e2-editor-v2",
+  "fixture": "d1-anchors.odt",
+  "browser": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+  "cells": {
+    "d0-inventory": {
+      "profile": "e2-editor-v2",
+      "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+      "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+    },
+    "set-bold": {
+      "anchor": "E2-D1-BOLD-ON",
+      "y": 2340,
+      "steps": [
+        {
+          "step": "action",
+          "revision": 1,
+          "changed": true,
+          "completion": "uno-command-result"
+        },
+        {
+          "step": "insert",
+          "marker": "BOLDPROBE",
+          "revision": 2
+        },
+        {
+          "step": "range-action",
+          "revision": 3,
+          "changed": true,
+          "completion": "uno-command-result"
+        }
+      ]
+    },
+    "set-italic": {
+      "anchor": "E2-D1-ITALIC-ON",
+      "y": 3120,
+      "steps": [
+        {
+          "step": "action",
+          "revision": 1,
+          "changed": true,
+          "completion": "uno-command-result"
+        },
+        {
+          "step": "insert",
+          "marker": "ITALICPROBE",
+          "revision": 2
+        },
+        {
+          "step": "range-action",
+          "revision": 3,
+          "changed": true,
+          "completion": "uno-command-result"
+        }
+      ]
+    },
+    "off-in-plain-fresh-document": {
+      "name": "off-in-plain-fresh-document",
+      "y": 2340,
+      "steps": [
+        {
+          "action": "set-bold",
+          "enabled": false,
+          "marker": "OFFONLY",
+          "revision": 1,
+          "changed": true,
+          "completion": "uno-command-result"
+        }
+      ]
+    },
+    "on-then-off-same-document": {
+      "name": "on-then-off-same-document",
+      "y": 2340,
+      "steps": [
+        {
+          "action": "set-bold",
+          "enabled": true,
+          "marker": "ONFIRST",
+          "revision": 1,
+          "changed": true,
+          "completion": "uno-command-result"
+        },
+        {
+          "action": "set-bold",
+          "enabled": false,
+          "marker": "OFFSECOND",
+          "revision": 3,
+          "changed": true,
+          "completion": "uno-command-result"
+        }
+      ]
+    }
+  },
+  "anchors": {
+    "E2-D1-BOLD-ON": {
+      "first": 2340,
+      "last": 2600,
+      "steps": 3
+    },
+    "E2-D1-ITALIC-ON": {
+      "first": 3120,
+      "last": 3380,
+      "steps": 3
+    }
+  },
+  "complete": true,
+  "error": null,
+  "artifact": {
+    "profile": "e2-editor-v2",
+    "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+    "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+    "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+  },
+  "attribution": {
+    "runnerProfile": "e2-editor-v2",
+    "pageReported": {
+      "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+      "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+    },
+    "consistent": true
+  },
+  "browserName": "firefox",
+  "savedDocuments": [
+    {
+      "label": "set-bold-before",
+      "file": "saved/set-bold-before.odt"
+    },
+    {
+      "label": "set-bold-after-action",
+      "file": "saved/set-bold-after-action.odt"
+    },
+    {
+      "label": "set-bold-after-insert",
+      "file": "saved/set-bold-after-insert.odt"
+    },
+    {
+      "label": "set-bold-after-range",
+      "file": "saved/set-bold-after-range.odt"
+    },
+    {
+      "label": "set-italic-before",
+      "file": "saved/set-italic-before.odt"
+    },
+    {
+      "label": "set-italic-after-action",
+      "file": "saved/set-italic-after-action.odt"
+    },
+    {
+      "label": "set-italic-after-insert",
+      "file": "saved/set-italic-after-insert.odt"
+    },
+    {
+      "label": "set-italic-after-range",
+      "file": "saved/set-italic-after-range.odt"
+    },
+    {
+      "label": "off-off-in-plain-fresh-document",
+      "file": "saved/off-off-in-plain-fresh-document.odt"
+    },
+    {
+      "label": "off-on-then-off-same-document",
+      "file": "saved/off-on-then-off-same-document.odt"
+    }
+  ]
+}
