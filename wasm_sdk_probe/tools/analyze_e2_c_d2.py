@@ -48,11 +48,32 @@ EXPECTED = {
         "disposition": "unknown-rollback",
         "why": "fail closed survives the pre-dispatch code list",
     },
+    # WRITTEN AFTER OBSERVATION, and said so on purpose.  The v2 pair below was
+    # `EDITOR_FORMAT_POSTCONDITION_FAILED` / `postcondition-not-met`, measured
+    # when the caret was formed by a bare `placeCaret` -- which returns before
+    # the click lands (finding 048), so what that round actually measured was a
+    # dispatch whose caret arrived during the intervening save.  With the caret
+    # PROVED to be on the empty paragraph before dispatch, the same build
+    # answers `MUTATION_OUTCOME_UNKNOWN` / `multi-block-readback` instead, in
+    # Chrome and Firefox and through both positioning gestures.
+    #
+    # `multiBlock` is `blockCount > 1 || itemCount > 1` and the payload reports
+    # `postBlocks: 0`, so this is an itemCount verdict -- and the product
+    # projection does not carry itemCount, which is why the relink queue now has
+    # an item for it (PLAN-E2-C-relink-v3 3c).  Until that lands, this cell can
+    # say WHICH exit the engine took and not what the readback saw.
     "d2-refused-no-mutation-engine": {
-        "v2": {"code": "EDITOR_FORMAT_POSTCONDITION_FAILED",
-               "shape": "postcondition-not-met",
-               "finding": "046 -- an empty readback is reported as the document "
-                          "being in the wrong state"},
+        "v2": {"code": "MUTATION_OUTCOME_UNKNOWN",
+               "shape": "multi-block-readback",
+               "finding": "046 -- the empty paragraph's readback is classified "
+                          "by a count the product payload does not report"},
+        # The dispatch is real and its outcome is unknown, so the claim worth
+        # checking is not "nothing changed" -- it is that the prescribed
+        # recovery PUT IT BACK.  Compared after the rollback, byte for byte.
+        "restoredAfterRecovery": ("engine-refusal-before", "engine-refusal-after"),
+        "rollback": "ok",
+        # Pending: 046's fix predicate is not decided, so neither is the shape
+        # this becomes.  Left as the intended one and re-checked when 3b lands.
         "v3": {"code": "MUTATION_OUTCOME_UNKNOWN", "shape": "empty-readback"},
     },
     "d2-dispatched-rollback": {
@@ -143,6 +164,17 @@ def judge_cell(cid: str, cell: dict, saved: Path, abi: int,
         elif not held:
             problems.append(f"{cid}: <office:body> changed")
         notes.append(how)
+
+    if "restoredAfterRecovery" in spec:
+        held, how = zero_mutation(saved, spec["restoredAfterRecovery"])
+        if held is None:
+            problems.append(f"{cid}: {how} -- the recovery left nothing to compare")
+        elif not held:
+            problems.append(f"{cid}: the rollback did not restore <office:body>")
+        notes.append(f"after the rollback: {how}")
+    if "rollback" in spec and cell.get("rollback") != spec["rollback"]:
+        problems.append(f"{cid}: rollback was {cell.get('rollback')!r}, "
+                        f"expected {spec['rollback']!r}")
 
     if "code" in spec and error.get("code") != spec["code"]:
         problems.append(f"{cid}: code {error.get('code')}, expected {spec['code']}")
@@ -249,6 +281,16 @@ EXPECTATION_TESTS = [
     ("a missing save is reported, not ignored",
      lambda e: e["d2-stale-revision"].update(
          {"zeroMutation": ("no-such-save", "stale-revision-after")})),
+    # The rollback-restored check has to be able to say the rollback did NOT
+    # restore.  Pointed at two documents that really differ, it must complain;
+    # a check that only ever sees a document compared with itself is not a
+    # check.
+    ("the rollback-restored predicate compares real documents",
+     lambda e: e["d2-refused-no-mutation-engine"].update(
+         {"restoredAfterRecovery": ("engine-refusal-before",
+                                    "dispatched-rollback-before")})),
+    ("a rollback that did not report ok is caught",
+     lambda e: e["d2-refused-no-mutation-engine"].update({"rollback": "not-ok"})),
 ]
 
 

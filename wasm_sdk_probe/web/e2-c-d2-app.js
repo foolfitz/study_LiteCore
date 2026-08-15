@@ -18,11 +18,16 @@ import { createDocumentEngine } from "./sdk/document-sdk.js";
 import { NarrowEditorV2Session } from "./editor-shell-v2/narrow-editor-v2-session.js";
 import { formatFailureDisposition }
   from "./editor-shell-v2/paragraph-editor-client.js";
+import { placeCaretVerified } from "./e2-c-caret.js";
 
 const params = new URLSearchParams(location.search);
 const profile = params.get("profile") || "e2-editor-v2";
 const fixture = params.get("fixture") || "d1-anchors.odt";
 const only = params.get("only");
+// `caret`: click (default -- the product gesture, with the landing proved by a
+// readback) | click-unverified (finding 048's arm: the same click, recorded
+// and gated on nothing).
+const caretMode = params.get("caret") || "click";
 const stepTimeoutMs = 30000;
 
 const metrics = {
@@ -158,7 +163,15 @@ async function openSession(which = "default") {
   return session;
 }
 
+// A breadcrumb trail for the cell that is currently running, cleared between
+// cells and attached to the record when one dies.
+const trace = [];
+const mark = (label, session, extra = {}) =>
+  trace.push({ label, state: session?.state?.snapshot?.state ?? null,
+               sessionError: session?.state?.snapshot?.error ?? null, ...extra });
+
 async function snapshot(session, label) {
+  mark(`about-to-save:${label}`, session);
   // `EditorSession.save()` resolves to {bytes, revision, contentStamp}, not to
   // the bytes.  The first version treated it as an ArrayBuffer, so every
   // snapshot silently produced an empty base64 string and the runner filed
@@ -228,9 +241,35 @@ async function anchorX(anchor, which = "default") {
   return anchors.get(`${which}::${anchor}`)?.x ?? null;
 }
 
-/** The product's own caret gesture (SPEC E2-C 9.5.6). */
-async function caretAt(session, y) {
-  await session.placeCaret(2000, y);
+/** Put the caret on a line with the PRODUCT's gesture, and prove it landed.
+ *
+ * `caret=click-unverified` keeps the bare `session.placeCaret(2000, y)` this
+ * used to be -- finding 048's arm, which records where the caret ended up and
+ * gates on nothing, because measuring the gesture is its whole purpose.
+ *
+ * Everything else goes through `placeCaretVerified`: the same click, followed
+ * by polling until the engine reports the caret on the requested line.  Two
+ * measured reasons it is a click and not a zero-width `selectRange`:
+ *
+ *   * SPEC E2-C 9.5.6 -- the gesture changes the answer.  This phase's own
+ *     empty-paragraph cell comes back `postcondition-not-met` with the session
+ *     still `ready` after a click, and `multi-block-readback` with the session
+ *     in `recoverable-error` after a selectRange.  Driving the product's
+ *     failure paths with the non-product gesture measures a different product.
+ *   * Finding 048 -- `placeCaret` alone returns before the click takes effect,
+ *     so the proof has to be a readback, not the call returning.
+ */
+async function caretAt(session, y, xTwips = 2000) {
+  if (caretMode === "click-unverified") {
+    await session.placeCaret(xTwips, y);
+    const state = await session.editor.getState();
+    mark("caret-readback", session, { asked: y, caret: state?.caret ?? null });
+    return state?.caret ?? null;
+  }
+  const { caret, arrivedAfterMs, confirmedBy } =
+    await placeCaretVerified(session, xTwips, y);
+  mark("caret-placed", session, { asked: y, caret, arrivedAfterMs, confirmedBy });
+  return caret;
 }
 
 // ------------------------------------------------------------------- cells
@@ -323,14 +362,28 @@ const CELLS = {
       const y = above + 390;
       entry.anchorAbove = above;
       entry.emptyParagraphY = y;
-      await caretAt(session, y);
+      mark("opened", session, { anchorAbove: above, emptyParagraphY: y });
+      entry.caret = await caretAt(session, y);
+      mark("caret-placed", session, { caret: entry.caret });
       const before = await snapshot(session, "engine-refusal-before");
       const error = await session.setList("unordered")
         .then(() => null, (e) => e);
       entry.error = error ? publicError(error) : null;
       entry.accepted = error === null;
-      entry.savedBytes = { before,
-                           after: await snapshot(session, "engine-refusal-after") };
+      entry.stateAfterAction = session.state.snapshot.state;
+      // A dispatched failure blocks the queue, and `save` is one of the
+      // operations it blocks -- so the after-picture has to come after the
+      // prescribed recovery, not before it.  Taking it unconditionally is how
+      // this cell spent two rounds dying as EDITOR_NOT_READY and reporting
+      // nothing about the engine at all.
+      if (entry.stateAfterAction === "recoverable-error") {
+        entry.rollback = await session.rollback()
+          .then(() => "ok", (e) => publicError(e));
+        entry.stateAfterRollback = session.state.snapshot.state;
+      }
+      entry.savedBytes = { before, after: null };
+      if (["ready", "busy"].includes(session.state.snapshot.state))
+        entry.savedBytes.after = await snapshot(session, "engine-refusal-after");
       entry.state = session.state.snapshot.state;
     } finally { await session.close().catch(() => {}); }
     return entry;
@@ -381,7 +434,7 @@ const CELLS = {
       const cellX = await anchorX("E1-CELL-A1", "table");
       entry.anchor = { x: cellX, y: cellY };
       // The START of the cell's text, not the middle of the line.
-      await session.placeCaret(Math.max(0, (cellX ?? 2000) + 10), cellY);
+      await caretAt(session, cellY, Math.max(0, (cellX ?? 2000) + 10));
       const error = await session.action("delete-backward")
         .then(() => null, (e) => e);
       entry.error = error ? publicError(error) : null;
@@ -530,10 +583,14 @@ void (async () => {
       const cell = CELLS[name];
       if (!cell) { log({ cell: name, skipped: "no such cell" }); continue; }
       let entry;
+      trace.length = 0;
       try {
         entry = await cell();
       } catch (error) {
-        entry = { fatal: publicError(error) };
+        // With the trace.  A cell that dies keeps nothing of the `entry` it was
+        // filling in, so `{fatal}` on its own says which step threw and nothing
+        // about the state the session was in when it got there.
+        entry = { fatal: publicError(error), trace: [...trace] };
       }
       metrics.cells[name] = entry;
       log({ cell: name, ...entry });

@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "release": "spec-e2c-d2",
+  "phase": "D2",
+  "profile": "e2-editor-v2",
+  "fixture": "d1-anchors.odt",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "cells": {
+    "d0-inventory": {
+      "profile": "e2-editor-v2",
+      "abiVersion": 2,
+      "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+      "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+    },
+    "d2-stale-revision": {
+      "error": {
+        "code": "STALE_REVISION",
+        "message": "expected revision 9999 but current revision is 0",
+        "recovery": "none",
+        "disposition": "refused-no-mutation",
+        "formatBarrier": null
+      },
+      "accepted": false,
+      "savedBytes": {
+        "before": 17770,
+        "after": 17777
+      },
+      "state": "ready"
+    },
+    "d2-stale-handle": {
+      "error": {
+        "code": "ENGINE_DISPOSED",
+        "message": "engine is disposed",
+        "recovery": null,
+        "disposition": "unknown-rollback",
+        "formatBarrier": null
+      },
+      "accepted": false,
+      "savedBytes": {
+        "before": 17759
+      }
+    },
+    "d2-refused-no-mutation-client": {
+      "attempts": [
+        {
+          "label": "bad kind",
+          "error": {
+            "code": "INVALID_ARGUMENT",
+            "message": "kind must be none, unordered or ordered",
+            "recovery": "none",
+            "disposition": "refused-no-mutation",
+            "formatBarrier": null
+          }
+        },
+        {
+          "label": "bad style",
+          "error": {
+            "code": "INVALID_ARGUMENT",
+            "message": "style must be heading or body",
+            "recovery": "none",
+            "disposition": "refused-no-mutation",
+            "formatBarrier": null
+          }
+        },
+        {
+          "label": "unknown action",
+          "error": {
+            "code": "EDITOR_ACTION_UNSUPPORTED",
+            "message": "unsupported v2 editor action: set-superscript",
+            "recovery": "none",
+            "disposition": "refused-no-mutation",
+            "formatBarrier": null
+          }
+        }
+      ],
+      "savedBytes": {
+        "before": 17760,
+        "after": 17768
+      },
+      "state": "ready"
+    },
+    "d2-unknown-rollback-fallback": {
+      "disposition": "unknown-rollback",
+      "code": "MUTATION_OUTCOME_UNKNOWN"
+    },
+    "d2-refused-no-mutation-engine": {
+      "fatal": {
+        "code": "EDITOR_NOT_READY",
+        "message": "editor operation save is unavailable in recoverable-error",
+        "recovery": null,
+        "disposition": "unknown-rollback",
+        "formatBarrier": null
+      }
+    },
+    "d2-dispatched-rollback": {
+      "dirty": true,
+      "hasCheckpoint": true,
+      "checkpointRevision": 1,
+      "error": {
+        "code": "MUTATION_OUTCOME_UNKNOWN",
+        "message": "this paragraph carries a footnote or endnote. The action was dispatched and the paragraph may already have changed, but this build does not verify paragraphs with notes -- check the paragraph and use undo if it is not what you wanted. This is a limit of the check, not a problem with the document",
+        "recovery": "rollback",
+        "disposition": "dispatched-rollback",
+        "formatBarrier": {
+          "failureShape": "footnote-apparatus-readback",
+          "dispatched": true,
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false
+        }
+      },
+      "stateAfterFailure": "recoverable-error",
+      "rollback": "ok",
+      "stateAfterRollback": "ready"
+    },
+    "d2-boundary-restart-required": {
+      "anchor": {
+        "x": 1418,
+        "y": 1820
+      },
+      "error": {
+        "code": "EDITOR_BOUNDARY_UNSUPPORTED",
+        "message": "one Writer unit remained unselected at the negative boundary deadline",
+        "recovery": "restart",
+        "disposition": "unknown-rollback",
+        "formatBarrier": null
+      },
+      "state": "restart-required",
+      "queuedAfter": {
+        "code": "EDITOR_NOT_READY",
+        "message": "editor operation action:set-italic is unavailable in restart-required",
+        "recovery": "rollback",
+        "disposition": "unknown-rollback",
+        "formatBarrier": null
+      }
+    },
+    "d2-crash-unsaved-edit": {
+      "dirtyBeforeCrash": true,
+      "stateAfterCrash": "recoverable-error",
+      "restart": "ok",
+      "stateAfterRestart": "ready"
+    },
+    "d2-crash-after-save": {
+      "dirtyAfterSave": false,
+      "restart": "ok"
+    },
+    "d2-crash-after-checkpoint": {
+      "hasCheckpoint": true,
+      "restart": "ok",
+      "dirtyAfterRestart": true,
+      "hasCheckpointAfterRestart": true
+    },
+    "d2-crash-queued-mutation": {
+      "first": {
+        "code": "WORKER_CRASHED",
+        "message": "intentional E2-C D2 queued-mutation worker crash",
+        "recovery": "restart",
+        "disposition": "unknown-rollback",
+        "formatBarrier": null
+      },
+      "second": {
+        "code": "WORKER_CRASHED",
+        "message": "intentional E2-C D2 queued-mutation worker crash",
+        "recovery": "restart",
+        "disposition": "unknown-rollback",
+        "formatBarrier": null
+      },
+      "state": "recoverable-error",
+      "restart": "ok"
+    },
+    "d2-generation-ceiling": {
+      "restarts": [
+        {
+          "ok": true,
+          "generation": 2
+        },
+        {
+          "ok": true,
+          "generation": 3
+        },
+        {
+          "ok": false,
+          "error": {
+            "code": "WORKER_GENERATION_LIMIT",
+            "message": "Worker generation limit 3 reached; reload the page",
+            "recovery": null,
+            "disposition": "unknown-rollback",
+            "formatBarrier": null
+          },
+          "requiresPageReload": true
+        }
+      ]
+    }
+  },
+  "workers": {
+    "created": 19,
+    "terminated": 19,
+    "intentionalCrashes": 7
+  },
+  "complete": true,
+  "error": null,
+  "artifact": {
+    "profile": "e2-editor-v2",
+    "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+    "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+    "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+  },
+  "attribution": {
+    "runnerProfile": "e2-editor-v2",
+    "pageReported": {
+      "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+      "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+    },
+    "consistent": true
+  },
+  "browserName": "chrome",
+  "savedDocuments": [
+    {
+      "label": "stale-revision-before",
+      "file": "saved/stale-revision-before.odt"
+    },
+    {
+      "label": "stale-revision-after",
+      "file": "saved/stale-revision-after.odt"
+    },
+    {
+      "label": "stale-handle-before",
+      "file": "saved/stale-handle-before.odt"
+    },
+    {
+      "label": "client-refusal-before",
+      "file": "saved/client-refusal-before.odt"
+    },
+    {
+      "label": "client-refusal-after",
+      "file": "saved/client-refusal-after.odt"
+    },
+    {
+      "label": "engine-refusal-before",
+      "file": "saved/engine-refusal-before.odt"
+    },
+    {
+      "label": "dispatched-rollback-before",
+      "file": "saved/dispatched-rollback-before.odt"
+    },
+    {
+      "label": "dispatched-rollback-after",
+      "file": "saved/dispatched-rollback-after.odt"
+    },
+    {
+      "label": "crash-unsaved-after-restart",
+      "file": "saved/crash-unsaved-after-restart.odt"
+    },
+    {
+      "label": "crash-after-save-authority",
+      "file": "saved/crash-after-save-authority.odt"
+    },
+    {
+      "label": "crash-after-save-restored",
+      "file": "saved/crash-after-save-restored.odt"
+    },
+    {
+      "label": "crash-after-checkpoint-restored",
+      "file": "saved/crash-after-checkpoint-restored.odt"
+    },
+    {
+      "label": "crash-queued-after-restart",
+      "file": "saved/crash-queued-after-restart.odt"
+    }
+  ]
+}
