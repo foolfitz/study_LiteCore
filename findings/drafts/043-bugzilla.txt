@@ -2,210 +2,122 @@
 Bugzilla: https://bugs.documentfoundation.org
 ================================================================
 Product:        LibreOffice
-Component:      Writer                 [送出前確認。缺陷在 sw/uibase 的 wrtsh
-                                        與 docvw；LOK 介面在 sw/uibase/uno]
-Version:        26.8.0.1 rc            [core 671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb]
+Component:      Writer                 [confirm before sending]
+Version:        26.8.0.1 rc            [core 671c848b1bb8]
 Hardware:       All
-OS:             All                    [原生 Linux 與 Emscripten 皆重現]
+OS:             All
 Severity:       normal
 Summary:        LOK: setTextSelection(RESET)+setTextSelection(END) silently
                 creates no selection after .uno:SelectText -- FN_SELECT_PARA
                 calls SttSelect() with no matching EndSelect()
 ================================================================
 
-重複單查詢（送出前要重查一次；本欄目前為空）
----------------------------------------------
-[ ] summary:SelectText
-[ ] summary:SttSelect
-[ ] summary:setTextSelection
-[ ] summary:FN_SELECT_PARA
-[ ] ALL content:m_bInSelect
-[ ] ALL content:SttSelect
-[ ] summary:tiledrendering + summary:selection
-
 
 Description
 -----------
 
-After dispatching .uno:SelectText, the documented LOK sequence
+After dispatching .uno:SelectText, the documented LOK sequence setTextSelection(LOK_SETTEXTSELECTION_RESET, x1, y) followed by setTextSelection(LOK_SETTEXTSELECTION_END, x2, y) creates no selection at all, and reports no error. The call returns, the cursor moves, getTextSelection() returns an empty string, getSelectionType() returns LOK_SELTYPE_NONE, and -- importantly for callers that wait on it -- LOK_CALLBACK_TEXT_SELECTION is never broadcast, because the selection genuinely did not change.
 
-    setTextSelection(LOK_SETTEXTSELECTION_RESET, x1, y)
-    setTextSelection(LOK_SETTEXTSELECTION_END,   x2, y)
-
-creates no selection at all.  There is no error: the call returns, the cursor
-moves, getTextSelection() returns an empty string, and -- importantly for
-callers that wait on it -- LOK_CALLBACK_TEXT_SELECTION is never broadcast,
-because the selection genuinely did not change.
-
-This is not a misuse of the API.  That exact two-call sequence is what
-LibreOffice's own tiled-rendering test asserts:
-
-    sw/qa/extras/tiledrendering/tiledrendering.cxx:151, in testSetTextSelection
-      // Next: test that LOK_SETTEXTSELECTION_RESET + LOK_SETTEXTSELECTION_END
-      // can be used to create a selection.
-      pXTextDocument->setTextSelection(LOK_SETTEXTSELECTION_RESET, aStart.getX(), aStart.getY());
-      pXTextDocument->setTextSelection(LOK_SETTEXTSELECTION_END, aStart.getX() + 1000, aStart.getY());
-      CPPUNIT_ASSERT_EQUAL(u"Aaa b"_ustr, pShellCursor->GetText());
-
-The existing test only covers the clean case.  Dispatching .uno:SelectText
-first makes the same two calls fail.
+This is not a misuse of the API. That exact two-call sequence is what LibreOffice's own tiled-rendering test asserts. In sw/qa/extras/tiledrendering/tiledrendering.cxx, inside testSetTextSelection, a comment at line 151 introduces the case as testing "that LOK_SETTEXTSELECTION_RESET + LOK_SETTEXTSELECTION_END can be used to create a selection", and the two calls that follow are checked with CPPUNIT_ASSERT_EQUAL against the expected text. That existing test only covers the clean case; dispatching .uno:SelectText first makes the same two calls fail.
 
 
-Steps to reproduce (LOK API level)
------------------------------------
+Steps to reproduce, at the LOK API level
+-----------------------------------------
 
-1. documentLoad() a Writer document, initializeForRendering(), paint a tile so
-   the layout exists.
-2. setTextSelection(RESET, x, y) to place a collapsed cursor in a paragraph.
-3. postUnoCommand(".uno:SelectText", nullptr, true)   -- selects the paragraph.
-4. setTextSelection(RESET, x, y)                      -- collapse it again.
-5. setTextSelection(RESET, x1, y)
-   setTextSelection(END,   x2, y)                     -- ask for a range.
-6. getTextSelection("text/plain;charset=utf-8")
+1. documentLoad() a Writer document, initializeForRendering(), and paint a tile so that a layout exists and coordinates mean something.
+2. setTextSelection(RESET, x, y) to place a collapsed cursor inside a paragraph.
+3. postUnoCommand(".uno:SelectText", nullptr, true), which selects the paragraph.
+4. setTextSelection(RESET, x, y) to collapse the selection again.
+5. setTextSelection(RESET, x1, y) then setTextSelection(END, x2, y) to ask for a range.
+6. getTextSelection("text/plain;charset=utf-8").
 
-Expected: the text between x1 and x2.
-Actual:   empty string, getSelectionType() == LOK_SELTYPE_NONE, and no
-          LOK_CALLBACK_TEXT_SELECTION was broadcast for step 5.
+Expected: the text between x1 and x2. Actual: an empty string, getSelectionType() == LOK_SELTYPE_NONE, and no LOK_CALLBACK_TEXT_SELECTION for step 5.
 
-Notes:
-  * Step 3 is the only thing that matters.  Without it, step 5 works.
-  * No format command is involved.  We first met this after .uno:DefaultBullet,
-    but a run with the format command and WITHOUT .uno:SelectText selects fine,
-    and a run with .uno:SelectText and NO format command fails.
-  * Repeating step 5 a second time, with nothing dispatched in between,
-    SUCCEEDS.  See "Mechanism" -- the failed attempt clears the state itself.
+Step 3 is the only thing that matters. Without it, step 5 works. No format command is involved: we first met this after .uno:DefaultBullet, but a run with the format command and without .uno:SelectText selects fine, and a run with .uno:SelectText and no format command fails.
+
+Repeating step 5 a second time, with nothing dispatched in between, succeeds. See the mechanism section: the failed attempt clears the state itself.
 
 
-Proposed regression test (ready to paste)
-------------------------------------------
+Proposed regression test
+------------------------
 
-Modelled on the existing testSetTextSelection in the same file:
+Modelled on the existing testSetTextSelection in the same file. The local alias
+keeps every line inside the comment box; it is not otherwise meaningful.
 
-    CPPUNIT_TEST_FIXTURE(SwTiledRenderingTest, testSetTextSelectionAfterSelectPara)
-    {
-        SwXTextDocument* pXTextDocument = createDoc("dummy.fodt");
-        SwWrtShell* pWrtShell = getSwDocShell()->GetWrtShell();
-        pWrtShell->Right(SwCursorSkipMode::Chars, /*bSelect=*/false, 5, /*bBasicCall=*/false);
-        pWrtShell->SelWrd();
-        SwShellCursor* pShellCursor = pWrtShell->getShellCursor(false);
-        Point aStart = pShellCursor->GetSttPos();
+  CPPUNIT_TEST_FIXTURE(SwTiledRenderingTest, testSetTextSelAfterSelectPara)
+  {
+    SwXTextDocument* doc = createDoc("dummy.fodt");
+    SwWrtShell* pWrtShell = getSwDocShell()->GetWrtShell();
+    pWrtShell->Right(SwCursorSkipMode::Chars, false, 5, false);
+    pWrtShell->SelWrd();
+    SwShellCursor* pCursor = pWrtShell->getShellCursor(false);
+    const Point aStart = pCursor->GetSttPos();
 
-        // Select the paragraph the way .uno:SelectText does, then collapse.
-        comphelper::dispatchCommand(u".uno:SelectText"_ustr, {});
-        Scheduler::ProcessEventsToIdle();
-        pXTextDocument->setTextSelection(LOK_SETTEXTSELECTION_RESET, aStart.getX(), aStart.getY());
+    // Select the paragraph the way .uno:SelectText does, then collapse.
+    comphelper::dispatchCommand(u".uno:SelectText"_ustr, {});
+    Scheduler::ProcessEventsToIdle();
+    doc->setTextSelection(LOK_SETTEXTSELECTION_RESET, aStart.getX(),
+                          aStart.getY());
 
-        // Exactly the sequence testSetTextSelection already asserts works.
-        pXTextDocument->setTextSelection(LOK_SETTEXTSELECTION_RESET, aStart.getX(), aStart.getY());
-        pXTextDocument->setTextSelection(LOK_SETTEXTSELECTION_END, aStart.getX() + 1000, aStart.getY());
-        CPPUNIT_ASSERT(!pShellCursor->GetText().isEmpty());   // fails before the fix
-    }
+    // Exactly what testSetTextSelection already asserts works.
+    doc->setTextSelection(LOK_SETTEXTSELECTION_RESET, aStart.getX(),
+                          aStart.getY());
+    doc->setTextSelection(LOK_SETTEXTSELECTION_END, aStart.getX() + 1000,
+                          aStart.getY());
+    CPPUNIT_ASSERT(!pCursor->GetText().isEmpty());  // fails before the fix
+  }
 
 
 Mechanism -- NOT VERIFIED, treat as a hypothesis
 -------------------------------------------------
 
-The report above stands without this section; delete it and the reproducer is
-unchanged.  We never read the flag named below -- SwWrtShell::IsInSelect() is
-in sw/source/uibase/inc/wrtsh.hxx:154 and is not reachable from an external LOK
-probe -- so this is a source reading plus its externally observable
-consequences, not a measurement of the flag itself.
+The report above stands without this section. Delete it and the reproducer is unchanged. We never read the flag named below: SwWrtShell::IsInSelect() lives in sw/source/uibase/inc/wrtsh.hxx:154 and is not reachable from an external LOK probe, so what follows is a source reading plus its externally observable consequences, not a measurement of the flag itself.
 
-  1. sw/sdi/swriter.sdi:5649           .uno:SelectText -> FN_SELECT_PARA
-  2. sw/source/uibase/shells/textsh1.cxx:1975
-                                        FN_SELECT_PARA ends in EndPara(true)
-  3. sw/source/uibase/wrtsh/move.cxx:402
-                                        EndPara(true) -> ShellMoveCursor(this, true)
-                                        -> MoveCursor(true)
-  4. sw/source/uibase/wrtsh/move.cxx:84 MoveCursor(true) calls SttSelect()
-  5. sw/source/uibase/wrtsh/select.cxx:421
-                                        SttSelect() sets m_bInSelect = true
+.uno:SelectText maps to FN_SELECT_PARA at sw/sdi/swriter.sdi:5649. FN_SELECT_PARA is handled at sw/source/uibase/shells/textsh1.cxx:1975 and ends in EndPara(true). EndPara(true) at sw/source/uibase/wrtsh/move.cxx:402 constructs a ShellMoveCursor with bSel true, whose constructor calls MoveCursor(true), and MoveCursor(true) at move.cxx:84 calls SttSelect(). SttSelect() at sw/source/uibase/wrtsh/select.cxx:421 sets m_bInSelect to true. Nothing on that path calls EndSelect(): ShellMoveCursor's destructor at move.cxx:62-71 only does StartAllAction and EndAllAction.
 
-     Nothing on that path calls EndSelect().  ShellMoveCursor's destructor
-     (move.cxx:62-71) only does StartAllAction/EndAllAction.
+A later setTextSelection(RESET) does not clear the flag either. SwEditWin::SetCursorTwipPosition at sw/source/uibase/docvw/edtwin.cxx:7105 takes the bClearMark branch, which calls ClearMark() and leaves bCreateSelection false, so neither SttSelect() nor EndSelect() runs.
 
-  6. sw/source/uibase/docvw/edtwin.cxx:7105
-                                        A later setTextSelection(RESET) takes
-                                        the bClearMark branch: ClearMark() only,
-                                        bCreateSelection stays false, so neither
-                                        SttSelect() nor EndSelect() runs and the
-                                        flag survives.
-  7. sw/source/uibase/docvw/edtwin.cxx:7107-7111
-                                        The caller's END has HasMark() == false,
-                                        so bCreateSelection = true and it calls
-                                        SttSelect().
-  8. sw/source/uibase/wrtsh/select.cxx:409
-                                        `if (m_bInSelect) return;` -- early
-                                        return, SetMark() never runs.
+The caller's END then has HasMark() false, so bCreateSelection becomes true at edtwin.cxx:7107-7111 and SttSelect() is called. This time SttSelect() hits `if (m_bInSelect) return;` at select.cxx:409 and returns before SetMark(). With no mark there is no selection, and step 7's SetCursor() merely moves the cursor.
 
-No mark, no selection.  Step 7's SetCursor() just moves the cursor.
+Why the second attempt succeeds: EndSelect() at edtwin.cxx:7121-7122 is called on bCreateSelection, not on whether SttSelect() did anything, so the failed attempt clears the flag on its way out.
 
-Why the second attempt succeeds: EndSelect() at edtwin.cxx:7121-7122 is called
-on bCreateSelection, not on whether SttSelect() did anything, so the failed
-attempt clears the flag on its way out.
-
-For contrast, search in the same tree DOES pair them:
-sw/source/uibase/uiview/viewsrch.cxx:773 SttSelect() with :846 EndSelect().
+For contrast, search in the same tree does pair them: sw/source/uibase/uiview/viewsrch.cxx:773 calls SttSelect() and :846 calls EndSelect().
 
 
-What was ruled out, and by what test
--------------------------------------
+What we ruled out, and how
+--------------------------
 
-  hypothesis                              ruled out by
-  --------------------------------------  ------------------------------------
-  the format command breaks the selection  an arm with .uno:DefaultBullet and
-                                           no .uno:SelectText selects fine; an
-                                           arm with .uno:SelectText and no
-                                           format command fails
-  the document/coordinates are broken      every arm dispatched .uno:SelectAll
-                                           afterwards and got the whole document
-  the readback or the wait heals it        an arm that repeats the two calls
-                                           with no readback and no wait in
-                                           between still succeeds the 2nd time
-  a plain SetCursor / layout priming       an arm that first issues a markless
-    heals it                               RESET at the END coordinate -- same
-                                           SwCursorShell::SetCursor, no
-                                           EndSelect -- still fails
-  it is Emscripten-specific                reproduces on a native Linux build
-  it is browser-specific                   Chrome and Firefox cell-for-cell
-                                           identical on the wasm build
-  some other dispatched command does it    20 uno commands swept one at a time
-                                           (Undo, Redo, ExecuteSearch, Bold,
-                                           Italic, Underline, Strikeout,
-                                           DefaultBullet, DefaultNumbering,
-                                           RemoveBullets, StyleApply, Delete,
-                                           SwBackspace, InsertPara,
-                                           InsertLinebreak, InsertAnnotation,
-                                           TrackChanges, AcceptTrackedChanges,
-                                           Escape, SelectText): only
-                                           .uno:SelectText poisons
+That the format command breaks the selection: an arm that dispatches .uno:DefaultBullet and no .uno:SelectText selects fine, and an arm that dispatches .uno:SelectText and no format command fails.
+
+That the document or the coordinates are broken: every arm dispatched .uno:SelectAll afterwards and got the whole document back.
+
+That the readback or the wait between the two attempts is what heals it: an arm that repeats the two calls with no readback and no wait in between still succeeds on the second attempt.
+
+That a plain SetCursor, or layout priming, is what heals it: an arm that first issues a markless RESET at the END coordinate -- the same SwCursorShell::SetCursor, without EndSelect -- still fails.
+
+That it is Emscripten-specific: it reproduces on a native Linux build, four independent runs.
+
+That it is browser-specific: Chrome and Firefox are cell-for-cell identical on the wasm build, across three fixtures.
+
+That some other dispatched command does it: twenty uno commands were swept one at a time (Undo, Redo, ExecuteSearch, Bold, Italic, Underline, Strikeout, DefaultBullet, DefaultNumbering, RemoveBullets, StyleApply, Delete, SwBackspace, InsertPara, InsertLinebreak, InsertAnnotation, TrackChanges, AcceptTrackedChanges, Escape, SelectText). Only .uno:SelectText poisons the next range selection.
 
 
-Suggested fixes (not verified by us)
--------------------------------------
+Suggested fixes, none of them verified by us
+---------------------------------------------
 
-1. Give FN_SELECT_PARA a matching EndSelect(), the way viewsrch.cxx does.
-   Smallest, and consistent with the existing convention in the tree.
+The smallest one, and the one consistent with the convention already in the tree, is to give FN_SELECT_PARA a matching EndSelect() the way viewsrch.cxx does.
 
-2. Make SwWrtShell::SttSelect()'s early return not skip the mark -- move
-   `if (!HasMark()) SetMark();` above `if (m_bInSelect) return;`.  Wider blast
-   radius than (1), but it fixes the more general shape: a caller believes it
-   opened a selection and it did not.
+A wider one is to make SwWrtShell::SttSelect()'s early return not skip the mark, by moving `if (!HasMark()) SetMark();` above `if (m_bInSelect) return;`. That has a larger blast radius, but it fixes the more general shape: a caller believes it opened a selection when it did not.
 
-3. Either way, add the regression test above.  The existing
-   testSetTextSelection only covers the clean state.
+Either way, the regression test above is worth adding, because the existing testSetTextSelection only covers the clean state.
 
 
 Environment
 -----------
 
-  core        671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
-              (libreoffice-26-8-branch-point-229-g671c848b1bb8)
-  native      own build, SAL_USE_VCLPLUGIN=svp, headless LOK probe
-  wasm        Emscripten build of the same tree, Chrome 150 and Firefox 153
-  OS          Ubuntu 26.04 LTS
+core 671c848b1bb8, on the libreoffice-26-8 branch (describe: libreoffice-26-8-branch-point-229-g671c848b1bb8). Native reproduction: our own build, SAL_USE_VCLPLUGIN=svp, headless LOK probe. Wasm reproduction: an Emscripten build of the same tree, Chrome 150 and Firefox 153. Host OS Ubuntu 26.04 LTS.
 
-LOCAL MODIFICATIONS TO THE SOURCE TREE -- disclosed in full:
+The source tree carries five local modifications, disclosed in full:
 
   desktop/CustomTarget_soffice_bin-emscripten-exports.mk   (-3)
   solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk           (1 line)
@@ -213,34 +125,36 @@ LOCAL MODIFICATIONS TO THE SOURCE TREE -- disclosed in full:
   static/CustomTarget_emscripten_fs_image.mk               (+26/-3)
   vcl/qt5/QtFrame.cxx                                      (+2/-1)
 
-  None of them are under sw/.  Four are Emscripten build plumbing; the
-  unxgcc.mk change is inside `$(if $(filter EMSCRIPTEN,$(OS)), ...)` and so is
-  inert for the native build.  QtFrame.cxx is the Qt VCL plugin's IME input
-  context, and the native reproduction runs the svp plugin, which does not load
-  it.  We have NOT rebuilt a pristine tree to confirm -- see the checklist.
+None of them are under sw/. Four are Emscripten build plumbing. The unxgcc.mk change sits inside `$(if $(filter EMSCRIPTEN,$(OS)), ...)` and is therefore inert for the native build. QtFrame.cxx is the Qt VCL plugin's IME input context, and the native reproduction runs the svp plugin, which does not load it. We have not rebuilt a pristine tree to confirm this by reproduction rather than by inspection.
 
 
--- 以下不送出，內部備註 --------------------------------------
+-- 以下不送出，內部備註（zh-TW）------------------------------
 
 送出前還缺什麼
-- [ ] 重複單查詢：上面七組**一組都還沒跑**。送出前必須跑完並把結果填進去。
+- [ ] 重複單查詢：七組**一組都還沒跑**。送出前必須跑完並把結果貼進 Description 前面。
+      建議的查詢：summary:SelectText、summary:SttSelect、summary:setTextSelection、
+      summary:FN_SELECT_PARA、ALL content:m_bInSelect、ALL content:SttSelect、
+      summary:tiledrendering + summary:selection。
 - [ ] Component 欄位確認。缺陷在 sw/uibase/{wrtsh,docvw}，LOK 介面在 sw/uibase/uno。
-      填 Writer 是暫定；也可能該填 LibreOffice / framework。
+      填 Writer 是暫定。
 - [ ] **在乾淨樹上重現一次**。目前的原生 build 帶五個本地修改，逐一檢查過都與 sw/ 無關
       而且對 svp 執行不可能有影響，但那是「檢查過」不是「重現過」。
       需要一次完整重編，屬長時間編譯，交給使用者。
-- [ ] 把上面那支 cppunit 測試實際編起來跑一次，確認它在修之前真的紅。
-      同樣需要重編 sw，交給使用者。
-- [ ] 決定要不要一併送 patch。方向 (1) 是兩行，gerrit 應該收得很快。
+- [ ] 把上面那支 cppunit 測試實際編起來跑一次，確認它在修之前真的紅。同樣要重編 sw。
+- [ ] 決定要不要一併送 patch。方向一是兩行，gerrit 應該收得很快。
+
+格式決定（依 AGENTS.md，2026-08-15）
+  散文一段一行，不硬斷；原本兩個表格（「排除了什麼」與前後對照）已改寫成散文；
+  程式碼區塊用 doc 別名把每一行壓在 83 欄內，那是為了留言框寬度，不是原始碼慣例。
 
 證據在哪
-  findings/043-fn-select-para-leaves-the-shell-in-selection-mode-and-the-next-lok-range-selection-is-silently-dropped.md
+  findings/043-fn-select-para-*.md
   findings/evidence/sdk-e2/discovery/049-selection-after-format/
-    PREDICTION.md / -round2 / -round3 / -round4 / -wasm.md   每一輪的預測，都在該輪之前 commit
-    native-round1..4/     原生四輪，arms.jsonl 是原始輸出
-    wasm-round1/          WASM，Chrome 與 Firefox
-    codex-review-round1-3.md   對抗性覆核與我的逐條核對
+    PREDICTION*.md            每一輪的預測，都在該輪執行之前 commit
+    native-round1..4/         原生四輪，arms.jsonl 是原始輸出
+    wasm-round1/              WASM，三類 fixture × 兩瀏覽器
+    codex-review-round1-3.md  對抗性覆核與我的逐條核對
 
-不要在報告裡寫的
+不要寫進報告的
   - 版本時程／趕不趕得上哪一版。使用者 2026-08-15 明確說不需要。
   - 我方的 workaround 細節。那是我們的事，寫進去只會讓 triager 以為問題不急。
