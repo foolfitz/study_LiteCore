@@ -1822,6 +1822,11 @@ test-e2-b-static:
 		tools/analyze_e2b_crossparagraph.py tools/analyze_e2b_identity_gate.py \
 		tools/create_e2b_fixtures.py tools/build_e2_b_profile.py
 	python3 -m unittest tests/test_e2_b_profile.py
+	# SPEC E2-B 7.1: every validator that produces a verdict flips its own
+	# criteria and asserts they go red.  An analyzer written after a prediction
+	# once replaced a pre-registered criterion, and the replacement made the arm
+	# pass; ad hoc mutation checks catch that once, this catches it every time.
+	python3 tools/analyze_e2b_matrix.py --self-test > /dev/null
 	node --test editor-shell-v2/tests/*.test.mjs
 	node --check editor-shell-v2/paragraph-editor-client.js
 	# E1-C's shell bundle must still bind: editor-shell/*.js is hash-registered

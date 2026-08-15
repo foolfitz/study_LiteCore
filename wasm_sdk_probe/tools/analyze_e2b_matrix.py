@@ -242,10 +242,163 @@ def judge(arm: dict, record: dict, evidence: Path) -> dict[str, Any]:
     return verdict
 
 
+# --- self test -------------------------------------------------------------
+#
+# SPEC E2-B 7.1 requires every validator that produces a verdict to ship a
+# mutation test: flip each criterion and assert it goes red.  The reason is
+# written in this session's error table -- an analyzer written after a
+# prediction once replaced a pre-registered criterion, and the replacement made
+# the arm pass.  Ad hoc mutation checks catch that once; a --self-test whose
+# output goes into the freeze evidence catches it every time.
+
+MINIMAL_ODT_TEMPLATE = (
+    '<?xml version="1.0" encoding="UTF-8"?>'
+    '<office:document-content '
+    'xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" '
+    'xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" '
+    'xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0">'
+    "<office:automatic-styles>{styles}</office:automatic-styles>"
+    "<office:body><office:text>{body}</office:text></office:body>"
+    "</office:document-content>"
+)
+
+BULLET_STYLE = ('<text:list-style style:name="LB">'
+                '<text:list-level-style-bullet text:level="1"/></text:list-style>')
+
+
+def write_odt(path: Path, body: str, styles: str = BULLET_STYLE) -> Path:
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr("content.xml",
+                         MINIMAL_ODT_TEMPLATE.format(body=body, styles=styles))
+    return path
+
+
+def self_test() -> int:
+    import tempfile
+
+    failures: list[str] = []
+
+    def expect(condition: bool, message: str) -> None:
+        if not condition:
+            failures.append(message)
+
+    plain = "<text:p>ANCHOR one</text:p><text:p>OTHER two</text:p>"
+    bulleted = ('<text:list text:style-name="LB"><text:list-item>'
+                "<text:p>ANCHOR one</text:p></text:list-item></text:list>"
+                "<text:p>OTHER two</text:p>")
+    both_bulleted = ('<text:list text:style-name="LB">'
+                     "<text:list-item><text:p>ANCHOR one</text:p></text:list-item>"
+                     "<text:list-item><text:p>OTHER two</text:p></text:list-item>"
+                     "</text:list>")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / "saved").mkdir()
+        arm = {"arm": "T", "gesture": "range-single", "action": "set-list-unordered",
+               "anchor": "ANCHOR", "fixture": "x.odt"}
+        good = {"round": 1, "route": "range-single", "actionStatus": "completed",
+                "changed": None, "completion": "verified-format-readback",
+                "revision": 1}
+
+        def prepare(before_body: str, after_body: str) -> None:
+            write_odt(root / "saved" / "T-round1-before.odt", before_body)
+            write_odt(root / "saved" / "T-round1-after.odt", after_body)
+
+        # The control: a correct run must PASS, or every red below is vacuous.
+        prepare(plain, bulleted)
+        expect(judge(arm, good, root).get("pass") is True,
+               "control: a correct run does not pass")
+
+        # Each criterion, flipped one at a time.
+        expect(judge(arm, {**good, "route": "collapsed"}, root).get("fail"),
+               "a wrong route is not caught")
+        expect(judge(arm, {**good, "changed": True}, root).get("fail"),
+               "changed=true is not caught")
+        expect(judge(arm, {**good, "completion": "uno-command-result"},
+                     root).get("fail"),
+               "a v1-shaped completion is not caught")
+        expect(judge(arm, {**good, "actionStatus": "failed"}, root).get("fail"),
+               "a failed action is not caught")
+
+        # The target paragraph did not reach the target state.
+        prepare(plain, plain)
+        expect(judge(arm, good, root).get("fail"),
+               "a document that did not change is not caught")
+
+        # THE load-bearing one: an untargeted paragraph moved too.
+        prepare(plain, both_bulleted)
+        expect(judge(arm, good, root).get("fail"),
+               "a paragraph the arm did not target changing is not caught")
+
+        # A paragraph appearing or vanishing.
+        prepare(plain, "<text:p>ANCHOR one</text:p>")
+        expect(judge(arm, good, root).get("fail"),
+               "a changed paragraph count is not caught")
+
+        # The crossing route must have verified both halves.
+        cross_arm = {**arm, "gesture": "range-cross"}
+        cross_good = {**good, "route": "range-cross",
+                      "crossIdentityHeld": True, "crossStateHeld": True}
+        prepare(plain, bulleted)
+        expect(judge(cross_arm, cross_good, root).get("pass") is True,
+               "control: a correct crossing run does not pass")
+        expect(judge(cross_arm, {**cross_good, "crossIdentityHeld": False},
+                     root).get("fail"),
+               "crossIdentityHeld=false is not caught")
+        expect(judge(cross_arm, {**cross_good, "crossStateHeld": False},
+                     root).get("fail"),
+               "crossStateHeld=false is not caught")
+
+        # The no-op arm: a repeat that changed the document, and one that did
+        # not advance the revision.
+        repeat_arm = {**arm, "repeat": True}
+        write_odt(root / "saved" / "T-round1-middle.odt", bulleted)
+        prepare(plain, bulleted)
+        repeat_good = {**good, "repeatStatus": "completed", "repeatRevision": 2}
+        expect(judge(repeat_arm, repeat_good, root).get("pass") is True,
+               "control: a correct repeat does not pass")
+        expect(judge(repeat_arm, {**repeat_good, "repeatRevision": 1},
+                     root).get("fail"),
+               "a repeat that did not advance the revision is not caught")
+        write_odt(root / "saved" / "T-round1-middle.odt", plain)
+        expect(judge(repeat_arm, repeat_good, root).get("fail"),
+               "a repeat that changed the document is not caught")
+
+    # reached_target, including the self-red inversion.
+    listed = {"kind": "p", "style": "(auto)", "outline": None,
+              "list": "bullet", "text": "x"}
+    heading = {"kind": "p", "style": "Heading_20_1", "outline": None,
+               "list": None, "text": "x"}
+    expect(reached_target("set-list-unordered", listed, None),
+           "a bulleted paragraph is not recognised")
+    expect(not reached_target("set-list-ordered", listed, None),
+           "bullet is accepted where number was required")
+    expect(reached_target("set-paragraph-heading", heading, None),
+           "the heading STYLE is not recognised (SPEC E2-A 10.2)")
+    expect(not reached_target("set-paragraph-body", heading, None),
+           "a heading is accepted as body text")
+    expect(not reached_target("set-list-unordered", listed, "ol"),
+           "the self-red inversion does not invert")
+
+    print(json.dumps({
+        "selfTest": "analyze_e2b_matrix",
+        "checks": 18,
+        "failures": failures,
+        "passed": not failures,
+    }, indent=2, ensure_ascii=False))
+    return 0 if not failures else 1
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("evidence", type=Path)
+    parser.add_argument("evidence", type=Path, nargs="?")
+    parser.add_argument("--self-test", action="store_true",
+                        help="flip each criterion and assert it goes red")
     args = parser.parse_args()
+    if args.self_test:
+        return self_test()
+    if args.evidence is None:
+        parser.error("an evidence directory is required unless --self-test")
 
     result = json.loads((args.evidence / "result.json").read_text(encoding="utf-8"))
     verdicts = []
