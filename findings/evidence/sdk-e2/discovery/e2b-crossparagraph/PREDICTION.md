@@ -121,3 +121,70 @@ flipped exactly this way under the same fixed-sleep probe.
 - They do not measure the WASM artifact.
 - They do not establish that B' is implementable, only that its substrate exists.
 - They do not touch section 5's protocol blockers, which are separate.
+
+---
+
+# Addendum, round 2: separating a confound I built into my own control
+
+**Written and committed after round 1 and before round 2 runs.** Round 1's
+records are in `native-round1/` and are not revised by this.
+
+## What round 1 found
+
+- **Check 1 passed**: `text/html` returned in 0 ms, 630 bytes, **2 blocks** for
+  the cross-paragraph selection against **1 block** for the control.
+- **Check 3 passed**, judged on the documents: the dispatch changed two
+  paragraphs (one in the control) and **one** `.uno:Undo` restored every
+  paragraph signature exactly, 3/3 in both arms.
+- **Check 2 came back against the prediction.** The selection survived (type 1,
+  52 bytes) but its text was **not equal**: `"    • E1-MULTI-START alpha\n
+  • 第二段中文"`. The bullet markers are serialised into the plain-text
+  readback. My stated basis — "paragraph formatting does not change text
+  content, so equality is exact" — is true of the document and false of
+  `getTextSelection`.
+
+## The confound, which is mine
+
+The control selected a **partial** range inside paragraph 1 (the anchor
+rectangle covers `E1-MULTI-START`, not `E1-MULTI-START alpha`). So it differed
+from the test arm in **two** ways at once: one paragraph versus two, and partial
+versus whole. Its `textEqual: true` therefore cannot be attributed.
+
+It is not that the control failed to apply the bullet: the saved documents show
+`dispatchApplied: true` for every control round. A partial in-paragraph
+selection simply reads back without the marker.
+
+## Round 2's new arm and its prediction
+
+**`single-paragraph-whole`**: the whole of paragraph 1, same y, `x2` far to the
+right so the range runs to the end of the line — the geometry the browser gate
+uses. One paragraph, no paragraph boundary crossed.
+
+**Prediction: it reads back WITHOUT a bullet marker, so `textEqual` is true.**
+
+*Basis.* Round 1's cross-paragraph readback put a marker on **both**
+paragraphs, including the second one, which was only **partially** selected.
+So the marker does not track "is this paragraph wholly selected". The remaining
+candidate is that it tracks **whether the selection crosses a paragraph
+boundary**: inside one paragraph the serialiser emits a text fragment, and
+across a boundary it emits block structure with decoration.
+
+**If this prediction holds, the consequence is on B', not on the probe.** The
+equality gate SPEC E2-B 9.7 adopted — pre-dispatch plain text must equal
+post-dispatch plain text — would then be **broken exactly in the cross-paragraph
+case B' exists for**: every successful list dispatch would fail its own
+verification and return "dispatched, could not verify". B' would collapse into
+fallback-always, which is check 2's stated disqualifier.
+
+That is a repairable break rather than a refutation — the comparison could
+normalise list decoration, and a selection that shrank by a paragraph would
+still be caught by the missing text. But the repair is a change to an
+adjudicated construction, so it goes back to the adjudicator rather than being
+adopted here.
+
+**If the prediction fails** — a whole single paragraph also gains a marker —
+then the marker tracks whole-paragraph selection, the confound resolves the
+other way, and the same consequence for B' still follows.
+
+Either outcome breaks the equality gate as literally written. What round 2
+decides is **why**, and therefore what a repair would have to normalise.
