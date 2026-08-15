@@ -261,6 +261,9 @@ e2-format-discovery-assets: e2-format-discovery-profile \
 # rule that could relink the profile out from under it would turn a deliberate
 # expiry into a silent substitution.  Same reason as demo-editor-assets.
 demo-structure-assets: dist/demo-structure.html dist/demo-structure-app.js \
+	dist/editor-shell-v2/paragraph-editor-client.js \
+	dist/editor-shell-v2/paragraph-editor-session.js \
+	dist/demo-structure-discovery.html dist/demo-structure-discovery-app.js \
 	dist/e2/demo-structure-client.js dist/e2/format-discovery-client.js \
 	dist/sdk/document-sdk.js dist/e1-fixtures/manifest.json \
 	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
@@ -1489,6 +1492,27 @@ dist/e1-bold-noop-check.html: web/e1-bold-noop-check.html | dist
 dist/e1-bold-noop-app.js: web/e1-bold-noop-app.js | dist
 	cp $< $@
 
+# The v2 shell modules.  Copied by a rule rather than by hand: the product demo
+# imports them, and the first time they were staged manually one of the two was
+# forgotten, so the demo's module never executed and the page sat on "starting"
+# with no error -- a failure mode that looks like a hang.
+dist/editor-shell-v2:
+	mkdir -p $@
+
+dist/editor-shell-v2/paragraph-editor-client.js: \
+		editor-shell-v2/paragraph-editor-client.js | dist/editor-shell-v2
+	cp $< $@
+
+dist/editor-shell-v2/paragraph-editor-session.js: \
+		editor-shell-v2/paragraph-editor-session.js | dist/editor-shell-v2
+	cp $< $@
+
+dist/demo-structure-discovery.html: web/demo-structure-discovery.html | dist
+	cp $< $@
+
+dist/demo-structure-discovery-app.js: web/demo-structure-discovery-app.js | dist
+	cp $< $@
+
 dist/demo-structure.html: web/demo-structure.html | dist
 	cp $< $@
 
@@ -1852,6 +1876,7 @@ test-e2-a-static:
 	node --check e2/format-discovery-client.js
 	node --check e2/demo-structure-client.js
 	node --check web/demo-structure-app.js
+	node --check web/demo-structure-discovery-app.js
 	node --check web/f039-caret-reset-repro-app.js
 	node --check web/e2-format-discovery-app.js
 	node --check sdk/sdk-worker.js

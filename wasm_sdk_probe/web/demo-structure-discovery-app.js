@@ -1,39 +1,49 @@
-// LiteCore structure demo -- the PRODUCT shell.
+// LiteCore structure demo -- HISTORICAL BENCH, superseded 2026-08-15.
 //
-// Headings and lists on the product v2 artifact, through the product v2 client.
-// It replaces the bench that shipped these actions on the diagnostic ABI; that
-// bench is kept, unedited, as `demo-structure-discovery.html`, because it is
-// part of E2-A's evidence and is pinned to the artifact that evidence was
-// measured on.
+// Kept, not edited: this shell is part of E2-A's evidence, and it is pinned to
+// the artifact that evidence was measured on (`c89f069e`, the isolated
+// e2-format-discovery profile).  Renaming it rather than migrating it in place
+// is SPEC E2-B section 9's requirement, for that reason.
 //
-// Derived from the bench rather than written afresh: the rendering, caret
-// placement and serialisation were already product paths, and rewriting working
-// code to make a new file look new is how demos acquire bugs the old one had
-// already fixed.  What changed is the part that matters -- the client, the
-// profile, and the pin.
+// The product demo is now `demo-structure.html`, running the v2 client against
+// the product profile `e2-editor-v2`.  What changed is not cosmetic: this bench
+// drives the DIAGNOSTIC ABI, so its five paragraph actions were never a product
+// promise -- which is exactly what its own header said at the time.
 //
-// Two contract facts the page has to respect, both from SPEC E2-B:
+// Read on for the original header, unaltered.
 //
-//   * The format buttons follow a SELECTION gesture.  Section 5.13 makes a
-//     failed dispatch recoverable by rolling back to the checkpoint that
-//     `_checkpointBeforeSelection` writes before a range selection -- so the
-//     checkpoint is only there if a selection preceded the press.  Pressing a
-//     format button with no preceding gesture would roll back further than the
-//     one action, and the demo must not model that.
+// ---
 //
-//   * The toolbar does not show what the paragraph currently is.  Route C never
-//     reads the precondition (finding 022), so a button that looked "active"
-//     would be reporting only what this shell last did, which is worse than
-//     showing nothing.
+// Headings and lists, on the artifact whose evidence describes them.
+//
+// Task #36 asked for these in the shipped editor.  That is E2-B by SPEC
+// E2-000's own definition, and E2-000 section 5 fixes the order E2-A -> E2-B,
+// forbids freezing a new ABI before E2-A is done, and does not pre-authorise
+// the E2-B spec.  E2-A has no verdict yet.  So this shell shows the five
+// paragraph actions where they *were* measured -- the isolated
+// e2-format-discovery profile -- instead of promoting them into the product
+// contract on evidence that does not cover a product build.
+//
+// Three things follow, and they are the whole design:
+//
+//   * It refuses to run on any other build (StructureDemoClient's pin), and
+//     shows the hash it is pinned to.  Disposable by design.
+//   * Its surface is narrower than the ABI underneath it.  The forbidden set
+//     and the reasons live in e2/demo-structure-client.js.
+//   * It never claims to be the product editor, in the page and in the code.
+//
+// Caret placement goes through click-then-poll, the product shell's own path.
+// Two other paths on this ABI are measured dead and deliberately unused; see
+// finding 039 and the comment on placeCaretByClick.
+//
+// Text insertion and save go through the Document SDK's own capabilities, not
+// the diagnostic editor ABI: those are product paths R5/E1 validated, and
+// using them here keeps the diagnostic surface to the five actions plus bold
+// and italic.
 
 import { createDocumentEngine } from "./sdk/document-sdk.js";
-import { ParagraphEditorClient } from "./editor-shell-v2/paragraph-editor-client.js";
-import { recoveryFor } from "./editor-shell-v2/paragraph-editor-session.js";
-
-// The artifact this demo is for.  A demo that silently runs on whatever build
-// happens to be in dist/ is a demo that can show behaviour no evidence covers.
-const PINNED_WASM_SHA256 =
-  "572035accd0f2754";
+import { StructureDemoClient, PINNED_WASM_SHA256 }
+  from "./e2/demo-structure-client.js";
 
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -58,6 +68,7 @@ let renderAgain = false;
 // What we last asked for since the caret last moved.  Same rule as the product
 // demo: finding 021 showed the engine's cached format state is not refreshed by
 // caret movement, so the only honest source for a toggle is our own intent.
+const intent = { "set-bold": null, "set-italic": null };
 
 function toast(message, bad = false) {
   el.toast.textContent = message;
@@ -182,13 +193,7 @@ async function run(label, operation) {
     // writes is addressed to the person looking at the document.  Passing it
     // through verbatim is the point -- summarising it would drop the part that
     // tells them to look and undo.
-    // SPEC E2-B 5.13: what the host should DO is a field, not a guess from the
-    // message.  "rollback" means reopen from the checkpoint -- not "press undo",
-    // which cannot run while the queue is blocked by this same failure.
-    const recovery = recoveryFor(error);
-    toast(`${label}：${describeError(error)}` +
-          (recovery === "rollback" ? "（這一步可能已經改到文件：請從上一個檢查點重開）"
-           : recovery === "restart" ? "（需要重新開啟文件）" : ""), true);
+    toast(`${label}：${describeError(error)}`, true);
     setState("ready", "就緒");
     throw error;
   }
@@ -197,14 +202,16 @@ async function run(label, operation) {
 async function applyStructure(action) {
   await run(el.toolbar.querySelector(`[data-action="${action}"]`).textContent,
             () => client.action(action));
+  for (const key of Object.keys(intent))
+    intent[key] = null;
 }
 
-// Bold and italic are v1 actions and are NOT on the v2 paragraph client.  The
-// bench had them because it drove the diagnostic ABI, which carries both; this
-// shell would have to instantiate the v1 client beside the v2 one to offer
-// them, and a demo that quietly runs two contracts at once is a demo nobody can
-// read a result off.  The buttons are gone from the toolbar rather than left
-// present and dead.
+async function applyInline(action) {
+  const next = intent[action] !== true;
+  await run(action === "set-bold" ? "粗體" : "斜體",
+            () => client.action(action, { enabled: next }));
+  intent[action] = next;
+}
 
 // Undo goes through the Document SDK, not through client.action("undo").
 //
@@ -215,12 +222,12 @@ async function applyStructure(action) {
 // document_.undo() that demo-editor's 復原 calls -- the one the shipped editor's
 // evidence covers.
 //
-// (The intent ledger the bench kept for bold and italic is gone along with
-// those buttons: there is no toggle on this shell to remember, and a ledger
-// nothing reads would suggest one exists.  It was there because after an undo,
-// what we last asked for is no longer what the paragraph is.)
+// The intent ledger is cleared for applyStructure's reason: after an undo, what
+// we last asked for is no longer what the paragraph is.
 async function undoLast() {
   await run("復原", () => document_.undo({ timeoutMs: 30000 }));
+  for (const key of Object.keys(intent))
+    intent[key] = null;
 }
 
 async function insertText() {
@@ -230,6 +237,8 @@ async function insertText() {
     return;
   }
   await run("插入文字", () => document_.insertText(text, { timeoutMs: 30000 }));
+  for (const key of Object.keys(intent))
+    intent[key] = null;
 }
 
 async function saveDocument() {
@@ -252,6 +261,8 @@ const ACTIONS = {
   "set-list-unordered": () => applyStructure("set-list-unordered"),
   "set-list-ordered": () => applyStructure("set-list-ordered"),
   "set-list-none": () => applyStructure("set-list-none"),
+  "set-bold": () => applyInline("set-bold"),
+  "set-italic": () => applyInline("set-italic"),
   "insert-text": () => insertText(),
   save: () => saveDocument(),
 };
@@ -271,6 +282,8 @@ el.canvas.addEventListener("pointerdown", (event) => {
     (event.clientX - rectangle.left) / rectangle.width * document_.widthTwips));
   const yTwips = Math.max(0, Math.round(
     (event.clientY - rectangle.top) / rectangle.height * document_.heightTwips));
+  for (const key of Object.keys(intent))
+    intent[key] = null;
   void run("定位游標", () => client.placeCaretByClick(xTwips, yTwips, { timeoutMs: 30000 }))
     .catch(() => {});
 });
@@ -303,15 +316,7 @@ async function openFixture(id) {
     throw new Error(`fixture fetch failed: ${response.status}`);
   const bytes = await response.arrayBuffer();
   document_ = await engine.open(bytes, { name, transfer: true, timeoutMs: 180000 });
-  client = new ParagraphEditorClient(document_);
-  // The pin, checked here rather than trusted: the profile records the hash of
-  // the artifact it was built from, and this demo only claims to describe one.
-  const actual = engine.manifest?.editorContract?.wasmSha256 ?? "";
-  if (!actual.startsWith(PINNED_WASM_SHA256))
-    throw Object.assign(new Error("this build is not the one this demo describes"),
-                        { code: "DEMO_BUILD_MISMATCH",
-                          details: { expected: PINNED_WASM_SHA256,
-                                     actual: actual.slice(0, 16) } });
+  client = new StructureDemoClient(document_);
   documentName = name;
   el.s.doc.textContent = name;
   layoutCanvas();
@@ -324,7 +329,7 @@ void (async () => {
   if (!globalThis.crossOriginIsolated)
     toast("此頁需要 cross-origin isolation：請以 web/serve.py 提供", true);
   engine = await createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v2/sdk-worker.js",
+    workerUrl: "./profiles/e2-format-discovery/sdk-worker.js",
     timeoutMs: 30000,
   });
   const manifest = await fetch("./e1-fixtures/manifest.json", { cache: "no-cache" })

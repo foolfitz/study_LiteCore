@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="utf-8">
-<title>LiteCore 結構編輯 — discovery build 展示</title>
+<title>【歷史實驗檯】LiteCore 結構編輯 — discovery build 展示</title>
 <style>
   :root {
     --bg: #f4f6f8; --bar: #fff; --line: #dbe3ea; --ink: #1d2b36; --muted: #6b7c8a;
@@ -100,26 +100,21 @@
   </div>
 
   <div class="provenance">
-    <b>這是產品 v2 的展示，跑在 <code id="pinned-hash">—</code> 上。</b>
-    五個段落動作走的是產品 v2 client 與產品 profile <code>e2-editor-v2</code>，
-    不再是診斷 ABI。<b>這一頁釘死在上面那顆 artifact</b>：換一顆 build 它會拒絕
-    啟動，而不是跟著跑。
+    <b>這不是產品契約，是一個被量過的實驗檯。</b>
+    標題與清單這五個動作在 <code id="pinned-hash">—</code> 上量過
+    （SPEC E2-A 的 A3／A4／A5，以及 A7 的 round-trip 與回歸，兩瀏覽器）。
+    <b>E2-A 的總判定是 <code>PARTIAL_GO_TO_E2_B</code></b>（2026-08-14，帶六項縮限）——
+    那句話的意思是「可以往 E2-B 走」，<b>不是</b>「這些動作已經進了出貨的
+    <code>e1-editor-v1</code> 契約」：E2-B 的 ABI 還沒凍結，所以它們仍然不在產品裡。
+    這個頁面釘死在上面那個 build：
+    discovery 引擎一往前走，這裡就會拒絕啟動而不是跟著跑。
     <br>
-    <b>手勢是「先選一段（點一下或拖曳），再按按鈕」，而且這不只是建議。</b>
-    格式動作若派送出去卻驗不了，恢復的方式是<b>回到上一個檢查點</b>——
-    而檢查點是在<b>選取手勢</b>之前寫的。沒有先選就按，檢查點不在那裡，
-    退回去會多丟掉不只這一步（SPEC E2-B 5.13、第 9 節）。
-    <br>
-    <b>拖曳選一段再按按鈕是量過的</b>：跨段範圍會逐段驗證，兩段都到位才回報
-    成功（SPEC E2-B 9.9 與 9.10 的 132 個 run，兩瀏覽器逐格相同）。
-    <br>
-    <b>工具列不會顯示這一段現在是什麼格式，這是刻意的。</b>
-    路線 C 不讀前置狀態（finding 022／021），所以一個看起來「已啟用」的按鈕
-    只會反映這個殼層上次做了什麼——那比什麼都不顯示更糟。
-    <br>
-    診斷 ABI 上的那個舊實驗檯保留著沒有改動，在
-    <code>demo-structure-discovery.html</code>：它是 E2-A 證據的一部分，
-    釘死在 <code>c89f069e</code>。
+    <b>手勢是「點一下段落，再按按鈕」，而且在這一顆 build 上這不只是建議。</b>
+    這裡釘的是<b>凍結的 discovery 引擎</b>，它<b>沒有</b> 2026-08-15 那個修法：
+    在它上面，做過一次格式動作之後再做範圍選取<b>會卡住不返回</b>。
+    根因是上游的一個缺陷（我們的 finding 039／043），修法已經在另一顆
+    <b>不出貨</b>的組合 build 上量到有效——但<b>這一頁釘的不是那一顆</b>。
+    另外，「先拖曳選一段、再按按鈕」這個方向在這顆 build 上<b>沒有進過驗證矩陣</b>（縮限 7）。
   </div>
 
   <div class="toolbar" id="toolbar">
@@ -134,6 +129,8 @@
     <button data-action="set-list-ordered">1. 編號</button>
     <button data-action="set-list-none">移除清單</button>
     <div class="sep"></div>
+    <button data-action="set-bold" class="icon b">B</button>
+    <button data-action="set-italic" class="icon i">I</button>
     <div class="sep"></div>
     <input type="text" id="text" placeholder="要插入的文字" size="14">
     <button data-action="insert-text">插入</button>
@@ -165,6 +162,6 @@
   </div>
 
   <div id="toast" role="status"></div>
-  <script type="module" src="./demo-structure-app.js"></script>
+  <script type="module" src="./demo-structure-discovery-app.js"></script>
 </body>
 </html>
