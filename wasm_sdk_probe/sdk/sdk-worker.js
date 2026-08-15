@@ -37,6 +37,9 @@ const OPERATION_CAPABILITIES = new Map([
   ["editorActionV1", "narrow-editor-v1"],
   ["editorGetStateV1", "narrow-editor-v1"],
   ["editorSelectRangeV1", "narrow-editor-v1"],
+  ["editorActionV2", "narrow-editor-v2"],
+  ["editorGetStateV2", "narrow-editor-v2"],
+  ["editorSelectRangeV2", "narrow-editor-v2"],
   ["editorDiscoveryAction", "editor-discovery-closed-actions"],
   ["editorDiscoverySelect", "editor-discovery-closed-actions"],
   ["editorDiscoveryGetState", "editor-discovery-closed-actions"],
@@ -56,6 +59,38 @@ const EDITOR_V1_ACTION_IDS = Object.freeze({
   "set-underline": 9,
   "set-strikethrough": 10,
 });
+// SPEC E2-B 5.11.  Wire ids 1-10 are v1's, unchanged, so a v2 caller sends the
+// v1 ids for those; only the five paragraph actions are new here.
+const EDITOR_V2_ACTION_IDS = Object.freeze({
+  ...EDITOR_V1_ACTION_IDS,
+  "set-list-none": 11,
+  "set-list-unordered": 12,
+  "set-list-ordered": 13,
+  "set-paragraph-heading": 14,
+  "set-paragraph-body": 15,
+});
+// Neither option flag is accepted by the five paragraph actions (N7).
+const EDITOR_V2_PARAGRAPH_ACTIONS = new Set([
+  "set-list-none", "set-list-unordered", "set-list-ordered",
+  "set-paragraph-heading", "set-paragraph-body",
+]);
+
+// SPEC E2-B 5.7: the manifest constrains, it does not merely describe.
+//
+// Intersection, and the direction is deliberate: a manifest can withhold an
+// action this worker knows how to dispatch, and can never add one.  Without
+// this the freeze condition "remove a capability and prove zero mutation" is
+// unsatisfiable -- the worker would dispatch from its own hard-coded map
+// whatever the manifest said.
+function manifestAllowsAction(action) {
+  const actions = activeManifest?.editorContract?.actions;
+  if (!actions)
+    return true;                      // v1 profiles carry a name list; unchanged
+  if (Array.isArray(actions))
+    return actions.includes(action);
+  return Object.hasOwn(actions, action);
+}
+
 const EDITOR_V1_MOVE_ACTIONS = new Set([
   "move-character-left",
   "move-character-right",
@@ -95,9 +130,64 @@ function editorDiscoveryEnabled() {
     && activeManifest?.capabilities?.includes("editor-discovery-closed-actions");
 }
 
-function editorV1Enabled() {
-  return activeManifest?.capabilities?.includes("narrow-editor-v1")
-    && activeManifest?.editorContract?.version === 1;
+// SPEC E2-B 5.5: which contract each editor operation belongs to, written out.
+//
+// This replaces `operation.startsWith("editor") && operation.endsWith("V1")`.
+// That test encoded the contract in the SHAPE OF THE NAME, which is why a v2
+// profile would have refused all ten existing actions: they are still spelled
+// ...V1 and `editorV1Enabled()` requires editorContract.version === 1.
+const EDITOR_OPERATIONS = new Map([
+  ["editorActionV1", { capability: "narrow-editor-v1", version: 1 }],
+  ["editorGetStateV1", { capability: "narrow-editor-v1", version: 1 }],
+  ["editorSelectRangeV1", { capability: "narrow-editor-v1", version: 1 }],
+  ["editorActionV2", { capability: "narrow-editor-v2", version: 2 }],
+  ["editorGetStateV2", { capability: "narrow-editor-v2", version: 2 }],
+  ["editorSelectRangeV2", { capability: "narrow-editor-v2", version: 2 }],
+]);
+
+// The operations whose result carries the PRODUCT projection of editor state.
+// Keyed by membership, not by string equality with one name: the old test was
+// `operation === "editorActionV1"`, so adding editorActionV2 beside it would
+// have handed every v2 action the raw diagnostic state -- widening the product
+// ABI and breaking E1-B's ban on exposing a11y/scheduler state.
+const PRODUCT_EDITOR_OPERATIONS = new Set([
+  "editorActionV1", "editorActionV2",
+]);
+
+function editorContractEnabled(operation) {
+  const spec = EDITOR_OPERATIONS.get(operation);
+  if (!spec)
+    return true;   // not an editor operation; other gates apply
+  return activeManifest?.capabilities?.includes(spec.capability)
+    && activeManifest?.editorContract?.version === spec.version;
+}
+
+// The product projection of the format barrier.
+//
+// Named fields only, for the same reason productEditorState exists: the
+// engine's barrier record carries diagnostic internals (stage counters,
+// crosstalk counts, the raw readback markup) that the product contract does
+// not promise and must not start promising by accident.  What a host needs is
+// the shape, whether anything was dispatched, and which route ran.
+function productFormatBarrier(value = {}) {
+  return {
+    failureShape: value.failureShape || "",
+    // The disposition a host acts on.  A pre-dispatch refusal leaves the
+    // document untouched; anything after the dispatch may have changed it, and
+    // SPEC E2-B 5.13 says the response to that is a rollback to the last
+    // checkpoint -- not a prompt to undo, which cannot run while the queue is
+    // blocked by the same failure.
+    // "idle" is the only stage a barrier can end in without having posted the
+    // uno command: routing refuses before the stage advances (probe_engine.cpp
+    // sets AwaitingResult immediately before postUnoCommand).  Everything else
+    // means the command went out.
+    dispatched: typeof value.stage === "string" && value.stage !== "idle",
+    route: value.route ?? null,
+    preBlocks: value.preBlocks ?? null,
+    postBlocks: value.postBlocks ?? null,
+    crossIdentityHeld: value.crossIdentityHeld ?? null,
+    crossStateHeld: value.crossStateHeld ?? null,
+  };
 }
 
 function productEditorState(value = {}) {
@@ -530,12 +620,18 @@ function handleCEvent(rawEvent) {
           completion: event.completion,
           callbackSequenceBefore: event.callbackSequenceBefore,
           callbackSequenceAfter: event.callbackSequenceAfter,
-          state: operation === "editorActionV1"
+          state: PRODUCT_EDITOR_OPERATIONS.has(operation)
             ? productEditorState(event.state)
             : event.state,
         };
-        if (operation !== "editorActionV1")
+        if (!PRODUCT_EDITOR_OPERATIONS.has(operation))
           result.selectionBarrier = event.selectionBarrier;
+        // SPEC E2-B section 5 item 5: promising a typed failure shape and not
+        // forwarding it makes the promise unkeepable on the product.  The
+        // diagnostic profile has been getting this by a builder patch, which
+        // is itself the evidence that the shared worker never forwarded it.
+        if (event.formatBarrier)
+          result.formatBarrier = productFormatBarrier(event.formatBarrier);
         complete(requestId, result);
       }
       break;
@@ -655,6 +751,11 @@ function handleCEvent(rawEvent) {
           revision: event.revision,
           expectedRevision: event.expectedRevision,
           currentRevision: event.currentRevision,
+          // The failure shape rides here.  Without it the host cannot tell a
+          // pre-dispatch refusal (nothing changed) from a dispatched-but-
+          // unverified outcome (roll back), and those want opposite responses.
+          formatBarrier: event.formatBarrier
+            ? productFormatBarrier(event.formatBarrier) : undefined,
         });
       } else {
         postEvent("engine-error", {
@@ -749,12 +850,12 @@ function handleRequest(request) {
     });
     return;
   }
-  if (request.operation.startsWith("editor")
-      && request.operation.endsWith("V1")
-      && !editorV1Enabled()) {
+  if (!editorContractEnabled(request.operation)) {
     postResponse(request.requestId, false, {
       code: "UNSUPPORTED_OPERATION",
-      message: "editor v1 operations require the isolated narrow editor profile",
+      message: `${request.operation} requires an editor profile declaring `
+        + `${EDITOR_OPERATIONS.get(request.operation).capability} at contract `
+        + `version ${EDITOR_OPERATIONS.get(request.operation).version}`,
       operation: request.operation,
       profile: activeManifest?.profile,
     });
@@ -893,11 +994,65 @@ function handleRequest(request) {
       ));
       break;
     }
+    case "editorActionV2": {
+      const actionId = EDITOR_V2_ACTION_IDS[payload.action];
+      const forbiddenFields = ["keyCode", "unoCommand", "command"];
+      const hasForbiddenField = forbiddenFields.some((field) =>
+        Object.hasOwn(payload, field));
+      const validRevision = Number.isInteger(payload.expectedRevision)
+        && payload.expectedRevision >= 0
+        && payload.expectedRevision <= 0xffffffff;
+      const typedFlags = typeof payload.extendSelection === "boolean"
+        && typeof payload.enabled === "boolean";
+      const paragraph = EDITOR_V2_PARAGRAPH_ACTIONS.has(payload.action);
+      // Both flags strictly false for the five paragraph actions: neither has
+      // a meaning there, and a flag with no meaning that is accepted anyway is
+      // a field somebody will eventually set.
+      const validMoveOption = paragraph
+        ? payload.extendSelection === false
+        : (EDITOR_V1_MOVE_ACTIONS.has(payload.action)
+           || payload.extendSelection === false);
+      const validFormatOption = paragraph
+        ? payload.enabled === false
+        : (EDITOR_V1_FORMAT_ACTIONS.has(payload.action)
+           || payload.enabled === false);
+      if (!Number.isInteger(actionId) || !validRevision || !typedFlags
+          || !validMoveOption || !validFormatOption || hasForbiddenField) {
+        postResponse(request.requestId, false, {
+          code: "INVALID_ARGUMENT",
+          message: "editorActionV2 requires a closed action and typed options",
+        });
+        break;
+      }
+      if (!manifestAllowsAction(payload.action)) {
+        postResponse(request.requestId, false, {
+          code: "UNSUPPORTED_OPERATION",
+          message: `${payload.action} is not offered by profile `
+            + `${activeManifest?.profile || "unknown"}`,
+        });
+        break;
+      }
+      accept(request, () => callStatus(
+        "oxsdk_editor_action",
+        ["number", "number", "number", "number", "number", "number"],
+        [request.requestId, payload.documentHandle, payload.expectedRevision,
+          actionId, payload.extendSelection ? 1 : 0, payload.enabled ? 1 : 0],
+      ));
+      break;
+    }
+    case "editorGetStateV2":
+      accept(request, () => callStatus(
+        "oxsdk_editor_get_state",
+        ["number", "number"],
+        [request.requestId, payload.documentHandle],
+      ));
+      break;
     // SPEC E1-D.  The selection method is not a parameter: the engine entry
     // point is hard-wired to the setTextSelection path, because the
     // synthesised-mouse-event path reports success while selecting nothing
     // (SPEC E1-D section 2.1).  A range that selects nothing is a valid
     // outcome; the caller judges by reading the selection back.
+    case "editorSelectRangeV2":
     case "editorSelectRangeV1": {
       const coordinates = [
         payload.startXTwips, payload.startYTwips,
@@ -908,7 +1063,8 @@ function handleRequest(request) {
           || forbiddenFields.some((field) => Object.hasOwn(payload, field))) {
         postResponse(request.requestId, false, {
           code: "INVALID_ARGUMENT",
-          message: "editorSelectRangeV1 requires four non-negative integer twips and no method",
+          message: `${request.operation} requires four non-negative integer `
+            + "twips and no method",
         });
         break;
       }
