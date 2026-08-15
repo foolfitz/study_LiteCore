@@ -52,6 +52,34 @@ E2-A 的清單抄成自然語言會讓 host 做錯 recovery。照實際的 shape
 > **後三類的訊息是「動作已經送出去了，但我們驗不了」**，不是「什麼都沒做」。
 > per-stage 期限只保「stage 不會無限等」，**不保「barrier 一定收場」**。
 >
+#### v10：B' 帶進來的 shape 名稱，**在 relink 之前釘死**
+
+字串是編進二進位檔的。**在實作時才命名，就是讓事後的產物偏離事前登記的東西**
+——本輪已經有過一次（分析器悄悄換掉判準）。所以先寫在這裡：
+
+| shape | 何時 | 類別 | mutation |
+|---|---|---|---|
+| `routing-selection-not-readable` | **派送前**的路由讀取拿到非 TEXT 型態 | **派送前拒絕** | **沒有發生** |
+| `gesture-not-permitted` | manifest 的 gesture mask 不允許這個手勢（5.7 v10） | **派送前拒絕** | **沒有發生** |
+| `block-count-changed` | 派送後 block 數與派送前不符 | 派送後無法驗證 | 可能已發生 |
+| `block-text-mismatch` | 逐 block 文字對不上 | 派送後無法驗證 | 可能已發生 |
+| `block-extraction-failed` | html 抽不出 block | 派送後無法驗證 | 可能已發生 |
+
+> **前兩個是新的一類，而且是好消息**：現行的 037 型態守衛
+> （`formatBarrierSelectionIsReadable()`，`probe_engine.cpp:3189`）**在 barrier 裡面、
+> 派送之後**才跑，所以含 as-char 圖的選取今天只能拿到派送後的
+> `MUTATION_OUTCOME_UNKNOWN`。B' 的路由讀取在派送**之前**，
+> **同一個型態檢查搬到那裡就變成零 mutation 的乾淨拒絕。**
+>
+> **但這也是個陷阱**：路由讀取是 `getTextSelection("text/html")` 的**新呼叫點**，
+> 而 finding 037 講的正是「這個呼叫在某些選取上不可以做」。
+> **路由讀取必須先檢查型態再讀 html**，否則會在派送前就把引擎卡住
+> ——連 stage deadline 都沒有，因為 barrier 還沒開始。
+
+> **另外，`multi-block-readback` 這一列的意思在 v2 變了。**
+> 在 `blocks >= 2` 那條路由上，讀回涵蓋一段以上是**預期的基材**，不是失敗。
+> 本表每一列都要標明它屬於哪一條路由。
+
 > **v9 更正：~~host 的訊息必須叫使用者去看文件並在需要時 undo~~——那句話在
 > 現行 shell 不可執行。** `undo()` 自己也走 `_enqueue()`
 > （`editor-session.js:434`），而這幾類的 code 是 `MUTATION_OUTCOME_UNKNOWN`，
