@@ -188,3 +188,74 @@ other way, and the same consequence for B' still follows.
 
 Either outcome breaks the equality gate as literally written. What round 2
 decides is **why**, and therefore what a repair would have to normalise.
+
+---
+
+# Addendum, round 3: the partial **leading** paragraph
+
+**Written and committed after round 2 and before round 3 runs.** Rounds 1 and 2
+are not revised by this; round 2's README carries its own correction.
+
+## Why there is a round 3
+
+Round 2 refuted the scope I gave break two. A partially-selected paragraph
+inside a **crossing** selection reads back with full list structure — the
+cross-paragraph arm's second paragraph is partial (`第二段中文` of
+`第二段中文 beta`) and reports `blocks: 2, items: 2`, three rounds out of three.
+The false negative is confined to selections that stay **inside one paragraph**,
+which is the case the existing `.uno:SelectText` barrier already handles.
+
+But every crossing selection measured anywhere in this project — these native
+arms and the browser gate's G3 — **starts at a paragraph head**. Round 2 only
+measured a partial **trailing** edge.
+
+**Dragging from the middle of a line is the ordinary gesture.** If the
+serialiser goes structure-blind at a partial *leading* edge the way it does
+inside a single paragraph, the repaired B' construction has a hole at the
+commonest input, and that hole would be structural rather than repairable.
+
+## The arm
+
+**`cross-paragraph-partial-head`**: start the range **inside** paragraph 1 —
+after its first word, not at its head — and end inside paragraph 2, exactly as
+the existing crossing arm does. One paragraph boundary crossed; **both** edges
+partial.
+
+Everything else identical to the existing crossing arm: same fixture, same
+`.uno:DefaultBullet`, same three rounds, same document-level undo judge.
+
+## Prediction
+
+**It reads back with full block structure: `blocks: 2`, and after the dispatch
+`items: 2`** — the same as the existing crossing arm, and unlike the
+within-one-paragraph control.
+
+*Basis.* The discriminator round 2 established is **whether the selection
+crosses a paragraph boundary**, not how much of any paragraph it covers. That
+was demonstrated on the trailing edge; the serialiser has no obvious reason to
+treat the two edges differently, because in both cases it must emit a block
+structure to represent the boundary at all. This is an argument from the
+mechanism round 2 measured, not a second measurement of it — which is why the
+arm exists.
+
+*Confidence.* Higher than round 2's check-2 prediction, lower than checks 1
+and 3. The specific way it could be wrong: the serialiser may anchor its block
+structure on the selection's **start** node and emit a bare text fragment for a
+leading partial, which would produce `blocks: 1` or a missing first `<li>`.
+
+## What each outcome means
+
+| reading | consequence |
+|---|---|
+| `blocks: 2`, `items: 2` | the repaired B' construction holds at ordinary drags; the routing predicate (pre-dispatch block count) is sound at both edges |
+| `blocks: 1`, or fewer items than blocks, or the first paragraph missing from the readback | **structural hole at the commonest gesture → A**, per the adjudicator's flip condition 1 |
+| anything unstable across the three rounds | not citable; re-run before it is used for anything |
+
+## Also recorded, not predicted
+
+`.uno:DefaultNumbering`'s decoration prefix is **unmeasured**. The repaired
+construction's normalisation needs a **closed, sampled set** of decoration
+prefixes per action, and `"    • "` is the only sample taken so far. Round 3
+also dispatches `set-list-ordered` on a crossing selection **for sampling only**
+— its readback prefix is recorded, not judged, because no prediction was
+committed for its value and a sampled constant is not a hypothesis.
