@@ -86,6 +86,7 @@ E2_PREGUARD_OBJECTS := $(patsubst src/%.cpp,$(E2_PREGUARD_BUILD)/%.o,$(E1_SOURCE
 # profile, which keeps pure callback semantics and keeps finding 039 by design
 # (probe_engine.hpp:69-72).
 E2_COMBO_BUILD := build/e2/combination
+E2_B_TEXT_TEST_BIN := build/e2/format-readback-text-test
 E2_COMBO_DIST := dist/profiles/e2-combination
 E2_COMBO_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp \
 	src/editor_api.cpp src/editor_discovery_api.cpp
@@ -153,6 +154,7 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	test-r7-c-static test-r7-d-static test-r8-a-static test-r8-b-static \
 	test-r8-c-static test-r8-d-static \
 	test-e1-a-static test-e1-b-static test-e1-c-static test-e2-a-static \
+	test-e2-b-static \
 	test-e1-c-frozen-guard test-e1-c-shell-bundle-tool \
 	test-finding-016-scheduler-static \
 	test-finding-016-selection-barrier-static \
@@ -1727,6 +1729,26 @@ test-e1-b-static:
 	c++ -std=c++17 -Isrc -fsyntax-only tests/editor_abi_header_test.cpp
 	python3 -m py_compile tools/build_e1_b_profile.py tools/run_e1_b.py \
 		tools/validate_e1_b.py tests/test_e1_b_profile.py tests/test_e1_b.py
+
+# SPEC E2-B.  No prerequisites, same reason as test-e2-a-static below: nothing
+# here may touch an artifact.
+#
+# The two native probes were written outside every static target -- they compile
+# standalone from their own runner scripts, which is why adding them here was
+# deferred (finding 042: editing this file rebuilds, so the entry waited for a
+# turn when the Makefile was being edited anyway).  Syntax-only: they link
+# against LibreOfficeKit at run time, and this checks the source, not the link.
+test-e2-b-static:
+	c++ -std=c++17 -Isrc -o $(E2_B_TEXT_TEST_BIN) tests/format_readback_text_test.cpp
+	$(E2_B_TEXT_TEST_BIN)
+	c++ -std=c++17 -I../libreoffice-26-8/include -fsyntax-only \
+		tools/f049_native_select_after_format.cpp
+	c++ -std=c++17 -I../libreoffice-26-8/include -fsyntax-only \
+		tools/e2b_native_crossparagraph.cpp
+	node --check web/e2b-gate-app.js
+	python3 -m py_compile tools/run_e2b_gate.py tools/analyze_e2b_gate.py \
+		tools/analyze_e2b_crossparagraph.py tools/analyze_e2b_identity_gate.py \
+		tools/create_e2b_fixtures.py
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
 # and therefore rebuilds the frozen e1-editor-v1 profile; this target must stay
