@@ -7,7 +7,7 @@
 | **發現日** | 2026-08-15（任務 #49） |
 | **嚴重度** | 高——**上游自己的測試保證的 API 序列會靜默失效**，而且沒有任何錯誤 |
 | **可重現** | 100%，原生四輪、Chrome 與 Firefox 各一輪 |
-| **是否上游** | **是。** core `671c848b`（26.8） |
+| **是否上游** | **是。** core `671c848b`（26.8）。**但見下方「樹的狀態」——尚未在乾淨樹上重現過** |
 | **相關** | [039](039-the-discovery-selection-path-completes-at-most-once.md)（這是它的根因）、[040](040-idleslockguard-waits-on-a-condition-an-emscripten-build-can-never-set.md)（另一個上游缺陷，無關） |
 
 ## 摘要
@@ -114,6 +114,31 @@ CPPUNIT_ASSERT_EQUAL(u"Aaa b"_ustr, pShellCursor->GetText());
 3. **回歸測試**：在 `sw/qa/extras/tiledrendering/` 加一格——
    `.uno:SelectText` 之後，`RESET`＋`END` 必須建立選取。
    現有的 `testSetTextSelection`（`tiledrendering.cxx:151`）只在乾淨狀態下測過。
+
+## 樹的狀態：**帶著五個本地修改**，而且要講清楚
+
+`libreoffice-26-8` 在 `671c848b` 上有**五個未提交的修改**：
+
+| 檔案 | 變動 | 對這件事的影響 |
+|---|---|---|
+| `desktop/CustomTarget_soffice_bin-emscripten-exports.mk` | −3 | Emscripten 專用 |
+| `solenv/gbuild/platform/EMSCRIPTEN_INTEL_GCC.mk` | 1 行 | Emscripten 專用 |
+| `solenv/gbuild/platform/unxgcc.mk` | 1 行 | **整段包在 `$(if $(filter EMSCRIPTEN,$(OS)), …)` 裡**，改的是 `emdwp` 的觸發條件；原生 build 走不到 |
+| `static/CustomTarget_emscripten_fs_image.mk` | +26／−3 | Emscripten 專用 |
+| `vcl/qt5/QtFrame.cxx` | +2／−1 | Qt VCL plugin 的 IME input context；**原生重現跑的是 `svp`，不載入這個 plugin** |
+
+**沒有一個在 `sw/` 底下。** 但這是「逐一檢查過」，**不是「在乾淨樹上重現過」**——
+後者要一次完整重編，屬長時間編譯，**歸使用者**，已列在草稿的送出前清單裡。
+報告草稿把這五個檔案**全部列出**，不是只寫一句「與本問題無關」。
+
+## 送出前還缺什麼
+
+- [ ] **重複單查詢七組都還沒跑**（草稿裡列著）。
+- [ ] Component 欄位確認（`sw/uibase/{wrtsh,docvw}`，LOK 介面在 `sw/uibase/uno`）。
+- [ ] **在乾淨樹上重現一次**（見上）。
+- [ ] 把草稿裡那支 cppunit 測試實際編起來跑，確認它在修之前真的紅（要重編 `sw`）。
+- [ ] 決定要不要一併送 patch——方向 (1) 是兩行。
+- [ ] **送出本身要使用者按。**
 
 ## 這份**不宣稱**
 
