@@ -1,7 +1,7 @@
 # SPEC E2-A：段落層級格式的 completion barrier discovery
 
-> **日期**：2026-08-05（最後修訂 2026-08-15，v23）  
-> **狀態**（2026-08-15 v23；判定自 v19 未變，**縮限由七項減為六項——第 4 項已撤**）：**總判定已發＝`PARTIAL_GO_TO_E2_B`，縮限六項，見 10.14 節。**
+> **日期**：2026-08-05（最後修訂 2026-08-15，v24）  
+> **狀態**（2026-08-15 v24；判定自 v19 未變，**縮限由七項減為六項——第 4 項已撤**；v24 另就地更正縮限 7 的憑據句）：**總判定已發＝`PARTIAL_GO_TO_E2_B`，縮限六項，見 10.14 節。**
 > A1（部分）、A2（部分通過，前置狀態不成立且不擋——見 10.14）、
 > **A3／A4／A5 已執行且全數通過**——綁定引擎 `c89f069e…`，
 > 兩瀏覽器 × 三 fixture（A5 四 fixture），**A3 25 runs／125 次派送、A4 18／270、A5 8／42**。
@@ -1310,6 +1310,39 @@ barrier 無從建立**」。**閘門守的是後置狀態**，而 A2 不成立�
    > > 記 `restorePoint` 的那一行旁邊，那裡本來就已經在讀派送當下的狀態。
    > > **縮限本身、判定、以及 E2-B 的進場條件都不變**；改的是「沒有欄位」這個憑據句，
    > > 因為照原文去查證的人會找到那兩個名字，然後以為這項縮限站不住。
+   >
+   > > ### **2026-08-15（v24）：憑據句第二次過期。欄位已落地，而且它已經記到 24 筆。**
+   > >
+   > > 上一格說「要補的欄位必須讀在 `postUnoCommand` 之前」。**那個欄位已經補了**
+   > > （`dispatchSelectionCollapsed` 及其兩個同伴，隨任務 #47 的 relink 落地），
+   > > 所以上面那句「**連能不能事後從證據裡判讀都不行**」**現在是假的**——已經判讀得出來。
+   > >
+   > > 解析任務 #49 的 WASM 那一輪（`940b7723…`，三類 fixture × 兩瀏覽器，
+   > > 六份 `result.json`）：**每一份各有 4 筆 `dispatchSelectionCollapsed: false`
+   > > 的格式派送，全樹共 24 筆**。來源是 `arm8-discovery` 與 `arm8-product` 的
+   > > `set-list-unordered`（順序是 range-1 → 派送 → range-2，派送當下範圍還在），
+   > > 以及 `repeat-composition` 的 `action-2`／`action-3`。
+   > > **24 筆全部完成、`failureShape` 為空、`dispatchSelectionRectangles` 為 1。**
+   > >
+   > > **這不撤縮限**，理由是本專案的紀律而不是客氣：那 24 筆是**附帶觀察**，
+   > > 沒有人事先把「在範圍選取上派送」寫成一個問題去問它，
+   > > 所以它們證明不了任何預先登錄的東西。原句「**從來沒有進過矩陣**」仍然成立。
+   > >
+   > > **但它把暗格的形狀改小了**，而這直接決定最小判別集有多大。真正沒有任何資料的只剩三格：
+   > >
+   > > | 子格 | 為什麼它還是暗的 |
+   > > |---|---|
+   > > | **跨段範圍** | 24 筆的 `dispatchSelectionRectangles` 都是 **1**，全是單段 |
+   > > | **非清單動作**（標題／內文走 `StyleApply`） | 24 筆全是 `.uno:DefaultBullet` 一個動作；[第三輪](../findings/evidence/sdk-e2/discovery/049-selection-after-format/native-round3/README.md)已經證明**指令身分會造成差別** |
+   > > | **反向拖曳**（`END` 在 `START` 左邊） | 端點語意原生量過（AJ／AK 臂），但**派送當下**的行為沒量過 |
+   > >
+   > > 外加一支**橋接臂**（`DefaultBullet` 從範圍派送）把那 24 筆附帶觀察
+   > > 升格為預先登錄的可綁定證據。**這四臂就是 E2-B 的第一個里程碑**，
+   > > 不是規格之前的另一輪 sweep——見 SPEC-E2-B。
+   > >
+   > > **這是同一句憑據第二次過期**（v20 一次、v24 一次）。
+   > > 兩次的形狀相同：規格描述的是**當時**的工具狀態，而工具往前走了。
+   > > 記在這裡是為了下次引用縮限 7 之前，**先去 grep 一次證據樹再說**。
    而「選一段再按按鈕」是 v2 使用者的主手勢，所以這是**產品**的缺口，不是學術問題。
 
 **另外，本規格既有的 typed 拒絕清單一併繼承**，E2-B 不得漏接：空段落一律回報失敗
@@ -1427,3 +1460,4 @@ v2 出貨的會是「格式化一次、選取路徑陪葬」。
 | 2026-08-15 | **v21。縮限 4 改措辭並保留；E2-B 進場條件加註「第一次嘗試已執行、仍未滿足」。判定 `PARTIAL_GO_TO_E2_B` 不變。** 起因：進場條件原本假設「修 039」＝補一個引擎漏掉的判斷，而實際上那個判斷早已實作並出貨（`editor_api.cpp:123` 的 `boundedReadback=true`），**discovery 是刻意不裝**（`probe_engine.hpp:69`–`72`），所以「修」有三種意思不同的做法。經外部裁決取 **Option C-plus**：不動 discovery 語意，改建 E2-B 真正要出貨的組合來量（`e2-combination`，`ba1a5dd5…`：產品 select ABI ＋ format barrier ＋ discovery ABI 仍匯出，同一個 hash；capability 與 `editorContract.version` 兩者都要，否則 worker 閘門會拒絕產品半邊）。**預測與六項撤限門檻在執行之前就寫好**（`039-combination/PREDICTION.md`）。**結果落在預先寫下的失敗分支**：同一顆 artifact／同一份文件／同一個格式動作／同一組座標，discovery 路徑逾時 10 000 ms、產品路徑 251 ms 完成但**回報選取為 `none`**，而**歸因控制**（同一個選取、不先做格式動作）20 ms 完成並選到 `"moji 😀 graphe"`——**兩瀏覽器逐格相同**，且工具**先在封存的 `c89f069e` 上重現逾時**才去量新 artifact。所以 bounded readback 把「掛住」換成「誠實地說沒選到」：引擎不再卡（pending slot 有清、後續操作 1 ms），**但選取仍不成立**。**縮限 4 因此不撤**，只把「永遠不返回」擴寫為「會返回但選不到東西」；**E2-B 的 ABI 不得凍結**；「修 039」的定義改寫為「讓格式動作之後的選取真的選得到」，那是 barrier 收尾的**還原語意**問題而非完成語意問題。同一次 relink 一併落地縮限 7 要求的派送當下欄位（`dispatchSelectionCollapsed` 等，記在 `postUnoCommand` 之前）。**A3／A4／A5 重掃（P3）未執行**，理由記在進場條件下方。過程中另記 [finding 042](../findings/042-editing-the-makefile-relinks-every-artifact-that-depends-on-it.md)：編輯 Makefile 會重連結所有相依 artifact，量測中途發生過一次（`938b4ff3`→`ba1a5dd5`），損害盤點為零但屬運氣。 |
 | 2026-08-15 | **v22。P3 已執行：A3／A4／A5 在組合 artifact `ba1a5dd5…` 上全部通過，判定與縮限均不變。** 41 輪、每輪 runner exit 0，判定用**發判定時同一支** `validate_e2_a.py`（僅新增 `--profile`，讓綁定檢查拿受測 artifact 的 hash 比對，否則每一格都會對到 discovery 的 hash 而計零）：`A3_PASS`／`A4_PASS`／`A5_PASS`，A3 與 A4 各六格皆 `required 3 / found 3 / bound 3 / passing 3 / superseded 0`、A5 八格 1/1、`gaps` 為空。**結論：把產品 select ABI 與 format barrier 編進同一顆 artifact 沒有改壞共用引擎**；擋住 E2-B 凍結的仍是 P2（縮限 4），不是這個。**「原尺寸」一句要照這個讀**：A3 raw 是 25 runs／125 派送對 18／90，**那不是覆蓋變少**——門檻是每格 3，凍結那棵有兩格當初多跑成 8 與 5（盈餘），本輪每格剛好 3，而**每輪派送數兩邊都是 5、每格都 covered**；A4 兩邊 18／270、A5 兩邊 8。過程中兩個坑另記：(一) `--evidence-root` 對 keyed 模式會 `.parent.parent` 走回判定綁定的證據樹，組合 artifact 的第一輪因此落在 `browser/chrome/styled-list/attempt-28`，**未覆寫任何東西**，已搬到 P3 樹的 `misrouted-attempt-28/`，且 `--profile-override` 現在沒有 `--evidence-dir` 就拒跑；(二) 單輪 `pass: false` 是常態（凍結的 `attempt-27` 亦然），A3 的判定來自 validator 對整棵樹的判讀而非該欄位。 |
 | 2026-08-15 | **v23。縮限 4 已撤，明列清單由七項減為六項；E2-B 的進場條件兩半都已滿足。判定 `PARTIAL_GO_TO_E2_B` 不變。** 任務 #49。**根因查到上游**：barrier 用的 `.uno:SelectText` → `FN_SELECT_PARA` → `EndPara(true)` → `MoveCursor(true)` → `SttSelect()` 設 `SwWrtShell::m_bInSelect`，而**那條路徑沒有任何地方呼叫 `EndSelect()`**；兩個 `RESET` 都走 `bClearMark` 那一支、不碰旗標；呼叫端的 `END` 因此在 `select.cxx:409` 的 `if (m_bInSelect) return;` 提前返回，`SetMark()` 從未執行——**選取根本沒有成立**，所以 core 也沒有東西可廣播。記為 [finding 043](../findings/043-fn-select-para-leaves-the-shell-in-selection-mode-and-the-next-lok-range-selection-is-silently-dropped.md)。**這不是誤用 API**：上游自己的 tiled-rendering 測試就保證 `RESET`＋`END` 能建立選取（`sw/qa/extras/tiledrendering/tiledrendering.cxx:151` 的註解與 `CPPUNIT_ASSERT`）——**那條決定性證據是對抗性覆核找到的，不是我**。**我方修法**：`probe_engine.cpp` 的 `text-handles` 由 `RESET`＋`END` 改為 `RESET`＋**`START`**＋`END`，註解標明是版本相容 workaround、上游修好即可拿掉；產品 `selectRange` 走的正是這個方法（`editor_api.cpp:121`）。artifact 由 `ba1a5dd5…` relink 為 **`940b7723…`**，`make -n` 先讀過（只有兩行 `em++`，finding 042 的教訓），新舊兩顆都在 `build/archive/`，**三顆凍結 artifact 前後核對未動**。**量測**：原生四輪（每輪預測都在該輪之前 commit）＋ WASM 三類 fixture × 兩瀏覽器。原生確立起因是 `.uno:SelectText` 而非格式指令（做格式不做 SelectText 的臂選得到、做 SelectText 不做格式的臂選不到），並掃過引擎派送的 **20 個 uno 指令、只有這一個毒化**（`.uno:Undo` 乾淨）。WASM 上：**沒有 bounded readback 的那條由逾時 10 001 ms 變成回呼 10 ms**——它只能靠回呼完成，所以這一格等於量到「回呼不會來」的原因是選取沒成立，而非回呼被 WASM 這層弄丟；產品那條由 251 ms readback／選取 `none` 變成 11 ms callback／選到文字；**而且選取幾何與從沒做過格式動作的控制臂逐格相同**（`collapsed` false／1 個矩形／`start.x` 1524／`end.x` 2924），「非空」不等於「正確」，這一格是後者。**六項撤限門檻逐項達成**，其中第 4 項（跨三類 fixture 的重複組合）**一開始只做到一半**——scan 預設只跑 `plain-grapheme`——補跑 `multi-paragraph` 與 `styled-list` 各兩瀏覽器才算數。**A3／A4／A5 重掃**：44 輪、三套全過、`gaps` 空、綁定 `allEvidenceIsCurrentBuild: true`，判定用發總判定時同一支 `validate_e2_a.py`，`--output` 另指以免蓋掉判定綁定的 `summary.json`（前後 hash 相同已核對）。**撤的範圍**：撤掉的是「格式動作之後的選取請求會失敗」；**第 7 項照舊開著**——「在**範圍選取**上派送格式動作」從來沒有量過，A3／A4／A5 全部從收合游標出發，這一輪也沒有量。本項編號保留不重排，以免外部引用失效。 |
+| 2026-08-15 | **v24。縮限 7 的憑據句就地更正（同一句第二次過期）；縮限、判定、進場條件均不變。** 起因是外部裁決（fable）核對 #49 的證據時指出：規格與我的提案都寫「在範圍選取上派送格式動作**從來沒有量過**」，而 v20 要求補的那個派送當下欄位（`dispatchSelectionCollapsed`）**已隨任務 #47 的 relink 落地**，所以 v20 留下的那句「連能不能事後從證據裡判讀都不行」現在是假的。**我自己重新解析驗證：**任務 #49 的 WASM 輪（`940b7723…`，三類 fixture × 兩瀏覽器，六份 `result.json`）**每一份各有 4 筆 `dispatchSelectionCollapsed: false` 的格式派送，全樹共 24 筆**，來源是 `arm8-discovery`／`arm8-product` 的 `set-list-unordered` 與 `repeat-composition` 的 `action-2`／`action-3`；**24 筆全部完成、`failureShape` 空、`dispatchSelectionRectangles` 為 1**。**縮限不撤**——那 24 筆是附帶觀察，沒有人事先把它寫成問題去問，證明不了預先登錄的東西，原句「從來沒有進過矩陣」仍然成立。**但暗格因此縮小為三個子格**：跨段範圍（24 筆全是單段）、非清單動作（24 筆全是 `.uno:DefaultBullet`，而第三輪已證明指令身分會造成差別）、反向拖曳（端點語意原生量過，派送當下沒量過），外加一支把那 24 筆升格為可綁定證據的橋接臂。**這四臂寫進 SPEC-E2-B 當第一個預先登錄的里程碑，ABI 凍結閘在其後**，而不是在規格之前另開一輪 sweep——SPEC-E2-000 第 7 節（127–134 行）禁的是**提前凍結**，沒有一句要求 B 規格必須晚於量測，而縮限 7 自己就寫著「E2-B 的產品側掃描矩陣要補的是這一格」。同時更正 `web/demo-structure.html`：它寫著「七項縮限」（已六項）、把縮限 4 當開著（v23 已撤）、並用產品路徑的措辭描述一顆**跑 discovery ABI** 的 build——該頁釘的是凍結的 `c89f069e…`，**沒有** 08-15 的修法，在它上面症狀是**卡住不返回**而不是「返回但選不到」。 |
