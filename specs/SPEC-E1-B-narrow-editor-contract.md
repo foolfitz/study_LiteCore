@@ -79,7 +79,14 @@ state只公開：
 - delete只接受`completion == "verified-selection-delete"`且`revision == beforeRevision + 1`。
 - `EDITOR_BOUNDARY_UNSUPPORTED`若附帶fresh-worker要求，session進入`restart-required`，封鎖後續mutation；只有以
   authority／last saved bytes重開新Worker才能恢復。
-- format no-op可回`changed:false`且revision不變；實際format mutation必須`changed:true`且revision加一。
+- ~~format no-op可回`changed:false`且revision不變~~；實際format mutation必須`changed:true`且revision加一。
+  > **這半句已被 finding 022 取代（2026-08-15 標註）。** 引擎的前置狀態捷徑已移除
+  > （`probe_engine.cpp:3595`）：快取不追蹤 caret 而且沒有 staleness 旗標，
+  > 那條捷徑會拿「上一次點在哪裡」的值回答「這段文字」的問題。
+  > 現行實作**成功一律 `changed:true` 且 revision 加一**，client 也明文拒絕
+  > `documented-state-noop`（`editor-shell/editor-client.js:79`）。
+  > 保留原句是因為出貨判定綁在這份文字上；**不要當成現行行為引用**。
+  > 是 SPEC-E2-B v4 覆核第 5 節時發現本句仍被當成現況引用的。
 - navigation不得改revision，且必須由文件化caret／selection callback完成。
 
 ## 7. Host editor shell
