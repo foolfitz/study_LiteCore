@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-C-paragraph-format-validation",
+  "round": 1,
+  "matrix": "e2/validation-matrix-v1.json",
+  "baseline": {
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "profile": "e2-editor-v2",
+    "capability": "narrow-editor-v2",
+    "editorContractVersion": 2,
+    "abiVersion": 2,
+    "crossParagraphDisposition": "verify-every-block",
+    "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+    "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+    "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de",
+    "shellBundleSha256": "b01d77da7dec6d9f77df27bf93eda9ebaf5b74e69ec24854dcb804f86a8729e7",
+    "shellBundleManifest": "e2/editor-shell-v2-bundle-v1.json",
+    "productPage": "e2-editor.html",
+    "productSession": "editor-shell-v2/narrow-editor-v2-session.js",
+    "productClient": "editor-shell-v2/narrow-editor-v2-client.js"
+  },
+  "phases": {
+    "D0": {
+      "state": "RUN",
+      "browsers": {
+        "chrome": {
+          "pass": true,
+          "problems": []
+        },
+        "firefox": {
+          "pass": true,
+          "problems": []
+        }
+      },
+      "failingCells": [],
+      "problems": []
+    },
+    "D1": {
+      "state": "RUN",
+      "browsers": {
+        "chrome": {
+          "pass": false,
+          "problems": [
+            "d1-set-bold-false: marker carries fo:font-weight=\"bold\"=True, want False",
+            "d1-set-italic-false: marker carries fo:font-style=\"italic\"=True, want False",
+            "d1-set-underline-false: marker carries style:text-underline-style=True, want False",
+            "d1-set-strikethrough-false: marker carries style:text-line-through-style=True, want False",
+            "d1-body-collapsed: EDITOR_FORMAT_SELECTION_NOT_READABLE",
+            "d1-set-bold-false: marker carries fo:font-weight=\"bold\"=True, want False",
+            "d1-set-italic-false: marker carries fo:font-style=\"italic\"=True, want False",
+            "d1-set-underline-false: marker carries style:text-underline-style=True, want False",
+            "d1-set-strikethrough-false: marker carries style:text-line-through-style=True, want False",
+            "d1-body-collapsed: EDITOR_FORMAT_SELECTION_NOT_READABLE",
+            "d1-set-bold-false: marker carries fo:font-weight=\"bold\"=True, want False",
+            "d1-set-italic-false: marker carries fo:font-style=\"italic\"=True, want False",
+            "d1-set-underline-false: marker carries style:text-underline-style=True, want False",
+            "d1-set-strikethrough-false: marker carries style:text-line-through-style=True, want False",
+            "d1-body-collapsed: EDITOR_FORMAT_SELECTION_NOT_READABLE"
+          ]
+        },
+        "firefox": {
+          "pass": false,
+          "problems": [
+            "d1-set-bold-false: marker carries fo:font-weight=\"bold\"=True, want False",
+            "d1-set-italic-false: marker carries fo:font-style=\"italic\"=True, want False",
+            "d1-set-underline-false: marker carries style:text-underline-style=True, want False",
+            "d1-set-strikethrough-false: marker carries style:text-line-through-style=True, want False",
+            "d1-body-collapsed: EDITOR_FORMAT_SELECTION_NOT_READABLE",
+            "d1-set-bold-false: marker carries fo:font-weight=\"bold\"=True, want False",
+            "d1-set-italic-false: marker carries fo:font-style=\"italic\"=True, want False",
+            "d1-set-underline-false: marker carries style:text-underline-style=True, want False",
+            "d1-set-strikethrough-false: marker carries style:text-line-through-style=True, want False",
+            "d1-body-collapsed: EDITOR_FORMAT_SELECTION_NOT_READABLE",
+            "d1-set-bold-false: marker carries fo:font-weight=\"bold\"=True, want False",
+            "d1-set-italic-false: marker carries fo:font-style=\"italic\"=True, want False",
+            "d1-set-underline-false: marker carries style:text-underline-style=True, want False",
+            "d1-set-strikethrough-false: marker carries style:text-line-through-style=True, want False",
+            "d1-body-collapsed: EDITOR_FORMAT_SELECTION_NOT_READABLE"
+          ]
+        }
+      },
+      "failingCells": [
+        "d1-body-collapsed",
+        "d1-set-bold-false",
+        "d1-set-italic-false",
+        "d1-set-strikethrough-false",
+        "d1-set-underline-false"
+      ],
+      "problems": []
+    },
+    "D2": {
+      "state": "NOT_RUN"
+    },
+    "D3": {
+      "state": "NOT_RUN"
+    },
+    "D4": {
+      "state": "NOT_RUN"
+    },
+    "D5": {
+      "state": "NOT_RUN"
+    }
+  },
+  "problems": [],
+  "verdict": "E2_STOP_OR_RESCOPE",
+  "stopCells": [
+    "d1-body-collapsed",
+    "d1-set-bold-false",
+    "d1-set-italic-false",
+    "d1-set-strikethrough-false",
+    "d1-set-underline-false"
+  ],
+  "partialCells": [],
+  "unknownCells": [],
+  "phasesNotRun": [
+    "D2",
+    "D3",
+    "D4",
+    "D5"
+  ]
+}

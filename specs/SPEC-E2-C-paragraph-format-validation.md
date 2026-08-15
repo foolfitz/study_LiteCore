@@ -1,7 +1,7 @@
 # SPEC E2-C：段落格式產品驗證（E2 里程碑判定）
 
 > **日期**：2026-08-15  
-> **狀態**：**v6**；**D0 通過、D1 已執行（23／28）**，D2～D5 未執行，判定尚未成立  
+> **狀態**：**v7**；**第一輪判定＝`E2_STOP_OR_RESCOPE`**（D0 過、D1 23／28、D2～D5 未跑）  
 > **前置閘門**：[E2-B](./SPEC-E2-B-paragraph-format-contract.md) 已判
 > **`GO_TO_E2_C`**（2026-08-15），產品 artifact `572035ac…`（profile `e2-editor-v2`）  
 > **上位規格**：[SPEC E2-000](./SPEC-E2-000-overview.md) 第 7 節——
@@ -777,17 +777,40 @@ XML 錨點、回滾的位元組相等、兩瀏覽器相等、no-replay、語料�
 缺陷一的同一個形狀**，030 修了兩個清單命令、四個 inline 格式沒跟著修。
 
 **依 8.0 的判定表，這是 STOP 那一列**（manifest 宣告的動作失敗）。
-但修與縮限**兩條路都要 relink**，而第 3 節禁止 relink——所以這是一個
-**E2-C 範圍之外的決定，要使用者裁示**：
-
-| 路 | 代價 |
-|---|---|
-| **修**：照 030 的作法送參數 | 重連結 → 新 artifact → **E2-B 的 132 個 run 與 12 列全部斷綁**，E2-B 要重跑 |
-| **縮限**：manifest 的 `limits` 寫明「這四個是 toggle，`enabled` 不生效」 | 一樣要重連結（manifest 由 builder 產生），代價相同 |
-| **只記錄**：E2-C 判 `E2_STOP_OR_RESCOPE`，把修法留給下一版契約 | 不動任何 artifact，但 E2 這一輪沒有 GO |
 
 **不得把那四格的判準改成「接受粗體」讓它變綠。** 判準沒有錯——
 它問的正是契約承諾的東西。
+
+#### 外部裁決（fable，2026-08-15）：**先判 STOP，量兩件，再一次 relink**
+
+裁決推翻了我寫在這裡的兩個前提（兩個都已在
+[finding 045](../findings/045-inline-format-actions-discard-the-enabled-flag-and-toggle.md)
+就地更正）：
+
+- **~~「四個選項是平行的」~~**：D1 **已經跑完**，而 8.0 是**預先登記**的。
+  所以每一個選項都**從 STOP 開始**——relink 不能把這一輪變回不是 STOP，
+  因為矩陣的 baseline 綁著 `572035ac…`，換 artifact 重跑**定義上就是新的一輪**。
+  真正還活著的決定只有「下一次 relink 帶什麼、什麼時候做」。
+- **~~「縮限也要 relink」~~**：`build_e2_b_profile.py` 是**打包器不是連結器**，
+  而且**沒有任何檢查釘住 manifest 的位元組**。所以那句話是錯的——
+  但縮限仍然不該單獨做（理由見 045）。
+
+**裁決的處置**：
+
+1. **現在**：本輪依 8.0 判 `E2_STOP_OR_RESCOPE`；
+   同時就地標註 `E1_GO_ODT_EDITOR` 的涵蓋範圍（這四個動作只驗過「開啟」方向）
+   ——**標註，不是撤銷**。
+2. **relink 之前先量兩件**：045 的原生探針（參數形狀已由原始碼推導出預測）、
+   以及 `d1-body-collapsed` 的序列二分。
+3. **一次有計畫的 relink**，帶完整佇列（四個參數字串、`d1-body-collapsed` 的修法
+   若在引擎側、4.2 的註腳 `limits` 債、2.5 的 gesture mask 執行債），
+   新契約版本 v3、新 builder 與新 profile 目錄。
+4. `e1-editor-v1` 可分割，之後單獨決定。
+
+**為什麼不現在 relink**：`d1-body-collapsed` 是同級的 STOP 而機制未明。
+`PLAN-E2-B-relink-and-freeze.md` 自己寫過——**「P1 完成才能 relink。
+漏一項就是第二次 relink」**，而在 `wasm-build-not-reproducible` 之下，
+第二次 relink 是這棵樹裡最貴的東西。
 
 > **順帶必須一起看的兩件事**（同一份 finding）：這四個動作的 `changed` 是
 > `probe_engine.cpp:2085` **寫死的字面值**，而收合游標上的派送**根本不動
@@ -850,10 +873,37 @@ XML 錨點、回滾的位元組相等、兩瀏覽器相等、no-replay、語料�
 > 但它與 045 不同——**045 已經知道機制、也知道兩條修法都要 relink；
 > 這一格連機制都還沒查清楚**，所以它先是一個待查項，不是一個待裁決項。
 
+### 9.5.5 第一輪判定：**`E2_STOP_OR_RESCOPE`**（2026-08-15）
+
+**由 [`tools/validate_e2_c.py`](../wasm_sdk_probe/tools/validate_e2_c.py)
+從證據重推，不是寫下來的**（finding 044 記的就是寫下來的判定怎麼與證據脫節）。
+輸出在 `findings/evidence/sdk-e2/e2-c-summary.json`。
+
+| | |
+|---|---|
+| 判定 | **`E2_STOP_OR_RESCOPE`** |
+| 觸發的 STOP 格（5） | `d1-set-bold-false`／`-italic-`／`-underline-`／`-strikethrough-false`（finding 045）、`d1-body-collapsed`（機制未明） |
+| 未跑的相位 | D2、D3、D4、D5 |
+| baseline 四個雜湊 | 全部從磁碟重算並與凍結矩陣相符 |
+| 兩瀏覽器逐格比對 | D0、D1 皆相同 |
+
+**判定工具自己驗過會說別的**：它的自我測試把 8.0 的判定表逐格走過——
+沒有失敗但還有相位沒跑 → `NOT_YET`（**不是 GO**）；全部跑完沒失敗 → GO；
+只有 PARTIAL 格失敗 → PARTIAL；STOP 格失敗 → STOP；
+矩陣沒宣告過的格 → STOP。**只到得了一個答案的判定器不是在判定。**
+
+> **自我測試的第一版是我寫錯的**：它想用「把失敗的格從矩陣刪掉」來走到 GO 那條
+> 分支，但那不等於那些格通過了——**矩陣沒宣告的格是 unknown，而 unknown 是 STOP**。
+> 工具是對的、測試是錯的，這個方向的錯是好的那一種。
+
+**這一輪不會因為之後修好而變成 GO。** 矩陣的 baseline 綁著 `572035ac…`，
+換 artifact 重跑**定義上就是新的一輪**（新的凍結矩陣、新的 D0～D5）。
+
 ## 10. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-15 | **v7。第一輪判定 `E2_STOP_OR_RESCOPE`（9.5.5），由 `validate_e2_c.py` 從證據重推。** 外部裁決（fable）推翻了 9.5.3 的兩個前提——「四個選項是平行的」（D1 已跑完，8.0 是預先登記的，所以每條路都從 STOP 開始）與「縮限也要 relink」（builder 是打包器，且沒有檢查釘住 manifest 位元組）；兩處已就地更正，處置定為「先判 STOP → 量兩件 → 一次 relink 帶完整佇列」。**relink 的時機由 `d1-body-collapsed` 決定，不是由 045 決定**——漏一項就是第二次 relink。 |
 | 2026-08-15 | **v6。D1 三輪 × 兩瀏覽器執行完畢（9.5.4）：23／28 通過，兩瀏覽器投影 81 項逐項相同。** 五格系統性地紅——四格是 finding 045，一格（`d1-body-collapsed`）是派送前的型態守衛，機制未解。順帶把 D1 分析器的自我測試改成「突變必須改變判定」而不是「突變必須讓它變紅」——只能在綠證據上跑的自我測試，會在最需要它的時候失效。 |
 | 2026-08-15 | **v5。D1 撞到 finding 045（9.5.3）**：四個 inline 格式動作把 `enabled` 丟掉、派送 toggle，所以 `d1-set-*-false` 四格在現行 artifact 上不可能通過。依 8.0 這是 STOP，而修與縮限兩條路都要 relink——**待使用者裁示**。同時修掉三個我自己的判準缺陷（編輯目標改用尾端 token 認段落、每一格用自己的 before 圖、before 圖要在建立手勢**之前**存）。 |
 | 2026-08-15 | **v4。D1 前置探針（9.5.2）。** 收合游標上的 inline 格式**不會動到文件位元組**，效果在之後提交的文字上；`changed: true` 在這裡的意思是「引擎接受且狀態前進」，不是「文件變了」。凍結矩陣的八個 inline 格式格因此**在 D1 執行之前**改判準。順帶把 runner 參數化（`--page`／`--namespace`）並補上探針自己的 artifact 歸屬。 |

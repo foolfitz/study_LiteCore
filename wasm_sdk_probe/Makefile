@@ -1974,7 +1974,8 @@ test-e2-c-static:
 		tests/test_e2_c_matrix.py
 	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py \
 		tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py \
-		tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py
+		tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py \
+		tools/validate_e2_c.py
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves
 	# dist/).  Read-only: --write is a deliberate act with its own diff.
@@ -1993,6 +1994,11 @@ test-e2-c-static:
 	python3 tools/analyze_e2_c_d1.py --self-test \
 		../findings/evidence/sdk-e2/e2-c-validation/d1/e2-editor-v2-572035ac/chrome \
 		> /dev/null
+	# The round verdict is derived, never written by hand (finding 044).  Its
+	# self-test exercises the whole 8.0 decision table, including the branches
+	# this round does not take -- a judge that can only reach one answer is not
+	# judging.
+	python3 tools/validate_e2_c.py --self-test > /dev/null
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
 # and therefore rebuilds the frozen e1-editor-v1 profile; this target must stay
