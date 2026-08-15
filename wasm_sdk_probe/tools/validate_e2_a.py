@@ -444,10 +444,27 @@ def main() -> int:
             " barrier matches on is stable across versions.",
         ],
         "notValidated": [
-            "A6 secondary capabilities have not run.",
-            "A7's round-trip slice has run (discovery/a7-roundtrip/report.json);"
-            " A7's regression half -- R6-R8, E1-A/B/C, workspace preflight -- has not,"
-            " so A7 as a whole is still unmet and there is still no E2-A verdict.",
+            # Finding 044.  These two lines used to say A6 had not run and that
+            # A7 was unmet, "so there is still no E2-A verdict".  Both went
+            # stale on 2026-08-13/14 and were still being written into the
+            # verdict-bound summary on 08-15 -- a machine-readable file
+            # contradicting the spec it is the evidence for.  Rewritten with
+            # the same tool, the same frozen tree and byte-identical decisions;
+            # what this validator does and does not cover has not changed, only
+            # the description of it.
+            "A6 has run (2026-08-13, Chrome only, two capabilities stay"
+            " unsupported) and is excluded from the verdict by SPEC E2-A"
+            " section 5. This validator does not read its evidence.",
+            "A7 is complete -- round-trip (SPEC E2-A 10.12) and regression"
+            " (10.13). Neither half is validated here; the round-trip slice has"
+            " its own tool (validate_e2_a_roundtrip.py) and its own report at"
+            " discovery/a7-roundtrip/report.json. This file covers A3, A4 and"
+            " A5 only.",
+            "The E2-A verdict was issued on 2026-08-14: PARTIAL_GO_TO_E2_B,"
+            " with narrowings listed in SPEC E2-A 10.14 (seven at the time,"
+            " six since narrowing 4 was withdrawn on 08-15). The three"
+            " decisions in this file are inputs to that verdict, not the"
+            " verdict itself.",
             "The commandName attribution added for finding 033 is not demonstrated by"
             " this evidence: selectionBeforeResultCount is 0 on every run, so no foreign"
             " selection ever reached it. The BUSY gate is what the crosstalk case shows.",

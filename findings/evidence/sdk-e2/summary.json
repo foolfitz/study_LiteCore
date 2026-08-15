@@ -83804,8 +83804,9 @@
     "The readback markup is a serialiser output, not a documented contract. Matching it whole pins a serialiser; cross-version stability is A7's job and is not validated here. A7's round-trip slice has since measured the saved documents against a different LibreOffice version (see discovery/a7-roundtrip/report.json), which narrows this but does not close it: it says the packages reopen, not that the readback markup this barrier matches on is stable across versions."
   ],
   "notValidated": [
-    "A6 secondary capabilities have not run.",
-    "A7's round-trip slice has run (discovery/a7-roundtrip/report.json); A7's regression half -- R6-R8, E1-A/B/C, workspace preflight -- has not, so A7 as a whole is still unmet and there is still no E2-A verdict.",
+    "A6 has run (2026-08-13, Chrome only, two capabilities stay unsupported) and is excluded from the verdict by SPEC E2-A section 5. This validator does not read its evidence.",
+    "A7 is complete -- round-trip (SPEC E2-A 10.12) and regression (10.13). Neither half is validated here; the round-trip slice has its own tool (validate_e2_a_roundtrip.py) and its own report at discovery/a7-roundtrip/report.json. This file covers A3, A4 and A5 only.",
+    "The E2-A verdict was issued on 2026-08-14: PARTIAL_GO_TO_E2_B, with narrowings listed in SPEC E2-A 10.14 (seven at the time, six since narrowing 4 was withdrawn on 08-15). The three decisions in this file are inputs to that verdict, not the verdict itself.",
     "The commandName attribution added for finding 033 is not demonstrated by this evidence: selectionBeforeResultCount is 0 on every run, so no foreign selection ever reached it. The BUSY gate is what the crosstalk case shows."
   ]
 }
