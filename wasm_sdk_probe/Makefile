@@ -1611,6 +1611,18 @@ dist/e2-c-d2.html: web/e2-c-d2.html | dist
 dist/e2-c-d2-app.js: web/e2-c-d2-app.js | dist
 	cp $< $@
 
+dist/e2-c-d3.html: web/e2-c-d3.html | dist
+	cp $< $@
+
+dist/e2-c-d3-app.js: web/e2-c-d3-app.js | dist
+	cp $< $@
+
+# The verified caret gesture, shared by the D2 and D3 harnesses.  Harness code,
+# deliberately outside editor-shell-v2/: the E2 shell bundle binds the PRODUCT's
+# modules, and a helper the product does not import must not move that digest.
+dist/e2-c-caret.js: web/e2-c-caret.js | dist
+	cp $< $@
+
 # E2's own fixtures.  A separate directory from e1-fixtures because E2-C may
 # not regenerate the E1 corpus, and a served copy so the harness fetches the
 # same bytes the manifest pins.
@@ -1628,6 +1640,8 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/e2-c-d1-probe.html dist/e2-c-d1-probe-app.js \
 	dist/e2-c-d1.html dist/e2-c-d1-app.js \
 	dist/e2-c-d2.html dist/e2-c-d2-app.js \
+	dist/e2-c-d3.html dist/e2-c-d3-app.js dist/e2-c-caret.js \
+	dist/e1-fixtures/list-contexts.odt \
 	dist/e2-fixtures/manifest.json dist/e2-fixtures/list-split.odt \
 	dist/e2-fixtures/d1-anchors.odt \
 	dist/editor-shell-v2/narrow-editor-v2-client.js \
@@ -2010,6 +2024,7 @@ test-e2-c-static:
 	node --check web/e2-c-d1-probe-app.js
 	node --check web/e2-c-d1-app.js
 	node --check web/e2-c-d2-app.js
+	node --check web/e2-c-d3-app.js
 	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
 	# reachable by a shipped shell.  The four-way inventory check cannot see
 	# this -- its client side is the UNION of two shells and one of them
@@ -2063,6 +2078,20 @@ test-e2-c-static:
 	# this round does not take -- a judge that can only reach one answer is not
 	# judging.
 	python3 tools/validate_e2_c.py --self-test > /dev/null
+	# D3's predicates are eight separate claims about ODT structure, and each one
+	# has to be able to say no: the self-test feeds every predicate a shape it
+	# must reject as well as the one it must accept.  It also checks the caret
+	# gate arithmetic, because that gate is the only thing standing between this
+	# phase and another round of cells that report green having measured the
+	# wrong paragraph (finding 048).
+	python3 tools/analyze_e2_c_d3.py --self-test > /dev/null
+	# D2's judge is build-aware, so its self-test mutates the EXPECTATION table
+	# as well as the results: an expectation nobody can break is an expectation
+	# that stopped describing the build some time ago and said nothing.
+	python3 tools/analyze_e2_c_d2.py --self-test \
+		../findings/evidence/sdk-e2/e2-c-validation/d2-narrow/run-4/e2-editor-v2-572035ac/chrome \
+		> /dev/null
+	node --check web/e2-c-caret.js
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
 # and therefore rebuilds the frozen e1-editor-v1 profile; this target must stay
