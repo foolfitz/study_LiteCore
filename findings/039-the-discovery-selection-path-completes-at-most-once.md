@@ -7,7 +7,21 @@
 | **發現日** | 2026-08-13 |
 | **嚴重度** | 嚴重（讓「點一下段落再按按鈕」這種一般手勢在第二次就死掉） |
 | **可重現** | 11 組全部如預期，**Chrome 150 與 Firefox 153.0.1 逐格相同**；原生 26.8 對照 2/2 |
-| **是否上游** | **否——已用原生對照證明**。core 只在「有選取可清」時廣播，那是正確行為；等待它無條件到來的是我方 engine |
+| **是否上游** | **否（一般情形）——已用原生對照證明**。core 只在「有選取可清」時廣播，那是正確行為；等待它無條件到來的是我方 engine。**但格式動作之後那一個實例是上游的，見下方 2026-08-15 的補記** |
+
+> **2026-08-15 補記（任務 #49）：「格式動作之後選不到東西」這一個實例已歸因到上游，
+> 記在 [finding 043](043-fn-select-para-leaves-the-shell-in-selection-mode-and-the-next-lok-range-selection-is-silently-dropped.md)。**
+>
+> 本篇的一般結論**不變**：core 只在有選取變化時廣播，是正確行為；無條件等待的是我方 engine。
+> 新的是**那個特定情境下 core 為什麼沒有東西可廣播**——因為 barrier 用的 `.uno:SelectText`
+> （`FN_SELECT_PARA`）留下 `SwWrtShell::m_bInSelect` 沒人關，害後續 `END` 的 `SttSelect()`
+> 提前返回、`SetMark()` 從未執行，**選取根本沒有成立**。原生四輪、WASM 兩瀏覽器。
+>
+> 我方在 `probe_engine.cpp` 的 `text-handles` 加了標註過的 workaround
+> （`RESET`＋`START`＋`END`）。實測在組合 artifact `940b7723…` 上，
+> **沒有 bounded readback 的那一條由逾時 10 001 ms 變成回呼 10 ms 完成**——
+> 也就是本篇「每份文件只完成得了一次」的症狀，在那個情境下消失了。
+> 證據：[`evidence/sdk-e2/discovery/049-selection-after-format/`](evidence/sdk-e2/discovery/049-selection-after-format/)。
 
 ## 摘要
 
