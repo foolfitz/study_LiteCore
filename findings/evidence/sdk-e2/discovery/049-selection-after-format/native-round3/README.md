@@ -24,6 +24,11 @@
 **一、只有一個。** 引擎派送的指令裡，**只有 `.uno:SelectText` 會毒化下一個範圍選取**。
 所以 finding 的範圍就是 format barrier 那一處，不是「引擎到處都在留狀態」。
 
+> 這也順帶答掉[覆核](../codex-review-round1-3.md)對第一輪臂 C 的一句批評：
+> C 不是純 `.uno:SelectText` ＋ `RESET`，它還含前置 RESET、html 讀回、後置 RESET。
+> **臂 K 是純的**——放游標 → `.uno:SelectText` → `RESET` → 量測，中間沒有別的，
+> 而它兩輪都毒化。所以「起因是這個指令」不必靠臂 C 撐。
+
 **二、`.uno:Undo` 是乾淨的。** 這很重要，因為
 [任務 #50 當天剛把復原鈕接上 `demo-structure`](../../demo-structure-undo/README.md)。
 如果它會毒化，那顆按鈕就是自己裝上去的地雷。四輪之中它都乾淨。
