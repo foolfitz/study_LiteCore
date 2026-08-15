@@ -1528,7 +1528,17 @@ dist/e2-editor.html: web/e2-editor.html | dist
 dist/e2-editor-app.js: web/e2-editor-app.js | dist
 	cp $< $@
 
+# The D0 harness.  A harness, not the product: it publishes __e2c_d0 so a
+# runner can read it, which is exactly the convention the product page must
+# NOT have.
+dist/e2-c-d0.html: web/e2-c-d0.html | dist
+	cp $< $@
+
+dist/e2-c-d0-app.js: web/e2-c-d0-app.js | dist
+	cp $< $@
+
 e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
+	dist/e2-c-d0.html dist/e2-c-d0-app.js \
 	dist/editor-shell-v2/narrow-editor-v2-client.js \
 	dist/editor-shell-v2/narrow-editor-v2-session.js \
 	dist/editor-shell-v2/paragraph-editor-client.js \
@@ -1905,6 +1915,7 @@ test-e2-c-static:
 	node --check editor-shell-v2/narrow-editor-v2-client.js
 	node --check editor-shell-v2/narrow-editor-v2-session.js
 	node --check web/e2-editor-app.js
+	node --check web/e2-c-d0-app.js
 	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
 	# reachable by a shipped shell.  The four-way inventory check cannot see
 	# this -- its client side is the UNION of two shells and one of them
@@ -1932,12 +1943,19 @@ test-e2-c-static:
 	python3 -m unittest tests/test_e2_corpus.py tests/test_e2_c_shell_bundle.py \
 		tests/test_e2_c_matrix.py
 	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py \
-		tools/build_e2_c_shell_bundle.py
+		tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py \
+		tools/analyze_e2_c_d0.py
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves
 	# dist/).  Read-only: --write is a deliberate act with its own diff.
 	python3 tools/build_e2_c_shell_bundle.py > /dev/null
 	python3 -m json.tool e2/validation-matrix-v1.json > /dev/null
+	# SPEC E2-C 9.1: every predicate that can turn the verdict has to be shown
+	# to go red.  Read-only -- it mutates a COPY of the recorded result and
+	# never writes into findings/.
+	python3 tools/analyze_e2_c_d0.py --self-test \
+		../findings/evidence/sdk-e2/e2-c-validation/d0/e2-editor-v2-572035ac/chrome \
+		> /dev/null
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
 # and therefore rebuilds the frozen e1-editor-v1 profile; this target must stay
