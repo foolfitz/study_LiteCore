@@ -1,0 +1,735 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-C-paragraph-format-validation",
+  "frozenDate": "2026-08-15",
+  "status": "frozen-before-D0",
+  "why": "SPEC E2-C 9.1. v1 of that spec left its thresholds in prose -- 'each at least once', 'cell-by-cell identical', 'no continuous growth', 'required ODT' -- for a validator written after the results existed to interpret. E2-B has already been bitten by that order once, when an analyzer quietly replaced a pre-registered criterion and the arm passed. This file is the criteria, written before the first browser round, and it is what tools/validate_e2_c.py reads.",
+  "baseline": {
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "profile": "e2-editor-v2",
+    "capability": "narrow-editor-v2",
+    "editorContractVersion": 2,
+    "abiVersion": 2,
+    "crossParagraphDisposition": "verify-every-block",
+    "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+    "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+    "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de",
+    "shellBundleSha256": "b01d77da7dec6d9f77df27bf93eda9ebaf5b74e69ec24854dcb804f86a8729e7",
+    "shellBundleManifest": "e2/editor-shell-v2-bundle-v1.json",
+    "productPage": "e2-editor.html",
+    "productSession": "editor-shell-v2/narrow-editor-v2-session.js",
+    "productClient": "editor-shell-v2/narrow-editor-v2-client.js"
+  },
+  "browsers": [
+    "chrome",
+    "firefox"
+  ],
+  "productActions": [
+    "move-character-left",
+    "move-character-right",
+    "delete-backward",
+    "delete-forward",
+    "insert-paragraph-break",
+    "insert-line-break",
+    "set-bold",
+    "set-italic",
+    "set-underline",
+    "set-strikethrough",
+    "set-list-none",
+    "set-list-unordered",
+    "set-list-ordered",
+    "set-paragraph-heading",
+    "set-paragraph-body"
+  ],
+  "comparisonProjection": {
+    "why": "'The two browsers agree cell by cell' is meaningless until it says WHICH fields agree. Timings never match; codes, routes and document effects must.",
+    "include": [
+      "cell",
+      "action",
+      "code",
+      "failureShape",
+      "route",
+      "dispatched",
+      "changed",
+      "completion",
+      "revisionDelta",
+      "preBlocks",
+      "postBlocks",
+      "crossIdentityHeld",
+      "crossStateHeld",
+      "bodyBytesChanged",
+      "oracleResult"
+    ],
+    "exclude": [
+      "elapsedMs",
+      "startedAt",
+      "requestId",
+      "attempt",
+      "generation",
+      "browserVersion",
+      "pixelBytes"
+    ]
+  },
+  "thresholds": {
+    "d1RoundsPerBrowser": 3,
+    "d2RoundsPerBrowser": 1,
+    "d3RoundsPerBrowserPerFixture": 1,
+    "editSaveReopenSessionsPerBrowser": 10,
+    "maximumWorkerGenerationsPerSession": 3,
+    "manualRoundsPerBrowser": 1,
+    "operationTimeoutMs": 30000,
+    "openSaveTimeoutMs": 180000,
+    "residualWorkersAfterDispose": 0,
+    "residualHandlesAfterDispose": 0,
+    "wasmHeapSlopeMbPerSessionMax": 2,
+    "wasmHeapAbsoluteGrowthMbMax": 20,
+    "browserPssSlopeMbPerSessionMax": 8,
+    "quiescenceSampleDelaySeconds": 3
+  },
+  "cells": [
+    {
+      "id": "d0-inventory",
+      "phase": "D0",
+      "repeat": 1,
+      "oracle": "core HEAD, dirty baseline, the four baseline hashes recomputed from disk, browser and desktop versions all recorded",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d0-reachability-single-client",
+      "phase": "D0",
+      "repeat": 1,
+      "oracle": "NarrowEditorV2Client ALONE, loaded from dist, reaches all fifteen declared actions; for each, the request envelope matches (operation editorActionV2, action, extendSelection, enabled, documentHandle, expectedRevision) and the real worker returns a typed success",
+      "onFailure": "STOP",
+      "note": "Not the union of shells. The union is what hid the gap for a whole release."
+    },
+    {
+      "id": "d0-reachability-control-undeclared",
+      "phase": "D0",
+      "repeat": 1,
+      "oracle": "an action no manifest declares is reachable by no shell",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d0-session-opens",
+      "phase": "D0",
+      "repeat": 1,
+      "oracle": "NarrowEditorV2Session.open reaches state ready on the v2 profile",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d0-no-diagnostic-surface",
+      "phase": "D0",
+      "repeat": 1,
+      "oracle": "the profile exports no diagnostic operation; editorActionV1 is refused at the capability gate",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d0-forbidden-keycode",
+      "phase": "D0",
+      "repeat": 1,
+      "oracle": "INVALID_ARGUMENT and <office:body> byte-identical",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d0-forbidden-unocommand",
+      "phase": "D0",
+      "repeat": 1,
+      "oracle": "INVALID_ARGUMENT and <office:body> byte-identical",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d0-forbidden-command",
+      "phase": "D0",
+      "repeat": 1,
+      "oracle": "INVALID_ARGUMENT and <office:body> byte-identical",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d0-unknown-action",
+      "phase": "D0",
+      "repeat": 1,
+      "oracle": "EDITOR_ACTION_UNSUPPORTED before dispatch, <office:body> byte-identical",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d1-place-caret",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "typed collapsed caret confirmed by the engine, no second click sent before it",
+      "onFailure": "STOP",
+      "actions": []
+    },
+    {
+      "id": "d1-insert-text",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "the committed text appears exactly once at the anchor in the saved ODT",
+      "onFailure": "STOP",
+      "actions": []
+    },
+    {
+      "id": "d1-move-character-left",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision unchanged, changed false, completion documented-callback-*",
+      "onFailure": "STOP",
+      "actions": [
+        "move-character-left"
+      ]
+    },
+    {
+      "id": "d1-move-character-right",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision unchanged, changed false, completion documented-callback-*",
+      "onFailure": "STOP",
+      "actions": [
+        "move-character-right"
+      ]
+    },
+    {
+      "id": "d1-delete-backward",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "completion verified-selection-delete, revision +1, and the named character is gone from the anchor text in the saved ODT",
+      "onFailure": "STOP",
+      "actions": [
+        "delete-backward"
+      ]
+    },
+    {
+      "id": "d1-delete-forward",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "completion verified-selection-delete, revision +1, and the named character is gone from the anchor text in the saved ODT",
+      "onFailure": "STOP",
+      "actions": [
+        "delete-forward"
+      ]
+    },
+    {
+      "id": "d1-insert-paragraph-break",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1 and the anchor paragraph becomes two <text:p> with the split at the caret",
+      "onFailure": "STOP",
+      "actions": [
+        "insert-paragraph-break"
+      ]
+    },
+    {
+      "id": "d1-insert-line-break",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1 and a <text:line-break> appears inside the anchor paragraph, which stays one <text:p>",
+      "onFailure": "STOP",
+      "actions": [
+        "insert-line-break"
+      ]
+    },
+    {
+      "id": "d1-set-bold-true",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1, completion uno-command-result, and fo:font-weight=bold on the span at THIS action's own anchor",
+      "onFailure": "STOP",
+      "note": "Its own anchor, because all four inline formats return the same completion: a mapping that sent bold to italic would report the action name asked for and still be wrong.",
+      "actions": [
+        "set-bold"
+      ]
+    },
+    {
+      "id": "d1-set-bold-false",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1 and the span at this anchor is not bold in the saved ODT",
+      "onFailure": "STOP",
+      "actions": [
+        "set-bold"
+      ]
+    },
+    {
+      "id": "d1-set-italic-true",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1 and fo:font-style=italic at this action's own anchor",
+      "onFailure": "STOP",
+      "actions": [
+        "set-italic"
+      ]
+    },
+    {
+      "id": "d1-set-italic-false",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1 and the span at this anchor is not italic",
+      "onFailure": "STOP",
+      "actions": [
+        "set-italic"
+      ]
+    },
+    {
+      "id": "d1-set-underline-true",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1 and style:text-underline-style set at this action's own anchor",
+      "onFailure": "STOP",
+      "actions": [
+        "set-underline"
+      ]
+    },
+    {
+      "id": "d1-set-underline-false",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1 and no underline at this anchor",
+      "onFailure": "STOP",
+      "actions": [
+        "set-underline"
+      ]
+    },
+    {
+      "id": "d1-set-strikethrough-true",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1 and style:text-line-through-style set at this action's own anchor",
+      "onFailure": "STOP",
+      "actions": [
+        "set-strikethrough"
+      ]
+    },
+    {
+      "id": "d1-set-strikethrough-false",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1 and no line-through at this anchor",
+      "onFailure": "STOP",
+      "actions": [
+        "set-strikethrough"
+      ]
+    },
+    {
+      "id": "d1-list-unordered-collapsed",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "route collapsed, changed null, completion verified-format-readback, revision +1, and the anchor paragraph is a <text:list-item> in the saved ODT",
+      "onFailure": "STOP",
+      "actions": [
+        "set-list-unordered"
+      ]
+    },
+    {
+      "id": "d1-list-ordered-collapsed",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "as above, in a numbered list",
+      "onFailure": "STOP",
+      "actions": [
+        "set-list-ordered"
+      ]
+    },
+    {
+      "id": "d1-list-none-collapsed",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "as above, and the anchor paragraph is no longer inside any <text:list>",
+      "onFailure": "STOP",
+      "actions": [
+        "set-list-none"
+      ]
+    },
+    {
+      "id": "d1-heading-collapsed",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1 and the anchor paragraph carries the Heading_20_1 STYLE NAME; outline participation is explicitly not asserted",
+      "onFailure": "STOP",
+      "note": "SPEC E2-A 10.2 measured and corrected this exact guess once: judging by ODF element is wrong, the contract promises the style.",
+      "actions": [
+        "set-paragraph-heading"
+      ]
+    },
+    {
+      "id": "d1-body-collapsed",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "revision +1 and the anchor paragraph is not a heading",
+      "onFailure": "STOP",
+      "actions": [
+        "set-paragraph-body"
+      ]
+    },
+    {
+      "id": "d1-heading-range-single",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "route range-single, revision +1, style applied to the one selected paragraph",
+      "onFailure": "STOP",
+      "actions": [
+        "set-paragraph-heading"
+      ]
+    },
+    {
+      "id": "d1-heading-range-cross",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "route range-cross, crossIdentityHeld and crossStateHeld both true, revision +1, style applied to EVERY selected paragraph",
+      "onFailure": "STOP",
+      "actions": [
+        "set-paragraph-heading"
+      ]
+    },
+    {
+      "id": "d1-ordered-range-cross-both-already-numbered",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "route range-cross, both paragraphs already in a numbered list, dispatch succeeds, every block verified, and the saved ODT still holds exactly the two items",
+      "onFailure": "STOP",
+      "note": "The first of E2-B 9.11's four uncovered cells; it needs no relink.",
+      "actions": [
+        "set-list-ordered"
+      ]
+    },
+    {
+      "id": "d1-interleave-v1-after-v2",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "a delete and a bold dispatched AFTER a paragraph action still require changed true and their own completions; route C's relaxation must not have leaked",
+      "onFailure": "STOP",
+      "actions": [
+        "delete-backward",
+        "set-bold"
+      ]
+    },
+    {
+      "id": "d1-undo",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "the Document SDK undo path restores the previous document state",
+      "onFailure": "STOP",
+      "actions": []
+    },
+    {
+      "id": "d1-save",
+      "phase": "D1",
+      "repeat": 3,
+      "oracle": "ODT saves, ZIP CRC and XML valid, every required anchor present",
+      "onFailure": "STOP",
+      "actions": []
+    },
+    {
+      "id": "d1-characterisation-range-inherited",
+      "phase": "D1",
+      "repeat": 1,
+      "oracle": "record what set-bold and delete-backward do on a range selection, single and cross; report only",
+      "onFailure": "NONE",
+      "note": "SPEC E2-C 2.5. The manifest declares collapsed for the ten and nothing enforces it. Whatever this measures does not change the declaration and does not affect the verdict.",
+      "actions": [
+        "set-bold",
+        "delete-backward"
+      ]
+    },
+    {
+      "id": "d2-stale-revision",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "typed rejection, zero mutation",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-stale-handle",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "typed rejection, zero mutation",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-boundary-restart-required",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "EDITOR_BOUNDARY_UNSUPPORTED, session enters restart-required",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-boundary-rejects-queued",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "operations queued behind the boundary failure are rejected, not run",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-fresh-worker-no-replay",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "restart opens the newest engine-written bytes; no queued mutation is replayed",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-crash-composing",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "pending composition is not recovered and not replayed",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-crash-queued-mutation",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "queued mutation is not replayed",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-crash-unsaved-edit",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "content in neither authority nor checkpoint is not recovered",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-crash-after-checkpoint",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "restart reopens the checkpoint bytes and the session is marked dirty with hasCheckpoint true",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-crash-after-save",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "saved authority is restored and the superseded checkpoint does not come back",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-refused-no-mutation-engine",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "a paragraph carrying an as-char frame: dispatched false, <office:body> byte-identical, session stays ready, disposition refused-no-mutation",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-refused-no-mutation-client",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "a bad argument: no request is issued at all, document and session state unchanged, disposition refused-no-mutation",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-unknown-rollback-fallback",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "an error with the barrier field stripped still resolves to rollback; fail-closed survives the 2.6 fix",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d2-dispatched-rollback",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "on test-docs/e1/paragraph-content.odt at PC-FOOTNOTE, after a dirtying edit and a confirmed checkpoint, with a range explicitly covering the note reference: pre-dispatch route recorded as range-single, dispatched true, failureShape exactly footnote-apparatus-readback, fresh worker restart, the rolled-back document byte-identical to the checkpoint bytes, and no queued operation replayed",
+      "onFailure": "STOP",
+      "note": "Not frame-contexts.odt/FX-NOTE -- that one stops the engine responding (E1-C 9.1). If this cell instead comes back dispatched false, the mechanism is wrong and the cell must be rebuilt; the criterion must NOT be relaxed to accept zero mutation."
+    },
+    {
+      "id": "d2-generation-ceiling",
+      "phase": "D2",
+      "repeat": 1,
+      "oracle": "the fourth generation is refused with WORKER_GENERATION_LIMIT and requiresPageReload true",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-l0-t1",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "open, edit at the named anchor, save; required anchors present, ZIP CRC and XML valid, forbidden content absent, desktop reopen and PDF export succeed",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-l0-t2",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "as d3-l0-t1",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-l0-t3",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "as d3-l0-t1",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-l1-review",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "as d3-l0-t1, and comments and tracked changes survive",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-l4-stress-100",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "as d3-l0-t1",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-list-contexts",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "as d3-l0-t1, carrying cells L1-L6 and L8",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-list-split",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "as d3-l0-t1, carrying cell L7",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-L1",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "E1-LC-ISOLATED, plain paragraph with no list on either side, set-list-unordered: becomes a <text:list-item>, neighbours unchanged",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-L2",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "E1-LC-END, plain paragraph, set-list-ordered: becomes a numbered item",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-L3",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "E1-LC-BULLET-TWO, already in a bullet list, set-list-none: leaves the list, the other item unchanged",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-L4",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "E1-LC-NUMBER-TWO, already numbered, set-list-none: leaves the list, the other item unchanged",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-L5",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "E1-LC-BULLET-ONE, already bulleted, set-list-ordered: converts in place, does not start a second list",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d3-L6",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "E1-LC-NUMBER-ONE, already numbered, set-list-ordered again: <office:body> structure unchanged",
+      "onFailure": "STOP",
+      "note": "One of the two cells E2-000 section 10's silent-structure-loss stop condition points at."
+    },
+    {
+      "id": "d3-L7",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "E2-LS-MID, the interior item of a three-item list, set-list-none: the two neighbours each remain a list and no item is lost",
+      "onFailure": "STOP",
+      "note": "The other one. It needs test-docs/e2/list-split.odt; no earlier fixture had a list with an interior item."
+    },
+    {
+      "id": "d3-L8",
+      "phase": "D3",
+      "repeat": 1,
+      "oracle": "E1-LC-BETWEEN, a plain paragraph with a list on each side, set-list-unordered: the outcome must equal the prediction written in the evidence README BEFORE the round",
+      "onFailure": "PREDICTION",
+      "note": "Merging and not merging are both acceptable results. Choosing which one was expected after seeing it is not."
+    },
+    {
+      "id": "d4-sessions",
+      "phase": "D4",
+      "repeat": 10,
+      "oracle": "ten independent edit-save-reopen sessions per browser complete, each with at most three worker generations",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d4-residuals",
+      "phase": "D4",
+      "repeat": 1,
+      "oracle": "workers and handles are zero after dispose, at every sample including the tenth",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d4-memory",
+      "phase": "D4",
+      "repeat": 1,
+      "oracle": "WASM heap slope <= 2 MB/session and absolute growth <= 20 MB; browser PSS slope <= 8 MB/session; samples taken at quiescence and again three seconds later, smaller value used",
+      "onFailure": "STOP",
+      "onUnavailable": "PARTIAL",
+      "note": "If the browser cannot report PSS, mark it notValidated and decide on workers, handles and WASM heap alone -- PARTIAL, never a pass by absence. The field is machine-readable so this stays a rule rather than a sentence."
+    },
+    {
+      "id": "d4-regression",
+      "phase": "D4",
+      "repeat": 1,
+      "oracle": "R6 release, R7-B/C/D, R8-D, E1-A, E1-B, E2-A and E2-B static targets pass; workspace preflight before and after passes; test-e1-c-static is NOT run and check_e1_c_bundle_intact plus test-e1-c-frozen-guard are run instead",
+      "onFailure": "STOP"
+    },
+    {
+      "id": "d5-pointer-drag-single",
+      "phase": "D5",
+      "repeat": 1,
+      "oracle": "a trusted pointer drag on the product page selects one paragraph, a format button then applies to it, and the saved ODT shows it",
+      "onFailure": "PARTIAL"
+    },
+    {
+      "id": "d5-pointer-drag-cross",
+      "phase": "D5",
+      "repeat": 1,
+      "oracle": "a trusted pointer drag spanning two paragraphs, then a format button; both paragraphs verified",
+      "onFailure": "PARTIAL"
+    },
+    {
+      "id": "d5-ime-commit",
+      "phase": "D5",
+      "repeat": 1,
+      "oracle": "a real Fcitx5 Chewing commit at a collapsed caret, and one replacing a selection, on the v2 artifact",
+      "onFailure": "PARTIAL",
+      "note": "E1-C's IME evidence is bound to 835b453d and may not be cited for v2."
+    },
+    {
+      "id": "d5-clipboard",
+      "phase": "D5",
+      "repeat": 1,
+      "oracle": "a real Ctrl+C / Ctrl+V round trip, plain text only",
+      "onFailure": "PARTIAL"
+    }
+  ],
+  "decisionPolicy": {
+    "allCellsPassAndManualTrusted": "E2_GO_PARAGRAPH_FORMAT",
+    "onlyPartialMarkedCellsFail": "E2_PARTIAL_GO_PARAGRAPH_FORMAT",
+    "anyStopMarkedCellFails": "E2_STOP_OR_RESCOPE",
+    "why": "A manifest-declared action or gesture that fails cannot be narrowed without editing the frozen manifest, and editing it detaches E2-B's 132 runs. So there is no PARTIAL for contract cells -- only for what was declared outside the contract before the round started."
+  },
+  "validatorSelfTest": {
+    "why": "SPEC E2-C 9.1. Testing that the validator notices a changed hash is far weaker than the verdict it issues; every predicate that can turn the verdict has to be shown to go red.",
+    "mustGoRedWhenMutated": [
+      "artifact hash recomputed from disk",
+      "shell bundle digest recomputed from disk",
+      "per-cell oracle result",
+      "cell repetition count",
+      "two-browser projection equality",
+      "revision delta",
+      "rollback byte equality",
+      "no-replay assertion",
+      "corpus content-axis expectations",
+      "resource thresholds",
+      "L1-L8 postconditions",
+      "the D5 partial-only mapping"
+    ]
+  },
+  "evidenceRoot": "findings/evidence/sdk-e2/e2-c-validation",
+  "execution": {
+    "startedAt": null,
+    "completedAt": null,
+    "note": "Frozen before D0. Any edit after the first browser round is a change to the criteria and must be recorded in SPEC E2-C's revision table with the reason."
+  }
+}
