@@ -171,7 +171,11 @@ async function surveyFixture(fixture, anchor) {
 async function runArm(spec) {
   const entry = { arm: spec.name, gesture: spec.gesture, action: spec.action,
                   fixture: spec.fixture, anchor: spec.anchor,
-                  expects: spec.expects, rounds: [] };
+                  expects: spec.expects, repeat: Boolean(spec.repeat),
+                  // Without this the judge cannot see which arm is the
+                  // self-red one, and an arm that must fail would be counted
+                  // as an ordinary pass -- which is what happened first time.
+                  selfRed: spec.selfRed ?? null, rounds: [] };
   for (let round = 1; round <= rounds; round++) {
     // A fresh engine per round, not merely per arm: finding 038's rule is that
     // a wedged pending slot must not be allowed to decide the next answer, and
