@@ -12,7 +12,9 @@ export type EditorV1Action =
   | "insert-paragraph-break"
   | "insert-line-break"
   | "set-bold"
-  | "set-italic";
+  | "set-italic"
+  | "set-underline"
+  | "set-strikethrough";
 
 export interface EditorRectangle {
   x: number;
@@ -68,6 +70,6 @@ export class NarrowEditorClient {
   moveCharacter(direction: "left" | "right", options?: EditorActionOptions): Promise<EditorActionResult>;
   delete(direction: "backward" | "forward", options?: RevisionOptions): Promise<EditorActionResult>;
   insertBreak(kind: "paragraph" | "line", options?: RevisionOptions): Promise<EditorActionResult>;
-  setInlineFormat(format: "bold" | "italic", enabled: boolean, options?: RevisionOptions): Promise<EditorActionResult>;
+  setInlineFormat(format: "bold" | "italic" | "underline" | "strikethrough", enabled: boolean, options?: RevisionOptions): Promise<EditorActionResult>;
   getState(options?: AbortableOptions): Promise<EditorState>;
 }
