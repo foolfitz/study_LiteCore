@@ -1,0 +1,2261 @@
+{
+  "schemaVersion": 1,
+  "release": "task-047-P2-composition-scan",
+  "prediction": "findings/evidence/sdk-e2/discovery/039-combination/PREDICTION.md",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "profile": "e2-combination",
+  "fixture": "multi-paragraph.odt",
+  "stepTimeoutMs": 10000,
+  "rounds": 3,
+  "productAbiAvailable": true,
+  "arms": [
+    {
+      "arm": "arm8-discovery",
+      "expects": "range-2 times out: the discovery select is unbuffered by design",
+      "steps": [
+        {
+          "step": "range-1",
+          "value": {
+            "method": "text-handles-unstable",
+            "revision": 0,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 1,
+            "callbackSequenceAfter": 4,
+            "state": {
+              "sourceSequence": 4,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 2964,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 1546,
+                    "height": 347
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 3,
+                "stateChangedUnrecognised": 3
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 17
+        },
+        {
+          "step": "set-list-unordered",
+          "value": {
+            "action": "set-list-unordered",
+            "option": false,
+            "beforeRevision": 0,
+            "revision": 1,
+            "changed": null,
+            "completion": "verified-format-readback",
+            "callbackSequenceBefore": 5,
+            "callbackSequenceAfter": 16,
+            "state": {
+              "sourceSequence": 16,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 2858,
+                "y": 1807,
+                "width": 0,
+                "height": 348
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": {
+                  "x": 2138,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 3790,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 7,
+                "stateChangedUnrecognised": 7
+              }
+            },
+            "formatBarrier": {
+              "command": ".uno:DefaultBullet",
+              "selectCommand": ".uno:SelectText",
+              "dispatchSequence": 5,
+              "stage": "awaiting-restore",
+              "failureShape": "",
+              "crosstalkCount": 0,
+              "earlyStateCount": 0,
+              "resultSeen": true,
+              "selectionResultSeen": true,
+              "selectionBeforeResultCount": 0,
+              "containment": {
+                "checked": true,
+                "held": true,
+                "selectionTop": 1807,
+                "selectionBottom": 2154,
+                "restoreCentre": 1981
+              },
+              "selectionType": 1,
+              "selectionTypeReadable": true,
+              "dispatchSelectionCollapsed": false,
+              "dispatchSelectionObserved": true,
+              "dispatchSelectionRectangles": 1,
+              "resultSuccess": false,
+              "resultModified": false,
+              "expectedStyles": [],
+              "readback": {
+                "parsed": true,
+                "unknownTag": false,
+                "unknownTagName": "",
+                "malformedNesting": false,
+                "footnoteApparatus": false,
+                "multiBlock": false,
+                "blockCount": 1,
+                "itemCount": 1,
+                "listTag": "ul",
+                "blockTag": "p",
+                "expectedListTag": "ul",
+                "expectedBlockTag": "",
+                "bytes": 588,
+                "restoreConfirmed": true,
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"><font face=\"Noto Sans CJK KR\"><span lang=\"zh-TW\">第二段中文 </span></font>beta</p></li>\n</ul>\n</body>\n</html>"
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-format-readback",
+          "elapsedMs": 98
+        },
+        {
+          "step": "range-2",
+          "value": {
+            "method": "text-handles-unstable",
+            "revision": 1,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 16,
+            "callbackSequenceAfter": 17,
+            "state": {
+              "sourceSequence": 17,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 2858,
+                "y": 1807,
+                "width": 0,
+                "height": 348
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 2138,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 3790,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 2268,
+                    "width": 1666,
+                    "height": 347
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 7,
+                "stateChangedUnrecognised": 7
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 9
+        }
+      ],
+      "elapsedMs": 1562
+    },
+    {
+      "arm": "arm8-product",
+      "expects": "range-2 completes and the reported selection is not empty",
+      "steps": [
+        {
+          "step": "range-1",
+          "value": {
+            "method": "text-handles-unstable",
+            "revision": 0,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 1,
+            "callbackSequenceAfter": 4,
+            "state": {
+              "sourceSequence": 4,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 2964,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 1546,
+                    "height": 347
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 3,
+                "stateChangedUnrecognised": 3
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 19
+        },
+        {
+          "step": "set-list-unordered",
+          "value": {
+            "action": "set-list-unordered",
+            "option": false,
+            "beforeRevision": 0,
+            "revision": 1,
+            "changed": null,
+            "completion": "verified-format-readback",
+            "callbackSequenceBefore": 5,
+            "callbackSequenceAfter": 15,
+            "state": {
+              "sourceSequence": 16,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 2858,
+                "y": 1807,
+                "width": 0,
+                "height": 348
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": {
+                  "x": 2138,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 3790,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 7,
+                "stateChangedUnrecognised": 7
+              }
+            },
+            "formatBarrier": {
+              "command": ".uno:DefaultBullet",
+              "selectCommand": ".uno:SelectText",
+              "dispatchSequence": 5,
+              "stage": "awaiting-restore",
+              "failureShape": "",
+              "crosstalkCount": 0,
+              "earlyStateCount": 0,
+              "resultSeen": true,
+              "selectionResultSeen": true,
+              "selectionBeforeResultCount": 0,
+              "containment": {
+                "checked": true,
+                "held": true,
+                "selectionTop": 1807,
+                "selectionBottom": 2154,
+                "restoreCentre": 1981
+              },
+              "selectionType": 1,
+              "selectionTypeReadable": true,
+              "dispatchSelectionCollapsed": false,
+              "dispatchSelectionObserved": true,
+              "dispatchSelectionRectangles": 1,
+              "resultSuccess": false,
+              "resultModified": false,
+              "expectedStyles": [],
+              "readback": {
+                "parsed": true,
+                "unknownTag": false,
+                "unknownTagName": "",
+                "malformedNesting": false,
+                "footnoteApparatus": false,
+                "multiBlock": false,
+                "blockCount": 1,
+                "itemCount": 1,
+                "listTag": "ul",
+                "blockTag": "p",
+                "expectedListTag": "ul",
+                "expectedBlockTag": "",
+                "bytes": 588,
+                "restoreConfirmed": true,
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"><font face=\"Noto Sans CJK KR\"><span lang=\"zh-TW\">第二段中文 </span></font>beta</p></li>\n</ul>\n</body>\n</html>"
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-format-readback",
+          "elapsedMs": 25
+        },
+        {
+          "step": "range-2",
+          "value": {
+            "method": "text-handles-unstable",
+            "revision": 1,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 16,
+            "callbackSequenceAfter": 19,
+            "state": {
+              "sourceSequence": 19,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 2858,
+                "y": 1807,
+                "width": 0,
+                "height": 348
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 3084,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 2268,
+                    "width": 1666,
+                    "height": 347
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 7,
+                "stateChangedUnrecognised": 7
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 10
+        }
+      ],
+      "selectionAfterRange1": {
+        "selectionType": "text",
+        "text": "第二段中文 bet",
+        "length": 9
+      },
+      "selectionAfterRange2": {
+        "selectionType": "text",
+        "text": "第三段跨行 gam",
+        "length": 9
+      },
+      "elapsedMs": 1021
+    },
+    {
+      "arm": "select-y2600-without-format",
+      "expects": "the same select, no format action first: does it select anything at all?",
+      "steps": [
+        {
+          "step": "range-2-only",
+          "value": {
+            "method": "text-handles-unstable",
+            "revision": 0,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 1,
+            "callbackSequenceAfter": 4,
+            "state": {
+              "sourceSequence": 4,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 3084,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 2268,
+                    "width": 1666,
+                    "height": 347
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 3,
+                "stateChangedUnrecognised": 3
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 19
+        }
+      ],
+      "selectionAfter": {
+        "selectionType": "text",
+        "text": "第三段跨行 gam",
+        "length": 9
+      },
+      "elapsedMs": 906
+    },
+    {
+      "arm": "repeat-composition",
+      "expects": "3 rounds of format -> select, each followed by a state read",
+      "steps": [
+        {
+          "step": "action-1",
+          "value": {
+            "action": "set-list-unordered",
+            "option": false,
+            "beforeRevision": 0,
+            "revision": 1,
+            "changed": null,
+            "completion": "verified-format-readback",
+            "callbackSequenceBefore": 1,
+            "callbackSequenceAfter": 8,
+            "state": {
+              "sourceSequence": 9,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 1778,
+                "y": 1476,
+                "width": 0,
+                "height": 218
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": {
+                  "x": 2138,
+                  "y": 1418,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 4664,
+                  "y": 1418,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 6,
+                "stateChangedUnrecognised": 6
+              }
+            },
+            "formatBarrier": {
+              "command": ".uno:DefaultBullet",
+              "selectCommand": ".uno:SelectText",
+              "dispatchSequence": 1,
+              "stage": "awaiting-restore",
+              "failureShape": "",
+              "crosstalkCount": 0,
+              "earlyStateCount": 0,
+              "resultSeen": true,
+              "selectionResultSeen": true,
+              "selectionBeforeResultCount": 0,
+              "containment": {
+                "checked": true,
+                "held": true,
+                "selectionTop": 1418,
+                "selectionBottom": 1693,
+                "restoreCentre": 1556
+              },
+              "selectionType": 1,
+              "selectionTypeReadable": true,
+              "dispatchSelectionCollapsed": true,
+              "dispatchSelectionObserved": false,
+              "dispatchSelectionRectangles": 0,
+              "resultSuccess": false,
+              "resultModified": false,
+              "expectedStyles": [],
+              "readback": {
+                "parsed": true,
+                "unknownTag": false,
+                "unknownTagName": "",
+                "malformedNesting": false,
+                "footnoteApparatus": false,
+                "multiBlock": false,
+                "blockCount": 1,
+                "itemCount": 1,
+                "listTag": "ul",
+                "blockTag": "p",
+                "expectedListTag": "ul",
+                "expectedBlockTag": "",
+                "bytes": 525,
+                "restoreConfirmed": true,
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-MULTI-START alpha</p></li>\n</ul>\n</body>\n</html>"
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-format-readback",
+          "elapsedMs": 37
+        },
+        {
+          "step": "select-1",
+          "value": {
+            "method": "text-handles-unstable",
+            "revision": 1,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 9,
+            "callbackSequenceAfter": 12,
+            "state": {
+              "sourceSequence": 12,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 1778,
+                "y": 1476,
+                "width": 0,
+                "height": 218
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 3084,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 2268,
+                    "width": 1666,
+                    "height": 347
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 6,
+                "stateChangedUnrecognised": 6
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 10
+        },
+        {
+          "step": "state-1",
+          "value": {
+            "documentHandle": 1,
+            "revision": 1,
+            "sourceSequence": 13,
+            "documentChangeSequence": 0,
+            "visible": true,
+            "caret": {
+              "x": 3084,
+              "y": 2268,
+              "width": 0,
+              "height": 348
+            },
+            "selection": {
+              "observed": true,
+              "collapsed": false,
+              "start": {
+                "x": 1418,
+                "y": 2268,
+                "width": 0,
+                "height": 347
+              },
+              "end": {
+                "x": 3084,
+                "y": 2268,
+                "width": 0,
+                "height": 347
+              },
+              "rectangles": [
+                {
+                  "x": 1418,
+                  "y": 2268,
+                  "width": 1666,
+                  "height": 347
+                }
+              ]
+            },
+            "a11y": {
+              "observed": false,
+              "changeCount": 0,
+              "unparsedCount": 0,
+              "lastSequence": 0,
+              "contentLength": -1,
+              "position": -1
+            },
+            "selectionType": "text",
+            "selectionTextMissing": false,
+            "selectionText": "第三段跨行 gam",
+            "format": {
+              "bold": null,
+              "italic": null,
+              "listBullet": null,
+              "listNumber": null,
+              "paragraphStyle": null,
+              "stateChangedTotal": 6,
+              "stateChangedUnrecognised": 6
+            }
+          },
+          "status": "completed",
+          "completion": null,
+          "elapsedMs": 2
+        },
+        {
+          "step": "action-2",
+          "value": {
+            "action": "set-list-unordered",
+            "option": false,
+            "beforeRevision": 1,
+            "revision": 2,
+            "changed": null,
+            "completion": "verified-format-readback",
+            "callbackSequenceBefore": 13,
+            "callbackSequenceAfter": 24,
+            "state": {
+              "sourceSequence": 24,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 3098,
+                "y": 2268,
+                "width": 0,
+                "height": 348
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": {
+                  "x": 2138,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 4097,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 7,
+                "stateChangedUnrecognised": 7
+              }
+            },
+            "formatBarrier": {
+              "command": ".uno:DefaultBullet",
+              "selectCommand": ".uno:SelectText",
+              "dispatchSequence": 13,
+              "stage": "awaiting-restore",
+              "failureShape": "",
+              "crosstalkCount": 0,
+              "earlyStateCount": 0,
+              "resultSeen": true,
+              "selectionResultSeen": true,
+              "selectionBeforeResultCount": 0,
+              "containment": {
+                "checked": true,
+                "held": true,
+                "selectionTop": 2268,
+                "selectionBottom": 2615,
+                "restoreCentre": 2442
+              },
+              "selectionType": 1,
+              "selectionTypeReadable": true,
+              "dispatchSelectionCollapsed": false,
+              "dispatchSelectionObserved": true,
+              "dispatchSelectionRectangles": 1,
+              "resultSuccess": false,
+              "resultModified": true,
+              "expectedStyles": [],
+              "readback": {
+                "parsed": true,
+                "unknownTag": false,
+                "unknownTagName": "",
+                "malformedNesting": false,
+                "footnoteApparatus": false,
+                "multiBlock": false,
+                "blockCount": 1,
+                "itemCount": 1,
+                "listTag": "ul",
+                "blockTag": "p",
+                "expectedListTag": "ul",
+                "expectedBlockTag": "",
+                "bytes": 589,
+                "restoreConfirmed": true,
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"><font face=\"Noto Sans CJK KR\"><span lang=\"zh-TW\">第三段跨行 </span></font>gamma</p></li>\n</ul>\n</body>\n</html>"
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-format-readback",
+          "elapsedMs": 26
+        },
+        {
+          "step": "select-2",
+          "value": {
+            "method": "text-handles-unstable",
+            "revision": 2,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 24,
+            "callbackSequenceAfter": 27,
+            "state": {
+              "sourceSequence": 27,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 3098,
+                "y": 2268,
+                "width": 0,
+                "height": 348
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 2138,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 3098,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": [
+                  {
+                    "x": 2138,
+                    "y": 2268,
+                    "width": 960,
+                    "height": 347
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 7,
+                "stateChangedUnrecognised": 7
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 10
+        },
+        {
+          "step": "state-2",
+          "value": {
+            "documentHandle": 1,
+            "revision": 2,
+            "sourceSequence": 27,
+            "documentChangeSequence": 0,
+            "visible": true,
+            "caret": {
+              "x": 3098,
+              "y": 2268,
+              "width": 0,
+              "height": 348
+            },
+            "selection": {
+              "observed": true,
+              "collapsed": false,
+              "start": {
+                "x": 2138,
+                "y": 2268,
+                "width": 0,
+                "height": 347
+              },
+              "end": {
+                "x": 3098,
+                "y": 2268,
+                "width": 0,
+                "height": 347
+              },
+              "rectangles": [
+                {
+                  "x": 2138,
+                  "y": 2268,
+                  "width": 960,
+                  "height": 347
+                }
+              ]
+            },
+            "a11y": {
+              "observed": false,
+              "changeCount": 0,
+              "unparsedCount": 0,
+              "lastSequence": 0,
+              "contentLength": -1,
+              "position": -1
+            },
+            "selectionType": "text",
+            "selectionTextMissing": false,
+            "selectionText": "第三段跨",
+            "format": {
+              "bold": null,
+              "italic": null,
+              "listBullet": null,
+              "listNumber": null,
+              "paragraphStyle": null,
+              "stateChangedTotal": 7,
+              "stateChangedUnrecognised": 7
+            }
+          },
+          "status": "completed",
+          "completion": null,
+          "elapsedMs": 2
+        },
+        {
+          "step": "action-3",
+          "value": {
+            "action": "set-list-unordered",
+            "option": false,
+            "beforeRevision": 2,
+            "revision": 3,
+            "changed": null,
+            "completion": "verified-format-readback",
+            "callbackSequenceBefore": 27,
+            "callbackSequenceAfter": 36,
+            "state": {
+              "sourceSequence": 36,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 3098,
+                "y": 2268,
+                "width": 0,
+                "height": 348
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": {
+                  "x": 2138,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 4097,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 7,
+                "stateChangedUnrecognised": 7
+              }
+            },
+            "formatBarrier": {
+              "command": ".uno:DefaultBullet",
+              "selectCommand": ".uno:SelectText",
+              "dispatchSequence": 27,
+              "stage": "awaiting-restore",
+              "failureShape": "",
+              "crosstalkCount": 0,
+              "earlyStateCount": 0,
+              "resultSeen": true,
+              "selectionResultSeen": true,
+              "selectionBeforeResultCount": 0,
+              "containment": {
+                "checked": true,
+                "held": true,
+                "selectionTop": 2268,
+                "selectionBottom": 2615,
+                "restoreCentre": 2442
+              },
+              "selectionType": 1,
+              "selectionTypeReadable": true,
+              "dispatchSelectionCollapsed": false,
+              "dispatchSelectionObserved": true,
+              "dispatchSelectionRectangles": 1,
+              "resultSuccess": false,
+              "resultModified": true,
+              "expectedStyles": [],
+              "readback": {
+                "parsed": true,
+                "unknownTag": false,
+                "unknownTagName": "",
+                "malformedNesting": false,
+                "footnoteApparatus": false,
+                "multiBlock": false,
+                "blockCount": 1,
+                "itemCount": 1,
+                "listTag": "ul",
+                "blockTag": "p",
+                "expectedListTag": "ul",
+                "expectedBlockTag": "",
+                "bytes": 589,
+                "restoreConfirmed": true,
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"><font face=\"Noto Sans CJK KR\"><span lang=\"zh-TW\">第三段跨行 </span></font>gamma</p></li>\n</ul>\n</body>\n</html>"
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-format-readback",
+          "elapsedMs": 27
+        },
+        {
+          "step": "select-3",
+          "value": {
+            "method": "text-handles-unstable",
+            "revision": 3,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 36,
+            "callbackSequenceAfter": 39,
+            "state": {
+              "sourceSequence": 39,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 3098,
+                "y": 2268,
+                "width": 0,
+                "height": 348
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 2138,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 3098,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": [
+                  {
+                    "x": 2138,
+                    "y": 2268,
+                    "width": 960,
+                    "height": 347
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 7,
+                "stateChangedUnrecognised": 7
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 10
+        },
+        {
+          "step": "state-3",
+          "value": {
+            "documentHandle": 1,
+            "revision": 3,
+            "sourceSequence": 39,
+            "documentChangeSequence": 0,
+            "visible": true,
+            "caret": {
+              "x": 3098,
+              "y": 2268,
+              "width": 0,
+              "height": 348
+            },
+            "selection": {
+              "observed": true,
+              "collapsed": false,
+              "start": {
+                "x": 2138,
+                "y": 2268,
+                "width": 0,
+                "height": 347
+              },
+              "end": {
+                "x": 3098,
+                "y": 2268,
+                "width": 0,
+                "height": 347
+              },
+              "rectangles": [
+                {
+                  "x": 2138,
+                  "y": 2268,
+                  "width": 960,
+                  "height": 347
+                }
+              ]
+            },
+            "a11y": {
+              "observed": false,
+              "changeCount": 0,
+              "unparsedCount": 0,
+              "lastSequence": 0,
+              "contentLength": -1,
+              "position": -1
+            },
+            "selectionType": "text",
+            "selectionTextMissing": false,
+            "selectionText": "第三段跨",
+            "format": {
+              "bold": null,
+              "italic": null,
+              "listBullet": null,
+              "listNumber": null,
+              "paragraphStyle": null,
+              "stateChangedTotal": 7,
+              "stateChangedUnrecognised": 7
+            }
+          },
+          "status": "completed",
+          "completion": null,
+          "elapsedMs": 2
+        }
+      ],
+      "elapsedMs": 1012
+    },
+    {
+      "arm": "click-gesture",
+      "expects": "3 rounds of format -> click+poll -> format",
+      "steps": [
+        {
+          "step": "action-a-1",
+          "value": {
+            "action": "set-list-unordered",
+            "option": false,
+            "beforeRevision": 0,
+            "revision": 1,
+            "changed": null,
+            "completion": "verified-format-readback",
+            "callbackSequenceBefore": 1,
+            "callbackSequenceAfter": 8,
+            "state": {
+              "sourceSequence": 9,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 1778,
+                "y": 1476,
+                "width": 0,
+                "height": 218
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": {
+                  "x": 2138,
+                  "y": 1418,
+                  "width": 0,
+                  "height": 275
+                },
+                "end": {
+                  "x": 4664,
+                  "y": 1418,
+                  "width": 0,
+                  "height": 275
+                },
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 6,
+                "stateChangedUnrecognised": 6
+              }
+            },
+            "formatBarrier": {
+              "command": ".uno:DefaultBullet",
+              "selectCommand": ".uno:SelectText",
+              "dispatchSequence": 1,
+              "stage": "awaiting-restore",
+              "failureShape": "",
+              "crosstalkCount": 0,
+              "earlyStateCount": 0,
+              "resultSeen": true,
+              "selectionResultSeen": true,
+              "selectionBeforeResultCount": 0,
+              "containment": {
+                "checked": true,
+                "held": true,
+                "selectionTop": 1418,
+                "selectionBottom": 1693,
+                "restoreCentre": 1556
+              },
+              "selectionType": 1,
+              "selectionTypeReadable": true,
+              "dispatchSelectionCollapsed": true,
+              "dispatchSelectionObserved": false,
+              "dispatchSelectionRectangles": 0,
+              "resultSuccess": false,
+              "resultModified": false,
+              "expectedStyles": [],
+              "readback": {
+                "parsed": true,
+                "unknownTag": false,
+                "unknownTagName": "",
+                "malformedNesting": false,
+                "footnoteApparatus": false,
+                "multiBlock": false,
+                "blockCount": 1,
+                "itemCount": 1,
+                "listTag": "ul",
+                "blockTag": "p",
+                "expectedListTag": "ul",
+                "expectedBlockTag": "",
+                "bytes": 525,
+                "restoreConfirmed": true,
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-MULTI-START alpha</p></li>\n</ul>\n</body>\n</html>"
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-format-readback",
+          "elapsedMs": 38
+        },
+        {
+          "step": "click-1",
+          "value": {
+            "documentHandle": 1,
+            "revision": 1,
+            "sourceSequence": 15,
+            "documentChangeSequence": 0,
+            "visible": true,
+            "caret": {
+              "x": 1418,
+              "y": 2268,
+              "width": 0,
+              "height": 348
+            },
+            "selection": {
+              "observed": true,
+              "collapsed": true,
+              "start": {
+                "x": 2138,
+                "y": 1418,
+                "width": 0,
+                "height": 275
+              },
+              "end": {
+                "x": 4664,
+                "y": 1418,
+                "width": 0,
+                "height": 275
+              },
+              "rectangles": []
+            },
+            "a11y": {
+              "observed": false,
+              "changeCount": 0,
+              "unparsedCount": 0,
+              "lastSequence": 0,
+              "contentLength": -1,
+              "position": -1
+            },
+            "selectionType": "none",
+            "selectionTextMissing": false,
+            "selectionText": "",
+            "format": {
+              "bold": false,
+              "italic": false,
+              "listBullet": false,
+              "listNumber": false,
+              "paragraphStyle": "Default Paragraph Style",
+              "stateChangedTotal": 184,
+              "stateChangedUnrecognised": 179
+            }
+          },
+          "status": "completed",
+          "completion": null,
+          "elapsedMs": 3011
+        },
+        {
+          "step": "action-b-1",
+          "value": {
+            "action": "set-list-unordered",
+            "option": false,
+            "beforeRevision": 1,
+            "revision": 2,
+            "changed": null,
+            "completion": "verified-format-readback",
+            "callbackSequenceBefore": 15,
+            "callbackSequenceAfter": 22,
+            "state": {
+              "sourceSequence": 22,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 1778,
+                "y": 2380,
+                "width": 0,
+                "height": 218
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": {
+                  "x": 2138,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 4097,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": false,
+                "italic": false,
+                "listBullet": false,
+                "listNumber": false,
+                "paragraphStyle": "Default Paragraph Style",
+                "stateChangedTotal": 185,
+                "stateChangedUnrecognised": 180
+              }
+            },
+            "formatBarrier": {
+              "command": ".uno:DefaultBullet",
+              "selectCommand": ".uno:SelectText",
+              "dispatchSequence": 15,
+              "stage": "awaiting-restore",
+              "failureShape": "",
+              "crosstalkCount": 0,
+              "earlyStateCount": 0,
+              "resultSeen": true,
+              "selectionResultSeen": true,
+              "selectionBeforeResultCount": 0,
+              "containment": {
+                "checked": true,
+                "held": true,
+                "selectionTop": 2268,
+                "selectionBottom": 2615,
+                "restoreCentre": 2442
+              },
+              "selectionType": 1,
+              "selectionTypeReadable": true,
+              "dispatchSelectionCollapsed": true,
+              "dispatchSelectionObserved": true,
+              "dispatchSelectionRectangles": 0,
+              "resultSuccess": false,
+              "resultModified": true,
+              "expectedStyles": [],
+              "readback": {
+                "parsed": true,
+                "unknownTag": false,
+                "unknownTagName": "",
+                "malformedNesting": false,
+                "footnoteApparatus": false,
+                "multiBlock": false,
+                "blockCount": 1,
+                "itemCount": 1,
+                "listTag": "ul",
+                "blockTag": "p",
+                "expectedListTag": "ul",
+                "expectedBlockTag": "",
+                "bytes": 589,
+                "restoreConfirmed": true,
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"><font face=\"Noto Sans CJK KR\"><span lang=\"zh-TW\">第三段跨行 </span></font>gamma</p></li>\n</ul>\n</body>\n</html>"
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-format-readback",
+          "elapsedMs": 28
+        },
+        {
+          "step": "action-a-2",
+          "value": {
+            "action": "set-list-unordered",
+            "option": false,
+            "beforeRevision": 2,
+            "revision": 3,
+            "changed": null,
+            "completion": "verified-format-readback",
+            "callbackSequenceBefore": 22,
+            "callbackSequenceAfter": 27,
+            "state": {
+              "sourceSequence": 27,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 4097,
+                "y": 2268,
+                "width": 0,
+                "height": 348
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": {
+                  "x": 2138,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 4097,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": false,
+                "italic": false,
+                "listBullet": false,
+                "listNumber": false,
+                "paragraphStyle": "Default Paragraph Style",
+                "stateChangedTotal": 185,
+                "stateChangedUnrecognised": 180
+              }
+            },
+            "formatBarrier": {
+              "command": ".uno:DefaultBullet",
+              "selectCommand": ".uno:SelectText",
+              "dispatchSequence": 22,
+              "stage": "awaiting-restore",
+              "failureShape": "",
+              "crosstalkCount": 0,
+              "earlyStateCount": 0,
+              "resultSeen": true,
+              "selectionResultSeen": true,
+              "selectionBeforeResultCount": 0,
+              "containment": {
+                "checked": true,
+                "held": true,
+                "selectionTop": 2268,
+                "selectionBottom": 2615,
+                "restoreCentre": 2489
+              },
+              "selectionType": 1,
+              "selectionTypeReadable": true,
+              "dispatchSelectionCollapsed": true,
+              "dispatchSelectionObserved": true,
+              "dispatchSelectionRectangles": 0,
+              "resultSuccess": false,
+              "resultModified": true,
+              "expectedStyles": [],
+              "readback": {
+                "parsed": true,
+                "unknownTag": false,
+                "unknownTagName": "",
+                "malformedNesting": false,
+                "footnoteApparatus": false,
+                "multiBlock": false,
+                "blockCount": 1,
+                "itemCount": 1,
+                "listTag": "ul",
+                "blockTag": "p",
+                "expectedListTag": "ul",
+                "expectedBlockTag": "",
+                "bytes": 589,
+                "restoreConfirmed": true,
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"><font face=\"Noto Sans CJK KR\"><span lang=\"zh-TW\">第三段跨行 </span></font>gamma</p></li>\n</ul>\n</body>\n</html>"
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-format-readback",
+          "elapsedMs": 29
+        },
+        {
+          "step": "click-2",
+          "value": {
+            "documentHandle": 1,
+            "revision": 3,
+            "sourceSequence": 29,
+            "documentChangeSequence": 0,
+            "visible": true,
+            "caret": {
+              "x": 1778,
+              "y": 2380,
+              "width": 0,
+              "height": 218
+            },
+            "selection": {
+              "observed": true,
+              "collapsed": true,
+              "start": {
+                "x": 2138,
+                "y": 2268,
+                "width": 0,
+                "height": 347
+              },
+              "end": {
+                "x": 4097,
+                "y": 2268,
+                "width": 0,
+                "height": 347
+              },
+              "rectangles": []
+            },
+            "a11y": {
+              "observed": false,
+              "changeCount": 0,
+              "unparsedCount": 0,
+              "lastSequence": 0,
+              "contentLength": -1,
+              "position": -1
+            },
+            "selectionType": "none",
+            "selectionTextMissing": false,
+            "selectionText": "",
+            "format": {
+              "bold": false,
+              "italic": false,
+              "listBullet": true,
+              "listNumber": false,
+              "paragraphStyle": "Default Paragraph Style",
+              "stateChangedTotal": 189,
+              "stateChangedUnrecognised": 183
+            }
+          },
+          "status": "completed",
+          "completion": null,
+          "elapsedMs": 3011
+        },
+        {
+          "step": "action-b-2",
+          "value": {
+            "action": "set-list-unordered",
+            "option": false,
+            "beforeRevision": 3,
+            "revision": 4,
+            "changed": null,
+            "completion": "verified-format-readback",
+            "callbackSequenceBefore": 29,
+            "callbackSequenceAfter": 34,
+            "state": {
+              "sourceSequence": 34,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 4097,
+                "y": 2268,
+                "width": 0,
+                "height": 348
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": {
+                  "x": 2138,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 4097,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": false,
+                "italic": false,
+                "listBullet": true,
+                "listNumber": false,
+                "paragraphStyle": "Default Paragraph Style",
+                "stateChangedTotal": 189,
+                "stateChangedUnrecognised": 183
+              }
+            },
+            "formatBarrier": {
+              "command": ".uno:DefaultBullet",
+              "selectCommand": ".uno:SelectText",
+              "dispatchSequence": 29,
+              "stage": "awaiting-restore",
+              "failureShape": "",
+              "crosstalkCount": 0,
+              "earlyStateCount": 0,
+              "resultSeen": true,
+              "selectionResultSeen": true,
+              "selectionBeforeResultCount": 0,
+              "containment": {
+                "checked": true,
+                "held": true,
+                "selectionTop": 2268,
+                "selectionBottom": 2615,
+                "restoreCentre": 2489
+              },
+              "selectionType": 1,
+              "selectionTypeReadable": true,
+              "dispatchSelectionCollapsed": true,
+              "dispatchSelectionObserved": true,
+              "dispatchSelectionRectangles": 0,
+              "resultSuccess": false,
+              "resultModified": true,
+              "expectedStyles": [],
+              "readback": {
+                "parsed": true,
+                "unknownTag": false,
+                "unknownTagName": "",
+                "malformedNesting": false,
+                "footnoteApparatus": false,
+                "multiBlock": false,
+                "blockCount": 1,
+                "itemCount": 1,
+                "listTag": "ul",
+                "blockTag": "p",
+                "expectedListTag": "ul",
+                "expectedBlockTag": "",
+                "bytes": 589,
+                "restoreConfirmed": true,
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"><font face=\"Noto Sans CJK KR\"><span lang=\"zh-TW\">第三段跨行 </span></font>gamma</p></li>\n</ul>\n</body>\n</html>"
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-format-readback",
+          "elapsedMs": 26
+        },
+        {
+          "step": "action-a-3",
+          "value": {
+            "action": "set-list-unordered",
+            "option": false,
+            "beforeRevision": 4,
+            "revision": 5,
+            "changed": null,
+            "completion": "verified-format-readback",
+            "callbackSequenceBefore": 35,
+            "callbackSequenceAfter": 40,
+            "state": {
+              "sourceSequence": 41,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 1778,
+                "y": 2380,
+                "width": 0,
+                "height": 218
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": {
+                  "x": 2138,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 4097,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": false,
+                "italic": false,
+                "listBullet": true,
+                "listNumber": false,
+                "paragraphStyle": "Default Paragraph Style",
+                "stateChangedTotal": 189,
+                "stateChangedUnrecognised": 183
+              }
+            },
+            "formatBarrier": {
+              "command": ".uno:DefaultBullet",
+              "selectCommand": ".uno:SelectText",
+              "dispatchSequence": 35,
+              "stage": "awaiting-restore",
+              "failureShape": "",
+              "crosstalkCount": 0,
+              "earlyStateCount": 0,
+              "resultSeen": true,
+              "selectionResultSeen": true,
+              "selectionBeforeResultCount": 0,
+              "containment": {
+                "checked": true,
+                "held": true,
+                "selectionTop": 2268,
+                "selectionBottom": 2615,
+                "restoreCentre": 2489
+              },
+              "selectionType": 1,
+              "selectionTypeReadable": true,
+              "dispatchSelectionCollapsed": true,
+              "dispatchSelectionObserved": true,
+              "dispatchSelectionRectangles": 0,
+              "resultSuccess": false,
+              "resultModified": true,
+              "expectedStyles": [],
+              "readback": {
+                "parsed": true,
+                "unknownTag": false,
+                "unknownTagName": "",
+                "malformedNesting": false,
+                "footnoteApparatus": false,
+                "multiBlock": false,
+                "blockCount": 1,
+                "itemCount": 1,
+                "listTag": "ul",
+                "blockTag": "p",
+                "expectedListTag": "ul",
+                "expectedBlockTag": "",
+                "bytes": 589,
+                "restoreConfirmed": true,
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"><font face=\"Noto Sans CJK KR\"><span lang=\"zh-TW\">第三段跨行 </span></font>gamma</p></li>\n</ul>\n</body>\n</html>"
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-format-readback",
+          "elapsedMs": 29
+        },
+        {
+          "step": "click-3",
+          "value": {
+            "documentHandle": 1,
+            "revision": 5,
+            "sourceSequence": 41,
+            "documentChangeSequence": 0,
+            "visible": true,
+            "caret": {
+              "x": 1778,
+              "y": 2380,
+              "width": 0,
+              "height": 218
+            },
+            "selection": {
+              "observed": true,
+              "collapsed": true,
+              "start": {
+                "x": 2138,
+                "y": 2268,
+                "width": 0,
+                "height": 347
+              },
+              "end": {
+                "x": 4097,
+                "y": 2268,
+                "width": 0,
+                "height": 347
+              },
+              "rectangles": []
+            },
+            "a11y": {
+              "observed": false,
+              "changeCount": 0,
+              "unparsedCount": 0,
+              "lastSequence": 0,
+              "contentLength": -1,
+              "position": -1
+            },
+            "selectionType": "none",
+            "selectionTextMissing": false,
+            "selectionText": "",
+            "format": {
+              "bold": false,
+              "italic": false,
+              "listBullet": true,
+              "listNumber": false,
+              "paragraphStyle": "Default Paragraph Style",
+              "stateChangedTotal": 189,
+              "stateChangedUnrecognised": 183
+            }
+          },
+          "status": "completed",
+          "completion": null,
+          "elapsedMs": 3005
+        },
+        {
+          "step": "action-b-3",
+          "value": {
+            "action": "set-list-unordered",
+            "option": false,
+            "beforeRevision": 5,
+            "revision": 6,
+            "changed": null,
+            "completion": "verified-format-readback",
+            "callbackSequenceBefore": 41,
+            "callbackSequenceAfter": 46,
+            "state": {
+              "sourceSequence": 47,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 1778,
+                "y": 2380,
+                "width": 0,
+                "height": 218
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": true,
+                "start": {
+                  "x": 2138,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 4097,
+                  "y": 2268,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": []
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": false,
+                "italic": false,
+                "listBullet": true,
+                "listNumber": false,
+                "paragraphStyle": "Default Paragraph Style",
+                "stateChangedTotal": 189,
+                "stateChangedUnrecognised": 183
+              }
+            },
+            "formatBarrier": {
+              "command": ".uno:DefaultBullet",
+              "selectCommand": ".uno:SelectText",
+              "dispatchSequence": 41,
+              "stage": "awaiting-restore",
+              "failureShape": "",
+              "crosstalkCount": 0,
+              "earlyStateCount": 0,
+              "resultSeen": true,
+              "selectionResultSeen": true,
+              "selectionBeforeResultCount": 0,
+              "containment": {
+                "checked": true,
+                "held": true,
+                "selectionTop": 2268,
+                "selectionBottom": 2615,
+                "restoreCentre": 2489
+              },
+              "selectionType": 1,
+              "selectionTypeReadable": true,
+              "dispatchSelectionCollapsed": true,
+              "dispatchSelectionObserved": true,
+              "dispatchSelectionRectangles": 0,
+              "resultSuccess": false,
+              "resultModified": true,
+              "expectedStyles": [],
+              "readback": {
+                "parsed": true,
+                "unknownTag": false,
+                "unknownTagName": "",
+                "malformedNesting": false,
+                "footnoteApparatus": false,
+                "multiBlock": false,
+                "blockCount": 1,
+                "itemCount": 1,
+                "listTag": "ul",
+                "blockTag": "p",
+                "expectedListTag": "ul",
+                "expectedBlockTag": "",
+                "bytes": 589,
+                "restoreConfirmed": true,
+                "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"><font face=\"Noto Sans CJK KR\"><span lang=\"zh-TW\">第三段跨行 </span></font>gamma</p></li>\n</ul>\n</body>\n</html>"
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-format-readback",
+          "elapsedMs": 25
+        }
+      ],
+      "elapsedMs": 10101
+    },
+    {
+      "arm": "label-partition",
+      "expects": "no-change select completes by readback, changing select by callback",
+      "steps": [
+        {
+          "step": "changing",
+          "value": {
+            "method": "text-handles-unstable",
+            "revision": 0,
+            "completion": "documented-callback-text-selection",
+            "callbackSequenceBefore": 1,
+            "callbackSequenceAfter": 4,
+            "state": {
+              "sourceSequence": 4,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 1418,
+                "y": 1418,
+                "width": 0,
+                "height": 276
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 2964,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 1546,
+                    "height": 347
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 3,
+                "stateChangedUnrecognised": 3
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "documented-callback-text-selection",
+          "elapsedMs": 19
+        },
+        {
+          "step": "same-again",
+          "value": {
+            "method": "text-handles-unstable",
+            "revision": 0,
+            "completion": "verified-selection-readback",
+            "callbackSequenceBefore": 5,
+            "callbackSequenceAfter": 11,
+            "state": {
+              "sourceSequence": 11,
+              "documentChangeSequence": 0,
+              "visible": true,
+              "caret": {
+                "x": 2964,
+                "y": 1807,
+                "width": 0,
+                "height": 348
+              },
+              "selection": {
+                "observed": true,
+                "collapsed": false,
+                "start": {
+                  "x": 1418,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "end": {
+                  "x": 2964,
+                  "y": 1807,
+                  "width": 0,
+                  "height": 347
+                },
+                "rectangles": [
+                  {
+                    "x": 1418,
+                    "y": 1807,
+                    "width": 1546,
+                    "height": 347
+                  }
+                ]
+              },
+              "a11y": {
+                "observed": false,
+                "changeCount": 0,
+                "unparsedCount": 0,
+                "lastSequence": 0,
+                "contentLength": -1,
+                "position": -1
+              },
+              "format": {
+                "bold": null,
+                "italic": null,
+                "listBullet": null,
+                "listNumber": null,
+                "paragraphStyle": null,
+                "stateChangedTotal": 3,
+                "stateChangedUnrecognised": 3
+              }
+            }
+          },
+          "status": "completed",
+          "completion": "verified-selection-readback",
+          "elapsedMs": 251
+        }
+      ],
+      "selectionAfter": {
+        "selectionType": "text",
+        "text": "第二段中文 bet",
+        "length": 9
+      },
+      "elapsedMs": 1146
+    }
+  ],
+  "judgement": {
+    "arm8ReproducesOnDiscoveryPath": false,
+    "arm8ProductCompletes": true,
+    "arm8ProductSelectionNonEmpty": true,
+    "arm8ProductSelectionType": "text",
+    "sameSelectWithoutFormatSelectsText": true,
+    "sameSelectWithoutFormatText": "第三段跨行 gam",
+    "repeatAllCompleted": true,
+    "clickAllCompleted": true,
+    "labelPartition": {
+      "changing": "documented-callback-text-selection",
+      "sameAgain": "verified-selection-readback"
+    },
+    "harnessTimeoutsOutsideControl": 0
+  },
+  "complete": true,
+  "error": null,
+  "artifact": {
+    "profile": "e2-combination",
+    "loaderSha256": "573534f4dbc3d183faf498e613b728cda1023163263cff9cfb797a65d2de6765",
+    "wasmSha256": "940b7723ca8df6c1dd3327b5950b67b23fe9a0ae28504900d07221fb0cd85217",
+    "workerSha256": "750a670d661d64de975e91b232919d05f5adf17c792df26b7784d3b6c8ba0f08"
+  }
+}
