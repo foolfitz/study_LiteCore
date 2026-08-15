@@ -688,6 +688,29 @@ v2 的 builder 要**在寫出 manifest 之前**跑同一條檢查並在不合格
 
 ### 5.9 第 14 項 v2 那半的決定
 
+> **v11 補（實作時發現，計畫沒抓到）：`editor-client.js` 與 `editor-session.js`
+> 是 hash 綁定的，改它們會解除出貨判定。**
+>
+> E1-C 的 shell bundle（`e1/editor-shell-bundle-v1.json`，digest `f9b1a52f…`）
+> 把這兩支列在 `included`，而 `E1_GO_ODT_EDITOR` 的成立條件包含
+> **source 與 dist 兩側的 hash 都要等於 manifest 裡登記的值**
+> （`validate_e1_c.py:186`–`206`）。原本 5.9 寫「editor-client.js 加五個方法」
+> ——**照做就會把已出貨的判定解綁**。
+>
+> 而且不能只是新增檔案：驗證同時要求
+> `available - included - excluded` 為空（`:194`、`:205`），
+> 其中 `available` 是 `editor-shell/*.js` 與 `input/*.js` 的 glob。
+> **在 `editor-shell/` 底下新開一支 v2 檔案一樣會讓 E1-C 失敗。**
+>
+> **決定：v2 的 shell 放在新目錄 `editor-shell-v2/`。**
+> 那個目錄不在 glob 裡，也不在 `web/e1-editor-validation-app.js` 的 import
+> 追蹤範圍內（`:101`–`:117`），所以 E1-C 的 bundle 一個位元都不會動。
+> v2 從 v1 匯入是可以的——匯入不改變被匯入檔案的位元組。
+>
+> 這與 5.4／5.8 是同一條理由的第三次出現：**版本是身分**。
+> 一支能同時是 v1 又是 v2 的檔案，就是一支沒有人能說清楚它是哪一版的檔案。
+
+
 v1 那半已補（`c5cde7d`）。v2 這半要跟著 5.5 的操作名走：
 
 - `editor-client.d.ts`：新增五個動作的型別、v2 的操作名、
