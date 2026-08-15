@@ -1,7 +1,7 @@
 # SPEC E2-C：段落格式產品驗證（E2 里程碑判定）
 
 > **日期**：2026-08-15  
-> **狀態**：**v2 草擬**（v1 經對抗性審查後改寫）；**尚未執行**，判定尚未成立  
+> **狀態**：**v3**；**D0 已執行並通過**（9.2），D1～D5 未執行，判定尚未成立  
 > **前置閘門**：[E2-B](./SPEC-E2-B-paragraph-format-contract.md) 已判
 > **`GO_TO_E2_C`**（2026-08-15），產品 artifact `572035ac…`（profile `e2-editor-v2`）  
 > **上位規格**：[SPEC E2-000](./SPEC-E2-000-overview.md) 第 7 節——
@@ -709,9 +709,34 @@ XML 錨點、回滾的位元組相等、兩瀏覽器相等、no-replay、語料�
 
 **不修改**：`editor-shell/*.js`、E2-B 的任何檢查工具、任何 profile 的位元組。
 
+## 9.5 執行結果
+
+### 9.5.1 D0（2026-08-15）
+
+**兩瀏覽器各一輪，九格全過，而且兩邊的比較投影對十五個動作逐格相同。**
+證據 `findings/evidence/sdk-e2/e2-c-validation/d0/`（README 是英文，依 AGENTS.md）。
+
+| 格 | 結果 |
+|---|---|
+| `d0-inventory` | 四個 baseline 雜湊與磁碟一致，宣告動作集合與凍結矩陣一致 |
+| `d0-reachability-single-client` | **15/15**，**一個客戶端**在真引擎上，逐欄比對整個請求信封 ＋ 逐類 typed 後置條件 |
+| `d0-reachability-control-undeclared` | 拒絕，零派送 |
+| `d0-session-opens` | `ready`，`clientReplacements: 1`（2.3 的接縫真的被用到了） |
+| `d0-no-diagnostic-surface` | `editorActionV1` → `UNSUPPORTED_OPERATION` |
+| `d0-forbidden-keycode`／`-unocommand`／`-command` | 三個各 `INVALID_ARGUMENT`，`<office:body>` 逐位元不變 |
+| `d0-unknown-action` | `EDITOR_ACTION_UNSUPPORTED`，零派送，`<office:body>` 不變 |
+
+**分析器自己也驗過會說不**：11 個突變全部變紅，其中兩個是方向相反的
+——「delete 接受路線 C 的形狀」與「段落動作回 v1 的 completion」。
+
+> **順帶修掉一個量錯東西的計數器**：第一版數「所有請求」，而中間夾著兩次存檔，
+> 於是一個根本沒派送的動作報 `2`。**一個測量了別的東西的數字，比沒有數字更糟。**
+> 改成只數 `editorActionV2`。
+
 ## 10. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-15 | **v3。D0 執行完畢，兩瀏覽器全過（9.2）。** 進場三件工作在此之前已完成，凍結矩陣 `e2/validation-matrix-v1.json`（75 格）、殼層 bundle `b01d77da…`、以及 L7 需要的 `test-docs/e2/list-split.odt` 也都就位。D0 的分析器自我測試 11 個突變全紅並掛進 `make test-e2-c-static`。 |
 | 2026-08-15 | **v2。對抗性審查（codex）提了 16 項，全部處理過：15 項改寫規格或程式碼，1 項（重用 v1 客戶端的 facade）判為可行但不採用，連同否決理由寫進 2.2。這一版與 v1 差很多。** 最重的三項都是同一種錯：**我把「有一個能送出動作的客戶端」當成了「產品修好了」。**（1）v1 說新客戶端是「產品殼層」，但**沒有任何產品頁面在用它**，asset 目標也沒複製它（已補），而且 `demo-structure` **沒有拖曳選取**，所以 D5 的「真實指標拖曳」在產品頁面上做不到——新增 2.4。（2）**出貨的 `EditorSession` 在 v2 profile 上根本開不起來**（`:125` 建 v1 客戶端、`:140` 等它的 `getState`），`ParagraphEditorSession` 也補不上，**於是 D1／D2 承諾的 session、queue、checkpoint、rollback、三代上限在 v2 上沒有任何實作**——新增 2.3，並列為進場工作。（3）**判定只綁三個雜湊**，而 E2-C 要證的東西有一半在殼層；E1-C 早就學過要綁第四個——第 6 節改成要有 E2 自己的殼層 bundle。其餘：**PARTIAL 的定義原本會逼我去改凍結的 manifest**（縮限必須落在 `limits`／`gestures` 上，而本規格禁止 relink），所以宣告過的動作或手勢失敗一律 STOP，新增 8.0 完整判定表；**D3 原本在「沒有清單的段落」上驗清單動作**（唯一錨點 `E1-LC-ISOLATED` 前後都不是清單），改成 L1–L8 八個綁前狀態的目標格，並發現 L7 需要三項清單而現有語料**一份都沒有**，新增 `list-split.odt`；**D1 原本用 typed completion 當判準**，但四個 inline 格式回同一個 `uno-command-result`，映射錯了也會綠，改成逐動作錨點＋XML 判準；**D2 的四個處置只寫了一格**，補齊並把 `dispatched-rollback` 的斷言逐條寫死（含「先弄髒、確認 checkpoint 真的存在」）；**D4 的「無連續成長」不可否證**，換成斜率與絕對值門檻；**沒有凍結矩陣**，新增 9.1；**4.2 漏掉「任何帶註腳的段落都不支援」**（E2-B 2.3 早就寫著），補上並具名 manifest 沒宣告這一條的落差。另修一個真缺陷（2.6）：客戶端自己丟的 `INVALID_ARGUMENT` 會被判成 `unknown-rollback`，**呼叫端打錯參數的處置變成丟掉自 checkpoint 以來的全部編輯**。並補記第四條被否決的路（facade 重用 v1 客戶端）與否決理由。上位規格 [E2-000](./SPEC-E2-000-overview.md) 第 6 節的 no-op 條文同日就地修訂——`changed: null` 與它牴觸，而在此之前沒有任何條文說過話。 |
 | 2026-08-15 | **v1 草擬。** 進場前先量了一件沒有人量過的事：**出貨的 v2 profile 上，E1 的十個動作沒有任何殼層到得了**（v1 殼層被自己的 capability＋version 閘擋掉，v2 殼層的 allowlist 只有五個），而**四路清單檢查看不到它**——那個檢查的「client」是兩個殼層的**聯集**，聯集裡有一個接不上這顆 profile。測試連同兩個對照組已建立且**當下是紅的**。因此本規格把「補上十五個動作的產品殼層」訂為**進場工作**而不是 D 相位的一部分，並寫明否決的另外兩條路（改 manifest 砍動作＝重建 artifact＋斷掉 132 個 run 的綁定；出兩顆 profile＝一份文件開不在兩個引擎裡）。相位前綴改用 `D` 以免與 E1-C 的 C0～C4 在同一棵證據樹裡同名。D3 語料六份，第六份 `list-contexts` **是 E1-C 9.2 在 08-13 就寫下的義務**（「清單動作要進出貨契約之前，必須先補語料或具名排除」）現在到期。E2-B 9.11 的四項未涵蓋各自有處置：跨段全編號進 D1、實體拖曳進 D5、H2–H6 與大綱參與維持不承諾。 |
