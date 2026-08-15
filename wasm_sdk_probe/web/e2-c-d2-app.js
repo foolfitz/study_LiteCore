@@ -99,9 +99,42 @@ function workerFactory(url) {
   };
 }
 
-async function fixtureBytes() {
-  const response = await fetch(`./e2-fixtures/${fixture}`, { cache: "no-cache" });
-  if (!response.ok) throw new Error(`fixture fetch failed: ${response.status}`);
+// Which document each cell needs, and where it lives.  SPEC E2-C's D2 is
+// explicit that the wrong fixture makes a cell pass without measuring anything
+// -- and the first run of this harness proved it twice: a delete at a HEADING
+// is not a structural boundary, and a paragraph in a fixture with no notes
+// cannot produce a note-apparatus failure.  Both cells came back green having
+// measured nothing.
+const FIXTURES = {
+  default: { dir: "e2-fixtures", name: fixture },
+  // A footnote whose body carries NO frame: E1-C 9.1 measured that
+  // `footnote-no-frame-full` stays usable at 8 ms, while a note that does carry
+  // a frame stops the engine responding.
+  notes: { dir: "e1-fixtures", name: "paragraph-content.odt" },
+  table: { dir: "e1-fixtures", name: "table-boundary.odt" },
+  // An EMPTY paragraph.  E2-B 2.3's table records it as a PRE-DISPATCH refusal
+  // ("nothing happened"), which is why it was chosen here.
+  //
+  // MEASURED 2026-08-15 on the shipped v2 build: it is not.  The action
+  // dispatches and then fails its postcondition --
+  // EDITOR_FORMAT_POSTCONDITION_FAILED, `dispatched: true`,
+  // `failureShape: postcondition-not-met`, preBlocks 0.  The cell is kept and
+  // the observation is recorded rather than the fixture being swapped until it
+  // gives the answer the table predicted; see SPEC E2-C 9.5.8.
+  //
+  // The first choice here was a paragraph holding an as-char frame (finding
+  // 037's guard).  It cannot be used: LOCATING that paragraph needs the very
+  // selection read the guard exists to prevent, so the sweep never finds it and
+  // the cell dies as ANCHOR_NOT_FOUND.  A refusal you cannot navigate to is not
+  // a refusal you can measure.
+  empty: { dir: "e1-fixtures", name: "empty-paragraph.odt" },
+};
+
+async function fixtureBytes(which = "default") {
+  const spec = FIXTURES[which];
+  const response = await fetch(`./${spec.dir}/${spec.name}`, { cache: "no-cache" });
+  if (!response.ok)
+    throw new Error(`fixture fetch failed: ${spec.name} ${response.status}`);
   return response.arrayBuffer();
 }
 
@@ -116,9 +149,11 @@ function newSession() {
   });
 }
 
-async function openSession() {
+async function openSession(which = "default") {
   const session = newSession();
-  await session.open({ bytes: (await fixtureBytes()).slice(0), name: fixture });
+  const spec = FIXTURES[which];
+  await session.open({ bytes: (await fixtureBytes(which)).slice(0),
+                       name: spec.name });
   session.attachInput(document.querySelector("#sink"));
   return session;
 }
@@ -134,13 +169,20 @@ async function snapshot(session, label) {
   return bytes.byteLength;
 }
 
-/** Anchor sweep, in a document that is then thrown away. */
-async function surveyAnchor(anchor) {
+/**
+ * Anchor sweep, in a document that is then thrown away.
+ *
+ * Records the selection's left edge as well as its line, because a boundary
+ * cell has to put the caret at the START of the anchor -- the first version
+ * used a fixed x in the middle of the line, so "delete at a structural
+ * boundary" deleted an ordinary character and the cell came back green.
+ */
+async function surveyAnchor(anchor, which = "default") {
   const engine = await createDocumentEngine({
     workerUrl: `./profiles/${profile}/sdk-worker.js`, timeoutMs: 60000,
   });
-  const handle = await engine.open((await fixtureBytes()).slice(0),
-                                   { name: fixture, timeoutMs: 180000 });
+  const handle = await engine.open((await fixtureBytes(which)).slice(0),
+                                   { name: FIXTURES[which].name, timeoutMs: 180000 });
   let found = null;
   for (let y = 1300; y <= 14000; y += 130) {
     try {
@@ -149,7 +191,14 @@ async function surveyAnchor(anchor) {
         endXTwips: 9000, endYTwips: y,
       }, { timeoutMs: stepTimeoutMs });
       const selection = await handle.getSelection({ timeoutMs: stepTimeoutMs });
-      if ((selection.text || "").includes(anchor)) { found = y; break; }
+      if ((selection.text || "").includes(anchor)) {
+        const state = await engine._request("editorGetStateV2", {
+          documentHandle: handle.handle,
+        }, { timeoutMs: stepTimeoutMs }).catch(() => null);
+        const rectangle = state?.selection?.rectangles?.[0] ?? null;
+        found = { y, x: rectangle?.x ?? null };
+        break;
+      }
     } catch { /* keep sweeping */ }
   }
   await handle.close({ timeoutMs: stepTimeoutMs }).catch(() => {});
@@ -157,13 +206,26 @@ async function surveyAnchor(anchor) {
   return found;
 }
 
+// frame-char-anchored.odt carries no E1-* token, so the anchor is a fragment of
+// its own text.  Recorded as a constant rather than inlined, because a sweep
+// that silently finds nothing is the failure mode this whole phase is about.
+// The empty paragraph sits between these two.
+const EMPTY_BEFORE = "E1-EMPTY-BEFORE";
+
 const anchors = new Map();
-async function anchorY(anchor) {
-  if (!anchors.has(anchor)) anchors.set(anchor, await surveyAnchor(anchor));
-  const y = anchors.get(anchor);
-  if (y == null) throw Object.assign(new Error(`anchor ${anchor} not found`),
-                                     { code: "ANCHOR_NOT_FOUND" });
-  return y;
+async function anchorY(anchor, which = "default") {
+  const key = `${which}::${anchor}`;
+  if (!anchors.has(key)) anchors.set(key, await surveyAnchor(anchor, which));
+  const found = anchors.get(key);
+  if (found == null) throw Object.assign(new Error(`anchor ${anchor} not found`),
+                                         { code: "ANCHOR_NOT_FOUND" });
+  return found.y;
+}
+
+/** The anchor's left edge, for the cells that need the START of a paragraph. */
+async function anchorX(anchor, which = "default") {
+  await anchorY(anchor, which);
+  return anchors.get(`${which}::${anchor}`)?.x ?? null;
 }
 
 /** The product's own caret gesture (SPEC E2-C 9.5.6). */
@@ -247,19 +309,23 @@ const CELLS = {
   },
 
   "d2-refused-no-mutation-engine": async () => {
-    const session = await openSession();
+    const session = await openSession("empty");
     const entry = {};
     try {
-      // A paragraph carrying an as-char frame: the finding 037 type guard
-      // refuses it BEFORE dispatch, which is the clean shape.
-      await caretAt(session, await anchorY("E2-D1-LIST-ORDERED"));
+      // A paragraph carrying an as-char frame.  The finding 037 type guard
+      // refuses it in the routing read, BEFORE dispatch, and it does so on
+      // every build -- unlike a gesture refusal, which only exists once the
+      // mask is enforced.  A cell that can only pass on the artifact it is
+      // meant to qualify is a cell that proves nothing about the one it runs on.
+      // The empty paragraph is the one after E1-EMPTY-BEFORE; it has no text
+      // to sweep for, so it is located relative to the paragraph above it.
+      const above = await anchorY(EMPTY_BEFORE, "empty");
+      const y = above + 390;
+      entry.anchorAbove = above;
+      entry.emptyParagraphY = y;
+      await caretAt(session, y);
       const before = await snapshot(session, "engine-refusal-before");
-      // Ask for a gesture the manifest does not offer for this action: on this
-      // profile the ten inherited actions are collapsed-only, so a range is a
-      // pre-dispatch refusal with nothing dispatched.
-      await session.selectRange({ xTwips: 1450, yTwips: await anchorY("E2-D1-LIST-ORDERED") },
-                                { xTwips: 9000, yTwips: await anchorY("E2-D1-LIST-ORDERED") });
-      const error = await session.action("set-bold", { enabled: true })
+      const error = await session.setList("unordered")
         .then(() => null, (e) => e);
       entry.error = error ? publicError(error) : null;
       entry.accepted = error === null;
@@ -275,10 +341,10 @@ const CELLS = {
     // checkpoint exists, select a range that covers the note reference, then
     // require dispatched:true with the exact failure shape, a fresh worker, and
     // a rolled-back document byte-identical to the checkpoint.
-    const session = await openSession();
+    const session = await openSession("notes");
     const entry = {};
     try {
-      const y = await anchorY("E2-D1-INTERLEAVE");
+      const y = await anchorY("PC-FOOTNOTE", "notes");
       await caretAt(session, y);
       await session.commitText("D2DIRTY");
       entry.dirty = session.state.snapshot.dirty;
@@ -305,13 +371,17 @@ const CELLS = {
   },
 
   "d2-boundary-restart-required": async () => {
-    const session = await openSession();
+    const session = await openSession("table");
     const entry = {};
     try {
-      // A delete at a structural boundary: the engine refuses with
-      // EDITOR_BOUNDARY_UNSUPPORTED and the session must enter restart-required
-      // rather than carrying on.
-      await caretAt(session, await anchorY("E2-D1-HEADING"));
+      // A delete at a structural boundary -- the START of a table cell, which
+      // is what E1-C used.  The first version put the caret in a HEADING and
+      // came back green having measured nothing: a heading is not a boundary.
+      const cellY = await anchorY("E1-CELL-A1", "table");
+      const cellX = await anchorX("E1-CELL-A1", "table");
+      entry.anchor = { x: cellX, y: cellY };
+      // The START of the cell's text, not the middle of the line.
+      await session.placeCaret(Math.max(0, (cellX ?? 2000) + 10), cellY);
       const error = await session.action("delete-backward")
         .then(() => null, (e) => e);
       entry.error = error ? publicError(error) : null;

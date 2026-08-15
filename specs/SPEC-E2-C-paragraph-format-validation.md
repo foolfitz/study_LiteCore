@@ -967,10 +967,27 @@ XML 錨點、回滾的位元組相等、兩瀏覽器相等、no-replay、語料�
 > **判準寫的是一件事，harness 做的是另一件，而輸出裡沒有任何東西會透露。**
 > 兩次都是別人看出來的，不是我。
 
+### 9.5.8 D2 第一次跑就掉出四件事（2026-08-15）
+
+D2 是打失敗路徑的相位，寫在 relink 之前是外部審查的要求。**第一次跑就證明那個
+要求是對的**——四件，兩件是產品／契約的，兩件是我自己的。
+
+| | |
+|---|---|
+| **`STALE_REVISION` 被判成 `unknown-rollback`** | **真缺陷，已修。** 它是 `requireRevision()`（`probe_engine.cpp:3857`）在動作 switch 之前發出的，**零 mutation**；叫 host 回滾等於為了「呼叫端傳錯 revision」丟掉自 checkpoint 以來的全部編輯。與 2.6 同一類。**殼層改動，不需要 relink** |
+| **空段落不是派送前拒絕** | **與 E2-B 2.3 的表對不上。** 那張表寫「空段落 → 派送前拒絕 → 沒有發生」；出貨 v2 上實測是 **`EDITOR_FORMAT_POSTCONDITION_FAILED`、`dispatched: true`、`postcondition-not-met`、`preBlocks: 0`**——它派送了。**尚未追根因，也還沒開 finding**：先記在這裡，因為「文件寫的處置」與「實際的處置」不一致，host 會照文件做錯的 recovery |
+| 我的 harness：`EditorSession.save()` 回的是 `{bytes,…}` 不是 ArrayBuffer | 每一次 snapshot 都靜靜產出空的 base64，零 mutation 那幾格會因為「沒有文件可比」而失敗 |
+| 我的 harness：兩格拿錯 fixture | 在**標題**上 delete 不是結構邊界；在**沒有註腳的文件**上找不到註腳失敗。**兩格都回綠，而且什麼都沒量到**——正是規格自己警告過的那個陷阱 |
+
+**另外記一件在挑 fixture 時量到的事**：帶 as-char frame 的段落**沒辦法用掃描定位**
+——定位它需要的正是 finding 037 的守衛要擋掉的那次讀取。
+**一個你navigate不到的拒絕，是一個你量不到的拒絕。**
+
 ## 10. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-15 | **v10。D2 harness 寫好並第一次執行（9.5.8）**：掉出四件，兩件是產品／契約的（`STALE_REVISION` 的處置——已修；**空段落不是派送前拒絕，與 E2-B 2.3 的表對不上**——未追根因），兩件是我自己的 harness 缺陷（`save()` 的回傳型別、兩格拿錯 fixture 而回綠）。**這證實了「D2 要在 relink 之前寫」那個要求是對的。** |
 | 2026-08-15 | **v9。新增第 11 節：第二輪從一次有計畫的 relink 開場。** 第 3 節「不重連結」與第 1 節「不再擴充 ABI」**就地修訂**——前者約束第一輪（已結束），後者措辭改成「不新增動作」（ABI 版本要動，動作列舉不動）。**contract version 與 capability 刻意不動**：worker 對 `abiVersion` 的精確比對才是在跑的身分守衛，動那兩個字串會讓新 profile 沒有殼層到得了，那正是 2.2。第二輪綁**五個**雜湊（加 manifest 自己）。 |
 | 2026-08-15 | **v8。`d1-body-collapsed` 二分到底（9.5.6）：它量的是 harness 不是產品。** 零寬 `selectRange` 形成的游標在格式 barrier 之後會被型態守衛拒絕，而產品頁面用的 `click`＋確認輪詢不會。**因此它不擋 relink**（fable 的 Premise E 據此解除），但也因此**D1 第一輪整輪都是用產品不會用的手勢驅動的**——第一輪紀錄照原樣留著（跑完不改判準），「游標照產品方式形成」進第二輪矩陣。 |
 | 2026-08-15 | **v7。第一輪判定 `E2_STOP_OR_RESCOPE`（9.5.5），由 `validate_e2_c.py` 從證據重推。** 外部裁決（fable）推翻了 9.5.3 的兩個前提——「四個選項是平行的」（D1 已跑完，8.0 是預先登記的，所以每條路都從 STOP 開始）與「縮限也要 relink」（builder 是打包器，且沒有檢查釘住 manifest 位元組）；兩處已就地更正，處置定為「先判 STOP → 量兩件 → 一次 relink 帶完整佇列」。**relink 的時機由 `d1-body-collapsed` 決定，不是由 045 決定**——漏一項就是第二次 relink。 |
