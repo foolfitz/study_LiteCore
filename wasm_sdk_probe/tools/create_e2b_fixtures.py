@@ -56,7 +56,50 @@ OUTLINE_PROSE = """
  <text:p>E2B-OUT-TAIL marker</text:p>
 """
 
+# SPEC E2-B 7.1: mid-list departure.  Five items so that leaving items 2-3
+# SPLITS the list rather than truncating it -- the structurally riskiest ODT
+# shape in the matrix, and the one that could fire the "list switching causes
+# silent structure loss" stop condition.  It is also where an ordered list's
+# numbering does not start at 1, which the adjudicator's contingency clause
+# anticipated.
+LIST_SPLIT = """
+ <text:p>E2B-SPLIT-HEAD</text:p>
+ <text:list text:style-name="E2BSplitBullet">
+  <text:list-item><text:p>E2B-SPLIT-ONE</text:p></text:list-item>
+  <text:list-item><text:p>E2B-SPLIT-TWO</text:p></text:list-item>
+  <text:list-item><text:p>E2B-SPLIT-THREE</text:p></text:list-item>
+  <text:list-item><text:p>E2B-SPLIT-FOUR</text:p></text:list-item>
+  <text:list-item><text:p>E2B-SPLIT-FIVE</text:p></text:list-item>
+ </text:list>
+ <text:p>E2B-SPLIT-TAIL</text:p>
+"""
+
+# A crossing range whose two paragraphs are in DIFFERENT states: the first is
+# already a list item, the second is plain.  Per-block extraction has only ever
+# been measured on homogeneous pairs, so `<ul><li><p>...</li></ul><p>...` is a
+# readback shape the gate has never seen.
+MIXED_STATE = """
+ <text:p>E2B-MIXED-HEAD</text:p>
+ <text:list text:style-name="E2BMixedBullet">
+  <text:list-item><text:p>E2B-MIXED-LISTED</text:p></text:list-item>
+ </text:list>
+ <text:p>E2B-MIXED-PLAIN</text:p>
+ <text:p>E2B-MIXED-TAIL</text:p>
+"""
+
 FIXTURES = {
+    "list-split": {
+        "body": LIST_SPLIT,
+        "anchors": ["E2B-SPLIT-HEAD", "E2B-SPLIT-TWO", "E2B-SPLIT-THREE",
+                    "E2B-SPLIT-TAIL"],
+        "minimum": {"paragraphs": 7, "headings": 0, "lists": 1, "tables": 0},
+    },
+    "mixed-state": {
+        "body": MIXED_STATE,
+        "anchors": ["E2B-MIXED-HEAD", "E2B-MIXED-LISTED", "E2B-MIXED-PLAIN",
+                    "E2B-MIXED-TAIL"],
+        "minimum": {"paragraphs": 4, "headings": 0, "lists": 1, "tables": 0},
+    },
     "outline-prose": {
         "body": OUTLINE_PROSE,
         # OUT2 sits at the START of the decoration-looking run, on purpose.
