@@ -11,7 +11,8 @@
         "l0-t3-long.odt",
         "l1-review.odt",
         "l4-stress-100.odt",
-        "list-contexts.odt"
+        "list-contexts.odt",
+        "list-split.odt"
       ],
       "expect": {
         "list": "present",
@@ -21,7 +22,7 @@
         "endnote": "absent",
         "frame-as-char-in-paragraph": 1
       },
-      "why": "The list axes are pinned present because the shipped v2 contract has three list actions and SPEC-E1-C 9.2 wrote down, before any of them shipped, that list actions must not enter the contract until the corpus carries lists or the gap is named. The note axes are pinned absent because SPEC-E2-C 9.2 narrows the verdict away from finding 038's combination on exactly that ground -- if a note ever appears in this corpus the narrowing's stated reason stops being true and this must go red rather than quietly become a false sentence. frame-as-char-in-paragraph is pinned at 1 for the same reason SPEC-E1-C pins it: 100 of the corpus's as-char frames sit directly under office:text where the anchoring means nothing, and quoting the larger number makes the coverage sound better than it is."
+      "why": "The list axes are pinned present because the shipped v2 contract has three list actions and SPEC-E1-C 9.2 wrote down, before any of them shipped, that list actions must not enter the contract until the corpus carries lists or the gap is named. The note axes are pinned absent because SPEC-E2-C 9.2 narrows the verdict away from finding 038's combination on exactly that ground -- if a note ever appears in this corpus the narrowing's stated reason stops being true and this must go red rather than quietly become a false sentence. frame-as-char-in-paragraph is pinned at 1 for the same reason SPEC-E1-C pins it: 100 of the corpus's as-char frames sit directly under office:text where the anchoring means nothing, and quoting the larger number makes the coverage sound better than it is. list-split.odt joins the suite for cell L7: the two lists in list-contexts.odt have two items each, and removing one item from a two-item list splits nothing, so L7 would have measured a shape the corpus cannot produce. Its three-item structure is pinned in test-docs/e2/manifest.json and asserted by tests/test_e2_corpus.py, because the axis inventory counts lists and items but cannot say whether any single list has an interior item."
     }
   }
 }

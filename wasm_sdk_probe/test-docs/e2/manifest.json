@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-C-paragraph-format-validation",
+  "frozenDate": "2026-08-15",
+  "mutationPolicy": "copy-only",
+  "why": "SPEC E2-C D3 cell L7 needs a list with an interior item; the E1 corpus has none, and E2-C may not regenerate the E1 corpus.",
+  "fixtures": [
+    {
+      "id": "list-split",
+      "path": "list-split.odt",
+      "bytes": 1544,
+      "sha256": "1be0de0e2bd2337b3d262b5c7aa857cd2bcf3f503b1cb9df8c23afc8552dba63",
+      "anchors": [
+        "E2-LS-HEADING",
+        "E2-LS-BEFORE 這一段前面不是清單",
+        "E2-LS-ONE",
+        "E2-LS-MID 中間那一項",
+        "E2-LS-THREE",
+        "E2-LS-AFTER",
+        "E2-LS-BULLET-ONE",
+        "E2-LS-BULLET-MID",
+        "E2-LS-BULLET-THREE",
+        "E2-LS-END"
+      ],
+      "minimum": {
+        "paragraphs": 10,
+        "headings": 1,
+        "lists": 2,
+        "tables": 0
+      },
+      "listItems": {
+        "E2LSNumber": 3,
+        "E2LSBullet": 3
+      },
+      "source": "project-generated deterministic ODT"
+    }
+  ]
+}

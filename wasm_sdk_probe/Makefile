@@ -1921,9 +1921,16 @@ test-e2-c-static:
 	# copy that becomes E2-C's evidence is produced by the judging run, not by
 	# a syntax check.
 	mkdir -p build/e2c
+	# Three corpora, all named: the tool defaults to e1 + r7-compat, and D3's
+	# L7 fixture lives in test-docs/e2 because E2-C may not regenerate the E1
+	# corpus (its sha256s are in E1-A's frozen list and in every E1 run's
+	# evidence).
 	python3 tools/inventory_corpus_axes.py \
+		--corpus test-docs/e1 --corpus test-docs/r7-compat --corpus test-docs/e2 \
 		--suites e2/content-axis-suites.json \
 		--output build/e2c/content-axes.json --check > /dev/null
+	python3 -m unittest tests/test_e2_corpus.py
+	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
 # and therefore rebuilds the frozen e1-editor-v1 profile; this target must stay
