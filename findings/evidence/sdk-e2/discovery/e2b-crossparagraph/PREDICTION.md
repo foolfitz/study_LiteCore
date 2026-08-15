@@ -259,3 +259,74 @@ prefixes per action, and `"    • "` is the only sample taken so far. Round 3
 also dispatches `set-list-ordered` on a crossing selection **for sampling only**
 — its readback prefix is recorded, not judged, because no prediction was
 committed for its value and a sampled constant is not a hypothesis.
+
+---
+
+# Addendum, round 4: does the CROSSING ordered readback carry digits as text?
+
+**Written and committed before the probe change and before round 4 runs.**
+
+## Why
+
+Round 3 sampled `.uno:DefaultNumbering` and found the **plain-text** readback
+carries incrementing decoration (`"    1. "`, `"    2. "`). I took that to mean
+the decoration set could not be closed as literals, and asked whether numbering
+therefore needed a pattern or could not use an identity gate at all.
+
+Both options assumed the gate must run on **plain text**. That assumption is
+refuted by evidence already in this tree. The A2 arm's barrier readback, on the
+**wasm** artifact, both browsers, three rounds
+(`e2b-gate/e2-combination-940b7723/*/result.json`, `formatBarrier.readback.html`):
+
+```html
+<ol><li><p style="margin-bottom: 0.08in; line-height: 100%">E1-LC-ISOLATED <font face="Noto Sans CJK KR"><span lang="zh-TW">前後都不是清單的段落</span></font></p></li>
+</ol>
+```
+
+**A numbered paragraph, and there are no digits in the text content.** The
+number is in the `<ol>` structure. The incrementing decoration exists only in
+the plain-text serialisation.
+
+So the identity gate moves to **per-block text extracted from the html
+readback**, and state stays structure (`items`/`blocks`/tags). Both sides come
+from the same serialiser, both list kinds verify the same way, and no
+decoration set, pattern or per-action normalisation table is needed.
+
+## The one premise that is still open
+
+That sample is the **single-paragraph** `.uno:SelectText` readback. My probe
+parsed the crossing selection's html for `blocks` and `items` but **never
+dumped its text nodes** — it recorded counts only. So "the crossing ordered html
+has no digits in text" is inference from the single-paragraph case, not a
+measurement.
+
+## The arm
+
+Amend the probe to keep the full `html` string before and after the dispatch for
+every arm, and check the ordered crossing arm's text nodes for digits.
+
+## Prediction
+
+**No digits in the text nodes of the crossing ordered readback.** Structure
+`<ol>` with two `<li>`, each containing a `<p>` whose text is the paragraph's own
+text, inline markup (`<font>`, `<span>`) inside it and nothing else.
+
+*Basis.* Same serialiser, same document, and the only difference from A2 is the
+number of list items. The plain-text decoration is produced by the plain-text
+path, which round 3 measured separately.
+
+*How it could be wrong.* The html serialiser could emit an explicit marker when
+the selection does not start at the list's first item — the same "context from
+outside the selection" that makes an ordered list start at 3 rather than 1.
+
+## Consequences
+
+| reading | consequence |
+|---|---|
+| no digits in text nodes | the html-text identity gate closes; **the pattern question never needed answering** |
+| digits present | the adjudicator's **contingency** ruling activates: markers must validate as one consecutive ascending integer run across marker-bearing lines, any base; strip at most one *validated* marker per line; any structure violation → cannot-verify with nothing stripped |
+
+Also recorded, not predicted: the A2 body shows text wrapped in `<font>` and
+`<span>`, so **extraction must concatenate across inline markup**. Whether that
+round-trips genuine text byte-exactly is a separate check and is not claimed
+here.
