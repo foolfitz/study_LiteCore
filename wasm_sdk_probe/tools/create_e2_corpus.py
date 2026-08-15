@@ -29,6 +29,70 @@ from e1_support import sha256, write_json  # noqa: E402
 # about what happens to a bulleted one -- numbering has to renumber, bullets do
 # not, so they can fail differently.
 FIXTURES = {
+    # SPEC E2-C D1.  Every action gets its own anchor, because all four inline
+    # formats return the same completion (`uno-command-result`): a mapping that
+    # sent bold to italic would report the action asked for and still be wrong,
+    # and a single shared anchor cannot tell those apart.  The `-OFF` anchors
+    # start already formatted, so `enabled: false` has something to remove --
+    # without them "turn it off" and "never turned it on" look identical.
+    "d1-anchors": {
+        "extra_automatic_styles": (
+            '  <style:style style:name="E2Underline" style:family="text">'
+            '<style:text-properties style:text-underline-style="solid"/>'
+            "</style:style>\n"
+            '  <style:style style:name="E2Strike" style:family="text">'
+            '<style:text-properties style:text-line-through-style="solid"/>'
+            "</style:style>\n"
+        ),
+        "extra_styles": (
+            '  <text:list-style style:name="E2D1Number">'
+            '<text:list-level-style-number text:level="1" style:num-format="1"'
+            ' style:num-suffix="."/>'
+            "</text:list-style>\n"
+        ),
+        "body": """
+ <text:h text:outline-level="1" text:style-name="Heading_20_1">E2-D1-HEADING</text:h>
+ <text:p>E2-D1-MOVE 游標移動</text:p>
+ <text:p>E2-D1-BOLD-ON plain</text:p>
+ <text:p>E2-D1-BOLD-OFF <text:span text:style-name="E1Bold">already</text:span></text:p>
+ <text:p>E2-D1-ITALIC-ON plain</text:p>
+ <text:p>E2-D1-ITALIC-OFF <text:span text:style-name="E1Italic">already</text:span></text:p>
+ <text:p>E2-D1-UNDERLINE-ON plain</text:p>
+ <text:p>E2-D1-UNDERLINE-OFF <text:span text:style-name="E2Underline">already</text:span></text:p>
+ <text:p>E2-D1-STRIKE-ON plain</text:p>
+ <text:p>E2-D1-STRIKE-OFF <text:span text:style-name="E2Strike">already</text:span></text:p>
+ <text:p>E2-D1-DELBACK ABCDEF</text:p>
+ <text:p>E2-D1-DELFWD ABCDEF</text:p>
+ <text:p>E2-D1-BREAKPARA ALPHAOMEGA</text:p>
+ <text:p>E2-D1-BREAKLINE ALPHAOMEGA</text:p>
+ <text:p>E2-D1-LIST-UNORDERED</text:p>
+ <text:p>E2-D1-LIST-ORDERED</text:p>
+ <text:list text:style-name="E2D1Number"><text:list-item><text:p>E2-D1-LIST-NONE</text:p></text:list-item></text:list>
+ <text:p>E2-D1-HEAD-TARGET</text:p>
+ <text:h text:outline-level="1" text:style-name="Heading_20_1">E2-D1-BODY-TARGET</text:h>
+ <text:p>E2-D1-RANGE-ONE 第一段</text:p>
+ <text:p>E2-D1-RANGE-TWO 第二段</text:p>
+ <text:list text:style-name="E2D1Number"><text:list-item><text:p>E2-D1-NUM-ONE</text:p></text:list-item><text:list-item><text:p>E2-D1-NUM-TWO</text:p></text:list-item></text:list>
+ <text:p>E2-D1-INTERLEAVE 交錯</text:p>
+ <text:p>E2-D1-INSERT 插入</text:p>
+""",
+        "anchors": [
+            "E2-D1-HEADING", "E2-D1-MOVE 游標移動",
+            "E2-D1-BOLD-ON plain", "E2-D1-BOLD-OFF",
+            "E2-D1-ITALIC-ON plain", "E2-D1-ITALIC-OFF",
+            "E2-D1-UNDERLINE-ON plain", "E2-D1-UNDERLINE-OFF",
+            "E2-D1-STRIKE-ON plain", "E2-D1-STRIKE-OFF",
+            "E2-D1-DELBACK ABCDEF", "E2-D1-DELFWD ABCDEF",
+            "E2-D1-BREAKPARA ALPHAOMEGA", "E2-D1-BREAKLINE ALPHAOMEGA",
+            "E2-D1-LIST-UNORDERED", "E2-D1-LIST-ORDERED", "E2-D1-LIST-NONE",
+            "E2-D1-HEAD-TARGET", "E2-D1-BODY-TARGET",
+            "E2-D1-RANGE-ONE 第一段", "E2-D1-RANGE-TWO 第二段",
+            "E2-D1-NUM-ONE", "E2-D1-NUM-TWO",
+            "E2-D1-INTERLEAVE 交錯", "E2-D1-INSERT 插入",
+        ],
+        "minimum": {"paragraphs": 24, "headings": 2, "lists": 2, "tables": 0},
+        "listItems": {"E2D1Number": 3},
+    },
     "list-split": {
         "extra_styles": (
             '  <text:list-style style:name="E2LSNumber">'
@@ -78,6 +142,8 @@ def main() -> None:
     for identifier, definition in FIXTURES.items():
         path = output / f"{identifier}.odt"
         create_odt(path, definition["body"],
+                   extra_automatic_styles=definition.get(
+                       "extra_automatic_styles", ""),
                    extra_styles=definition.get("extra_styles", ""))
         entries.append({
             "id": identifier,

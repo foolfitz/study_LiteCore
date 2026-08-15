@@ -24,13 +24,18 @@ NAMESPACES = (
 )
 
 
-def xml_document(body: str, extra_namespaces: str = "") -> str:
+def xml_document(body: str, extra_namespaces: str = "",
+                 extra_automatic_styles: str = "") -> str:
+    # `extra_automatic_styles` defaults to empty so every existing fixture's
+    # bytes are unchanged -- their sha256s are recorded in E1-A's frozen list
+    # and in every E1 run's evidence.  E2's corpus (tools/create_e2_corpus.py)
+    # uses it to declare span styles this file does not carry.
     return f'''<?xml version="1.0" encoding="UTF-8"?>
 <office:document-content {NAMESPACES}{extra_namespaces}>
  <office:automatic-styles>
   <style:style style:name="E1Bold" style:family="text"><style:text-properties fo:font-weight="bold"/></style:style>
   <style:style style:name="E1Italic" style:family="text"><style:text-properties fo:font-style="italic"/></style:style>
- </office:automatic-styles>
+{extra_automatic_styles} </office:automatic-styles>
  <office:body><office:text>{body}</office:text></office:body>
 </office:document-content>
 '''
@@ -525,13 +530,17 @@ def create_odt(
     body: str,
     *,
     extra_namespaces: str = "",
+    extra_automatic_styles: str = "",
     extra_styles: str = "",
     extra_manifest_entries: str = "",
     extra_members: tuple[tuple[str, bytes], ...] = (),
 ) -> None:
     with zipfile.ZipFile(path, "w") as archive:
         write_member(archive, "mimetype", MIMETYPE.encode(), zipfile.ZIP_STORED)
-        write_member(archive, "content.xml", xml_document(body, extra_namespaces).encode(), zipfile.ZIP_DEFLATED)
+        write_member(archive, "content.xml",
+                     xml_document(body, extra_namespaces,
+                                  extra_automatic_styles).encode(),
+                     zipfile.ZIP_DEFLATED)
         write_member(archive, "styles.xml", styles_document(extra_styles).encode(), zipfile.ZIP_DEFLATED)
         write_member(
             archive,

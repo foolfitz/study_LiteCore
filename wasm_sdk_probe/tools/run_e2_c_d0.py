@@ -45,6 +45,12 @@ def main() -> int:
     parser.add_argument("--profile", default="e2-editor-v2")
     parser.add_argument("--fixture", default="list-contexts.odt")
     parser.add_argument("--timeout", type=float, default=900)
+    # Parameterised so the same collection path serves the D1 pre-flight probe:
+    # a second copy of this file would be a second place for the attribution
+    # check to rot.  The defaults are D0's, so `run_e2_c_d0.py` with no flags
+    # still reproduces the D0 evidence exactly.
+    parser.add_argument("--page", default="e2-c-d0.html")
+    parser.add_argument("--namespace", default="__e2c_d0")
     parser.add_argument("--output", type=Path,
                         default=PROJECT.parent / "findings" / "evidence" / "sdk-e2"
                         / "e2-c-validation" / "d0")
@@ -60,14 +66,14 @@ def main() -> int:
     saves: list[dict] = []
     log_text = ""
     try:
-        base = f"http://127.0.0.1:{port}/e2-c-d0.html"
+        base = f"http://127.0.0.1:{port}/{args.page}"
         wait_page(base)
         session_class = ChromeSession if args.browser == "chrome" else FirefoxSession
         session = session_class("cold")
         session.navigate(f"{base}?profile={args.profile}&fixture={args.fixture}")
         deadline = time.monotonic() + args.timeout
         while time.monotonic() < deadline:
-            metrics = evaluate(session, "globalThis.__e2c_d0 || null")
+            metrics = evaluate(session, f"globalThis.{args.namespace} || null")
             if metrics and metrics.get("complete"):
                 break
             time.sleep(0.5)
@@ -79,9 +85,11 @@ def main() -> int:
         else:
             # One at a time: a single evaluate carrying every saved document is
             # the kind of call that truncates without saying so.
-            count = evaluate(session, "globalThis.__e2c_d0_save_count()") or 0
+            count = evaluate(
+                session, f"globalThis.{args.namespace}_save_count()") or 0
             for index in range(int(count)):
-                saves.append(evaluate(session, f"globalThis.__e2c_d0_save({index})"))
+                saves.append(evaluate(
+                    session, f"globalThis.{args.namespace}_save({index})"))
         log_text = str(evaluate(
             session, "document.querySelector('#log')?.textContent || ''"))
     finally:

@@ -231,82 +231,90 @@
       "id": "d1-set-bold-true",
       "phase": "D1",
       "repeat": 3,
-      "oracle": "revision +1, completion uno-command-result, and fo:font-weight=bold on the span at THIS action's own anchor",
+      "oracle": "caret placed in E2-D1-BOLD-ON: revision +1, completion uno-command-result, <office:body> unchanged by the dispatch itself, and a marker D1BOLDON committed at that caret afterwards lands in a span carrying fo:font-weight=\"bold\"",
       "onFailure": "STOP",
       "note": "Its own anchor, because all four inline formats return the same completion: a mapping that sent bold to italic would report the action name asked for and still be wrong.",
       "actions": [
         "set-bold"
-      ]
+      ],
+      "amended": "Amended 2026-08-15, BEFORE D1 ran, on the strength of the pre-flight probe: at a collapsed caret an inline format leaves <office:body> byte-identical and shows up only in text committed afterwards. The original oracle ('this anchor became bold') could not be satisfied at the gesture the manifest declares, so it would have frozen four cells that must fail. Evidence: e2-c-validation/d1-preflight/."
     },
     {
       "id": "d1-set-bold-false",
       "phase": "D1",
       "repeat": 3,
-      "oracle": "revision +1 and the span at this anchor is not bold in the saved ODT",
+      "oracle": "caret placed INSIDE the already-formatted span at E2-D1-BOLD-OFF: revision +1, and a marker D1BOLDOFF committed at that caret afterwards lands in text that does NOT carry fo:font-weight=\"bold\"",
       "onFailure": "STOP",
       "actions": [
         "set-bold"
-      ]
+      ],
+      "amended": "Amended 2026-08-15, BEFORE D1 ran, on the strength of the pre-flight probe: at a collapsed caret an inline format leaves <office:body> byte-identical and shows up only in text committed afterwards. The original oracle ('this anchor became bold') could not be satisfied at the gesture the manifest declares, so it would have frozen four cells that must fail. Evidence: e2-c-validation/d1-preflight/."
     },
     {
       "id": "d1-set-italic-true",
       "phase": "D1",
       "repeat": 3,
-      "oracle": "revision +1 and fo:font-style=italic at this action's own anchor",
+      "oracle": "caret placed in E2-D1-ITALIC-ON: revision +1, completion uno-command-result, <office:body> unchanged by the dispatch itself, and a marker D1ITALON committed at that caret afterwards lands in a span carrying fo:font-style=\"italic\"",
       "onFailure": "STOP",
       "actions": [
         "set-italic"
-      ]
+      ],
+      "amended": "Amended 2026-08-15, BEFORE D1 ran, on the strength of the pre-flight probe: at a collapsed caret an inline format leaves <office:body> byte-identical and shows up only in text committed afterwards. The original oracle ('this anchor became bold') could not be satisfied at the gesture the manifest declares, so it would have frozen four cells that must fail. Evidence: e2-c-validation/d1-preflight/."
     },
     {
       "id": "d1-set-italic-false",
       "phase": "D1",
       "repeat": 3,
-      "oracle": "revision +1 and the span at this anchor is not italic",
+      "oracle": "caret placed INSIDE the already-formatted span at E2-D1-ITALIC-OFF: revision +1, and a marker D1ITALOFF committed at that caret afterwards lands in text that does NOT carry fo:font-style=\"italic\"",
       "onFailure": "STOP",
       "actions": [
         "set-italic"
-      ]
+      ],
+      "amended": "Amended 2026-08-15, BEFORE D1 ran, on the strength of the pre-flight probe: at a collapsed caret an inline format leaves <office:body> byte-identical and shows up only in text committed afterwards. The original oracle ('this anchor became bold') could not be satisfied at the gesture the manifest declares, so it would have frozen four cells that must fail. Evidence: e2-c-validation/d1-preflight/."
     },
     {
       "id": "d1-set-underline-true",
       "phase": "D1",
       "repeat": 3,
-      "oracle": "revision +1 and style:text-underline-style set at this action's own anchor",
+      "oracle": "caret placed in E2-D1-UNDERLINE-ON: revision +1, completion uno-command-result, <office:body> unchanged by the dispatch itself, and a marker D1UNDRON committed at that caret afterwards lands in a span carrying style:text-underline-style",
       "onFailure": "STOP",
       "actions": [
         "set-underline"
-      ]
+      ],
+      "amended": "Amended 2026-08-15, BEFORE D1 ran, on the strength of the pre-flight probe: at a collapsed caret an inline format leaves <office:body> byte-identical and shows up only in text committed afterwards. The original oracle ('this anchor became bold') could not be satisfied at the gesture the manifest declares, so it would have frozen four cells that must fail. Evidence: e2-c-validation/d1-preflight/."
     },
     {
       "id": "d1-set-underline-false",
       "phase": "D1",
       "repeat": 3,
-      "oracle": "revision +1 and no underline at this anchor",
+      "oracle": "caret placed INSIDE the already-formatted span at E2-D1-UNDERLINE-OFF: revision +1, and a marker D1UNDROFF committed at that caret afterwards lands in text that does NOT carry style:text-underline-style",
       "onFailure": "STOP",
       "actions": [
         "set-underline"
-      ]
+      ],
+      "amended": "Amended 2026-08-15, BEFORE D1 ran, on the strength of the pre-flight probe: at a collapsed caret an inline format leaves <office:body> byte-identical and shows up only in text committed afterwards. The original oracle ('this anchor became bold') could not be satisfied at the gesture the manifest declares, so it would have frozen four cells that must fail. Evidence: e2-c-validation/d1-preflight/."
     },
     {
       "id": "d1-set-strikethrough-true",
       "phase": "D1",
       "repeat": 3,
-      "oracle": "revision +1 and style:text-line-through-style set at this action's own anchor",
+      "oracle": "caret placed in E2-D1-STRIKE-ON: revision +1, completion uno-command-result, <office:body> unchanged by the dispatch itself, and a marker D1STRKON committed at that caret afterwards lands in a span carrying style:text-line-through-style",
       "onFailure": "STOP",
       "actions": [
         "set-strikethrough"
-      ]
+      ],
+      "amended": "Amended 2026-08-15, BEFORE D1 ran, on the strength of the pre-flight probe: at a collapsed caret an inline format leaves <office:body> byte-identical and shows up only in text committed afterwards. The original oracle ('this anchor became bold') could not be satisfied at the gesture the manifest declares, so it would have frozen four cells that must fail. Evidence: e2-c-validation/d1-preflight/."
     },
     {
       "id": "d1-set-strikethrough-false",
       "phase": "D1",
       "repeat": 3,
-      "oracle": "revision +1 and no line-through at this anchor",
+      "oracle": "caret placed INSIDE the already-formatted span at E2-D1-STRIKE-OFF: revision +1, and a marker D1STRKOFF committed at that caret afterwards lands in text that does NOT carry style:text-line-through-style",
       "onFailure": "STOP",
       "actions": [
         "set-strikethrough"
-      ]
+      ],
+      "amended": "Amended 2026-08-15, BEFORE D1 ran, on the strength of the pre-flight probe: at a collapsed caret an inline format leaves <office:body> byte-identical and shows up only in text committed afterwards. The original oracle ('this anchor became bold') could not be satisfied at the gesture the manifest declares, so it would have frozen four cells that must fail. Evidence: e2-c-validation/d1-preflight/."
     },
     {
       "id": "d1-list-unordered-collapsed",

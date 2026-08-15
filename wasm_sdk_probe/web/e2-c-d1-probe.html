@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>E2-C D1 前置探針 — 收合游標上的 inline 格式看得見嗎</title>
+<style>
+  body { margin: 0; font: 13px/1.5 ui-monospace, Menlo, monospace; padding: 12px;
+         background: #101820; color: #d7e2ea; }
+  h1 { font: 600 15px/1.4 system-ui, sans-serif; margin: 0 0 8px; }
+  p { font: 12px/1.5 system-ui, sans-serif; color: #93a6b5; margin: 0 0 12px;
+      max-width: 68em; }
+  #log { white-space: pre-wrap; word-break: break-all; }
+</style>
+</head>
+<body>
+  <h1>E2-C D1 前置探針</h1>
+  <p>寫 D1 的 28 格之前先量一件事：<b>在收合游標上派送 <code>set-bold</code>，
+     存出來的文件會不會有任何差別？</b>如果不會（那是「打字屬性」的正常語意），
+     D1 對四個 inline 格式的判準就不能寫成「這個錨點變粗體了」，
+     否則那四格會是永遠不可能通過的宣稱。這一頁不判定，只留下可判的觀測值。</p>
+  <div id="log"></div>
+  <script type="module" src="./e2-c-d1-probe-app.js"></script>
+</body>
+</html>
