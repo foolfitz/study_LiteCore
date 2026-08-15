@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認（出貨 v2 實測 ＋ 原始碼對照）／未修，列入下一次 relink** |
+| **狀態** | **已確認（出貨 v2 實測 ＋ 原始碼對照）／未修**——**2026-08-15 更正：修法並沒有被寫進原始碼樹**，佇列項仍在 |
 | **Bugzilla** | —（**不是上游缺陷**） |
 | **發現日** | 2026-08-15（E2-C D2 第一次執行） |
 | **嚴重度** | **嚴重**——觸發手勢是「在空白行上按項目符號」，而後果是 host 回滾、丟掉自 checkpoint 以來的編輯 |
@@ -86,7 +86,52 @@ barrier 自己的註解就寫著這個區別（`probe_engine.cpp:3488`）：
 - [ ] 改 SPEC E2-B 2.3 的表（**既有草稿不回頭改**那條規矩管的是 Bugzilla 草稿，
       規格是活文件，就地修訂即可）。
 
+## 2026-08-15 更正兩件（D3 那一輪查證時發現的）
+
+**一、修法沒有被寫進去。** 本檔原本寫「修法已寫、待 relink」，而
+`grep -rn "empty-readback" src/` 是零筆——`probe_engine.cpp` 裡沒有這個 shape，
+`blockCount == 0` 也沒有任何分支。P1 佇列的第 3b 項**仍然待做**，
+`handoff/PLAN-E2-C-relink-v3.md` 已同步更正。P1 的其他四項（inline 參數、
+gesture mask、route 不謊報、ABI → 3）確實在樹裡。
+
+**二、同一個空段落有兩個出口，取決於游標是怎麼形成的。**
+
+| 游標形成方式 | 回報 | session 狀態 |
+|---|---|---|
+| 產品的點擊（`placeCaret`，中間有一次存檔讓它落地） | `EDITOR_FORMAT_POSTCONDITION_FAILED`／`postcondition-not-met` | `ready` |
+| 零寬 `selectRange` | `MUTATION_OUTCOME_UNKNOWN`／`multi-block-readback` | `recoverable-error` |
+
+兩者的 `preBlocks`／`postBlocks` 都是 **0**。而 `multiBlock` 的定義是
+`blockCount > 1 || itemCount > 1`（`probe_engine.cpp:605`），所以第二列必然是
+**itemCount ≥ 2 而 blockCount == 0**——訊息卻寫「涵蓋了超過一個段落」，
+而證據裡的段落數是 0。**操作者看到的紀錄自相矛盾。**
+
+這正是 SPEC E2-C 9.5.6 那條「手勢會改變答案」的另一個實例，
+也連到 [048](048-place-caret-confirms-before-the-click-takes-effect.md)。
+
+**因此修法的判準還不能定案。** 引擎其實有 `itemCount`／`listTag`／`blockTag`／
+`expectedListTag`，但那是**診斷** payload；產品 profile 的 `formatBarrier` 只投影
+`failureShape`／`dispatched`／`route`／`preBlocks`／`postBlocks`／兩個 held 旗標，
+**看不到 itemCount**。所以「零個 block」到底是「什麼都沒讀到」還是「只讀到清單項
+而沒讀到 block」，在出貨 profile 上**分不出來**。
+
+修法要嘛：
+
+1. 先把 `itemCount` 補進產品投影（**它是判斷有沒有讀到東西的必要欄位**，
+   而不是診斷用的額外資訊），再依量到的值決定 `empty-readback` 的判準；或
+2. 直接把判準定成 `parsed && blockCount == 0 && itemCount == 0`——
+   保守、只處理本 finding 原本記錄的那個情形，不對「只有清單項」那一類發明語意。
+
+**兩條都要進同一次 relink**，而 (1) 多一個欄位、少一次猜。
+
+順帶一個原始碼層級的觀察（**未驗證，當假說看**）：`listTag` 只在**第一個**結構
+標籤是 `ul`／`ol` 時才會設。若讀回是從 `<li>` 開始的，`listTag` 會是空的，
+於是 `formatBarrierReadbackSatisfied()` 拿 `"none"` 去比 `"ul"` 而回 false
+——**明明讀到的就是一個清單項，卻被判成「文件不是你要的狀態」**。
+這個假說能不能成立，同樣要等 `itemCount` 進投影才量得到。
+
 ## 證據
 
 `findings/evidence/sdk-e2/e2-c-validation/d2-presweep/`（D2 的掃描輪），
-`d2-refused-no-mutation-engine` 那一格。
+`d2-refused-no-mutation-engine` 那一格。更正用的兩個出口在
+`d2-narrow/run-2/`（零寬 selectRange）與 `d2-narrow/caret-click-arm/`（產品點擊）。

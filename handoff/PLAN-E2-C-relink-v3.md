@@ -41,7 +41,8 @@
 | 1 | `src/probe_engine.cpp` | 四個 inline 格式各送參數：`{"Bold":{"type":"boolean","value":<enabled>}}`（Italic／Underline／Strikeout 同形，slot 名對應）。`gEditorUnoOption` 從「只拿來回報」變成**真的被送出去** | finding 045，**原生驗證** |
 | 2 | `src/probe_engine.cpp` | **gesture mask 要對十個繼承動作也生效**——目前只有 `routeFormatBarrier()` 讀 mask，而那是五個段落動作專用路徑 | SPEC E2-C 2.5 |
 | 3 | `src/probe_engine.cpp` | barrier payload 的 `route` **不得把預設值當觀測值**回報：型態守衛在指派 route 之前 return，於是證據裡出現「`route: collapsed` 但其實沒有分類過」 | 9.5.4 |
-| 3b | `src/probe_engine.cpp` | **[finding 046](../findings/046-an-empty-readback-is-reported-as-the-document-being-in-the-wrong-state.md)**：讀回**解析成功但零個 block** 時回 `MUTATION_OUTCOME_UNKNOWN`＋`empty-readback`，不再回 `POSTCONDITION_FAILED`。觸發手勢是「在空白行上按項目符號」 | D2 掃描輪 |
+| 3b | `src/probe_engine.cpp` | **[finding 046](../findings/046-an-empty-readback-is-reported-as-the-document-being-in-the-wrong-state.md)：仍待做。** 2026-08-15 查證：`empty-readback` 這個 shape **從來沒有被寫進樹裡**（`grep` 零筆），本表先前記成「已寫」是錯的。而且判準還不能定案——同一個空段落在**產品點擊**下走 `postcondition-not-met`、在零寬 `selectRange` 下走`multi-block-readback`，兩者 `postBlocks` 都是 0，差別在 `itemCount`，**而產品投影看不到 itemCount** | D2 掃描輪＋D3 那一輪的重測 |
+| 3c | `src/probe_engine.cpp`／worker | **把 `itemCount` 補進產品的 `formatBarrier` 投影**。它不是診斷用的額外資訊：沒有它，「零個 block」分不出「什麼都沒讀到」與「只讀到清單項」，而 3b 的判準正是壓在這個區別上。**先有這一欄，3b 才是量出來的** | 046 的更正段 |
 | 4 | `src/editor_api.h`／`.cpp` | ABI 版本常數 → **3**（flat、精確比對）。**動作列舉一個字不動**——這次改的是語意不是介面 | 「版本是身分」 |
 | 5 | `Makefile` | **新的建置變體 `e2-editor-v3`**：新的 build 目錄與 dist 目錄，掛 `refuse_unasked_relink`；**`e2-editor-v2` 的 target 一個字不動** | 5.12 的作法 |
 | 6 | `tools/build_e2_c_profile.py` | **新 builder**（不改 v2 的）：contract v3、`narrow-editor-v3`、`limits` 補兩筆（見 P2-1） | 5.8 的作法 |
