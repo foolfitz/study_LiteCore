@@ -800,6 +800,45 @@ async function handleInit(request) {
            `worker ABI ${actualAbi} is not compatible with requested ${requestedAbi}`);
       return;
     }
+    // SPEC E2-B 5.4: the editor ABI is versioned separately, and the manifest's
+    // abiVersion is a CLAIM while the binary's is a fact.  Findings 027/036 are
+    // about those two coming apart -- a profile is assembled, the hash is not a
+    // function of the source, and a stale wasm beside a fresh manifest runs
+    // today with nobody the wiser.  Exact match, because an allowlist's
+    // version is an identity, not a range.
+    const contract = activeManifest?.editorContract;
+    if (contract && typeof contract.abiVersion === "number") {
+      const actualEditorAbi = Number(ccall("oxsdk_editor_abi_version", "number"));
+      if (actualEditorAbi !== contract.abiVersion) {
+        fail(request.requestId, "INCOMPATIBLE_ABI",
+             `editor ABI ${actualEditorAbi} in this binary does not match `
+             + `${contract.abiVersion} declared by profile `
+             + `${activeManifest?.profile || "unknown"}`);
+        return;
+      }
+    }
+
+    // SPEC E2-B 5.7: push the manifest's gesture restrictions into the engine.
+    //
+    // The engine reads no manifest, and the mask cannot ride on a dispatch
+    // because both option flags must be 0 for the paragraph actions.  Without
+    // this call the `gestures` field is decorative: it would describe a
+    // narrowing that nothing enforces, which is the defect 5.7 exists to
+    // remove.  Narrowing only -- the engine intersects.
+    const actions = contract?.actions;
+    const bits = contract?.gestureBits;
+    if (actions && bits && !Array.isArray(actions)) {
+      for (const [name, spec] of Object.entries(actions)) {
+        if (!Number.isInteger(spec?.id) || !Array.isArray(spec?.gestures))
+          continue;
+        let mask = 0;
+        for (const gesture of spec.gestures)
+          mask |= Number(bits[gesture]) || 0;
+        callStatus("oxsdk_editor_set_action_gestures", ["number", "number"],
+                   [spec.id, mask]);
+      }
+    }
+
     const status = callStatus(
       "oxsdk_engine_start",
       ["number", "number"],
