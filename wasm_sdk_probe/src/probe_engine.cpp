@@ -3,6 +3,10 @@
 #endif
 
 #include "probe_engine.hpp"
+
+#ifdef OXSDK_E2_FORMAT_BARRIER
+#include "format_readback_text.hpp"
+#endif
 #include "sdk_api.h"
 #ifdef OXSDK_EDITOR_DISCOVERY
 #include "editor_discovery_api.h"
@@ -602,6 +606,20 @@ FormatReadback parseFormatReadback(const std::string &html) {
   return readback;
 }
 
+// Which shape the CALLER's selection had when the action was dispatched.
+//
+// Decided before the dispatch, from the html readback's block count, and it is
+// the only thing that decides how the postcondition is verified (SPEC E2-B
+// 9.9).  RangeSingle and Collapsed both go to the .uno:SelectText barrier that
+// has always been here and is honest for one paragraph; RangeCross cannot,
+// because that barrier selects exactly one paragraph and would report success
+// for a mutation covering two.
+enum class FormatBarrierRoute {
+  Collapsed,
+  RangeSingle,
+  RangeCross,
+};
+
 struct FormatStateBarrier {
   std::uint32_t requestId = 0;
   std::uint32_t documentHandle = 0;
@@ -652,6 +670,18 @@ struct FormatStateBarrier {
   std::string arguments;
   // Route C readback (finding 030 / SPEC E2-A 2.8).
   FormatBarrierStage stage = FormatBarrierStage::Idle;
+  // Routing, and the evidence it rests on.  preBlockTexts is the identity the
+  // cross route verifies against: per-block TEXT, because the plain-text
+  // readback injects list decoration across a paragraph boundary and would
+  // therefore differ on every SUCCESSFUL list dispatch.
+  FormatBarrierRoute route = FormatBarrierRoute::Collapsed;
+  std::uint32_t preBlockCount = 0;
+  std::vector<std::string> preBlockTexts;
+  std::uint32_t postBlockCount = 0;
+  std::vector<std::string> postBlockTexts;
+  bool crossChecked = false;
+  bool crossIdentityHeld = false;
+  bool crossStateHeld = false;
   std::uint64_t serial = 0;
   // Where the caret was before the read selected the paragraph, so it can be
   // put back.  Recorded before the dispatch, because the dispatch itself may
@@ -1167,7 +1197,25 @@ void appendFormatBarrierDetails(std::ostringstream &json,
       json << ',';
     json << '"' << jsonEscape(barrier.expectedStyles[index].c_str()) << '"';
   }
-  json << "],\"readback\":{\"parsed\":"
+  // SPEC E2-B 7.1: the gesture class is decided by the ENGINE's routing read,
+  // and "completion cannot be attributed to a single request" is a stop
+  // condition -- so the routing has to be in the record, not inferred by the
+  // harness from coordinates it did not route on.
+  json << "],\"route\":\""
+       << (barrier.route == FormatBarrierRoute::Collapsed      ? "collapsed"
+           : barrier.route == FormatBarrierRoute::RangeSingle  ? "range-single"
+                                                               : "range-cross")
+       << "\",\"preBlocks\":" << barrier.preBlockCount
+       << ",\"postBlocks\":" << barrier.postBlockCount
+       << ",\"crossChecked\":"
+       << (barrier.crossChecked ? "true" : "false")
+       << ",\"crossIdentityHeld\":"
+       << (barrier.crossIdentityHeld ? "true" : "false")
+       << ",\"crossStateHeld\":"
+       << (barrier.crossStateHeld ? "true" : "false")
+       << ",\"blockTextsMatched\":"
+       << (barrier.preBlockTexts == barrier.postBlockTexts ? "true" : "false")
+       << ",\"readback\":{\"parsed\":"
        << (barrier.readback.parsed ? "true" : "false")
        << ",\"unknownTag\":"
        << (barrier.readback.unknownTag ? "true" : "false")
@@ -3207,6 +3255,118 @@ bool formatBarrierSelectionIsReadable() {
 #endif
 }
 
+// SPEC E2-B 9.9: decide the route BEFORE the dispatch, from the caller's own
+// selection.
+//
+// Returns false to refuse before dispatching anything, in which case the shape
+// is written to `shape` and the document is untouched.  That is a strictly
+// better outcome than the post-dispatch MUTATION_OUTCOME_UNKNOWN this build
+// produces today for the same inputs: nothing was sent, so nothing can have
+// changed.
+//
+// Finding 037 governs the order here and is the reason the type is read first.
+// getTextSelection(..., "text/html", ...) does not return on a selection
+// holding an as-char image, and this is a NEW call site for it -- earlier than
+// the barrier's own, with no stage armed and therefore no deadline to fall
+// back on.  Reading the type first and refusing anything that is not TEXT is
+// what keeps that call from ever being made on such a selection.
+bool routeFormatBarrier(FormatStateBarrier &barrier,
+                        std::uint32_t internalAction, std::string &shape) {
+  if (gEditorState.selectionRectangles.empty()) {
+    barrier.route = FormatBarrierRoute::Collapsed;
+  } else {
+    const SelectionReadback selection = readSelection();
+    if (selection.type != LOK_SELTYPE_TEXT) {
+      shape = "routing-selection-not-readable";
+      return false;
+    }
+    char *html = gState.document->pClass->getTextSelection(
+        gState.document, "text/html", nullptr);
+    const std::string markup = html ? std::string(html) : std::string();
+    std::free(html);
+    const FormatReadback parsed = parseFormatReadback(markup);
+    barrier.preBlockCount = parsed.blockCount;
+    barrier.preBlockTexts = blockTexts(extractBlocks(markup));
+    barrier.route = parsed.blockCount >= 2 ? FormatBarrierRoute::RangeCross
+                                           : FormatBarrierRoute::RangeSingle;
+  }
+
+  const std::uint32_t gesture =
+      barrier.route == FormatBarrierRoute::Collapsed    ? kGestureCollapsed
+      : barrier.route == FormatBarrierRoute::RangeSingle ? kGestureRangeSingle
+                                                         : kGestureRangeCross;
+  if (!editorGesturePermitted(internalAction, gesture)) {
+    shape = "gesture-not-permitted";
+    return false;
+  }
+  return true;
+}
+
+// The cross-paragraph postcondition, read from the selection the CALLER made
+// and which is still there -- not from one this barrier created.
+//
+// The barrier's usual read replaces the selection with .uno:SelectText, which
+// covers exactly one paragraph; on a two-paragraph mutation that reports
+// success for half of what changed, which is the defect this route exists to
+// remove.  Nothing here collapses or re-selects before the read.
+void checkFormatBarrierCrossParagraph() {
+  gFormatBarrier.crossChecked = true;
+  if (!formatBarrierSelectionIsReadable())
+    return;
+  char *html = gState.document->pClass->getTextSelection(
+      gState.document, "text/html", nullptr);
+  const std::string markup = html ? std::string(html) : std::string();
+  std::free(html);
+  gFormatBarrier.readbackBytes = markup.size();
+  gFormatBarrier.readbackHtml =
+      markup.size() > FormatReadbackEvidenceLimit
+          ? markup.substr(0, FormatReadbackEvidenceLimit)
+          : markup;
+  gFormatBarrier.readback = parseFormatReadback(markup);
+  const std::vector<ReadbackBlock> parsedBlocks = extractBlocks(markup);
+  gFormatBarrier.postBlockCount = gFormatBarrier.readback.blockCount;
+  gFormatBarrier.postBlockTexts = blockTexts(parsedBlocks);
+
+  // Identity: same number of blocks, and each block's text unchanged.  A
+  // selection that shrank to one paragraph loses a block AND loses its text,
+  // so either half catches it; both are checked because they fail for
+  // different reasons and the shape should say which.
+  gFormatBarrier.crossIdentityHeld =
+      gFormatBarrier.postBlockTexts.size() ==
+          gFormatBarrier.preBlockTexts.size() &&
+      !gFormatBarrier.preBlockTexts.empty() &&
+      gFormatBarrier.postBlockTexts == gFormatBarrier.preBlockTexts;
+
+  // State: every block reached the target, not just the first.  The readback
+  // parser keeps only the first tag, so the counts are what carry "every".
+  const FormatReadback &readback = gFormatBarrier.readback;
+  const std::size_t blocks = gFormatBarrier.postBlockTexts.size();
+  switch (gFormatBarrier.target) {
+  case FormatBarrierTarget::ListBullet:
+    gFormatBarrier.crossStateHeld =
+        readback.listTag == "ul" && readback.itemCount == blocks;
+    break;
+  case FormatBarrierTarget::ListNumber:
+    gFormatBarrier.crossStateHeld =
+        readback.listTag == "ol" && readback.itemCount == blocks;
+    break;
+  case FormatBarrierTarget::ListNone:
+    gFormatBarrier.crossStateHeld =
+        readback.listTag.empty() && readback.itemCount == 0;
+    break;
+  case FormatBarrierTarget::ParagraphStyle:
+    // EVERY block tag, not the first one.  parseFormatReadback keeps only the
+    // first, and reading that as if it described the range is the exact defect
+    // this route removes -- so the per-block tags carry it instead.
+    gFormatBarrier.crossStateHeld =
+        everyBlockHasTag(parsedBlocks, gFormatBarrier.expectedBlockTag);
+    break;
+  case FormatBarrierTarget::None:
+    gFormatBarrier.crossStateHeld = false;
+    break;
+  }
+}
+
 void readFormatBarrierPostcondition() {
   char *html = gState.document->pClass->getTextSelection(
       gState.document, "text/html", nullptr);
@@ -3259,6 +3419,47 @@ void postFormatBarrierRestore() {
 
 void finishFormatBarrierAfterRestore() {
   gFormatBarrier.restoreConfirmed = gEditorState.selectionRectangles.empty();
+
+  // The cross-paragraph route is judged on its own two readings and never
+  // reaches the checks below: those describe a selection this barrier created
+  // with .uno:SelectText, and on this route it created none.
+  if (gFormatBarrier.route == FormatBarrierRoute::RangeCross) {
+    if (!gFormatBarrier.crossChecked ||
+        !gFormatBarrier.selectionTypeReadable) {
+      gFormatBarrier.failureShape = "block-extraction-failed";
+      failFormatBarrier(
+          kFormatMutationOutcomeUnknown,
+          "the action was dispatched but the selection could not be read back "
+          "to check it -- look at the paragraphs and use undo if they are not "
+          "what you wanted");
+      return;
+    }
+    if (!gFormatBarrier.crossIdentityHeld) {
+      // Which half failed changes what a reader should conclude, so they are
+      // separate shapes: a different block COUNT means the selection changed
+      // size, a different TEXT means it moved or the document did.
+      gFormatBarrier.failureShape =
+          gFormatBarrier.postBlockTexts.size() !=
+                  gFormatBarrier.preBlockTexts.size()
+              ? "block-count-changed"
+              : "block-text-mismatch";
+      failFormatBarrier(
+          kFormatMutationOutcomeUnknown,
+          "the action was dispatched but the paragraphs it covered are no "
+          "longer the ones that were selected, so it could not be checked -- "
+          "look at them and use undo if they are not what you wanted");
+      return;
+    }
+    if (!gFormatBarrier.crossStateHeld) {
+      gFormatBarrier.failureShape = "postcondition-not-met";
+      failFormatBarrier(
+          "EDITOR_FORMAT_POSTCONDITION_FAILED",
+          "the document does not show the state this action asked for");
+      return;
+    }
+    completeFormatBarrier();
+    return;
+  }
   // Ordered by what each answer is about.  The first two say the read does not
   // describe one known paragraph, so no verdict about the postcondition is
   // available at all; only after both hold does "is it in the target state"
@@ -3372,6 +3573,19 @@ void handleFormatBarrierStep(const Command &command) {
   }
   switch (gFormatBarrier.stage) {
   case FormatBarrierStage::SelectQueued:
+    if (gFormatBarrier.route == FormatBarrierRoute::RangeCross) {
+      // Do not restore, and do not select: the selection the CALLER made is
+      // still there and is the only thing that covers the whole mutation.
+      // Replacing it with .uno:SelectText is what makes the usual path report
+      // success for one paragraph out of two.
+      checkFormatBarrierCrossParagraph();
+      gFormatBarrier.stage = FormatBarrierStage::AwaitingRestore;
+      armFormatBarrierDeadline();
+      postFormatBarrierRestore();
+      if (!gFormatBarrier.restorePointValid)
+        finishFormatBarrierAfterRestore();
+      return;
+    }
     gFormatBarrier.stage = FormatBarrierStage::AwaitingSelection;
     armFormatBarrierDeadline();
     // Go back to where the caret was when the action was dispatched, *before*
@@ -3528,6 +3742,32 @@ void startFormatBarrierActionResolved(const Command &command,
   barrier.requestId = command.requestId;
   barrier.documentHandle = gState.documentHandle;
   barrier.beforeRevision = gState.revision;
+
+  // Routing happens BEFORE the dispatch, and a refusal here is the cleanest
+  // outcome this barrier can produce: nothing was sent, so the document is
+  // provably untouched.  Both shapes are pre-dispatch refusals and must not
+  // carry MUTATION_OUTCOME_UNKNOWN -- that code sends the host into recovery,
+  // and there is nothing to recover from.
+  {
+    std::string refusal;
+    if (!routeFormatBarrier(barrier, action, refusal)) {
+      barrier.failureShape = refusal;
+      gFormatBarrier = barrier;
+      if (refusal == "gesture-not-permitted") {
+        failFormatBarrier(
+            "EDITOR_FORMAT_GESTURE_UNSUPPORTED",
+            "this action is not offered for this kind of selection in this "
+            "profile, so nothing was dispatched and the document is unchanged");
+      } else {
+        failFormatBarrier(
+            "EDITOR_FORMAT_SELECTION_NOT_READABLE",
+            "this selection holds an image or another object, and reading it "
+            "back would stop this document responding, so nothing was "
+            "dispatched and the document is unchanged");
+      }
+      return;
+    }
+  }
   barrier.beforeSequence = gEditorState.sourceSequence;
   barrier.dispatchSequence = gEditorState.sourceSequence;
   // Captured before the dispatch, because the dispatch can move the caret and
@@ -4880,8 +5120,7 @@ SubmitStatus editorSelect(std::uint32_t requestId,
 // left open.  Both are therefore a manifest choice made after the artifact
 // exists, which is why neither needs its own link.
 constexpr std::uint32_t kAllEditorGestures =
-    OXSDK_EDITOR_GESTURE_COLLAPSED | OXSDK_EDITOR_GESTURE_RANGE_SINGLE |
-    OXSDK_EDITOR_GESTURE_RANGE_CROSS;
+    kGestureCollapsed | kGestureRangeSingle | kGestureRangeCross;
 constexpr std::uint32_t kMaxInternalEditorAction = 21;
 std::uint32_t gEditorActionGestures[kMaxInternalEditorAction + 1] = {};
 bool gEditorActionGesturesInitialised = false;

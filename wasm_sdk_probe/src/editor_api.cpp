@@ -35,6 +35,14 @@ enum InternalEditorAction : std::uint32_t {
 constexpr std::uint32_t kAllGestures = OXSDK_EDITOR_GESTURE_COLLAPSED |
                                        OXSDK_EDITOR_GESTURE_RANGE_SINGLE |
                                        OXSDK_EDITOR_GESTURE_RANGE_CROSS;
+#ifdef OXSDK_E2_FORMAT_BARRIER
+// This translation unit is the only one that sees both spellings, so it is the
+// only place the drift can be caught.  A mask written with one and read with
+// the other would restrict the wrong gesture, silently.
+static_assert(OXSDK_EDITOR_GESTURE_COLLAPSED == probe::kGestureCollapsed);
+static_assert(OXSDK_EDITOR_GESTURE_RANGE_SINGLE == probe::kGestureRangeSingle);
+static_assert(OXSDK_EDITOR_GESTURE_RANGE_CROSS == probe::kGestureRangeCross);
+#endif
 constexpr std::uint32_t kMaxExternalAction = 15;
 
 // The engine's selection methods, of which the narrow ABI exposes exactly one.

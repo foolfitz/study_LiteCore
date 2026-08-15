@@ -78,6 +78,19 @@ SubmitStatus editorSelect(std::uint32_t requestId,
 SubmitStatus editorGetState(std::uint32_t requestId,
                             std::uint32_t documentHandle);
 #ifdef OXSDK_E2_FORMAT_BARRIER
+// The gesture classes, spelled for the engine.  editor_api.h spells the same
+// three bits for the ABI; editor_api.cpp sees both headers and static_asserts
+// that they agree, so a drift between the public spelling and the routing is a
+// compile error rather than a silently mismatched mask.
+//
+// They live here rather than being included from editor_api.h because the
+// dependency runs API -> engine: editor_api.cpp includes probe_engine.hpp, and
+// reversing that to reach three constants would tie the engine to the ABI
+// header it exists underneath.
+constexpr std::uint32_t kGestureCollapsed = 1u;
+constexpr std::uint32_t kGestureRangeSingle = 2u;
+constexpr std::uint32_t kGestureRangeCross = 4u;
+
 // Restrict one INTERNAL action id to a set of gesture classes (SPEC E2-B 5.7).
 // The mask lives here rather than in editor_api.cpp because the engine is what
 // routes on gesture -- editor_api sees only an action name and coordinates.

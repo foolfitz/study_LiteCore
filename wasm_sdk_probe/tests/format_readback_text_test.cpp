@@ -12,7 +12,7 @@ namespace {
 struct Case { const char *name; const char *html; std::vector<std::string> expected; };
 int gFailures = 0;
 void check(const Case &c) {
-  const std::vector<std::string> got = probe::extractBlockTexts(c.html);
+  const std::vector<std::string> got = probe::blockTexts(probe::extractBlocks(c.html));
   if (got == c.expected) return;
   ++gFailures;
   std::printf("FAIL %s: got %zu blocks, expected %zu\n", c.name, got.size(), c.expected.size());
@@ -39,23 +39,34 @@ int main() {
   for (const Case &c : cases) check(c);
 
   // Controls: the extractor must be able to report a difference.
-  if (probe::extractBlockTexts("<body><p>a</p><p>b</p></body>") ==
-      probe::extractBlockTexts("<body><p>a</p></body>")) {
+  if (probe::blockTexts(probe::extractBlocks("<body><p>a</p><p>b</p></body>")) ==
+      probe::blockTexts(probe::extractBlocks("<body><p>a</p></body>"))) {
     std::printf("FAIL control: a lost block is invisible\n"); ++gFailures;
   }
-  if (probe::extractBlockTexts("<body><p>a</p></body>") ==
-      probe::extractBlockTexts("<body><p>A</p></body>")) {
+  if (probe::blockTexts(probe::extractBlocks("<body><p>a</p></body>")) ==
+      probe::blockTexts(probe::extractBlocks("<body><p>A</p></body>"))) {
     std::printf("FAIL control: a changed character is invisible\n"); ++gFailures;
   }
-  if (probe::extractBlockTexts("<body><p>a<font><span>X</span></font></p></body>") !=
+  if (probe::blockTexts(probe::extractBlocks("<body><p>a<font><span>X</span></font></p></body>")) !=
       std::vector<std::string>{"aX"}) {
     std::printf("FAIL control: inline markup is not concatenated\n"); ++gFailures;
   }
-  if (probe::extractBlockTexts("<body><h1>heading</h1></body>") !=
+  if (probe::blockTexts(probe::extractBlocks("<body><h1>heading</h1></body>")) !=
       std::vector<std::string>{"heading"}) {
     std::printf("FAIL control: h1 is not treated as a block\n"); ++gFailures;
   }
+  // everyBlockHasTag is the "every block, not just the first" half of the
+  // cross-paragraph state check, so it needs its own controls.
+  if (probe::everyBlockHasTag(probe::extractBlocks("<body><p>a</p><p>b</p></body>"), "p") != true) {
+    std::printf("FAIL control: uniform blocks not accepted\n"); ++gFailures;
+  }
+  if (probe::everyBlockHasTag(probe::extractBlocks("<body><p>a</p><h1>b</h1></body>"), "p") != false) {
+    std::printf("FAIL control: a mixed second block is invisible\n"); ++gFailures;
+  }
+  if (probe::everyBlockHasTag(probe::extractBlocks("<body></body>"), "p") != false) {
+    std::printf("FAIL control: empty input reported as every-block-matches\n"); ++gFailures;
+  }
   std::printf(gFailures ? "%d FAILURES\n" : "all %d checks passed\n",
-              gFailures ? gFailures : (int)(sizeof(cases)/sizeof(cases[0])) + 4);
+              gFailures ? gFailures : (int)(sizeof(cases)/sizeof(cases[0])) + 7);
   return gFailures ? 1 : 0;
 }

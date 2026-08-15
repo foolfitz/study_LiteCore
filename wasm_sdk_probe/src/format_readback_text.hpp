@@ -47,12 +47,24 @@ inline bool formatTextBlockTag(const std::string &tag) {
   return tag.size() == 2 && tag[0] == 'h' && tag[1] >= '1' && tag[1] <= '6';
 }
 
-// The text of each block, with inline markup (<font>, <span>, <b> ...)
+// One text-bearing block: its tag and its text.
+//
+// The tag is here because the paragraph-style postcondition has to hold for
+// EVERY block, and parseFormatReadback keeps only the first one.  Verifying the
+// first block and reporting success for the whole range is precisely the defect
+// the cross-paragraph route exists to remove -- rebuilding it inside the fix
+// would be the same lie in a new place.
+struct ReadbackBlock {
+  std::string tag;
+  std::string text;
+};
+
+// The tag and text of each block, with inline markup (<font>, <span>, <b> ...)
 // concatenated away.  Entities are left exactly as the serialiser wrote them:
 // what the gate needs is that the two reads agree, and "&amp;" agrees with
 // "&amp;".  Resolving them would be a second place to be wrong.
-inline std::vector<std::string> extractBlockTexts(const std::string &html) {
-  std::vector<std::string> blocks;
+inline std::vector<ReadbackBlock> extractBlocks(const std::string &html) {
+  std::vector<ReadbackBlock> blocks;
   const std::size_t body = html.find("<body");
   if (body == std::string::npos)
     return blocks;
@@ -89,7 +101,7 @@ inline std::vector<std::string> extractBlockTexts(const std::string &html) {
     if (end != start && formatTextBlockTag(tag)) {
       if (closing) {
         if (!openTag.empty() && tag == openTag) {
-          blocks.push_back(current);
+          blocks.push_back({openTag, current});
           current.clear();
           openTag.clear();
         }
@@ -98,7 +110,7 @@ inline std::vector<std::string> extractBlockTexts(const std::string &html) {
         // than silently merging the two, because a merge would make two
         // paragraphs compare equal to one.
         if (!openTag.empty()) {
-          blocks.push_back(current);
+          blocks.push_back({openTag, current});
           current.clear();
         }
         openTag = tag;
@@ -117,6 +129,28 @@ inline std::vector<std::string> extractBlockTexts(const std::string &html) {
   // block.  Dropping it means the count differs from the structural count,
   // which is what the caller checks first.
   return blocks;
+}
+
+// The text alone, for the identity comparison.
+inline std::vector<std::string> blockTexts(const std::vector<ReadbackBlock> &blocks) {
+  std::vector<std::string> texts;
+  texts.reserve(blocks.size());
+  for (const ReadbackBlock &block : blocks)
+    texts.push_back(block.text);
+  return texts;
+}
+
+// True when every block carries `tag`.  Empty input is false: "every block of
+// none" is vacuously true and would report a verified mutation from a readback
+// that found nothing.
+inline bool everyBlockHasTag(const std::vector<ReadbackBlock> &blocks,
+                             const std::string &tag) {
+  if (blocks.empty())
+    return false;
+  for (const ReadbackBlock &block : blocks)
+    if (block.tag != tag)
+      return false;
+  return true;
 }
 
 } // namespace probe
