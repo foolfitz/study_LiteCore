@@ -23,7 +23,8 @@ E2-B 的判定與那六個必讀沒有變）。
 | **D0** | **兩瀏覽器九格全過**，十五個動作**由單一客戶端**在真引擎上到達，兩邊投影逐格相同；分析器 11 個突變全紅 |
 | D1 前置探針 | 已跑（兩瀏覽器），矩陣八個 inline 格式格**在執行前**改判準 |
 | **D1** | **23／28**，三輪 × 兩瀏覽器，投影 81 項逐項相同；四格＝finding 045，一格未解 |
-| **finding 045** | **新開，未修**：四個 inline 格式動作把 `enabled` 丟掉、派送 toggle；**出貨的 E1 契約同一段程式碼** |
+| **finding 045** | **新開，未修，處置已由外部裁決定案**：四個 inline 格式動作把 `enabled` 丟掉、派送 toggle；**出貨的 E1 契約同一段程式碼** |
+| **E2-C 第一輪判定** | **`E2_STOP_OR_RESCOPE`**（`validate_e2_c.py` 從證據重推，五個 STOP 格，D2～D5 未跑） |
 | E2-B | **`GO_TO_E2_C` 不變**，`validate_e2_b.py` 重跑仍是 `problems: none` |
 | E1-C | `E1_GO_ODT_EDITOR` 不變，shell bundle `f9b1a52f` 完好 |
 | 四顆凍結 artifact | 逐位元未變（`test-e1-c-frozen-guard` 通過） |
@@ -50,20 +51,32 @@ E2-B 的判定與那六個必讀沒有變）。
    `client.placeCaretByClick`，而那是**診斷客戶端**的方法。已修，並補了通用檢查
    `product-page-calls.test.mjs`。
 
-## 下一步：**先等一個裁決，其餘可以繼續**
+## 下一步（**外部裁決已定序，2026-08-15**）
 
-1. **等使用者裁決 finding 045**（E2-C 範圍之外，因為兩條路都要 relink）：
-   - **修**＝照 finding 030 的作法送參數 → 重連結 → **E2-B 的 132 個 run 斷綁、要重跑**；
-   - **縮限**＝manifest 的 `limits` 寫明「這四個是 toggle」→ 一樣要重連結；
-   - **只記錄**＝E2-C 判 `E2_STOP_OR_RESCOPE`，修法留給下一版契約。
-   **不要為了讓那四格變綠去改判準。**
-2. **查 `d1-body-collapsed`**（不需要裁決，也不需要 relink）：很窄的一個探針
-   ——把游標放在 `E2-D1-BODY-TARGET` 上直接讀選取型態，與一個會過的錨點對照。
-   已知：`dispatched: false`、零 mutation；**payload 裡的 `route: "collapsed"`
-   是預設值不是觀測值**（shape 只在非空分支設定，而那條分支在指派 route 之前 return）。
-3. D2 → D3 → D4 → D5 的 harness 還沒寫。D1 的三個檔案是模板：
-   `web/e2-c-d1-app.js`、`tools/run_e2_c_d0.py`（已參數化 `--page`／`--namespace`／
-   `--param`）、`tools/analyze_e2_c_d1.py`。
+第一輪的判定已經發了（`E2_STOP_OR_RESCOPE`），**這一輪不會因為之後修好而變成 GO**
+——矩陣 baseline 綁著 `572035ac…`，換 artifact 就是新的一輪。
+
+**relink 之前先量兩件，兩件都比它們要支持的決定便宜：**
+
+1. **finding 045 的原生探針**：四個命令，bare 對上帶參數，on→off→重複，
+   收合游標與範圍各一次；外加 045 自己欠的**不相鄰**標記 toggle 對照。
+   **參數形狀已由原始碼推導出預測**（045 的〈預測〉一節，四行）。
+   若預測是錯的，修法整個設計要換——用一個下午知道，比用一個 relink 週期知道便宜。
+2. **`d1-body-collapsed` 的序列二分**（每次一整輪，跑在現行 artifact 上）。
+   **relink 的時機由這一項決定，不是由 045 決定**：它是同級的 STOP、機制未明、
+   可能也在引擎側。`PLAN-E2-B-relink-and-freeze.md` 自己寫過
+   「P1 完成才能 relink。漏一項就是第二次 relink」。
+
+**然後一次有計畫的 relink**，帶完整佇列：四個參數字串、`d1-body-collapsed` 的修法
+（若在引擎側）、4.2 的註腳 `limits` 債、2.5 的 gesture mask 執行債；
+`changed` 的處置是**記錄不是改**（9.5.2 已經把它定義成「引擎接受且狀態前進」）；
+新契約版本 v3、新 builder、新 profile 目錄。`e1-editor-v1` 可分割，之後單獨決定。
+
+**可選**：D2／D3 仍可跑在現行 artifact 上當**缺陷發掘掃描**——證據會在 relink 時
+斷綁，但 findings 與 harness 會留下，讓 relink 的佇列更完整。
+D2～D5 的 harness 還沒寫；D1 的三個檔案是模板：`web/e2-c-d1-app.js`、
+`tools/run_e2_c_d0.py`（已參數化 `--page`／`--namespace`／`--param`）、
+`tools/analyze_e2_c_d1.py`。
 
 **寫 harness 時直接繼承 D1 學到的三件事**：編輯目標用**尾端 token** 認段落
 （caret 落在行首附近，編輯會毀掉前導錨點）；每一格用**自己的 before 圖**
