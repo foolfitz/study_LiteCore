@@ -1974,7 +1974,7 @@ test-e2-c-static:
 		tests/test_e2_c_matrix.py
 	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py \
 		tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py \
-		tools/analyze_e2_c_d0.py
+		tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves
 	# dist/).  Read-only: --write is a deliberate act with its own diff.
@@ -1985,6 +1985,13 @@ test-e2-c-static:
 	# never writes into findings/.
 	python3 tools/analyze_e2_c_d0.py --self-test \
 		../findings/evidence/sdk-e2/e2-c-validation/d0/e2-editor-v2-572035ac/chrome \
+		> /dev/null
+	# D1's self-test requires each mutation to CHANGE the verdict rather than to
+	# make it fail: D1's evidence is currently red (finding 045), and a
+	# self-test that only works on green evidence stops working exactly when the
+	# analyzer's judgement matters most.
+	python3 tools/analyze_e2_c_d1.py --self-test \
+		../findings/evidence/sdk-e2/e2-c-validation/d1/e2-editor-v2-572035ac/chrome \
 		> /dev/null
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
