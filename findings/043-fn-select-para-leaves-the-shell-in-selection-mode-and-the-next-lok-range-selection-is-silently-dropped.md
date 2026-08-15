@@ -133,8 +133,14 @@ CPPUNIT_ASSERT_EQUAL(u"Aaa b"_ustr, pShellCursor->GetText());
 
 ## 送出前還缺什麼
 
-- [ ] **重複單查詢七組都還沒跑**（草稿裡列著）。
-- [ ] Component 欄位確認（`sw/uibase/{wrtsh,docvw}`，LOK 介面在 `sw/uibase/uno`）。
+- [x] **重複單查詢七組已跑完（2026-08-15）**：六組零命中，一組四筆全部無關且早已修掉。
+      **加跑五個正向對照**，確認那些零是真的零而不是查詢語法壞掉——其中 C3
+      （`ALL content:setTextSelection`）命中一筆，證明 `ALL content:` 這條路
+      確實搜得到 `summary:` 搜不到的文字。**結論：沒有重複單。**
+      證據與逐筆判讀在 [`evidence/043/README.md`](evidence/043/README.md)。
+- [x] **Component 已確認為 `LibreOffice` / `Writer`（2026-08-15）**：Bugzilla 沒有
+      `sw` 子元件，而 Writer 側 LOK 缺陷的慣例就是這一格（100 筆樣本中 41 筆，
+      為最大一群）。同上證據檔。
 - [ ] **在乾淨樹上重現一次**（見上）。
 - [ ] 把草稿裡那支 cppunit 測試實際編起來跑，確認它在修之前真的紅（要重編 `sw`）。
 - [ ] 決定要不要一併送 patch——方向 (1) 是兩行。
