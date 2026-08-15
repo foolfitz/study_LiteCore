@@ -44,6 +44,18 @@ E1_B_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp \
 	src/editor_api.cpp
 E1_B_OBJECTS := $(patsubst src/%.cpp,$(E1_B_BUILD)/%.o,$(E1_B_SOURCES))
 
+# SPEC E2-B 5.12: the product v2 build variant.
+#
+# It is NOT a relink of e1-editor-v1.  The product objects there are compiled
+# without -DOXSDK_E2_FORMAT_BARRIER and route C sits entirely inside that
+# ifdef, so the shipped product has never contained the paragraph-format path
+# at all -- "re-run on the product build" was describing a build that did not
+# exist.  Same sources, three flags instead of two, its own output tree.
+E2_B_BUILD := build/e2/editor-v2
+E2_B_DIST := dist/profiles/e2-editor-v2
+E2_B_SOURCES := $(E1_B_SOURCES)
+E2_B_OBJECTS := $(patsubst src/%.cpp,$(E2_B_BUILD)/%.o,$(E2_B_SOURCES))
+
 # finding 022 verification build: same flags as e1-editor-v1, separate output.
 # The frozen e1-editor-v1 must not be rebuilt (SPEC E2-A section 3), so the fix
 # is verified on its own artifact and the frozen one keeps carrying the bug
@@ -513,6 +525,7 @@ $(R5_BUILD)/writer-review $(R5_BUILD)/writer-reader:
 $(FINDING_012_BUILD) $(FINDING_012_DIAGNOSTIC_BUILD) \
 		$(FINDING_012_DIAGNOSTIC_DIST) $(E1_BUILD) $(E1_DIST) \
 		$(E1_B_BUILD) $(E1_B_DIST) $(E1_FIX_BUILD) $(E1_FIX_DIST) \
+		$(E2_B_BUILD) $(E2_B_DIST) \
 		$(FINDING_016_SCHEDULER_BUILD) $(FINDING_016_SCHEDULER_DIST) \
 		$(FINDING_016_SELECTION_BUILD) $(FINDING_016_SELECTION_DIST) \
 		$(E2_BUILD) $(E2_DIST) $(E2_WAIT_BUILD) $(E2_WAIT_DIST) \
@@ -885,6 +898,42 @@ $(E1_B_BUILD)/probe.js: $(E1_B_OBJECTS) $(E1_B_BUILD)/exports.txt \
 	$(call link_r5_product,$(E1_B_OBJECTS),$(E1_B_BUILD)/exports.txt,$@)
 
 $(E1_B_BUILD)/probe.wasm: $(E1_B_BUILD)/probe.js
+	@test -s $@
+
+$(E2_B_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/format_readback_text.hpp Makefile | $(E2_B_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-c $< -o $@
+
+# Product exports only.  Deliberately NOT copied from the combination build:
+# that one appends three _oxsdk_editor_discovery_* symbols, and an artifact
+# exporting the diagnostic ABI can never be the product one (SPEC E2-B 5.8,
+# and validate_e1_b.py already refuses any export containing
+# "editor_discovery").  Written out rather than derived so the list is
+# readable as an inventory.
+$(E2_B_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_B_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# Guarded from the FIRST link, not from the first verdict.  The guard costs one
+# explicit flag and buys the property that no v2 artifact ever appears by
+# accident -- including the one that later gets bound to, which is exactly the
+# artifact nobody remembers was minted incidentally.
+$(E2_B_BUILD)/probe.js: $(E2_B_OBJECTS) $(E2_B_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the E2-B product v2 artifact -- every link mints a new hash and the SPEC E2-B section 7 evidence binds to one)
+	$(call link_r5_product,$(E2_B_OBJECTS),$(E2_B_BUILD)/exports.txt,$@)
+
+$(E2_B_BUILD)/probe.wasm: $(E2_B_BUILD)/probe.js
 	@test -s $@
 
 $(E1_FIX_BUILD)/exports.txt: $(E1_B_BUILD)/exports.txt Makefile | $(E1_FIX_BUILD)
