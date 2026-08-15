@@ -149,6 +149,21 @@ runner 自帶復原邏輯而產品沒有，是驗收會通過而產品仍然壞�
 session，工具列有十五個動作，並且**指標拖曳走的是產品自己的處理器**。
 D0 與 D5 都必須跑在那一頁上。
 
+**已完成（2026-08-15）**：`web/e2-editor.html`／`-app.js`，
+`tools/run_e2_c_page_smoke.py` 兩瀏覽器 `ok: true`
+——開到 `ready`、用頁面自己的指標處理器放游標（各 4 ms）、
+用頁面自己的工具列按「標題」（47 ms）、revision 0 → 1。
+**合成事件足以證明接線，不足以當 D5 的證據**；D5 那一格要真的 pointer event。
+
+> **順帶抓到一個已經出貨的缺陷**：`demo-structure-app.js` 遷到產品 v2 之後
+> 仍然呼叫 `client.placeCaretByClick`，那個方法只在**診斷用**的
+> `e2/demo-structure-client.js` 上。所以從那次遷移起，那一頁**每一次點擊都丟
+> TypeError**——上一輪檢查過「開得起來」，而開不起來正是它前一次壞掉的方式。
+> 已修，並補了通用檢查 `product-page-calls.test.mjs`：把頁面裡
+> `client.foo(`／`session.foo(` 的名字抽出來問那個類別有沒有。
+> **`node --check` 看不到這種錯**，因為 `client.foo()` 不管 `client` 是什麼
+> 都是合法語法。
+
 ### 2.5 第二個「宣告了但沒有人執行」的東西：十個繼承動作的 gesture
 
 **已觀察（原始碼層級，2026-08-15）**：v2 manifest 給十個繼承動作的宣告是
@@ -658,7 +673,9 @@ python3 tools/inventory_corpus_axes.py \
 - `wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-client.test.mjs`（**已建立**）
 - `wasm_sdk_probe/editor-shell-v2/narrow-editor-v2-session.js`（2.3 的產品 session，**已建立**）
 - `wasm_sdk_probe/editor-shell-v2/tests/narrow-editor-v2-session.test.mjs`（**已建立**）
-- `wasm_sdk_probe/web/e2-editor.html`／`-app.js`（2.4 的產品頁面，**含拖曳選取**）
+- `wasm_sdk_probe/web/e2-editor.html`／`-app.js`（2.4 的產品頁面，**含拖曳選取**，**已建立**）
+- `wasm_sdk_probe/editor-shell-v2/tests/product-page-calls.test.mjs`（**已建立**）
+- `wasm_sdk_probe/tools/run_e2_c_page_smoke.py`（接線煙霧測試，**已建立且兩瀏覽器通過**）
 - `wasm_sdk_probe/web/e2-c-validation.html`／`-app.js`（D0～D4 的 harness）
 - `wasm_sdk_probe/e2/editor-shell-v2-bundle-v1.json`（第 6 節的殼層綁定）
 - **`wasm_sdk_probe/e2/validation-matrix-v1.json`（凍結矩陣，見下）**
