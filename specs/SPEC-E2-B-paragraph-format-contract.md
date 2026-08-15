@@ -434,6 +434,40 @@ Document SDK 的規則是「major 相等且 requested minor ≤ actual minor」
 「v2 要不要服務 v1 的呼叫端」是**操作層**的問題（第 1 項），
 在那裡解決，不要用版本號的區間去含糊帶過。
 
+### 5.5 第 1 項的決定：**v2 profile 就是 v2 profile，字尾比對整條拿掉**
+
+現況的兩道閘門都以「V1」這個**字串形狀**為準：
+capability 表以操作名為 key（`sdk-worker.js:37`，`:729` 檢查），
+之後 `request.operation.startsWith("editor") && request.operation.endsWith("V1")
+&& !editorV1Enabled()`（`:752`），而 `editorV1Enabled()` 寫死
+capability `narrow-editor-v1` ＋ `editorContract.version === 1`（`:98`）。
+
+**決定（與 5.4 同一個理由：allowlist 的版本是身分不是區間）：**
+
+1. **新的操作族**：`editorActionV2`／`editorGetStateV2`／`editorSelectRangeV2`，
+   新的 capability `narrow-editor-v2`，`editorContract.version === 2`。
+2. **v2 profile 不宣告 `narrow-editor-v1`。** 一個 v1 client 打到 v2 profile
+   會在 capability 閘門乾淨地拿到 `UNSUPPORTED_OPERATION`——**這是誠實的**，
+   因為若讓它通過，它會拿到下面第 4 點說的原始診斷 state。
+3. **字尾比對整條拿掉。** 改成明確的表：每個操作名對應它需要的
+   capability 與 contract version。字尾比對之所以要死，不是因為它現在錯，
+   是因為它把「這個操作屬於哪個契約」編碼進**名字的形狀**——
+   而那正是 `endsWith("V1")` 會在 v2 profile 上把現行十個動作全部拒掉的原因。
+4. **產品 state 投影必須改成看「這是不是產品 editor 操作」，不是字串相等。**
+   現在是 `operation === "editorActionV1" ? productEditorState(...) : event.state`
+   （`:521`），而且對所有非 v1 操作補上診斷用的 `selectionBarrier`（`:537`）。
+   **只加 `editorActionV2` 而不改這裡，十五個動作會全部收到原始診斷 state**
+   ——那既擴大產品 ABI，也牴觸 E1-B 禁止 a11y／scheduler／raw diagnostic state
+   的約束。這是第 9 項，**它和第 1 項是同一個改動，不能分開做**。
+
+> **第 5 項在這裡一併解決**：`formatBarrier` 的轉發要寫進同一張表——
+> 承諾了 typed failure shape 就必須轉發它，否則 2.3 那張表在產品上是空頭支票。
+> 診斷 profile 現在是 builder 另外 patch 上去的
+> （`build_e2_discovery_profile.py:56`／`:74`），**那正好證明共用的產品 worker 沒有轉發**。
+
+**這一節全部是 JS，不重連結**——但依 5.2，它必須在最終量測**之前**定稿，
+否則 evidence 一樣會 stale。
+
 ### 5.2 唯一一次 relink 要帶什麼進去
 
 finding 042：改 `Makefile` 會重連結。所以下列**必須同一次做完**，
