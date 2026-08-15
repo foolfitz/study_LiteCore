@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <title>E2-B v2 產品 profile 冒煙測試</title>
+  <style>
+    body { font: 13px/1.5 system-ui, sans-serif; margin: 16px; color: #17202a; }
+    pre { background: #111820; color: #d6eeff; padding: 10px; white-space: pre-wrap;
+          max-height: 70vh; overflow: auto; }
+    h1 { font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>E2-B v2 產品 profile 冒煙測試</h1>
+  <p>不是量測，也不產生任何判定。它只回答一個問題：
+     <strong>relink 出來的那顆 artifact 加上新的 worker、manifest 與 client，
+     整條路走得通嗎</strong>——載入、開檔、派送一個收合游標的段落動作、讀回結果形狀。</p>
+  <p>會走不通的地方都是接線：capability 閘門、editor ABI 比對、
+     action id 11–15 的對應、gesture mask 的推送、結果驗證的放寬。
+     這些在 P3 之前該先燒掉，而不是在 90 個 run 的第一格才發現。</p>
+  <pre id="log">載入中⋯</pre>
+  <script type="module" src="./e2b-smoke-app.js"></script>
+</body>
+</html>

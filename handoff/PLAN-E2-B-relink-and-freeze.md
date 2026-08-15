@@ -44,8 +44,12 @@
 
 ## P1 完成（2026-08-15）
 
-**產品 v2 artifact 已連結：`64b94569…`**（loader `cdb7c843…`），
-在 `build/e2/editor-v2/`。
+**產品 v2 artifact：`572035ac…`**，profile 在 `dist/profiles/e2-editor-v2/`。
+
+> 第一次連結是 `64b94569…`。改了 Makefile（profile target 與 static target）
+> 之後守衛判定它過期——**那正是 finding 042 的情形，守衛做對了**。
+> 因為當時**還沒有任何證據綁上去**，重連結是免費的，就重連結了。
+> **P3 開始之後同樣的情形要付的代價完全不同。**
 
 連結當下核對：**四顆凍結 artifact 全部逐位元未變**
 （`835b453d`／`679def61`／`c89f069e`／`940b7723`）；
@@ -53,6 +57,17 @@
 
 > 這一顆是**還沒有任何判定綁上去**的 artifact。P2 改完 JS 之後若發現
 > 引擎還要動，現在還來得及重連結——**P3 開始之後就不行了**。
+
+**整條路已經冒煙測過**（`tools/run_e2b_smoke.py`，Chrome）：
+engine 起得來、manifest 讀得到 gestures 與 limits、
+**五個段落動作全部派送成功**、revision 每次剛好 +1（0→5）、
+`changed: null` ＋ `verified-format-readback` 被放寬後的驗證接受、
+而且 `route: collapsed`／`preBlocks: 0` 一路從引擎經 worker 傳到 client
+——路由的證據欄位是通的。
+
+> 冒煙測試第一次跑就抓到一件事：**profile 內含的是 worker 的複本**，
+> 我改了 `sdk/sdk-worker.js` 但 profile 還是舊的，所以 `editorActionV2`
+> 是未知操作。這種接線錯誤本來就該死在這裡，而不是死在 90 個 run 的第一格。
 
 ## P2 — JS／Python：不重連結，但必須在量測前定稿
 
