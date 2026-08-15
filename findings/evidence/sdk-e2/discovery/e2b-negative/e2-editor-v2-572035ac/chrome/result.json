@@ -1,0 +1,405 @@
+{
+  "schemaVersion": 1,
+  "release": "spec-e2b-negative-matrix",
+  "baselineProfile": "e2-editor-v2",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "rounds": 1,
+  "rows": [
+    {
+      "id": "N4",
+      "name": "abi-version-mismatch",
+      "round": 1,
+      "profile": "e2-editor-v2-n4-abi-version-mismatch",
+      "expect": [
+        "INCOMPATIBLE_ABI"
+      ],
+      "why": "a manifest is a claim; the binary is the fact",
+      "observed": {
+        "code": "INCOMPATIBLE_ABI",
+        "message": "editor ABI 2 in this binary does not match 3 declared by profile e2-editor-v2-n4-abi-version-mismatch",
+        "formatBarrier": null
+      },
+      "refused": true,
+      "zeroMutationBy": "no document was opened"
+    },
+    {
+      "id": "N1",
+      "name": "action-withheld-by-manifest",
+      "round": 1,
+      "profile": "e2-editor-v2-n1-action-withheld",
+      "fixture": "list-contexts.odt",
+      "expect": [
+        "UNSUPPORTED_OPERATION"
+      ],
+      "why": "proves the manifest CONSTRAINS rather than describes",
+      "crossProfile": false,
+      "observed": {
+        "code": "UNSUPPORTED_OPERATION",
+        "message": "set-list-ordered is not offered by profile e2-editor-v2-n1-action-withheld",
+        "formatBarrier": null
+      },
+      "refused": true,
+      "zeroMutationBy": "saved document comparison"
+    },
+    {
+      "id": "N2",
+      "name": "capability-withheld",
+      "round": 1,
+      "profile": "e2-editor-v2-n2-capability-withheld",
+      "fixture": "list-contexts.odt",
+      "expect": [
+        "UNSUPPORTED_OPERATION"
+      ],
+      "why": "the first of the worker's two gates",
+      "crossProfile": false,
+      "observed": {
+        "code": "UNSUPPORTED_OPERATION",
+        "message": "the active profile does not provide narrow-editor-v2",
+        "formatBarrier": null
+      },
+      "refused": true,
+      "zeroMutationBy": "saved document comparison"
+    },
+    {
+      "id": "N3",
+      "name": "contract-version-1",
+      "round": 1,
+      "profile": "e2-editor-v2-n3-contract-version-1",
+      "fixture": "list-contexts.odt",
+      "expect": [
+        "UNSUPPORTED_OPERATION"
+      ],
+      "why": "an allowlist's version is an identity, not a range",
+      "crossProfile": false,
+      "observed": {
+        "code": "UNSUPPORTED_OPERATION",
+        "message": "the active profile does not provide narrow-editor-v2",
+        "formatBarrier": null
+      },
+      "refused": true,
+      "zeroMutationBy": "saved document comparison"
+    },
+    {
+      "id": "N5",
+      "name": "v2-action-id-into-v1-profile",
+      "round": 1,
+      "profile": "e1-editor-v1",
+      "fixture": "list-contexts.odt",
+      "expect": [
+        "INVALID_ARGUMENT"
+      ],
+      "why": "a v1 profile must not accept a v2 action id",
+      "crossProfile": true,
+      "observed": {
+        "code": "INVALID_ARGUMENT",
+        "message": "editorActionV1 requires a closed action and typed options",
+        "formatBarrier": null
+      },
+      "refused": true,
+      "zeroMutationBy": "saved document comparison"
+    },
+    {
+      "id": "N6",
+      "name": "unknown-action-name",
+      "round": 1,
+      "profile": "e2-editor-v2",
+      "fixture": "list-contexts.odt",
+      "expect": [
+        "EDITOR_ACTION_UNSUPPORTED",
+        "INVALID_ARGUMENT"
+      ],
+      "why": "the action set is closed",
+      "crossProfile": false,
+      "observed": {
+        "code": "EDITOR_ACTION_UNSUPPORTED",
+        "message": "set-list-roman is not a v2 paragraph action",
+        "formatBarrier": null
+      },
+      "refused": true,
+      "zeroMutationBy": "saved document comparison"
+    },
+    {
+      "id": "N7",
+      "name": "option-flag-on-a-paragraph-action",
+      "round": 1,
+      "profile": "e2-editor-v2",
+      "fixture": "list-contexts.odt",
+      "expect": [
+        "INVALID_ARGUMENT"
+      ],
+      "why": "neither flag has a meaning for the five paragraph actions",
+      "crossProfile": false,
+      "observed": {
+        "code": "INVALID_ARGUMENT",
+        "message": "editorActionV2 requires a closed action and typed options",
+        "formatBarrier": null
+      },
+      "refused": true,
+      "zeroMutationBy": "saved document comparison"
+    },
+    {
+      "id": "N8",
+      "name": "stale-revision",
+      "round": 1,
+      "profile": "e2-editor-v2",
+      "fixture": "list-contexts.odt",
+      "expect": [
+        "STALE_REVISION",
+        "EDITOR_STALE_REVISION",
+        "INVALID_ARGUMENT"
+      ],
+      "why": "the optimistic-concurrency guard",
+      "crossProfile": false,
+      "observed": {
+        "code": "STALE_REVISION",
+        "message": "expected revision 7 but current revision is 0",
+        "formatBarrier": null
+      },
+      "refused": true,
+      "zeroMutationBy": "saved document comparison"
+    },
+    {
+      "id": "N9a",
+      "name": "forbidden-field-unoCommand",
+      "round": 1,
+      "profile": "e2-editor-v2",
+      "fixture": "list-contexts.odt",
+      "expect": [
+        "INVALID_ARGUMENT"
+      ],
+      "why": "one field at a time: sending three would only prove one is checked",
+      "crossProfile": false,
+      "observed": {
+        "code": "INVALID_ARGUMENT",
+        "message": "editorActionV2 requires a closed action and typed options",
+        "formatBarrier": null
+      },
+      "refused": true,
+      "zeroMutationBy": "saved document comparison"
+    },
+    {
+      "id": "N9b",
+      "name": "forbidden-field-keyCode",
+      "round": 1,
+      "profile": "e2-editor-v2",
+      "fixture": "list-contexts.odt",
+      "expect": [
+        "INVALID_ARGUMENT"
+      ],
+      "why": "one field at a time",
+      "crossProfile": false,
+      "observed": {
+        "code": "INVALID_ARGUMENT",
+        "message": "editorActionV2 requires a closed action and typed options",
+        "formatBarrier": null
+      },
+      "refused": true,
+      "zeroMutationBy": "saved document comparison"
+    },
+    {
+      "id": "N9c",
+      "name": "forbidden-field-command",
+      "round": 1,
+      "profile": "e2-editor-v2",
+      "fixture": "list-contexts.odt",
+      "expect": [
+        "INVALID_ARGUMENT"
+      ],
+      "why": "one field at a time",
+      "crossProfile": false,
+      "observed": {
+        "code": "INVALID_ARGUMENT",
+        "message": "editorActionV2 requires a closed action and typed options",
+        "formatBarrier": null
+      },
+      "refused": true,
+      "zeroMutationBy": "saved document comparison"
+    },
+    {
+      "id": "N11",
+      "name": "gesture-withheld-by-manifest",
+      "round": 1,
+      "profile": "e2-editor-v2-n11-gesture-withheld",
+      "fixture": "multi-paragraph.odt",
+      "expect": [
+        "EDITOR_FORMAT_GESTURE_UNSUPPORTED"
+      ],
+      "why": "the ONLY row that tests a gesture limit; without it a partial GO on a gesture is unprovable",
+      "crossProfile": false,
+      "observed": {
+        "code": "EDITOR_FORMAT_GESTURE_UNSUPPORTED",
+        "message": "this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged",
+        "formatBarrier": {
+          "failureShape": "gesture-not-permitted",
+          "dispatched": false,
+          "route": "range-cross",
+          "preBlocks": 2,
+          "postBlocks": 0,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false
+        }
+      },
+      "refused": true,
+      "zeroMutationBy": "saved document comparison"
+    }
+  ],
+  "complete": true,
+  "error": null,
+  "artifact": {
+    "profile": "e2-editor-v2",
+    "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+    "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+    "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+  },
+  "attribution": {
+    "runnerProfile": "e2-editor-v2",
+    "profilesDriven": [
+      "e1-editor-v1",
+      "e2-editor-v2",
+      "e2-editor-v2-n1-action-withheld",
+      "e2-editor-v2-n11-gesture-withheld",
+      "e2-editor-v2-n2-capability-withheld",
+      "e2-editor-v2-n3-contract-version-1",
+      "e2-editor-v2-n4-abi-version-mismatch"
+    ],
+    "declaredCrossProfile": [
+      "e1-editor-v1"
+    ],
+    "unexpectedProfiles": [],
+    "consistent": true
+  },
+  "savedDocuments": [
+    {
+      "row": "N1",
+      "round": 1,
+      "phase": "before",
+      "file": "saved/N1-round1-before.odt"
+    },
+    {
+      "row": "N1",
+      "round": 1,
+      "phase": "after",
+      "file": "saved/N1-round1-after.odt"
+    },
+    {
+      "row": "N2",
+      "round": 1,
+      "phase": "before",
+      "file": "saved/N2-round1-before.odt"
+    },
+    {
+      "row": "N2",
+      "round": 1,
+      "phase": "after",
+      "file": "saved/N2-round1-after.odt"
+    },
+    {
+      "row": "N3",
+      "round": 1,
+      "phase": "before",
+      "file": "saved/N3-round1-before.odt"
+    },
+    {
+      "row": "N3",
+      "round": 1,
+      "phase": "after",
+      "file": "saved/N3-round1-after.odt"
+    },
+    {
+      "row": "N5",
+      "round": 1,
+      "phase": "before",
+      "file": "saved/N5-round1-before.odt"
+    },
+    {
+      "row": "N5",
+      "round": 1,
+      "phase": "after",
+      "file": "saved/N5-round1-after.odt"
+    },
+    {
+      "row": "N6",
+      "round": 1,
+      "phase": "before",
+      "file": "saved/N6-round1-before.odt"
+    },
+    {
+      "row": "N6",
+      "round": 1,
+      "phase": "after",
+      "file": "saved/N6-round1-after.odt"
+    },
+    {
+      "row": "N7",
+      "round": 1,
+      "phase": "before",
+      "file": "saved/N7-round1-before.odt"
+    },
+    {
+      "row": "N7",
+      "round": 1,
+      "phase": "after",
+      "file": "saved/N7-round1-after.odt"
+    },
+    {
+      "row": "N8",
+      "round": 1,
+      "phase": "before",
+      "file": "saved/N8-round1-before.odt"
+    },
+    {
+      "row": "N8",
+      "round": 1,
+      "phase": "after",
+      "file": "saved/N8-round1-after.odt"
+    },
+    {
+      "row": "N9a",
+      "round": 1,
+      "phase": "before",
+      "file": "saved/N9a-round1-before.odt"
+    },
+    {
+      "row": "N9a",
+      "round": 1,
+      "phase": "after",
+      "file": "saved/N9a-round1-after.odt"
+    },
+    {
+      "row": "N9b",
+      "round": 1,
+      "phase": "before",
+      "file": "saved/N9b-round1-before.odt"
+    },
+    {
+      "row": "N9b",
+      "round": 1,
+      "phase": "after",
+      "file": "saved/N9b-round1-after.odt"
+    },
+    {
+      "row": "N9c",
+      "round": 1,
+      "phase": "before",
+      "file": "saved/N9c-round1-before.odt"
+    },
+    {
+      "row": "N9c",
+      "round": 1,
+      "phase": "after",
+      "file": "saved/N9c-round1-after.odt"
+    },
+    {
+      "row": "N11",
+      "round": 1,
+      "phase": "before",
+      "file": "saved/N11-round1-before.odt"
+    },
+    {
+      "row": "N11",
+      "round": 1,
+      "phase": "after",
+      "file": "saved/N11-round1-after.odt"
+    }
+  ]
+}
