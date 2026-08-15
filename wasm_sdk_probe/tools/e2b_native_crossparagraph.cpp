@@ -44,8 +44,10 @@
 
 namespace {
 
-const char *const kFirstAnchor = "E1-MULTI-START";
-const char *const kSecondAnchor = "第二段中文";
+// Overridable so the same arms can run against the misfire-control fixture
+// (SPEC E2-B 9.9 flip condition 2) without a second probe.
+const char *gFirstAnchor = "E1-MULTI-START";
+const char *gSecondAnchor = "第二段中文";
 const char *const kListOnArguments = "{\"On\":{\"type\":\"boolean\","
                                      "\"value\":true}}";
 
@@ -353,9 +355,14 @@ void runArm(LibreOfficeKit *kit, const char *url, const Arm &arm, int round,
 } // namespace
 
 int main(int argc, char **argv) {
-  if (argc != 5) {
-    std::cerr << "expected INSTALL PROFILE_URL DOCUMENT_URL SAVE_DIR\n";
+  if (argc != 5 && argc != 7) {
+    std::cerr << "expected INSTALL PROFILE_URL DOCUMENT_URL SAVE_DIR"
+                 " [FIRST_ANCHOR SECOND_ANCHOR]\n";
     return 64;
+  }
+  if (argc == 7) {
+    gFirstAnchor = argv[5];
+    gSecondAnchor = argv[6];
   }
   setenv("SAL_USE_VCLPLUGIN", "svp", 1);
 
@@ -366,8 +373,8 @@ int main(int argc, char **argv) {
   }
 
   Rectangle first, second;
-  if (!locateAnchor(kit, argv[3], kFirstAnchor, first) ||
-      !locateAnchor(kit, argv[3], kSecondAnchor, second)) {
+  if (!locateAnchor(kit, argv[3], gFirstAnchor, first) ||
+      !locateAnchor(kit, argv[3], gSecondAnchor, second)) {
     std::cerr << "could not locate both anchors\n";
     std::cout << "{\"setupSucceeded\":false}\n";
     kit->pClass->destroy(kit);

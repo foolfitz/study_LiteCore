@@ -44,7 +44,29 @@ from e1_support import sha256, write_json  # noqa: E402
 WRAP_TOKENS = 120
 WRAP_TEXT = " ".join(f"G1WRAP-{index:03d}" for index in range(1, WRAP_TOKENS + 1))
 
+# The misfire-direction control for SPEC E2-B 9.9's identity gate: text a naive
+# implementation would mangle.  Paragraph 2 opens with what looks exactly like
+# list decoration, which is what a gate that strips decoration would eat;
+# paragraph 3 carries characters the html serialiser has to escape, plus an
+# outline-looking run that is not at the start of the line.
+OUTLINE_PROSE = """
+ <text:p>E2B-OUT-HEAD marker</text:p>
+ <text:p><text:s text:c="4"/>OUT2 1. this line already looks numbered</text:p>
+ <text:p>Ampersand &amp; less-than &lt; quote " and 12. mid-line</text:p>
+ <text:p>E2B-OUT-TAIL marker</text:p>
+"""
+
 FIXTURES = {
+    "outline-prose": {
+        "body": OUTLINE_PROSE,
+        # OUT2 sits at the START of the decoration-looking run, on purpose.
+        # The first build of this fixture had the anchor at "looks numbered",
+        # which is AFTER the "1. " -- so the range began past the very shape the
+        # fixture exists to put inside a selection, and the arm did not exercise
+        # its case.  Same class of mistake as G1's first fixture.
+        "anchors": ["E2B-OUT-HEAD", "OUT2", "mid-line", "E2B-OUT-TAIL"],
+        "minimum": {"paragraphs": 4, "headings": 0, "lists": 0, "tables": 0},
+    },
     "wrapped-paragraph": {
         "body": f"""
  <text:p>E2B-WRAP-HEAD single line</text:p>

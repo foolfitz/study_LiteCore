@@ -40,7 +40,11 @@ echo "== compiling probe =="
 g++ -std=c++17 -O2 -I"$src/include" \
   "$here/tools/e2b_native_crossparagraph.cpp" -ldl -o "$probe"
 
-fixture="$here/test-docs/e1/multi-paragraph.odt"
+# Second and third arguments select the misfire-control fixture (SPEC E2-B 9.9
+# flip condition 2); with none, this is the multi-paragraph run.
+fixture="${2:-$here/test-docs/e1/multi-paragraph.odt}"
+first_anchor="${3:-}"
+second_anchor="${4:-}"
 if [ ! -f "$fixture" ]; then
   echo "fixture missing: $fixture" >&2
   exit 1
@@ -58,6 +62,7 @@ SAL_USE_VCLPLUGIN=svp \
   "file://$profile_dir" \
   "file://$fixture" \
   "$saved" \
+  ${first_anchor:+"$first_anchor" "$second_anchor"} \
   >"$out/arms.jsonl" 2>"$out/sal.log"
 status=$?
 set -e
