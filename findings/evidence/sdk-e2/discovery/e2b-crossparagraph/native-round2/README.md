@@ -45,18 +45,36 @@ So byte-equality of plain text fails on **every successful cross-paragraph list
 dispatch** — precisely the case B' exists to verify. B' would fall back always,
 which is check 2's own disqualifier.
 
-**Break two, which neither the adjudication nor the prediction anticipated — a
-partial selection reads back with no list structure at all.** The control's
-paragraph *is* a list item after the dispatch (the document says so), and its
-html readback reports `items: 0`, `blocks: 1`. **Verification driven by the
-surviving user selection is a false negative whenever that selection is
-partial** — and a partial range is the ordinary result of dragging.
+**Break two — a selection that stays inside one paragraph reads back with no
+list structure at all.** The control's paragraph *is* a list item after the
+dispatch (the document says so), and its html readback reports `items: 0`,
+`blocks: 1`.
+
+> **Correction, same day.** This paragraph first said the false negative applies
+> "whenever that selection is **partial**", and that is wrong — **the data on
+> this page refutes it.** The cross-paragraph arm's second paragraph is
+> *partial*: its full text is `第二段中文 beta` and the range took only
+> `第二段中文`. That arm reads back `blocks: 2, items: 2` in all three rounds.
+> **A partially-selected paragraph inside a crossing selection carries full list
+> structure.** The false negative is confined to selections that do **not** cross
+> a paragraph boundary. Caught by the adjudicator on re-reading these records;
+> verified against the fixture (`multi-paragraph.odt` paragraph 2) and against
+> all three rounds. The over-broad sentence is kept struck rather than deleted,
+> because it is the sort of sentence a later reader would cite to kill a
+> construction it does not actually kill.
 
 The shipped barrier does not hit this because it discards the user's selection
-and re-selects the whole paragraph with `.uno:SelectText` — which is exactly the
-call that selects only one paragraph, and therefore the reason G3 fails. So the
-two halves of the problem are the same call: **whole-paragraph readback is what
-makes verification honest, and one-paragraph-only is what makes it incomplete.**
+and re-selects the whole paragraph with `.uno:SelectText`.
+
+> **Same correction.** This section first concluded that "the two halves of the
+> problem are the same call". With break two's scope corrected, that dissolves:
+> the within-one-paragraph case is exactly the case the existing SelectText
+> barrier already handles honestly (every A arm, G1, G2), so a repaired
+> construction can route on the pre-dispatch block count and never take the
+> surviving-selection read for `blocks == 1`. For the crossing case,
+> whole-paragraph-per-block readback and multi-paragraph coverage **coexist** in
+> the surviving selection's own html — `items: 2` on this page is the direct
+> measurement of it.
 
 ## What this does not say
 
@@ -65,3 +83,14 @@ makes verification honest, and one-paragraph-only is what makes it incomplete.**
   broken in two specific ways, both of which are about what a readback of a
   selection can see.
 - Timings are from a fixed-sleep probe and are citable only within a run.
+
+## Still dark, and it must be measured before the relink
+
+Every crossing selection measured so far — these native arms and the browser
+gate's G3 — **starts at a paragraph head**. What a crossing selection does when
+its **first** paragraph is partial is unmeasured, and it is the ordinary result
+of dragging from the middle of a line. If the serialiser goes structure-blind at
+a partial *leading* edge the way it does inside a single paragraph, the repaired
+construction has a hole at the commonest gesture.
+
+That cell gets its own arm and its own committed prediction.
