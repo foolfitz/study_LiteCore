@@ -244,13 +244,13 @@ A1–A5、G1、G2 每一臂在派送**之前**必須全部成立，否則該 run
 | # | 事情 | 狀態 |
 |---|---|---|
 | 1 | worker 的兩道 v1 閘門 | **已定案 → 5.5**（新操作族，字尾比對整條拿掉） |
-| 2 | action map／`internalAction()` 只有 1–10 | 未定案（ID 命名與 options 要凍） |
+| 2 | action map／`internalAction()` 只有 1–10 | **已定案 → 5.11**（v1 enum 不動，另開 v2 enum） |
 | 3 | 產品 client 拒絕路線 C 的結果 | **已定案 → 5.6**（逐動作放寬） |
 | 4 | ~~no-op 的 revision 語意~~ | **已撤回**（v4，判為錯誤） |
 | 5 | 產品 worker 不轉發 `formatBarrier` | **已定案 → 5.5**（與 1、9 同一個改動） |
 | 6 | capability 表達不了部分 GO | **已定案 → 5.7**（`actions` 改成 map，帶 `limits`） |
 | 7 | freeze 的 negative matrix | **已定案 → 5.10**（十列，每列只動一件事）；第 7 節其餘門檻未訂 |
-| 8 | **產品 build 沒編路線 C** | 原則已定（要新的建置變體），Makefile 設計未寫 |
+| 8 | **產品 build 沒編路線 C** | **已定案 → 5.12**（新建置變體＋relink 守衛＋補兩件欠著的） |
 | 9 | 產品 state 投影以字串相等判斷 | **已定案 → 5.5** |
 | 10 | manifest 的 action allowlist runtime 不執行 | **已定案 → 5.7**（交集，只能收窄） |
 | 11 | 沒有產品 v2 的 profile builder | **已定案 → 5.8**（獨立 builder，fail closed） |
@@ -690,6 +690,56 @@ N10 不產生文件，判準是 builder 的非零退出。
 
 **還沒訂的**：第 7 節的其餘門檻——每個動作每個瀏覽器的次數、歸屬欄位、
 no-op 的 revision 方程式、validator 的突變控制。**那是下一項。**
+
+### 5.11 第 2 項的決定：新增五個常數，**v1 的 enum 一個字不動**
+
+`internalAction()` 對 11–15 落到 `default: return 0`（`editor_api.cpp:46`／`:69`），
+`:86` 同步回 `INVALID_ARGUMENT`。要加的東西本身很小，**難的是加在哪裡**。
+
+**決定：`oxsdk_editor_v1_action` 這個 enum 一個字不動，
+另開 `oxsdk_editor_v2_action`，只含 11–15。**
+
+- 1–10 的線上編號在 v2 完全不變，所以 v2 呼叫端送的就是 v1 的那十個常數；
+- 這樣 `tests/editor_abi_header_test.cpp` 對 1–10 的斷言**逐字仍然成立**，
+  不必為了 v2 去改一份釘住 v1 的測試——**去改它，就是把凍結測試變成
+  跟著實作跑的東西**，而它今天才剛因為漏釘兩個動作被補過（`c5cde7d`）。
+
+#### options：五個段落動作**兩個旗標都必須是 0**
+
+現行規則寫在 header 的註解：`extend_selection` 只有兩個移動動作接受，
+`enabled` 只有 inline format 動作接受。**五個段落動作兩者都不接受**，
+必須是嚴格的 0，否則 `INVALID_ARGUMENT`。這就是 negative matrix 的 N7。
+
+**`set-paragraph-heading` 不帶 level 參數**：縮限 2 是 H1 only，
+所以層級是隱含的，ABI 的形狀不變。**等哪天支援 H2–H6，那是加參數的破壞性改動，
+不是今天順手留一個沒有測過的欄位。**
+
+### 5.12 第 8 項的決定：產品 v2 是新的建置變體，而且要掛上既有的 relink 守衛
+
+產品 objects 的旗標是 `-DOXSDK_EDITOR_DISCOVERY
+-DOXSDK_FINDING_016_SELECTION_BARRIER`（`Makefile:538`），
+**沒有 `-DOXSDK_E2_FORMAT_BARRIER`**，而路線 C 整段包在那個 `#ifdef` 裡
+（`probe_engine.cpp:2991`／`:3611`）。所以要的不是重連結，是**新的建置變體**。
+
+以 `E1_B_BUILD` 為樣板（`Makefile:872`–`885`），v2 的目標要滿足：
+
+1. **objects 帶三個旗標**：v1 那兩個 ＋ `-DOXSDK_E2_FORMAT_BARRIER`；
+2. **export list 只加三個產品 symbol**（`_oxsdk_editor_action`／
+   `_oxsdk_editor_get_state`／`_oxsdk_editor_select_range`）**加上 5.4 的
+   `_oxsdk_editor_abi_version`**，**不得**沿用 `e2-combination` 的聯集
+   （`Makefile:619` 有三個 discovery symbol）；
+3. **掛 `refuse_unasked_relink`**（`Makefile:784`）：這個守衛已經在保護
+   出貨的 `835b453d`，v2 的 artifact 一旦被綁定判定，就該受同一個保護。
+   訊息裡要寫清楚它承載什麼。
+
+#### 兩件欠著的一起補，因為改 Makefile 只有這一次機會
+
+- `f049_native_select_after_format.cpp` 進 `test-e2-a-static` 的語法檢查；
+- E2-B 閘門的 harness 與 `dist/e2b-fixtures/` 的 target
+  （現在是手動 `cp`），連同 `e2b_native_crossparagraph.cpp`。
+
+**finding 042：`Makefile` 是每個 `.o` 的前置依賴，改它就會重編重連。**
+所以這三件事只有在同一次動 Makefile 時做才不用付第二次代價。
 
 ### 5.2 唯一一次 relink 要帶什麼進去
 
