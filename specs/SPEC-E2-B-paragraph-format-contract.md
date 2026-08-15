@@ -609,6 +609,50 @@ manifest 兩者都宣告。** host 拿 `gestures` 決定按鈕要不要 disable
 
 > **這一節全部是 JS／Python／資料，不重連結**——但依 5.2 必須在最終量測之前定稿。
 
+### 5.8 第 11 項的決定：獨立的 `build_e2_b_profile.py`，而且它要**拒絕**產出不合格的三件組
+
+現況沒有任何資料路徑能產生「v2、無 diagnostic capability、無 discovery export」：
+`build_e1_b_profile.py` 寫死 `e1-editor-v1`／`version: 1`／`abiVersion: 1`（`:40`／`:48`），
+而 `build_e2_discovery_profile.py` 一定加上 diagnostic capability 與 patch 過的 worker
+（`:166`／`:205`）。
+
+**決定：新寫一支 `build_e2_b_profile.py`，不是給既有的加旗標。**
+理由與 5.4 同一條：版本是身分。**一支能用旗標從 v1 變 v2 的 builder，
+就是一支能不小心把 v1 profile 標成 v2 的 builder**——而 E1-C 原地擴 v1
+那次，正是「同一條路徑兩種身分」造成的。共用 hash／複製的 helper 可以，
+共用進入點不行。
+
+它產出：`profile: "e2-editor-v2"`、capability **`narrow-editor-v2`（不含 v1）**、
+`editorContract.version = 2`／`abiVersion = 2`、`actions` 用 5.7 的 map、
+`diagnostic` 欄位 pop 掉。
+
+#### builder 要 fail closed，因為檢查已經存在了
+
+**export inventory 的檢查不必發明**：`validate_e1_b.py:126`–`128` 已經在做——
+exports 必須含 `_oxsdk_editor_action` 與 `_oxsdk_editor_get_state`，
+且**不得含任何 `editor_discovery`**（讀 `build/e1/editor-v1/exports.txt`，`:112`）。
+
+v2 的 builder 要**在寫出 manifest 之前**跑同一條檢查並在不合格時拒絕產出。
+理由：`e2-combination` 明確匯出三個 discovery symbol（`Makefile:619`），
+**它本身永遠不可能是產品 artifact**，而最容易犯的錯就是把它餵給 builder。
+讓 builder 拒絕，比讓 validator 事後抓到便宜——事後抓到時，
+證據可能已經跑完了。
+
+### 5.9 第 14 項 v2 那半的決定
+
+v1 那半已補（`c5cde7d`）。v2 這半要跟著 5.5 的操作名走：
+
+- `editor-client.d.ts`：新增五個動作的型別、v2 的操作名、
+  以及 5.6 允許的 `changed: null` 結果型別；
+- `EditorSession` 目前只有 `setInlineFormat()`（`editor-session.js:426`）、
+  且固定實例化只接受 v1 的 `NarrowEditorClient`（`:125`）——
+  兩者都要跟著 v2 走；
+- `tests/editor_abi_header_test.cpp` 要斷言 11–15 與新的 ABI 版本常數。
+
+**`declaration-drift.test.mjs` 已經會擋住宣告與 runtime 分家**（今天新增），
+所以這一項的回歸風險已經先降下來了。header test 是 `-fsyntax-only`，
+不產生 object，**不影響任何 artifact**。
+
 ### 5.2 唯一一次 relink 要帶什麼進去
 
 finding 042：改 `Makefile` 會重連結。所以下列**必須同一次做完**，
