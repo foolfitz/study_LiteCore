@@ -21,18 +21,36 @@
 
 ## G 才是這一輪的重點
 
-**中間什麼都沒有派送**——同一組座標、同一支呼叫、連續兩次，第一次空、第二次成功。
+**中間沒有派送任何 uno 指令**——同一組座標、同一支呼叫、連續兩次，第一次空、第二次成功。
 
-這是 `if (m_bInSelect) return;` 那個提前 return **獨有**的簽名：
+這與 `if (m_bInSelect) return;` 那個提前 return 的預測一致：
 `SwEditWin::SetCursorTwipPosition` 結尾的 `EndSelect()` 是照 `bCreateSelection`
 呼叫的（`edtwin.cxx:7121`–`7122`），**不是照 `SttSelect()` 有沒有真的做事**。
 於是那個失敗的 `END` 自己把旗標設回 false，下一次就正常。
 
 第一輪的臂 F（`.uno:GoLeft`）救得回來，但 `MoveCursor(false)` 同時做了
 `EndSelect()` 與 `m_fnKillSel`，所以 F **指認不了**是哪一個。
-**G 不需要派送任何東西**，所以它把「是某個 uno 指令的副作用」整類排除掉。
+G 不派送任何 uno 指令，所以它把「是某個 uno 指令的副作用」整類排除掉。
 
-## H 與 I 一起才有意義
+> **就地更正（2026-08-15，對抗性覆核指出）**：這一段原本寫「**中間什麼都沒有派送**」
+> 並宣稱這是那個提前 return **獨有**的簽名。**兩句都寫過頭了。**
+> 「沒派送 uno 指令」是真的，但兩次之間還有 **600 ms `sleep_for`、`getTextSelection()`、
+> `getSelectionType()` 以及 `SwTransferable` 建立**（`unotxdoc.cxx:4075`–`4105`）。
+> 所以至少還有兩個候選：第一次的 `SetCursor`／`UpdateCursor` 讓版面或座標映射穩定；
+> 或是那次讀取／等待完成了某個 pending 狀態。
+> **「獨有」已刪**，分離它們的臂是[第四輪](../PREDICTION-round4.md)的 AE 與 AF。
+> 覆核全文與我的核對記在 [`../codex-review-round1-3.md`](../codex-review-round1-3.md)。
+
+## H 與 I 一起才有意義（但只證到「非空」，端點語意是第四輪的事）
+
+> **就地更正（2026-08-15，對抗性覆核指出）**：下面原本的推理說「正常狀態下
+> `START` 建的 mark 一直保留到 `END`」。**那是錯的。**
+> H／I 用的是 `R == S`（`RESET` 與 `START` 同一個座標），此時 `START` 收尾的
+> `EndSelect()` → `SttLeaveSelect()` 會因為選取是空的而 **`ClearMark()`**
+> （`sw/source/uibase/wrtsh/select.cxx:661`–`667`），mark 是 `END` 才重建的。
+> **最終範圍仍然是 S→E，所以結論不變，但理由要照這個改。**
+> 另外 H／I 只檢查了「非空」，沒有逐字比對端點，也沒測 `R != S` 與反向範圍——
+> 那些是[第四輪](../PREDICTION-round4.md)的 AG／AH／AI／AJ／AK。
 
 H 單獨成立不能說「`RESET`→`START`→`END` 是修法」——也可能是
 「`START`＋`END` 這條路本來就永遠有效，跟 barrier 無關」。

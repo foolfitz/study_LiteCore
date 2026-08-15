@@ -39,10 +39,19 @@
 discovery 那條在等一個永遠不會來的回呼，而產品那條的 bounded readback
 在 250 ms 期限誠實回報「沒選到」。
 
-**三、`.uno:Escape` 不能解，`.uno:GoLeft` 可以。**
-兩者的差別在 `MoveCursor(false)`：`FN_CHAR_LEFT` 會走到它並呼叫 `EndSelect()`，
-而 `FN_ESCAPE` 的 `EnterStdMode()` 在 `HasSelection()` 為假時根本到不了
+**三、`.uno:Escape` 不能解。**
+`FN_ESCAPE` 的 `EnterStdMode()` 在 `HasSelection()` 為假時根本到不了
 （`sw/source/uibase/uiview/view2.cxx:1232`）——barrier 還原完剛好沒有選取。
+這一格**四輪一致**。
+
+> **就地更正（2026-08-15，第四輪複驗抓到）**：這一段原本還有下半句
+> 「**而 `.uno:GoLeft` 可以**」，理由是 `FN_CHAR_LEFT` 會走到 `MoveCursor(false)`
+> 並呼叫 `EndSelect()`。**那一格不可重現**——臂 F 在第一、二、三輪都選得到，
+> **第四輪選不到**。最可能的原因是探針用固定 sleep（`post()` 之後只等 400 ms），
+> 而這一臂的結果正好取決於那個 uno 指令已經生效。
+> **在探針改成等待實際完成之前，臂 F 不得引用。**
+> 原始碼層的說法沒有被推翻，但它現在只是說法，沒有可重現的量測撐著。
+> 詳見[第四輪](../native-round4/README.md#三個臂在四輪之間翻轉)。
 
 ## 每一臂都有的健全性檢查
 
