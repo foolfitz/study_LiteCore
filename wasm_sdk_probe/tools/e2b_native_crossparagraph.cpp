@@ -210,14 +210,21 @@ void selectRange(LibreOfficeKitDocument *document, long x1, long y1, long x2,
   drain(600);
 }
 
+// Round 1's control was confounded, and the confound was mine: its range was a
+// PARTIAL span inside paragraph 1 (the anchor rectangle covers
+// "E1-MULTI-START", not "E1-MULTI-START alpha"), so it differed from the test
+// arm in two ways at once -- one paragraph versus two, AND partial versus
+// whole.  `wholeParagraph` adds the third arm that separates them.
 struct Arm {
   const char *name;
   bool crossParagraph;
+  bool wholeParagraph;
 };
 
 const Arm kArms[] = {
-    {"cross-paragraph", true},
-    {"single-paragraph-control", false},
+    {"cross-paragraph", true, false},
+    {"single-paragraph-control", false, false},
+    {"single-paragraph-whole", false, true},
 };
 
 bool saveAs(LibreOfficeKitDocument *document, const std::string &path) {
@@ -247,7 +254,12 @@ void runArm(LibreOfficeKit *kit, const char *url, const Arm &arm, int round,
   const long y1 = first.y + first.height / 2;
   const long y2 = arm.crossParagraph ? second.y + second.height / 2 : y1;
   const long x1 = first.x;
-  const long x2 = arm.crossParagraph ? second.x + second.width : first.x + first.width;
+  // 9000 twips is what the browser gate uses: far enough right that the
+  // endpoint clamps to the end of the line, so the range covers the whole
+  // paragraph without needing to know where it ends.
+  const long x2 = arm.crossParagraph ? second.x + second.width
+                  : arm.wholeParagraph ? 9000
+                                       : first.x + first.width;
   selectRange(document, x1, y1, x2, y2);
 
   const std::string plainBefore = takeSelection(document,
