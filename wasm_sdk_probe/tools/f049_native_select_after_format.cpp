@@ -162,11 +162,20 @@ bool locateAnchor(LibreOfficeKit *kit, const char *url, Rectangle &out) {
   return gSelectionRectangleSeen && out.valid && out.width > 0;
 }
 
+// How the arm asks for its range selection.
+//
+// ResetEnd is what the engine ships today (probe_engine.cpp,
+// OXSDK_EDITOR_SELECTION_TEXT_HANDLES: RESET then END, no START).  The other
+// two are round 2's questions -- does a failed attempt clear whatever is
+// stuck, and does inserting a START avoid the problem altogether.
+enum class TailMode { ResetEnd, ResetEndTwice, ResetStartEnd };
+
 struct Arm {
   const char *name;
   bool format;      // dispatch .uno:DefaultBullet
   bool barrier;     // RESET -> .uno:SelectText -> getTextSelection(html) -> RESET
   const char *tail; // extra command after the barrier, or nullptr
+  TailMode mode;
 };
 
 // The order inside `barrier` is the engine's order, not a tidied version of it:
@@ -174,12 +183,71 @@ struct Arm {
 // (FormatBarrierStage::SelectQueued), reads the html postcondition, and posts
 // the restore RESET again (FormatBarrierStage::ReadQueued).
 const Arm kArms[] = {
-    {"A-control", false, false, nullptr},
-    {"B-format-only", true, false, nullptr},
-    {"C-select-text-only", false, true, nullptr},
-    {"D-full-barrier", true, true, nullptr},
-    {"E-full-barrier-escape", true, true, ".uno:Escape"},
-    {"F-full-barrier-goleft", true, true, ".uno:GoLeft"},
+    {"A-control", false, false, nullptr, TailMode::ResetEnd},
+    {"B-format-only", true, false, nullptr, TailMode::ResetEnd},
+    {"C-select-text-only", false, true, nullptr, TailMode::ResetEnd},
+    {"D-full-barrier", true, true, nullptr, TailMode::ResetEnd},
+    {"E-full-barrier-escape", true, true, ".uno:Escape", TailMode::ResetEnd},
+    {"F-full-barrier-goleft", true, true, ".uno:GoLeft", TailMode::ResetEnd},
+    {"G-barrier-then-twice", true, true, nullptr, TailMode::ResetEndTwice},
+    {"H-barrier-reset-start-end", true, true, nullptr, TailMode::ResetStartEnd},
+    {"I-control-reset-start-end", false, false, nullptr,
+     TailMode::ResetStartEnd},
+};
+
+struct Measurement {
+  std::string text;
+  int selectionType = -1;
+  int callbacks = 0;
+  bool selected() const { return !text.empty(); }
+};
+
+Measurement measureResetEnd(LibreOfficeKitDocument *document, long x1, long x2,
+                            long y) {
+  gTextSelectionCallbacks = 0;
+  document->pClass->setTextSelection(document, LOK_SETTEXTSELECTION_RESET, x1,
+                                     y);
+  drain(200);
+  document->pClass->setTextSelection(document, LOK_SETTEXTSELECTION_END, x2, y);
+  drain(600);
+  Measurement out;
+  out.text = takeSelectionText(document);
+  out.selectionType = document->pClass->getSelectionType(document);
+  out.callbacks = gTextSelectionCallbacks;
+  return out;
+}
+
+Measurement measureResetStartEnd(LibreOfficeKitDocument *document, long x1,
+                                 long x2, long y) {
+  gTextSelectionCallbacks = 0;
+  document->pClass->setTextSelection(document, LOK_SETTEXTSELECTION_RESET, x1,
+                                     y);
+  drain(200);
+  document->pClass->setTextSelection(document, LOK_SETTEXTSELECTION_START, x1,
+                                     y);
+  drain(200);
+  document->pClass->setTextSelection(document, LOK_SETTEXTSELECTION_END, x2, y);
+  drain(600);
+  Measurement out;
+  out.text = takeSelectionText(document);
+  out.selectionType = document->pClass->getSelectionType(document);
+  out.callbacks = gTextSelectionCallbacks;
+  return out;
+}
+
+void emitMeasurement(const char *label, const Measurement &measurement) {
+  std::cout << ",\"" << label << "\":{\"bytes\":" << measurement.text.size()
+            << ",\"text\":\"" << jsonEscape(measurement.text.c_str())
+            << "\",\"selectionType\":" << measurement.selectionType
+            << ",\"textSelectionCallbacks\":" << measurement.callbacks
+            << ",\"selected\":" << (measurement.selected() ? "true" : "false")
+            << '}';
+}
+
+struct ArmResult {
+  bool first = false;   // did the arm's first range selection select?
+  bool second = false;  // ResetEndTwice only; false everywhere else
+  bool ran = false;
 };
 
 void emitStep(bool &first, const char *label, int selectionType) {
@@ -190,14 +258,16 @@ void emitStep(bool &first, const char *label, int selectionType) {
             << selectionType << '}';
 }
 
-bool runArm(LibreOfficeKit *kit, const char *url, const Arm &arm,
-            const Rectangle &anchor) {
+ArmResult runArm(LibreOfficeKit *kit, const char *url, const Arm &arm,
+                 const Rectangle &anchor) {
+  ArmResult result;
   LibreOfficeKitDocument *document = openDocument(kit, url);
   if (!document) {
     std::cout << "{\"arm\":\"" << arm.name << "\",\"loaded\":false}\n";
     std::cout.flush();
-    return false;
+    return result;
   }
+  result.ran = true;
 
   const long caretY = anchor.y + anchor.height / 2;
   const long caretX = anchor.x + 1;
@@ -252,18 +322,25 @@ bool runArm(LibreOfficeKit *kit, const char *url, const Arm &arm,
              document->pClass->getSelectionType(document));
   }
 
-  // The measurement.  This is the engine's own range selection: RESET then
+  // The measurement.  ResetEnd is the engine's own range selection: RESET then
   // END, no START -- see probe_engine.cpp's OXSDK_EDITOR_SELECTION_TEXT_HANDLES.
-  gTextSelectionCallbacks = 0;
-  document->pClass->setTextSelection(document, LOK_SETTEXTSELECTION_RESET, x1,
-                                     caretY);
-  drain(200);
-  document->pClass->setTextSelection(document, LOK_SETTEXTSELECTION_END, x2,
-                                     caretY);
-  drain(600);
+  const Measurement primary =
+      arm.mode == TailMode::ResetStartEnd
+          ? measureResetStartEnd(document, x1, x2, caretY)
+          : measureResetEnd(document, x1, x2, caretY);
+  result.first = primary.selected();
 
-  const std::string selected = takeSelectionText(document);
-  const int selectionType = document->pClass->getSelectionType(document);
+  // Round 2, arm G: repeat the identical call with nothing dispatched in
+  // between.  If the second attempt succeeds, whatever blocked the first was
+  // cleared by the first attempt itself, which is the signature the
+  // `if (m_bInSelect) return;` reading predicts and no other candidate does.
+  Measurement repeat;
+  bool hasRepeat = false;
+  if (arm.mode == TailMode::ResetEndTwice) {
+    repeat = measureResetEnd(document, x1, x2, caretY);
+    result.second = repeat.selected();
+    hasRepeat = true;
+  }
 
   // Per-arm sanity check.  If the range selection came back empty, this says
   // whether the document was still reachable at all -- an arm that cannot
@@ -271,20 +348,22 @@ bool runArm(LibreOfficeKit *kit, const char *url, const Arm &arm,
   post(document, ".uno:SelectAll", nullptr);
   const std::size_t selectAllChars = takeSelectionText(document).size();
 
-  std::cout << "],\"tail\":" << (arm.tail ? "\"" : "null");
+  std::cout << "],\"mode\":\""
+            << (arm.mode == TailMode::ResetEnd
+                    ? "reset-end"
+                    : arm.mode == TailMode::ResetEndTwice ? "reset-end-twice"
+                                                          : "reset-start-end")
+            << "\",\"tail\":" << (arm.tail ? "\"" : "null");
   if (arm.tail)
     std::cout << arm.tail << '"';
-  std::cout << ",\"selectionTextBytes\":" << selected.size()
-            << ",\"selectionText\":\"" << jsonEscape(selected.c_str())
-            << "\",\"selectionType\":" << selectionType
-            << ",\"textSelectionCallbacks\":" << gTextSelectionCallbacks
-            << ",\"selectAllBytes\":" << selectAllChars
-            << ",\"selected\":" << (selected.empty() ? "false" : "true")
-            << "}\n";
+  emitMeasurement("attempt1", primary);
+  if (hasRepeat)
+    emitMeasurement("attempt2", repeat);
+  std::cout << ",\"selectAllBytes\":" << selectAllChars << "}\n";
   std::cout.flush();
 
   document->pClass->destroy(document);
-  return !selected.empty();
+  return result;
 }
 
 } // namespace
@@ -314,23 +393,34 @@ int main(int argc, char **argv) {
             << "}}\n";
   std::cout.flush();
 
-  bool selected[sizeof(kArms) / sizeof(kArms[0])] = {};
-  for (std::size_t index = 0; index < sizeof(kArms) / sizeof(kArms[0]);
-       ++index)
-    selected[index] = runArm(kit, argv[3], kArms[index], anchor);
+  constexpr std::size_t kArmCount = sizeof(kArms) / sizeof(kArms[0]);
+  ArmResult results[kArmCount];
+  for (std::size_t index = 0; index < kArmCount; ++index)
+    results[index] = runArm(kit, argv[3], kArms[index], anchor);
 
-  // The predicted shape, named so a reader does not have to re-derive it:
-  // control and format-only select, both barrier arms do not, and the arm that
-  // ends selection mode selects again.
-  const bool predictedShape = selected[0] && selected[1] && !selected[2] &&
-                              !selected[3] && !selected[4] && selected[5];
+  // Both predicted shapes, named so a reader does not have to re-derive them
+  // from the arm table.  Round 1: control and format-only select, both barrier
+  // arms do not, .uno:Escape does not rescue and .uno:GoLeft does.  Round 2:
+  // the repeat succeeds where the first attempt failed, and inserting a START
+  // avoids the failure -- with an unbarriered control proving START+END is not
+  // simply always fine.
+  const bool round1 = results[0].first && results[1].first &&
+                      !results[2].first && !results[3].first &&
+                      !results[4].first && results[5].first;
+  const bool round2 = !results[6].first && results[6].second &&
+                      results[7].first && results[8].first;
   std::cout << "{\"summary\":{\"setupSucceeded\":true";
-  for (std::size_t index = 0; index < sizeof(kArms) / sizeof(kArms[0]);
-       ++index)
+  for (std::size_t index = 0; index < kArmCount; ++index) {
     std::cout << ",\"" << kArms[index].name << "\":"
-              << (selected[index] ? "true" : "false");
-  std::cout << ",\"matchesPredictedShape\":"
-            << (predictedShape ? "true" : "false") << "}}\n";
+              << (results[index].first ? "true" : "false");
+    if (kArms[index].mode == TailMode::ResetEndTwice)
+      std::cout << ",\"" << kArms[index].name << "-attempt2\":"
+                << (results[index].second ? "true" : "false");
+  }
+  std::cout << ",\"matchesRound1PredictedShape\":"
+            << (round1 ? "true" : "false")
+            << ",\"matchesRound2PredictedShape\":"
+            << (round2 ? "true" : "false") << "}}\n";
   std::cout.flush();
 
   kit->pClass->destroy(kit);

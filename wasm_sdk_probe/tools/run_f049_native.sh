@@ -14,6 +14,11 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 src="$(cd "$here/../libreoffice-26-8" && pwd)"
 build="$(cd "$here/../build-native-26-8" && pwd)"
 out="${1:-$here/build/f049-native}"
+# Absolute, because the profile is handed to lok_init_2 as a file:// URL and a
+# relative one fails userinstall with a fatal error that looks like a broken
+# build rather than a broken argument.
+mkdir -p "$out"
+out="$(cd "$out" && pwd)"
 
 install_dir="$build/instdir/program"
 if [ ! -d "$install_dir" ]; then
