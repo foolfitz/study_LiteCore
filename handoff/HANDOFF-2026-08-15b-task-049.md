@@ -134,6 +134,19 @@ WASM 上的前後對照（`ba1a5dd5` → `940b7723`）：
    逐一檢查過都與 `sw/` 無關且對原生 `svp` 執行不可能有影響，
    但**那是檢查過不是重現過**——上游回報前要在乾淨樹上重現一次，那要完整重編，**歸使用者**。
 4. **`pgrep -f <pattern>` 會比對到自己所在的 shell**。等待迴圈要用別的判準。
+5. **`AGENTS.md`／`CLAUDE.md` 是本 session 中途（09:30）新增的規則**，讀者是上游：
+   `findings/evidence/**` 與 `findings/drafts/*-bugzilla.txt` **一律英文**；
+   Bugzilla 草稿**散文一段一行不硬斷**、**不要把表格塞進留言**（留言框 83 欄、
+   `white-space: pre-wrap`，硬斷行真的會顯示成硬斷行）；堆疊／程式碼／diff 的換行
+   屬於資料本身，超欄的處方是**把那一行改短**不是折行。
+   `devlog/`／`handoff/`／`research/`／`specs/` 與草稿裡標明「內部備註」的段落**不受此限**。
+
+### 證據樹的語言：**使用者裁示先不動**
+
+`findings/evidence/sdk-e2/discovery/049-selection-after-format/` 這一棵**跨在規則界線兩邊**：
+09:30 之後寫的六份受約束、之前的七份不受。**使用者 2026-08-15 決定「整棵都先不動，之後再說」**，
+所以現在整棵仍是 zh-TW。`findings/drafts/043-bugzilla.txt` **已改到合規**（`8cc2efb`）。
+下次若要處理，記得它是一個完整論證、四輪預測互相引用，**要翻就整棵一起翻**。
 
 ## 還開著的
 
