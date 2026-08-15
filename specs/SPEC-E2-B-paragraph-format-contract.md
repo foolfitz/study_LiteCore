@@ -1364,6 +1364,29 @@ html 的文字節點裡沒有標記數字（`native-round4/`，五臂三輪）�
 - H2–H6（縮限 2 不變）。
 - **實體指標拖曳仍未量**：範圍是以座標進來的，不是 pointer event。
 
+## 9.11 判定：`GO_TO_E2_C`（2026-08-15）
+
+**產品 artifact `572035ac…`（`e2-editor-v2`），contract v2／abiVersion 2／
+15 個動作／跨段處置 `verify-every-block`。**
+
+判定由 `tools/validate_e2_b.py` **從證據重新推導**，不是寫下來的：
+artifact 的 hash 從磁碟重算並與每份證據自己記的比對（finding 027）、
+逐臂判定由分析器重跑而不是讀摘要、四路清單與 E1-C 的 bundle 一併重查。
+**那支 validator 自己也驗過會說不**（改掉 manifest 的 hash、或從 manifest
+拿掉一個動作，都會得到 `NOT_YET` 並指出原因）。
+
+依 7.2，`GO_TO_E2_C` 成立。第 9 節的遷移條款也已完成：
+`demo-structure` 改接 v2，舊的那支**原封改名保留**為 `demo-structure-discovery`。
+
+### 這個 GO 明確**不**包含的
+
+- **`set-list-ordered` 打在「兩段都已經是編號清單」的跨段範圍上**——沒量過；
+- **H2–H6**（縮限 2 不變）；
+- **實體指標拖曳**：範圍是以座標進來的，不是 pointer event；
+- **標題的大綱參與**：`.uno:StyleApply` 套的是 `Heading_20_1` **樣式**，
+  匯出仍是 `<text:p>`、沒有 `text:outline-level`。契約承諾的是樣式，
+  從來沒有承諾它會進文件大綱。
+
 ## 10. 修訂紀錄
 
 | 日期 | 內容 |
