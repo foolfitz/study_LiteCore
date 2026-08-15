@@ -401,3 +401,56 @@ whoever implements the gate, not a failure of it.
 | per-block text identical 3/3 | flip condition 2 does not fire; the html gate is closed on both directions |
 | identical on some rounds only | unstable, not citable, re-run |
 | differs | **the gate misfires on ordinary prose → A** |
+
+---
+
+# Addendum, round 6: wasm parity, the last flip condition
+
+**Written and committed before the v2 artifact is driven on any range.**
+
+The adjudicator's flip condition 3 has stood unanswered since the beginning:
+every cross-paragraph reading in this project is **native**. Whether the WASM
+build agrees was a premise, and it could not be measured until B' existed,
+because the surviving selection is not observable from JavaScript without it.
+
+B' now exists: artifact `572035ac…`, profile `e2-editor-v2`, and the collapsed
+route is already known to work end to end (`tools/run_e2b_smoke.py`).
+
+## What is being checked
+
+For each route, on the WASM artifact, through the product v2 client:
+
+| route | fixture | expectation |
+|---|---|---|
+| `range-single` | `list-contexts.odt`, one paragraph | `preBlocks == 1`, action completes |
+| `range-cross` | `multi-paragraph.odt`, spanning two | `preBlocks >= 2`, `crossIdentityHeld == true`, `crossStateHeld == true`, action completes |
+
+## Prediction
+
+**Both routes behave as the native rounds did.** Specifically: the routing read
+returns rather than wedging, `preBlocks` discriminates 1 from 2, and the
+cross-paragraph verification holds — because per-block html text is identical
+before and after, which is what native rounds 4 and 5 measured fifteen and nine
+times respectively without a single disagreement.
+
+*Basis.* The serialiser is the same code in both builds; what differs is the
+platform underneath it. The one native-versus-wasm difference this project has
+measured is timing, not markup.
+
+*How it could be wrong.* The wasm build's html serialisation could differ in
+whitespace or inline markup — the A2 sample from the earlier gate came from
+wasm and agreed with native, but that was a single-paragraph readback through
+`.uno:SelectText`, not a crossing one.
+
+## What each outcome means
+
+| reading | consequence |
+|---|---|
+| both routes as predicted | **flip condition 3 does not fire**; B' stands and the manifest keeps `range-cross` |
+| `range-cross` verification fails while the document is correct | the wasm serialisation differs from native → **switch the manifest to disposition A** (drop `--cross-paragraph`), which costs no relink |
+| the routing read wedges | **disposition A**, and a finding: the 037 guard did not cover this call |
+
+**This is still wiring, not the section 7 measurement.** It reports what the
+engine routed and returned; it judges no document and produces no verdict. The
+90-run matrix and the negative matrix are what bind, and they run after the
+harness and the predictions for them are in place.
