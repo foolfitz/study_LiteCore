@@ -1888,6 +1888,17 @@ test-e2-c-static:
 	# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
 	# target that rewrites verdict-bound evidence has happened here once.
 	python3 tools/check_e1_c_bundle_intact.py > /dev/null
+	python3 -m json.tool e2/content-axis-suites.json > /dev/null
+	# SPEC E2-C 8.1: D3's corpus must carry the axes the spec claims it does.
+	# --suites and --output are both explicit: the tool's default output is
+	# E1's baseline evidence, and E1-C's verdict records this tool's stdout
+	# verbatim, so a defaulted run here would write into E1's evidence.  The
+	# copy that becomes E2-C's evidence is produced by the judging run, not by
+	# a syntax check.
+	mkdir -p build/e2c
+	python3 tools/inventory_corpus_axes.py \
+		--suites e2/content-axis-suites.json \
+		--output build/e2c/content-axes.json --check > /dev/null
 
 # No prerequisites on purpose.  test-e1-c-static pulls e1-editor-validation-assets
 # and therefore rebuilds the frozen e1-editor-v1 profile; this target must stay

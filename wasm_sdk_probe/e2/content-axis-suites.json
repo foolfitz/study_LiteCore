@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "release": "content-axis-inventory",
+  "note": "E2's suite declarations, kept out of e1/content-axis-suites.json on purpose. inventory_corpus_axes.py defaults its --output to findings/evidence/sdk-e1/baseline/content-axes.json, and E1-C's verdict evidence records that tool's stdout verbatim; an E2 run using the defaults would be writing into E1's evidence. Fixture lists are transcribed from the spec; axis numbers are never transcribed -- they are read out of the bytes.",
+  "suites": {
+    "E2-C-D3": {
+      "source": "SPEC-E2-C section 5, D3 -- the six ODTs the E2 verdict will rest on",
+      "fixtures": [
+        "l0-t1-plain-zh.odt",
+        "l0-t2-styled.odt",
+        "l0-t3-long.odt",
+        "l1-review.odt",
+        "l4-stress-100.odt",
+        "list-contexts.odt"
+      ],
+      "expect": {
+        "list": "present",
+        "list-item": "present",
+        "heading": "present",
+        "footnote": "absent",
+        "endnote": "absent",
+        "frame-as-char-in-paragraph": 1
+      },
+      "why": "The list axes are pinned present because the shipped v2 contract has three list actions and SPEC-E1-C 9.2 wrote down, before any of them shipped, that list actions must not enter the contract until the corpus carries lists or the gap is named. The note axes are pinned absent because SPEC-E2-C 9.2 narrows the verdict away from finding 038's combination on exactly that ground -- if a note ever appears in this corpus the narrowing's stated reason stops being true and this must go red rather than quietly become a false sentence. frame-as-char-in-paragraph is pinned at 1 for the same reason SPEC-E1-C pins it: 100 of the corpus's as-char frames sit directly under office:text where the anchoring means nothing, and quoting the larger number makes the coverage sound better than it is."
+    }
+  }
+}

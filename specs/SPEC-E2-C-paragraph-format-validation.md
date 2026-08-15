@@ -301,10 +301,39 @@ cancel／denied／stale 之後仍 mutation、boundary 或 crash 後自動重播�
 [`tools/inventory_corpus_axes.py --check`](../wasm_sdk_probe/tools/inventory_corpus_axes.py)，
 並把該次語料的內容軸盤點與盲區清單一併寫進判定**（E1-C 9.2 訂的規矩，原樣適用）。
 
-E2-C 必須在 `e1/content-axis-suites.json` 新增一個 **`E2-C-D3`** 套件，宣告 D3 實際
-跑過哪六份，並把本規格用文字寫的宣稱改寫成會失敗的斷言：`list` 與 `list-item`
+E2-C 的套件宣告放在**新的 `e2/content-axis-suites.json`**，**不是**加進
+`e1/content-axis-suites.json`；跑的時候必須明寫 `--suites` 與 `--output`：
+
+```
+python3 tools/inventory_corpus_axes.py \
+    --suites e2/content-axis-suites.json \
+    --output ../findings/evidence/sdk-e2/e2-c-validation/baseline/content-axes.json \
+    --check
+```
+
+> **為什麼不能用預設值**：這支工具的預設 `--output` 是
+> `findings/evidence/sdk-e1/baseline/content-axes.json`，那是 **E1 的證據**；
+> 而且 E1-C 判定證據 `editor-validation-v2/summary.json` 裡**逐字收著這支工具的
+> stdout**（靜態相位的輸出）。E2-C 用預設值跑一次，就等於在 E1 的證據上寫字。
+> **這正是本輪已經踩過一次的那個坑**（`validate_e1_c.py` 掛進靜態檢查改寫了
+> 兩個證據檔），第二次要在規格裡就擋掉。
+
+套件必須把本規格用文字寫的宣稱改寫成會失敗的斷言：`list` 與 `list-item`
 **present**（否則清單動作又是在沒有清單的語料上驗收）、`footnote` 與 `endnote`
 **absent**（否則 9.2 的收窄理由不成立，見下）。
+
+**已先量過（2026-08-15，六份的 roll-up）**，六個斷言全部成立：
+`list` 2、`list-item` 4、`footnote` 0、`endnote` 0、`heading` 126、
+`frame-as-char-in-paragraph` 1。
+
+> **但這幾個數字要照它們本來的大小讀。** 清單軸**只有 2 個 `text:list` 與
+> 4 個 `text:list-item`，而且全部來自 `list-contexts.odt` 一份**。
+> 「list present」聽起來像涵蓋，實際是六份裡有一份、共兩串。
+> D3 因此只能支持「清單動作在**帶清單的真實文件**上不破壞結構」，
+> **不能**支持「清單動作在各種清單構造上都成立」——巢狀清單、
+> 混合編號、清單裡的表格這些格在這個語料裡是 0，
+> 要收就得補語料，不能靠重跑。這一句是本規格對 D3 效力範圍的界定，
+> 不是待辦。
 
 > 理由不是流程潔癖。034、035、037、038 是同一種失敗：**不是矩陣有一格沒跑，
 > 是矩陣沒有這條軸，而且沒有人看得出它不在。**
@@ -336,7 +365,8 @@ E2-C 必須在 `e1/content-axis-suites.json` 新增一個 **`E2-C-D3`** 套件�
 本輪修改（預定）：
 
 - `wasm_sdk_probe/Makefile`（`test-e2-c-static`、dist 複製規則）
-- `wasm_sdk_probe/e1/content-axis-suites.json`（新增 `E2-C-D3` 套件）
+- `wasm_sdk_probe/e2/content-axis-suites.json`（**新檔**，`E2-C-D3` 套件；
+  **不動 `e1/` 那一份**，理由見 8.1）
 - `specs/SPEC-E2-000-overview.md`（第 7 節接上 C 的規格連結）
 
 **不修改**：`editor-shell/*.js`、E2-B 的任何檢查工具、任何 profile 的位元組。
