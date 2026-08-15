@@ -60,25 +60,53 @@ precisely rather than loosely:
   struct was initialised to. It should not be read as "the engine classified this as
   collapsed".
 
-**It is sequence-dependent, not anchor-dependent.** Measured the same day, on the
-same artifact and the same fixture:
+**Bisected 2026-08-15, and the answer changes what this cell means.**
 
-| probe | result |
+The prefix bisection (`?prefix=N`, added to the harness for this) put the boundary
+between 15 and 16: with the first 15 cells the probe passes, with 16 it fails. Cell
+16 is `d1-heading-collapsed`. A two-cell run — `d1-heading-collapsed` then
+`d1-body-collapsed` and nothing else — reproduces it.
+
+That contradicted an earlier probe of the same two actions, which passed. The
+difference between the two was **how the collapsed caret is formed**, and testing
+that directly settles it:
+
+| the caret before the dispatch | result |
 |---|---|
-| `set-paragraph-body` at that anchor, **alone in a fresh document** | **succeeds**, `verified-format-readback`; selection type read before dispatch is `none`, 0 rectangles |
-| `set-paragraph-heading` at the neighbouring anchor, alone | succeeds |
-| **heading at the neighbour, then body at this anchor**, one document | **succeeds** — the two-cell sequence does not reproduce it |
+| `selectRange(p, p)` — a zero-width range, what this harness has always done | **`EDITOR_FORMAT_SELECTION_NOT_READABLE`**, dispatched: false |
+| `click` then poll until the engine confirms a collapsed caret — **what the product page does** | **passes**, `verified-format-readback` |
 
-So the cell that fails in D1 fails only after **more** of D1's sequence has run —
-nineteen cells, including inline formats, list actions and a cross-paragraph range.
-Two-cell reproduction is not enough, which rules out both "this anchor is special"
-and "the immediately preceding paragraph action leaves it broken".
+Same artifact, same anchor, same preceding action, one round each.
 
-The neighbourhood to look at next is findings
-[043](../../../../043-fn-select-para-leaves-the-shell-in-selection-mode-and-the-next-lok-range-selection-is-silently-dropped.md)
-and 049: a format barrier ends by restoring a selection, and 043 is precisely "the
-shell stays in selection mode and the next range selection is silently dropped".
-The next step is a bisect of the D1 sequence, one full round per attempt.
+### So this cell was measuring the harness, not the product
+
+`web/e2-editor-app.js` forms carets with `session.placeCaret` (click, then wait for
+the engine's confirmation). The D1 harness formed them with a zero-width
+`selectRange`. **After a format barrier, those two are not equivalent** — the
+barrier ends by restoring a selection, and the next zero-width `selectRange` leaves
+the engine in a state whose selection type is not TEXT, which the finding-037 guard
+then correctly refuses.
+
+Two consequences, and the second is the uncomfortable one:
+
+1. **`d1-body-collapsed` does not gate the relink.** It is not an engine defect
+   needing a fix in the next artifact. It belongs to the finding
+   [043](../../../../043-fn-select-para-leaves-the-shell-in-selection-mode-and-the-next-lok-range-selection-is-silently-dropped.md)
+   / 049 family — a selection left in a state the next gesture inherits — and the
+   product's own caret path does not hit it.
+2. **The whole of D1 round 1 was driven through a gesture the product does not
+   use.** Twenty-seven cells formed their carets with `selectRange`. That does not
+   make their results false — they say what they say about that gesture — but it
+   does mean this round did not measure the product's own path, which is the same
+   mistake, one level down, that SPEC E2-C 2.2 records about taking the union of
+   shells.
+
+**Round 1's record stands as it is.** The matrix was frozen before D0 and says
+nothing about how a caret is formed; changing the harness now and re-running would
+be changing the criteria after execution, which is the one thing the freeze exists
+to prevent. The requirement — **carets are formed the way the product forms them** —
+goes into round 2's matrix, along with a cell that pins the difference measured
+here.
 
 ## What passed
 

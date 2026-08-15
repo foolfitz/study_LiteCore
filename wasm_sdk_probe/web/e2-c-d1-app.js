@@ -31,6 +31,23 @@ const params = new URLSearchParams(location.search);
 const profile = params.get("profile") || "e2-editor-v2";
 const fixture = params.get("fixture") || "d1-anchors.odt";
 const rounds = Number(params.get("rounds") || 3);
+// Bisection support (SPEC E2-C 9.5.4): `prefix=N` runs the first N cells and
+// then the one cell under investigation, so the sequence that produces a
+// failure can be halved instead of guessed at.  Absent, the full matrix runs
+// and the page behaves exactly as it did for the recorded D1 evidence.
+const prefix = params.has("prefix") ? Number(params.get("prefix")) : null;
+const probeCell = params.get("probe") || "d1-body-collapsed";
+// `only=a,b,c` runs exactly those cells in that order.  The prefix bisection
+// narrowed the failure to "d1-heading-collapsed AND something earlier" -- a
+// conjunction, which a prefix cannot separate.
+const only = params.get("only");
+// How a collapsed caret is formed.  `range` is what this harness has always
+// done (a zero-width selectRange); `click` is what the PRODUCT page does
+// (document click, then poll until the engine confirms a collapsed caret).
+// The two are different gestures, and d1-body-collapsed's refusal turned out to
+// depend on which one precedes it -- so the harness has to be able to ask the
+// question in the product's own terms.
+const caretMode = params.get("caret") || "range";
 const stepTimeoutMs = 30000;
 
 const metrics = {
@@ -40,6 +57,9 @@ const metrics = {
   profile,
   fixture,
   rounds,
+  prefix,
+  caretMode,
+  probeCell,
   browser: navigator.userAgent,
   cells: {},
   anchors: {},
@@ -128,10 +148,24 @@ async function locate(handle, client, anchor, hint) {
 const FORMAT_ACTIONS = new Set(["set-bold", "set-italic", "set-underline",
   "set-strikethrough"]);
 
-async function collapsedAt(client, y) {
-  await client.selectRange({ xTwips: 2000, yTwips: y },
-                           { xTwips: 2000, yTwips: y },
-                           { timeoutMs: stepTimeoutMs });
+async function collapsedAt(client, y, handle) {
+  if (caretMode !== "click") {
+    await client.selectRange({ xTwips: 2000, yTwips: y },
+                             { xTwips: 2000, yTwips: y },
+                             { timeoutMs: stepTimeoutMs });
+    return;
+  }
+  await handle.click(2000, y, { timeoutMs: stepTimeoutMs });
+  const deadline = Date.now() + stepTimeoutMs;
+  do {
+    const state = await client.getState({ timeoutMs: stepTimeoutMs });
+    if (state.selectionType === "none" && state.selection?.observed === true
+        && state.selection?.collapsed === true)
+      return;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  } while (Date.now() < deadline);
+  throw Object.assign(new Error("no callback-confirmed collapsed caret"),
+                      { code: "EDITOR_STATE_UNAVAILABLE" });
 }
 
 async function rangeAt(client, y, endY = y) {
@@ -204,7 +238,15 @@ const CELLS = [
   { id: "d1-save", kind: "save" },
 ];
 
-const ANCHORS = [...new Set(CELLS.flatMap(
+const SEQUENCE = only ? only.split(",").map(
+  (id) => CELLS.find((cell) => cell.id === id)).filter(Boolean)
+  : prefix === null ? CELLS : (() => {
+  const target = CELLS.find((cell) => cell.id === probeCell);
+  const head = CELLS.filter((cell) => cell.id !== probeCell).slice(0, prefix);
+  return target ? [...head, target] : head;
+})();
+
+const ANCHORS = [...new Set(SEQUENCE.flatMap(
   (cell) => [cell.anchor, cell.crossAnchor].filter(Boolean)))];
 
 async function runCell(context, cell, round) {
@@ -224,7 +266,7 @@ async function runCell(context, cell, round) {
     }
 
     if (cell.kind === "caret") {
-      await collapsedAt(client, y);
+      await collapsedAt(client, y, handle);
       const state = await client.getState({ timeoutMs: stepTimeoutMs });
       entry.result = { selectionType: state.selectionType,
                        collapsed: state.selection?.collapsed ?? null,
@@ -234,7 +276,7 @@ async function runCell(context, cell, round) {
     }
 
     if (cell.kind === "insert") {
-      await collapsedAt(client, y);
+      await collapsedAt(client, y, handle);
       const before = handle.revision;
       const inserted = await handle.insertText(cell.marker,
                                                { timeoutMs: stepTimeoutMs });
@@ -277,18 +319,18 @@ async function runCell(context, cell, round) {
     }
 
     if (cell.kind === "interleave") {
-      await collapsedAt(client, y);
+      await collapsedAt(client, y, handle);
       const paragraph = await client.action("set-paragraph-heading");
       entry.steps.push({ action: "set-paragraph-heading",
                          changed: paragraph.changed,
                          completion: paragraph.completion,
                          revision: paragraph.revision });
-      await collapsedAt(client, y);
+      await collapsedAt(client, y, handle);
       const inline = await client.action("set-bold", { enabled: true });
       entry.steps.push({ action: "set-bold", changed: inline.changed,
                          completion: inline.completion,
                          revision: inline.revision });
-      await collapsedAt(client, y);
+      await collapsedAt(client, y, handle);
       const removed = await client.action("delete-backward");
       entry.steps.push({ action: "delete-backward", changed: removed.changed,
                          completion: removed.completion,
@@ -318,7 +360,7 @@ async function runCell(context, cell, round) {
     } else if (cell.gesture === "range-single") {
       await rangeAt(client, y);
     } else {
-      await collapsedAt(client, y);
+      await collapsedAt(client, y, handle);
     }
 
     const before = handle.revision;
@@ -386,7 +428,7 @@ void (async () => {
       const context = { handle, client, hints };
       const results = [];
       await snapshot(handle, `round${round}-opened`);
-      for (const cell of CELLS) {
+      for (const cell of SEQUENCE) {
         const entry = await runCell(context, cell, round);
         results.push(entry);
         log(entry);
