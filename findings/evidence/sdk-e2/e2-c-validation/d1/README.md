@@ -126,6 +126,26 @@ Everything else, 3/3 in both browsers, including:
 * the interleave cell: a delete and a bold dispatched **after** a paragraph action
   still satisfy v1's own postconditions, so route C's relaxation has not leaked.
 
+## Correction: one criterion did not describe what the harness did
+
+The matrix's `d1-characterisation-range-inherited` says "single and cross". The
+harness's `rangeAt(client, y)` passes **the same y for start and end**
+(`web/e2-c-d1-app.js`), so that cell **never built a cross-paragraph range**.
+
+What it did measure is true and is worth keeping: `set-bold` on a **single-line**
+range succeeded 6/6, and `delete-backward` on a range was refused 6/6 with
+`EDITOR_STATE_UNAVAILABLE`. The coverage is just narrower than the criterion said.
+
+Found by adversarial review, not by the round. Round 1's record is left as it is —
+correcting a criterion after execution is the thing the freeze prevents — and the
+consequence is carried forward: the inherited actions stay **collapsed-only**,
+because widening their declared gestures would need a cross-paragraph measurement
+that does not exist, and round 2's matrix splits this into two cells with their own
+anchors and a document oracle.
+
+This is the second time in this round that a criterion and the harness disagreed
+without the output showing it; the other is the caret gesture above.
+
 ## The analyzer says no when it should — including on red evidence
 
 `python3 tools/analyze_e2_c_d1.py --self-test <evidence>` applies nine mutations and
