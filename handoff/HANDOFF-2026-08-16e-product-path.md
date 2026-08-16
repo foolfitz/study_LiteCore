@@ -21,7 +21,7 @@
 
 | | |
 |---|---|
-| 分支 | `main`，工作樹乾淨（`AGENTS.md`／`CLAUDE.md` 仍未追蹤） |
+| 分支 | `main`，工作樹乾淨（`AGENTS.md`／`CLAUDE.md` 已在 `d02e5b4` 進版控） |
 | 出貨 artifact | `e2-editor-v2`（wasm `572035ac…`），**未變** |
 | 殼層 bundle | **v8 `4daad6b4…`**（v1–v7 全部凍結） |
 | 靜態 | `test-e2-c-static`／`test-e1-c-static`／`test-e2-b-static` 全部 exit 0 |
