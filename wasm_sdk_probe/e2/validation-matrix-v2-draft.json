@@ -7,7 +7,7 @@
   "freezeProcedure": {
     "before": "the second round's D0, and after the single relink that mints v3",
     "steps": [
-      "fill the five baseline hashes from dist/profiles/e2-editor-v3 and e2/editor-shell-v2-bundle-v3.json",
+      "fill the five baseline hashes from dist/profiles/e2-editor-v3 and the CURRENT shell bundle generation (v4 as of 2026-08-16; check tools/build_e2_c_shell_bundle.py's MANIFEST rather than hard-coding a number)",
       "set frozenDate and status: frozen-before-D0",
       "record the freeze in SPEC E2-C's revision table"
     ],
@@ -904,6 +904,14 @@
       "onFailure": "STOP",
       "note": "Runs with no operator. A harness that cannot be shown to reject a fake gesture is a harness that would accept one, and D5 is the only phase whose entire subject is isTrusted.",
       "addedIn": "round-two"
+    },
+    {
+      "id": "d5-product-save-button",
+      "phase": "D5",
+      "repeat": 1,
+      "oracle": "pressing the PRODUCT PAGE's own save button yields bytes that begin with the ZIP magic PK\\u0003\\u0004 and open as an ODT; the product's own toast reports a size in KB rather than NaN",
+      "onFailure": "PARTIAL",
+      "why": "Added 2026-08-16 after finding 049: the save button had been writing 15 bytes of '[object Object]' since before round one, and no automated round could see it -- every harness calls session.save() itself and destructures {bytes}, so they all exercised the shell's save and never the button. The lesson generalises past this bug: where the harness's path and the user's path differ, only the user's path is unmeasured."
     }
   ],
   "decisionPolicy": {

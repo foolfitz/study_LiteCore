@@ -1108,6 +1108,8 @@ D3 與 D2 在修好的殼層上兩瀏覽器各重跑一輪（`d3-lists/run-4-fix
 bundle 進到 **v3（`34e95e10…`）**，v2 凍結——它是 048 每一個 arm 與 relink 前
 那幾輪 D2／D3 實際跑的那份殼層。
 
+**2026-08-16 再進一代：bundle **v4（`85795b80…`）**，v3 凍結。** 起因是 [finding 049](../findings/049-the-product-save-button-writes-fifteen-bytes-of-object-object.md)——產品頁面自己的存檔按鈕一直在寫 15 個位元組的 `[object Object]`，而**沒有任何自動化輪次走過那顆按鈕**（每個 harness 都自己呼叫 `session.save()` 並解構 `{bytes}`）。它是 D5 人工輪按下去才掉出來的。v3 是 D3 語料輪、D4、D5 機器半邊與兩輪人工實際跑過的那一份，因此凍結。
+
 #### 一次證據事故，以及擋住它的閘門
 
 第二次執行 D3 時 `--output` 指到了第一次執行的目錄，**把那一輪的紀錄覆蓋掉了**

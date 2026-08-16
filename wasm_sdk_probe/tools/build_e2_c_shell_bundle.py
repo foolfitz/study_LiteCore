@@ -47,11 +47,18 @@ PROJECT = Path(__file__).resolve().parent.parent
 #   v1 -- round one's shell; `e2/validation-matrix-v1.json` names its digest.
 #   v2 -- the shell the pre-relink D2/D3 defect sweeps ran on, including every
 #         arm of finding 048.  Frozen from 2026-08-16, when the fix landed.
-#   v3 -- the shell with finding 048's fix in EditorSession.placeCaret.
+#   v3 -- the shell with finding 048's fix in EditorSession.placeCaret.  Frozen
+#         from 2026-08-16: D3's corpus round, D4, D5's machine half and both
+#         operator rounds ran on it, and so did the 046 and 048 rounds.
+#   v4 -- the shell with finding 049's fix in web/e2-editor-app.js: the save
+#         button had been writing 15 bytes of "[object Object]".  A new
+#         manifest rather than a rewrite of v3, for the same reason as every
+#         generation before it -- v3 is the record of what those rounds ran on.
 FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
-                    Path("e2/editor-shell-v2-bundle-v2.json"))
+                    Path("e2/editor-shell-v2-bundle-v2.json"),
+                    Path("e2/editor-shell-v2-bundle-v3.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v3.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v4.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
@@ -131,11 +138,16 @@ def compute(project: Path) -> dict[str, Any]:
     }
 
 
-def manifest_body(state: dict[str, Any], excluded: list[dict[str, str]]) -> dict:
+def manifest_body(state: dict[str, Any], excluded: list[dict[str, str]],
+                  frozen_date: str) -> dict:
     return {
         "schemaVersion": 1,
         "release": "E2-C-editor-shell-v2-bundle",
-        "frozenDate": "2026-08-15",
+        # A generation's own date, not the first generation's.  It was hard
+        # coded, so v4 came out claiming it was frozen on the day v1 was --
+        # a manifest whose own record of when it was written is wrong is a poor
+        # thing to bind a verdict to.
+        "frozenDate": frozen_date,
         "entrypoint": ENTRYPOINT.as_posix(),
         "scope": "JavaScript modules reached by the E2-C product page's import "
                  "graph, plus every *.js in " + ", ".join(SCOPE),
@@ -199,6 +211,10 @@ def main() -> int:
                         help="exclude a module from the bundle, with a reason; "
                              "'this file is not covered' is a claim somebody has "
                              "to make, so it does not get a default")
+    parser.add_argument("--frozen-date", default=None,
+                        help="the date THIS generation was frozen; defaults to "
+                             "the existing manifest's, and a new generation "
+                             "should be given one explicitly")
     args = parser.parse_args()
 
     state = compute(PROJECT)
@@ -210,6 +226,26 @@ def main() -> int:
                 for item in args.exclude if "=" in item]
     if manifest and not excluded:
         excluded = manifest.get("excluded", [])
+    if not manifest and not excluded:
+        # Starting a NEW generation used to silently produce an empty exclusion
+        # list, and an empty one breaks the rule this bundle is built on:
+        # `available - included - excluded` must be empty, so that dropping a
+        # file beside the covered ones is a change.  A v4 that inherits nothing
+        # binds LESS than the v3 it replaces, while looking like progress.
+        # Measured on 2026-08-16 while freezing v4 for finding 049.
+        for candidate in reversed(FROZEN_MANIFESTS):
+            path = PROJECT / candidate
+            if not path.is_file():
+                continue
+            inherited = json.loads(path.read_text(encoding="utf-8")).get("excluded")
+            if inherited:
+                excluded = inherited
+                report_inherited = str(candidate)
+                break
+        else:
+            report_inherited = None
+    else:
+        report_inherited = None
 
     found = problems(PROJECT, state, manifest if not args.write else None)
     report = {
@@ -218,10 +254,15 @@ def main() -> int:
         "excluded": [item["path"] for item in excluded],
         "bundleSha256": state["digest"],
         "problems": found,
+        # Said out loud: a new generation that inherited its exclusions did not
+        # decide them, and the reader should know which manifest did.
+        "exclusionsInheritedFrom": report_inherited,
     }
     if args.write and not [p for p in found if "dist copy" in p]:
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        body = manifest_body(state, excluded)
+        body = manifest_body(state, excluded, args.frozen_date
+                             or (manifest or {}).get("frozenDate")
+                             or "unrecorded")
         manifest_path.write_text(
             json.dumps(body, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8")

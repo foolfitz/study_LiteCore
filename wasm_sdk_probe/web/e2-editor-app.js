@@ -215,7 +215,13 @@ async function insertText() {
 }
 
 async function saveDocument() {
-  const bytes = await run("儲存", () => session.save());
+  // `EditorSession.save()` resolves to {bytes, revision, contentStamp}, not to
+  // the bytes.  Taking the whole result made `new Blob([result])` stringify it,
+  // so every save from this button wrote 15 bytes of "[object Object]" and the
+  // toast below reported NaN KB -- finding 049, found by an operator pressing
+  // the button, because every harness in this tree calls session.save() itself
+  // and destructures.
+  const { bytes } = await run("儲存", () => session.save());
   const url = URL.createObjectURL(
     new Blob([bytes], { type: "application/vnd.oasis.opendocument.text" }));
   const anchor = document.createElement("a");

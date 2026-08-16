@@ -31,7 +31,10 @@ from r7_support import evaluate, wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, FirefoxSession, free_port  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
-BUNDLE = PROJECT / "e2" / "editor-shell-v2-bundle-v3.json"
+# The CURRENT generation: this file attests what a round ran on, so it moves
+# with the shell.  v3 was the generation D5's machine half and both operator
+# rounds ran on; v4 carries finding 049's fix.
+BUNDLE = PROJECT / "e2" / "editor-shell-v2-bundle-v4.json"
 
 
 def bundle_digest() -> str | None:

@@ -356,16 +356,21 @@
     },
     {
       "id": "queue-product-save-button-writes-object-object",
-      "title": "finding 049: the product page's save button writes 15 bytes of [object Object] -- OPEN, blocks D5, not the relink",
-      "expectation": "absent",
+      "title": "finding 049: the product page's save button wrote 15 bytes of [object Object] -- FIXED 2026-08-16",
+      "expectation": "present",
       "blocksRelink": false,
       "source": "findings/049-…md, 2026-08-16, found by an operator round",
-      "note": "web/e2-editor-app.js treats EditorSession.save()'s {bytes, revision, contentStamp} result as the bytes. Fix is one line and needs NO relink (it is JS) -- but web/e2-editor-app.js is one of the twelve modules the E2-C shell bundle binds, so it is a declared divergence, handled the way E1-C's was. It BLOCKS D5: the frozen oracle for the drag cells says 'and the saved ODT shows it', which is unreachable while save is broken. The check below flips to `present` when the fix lands.",
+      "note": "Fixed the same day it was found, by an operator pressing the button. Verified through the D5 harness's declared shim: 15 bytes of '[object Object]' became 12,200 bytes starting with the ZIP magic, and the product's own toast went from 'NaN KB' to '11.9 KB'. No relink (JS), but web/e2-editor-app.js is one of the twelve modules the E2-C shell bundle binds, so a NEW generation was frozen: v4 = 85795b80…, v3 = 34e95e10… stays as the record of what D3-corpus/D4/D5 and both operator rounds ran on. This item's expectation was flipped deliberately, which is what the checker's DRIFTED state exists to force.",
       "checks": [
         {
-          "kind": "absent",
+          "kind": "contains",
           "file": "web/e2-editor-app.js",
-          "text": "const { bytes } = await run(\"儲存\""
+          "text": "const { bytes } = await run(\"儲存\"",
+          "atLeast": 1
+        },
+        {
+          "kind": "file-exists",
+          "file": "e2/editor-shell-v2-bundle-v4.json"
         }
       ]
     }
