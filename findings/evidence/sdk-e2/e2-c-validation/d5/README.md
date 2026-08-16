@@ -3,7 +3,16 @@
 Design and criteria in `PREDICTION.md`, registered before the harness existed.
 Judged offline by `tools/analyze_e2_c_d5.py`; self-test 10/10 in both browsers.
 
-> **Updated 2026-08-16 after four operator rounds**: two cells are now
+> **2026-08-16, sixth operator round: ALL FOUR CELLS PASS**
+> (`operator/round-6-firefox/`) — 397 real events, zero synthetic, every cell's
+> effect visible in its saved document, including a clipboard round trip whose
+> pasted text came out of the document itself.  Three product defects had to be
+> fixed to get there, all found by these rounds: findings 049 and 050, and a
+> Ctrl+C that never asked the engine for its selection.  The cells are bound to
+> **shell v6**, while D3-corpus/D4/D5-machine ran on v3 — one shell under all
+> phases is what the second round provides.
+>
+> **Superseded note, kept for the record — after four operator rounds**: two cells are now
 > **PASS** (`d5-pointer-drag-single`, `d5-pointer-drag-cross`, round 4,
 > Firefox), with their bullets visible in the captured documents.  The IME cell
 > needs one clean redo on Firefox — Chrome marks `compositionend` untrusted, a
