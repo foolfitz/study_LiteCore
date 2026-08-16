@@ -103,6 +103,7 @@ def machine_half(args) -> int:
         cwd=PROJECT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     session = None
     metrics = None
+    exported = None
     saves: list[dict] = []
     try:
         base = f"http://127.0.0.1:{port}/e2-c-d5.html"
@@ -128,6 +129,17 @@ def machine_half(args) -> int:
         evaluate(session, "globalThis.__e2c_d5_end('d5-pointer-drag-single')")
         evaluate(session, "globalThis.__e2c_d5_finish()")
         metrics = evaluate(session, "globalThis.__e2c_d5 || null")
+        # The operator's hand-back path, exercised by the machine half.  The
+        # export button is the last step of a session driven by a person at
+        # 1am; a button nobody ever pressed in a test is a button that fails
+        # then.  Checked here because this is the only run that is automated.
+        exported = evaluate(
+            session,
+            "(() => { const p = globalThis.__e2c_d5_export_payload?.(); "
+            "return p ? {cells: Object.keys(p.cells || {}).length, "
+            "events: (p.events || []).length, "
+            "capturedSaves: (p.capturedSaves || []).length, "
+            "hasShims: Array.isArray(p.shims)} : null; })()")
         count = evaluate(session, "globalThis.__e2c_d5_save_count()") or 0
         for index in range(int(count)):
             saves.append(evaluate(session, f"globalThis.__e2c_d5_save({index})"))
@@ -158,6 +170,7 @@ def machine_half(args) -> int:
         (evidence / "saved" / name).write_bytes(base64.b64decode(entry["b64"]))
         written.append({"label": entry["label"], "file": f"saved/{name}"})
     metrics["capturedSaves"] = written
+    metrics["operatorExport"] = exported
     write_json(evidence / "result.json", metrics)
     print(json.dumps({
         "evidence": str(evidence),
@@ -170,13 +183,22 @@ def machine_half(args) -> int:
 
 def serve(args) -> int:
     port = free_port()
+    # A fixed port when asked, because an operator session is a human at a
+    # window: a URL that changes every time the server restarts is a URL that
+    # gets mistyped.
+    if args.port:
+        port = args.port
     url = (f"http://127.0.0.1:{port}/e2-c-d5.html?profile={args.profile}")
     print(json.dumps({
         "operatorUrl": url,
         "note": "Open this in a REAL browser window.  The product page runs "
                 "unmodified in the iframe; every gesture is recorded with its "
-                "isTrusted flag.  When the cells are done, collect "
-                "globalThis.__e2c_d5 and the saved documents from the page.",
+                "isTrusted flag.  Per cell: press the begin button, do the "
+                "gesture WITH REAL INPUT, press the done button.  When all four "
+                "are done press 'finish' and then the export button -- it saves "
+                "one JSON file with the metrics and every captured document.  "
+                "Hand that file back; nothing else needs collecting.",
+        "runbook": "handoff/RUNBOOK-operator-d5.md",
         "evidence": str(args.output / "operator"),
     }, indent=2, ensure_ascii=False), flush=True)
     subprocess.run(
@@ -192,6 +214,9 @@ def main() -> int:
     parser.add_argument("--browser", choices=("chrome", "firefox"), default="chrome")
     parser.add_argument("--profile", default="e2-editor-v2")
     parser.add_argument("--timeout", type=float, default=600)
+    parser.add_argument("--port", type=int, default=0,
+                        help="fixed port for --serve, so the operator's URL is "
+                             "stable across restarts")
     parser.add_argument("--output", type=Path,
                         default=PROJECT.parent / "findings" / "evidence" / "sdk-e2"
                         / "e2-c-validation" / "d5")

@@ -57,8 +57,18 @@ accept one.
 | `d5-clipboard` | a real Ctrl+C / Ctrl+V round trip |
 
 ```
-python3 tools/run_e2_c_d5.py --serve      # prints a URL; open it in a real browser
+python3 tools/run_e2_c_d5.py --serve --port 8791   # prints a URL for a real browser
 ```
+
+Step-by-step instructions for the person doing it:
+`handoff/RUNBOOK-operator-d5.md`.
+
+**Addendum 2026-08-16**: the page gained an export button that saves the whole
+round -- metrics and every captured document -- as one JSON file, because the
+alternative was telling an operator to copy a global out of the console at the
+end of a session.  It touches no measurement path, and the machine half now
+exercises it on every run (`operatorExport` in the result), so the last step of
+a human session is not the one step nobody ever tested.
 
 SPEC E2-C section 5 says the operator must not be asked repeatedly to reach a
 GO, and SPEC E1-C's v9 revision says it in stronger words.  So these stay

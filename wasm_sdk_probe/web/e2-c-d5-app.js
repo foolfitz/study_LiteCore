@@ -199,6 +199,38 @@ void (async () => {
                                            log({ complete: true }); });
   panel.append(finish);
 
+  // The operator drives a real browser window, not a WebDriver session, so
+  // nothing can reach in and read `globalThis.__e2c_d5` afterwards.  Without
+  // this button the round ends with "now open the console and copy a variable",
+  // which is a step that gets done wrong at 1am or not at all.
+  //
+  // One file, everything in it: the metrics and every captured document, so the
+  // hand-back is a single path rather than a folder the operator has to
+  // assemble.  Added 2026-08-16, after the machine half was recorded; it
+  // touches no measurement path.
+  // Exposed as well as wired to the button, so the export can be checked
+  // without a human and without a download: a button nobody can test is a
+  // button that fails on the night it is needed.
+  globalThis.__e2c_d5_export_payload = () => ({ ...metrics,
+                                                capturedSaves: saves });
+
+  const download = document.createElement("button");
+  download.textContent = "把證據存成一個檔案";
+  download.addEventListener("click", () => {
+    const payload = globalThis.__e2c_d5_export_payload();
+    const blob = new Blob([JSON.stringify(payload)],
+                          { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `e2c-d5-operator-${metrics.mode}.json`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    log({ exported: link.download, cells: Object.keys(metrics.cells).length,
+          saves: saves.length });
+  });
+  panel.append(download);
+
   globalThis.__e2c_d5_begin = (id) => beginCell(id, strip);
   globalThis.__e2c_d5_end = (id) => endCell(id, strip);
   globalThis.__e2c_d5_finish = () => { metrics.complete = true; };
