@@ -180,6 +180,18 @@ agent id `a71bfffebd6e98742`（要續談就用 SendMessage）。
 **第八輪人工輪是欠著的**；在它跑完之前不得說「D5 在現行殼層上通過」。
 已寫進 round-7 的 README 與 SPEC E2-C 9.5.15。
 
+### 順帶：我自己弄壞了一次證據，還原了，並修掉工具
+
+只是想讀一次 E1-C 的判定就跑了 `validate_e1_c.py`，結果它把 **08-07 那一輪人工證據
+的兩個 `*.desktop.pdf` 重新匯出**（每次匯出都蓋新 `CreationDate`，位元組必然不同）。
+四個檔案已逐檔對 `HEAD~1` 還原（byte-for-byte 相同），工具也修了：**已經有紀錄時
+就匯到暫存路徑**。記成 [finding 055](../findings/055-the-e1-c-validator-rewrites-the-evidence-it-validates.md)。
+
+被動到的是**驗證器自己的重新匯出**，operator 的 `*-output.odt` 沒事。
+守衛本來就存在，只是加在隔壁那個函式——**「這裡有守衛」不等於「這條路有守衛」。**
+**要問綁定還在不在，用唯讀的 `check_e1_c_bundle_intact.py`**（今天 v9 沒動到 E1-C
+的結論就是它給的）。
+
 ## 六、今天的三個教訓
 
 1. **參考實作會改結論，不只是佐證。** 讀 Muya 之前，我判定 052 的殘留「多一個
