@@ -1,0 +1,92 @@
+python3 -m unittest tests/test_e1_corpus.py \
+	tests/test_e1_discovery_profile.py tests/test_e1_a.py \
+	tests/test_content_axis_inventory.py \
+	tests/test_finding_016_remediation.py
+node --test e1/tests/editor-discovery-client.test.mjs \
+	sdk/tests/document-sdk.test.mjs
+✔ closed action request never carries key codes or UNO commands (0.875248ms)
+✔ unknown actions and malformed selection coordinates fail closed (0.901938ms)
+✔ format state is explicit and the candidate action list is frozen (0.15064ms)
+✔ manual delete observation remains a closed diagnostic action (0.168043ms)
+✔ scheduler drain is capability-gated and carries only the document handle (0.169936ms)
+✔ version handshake and request correlation expose no runtime internals (1.802163ms)
+✔ open makes transfer ownership explicit and close is idempotent (0.561815ms)
+✔ close timeout recycles the owning Worker and keeps the engine reusable (5.871363ms)
+✔ aborted close remains a typed failure and does not claim recovery (0.307502ms)
+✔ timeout rejects and emits a best-effort cancel (4.643789ms)
+✔ AbortSignal rejects and emits cancel (0.407608ms)
+✔ worker crash rejects pending work and restart invalidates old handles (0.448695ms)
+✔ protocol mismatch is treated as a worker crash (0.158405ms)
+✔ R3 semantic review operations propagate monotonic revisions (0.390026ms)
+✔ R3 stale revision is a typed error with current revision details (0.269431ms)
+✔ unsupported profile operations remain typed SDK errors (0.169696ms)
+✔ an empty selection reads back as a success, not a LOK error (0.127988ms)
+✔ a complex selection is never reported as an empty selection (0.106117ms)
+✔ a text selection still carries its text (0.098834ms)
+✔ a typed readback failure stays a typed error (0.127768ms)
+✔ a missing selection type never surfaces as an empty selection (0.094606ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 61.633962
+node --check e1/editor-discovery-client.js
+node --check sdk/sdk-worker.js
+node --check web/e1-discovery-app.js
+node --check web/e1-manual-delete-app.js
+python3 -m json.tool e1/discovery-matrix-v1.json >/dev/null
+c++ -std=c++17 -Isrc -fsyntax-only tests/editor_discovery_abi_header_test.cpp
+python3 tools/validate_e1_corpus.py
+{"output": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/baseline/corpus.json", "pass": true}
+python3 -m json.tool e1/content-axis-suites.json >/dev/null
+python3 tools/inventory_corpus_axes.py --check
+{
+  "output": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/baseline/content-axes.json",
+  "fixtures": 29,
+  "unreadable": 2,
+  "suites": {
+    "E1-C-C3": {
+      "absentAxes": 13,
+      "emptyComposites": 36
+    },
+    "E1-C-C3-next": {
+      "absentAxes": 11,
+      "emptyComposites": 50
+    },
+    "E1-A-frozen": {
+      "absentAxes": 19,
+      "emptyComposites": 15
+    },
+    "E2-A-A3-A4": {
+      "absentAxes": 25,
+      "emptyComposites": 2
+    },
+    "E2-A-A5": {
+      "absentAxes": 23,
+      "emptyComposites": 6
+    },
+    "finding-038-repro": {
+      "absentAxes": 12,
+      "emptyComposites": 51
+    }
+  },
+  "pass": true,
+  "failures": []
+}
+python3 -m py_compile tools/e1_support.py \
+	tools/build_e1_discovery_profile.py tools/create_e1_corpus.py \
+	tools/validate_e1_corpus.py tools/validate_e1_preflight.py \
+	tools/run_e1_discovery.py tools/validate_e1_roundtrip.py \
+	tools/validate_e1_a.py tools/validate_finding_016_remediation.py \
+	tools/inventory_corpus_axes.py tools/run_e1_wedge_harness.py \
+	tests/test_e1_corpus.py tests/test_e1_discovery_profile.py \
+	tests/test_e1_a.py tests/test_content_axis_inventory.py \
+	tests/test_finding_016_remediation.py
+.....................
+----------------------------------------------------------------------
+Ran 21 tests in 0.323s
+
+OK

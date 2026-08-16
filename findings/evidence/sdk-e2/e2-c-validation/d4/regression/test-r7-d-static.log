@@ -1,0 +1,75 @@
+node --test input/tests/*.test.mjs
+✔ copy uses public plain-text selection and a browser write (0.987357ms)
+✔ denied clipboard read is typed and causes zero mutation (4.006423ms)
+✔ paste requires a user gesture and empty reads cause zero mutation (0.170878ms)
+✔ plain text wins over HTML and commits exactly once (0.518695ms)
+✔ non-text clipboard is rejected without mutation (0.152524ms)
+✔ composition commits exactly once and suppresses duplicate beforeinput (1.858979ms)
+✔ cancel, empty composition and teardown cause zero mutation (0.279049ms)
+✔ plain text clipboard ignores HTML and preserves Unicode (0.199611ms)
+✔ empty and oversized input generate no mutation (0.322971ms)
+✔ commits are serialized and Unicode summary distinguishes combining forms (0.23101ms)
+✔ bounded queue rejects newest input without dropping accepted commits (0.250306ms)
+✔ stale invalidation cancels queued input and does not replay it (0.299036ms)
+✔ blocked state cancels composition and rejects commits (0.168995ms)
+✔ composition buffer disagreement is typed and causes zero mutation (0.221252ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42.73325
+node --test r7/tests/page-navigation.test.mjs
+✔ page intents clamp to first and last page (0.497215ms)
+✔ scroll produces an explicitly approximate page hint (0.148306ms)
+✔ hyperlink policy allows HTTP and bookmarks but blocks dangerous schemes (0.132297ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38.911069
+node --check input/input-adapter.js
+node --check input/clipboard-adapter.js
+node --check web/r7-reference-app.js
+python3 -m py_compile tools/r7_support.py tools/run_r7_input.py tools/validate_r7_b.py
+node --test r7/tests/*.test.mjs
+✔ valid project ODT passes closed-format preflight (2.808454ms)
+✔ public DOCX name and disguised DOCX bytes are rejected (0.740368ms)
+✔ truncated ODT and unsafe names receive typed failures (0.922917ms)
+✔ compressed file limit rejects before parsing and does not truncate (0.154958ms)
+✔ page intents clamp to first and last page (0.523173ms)
+✔ scroll produces an explicitly approximate page hint (0.154617ms)
+✔ hyperlink policy allows HTTP and bookmarks but blocks dangerous schemes (0.186267ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 47.908838
+python3 -m unittest tests/test_r7_compatibility_corpus.py
+node --check r7/document-preflight.js
+node --check web/r7-compatibility-app.js
+python3 -m py_compile tools/create_r7_compatibility_corpus.py \
+	tools/validate_r7_compatibility_corpus.py tools/run_r7_compatibility.py \
+	tools/validate_r7_c.py tests/test_r7_compatibility_corpus.py
+node --check web/r7-longevity-app.js
+python3 -m unittest tests/test_r7_longevity.py
+python3 -m py_compile tools/r7_longevity_analysis.py tools/run_r7_usability.py \
+	tools/run_r7_longevity.py tools/validate_r7_d.py tests/test_r7_longevity.py
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.059s
+
+OK
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK

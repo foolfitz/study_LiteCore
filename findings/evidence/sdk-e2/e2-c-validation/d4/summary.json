@@ -1,0 +1,420 @@
+{
+  "schemaVersion": 1,
+  "release": "spec-e2c-d4",
+  "predictionFile": "findings/evidence/sdk-e2/e2-c-validation/d4/PREDICTION.md",
+  "runs": [
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/e2-editor-v2-572035ac/chrome",
+      "browser": "chrome",
+      "profile": "e2-editor-v2",
+      "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true,
+      "complete": true,
+      "memoryApi": {
+        "available": true,
+        "bytes": 736884,
+        "breakdown": [
+          {
+            "bytes": 27776,
+            "types": [
+              "DOM"
+            ],
+            "attributionCount": 0
+          },
+          {
+            "bytes": 235768,
+            "types": [
+              "Shared"
+            ],
+            "attributionCount": 0
+          },
+          {
+            "bytes": 473340,
+            "types": [
+              "JavaScript"
+            ],
+            "attributionCount": 1
+          },
+          {
+            "bytes": 0,
+            "types": [],
+            "attributionCount": 0
+          }
+        ]
+      },
+      "cells": {
+        "d4-sessions": {
+          "cycles": 10,
+          "expected": 10,
+          "errors": [],
+          "generations": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "pass": true
+        },
+        "d4-residuals": {
+          "workerReadings": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "handleReadings": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "pass": true
+        },
+        "d4-memory": {
+          "pssPerCycleBytes": [
+            440302592,
+            442148864,
+            443522048,
+            444537856,
+            444953600,
+            445175808,
+            446045184,
+            444758016,
+            444910592,
+            445614080
+          ],
+          "pssSlopeBytesPerSession": 473088.0,
+          "pssSlopeLimit": 8388608,
+          "pssAbsoluteGrowthBytes": 5311488,
+          "pssPass": true,
+          "pssStatus": "pass",
+          "wasmHeapPerCycleBytes": [],
+          "wasmSlopeBytesPerSession": null,
+          "wasmAbsoluteGrowthBytes": null,
+          "wasmStatus": "notValidated",
+          "verdict": "PARTIAL",
+          "why": "no WASM heap figure is obtainable from the product; PSS decided alone, which the matrix calls PARTIAL, never a pass"
+        }
+      },
+      "verdict": "PARTIAL"
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "profile": "e2-editor-v2",
+      "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true,
+      "complete": true,
+      "memoryApi": {
+        "available": false,
+        "why": "measureUserAgentSpecificMemory unavailable"
+      },
+      "cells": {
+        "d4-sessions": {
+          "cycles": 10,
+          "expected": 10,
+          "errors": [],
+          "generations": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "pass": true
+        },
+        "d4-residuals": {
+          "workerReadings": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "handleReadings": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "pass": true
+        },
+        "d4-memory": {
+          "pssPerCycleBytes": [
+            693619712,
+            670424064,
+            669789184,
+            676175872,
+            680225792,
+            740523008,
+            751649792,
+            729223168,
+            725446656,
+            730447872
+          ],
+          "pssSlopeBytesPerSession": 7881821.090909091,
+          "pssSlopeLimit": 8388608,
+          "pssAbsoluteGrowthBytes": 36828160,
+          "pssPass": true,
+          "pssStatus": "pass",
+          "wasmHeapPerCycleBytes": [],
+          "wasmSlopeBytesPerSession": null,
+          "wasmAbsoluteGrowthBytes": null,
+          "wasmStatus": "notValidated",
+          "verdict": "PARTIAL",
+          "why": "no WASM heap figure is obtainable from the product; PSS decided alone, which the matrix calls PARTIAL, never a pass"
+        }
+      },
+      "verdict": "PARTIAL"
+    }
+  ],
+  "regression": {
+    "schemaVersion": 1,
+    "release": "spec-e2c-d4-regression",
+    "excludedByMatrix": {
+      "target": "test-e1-c-static",
+      "why": "e2/validation-matrix-v1.json's d4-regression oracle names it as NOT run; check_e1_c_bundle_intact and test-e1-c-frozen-guard stand in its place."
+    },
+    "targets": [
+      {
+        "command": [
+          "make",
+          "test-r6-release"
+        ],
+        "returnCode": 0,
+        "seconds": 0.0,
+        "pass": true,
+        "log": "test-r6-release.log"
+      },
+      {
+        "command": [
+          "make",
+          "test-r7-b-static"
+        ],
+        "returnCode": 0,
+        "seconds": 0.2,
+        "pass": true,
+        "log": "test-r7-b-static.log"
+      },
+      {
+        "command": [
+          "make",
+          "test-r7-c-static"
+        ],
+        "returnCode": 0,
+        "seconds": 0.5,
+        "pass": true,
+        "log": "test-r7-c-static.log"
+      },
+      {
+        "command": [
+          "make",
+          "test-r7-d-static"
+        ],
+        "returnCode": 0,
+        "seconds": 0.6,
+        "pass": true,
+        "log": "test-r7-d-static.log"
+      },
+      {
+        "command": [
+          "make",
+          "test-r8-d-static"
+        ],
+        "returnCode": 0,
+        "seconds": 0.4,
+        "pass": true,
+        "log": "test-r8-d-static.log"
+      },
+      {
+        "command": [
+          "make",
+          "test-e1-a-static"
+        ],
+        "returnCode": 0,
+        "seconds": 0.8,
+        "pass": true,
+        "log": "test-e1-a-static.log"
+      },
+      {
+        "command": [
+          "make",
+          "test-e1-b-static"
+        ],
+        "returnCode": 0,
+        "seconds": 0.6,
+        "pass": true,
+        "log": "test-e1-b-static.log"
+      },
+      {
+        "command": [
+          "make",
+          "test-e2-a-static"
+        ],
+        "returnCode": 0,
+        "seconds": 1.5,
+        "pass": true,
+        "log": "test-e2-a-static.log"
+      },
+      {
+        "command": [
+          "make",
+          "test-e2-b-static"
+        ],
+        "returnCode": 0,
+        "seconds": 0.9,
+        "pass": true,
+        "log": "test-e2-b-static.log"
+      },
+      {
+        "command": [
+          "make",
+          "test-e1-c-frozen-guard"
+        ],
+        "returnCode": 0,
+        "seconds": 0.0,
+        "pass": true,
+        "log": "test-e1-c-frozen-guard.log"
+      },
+      {
+        "command": [
+          "python3",
+          "tools/check_e1_c_bundle_intact.py"
+        ],
+        "returnCode": 0,
+        "seconds": 0.0,
+        "pass": true,
+        "log": "check_e1_c_bundle_intact.log"
+      }
+    ],
+    "artifactsBefore": {
+      "e1-editor-discovery": "679def61e7848a6d678b6bcc2b4fad7acb37904cdcd0e615afb3405fb5afb634",
+      "e1-editor-v1": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+      "e1-editor-v1-noopfix": "e424eec4b42ec3cdd0497200061c37e7001191a27ffb04587f454cae3892634e",
+      "e2-combination": "940b7723ca8df6c1dd3327b5950b67b23fe9a0ae28504900d07221fb0cd85217",
+      "e2-editor-v2": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-editor-v2-n1-action-withheld": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-editor-v2-n11-gesture-withheld": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-editor-v2-n2-capability-withheld": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-editor-v2-n3-contract-version-1": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-editor-v2-n4-abi-version-mismatch": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-format-discovery": "c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f",
+      "e2-locale-attribution": "8adca798a3c66e43ce4592fdaeaff72eeeaa172f19cffdf5b3aae915b77d88ea",
+      "e2-mainloop-attribution": "1b64d70b64f0455fcd399c5edf8219d3291967e1c995c368a47744dd23cb9593",
+      "e2-mainloop-pei-attribution": "3d87eb36829e53d35adfa27042f93cbc52150f55abf99bc8957dafd43b908066",
+      "e2-preguard-diagnostic": "ee185b3d5972cac761acbcbc19cbafe916962788822e7cbae87bfe771d62a566",
+      "e2-preguard-profiling": "e05fd156180e205037990591bab4d94b4199b8d378a970795d0a0aa8ff7365ca",
+      "e2-proxy-trace": "ee185b3d5972cac761acbcbc19cbafe916962788822e7cbae87bfe771d62a566",
+      "e2-scheduler-attribution": "38d15ed40a4271dce5178fda30746af48b82fe9aa405c4e53a03d545d66ba0c3",
+      "e2-wait-diagnostic": "150de122810c44bdcc7e2c8049709af16e78b15d085a00d86aebaf120fed6a30",
+      "e2-wedge-trace": "c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f",
+      "finding-012-diagnostic": "b7c77ddb27724e5ec6ce81b602aade17c992bd835017fd38314a443f98d91880",
+      "finding-016-scheduler": "ccc1378ebdc33a0497422b76bf134a80a3294366dd47f5524b983000886dc221",
+      "finding-016-selection-barrier": "a55343b441d27f424f49d39647785a482e881b86bd3b2765487c167db907fe80"
+    },
+    "artifactsAfter": {
+      "e1-editor-discovery": "679def61e7848a6d678b6bcc2b4fad7acb37904cdcd0e615afb3405fb5afb634",
+      "e1-editor-v1": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+      "e1-editor-v1-noopfix": "e424eec4b42ec3cdd0497200061c37e7001191a27ffb04587f454cae3892634e",
+      "e2-combination": "940b7723ca8df6c1dd3327b5950b67b23fe9a0ae28504900d07221fb0cd85217",
+      "e2-editor-v2": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-editor-v2-n1-action-withheld": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-editor-v2-n11-gesture-withheld": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-editor-v2-n2-capability-withheld": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-editor-v2-n3-contract-version-1": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-editor-v2-n4-abi-version-mismatch": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "e2-format-discovery": "c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f",
+      "e2-locale-attribution": "8adca798a3c66e43ce4592fdaeaff72eeeaa172f19cffdf5b3aae915b77d88ea",
+      "e2-mainloop-attribution": "1b64d70b64f0455fcd399c5edf8219d3291967e1c995c368a47744dd23cb9593",
+      "e2-mainloop-pei-attribution": "3d87eb36829e53d35adfa27042f93cbc52150f55abf99bc8957dafd43b908066",
+      "e2-preguard-diagnostic": "ee185b3d5972cac761acbcbc19cbafe916962788822e7cbae87bfe771d62a566",
+      "e2-preguard-profiling": "e05fd156180e205037990591bab4d94b4199b8d378a970795d0a0aa8ff7365ca",
+      "e2-proxy-trace": "ee185b3d5972cac761acbcbc19cbafe916962788822e7cbae87bfe771d62a566",
+      "e2-scheduler-attribution": "38d15ed40a4271dce5178fda30746af48b82fe9aa405c4e53a03d545d66ba0c3",
+      "e2-wait-diagnostic": "150de122810c44bdcc7e2c8049709af16e78b15d085a00d86aebaf120fed6a30",
+      "e2-wedge-trace": "c89f069e7c43e78e630e4f7d62ba5d016c7aaf434d9f4abf5a0e009e931f9d0f",
+      "finding-012-diagnostic": "b7c77ddb27724e5ec6ce81b602aade17c992bd835017fd38314a443f98d91880",
+      "finding-016-scheduler": "ccc1378ebdc33a0497422b76bf134a80a3294366dd47f5524b983000886dc221",
+      "finding-016-selection-barrier": "a55343b441d27f424f49d39647785a482e881b86bd3b2765487c167db907fe80"
+    },
+    "artifactsUnchanged": true,
+    "artifactsMoved": {},
+    "pass": true
+  },
+  "browsersAgree": true,
+  "verdict": "PARTIAL"
+}

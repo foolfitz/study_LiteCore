@@ -1168,10 +1168,54 @@ bundle 進到 **v3（`34e95e10…`）**，v2 凍結——它是 048 每一個 ar
 證據：`findings/evidence/sdk-e2/e2-c-validation/d3-corpus/`，三輪各自保留，
 README 說明哪一輪能當什麼的證據。判定器自我測試 8／8，已掛進 `make test-e2-c-static`。
 
+### 9.5.11 D4 執行完畢（2026-08-16）：**`PARTIAL`，而且卡在一個產品量不到的數字上**
+
+十輪 × 兩瀏覽器，每輪一個獨立 session（open → 產品點擊定位 → 派送 → save → close），
+runner 在每輪的靜止點與三秒後各取一次 process 快照，取較小值。
+
+| 格 | Chrome | Firefox |
+|---|---|---|
+| `d4-sessions` | **過**：10／10，generation 各 1 | **過**：同上 |
+| `d4-residuals` | **過**：worker 0、handle 0，每一次取樣都是 | **過**：同上 |
+| `d4-memory` | **PARTIAL**：PSS 斜率 0.45 MB／session | **PARTIAL**：PSS 斜率 7.52 MB／session（門檻 8） |
+| `d4-regression` | **過**：11 個目標全綠，掃描前後每顆 `probe.wasm` 未變 | 同一輪 |
+
+#### WASM heap 在這顆 artifact 上量不到，而這是 relink 佇列的新項目
+
+預測 P-D4-4 在跑之前就寫了「量不到」，結果成立：
+
+- `sdk/sdk-worker.js` **從來不回報 heap 大小**；
+- R7-D 的頁面把 `wasmHeapBytes` 寫死成 `null` 而 `r7_longevity_analysis.py`
+  還從它算序列——**那個欄位一直是裝飾品**；
+- 唯一的瀏覽器側管道 `performance.measureUserAgentSpecificMemory()` 在 Chrome
+  可用（頁面有 COI），但 breakdown **沒有任何 WASM 歸屬**（只有 `Shared`／`DOM`／
+  `JavaScript`）；Firefox 根本沒有這個 API。
+
+所以 `d4-memory` 是 **PARTIAL**、WASM 那一半 `notValidated`——**不是通過**
+（矩陣的 `onUnavailable` 就是 PARTIAL）。修法是引擎在 typed state 裡報自己的 heap，
+**這是 D4 掉出來的 relink 佇列項**，正是對抗性審查第 8 項說的「D2～D5 是連結前的
+佇列完整性問題」。
+
+#### Firefox 的 PSS 過了，但餘裕薄到必須講出來
+
+每輪 PSS（MB）：Chrome 419.9 → 425.0；**Firefox 661.5 → 696.6**。
+斜率 0.45／**7.52**（門檻 8）。**格子照矩陣過**——矩陣對 PSS 只寫斜率。
+
+**但 `PREDICTION.md` 的 P-D4-3 是兩個子句**（斜率 ≤ 8 **且**第十輪在首輪 +20 MB
+內），Firefox 的絕對成長是 **+35.1 MB**，所以**那條預測在 Firefox 上不成立**，
+照原樣記。格子與預測分開計分：矩陣是格子的權威，寫下來的字是預測的權威。
+
+曲線不是直線爬升：661、639、639、645、649、**706**、717、695、692、697——平、
+第六輪一個階梯、然後在新的水位上再平。形狀像配置器／GC 的階梯而不是每 session 洩漏，
+**但這一輪沒有量到是哪一個，因此不宣稱**。要回答它得跑更多輪看階梯會不會再出現。
+
+證據：`findings/evidence/sdk-e2/e2-c-validation/d4/`，判定器自我測試 10／10。
+
 ## 10. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-16 | **v15。D4 執行完畢（9.5.11），判定 `PARTIAL`。** 十輪 × 兩瀏覽器：`d4-sessions` 與 `d4-residuals` 兩格全過（10／10、generation 各 1、worker 與 handle 每次取樣都是 0），`d4-regression` 11 個目標全綠且掃描前後 artifact 未變。**`d4-memory` 是 PARTIAL**：產品沒有任何路徑回報 WASM heap（`sdk-worker.js` 不報、R7-D 的欄位一直是 `null`、`measureUserAgentSpecificMemory` 的 breakdown 沒有 WASM 歸屬、Firefox 沒有那個 API），**這是 D4 掉出來的 relink 佇列新項目**。另記兩件：Firefox 的 PSS 斜率 7.52／8 通過但**絕對成長 +35.1 MB 讓我自己登記的 P-D4-3 第二子句不成立**（格子與預測分開計分）；曲線是「平—階梯—平」的形狀，沒有量到成因所以不宣稱。 |
 | 2026-08-16 | **v14。D3 的語料半邊執行完畢（9.5.10）：八格兩瀏覽器全過、carried 兩份全過、桌面重開與 PDF 全過。** 一條預測（P-C5 兩瀏覽器位元組相同）在 `c-l1-review` 上不成立，量到的原因是自動產生的追蹤修訂 ID，**照原樣記為不成立**，更窄的判準進第二輪矩陣。過程掉出兩件：（一）**`l4-stress-100` 的 100 個 as-char frame 掛在 `office:text` 底下，兩個 LibreOffice build 在沒有任何編輯的情況下都會丟掉它們**——語料缺陷不是產品缺陷，判準因此改成與「什麼都不做的存檔」比較（與 L6 同一條教訓）；（二）harness 的 195 twips 容差是清單語料的行距算出來的，對 520 twips 的標題行不成立，改成用量到的行框重疊，**沒有常數**。 |
 | 2026-08-16 | **v13。relink 佇列的第二方稽核（codex ＋ 自行覆核）改了三件事，第 11.2 節據此就地修訂。**（一）**`routeFormatBarrier()` 的 `selectionObserved` fail-closed 其實沒修**——08-15 的審查修正記成「兩處一併修」，實際只有十個繼承動作那一處；段落路由仍把「還沒有人說」當收合游標。已修，新 shape `routing-selection-not-observed` 有自己的呼叫端分支（不得併進「選取holds an image」那句），**只編 object 驗過，未連結**。（二）**3c 的引擎那半本來就在樹裡**，缺的是 worker 投影，已補；`sdk/sdk-worker.js` **不在任何殼層 bundle 裡**，所以殼層摘要不受影響（實測 `test-e2-c-static` exit 0、v2 三個雜湊未變）。（三）**`inlineFormatEnabledIsHonoured` 是樹裡有而文件沒有的 manifest 宣告**，已記入 11.2 並指定其驗收＝D1 的四個 `-false` 格。**這一輪沒有連結，也沒有動任何凍結 artifact。** |
 | 2026-08-16 | **v12。finding 048 的治本修法進了產品**：`placeCaret` 改成要引擎確認點擊、且游標在點的那一行才返回，不繞道 `setTextSelection`。D3／D2 在修好的殼層上雙瀏覽器各重跑一輪，**D3 逐位元組與修法前相同、D2 各 12／12**。殼層 bundle 進 v3、v2 凍結；`E1_GO_ODT_EDITOR` 的殼層綁定因此斷開並已申報（SPEC E1-C §11.7）。 |

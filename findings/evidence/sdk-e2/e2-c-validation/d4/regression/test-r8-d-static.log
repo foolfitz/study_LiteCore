@@ -1,0 +1,50 @@
+python3 -m unittest tests/test_r8_bundle.py tests/test_r8_c.py
+node --test delivery/tests/verified-loader.test.mjs \
+	delivery/tests/release-state.test.mjs
+✔ fresh candidate becomes active and last-known-good only after health (0.957161ms)
+✔ failed candidate health restores previous known-good (4.753694ms)
+✔ interrupted staging and health-pending activation recover conservatively (0.436983ms)
+✔ client pin forbids hot switch and eviction (0.433767ms)
+✔ eviction plan deletes failed and excess retiring releases but protects pins (1.19353ms)
+✔ failed staging leaves active release untouched (0.188882ms)
+✔ repair commit atomically switches cache identity and preserves active health (0.184223ms)
+✔ safe relative URL contract rejects schemes, traversal, credentials, and fragments (1.161611ms)
+✔ standard and full-fidelity closed manifests validate (6.630425ms)
+✔ all required artifacts verify before Worker start is authorized (16.871547ms)
+✔ verified artifact callback receives exact bytes before Worker authorization (6.942035ms)
+✔ artifact persistence failure prevents release verification (1.302253ms)
+✔ wrong media, encoding, size, and hash are typed pre-Worker failures (5.728577ms)
+✔ unsafe or self-inconsistent manifest is rejected before artifact fetch (0.92459ms)
+✔ verified engine checks release handshake and enforces fidelity restart (2.809817ms)
+✔ handshake mismatch disposes the engine and never claims a session (2.616197ms)
+✔ timeout and external abort retain their delivery taxonomy (5.778851ms)
+✔ abort during a body read stays DELIVERY_ABORTED at every read site (2.681539ms)
+✔ body failure without abort keeps its original typed failure (2.025208ms)
+✔ artifact origin must be a credential-free origin-only URL (1.347737ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 98.045862
+node --check web/r8-service-worker.js
+node --check web/r8-update-app.js
+python3 -m py_compile tools/build_r8_c_release_set.py \
+	tools/run_r8_service_worker.py tools/validate_r8_c_preflight.py \
+	tools/validate_r8_c.py tests/test_r8_c.py
+python3 -m unittest tests/test_r8_d.py
+python3 -m json.tool r8/production-matrix-v1.json >/dev/null
+python3 -m py_compile tools/run_r8_production.py tools/validate_r8_d.py \
+	tests/test_r8_d.py
+........
+----------------------------------------------------------------------
+Ran 8 tests in 0.055s
+
+OK
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+OK

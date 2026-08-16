@@ -1,0 +1,97 @@
+c++ -std=c++17 -Isrc -o build/e2/format-readback-text-test tests/format_readback_text_test.cpp
+build/e2/format-readback-text-test
+all 17 checks passed
+c++ -std=c++17 -I../libreoffice-26-8/include -fsyntax-only \
+	tools/f049_native_select_after_format.cpp
+c++ -std=c++17 -I../libreoffice-26-8/include -fsyntax-only \
+	tools/e2b_native_crossparagraph.cpp
+node --check web/e2b-gate-app.js
+python3 -m py_compile tools/run_e2b_gate.py tools/analyze_e2b_gate.py \
+	tools/analyze_e2b_crossparagraph.py tools/analyze_e2b_identity_gate.py \
+	tools/create_e2b_fixtures.py tools/build_e2_b_profile.py
+python3 -m unittest tests/test_e2_b_profile.py
+# SPEC E2-B 7.1: every validator that produces a verdict flips its own
+# criteria and asserts they go red.  An analyzer written after a prediction
+# once replaced a pre-registered criterion, and the replacement made the arm
+# pass; ad hoc mutation checks catch that once, this catches it every time.
+python3 tools/analyze_e2b_matrix.py --self-test > /dev/null
+# SPEC E2-B section 5 item 7: the header, the manifest, the worker map and
+# the client allowlist must name the same actions with the same ids.  Three
+# of the four are hand-maintained in different languages, and the one time
+# such a pair drifted here it went unnoticed across two shipped artifacts.
+python3 tools/check_e2_b_inventory.py > /dev/null
+node --test editor-shell-v2/tests/*.test.mjs
+✔ EditorV2ParagraphAction declares exactly the runtime's actions (1.405775ms)
+✔ the gesture union matches the engine's routing classes (0.157653ms)
+✔ EditorV2InheritedAction declares exactly the runtime's ten (0.156121ms)
+✔ EditorV2Action is the union of the two lists, and it is fifteen (0.293586ms)
+✔ the inherited result keeps a boolean `changed` (0.206163ms)
+✔ the declared completion is route C's, not v1's (0.157363ms)
+✔ every action the v2 profile declares is reachable by a shipped shell (3.267699ms)
+✔ control: the v1 shell reaches all ten on the v1 profile (0.856503ms)
+✔ control: an action no manifest declares is reachable by nobody (0.245116ms)
+✔ the shipped session cannot open a document on the v2 profile (1.168724ms)
+✔ control: the shipped session opens on the v1 profile (0.343399ms)
+✔ the ten inherited actions decide identically in both clients (48.792763ms)
+✔ the comparison can fail (0.55904ms)
+✔ the paragraph five are not revalidated here, they are delegated (0.231912ms)
+✔ a paragraph reply shape is still rejected for an inherited action (0.359729ms)
+✔ the fifteen are the manifest's fifteen (0.150059ms)
+✔ the convenience methods reach the same actions as v1's (0.500912ms)
+✔ the client refuses a profile that is not v2 (0.162362ms)
+✔ it opens on the v2 profile, which the shipped session cannot (2.360691ms)
+✔ all fifteen go through the session's queue (0.894203ms)
+✔ the two families keep their own postconditions (0.322119ms)
+✔ a paragraph action advances the revision by exactly one (0.22024ms)
+✔ a post-dispatch failure blocks the queue and asks for a rollback (4.067938ms)
+✔ rollback reopens from the engine's own bytes with a fresh worker (1.268039ms)
+✔ a pre-dispatch refusal does not ask for a rollback (0.454726ms)
+✔ a bad argument never reaches the engine and never rolls anything back (0.424159ms)
+✔ a boundary rejection still demands a fresh worker (0.43517ms)
+✔ the generation ceiling still fails closed (0.813132ms)
+✔ gestures and limits come from the manifest, for showing not for failing (0.982417ms)
+✔ a v1 profile is refused (4.952864ms)
+✔ contract version 1 is refused even with the v2 capability (0.274561ms)
+✔ the five paragraph actions dispatch on editorActionV2 (0.34383ms)
+✔ a v1 action name is refused (0.170747ms)
+✔ neither option flag may be supplied (0.389705ms)
+✔ revision advances by exactly one and changed stays null (0.164145ms)
+✔ a v1-shaped success is rejected, not silently accepted (0.277937ms)
+✔ a revision that does not advance is rejected (0.207937ms)
+✔ gestures and limits are read from the manifest (0.741239ms)
+✔ failure disposition turns on whether anything was dispatched (0.282897ms)
+✔ a failure that never reached the engine does not roll the document back (0.50544ms)
+✔ a barrier saying it was dispatched still wins over the code (0.160799ms)
+✔ setList and setParagraphStyle reject anything outside the closed set (0.307732ms)
+✔ a pre-dispatch refusal needs no recovery (0.786162ms)
+✔ anything dispatched rolls back (0.978741ms)
+✔ a barrier that was not forwarded rolls back, not continues (0.148817ms)
+✔ a boundary rejection still demands a fresh worker (0.157363ms)
+✔ undo is NOT the prescribed recovery for a dispatched failure (0.181748ms)
+✔ the disposition is attached to the error the caller receives (0.785151ms)
+✔ ../../web/demo-structure-app.js: every client.* call exists on ParagraphEditorClient (1.056124ms)
+✔ ../../web/e2-editor-app.js: every session.* call exists on NarrowEditorV2Session (0.256657ms)
+✔ ../../web/e2-editor-app.js: every client.* call exists on NarrowEditorV2Client (0.806741ms)
+✔ the extractor finds calls and the membership test can say no (0.257068ms)
+ℹ tests 52
+ℹ suites 0
+ℹ pass 52
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.983229
+node --check editor-shell-v2/paragraph-editor-client.js
+# E1-C's shell bundle must still bind: editor-shell/*.js is hash-registered
+# and editor-shell-v2/ exists precisely so v2 never touches it.
+#
+# NOT validate_e1_c.py: that one writes its findings back into
+# findings/evidence/, so calling it here would rewrite verdict-bound
+# evidence as a side effect of a syntax check.  Re-deriving bound evidence
+# is a deliberate act with its own note, never a thing `make` does.
+python3 tools/check_e1_c_bundle_intact.py > /dev/null
+...........
+----------------------------------------------------------------------
+Ran 11 tests in 0.001s
+
+OK

@@ -239,6 +239,12 @@ contract version 與 capability 維持 2／`narrow-editor-v2`。
 - [ ] **8 的第二處**：`routeFormatBarrier()` 的 `selectionObserved` fail-closed；
 - [ ] **12**：把 `inlineFormatEnabledIsHonoured` 記進佇列與規格
       （**它會改變 v3 的 manifest，而 manifest 是第五個綁定身分**）；
+- [ ] **引擎要在 typed state 裡回報自己的 WASM heap 大小**（D4 掉出來的，2026-08-16）：
+      `d4-memory` 的門檻寫了 WASM heap 的斜率與絕對值，而**產品沒有任何路徑報得出
+      這個數字**——`sdk-worker.js` 不報，R7-D 的 `wasmHeapBytes` 一直是 `null`，
+      Chrome 的 `measureUserAgentSpecificMemory` breakdown 沒有 WASM 歸屬，
+      Firefox 連那個 API 都沒有。因此 D4 第一輪的 `d4-memory` 只能判 PARTIAL。
+      **沒有這一欄，第二輪的 `d4-memory` 一樣只能 PARTIAL。**
 - [ ] **矩陣 v2 的凍結時機沒有守衛**（外部裁決指出）：baseline 要 v3 的五個雜湊，
       而雜湊要等連結才存在，於是「連結之後、第二輪 D0 之前」有一個必須補雜湊並
       凍結的窗口，**但沒有人檢查凍結真的發生在 D0 之前**。第一輪就是被「矩陣沒

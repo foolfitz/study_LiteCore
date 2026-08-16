@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>E2-C D4 — 生命週期十輪</title>
+<style>
+  body { margin: 0; font: 13px/1.5 ui-monospace, Menlo, monospace; padding: 12px;
+         background: #101820; color: #d7e2ea; }
+  h1 { font: 600 15px/1.4 system-ui, sans-serif; margin: 0 0 8px; }
+  p { font: 12px/1.5 system-ui, sans-serif; color: #93a6b5; margin: 0 0 12px;
+      max-width: 68em; }
+  #log { white-space: pre-wrap; word-break: break-all; }
+  #sink { position: absolute; width: 1px; height: 1px; opacity: 0; }
+</style>
+</head>
+<body>
+  <h1>E2-C D4 — 生命週期十輪</h1>
+  <p>SPEC E2-C 第 5 節 D4：十個獨立的 edit → save → reopen session，每個 session
+     最多三個 Worker generation，關閉後 worker 與 handle 都要歸零。記憶體由
+     <strong>runner</strong> 取樣（頁面看不到自己的 PSS）：頁面在每一輪的靜止點與
+     三秒後各推進一次 <code>sampleState.token</code>，runner 換 token 就取一次
+     process 快照。門檻凍結在 <code>e2/validation-matrix-v1.json</code>，預測寫在
+     <code>findings/evidence/sdk-e2/e2-c-validation/d4/PREDICTION.md</code>。
+     這一頁不判定。</p>
+  <textarea id="sink" aria-label="輸入"></textarea>
+  <div id="log"></div>
+  <script type="module" src="./e2-c-d4-app.js"></script>
+</body>
+</html>

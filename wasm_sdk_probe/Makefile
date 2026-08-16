@@ -1623,6 +1623,12 @@ dist/e2-c-d3-corpus.html: web/e2-c-d3-corpus.html | dist
 dist/e2-c-d3-corpus-app.js: web/e2-c-d3-corpus-app.js | dist
 	cp $< $@
 
+dist/e2-c-d4.html: web/e2-c-d4.html | dist
+	cp $< $@
+
+dist/e2-c-d4-app.js: web/e2-c-d4-app.js | dist
+	cp $< $@
+
 # The verified caret gesture, shared by the D2 and D3 harnesses.  Harness code,
 # deliberately outside editor-shell-v2/: the E2 shell bundle binds the PRODUCT's
 # modules, and a helper the product does not import must not move that digest.
@@ -1654,6 +1660,7 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/e2-c-d2.html dist/e2-c-d2-app.js \
 	dist/e2-c-d3.html dist/e2-c-d3-app.js dist/e2-c-caret.js \
 	dist/e2-c-d3-corpus.html dist/e2-c-d3-corpus-app.js \
+	dist/e2-c-d4.html dist/e2-c-d4-app.js \
 	$(addprefix dist/r7-compat-fixtures/,$(R7_COMPAT_FILES)) \
 	dist/e2-c-caret-ack.html dist/e2-c-caret-ack-app.js \
 	dist/e1-fixtures/list-contexts.odt \
@@ -2041,6 +2048,7 @@ test-e2-c-static:
 	node --check web/e2-c-d2-app.js
 	node --check web/e2-c-d3-app.js
 	node --check web/e2-c-d3-corpus-app.js
+	node --check web/e2-c-d4-app.js
 	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
 	# reachable by a shipped shell.  The four-way inventory check cannot see
 	# this -- its client side is the UNION of two shells and one of them
@@ -2070,7 +2078,7 @@ test-e2-c-static:
 	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py \
 		tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py \
 		tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py \
-		tools/analyze_e2_c_d3_corpus.py \
+		tools/analyze_e2_c_d3_corpus.py tools/run_e2_c_d4.py \
 		tools/validate_e2_c.py
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves

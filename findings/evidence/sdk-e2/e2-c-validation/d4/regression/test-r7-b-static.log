@@ -1,0 +1,39 @@
+node --test input/tests/*.test.mjs
+✔ copy uses public plain-text selection and a browser write (0.970736ms)
+✔ denied clipboard read is typed and causes zero mutation (0.8926ms)
+✔ paste requires a user gesture and empty reads cause zero mutation (0.143106ms)
+✔ plain text wins over HTML and commits exactly once (0.525888ms)
+✔ non-text clipboard is rejected without mutation (0.152323ms)
+✔ composition commits exactly once and suppresses duplicate beforeinput (1.952833ms)
+✔ cancel, empty composition and teardown cause zero mutation (0.316228ms)
+✔ plain text clipboard ignores HTML and preserves Unicode (0.208047ms)
+✔ empty and oversized input generate no mutation (0.326938ms)
+✔ commits are serialized and Unicode summary distinguishes combining forms (0.234106ms)
+✔ bounded queue rejects newest input without dropping accepted commits (0.240718ms)
+✔ stale invalidation cancels queued input and does not replay it (0.274852ms)
+✔ blocked state cancels composition and rejects commits (0.158856ms)
+✔ composition buffer disagreement is typed and causes zero mutation (3.382021ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 47.499317
+node --test r7/tests/page-navigation.test.mjs
+✔ page intents clamp to first and last page (0.527932ms)
+✔ scroll produces an explicitly approximate page hint (0.149117ms)
+✔ hyperlink policy allows HTTP and bookmarks but blocks dangerous schemes (0.138318ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33.384888
+node --check input/input-adapter.js
+node --check input/clipboard-adapter.js
+node --check web/r7-reference-app.js
+python3 -m py_compile tools/r7_support.py tools/run_r7_input.py tools/validate_r7_b.py

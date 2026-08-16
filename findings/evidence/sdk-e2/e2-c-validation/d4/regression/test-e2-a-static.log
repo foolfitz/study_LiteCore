@@ -1,0 +1,48 @@
+python3 -m unittest tests/test_e2_profile.py tests/test_e2_a_roundtrip.py
+node --test e2/tests/*.test.mjs
+✔ the demo refuses any build but the one its evidence describes (0.976376ms)
+✔ a manifest with no hash at all is refused, not defaulted (0.110816ms)
+✔ the pinned build is accepted (0.13461ms)
+✔ a forbidden action is refused with the reason it is forbidden (0.374967ms)
+✔ the allowed and forbidden lists cannot overlap (0.108943ms)
+✔ the diagnostic harness instruments are not on the client (0.113451ms)
+✔ underline and strikethrough are absent because this profile cannot do them (0.185135ms)
+✔ a structure action reaches the engine as a named action, never a command (0.18821ms)
+✔ an inline format carries the explicit boolean the contract requires (0.149909ms)
+✔ placing the caret uses the product's click path, not the dead ones (60.321089ms)
+✔ the caret is polled, not read once (242.819224ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 347.214568
+node --check e2/format-discovery-client.js
+node --check e2/demo-structure-client.js
+node --check web/demo-structure-app.js
+node --check web/demo-structure-discovery-app.js
+node --check web/f039-caret-reset-repro-app.js
+node --check web/e2-format-discovery-app.js
+node --check sdk/sdk-worker.js
+python3 -m json.tool e2/discovery-matrix-v1.json >/dev/null
+python3 -m py_compile tools/build_e2_discovery_profile.py \
+	tools/run_e2_discovery.py tools/analyze_e2_a_native_caret.py \
+	tools/analyze_e2_a_native_reissue.py tools/validate_e2_a.py \
+	tools/validate_e2_a_roundtrip.py \
+	tests/test_e2_profile.py tests/test_e2_a_roundtrip.py
+bash -n tools/run_e2_a_native_caret.sh
+bash -n tools/run_f039_native.sh
+bash -n tools/run_e2_a_native_reissue.sh
+c++ -std=c++17 -fsyntax-only -I../libreoffice-26-8/include \
+	tools/e2_a_native_caret_tracking.cpp
+c++ -std=c++17 -fsyntax-only -I../libreoffice-26-8/include \
+	tools/e2_a_native_reissue.cpp
+c++ -std=c++17 -fsyntax-only -I../libreoffice-26-8/include \
+	tools/f039_native_caret_reset.cpp
+........................................................................
+----------------------------------------------------------------------
+Ran 72 tests in 0.324s
+
+OK
