@@ -11,6 +11,7 @@ from unittest import mock
 PROJECT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT / "tools"))
 
+from e1_support import classify_divergence, declared_divergences
 import validate_e1_c  # noqa: E402
 from run_e1_c import LIFECYCLE_WARMUP_CYCLES, PLANS  # noqa: E402
 from validate_e1_c import (  # noqa: E402
@@ -130,9 +131,60 @@ class E1CMatrixTest(unittest.TestCase):
                 matrix = json.loads((PROJECT / "e1" / name).read_text())
                 self.assertEqual(matrix["baseline"]["coreCommit"], expected)
 
+    @staticmethod
+    def _predicted_bundle_digest() -> str:
+        """The digest the DECLARATIONS predict for the shell as it stands now.
+
+        Registered hash for every bound file, except the ones a divergence
+        entry declares -- those contribute the hash the declaration names.  An
+        undeclared edit, or a declared file that moved again, produces a digest
+        that matches neither this nor the registered one, so the checks below
+        still fail on exactly the events they were written to catch.
+        """
+        import hashlib
+
+        manifest = json.loads(
+            (PROJECT / "e1" / "editor-shell-bundle-v1.json").read_text())
+        declared = declared_divergences(PROJECT)
+        payload = b""
+        for item in sorted(manifest["included"], key=lambda i: str(i["path"])):
+            path = str(item["path"])
+            note = declared.get(path)
+            digest = note["nowSha256"] if note else item["sha256"]
+            payload += f"{path}\0{digest}\n".encode()
+        return hashlib.sha256(payload).hexdigest()
+
+    def _assert_every_difference_is_declared(self, differences) -> None:
+        """Strict where it matters: `declared` is the ONLY tolerated verdict.
+
+        SPEC E1-C 11.7/11.8: the shell binding is deliberately broken and the
+        break is on the record.  Asserting `pass` outright would leave this
+        target red for the whole deferral period, which is how a guard gets
+        skipped; asserting nothing would be worse.  So the assertion moves from
+        "nothing changed" to "nothing changed that nobody wrote down", and the
+        verdict path is untouched -- `validate_e1_c.py` still computes `pass`
+        strictly, so E1_GO_ODT_EDITOR cannot go green on a diverged shell.
+        """
+        declared = declared_divergences(PROJECT)
+        for difference in differences:
+            verdict = classify_divergence(
+                str(difference["path"]), difference["observed"],
+                difference["expected"], declared)
+            self.assertEqual(verdict, "declared", difference)
+
     def test_shell_bundle_manifest_covers_loaded_and_excluded_modules(self) -> None:
         inventory = shell_bundle_inventory(PROJECT)
-        self.assertTrue(inventory["pass"], inventory)
+        if not inventory["pass"]:
+            self._assert_every_difference_is_declared(inventory["differences"])
+            # And the whole bundle is exactly what those declarations predict:
+            # per-file tolerance without this would accept a declared file plus
+            # a silently added one.
+            self.assertEqual(inventory["sourceBundleSha256"],
+                             self._predicted_bundle_digest(), inventory)
+            self.assertEqual(inventory["distBundleSha256"],
+                             self._predicted_bundle_digest(), inventory)
+            self.assertEqual(inventory["unaccountedModules"], [], inventory)
+            self.assertEqual(inventory["missingModules"], [], inventory)
         self.assertEqual(
             inventory["expectedBundleSha256"],
             "f9b1a52f3ff2e2a3f35eae4366993f40b2035f309509aac0a3b7b6864a8cfeb9",
@@ -209,8 +261,29 @@ class E1CMatrixTest(unittest.TestCase):
                 stale = json.loads(json.dumps(matrix))
                 stale["baseline"]["shellBundleSha256"] = "00" * 32
                 mismatched = workspace_preflight(PROJECT, root, stale, "before")
-        self.assertTrue(matched["profile"]["artifacts"]["shellBundle"]["pass"])
-        self.assertTrue(matched["pass"])
+        shell = matched["profile"]["artifacts"]["shellBundle"]
+        if not shell["pass"]:
+            # Same rule as the inventory test above: while the divergence is
+            # declared, what must hold is that the shell on disk is EXACTLY
+            # what the declarations predict.  `expected` is still the frozen
+            # matrix baseline, and it is still not equal to `observed` -- the
+            # binding is broken and stays broken until E1-C is requalified.
+            self.assertEqual(shell["observed"], self._predicted_bundle_digest(),
+                             shell)
+            self.assertNotEqual(shell["observed"], shell["expected"], shell)
+        else:
+            # Only when this workspace actually has the profile artifacts to
+            # compare.  `matched["pass"]` covers wasm/loader/worker as well, and
+            # the regenerate tool's self-test runs this file inside a sandbox
+            # copy with no dist/profiles at all -- where the answer is False for
+            # a reason that has nothing to do with the shell bundle.  Before the
+            # divergence this branch was simply never reached, so the limitation
+            # was invisible rather than absent.
+            artifacts = matched["profile"]["artifacts"]
+            complete = all(artifacts[name]["observed"] is not None
+                           for name in artifacts if name != "shellBundle")
+            if complete:
+                self.assertTrue(matched["pass"], matched)
         self.assertFalse(mismatched["profile"]["artifacts"]["shellBundle"]["pass"])
         self.assertFalse(mismatched["pass"])
 

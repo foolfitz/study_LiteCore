@@ -42,6 +42,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from e1_support import classify_divergence, declared_divergences  # noqa: E402
 from validate_e1_c import (  # noqa: E402
     SHELL_BUNDLE_MANIFEST, loaded_shell_modules, sha256, shell_bundle_digest,
 )
@@ -82,6 +83,40 @@ def compute(project: Path) -> dict[str, Any]:
         "bundleSha256": shell_bundle_digest(source),
         "excludedNow": sorted(set(available) - set(loaded)),
     }
+
+
+def declared_only(project: Path, report: dict[str, Any]) -> list[str] | None:
+    """Are ALL the byte differences ones somebody already wrote down?
+
+    Returns the declarations when every change is declared and nothing else
+    moved, otherwise None.
+
+    Why this exists: while E1-C's shell binding is deliberately diverged (SPEC
+    E1-C 11.7 / 11.8), check mode said "not clean, exit 1" every single run.  A
+    static target that is red for a known, recorded reason across a period
+    measured in weeks is a target people learn to skip -- and then it is not
+    guarding anything on the day something UNdeclared moves.  So: declared
+    changes stop the shouting, and only those.  An undeclared change, a
+    declared file that moved again, a set change, a stale dist copy -- all of
+    them still return None and still exit 1.
+
+    This does NOT make the verdict green.  `validate_e1_c.py` and the frozen
+    manifest are untouched: the binding is still broken, it is just broken on
+    the record.
+    """
+    if report["setChanged"] or report["staleDist"]:
+        return None
+    if not report["changed"]:
+        return None
+    declared = declared_divergences(project)
+    notes = []
+    for item in report["changed"]:
+        verdict = classify_divergence(
+            item["path"], item["now"], item["was"], declared)
+        if verdict != "declared":
+            return None
+        notes.append(f"{item['path']}: {declared[item['path']].get('reason', '')}")
+    return notes
 
 
 def plan(project: Path) -> dict[str, Any]:
@@ -245,7 +280,23 @@ def apply(project: Path, report: dict[str, Any], reasons: dict[str, str],
 # self-test
 # --------------------------------------------------------------------------
 
-def _copy_project(destination: Path) -> Path:
+SHELL_BUNDLE_DIVERGENCE_NAME = "e1/editor-shell-bundle-v1-divergence.json"
+
+
+def _copy_project(destination: Path, rebaseline: bool = False) -> Path:
+    """Copy enough of the tree to run the tool and the shell-bundle tests.
+
+    `rebaseline=True` first writes the manifest to match the copy's own bytes.
+    The cases that need it are the ones about SET changes and exclusions: they
+    ask "what does the tool do when X happens to a matching tree", and while
+    E1-C's shell carries a declared divergence (SPEC E1-C 11.7/11.8) the tree
+    does not match its manifest, so those cases were measuring the divergence
+    instead of X.  They failed for that reason from 2026-08-16 until this was
+    written.
+
+    The divergence cases below deliberately do NOT rebaseline: they need the
+    real declared state, which is the thing they are about.
+    """
     project = destination / "wasm_sdk_probe"
     project.mkdir(parents=True)
     for name in ("editor-shell", "input", "e1", "tests", "tools", "web", "sdk"):
@@ -257,6 +308,16 @@ def _copy_project(destination: Path) -> Path:
         source = PROJECT / "dist" / name
         if source.is_dir():
             shutil.copytree(source, project / "dist" / name)
+    if rebaseline:
+        report = plan(project)
+        if not report["clean"]:
+            apply(project, report, {}, "2026-01-01")
+        # Stated, not assumed: if the rebaseline did not take, every case built
+        # on this copy is measuring the leftover instead of its own mutation.
+        if not plan(project)["clean"]:
+            raise SystemExit(
+                "self-test sandbox could not be rebaselined; the cases that "
+                "depend on a matching manifest cannot run")
     return project
 
 
@@ -274,12 +335,12 @@ def self_test() -> int:
 
         # 1. an untouched copy has to come back clean, or every other case
         #    below is measuring the copy rather than the mutation.
-        project = _copy_project(root / "clean")
+        project = _copy_project(root / "clean", rebaseline=True)
         report = plan(project)
         check("untouched copy reports clean", report["clean"], render(report))
 
         # 2. one byte inside an included module: detected, and one flag fixes it
-        project = _copy_project(root / "byte")
+        project = _copy_project(root / "byte", rebaseline=True)
         target = project / "editor-shell/state-machine.js"
         target.write_text(target.read_text(encoding="utf-8") + "\n// probe\n",
                           encoding="utf-8")
@@ -320,7 +381,7 @@ def self_test() -> int:
               not blockers(report, True, {}), str(blockers(report, True, {})))
 
         # 4. a new UNimported module is an exclusion, and exclusions need reasons
-        project = _copy_project(root / "excluded")
+        project = _copy_project(root / "excluded", rebaseline=True)
         orphan = project / "editor-shell/orphan-module.js"
         orphan.write_text("export const orphan = 1;\n", encoding="utf-8")
         (project / "dist/editor-shell/orphan-module.js").write_text(
@@ -353,9 +414,9 @@ def self_test() -> int:
         #    unrelated cases cannot run here at all.  Demanding zero would make
         #    the check fail for reasons that have nothing to do with the write
         #    -- and it did, the first time this ran.
-        baseline_project = _copy_project(root / "gate-clean")
+        baseline_project = _copy_project(root / "gate-clean", rebaseline=True)
         before_failures = _failing_shell_tests(baseline_project)
-        project = _copy_project(root / "gate")
+        project = _copy_project(root / "gate", rebaseline=True)
         target = project / "editor-shell/state-machine.js"
         target.write_text(target.read_text(encoding="utf-8") + "\n// probe\n",
                           encoding="utf-8")
@@ -376,12 +437,73 @@ def self_test() -> int:
               f"excluded by comparison, not by being green: "
               f"{', '.join(before_failures) or 'none'})")
 
+        # 6. the divergence relaxation, mutation by mutation.
+        #
+        #    Check mode and tests/test_e1_c.py stop reporting a change that
+        #    e1/editor-shell-bundle-v1-divergence.json already declares (SPEC
+        #    E1-C 11.8), which is the only thing standing between this target
+        #    and being red for the whole deferral period.  A relaxation nobody
+        #    tries to break is a relaxation that quietly becomes an exemption,
+        #    so each way of getting past it is tried here.
+        def _declared_case(name: str, mutate, expect_green: bool) -> None:
+            case = _copy_project(root / f"divergence-{name}")
+            mutate(case)
+            green_check = subprocess.run(
+                [sys.executable, "tools/regenerate_shell_bundle.py"],
+                cwd=case, capture_output=True, text=True).returncode == 0
+            green_tests = subprocess.run(
+                [sys.executable, "-m", "unittest",
+                 "tests.test_e1_c.E1CMatrixTest."
+                 "test_shell_bundle_manifest_covers_loaded_and_excluded_modules"],
+                cwd=case, capture_output=True, text=True).returncode == 0
+            check(f"divergence: {name}",
+                  green_check == expect_green and green_tests == expect_green,
+                  f"check={'green' if green_check else 'red'} "
+                  f"tests={'green' if green_tests else 'red'}, expected "
+                  f"{'green' if expect_green else 'red'}")
+
+        def _append(project: Path, relative: str, text: str, dist: bool = True) -> None:
+            for base in ((project, project / "dist") if dist else (project,)):
+                target = base / relative
+                target.write_text(target.read_text(encoding="utf-8") + text,
+                                  encoding="utf-8")
+
+        _declared_case("the declared state itself passes", lambda p: None, True)
+        _declared_case(
+            "an undeclared byte change still fails",
+            lambda p: _append(p, "editor-shell/state-machine.js", "\n// probe\n"),
+            False)
+        _declared_case(
+            "a declared file that moved AGAIN still fails",
+            lambda p: _append(p, "editor-shell/editor-session.js", "\n// probe\n"),
+            False)
+        _declared_case(
+            "a declaration that does not match the bytes still fails",
+            lambda p: (_declare(p, "editor-shell/state-machine.js"),
+                       _append(p, "editor-shell/state-machine.js", "\n// probe\n")),
+            False)
+
     print()
     if failures:
         print(f"self-test FAILED: {len(failures)} case(s): {', '.join(failures)}")
         return 1
     print("self-test passed")
     return 0
+
+
+
+def _declare(project: Path, relative: str) -> None:
+    """Add a divergence entry whose nowSha256 is NOT the file's actual hash."""
+    path = project / SHELL_BUNDLE_DIVERGENCE_NAME
+    data = read_json(path) if path.is_file() else {"diverged": []}
+    data.setdefault("diverged", []).append({
+        "path": relative,
+        "registeredSha256": "00" * 32,
+        "nowSha256": "11" * 32,
+        "date": "2026-01-01",
+        "reason": "self-test fixture",
+    })
+    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
 def _run_shell_tests(project: Path) -> subprocess.CompletedProcess:
@@ -440,6 +562,17 @@ def main() -> int:
     print(render(report))
 
     if report["clean"]:
+        return 0
+
+    declared = declared_only(args.project, report)
+    if declared and not args.write:
+        print("\nEvery difference is declared in "
+              "e1/editor-shell-bundle-v1-divergence.json:")
+        for note in declared:
+            print(f"  ~ declared   {note}")
+        print("\nThe binding is still broken -- see SPEC E1-C 11.7/11.8.  What a "
+              "declaration buys is that this check stops reporting a change "
+              "somebody already wrote down; an undeclared one still fails.")
         return 0
 
     problems = blockers(report, args.allow_set_change, reasons)

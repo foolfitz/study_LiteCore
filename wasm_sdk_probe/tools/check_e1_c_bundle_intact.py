@@ -24,6 +24,9 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from e1_support import classify_divergence, declared_divergences  # noqa: E402
+
 MANIFEST = Path("e1/editor-shell-bundle-v1.json")
 # A deliberate change to a bound file is not the same event as an accidental
 # one, and the guard has to be able to tell them apart or it gets switched off.
@@ -50,7 +53,9 @@ def main() -> int:
     divergence_path = project / DIVERGENCE
     divergence = (json.loads(divergence_path.read_text(encoding="utf-8"))
                   if divergence_path.is_file() else {"diverged": []})
-    declared = {str(item["path"]): item for item in divergence.get("diverged", [])}
+    # The classification lives in e1_support so the static target, the
+    # regenerate tool and this guard cannot answer it three different ways.
+    declared = declared_divergences(project)
 
     problems: list[str] = []
     accepted: list[str] = []
@@ -61,13 +66,13 @@ def main() -> int:
         note = declared.get(path)
         for side, base in (("source", project), ("dist", project / "dist")):
             actual = sha256(base / path)
-            if actual == expected:
+            verdict = classify_divergence(path, actual, expected, declared)
+            if verdict == "match":
                 continue
-            if note and actual == note.get("nowSha256"):
+            if verdict == "declared":
                 accepted.append(f"{side} {path}: diverged as declared "
                                 f"({note.get('reason')})")
-                continue
-            if note:
+            elif verdict == "drifted":
                 problems.append(
                     f"{side} {path}: {actual} matches neither the registered "
                     f"{expected} nor the declared {note.get('nowSha256')} -- "

@@ -572,10 +572,41 @@ pipe）之後，§11.4 要求的重跑全數完成，全部對出貨 artifact `8
 2. 配方最後一行 `regenerate_shell_bundle.py`（check 模式）也 exit 1。
 
 三處**都不認 divergence 檔**。一個在申報期恆紅的靜態目標，正是 intact 守衛註解
-裡警告的「會被關掉的守衛」形狀。處方二選一：教這三處讀 divergence 檔（已申報
-報 declared 並通過、沒申報照樣紅，也就是 `check_e1_c_bundle_intact.py` 已經在
-做的事），或維持排除但**把理由寫對**——E2-C D4 引用的那句「它會重建凍結的
-`e1-editor-v1`」自 v9 起已不成立（該目標刻意無前置，配方是純檢查）。
+裡警告的「會被關掉的守衛」形狀。
+
+**已修（2026-08-16，採第一條處方）**：申報判定抽成一份共用規則
+（`tools/e1_support.py` 的 `declared_divergences()`／`classify_divergence()`），
+三處都改成用它——**一條規則一個地方**，不是三份會各自漂移的複本。
+`check_e1_c_bundle_intact.py` 改成委派，行為逐項不變。
+
+**放寬只放寬了一件事：不再重複報告一個已經寫下來的改動。** 邊界由六個突變釘住
+（在複本上跑，不碰真的樹）：
+
+| 突變 | 必須 |
+|---|---|
+| 沒申報的位元組改動 | 紅 |
+| 已申報的檔案**又動了一次** | 紅 |
+| 在 v1 殼層旁邊新增一個檔案 | 紅 |
+| dist 複本與原始碼不一致 | 紅 |
+| 申報的 `nowSha256` 與實際位元組對不上 | 紅 |
+| 現行這個已申報的狀態 | 綠 |
+
+其中四個已經**寫進 `regenerate_shell_bundle.py --self-test`**（由
+`test-e1-c-shell-bundle-tool` 跑），不留在一次性腳本裡——沒有人跑的檢查會爛掉，
+這一輪剛在 `test-e2-a-static` 上看過一次。
+
+**裁決路徑一個字沒動**：`validate_e1_c.py` 的 `pass` 仍然是嚴格比對，
+`check_e1_c_bundle_intact.py` 仍然回報 `intact: false`。
+**綁定還是斷的，只是斷在紀錄上。** 放寬的是「靜態目標會不會紅」，
+不是「裁決算不算成立」。
+
+順帶修好兩個**同一成因的既有失敗**（`--self-test` 在 HEAD 上就紅著）：需要
+「manifest 與樹相符」當基線的那幾個案例，現在會先把複本自我重定基線，
+否則它們量到的是這次分歧而不是自己那個突變。
+
+E2-C D4 引用的那句「它會重建凍結的 `e1-editor-v1`」自 v9 起已不成立
+（該目標刻意無前置，配方是純檢查）；**排除與否現在是矩陣 v1 凍結的判準問題，
+不再是「因為它是紅的」**。
 
 **其餘的回歸目標全部是綠的**：`test-r6-release`、`test-r7-b/c/d-static`、
 `test-r8-d-static`、`test-e1-a-static`、`test-e1-b-static`、`test-e2-a-static`
@@ -587,7 +618,7 @@ pipe）之後，§11.4 要求的重跑全數完成，全部對出貨 artifact `8
 
 | 日期 | 內容 |
 |---|---|
-| 2026-08-16 | **v8。新增§11.8：殼層綁定的收復決定為「延後」，解除條件具名**（`e1-editor-v1` 的 relink 決定之後的第一個 operator 時段，可與 E2-C D5 併一個時段；另設「有人要引用殼層那一半就即刻收復」的引信）。外部裁決（fable，使用者授權）。承重理由是**已排定的 `e1-editor-v1` relink 決定點**——若那個決定是 relink，現在收復的兩輪人工百分之百作廢；歷史（§11.4→§11.6：08-06 那次立即收復在 24 小時內被兩次重建作廢）與成本結構（人工輪每事件固定、不隨改動量成長，因此「愈晚愈貴」方向是反的）都指向同一邊。否決兩條第三路（拆 bundle、先跑自動相位當半份證據）。順帶記一個落差：**`test-e1-c-static` 今天是紅的**——`regenerate_shell_bundle.py` 的 check 模式不認 divergence 檔（實測 exit 1），而 E2-C D4 排除它的理由（「會重建凍結的 artifact」）自 v9 起已不成立。 |
+| 2026-08-16 | **v8。新增§11.8：殼層綁定的收復決定為「延後」，解除條件具名**（`e1-editor-v1` 的 relink 決定之後的第一個 operator 時段，可與 E2-C D5 併一個時段；另設「有人要引用殼層那一半就即刻收復」的引信）。外部裁決（fable，使用者授權）。承重理由是**已排定的 `e1-editor-v1` relink 決定點**——若那個決定是 relink，現在收復的兩輪人工百分之百作廢；歷史（§11.4→§11.6：08-06 那次立即收復在 24 小時內被兩次重建作廢）與成本結構（人工輪每事件固定、不隨改動量成長，因此「愈晚愈貴」方向是反的）都指向同一邊。否決兩條第三路（拆 bundle、先跑自動相位當半份證據）。順帶記一個落差並在同日修掉：**`test-e1-c-static` 曾經是紅的**——三處都不認 divergence 檔。申報判定抽成 `e1_support` 的共用規則，六個突變釘住邊界（沒申報／又動一次／旁邊加檔／dist 不一致／申報對不上位元組全部仍然紅），四個已寫進 `--self-test`。**裁決路徑未動**：`validate_e1_c.py` 仍嚴格比對，`intact` 仍是 false。 |
 | 2026-08-16 | **v7。新增§11.7。finding 048 的修法動到 `editor-shell/editor-session.js`，`E1_GO_ODT_EDITOR` 的殼層綁定因此斷開**（artifact 三個雜湊不受影響）。凍結的 bundle manifest 不改寫，改動申報在 `e1/editor-shell-bundle-v1-divergence.json`，守衛據此區分已申報與沒申報的改動。收復需要對現行殼層重跑自動相位＋雙瀏覽器人工輪，**本次沒有排定**。 |
 | 2026-08-05 | v1。凍結E1-B×R7整合、五份ODT、recovery／lifecycle、最小headed gate及E1最終判定。 |
 | 2026-08-05 | v2。回填48個browser cases、16份desktop round-trip、雙browser headed pass與`E1_GO_ODT_EDITOR`。 |

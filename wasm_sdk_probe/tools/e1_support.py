@@ -19,6 +19,43 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+SHELL_BUNDLE_DIVERGENCE = Path("e1/editor-shell-bundle-v1-divergence.json")
+
+
+def declared_divergences(project: Path) -> dict[str, dict[str, Any]]:
+    """What deliberate changes to E1-C's bound shell files have been declared.
+
+    One rule, one place.  `check_e1_c_bundle_intact.py` had this inline first;
+    it lives here now because three other callers need the SAME answer, and a
+    second copy of "is this change declared" is a second place for the answer
+    to drift.  The file itself is the record: path, the hash the verdict bound,
+    the hash it now has, why it moved, and what that costs.
+    """
+    path = project / SHELL_BUNDLE_DIVERGENCE
+    if not path.is_file():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {str(item["path"]): item for item in data.get("diverged", [])}
+
+
+def classify_divergence(path: str, actual: str | None, expected: str,
+                        declared: dict[str, dict[str, Any]]) -> str:
+    """`match` | `declared` | `drifted` | `undeclared`.
+
+    `drifted` is the case a naive "is it in the file" check would wave through:
+    a declared file that has moved AGAIN now has a declaration describing a
+    version that no longer exists either, so it is exactly as unaccounted for
+    as an undeclared change.  It is a separate word because the fix differs --
+    update the declaration, versus write one.
+    """
+    if actual == expected:
+        return "match"
+    note = declared.get(path)
+    if note is None:
+        return "undeclared"
+    return "declared" if actual == note.get("nowSha256") else "drifted"
+
+
 def write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
