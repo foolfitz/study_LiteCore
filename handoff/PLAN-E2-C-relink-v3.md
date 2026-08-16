@@ -42,11 +42,13 @@
 | 2 | `src/probe_engine.cpp` | **gesture mask 要對十個繼承動作也生效**——目前只有 `routeFormatBarrier()` 讀 mask，而那是五個段落動作專用路徑 | SPEC E2-C 2.5 |
 | 3 | `src/probe_engine.cpp` | barrier payload 的 `route` **不得把預設值當觀測值**回報：型態守衛在指派 route 之前 return，於是證據裡出現「`route: collapsed` 但其實沒有分類過」 | 9.5.4 |
 | 3b | `src/probe_engine.cpp` | **[finding 046](../findings/046-an-empty-readback-is-reported-as-the-document-being-in-the-wrong-state.md)：仍待做。** 2026-08-15 查證：`empty-readback` 這個 shape **從來沒有被寫進樹裡**（`grep` 零筆），本表先前記成「已寫」是錯的。而且判準還不能定案——同一個空段落在**產品點擊**下走 `postcondition-not-met`、在零寬 `selectRange` 下走`multi-block-readback`，兩者 `postBlocks` 都是 0，差別在 `itemCount`，**而產品投影看不到 itemCount** | D2 掃描輪＋D3 那一輪的重測 |
-| 3c | `src/probe_engine.cpp`／worker | **把 `itemCount` 補進產品的 `formatBarrier` 投影**。它不是診斷用的額外資訊：沒有它，「零個 block」分不出「什麼都沒讀到」與「只讀到清單項」，而 3b 的判準正是壓在這個區別上。**先有這一欄，3b 才是量出來的** | 046 的更正段 |
+| 3c ✅ | `src/probe_engine.cpp`／worker | **已進樹（2026-08-16）**：引擎那半本來就在（`probe_engine.cpp:1241`），worker 投影已補（`sdk/sdk-worker.js` 的 `productFormatBarrier`）。**把 `itemCount` 補進產品的 `formatBarrier` 投影**。它不是診斷用的額外資訊：沒有它，「零個 block」分不出「什麼都沒讀到」與「只讀到清單項」，而 3b 的判準正是壓在這個區別上。**先有這一欄，3b 才是量出來的** | 046 的更正段 |
 | 4 | `src/editor_api.h`／`.cpp` | ABI 版本常數 → **3**（flat、精確比對）。**動作列舉一個字不動**——這次改的是語意不是介面 | 「版本是身分」 |
 | 5 | `Makefile` | **新的建置變體 `e2-editor-v3`**：新的 build 目錄與 dist 目錄，掛 `refuse_unasked_relink`；**`e2-editor-v2` 的 target 一個字不動** | 5.12 的作法 |
 | 6 | `tools/build_e2_c_profile.py` | **新 builder**（不改 v2 的）：contract v3、`narrow-editor-v3`、`limits` 補兩筆（見 P2-1） | 5.8 的作法 |
 | 7 | `tests/editor_abi_header_test.cpp` | 斷言 ABI 常數 = 3（`-fsyntax-only`，不影響 artifact） | — |
+| **8b** ✅ | `src/probe_engine.cpp` | **已進樹（2026-08-16，只編 object 驗過，未連結）**。 **`routeFormatBarrier()` 的 `selectionObserved` fail-closed**。「審查之後的修正」#3 說兩處一併修了，實際只修了十個繼承動作那一處；段落路由仍把「還沒有人說」當收合游標。新的 shape ＝ `routing-selection-not-observed`，呼叫端有自己的分支（不得併進「選取holds an image」那句） | 2026-08-16 稽核 |
+| **9b** | `tools/build_e2_c_profile.py` | **`editorContract.inlineFormatEnabledIsHonoured = true`**。它**已經在樹裡**（`:93`）但佇列與規格都沒記過。不進 WASM 位元組，**但會進 v3 的 manifest，而 manifest 是第二輪的第五個綁定身分**——沒記載的宣告等於一個沒有人驗過的承諾 | 2026-08-16 稽核（反向） |
 
 **`changed` 刻意不改**（fable 的建議，採納）：SPEC E2-C 9.5.2 已經把這四個動作的
 `changed: true` 定義成「引擎接受且狀態前進」，而不是「文件位元組變了」。

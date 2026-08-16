@@ -3297,6 +3297,22 @@ bool formatBarrierSelectionIsReadable() {
 // what keeps that call from ever being made on such a selection.
 bool routeFormatBarrier(FormatStateBarrier &barrier,
                         std::uint32_t internalAction, std::string &shape) {
+  // `selectionObserved` is load-bearing here for the same reason it is in the
+  // ten inherited actions' gate below: an empty rectangle list means "no
+  // selection" ONLY once core has reported one at least once (see the field's
+  // own comment at the declaration).  Before that it means "nobody has said
+  // yet", and admitting that as a collapsed caret is classifying without an
+  // observation.
+  //
+  // The 2026-08-15 review that added the other gate recorded this one as fixed
+  // at the same time.  It was not: a second-party audit on 2026-08-16 found
+  // this function still classifying an unobserved selection as Collapsed, and
+  // reading the source confirmed it.  "Both places were fixed" was a sentence,
+  // not a state of the tree.
+  if (!gEditorState.selectionObserved) {
+    shape = "routing-selection-not-observed";
+    return false;
+  }
   if (gEditorState.selectionRectangles.empty()) {
     barrier.route = FormatBarrierRoute::Collapsed;
   } else {
@@ -3783,6 +3799,17 @@ void startFormatBarrierActionResolved(const Command &command,
             "EDITOR_FORMAT_GESTURE_UNSUPPORTED",
             "this action is not offered for this kind of selection in this "
             "profile, so nothing was dispatched and the document is unchanged");
+      } else if (refusal == "routing-selection-not-observed") {
+        // Its own branch, and not folded into the readback message below: an
+        // action refused because core has not reported a selection YET is not
+        // an action refused because the selection holds an image.  Telling the
+        // host the second when the first happened is how a caller learns to
+        // work around the wrong thing.  Same typed code and same wording as
+        // the inherited actions' gate, because it is the same refusal.
+        failFormatBarrier(
+            "EDITOR_FORMAT_GESTURE_UNSUPPORTED",
+            "no selection has been reported yet, so this action cannot be "
+            "classified; nothing was dispatched and the document is unchanged");
       } else {
         failFormatBarrier(
             "EDITOR_FORMAT_SELECTION_NOT_READABLE",

@@ -1120,6 +1120,7 @@ bundle 進到 **v3（`34e95e10…`）**，v2 凍結——它是 048 每一個 ar
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-16 | **v13。relink 佇列的第二方稽核（codex ＋ 自行覆核）改了三件事，第 11.2 節據此就地修訂。**（一）**`routeFormatBarrier()` 的 `selectionObserved` fail-closed 其實沒修**——08-15 的審查修正記成「兩處一併修」，實際只有十個繼承動作那一處；段落路由仍把「還沒有人說」當收合游標。已修，新 shape `routing-selection-not-observed` 有自己的呼叫端分支（不得併進「選取holds an image」那句），**只編 object 驗過，未連結**。（二）**3c 的引擎那半本來就在樹裡**，缺的是 worker 投影，已補；`sdk/sdk-worker.js` **不在任何殼層 bundle 裡**，所以殼層摘要不受影響（實測 `test-e2-c-static` exit 0、v2 三個雜湊未變）。（三）**`inlineFormatEnabledIsHonoured` 是樹裡有而文件沒有的 manifest 宣告**，已記入 11.2 並指定其驗收＝D1 的四個 `-false` 格。**這一輪沒有連結，也沒有動任何凍結 artifact。** |
 | 2026-08-16 | **v12。finding 048 的治本修法進了產品**：`placeCaret` 改成要引擎確認點擊、且游標在點的那一行才返回，不繞道 `setTextSelection`。D3／D2 在修好的殼層上雙瀏覽器各重跑一輪，**D3 逐位元組與修法前相同、D2 各 12／12**。殼層 bundle 進 v3、v2 凍結；`E1_GO_ODT_EDITOR` 的殼層綁定因此斷開並已申報（SPEC E1-C §11.7）。 |
 | 2026-08-15 | **v11。D3 執行完畢（9.5.9），但先掉出 [finding 048](../findings/048-place-caret-confirms-before-the-click-takes-effect.md)：`placeCaret` 在點擊生效（22–28 ms）之前就回報成功，於是第一輪 D3 八格全部在文件第一段動作，三格回綠而且什麼都沒量到。** harness 加上「派送前必須證明游標在錨點」的閘門（離線判定器自己重算），D2 依同一條改寫並重跑，修掉「after 圖要在 recovery 之後才取」的 harness 缺陷後**兩瀏覽器各 12／12**。**八格結果：六個預測成立、兩個（L2、L5——都是相鄰同型清單的合併規則）不成立但行為可接受、零內容遺失**；L7 這個停止條款目標格沒有觸發。L6 的判準就地更正為「與什麼都不做的存檔比較」並新增控制格 `L6C`。另記兩件：**046 的修法其實不在原始碼樹裡**（relink 佇列要更正），以及一次證據覆蓋事故——已還原，runner 現在會拒絕寫進已有紀錄的目錄。 |
 | 2026-08-15 | **v10。D2 harness 寫好並第一次執行（9.5.8）**：掉出四件，兩件是產品／契約的（`STALE_REVISION` 的處置——已修；**空段落不是派送前拒絕，與 E2-B 2.3 的表對不上**——未追根因），兩件是我自己的 harness 缺陷（`save()` 的回傳型別、兩格拿錯 fixture 而回綠）。**這證實了「D2 要在 relink 之前寫」那個要求是對的。** |
@@ -1156,7 +1157,8 @@ bundle 進到 **v3（`34e95e10…`）**，v2 凍結——它是 048 每一個 ar
 | **新 artifact** | `e2-editor-v3`，新的 build 與 dist 目錄。**`572035ac…`（v2）與四顆凍結 profile 逐位元不動** |
 | **ABI 版本** | `OXSDK_EDITOR_ABI_VERSION` 2 → **3**。**動作列舉一個字不動**；變的是 `enabled` 的語意 |
 | **contract version 與 capability** | **不動**（維持 2 與 `narrow-editor-v2`）。真正在跑的身分守衛是 worker 在 init 時對 `abiVersion` 的**精確比對**（`sdk-worker.js:810-818`）——新舊兩顆 build 在 manifest 上分得開，而且**分不開就跑不起來**。動那兩個字串會讓 worker 與兩個客戶端都認不得新 profile，那正是 2.2 的缺陷 |
-| **殼層** | **一個位元組不動**。`editor-shell-v2/` 與 `e2/editor-shell-v2-bundle-v1.json` 維持原樣，第一輪證據的身分因此仍然可重驗 |
+| **manifest 新增一個宣告** | `editorContract.inlineFormatEnabledIsHonoured: true`。builder 已經在寫它（`tools/build_e2_c_profile.py:93`），但**佇列與規格先前都沒記過**（2026-08-16 反向稽核發現）。它不進 WASM 位元組，**卻進 manifest，而 manifest 是這一輪的第五個綁定身分**——一個沒被記載的宣告等於一個沒有人驗過的承諾。**它的驗收是 D1 那四個 `-false` 格**（判準不變，它們在 v3 上應該轉綠，而那正是 finding 045 修法的驗收） |
+| **殼層** | **一個位元組不動**。`editor-shell-v2/` 與 `e2/editor-shell-v2-bundle-v1.json` 維持原樣，第一輪證據的身分因此仍然可重驗。**例外要說清楚**：`sdk/sdk-worker.js` **不在任何殼層 bundle 裡**（它綁在 artifact 側的 `workerSha256`），所以 3c 補的 `itemCount` 投影不動任何殼層摘要——實測 `make test-e2-c-static` exit 0、`e2-editor-v2` 的三個雜湊未變 |
 | **第一輪的證據** | **原封保留**，不覆寫。第二輪寫到自己的命名空間（`e2-c-validation-v3/`） |
 | **E2-B 對 v2 的判定** | **仍然為真**，但**不再描述產品**（finding 027 的形狀），所以要在 v3 上重新建立 |
 

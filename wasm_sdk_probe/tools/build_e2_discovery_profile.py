@@ -53,13 +53,27 @@ WORKER_MESSAGE_AFTER = (
 # asserted.  The shared Worker forwards a fixed field set that drops them, which
 # left both counters reading null in the first A2-wasm evidence.  Diagnostic
 # profiles get them through; the product path is untouched.
-WORKER_BARRIER_BEFORE = """        if (operation !== "editorActionV1")
-          result.selectionBarrier = event.selectionBarrier;"""
+# RE-DERIVED 2026-08-16.  The old anchor was
+#     if (operation !== "editorActionV1")
+#       result.selectionBarrier = event.selectionBarrier;
+# and it stopped matching on 2026-08-15 (8879d71 and the commits around it),
+# when the worker replaced the suffix comparison with an operation table and
+# started forwarding a NAMED PROJECTION of the barrier to the product.  The
+# builder failed loudly, exactly as designed -- but `test-e2-a-static` is what
+# runs that check, and nobody ran it for a day, so what the loud failure
+# actually bought was a diagnostic profile that could not be built and a static
+# target that was red without anyone noticing.
+#
+# What the patch is for has not changed: a diagnostic profile needs the WHOLE
+# barrier record -- crosstalkCount, earlyStateCount, the raw readback markup --
+# and productFormatBarrier() drops all of it on purpose (those fields are not
+# product promises).  So the patch now swaps the projection for the raw event
+# instead of adding a forward that the product path already does.
+WORKER_BARRIER_BEFORE = """        if (event.formatBarrier)
+          result.formatBarrier = productFormatBarrier(event.formatBarrier);"""
 
-WORKER_BARRIER_AFTER = """        if (operation !== "editorActionV1") {
-          result.selectionBarrier = event.selectionBarrier;
-          result.formatBarrier = event.formatBarrier;
-        }"""
+WORKER_BARRIER_AFTER = """        if (event.formatBarrier)
+          result.formatBarrier = event.formatBarrier;"""
 
 # A failed postcondition is only auditable if the markup it judged survives the
 # trip.  The engine already puts the whole readback -- tags, restore flag and up
@@ -71,14 +85,15 @@ WORKER_BARRIER_AFTER = """        if (operation !== "editorActionV1") {
 # Patched on the E2 copy rather than in sdk/sdk-worker.js: the shared file is
 # what the frozen E1 profiles are built from, and E2 must diverge on its own
 # copy only.
-WORKER_ERROR_BEFORE = """          expectedRevision: event.expectedRevision,
-          currentRevision: event.currentRevision,
-        });"""
+# RE-DERIVED 2026-08-16, same cause as the counters patch above: the error path
+# now forwards the named projection, which drops the raw readback markup this
+# patch exists to preserve.  The swap keeps the diagnostic profile's promise
+# ("carries the observed tags and the raw markup") without touching the product
+# path, which keeps its projection.
+WORKER_ERROR_BEFORE = """          formatBarrier: event.formatBarrier
+            ? productFormatBarrier(event.formatBarrier) : undefined,"""
 
-WORKER_ERROR_AFTER = """          expectedRevision: event.expectedRevision,
-          currentRevision: event.currentRevision,
-          formatBarrier: event.formatBarrier,
-        });"""
+WORKER_ERROR_AFTER = """          formatBarrier: event.formatBarrier,"""
 
 # The drain result now carries which pump actually did anything; without this
 # the attribution run cannot tell a working pump from a silent no-op.

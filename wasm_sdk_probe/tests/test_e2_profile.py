@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import sys
+import re
 import unittest
 from pathlib import Path
 
@@ -423,7 +424,53 @@ class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
         # Six since finding 037 added the selection-type guard, which is the
         # same kind of answer as the other five: the action was dispatched and
         # nobody could check what it did.
-        self.assertEqual(body.count("kFormatMutationOutcomeUnknown"), 6)
+        #
+        # Eight since the pre-dispatch cross-paragraph route landed (8879d71,
+        # 2026-08-15): that route judges itself and never reaches the checks
+        # below, so it brings its own two channels.
+        #
+        # Counted by SHAPE, not by number.  As a bare count this assertion went
+        # stale the day the route landed and stayed red for a day with nobody
+        # running it, and all it could report was "8 != 6" -- which cannot tell
+        # a new channel that carries its own shape (fine) from a second exit
+        # reusing an existing shape (not fine: the telemetry can no longer say
+        # which one fired).  The list is what the test is for.
+        # Pair every exit with the shape assigned immediately before it, so the
+        # question asked is "which shapes report the unknown code", not "how
+        # many times does this token appear".
+        exits = []
+        for match in re.finditer(r"failFormatBarrier\(\s*([^,\n]+)", body):
+            before = body[:match.start()]
+            shape_matches = re.findall(r'failureShape =([^;]*);', before, re.S)
+            named = re.findall(r'"([^"]+)"', shape_matches[-1]) if shape_matches else []
+            exits.append((match.group(1).strip(), named))
+        unknown_named = [name for code, names in exits
+                         if code == "kFormatMutationOutcomeUnknown"
+                         for name in names]
+        unknown_shapes = [
+            "block-extraction-failed",          # cross route, unreadable
+            "block-count-changed",              # cross route, selection resized
+            "selection-type-not-readable",      # finding 037's guard
+            "footnote-apparatus-readback",      # measured, refused on purpose
+            "unknown-structural-tag",
+            "malformed-readback-nesting",
+            "multi-block-readback",
+            "selection-does-not-contain-restore-point",
+        ]
+        # "block-text-mismatch" rides the same exit as "block-count-changed"
+        # (one ternary, two shapes), so the exit count and the shape count are
+        # not the same number and neither is asserted against the other.
+        for shape in unknown_shapes + ["block-text-mismatch"]:
+            self.assertIn(shape, unknown_named, shape)
+        self.assertEqual(body.count("kFormatMutationOutcomeUnknown"),
+                         len(unknown_shapes))
+        # Distinct among the unknown-code exits: two of them sharing a shape
+        # would leave telemetry unable to say which one fired, and a count can
+        # never see that.  `postcondition-not-met` is deliberately shared by
+        # the two POSTCONDITION_FAILED exits -- same meaning, different route,
+        # and the route travels in the payload -- so it is not in this set.
+        self.assertEqual(len(unknown_named), len(set(unknown_named)),
+                         unknown_named)
         start = self.source.index("void failFormatBarrierAtDeadline() {")
         self.assertIn("kFormatMutationOutcomeUnknown",
                       self.source[start:self.source.index("\n}\n", start)])
@@ -447,7 +494,23 @@ class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
         judged = body.index("formatBarrierReadbackSatisfied()")
         self.assertLess(multi, judged)
         self.assertLess(contain, judged)
-        self.assertEqual(body.count("EDITOR_FORMAT_POSTCONDITION_FAILED"), 1)
+        # TWO since the cross-paragraph route landed (8879d71), and the second
+        # one has to keep the same narrow meaning on its own route: it is
+        # reached only after that route has answered ITS two questions -- was
+        # the selection readable at all (crossChecked + selectionTypeReadable)
+        # and is it still the same selection (crossIdentityHeld).  Asserting
+        # the count alone would have accepted a second exit reached with
+        # neither.
+        # Whole lines again, for the `if (false && ...)` reason above.
+        self.assertIn("    if (!gFormatBarrier.crossStateHeld) {", body)
+        self.assertIn("    if (!gFormatBarrier.crossIdentityHeld) {", body)
+        self.assertIn("        !gFormatBarrier.selectionTypeReadable) {", body)
+        cross_checked = body.index("    if (!gFormatBarrier.crossChecked ||")
+        cross_identity = body.index("    if (!gFormatBarrier.crossIdentityHeld) {")
+        cross_state = body.index("    if (!gFormatBarrier.crossStateHeld) {")
+        self.assertLess(cross_checked, cross_state)
+        self.assertLess(cross_identity, cross_state)
+        self.assertEqual(body.count("EDITOR_FORMAT_POSTCONDITION_FAILED"), 2)
 
     def test_the_html_read_is_reachable_only_through_the_selection_type_guard(self):
         """Finding 037.
@@ -478,7 +541,45 @@ class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
         read_start = self.source.index("void readFormatBarrierPostcondition() {")
         read_body = self.source[read_start:self.source.index("\n}\n", read_start)]
         self.assertEqual(read_body.count('"text/html"'), 1)
-        self.assertEqual(self.source.count("pClass->getTextSelection("), 2)
+        # Every call site, each named with the guard that stands in front of it.
+        #
+        # This used to be `assertEqual(count, 2)`, and it went stale the moment
+        # the pre-dispatch routing landed (8879d71, 2026-08-15) -- two new call
+        # sites, both correctly guarded, and a test that could only say "the
+        # number changed".  Nobody ran it for a day, and when it was finally
+        # run it could not tell a safe addition from an unsafe one.  A count is
+        # not the property; the property is that no call is reachable without
+        # the type having been read first.
+        #
+        # So: the count still has to be updated deliberately (a new call site
+        # must be added here), but each entry now carries the guard, and the
+        # guard is checked to appear BEFORE the call inside its own function.
+        # Matched WHOLE, never as a substring: `if (false && <guard>)` keeps
+        # every substring and every ordering, and this file has already been
+        # bitten by exactly that (see the multi-block note above).
+        guarded_call_sites = {
+            # The guard's own implementation: it reads the type and returns it.
+            "SelectionReadback readSelection() {":
+                "    if (readback.type == LOK_SELTYPE_TEXT)\n",
+            # Pre-dispatch routing refuses anything that is not TEXT before it
+            # ever reads html (finding 037's newest call site).
+            "bool routeFormatBarrier(":
+                "    if (selection.type != LOK_SELTYPE_TEXT) {\n",
+            # The cross-paragraph postcondition: early return on an unreadable
+            # selection.
+            "void checkFormatBarrierCrossParagraph() {":
+                "  if (!formatBarrierSelectionIsReadable())\n",
+        }
+        for signature, guard in guarded_call_sites.items():
+            start = self.source.index(signature)
+            body = self.source[start:self.source.index("\n}\n", start)]
+            self.assertIn(guard, body, signature)
+            self.assertLess(body.index(guard), body.index("pClass->getTextSelection("),
+                            signature)
+        # readFormatBarrierPostcondition() carries no guard of its own; its
+        # single caller does, and that pairing is asserted whole above.
+        self.assertEqual(self.source.count("pClass->getTextSelection("),
+                         len(guarded_call_sites) + 1)
 
     def test_the_guard_accepts_only_a_plain_text_selection(self):
         # LOK_SELTYPE_LARGE_TEXT is documented in LibreOfficeKitEnums.h as

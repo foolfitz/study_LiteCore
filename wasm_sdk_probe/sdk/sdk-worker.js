@@ -185,6 +185,15 @@ function productFormatBarrier(value = {}) {
     route: value.route ?? null,
     preBlocks: value.preBlocks ?? null,
     postBlocks: value.postBlocks ?? null,
+    // Not a diagnostic extra, which is why it is here despite the rule above.
+    // The engine classifies with `multiBlock = blockCount > 1 || itemCount > 1`
+    // (probe_engine.cpp), so a host that sees only postBlocks cannot tell
+    // "nothing was read back" from "only list items were read back" -- and
+    // SPEC E2-C 9.5.9 measured both landing on postBlocks 0 with different
+    // outcomes on the same empty paragraph.  Finding 046's remaining criterion
+    // rests on exactly that distinction, so without this field the criterion
+    // can only be guessed at.  Nested under `readback` in the engine's record.
+    itemCount: value.readback?.itemCount ?? null,
     crossIdentityHeld: value.crossIdentityHeld ?? null,
     crossStateHeld: value.crossStateHeld ?? null,
   };
