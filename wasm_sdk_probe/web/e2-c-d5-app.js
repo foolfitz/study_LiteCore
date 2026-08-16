@@ -167,8 +167,23 @@ function refreshLive() {
       ? "✓ 這一格已擷取存檔"
       : "⚠ 這一格還沒有存檔 —— 做完動作後按產品的「儲存 ODT」",
     strip ? `產品狀態  ${strip.state}  修訂 ${strip.revision}  generation ${strip.generation}` : "",
+    // The check that killed the cross-paragraph cell in round 1 without saying
+    // anything: the criterion is that the revision MOVED between the cell's
+    // start and its end, so the operator has to be able to see it move.
+    revisionLine(strip),
   ].filter(Boolean).join("\n");
   drawTrace();
+}
+
+function revisionLine(strip) {
+  const cell = metrics.cells[current];
+  const before = cell?.stripBefore?.revision ?? null;
+  const now = strip?.revision ?? null;
+  if (before === null || now === null) return "";
+  if (String(before) !== String(now))
+    return `✓ 修訂 ${before} → ${now}（動作已生效）`;
+  return `⚠ 修訂還停在 ${before} —— 動作還沒生效，`
+         + (strip?.state === "busy" ? "產品還在忙，等它回到 ready" : "按一下工具列的動作");
 }
 const log = (value) => { logNode.textContent += `${JSON.stringify(value)}\n`; };
 

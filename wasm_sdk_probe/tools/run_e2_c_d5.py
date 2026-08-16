@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import signal
 import subprocess
 import sys
 import time
@@ -201,9 +202,39 @@ def serve(args) -> int:
         "runbook": "handoff/RUNBOOK-operator-d5.md",
         "evidence": str(args.output / "operator"),
     }, indent=2, ensure_ascii=False), flush=True)
-    subprocess.run(
-        [sys.executable, str(PROJECT / "web" / "serve.py"), "--port", str(port)],
-        cwd=PROJECT, check=False)
+    # The operator round has no attestation of its own otherwise: the machine
+    # half records the shell bundle digest before and after, and a round driven
+    # by a person deserves the same claim -- "observing it did not change it" is
+    # not something the page can say about itself.
+    digest_before = bundle_digest()
+    evidence = args.output / "operator"
+    # Ctrl+C already runs the finally below (KeyboardInterrupt), but a plain
+    # SIGTERM would not, and "the attestation is missing" is a bad thing to
+    # discover after the operator has gone to bed.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    try:
+        subprocess.run(
+            [sys.executable, str(PROJECT / "web" / "serve.py"), "--port", str(port)],
+            cwd=PROJECT, check=False)
+    finally:
+        digest_after = bundle_digest()
+        evidence.mkdir(parents=True, exist_ok=True)
+        write_json(evidence / "session-attestation.json", {
+            "schemaVersion": 1,
+            "release": "spec-e2c-d5",
+            "mode": "operator",
+            "profile": args.profile,
+            "artifact": artifact_hashes(args.profile),
+            "shellBundle": {"before": digest_before, "after": digest_after,
+                            "unchanged": digest_before == digest_after},
+            "note": "Written when the operator's server stops.  The round's own "
+                    "result.json comes from the page's export button; this file "
+                    "is what the harness can attest to from outside it.",
+        })
+        print(json.dumps({
+            "attestation": str(evidence / "session-attestation.json"),
+            "shellBundleUnchanged": digest_before == digest_after,
+        }, indent=2, ensure_ascii=False))
     return 0
 
 
