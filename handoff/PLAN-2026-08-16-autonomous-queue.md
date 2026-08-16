@@ -187,12 +187,19 @@
 **但排除它的理由要改寫，不能照抄**〔已觀察，2026-08-16〕。原文寫「它會重建凍結的
 `e1-editor-v1`」——**自 SPEC E1-C v9（08-14）起不成立**：那個目標刻意無前置，
 配方是純檢查。真正的現況是另一回事，而且更值得寫：**`test-e1-c-static` 今天是
-紅的**，最後一行 `regenerate_shell_bundle.py` 的 check 模式**不認 divergence 檔**
-（實測 exit 1）。一個在申報期恆紅的靜態目標，正是 intact 守衛註解裡警告的
+紅的**——`tests/test_e1_c.py` 的兩條（目標就停在這裡）加上最後一行
+`regenerate_shell_bundle.py`，三處都不認 divergence 檔。一個在申報期恆紅的靜態目標，正是 intact 守衛註解裡警告的
 「會被關掉的守衛」形狀。處方二選一（記在 SPEC E1-C §11.8）：教 check 模式讀
 divergence 檔，或維持排除但把理由寫對。
 
-**那個交互作用已經量掉了**〔已觀察〕：`check_e1_c_bundle_intact.py` 在殼層綁定
+**整份回歸清單已經先掃過一遍**〔已觀察，2026-08-16〕：其餘十項**全綠**
+（`test-r6-release`、`test-r7-b/c/d-static`、`test-r8-d-static`、
+`test-e1-a-static`、`test-e1-b-static`、`test-e2-a-static`、`test-e2-b-static`、
+`test-e1-c-frozen-guard`、`check_e1_c_bundle_intact.py`），掃描前後每一顆
+`probe.wasm` 逐顆雜湊未變。**這件事值得先做而不是等 D4 才發現**——
+`test-e2-a-static` 從 08-15 起就紅著，沒有人跑過它。
+
+**那個交互作用也量掉了**〔已觀察〕：`check_e1_c_bundle_intact.py` 在殼層綁定
 已斷但已申報的狀態下 **exit 0**、`intact: false`、`divergedAsDeclared` 三筆、
 `problems: []`。D4 直接引用這個結果，不再是待驗證項。
 

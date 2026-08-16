@@ -563,13 +563,25 @@ pipe）之後，§11.4 要求的重跑全數完成，全部對出貨 artifact `8
   進了 E2-C D4 的回歸清單，六條 `place-caret.test.mjs`（寫成讓舊實作失敗）
   由 `test-e1-b-static` 覆蓋。
 
-**一個要順手修的落差（不改變本節的決定）**：`test-e1-c-static` **今天是紅的**
-——最後一行 `regenerate_shell_bundle.py` 的 check 模式**不認 divergence 檔**
-（實測 exit 1）。一個在申報期恆紅的靜態目標，正是 intact 守衛註解裡警告的
-「會被關掉的守衛」形狀。處方二選一：教 check 模式讀 divergence 檔（已申報報
-declared 並 exit 0、沒申報照樣 exit 1），或維持排除但**把理由寫對**——
-E2-C D4 引用的那句「它會重建凍結的 `e1-editor-v1`」自 v9 起已不成立
-（該目標刻意無前置，配方是純檢查）。
+**一個要順手修的落差（不改變本節的決定）**：`test-e1-c-static` **今天是紅的**，
+而且**紅在兩個地方**（2026-08-16 實測，逐一跑過）：
+
+1. `tests/test_e1_c.py` 的 `test_shell_bundle_manifest_covers_loaded_and_excluded_modules`
+   與 `test_v2_workspace_preflight_binds_the_shell_bundle`——目標在這裡就
+   `Error 1`，兩條都是因為 `editor-shell/editor-session.js` 與 manifest 不符；
+2. 配方最後一行 `regenerate_shell_bundle.py`（check 模式）也 exit 1。
+
+三處**都不認 divergence 檔**。一個在申報期恆紅的靜態目標，正是 intact 守衛註解
+裡警告的「會被關掉的守衛」形狀。處方二選一：教這三處讀 divergence 檔（已申報
+報 declared 並通過、沒申報照樣紅，也就是 `check_e1_c_bundle_intact.py` 已經在
+做的事），或維持排除但**把理由寫對**——E2-C D4 引用的那句「它會重建凍結的
+`e1-editor-v1`」自 v9 起已不成立（該目標刻意無前置，配方是純檢查）。
+
+**其餘的回歸目標全部是綠的**：`test-r6-release`、`test-r7-b/c/d-static`、
+`test-r8-d-static`、`test-e1-a-static`、`test-e1-b-static`、`test-e2-a-static`
+（08-16 修好）、`test-e2-b-static`、`test-e1-c-frozen-guard`、
+`check_e1_c_bundle_intact.py` 十項，而且整輪掃描前後**每一顆 `probe.wasm`
+逐顆雜湊未變**。
 
 ## 12. 修訂紀錄
 
