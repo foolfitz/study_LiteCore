@@ -138,6 +138,38 @@ build 的矩陣比沒凍結更糟。承重的自我測試：**只把 status 翻�
 4. **`d4-memory` 的判準改讀 `sbrk`**，並加一條「先量這一頁自己的雜訊底」——
    本輪量到 PSS 斜率的單輪散布是 ~20 MB／session。
 
+## 外部裁決（2026-08-16，fable，subagent）：**「現在連結」被駁倒**
+
+裁決要求三題，回來的判斷是 **Q1 反對／Q2 資料不足但缺的量測免費／Q3 同意**。
+三個可驗證的 claim **我逐一核對過**：
+
+| fable 的 claim | 核對 |
+|---|---|
+| 診斷 profile **不編譯任何東西**——`build_e2_discovery_profile.py` 是 `shutil.copy2(wasm, …)`，`--wasm` 是輸入 | **成立**（`:171-173`）。餵它凍結的 `572035ac`，profile 的引擎就是出貨那顆，逐位元相同 |
+| 出貨引擎**早就把兩個 blocker 需要的欄位全部序列化了** | **成立**：凍結的 wasm 裡 `"readback":{"parsed":`、`"blockCount":`、`"itemCount":`、`"html":"`、`"containment":{"checked":` 各 1 筆；`"preBlocksObserved":` 0 筆（正確——那是今天未連結的改動） |
+| 六個 worker patch 錨點在**凍結的** dist worker 上各匹配一次 | **成立**（六個都是 frozen=1、live=1） |
+
+**所以我錯在哪**：我寫「沒有 build 就觀察不到」，而診斷 profile 是一個 **Python 打包
+步驟**，引擎位元一個都不動。`findings/evidence/046/browser-vs-native/PREDICTION.md`
+的 decision rule 帶著同一個錯誤假設（「那顆 profile 的引擎會含著佇列裡的修法」）——
+那只在**選擇重編一顆新 wasm 時**才成立，而沒有任何東西要求那麼做。
+
+**Q2**：fable 給了一個我沒寫出來的可證界——`multi-block-readback`（`:3583`）與
+`selection-does-not-contain-restore-point`（`:3591`）**兩個分支都是
+`kFormatMutationOutcomeUnknown`**（已核對），所以重排**不可能**把任何格從失敗翻成
+成功，唯一可觀測差異是 shape 字串與訊息。缺的只剩「爭議格重排後落在哪」這一個量測，
+而它不需要 relink。量完之後**預設進這次連結**。
+
+**Q3**：同意撤銷，並且**反向駁倒了我自己登記的弱點**——`emitStage()` 在引擎裡
+**無條件**印 `heapBytes` 與 `sbrk`（已核對），`debug` 閘門在 **worker 側**，
+所以那個旗標擾動不了 `sbrk`。`NOT_SEPARATED` 只毒到 **PSS 通道**的比較，
+而 PSS 是外部量的、可以 debug 關著量。處方：兩個通道分開跑，零 relink。
+
+**它指出的第一個風險是我今天才裝上的守衛**：`run_e2_c_d0.py` 的 `require_entry()`
+會拒絕診斷 profile（worker 被 patch 過，`workerSha256` 對不上 baseline）。
+**這是正確行為**，需要的是一個**具名的旁路**（證據標成 diagnostic、永不混進矩陣證據），
+不是把守衛放寬。
+
 ## 這一輪的三個教訓
 
 - **在為一個佇列項付錢之前，先量它的前提。** 一次 relink 會鑄出新身分、作廢舊判定；
