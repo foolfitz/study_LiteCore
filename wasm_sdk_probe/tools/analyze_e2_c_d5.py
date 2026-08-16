@@ -24,6 +24,7 @@ import json
 import sys
 import zipfile
 from pathlib import Path
+from xml.etree import ElementTree
 
 PROJECT = Path(__file__).resolve().parent.parent
 
@@ -41,18 +42,45 @@ CELLS = ("d5-pointer-drag-single", "d5-pointer-drag-cross",
 PRISTINE = PROJECT / "test-docs" / "e1" / "list-contexts.odt"
 
 
+LIST_TAG = "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}list"
+
+
 def count_lists(raw: bytes) -> int | None:
     """`<text:list>` count in an ODT's content.xml, or None if unreadable.
 
     None is not zero and must never be judged as "no change": an unreadable
     document is a measurement that did not happen.
+
+    Parsed, not counted as a substring.  Adversarial review, 2026-08-16: the
+    substring version returned 1 for a truncated content.xml whose XML does not
+    close, so a corrupted export could satisfy a criterion whose own text says
+    an unreadable document must fail.
     """
     try:
         with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-            content = archive.read("content.xml").decode("utf-8", "replace")
+            content = archive.read("content.xml")
     except Exception:                       # noqa: BLE001 -- reported as None
         return None
-    return content.count("<text:list ") + content.count("<text:list>")
+    try:
+        root = ElementTree.fromstring(content)
+    except ElementTree.ParseError:
+        return None
+    return sum(1 for _ in root.iter(LIST_TAG))
+
+
+def document_text(raw: bytes) -> str | None:
+    """All character data in an ODT's content.xml, or None if unreadable.
+
+    Used to ask whether the text an operator actually committed is IN the
+    document -- the IME cell's oracle names two commits, and a revision counter
+    cannot tell which text landed.
+    """
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            root = ElementTree.fromstring(archive.read("content.xml"))
+    except Exception:                       # noqa: BLE001 -- reported as None
+        return None
+    return "".join(root.itertext())
 
 
 def captured_documents(result: dict) -> list[tuple[str, bytes]]:
@@ -80,7 +108,8 @@ def captured_documents(result: dict) -> list[tuple[str, bytes]]:
 
 
 def _apply_round_two(name: str, cell: dict, checks: dict,
-                     documents: dict[str, tuple[int | None, int | None]]) -> None:
+                     documents: dict[str, tuple[int | None, int | None]],
+                     texts: dict[str, str | None]) -> None:
     """The two places round one's judge was weaker than its own frozen oracle.
 
     Both were recorded when they happened rather than fixed retroactively
@@ -122,11 +151,22 @@ def _apply_round_two(name: str, cell: dict, checks: dict,
         checks["bothCommitsAttempted"] = len(commits) >= 2
         checks["everyCommitLanded"] = (
             advance is not None and len(commits) > 0 and advance == len(commits))
+        # The counter says how many; only the document says WHICH.  Adversarial
+        # review, 2026-08-16: two commits plus two revision advances passes the
+        # count even if the advances came from something else in the cell's
+        # window and neither committed string is in the document.
+        text = texts.get(name)
+        committed = [event.get("data") for event in commits if event.get("data")]
+        checks["documentReadable"] = text is not None
+        checks["committedTextInDocument"] = (
+            text is not None and bool(committed)
+            and all(value in text for value in committed))
+        checks["committedTexts"] = committed
 
 def judge_cell(name: str, cell: dict | None, saves: list[dict],
                criteria: str = "round-one",
-               documents: dict[str, tuple[int | None, int | None]] | None = None
-               ) -> dict:
+               documents: dict[str, tuple[int | None, int | None]] | None = None,
+               texts: dict[str, str | None] | None = None) -> dict:
     if not cell:
         return {"cell": name, "status": "NOT_ESTABLISHED",
                 "why": "the operator did not run this cell"}
@@ -156,6 +196,13 @@ def judge_cell(name: str, cell: dict | None, saves: list[dict],
     if name == "d5-clipboard":
         checks["hasClipboardEvent"] = any(
             event.get("type") in ("copy", "paste") for event in events)
+        if criteria == "round-two":
+            # "A round trip" is two events, and round one accepted either.
+            # Adversarial review, 2026-08-16.
+            checks["hasCopy"] = any(event.get("type") == "copy"
+                                    for event in events)
+            checks["hasPaste"] = any(event.get("type") == "paste"
+                                     for event in events)
 
     before = (cell.get("stripBefore") or {}).get("revision")
     after = (cell.get("stripAfter") or {}).get("revision")
@@ -165,7 +212,7 @@ def judge_cell(name: str, cell: dict | None, saves: list[dict],
         entry.get("cell") == name for entry in saves)
 
     if criteria == "round-two":
-        _apply_round_two(name, cell, checks, documents or {})
+        _apply_round_two(name, cell, checks, documents or {}, texts or {})
 
     boolean = {key: value for key, value in checks.items()
                if isinstance(value, bool)}
@@ -186,16 +233,18 @@ def judge_run(run: Path, criteria: str = "round-one") -> dict:
     # Per cell: the last document it saved, and the one saved just before it.
     # The first save's baseline is the pristine fixture.
     documents: dict[str, tuple[int | None, int | None]] = {}
+    texts: dict[str, str | None] = {}
     if criteria == "round-two":
         pristine = count_lists(PRISTINE.read_bytes()) if PRISTINE.is_file() else None
         previous = pristine
         for cell_name, raw in captured_documents(result):
             after = count_lists(raw)
             documents[cell_name] = (previous, after)
+            texts[cell_name] = document_text(raw)
             if after is not None:
                 previous = after
     cells = {name: judge_cell(name, (result.get("cells") or {}).get(name),
-                              saves, criteria, documents)
+                              saves, criteria, documents, texts)
              for name in CELLS}
     established = [name for name, report in cells.items()
                    if report["status"] == "PASS"]
@@ -353,20 +402,100 @@ def self_test(run: Path, criteria: str = "round-one") -> int:
         # The two strengthened criteria, each shown to be able to fail.  A
         # criterion added because the old one was too weak, and then not
         # mutation-tested, is the same mistake one layer up.
-        def flatten_the_document(cloned):
-            """Give the drag cell the document that was already there.
+        def index_of(cloned, cell_name):
+            """Where THIS cell's document sits in capturedSaves.
+
+            By name, never by position.  Adversarial review, 2026-08-16: the
+            first version of this self-test hardcoded index 1 and therefore
+            mutated whichever cell happened to save second -- and round 4 is
+            the round that proves cell order and save order differ.
+            """
+            saved = cloned.get("saves") or []
+            hits = [i for i, entry in enumerate(saved)
+                    if entry.get("cell") == cell_name]
+            return hits[-1] if hits else None
+
+        def flatten_the_document(cell_name):
+            """Give the drag cell the document that was saved before it.
 
             Nothing about the events changes -- only the saved ODT stops
             showing a new list.  Round one's judge cannot tell the difference;
             that is the whole point of the strengthening.
             """
-            captured = cloned.get("capturedSaves") or []
-            if len(captured) >= 2:
-                captured[1]["b64"] = captured[0]["b64"]
+            def mutate(cloned):
+                import base64 as _b64
+                index = index_of(cloned, cell_name)
+                captured = cloned.get("capturedSaves") or []
+                if index is None or index >= len(captured):
+                    raise AssertionError(
+                        f"no document to flatten for {cell_name}; this mutation "
+                        f"must not silently do nothing")
+                # The first saved document's baseline is the pristine fixture,
+                # not a previous capture -- so flattening it means handing it
+                # the fixture.
+                captured[index]["b64"] = (
+                    captured[index - 1]["b64"] if index >= 1
+                    else _b64.b64encode(PRISTINE.read_bytes()).decode())
+            return mutate
 
-        mutated = rejudge(flatten_the_document)
+        # BOTH drag cells, because both carry the criterion.  The first one's
+        # baseline is the pristine fixture, the second's is the first's
+        # document, and those are different code paths.
+        for drag in ("d5-pointer-drag-single", "d5-pointer-drag-cross"):
+            mutated = rejudge(flatten_the_document(drag))
+            cell = mutated["cells"][drag]
+            check(f"{drag}: a saved ODT showing no new list does not pass",
+                  cell["status"] == "NOT_ESTABLISHED", str(cell.get("checks")))
+
+        def corrupt_the_document(cloned):
+            """A ZIP whose content.xml does not parse.
+
+            The criterion's own text says an unreadable document fails; the
+            substring version of count_lists happily counted a truncated one.
+            """
+            import base64 as _b64
+            import io as _io
+            import zipfile as _zip
+            index = index_of(cloned, "d5-pointer-drag-cross")
+            buffer = _io.BytesIO()
+            with _zip.ZipFile(buffer, "w") as archive:
+                archive.writestr("content.xml",
+                                 "<office:document-content><text:list><TRUNC")
+            cloned["capturedSaves"][index]["b64"] = \
+                _b64.b64encode(buffer.getvalue()).decode()
+
+        mutated = rejudge(corrupt_the_document)
         cell = mutated["cells"]["d5-pointer-drag-cross"]
-        check("a drag whose saved ODT shows no new list does not pass",
+        check("a saved ODT whose content.xml does not parse does not pass",
+              cell["status"] == "NOT_ESTABLISHED", str(cell.get("checks")))
+
+        def take_the_committed_text_out(cloned):
+            """The revision counter says two commits landed; the document does
+            not contain either of them."""
+            import base64 as _b64
+            index = index_of(cloned, "d5-ime-commit")
+            cloned["capturedSaves"][index]["b64"] = \
+                _b64.b64encode(PRISTINE.read_bytes()).decode()
+
+        if PRISTINE.is_file():
+            mutated = rejudge(take_the_committed_text_out)
+            cell = mutated["cells"]["d5-ime-commit"]
+            check("an IME cell whose committed text is not in the document "
+                  "does not pass",
+                  cell["status"] == "NOT_ESTABLISHED", str(cell.get("checks")))
+        else:
+            skip("an IME cell whose committed text is not in the document "
+                 "does not pass", f"the pristine fixture {PRISTINE} is missing")
+
+        def drop_the_paste(cloned):
+            cell_data = (cloned.get("cells") or {}).get("d5-clipboard")
+            if cell_data:
+                cell_data["events"] = [event for event in cell_data.get("events", [])
+                                       if event.get("type") != "paste"]
+
+        mutated = rejudge(drop_the_paste)
+        cell = mutated["cells"]["d5-clipboard"]
+        check("a clipboard cell with a copy and no paste is not a round trip",
               cell["status"] == "NOT_ESTABLISHED", str(cell.get("checks")))
 
         def drop_one_commit(cloned):

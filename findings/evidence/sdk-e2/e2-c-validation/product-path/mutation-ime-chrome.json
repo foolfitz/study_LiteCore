@@ -16,14 +16,18 @@
       "id": "product-save-button-writes-a-real-odt",
       "ok": true,
       "observed": {
-        "capturedBytes": 12236,
+        "capturedBytes": 12238,
         "magic": "504b0304",
         "head": null,
         "entries": 9,
-        "toast": "已存出 11.9 KB",
+        "hasContentXml": true,
+        "contentXmlParses": true,
+        "mimetype": "application/vnd.oasis.opendocument.text",
+        "zipError": null,
+        "toast": "已存出 12.0 KB",
         "anchorClicks": 1
       },
-      "oracle": "the bytes the product hands to the download begin with the ZIP magic and open as an ODT, and its own toast reports a size rather than NaN"
+      "oracle": "the bytes the product hands to the download ARE an ODT -- ZIP magic, clean CRC, an ODT mimetype entry and a content.xml that parses -- and its own toast reports a size rather than NaN"
     },
     {
       "id": "every-ime-commit-reaches-the-document",
@@ -40,9 +44,29 @@
         "foundInSavedOdt": [
           "甲一"
         ],
-        "savedBytes": 12354
+        "perCommitRevision": [
+          {
+            "text": "甲一",
+            "expected": 1,
+            "observed": 1,
+            "ok": true
+          },
+          {
+            "text": "乙二",
+            "expected": 2,
+            "observed": 1,
+            "ok": false
+          },
+          {
+            "text": "丙三",
+            "expected": 3,
+            "observed": 1,
+            "ok": false
+          }
+        ],
+        "savedBytes": 12358
       },
-      "oracle": "three commits through the product's composition path advance the revision three times AND all three strings are in the saved ODT"
+      "oracle": "three commits through the product's composition path each advance the revision by exactly one, IN TURN, and all three strings are in the saved ODT"
     },
     {
       "id": "ctrl-c-asks-the-engine",
@@ -156,7 +180,7 @@
         "revision": "0",
         "pending": "0",
         "checkpoint": "無",
-        "latency": "定位游標 30 ms",
+        "latency": "定位游標 27 ms",
         "doc": "list-contexts.odt",
         "toast": "點一下放游標，或拖曳選一段，再按動作",
         "buttons": [
@@ -267,6 +291,9 @@
     "reintroduces": "finding 050",
     "mustGoRed": "every-ime-commit-reaches-the-document"
   },
+  "mustGoRed": [
+    "every-ime-commit-reaches-the-document"
+  ],
   "ok": true,
   "verdict": "the mutation was detected by the check that owns it"
 }

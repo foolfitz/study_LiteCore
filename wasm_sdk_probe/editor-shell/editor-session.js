@@ -56,6 +56,20 @@ export function caretIsOnLine(caret, yTwips) {
   return yTwips >= caret.y - slackAbove && yTwips <= caret.y + caret.height;
 }
 
+/**
+ * Did the caret move?  (Finding 052.)
+ *
+ * Position only.  A caret that is in a different place is a caret the engine
+ * moved, and the only thing that asked it to move was the click being
+ * confirmed.  Height is deliberately not compared: the same position with a
+ * different reported height is not a move, and treating it as one would let a
+ * relayout stand in for a click.
+ */
+export function caretDiffers(caret, previous) {
+  if (!caret || !previous) return Boolean(caret) !== Boolean(previous);
+  return caret.x !== previous.x || caret.y !== previous.y;
+}
+
 export class EditorSession {
   constructor(options = {}) {
     if (typeof options.engineFactory !== "function")
@@ -385,6 +399,7 @@ export class EditorSession {
       const graceMs = Math.min(options.caretAckGraceMs ?? 400, timeoutMs);
       const before = await editor.getState(options);
       const beforeSequence = before?.sourceSequence ?? null;
+      const beforeCaret = before?.caret ?? null;
       const started = Date.now();
       await document.click(xTwips, yTwips, options);
       let state = before;
@@ -392,11 +407,31 @@ export class EditorSession {
         state = await editor.getState(options);
         const acknowledged = state?.sourceSequence !== beforeSequence;
         const onTarget = caretIsOnLine(state?.caret, yTwips);
-        if (onTarget && (acknowledged || Date.now() - started >= graceMs)) {
+        // FINDING 052.  A click OUTSIDE every line box -- above the first line,
+        // below the last, in the page margin -- is a click the engine handles
+        // by putting the caret on the nearest line, which is what every editor
+        // does and what a user reaching for the end of a document relies on.
+        // The geometric test can never accept it: the caret is not on the
+        // clicked line, because the clicked line does not exist.  Measured on
+        // the product page: 13 of 26 clicks down a column were refused and
+        // every one of them was outside the text, each after the full 30 s.
+        //
+        // The engine having MOVED the caret is the signal that it processed
+        // this click, and it is not available to the geometric test.  It does
+        // not weaken finding 048's guard: 048's failure is a caret that is
+        // STALE, and a stale caret has by definition not moved.  An
+        // acknowledgement that is not about the caret still does not end the
+        // wait, because that path requires the caret to differ.
+        const caretMoved = caretDiffers(state?.caret, beforeCaret);
+        if ((onTarget && (acknowledged || Date.now() - started >= graceMs))
+            || (acknowledged && caretMoved)) {
           return {
             state,
             revision: document.revision,
-            caretConfirmedBy: acknowledged ? "engine-acknowledged" : "already-at-target",
+            caretConfirmedBy: onTarget
+              ? (acknowledged ? "engine-acknowledged" : "already-at-target")
+              : "engine-moved-the-caret-off-the-clicked-line",
+            caretOnClickedLine: onTarget,
             caretWaitedMs: Date.now() - started,
           };
         }

@@ -65,6 +65,7 @@ import tempfile
 import time
 import zipfile
 from pathlib import Path
+from xml.etree import ElementTree
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from r7_support import evaluate, wait_page  # noqa: E402
@@ -217,6 +218,25 @@ MUTATIONS = {
         "replace": 'el.sink.addEventListener("copy-removed-by-mutation", (event) => {',
         "reintroduces": "the Ctrl+C gap found in the D5 operator round",
     },
+    # Not a defect this tree has had: a handler that runs, prevents the default
+    # and reports success WITHOUT asking the engine.  It is here because
+    # adversarial review named it as something this check might not catch, and
+    # the answer belongs in the evidence rather than in an assumption.
+    "copy-lies": {
+        "check": "ctrl-c-asks-the-engine",
+        "path": "e2-editor-app.js",
+        "find": '  void run("複製", () => session.copySelection())\n    .then((result) => toast(`已複製 ${result?.codePoints ?? "?"} 字`))\n    .catch(() => {});',
+        "replace": '  toast(`已複製 1 字`);   /* mutation: never asks the engine */',
+        "reintroduces": "nothing that has happened; a hypothetical handler that "
+                        "reports success without calling copySelection",
+        "expectedToBeDetected": False,
+        "why": "From outside the page, 'the engine was asked' is not observable: "
+               "the product's only outward signal is its own toast, and a lying "
+               "handler writes the same toast. Recorded as a named limit of this "
+               "harness. What would close it is the shell's clipboard trace being "
+               "reported somewhere a harness can read, which is a product change "
+               "and therefore a decision, not a detail.",
+    },
 }
 
 
@@ -298,18 +318,47 @@ def wait_saves(session, count, timeout=90):
 
 
 def zip_report(raw: bytes) -> dict:
+    """What the bytes are, in enough detail to refuse a ZIP that is not an ODT.
+
+    Adversarial review, 2026-08-16: the first version of the save check asked
+    only for the ZIP magic and a clean CRC, so a valid ZIP containing one text
+    file passed it -- as would a DOCX.  `content.xml` was read into the report
+    and the read's failure recorded in `zipError`, which nothing looked at.  A
+    field the verdict does not read is not a check.
+    """
     out = {"bytes": len(raw), "magic": raw[:4].hex(), "isZip": raw[:4] == b"PK\x03\x04"}
     if not out["isZip"]:
         out["head"] = raw[:64].decode("utf-8", "replace")
         return out
     try:
         with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-            out["entries"] = len(archive.namelist())
+            names = archive.namelist()
+            out["entries"] = len(names)
             out["badEntry"] = archive.testzip()
+            out["hasContentXml"] = "content.xml" in names
+            out["mimetype"] = (archive.read("mimetype").decode("utf-8", "replace")
+                               if "mimetype" in names else None)
             out["content"] = archive.read("content.xml").decode("utf-8", "replace")
     except Exception as error:            # noqa: BLE001 -- reported, not raised
         out["zipError"] = str(error)
+    if out.get("content"):
+        try:
+            ElementTree.fromstring(out["content"])
+            out["contentXmlParses"] = True
+        except ElementTree.ParseError as error:
+            out["contentXmlParses"] = False
+            out["xmlError"] = str(error)
     return out
+
+
+def is_an_odt(report: dict) -> bool:
+    """Every condition the name claims, and each one able to fail on its own."""
+    return (bool(report.get("isZip")) and report.get("badEntry") is None
+            and report.get("zipError") is None
+            and bool(report.get("hasContentXml"))
+            and report.get("contentXmlParses") is True
+            and report.get("mimetype")
+            == "application/vnd.oasis.opendocument.text")
 
 
 # ---------------------------------------------------------------------- main
@@ -387,18 +436,22 @@ def main() -> int:
         saved = evaluate(session, READ_SAVE.replace("ARG_INDEX", "0")) if captured else None
         first = zip_report(base64.b64decode(saved["b64"])) if saved else {}
         check("product-save-button-writes-a-real-odt",
-              bool(first.get("isZip")) and first.get("badEntry") is None
-              and "NaN" not in toast_after_save,
+              is_an_odt(first) and "NaN" not in toast_after_save,
               observed={"capturedBytes": first.get("bytes"),
                         "magic": first.get("magic"),
                         "head": first.get("head"),
                         "entries": first.get("entries"),
+                        "hasContentXml": first.get("hasContentXml"),
+                        "contentXmlParses": first.get("contentXmlParses"),
+                        "mimetype": first.get("mimetype"),
+                        "zipError": first.get("zipError"),
                         "toast": toast_after_save,
                         "anchorClicks": evaluate(session,
                                                  "(() => window.__pp.anchorClicks)()")},
-              oracle="the bytes the product hands to the download begin with the ZIP "
-                     "magic and open as an ODT, and its own toast reports a size "
-                     "rather than NaN")
+              oracle="the bytes the product hands to the download ARE an ODT -- ZIP "
+                     "magic, clean CRC, an ODT mimetype entry and a content.xml "
+                     "that parses -- and its own toast reports a size rather than "
+                     "NaN")
 
         # -------------------------------------- 050: three commits, three edits
         before = revision_of(evaluate(session, READ_STATE))
@@ -433,15 +486,31 @@ def main() -> int:
         content = second.get("content") or ""
         present = [t for t in IME_TEXTS if t in content]
         advanced = (after - before) if (after is not None and before is not None) else None
+        # Per commit, not only in total.  Adversarial review, 2026-08-16: a
+        # product that committed all three texts on the FIRST compositionend and
+        # dropped the other two would still show +3 overall with all three
+        # strings present.  The per-commit revisions were already being recorded
+        # and simply were not being judged.
+        stepwise = []
+        expected = before
+        for entry in commits:
+            expected = None if expected is None else expected + 1
+            stepwise.append({"text": entry["text"], "expected": expected,
+                             "observed": entry["revision"],
+                             "ok": expected is not None
+                             and entry["revision"] == expected})
+        each_landed = bool(stepwise) and all(row["ok"] for row in stepwise)
         check("every-ime-commit-reaches-the-document",
-              advanced == len(IME_TEXTS) and len(present) == len(IME_TEXTS),
+              advanced == len(IME_TEXTS) and len(present) == len(IME_TEXTS)
+              and each_landed,
               observed={"revisionBefore": before, "revisionAfter": after,
                         "advancedBy": advanced, "committed": IME_TEXTS,
                         "foundInSavedOdt": present,
+                        "perCommitRevision": stepwise,
                         "savedBytes": second.get("bytes")},
-              oracle="three commits through the product's composition path advance "
-                     "the revision three times AND all three strings are in the "
-                     "saved ODT")
+              oracle="three commits through the product's composition path each "
+                     "advance the revision by exactly one, IN TURN, and all three "
+                     "strings are in the saved ODT")
 
         # ------------------------------------------------------ Ctrl+C reaches
         evaluate(session, DRAG.replace("ARG_X1", "0.20").replace("ARG_Y1", "0.28")
@@ -499,7 +568,18 @@ def main() -> int:
 def finish(report: dict, args) -> int:
     checks = report["checks"]
     spec = MUTATIONS[args.mutate] if args.mutate != "none" else None
-    if spec:
+    if spec and spec.get("expectedToBeDetected") is False:
+        # A mutation this harness does NOT claim to catch.  Recorded with its
+        # reason, so the limit lives in the evidence instead of in somebody's
+        # head -- and if it ever IS caught, the run says the limit is stale.
+        red = [c for c in checks if c["id"] == spec["check"] and not c["ok"]]
+        report["ok"] = True
+        report["mustGoRed"] = []
+        report["verdict"] = (
+            "this mutation is DETECTED after all -- the recorded limit is out of "
+            "date and should be removed" if red
+            else "not detected, as declared: " + spec.get("why", ""))
+    elif spec:
         must_be_red = {spec["check"], *spec.get("alsoRed", [])}
         report["mustGoRed"] = sorted(must_be_red)
         reds = [c for c in checks if c["id"] in must_be_red]

@@ -62,14 +62,18 @@ PROJECT = Path(__file__).resolve().parent.parent
 #   v7 -- finding 051: caretIsOnLine accepts the whole line box.  Under v1-v6
 #         every click landing in the BOTTOM HALF of the line it hit waited 30 s
 #         and was then refused, so about half of the product's clicks failed.
+#   v8 -- finding 052: a click OUTSIDE every line box (below the last line, say)
+#         is confirmed when the engine moves the caret, instead of waiting out
+#         the 30 s timeout and being refused.
 FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v2.json"),
                     Path("e2/editor-shell-v2-bundle-v3.json"),
                     Path("e2/editor-shell-v2-bundle-v4.json"),
                     Path("e2/editor-shell-v2-bundle-v5.json"),
-                    Path("e2/editor-shell-v2-bundle-v6.json"))
+                    Path("e2/editor-shell-v2-bundle-v6.json"),
+                    Path("e2/editor-shell-v2-bundle-v7.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v7.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v8.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

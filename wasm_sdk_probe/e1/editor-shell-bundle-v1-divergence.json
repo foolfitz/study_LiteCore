@@ -32,7 +32,19 @@
             "reason": "finding 051 -- the confirmation predicate finding 048 introduced compares the clicked y against caret.y with a half-height tolerance, and caret.y is the TOP of the line box, not its middle. So the accepted band covered half a line above the box and only the box's top half: every click landing in the BOTTOM HALF of the line it correctly hit waited the full 30 s timeout and was then refused with EDITOR_CARET_NOT_PLACED. About half of the product's clicks. The fix accepts the whole box, with half a line of slack ABOVE it only (the measured gap between line boxes), so a caret stranded on another line is still refused.",
             "whyHere": "Same file and same reason as the 048 entry: the defect is in the session E1 and E2 share, and a caret gesture that works in one product and hangs for 30 s in the other is the shape SPEC E2-C 2.2 rejects.",
             "foundBy": "An automated run of the product page -- tools/run_e2_c_page_smoke.py, green on 2026-08-15 and red on 2026-08-16 -- while building the product-path regression harness. The operator rounds did not catch it: their cells drag rather than click, and a drag selects through selectRange, whose confirmation is unaffected.",
-            "cost": "E1-C's shell binding was already broken by the two entries above; this adds no new requalification cost, and it is a fix E1's own product page needs before any requalification round would pass."
+            "cost": "E1-C's shell binding was already broken by the two entries above; this adds no new requalification cost, and it is a fix E1's own product page needs before any requalification round would pass.",
+            "supersededBy": "the finding 052 entry below, which changes the same file again on the same day. Kept as written: it is the record of what the file was between the two fixes."
+        },
+        {
+            "path": "editor-shell/editor-session.js",
+            "registeredSha256": "56f2be28563c74442a50877f4ad074e8bbabb20fffbae14a46fa9bc1d45631ea",
+            "previousDivergenceSha256": "b0ca6a7e27e9c066e9538572645c1a7a79a6c0b2ffa5a4692935183da60c22ee",
+            "nowSha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+            "date": "2026-08-16",
+            "reason": "finding 052 -- a click OUTSIDE every line box (above the first line, below the last, in the margin) is answered by the engine clamping the caret to the nearest line, and the geometric confirmation can never accept that, because the clicked line does not exist. Measured on the product page: 13 of 26 clicks down a column were refused after the full 30 s, and every one of them was outside the text. placeCaret now also accepts when the engine acknowledged AND the caret MOVED, which is the signal that this click was processed. 048's guard is untouched: its failure is a STALE caret, and a stale caret has not moved.",
+            "whyHere": "Same file, same shared session as the 048 and 051 entries. Clicking below the last paragraph is how a person reaches the end of a document, and it froze the whole serialised session queue for 30 s in E1's product page as much as in E2's.",
+            "foundBy": "An adversarial review of finding 051's fix asked whether the widened band could accept a caret from an adjacent line. Measuring the real line geometry to answer it (it cannot: every gap in this corpus is +113 twips, no box reaches the next) also measured which clicks were being refused -- and they were all the ones outside the text.",
+            "cost": "No new requalification cost; the binding was already broken by 048/050/051."
         }
     ]
 }

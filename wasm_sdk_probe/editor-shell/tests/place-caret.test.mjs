@@ -11,7 +11,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { EditorSession, caretIsOnLine } from "../editor-session.js";
+import { EditorSession, caretIsOnLine, caretDiffers } from "../editor-session.js";
 
 /**
  * A session whose engine reports whatever caret and sequence the test says.
@@ -220,3 +220,58 @@ test("a click in the bottom half of the line resolves rather than timing out "
        assert.equal(result.caretConfirmedBy, "engine-acknowledged");
        assert.equal(result.state.caret.y, 1418);
      });
+
+test("a click outside every line box is confirmed when the engine moves the "
+     + "caret (finding 052)", async () => {
+       // Clicking below the last line is how a person reaches the end of a
+       // document, and the engine answers it by putting the caret on the
+       // nearest line.  The geometric test can never accept that -- the caret
+       // is not on the clicked line, because the clicked line does not exist --
+       // so before this the click waited out the full 30 s and was refused.
+       // Measured on the product page: 13 of 26 clicks down a column were
+       // refused, and every one of them was outside the text.
+       const value = fixture({
+         caret: { x: 100, y: 1418, width: 0, height: 276 },
+         onClick(state) {
+           // The engine clamps to the last line, which is nowhere near the
+           // click's y.
+           state.caret = { x: 900, y: 4423, width: 0, height: 276 };
+           state.sourceSequence += 1;
+         },
+       });
+       await value.open();
+       const result = await value.session.placeCaret(5123, 7876,
+                                                     { caretTimeoutMs: 2000 });
+       assert.equal(result.caretConfirmedBy,
+                    "engine-moved-the-caret-off-the-clicked-line");
+       assert.equal(result.caretOnClickedLine, false);
+       assert.equal(result.state.caret.y, 4423);
+     });
+
+test("finding 052's path does not weaken finding 048's guard", async () => {
+       // The 048 failure is a caret that is STALE, and a stale caret has not
+       // moved.  An acknowledgement about something else -- a tile
+       // invalidation, say -- must still not end the wait, and this is the same
+       // fixture as "an acknowledgement that is not about the caret" with the
+       // new path in place.
+       const value = fixture({
+         onClick(state) { state.sourceSequence += 1; },   // caret untouched
+       });
+       await value.open();
+       await assert.rejects(
+         () => value.session.placeCaret(2000, 3640,
+                                        { caretTimeoutMs: 150, caretAckGraceMs: 40 }),
+         (error) => {
+           assert.equal(error.code, "EDITOR_CARET_NOT_PLACED");
+           assert.equal(error.details.sequenceAdvanced, true);
+           return true;
+         });
+     });
+
+test("caretDiffers compares position, not size", () => {
+  assert.ok(caretDiffers({ x: 1, y: 2 }, { x: 1, y: 3 }));
+  assert.ok(caretDiffers({ x: 1, y: 2 }, { x: 9, y: 2 }));
+  assert.ok(!caretDiffers({ x: 1, y: 2, height: 276 }, { x: 1, y: 2, height: 414 }));
+  assert.ok(caretDiffers({ x: 1, y: 2 }, null));
+  assert.ok(!caretDiffers(null, null));
+});

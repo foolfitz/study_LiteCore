@@ -443,6 +443,47 @@
           "file": "e2/editor-shell-v2-bundle-v7.json"
         }
       ]
+    },
+    {
+      "id": "queue-click-outside-the-text-waits-out-the-timeout",
+      "title": "finding 052: a click outside every line box waited 30 s and was refused -- FIXED 2026-08-16 for the case the engine moves the caret",
+      "expectation": "present",
+      "blocksRelink": false,
+      "source": "findings/evidence/052/, 2026-08-16",
+      "note": "JS, no relink. placeCaret now also accepts when the engine acknowledged AND the caret moved. Measured: first click below the text 30 s -> 203 ms. RESIDUAL, recorded rather than hidden: a SECOND click outside the text, with the caret already clamped there, still waits out the 30 s -- nothing moves, and nothing moving is what a swallowed click looks like too. Same for a caret on the clicked line at a different x after the grace period. Both have the same non-geometric remedy as finding 046's overshoot: the engine reporting WHICH BLOCK the caret is in. Filed as queue-verify-caret-by-block-identity.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "editor-shell/editor-session.js",
+          "text": "acknowledged && caretMoved",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "editor-shell/tests/place-caret.test.mjs",
+          "text": "finding 052's path does not weaken finding 048's guard",
+          "atLeast": 1
+        },
+        {
+          "kind": "file-exists",
+          "file": "e2/editor-shell-v2-bundle-v8.json"
+        }
+      ]
+    },
+    {
+      "id": "queue-verify-caret-by-block-identity",
+      "title": "verify the caret by BLOCK IDENTITY rather than by rectangles -- OPEN, engine-side, would close three recorded ambiguities at once",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "findings 046, 051, 052; 2026-08-16",
+      "note": "Three separate ambiguities have now been measured and they all reduce to the same missing datum -- which BLOCK the caret/selection is in: (1) finding 046, `.uno:SelectText` overshoots an empty paragraph and the barrier verifies the neighbour; (2) finding 052's residual, a second click outside the text is indistinguishable from a swallowed click; (3) a caret on the clicked line at a completely different x is accepted after the grace period, because caretIsOnLine has no x. Geometry cannot separate any of them. An engine that reported the caret's block index in editorGetStateV2 would settle all three by comparison instead of by tolerance. NOT costed and NOT designed here; the point of this item is that it is ONE item, not three.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "src/probe_engine.cpp",
+          "text": "caretBlockIndex"
+        }
+      ]
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

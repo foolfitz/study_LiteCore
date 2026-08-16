@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "e2-c-product-path",
-  "browser": "firefox",
+  "browser": "chrome",
   "fixture": "list-contexts",
   "isTrusted": false,
   "notD5": "synthetic events; SPEC E2-C D5 requires trusted input and a human",
@@ -10,13 +10,13 @@
     "HTMLAnchorElement.prototype.click (download anchors)",
     "#toast.textContent cleared between steps"
   ],
-  "mutation": null,
+  "mutation": "copy-lies",
   "checks": [
     {
       "id": "product-save-button-writes-a-real-odt",
       "ok": true,
       "observed": {
-        "capturedBytes": 12211,
+        "capturedBytes": 12239,
         "magic": "504b0304",
         "head": null,
         "entries": 9,
@@ -24,7 +24,7 @@
         "contentXmlParses": true,
         "mimetype": "application/vnd.oasis.opendocument.text",
         "zipError": null,
-        "toast": "已存出 11.9 KB",
+        "toast": "已存出 12.0 KB",
         "anchorClicks": 1
       },
       "oracle": "the bytes the product hands to the download ARE an ODT -- ZIP magic, clean CRC, an ODT mimetype entry and a content.xml that parses -- and its own toast reports a size rather than NaN"
@@ -66,7 +66,7 @@
             "ok": true
           }
         ],
-        "savedBytes": 12520
+        "savedBytes": 12510
       },
       "oracle": "three commits through the product's composition path each advance the revision by exactly one, IN TURN, and all three strings are in the saved ODT"
     },
@@ -75,8 +75,8 @@
       "ok": true,
       "observed": {
         "handlerRan": true,
-        "toast": "複製：CLIPBOARD_DENIED：clipboard write was denied",
-        "outcome": "selection-read-clipboard-write-denied"
+        "toast": "已複製 1 字",
+        "outcome": "copied"
       },
       "oracle": "a copy event on the product page is handled by the product (default prevented) and the ENGINE returns a non-empty selection for it -- proved by which error the clipboard adapter raises, since CLIPBOARD_DENIED on the copy path is reachable only after getSelection has succeeded",
       "notEstablished": "whether the OS clipboard received the text; WebDriver refuses clipboard access, so that half belongs to D5"
@@ -182,7 +182,7 @@
         "revision": "0",
         "pending": "0",
         "checkpoint": "無",
-        "latency": "定位游標 40 ms",
+        "latency": "定位游標 32 ms",
         "doc": "list-contexts.odt",
         "toast": "點一下放游標，或拖曳選一段，再按動作",
         "buttons": [
@@ -287,6 +287,13 @@
       "revisionAfter": 3
     }
   ],
+  "mutationDetail": {
+    "mutation": "copy-lies",
+    "file": "e2-editor-app.js",
+    "reintroduces": "nothing that has happened; a hypothetical handler that reports success without calling copySelection",
+    "mustGoRed": "ctrl-c-asks-the-engine"
+  },
   "ok": true,
-  "verdict": "every product path this covers behaves"
+  "mustGoRed": [],
+  "verdict": "not detected, as declared: From outside the page, 'the engine was asked' is not observable: the product's only outward signal is its own toast, and a lying handler writes the same toast. Recorded as a named limit of this harness. What would close it is the shell's clipboard trace being reported somewhere a harness can read, which is a product change and therefore a decision, not a detail."
 }

@@ -1,7 +1,7 @@
 # The product path, driven automatically — first run, 2026-08-16
 
 `tools/run_e2_c_product_path.py`, on the shipped `e2-editor-v2` artifact
-(wasm `572035ac…`), shell bundle **v7 `e9668347…`**.
+(wasm `572035ac…`), shell bundle **v8 `4daad6b4…`**.
 
 ## Why this exists
 
@@ -33,8 +33,8 @@ path.
 
 | run | save button | three IME commits | Ctrl+C |
 |---|---|---|---|
-| `baseline-chrome.json` | PASS 12,236 B, `PK\x03\x04`, 9 entries, toast "11.9 KB" | PASS revision 0→3, all three strings in the saved ODT | PASS handler ran, engine returned a selection |
-| `baseline-firefox.json` | PASS 12,211 B | PASS 0→3, all three strings | PASS |
+| `baseline-chrome.json` | PASS — ZIP magic, 9 entries, ODT mimetype, `content.xml` parses, toast "11.9 KB" | PASS — revision 0→1→2→3, one per commit, all three strings in the saved ODT | PASS — handler ran, engine returned a non-empty selection |
+| `baseline-firefox.json` | PASS | PASS | PASS |
 
 ## Each check was shown to fail
 
@@ -47,6 +47,7 @@ the owning check to go red while the others stay green.
 | `save` | 049's exact line | save **and** IME | both red, Ctrl+C green — chrome & firefox |
 | `ime` | 050's missing sink clear | IME | red, others green — chrome & firefox |
 | `copy` | the unbound `copy` listener | Ctrl+C | red, others green — chrome & firefox |
+| `copy-lies` | *nothing that has happened*: a handler that prevents the default and toasts success **without calling the engine** | **nothing — declared undetectable** | not detected, as declared |
 
 The `save` mutation reproduces finding 049 to the byte: `capturedBytes: 15`,
 `head: "[object Object]"`, `toast: "已存出 NaN KB"` — the same file the operator
@@ -58,6 +59,31 @@ save**, because that is the only way out of the page — which is precisely why
 049 could hide as long as it did.  The alternative, an IME check that asks only
 whether the revision moved, is the criterion round 5 passed while the product
 was silently dropping two of three real commits.
+
+## What this harness is NOT claimed to catch
+
+An adversarial review (2026-08-16) asked which checks could still pass against a
+broken product.  Three answers were fixed the same day and are covered above:
+the save check now requires an ODT rather than any ZIP (an ODT mimetype entry
+and a `content.xml` that parses), the IME check now pairs **each** commit with
+exactly one revision advance rather than checking the total, and the copy check
+classifies the outcome by which error the clipboard adapter raises.
+
+One answer could not be fixed, and is recorded as a mutation instead of as an
+assumption.  `--mutate copy-lies` gives the page a copy handler that prevents
+the default and reports `已複製 1 字` **without ever calling
+`session.copySelection()`**, and the check passes:
+
+```
+handlerRan: true   toast: "已複製 1 字"   outcome: "copied"
+```
+
+From outside the page, "the engine was asked" is not observable — the product's
+only outward signal is its own toast, and a lying handler writes the same toast.
+Closing it needs the shell's clipboard trace reported somewhere a harness can
+read, which is a product change and therefore a decision, not a detail.  The
+mutation is kept in the tool so that if this ever DOES become detectable, the
+run says the recorded limit is out of date.
 
 ## Declared shims
 

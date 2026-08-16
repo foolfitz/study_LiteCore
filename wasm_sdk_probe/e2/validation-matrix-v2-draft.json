@@ -782,7 +782,8 @@
    "oracle": "a trusted pointer drag on the product page selects one paragraph, a format button then applies to it, and the saved ODT shows it",
    "onFailure": "PARTIAL",
    "carriedFrom": "validation-matrix-v1.json",
-   "strengthenedCriterion": "THE SAVED ODT IS READ, not merely captured. Round 4 (2026-08-16) passed round one's analyzer on 'a document was captured' while the oracle says '...and the saved ODT shows it'; the content was read by hand instead. From round two the judge counts <text:list> in the document this cell saved against the document saved immediately before it (the pristine fixture for the first), and an unreadable document fails rather than reading as no change. Implemented by tools/analyze_e2_c_d5.py --criteria round-two, mutation-tested in its self-test."
+   "strengthenedCriterion": "THE SAVED ODT IS READ, not merely captured. Round 4 (2026-08-16) passed round one's analyzer on 'a document was captured' while the oracle says '...and the saved ODT shows it'; the content was read by hand instead. From round two the judge counts <text:list> in the document this cell saved against the document saved immediately before it (the pristine fixture for the first), and an unreadable document fails rather than reading as no change. Implemented by tools/analyze_e2_c_d5.py --criteria round-two, mutation-tested in its self-test.",
+   "notEstablishedByTheJudge": "WHICH paragraph. The judge counts <text:list> in the whole document, so it establishes that a list appeared between two saves -- not that the paragraph the operator selected is the one that became a list. The export carries no record of which paragraph was selected, so this cannot be judged offline from what a round produces today; it is read by hand from the saved ODT when a cell is contested. Named by adversarial review 2026-08-16. There is also a false-negative shape: a paragraph that JOINS an adjacent list leaves the count unchanged, which is what d3-adjacent-list-merge exists to characterise."
   },
   {
    "id": "d5-pointer-drag-cross",
@@ -791,7 +792,8 @@
    "oracle": "a trusted pointer drag spanning two paragraphs, then a format button; both paragraphs verified",
    "onFailure": "PARTIAL",
    "carriedFrom": "validation-matrix-v1.json",
-   "strengthenedCriterion": "THE SAVED ODT IS READ, not merely captured. Round 4 (2026-08-16) passed round one's analyzer on 'a document was captured' while the oracle says '...and the saved ODT shows it'; the content was read by hand instead. From round two the judge counts <text:list> in the document this cell saved against the document saved immediately before it (the pristine fixture for the first), and an unreadable document fails rather than reading as no change. Implemented by tools/analyze_e2_c_d5.py --criteria round-two, mutation-tested in its self-test."
+   "strengthenedCriterion": "THE SAVED ODT IS READ, not merely captured. Round 4 (2026-08-16) passed round one's analyzer on 'a document was captured' while the oracle says '...and the saved ODT shows it'; the content was read by hand instead. From round two the judge counts <text:list> in the document this cell saved against the document saved immediately before it (the pristine fixture for the first), and an unreadable document fails rather than reading as no change. Implemented by tools/analyze_e2_c_d5.py --criteria round-two, mutation-tested in its self-test.",
+   "notEstablishedByTheJudge": "WHICH paragraph. The judge counts <text:list> in the whole document, so it establishes that a list appeared between two saves -- not that the paragraph the operator selected is the one that became a list. The export carries no record of which paragraph was selected, so this cannot be judged offline from what a round produces today; it is read by hand from the saved ODT when a cell is contested. Named by adversarial review 2026-08-16. There is also a false-negative shape: a paragraph that JOINS an adjacent list leaves the count unchanged, which is what d3-adjacent-list-merge exists to characterise."
   },
   {
    "id": "d5-ime-commit",
@@ -802,7 +804,8 @@
    "note": "E1-C's IME evidence is bound to 835b453d and may not be cited for v2.",
    "carriedFrom": "validation-matrix-v1.json",
    "platformLimit": "MEASURED 2026-08-16, both browsers, same operator and same Fcitx5 Chewing: Chrome delivers compositionend with isTrusted:false while start and every update are trusted, so this cell cannot pass there. Firefox delivers all four events trusted and the cell is obtainable. The strict rule stays as frozen -- it is what makes this phase mean anything -- and the cell is run on Firefox. Evidence: findings/evidence/sdk-e2/e2-c-validation/d5/operator/round-1-chrome/ and round-3-firefox/.",
-   "strengthenedCriterion": "ONE REVISION ADVANCE PER COMMIT the oracle names, not merely 'the revision moved'. Round 5 (2026-08-16) passed the round-one analyzer while the product silently dropped two of three real commits (finding 050): the analyzer asked whether the revision moved at all, and it had -- for the first commit. A criterion that cannot see two thirds of a user's typing disappear is not measuring the thing the oracle names. Implemented by tools/analyze_e2_c_d5.py --criteria round-two: the revision must advance once per compositionend carrying data, and the oracle's two commits must both be present. Verified against the recorded rounds -- it judges round 5 NOT_ESTABLISHED where round one's judge passed it, and round 6 PASS."
+   "strengthenedCriterion": "ONE REVISION ADVANCE PER COMMIT the oracle names, not merely 'the revision moved'. Round 5 (2026-08-16) passed the round-one analyzer while the product silently dropped two of three real commits (finding 050): the analyzer asked whether the revision moved at all, and it had -- for the first commit. A criterion that cannot see two thirds of a user's typing disappear is not measuring the thing the oracle names. Implemented by tools/analyze_e2_c_d5.py --criteria round-two: the revision must advance once per compositionend carrying data, and the oracle's two commits must both be present. Verified against the recorded rounds -- it judges round 5 NOT_ESTABLISHED where round one's judge passed it, and round 6 PASS.",
+   "notEstablishedByTheJudge": "WHERE each commit landed. The judge now requires one revision advance per commit and every committed string to be present in the saved ODT, but the oracle names one commit at a COLLAPSED CARET and one REPLACING A SELECTION, and neither the caret state nor the selection state is in the export. Named by adversarial review 2026-08-16."
   },
   {
    "id": "d5-clipboard",
@@ -810,7 +813,8 @@
    "repeat": 1,
    "oracle": "a real Ctrl+C / Ctrl+V round trip, plain text only",
    "onFailure": "PARTIAL",
-   "carriedFrom": "validation-matrix-v1.json"
+   "carriedFrom": "validation-matrix-v1.json",
+   "strengthenedCriterion": "A ROUND TRIP IS TWO EVENTS. Round one accepted a copy OR a paste; from round two both must be present. What is still not established: that the pasted text is the text that was copied -- the export records the events, not the clipboard. Named by adversarial review 2026-08-16."
   },
   {
    "id": "d0-matrix-frozen",
