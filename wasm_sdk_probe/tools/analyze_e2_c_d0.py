@@ -21,6 +21,9 @@ import sys
 import zipfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from e2_c_matrix_entry import require_entry  # noqa: E402
+
 PROJECT = Path(__file__).resolve().parent.parent
 MATRIX = PROJECT / "e2" / "validation-matrix-v1.json"
 
@@ -284,6 +287,7 @@ def main() -> int:
     parser.add_argument("evidence", type=Path, nargs="?",
                         help="a D0 evidence directory (…/<profile>-<hash>/<browser>)")
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--matrix", type=Path, default=MATRIX)
     args = parser.parse_args()
 
     if args.self_test:
@@ -293,9 +297,14 @@ def main() -> int:
 
     if args.evidence is None:
         parser.error("an evidence directory is required")
-    matrix = json.loads(MATRIX.read_text(encoding="utf-8"))
+    # Same assertion as the runner's, applied again here: a verdict is written
+    # from this file, and the runner's refusal does not travel with the
+    # evidence.  Judging is where the matrix's authority is actually used.
+    entry = require_entry(args.matrix)
+    matrix = json.loads(args.matrix.read_text(encoding="utf-8"))
     result = json.loads((args.evidence / "result.json").read_text(encoding="utf-8"))
     verdict = judge(result, args.evidence, matrix)
+    verdict["matrixEntryAssertion"] = entry
     verdict["browser"] = result.get("browserName")
     verdict["artifact"] = result.get("artifact")
     verdict["projection"] = projection(result, matrix)

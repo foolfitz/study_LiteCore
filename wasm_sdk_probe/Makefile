@@ -2098,6 +2098,7 @@ test-e2-c-static:
 		tools/analyze_e2_c_d4.py tools/run_e2_c_d4_regression.py \
 		tools/analyze_e2_c_d5.py tools/run_e2_c_d5.py \
 		tools/analyze_e2_c_d4_heap.py tools/check_relink_queue.py \
+		tools/e2_c_matrix_entry.py \
 		tools/validate_e2_c.py
 	python3 -m json.tool e2/relink-queue-v3.json > /dev/null
 	# The relink queue, run instead of read.  It lied twice while it was prose
@@ -2108,6 +2109,12 @@ test-e2-c-static:
 	# expectation being flipped fails too.
 	python3 tools/check_relink_queue.py > /dev/null
 	python3 tools/check_relink_queue.py --self-test > /dev/null
+	# The freeze window: between the relink and the freeze, the second round's
+	# matrix still carries placeholder hashes and nothing checked that the
+	# freeze happened before D0.  The assertion refuses on three counts, and
+	# its self-test proves each one fires -- including the one that matters,
+	# a status flipped to frozen with the hashes still placeholders.
+	python3 tools/e2_c_matrix_entry.py --self-test > /dev/null
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves
 	# dist/).  Read-only: --write is a deliberate act with its own diff.

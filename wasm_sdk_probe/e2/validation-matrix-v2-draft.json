@@ -11,7 +11,8 @@
       "set frozenDate and status: frozen-before-D0",
       "record the freeze in SPEC E2-C's revision table"
     ],
-    "entryAssertion": "D0 must refuse to run while any baseline hash is still 'TO-BE-FILLED-AT-RELINK' or while status is not 'frozen-before-D0'. Without this the window between the relink and the freeze has no guard, which external review named on 2026-08-16 as the one place the first round's mistake could repeat."
+    "entryAssertion": "D0 must refuse to run while any baseline hash is still 'TO-BE-FILLED-AT-RELINK' or while status is not 'frozen-before-D0'. Without this the window between the relink and the freeze has no guard, which external review named on 2026-08-16 as the one place the first round's mistake could repeat.",
+    "entryAssertionImplementedBy": "tools/e2_c_matrix_entry.py (assert_entry/require_entry), called by tools/run_e2_c_d0.py before a browser starts and by tools/analyze_e2_c_d0.py before a verdict is written. Wired into `make test-e2-c-static` with a 7-check self-test. Written 2026-08-16: the assertion existed as this paragraph for a day, and a paragraph does not refuse to run a round."
   },
   "baseline": {
     "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",

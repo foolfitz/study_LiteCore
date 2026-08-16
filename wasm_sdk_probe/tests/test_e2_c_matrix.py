@@ -10,6 +10,7 @@ promises fifteen actions and lists ten still looks like a complete document.
 from __future__ import annotations
 
 import json
+import sys
 import unittest
 from pathlib import Path
 
@@ -185,6 +186,41 @@ class TestE2CMatrix(unittest.TestCase):
         if execution.get("startedAt") is not None:
             self.assertIsNotNone(execution.get("completedAt"),
                                  "a started matrix must record its end")
+
+
+class MatrixEntryAssertion(unittest.TestCase):
+    """The freeze window guard, as a test rather than as a paragraph.
+
+    The v2 draft's `freezeProcedure.entryAssertion` describes it in prose.
+    Prose does not refuse to run a round.
+    """
+
+    def setUp(self) -> None:
+        sys.path.insert(0, str(PROJECT / "tools"))
+        from e2_c_matrix_entry import assert_entry  # noqa: PLC0415
+        self.assert_entry = assert_entry
+
+    def test_the_frozen_first_round_matrix_is_admitted(self) -> None:
+        report = self.assert_entry(PROJECT / "e2" / "validation-matrix-v1.json")
+        self.assertTrue(report["ok"], report["problems"])
+
+    def test_the_draft_is_refused_while_it_is_a_draft(self) -> None:
+        report = self.assert_entry(
+            PROJECT / "e2" / "validation-matrix-v2-draft.json")
+        self.assertFalse(report["ok"])
+        # Both halves, because a guard that only reads `status` would pass a
+        # matrix whose status was flipped and whose hashes were forgotten --
+        # which is precisely the window this assertion exists for.
+        self.assertTrue(any("status" in problem
+                            for problem in report["problems"]))
+        self.assertTrue(any("TO-BE-FILLED-AT-RELINK" in problem
+                            for problem in report["problems"]))
+
+    def test_the_entry_assertion_is_wired_into_d0(self) -> None:
+        for tool in ("run_e2_c_d0.py", "analyze_e2_c_d0.py"):
+            text = (PROJECT / "tools" / tool).read_text(encoding="utf-8")
+            self.assertIn("require_entry(", text,
+                          f"{tool} does not run the entry assertion")
 
 
 if __name__ == "__main__":

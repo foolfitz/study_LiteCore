@@ -23,6 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from e1_support import sha256, write_json  # noqa: E402
+from e2_c_matrix_entry import require_entry  # noqa: E402
 from r7_support import evaluate, wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, FirefoxSession, free_port  # noqa: E402
 
@@ -57,10 +58,22 @@ def main() -> int:
     parser.add_argument("--overwrite", action="store_true",
                         help="discard a completed run at --output "
                              "instead of refusing to write over it")
+    # Which matrix this round is being judged against.  Explicit, because the
+    # second round is judged against a different file and "the analyzer picks
+    # it up" is how a round ends up measured against criteria nobody froze.
+    parser.add_argument("--matrix", type=Path,
+                        default=PROJECT / "e2" / "validation-matrix-v1.json")
     parser.add_argument("--output", type=Path,
                         default=PROJECT.parent / "findings" / "evidence" / "sdk-e2"
                         / "e2-c-validation" / "d0")
     args = parser.parse_args()
+
+    # The entry assertion, BEFORE a browser is started: a round run against an
+    # unfrozen matrix, or one whose baseline does not describe the artifact on
+    # disk, is a round that cannot mean anything afterwards.  External review
+    # (2026-08-16) named the window between the relink and the freeze as the
+    # one place the first round's mistake can repeat.
+    require_entry(args.matrix, profile=args.profile)
 
     artifact = artifact_hashes(args.profile)
     evidence = args.output / f"{args.profile}-{artifact['wasmSha256'][:8]}" / args.browser
