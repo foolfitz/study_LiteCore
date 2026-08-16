@@ -159,6 +159,13 @@ function refreshLive() {
     // not only in the file they hand back.
     synthetic ? `⚠ 合成事件 ${synthetic} 個 —— 這一格不會成立` : "✓ 全部是真人事件",
     focus.text,
+    // The criterion the first operator round died on, in every cell, because
+    // the instructions never mentioned it: the frozen oracle for the drag cells
+    // says "and the saved ODT shows it".  A requirement the operator cannot see
+    // is a requirement that gets missed.
+    saves.some((entry) => entry.label.startsWith(current))
+      ? "✓ 這一格已擷取存檔"
+      : "⚠ 這一格還沒有存檔 —— 做完動作後按產品的「儲存 ODT」",
     strip ? `產品狀態  ${strip.state}  修訂 ${strip.revision}  generation ${strip.generation}` : "",
   ].filter(Boolean).join("\n");
   drawTrace();
@@ -229,6 +236,7 @@ function attach(frameWindow) {
         saves.push({ label, b64: await toBase64(bytes) });
         metrics.saves.push({ label, bytes: bytes.byteLength, cell: current });
         log({ saved: label, bytes: bytes.byteLength });
+        scheduleLive();
       } catch (error) {
         metrics.error = { code: "SAVE_CAPTURE_FAILED", message: String(error) };
       }
