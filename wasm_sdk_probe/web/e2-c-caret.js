@@ -56,6 +56,34 @@ export function caretCovers(caret, yTwips) {
   return Math.abs(yTwips - caret.y) <= CARET_TOLERANCE_TWIPS;
 }
 
+/** Is the caret on the SAME LINE as an anchor whose rectangle was measured?
+ *
+ *  Used when the anchor was located by search, which returns core's own
+ *  rectangle for it.  Then the question is not "how far apart are two numbers"
+ *  but "do these two line boxes overlap", and that has no constant in it.
+ *
+ *  `caretCovers` above is kept for the harness that finds anchors by sweeping,
+ *  where no anchor rectangle exists to compare against.  Its 195-twip constant
+ *  is half the LIST corpus's line pitch, and 2026-08-16 measured what that
+ *  costs elsewhere: `l0-t3`'s page anchors are headings with a 520-twip line
+ *  box, so a click aimed at the middle of the line landed 260 twips from the
+ *  caret's reported top -- the right line, refused by a constant calibrated on
+ *  a different corpus.  Both browsers refused all three cells identically,
+ *  which is what made it attributable to the rule rather than to the product.
+ *
+ *  Overlap of more than half the caret's own height, so an adjacent line --
+ *  which does not overlap at all -- can never satisfy it.
+ */
+export function caretOnLine(caret, rectangle) {
+  if (!caret?.available || !Number.isFinite(caret.y) || !rectangle) return false;
+  const caretHeight = Number.isFinite(caret.height) && caret.height > 0
+    ? caret.height : 1;
+  const top = Math.max(caret.y, rectangle.y);
+  const bottom = Math.min(caret.y + caretHeight,
+                          rectangle.y + (rectangle.height || 0));
+  return (bottom - top) > caretHeight / 2;
+}
+
 /**
  * Click at (x, y) and return once the engine reports the caret there.
  *
@@ -75,11 +103,20 @@ export async function placeCaretVerified(session, xTwips, yTwips, options = {}) 
   // Checked again anyway, and deliberately: the point of a harness gate is to
   // fail when the thing it drives is wrong, and the thing it drives is the code
   // that just claimed success.  A gate that trusts its subject is decoration.
-  if (!caret.available || Math.abs(yTwips - caret.y) > tolerance) {
+  //
+  // `anchorRect`, when the caller measured one, switches the test from a
+  // constant to the geometry: see caretOnLine.  Without it, nothing changes --
+  // the sweeping harness and every round it has already recorded keep the rule
+  // they ran under.
+  const landed = options.anchorRect
+    ? caretOnLine(caret, options.anchorRect)
+    : caret.available && Math.abs(yTwips - caret.y) <= tolerance;
+  if (!landed) {
     throw Object.assign(
       new Error(`the product reported the caret placed, but it reads back at `
                 + `${caret?.y ?? "none"} for a click at y=${yTwips}`),
-      { code: "CARET_NOT_AT_ANCHOR", details: { xTwips, yTwips, caret } });
+      { code: "CARET_NOT_AT_ANCHOR",
+        details: { xTwips, yTwips, caret, anchorRect: options.anchorRect ?? null } });
   }
   return {
     caret,

@@ -1617,6 +1617,12 @@ dist/e2-c-d3.html: web/e2-c-d3.html | dist
 dist/e2-c-d3-app.js: web/e2-c-d3-app.js | dist
 	cp $< $@
 
+dist/e2-c-d3-corpus.html: web/e2-c-d3-corpus.html | dist
+	cp $< $@
+
+dist/e2-c-d3-corpus-app.js: web/e2-c-d3-corpus-app.js | dist
+	cp $< $@
+
 # The verified caret gesture, shared by the D2 and D3 harnesses.  Harness code,
 # deliberately outside editor-shell-v2/: the E2 shell bundle binds the PRODUCT's
 # modules, and a helper the product does not import must not move that digest.
@@ -1647,6 +1653,8 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/e2-c-d1.html dist/e2-c-d1-app.js \
 	dist/e2-c-d2.html dist/e2-c-d2-app.js \
 	dist/e2-c-d3.html dist/e2-c-d3-app.js dist/e2-c-caret.js \
+	dist/e2-c-d3-corpus.html dist/e2-c-d3-corpus-app.js \
+	$(addprefix dist/r7-compat-fixtures/,$(R7_COMPAT_FILES)) \
 	dist/e2-c-caret-ack.html dist/e2-c-caret-ack-app.js \
 	dist/e1-fixtures/list-contexts.odt \
 	dist/e2-fixtures/manifest.json dist/e2-fixtures/list-split.odt \
@@ -2032,6 +2040,7 @@ test-e2-c-static:
 	node --check web/e2-c-d1-app.js
 	node --check web/e2-c-d2-app.js
 	node --check web/e2-c-d3-app.js
+	node --check web/e2-c-d3-corpus-app.js
 	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
 	# reachable by a shipped shell.  The four-way inventory check cannot see
 	# this -- its client side is the UNION of two shells and one of them
@@ -2061,6 +2070,7 @@ test-e2-c-static:
 	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py \
 		tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py \
 		tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py \
+		tools/analyze_e2_c_d3_corpus.py \
 		tools/validate_e2_c.py
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves
@@ -2092,6 +2102,12 @@ test-e2-c-static:
 	# phase and another round of cells that report green having measured the
 	# wrong paragraph (finding 048).
 	python3 tools/analyze_e2_c_d3.py --self-test > /dev/null
+	# D3's corpus half.  Same rule as every other analyzer here: the criteria
+	# have to be shown to be able to say no, and the mutations run against a
+	# COPY of the recorded round -- nothing under findings/ is written.
+	python3 tools/analyze_e2_c_d3_corpus.py --self-test \
+		../findings/evidence/sdk-e2/e2-c-validation/d3-corpus/\
+run-3-with-controls/e2-editor-v2-572035ac/chrome > /dev/null
 	# D2's judge is build-aware, so its self-test mutates the EXPECTATION table
 	# as well as the results: an expectation nobody can break is an expectation
 	# that stopped describing the build some time ago and said nothing.
