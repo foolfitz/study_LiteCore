@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "release": "queue-verify-caret-by-block-identity",
+  "arm": "native",
+  "environment": {
+    "probe": "environment",
+    "a11yAvailable": true,
+    "viewId": 1
+  },
+  "predictions": [
+    {
+      "prediction": "P-BI-0 control",
+      "outcome": "HELD",
+      "detail": "control-anchor content='BI-ANCHOR-ONE' (a11yAvailable=True)"
+    },
+    {
+      "prediction": "P-BI-1",
+      "outcome": "FAILED",
+      "detail": "the read did not reach the neighbour: 'BI-ANCHOR-ONE'"
+    },
+    {
+      "prediction": "P-BI-2a",
+      "outcome": "HELD",
+      "detail": "a second click below the text at the same x left the payload byte-for-byte identical"
+    },
+    {
+      "prediction": "P-BI-2b",
+      "outcome": "FAILED",
+      "detail": "position did not move: 7 -> 7"
+    },
+    {
+      "prediction": "P-BI-2c",
+      "outcome": "FAILED",
+      "detail": "saturatesPastTheEnd=True separatesInside=False"
+    },
+    {
+      "prediction": "P-BI-3",
+      "outcome": "HELD",
+      "detail": "one paragraph, position 13 -> 45"
+    },
+    {
+      "prediction": "P-BI-4",
+      "outcome": "HELD",
+      "detail": "two different paragraphs, one byte-for-byte payload (caret y 2585 -> 2974)"
+    }
+  ],
+  "held": [
+    "P-BI-0 control",
+    "P-BI-2a",
+    "P-BI-3",
+    "P-BI-4"
+  ],
+  "failed": [
+    "P-BI-1",
+    "P-BI-2b",
+    "P-BI-2c"
+  ],
+  "notEstablished": [],
+  "controlHeld": true
+}

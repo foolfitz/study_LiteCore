@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "release": "queue-verify-caret-by-block-identity",
+  "arm": "native",
+  "environment": {
+    "probe": "environment",
+    "a11yAvailable": true,
+    "viewId": 1
+  },
+  "predictions": [
+    {
+      "prediction": "P-BI-0 control",
+      "outcome": "HELD",
+      "detail": "control-anchor content='BI-ANCHOR-ONE' (a11yAvailable=True)"
+    },
+    {
+      "prediction": "P-BI-1",
+      "outcome": "NOT_ESTABLISHED",
+      "detail": "empty-caret or empty-after-bullet-readback is missing"
+    },
+    {
+      "prediction": "P-BI-2a",
+      "outcome": "HELD",
+      "detail": "a second click below the text at the same x left the payload byte-for-byte identical"
+    },
+    {
+      "prediction": "P-BI-2b",
+      "outcome": "FAILED",
+      "detail": "position did not move: 7 -> 7"
+    },
+    {
+      "prediction": "P-BI-2c",
+      "outcome": "FAILED",
+      "detail": "saturatesPastTheEnd=True separatesInside=False"
+    },
+    {
+      "prediction": "P-BI-3",
+      "outcome": "HELD",
+      "detail": "one paragraph, position 13 -> 45"
+    },
+    {
+      "prediction": "P-BI-4",
+      "outcome": "HELD",
+      "detail": "two different paragraphs, one byte-for-byte payload (caret y 2585 -> 2974)"
+    },
+    {
+      "prediction": "P-BI-5",
+      "outcome": "HELD",
+      "detail": "from a caret on another paragraph, a click below the text reports the last paragraph, so it arrives and clamps"
+    },
+    {
+      "prediction": "P-BI-6",
+      "outcome": "HELD",
+      "detail": "the same x reads 4 on the line and 7 below it"
+    },
+    {
+      "prediction": "P-BI-7",
+      "outcome": "HELD",
+      "detail": "the caret paragraph read '•' while .uno:SelectText returned '• \\nBI-AFTER-EMPTY'"
+    }
+  ],
+  "held": [
+    "P-BI-0 control",
+    "P-BI-2a",
+    "P-BI-3",
+    "P-BI-4",
+    "P-BI-5",
+    "P-BI-6",
+    "P-BI-7"
+  ],
+  "failed": [
+    "P-BI-2b",
+    "P-BI-2c"
+  ],
+  "notEstablished": [
+    "P-BI-1"
+  ],
+  "controlHeld": true
+}

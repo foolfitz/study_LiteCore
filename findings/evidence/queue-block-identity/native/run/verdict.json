@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "release": "queue-verify-caret-by-block-identity",
+  "arm": "native",
+  "environment": {
+    "probe": "environment",
+    "a11yAvailable": true,
+    "viewId": 1
+  },
+  "predictions": [
+    {
+      "prediction": "P-BI-0 control",
+      "outcome": "HELD",
+      "detail": "control-anchor content='BI-ANCHOR-ONE' (a11yAvailable=True)"
+    },
+    {
+      "prediction": "P-BI-1",
+      "outcome": "NOT_ESTABLISHED",
+      "detail": "empty-caret or empty-after-bullet-readback is missing"
+    },
+    {
+      "prediction": "P-BI-2a",
+      "outcome": "HELD",
+      "detail": "a second click below the text at the same x left the payload byte-for-byte identical"
+    },
+    {
+      "prediction": "P-BI-2b",
+      "outcome": "NOT_ESTABLISHED",
+      "detail": "no arm clicked at an x inside the last line's text, so this round cannot distinguish 'x is ignored' from 'both x were past the end of the line'"
+    },
+    {
+      "prediction": "P-BI-2c",
+      "outcome": "NOT_ESTABLISHED",
+      "detail": "round 2's below-* arms are not all present"
+    },
+    {
+      "prediction": "P-BI-3",
+      "outcome": "HELD",
+      "detail": "one paragraph, position 13 -> 45"
+    },
+    {
+      "prediction": "P-BI-4",
+      "outcome": "HELD",
+      "detail": "two different paragraphs, one byte-for-byte payload (caret y 2585 -> 2974)"
+    }
+  ],
+  "held": [
+    "P-BI-0 control",
+    "P-BI-2a",
+    "P-BI-3",
+    "P-BI-4"
+  ],
+  "failed": [],
+  "notEstablished": [
+    "P-BI-1",
+    "P-BI-2b",
+    "P-BI-2c"
+  ],
+  "controlHeld": true
+}
