@@ -67,6 +67,18 @@ REQUIRED = (
     ("handleEditorPlaceCaret(command);",
      "the click that answers with where the caret went; an entry point the "
      "product cannot reach is an entry point that is not there"),
+    ('json << ",\\"formatStale\\":"',
+     "the validity bit for the format cache the product ships; it was emitted "
+     "only under OXSDK_MAINLOOP_ENGINE until 2026-08-17, so the product had the "
+     "measurement and not the bit that says whether it is stale"),
+    ("gFormatBarrier.paragraphIdentityChecked =",
+     "whether finding 046's identity gate RAN; the gate is fail-open by design, "
+     "so a verdict reached without it must be distinguishable from one reached "
+     "with it"),
+    ("gEditorState.a11yParagraphFresh = false;",
+     "a failed synchronous paragraph read must CLEAR the fingerprint rather "
+     "than leave the previous one standing, which would be a plausible wrong "
+     "answer instead of an absent one"),
     ("gFormatBarrier.readbackParagraphKnown = refreshCaretParagraph();",
      "finding 046's fix reads the paragraph the barrier's own selection landed "
      "on; taken at the read, not at the verdict"),

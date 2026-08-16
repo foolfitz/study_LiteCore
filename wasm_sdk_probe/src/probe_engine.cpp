@@ -265,6 +265,11 @@ struct EditorState {
   // any of the document's text.
   std::uint64_t a11yContentHash = 0;
   int a11yListPrefixLength = 0;
+  // Did the LAST synchronous read succeed?  Distinct from `a11yObserved` (a
+  // callback fired at some point) and from `enabled` (accessibility was
+  // switched on once).  Neither of those answers "is the fingerprint below
+  // describing where the caret is now".
+  bool a11yParagraphFresh = false;
   bool boldKnown = false;
   bool bold = false;
   bool italicKnown = false;
@@ -762,6 +767,8 @@ struct FormatStateBarrier {
   bool dispatchParagraphKnown = false;
   std::uint64_t readbackParagraphFingerprint = 0;
   bool readbackParagraphKnown = false;
+  // Did the identity comparison actually run?  See the verdict path.
+  bool paragraphIdentityChecked = false;
   // What the postcondition demands of the readback.  Empty means "this action
   // makes no claim about that half".
   std::string expectedListTag;   // "ul" / "ol" / "none"
@@ -1069,6 +1076,8 @@ void appendEditorState(std::ostringstream &json) {
        << (gEditorAccessibilityEnabled ? "true" : "false")
        << ",\"unavailable\":\""
        << jsonEscape(gEditorAccessibilityUnavailable) << "\""
+       << ",\"paragraphFresh\":"
+       << (gEditorState.a11yParagraphFresh ? "true" : "false")
        << ",\"paragraphFingerprint\":\"" << std::hex
        << gEditorState.a11yContentHash << std::dec << "\""
        << ",\"listPrefixLength\":" << gEditorState.a11yListPrefixLength
@@ -1101,10 +1110,20 @@ void appendEditorState(std::ostringstream &json) {
   json << ",\"stateChangedTotal\":" << gEditorState.stateChangedTotal
        << ",\"stateChangedUnrecognised\":"
        << gEditorState.stateChangedUnrecognised;
-#ifdef OXSDK_MAINLOOP_ENGINE
+  // `formatStale` is the validity bit for the two fields directly above it,
+  // and until 2026-08-17 it was emitted ONLY under OXSDK_MAINLOOP_ENGINE --
+  // which the product does not define.  So the product shipped a cached format
+  // measurement and compiled out the only thing that says whether it describes
+  // the paragraph the caret is in.  Same disease as the accessibility call that
+  // cost the v3 link: a capability whose failure is indistinguishable from a
+  // reading.
+  //
+  // The poll counters stay behind the guard -- they are the main-loop build's
+  // own instrumentation and mean nothing here.
   json << ",\"formatStale\":"
-       << (gEditorState.formatStateStale ? "true" : "false")
-       << ",\"pollCount\":"
+       << (gEditorState.formatStateStale ? "true" : "false");
+#ifdef OXSDK_MAINLOOP_ENGINE
+  json << ",\"pollCount\":"
        << gMainLoop.pollCount.load(std::memory_order_relaxed)
        << ",\"idlePollCount\":"
        << gMainLoop.idlePollCount.load(std::memory_order_relaxed);
@@ -1238,6 +1257,16 @@ void appendFormatBarrierDetails(std::ostringstream &json,
        << (barrier.selectionResultSeen ? "true" : "false")
        << ",\"selectionBeforeResultCount\":"
        << barrier.selectionBeforeResultCount
+       // Finding 046's identity gate, and above all whether it RAN.  A verdict
+       // reached without it is not the same verdict, and until this field
+       // existed the two were indistinguishable in the evidence.
+       << ",\"paragraphIdentity\":{\"checked\":"
+       << (barrier.paragraphIdentityChecked ? "true" : "false")
+       << ",\"dispatchKnown\":"
+       << (barrier.dispatchParagraphKnown ? "true" : "false")
+       << ",\"readbackKnown\":"
+       << (barrier.readbackParagraphKnown ? "true" : "false")
+       << "}"
        << ",\"containment\":{\"checked\":"
        << (barrier.containmentChecked ? "true" : "false")
        << ",\"held\":" << (barrier.containmentHeld ? "true" : "false")
@@ -1606,12 +1635,24 @@ bool readEditorSemanticSnapshot(EditorSemanticSnapshot &snapshot) {
 // would be a cost nothing reads.
 bool refreshCaretParagraph() {
   EditorSemanticSnapshot snapshot;
-  if (!readEditorSemanticSnapshot(snapshot))
+  if (!readEditorSemanticSnapshot(snapshot)) {
+    // Cleared, not left standing.  The first version returned false and touched
+    // nothing, so a reply built after a failed read serialised the PREVIOUS
+    // paragraph's fingerprint -- a plausible wrong answer, which is worse than
+    // an obviously absent one.  `enabled` cannot cover this: it says
+    // setAccessibilityState was called once, not that THIS read succeeded.
+    gEditorState.a11yParagraphFresh = false;
+    gEditorState.a11yContentLength = -1;
+    gEditorState.a11yPosition = -1;
+    gEditorState.a11yContentHash = 0;
+    gEditorState.a11yListPrefixLength = 0;
     return false;
+  }
   gEditorState.a11yContentLength = snapshot.contentLength;
   gEditorState.a11yPosition = snapshot.position;
   gEditorState.a11yContentHash = snapshot.contentHash;
   gEditorState.a11yListPrefixLength = snapshot.listPrefixLength;
+  gEditorState.a11yParagraphFresh = true;
   return true;
 }
 
@@ -3796,8 +3837,22 @@ void finishFormatBarrierAfterRestore() {
   // another paragraph then the postcondition verdict has nothing to stand on,
   // and reporting the weaker, more alarming shape first is how 046 came to say
   // something the evidence contradicted.
-  if (gFormatBarrier.dispatchParagraphKnown
-      && gFormatBarrier.readbackParagraphKnown
+  // Whether this check RAN is part of the verdict, not a detail.
+  //
+  // The gate below needs both reads to have succeeded, and when either did not
+  // it simply does not fire -- so a barrier that never checked paragraph
+  // identity and one that checked and was satisfied produce the same verdict.
+  // That is fail-open, and it is the same shape as everything else this link is
+  // repairing.
+  //
+  // NOT made fail-closed: accessibility being unavailable would then fail every
+  // format action in the product, which is far worse than the defect.  Made
+  // VISIBLE instead -- the payload says whether identity was verified, so
+  // evidence can tell the two apart and a round that relied on it can say so.
+  gFormatBarrier.paragraphIdentityChecked =
+      gFormatBarrier.dispatchParagraphKnown
+      && gFormatBarrier.readbackParagraphKnown;
+  if (gFormatBarrier.paragraphIdentityChecked
       && gFormatBarrier.dispatchParagraphFingerprint
              != gFormatBarrier.readbackParagraphFingerprint) {
     gFormatBarrier.failureShape = "readback-is-a-different-paragraph";

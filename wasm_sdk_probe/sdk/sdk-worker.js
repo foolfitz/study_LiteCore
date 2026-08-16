@@ -185,6 +185,13 @@ function productFormatBarrier(value = {}) {
     // means the command went out.
     dispatched: typeof value.stage === "string" && value.stage !== "idle",
     route: value.route ?? null,
+    // Finding 046's identity gate, and whether it RAN.  Projected because this
+    // allowlist is where engine fields go to be forgotten (p1-3c's itemCount),
+    // and because a verdict reached WITHOUT the identity check is a different
+    // verdict -- fail-open by design here, since failing closed would take
+    // every format action down whenever accessibility is unavailable, but
+    // never silently.
+    paragraphIdentity: value.paragraphIdentity ?? null,
     preBlocks: value.preBlocks ?? null,
     postBlocks: value.postBlocks ?? null,
     // Whether those two counts were ever written.  Measured 2026-08-16
@@ -258,6 +265,10 @@ function productEditorState(value = {}) {
     // A fingerprint and an offset, never the paragraph's text: the engine keeps
     // the raw a11y payload closed on purpose, and the host's question is "is
     // this the same paragraph as before", not "what does it say".
+    // `formatStale` is the validity bit for `format` directly above.  The
+    // engine emitted it only in the main-loop build until 2026-08-17, so the
+    // product shipped the cache without it.
+    formatStale: typeof value.formatStale === "boolean" ? value.formatStale : null,
     caretParagraph: value.a11y ? {
       // `enabled` is not decoration.  The v3 link shipped with accessibility
       // never switched on, and the only symptom was that every paragraph read
@@ -266,6 +277,11 @@ function productEditorState(value = {}) {
       // one that only gets `observed` cannot tell.
       enabled: value.a11y.enabled === true,
       unavailable: value.a11y.unavailable || null,
+      // Three different questions, and the v3 link proved they are different:
+      // `enabled` = accessibility was switched on; `observed` = a callback has
+      // fired at some point; `fresh` = the LAST synchronous read succeeded, so
+      // the fingerprint below describes where the caret is NOW.
+      fresh: value.a11y.paragraphFresh === true,
       observed: value.a11y.observed === true,
       fingerprint: value.a11y.paragraphFingerprint ?? null,
       length: typeof value.a11y.contentLength === "number"
