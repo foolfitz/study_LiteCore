@@ -32,7 +32,7 @@ import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js"
 
 // The artifact this page is for.  A page that runs on whatever build happens to
 // be in dist/ is a page that can show behaviour no evidence covers.
-const PINNED_WASM_SHA256 = "572035accd0f2754";
+const PINNED_WASM_SHA256 = "4dbe9b74d3c55f92";
 
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -348,9 +348,15 @@ globalThis.addEventListener("resize", () => {
 
 /* ------------------------------------------------------------------- boot */
 
+// SPEC E2-C section 11: round two's product is the v3 artifact.
+//
+// Hard-coded, not a query parameter.  A product page that takes its engine from
+// the URL is a page whose evidence does not say which engine it measured, and
+// round one bound four hashes precisely because that had been left implicit.
+// The harness pages (`e2-c-d*-app.js`) do take `?profile=`; they are harnesses.
 function engineFactory() {
   return createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v2/sdk-worker.js",
+    workerUrl: "./profiles/e2-editor-v3/sdk-worker.js",
     timeoutMs: 30000,
   });
 }

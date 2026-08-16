@@ -24,10 +24,10 @@
     "wasmSha256": "4dbe9b74d3c55f925dc330d69e8c24dcb7cdae61d95f8b61ce0d0a7c2333e4af",
     "loaderSha256": "720fc3bb5d80fe5f0e242da9f9c03d3d775f69d40cde46b7bb57445493b88a19",
     "workerSha256": "5fe90f5156c6eaeeefd50604ada82e7fbe7983baad74b5299ea1881bcccacbf3",
-    "shellBundleSha256": "eb76c5bef49381b68f4f3d916fe5c99b56441e93a9a493b66dfaca5e944a0eaf",
+    "shellBundleSha256": "3425b3112b652dd48afebc4c352a65ddee7ce793f1afca018f10c9f6b1a2843d",
     "manifestSha256": "e36a68fdb6318a5539a56d47bc846a7f5b91c104b3309863baeb3e0060c0630d",
     "whyFive": "SPEC E2-C 11.3. The first round bound four. This round changes semantics that live in sdk-manifest.json itself -- abiVersion, limits, gestures, and the gesture mask the engine pushes in at init -- so the manifest's own sha256 is the fifth identity. Finding 045 already recorded that nothing pinned the manifest's bytes.",
-    "shellBundleManifest": "e2/editor-shell-v2-bundle-v9.json"
+    "shellBundleManifest": "e2/editor-shell-v2-bundle-v11.json"
   },
   "browsers": [
     "chrome",
@@ -953,5 +953,5 @@
     "note": "Draft. Nothing may run against it until it is frozen."
   },
   "frozenOn": "2026-08-17",
-  "frozenWhy": "Filled from the artifact the link actually minted, before any D phase ran. The window between the link and this freeze is the one place the first round's mistake could be repeated: a matrix filled after a phase has run is a matrix that can be filled to agree with it. The guards refuse to run without it; they cannot fill it."
+  "frozenWhy": "Filled from the artifact the link actually minted, before any D phase ran. The window between the link and this freeze is the one place the first round's mistake could be repeated: a matrix filled after a phase has run is a matrix that can be filled to agree with it. The guards refuse to run without it; they cannot fill it. RE-FROZEN twice the same day, before any phase ran, and the reason is worth more than the diff: pointing the product at round two's artifact is TWO statements, not one -- the worker URL and the PINNED WASM HASH -- and the pin is the one that makes the page honest. The first attempt changed only the URL, and the page booted straight to `expired` and refused to run: the guard did exactly its job, on me, the same way E1-C's validation page refused an undeclared shell earlier this week. Each statement moves the shell digest, so the freeze moved with them (v9 -> v10 -> v11). Still zero phases have run: the rule this window protects is \"no matrix filled to agree with a result\", and there is no result yet."
 }
