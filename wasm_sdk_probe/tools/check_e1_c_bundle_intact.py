@@ -27,7 +27,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from e1_support import classify_divergence, declared_divergences  # noqa: E402
 
-MANIFEST = Path("e1/editor-shell-bundle-v1.json")
+MANIFEST = Path("e1/editor-shell-bundle-v2.json")
 # A deliberate change to a bound file is not the same event as an accidental
 # one, and the guard has to be able to tell them apart or it gets switched off.
 # Every entry here names the path, the hash the verdict was bound to, the hash

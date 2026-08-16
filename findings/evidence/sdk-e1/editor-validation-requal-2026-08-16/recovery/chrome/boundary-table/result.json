@@ -1,0 +1,1781 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-C-editor-validation",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "crossOriginIsolated": true,
+  "scenario": "boundary-table",
+  "fixture": "table-boundary",
+  "repetition": 1,
+  "manual": false,
+  "artifact": {
+    "profile": "e1-editor-v1",
+    "sdkVersion": "0.6.0-r6-worker+e1-editor-v1",
+    "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+    "loader": "./probe.js",
+    "wasm": "./probe.wasm",
+    "editorContract": {
+      "version": 1,
+      "abiVersion": 1,
+      "actions": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic",
+        "set-underline",
+        "set-strikethrough"
+      ],
+      "textCommit": "document-sdk-insert-text",
+      "undo": "document-sdk-undo",
+      "state": "typed-editor-state-v1",
+      "selectionBarrier": "verified-single-writer-unit-v1",
+      "boundaryRejectionRequiresFreshWorker": true,
+      "automaticRetry": false,
+      "rawCallbackExposed": false,
+      "arbitraryKeyCodeAccepted": false,
+      "arbitraryUnoCommandAccepted": false,
+      "diagnosticOperationsExposed": false,
+      "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+      "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+      "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761"
+    },
+    "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b",
+    "shellBundle": {
+      "manifest": "./e1/editor-shell-bundle-v2.json",
+      "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b",
+      "modules": [
+        {
+          "path": "editor-shell/editor-client.js",
+          "expectedSha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+          "observedSha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+          "pass": true
+        },
+        {
+          "path": "editor-shell/editor-session.js",
+          "expectedSha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+          "observedSha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+          "pass": true
+        },
+        {
+          "path": "editor-shell/state-machine.js",
+          "expectedSha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+          "observedSha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+          "pass": true
+        },
+        {
+          "path": "input/clipboard-adapter.js",
+          "expectedSha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+          "observedSha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+          "pass": true
+        },
+        {
+          "path": "input/input-adapter.js",
+          "expectedSha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+          "observedSha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "operations": [
+    {
+      "name": "boundary-rejection-and-queue-block",
+      "status": "passed",
+      "result": {
+        "deleteResult": {
+          "status": "rejected",
+          "error": {
+            "name": "DocumentSdkError",
+            "code": "EDITOR_BOUNDARY_UNSUPPORTED",
+            "message": "one Writer unit remained unselected at the negative boundary deadline",
+            "details": {
+              "operation": "editor-action",
+              "code": "EDITOR_BOUNDARY_UNSUPPORTED",
+              "message": "one Writer unit remained unselected at the negative boundary deadline",
+              "documentHandle": 1,
+              "revision": 0
+            }
+          }
+        },
+        "queuedResult": {
+          "status": "rejected",
+          "error": {
+            "name": "DocumentSdkError",
+            "code": "EDITOR_BOUNDARY_UNSUPPORTED",
+            "message": "one Writer unit remained unselected at the negative boundary deadline",
+            "details": {
+              "operation": "editor-action",
+              "code": "EDITOR_BOUNDARY_UNSUPPORTED",
+              "message": "one Writer unit remained unselected at the negative boundary deadline",
+              "documentHandle": 1,
+              "revision": 0
+            }
+          }
+        },
+        "blockedState": {
+          "state": "restart-required",
+          "documentName": "table-boundary.odt",
+          "revision": 0,
+          "dirty": false,
+          "generation": 1,
+          "pending": 0,
+          "editorState": {
+            "documentHandle": 1,
+            "revision": 0,
+            "sourceSequence": 8,
+            "documentChangeSequence": 0,
+            "visible": true,
+            "caret": {
+              "x": 1418,
+              "y": 1807,
+              "width": 0,
+              "height": 276
+            },
+            "selection": {
+              "observed": true,
+              "collapsed": true,
+              "start": {
+                "x": 1418,
+                "y": 1807,
+                "width": 0,
+                "height": 275
+              },
+              "end": {
+                "x": 2737,
+                "y": 1807,
+                "width": 0,
+                "height": 275
+              },
+              "rectangles": []
+            },
+            "format": {
+              "bold": null,
+              "italic": null
+            },
+            "selectionType": "none",
+            "selectionTextMissing": false,
+            "selectionText": ""
+          },
+          "hasSavedBytes": false,
+          "hasCheckpoint": false,
+          "checkpointRevision": null,
+          "checkpointError": null,
+          "error": {
+            "code": "EDITOR_BOUNDARY_UNSUPPORTED",
+            "message": "one Writer unit remained unselected at the negative boundary deadline",
+            "details": {
+              "operation": "editor-action",
+              "code": "EDITOR_BOUNDARY_UNSUPPORTED",
+              "message": "one Writer unit remained unselected at the negative boundary deadline",
+              "documentHandle": 1,
+              "revision": 0
+            }
+          }
+        },
+        "beforeRevision": 0
+      }
+    },
+    {
+      "name": "fresh-worker-restart",
+      "status": "passed",
+      "beforeRevision": 0,
+      "revision": 0,
+      "result": {
+        "state": "ready",
+        "documentName": "table-boundary.odt",
+        "revision": 0,
+        "dirty": false,
+        "generation": 2,
+        "pending": 0,
+        "editorState": {
+          "documentHandle": 1,
+          "revision": 0,
+          "sourceSequence": 1,
+          "documentChangeSequence": 0,
+          "visible": true,
+          "caret": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 276
+          },
+          "selection": {
+            "observed": false,
+            "collapsed": true,
+            "start": null,
+            "end": null,
+            "rectangles": []
+          },
+          "format": {
+            "bold": null,
+            "italic": null
+          },
+          "selectionType": "none",
+          "selectionTextMissing": false,
+          "selectionText": ""
+        },
+        "hasSavedBytes": false,
+        "hasCheckpoint": false,
+        "checkpointRevision": null,
+        "checkpointError": null,
+        "error": null
+      }
+    },
+    {
+      "name": "boundary-fresh-worker-no-replay",
+      "status": "passed",
+      "result": {
+        "staleCode": "STALE_DOCUMENT",
+        "anchor": {
+          "found": true,
+          "text": "E1-CELL-A1",
+          "selections": [
+            {
+              "part": "0",
+              "rectangles": "1418, 1807, 1319, 275"
+            }
+          ]
+        },
+        "forbidden": {
+          "found": false,
+          "text": "",
+          "selections": []
+        },
+        "generation": 2
+      }
+    },
+    {
+      "name": "save",
+      "status": "passed",
+      "beforeRevision": 0,
+      "revision": 0,
+      "result": {
+        "bytes": 9704,
+        "sha256": "b74f748ac9c00b89b46d92221dae2827d980ad00d5085d70d1bdc73cbaa1680b"
+      }
+    }
+  ],
+  "states": [
+    {
+      "atMs": 41.9100000038743,
+      "state": "idle",
+      "documentName": null,
+      "revision": null,
+      "dirty": false,
+      "generation": 0,
+      "pending": 0,
+      "editorState": null,
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 42.020000003278255,
+      "state": "loading",
+      "documentName": "table-boundary.odt",
+      "revision": null,
+      "dirty": false,
+      "generation": 0,
+      "pending": 0,
+      "editorState": null,
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1000.1550000011921,
+      "state": "ready",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1050.9750000014901,
+      "state": "ready",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1051.030000001192,
+      "state": "busy",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1051.0350000038743,
+      "state": "busy",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1079.070000000298,
+      "state": "busy",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1079.1199999973178,
+      "state": "ready",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1079.1450000032783,
+      "state": "ready",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1079.1499999985099,
+      "state": "busy",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1079.1499999985099,
+      "state": "busy",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1079.1899999976158,
+      "state": "busy",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 2,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 1331.7950000017881,
+      "state": "restart-required",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": {
+        "code": "EDITOR_BOUNDARY_UNSUPPORTED",
+        "message": "one Writer unit remained unselected at the negative boundary deadline",
+        "details": {
+          "operation": "editor-action",
+          "code": "EDITOR_BOUNDARY_UNSUPPORTED",
+          "message": "one Writer unit remained unselected at the negative boundary deadline",
+          "documentHandle": 1,
+          "revision": 0
+        }
+      }
+    },
+    {
+      "atMs": 1331.8400000035763,
+      "state": "loading",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 1,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 8,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 2253.289999999106,
+      "state": "ready",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 2,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 2301.2999999970198,
+      "state": "ready",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 2,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 2301.344999998808,
+      "state": "busy",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 2,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 2301.344999998808,
+      "state": "busy",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 2,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 1,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 1418,
+          "y": 1418,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": false,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 2409.380000002682,
+      "state": "busy",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 2,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 6,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2737,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": false,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 2409.4249999970198,
+      "state": "busy",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 2,
+      "pending": 1,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 6,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2737,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": true,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 2409.435000002384,
+      "state": "ready",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 2,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 6,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2737,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": true,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    },
+    {
+      "atMs": 2414.670000001788,
+      "state": "closed",
+      "documentName": "table-boundary.odt",
+      "revision": 0,
+      "dirty": false,
+      "generation": 2,
+      "pending": 0,
+      "editorState": {
+        "documentHandle": 1,
+        "revision": 0,
+        "sourceSequence": 6,
+        "documentChangeSequence": 0,
+        "visible": true,
+        "caret": {
+          "x": 2737,
+          "y": 1807,
+          "width": 0,
+          "height": 276
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": {
+            "x": 1418,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 2737,
+            "y": 1807,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": []
+        },
+        "format": {
+          "bold": null,
+          "italic": null
+        },
+        "selectionType": "none",
+        "selectionTextMissing": false,
+        "selectionText": ""
+      },
+      "hasSavedBytes": true,
+      "hasCheckpoint": false,
+      "checkpointRevision": null,
+      "checkpointError": null,
+      "error": null
+    }
+  ],
+  "sdkEvents": [
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "view-ready",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "view-ready",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    },
+    {
+      "protocolVersion": 1,
+      "kind": "event",
+      "event": "document-invalidated",
+      "documentHandle": 1,
+      "revision": 0
+    }
+  ],
+  "inputTrace": [
+    {
+      "type": "blocked-change",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "blocked": false,
+      "reason": null
+    },
+    {
+      "type": "compositioncancel",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "wasComposing": false
+    },
+    {
+      "type": "queue-invalidated",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "cancelled": 0
+    },
+    {
+      "type": "detach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    },
+    {
+      "type": "attach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    },
+    {
+      "type": "compositioncancel",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "blocked",
+      "queueDepth": 0,
+      "reason": "editor-boundary",
+      "wasComposing": false
+    },
+    {
+      "type": "queue-invalidated",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "blocked",
+      "queueDepth": 0,
+      "reason": "editor-boundary",
+      "cancelled": 0
+    },
+    {
+      "type": "blocked-change",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "blocked",
+      "queueDepth": 0,
+      "blocked": true,
+      "reason": "editor-boundary"
+    },
+    {
+      "type": "blocked-change",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "blocked": false,
+      "reason": null
+    },
+    {
+      "type": "compositioncancel",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "wasComposing": false
+    },
+    {
+      "type": "queue-invalidated",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0,
+      "reason": "teardown",
+      "cancelled": 0
+    },
+    {
+      "type": "detach",
+      "isTrusted": false,
+      "inputType": null,
+      "data": null,
+      "defaultPrevented": false,
+      "composing": false,
+      "compositionId": null,
+      "requestCount": 0,
+      "revision": 0,
+      "status": "idle",
+      "queueDepth": 0
+    }
+  ],
+  "clipboardTrace": [],
+  "workers": {
+    "created": 2,
+    "terminated": 2,
+    "intentionalCrashes": 0
+  },
+  "output": {
+    "bytes": 9704,
+    "sha256": "b74f748ac9c00b89b46d92221dae2827d980ad00d5085d70d1bdc73cbaa1680b"
+  },
+  "manualEvidence": null,
+  "complete": true,
+  "pass": true,
+  "error": null,
+  "browserName": "chrome",
+  "browserVersion": "Chrome/150.0.7871.128",
+  "case": {
+    "phase": "recovery",
+    "name": "boundary-table",
+    "scenario": "boundary-table",
+    "fixture": "table-boundary",
+    "repetition": 1
+  },
+  "savedOutput": {
+    "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/boundary-table/output.odt",
+    "bytes": 9704,
+    "sha256": "b74f748ac9c00b89b46d92221dae2827d980ad00d5085d70d1bdc73cbaa1680b"
+  },
+  "processSamples": [
+    {
+      "monotonicSeconds": 35115.232414448,
+      "rootPid": 325170,
+      "processes": [
+        {
+          "pid": 325170,
+          "ppid": 325167,
+          "name": "chrome",
+          "rssBytes": 310378496,
+          "pssBytes": 126777344,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325174,
+          "ppid": 325170,
+          "name": "cat",
+          "rssBytes": 7733248,
+          "pssBytes": 2270208,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325175,
+          "ppid": 325170,
+          "name": "cat",
+          "rssBytes": 7524352,
+          "pssBytes": 2152448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325185,
+          "ppid": 325170,
+          "name": "chrome",
+          "rssBytes": 70512640,
+          "pssBytes": 12571648,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325186,
+          "ppid": 325170,
+          "name": "chrome",
+          "rssBytes": 71045120,
+          "pssBytes": 6406144,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325211,
+          "ppid": 325170,
+          "name": "chrome",
+          "rssBytes": 125616128,
+          "pssBytes": 31642624,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325188,
+          "ppid": 325186,
+          "name": "chrome",
+          "rssBytes": 19476480,
+          "pssBytes": 2080768,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325213,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 56905728,
+          "pssBytes": 5869568,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325250,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 1383448576,
+          "pssBytes": 1251295232,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325251,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 107708416,
+          "pssBytes": 16674816,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325273,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 98365440,
+          "pssBytes": 15208448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325445,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 101343232,
+          "pssBytes": 16555008,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325452,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 115306496,
+          "pssBytes": 20423680,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325587,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 78778368,
+          "pssBytes": 11472896,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325209,
+          "ppid": 325185,
+          "name": "chrome",
+          "rssBytes": 154697728,
+          "pssBytes": 42989568,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "before-boundary-table",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": null,
+      "activeHandles": null,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2708840448,
+      "pssBytes": 1564390400
+    },
+    {
+      "monotonicSeconds": 35117.748553003,
+      "rootPid": 325170,
+      "processes": [
+        {
+          "pid": 325170,
+          "ppid": 325167,
+          "name": "chrome",
+          "rssBytes": 309760000,
+          "pssBytes": 127325184,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325174,
+          "ppid": 325170,
+          "name": "cat",
+          "rssBytes": 7733248,
+          "pssBytes": 2270208,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325175,
+          "ppid": 325170,
+          "name": "cat",
+          "rssBytes": 7524352,
+          "pssBytes": 2152448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325185,
+          "ppid": 325170,
+          "name": "chrome",
+          "rssBytes": 70512640,
+          "pssBytes": 12626944,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325186,
+          "ppid": 325170,
+          "name": "chrome",
+          "rssBytes": 71045120,
+          "pssBytes": 6637568,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325211,
+          "ppid": 325170,
+          "name": "chrome",
+          "rssBytes": 124116992,
+          "pssBytes": 31265792,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325188,
+          "ppid": 325186,
+          "name": "chrome",
+          "rssBytes": 19476480,
+          "pssBytes": 2267136,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325213,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 56905728,
+          "pssBytes": 6109184,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325250,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 1392504832,
+          "pssBytes": 1258081280,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325251,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 107708416,
+          "pssBytes": 16674816,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325273,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 98365440,
+          "pssBytes": 15208448,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325445,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 101343232,
+          "pssBytes": 16553984,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325452,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 115306496,
+          "pssBytes": 20423680,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325719,
+          "ppid": 325188,
+          "name": "chrome",
+          "rssBytes": 78860288,
+          "pssBytes": 11497472,
+          "status": "sleeping"
+        },
+        {
+          "pid": 325209,
+          "ppid": 325185,
+          "name": "chrome",
+          "rssBytes": 158593024,
+          "pssBytes": 44969984,
+          "status": "sleeping"
+        }
+      ],
+      "checkpoint": "after-boundary-table",
+      "cycle": 1,
+      "block": null,
+      "workersAfterClose": null,
+      "activeWorkers": null,
+      "activeHandles": null,
+      "wasmHeapBytes": null,
+      "jsHeapBytes": null,
+      "tileCacheBytes": null,
+      "documentVersion": null,
+      "revision": null,
+      "processCount": 15,
+      "rssBytes": 2719756288,
+      "pssBytes": 1574064128
+    }
+  ],
+  "evidenceDirectory": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/boundary-table"
+}

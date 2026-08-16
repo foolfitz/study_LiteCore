@@ -54,7 +54,7 @@ FIXTURE_ANCHORS = {
 }
 BASE_ARTIFACT_HASH_KEYS = ("loaderSha256", "wasmSha256", "workerSha256")
 SHELL_BUNDLE_HASH_KEY = "shellBundleSha256"
-SHELL_BUNDLE_MANIFEST = Path("e1/editor-shell-bundle-v1.json")
+SHELL_BUNDLE_MANIFEST = Path("e1/editor-shell-bundle-v2.json")
 DEFAULT_MATRIX = Path("e1/validation-matrix-v1.json")
 CORE_BASELINE_HEAD = "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb"
 CORE_BASELINE_STATUS = [
@@ -832,10 +832,20 @@ def matrix_contract(matrix: dict[str, Any]) -> dict[str, Any]:
     }
     if schema == 2:
         activation = matrix.get("activation") or {}
+        # The activation block has two legal states and they are checked
+        # against each other, not against a fixed answer.  Before the
+        # rebinding, v2 is planned and v1 is the decision basis; after it
+        # (2026-08-16), v2 IS the decision basis and says when it became one.
+        # Half a transition -- activatedOn set while currentDecisionMatrix
+        # still names v1, or the reverse -- fails, which is the case a fixed
+        # assertion could not express.
+        activated = bool(activation.get("activatedOn"))
+        current = activation.get("currentDecisionMatrix")
         checks.update({
             "nextRebinding": activation.get("effectiveAt") == "next-rebinding",
-            "v1RemainsCurrent": activation.get("currentDecisionMatrix")
-            == "validation-matrix-v1.json",
+            "activationConsistent": (
+                current == "validation-matrix-v2.json" if activated
+                else current == "validation-matrix-v1.json"),
             "shellBundleBaseline": bool(
                 (matrix.get("baseline") or {}).get(SHELL_BUNDLE_HASH_KEY)
             ),

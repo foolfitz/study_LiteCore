@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-C-editor-shell-bundle",
+  "generation": 2,
+  "frozenDate": "2026-08-16",
+  "supersedes": {
+    "manifest": "e1/editor-shell-bundle-v1.json",
+    "bundleSha256": "f9b1a52f3ff2e2a3f35eae4366993f40b2035f309509aac0a3b7b6864a8cfeb9",
+    "frozenDate": "2026-08-14",
+    "why": "v1 is the record of what E1_GO_ODT_EDITOR ran on and is NOT rewritten. Rewriting it would leave that verdict looking bound to a shell it never ran on, which is finding 027's shape and the reason SPEC E1-C 11.7 refused to regenerate it during the deferral.",
+    "divergenceRecord": "e1/editor-shell-bundle-v1-divergence.json"
+  },
+  "why": "The requalification binding (SPEC E1-C 11.8, unlocking condition 1). Four declared divergences accumulated against v1 on 2026-08-16 -- findings 048, 050, 051 and 052, all in the session and input adapter E1 and E2 share -- and requalifying means re-taking the evidence against the shell that is actually shipped rather than declaring the difference forever.",
+  "scope": "JavaScript modules under editor-shell/ and input/ reached by the E1-C validation page import graph",
+  "algorithm": "SHA-256 of UTF-8 path + NUL + lowercase file SHA-256 + LF for each included path in lexicographic order",
+  "included": [
+    {
+      "path": "editor-shell/editor-client.js",
+      "sha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a"
+    },
+    {
+      "path": "editor-shell/editor-session.js",
+      "sha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a"
+    },
+    {
+      "path": "editor-shell/state-machine.js",
+      "sha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3"
+    },
+    {
+      "path": "input/clipboard-adapter.js",
+      "sha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8"
+    },
+    {
+      "path": "input/input-adapter.js",
+      "sha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "editor-shell/recovery-notice.js",
+      "reason": "Host-side decision module not imported by the E1-C validation page; covered by editor-shell/tests/recovery-notice.test.mjs. Including it would invalidate browser evidence for code the matrix does not execute."
+    }
+  ],
+  "bundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+}

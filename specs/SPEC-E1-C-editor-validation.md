@@ -614,6 +614,66 @@ E2-C D4 引用的那句「它會重建凍結的 `e1-editor-v1`」自 v9 起已�
 `check_e1_c_bundle_intact.py` 十項，而且整輪掃描前後**每一顆 `probe.wasm`
 逐顆雜湊未變**。
 
+### 11.9 收復開始執行：殼層重新綁定完成，四個自動相位兩瀏覽器全過（2026-08-16）
+
+**使用者裁定收復**，同一次也裁定 relink 繼續等。§11.8 解除條件 1 的後半正好適用：
+「時程允許就與 E2-C D5 的四格人工排同一個時段」——人工輪本來就要為 D5 跑一次，
+所以合併之後 E1-C 這一輪的**邊際成本只有九項檢查 × 兩個瀏覽器**。
+
+**已具名的風險沒有消失**：`e1-editor-v1` 的 relink 決定仍未作出（`PLAN-E2-C-relink-v3.md`
+P3）。若它日後是 relink，本輪含人工的證據會作廢。裁定時已知。
+
+#### 綁定：重新綁定，不是繼續申報
+
+| | |
+|---|---|
+| 新 manifest | **`e1/editor-shell-bundle-v2.json` = `187706b2…`** |
+| v1 | **一個位元組沒動**（`f9b1a52f…`），仍是 `E1_GO_ODT_EDITOR`（08-07）跑過的那份紀錄 |
+| divergence 檔 | 保留，標記 `resolved`（日期、由誰解除、為什麼保留） |
+| 矩陣 | `e1/validation-matrix-v2.json` **啟用**（它本來就寫著 `effectiveAt: next-rebinding`） |
+| `check_e1_c_bundle_intact.py` | **`intact: true`、`problems: []`** |
+
+四筆 divergence（048／050／051／052，全部落在 E1 與 E2 共用的 session 與輸入介面卡）
+因此不再是「差異」，而是 v2 登記的內容。
+
+**`resolved` 之後放寬歸零，而且這一條有突變測試**：一個已解除的申報如果還在放行它
+列的那些路徑，就成了永久豁免——那正是這個檔案當初要避免的形狀。
+`regenerate_shell_bundle.py --self-test` 新增兩格：**「已解除的申報什麼都不放行」**
+（改動仍然要紅）與**「已解除的申報在乾淨的樹上仍然是綠的」**（證明前一格是為了改動
+而紅，不是為了 `resolved` 這個字）。
+
+矩陣 v2 的啟用檢查也從固定答案改成**狀態一致性**：未啟用時 `currentDecisionMatrix`
+必須是 v1，啟用後必須是 v2；**半個轉換**（寫了 `activatedOn` 卻還指著 v1，或反過來）
+會紅——那是固定斷言表達不出來的情形，已突變驗證。
+
+#### 一個被守衛擋下來的第一次嘗試
+
+第一次跑自動相位，`integration-01` **當場失敗**：
+`served shell bundle does not match ./e1/editor-shell-bundle-v1.json`。
+**那是頁面自己的守衛在拒絕對一份沒申報的殼層產出證據**，而且它逼出了正確的順序
+（先重新綁定，再取證）。那次失敗**原樣保留**在 `integration-01/`（本輪的成功結果在
+`attempt-02/`），因為 §7 說每次 attempt 都要獨立保存。
+
+#### 四個自動相位（證據在 `editor-validation-requal-2026-08-16/`，不覆蓋 08-07 那一份）
+
+| | Chrome 150.0.7871.128 | Firefox 153.0.1 |
+|---|---|---|
+| integration | 3／3 | 3／3 |
+| recovery | 7／7 | 7／7 |
+| corpus | 5／5 | 5／5 |
+| lifecycle | 20／20 | 20／20 |
+| 相位判定 | **`pass: true`** | **`pass: true`** |
+
+artifact 全程 `835b453d…`，**沒有重連結**；`make e1-editor-assets` 會重編並重連結
+e1-editor-v1，所以**沒有跑它**——dist 只用 `cp` 補了頁面與 manifest 兩個檔。
+
+#### 還沒做的：人工輪
+
+九項檢查 × 兩個瀏覽器，手冊在
+[`RUNBOOK-operator-2026-08-16f-combined.md`](../handoff/RUNBOOK-operator-2026-08-16f-combined.md)
+（與 D5 的四格同一個時段）。**在人工輪落地之前，本節不構成裁決**——
+`E1_GO_ODT_EDITOR` 目前仍綁在 v1 那份已過期的殼層上，這一節只是說機器那半邊做完了。
+
 ## 12. 修訂紀錄
 
 | 日期 | 內容 |

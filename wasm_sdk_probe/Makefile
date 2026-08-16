@@ -442,6 +442,7 @@ f018-line-nav-assets: dist/f018-line-nav-check.html dist/f018-line-nav-app.js \
 e1-editor-validation-assets: e1-editor-assets \
 	dist/e1-editor-validation.html dist/e1-editor-validation-app.js \
 	dist/e1/editor-shell-bundle-v1.json \
+	dist/e1/editor-shell-bundle-v2.json \
 	$(addprefix dist/r7-compat-fixtures/,$(R7_COMPAT_FILES))
 
 finding-016-scheduler-assets: finding-016-scheduler-profile \
@@ -1518,6 +1519,9 @@ dist/e1-editor-validation-app.js: web/e1-editor-validation-app.js | dist
 	cp $< $@
 
 dist/e1/editor-shell-bundle-v1.json: e1/editor-shell-bundle-v1.json | dist/e1
+	cp $< $@
+
+dist/e1/editor-shell-bundle-v2.json: e1/editor-shell-bundle-v2.json | dist/e1
 	cp $< $@
 
 dist/finding-016-scheduler.html: web/finding-016-scheduler.html | dist

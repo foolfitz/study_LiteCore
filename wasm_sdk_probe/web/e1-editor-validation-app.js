@@ -228,7 +228,10 @@ async function sha256Hex(bytes) {
 }
 
 async function loadShellBundleRecord() {
-  const manifestPath = "./e1/editor-shell-bundle-v1.json";
+  // The CURRENT generation.  Each result records which manifest it verified
+  // against (`shellBundle.manifest` below), so evidence taken under an earlier
+  // generation stays readable and this constant moves with the shell.
+  const manifestPath = "./e1/editor-shell-bundle-v2.json";
   const response = await fetch(manifestPath, { cache: "no-store" });
   if (!response.ok)
     throw new Error(`shell bundle manifest failed with HTTP ${response.status}`);

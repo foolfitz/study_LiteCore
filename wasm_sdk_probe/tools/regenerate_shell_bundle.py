@@ -482,6 +482,21 @@ def self_test() -> int:
             lambda p: (_declare(p, "editor-shell/state-machine.js"),
                        _append(p, "editor-shell/state-machine.js", "\n// probe\n")),
             False)
+        # The relaxation has an off switch, and the off switch is the point of
+        # 2026-08-16's rebinding: once the divergence file is marked `resolved`
+        # it must tolerate NOTHING, or a file that was declared during the
+        # deferral keeps a permanent exemption after the binding was repaired.
+        _declared_case(
+            "a RESOLVED declaration relaxes nothing",
+            lambda p: (_resolve(p),
+                       _declare(p, "editor-shell/state-machine.js"),
+                       _append(p, "editor-shell/state-machine.js", "\n// probe\n")),
+            False)
+        # And the control that keeps the case above honest: the same resolved
+        # file with the tree untouched is still green, so the case above failed
+        # for the change and not merely for saying `resolved`.
+        _declared_case("a RESOLVED declaration on a clean tree is still green",
+                       lambda p: _resolve(p), True)
 
     print()
     if failures:
@@ -490,6 +505,16 @@ def self_test() -> int:
     print("self-test passed")
     return 0
 
+
+
+def _resolve(project: Path) -> None:
+    """Mark the sandbox's divergence file resolved, as a rebinding does."""
+    import json as _json
+    path = project / SHELL_BUNDLE_DIVERGENCE_NAME
+    data = _json.loads(path.read_text(encoding="utf-8"))
+    data["resolved"] = {"date": "self-test", "by": "self-test rebinding"}
+    path.write_text(_json.dumps(data, indent=4, ensure_ascii=False) + "\n",
+                    encoding="utf-8")
 
 
 def _declare(project: Path, relative: str) -> None:

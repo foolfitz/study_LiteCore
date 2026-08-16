@@ -144,7 +144,7 @@ class E1CMatrixTest(unittest.TestCase):
         import hashlib
 
         manifest = json.loads(
-            (PROJECT / "e1" / "editor-shell-bundle-v1.json").read_text())
+            (PROJECT / "e1" / "editor-shell-bundle-v2.json").read_text())
         declared = declared_divergences(PROJECT)
         payload = b""
         for item in sorted(manifest["included"], key=lambda i: str(i["path"])):
@@ -185,9 +185,19 @@ class E1CMatrixTest(unittest.TestCase):
                              self._predicted_bundle_digest(), inventory)
             self.assertEqual(inventory["unaccountedModules"], [], inventory)
             self.assertEqual(inventory["missingModules"], [], inventory)
+        # The CURRENT generation's digest.  v1's f9b1a52f… is the record of
+        # what E1_GO_ODT_EDITOR ran on and is asserted separately below, so
+        # this number moving is a rebinding rather than a drift.
         self.assertEqual(
             inventory["expectedBundleSha256"],
+            "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b",
+        )
+        superseded = json.loads(
+            (PROJECT / "e1" / "editor-shell-bundle-v1.json").read_text())
+        self.assertEqual(
+            superseded["bundleSha256"],
             "f9b1a52f3ff2e2a3f35eae4366993f40b2035f309509aac0a3b7b6864a8cfeb9",
+            "v1 is the superseded verdict's record and must not be rewritten",
         )
         excluded = {item["path"]: item["reason"] for item in inventory["excluded"]}
         self.assertEqual(set(excluded), {"editor-shell/recovery-notice.js"})

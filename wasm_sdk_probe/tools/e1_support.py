@@ -35,6 +35,15 @@ def declared_divergences(project: Path) -> dict[str, dict[str, Any]]:
     if not path.is_file():
         return {}
     data = json.loads(path.read_text(encoding="utf-8"))
+    # A RESOLVED declaration relaxes nothing.  On 2026-08-16 the binding was
+    # repaired by rebinding (e1/editor-shell-bundle-v2.json), so the four
+    # entries below stopped being differences and became history -- and a
+    # declaration that keeps tolerating its paths after the thing it described
+    # is over is an exemption, which is the failure mode the file was written
+    # to avoid.  The file itself is kept: SPEC E1-C 11.8's argument turns on
+    # the difference between an expired binding and a misplaced one.
+    if data.get("resolved"):
+        return {}
     return {str(item["path"]): item for item in data.get("diverged", [])}
 
 
