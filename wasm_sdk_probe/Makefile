@@ -1629,6 +1629,12 @@ dist/e2-c-d4.html: web/e2-c-d4.html | dist
 dist/e2-c-d4-app.js: web/e2-c-d4-app.js | dist
 	cp $< $@
 
+dist/e2-c-d4-heap.html: web/e2-c-d4-heap.html | dist
+	cp $< $@
+
+dist/e2-c-d4-heap-app.js: web/e2-c-d4-heap-app.js | dist
+	cp $< $@
+
 dist/e2-c-d5.html: web/e2-c-d5.html | dist
 	cp $< $@
 
@@ -1667,6 +1673,7 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/e2-c-d3.html dist/e2-c-d3-app.js dist/e2-c-caret.js \
 	dist/e2-c-d3-corpus.html dist/e2-c-d3-corpus-app.js \
 	dist/e2-c-d4.html dist/e2-c-d4-app.js \
+	dist/e2-c-d4-heap.html dist/e2-c-d4-heap-app.js \
 	dist/e2-c-d5.html dist/e2-c-d5-app.js \
 	$(addprefix dist/r7-compat-fixtures/,$(R7_COMPAT_FILES)) \
 	dist/e2-c-caret-ack.html dist/e2-c-caret-ack-app.js \
@@ -2056,6 +2063,7 @@ test-e2-c-static:
 	node --check web/e2-c-d3-app.js
 	node --check web/e2-c-d3-corpus-app.js
 	node --check web/e2-c-d4-app.js
+	node --check web/e2-c-d4-heap-app.js
 	node --check web/e2-c-d5-app.js
 	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
 	# reachable by a shipped shell.  The four-way inventory check cannot see
@@ -2089,7 +2097,17 @@ test-e2-c-static:
 		tools/analyze_e2_c_d3_corpus.py tools/run_e2_c_d4.py \
 		tools/analyze_e2_c_d4.py tools/run_e2_c_d4_regression.py \
 		tools/analyze_e2_c_d5.py tools/run_e2_c_d5.py \
+		tools/analyze_e2_c_d4_heap.py tools/check_relink_queue.py \
 		tools/validate_e2_c.py
+	python3 -m json.tool e2/relink-queue-v3.json > /dev/null
+	# The relink queue, run instead of read.  It lied twice while it was prose
+	# with checkboxes (3b recorded as written with zero hits; item 8's "both
+	# places fixed" when one was), and both times a human audit caught it --
+	# which is not a thing that happens on its own on the day of the link.
+	# Fail closed, and both directions: an item APPEARING without its
+	# expectation being flipped fails too.
+	python3 tools/check_relink_queue.py > /dev/null
+	python3 tools/check_relink_queue.py --self-test > /dev/null
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves
 	# dist/).  Read-only: --write is a deliberate act with its own diff.
@@ -2121,6 +2139,12 @@ test-e2-c-static:
 	# phase and another round of cells that report green having measured the
 	# wrong paragraph (finding 048).
 	python3 tools/analyze_e2_c_d3.py --self-test > /dev/null
+	# The D4 heap follow-up judged a relink queue item out of existence, so its
+	# analyzer has to be able to reach the other answer: the self-test moves
+	# P-H5 both ways and shows that ONE altered heapBytes takes P-H6 away.
+	python3 tools/analyze_e2_c_d4_heap.py --self-test \
+		$$(find ../findings/evidence/sdk-e2/e2-c-validation/d4/heap \
+			-name result.json -printf '%h\n' | sort) > /dev/null
 	# D3's corpus half.  Same rule as every other analyzer here: the criteria
 	# have to be shown to be able to say no, and the mutations run against a
 	# COPY of the recorded round -- nothing under findings/ is written.

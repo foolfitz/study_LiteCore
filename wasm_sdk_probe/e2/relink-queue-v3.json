@@ -1,0 +1,291 @@
+{
+  "schemaVersion": 1,
+  "release": "spec-e2c-relink-v3",
+  "writtenOn": "2026-08-16",
+  "why": "The relink queue lived only in handoff/PLAN-E2-C-relink-v3.md, in prose with checkboxes, and it was wrong twice: 3b was recorded as written into the tree when grep found zero hits, and item 8 said 'both places were fixed' when only one was. Both were caught by a human audit, and a human audit does not run itself on the day of the link. This file is the same queue as data, so tools/check_relink_queue.py can run it. P1 complete is the condition for linking; missing one item means a second relink.",
+  "expectationSemantics": "`present` means the item is done and must stay done. `absent` means the item is NOT done and the tree must not quietly acquire it either -- an item that appears without its expectation being flipped is drift in the direction nobody audits. Flipping an expectation is a deliberate edit and shows up in the diff.",
+  "items": [
+    {
+      "id": "p1-1-inline-parameter",
+      "title": "the four inline formats each dispatch an explicit boolean argument",
+      "expectation": "present",
+      "source": "finding 045, natively verified; PLAN-E2-C-relink-v3.md P1 row 1",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "std::string inlineFormatArgument(const char *slot, bool enabled)",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "inlineFormatArgument(\"",
+          "atLeast": 4
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "p1-2-gesture-mask-inherited",
+      "title": "the gesture mask is consulted for the ten inherited actions too, not only in routeFormatBarrier",
+      "expectation": "present",
+      "source": "SPEC E2-C 2.5; PLAN P1 row 2",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "editorGesturePermitted(",
+          "atLeast": 3
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "p1-3-route-not-default",
+      "title": "the barrier payload never reports a route it did not classify",
+      "expectation": "present",
+      "source": "SPEC E2-C 9.5.4; PLAN P1 row 3",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "shape = \"routing-selection-not-readable\";",
+          "atLeast": 1
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "p1-3b-empty-readback",
+      "title": "the `empty-readback` shape -- STILL BLOCKED, and must not appear until the native/WASM disagreement is explained",
+      "expectation": "absent",
+      "source": "finding 046 + findings/evidence/046/native/; PLAN P1 row 3b",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "src/probe_engine.cpp",
+          "text": "empty-readback"
+        },
+        {
+          "kind": "absent",
+          "file": "sdk/sdk-worker.js",
+          "text": "empty-readback"
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "p1-3c-itemcount-projection",
+      "title": "itemCount reaches the product's formatBarrier projection",
+      "expectation": "present",
+      "source": "finding 046 correction; PLAN P1 row 3c",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "sdk/sdk-worker.js",
+          "text": "itemCount: value.readback?.itemCount",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "itemCount",
+          "atLeast": 1
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "p1-4-abi-3",
+      "title": "the editor ABI constant is 3",
+      "expectation": "present",
+      "source": "\"a version is an identity\"; PLAN P1 row 4",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "src/editor_api.h",
+          "text": "#define OXSDK_EDITOR_ABI_VERSION 3u",
+          "atLeast": 1
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "p1-5-makefile-v3",
+      "title": "a v3 build variant exists with its own directories, and v2 is behind the relink refusal",
+      "expectation": "present",
+      "source": "SPEC E2-C 5.12; PLAN P1 row 5",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "Makefile",
+          "text": "E2_C_BUILD := build/e2/editor-v3",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "Makefile",
+          "text": "E2_C_DIST := dist/profiles/e2-editor-v3",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "Makefile",
+          "text": "refuse_unasked_relink,the E2-B product v2 artifact",
+          "atLeast": 1
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "p1-6-builder-v3",
+      "title": "a separate builder writes the v3 manifest",
+      "expectation": "present",
+      "source": "SPEC E2-C 5.8; PLAN P1 row 6",
+      "checks": [
+        {
+          "kind": "file-exists",
+          "file": "tools/build_e2_c_profile.py"
+        },
+        {
+          "kind": "contains",
+          "file": "tools/build_e2_c_profile.py",
+          "text": "abiVersion",
+          "atLeast": 1
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "p1-7-header-test",
+      "title": "a compile-time assertion pins the ABI constant",
+      "expectation": "present",
+      "source": "PLAN P1 row 7",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "tests/editor_abi_header_test.cpp",
+          "text": "static_assert(OXSDK_EDITOR_ABI_VERSION == 3u);",
+          "atLeast": 1
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "p1-8b-selection-observed",
+      "title": "routeFormatBarrier fails closed when no selection has ever been observed, and the caller has its own branch for it",
+      "expectation": "present",
+      "source": "2026-08-16 second-party audit; PLAN P1 row 8b",
+      "checks": [
+        {
+          "kind": "line-equals",
+          "file": "src/probe_engine.cpp",
+          "text": "  if (!gEditorState.selectionObserved) {",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "shape = \"routing-selection-not-observed\";",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "refusal == \"routing-selection-not-observed\"",
+          "atLeast": 1
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "p1-9b-inline-honoured-declared",
+      "title": "inlineFormatEnabledIsHonoured is in the builder AND written down, because it enters the v3 manifest and the manifest is the fifth bound identity",
+      "expectation": "present",
+      "source": "2026-08-16 audit, reverse direction; PLAN P1 row 9b",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "tools/build_e2_c_profile.py",
+          "text": "inlineFormatEnabledIsHonoured",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "../specs/SPEC-E2-C-paragraph-format-validation.md",
+          "text": "inlineFormatEnabledIsHonoured",
+          "atLeast": 1
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "queue-barrier-verifies-own-paragraph",
+      "title": "the barrier must verify the paragraph it acted on -- OPEN",
+      "expectation": "absent",
+      "source": "findings/evidence/046/native/, 2026-08-16; PLAN queue addition",
+      "note": "Natively measured: on an empty paragraph the barrier's selection pair walks up one paragraph, so the postcondition compares the wrong text while the action itself succeeded. More fundamental than 046's original rename fix.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "src/probe_engine.cpp",
+          "text": "barrier.actedParagraph"
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "queue-engine-reports-wasm-heap",
+      "title": "the engine must report its WASM heap in the typed state -- WITHDRAWN 2026-08-16, measured",
+      "expectation": "absent",
+      "source": "D4, 2026-08-16",
+      "note": "Withdrawn, not deferred.  The figure is already reachable on the shipped artifact (engine prints it every stage, worker forwards it under `debug`, SDK already accepts `debug`), and emscripten_get_heap_size() is a constant 1073741824 because every profile links -sTOTAL_MEMORY=1GB without ALLOW_MEMORY_GROWTH -- so the field would have carried a number that cannot move, and d4-memory's slope criterion would have passed on it forever. The moving figure is `sbrk`, on the same stage line. Evidence: findings/evidence/sdk-e2/e2-c-validation/d4/heap/. The check below stays `absent` deliberately: nothing should acquire this field quietly now that it is known to be the wrong one.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "src/probe_engine.cpp",
+          "text": "wasmHeapBytes"
+        }
+      ],
+      "blocksRelink": false
+    },
+    {
+      "id": "matrix-v2-not-frozen-yet",
+      "title": "the second round's matrix is a draft until the v3 hashes exist",
+      "expectation": "present",
+      "source": "PLAN queue, matrix v2 draft",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "e2/validation-matrix-v2-draft.json",
+          "text": "DRAFT-NOT-FROZEN",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "e2/validation-matrix-v2-draft.json",
+          "text": "TO-BE-FILLED-AT-RELINK",
+          "atLeast": 5
+        }
+      ],
+      "blocksRelink": true
+    },
+    {
+      "id": "queue-search-after-reopen-wedges",
+      "title": "on one engine, a second document's search never returns -- OPEN, not yet characterised",
+      "expectation": "absent",
+      "source": "findings/evidence/sdk-e2/e2-c-validation/d4/heap/, 2026-08-16",
+      "note": "Reproduced identically in both browsers; the controlled variable is recorded (the same loop without the search completes 8/8). The product does not take this path today -- EditorSession builds a fresh engine per session -- so this is an SDK-level observation and a queue candidate, not a product defect. The check is a placeholder for whatever fix lands; it must not be silently satisfied.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "src/probe_engine.cpp",
+          "text": "searchAfterReopen"
+        }
+      ],
+      "blocksRelink": false
+    }
+  ],
+  "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown."
+}

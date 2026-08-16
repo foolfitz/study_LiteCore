@@ -1,0 +1,483 @@
+{
+  "schemaVersion": 1,
+  "release": "spec-e2c-d4-heap",
+  "predictionFile": "findings/evidence/sdk-e2/e2-c-validation/d4/heap/PREDICTION.md",
+  "runs": [
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug0/e2-editor-v2-572035ac/chrome",
+      "browser": "chrome",
+      "arm": "fresh",
+      "debug": false,
+      "cycles": 8,
+      "stageEvents": 0,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug0/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "arm": "fresh",
+      "debug": false,
+      "cycles": 8,
+      "stageEvents": 0,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug1/e2-editor-v2-572035ac/chrome",
+      "browser": "chrome",
+      "arm": "fresh",
+      "debug": true,
+      "cycles": 8,
+      "stageEvents": 48,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug1/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "arm": "fresh",
+      "debug": true,
+      "cycles": 8,
+      "stageEvents": 48,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug0-r2/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "arm": "fresh",
+      "debug": false,
+      "cycles": 8,
+      "stageEvents": 0,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug0-r3/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "arm": "fresh",
+      "debug": false,
+      "cycles": 8,
+      "stageEvents": 0,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug1-r2/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "arm": "fresh",
+      "debug": true,
+      "cycles": 8,
+      "stageEvents": 48,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug1-r3/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "arm": "fresh",
+      "debug": true,
+      "cycles": 8,
+      "stageEvents": 48,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-debug1/e2-editor-v2-572035ac/chrome",
+      "browser": "chrome",
+      "arm": "shared",
+      "debug": true,
+      "cycles": 8,
+      "stageEvents": 48,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-debug1/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "arm": "shared",
+      "debug": true,
+      "cycles": 8,
+      "stageEvents": 48,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-nosearch-debug1/e2-editor-v2-572035ac/chrome",
+      "browser": "chrome",
+      "arm": "shared-nosearch",
+      "debug": true,
+      "cycles": 8,
+      "stageEvents": 48,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    },
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-nosearch-debug1/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "arm": "shared-nosearch",
+      "debug": true,
+      "cycles": 8,
+      "stageEvents": 48,
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true
+    }
+  ],
+  "findings": {
+    "P-H1": {
+      "claim": "with debug:true, an open yields >=1 stage event carrying a numeric heapBytes, in both browsers",
+      "runs": [
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug1/e2-editor-v2-572035ac/chrome",
+          "browser": "chrome",
+          "arm": "fresh",
+          "stageEvents": 48,
+          "allNumeric": true
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug1/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "arm": "fresh",
+          "stageEvents": 48,
+          "allNumeric": true
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug1-r2/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "arm": "fresh",
+          "stageEvents": 48,
+          "allNumeric": true
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug1-r3/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "arm": "fresh",
+          "stageEvents": 48,
+          "allNumeric": true
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-debug1/e2-editor-v2-572035ac/chrome",
+          "browser": "chrome",
+          "arm": "shared",
+          "stageEvents": 48,
+          "allNumeric": true
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-debug1/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "arm": "shared",
+          "stageEvents": 48,
+          "allNumeric": true
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-nosearch-debug1/e2-editor-v2-572035ac/chrome",
+          "browser": "chrome",
+          "arm": "shared-nosearch",
+          "stageEvents": 48,
+          "allNumeric": true
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-nosearch-debug1/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "arm": "shared-nosearch",
+          "stageEvents": 48,
+          "allNumeric": true
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-H2": {
+      "claim": "every fresh-arm cycle yields a heap value, so the sampler field that has always been null stops being null",
+      "runs": [
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug1/e2-editor-v2-572035ac/chrome",
+          "browser": "chrome",
+          "cycles": 8,
+          "cyclesWithStageEvents": 8,
+          "samplesWithHeap": 16
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug1/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "cycles": 8,
+          "cyclesWithStageEvents": 8,
+          "samplesWithHeap": 16
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug1-r2/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "cycles": 8,
+          "cyclesWithStageEvents": 8,
+          "samplesWithHeap": 16
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug1-r3/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "cycles": 8,
+          "cyclesWithStageEvents": 8,
+          "samplesWithHeap": 16
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-H3": {
+      "claim": "heap values are non-decreasing within one open",
+      "status": "HELD",
+      "vacuous": true,
+      "distinctValues": [
+        1073741824
+      ]
+    },
+    "P-H6": {
+      "claim": "heapBytes is exactly 1073741824 everywhere, because the build links -sTOTAL_MEMORY=1GB without ALLOW_MEMORY_GROWTH",
+      "sampleCount": 384,
+      "distinctValues": [
+        1073741824
+      ],
+      "status": "HELD"
+    },
+    "P-H7": {
+      "claim": "sbrk is non-decreasing within one instance, and in the shared arm it is higher after eight documents than after one",
+      "decreasingWithinInstance": [],
+      "sharedArm": [
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-nosearch-debug1/e2-editor-v2-572035ac/chrome",
+          "browser": "chrome",
+          "first": 290787328,
+          "last": 338743296,
+          "growthBytes": 47955968,
+          "slopeBytesPerCycle": 4519058.285714285
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-nosearch-debug1/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "first": 290983936,
+          "last": 338935808,
+          "growthBytes": 47951872,
+          "slopeBytesPerCycle": 4522617.904761905
+        }
+      ],
+      "excludedWedgedRuns": [
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-debug1/e2-editor-v2-572035ac/chrome",
+          "browser": "chrome",
+          "arm": "shared",
+          "firstErrorCycle": 2,
+          "errors": [
+            "TIMEOUT",
+            "BUSY",
+            "BUSY",
+            "BUSY",
+            "BUSY",
+            "BUSY",
+            "BUSY"
+          ]
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/shared-debug1/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "arm": "shared",
+          "firstErrorCycle": 2,
+          "errors": [
+            "TIMEOUT",
+            "BUSY",
+            "BUSY",
+            "BUSY",
+            "BUSY",
+            "BUSY",
+            "BUSY"
+          ]
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-H4": {
+      "claim": "fresh-arm per-cycle heap varies by less than 2 MB",
+      "runs": [
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug1/e2-editor-v2-572035ac/chrome",
+          "browser": "chrome",
+          "heapSpreadBytes": 0,
+          "sbrkSpreadBytes": 0
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug1/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "heapSpreadBytes": 0,
+          "sbrkSpreadBytes": 0
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug1-r2/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "heapSpreadBytes": 0,
+          "sbrkSpreadBytes": 0
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug1-r3/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "heapSpreadBytes": 0,
+          "sbrkSpreadBytes": 0
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-H8": {
+      "claim": "fresh-arm per-cycle sbrk agrees within 2 MB across cycles",
+      "runs": [
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug1/e2-editor-v2-572035ac/chrome",
+          "browser": "chrome",
+          "heapSpreadBytes": 0,
+          "sbrkSpreadBytes": 0,
+          "sbrkPerCycle": [
+            290787328,
+            290787328,
+            290787328,
+            290787328,
+            290787328,
+            290787328,
+            290787328,
+            290787328
+          ]
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug1/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "heapSpreadBytes": 0,
+          "sbrkSpreadBytes": 0,
+          "sbrkPerCycle": [
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936
+          ]
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug1-r2/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "heapSpreadBytes": 0,
+          "sbrkSpreadBytes": 0,
+          "sbrkPerCycle": [
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936
+          ]
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug1-r3/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "heapSpreadBytes": 0,
+          "sbrkSpreadBytes": 0,
+          "sbrkPerCycle": [
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936,
+            290983936
+          ]
+        }
+      ],
+      "status": "HELD"
+    },
+    "control-debug-gate": {
+      "claim": "a debug:false run of the same page yields ZERO stage events, so the gate really is debug and not something else",
+      "runs": [
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug0/e2-editor-v2-572035ac/chrome",
+          "browser": "chrome",
+          "stageEvents": 0
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/fresh-debug0/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "stageEvents": 0
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug0-r2/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "stageEvents": 0
+        },
+        {
+          "run": "../findings/evidence/sdk-e2/e2-c-validation/d4/heap/repeats/fresh-debug0-r3/e2-editor-v2-572035ac/firefox",
+          "browser": "firefox",
+          "stageEvents": 0
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-H5": {
+      "claim": "debug:true does not change what the memory round measures: PSS slopes differ by <= 2 MB/session",
+      "pairs": [
+        {
+          "browser": "chrome",
+          "pssSlopeDebugOn": -26085229.714285713,
+          "pssSlopeDebugOff": -27905389.714285713,
+          "deltaBytesPerSession": 1820160.0
+        },
+        {
+          "browser": "firefox",
+          "pssSlopeDebugOn": -12078835.80952381,
+          "pssSlopeDebugOff": -16748153.904761905,
+          "deltaBytesPerSession": 4669318.095238095
+        }
+      ],
+      "noiseFloor": [
+        {
+          "browser": "firefox",
+          "runsPerCondition": [
+            3,
+            3
+          ],
+          "withinConditionSpreadBytes": [
+            21516934.095238097,
+            19821689.904761903
+          ],
+          "betweenConditionMeanDifferenceBytes": 2715184.761904762,
+          "separation": "NOT_SEPARATED"
+        }
+      ],
+      "notes": "Scored against what was registered, not against what the repeats later made obvious.  Where `separation` is NOT_SEPARATED, the registered 2 MB threshold was below the run-to-run spread of the very quantity it compares, so this FAILED means 'the control could not be run as written', not 'debug changed the memory'.",
+      "status": "FAILED"
+    }
+  },
+  "held": [
+    "P-H1",
+    "P-H2",
+    "P-H3",
+    "P-H6",
+    "P-H7",
+    "P-H4",
+    "P-H8",
+    "control-debug-gate"
+  ],
+  "failed": [
+    "P-H5"
+  ],
+  "reachability": "REACHABLE-ON-SHIPPED-ARTIFACT",
+  "observations": [
+    {
+      "id": "search-after-reopen-never-returns",
+      "what": "On one engine, cycle 1 (open, search, click, insertText, save, close) succeeds; cycle 2's search times out after 30 s and every later search returns BUSY, the worker's own in-flight guard.  The opens themselves keep working: all six stage events arrive for every cycle.",
+      "reproduced": [
+        "chrome",
+        "firefox"
+      ],
+      "controlledVariable": "the same loop without the search completes 8/8 cycles in both browsers, so this belongs to search after a reopen, not to reopening",
+      "notAffectedToday": "the product session builds a fresh engine per session, so this is an SDK-level path the product does not take"
+    }
+  ],
+  "movingQuantity": "sbrk"
+}

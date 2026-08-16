@@ -249,12 +249,33 @@ contract version 與 capability 維持 2／`narrow-editor-v2`。
 - [ ] **8 的第二處**：`routeFormatBarrier()` 的 `selectionObserved` fail-closed；
 - [ ] **12**：把 `inlineFormatEnabledIsHonoured` 記進佇列與規格
       （**它會改變 v3 的 manifest，而 manifest 是第五個綁定身分**）；
-- [ ] **引擎要在 typed state 裡回報自己的 WASM heap 大小**（D4 掉出來的，2026-08-16）：
-      `d4-memory` 的門檻寫了 WASM heap 的斜率與絕對值，而**產品沒有任何路徑報得出
-      這個數字**——`sdk-worker.js` 不報，R7-D 的 `wasmHeapBytes` 一直是 `null`，
-      Chrome 的 `measureUserAgentSpecificMemory` breakdown 沒有 WASM 歸屬，
-      Firefox 連那個 API 都沒有。因此 D4 第一輪的 `d4-memory` 只能判 PARTIAL。
-      **沒有這一欄，第二輪的 `d4-memory` 一樣只能 PARTIAL。**
+- [x] ~~**引擎要在 typed state 裡回報自己的 WASM heap 大小**~~ —— **撤銷（2026-08-16，
+      量過）**。前提兩半都不成立，而且第二半是貴的那一半：
+
+      1. **數字本來就拿得到。** 出貨的引擎每個 stage 就印
+         `emscripten_get_heap_size()`（`probe_engine.cpp:1665`，沒有編譯守衛），
+         出貨的 worker 在 `debug` 開著時把它轉成 diagnostic 事件
+         （`dist/…/sdk-worker.js:776`），而 `createDocumentEngine({debug:true})`
+         本來就收這個選項。十二輪、兩瀏覽器、384 個 stage 事件，
+         **一個檔案都沒改**（連結身分逐輪核對）。
+      2. **那個數字不會動。** 所有 profile 都是 `-sTOTAL_MEMORY=1GB` 且沒有
+         `ALLOW_MEMORY_GROWTH`，所以 `emscripten_get_heap_size()` 是常數
+         `1073741824`。**這一欄若真的做出來，`d4-memory` 的門檻（斜率 ≤ 2 MB、
+         絕對成長 ≤ 20 MB）會對任何 build 永遠成立，包含一個真的在漏的 build。**
+         會動的是同一行印出來的 `sbrk`。
+
+      證據：`findings/evidence/sdk-e2/e2-c-validation/d4/heap/`。
+      **第二輪的 `d4-memory` 因此不需要 relink**：判準改成讀 `sbrk`，
+      並且加一條「先量這一頁自己的雜訊底」——本輪同一條件三輪的 PSS 斜率
+      散布是 ~20 MB／session，而登記的比較門檻是 2 MB，**門檻低於它要比較的
+      那個量自己的雜訊**。
+- [ ] **（本輪新掉出來，尚未定性）一顆引擎上第二次 `search` 不會回來**：
+      同一顆引擎跑第一輪（open→search→click→insertText→save→close）成功，
+      第二輪的 `search` 30 秒逾時，之後每一次都回 `BUSY`（worker 自己的
+      in-flight 守衛）。**open 一直是好的**（每輪六個 stage 事件都到）。
+      **兩瀏覽器完全一樣**。控制變數已經量了：同一個迴圈**不做 search** 兩瀏覽器
+      各 8／8 全過。**產品今天不走這條路**（`EditorSession` 每個 session 新開一顆
+      引擎、close 時 dispose），所以這是 SDK 層的觀察與佇列候補，不是產品缺陷。
 - [x] **矩陣 v2 草稿已寫**（`e2/validation-matrix-v2-draft.json`，2026-08-16）：84 格＝v1 的 75 格全部帶過來 ＋ 九格新的（D0 的凍結守衛、真的跨段、範圍上的 inline 格式帶文件判準、空段落兩手勢並排、barrier 要驗自己動過的那一段、相鄰清單合併規則**先寫**、結構對控制格比、跨瀏覽器位元組相同改成正規化後相同、D5 的機器半邊當進場檢查）。五個雜湊全部是佔位字串，`status` 是 `DRAFT-NOT-FROZEN`，由 `tests/test_e2_c_matrix.py` 七條釘住。
 - [ ] **矩陣 v2 的凍結時機沒有守衛**（外部裁決指出）：baseline 要 v3 的五個雜湊，
       而雜湊要等連結才存在，於是「連結之後、第二輪 D0 之前」有一個必須補雜湊並

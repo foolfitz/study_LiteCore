@@ -137,11 +137,18 @@ def judge_run(run: Path) -> dict:
         "wasmHeapPerCycleBytes": wasm,
         "wasmSlopeBytesPerSession": wasm_slope,
         "wasmAbsoluteGrowthBytes": (wasm[-1] - wasm[0]) if len(wasm) >= 2 else None,
-        # The measurement the product cannot make.  Nothing in sdk-worker.js
-        # reports a WASM heap size, and R7-D's page has carried a
-        # `wasmHeapBytes: null` for as long as it has existed -- so this is
-        # notValidated for a reason that predates this phase, and the fix is an
-        # engine-side field, which is a relink queue item.
+        # The measurement THIS PAGE does not make.  The D4 page publishes
+        # `wasmHeapBytes: null` unconditionally, so this stays notValidated for
+        # the first round and the round's verdict stands as recorded.
+        #
+        # Corrected 2026-08-16: the reason written here used to be "nothing in
+        # the product reports a WASM heap size, and the fix is an engine-side
+        # field, which is a relink queue item".  Measured since -- on this same
+        # frozen artifact, nothing edited -- the shipped worker forwards the
+        # engine's heap figures as diagnostic stage events under `debug: true`.
+        # And the figure that field would have carried is a constant
+        # (-sTOTAL_MEMORY=1GB, no ALLOW_MEMORY_GROWTH); the one that moves is
+        # `sbrk`.  See findings/evidence/sdk-e2/e2-c-validation/d4/heap/.
         "wasmStatus": "notValidated" if wasm_slope is None else (
             "pass" if (wasm_slope <= WASM_SLOPE_LIMIT
                        and (wasm[-1] - wasm[0]) <= WASM_ABSOLUTE_LIMIT)

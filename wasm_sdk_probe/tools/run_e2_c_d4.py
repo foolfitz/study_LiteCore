@@ -20,6 +20,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from urllib.parse import quote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from e1_support import sha256, write_json  # noqa: E402
@@ -48,11 +49,24 @@ def main() -> int:
     parser.add_argument("--poll", type=float, default=0.25)
     parser.add_argument("--page", default="e2-c-d4.html")
     parser.add_argument("--namespace", default="__e2c_d4")
+    # Extra query parameters, so the same sampling runner can drive a page that
+    # needs an arm or a mode.  Appended after the two this runner owns, and
+    # recorded in the evidence -- a round driven with different parameters is a
+    # different round.
+    parser.add_argument("--param", action="append", default=[],
+                        metavar="KEY=VALUE")
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--output", type=Path,
                         default=PROJECT.parent / "findings" / "evidence" / "sdk-e2"
                         / "e2-c-validation" / "d4")
     args = parser.parse_args()
+
+    extra = ""
+    for item in args.param:
+        if "=" not in item:
+            parser.error(f"--param expects KEY=VALUE, got {item!r}")
+        key, value = item.split("=", 1)
+        extra += f"&{quote(key, safe='')}={quote(value, safe='')}"
 
     artifact = artifact_hashes(args.profile)
     evidence = (args.output / f"{args.profile}-{artifact['wasmSha256'][:8]}"
@@ -78,7 +92,8 @@ def main() -> int:
         wait_page(base)
         session_class = ChromeSession if args.browser == "chrome" else FirefoxSession
         session = session_class("cold")
-        session.navigate(f"{base}?profile={args.profile}&cycles={args.cycles}")
+        session.navigate(
+            f"{base}?profile={args.profile}&cycles={args.cycles}{extra}")
         deadline = time.monotonic() + args.timeout
         last_token = None
         while time.monotonic() < deadline:
@@ -119,6 +134,8 @@ def main() -> int:
         "consistent": all(reported.get(key) == artifact[key] for key in reported),
     }
     metrics["browserName"] = args.browser
+    metrics["runnerParams"] = {"page": args.page, "cycles": args.cycles,
+                               "extra": args.param}
     metrics["samples"] = samples
 
     evidence.mkdir(parents=True, exist_ok=True)

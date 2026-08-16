@@ -69,6 +69,28 @@ number somebody chose.
   matrix and since repaired; this prediction is that the same holds when run
   around the lifecycle round rather than on its own.
 
+## Addendum (2026-08-16, after the round): P-D4-4's premise was wrong
+
+P-D4-4 held as a prediction — `measureUserAgentSpecificMemory()` yielded no
+WASM-attributed figure, and `d4-memory` is PARTIAL.  **The reasoning under it
+did not.**
+
+The paragraph above says "nothing in the product reports a WASM heap size" and
+"`sdk/sdk-worker.js` never sends one".  Measured on 2026-08-16 on this same
+frozen artifact, with nothing edited: the shipped worker **does** forward the
+engine's heap figures, as `diagnostic` stage events, whenever the engine is
+created with `debug: true` — an option `createDocumentEngine` already accepts.
+Twelve rounds, both browsers, 384 stage events:
+`findings/evidence/sdk-e2/e2-c-validation/d4/heap/`.
+
+The follow-up also found that the number the queue item named cannot move:
+`emscripten_get_heap_size()` is a constant `1073741824` because every profile
+links `-sTOTAL_MEMORY=1GB` without `ALLOW_MEMORY_GROWTH`.  The figure that moves
+is `sbrk`, on the same stage line.
+
+**This round's verdict is unchanged**: it ran with the harness it had, and
+`d4-memory` recorded PARTIAL.  What changed is the second round's queue.
+
 ## What voids the round
 
 - A cycle fails for a reason unrelated to lifecycle (fixture fetch, anchor not

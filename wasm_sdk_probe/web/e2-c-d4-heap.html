@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>E2-C D4 追加 — WASM heap 到底量不量得到</title>
+<style>
+  body { margin: 0; font: 13px/1.5 ui-monospace, Menlo, monospace; padding: 12px;
+         background: #101820; color: #d7e2ea; }
+  h1 { font: 600 15px/1.4 system-ui, sans-serif; margin: 0 0 8px; }
+  p { font: 12px/1.5 system-ui, sans-serif; color: #93a6b5; margin: 0 0 12px;
+      max-width: 68em; }
+  #log { white-space: pre-wrap; word-break: break-all; }
+  #sink { position: absolute; width: 1px; height: 1px; opacity: 0; }
+</style>
+</head>
+<body>
+  <h1>E2-C D4 追加 — WASM heap 到底量不量得到</h1>
+  <p>D4 把「產品報不出 WASM heap」登記成預測，並因此開出一個 relink 佇列項。
+     這一頁去量那個前提：出貨的引擎在每個 stage 就會印
+     <code>emscripten_get_heap_size()</code>，出貨的 worker 在 <code>debug</code>
+     開著時會把它轉成 diagnostic 事件，而 <code>createDocumentEngine</code> 本來就
+     收 <code>debug</code>。<strong>因此這一頁不改任何 hash 綁定的檔案</strong>——
+     它只是多傳一個選項、多訂一個事件。兩條臂：<code>fresh</code>（每輪新
+     session，D4 自己的形狀）與 <code>shared</code>（一顆引擎跑完全部文件，SDK 層，
+     不是產品 session）。判準寫在
+     <code>findings/evidence/sdk-e2/e2-c-validation/d4/heap/PREDICTION.md</code>。
+     這一頁不判定。</p>
+  <textarea id="sink" aria-label="輸入"></textarea>
+  <div id="log"></div>
+  <script type="module" src="./e2-c-d4-heap-app.js"></script>
+</body>
+</html>
