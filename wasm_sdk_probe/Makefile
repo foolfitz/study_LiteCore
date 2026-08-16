@@ -175,7 +175,8 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	test-r7-c-static test-r7-d-static test-r8-a-static test-r8-b-static \
 	test-r8-c-static test-r8-d-static \
 	test-e1-a-static test-e1-b-static test-e1-c-static test-e2-a-static \
-	test-e2-b-static test-e2-c-static test-e2-c-product-path e2-c-assets \
+	test-e2-b-static test-e2-c-static test-e2-c-reachability \
+	test-e2-c-product-path e2-c-assets \
 	test-e1-c-frozen-guard test-e1-c-shell-bundle-tool \
 	test-finding-016-scheduler-static \
 	test-finding-016-selection-barrier-static \
@@ -2199,6 +2200,13 @@ test-e2-c-static:
 	# expectation being flipped fails too.
 	python3 tools/check_relink_queue.py > /dev/null
 	python3 tools/check_relink_queue.py --self-test > /dev/null
+
+# Separate target: this one shells out to em++ and takes about a minute, and a
+# check that people skip because it is slow is a check that is not run.  The
+# relink runbook calls it by name.
+test-e2-c-reachability:
+	python3 tools/check_product_build_reaches.py
+	python3 tools/check_product_build_reaches.py --self-test
 	# Which of the PRODUCT PAGE's own paths any automated round has ever
 	# driven.  Same shape as the shell bundle's rule -- page minus driven
 	# minus waived must be empty -- so a handler cannot arrive unaccounted

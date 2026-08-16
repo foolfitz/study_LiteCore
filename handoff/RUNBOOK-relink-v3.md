@@ -22,6 +22,14 @@ cd wasm_sdk_probe
 # 佇列：12 項如宣告在樹裡、還在擋的項目會讓 p1Complete 是 False
 python3 tools/check_relink_queue.py
 
+# 要連的東西,在要連的那個 build 裡嗎?（2026-08-17 加,因為 v3 那次沒問）
+#
+# v3 連結送出了一個什麼都沒做的機制:唯一會打開 accessibility 的那個呼叫,
+# 卡在一個產品有定義的巨集的 #ifndef 裡面,被編掉了。讀原始碼沒抓到,grep 也
+# 抓不到——那一行**確實在檔案裡**。這一格去問前置處理器,用產品自己的定義。
+# 突變驗過:把修法拿掉就會紅。
+make test-e2-c-reachability
+
 # 靜態：兩個目標都要 exit 0
 make test-e2-c-static && make test-e2-b-static
 
