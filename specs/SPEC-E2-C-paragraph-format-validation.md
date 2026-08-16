@@ -1267,10 +1267,51 @@ round 6 那次 PASS 是真的，但它綁在殼層 v6 上，而 051／052 之後
 round 1 開頭那句「游標沒辦法被放置」當時被判讀成「產品沒畫游標」，**它同時也是
 字面上為真的**。
 
+### 9.5.14 產品路徑第二輪：三條 HIGH 走完兩條，第三條掉出 [finding 053](../findings/053-the-product-prescribes-a-recovery-whose-button-it-does-not-show.md)（2026-08-16）
+
+9.5.13 之後，`e2/product-path-coverage.json` 把三條產品路徑標成 **HIGH／從來沒有
+被驅動過**，並且寫明「一條從來沒被走過的復原路徑，就是一條沒有人知道會不會動的
+復原路徑」。這一輪去驅動它們。
+
+| 路徑 | 結果 |
+|---|---|
+| `action:insert-text` | **PASS**——把字打進產品自己的欄位、按產品自己的鈕，修訂號正好前進一，字在產品接著存出的 ODT 裡，而且**其他內容還在** |
+| `action:undo` | **PASS**——marker 從存出的文件裡消失，而**三個 IME 字串都還在**（undo 不能收得比最後一次編輯還多） |
+| `listener:click#notice-action` | **`NOT_ESTABLISHED`**，而且第一次按下去就掉出 finding 053 |
+
+**第三條為什麼判 `NOT_ESTABLISHED` 而不是紅**：產品**只在** `recoverable-error`
+或 `restart-required` 顯示那顆按鈕，而那正是 `EditorSession.restart()` 接受的同一
+個集合——所以從 `ready` 按下去什麼都沒量到。要走到那個狀態，這棵樹裡唯一有記錄的
+產品 UI 路線是 [finding 047](../findings/047-a-save-immediately-before-a-click-placed-caret-makes-the-next-format-action-time-out.md)
+的順序，而**它在現行殼層上跑不出來了**（兩輪，三個動作在頁面內背靠背送出；那不
+足以判定 047 修好了，理由與後續要求寫在 047 裡與佇列項
+`queue-047-may-have-closed-under-048`）。
+
+**掉出來的東西**：`EDITOR_FORMAT_POSTCONDITION_FAILED` 的 `recovery` 是
+`"rollback"`（D2 presweep 兩瀏覽器都有紀錄），產品照 SPEC E2-B 5.13 把處方講給
+使用者，**而那個錯誤不在 `RECOVERY_ERRORS` 裡**，所以 session 留在 `ready`、
+`#notice` 不顯示、按鈕不存在。**產品開了一個它自己不提供的處方。**
+
+三件寫在規格裡因為它們會再遇到：
+
+1. **判定要有三個值。** 一個「前置條件沒到」的檢查既不是產品的證據也不是反證；
+   `run_e2_c_product_path.py` 因此有 `NOT_ESTABLISHED`，而且**突變輪裡一個
+   NOT_ESTABLISHED 的必紅檢查算「沒有偵測到」**——不然一個從來沒跑的檢查會被當成
+   一次偵測。
+2. **缺席型的判準要有見證。** 「marker 不見了」對「undo 把整份文件清空」也成立；
+   「marker 出現了」對「插入的同時把別的內容毀掉」也成立。兩邊各補一組見證
+   （IME 的三個字串），而**第一次跑見證條款就紅了**——原因是 copy 那格留下的拖曳
+   選取還在，`commitText` 依規格取代選取。**產品是對的，判準的前提是錯的**，
+   處方是在插入前先收合游標。
+3. **宣告不能比 harness 承諾得多。** 存檔突變原本宣告會連帶弄紅 rollback 那格，
+   但那格永遠是 `NOT_ESTABLISHED`，於是「必紅」永遠達不到；宣告縮回實際做得到的
+   三格。
+
 ## 10. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-16 | **v17。產品路徑第二輪（9.5.14）：三條 HIGH 的路徑走完兩條，第三條掉出 [finding 053](../findings/053-the-product-prescribes-a-recovery-whose-button-it-does-not-show.md)。** `action:insert-text` 與 `action:undo` 各自被自己的突變證明會紅；`listener:click#notice-action` 判 `NOT_ESTABLISHED`——產品只在 `recoverable-error`／`restart-required` 提供那顆按鈕，而唯一有記錄的產品 UI 路線（finding 047 的順序）在現行殼層上跑不出來（**不足以判定 047 修好了**，見 `queue-047-may-have-closed-under-048`）。**053 是產品開了一個它自己不提供的處方**：`EDITOR_FORMAT_POSTCONDITION_FAILED` 的 `recovery` 是 `"rollback"`，但它不在 `RECOVERY_ERRORS` 裡，所以 session 留在 `ready`、`#notice` 不顯示。同時 harness 學到三件事並寫進 9.5.14：判定要有三個值、缺席型判準要有見證、宣告不能比 harness 承諾得多。**另一半是 block identity**：四輪 native 量完（`findings/evidence/queue-block-identity/`），佇列項 `queue-verify-caret-by-block-identity` 依實測改寫——LOK **沒有**段落序號，能拿到的段落文字是**指紋不是身分**，它解得掉 046 的已量格與「同一行不同 x」，**解不掉 052 的殘留**（x 在行上帶入、在文字下方丟掉）。設計與四條事前預測在 `research/DESIGN-2026-08-16-caret-by-block-and-offset.md`。對抗性審查（codex）打在判準上收掉九條，掉出 round 4。 |
 | 2026-08-16 | **v16。D5 的機器那一半做完（9.5.12）：四格 `NOT_ESTABLISHED`、相位 PARTIAL，等 operator。** 產品頁面未修改——它是殼層 bundle 綁的模組之一，所以 D5 頁面把它放進同源 iframe 從外面觀察（事件的 `isTrusted`、一個已申報的 `URL.createObjectURL` shim、產品自己的狀態列），**殼層摘要前後未變**。機器半邊四條預測全部成立：合成事件一律記成不可信、由它們支撐的格判 `NOT_ESTABLISHED`、shim 攔得到存檔、觀察沒有改動摘要。自我測試 10／10，承重的一對是「補齊其他條件會過、翻一個事件成合成就不過」。**至此 D2～D5 全部寫好並在 v2 上跑過**，對抗性審查第 8 項的門檻達成（D5 的人工四格依矩陣本來就是 PARTIAL）。 |
 | 2026-08-16 | **v15。D4 執行完畢（9.5.11），判定 `PARTIAL`。** 十輪 × 兩瀏覽器：`d4-sessions` 與 `d4-residuals` 兩格全過（10／10、generation 各 1、worker 與 handle 每次取樣都是 0），`d4-regression` 11 個目標全綠且掃描前後 artifact 未變。**`d4-memory` 是 PARTIAL**：產品沒有任何路徑回報 WASM heap（`sdk-worker.js` 不報、R7-D 的欄位一直是 `null`、`measureUserAgentSpecificMemory` 的 breakdown 沒有 WASM 歸屬、Firefox 沒有那個 API），**這是 D4 掉出來的 relink 佇列新項目**。另記兩件：Firefox 的 PSS 斜率 7.52／8 通過但**絕對成長 +35.1 MB 讓我自己登記的 P-D4-3 第二子句不成立**（格子與預測分開計分）；曲線是「平—階梯—平」的形狀，沒有量到成因所以不宣稱。 |
 | 2026-08-16 | **v14。D3 的語料半邊執行完畢（9.5.10）：八格兩瀏覽器全過、carried 兩份全過、桌面重開與 PDF 全過。** 一條預測（P-C5 兩瀏覽器位元組相同）在 `c-l1-review` 上不成立，量到的原因是自動產生的追蹤修訂 ID，**照原樣記為不成立**，更窄的判準進第二輪矩陣。過程掉出兩件：（一）**`l4-stress-100` 的 100 個 as-char frame 掛在 `office:text` 底下，兩個 LibreOffice build 在沒有任何編輯的情況下都會丟掉它們**——語料缺陷不是產品缺陷，判準因此改成與「什麼都不做的存檔」比較（與 L6 同一條教訓）；（二）harness 的 195 twips 容差是清單語料的行距算出來的，對 520 twips 的標題行不成立，改成用量到的行框重疊，**沒有常數**。 |

@@ -471,12 +471,60 @@
       ]
     },
     {
+      "id": "queue-047-may-have-closed-under-048",
+      "title": "finding 047's sequence no longer reproduces on the current shell -- OPEN, needs its own round before anything is judged",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "tools/run_e2_c_product_path.py, two rounds, 2026-08-16",
+      "note": "The product-path harness needed a queue-blocking failure to drive the product's recovery button, and finding 047 is the one recorded route into that state from the product's own UI. It did not reproduce: save, click-placed caret and format action, dispatched back to back from inside the page with no WebDriver round trips, completed in 28 ms with the state still `ready`. That is NOT a verdict on 047. 047 was measured on 2026-08-15 through a different harness and a shell generation before finding 048 changed what placeCaret waits for -- and 047's own diagnosis was that placeCaret's confirmation did not guarantee the next action, which is the same sentence from the other side. Judging it needs its own round: both shell generations, both browsers, 047's four controlled arms rerun as they were. Until then the finding stays as it is, with the observation recorded in it.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "../findings/047-a-save-immediately-before-a-click-placed-caret-makes-the-next-format-action-time-out.md",
+          "text": "queue-047-may-have-closed-under-048",
+          "atLeast": 1
+        }
+      ]
+    },
+    {
+      "id": "queue-v2-page-reads-a-flag-nobody-writes",
+      "title": "the v2 product page disables its recovery button on a snapshot field that is never written -- finding 054, OPEN, product-side",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "finding 054; found 2026-08-16 while adjudicating 053",
+      "note": "`web/e2-editor-app.js` reads `snapshot.requiresPageReload`, and nothing writes that name at the top level of a snapshot: `editor-shell/editor-session.js` puts it in `error.details` at the WORKER_GENERATION_LIMIT, and the v1 component `editor-shell/recovery-notice.js` reads it from there (and also checks `error.code`). So the v2 page's button never disables, and at the generation limit it points the user at a control that will refuse them -- which is what recovery-notice.js's own comment says a host must not do. Same family as finding 053 and found the same way: nobody had ever pressed this path. Fix is one line in web/e2-editor-app.js, which is in the E2-C shell bundle, so it rides with the 053 fix rather than costing a generation of its own.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "../findings/054-the-v2-page-reads-a-reload-flag-that-is-never-written.md",
+          "text": "requiresPageReload",
+          "atLeast": 1
+        }
+      ]
+    },
+    {
+      "id": "queue-prescribed-rollback-is-not-offered",
+      "title": "the product prescribes a rollback whose button it does not show -- finding 053, OPEN, product-side",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "finding 053; found 2026-08-16 by driving listener:click#notice-action for the first time",
+      "note": "`recoveryFor()` returns \"rollback\" for any format failure whose barrier says dispatched:true, and the product toasts that prescription; but `#notice`, which carries the button, is displayed only while the session state is `recoverable-error` or `restart-required`, and EDITOR_FORMAT_POSTCONDITION_FAILED puts it in neither -- it is not in RECOVERY_ERRORS. So the user is told the document may have changed unverifiably, and is offered no way back. The error is reachable on the shipped artifact: d2-presweep records it with recovery:\"rollback\", dispatched:true, in both browsers. WHICH SIDE TO CHANGE IS NOW DECIDED (2026-08-16, external adjudication, verified line by line): SPEC E2-B 5.13 clause three prescribes not merely rollback but that the host ENTER `recoverable-error`, so the shell is out of spec and the page is correct. The fix goes in `NarrowEditorV2Session.action()`'s catch -- compute recoveryFor(error) and call this._blockQueue(error, \"recoverable-error\", \"editor-recovery\") before rethrowing -- which touches NOTHING in the E1-C bundle (5 files, none under editor-shell-v2/). It DOES put the E2-C shell bundle from v8 to v9, and D5 round 7 is bound to v8, so it is a planned rebinding and not a slip-in. NOT YET EXECUTED.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "../findings/053-the-product-prescribes-a-recovery-whose-button-it-does-not-show.md",
+          "text": "EDITOR_FORMAT_POSTCONDITION_FAILED",
+          "atLeast": 1
+        }
+      ]
+    },
+    {
       "id": "queue-verify-caret-by-block-identity",
       "title": "answer a click with (paragraph, offset) instead of inferring it from rectangles -- OPEN, engine-side, DESIGNED and measured 2026-08-16",
       "expectation": "absent",
       "blocksRelink": false,
       "source": "findings 046, 051, 052; measured 2026-08-16, findings/evidence/queue-block-identity/",
-      "note": "REWORDED after measurement. The old wording said three ambiguities 'all reduce to the same missing datum -- which BLOCK the caret is in', and that turned out to be half right. Measured natively over three rounds: (a) there IS no block index anywhere in LOK -- the focused-paragraph payload carries content/position/start/end/listPrefixLength and nothing else, and no getCommandValues command supplies one; (b) what does exist, the paragraph's own text, is a FINGERPRINT, not an identity -- two paragraphs with the same text produce a byte-identical payload while the caret rectangle moves; (c) it settles finding 046 (the dispatch paragraph read '\\u2022 ' and the barrier's .uno:SelectText read '    \\u2022 \\nBI-AFTER-EMPTY'), and it settles the same-line-different-x case by OFFSET rather than by block; (d) it does NOT settle finding 052's residual, because x is carried on a line and dropped below it (offset 4 on the line, 7 below it, same x) so every click outside the text lands at the same offset -- a real block index would not help either, since the caret genuinely is in the last block. The remedy for (d) is a different shape and comes from the reference implementation rather than from the measurement: make placing the caret a CALL THAT RETURNS (paragraph fingerprint, offset), instead of posting a click and inferring the outcome from a rectangle. Muya (MarkText's editor core) never inverts that mapping -- its cursor IS {offset, block, path} and geometry only ever goes model->pixels. Design and pre-registered predictions: research/DESIGN-2026-08-16-caret-by-block-and-offset.md.",
+      "note": "REWORDED after measurement. The old wording said three ambiguities 'all reduce to the same missing datum -- which BLOCK the caret is in', and that turned out to be half right. Measured natively over three rounds: (a) there IS no block index anywhere in LOK -- the focused-paragraph payload carries content/position/start/end/listPrefixLength and nothing else, and no getCommandValues command supplies one; (b) what does exist, the paragraph's own text, is a FINGERPRINT, not an identity -- two paragraphs with the same text produce a byte-identical payload while the caret rectangle moves; (c) it settles finding 046 on the cells 046 was measured on -- but NOT in general, because the comparison is between two paragraphs' text and `empty-paragraph.odt` ends with two adjacent empty paragraphs whose text is identical -- (the dispatch paragraph read '\\u2022 ' and the barrier's .uno:SelectText read '    \\u2022 \\nBI-AFTER-EMPTY'), and it settles the same-line-different-x case by OFFSET rather than by block; (d) it does NOT settle finding 052's residual, because x is carried on a line and dropped below it (offset 4 on the line, 7 below it, same x) so every click outside the text lands at the same offset -- a real block index would not help either, since the caret genuinely is in the last block. Every one of (a)-(d) is a NATIVE result on core 26.8; whether the shipped WASM engine reports the same offsets and refreshes the a11y payload on the same schedule is owed to a relink round and is not established here. The remedy for (d) is a different shape and comes from the reference implementation rather than from the measurement: make placing the caret a CALL THAT RETURNS (paragraph fingerprint, offset), instead of posting a click and inferring the outcome from a rectangle. Muya (MarkText's editor core) never inverts that mapping -- its cursor IS {offset, block, path} and geometry only ever goes model->pixels. Design and pre-registered predictions: research/DESIGN-2026-08-16-caret-by-block-and-offset.md.",
       "checks": [
         {
           "kind": "absent",

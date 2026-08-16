@@ -143,9 +143,14 @@ def self_test(project: Path) -> int:
     check("driven without a method is not driven",
           not rejudge(lambda r: r["driven"].append(
               {"path": "action:undo", "by": "somebody", "how": ""}))["ok"])
+    # The path here has to be one that is CURRENTLY uncovered, or the mutation
+    # adds a duplicate to `driven` instead of an overlap and proves nothing.
+    # `action:undo` used to serve; it moved to `driven` on 2026-08-16 and this
+    # check went green for the wrong reason until it was pointed somewhere else.
     check("a path cannot be driven and uncovered at once",
           not rejudge(lambda r: r["driven"].append(
-              {"path": "action:undo", "by": "x", "how": "y"}))["ok"])
+              {"path": "listener:click#notice-action", "by": "x",
+               "how": "y"}))["ok"])
     check("an uncovered path with no risk is not accounted for",
           not rejudge(lambda r: r["uncovered"].append(
               {"path": "listener:focus"}))["ok"])

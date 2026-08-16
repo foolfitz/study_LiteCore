@@ -39,22 +39,24 @@
       "path": "action:set-paragraph-heading",
       "by": "tools/run_e2_c_page_smoke.py",
       "how": "the default --action of the smoke run; the revision must advance by exactly one"
+    },
+    {
+      "path": "action:insert-text",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "text is typed into the product's own #text field and the product's own button is pressed; the revision must advance by exactly one AND the text must be in the ODT the product then saves. Mutation `insert-text` reads el.text.placeholder instead of el.text.value -- finding 049's shape on this path -- and the check must go red."
+    },
+    {
+      "path": "action:undo",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed straight after the insert above; the marker text must be GONE from the saved ODT, read from the document rather than from the revision counter, because D1 covers undo through the shell and this is the button. Mutation `undo` replaces session.undo() with Promise.resolve() and the check must go red."
     }
   ],
   "waived": [],
   "uncovered": [
     {
-      "path": "action:undo",
-      "risk": "HIGH -- the same shape as finding 049: the page calls session.undo() at a line nothing has executed. D1 covers undo through the SHELL (d1-undo), which is the distinction that let 049 live.",
-      "note": "Registered as uncovered on 2026-08-16 rather than silently absent."
-    },
-    {
-      "path": "action:insert-text",
-      "risk": "HIGH -- reads el.text.value and calls session.commitText(); the only automated commits go through the adapter or the shell, never this button."
-    },
-    {
       "path": "listener:click#notice-action",
-      "risk": "HIGH -- this is the PRODUCT'S RECOVERY PATH (session.rollback()). SPEC E2-C 2.6/5.13 makes rollback the prescribed recovery for a dispatched failure, and no automated round has ever pressed it. A recovery path that has never been exercised is a recovery path nobody knows works."
+      "risk": "HIGH -- this is the PRODUCT'S RECOVERY PATH (session.rollback()). SPEC E2-C 2.6/5.13 makes rollback the prescribed recovery for a dispatched failure. Still uncovered on 2026-08-16 AFTER being driven, which is a different thing from never driven: run_e2_c_product_path.py presses it every run, but the product offers it only while the session is in `recoverable-error` or `restart-required`, and the one recorded route into that state from the product's UI (finding 047's sequence) no longer reproduces. The check (`notice-action-recovers-the-session` -- renamed from `...-rolls-back-to-the-checkpoint` after review, because the product's own save clears the checkpoint, so any recovery reached this way would be from authority bytes) is therefore NOT_ESTABLISHED rather than green, and the press produced FINDING 053: the product prescribes this recovery for EDITOR_FORMAT_POSTCONDITION_FAILED, whose state leaves the button hidden. What would close this row is a way to induce a queue-blocking failure from the product's own UI.",
+      "note": "The audit predicted this: 'a recovery path that has never been exercised is a recovery path nobody knows works.' The first press found a defect."
     },
     {
       "path": "listener:change#fixture",

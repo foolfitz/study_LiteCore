@@ -79,6 +79,33 @@ PROJECT = Path(__file__).resolve().parent.parent
 # run.
 IME_TEXTS = ["甲一", "乙二", "丙三"]
 
+# The marker the insert button types.  Distinct from IME_TEXTS and absent from
+# every fixture, so finding it in a saved ODT is a statement about the press
+# that put it there.
+INSERT_MARK = "插入鈕標記"
+
+# The fixture's own text, used as a witness that a check did not destroy the
+# document around what it was measuring.  It is only ever REQUIRED if a previous
+# capture in the same run showed it present, so a different --fixture degrades to
+# the IME witnesses rather than to a false red.
+FIXTURE_SENTINEL = "E1-LC-END"
+
+
+def surviving_witnesses(previous_content: str) -> list[str]:
+    """What the run has already SEEN in the document, and may therefore require.
+
+    Adjudicated 2026-08-16.  The first version of these clauses required the
+    three IME strings outright, and the `ime` mutation -- which drops two of
+    them by design -- turned two unrelated checks red.  A check must not require
+    content whose presence is another check's SUBJECT; it may require content
+    whose presence IT verified, in its own prior capture.
+
+    Deriving the set costs nothing: the saves are already captured.  A mutation
+    can shrink this set but can never make a check red for another check's
+    reason.
+    """
+    return [w for w in (*IME_TEXTS, FIXTURE_SENTINEL) if w in previous_content]
+
 # --------------------------------------------------------------------- shims
 
 INSTALL = """(() => {
@@ -178,6 +205,61 @@ sink.dispatchEvent(new CompositionEvent('compositionend', { data: 'ARG_TEXT', bu
 return sink.value;
 })()"""
 
+SET_TEXT = """(() => {
+const field = document.querySelector('#text');
+field.value = 'ARG_TEXT';
+return field.value;
+})()"""
+
+# Is the product OFFERING its recovery, or is the button merely in the DOM?
+# `#notice` is `display: none` until `data-show="1"`, so a click on a hidden
+# button drives a path the user cannot reach -- which is what the first version
+# of this check did.
+# Finding 047's recipe, with nothing in between -- which is the whole of it.
+#
+# Driving it as three WebDriver calls does not reproduce: each round trip plus
+# the poll that waits for the caret toast spends more than the ~2 s after which
+# 047's own controls show the failure stops happening.  Pressed from inside the
+# page, the three land in the session's FIFO back to back, which is the sequence
+# the finding measured.
+INDUCE_047 = """(() => {
+const toolbar = document.querySelector('#toolbar');
+const press = (action) => toolbar
+  .querySelector(`[data-action="${action}"]`).click();
+const canvas = document.querySelector('#canvas');
+const box = canvas.getBoundingClientRect();
+const x = box.left + box.width * ARG_X;
+const y = box.top + box.height * ARG_Y;
+press('save');
+canvas.dispatchEvent(new PointerEvent('pointerdown', {
+  clientX: x, clientY: y, button: 0, buttons: 1, pointerId: 1, bubbles: true }));
+canvas.dispatchEvent(new PointerEvent('pointerup', {
+  clientX: x, clientY: y, button: 0, buttons: 0, pointerId: 1, bubbles: true }));
+press('set-list-unordered');
+return true;
+})()"""
+
+READ_NOTICE = """(() => {
+const notice = document.querySelector('#notice');
+const button = document.querySelector('#notice-action');
+return {
+  shown: notice ? notice.dataset.show === "1" : null,
+  text: document.querySelector('#notice-text').textContent,
+  label: button ? button.textContent : null,
+  disabled: button ? button.disabled : null,
+};
+})()"""
+
+# The product's recovery path.  The button lives outside #toolbar and has no
+# data-action, so PRESS cannot reach it -- which is part of why no round ever
+# had.  `.click()` fires the listener whether or not #notice is displayed.
+CLICK_NOTICE = """(() => {
+const button = document.querySelector('#notice-action');
+if (!button) return false;
+button.click();
+return true;
+})()"""
+
 COPY = """(() => {
 const sink = document.querySelector('#sink');
 sink.focus();
@@ -202,7 +284,30 @@ MUTATIONS = {
         # is an IME check that asks only whether the revision moved, and that
         # is exactly the criterion round 5 passed while two thirds of a user's
         # typing was being dropped.
+        # The insert and undo oracles are guarded by `is_an_odt` too, so a
+        # broken save takes them down with it.  Declared, for the same reason
+        # as above.
+        #
+        # The rollback check is deliberately NOT here: it is NOT_ESTABLISHED on
+        # every run today, so requiring it to go red would require a check that
+        # never runs to fail, and the 2026-08-16 save-mutation round reported
+        # NOT DETECTED for exactly that reason.  Listing it would have been the
+        # declaration claiming more than the harness does.
         "alsoRed": ["every-ime-commit-reaches-the-document"],
+        # Both of these read their outcome out of the document, and this
+        # mutation removes the only way to read it -- so neither can go red,
+        # they can only fail to run.  Declared as such rather than left out: a
+        # declaration that omits a coupling stops being falsifiable, and the run
+        # verifies this outcome and reports the declaration stale if either
+        # check ever runs at all.
+        #
+        # `product-insert-...` moved here from `alsoRed` on 2026-08-16, and the
+        # machine check is what moved it: once the witnesses became DERIVED from
+        # the previous save, a broken save leaves an empty witness set, and an
+        # empty witness set is NOT_ESTABLISHED by construction.  The declaration
+        # had gone on claiming a red the harness could no longer deliver.
+        "alsoNotEstablished": ["product-insert-button-inserts-what-the-field-holds",
+                               "product-undo-button-reverses-the-last-edit"],
     },
     "ime": {
         "check": "every-ime-commit-reaches-the-document",
@@ -217,6 +322,83 @@ MUTATIONS = {
         "find": 'el.sink.addEventListener("copy", (event) => {',
         "replace": 'el.sink.addEventListener("copy-removed-by-mutation", (event) => {',
         "reintroduces": "the Ctrl+C gap found in the D5 operator round",
+    },
+    # The three paths the coverage audit named HIGH on 2026-08-16.  Each
+    # mutation is the shape the defect would actually take on that path.
+    "undo": {
+        "check": "product-undo-button-reverses-the-last-edit",
+        "path": "e2-editor-app.js",
+        "find": '    action === "undo" ? () => run("復原", () => session.undo())',
+        "replace": '    action === "undo" ? () => run("復原", () => Promise.resolve())',
+        "reintroduces": "finding 049's shape on the undo path: the button runs, "
+                        "the toast reports a time, and the document is untouched",
+    },
+    "insert-text": {
+        "check": "product-insert-button-inserts-what-the-field-holds",
+        "path": "e2-editor-app.js",
+        "find": "  const text = el.text.value;",
+        "replace": "  const text = el.text.placeholder;",
+        "reintroduces": "finding 049 exactly: the handler reads the wrong "
+                        "property off the right element",
+        # Same shape as the save mutation: this destroys the undo check's
+        # precondition (the marker is never inserted, so there is nothing whose
+        # removal undo could be judged on).  Precondition-destruction is a
+        # general property of mutations upstream of a check's setup.
+        "alsoNotEstablished": ["product-undo-button-reverses-the-last-edit"],
+    },
+    "rollback": {
+        "check": "notice-action-recovers-the-session",
+        "path": "e2-editor-app.js",
+        "find": '  void run("回到檢查點", () => session.rollback())',
+        "replace": '  void run("回到檢查點", () => session.undo())',
+        "reintroduces": "the recovery path wired to undo instead of rollback -- "
+                        "which SPEC E2-B 5.13 rules out explicitly, because undo "
+                        "goes through the queue a post-dispatch failure has just "
+                        "blocked and would only return EDITOR_NOT_READY",
+        # Not because the check is weak, but because it does not run: the
+        # product offers this button only from `recoverable-error` or
+        # `restart-required`, and the one recorded route into that state from
+        # the product's UI (finding 047's sequence) stopped reproducing on this
+        # shell.  The mutation is kept, correct and ready, so that the day a
+        # route exists this becomes a real verification instead of being
+        # written from scratch under time pressure.
+        "expectedToBeDetected": False,
+        "why": "the check that owns this mutation is NOT_ESTABLISHED on every "
+               "run: its precondition -- a blocked queue -- cannot currently be "
+               "induced from the product's own UI. See finding 053 and queue "
+               "item queue-047-may-have-closed-under-048.",
+    },
+    # Undo that takes back MORE than the last edit.  Before the witnesses were
+    # derived, the `ime` mutation's collateral was the accidental proof that the
+    # survival clauses could fire; decoupling them removed that proof, so this
+    # restores it deliberately.  A second undo reverses the last IME commit too,
+    # which is in the witness set derived from the save before it.
+    "undo-twice": {
+        "check": "product-undo-button-reverses-the-last-edit",
+        "path": "e2-editor-app.js",
+        "find": '    action === "undo" ? () => run("復原", () => session.undo())',
+        "replace": ('    action === "undo" ? () => run("復原",'
+                    " () => session.undo().then(() => session.undo()))"),
+        "reintroduces": "nothing that has happened; an undo that reverses two "
+                        "edits, which is what the survival witnesses exist to "
+                        "notice",
+    },
+    # The narrowest mutation that stops the 047 recipe from doing anything: the
+    # toolbar ignores the one action it dispatches.  It exists so that
+    # "NOT_ESTABLISHED because the queue did not block" can be shown to be
+    # different from "NOT_ESTABLISHED because the toolbar is broken" -- the
+    # hiding place an adversarial review named on 2026-08-16.  Narrow on
+    # purpose: no other check presses this button.
+    "toolbar-drops-the-list-action": {
+        "check": "notice-action-recovers-the-session",
+        "path": "e2-editor-app.js",
+        "find": "    : EDITOR_V2_ACTIONS.includes(action) ? () => editorAction(action)",
+        "replace": ('    : (EDITOR_V2_ACTIONS.includes(action)'
+                    ' && action !== "set-list-unordered")'
+                    " ? () => editorAction(action)"),
+        "reintroduces": "nothing that has happened; a toolbar that silently "
+                        "drops one action, which is what the guard on the "
+                        "NOT_ESTABLISHED branch exists to notice",
     },
     # Not a defect this tree has had: a handler that runs, prevents the default
     # and reports success WITHOUT asking the engine.  It is here because
@@ -317,6 +499,21 @@ def wait_saves(session, count, timeout=90):
     return False
 
 
+def capture_save(session, index: int, timeout=90) -> dict:
+    """Press the product's own save button and report what the bytes were.
+
+    `index` is the position in the shim's capture list, which is also the number
+    of saves this run has already taken.  Returns {} if nothing arrived, and the
+    callers treat that as a failed check rather than as an absence of evidence.
+    """
+    evaluate(session, CLEAR_TOAST)
+    evaluate(session, PRESS.replace("ARG_ACTION", "save"))
+    if not wait_saves(session, index + 1, timeout):
+        return {}
+    raw = evaluate(session, READ_SAVE.replace("ARG_INDEX", str(index)))
+    return zip_report(base64.b64decode(raw["b64"])) if raw else {}
+
+
 def zip_report(raw: bytes) -> dict:
     """What the bytes are, in enough detail to refuse a ZIP that is not an ODT.
 
@@ -394,8 +591,17 @@ def main() -> int:
         root, mutation_report = apply_mutation(args.mutate, scratch)
         report["mutationDetail"] = mutation_report
 
-    def check(cid, ok, **fields):
-        report["checks"].append({"id": cid, "ok": bool(ok), **fields})
+    def check(cid, ok, outcome=None, **fields):
+        """One check, with three outcomes rather than two.
+
+        NOT_ESTABLISHED is for a check whose PRECONDITION could not be reached
+        -- not for one that failed.  A harness that reports those as failures
+        teaches its readers to ignore red, and one that reports them as passes
+        is worse.  `finish()` counts them as neither.
+        """
+        report["checks"].append({
+            "id": cid, "ok": bool(ok),
+            "outcome": outcome or ("PASS" if ok else "FAIL"), **fields})
 
     port = free_port()
     server = subprocess.Popen(
@@ -553,6 +759,213 @@ def main() -> int:
                      "reachable only after getSelection has succeeded",
               notEstablished="whether the OS clipboard received the text; WebDriver "
                              "refuses clipboard access, so that half belongs to D5")
+
+        # ------------------------------------------- the three HIGH-risk paths
+        #
+        # `e2/product-path-coverage.json` named `action:undo`,
+        # `action:insert-text` and `listener:click#notice-action` HIGH and driven
+        # by nothing.  The last of those is the product's RECOVERY path, and a
+        # recovery path nobody has ever pressed is a recovery path nobody knows
+        # works.  They run after the checks above so those keep the exact flow
+        # they were written for.
+
+        # --- action:insert-text -------------------------------------------
+        #
+        # Collapse the caret first.  The copy check above leaves the drag's
+        # selection live, and `commitText` REPLACES a selection -- correctly, and
+        # measured: the first run of the witness clause below went red with all
+        # three IME texts gone, because the insert had replaced the line they
+        # were on.  The product was right and the check's premise was wrong.
+        evaluate(session, POINT_AT.replace("ARG_X", "0.35").replace("ARG_Y", "0.28"))
+        wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+        evaluate(session, CLEAR_TOAST)
+        field = evaluate(session, SET_TEXT.replace("ARG_TEXT", INSERT_MARK))
+        before_insert = revision_of(evaluate(session, READ_STATE))
+        evaluate(session, PRESS.replace("ARG_ACTION", "insert-text"))
+        inserted_state = wait_for(
+            session,
+            lambda s, floor=before_insert: revision_of(s) is not None
+            and floor is not None and revision_of(s) > floor, 20)
+        after_insert = revision_of(inserted_state)
+        insert_toast = evaluate(session, READ_TOAST) or ""
+        third = capture_save(session, 2)
+        insert_content = third.get("content") or ""
+        # Witnesses that the insert ADDED the marker rather than replacing the
+        # document with it -- "the marker is somewhere in content.xml" is also
+        # true of a button that inserts it and destroys everything else.  The
+        # set is DERIVED from the save this run already took, so a mutation
+        # aimed at another check cannot make this one red (see
+        # surviving_witnesses).
+        expected_witnesses = surviving_witnesses(content)
+        kept_witnesses = [w for w in expected_witnesses if w in insert_content]
+        check("product-insert-button-inserts-what-the-field-holds",
+              field == INSERT_MARK and is_an_odt(third)
+              and INSERT_MARK in insert_content
+              and kept_witnesses == expected_witnesses
+              and before_insert is not None and after_insert == before_insert + 1,
+              outcome=None if expected_witnesses else "NOT_ESTABLISHED",
+              observed={"fieldAfterSet": field, "revisionBefore": before_insert,
+                        "revisionAfter": after_insert,
+                        "markInSavedOdt": INSERT_MARK in insert_content,
+                        "witnessesExpected": expected_witnesses,
+                        "witnessesKept": kept_witnesses,
+                        "toast": insert_toast, "savedBytes": third.get("bytes")},
+              oracle="the text standing in the product's own field, inserted by "
+                     "the product's own button, advances the revision by exactly "
+                     "one and is in the document the product then saves")
+
+        # --- action:undo ---------------------------------------------------
+        before_undo = revision_of(evaluate(session, READ_STATE))
+        evaluate(session, CLEAR_TOAST)
+        evaluate(session, PRESS.replace("ARG_ACTION", "undo"))
+        undone_state = wait_for(
+            session,
+            lambda s, floor=before_undo: revision_of(s) is not None
+            and revision_of(s) != floor, 20)
+        undo_toast = evaluate(session, READ_TOAST) or ""
+        fourth = capture_save(session, 3)
+        undo_content = fourth.get("content") or ""
+        # `is_an_odt` is not decoration here.  Every oracle below is an ABSENCE,
+        # and a save that produced nothing would satisfy an absence for the
+        # wrong reason -- which is the exact shape finding 049 hid behind.
+        #
+        # Nor is the precondition.  The `insert-text` mutation run of
+        # 2026-08-16 showed this check going GREEN while undo was untested: the
+        # marker was never inserted, so "the marker is gone" was true before
+        # undo ran.  An absence is only evidence if the thing was there first.
+        was_inserted = INSERT_MARK in insert_content
+        # And not MORE than the last edit.  Adversarial review, 2026-08-16: the
+        # oracle "the marker is gone" is equally satisfied by a button that
+        # deletes the paragraph, empties the document, or rolls the whole
+        # session back -- the same confusion SPEC E2-B 5.13 warns about, in the
+        # other direction.  The IME commits went in before the marker, so they
+        # are the witnesses that undo stopped where it should have.
+        undo_witnesses = surviving_witnesses(insert_content)
+        undo_kept = [w for w in undo_witnesses if w in undo_content]
+        check("product-undo-button-reverses-the-last-edit",
+              is_an_odt(fourth) and INSERT_MARK not in undo_content
+              and undo_kept == undo_witnesses
+              and revision_of(undone_state) != before_undo,
+              outcome=None if (was_inserted and undo_witnesses)
+              else "NOT_ESTABLISHED",
+              observed={"revisionBefore": before_undo,
+                        "revisionAfter": revision_of(undone_state),
+                        "markWasThereBeforeUndo": was_inserted,
+                        "markStillInSavedOdt": INSERT_MARK in undo_content,
+                        "witnessesExpected": undo_witnesses,
+                        "witnessesKept": undo_kept,
+                        "toast": undo_toast, "savedBytes": fourth.get("bytes")},
+              oracle="pressing the product's own undo button takes the text the "
+                     "insert button just added back OUT of the document -- read "
+                     "from the saved ODT, not from the revision counter, because "
+                     "D1 covers undo through the shell and this is the button")
+
+        # --- listener:click#notice-action, the recovery path ----------------
+        #
+        # The first version of this check pressed the button from `ready` and
+        # went red with `editor cannot restart from ready`.  That was the check
+        # being wrong, not the product: `#notice` is displayed only for
+        # `recoverable-error` and `restart-required`, which is exactly the set
+        # `EditorSession.restart()` accepts.  Pressing a button the product is
+        # not offering measures nothing.
+        #
+        # So the state has to be reached first, and finding 047 is how: save,
+        # then a click-placed caret, then a format action, with nothing in
+        # between, produces `MUTATION_OUTCOME_UNKNOWN` -- which IS in
+        # RECOVERY_ERRORS, so the queue blocks, the state becomes
+        # `recoverable-error`, and the product puts the notice up.  100%
+        # reproducible on this artifact, both browsers, four controlled arms.
+        evaluate(session, CLEAR_TOAST)
+        evaluate(session, INDUCE_047.replace("ARG_X", "0.30").replace("ARG_Y", "0.34"))
+        blocked = wait_for(
+            session, lambda s: s.get("state") in ("recoverable-error",
+                                                  "restart-required"), 60)
+        offered = evaluate(session, READ_NOTICE)
+        report["steps"].append({"step": "induce-dispatched-failure",
+                                "state": blocked, "notice": offered,
+                                "recipe": "finding 047: save, click, format"})
+
+        pressed_notice = evaluate(session, CLICK_NOTICE)
+        # rollback() is restart(): a fresh Worker reopened from the newest of
+        # the checkpoint and authority bytes.  The document goes away and comes
+        # back, so this waits for `ready` rather than for a revision.
+        restarted = wait_for(session, lambda s: s.get("state") == "ready", 180)
+        notice_toast = evaluate(session, READ_TOAST) or ""
+        # The session is not merely in a good-looking state: it can still do the
+        # thing the user came for.
+        after_rollback = capture_save(session, 5)
+        reached = (blocked or {}).get("state") in ("recoverable-error",
+                                                   "restart-required")
+        # Adversarial review, 2026-08-16: NOT_ESTABLISHED must not become a
+        # place for regressions to hide.  "The recipe did not block the queue"
+        # is the expected outcome today, but it is ALSO what a removed
+        # `set-list-unordered` handler or a broken toolbar would produce.  So
+        # the recipe has to have visibly done something: either it blocked the
+        # queue, or the format action it dispatched completed.
+        recipe_ran = ("項目符號" in ((blocked or {}).get("latency") or "")
+                      and "失敗" not in ((blocked or {}).get("latency") or ""))
+        if not reached and not recipe_ran:
+            check("notice-action-recovers-the-session", False,
+                  observed={"stateAfterRecipe": (blocked or {}).get("state"),
+                            "latency": (blocked or {}).get("latency"),
+                            "notice": offered},
+                  oracle="finding 047's recipe must either block the queue or"
+                         " complete the format action it dispatches; neither"
+                         " happened, so the product path itself is broken --"
+                         " this is NOT the 'precondition unreachable' case")
+            return finish(report, args)
+        if not reached:
+            # Finding 047's sequence did not block the queue here.  That is NOT
+            # a verdict on 047: it was measured on 2026-08-15 through a
+            # different harness and a shell generation before finding 048
+            # changed what placeCaret waits for -- and 047's own diagnosis was
+            # that placeCaret's confirmation did not guarantee the next action.
+            # Whether 048's fix closed 047 is a question for its own round, not
+            # something to conclude from a run that was trying to do something
+            # else.  Filed as `queue-047-may-have-closed-under-048`.
+            check("notice-action-recovers-the-session", False,
+                  outcome="NOT_ESTABLISHED",
+                  observed={"stateAfterRecipe": (blocked or {}).get("state"),
+                            "latency": (blocked or {}).get("latency"),
+                            "notice": offered,
+                            "pressedAnyway": evaluate(session, CLICK_NOTICE),
+                            "toastFromPressingItAnyway":
+                                evaluate(session, READ_TOAST)},
+                  why="the product offers this button only in "
+                      "`recoverable-error` or `restart-required`, which is the "
+                      "same set EditorSession.restart() accepts, and finding "
+                      "047's recipe -- the one documented route into that state "
+                      "from the product's own UI -- did not block the queue in "
+                      "this run.  Pressing the hidden button anyway is recorded "
+                      "above and measures nothing about the recovery path.",
+                  oracle="a dispatched failure blocks the queue, the product "
+                         "OFFERS its recovery button, pressing it returns the "
+                         "session to ready, and the product can save afterwards")
+            return finish(report, args)
+        check("notice-action-recovers-the-session",
+              reached and bool((offered or {}).get("shown"))
+              and (offered or {}).get("disabled") is False
+              and bool(pressed_notice)
+              and (restarted or {}).get("state") == "ready"
+              and is_an_odt(after_rollback),
+              observed={"stateAfterFailure": (blocked or {}).get("state"),
+                        "noticeOffered": offered,
+                        "buttonFound": pressed_notice,
+                        "stateAfterPress": (restarted or {}).get("state"),
+                        "toast": notice_toast,
+                        "savedBytesAfter": after_rollback.get("bytes"),
+                        "savedIsOdt": is_an_odt(after_rollback)},
+              oracle="a dispatched failure blocks the queue, the product OFFERS "
+                     "its recovery button, pressing it returns the session to "
+                     "ready, and the product can save a real ODT afterwards -- "
+                     "undo in its place would return EDITOR_NOT_READY on the "
+                     "queue the failure just blocked, which is why SPEC E2-B "
+                     "5.13 prescribes rollback and not undo",
+              notEstablished="WHICH bytes came back.  A save moves the authority "
+                             "bytes and there is no way to read the document out "
+                             "of the page except by saving, so an edit made after "
+                             "the failure cannot be shown to have been discarded "
+                             "without destroying the thing being measured")
         return finish(report, args)
     finally:
         if session is not None:
@@ -567,34 +980,72 @@ def main() -> int:
 
 def finish(report: dict, args) -> int:
     checks = report["checks"]
+    # A check whose precondition was never reached is neither evidence for the
+    # product nor against it.  It is counted separately so that a run does not
+    # go green on a path it did not exercise, and does not go red on one it
+    # could not.
+    unestablished = [c["id"] for c in checks
+                     if c.get("outcome") == "NOT_ESTABLISHED"]
+    report["notEstablishedChecks"] = unestablished
+    judged = [c for c in checks if c.get("outcome") != "NOT_ESTABLISHED"]
     spec = MUTATIONS[args.mutate] if args.mutate != "none" else None
     if spec and spec.get("expectedToBeDetected") is False:
         # A mutation this harness does NOT claim to catch.  Recorded with its
         # reason, so the limit lives in the evidence instead of in somebody's
         # head -- and if it ever IS caught, the run says the limit is stale.
-        red = [c for c in checks if c["id"] == spec["check"] and not c["ok"]]
-        report["ok"] = True
+        # `judged`, not `checks`: a NOT_ESTABLISHED check has ok False, and
+        # reading that as "detected" would turn a check that never ran into a
+        # declaration that the limit is stale.
+        red = [c for c in judged if c["id"] == spec["check"] and not c["ok"]]
+        # Adversarial review, 2026-08-16: this branch used to set ok True
+        # unconditionally, so a run with a declared-undetectable mutation exited
+        # 0 even when the SAVE, IME, insert and undo checks were all failing.
+        # A declaration about one check is not a pass for the others.
+        others_ok = all(c["ok"] for c in judged if c["id"] != spec["check"])
         report["mustGoRed"] = []
+        report["ok"] = bool(others_ok)
         report["verdict"] = (
             "this mutation is DETECTED after all -- the recorded limit is out of "
             "date and should be removed" if red
-            else "not detected, as declared: " + spec.get("why", ""))
+            else ("not detected, as declared: " + spec.get("why", "")
+                  if others_ok else
+                  "the declared-undetectable mutation was not detected, AS "
+                  "DECLARED, but another check failed in the same run"))
     elif spec:
+        # The declared NOT_ESTABLISHED collateral, verified rather than assumed:
+        # a check declared here that RAN (red or green) means the declaration is
+        # stale, and the run says so instead of quietly agreeing with itself.
+        declared_void = spec.get("alsoNotEstablished", [])
+        stale_void = [c["id"] for c in checks
+                      if c["id"] in declared_void
+                      and c.get("outcome") != "NOT_ESTABLISHED"]
+        report["declaredNotEstablished"] = declared_void
+        report["staleNotEstablishedDeclarations"] = stale_void
         must_be_red = {spec["check"], *spec.get("alsoRed", [])}
         report["mustGoRed"] = sorted(must_be_red)
-        reds = [c for c in checks if c["id"] in must_be_red]
-        others_ok = all(c["ok"] for c in checks if c["id"] not in must_be_red)
+        # A must-go-red check that was NOT_ESTABLISHED did not detect anything:
+        # it never ran.  Counting it as a detection would be the exact failure
+        # this whole mechanism exists to prevent, so `judged` is used here.
+        reds = [c for c in judged if c["id"] in must_be_red]
+        others_ok = all(c["ok"] for c in judged
+                        if c["id"] not in must_be_red
+                        and c["id"] not in declared_void)
         report["ok"] = bool(len(reds) == len(must_be_red)
-                            and all(not c["ok"] for c in reds) and others_ok)
+                            and all(not c["ok"] for c in reds) and others_ok
+                            and not stale_void)
         report["verdict"] = (
             "the mutation was detected by the check that owns it"
             if report["ok"] else
-            "THE MUTATION WAS NOT DETECTED -- the check cannot fail, or another "
-            "check failed with it")
+            ("a check declared NOT_ESTABLISHED for this mutation ran after all:"
+             f" {stale_void} -- the declaration is stale" if stale_void else
+             "THE MUTATION WAS NOT DETECTED -- the check cannot fail, did not "
+             "run, or another check failed with it"))
     else:
-        report["ok"] = bool(checks) and all(c["ok"] for c in checks)
-        report["verdict"] = ("every product path this covers behaves"
-                             if report["ok"] else "a product path is broken")
+        report["ok"] = bool(judged) and all(c["ok"] for c in judged)
+        report["verdict"] = (
+            ("every product path this covers behaves"
+             + (f"; {len(unestablished)} not established" if unestablished else ""))
+            if report["ok"] else "a product path is broken")
     text = json.dumps(report, indent=2, ensure_ascii=False)
     if args.out:
         Path(args.out).write_text(text + "\n", encoding="utf-8")
