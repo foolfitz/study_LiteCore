@@ -1211,10 +1211,42 @@ runner 在每輪的靜止點與三秒後各取一次 process 快照，取較小�
 
 證據：`findings/evidence/sdk-e2/e2-c-validation/d4/`，判定器自我測試 10／10。
 
+### 9.5.12 D5 的機器那一半做完了（2026-08-16）：四格 `NOT_ESTABLISHED`，等 operator
+
+D5 的主題就是 `isTrusted`，所以四格必須有人做。**但「harness 分不分得出真手勢與
+合成手勢」不需要人**，而那正是會無聲失效的那一半。
+
+**產品頁面一個位元組都沒動。** `web/e2-editor-app.js` 是殼層 bundle 綁的十二個模組
+之一，加錄製器就會改掉每一個 D 相位歸檔所依據的摘要。所以 D5 頁面把**未修改的產品
+頁面放進同源 iframe**，從外面觀察：capture 階段的事件監聽記下每一個事件的
+`isTrusted`；一個**已申報的** `URL.createObjectURL` shim 攔下產品的存檔（產品用
+blob 下載存檔，外面讀不到下載）；狀態列直接讀產品自己的 DOM。
+**殼層 bundle 摘要在每一輪前後都記，兩個瀏覽器都未變**——這是「觀察沒有改變它」
+的量測版本。
+
+| 機器半邊的預測 | 結果 |
+|---|---|
+| P-D5-M1 合成事件一律記成 `isTrusted: false` | **成立**，兩瀏覽器各 6／6（pointer 三種、keydown、composition 兩種） |
+| P-D5-M2 判定器把由它們支撐的格判成 `NOT_ESTABLISHED` | **成立**——而且自我測試證明同一格在事件被標成 trusted 之後**會過**，所以擋下它的確實是信任檢查，不是別的缺項 |
+| P-D5-M3 shim 真的攔得到存檔 | **成立**，兩瀏覽器各一份 |
+| P-D5-M4 觀察沒有改動殼層 bundle 摘要 | **成立** |
+
+自我測試 10／10（兩瀏覽器），其中承重的一對是：**補齊其他條件後那一格會過；
+把其中一個事件翻成合成，它就不過**。一個沒被證明會拒絕假手勢的 harness，
+就是會接受假手勢的 harness。
+
+**四格維持 `NOT_ESTABLISHED`、相位判 PARTIAL**——矩陣的 `onFailure` 本來就是這樣寫的，
+而第 5 節與 SPEC E1-C v9 都禁止為了湊 GO 反覆要求 operator。
+**建議與 E1-C 的收復排同一個時段**（SPEC E1-C §11.8 指名的解除條件），
+兩者要的設置完全一樣：Fcitx5 新酷音、真剪貼簿、可信的指標事件。
+
+證據：`findings/evidence/sdk-e2/e2-c-validation/d5/`。
+
 ## 10. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-16 | **v16。D5 的機器那一半做完（9.5.12）：四格 `NOT_ESTABLISHED`、相位 PARTIAL，等 operator。** 產品頁面未修改——它是殼層 bundle 綁的模組之一，所以 D5 頁面把它放進同源 iframe 從外面觀察（事件的 `isTrusted`、一個已申報的 `URL.createObjectURL` shim、產品自己的狀態列），**殼層摘要前後未變**。機器半邊四條預測全部成立：合成事件一律記成不可信、由它們支撐的格判 `NOT_ESTABLISHED`、shim 攔得到存檔、觀察沒有改動摘要。自我測試 10／10，承重的一對是「補齊其他條件會過、翻一個事件成合成就不過」。**至此 D2～D5 全部寫好並在 v2 上跑過**，對抗性審查第 8 項的門檻達成（D5 的人工四格依矩陣本來就是 PARTIAL）。 |
 | 2026-08-16 | **v15。D4 執行完畢（9.5.11），判定 `PARTIAL`。** 十輪 × 兩瀏覽器：`d4-sessions` 與 `d4-residuals` 兩格全過（10／10、generation 各 1、worker 與 handle 每次取樣都是 0），`d4-regression` 11 個目標全綠且掃描前後 artifact 未變。**`d4-memory` 是 PARTIAL**：產品沒有任何路徑回報 WASM heap（`sdk-worker.js` 不報、R7-D 的欄位一直是 `null`、`measureUserAgentSpecificMemory` 的 breakdown 沒有 WASM 歸屬、Firefox 沒有那個 API），**這是 D4 掉出來的 relink 佇列新項目**。另記兩件：Firefox 的 PSS 斜率 7.52／8 通過但**絕對成長 +35.1 MB 讓我自己登記的 P-D4-3 第二子句不成立**（格子與預測分開計分）；曲線是「平—階梯—平」的形狀，沒有量到成因所以不宣稱。 |
 | 2026-08-16 | **v14。D3 的語料半邊執行完畢（9.5.10）：八格兩瀏覽器全過、carried 兩份全過、桌面重開與 PDF 全過。** 一條預測（P-C5 兩瀏覽器位元組相同）在 `c-l1-review` 上不成立，量到的原因是自動產生的追蹤修訂 ID，**照原樣記為不成立**，更窄的判準進第二輪矩陣。過程掉出兩件：（一）**`l4-stress-100` 的 100 個 as-char frame 掛在 `office:text` 底下，兩個 LibreOffice build 在沒有任何編輯的情況下都會丟掉它們**——語料缺陷不是產品缺陷，判準因此改成與「什麼都不做的存檔」比較（與 L6 同一條教訓）；（二）harness 的 195 twips 容差是清單語料的行距算出來的，對 520 twips 的標題行不成立，改成用量到的行框重疊，**沒有常數**。 |
 | 2026-08-16 | **v13。relink 佇列的第二方稽核（codex ＋ 自行覆核）改了三件事，第 11.2 節據此就地修訂。**（一）**`routeFormatBarrier()` 的 `selectionObserved` fail-closed 其實沒修**——08-15 的審查修正記成「兩處一併修」，實際只有十個繼承動作那一處；段落路由仍把「還沒有人說」當收合游標。已修，新 shape `routing-selection-not-observed` 有自己的呼叫端分支（不得併進「選取holds an image」那句），**只編 object 驗過，未連結**。（二）**3c 的引擎那半本來就在樹裡**，缺的是 worker 投影，已補；`sdk/sdk-worker.js` **不在任何殼層 bundle 裡**，所以殼層摘要不受影響（實測 `test-e2-c-static` exit 0、v2 三個雜湊未變）。（三）**`inlineFormatEnabledIsHonoured` 是樹裡有而文件沒有的 manifest 宣告**，已記入 11.2 並指定其驗收＝D1 的四個 `-false` 格。**這一輪沒有連結，也沒有動任何凍結 artifact。** |
