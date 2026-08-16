@@ -286,15 +286,21 @@
     },
     {
       "id": "queue-search-after-reopen-wedges",
-      "title": "on one engine, a second document's search never returns -- OPEN, not yet characterised",
+      "title": "on a reused engine, the FIRST search after the first close never returns -- CHARACTERISED 2026-08-16, still open",
       "expectation": "absent",
       "source": "findings/evidence/sdk-e2/e2-c-validation/d4/heap/, 2026-08-16",
-      "note": "Reproduced identically in both browsers; the controlled variable is recorded (the same loop without the search completes 8/8). The product does not take this path today -- EditorSession builds a fresh engine per session -- so this is an SDK-level observation and a queue candidate, not a product defect. The check is a placeholder for whatever fix lands; it must not be silently satisfied.",
+      "note": "Characterised, not fixed. Four arms, one variable each, both browsers, on the frozen v2 artifact (findings/evidence/sdk-e2/e2-c-validation/search-wedge/). Two searches on ONE open return in 19 ms, so a second search is not the trigger. `search, close, open, search` wedges at 30 s -- the minimal reproduction. And `open, insert, save, close, open, search`, whose first document is NEVER searched, ALSO wedges: the prediction that it would return is recorded FAILED. So the trigger is the reopen alone, and the item's old wording ('a second document's search') was wider than the fact. Where inside the engine the search stops is NOT established and must not be guessed (findings 040 and 048 are the precedents). Still not a product defect: EditorSession builds a fresh engine per session, so the product never reaches a second open on one engine.",
       "checks": [
         {
           "kind": "absent",
           "file": "src/probe_engine.cpp",
           "text": "searchAfterReopen"
+        },
+        {
+          "kind": "contains",
+          "file": "web/e2-c-search-wedge-app.js",
+          "text": "no-search-then-search",
+          "atLeast": 1
         }
       ],
       "blocksRelink": false

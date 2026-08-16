@@ -1,0 +1,527 @@
+{
+  "schemaVersion": 1,
+  "release": "e2-c-search-wedge",
+  "profile": "e2-editor-v2",
+  "arm": "search-close-open-search",
+  "browser": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+  "fixture": "d1-anchors.odt",
+  "searchTimeoutMs": 30000,
+  "inventory": {
+    "profile": "e2-editor-v2",
+    "abiVersion": 2,
+    "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+    "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+    "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+  },
+  "steps": [
+    {
+      "step": "open",
+      "startedAtMs": 1625,
+      "result": {
+        "_engine": {
+          "_workerUrl": "http://127.0.0.1:39943/profiles/e2-editor-v2/sdk-worker.js",
+          "_workerFactory": {},
+          "_defaultTimeoutMs": 180000,
+          "_closeRecoveryTimeoutMs": 10000,
+          "_debug": false,
+          "_worker": null,
+          "_pending": {},
+          "_listeners": {},
+          "_nextRequestId": 8,
+          "_generation": 2,
+          "_disposed": true,
+          "_ready": false,
+          "manifest": {
+            "abiVersion": 65537,
+            "abiVersionText": "1.1",
+            "artifactFiles": {
+              "probe.js": "./probe.js",
+              "probe.wasm": "./probe.wasm",
+              "soffice.data": "../resources/base-r5.ba15a988a7fec468.data",
+              "soffice.data.js.metadata": "../resources/base-r5.ef11ef80faf373bc.metadata"
+            },
+            "capabilities": [
+              "open-odt",
+              "rgba-tile",
+              "insert-text",
+              "save-odt",
+              "cancel-queued",
+              "search",
+              "selection-text",
+              "replace-selection",
+              "undo",
+              "comments",
+              "tracked-changes",
+              "provider-contract-1.0",
+              "provider-worker",
+              "validated-provider-operation",
+              "narrow-editor-v2",
+              "verified-selection-delete"
+            ],
+            "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+            "expectedCapabilityBits": 2047,
+            "profile": "e2-editor-v2",
+            "protocolVersion": 1,
+            "providerContractVersion": "1.0",
+            "resourcePacks": [
+              {
+                "bytes": 19484784,
+                "data": "../resources/cjk-r5.b76b0433203017ca.data",
+                "id": "cjk-r5",
+                "loadAtStartup": true,
+                "metadata": "../resources/cjk-r5.fafab99558ab6f8b.metadata",
+                "purpose": "CJK corpus",
+                "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+              },
+              {
+                "bytes": 49102042,
+                "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+                "id": "fallback-fonts-r5",
+                "loadAtStartup": false,
+                "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+                "purpose": "optional complex-script and fidelity fallback",
+                "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+              }
+            ],
+            "sdkVersion": "0.6.0-r6-worker+e2-editor-v2",
+            "editorContract": {
+              "version": 2,
+              "abiVersion": 2,
+              "actions": {
+                "move-character-left": {
+                  "id": 1,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "move-character-right": {
+                  "id": 2,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "delete-backward": {
+                  "id": 3,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "delete-forward": {
+                  "id": 4,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "insert-paragraph-break": {
+                  "id": 5,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "insert-line-break": {
+                  "id": 6,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "set-bold": {
+                  "id": 7,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "set-italic": {
+                  "id": 8,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "set-underline": {
+                  "id": 9,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "set-strikethrough": {
+                  "id": 10,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "set-list-none": {
+                  "id": 11,
+                  "gestures": [
+                    "collapsed",
+                    "range-single",
+                    "range-cross"
+                  ],
+                  "limits": []
+                },
+                "set-list-unordered": {
+                  "id": 12,
+                  "gestures": [
+                    "collapsed",
+                    "range-single",
+                    "range-cross"
+                  ],
+                  "limits": []
+                },
+                "set-list-ordered": {
+                  "id": 13,
+                  "gestures": [
+                    "collapsed",
+                    "range-single",
+                    "range-cross"
+                  ],
+                  "limits": []
+                },
+                "set-paragraph-heading": {
+                  "id": 14,
+                  "gestures": [
+                    "collapsed",
+                    "range-single",
+                    "range-cross"
+                  ],
+                  "limits": [
+                    "heading-level-1-only",
+                    "no-precondition-state"
+                  ]
+                },
+                "set-paragraph-body": {
+                  "id": 15,
+                  "gestures": [
+                    "collapsed",
+                    "range-single",
+                    "range-cross"
+                  ],
+                  "limits": [
+                    "no-precondition-state"
+                  ]
+                }
+              },
+              "gestureBits": {
+                "collapsed": 1,
+                "range-single": 2,
+                "range-cross": 4
+              },
+              "textCommit": "document-sdk-insert-text",
+              "undo": "document-sdk-undo",
+              "state": "typed-editor-state-v1",
+              "selectionBarrier": "verified-single-writer-unit-v1",
+              "formatBarrier": "verified-format-readback-v2",
+              "postDispatchFailureDisposition": "rollback-to-checkpoint",
+              "crossParagraphDisposition": "verify-every-block",
+              "boundaryRejectionRequiresFreshWorker": true,
+              "automaticRetry": false,
+              "rawCallbackExposed": false,
+              "arbitraryKeyCodeAccepted": false,
+              "arbitraryUnoCommandAccepted": false,
+              "diagnosticOperationsExposed": false,
+              "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+              "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+              "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+            },
+            "capabilityBits": 2047
+          }
+        },
+        "_generation": 1,
+        "_closed": true,
+        "handle": 1,
+        "revision": 0,
+        "parts": 1,
+        "widthTwips": 12808,
+        "heightTwips": 16408,
+        "tileMode": 0
+      },
+      "outcome": "returned",
+      "tookMs": 309,
+      "wedged": false
+    },
+    {
+      "step": "search",
+      "startedAtMs": 1934,
+      "result": {
+        "rectangle": {
+          "x": 1418,
+          "y": 8630,
+          "width": 3780,
+          "height": 413
+        }
+      },
+      "outcome": "returned",
+      "tookMs": 29,
+      "wedged": false
+    },
+    {
+      "step": "close",
+      "startedAtMs": 1964,
+      "result": null,
+      "outcome": "returned",
+      "tookMs": 8,
+      "wedged": false
+    },
+    {
+      "step": "open",
+      "startedAtMs": 1972,
+      "result": {
+        "_engine": {
+          "_workerUrl": "http://127.0.0.1:39943/profiles/e2-editor-v2/sdk-worker.js",
+          "_workerFactory": {},
+          "_defaultTimeoutMs": 180000,
+          "_closeRecoveryTimeoutMs": 10000,
+          "_debug": false,
+          "_worker": null,
+          "_pending": {},
+          "_listeners": {},
+          "_nextRequestId": 8,
+          "_generation": 2,
+          "_disposed": true,
+          "_ready": false,
+          "manifest": {
+            "abiVersion": 65537,
+            "abiVersionText": "1.1",
+            "artifactFiles": {
+              "probe.js": "./probe.js",
+              "probe.wasm": "./probe.wasm",
+              "soffice.data": "../resources/base-r5.ba15a988a7fec468.data",
+              "soffice.data.js.metadata": "../resources/base-r5.ef11ef80faf373bc.metadata"
+            },
+            "capabilities": [
+              "open-odt",
+              "rgba-tile",
+              "insert-text",
+              "save-odt",
+              "cancel-queued",
+              "search",
+              "selection-text",
+              "replace-selection",
+              "undo",
+              "comments",
+              "tracked-changes",
+              "provider-contract-1.0",
+              "provider-worker",
+              "validated-provider-operation",
+              "narrow-editor-v2",
+              "verified-selection-delete"
+            ],
+            "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+            "expectedCapabilityBits": 2047,
+            "profile": "e2-editor-v2",
+            "protocolVersion": 1,
+            "providerContractVersion": "1.0",
+            "resourcePacks": [
+              {
+                "bytes": 19484784,
+                "data": "../resources/cjk-r5.b76b0433203017ca.data",
+                "id": "cjk-r5",
+                "loadAtStartup": true,
+                "metadata": "../resources/cjk-r5.fafab99558ab6f8b.metadata",
+                "purpose": "CJK corpus",
+                "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+              },
+              {
+                "bytes": 49102042,
+                "data": "../resources/fallback-fonts-r5.33856e2a082148dd.data",
+                "id": "fallback-fonts-r5",
+                "loadAtStartup": false,
+                "metadata": "../resources/fallback-fonts-r5.924fb0ed8b459946.metadata",
+                "purpose": "optional complex-script and fidelity fallback",
+                "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9"
+              }
+            ],
+            "sdkVersion": "0.6.0-r6-worker+e2-editor-v2",
+            "editorContract": {
+              "version": 2,
+              "abiVersion": 2,
+              "actions": {
+                "move-character-left": {
+                  "id": 1,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "move-character-right": {
+                  "id": 2,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "delete-backward": {
+                  "id": 3,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "delete-forward": {
+                  "id": 4,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "insert-paragraph-break": {
+                  "id": 5,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "insert-line-break": {
+                  "id": 6,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "set-bold": {
+                  "id": 7,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "set-italic": {
+                  "id": 8,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "set-underline": {
+                  "id": 9,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "set-strikethrough": {
+                  "id": 10,
+                  "gestures": [
+                    "collapsed"
+                  ],
+                  "limits": []
+                },
+                "set-list-none": {
+                  "id": 11,
+                  "gestures": [
+                    "collapsed",
+                    "range-single",
+                    "range-cross"
+                  ],
+                  "limits": []
+                },
+                "set-list-unordered": {
+                  "id": 12,
+                  "gestures": [
+                    "collapsed",
+                    "range-single",
+                    "range-cross"
+                  ],
+                  "limits": []
+                },
+                "set-list-ordered": {
+                  "id": 13,
+                  "gestures": [
+                    "collapsed",
+                    "range-single",
+                    "range-cross"
+                  ],
+                  "limits": []
+                },
+                "set-paragraph-heading": {
+                  "id": 14,
+                  "gestures": [
+                    "collapsed",
+                    "range-single",
+                    "range-cross"
+                  ],
+                  "limits": [
+                    "heading-level-1-only",
+                    "no-precondition-state"
+                  ]
+                },
+                "set-paragraph-body": {
+                  "id": 15,
+                  "gestures": [
+                    "collapsed",
+                    "range-single",
+                    "range-cross"
+                  ],
+                  "limits": [
+                    "no-precondition-state"
+                  ]
+                }
+              },
+              "gestureBits": {
+                "collapsed": 1,
+                "range-single": 2,
+                "range-cross": 4
+              },
+              "textCommit": "document-sdk-insert-text",
+              "undo": "document-sdk-undo",
+              "state": "typed-editor-state-v1",
+              "selectionBarrier": "verified-single-writer-unit-v1",
+              "formatBarrier": "verified-format-readback-v2",
+              "postDispatchFailureDisposition": "rollback-to-checkpoint",
+              "crossParagraphDisposition": "verify-every-block",
+              "boundaryRejectionRequiresFreshWorker": true,
+              "automaticRetry": false,
+              "rawCallbackExposed": false,
+              "arbitraryKeyCodeAccepted": false,
+              "arbitraryUnoCommandAccepted": false,
+              "diagnosticOperationsExposed": false,
+              "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+              "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+              "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+            },
+            "capabilityBits": 2047
+          }
+        },
+        "_generation": 1,
+        "_closed": true,
+        "handle": 2,
+        "revision": 0,
+        "parts": 1,
+        "widthTwips": 12808,
+        "heightTwips": 16408,
+        "tileMode": 0
+      },
+      "outcome": "returned",
+      "tookMs": 117,
+      "wedged": false
+    },
+    {
+      "step": "search",
+      "startedAtMs": 2089,
+      "outcome": "threw",
+      "error": {
+        "code": "TIMEOUT",
+        "message": "search timed out after 30000 ms"
+      },
+      "tookMs": 30291,
+      "wedged": true
+    }
+  ],
+  "verdict": {
+    "searches": 2,
+    "lastSearchOutcome": "threw",
+    "lastSearchTookMs": 30291,
+    "lastSearchWedged": true
+  },
+  "complete": true,
+  "error": null,
+  "browserName": "firefox"
+}

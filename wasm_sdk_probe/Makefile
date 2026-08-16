@@ -1671,6 +1671,12 @@ dist/e2-c-d4-heap.html: web/e2-c-d4-heap.html | dist
 dist/e2-c-d4-heap-app.js: web/e2-c-d4-heap-app.js | dist
 	cp $< $@
 
+dist/e2-c-search-wedge.html: web/e2-c-search-wedge.html | dist
+	cp $< $@
+
+dist/e2-c-search-wedge-app.js: web/e2-c-search-wedge-app.js | dist
+	cp $< $@
+
 dist/e2-c-d5.html: web/e2-c-d5.html | dist
 	cp $< $@
 
@@ -1717,6 +1723,7 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/e2-c-046-overshoot.html dist/e2-c-046-overshoot-app.js \
 	dist/e2-c-048-boundary.html dist/e2-c-048-boundary-app.js \
 	dist/e2-c-d5.html dist/e2-c-d5-app.js \
+	dist/e2-c-search-wedge.html dist/e2-c-search-wedge-app.js \
 	$(addprefix dist/r7-compat-fixtures/,$(R7_COMPAT_FILES)) \
 	dist/e2-c-caret-ack.html dist/e2-c-caret-ack-app.js \
 	dist/e1-fixtures/list-contexts.odt \
@@ -2131,6 +2138,7 @@ test-e2-c-static:
 	node --check web/e2-c-046-overshoot-app.js
 	node --check web/e2-c-048-boundary-app.js
 	node --check web/e2-c-d5-app.js
+	node --check web/e2-c-search-wedge-app.js
 	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
 	# reachable by a shipped shell.  The four-way inventory check cannot see
 	# this -- its client side is the UNION of two shells and one of them
