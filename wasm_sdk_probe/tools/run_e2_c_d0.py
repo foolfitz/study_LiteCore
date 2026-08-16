@@ -63,6 +63,16 @@ def main() -> int:
     # it up" is how a round ends up measured against criteria nobody froze.
     parser.add_argument("--matrix", type=Path,
                         default=PROJECT / "e2" / "validation-matrix-v1.json")
+    # A DECLARED bypass, not a relaxation.  A diagnostic profile is the frozen
+    # engine repackaged with a patched worker, so its worker hash cannot match
+    # the matrix baseline and the entry assertion refuses it -- correctly.  This
+    # flag takes a reason, records it in the evidence, and stamps the round
+    # `diagnostic`, so a round that skipped the assertion can never be mistaken
+    # for one that passed it.  Silence would have been the other option, and
+    # silence is how a guard stops meaning anything.
+    parser.add_argument("--diagnostic-round", metavar="REASON",
+                        help="skip the matrix entry assertion for a diagnostic "
+                             "profile; the reason is written into result.json")
     parser.add_argument("--output", type=Path,
                         default=PROJECT.parent / "findings" / "evidence" / "sdk-e2"
                         / "e2-c-validation" / "d0")
@@ -73,7 +83,19 @@ def main() -> int:
     # disk, is a round that cannot mean anything afterwards.  External review
     # (2026-08-16) named the window between the relink and the freeze as the
     # one place the first round's mistake can repeat.
-    require_entry(args.matrix, profile=args.profile)
+    if args.diagnostic_round:
+        entry_assertion = {
+            "skipped": True,
+            "reason": args.diagnostic_round,
+            "evidenceClass": "diagnostic",
+            "note": "This round did NOT pass the matrix entry assertion and is "
+                    "not matrix evidence. It is filed to answer a question the "
+                    "product projection cannot answer.",
+        }
+        print(json.dumps({"matrixEntryAssertion": entry_assertion},
+                         ensure_ascii=False), flush=True)
+    else:
+        entry_assertion = require_entry(args.matrix, profile=args.profile)
 
     artifact = artifact_hashes(args.profile)
     evidence = args.output / f"{args.profile}-{artifact['wasmSha256'][:8]}" / args.browser
@@ -156,6 +178,7 @@ def main() -> int:
         "consistent": all(reported.get(key) == artifact[key] for key in reported),
     }
     metrics["browserName"] = args.browser
+    metrics["matrixEntryAssertion"] = entry_assertion
 
     (evidence / "saved").mkdir(parents=True, exist_ok=True)
     written = []

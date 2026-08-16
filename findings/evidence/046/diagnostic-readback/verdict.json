@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-046-diagnostic-readback",
+  "predictionFile": "findings/evidence/046/diagnostic-readback/PREDICTION.md",
+  "evidenceClass": "diagnostic",
+  "engineIsFrozenShipping": true,
+  "runs": [
+    {
+      "run": "../findings/evidence/046/diagnostic-readback/e2-readback-diagnostic-572035ac/chrome",
+      "browser": "chrome",
+      "profile": "e2-readback-diagnostic",
+      "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "matrixEntryAssertion": {
+        "skipped": true,
+        "reason": "the product projection drops readback.html and containment; this profile is the FROZEN 572035ac engine repackaged with the raw-record worker",
+        "evidenceClass": "diagnostic",
+        "note": "This round did NOT pass the matrix entry assertion and is not matrix evidence. It is filed to answer a question the product projection cannot answer."
+      }
+    },
+    {
+      "run": "../findings/evidence/046/diagnostic-readback/e2-readback-diagnostic-572035ac/firefox",
+      "browser": "firefox",
+      "profile": "e2-readback-diagnostic",
+      "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "matrixEntryAssertion": {
+        "skipped": true,
+        "reason": "the product projection drops readback.html and containment; this profile is the FROZEN 572035ac engine repackaged with the raw-record worker",
+        "evidenceClass": "diagnostic",
+        "note": "This round did NOT pass the matrix entry assertion and is not matrix evidence. It is filed to answer a question the product projection cannot answer."
+      }
+    }
+  ],
+  "findings": {
+    "P-046D-1": {
+      "claim": "the disputed arms carry a non-empty readback.html",
+      "observed": [
+        {
+          "bytes": 576,
+          "htmlLength": 576
+        },
+        {
+          "bytes": 576,
+          "htmlLength": 576
+        },
+        {
+          "bytes": 576,
+          "htmlLength": 576
+        },
+        {
+          "bytes": 576,
+          "htmlLength": 576
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-046D-2": {
+      "claim": "the disputed arms read parsed:true, blockCount:0, itemCount>=2 -- the 'multiBlock with no block in it' combination",
+      "observed": [
+        {
+          "parsed": true,
+          "blockCount": 2,
+          "itemCount": 1,
+          "multiBlock": true
+        },
+        {
+          "parsed": true,
+          "blockCount": 2,
+          "itemCount": 1,
+          "multiBlock": true
+        },
+        {
+          "parsed": true,
+          "blockCount": 2,
+          "itemCount": 1,
+          "multiBlock": true
+        },
+        {
+          "parsed": true,
+          "blockCount": 2,
+          "itemCount": 1,
+          "multiBlock": true
+        }
+      ],
+      "status": "FAILED"
+    },
+    "P-046D-3": {
+      "claim": "the disputed arms show containment checked and NOT held",
+      "observed": [
+        {
+          "checked": true,
+          "held": true,
+          "selectionTop": 1807,
+          "selectionBottom": 2471,
+          "restoreCentre": 1945
+        },
+        {
+          "checked": true,
+          "held": true,
+          "selectionTop": 1807,
+          "selectionBottom": 2471,
+          "restoreCentre": 1945
+        },
+        {
+          "checked": true,
+          "held": true,
+          "selectionTop": 1807,
+          "selectionBottom": 2471,
+          "restoreCentre": 1945
+        },
+        {
+          "checked": true,
+          "held": true,
+          "selectionTop": 1807,
+          "selectionBottom": 2471,
+          "restoreCentre": 1945
+        }
+      ],
+      "status": "FAILED"
+    },
+    "P-046D-4": {
+      "claim": "the control reads parsed:true, blockCount:1, containment held",
+      "observed": [
+        {
+          "parsed": true,
+          "blockCount": 1,
+          "held": true,
+          "accepted": true
+        },
+        {
+          "parsed": true,
+          "blockCount": 1,
+          "held": true,
+          "accepted": true
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-046D-5": {
+      "claim": "every arm reaches the SAME outcome on both profiles -- swapping the projection changes what can be seen, not what happens",
+      "observed": "all same",
+      "comparisons": 10,
+      "status": "HELD"
+    }
+  },
+  "held": [
+    "P-046D-1",
+    "P-046D-4",
+    "P-046D-5"
+  ],
+  "failed": [
+    "P-046D-2",
+    "P-046D-3"
+  ],
+  "queueDisposition": {
+    "emptyReadbackOccurred": false,
+    "reorderWouldChangeADisputedCell": false
+  }
+}

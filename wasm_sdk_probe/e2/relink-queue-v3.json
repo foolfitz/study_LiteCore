@@ -58,7 +58,7 @@
     },
     {
       "id": "p1-3b-empty-readback",
-      "title": "the `empty-readback` shape -- the native/WASM disagreement is RESOLVED (2026-08-16); what remains is a projection decision",
+      "title": "the `empty-readback` shape -- WITHDRAWN 2026-08-16, measured: there is nothing for it to name",
       "expectation": "absent",
       "source": "finding 046 + findings/evidence/046/native/; PLAN P1 row 3b",
       "checks": [
@@ -73,8 +73,8 @@
           "text": "empty-readback"
         }
       ],
-      "blocksRelink": true,
-      "note": "Measured: preBlocks/postBlocks are never assigned on the collapsed route (probe_engine.cpp:3329 is range-only, :3368 is cross-only), so core's readback measurement and the browser's zero were never comparable. Shown by control rather than by source reading: a SUCCEEDED barrier over a text paragraph also reports preBlocks 0, and a range arm reports 1. Evidence: findings/evidence/046/browser-vs-native/. 3b now needs the product to be able to tell 'nothing read' from 'only list items read' -- readback.parsed and readback.blockCount are in the engine record and not in the projection."
+      "blocksRelink": false,
+      "note": "Withdrawn on data, off the FROZEN engine (a diagnostic profile whose probe.wasm is byte-identical to e2-editor-v2). On the empty paragraph the barrier reads parsed:true, blockCount:2, itemCount:1 -- a genuine two-paragraph read, accurately reported as multi-block-readback. NO arm produced a parsed readback with zero blocks. The 'zero blocks' this item was built on was postBlocks:0, the field never written on the collapsed route. Evidence: findings/evidence/046/diagnostic-readback/. The check stays `absent`: nothing should acquire this shape quietly now that it is known to name a case that does not occur. If it ever does occur, the round-two cell below is what would show it."
     },
     {
       "id": "p1-3c-itemcount-projection",
@@ -223,10 +223,10 @@
     },
     {
       "id": "queue-barrier-verifies-own-paragraph",
-      "title": "the barrier must verify the paragraph it acted on -- the CHECK exists and is enforced; what is open is its ORDER",
+      "title": "the containment reorder -- NOT in this link (2026-08-16, measured): it would change no disputed cell",
       "expectation": "absent",
       "source": "findings/evidence/046/native/, 2026-08-16; PLAN queue addition",
-      "note": "Measured 2026-08-16, correcting this item's own premise: checkFormatBarrierContainment() has compared the selection against the pre-dispatch caret since finding 034, and `selection-does-not-contain-restore-point` is a real failure shape. What is wrong is the ORDER: it is judged AFTER readback.multiBlock, so in the empty-paragraph case that motivated this item the accurate diagnosis is masked by multi-block-readback. Deliberately NOT reordered in this round: the browser cannot yet see the readback content, so there is no way to check which shape is right -- v3 projects it, the second round measures it, and the reorder is decided on data. Recorded as a decision so it is not read later as an omission.",
+      "note": "Measured off the frozen engine: on the disputed cells containment is checked and HELD (selection 1807-2471, restore centre 1945). Reordering it ahead of multiBlock therefore changes nothing there. This retreat condition was named by external adjudication before the data existed. The real defect is different and is filed separately: .uno:SelectText overshoots an empty paragraph, so the barrier refuses a mutation that succeeded -- and containment cannot catch that, because it asks whether the selection COVERS the caret, never whether it covers ONLY the caret's paragraph.",
       "checks": [
         {
           "kind": "contains",
@@ -246,7 +246,7 @@
           "text": "containmentJudgedBeforeMultiBlock"
         }
       ],
-      "blocksRelink": true
+      "blocksRelink": false
     },
     {
       "id": "queue-engine-reports-wasm-heap",
@@ -336,6 +336,21 @@
           "file": "sdk/sdk-worker.js",
           "text": "readbackBlockCount: value.readback?.blockCount ?? null,",
           "atLeast": 1
+        }
+      ]
+    },
+    {
+      "id": "queue-selecttext-overshoots-empty-paragraph",
+      "title": "the barrier's own selection overshoots an empty paragraph, so a successful mutation is refused -- OPEN, not blocking",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "findings/evidence/046/diagnostic-readback/, 2026-08-16",
+      "note": "This is finding 046's actual defect, now precise. Raw readback on the empty paragraph: `<ul><li><p></p></li></ul><p>E1-EMPTY-AFTER</p>` -- the bullet APPLIED and the read swallowed the paragraph below. Both browsers, both gestures. Not blocking this link: the fix needs a design (verify by block identity rather than refuse) plus its own measurement, and the link is for changes already decided. Round two needs a matrix cell for it.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "src/probe_engine.cpp",
+          "text": "selectionOvershootChecked"
         }
       ]
     }

@@ -110,6 +110,33 @@ compares the wrong text — the same family as finding 048, where the product
 confirmed a click that had not landed.  046's own remedy (rename the outcome)
 does not touch that.
 
+## Addendum (2026-08-16, later the same day): the gesture measured here is NOT the barrier's
+
+This round dispatches `.uno:GoToStartOfPara` then `.uno:EndOfParaSel`
+(`tools/f046_native_empty_readback.cpp:126-127`) and calls that "the barrier's
+own selection pair".  **The shipped barrier does not use it.**  It posts a
+single `.uno:SelectText` (`src/probe_engine.cpp:804`, dispatched by
+`postFormatBarrierParagraphSelection()`), and the comment directly above that
+function records why: the pair reordered its own effects (finding 033) and
+**escaped to a neighbouring paragraph whenever the caret already sat at a
+paragraph edge** (finding 034).
+
+So this round re-measured the superseded gesture -- and re-measured exactly the
+defect that superseded it.  **The numbers here are real; what they describe is
+the old pair, not the shipped barrier.**
+
+Measured the same day off the frozen engine, with the barrier's actual gesture
+(`findings/evidence/046/diagnostic-readback/`): on the same empty paragraph the
+readback is `parsed:true, blockCount:2` -- the bullet applies and the selection
+swallows the paragraph BELOW, not the one above.  Containment holds there, so
+the "verifies a paragraph the action did not touch" conclusion below does not
+carry over to the shipped barrier either.
+
+**What survives from this round**: the parser facts (an empty read is
+`parsed=false`; `blockCount 0` with `itemCount >= 2` is representable), the
+saved document proving the action applies, and the discipline of classifying
+with the engine's own scanner.
+
 ## Reproducing
 
 ```

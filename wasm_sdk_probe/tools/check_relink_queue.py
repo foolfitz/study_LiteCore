@@ -158,6 +158,7 @@ def self_test() -> int:
     Each one turns a real item's outcome, because a checker that cannot be shown
     to fail is a checker that will report success about a tree it never read.
     """
+    import copy
     import tempfile
 
     queue = json.loads(DEFAULT_QUEUE.read_text(encoding="utf-8"))
@@ -207,10 +208,34 @@ def self_test() -> int:
     check("disabling the selectionObserved gate with `if (false && ...)` is caught",
           status_of(report, "p1-8b-selection-observed") == "DRIFTED")
     check("and that alone fails P1", report["p1Complete"] is False)
-    check("P1 is NOT complete while a blocking item is still open",
-          baseline["p1Complete"] is False
-          and baseline["blockingOpenItems"] != [],
-          f"blocking={baseline.get('blockingOpenItems')}")
+    # Written as a MUTATION, not as an assertion about today's queue: the first
+    # version asserted `baseline["p1Complete"] is False`, which was true only
+    # while blockers happened to exist and went red the day the last one was
+    # measured away.  A check that describes the data instead of the logic
+    # stops working exactly when the data changes -- which is when it matters.
+    def make_an_open_item_blocking(cloned_queue):
+        for item in cloned_queue.get("items") or []:
+            if item.get("expectation") == "absent":
+                item["blocksRelink"] = True
+                return
+
+    blocked = copy.deepcopy(queue)
+    make_an_open_item_blocking(blocked)
+    blocked_report = evaluate(blocked, PROJECT)
+    check("an open item marked blocking makes P1 incomplete",
+          blocked_report["p1Complete"] is False
+          and blocked_report["blockingOpenItems"] != [],
+          f"blocking={blocked_report.get('blockingOpenItems')}")
+
+    def clear_all_blocking(cloned_queue):
+        for item in cloned_queue.get("items") or []:
+            if item.get("expectation") == "absent":
+                item["blocksRelink"] = False
+
+    unblocked = copy.deepcopy(queue)
+    clear_all_blocking(unblocked)
+    check("and with none marked blocking, P1 can be complete",
+          evaluate(unblocked, PROJECT)["p1Complete"] is True)
 
     def drop_itemcount(root: Path):
         path = root / "sdk" / "sdk-worker.js"

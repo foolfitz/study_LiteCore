@@ -2115,7 +2115,7 @@ test-e2-c-static:
 		tools/analyze_e2_c_d5.py tools/run_e2_c_d5.py \
 		tools/analyze_e2_c_d4_heap.py tools/check_relink_queue.py \
 		tools/e2_c_matrix_entry.py tools/analyze_f046_browser.py \
-		tools/analyze_f048_boundary.py \
+		tools/analyze_f048_boundary.py tools/analyze_f046_diagnostic.py \
 		tools/validate_e2_c.py
 	python3 -m json.tool e2/relink-queue-v3.json > /dev/null
 	# The relink queue, run instead of read.  It lied twice while it was prose
@@ -2144,6 +2144,15 @@ test-e2-c-static:
 	# must take the conclusion away, or "engine side" is just what it prints.
 	python3 tools/analyze_f048_boundary.py --self-test \
 		$$(find ../findings/evidence/048/boundary \
+			-name result.json -printf '%h\n' | sort) > /dev/null
+	# The diagnostic readback round withdrew a relink queue item.  Its self-test
+	# has to be able to reach the other answer on both counts -- a zero-block
+	# readback would revive 3b, and a containment failure would revive the
+	# reorder -- or "withdrawn" is just what the analyzer prints.
+	python3 tools/analyze_f046_diagnostic.py --self-test \
+		--diagnostic $$(find ../findings/evidence/046/diagnostic-readback \
+			-name result.json -printf '%h\n' | sort) \
+		--product $$(find ../findings/evidence/046/browser-vs-native/run-2 \
 			-name result.json -printf '%h\n' | sort) > /dev/null
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves

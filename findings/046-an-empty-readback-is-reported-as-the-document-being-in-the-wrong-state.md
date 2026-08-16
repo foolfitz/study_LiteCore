@@ -154,6 +154,63 @@ barrier 自己的註解就寫著這個區別（`probe_engine.cpp:3488`）：
   （`stage-deadline:awaiting-selection`，兩瀏覽器一致）——與本檔「還缺什麼」
   第二項是同一條路徑。
 
+## 2026-08-16 診斷輪：**在凍結的引擎上讀出 barrier 自己的紀錄**
+
+外部裁決指出「這些問題需要 relink 才量得到」是錯的：診斷 profile 是一個
+**Python 打包步驟**（`build_e2_discovery_profile.py` 是 `shutil.copy2(wasm)`，
+`--wasm` 是輸入），引擎位元一個都不動。核對過：`probe.wasm` 與
+`dist/profiles/e2-editor-v2/probe.wasm` **逐位元相同**。
+
+方法的自我控制先成立（P-046D-5）：**同一頁、同一批 arm、兩個 profile 的結果完全
+相同**——換掉投影改變的是看得到什麼，不是發生了什麼。
+
+**讀出來的東西**（兩瀏覽器一致）：
+
+| arm | parsed | blockCount | itemCount | containment | 結果 |
+|---|---|---|---|---|---|
+| 有文字的段落（控制） | true | **1** | 1 | checked, **held** | **成功** |
+| 空段落（點擊／零寬 selectRange） | true | **2** | 1 | checked, **held** | `multi-block-readback` |
+| 最後一個空段落 | **false** | 0 | 0 | 未檢查 | `stage-deadline` |
+
+**原始 markup 就是答案**：
+
+```html
+空段落那一格：<ul><li><p></p></li></ul><p>E1-EMPTY-AFTER</p>
+```
+
+**項目符號套用了**——空段落確實變成帶空 `<p>` 的 list item——**而讀回把下面那一段
+也吞進來了**。所以 barrier 看到兩個 block，然後拒絕了一個其實成功的變更。
+
+### 兩個 blocker 都有答案了，而且都不是我預期的方向
+
+- **3b 撤銷**：我登記的是「`parsed:true, blockCount:0, itemCount≥2`」，量到的是
+  `blockCount:2`。**沒有任何一格產生「parsed 但零 block」的讀回。** 3b 要命名的
+  那個案例在這份語料上不存在，而它賴以成立的「零個 block」是 `postBlocks: 0`
+  ——那個在 collapsed 路徑上從來沒被寫入的欄位。`multiBlock` 不是誤報：
+  讀回真的涵蓋了兩段。
+- **containment 重排不進這次連結**：我登記的是 `checked:true, held:false`，
+  量到的是 **`held: true`**（選取 1807–2471，restore centre 1945，在裡面）。
+  重排**不會改變任何一格**。這個撤退條件是裁決在資料出現之前就指名的。
+
+### 真正的缺陷，現在精確了
+
+**空段落上 `.uno:SelectText` 會選過頭，把下一段也選進來。** 動作成功、驗證讀多了
+一段、barrier 回報 `MUTATION_OUTCOME_UNKNOWN`。
+
+而 containment **依構造抓不到它**：它問的是「選取有沒有涵蓋游標」，不是「有沒有
+只涵蓋游標那一段」——**一個單向的檢查**，只抓得到選少了，抓不到選多了。
+選多了是被 `multiBlock` 順便抓到的,這也解釋了為什麼 `multiBlock` 先判、
+以及為什麼重排沒有用。
+
+### 原生那一輪的更正
+
+`findings/evidence/046/native/README.md` 把 `.uno:GoToStartOfPara` ＋
+`.uno:EndOfParaSel` 說成「barrier 自己的選取對」。**那不是引擎的手勢**：barrier
+送的是單一 `.uno:SelectText`（`probe_engine.cpp:804`），而它上面的註解記著那個
+「對」正是因為**游標在段落邊界時會逃到鄰段**（finding 034）才被取代的。
+原生那一輪等於重量了一個已被取代的手勢——而且量到的正是取代它的那個缺陷。
+已在該檔加註日期更正。
+
 ## 這對 3b 的意思
 
 **卡住的東西沒了，但問題換了位置。** 沒有 native／WASM 矛盾要解釋。3b 真正還缺的是：

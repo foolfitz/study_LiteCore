@@ -170,6 +170,46 @@ build 的矩陣比沒凍結更糟。承重的自我測試：**只把 status 翻�
 **這是正確行為**，需要的是一個**具名的旁路**（證據標成 diagnostic、永不混進矩陣證據），
 不是把守衛放寬。
 
+## 裁決之後：診斷輪跑完了，**兩個 blocker 都解除**
+
+裁決說「這些問題不需要 relink 就量得到」。照做了，而且**兩個 blocker 都不是往我
+預期的方向解決的**。證據：`findings/evidence/046/diagnostic-readback/`
+（**evidence class: diagnostic**，runner 帶 `--diagnostic-round <理由>`，
+理由蓋在每一份 `result.json` 裡，永遠不會被誤認成矩陣證據）。
+
+**引擎是出貨那顆**：`dist/profiles/e2-readback-diagnostic/probe.wasm` 與
+`dist/profiles/e2-editor-v2/probe.wasm` **逐位元相同**。方法的自我控制先成立
+（P-046D-5）：同一頁、同一批 arm、兩個 profile 的**結果完全相同**。
+
+**讀出來的東西**：空段落那一格是 `parsed:true, blockCount:2, itemCount:1`，
+原始 markup 是 `<ul><li><p></p></li></ul><p>E1-EMPTY-AFTER</p>`——
+**項目符號套用了，而讀回把下面那一段也吞進來了**。
+
+| blocker | 處置 | 依據 |
+|---|---|---|
+| **3b `empty-readback`** | **撤銷** | 沒有任何一格產生「parsed 但零 block」的讀回；它賴以成立的「零個 block」是那個從未被寫入的 `postBlocks` |
+| **containment 重排** | **不進這次連結** | 爭議格的 containment 是 `held: true`，重排**不會改變任何一格**（裁決事前指名的撤退條件） |
+
+**真正的缺陷現在精確了**（新項，**不擋連結**）：空段落上 `.uno:SelectText`
+**會選過頭**，把下一段也選進來——動作成功、驗證多讀一段、回報
+`MUTATION_OUTCOME_UNKNOWN`。而 containment 依構造抓不到它：它問「選取有沒有涵蓋
+游標」，不是「有沒有只涵蓋游標那一段」——**單向的檢查**，只抓得到選少了。
+
+**原生那一輪也更正了**：它把 `.uno:GoToStartOfPara` ＋ `.uno:EndOfParaSel` 說成
+「barrier 自己的選取對」，但引擎送的是單一 `.uno:SelectText`——那個「對」正是因為
+**會逃到鄰段**（finding 034）才被取代的。原生輪重量了一個已被取代的手勢。
+
+### 所以佇列現在說什麼
+
+```
+17 items, 12 declared present, 5 still open, 0 drifted
+P1 complete: True
+  blocking:  (none)
+```
+
+**連結的門檻依佇列自己的判準達成了。** 五個未做項全部具名、全部非阻擋，理由都寫在
+JSON 裡。操作手冊在 [`RUNBOOK-relink-v3.md`](RUNBOOK-relink-v3.md)。
+
 ## 這一輪的三個教訓
 
 - **在為一個佇列項付錢之前，先量它的前提。** 一次 relink 會鑄出新身分、作廢舊判定；

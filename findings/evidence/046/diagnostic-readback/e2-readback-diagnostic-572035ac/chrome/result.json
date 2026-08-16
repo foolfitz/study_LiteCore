@@ -1,0 +1,628 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-046-browser-vs-native",
+  "profile": "e2-readback-diagnostic",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "fixture": "empty-paragraph.odt",
+  "geometry": {
+    "before": {
+      "x": 1418,
+      "y": 1418,
+      "width": 2160,
+      "height": 275
+    },
+    "after": {
+      "x": 1418,
+      "y": 2196,
+      "width": 1999,
+      "height": 275
+    },
+    "empty": {
+      "x": 1418,
+      "y": 1693,
+      "width": 2160,
+      "height": 503
+    },
+    "lastEmpty": {
+      "x": 1418,
+      "y": 2471,
+      "width": 1999,
+      "height": 275,
+      "estimated": true
+    },
+    "plausible": true
+  },
+  "arms": {
+    "A3-text-click": {
+      "arm": "A3-text-click",
+      "target": "before",
+      "geometry": {
+        "x": 1418,
+        "y": 1418,
+        "width": 2160,
+        "height": 275
+      },
+      "clickedAt": {
+        "x": 2498,
+        "y": 1555
+      },
+      "caretBefore": {
+        "caret": {
+          "available": true,
+          "x": 2577,
+          "y": 1418,
+          "height": 276,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "arrivedAfterMs": 37,
+        "confirmedBy": "engine-acknowledged",
+        "gesture": "click-verified"
+      },
+      "stateBeforeAction": {
+        "caret": {
+          "available": true,
+          "x": 2577,
+          "y": 1418,
+          "height": 276,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        }
+      },
+      "accepted": true,
+      "result": {
+        "completion": "verified-format-readback",
+        "revision": 1,
+        "formatBarrier": {
+          "command": ".uno:DefaultBullet",
+          "selectCommand": ".uno:SelectText",
+          "dispatchSequence": 3,
+          "stage": "awaiting-restore",
+          "failureShape": "",
+          "crosstalkCount": 0,
+          "earlyStateCount": 0,
+          "resultSeen": true,
+          "selectionResultSeen": true,
+          "selectionBeforeResultCount": 0,
+          "containment": {
+            "checked": true,
+            "held": true,
+            "selectionTop": 1418,
+            "selectionBottom": 1693,
+            "restoreCentre": 1556
+          },
+          "selectionType": 1,
+          "selectionTypeReadable": true,
+          "dispatchSelectionCollapsed": true,
+          "dispatchSelectionObserved": true,
+          "dispatchSelectionRectangles": 0,
+          "resultSuccess": false,
+          "resultModified": false,
+          "expectedStyles": [],
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0,
+          "crossChecked": false,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false,
+          "blockTextsMatched": true,
+          "readback": {
+            "parsed": true,
+            "unknownTag": false,
+            "unknownTagName": "",
+            "malformedNesting": false,
+            "footnoteApparatus": false,
+            "multiBlock": false,
+            "blockCount": 1,
+            "itemCount": 1,
+            "listTag": "ul",
+            "blockTag": "p",
+            "expectedListTag": "ul",
+            "expectedBlockTag": "",
+            "bytes": 520,
+            "restoreConfirmed": true,
+            "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-EMPTY-BEFORE</p></li>\n</ul>\n</body>\n</html>"
+          }
+        }
+      },
+      "sessionState": "ready",
+      "savedBytes": 9305
+    },
+    "A1-empty-click": {
+      "arm": "A1-empty-click",
+      "target": "empty",
+      "geometry": {
+        "x": 1418,
+        "y": 1693,
+        "width": 2160,
+        "height": 503
+      },
+      "clickedAt": {
+        "x": 2498,
+        "y": 1944
+      },
+      "caretBefore": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 1807,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "arrivedAfterMs": 37,
+        "confirmedBy": "engine-acknowledged",
+        "gesture": "click-verified"
+      },
+      "stateBeforeAction": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 1807,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        }
+      },
+      "accepted": false,
+      "result": {
+        "code": "MUTATION_OUTCOME_UNKNOWN",
+        "message": "the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on",
+        "formatBarrier": {
+          "command": ".uno:DefaultBullet",
+          "selectCommand": ".uno:SelectText",
+          "dispatchSequence": 3,
+          "stage": "awaiting-restore",
+          "failureShape": "multi-block-readback",
+          "crosstalkCount": 0,
+          "earlyStateCount": 0,
+          "resultSeen": true,
+          "selectionResultSeen": true,
+          "selectionBeforeResultCount": 0,
+          "containment": {
+            "checked": true,
+            "held": true,
+            "selectionTop": 1807,
+            "selectionBottom": 2471,
+            "restoreCentre": 1945
+          },
+          "selectionType": 1,
+          "selectionTypeReadable": true,
+          "dispatchSelectionCollapsed": true,
+          "dispatchSelectionObserved": true,
+          "dispatchSelectionRectangles": 0,
+          "resultSuccess": false,
+          "resultModified": false,
+          "expectedStyles": [],
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0,
+          "crossChecked": false,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false,
+          "blockTextsMatched": true,
+          "readback": {
+            "parsed": true,
+            "unknownTag": false,
+            "unknownTagName": "",
+            "malformedNesting": false,
+            "footnoteApparatus": false,
+            "multiBlock": true,
+            "blockCount": 2,
+            "itemCount": 1,
+            "listTag": "ul",
+            "blockTag": "p",
+            "expectedListTag": "ul",
+            "expectedBlockTag": "",
+            "bytes": 576,
+            "restoreConfirmed": true,
+            "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-EMPTY-AFTER</p>\n</body>\n</html>"
+          }
+        },
+        "details": {
+          "operation": "editor-action",
+          "code": "MUTATION_OUTCOME_UNKNOWN",
+          "message": "the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on",
+          "documentHandle": 1
+        }
+      },
+      "sessionState": "recoverable-error",
+      "rollback": "ok",
+      "sessionStateAfterRollback": "ready",
+      "savedBytes": 8530
+    },
+    "A2-empty-selectrange": {
+      "arm": "A2-empty-selectrange",
+      "target": "empty",
+      "geometry": {
+        "x": 1418,
+        "y": 1693,
+        "width": 2160,
+        "height": 503
+      },
+      "clickedAt": {
+        "x": 2498,
+        "y": 1944
+      },
+      "caretBefore": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 1807,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "gesture": "selectrange-zero-width"
+      },
+      "stateBeforeAction": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 1807,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        }
+      },
+      "accepted": false,
+      "result": {
+        "code": "MUTATION_OUTCOME_UNKNOWN",
+        "message": "the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on",
+        "formatBarrier": {
+          "command": ".uno:DefaultBullet",
+          "selectCommand": ".uno:SelectText",
+          "dispatchSequence": 3,
+          "stage": "awaiting-restore",
+          "failureShape": "multi-block-readback",
+          "crosstalkCount": 0,
+          "earlyStateCount": 0,
+          "resultSeen": true,
+          "selectionResultSeen": true,
+          "selectionBeforeResultCount": 0,
+          "containment": {
+            "checked": true,
+            "held": true,
+            "selectionTop": 1807,
+            "selectionBottom": 2471,
+            "restoreCentre": 1945
+          },
+          "selectionType": 1,
+          "selectionTypeReadable": true,
+          "dispatchSelectionCollapsed": true,
+          "dispatchSelectionObserved": true,
+          "dispatchSelectionRectangles": 0,
+          "resultSuccess": false,
+          "resultModified": false,
+          "expectedStyles": [],
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0,
+          "crossChecked": false,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false,
+          "blockTextsMatched": true,
+          "readback": {
+            "parsed": true,
+            "unknownTag": false,
+            "unknownTagName": "",
+            "malformedNesting": false,
+            "footnoteApparatus": false,
+            "multiBlock": true,
+            "blockCount": 2,
+            "itemCount": 1,
+            "listTag": "ul",
+            "blockTag": "p",
+            "expectedListTag": "ul",
+            "expectedBlockTag": "",
+            "bytes": 576,
+            "restoreConfirmed": true,
+            "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\"></p></li>\n</ul>\n<p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-EMPTY-AFTER</p>\n</body>\n</html>"
+          }
+        },
+        "details": {
+          "operation": "editor-action",
+          "code": "MUTATION_OUTCOME_UNKNOWN",
+          "message": "the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on",
+          "documentHandle": 1
+        }
+      },
+      "sessionState": "recoverable-error",
+      "rollback": "ok",
+      "sessionStateAfterRollback": "ready",
+      "savedBytes": 8531
+    },
+    "A4-last-empty-click": {
+      "arm": "A4-last-empty-click",
+      "target": "lastEmpty",
+      "geometry": {
+        "x": 1418,
+        "y": 2471,
+        "width": 1999,
+        "height": 275,
+        "estimated": true
+      },
+      "clickedAt": {
+        "x": 2417,
+        "y": 2608
+      },
+      "caretBefore": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 2585,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "arrivedAfterMs": 39,
+        "confirmedBy": "engine-acknowledged",
+        "gesture": "click-verified"
+      },
+      "stateBeforeAction": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 2585,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        }
+      },
+      "accepted": false,
+      "result": {
+        "code": "MUTATION_OUTCOME_UNKNOWN",
+        "message": "the format barrier stopped advancing before it could read the paragraph, so what the dispatch did is unknown",
+        "formatBarrier": {
+          "command": ".uno:DefaultBullet",
+          "selectCommand": ".uno:SelectText",
+          "dispatchSequence": 3,
+          "stage": "awaiting-selection",
+          "failureShape": "stage-deadline:awaiting-selection",
+          "crosstalkCount": 0,
+          "earlyStateCount": 0,
+          "resultSeen": true,
+          "selectionResultSeen": true,
+          "selectionBeforeResultCount": 0,
+          "containment": {
+            "checked": false,
+            "held": false,
+            "selectionTop": 0,
+            "selectionBottom": 0,
+            "restoreCentre": 0
+          },
+          "selectionType": -1,
+          "selectionTypeReadable": false,
+          "dispatchSelectionCollapsed": true,
+          "dispatchSelectionObserved": true,
+          "dispatchSelectionRectangles": 0,
+          "resultSuccess": false,
+          "resultModified": false,
+          "expectedStyles": [],
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0,
+          "crossChecked": false,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false,
+          "blockTextsMatched": true,
+          "readback": {
+            "parsed": false,
+            "unknownTag": false,
+            "unknownTagName": "",
+            "malformedNesting": false,
+            "footnoteApparatus": false,
+            "multiBlock": false,
+            "blockCount": 0,
+            "itemCount": 0,
+            "listTag": "",
+            "blockTag": "",
+            "expectedListTag": "ul",
+            "expectedBlockTag": "",
+            "bytes": 0,
+            "restoreConfirmed": false,
+            "html": ""
+          }
+        },
+        "details": {
+          "operation": "editor-action",
+          "code": "MUTATION_OUTCOME_UNKNOWN",
+          "message": "the format barrier stopped advancing before it could read the paragraph, so what the dispatch did is unknown",
+          "documentHandle": 1
+        }
+      },
+      "sessionState": "recoverable-error",
+      "rollback": "ok",
+      "sessionStateAfterRollback": "ready",
+      "savedBytes": 8531
+    },
+    "A5-text-range": {
+      "arm": "A5-text-range",
+      "target": "before",
+      "gesture": "selectrange-text",
+      "geometry": {
+        "x": 1418,
+        "y": 1418,
+        "width": 2160,
+        "height": 275
+      },
+      "stateBeforeAction": {
+        "caret": {
+          "available": true,
+          "x": 3578,
+          "y": 1418,
+          "height": 276,
+          "observed": true,
+          "collapsed": false,
+          "selectionType": "text"
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3578,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 1418,
+              "width": 2160,
+              "height": 275
+            }
+          ]
+        }
+      },
+      "accepted": true,
+      "result": {
+        "completion": "verified-format-readback",
+        "revision": 1,
+        "formatBarrier": {
+          "command": ".uno:DefaultBullet",
+          "selectCommand": ".uno:SelectText",
+          "dispatchSequence": 5,
+          "stage": "awaiting-restore",
+          "failureShape": "",
+          "crosstalkCount": 0,
+          "earlyStateCount": 0,
+          "resultSeen": true,
+          "selectionResultSeen": true,
+          "selectionBeforeResultCount": 0,
+          "containment": {
+            "checked": true,
+            "held": true,
+            "selectionTop": 1418,
+            "selectionBottom": 1693,
+            "restoreCentre": 1556
+          },
+          "selectionType": 1,
+          "selectionTypeReadable": true,
+          "dispatchSelectionCollapsed": false,
+          "dispatchSelectionObserved": true,
+          "dispatchSelectionRectangles": 1,
+          "resultSuccess": false,
+          "resultModified": false,
+          "expectedStyles": [],
+          "route": "range-single",
+          "preBlocks": 1,
+          "postBlocks": 0,
+          "crossChecked": false,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false,
+          "blockTextsMatched": false,
+          "readback": {
+            "parsed": true,
+            "unknownTag": false,
+            "unknownTagName": "",
+            "malformedNesting": false,
+            "footnoteApparatus": false,
+            "multiBlock": false,
+            "blockCount": 1,
+            "itemCount": 1,
+            "listTag": "ul",
+            "blockTag": "p",
+            "expectedListTag": "ul",
+            "expectedBlockTag": "",
+            "bytes": 520,
+            "restoreConfirmed": true,
+            "html": "<!DOCTYPE html>\n<html>\n<head>\n\t<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n\t<title></title>\n\t<meta name=\"generator\" content=\"LibreOfficeDev 26.8.0.1.0 (Emscripten)\"/>\n\t<style type=\"text/css\">\n\t\t@page { size: 8.5in 11in; margin: 0.79in }\n\t\tp { margin-bottom: 0.1in; line-height: 115%; background: transparent }\n\t</style>\n</head>\n<body lang=\"en-US\" link=\"#000080\" vlink=\"#800000\" dir=\"ltr\">\n<ul><li><p style=\"margin-bottom: 0.08in; line-height: 100%\">E1-EMPTY-BEFORE</p></li>\n</ul>\n</body>\n</html>"
+          }
+        }
+      },
+      "sessionState": "ready"
+    }
+  },
+  "complete": true,
+  "error": null,
+  "inventory": {
+    "profile": "e2-readback-diagnostic",
+    "abiVersion": 2,
+    "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+    "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+    "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+  },
+  "artifact": {
+    "profile": "e2-readback-diagnostic",
+    "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+    "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+    "workerSha256": "0c7d056373ca4907130ae1694340672b8aee5e499b87061b0d457b4b592bc294"
+  },
+  "attribution": {
+    "runnerProfile": "e2-readback-diagnostic",
+    "pageReported": {
+      "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+      "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+    },
+    "consistent": false
+  },
+  "browserName": "chrome",
+  "matrixEntryAssertion": {
+    "skipped": true,
+    "reason": "the product projection drops readback.html and containment; this profile is the FROZEN 572035ac engine repackaged with the raw-record worker",
+    "evidenceClass": "diagnostic",
+    "note": "This round did NOT pass the matrix entry assertion and is not matrix evidence. It is filed to answer a question the product projection cannot answer."
+  },
+  "savedDocuments": [
+    {
+      "label": "A3-text-click.odt",
+      "file": "saved/A3-text-click.odt.odt"
+    },
+    {
+      "label": "A1-empty-click.odt",
+      "file": "saved/A1-empty-click.odt.odt"
+    },
+    {
+      "label": "A2-empty-selectrange.odt",
+      "file": "saved/A2-empty-selectrange.odt.odt"
+    },
+    {
+      "label": "A4-last-empty-click.odt",
+      "file": "saved/A4-last-empty-click.odt.odt"
+    }
+  ]
+}
