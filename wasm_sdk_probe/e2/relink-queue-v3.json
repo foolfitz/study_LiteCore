@@ -223,15 +223,27 @@
     },
     {
       "id": "queue-barrier-verifies-own-paragraph",
-      "title": "the barrier must verify the paragraph it acted on -- OPEN",
+      "title": "the barrier must verify the paragraph it acted on -- the CHECK exists and is enforced; what is open is its ORDER",
       "expectation": "absent",
       "source": "findings/evidence/046/native/, 2026-08-16; PLAN queue addition",
-      "note": "Natively measured: on an empty paragraph the barrier's selection pair walks up one paragraph, so the postcondition compares the wrong text while the action itself succeeded. More fundamental than 046's original rename fix.",
+      "note": "Measured 2026-08-16, correcting this item's own premise: checkFormatBarrierContainment() has compared the selection against the pre-dispatch caret since finding 034, and `selection-does-not-contain-restore-point` is a real failure shape. What is wrong is the ORDER: it is judged AFTER readback.multiBlock, so in the empty-paragraph case that motivated this item the accurate diagnosis is masked by multi-block-readback. Deliberately NOT reordered in this round: the browser cannot yet see the readback content, so there is no way to check which shape is right -- v3 projects it, the second round measures it, and the reorder is decided on data. Recorded as a decision so it is not read later as an omission.",
       "checks": [
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "void checkFormatBarrierContainment() {",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "gFormatBarrier.failureShape = \"selection-does-not-contain-restore-point\";",
+          "atLeast": 1
+        },
         {
           "kind": "absent",
           "file": "src/probe_engine.cpp",
-          "text": "barrier.actedParagraph"
+          "text": "containmentJudgedBeforeMultiBlock"
         }
       ],
       "blocksRelink": true
@@ -289,16 +301,41 @@
     },
     {
       "id": "queue-preblocks-postblocks-not-observations",
-      "title": "preBlocks/postBlocks must not report an unwritten default as an observation -- OPEN",
-      "expectation": "absent",
+      "title": "preBlocks/postBlocks must not report an unwritten default as an observation -- DONE in the tree (object-compiled, not linked)",
+      "expectation": "present",
       "blocksRelink": true,
       "source": "findings/evidence/046/browser-vs-native/, 2026-08-16",
-      "note": "Same family as P1 item 3 (the route field). preBlockCount is assigned only on the range routes, postBlockCount only on the cross route; both read 0 everywhere else, including on barriers that succeeded. Two rounds of evidence were read as measurements. Fix: populate on every route, or rename so 'not read' cannot be mistaken for 'read zero'. The check below is a placeholder for whichever lands.",
+      "note": "Same family as P1 item 3 (the route field). Fixed by saying so rather than by guessing: the counts keep their type and value, and preBlocksObserved/postBlocksObserved say whether the value is one. Worker projects both, plus readbackParsed, readbackBlockCount and containment{checked,held} -- the fields 3b's criterion needs and the field that says whether the verdict is about the caller's paragraph at all. Engine change is object-compiled only (scratch dir, never a profile build dir); it enters the artifact at the relink.",
       "checks": [
         {
-          "kind": "absent",
+          "kind": "contains",
           "file": "src/probe_engine.cpp",
-          "text": "preBlockCountObserved"
+          "text": "bool preBlockCountObserved = false;",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "bool postBlockCountObserved = false;",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "preBlocksObserved",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "sdk/sdk-worker.js",
+          "text": "preBlocksObserved: value.preBlocksObserved ?? null,",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "sdk/sdk-worker.js",
+          "text": "readbackBlockCount: value.readback?.blockCount ?? null,",
+          "atLeast": 1
         }
       ]
     }

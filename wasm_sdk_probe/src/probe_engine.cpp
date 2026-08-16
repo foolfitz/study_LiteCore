@@ -685,6 +685,21 @@ struct FormatStateBarrier {
   std::vector<std::string> preBlockTexts;
   std::uint32_t postBlockCount = 0;
   std::vector<std::string> postBlockTexts;
+  // Whether anything ever WROTE the two counts above.
+  //
+  // Measured 2026-08-16 (findings/evidence/046/browser-vs-native/): each of
+  // them is assigned in exactly one place -- preBlockCount only when the
+  // selection rectangles are non-empty (the range routes), postBlockCount only
+  // in the cross route's check.  On the collapsed route both stay 0, including
+  // on barriers that SUCCEED, and two rounds of evidence were read as if that
+  // zero meant "read the paragraph, found no blocks in it".  Finding 046's
+  // whole native-versus-browser disagreement was that misreading.
+  //
+  // Same defect as the `route` field's (SPEC E2-C 9.5.4): a default reported as
+  // an observation.  The counts keep their type and their value; these say
+  // whether the value is one.
+  bool preBlockCountObserved = false;
+  bool postBlockCountObserved = false;
   bool crossChecked = false;
   bool crossIdentityHeld = false;
   bool crossStateHeld = false;
@@ -1213,7 +1228,11 @@ void appendFormatBarrierDetails(std::ostringstream &json,
            : barrier.route == FormatBarrierRoute::RangeSingle  ? "\"range-single\""
                                                                : "\"range-cross\"")
        << ",\"preBlocks\":" << barrier.preBlockCount
+       << ",\"preBlocksObserved\":"
+       << (barrier.preBlockCountObserved ? "true" : "false")
        << ",\"postBlocks\":" << barrier.postBlockCount
+       << ",\"postBlocksObserved\":"
+       << (barrier.postBlockCountObserved ? "true" : "false")
        << ",\"crossChecked\":"
        << (barrier.crossChecked ? "true" : "false")
        << ",\"crossIdentityHeld\":"
@@ -3327,6 +3346,7 @@ bool routeFormatBarrier(FormatStateBarrier &barrier,
     std::free(html);
     const FormatReadback parsed = parseFormatReadback(markup);
     barrier.preBlockCount = parsed.blockCount;
+    barrier.preBlockCountObserved = true;
     barrier.preBlockTexts = blockTexts(extractBlocks(markup));
     barrier.route = parsed.blockCount >= 2 ? FormatBarrierRoute::RangeCross
                                            : FormatBarrierRoute::RangeSingle;
@@ -3366,6 +3386,7 @@ void checkFormatBarrierCrossParagraph() {
   gFormatBarrier.readback = parseFormatReadback(markup);
   const std::vector<ReadbackBlock> parsedBlocks = extractBlocks(markup);
   gFormatBarrier.postBlockCount = gFormatBarrier.readback.blockCount;
+  gFormatBarrier.postBlockCountObserved = true;
   gFormatBarrier.postBlockTexts = blockTexts(parsedBlocks);
 
   // Identity: same number of blocks, and each block's text unchanged.  A

@@ -401,6 +401,40 @@ class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
         start = self.source.index("void finishFormatBarrierAfterRestore() {")
         return self.source[start:self.source.index("\n}\n", start)]
 
+    def test_the_block_counts_say_whether_they_were_observed(self):
+        """Finding 046: a default reported as an observation, twice.
+
+        `preBlockCount` is assigned only where the selection rectangles are
+        non-empty (the range routes) and `postBlockCount` only in the cross
+        route's check, so on the collapsed route both read 0 -- including on a
+        barrier that succeeded.  Two rounds of evidence and one whole
+        native-versus-browser "disagreement" were built on reading that zero as
+        a measurement.
+
+        Whole lines, not substrings: the lesson this file already records is
+        that `if (false && ...)` satisfies a substring check.
+        """
+        lines = self.source.splitlines()
+        for counter, flag in (("preBlockCount", "preBlockCountObserved"),
+                              ("postBlockCount", "postBlockCountObserved")):
+            # Assignments through an object, not the struct's own default:
+            # `barrier.preBlockCount = ...` / `gFormatBarrier.postBlockCount = ...`.
+            assignments = [index for index, line in enumerate(lines)
+                           if line.strip().endswith(";")
+                           and f".{counter} =" in line
+                           and "Observed" not in line]
+            self.assertEqual(len(assignments), 1,
+                             f"{counter} is assigned in {len(assignments)} "
+                             f"places; the flag below assumes exactly one")
+            following = lines[assignments[0] + 1].strip()
+            self.assertIn(f"{flag} = true;", following,
+                          f"{counter} is written without setting {flag} on the "
+                          f"next line, so the record cannot say whether the "
+                          f"count is an observation")
+        # And both flags have to reach the evidence, or they are a comment.
+        self.assertIn('<< ",\\"preBlocksObserved\\":"', self.source)
+        self.assertIn('<< ",\\"postBlocksObserved\\":"', self.source)
+
     def test_multi_block_is_computed_from_both_counts(self):
         start = self.source.index("FormatReadback parseFormatReadback(")
         body = self.source[start:self.source.index("\n}\n", start)]

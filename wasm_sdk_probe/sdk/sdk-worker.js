@@ -185,6 +185,37 @@ function productFormatBarrier(value = {}) {
     route: value.route ?? null,
     preBlocks: value.preBlocks ?? null,
     postBlocks: value.postBlocks ?? null,
+    // Whether those two counts were ever written.  Measured 2026-08-16
+    // (findings/evidence/046/browser-vs-native/): `preBlocks` is assigned only
+    // on the range routes and `postBlocks` only on the cross route, so on the
+    // collapsed route both read 0 -- including on a barrier that SUCCEEDED
+    // over a paragraph with text in it.  Two rounds of evidence, and finding
+    // 046's whole native-versus-browser disagreement, rested on reading that
+    // zero as "read the paragraph and found no blocks".
+    //
+    // Null on the shipped v2 engine, which does not send these: absent is the
+    // honest answer for a build that cannot say.
+    preBlocksObserved: value.preBlocksObserved ?? null,
+    postBlocksObserved: value.postBlocksObserved ?? null,
+    // The two readback facts a host needs to tell "nothing was read" from
+    // "only list items were read" -- the distinction finding 046's remaining
+    // criterion (relink queue 3b) is written on.  `itemCount` alone cannot do
+    // it: the engine's `multiBlock` is `blockCount > 1 || itemCount > 1`, and
+    // an empty read is `parsed: false` with every count at zero, which is
+    // indistinguishable from a parsed read of nothing without this field.
+    readbackParsed: value.readback?.parsed ?? null,
+    readbackBlockCount: value.readback?.blockCount ?? null,
+    // Does the selection the postcondition read describe cover the caret the
+    // action was dispatched from?  The engine has checked this since finding
+    // 034 and fails on it (`selection-does-not-contain-restore-point`), but
+    // the answer never reached the product, so a host could not tell a verdict
+    // about ITS paragraph from a verdict about a neighbour -- which is exactly
+    // what happens on an empty paragraph, where the selection pair walks up
+    // one paragraph (findings/evidence/046/native/).
+    containment: value.containment
+      ? { checked: value.containment.checked ?? null,
+          held: value.containment.held ?? null }
+      : null,
     // Not a diagnostic extra, which is why it is here despite the rule above.
     // The engine classifies with `multiBlock = blockCount > 1 || itemCount > 1`
     // (probe_engine.cpp), so a host that sees only postBlocks cannot tell

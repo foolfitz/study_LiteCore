@@ -277,6 +277,29 @@ contract version 與 capability 維持 2／`narrow-editor-v2`。
       各 8／8 全過。**產品今天不走這條路**（`EditorSession` 每個 session 新開一顆
       引擎、close 時 dispose），所以這是 SDK 層的觀察與佇列候補，不是產品缺陷。
 - [x] **矩陣 v2 草稿已寫**（`e2/validation-matrix-v2-draft.json`，2026-08-16）：84 格＝v1 的 75 格全部帶過來 ＋ 九格新的（D0 的凍結守衛、真的跨段、範圍上的 inline 格式帶文件判準、空段落兩手勢並排、barrier 要驗自己動過的那一段、相鄰清單合併規則**先寫**、結構對控制格比、跨瀏覽器位元組相同改成正規化後相同、D5 的機器半邊當進場檢查）。五個雜湊全部是佔位字串，`status` 是 `DRAFT-NOT-FROZEN`，由 `tests/test_e2_c_matrix.py` 七條釘住。
+- [x] **這張表不再是佇列的權威**（2026-08-16）：佇列現在是
+      `wasm_sdk_probe/e2/relink-queue-v3.json`，由 `tools/check_relink_queue.py`
+      執行，並掛進 `test-e2-c-static`。**fail closed、雙向**（宣告 absent 的項目
+      悄悄出現在樹裡也算漂移），十個突變釘住，而且 `p1Complete` 不會因為
+      「做完的都做完了」就說完成——還在擋 relink 的項目會讓它是 False。
+      理由：這張表騙過我們兩次，兩次都是人工稽核抓到的，而人工稽核不會在連結
+      那天自己再跑一次。**本文件之後只記敘述與決定，狀態以 JSON 為準。**
+- [x] **3b 卡住的那個不一致已經解掉（2026-08-16）**，但 3b 本身仍待做：
+      `preBlocks`／`postBlocks` 在 collapsed 路徑上**從來沒有被寫入**
+      （`probe_engine.cpp:3348` 只在 range、`:3388` 只在 cross），所以原生量到的
+      讀回內容與瀏覽器那個 0 從來不可比。控制格證明的：**一個成功的 barrier
+      打在有文字的段落上也回報 0**。3b 現在缺的是「什麼都沒讀到」與「只讀到清單項」
+      的分辨方式，而那是一個投影決定。證據：`findings/evidence/046/browser-vs-native/`
+- [x] **新項已做（只編 object，未連結）**：`preBlocksObserved`／`postBlocksObserved`
+      進引擎與投影，另外把 `readbackParsed`／`readbackBlockCount`／
+      `containment{checked,held}` 補進產品投影——**與第 3 項同族的缺陷，一次修完**。
+- [ ] **barrier 驗自己動過的那一段：這一項的前提被我自己更正了。**
+      `checkFormatBarrierContainment()` 從 finding 034 就在比對選取與派送前的游標，
+      而 `selection-does-not-contain-restore-point` 是真的失敗形狀。錯的是**順序**
+      ——它排在 `readback.multiBlock` 後面，所以在催生這一項的空段落案例裡，
+      準確的診斷被 `multi-block-readback` 蓋掉。**本輪刻意不重排**：瀏覽器現在還看不到
+      讀回內容，沒有辦法檢查哪個形狀才對；v3 會投影它、第二輪量它、然後照資料決定。
+      **記在這裡，是為了讓「沒重排」是一個決定而不是一個遺漏。**
 - [ ] **矩陣 v2 的凍結時機沒有守衛**（外部裁決指出）：baseline 要 v3 的五個雜湊，
       而雜湊要等連結才存在，於是「連結之後、第二輪 D0 之前」有一個必須補雜湊並
       凍結的窗口，**但沒有人檢查凍結真的發生在 D0 之前**。第一輪就是被「矩陣沒
