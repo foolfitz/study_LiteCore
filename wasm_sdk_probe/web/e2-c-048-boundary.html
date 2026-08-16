@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>048 — 那 22 ms 落在 worker 邊界的哪一側</title>
+<style>
+  body { margin: 0; font: 13px/1.5 ui-monospace, Menlo, monospace; padding: 12px;
+         background: #101820; color: #d7e2ea; }
+  h1 { font: 600 15px/1.4 system-ui, sans-serif; margin: 0 0 8px; }
+  p { font: 12px/1.5 system-ui, sans-serif; color: #93a6b5; margin: 0 0 12px;
+      max-width: 68em; }
+  #log { white-space: pre-wrap; word-break: break-all; }
+  #sink { position: absolute; width: 1px; height: 1px; opacity: 0; }
+</style>
+</head>
+<body>
+  <h1>048 — 那 22 ms 落在 worker 邊界的哪一側</h1>
+  <p>出貨的 worker 不能改（判定綁著它的雜湊），也不需要改：一次點擊在頁面上本來就有
+     <strong>兩個</strong>可觀測的時刻——點擊請求回來的時候，以及游標失效回呼到達的
+     時候。再加一個校準（<code>editorGetStateV2</code> 的來回，就是傳輸的地板），
+     這三個數字就把 22 ms 切成「我們的傳輸」與「引擎那一側」。
+     判準寫在 <code>findings/evidence/048/boundary/PREDICTION.md</code>。
+     這一頁不判定，也<strong>不得</strong>把剩下的那一段歸給任何一層。</p>
+  <textarea id="sink" aria-label="輸入"></textarea>
+  <div id="log"></div>
+  <script type="module" src="./e2-c-048-boundary-app.js"></script>
+</body>
+</html>

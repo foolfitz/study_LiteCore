@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-048-boundary",
+  "predictionFile": "findings/evidence/048/boundary/PREDICTION.md",
+  "runs": [
+    {
+      "run": "../findings/evidence/048/boundary/e2-editor-v2-572035ac/chrome",
+      "browser": "chrome",
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true,
+      "calibrationCount": 40,
+      "calibrationMedianMs": 1.0175000000745058,
+      "clicks": 10,
+      "usableClicks": 10,
+      "excludedClicks": [],
+      "transportMedianMs": 0.3399999989196658,
+      "transportMaxMs": 1.0049999989569187,
+      "engineSideMedianMs": 35.06749999988824,
+      "totalMedianMs": 35.6949999993667,
+      "engineSideShare": 0.9900213416915349,
+      "invalidationsPerClick": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "run": "../findings/evidence/048/boundary/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true,
+      "calibrationCount": 40,
+      "calibrationMedianMs": 0.8799999999999955,
+      "clicks": 10,
+      "usableClicks": 10,
+      "excludedClicks": [],
+      "transportMedianMs": 0.4500000000000455,
+      "transportMaxMs": 0.5799999999999272,
+      "engineSideMedianMs": 34.98000000000002,
+      "totalMedianMs": 35.399999999999864,
+      "engineSideShare": 0.9876707491947423,
+      "invalidationsPerClick": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "findings": {
+    "P-048B-1": {
+      "claim": "the getState round trip has a median <= 3 ms",
+      "observed": [
+        [
+          "chrome",
+          1.0175000000745058
+        ],
+        [
+          "firefox",
+          0.8799999999999955
+        ]
+      ],
+      "status": "HELD"
+    },
+    "P-048B-2": {
+      "claim": "the click's own round trip is within 2x of that floor -- posting the mouse event is not where the wait is",
+      "observed": [
+        [
+          "chrome",
+          0.3399999989196658,
+          1.0175000000745058
+        ],
+        [
+          "firefox",
+          0.4500000000000455,
+          0.8799999999999955
+        ]
+      ],
+      "status": "HELD"
+    },
+    "P-048B-3": {
+      "claim": "the engine side is >= 10 ms and >= 70% of the total",
+      "observed": [
+        [
+          "chrome",
+          35.06749999988824,
+          0.9900213416915349
+        ],
+        [
+          "firefox",
+          34.98000000000002,
+          0.9876707491947423
+        ]
+      ],
+      "status": "HELD"
+    },
+    "P-048B-4": {
+      "claim": "the total lands in 15.0-40.0 ms, the band the D3 caret probe measured",
+      "observed": [
+        [
+          "chrome",
+          35.6949999993667
+        ],
+        [
+          "firefox",
+          35.399999999999864
+        ]
+      ],
+      "status": "HELD"
+    },
+    "P-048B-5": {
+      "claim": "at least 8 of 10 clicks produce a cursor invalidation",
+      "observed": [
+        [
+          "chrome",
+          10,
+          10
+        ],
+        [
+          "firefox",
+          10,
+          10
+        ]
+      ],
+      "status": "HELD"
+    }
+  },
+  "held": [
+    "P-048B-1",
+    "P-048B-2",
+    "P-048B-3",
+    "P-048B-4",
+    "P-048B-5"
+  ],
+  "failed": [],
+  "conclusion": {
+    "side": "ENGINE-SIDE-OF-THE-WORKER-BOUNDARY",
+    "mayNotConclude": "which layer on that side.  Core's own click handling is 0.6 ms natively, so subtracting leaves a residue -- and a residue is not an attribution (finding 040's precedent).  The next controlled variable is an engine-side timestamp, which needs a diagnostic build."
+  }
+}

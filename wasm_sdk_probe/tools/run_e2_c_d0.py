@@ -118,8 +118,14 @@ def main() -> int:
         else:
             # One at a time: a single evaluate carrying every saved document is
             # the kind of call that truncates without saying so.
+            # A page that saves nothing should not have to pretend it might:
+            # asking for the function first is the difference between "this
+            # round produced no documents" and a TypeError that kills the run
+            # after the measurement is already in the page.
             count = evaluate(
-                session, f"globalThis.{args.namespace}_save_count()") or 0
+                session,
+                f"typeof globalThis.{args.namespace}_save_count === 'function'"
+                f" ? globalThis.{args.namespace}_save_count() : 0") or 0
             for index in range(int(count)):
                 saves.append(evaluate(
                     session, f"globalThis.{args.namespace}_save({index})"))

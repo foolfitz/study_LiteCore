@@ -1629,6 +1629,12 @@ dist/e2-c-d4.html: web/e2-c-d4.html | dist
 dist/e2-c-d4-app.js: web/e2-c-d4-app.js | dist
 	cp $< $@
 
+dist/e2-c-048-boundary.html: web/e2-c-048-boundary.html | dist
+	cp $< $@
+
+dist/e2-c-048-boundary-app.js: web/e2-c-048-boundary-app.js | dist
+	cp $< $@
+
 dist/e2-c-046-empty.html: web/e2-c-046-empty.html | dist
 	cp $< $@
 
@@ -1681,6 +1687,7 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/e2-c-d4.html dist/e2-c-d4-app.js \
 	dist/e2-c-d4-heap.html dist/e2-c-d4-heap-app.js \
 	dist/e2-c-046-empty.html dist/e2-c-046-empty-app.js \
+	dist/e2-c-048-boundary.html dist/e2-c-048-boundary-app.js \
 	dist/e2-c-d5.html dist/e2-c-d5-app.js \
 	$(addprefix dist/r7-compat-fixtures/,$(R7_COMPAT_FILES)) \
 	dist/e2-c-caret-ack.html dist/e2-c-caret-ack-app.js \
@@ -2072,6 +2079,7 @@ test-e2-c-static:
 	node --check web/e2-c-d4-app.js
 	node --check web/e2-c-d4-heap-app.js
 	node --check web/e2-c-046-empty-app.js
+	node --check web/e2-c-048-boundary-app.js
 	node --check web/e2-c-d5-app.js
 	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
 	# reachable by a shipped shell.  The four-way inventory check cannot see
@@ -2107,6 +2115,7 @@ test-e2-c-static:
 		tools/analyze_e2_c_d5.py tools/run_e2_c_d5.py \
 		tools/analyze_e2_c_d4_heap.py tools/check_relink_queue.py \
 		tools/e2_c_matrix_entry.py tools/analyze_f046_browser.py \
+		tools/analyze_f048_boundary.py \
 		tools/validate_e2_c.py
 	python3 -m json.tool e2/relink-queue-v3.json > /dev/null
 	# The relink queue, run instead of read.  It lied twice while it was prose
@@ -2129,6 +2138,12 @@ test-e2-c-static:
 	# analyzer always says.
 	python3 tools/analyze_f046_browser.py --self-test \
 		$$(find ../findings/evidence/046/browser-vs-native \
+			-name result.json -printf '%h\n' | sort) > /dev/null
+	# 048's split says the wait is on the engine's side.  The self-test has to
+	# be able to say the opposite -- a round where the transport IS the wait
+	# must take the conclusion away, or "engine side" is just what it prints.
+	python3 tools/analyze_f048_boundary.py --self-test \
+		$$(find ../findings/evidence/048/boundary \
 			-name result.json -printf '%h\n' | sort) > /dev/null
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves
