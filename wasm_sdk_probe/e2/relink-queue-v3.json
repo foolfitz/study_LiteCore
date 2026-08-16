@@ -466,7 +466,7 @@
         },
         {
           "kind": "file-exists",
-          "file": "e2/editor-shell-v2-bundle-v8.json"
+          "file": "e2/editor-shell-v2-bundle-v9.json"
         }
       ]
     },
@@ -488,11 +488,11 @@
     },
     {
       "id": "queue-v2-page-reads-a-flag-nobody-writes",
-      "title": "the v2 product page disables its recovery button on a snapshot field that is never written -- finding 054, OPEN, product-side",
+      "title": "the v2 product page disables its recovery button on a snapshot field that is never written -- finding 054, FIXED on shell v9",
       "expectation": "absent",
       "blocksRelink": false,
       "source": "finding 054; found 2026-08-16 while adjudicating 053",
-      "note": "`web/e2-editor-app.js` reads `snapshot.requiresPageReload`, and nothing writes that name at the top level of a snapshot: `editor-shell/editor-session.js` puts it in `error.details` at the WORKER_GENERATION_LIMIT, and the v1 component `editor-shell/recovery-notice.js` reads it from there (and also checks `error.code`). So the v2 page's button never disables, and at the generation limit it points the user at a control that will refuse them -- which is what recovery-notice.js's own comment says a host must not do. Same family as finding 053 and found the same way: nobody had ever pressed this path. Fix is one line in web/e2-editor-app.js, which is in the E2-C shell bundle, so it rides with the 053 fix rather than costing a generation of its own.",
+      "note": "`web/e2-editor-app.js` reads `snapshot.requiresPageReload`, and nothing writes that name at the top level of a snapshot: `editor-shell/editor-session.js` puts it in `error.details` at the WORKER_GENERATION_LIMIT, and the v1 component `editor-shell/recovery-notice.js` reads it from there (and also checks `error.code`). So the v2 page's button never disables, and at the generation limit it points the user at a control that will refuse them -- which is what recovery-notice.js's own comment says a host must not do. Same family as finding 053 and found the same way: nobody had ever pressed this path. FIXED 2026-08-16 on shell v9, riding with the 053 fix as planned. The check is written as the general form -- every snapshot field a page reads must be one the state machine publishes -- and it goes red if the fix is reverted.",
       "checks": [
         {
           "kind": "contains",
@@ -504,11 +504,11 @@
     },
     {
       "id": "queue-prescribed-rollback-is-not-offered",
-      "title": "the product prescribes a rollback whose button it does not show -- finding 053, OPEN, product-side",
+      "title": "the product prescribes a rollback whose button it does not show -- finding 053, FIXED on shell v9, user-side reachability still unproven",
       "expectation": "absent",
       "blocksRelink": false,
       "source": "finding 053; found 2026-08-16 by driving listener:click#notice-action for the first time",
-      "note": "`recoveryFor()` returns \"rollback\" for any format failure whose barrier says dispatched:true, and the product toasts that prescription; but `#notice`, which carries the button, is displayed only while the session state is `recoverable-error` or `restart-required`, and EDITOR_FORMAT_POSTCONDITION_FAILED puts it in neither -- it is not in RECOVERY_ERRORS. So the user is told the document may have changed unverifiably, and is offered no way back. The error is reachable on the shipped artifact: d2-presweep records it with recovery:\"rollback\", dispatched:true, in both browsers. WHICH SIDE TO CHANGE IS NOW DECIDED (2026-08-16, external adjudication, verified line by line): SPEC E2-B 5.13 clause three prescribes not merely rollback but that the host ENTER `recoverable-error`, so the shell is out of spec and the page is correct. The fix goes in `NarrowEditorV2Session.action()`'s catch -- compute recoveryFor(error) and call this._blockQueue(error, \"recoverable-error\", \"editor-recovery\") before rethrowing -- which touches NOTHING in the E1-C bundle (5 files, none under editor-shell-v2/). It DOES put the E2-C shell bundle from v8 to v9, and D5 round 7 is bound to v8, so it is a planned rebinding and not a slip-in. NOT YET EXECUTED.",
+      "note": "`recoveryFor()` returns \"rollback\" for any format failure whose barrier says dispatched:true, and the product toasts that prescription; but `#notice`, which carries the button, is displayed only while the session state is `recoverable-error` or `restart-required`, and EDITOR_FORMAT_POSTCONDITION_FAILED puts it in neither -- it is not in RECOVERY_ERRORS. So the user is told the document may have changed unverifiably, and is offered no way back. The error is reachable on the shipped artifact: d2-presweep records it with recovery:\"rollback\", dispatched:true, in both browsers. WHICH SIDE TO CHANGE IS NOW DECIDED (2026-08-16, external adjudication, verified line by line): SPEC E2-B 5.13 clause three prescribes not merely rollback but that the host ENTER `recoverable-error`, so the shell is out of spec and the page is correct. The fix goes in `NarrowEditorV2Session.action()`'s catch -- compute recoveryFor(error) and call this._blockQueue(error, \"recoverable-error\", \"editor-recovery\") before rethrowing -- which touches NOTHING in the E1-C bundle (5 files, none under editor-shell-v2/). It DOES put the E2-C shell bundle from v8 to v9, and D5 round 7 is bound to v8, so it is a planned rebinding and not a slip-in. EXECUTED 2026-08-16: shell v8 -> v9 eb76c5be…, E1-C verified still intact (E1_GO_ODT_EDITOR, failedProperties []), and the seam test goes red without the fix. What is still NOT shown is that a user can reach EDITOR_FORMAT_POSTCONDITION_FAILED through the product page: the product-path route reaches recoverable-error via MUTATION_OUTCOME_UNKNOWN, which blocked the queue before the fix too.",
       "checks": [
         {
           "kind": "contains",

@@ -18,6 +18,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { EditorStateMachine } from "../../editor-shell/state-machine.js";
 import { ParagraphEditorClient } from "../paragraph-editor-client.js";
 import { NarrowEditorV2Client } from "../narrow-editor-v2-client.js";
 import { NarrowEditorV2Session } from "../narrow-editor-v2-session.js";
@@ -29,6 +30,17 @@ const read = (relative) =>
 function calledMethods(source, receiver) {
   const pattern = new RegExp(`\\b${receiver}\\s*\\.\\s*([A-Za-z_$][\\w$]*)\\s*\\(`, "g");
   return new Set([...source.matchAll(pattern)].map((match) => match[1]));
+}
+
+/** Fields a page reads off a snapshot, ignoring line comments.
+ *
+ * The comments matter: this test's first version flagged `requiresPageReload`
+ * in a comment that was explaining the very bug being fixed.
+ */
+function snapshotFields(source) {
+  const withoutComments = source.replace(/^\s*\/\/.*$/gm, "");
+  return new Set([...withoutComments.matchAll(
+    /\bsnapshot\s*(?:\?\.|\.)\s*([A-Za-z_$][\w$]*)/g)].map((m) => m[1]));
 }
 
 /** Does the class, or anything it inherits from, define this method? */
@@ -74,3 +86,28 @@ test("the extractor finds calls and the membership test can say no", () => {
   assert.ok(has(NarrowEditorV2Session, "placeCaret"));
   assert.ok(has(NarrowEditorV2Session, "setList"));
 });
+
+// Finding 054.  `web/e2-editor-app.js` disabled its recovery button on
+// `snapshot.requiresPageReload`, and no snapshot has ever had that field: the
+// flag is written into the ERROR's details at the generation ceiling, which is
+// where the v1 component reads it from.  So the comparison was always false,
+// the button never disabled, and at the ceiling the page pointed the user at a
+// control guaranteed to refuse them.
+//
+// Same cheap general form as the method check above: a field name in the source
+// is not evidence that anything publishes it.
+test("every snapshot field a page reads is a field the state machine has",
+     () => {
+       const published = new Set(
+         Object.keys(new EditorStateMachine().snapshot));
+       for (const page of ["../../web/e2-editor-app.js",
+                           "../../web/e2-c-d2-app.js",
+                           "../../web/e2-c-d5-app.js",
+                           "../../web/demo-editor-app.js"]) {
+         const unknown = [...snapshotFields(read(page))]
+           .filter((field) => !published.has(field));
+         assert.deepEqual(unknown, [],
+                          `${page} reads snapshot fields nobody publishes: `
+                          + `${unknown.join(", ")}`);
+       }
+     });

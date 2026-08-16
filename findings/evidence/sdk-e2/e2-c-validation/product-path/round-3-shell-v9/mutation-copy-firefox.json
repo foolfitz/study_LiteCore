@@ -1,0 +1,486 @@
+{
+  "schemaVersion": 1,
+  "release": "e2-c-product-path",
+  "browser": "firefox",
+  "fixture": "list-contexts",
+  "isTrusted": false,
+  "notD5": "synthetic events; SPEC E2-C D5 requires trusted input and a human",
+  "shims": [
+    "URL.createObjectURL",
+    "HTMLAnchorElement.prototype.click (download anchors)",
+    "#toast.textContent cleared between steps"
+  ],
+  "mutation": "copy",
+  "checks": [
+    {
+      "id": "product-save-button-writes-a-real-odt",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "capturedBytes": 12213,
+        "magic": "504b0304",
+        "head": null,
+        "entries": 9,
+        "hasContentXml": true,
+        "contentXmlParses": true,
+        "mimetype": "application/vnd.oasis.opendocument.text",
+        "zipError": null,
+        "toast": "已存出 11.9 KB",
+        "anchorClicks": 1
+      },
+      "oracle": "the bytes the product hands to the download ARE an ODT -- ZIP magic, clean CRC, an ODT mimetype entry and a content.xml that parses -- and its own toast reports a size rather than NaN"
+    },
+    {
+      "id": "every-ime-commit-reaches-the-document",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "revisionBefore": 0,
+        "revisionAfter": 3,
+        "advancedBy": 3,
+        "committed": [
+          "甲一",
+          "乙二",
+          "丙三"
+        ],
+        "foundInSavedOdt": [
+          "甲一",
+          "乙二",
+          "丙三"
+        ],
+        "perCommitRevision": [
+          {
+            "text": "甲一",
+            "expected": 1,
+            "observed": 1,
+            "ok": true
+          },
+          {
+            "text": "乙二",
+            "expected": 2,
+            "observed": 2,
+            "ok": true
+          },
+          {
+            "text": "丙三",
+            "expected": 3,
+            "observed": 3,
+            "ok": true
+          }
+        ],
+        "savedBytes": 12523
+      },
+      "oracle": "three commits through the product's composition path each advance the revision by exactly one, IN TURN, and all three strings are in the saved ODT"
+    },
+    {
+      "id": "ctrl-c-asks-the-engine",
+      "ok": false,
+      "outcome": "FAIL",
+      "observed": {
+        "handlerRan": false,
+        "toast": "",
+        "outcome": "silent"
+      },
+      "oracle": "a copy event on the product page is handled by the product (default prevented) and the ENGINE returns a non-empty selection for it -- proved by which error the clipboard adapter raises, since CLIPBOARD_DENIED on the copy path is reachable only after getSelection has succeeded",
+      "notEstablished": "whether the OS clipboard received the text; WebDriver refuses clipboard access, so that half belongs to D5"
+    },
+    {
+      "id": "product-insert-button-inserts-what-the-field-holds",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "fieldAfterSet": "插入鈕標記",
+        "revisionBefore": 3,
+        "revisionAfter": 4,
+        "markInSavedOdt": true,
+        "witnessesExpected": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "witnessesKept": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "toast": "",
+        "savedBytes": 12751
+      },
+      "oracle": "the text standing in the product's own field, inserted by the product's own button, advances the revision by exactly one and is in the document the product then saves"
+    },
+    {
+      "id": "product-undo-button-reverses-the-last-edit",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "revisionBefore": 4,
+        "revisionAfter": 5,
+        "markWasThereBeforeUndo": true,
+        "markStillInSavedOdt": false,
+        "witnessesExpected": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "witnessesKept": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "toast": "",
+        "savedBytes": 12516
+      },
+      "oracle": "pressing the product's own undo button takes the text the insert button just added back OUT of the document -- read from the saved ODT, not from the revision counter, because D1 covers undo through the shell and this is the button"
+    },
+    {
+      "id": "notice-action-recovers-the-session",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "stateAfterFailure": "recoverable-error",
+        "noticeOffered": {
+          "shown": true,
+          "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。",
+          "label": "重新開啟",
+          "disabled": false
+        },
+        "buttonFound": true,
+        "stateAfterPress": "ready",
+        "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（可能已經改到文件：請回到檢查點）",
+        "savedBytesAfter": 12613,
+        "savedIsOdt": true
+      },
+      "oracle": "a dispatched failure blocks the queue, the product OFFERS its recovery button, pressing it returns the session to ready, and the product can save a real ODT afterwards -- undo in its place would return EDITOR_NOT_READY on the queue the failure just blocked, which is why SPEC E2-B 5.13 prescribes rollback and not undo",
+      "notEstablished": "WHICH bytes came back.  A save moves the authority bytes and there is no way to read the document out of the page except by saving, so an edit made after the failure cannot be shown to have been discarded without destroying the thing being measured"
+    }
+  ],
+  "steps": [
+    {
+      "step": "boot",
+      "state": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "—",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "step": "install-shims",
+      "result": "installed"
+    },
+    {
+      "step": "place-caret",
+      "state": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "定位游標 33 ms",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "step": "ime-commits",
+      "commits": [
+        {
+          "text": "甲一",
+          "sinkAfter": "",
+          "revision": 1,
+          "toast": ""
+        },
+        {
+          "text": "乙二",
+          "sinkAfter": "",
+          "revision": 2,
+          "toast": ""
+        },
+        {
+          "text": "丙三",
+          "sinkAfter": "",
+          "revision": 3,
+          "toast": ""
+        }
+      ],
+      "revisionBefore": 0,
+      "revisionAfter": 3
+    },
+    {
+      "step": "induce-dispatched-failure",
+      "state": {
+        "state": "recoverable-error",
+        "label": "需要回復",
+        "revision": "7",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "• 項目符號 失敗",
+        "doc": "list-contexts.odt",
+        "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（可能已經改到文件：請回到檢查點）",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      },
+      "notice": {
+        "shown": true,
+        "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。",
+        "label": "重新開啟",
+        "disabled": false
+      },
+      "attempts": [
+        {
+          "recipe": "finding 047: save, click, format",
+          "state": "ready",
+          "latency": "• 項目符號 478 ms"
+        },
+        {
+          "recipe": "finding 053: click past the line end, break the paragraph, list the empty one (finding 046's cell)",
+          "state": "recoverable-error",
+          "latency": "• 項目符號 失敗",
+          "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（可能已經改到文件：請回到檢查點）"
+        }
+      ]
+    }
+  ],
+  "mutationDetail": {
+    "mutation": "copy",
+    "file": "e2-editor-app.js",
+    "reintroduces": "the Ctrl+C gap found in the D5 operator round",
+    "mustGoRed": "ctrl-c-asks-the-engine"
+  },
+  "notEstablishedChecks": [],
+  "declaredNotEstablished": [],
+  "staleNotEstablishedDeclarations": [],
+  "mustGoRed": [
+    "ctrl-c-asks-the-engine"
+  ],
+  "ok": true,
+  "verdict": "the mutation was detected by the check that owns it"
+}

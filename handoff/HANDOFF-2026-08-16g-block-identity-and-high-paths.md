@@ -145,7 +145,42 @@ agent id `a71bfffebd6e98742`（要續談就用 SendMessage）。
 `error.details` 底下，v1 的元件讀對了）。所以到達 Worker 世代上限時，
 「重新開啟」仍然可按，而按了保證失敗。
 
-## 五、今天的三個教訓
+## 五、053／054 的修法已執行：殼層 v8 → **v9**
+
+裁決定案之後就做了。**artifact 未動、沒有 relink。**
+
+| | |
+|---|---|
+| 殼層 | **v9 `eb76c5be…`**（`e2/editor-shell-v2-bundle-v9.json`；v8 原樣保留） |
+| 改動 | `editor-shell-v2/narrow-editor-v2-session.js`（053）、`web/e2-editor-app.js`（054） |
+| E1-C | **`E1_GO_ODT_EDITOR` 未受影響，`intact: true`、`failedProperties: []`**——實測，不是推論 |
+
+- **053**：`action()` 排進佇列的那個操作**內部**攔一次，
+  `recoveryFor(error) === "rollback"` 就 `_blockQueue(...)` 再重新丟出。
+  **證據是接縫上的單元測試**：把修法拿掉，那一格會紅（14 → 13 pass、1 fail）。
+  順帶記下：原本就有一格叫「a post-dispatch failure blocks the queue」，用的卻是
+  **基底類別本來就處理的那個碼**——**名字宣稱通則、涵蓋只有一個實例**。
+- **054**：改成同時看 `error.code` 與 `error.details`，而**檢查寫成通則**——
+  「頁面讀的每個 `snapshot.<欄位>` 都要是狀態機真的會發布的欄位」，四個頁面一起查，
+  還原修法會紅（5 → 4 pass）。
+- **產品路徑補上一條真的路**：點行尾 → 分段 → 對新的空段落按項目符號（046 那一格）
+  → 佇列被擋 → 按鈕出現 → 按下去回 `ready` → 還能存出真的 ODT。
+  **HIGH 清空、11／28 已驅動**，而 `rollback` 突變**是 harness 自己報「宣告過期」**
+  之後才變成真驗證的。
+
+**但那一輪不是 053 修法的證據**：它掉出來的碼是 `MUTATION_OUTCOME_UNKNOWN`，
+**本來就會擋佇列**。所以現在的狀態是：兩個集合對不上「已證明」、修法擋得住
+「已證明」、**使用者按不按得到那個錯誤「仍未證明」**。
+
+### 代價：D5 第七輪綁在 v8 上
+
+那一輪的 attestation 記著 `4daad6b4…`（v8），而殼層現在是 v9。
+**證據與判定原樣保留、也沒有被推翻，但它不再描述現行殼層**——與同日早上 E1-C 同一個
+形狀，處方也一樣：**重新綁定要靠重跑**。D5 的主題是可信輸入，所以
+**第八輪人工輪是欠著的**；在它跑完之前不得說「D5 在現行殼層上通過」。
+已寫進 round-7 的 README 與 SPEC E2-C 9.5.15。
+
+## 六、今天的三個教訓
 
 1. **參考實作會改結論，不只是佐證。** 讀 Muya 之前，我判定 052 的殘留「多一個
    資料也救不了」；讀完之後看到的是**映射方向反了**——我們送出像素、再從矩形反推，
@@ -161,13 +196,11 @@ agent id `a71bfffebd6e98742`（要續談就用 SendMessage）。
 
 1. **relink** —— 你的決定，目前「等一等」。門檻達成、blocking 空。
    **搭同一班車最值得的引擎工作仍然是 block identity**，而且現在有設計與事前預測了。
-2. **053／054 的修法（已定案，未執行）** —— 在 `NarrowEditorV2Session.action()`
-   的 catch 擋 queue，加上 054 那一行讀對欄位。**兩個都在 E2-C 殼層 bundle 裡，
-   所以是一次 v8 → v9 ＋ 重新綁定**，要照今早 E1-C 那套做。
-   做完之後 `notice-action-recovers-the-session` 就會有真正的前置條件，
-   而那個已經寫好、宣告為「預期抓不到」的 `rollback` 突變會變成一次真的驗證。
-3. **053 的端到端重現**（在產品頁上把游標放到空段落再按項目符號）。
-   修好之後 `rollback` 那個突變會從「宣告抓不到」變成一次真的驗證。
+2. **D5 第八輪人工輪（欠著，需要 operator）** —— 殼層 v9 的重新綁定。
+   四格的手勢與 round 7 相同，`tools/run_e2_c_d5.py` 已指向 v9。
+3. **證明使用者按得到 `EDITOR_FORMAT_POSTCONDITION_FAILED`** —— 053 唯一還開著的
+   那一列。目前只有 D2 那條直接驅動殼層的路產生過它；產品路徑走到的是
+   `MUTATION_OUTCOME_UNKNOWN`。
 4. **`queue-047-may-have-closed-under-048`** —— 兩個殼層代、兩個瀏覽器、四組對照
    照原樣重跑。
 5. `findings/README.md` 的清單停在 048，**049–053 五筆沒有進去**（今天沒補，因為

@@ -97,7 +97,15 @@ function updateState(snapshot) {
       : "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。";
     el.noticeAction.textContent = snapshot.hasCheckpoint
       ? "回到檢查點" : "重新開啟";
-    el.noticeAction.disabled = snapshot.requiresPageReload === true;
+    // Finding 054: this read `snapshot.requiresPageReload`, and nothing writes
+    // that name at the top level of a snapshot -- the flag lives in the error's
+    // details (`editor-session.js`, at the generation ceiling), which is where
+    // the v1 component reads it from.  So the button never disabled, and at the
+    // ceiling it pointed the user at a control guaranteed to refuse them.
+    // Both conditions, like recovery-notice.js: the code alone is enough.
+    el.noticeAction.disabled =
+      snapshot.error?.code === "WORKER_GENERATION_LIMIT"
+      || snapshot.error?.details?.requiresPageReload === true;
   }
   updateGestureAffordance();
 }

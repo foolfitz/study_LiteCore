@@ -239,6 +239,41 @@ press('set-list-unordered');
 return true;
 })()"""
 
+# Finding 053's own route into a dispatched failure, and the only one that does
+# not depend on 047 still reproducing.
+#
+# Click past the end of a line -- measured natively: below/past the text the
+# clamp saturates at the end-of-line offset -- then break the paragraph, which
+# leaves the caret in a NEW EMPTY paragraph.  A list action there is finding
+# 046's cell: `.uno:SelectText` overshoots into the neighbour, the barrier
+# refuses a mutation that succeeded, and the error is
+# EDITOR_FORMAT_POSTCONDITION_FAILED with `dispatched: true`.
+#
+# That is the error whose prescription the product could not carry out.  It also
+# drives `action:insert-paragraph-break`, which nothing had driven either.
+INDUCE_EMPTY_PARAGRAPH = """(() => {
+const toolbar = document.querySelector('#toolbar');
+const press = (action) => toolbar
+  .querySelector(`[data-action="${action}"]`).click();
+const canvas = document.querySelector('#canvas');
+const box = canvas.getBoundingClientRect();
+const x = box.left + box.width * ARG_X;
+const y = box.top + box.height * ARG_Y;
+canvas.dispatchEvent(new PointerEvent('pointerdown', {
+  clientX: x, clientY: y, button: 0, buttons: 1, pointerId: 1, bubbles: true }));
+canvas.dispatchEvent(new PointerEvent('pointerup', {
+  clientX: x, clientY: y, button: 0, buttons: 0, pointerId: 1, bubbles: true }));
+return true;
+})()"""
+
+BREAK_THEN_LIST = """(() => {
+const toolbar = document.querySelector('#toolbar');
+const press = (action) => toolbar
+  .querySelector(`[data-action="${action}"]`).click();
+press('insert-paragraph-break');
+return true;
+})()"""
+
 READ_NOTICE = """(() => {
 const notice = document.querySelector('#notice');
 const button = document.querySelector('#notice-action');
@@ -293,7 +328,13 @@ MUTATIONS = {
         # never runs to fail, and the 2026-08-16 save-mutation round reported
         # NOT DETECTED for exactly that reason.  Listing it would have been the
         # declaration claiming more than the harness does.
-        "alsoRed": ["every-ime-commit-reaches-the-document"],
+        # The recovery check ends by requiring the product to save a real ODT
+        # after recovering -- that is how it shows the session is usable and not
+        # merely in a good-looking state -- so a broken save takes it down too.
+        # Added 2026-08-16 after the run said so: this is the coupling being
+        # declared, not the check being weakened.
+        "alsoRed": ["every-ime-commit-reaches-the-document",
+                    "notice-action-recovers-the-session"],
         # Both of these read their outcome out of the document, and this
         # mutation removes the only way to read it -- so neither can go red,
         # they can only fail to run.  Declared as such rather than left out: a
@@ -355,18 +396,13 @@ MUTATIONS = {
                         "which SPEC E2-B 5.13 rules out explicitly, because undo "
                         "goes through the queue a post-dispatch failure has just "
                         "blocked and would only return EDITOR_NOT_READY",
-        # Not because the check is weak, but because it does not run: the
-        # product offers this button only from `recoverable-error` or
-        # `restart-required`, and the one recorded route into that state from
-        # the product's UI (finding 047's sequence) stopped reproducing on this
-        # shell.  The mutation is kept, correct and ready, so that the day a
-        # route exists this becomes a real verification instead of being
-        # written from scratch under time pressure.
-        "expectedToBeDetected": False,
-        "why": "the check that owns this mutation is NOT_ESTABLISHED on every "
-               "run: its precondition -- a blocked queue -- cannot currently be "
-               "induced from the product's own UI. See finding 053 and queue "
-               "item queue-047-may-have-closed-under-048.",
+        # This was declared `expectedToBeDetected: False` while the check could
+        # not run at all -- the product offers the button only from
+        # `recoverable-error`, and nothing could induce that state from the
+        # page.  Once the 053 route existed, the run reported the declaration
+        # STALE and detected the mutation, which is what the self-reporting
+        # limit was built to do.  The declaration is gone; this is a live
+        # verification now.
     },
     # Undo that takes back MORE than the last edit.  Before the witnesses were
     # derived, the `ime` mutation's collateral was the accidental proof that the
@@ -880,10 +916,39 @@ def main() -> int:
         blocked = wait_for(
             session, lambda s: s.get("state") in ("recoverable-error",
                                                   "restart-required"), 60)
+        attempts = [{"recipe": "finding 047: save, click, format",
+                     "state": (blocked or {}).get("state"),
+                     "latency": (blocked or {}).get("latency")}]
+
+        # Finding 053's own route, tried when 047's does not block.  It rests on
+        # a defect that is current and reproducible (046) rather than on one
+        # whose sequence stopped reproducing, and it is also 053's end-to-end
+        # reproduction: the error whose prescription the product could not carry
+        # out, produced by the product's own buttons.
+        if (blocked or {}).get("state") not in ("recoverable-error",
+                                                "restart-required"):
+            evaluate(session, CLEAR_TOAST)
+            evaluate(session, INDUCE_EMPTY_PARAGRAPH
+                     .replace("ARG_X", "0.92").replace("ARG_Y", "0.28"))
+            wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+            evaluate(session, BREAK_THEN_LIST)
+            wait_for(session, lambda s: "斷行" in (s.get("latency") or "")
+                     or "段落" in (s.get("latency") or ""), 30)
+            evaluate(session, CLEAR_TOAST)
+            evaluate(session, PRESS.replace("ARG_ACTION", "set-list-unordered"))
+            blocked = wait_for(
+                session, lambda s: s.get("state") in ("recoverable-error",
+                                                      "restart-required"), 60)
+            attempts.append({
+                "recipe": "finding 053: click past the line end, break the "
+                          "paragraph, list the empty one (finding 046's cell)",
+                "state": (blocked or {}).get("state"),
+                "latency": (blocked or {}).get("latency"),
+                "toast": evaluate(session, READ_TOAST)})
         offered = evaluate(session, READ_NOTICE)
         report["steps"].append({"step": "induce-dispatched-failure",
                                 "state": blocked, "notice": offered,
-                                "recipe": "finding 047: save, click, format"})
+                                "attempts": attempts})
 
         pressed_notice = evaluate(session, CLICK_NOTICE)
         # rollback() is restart(): a fresh Worker reopened from the newest of
@@ -902,8 +967,8 @@ def main() -> int:
         # `set-list-unordered` handler or a broken toolbar would produce.  So
         # the recipe has to have visibly done something: either it blocked the
         # queue, or the format action it dispatched completed.
-        recipe_ran = ("項目符號" in ((blocked or {}).get("latency") or "")
-                      and "失敗" not in ((blocked or {}).get("latency") or ""))
+        latency = (blocked or {}).get("latency") or ""
+        recipe_ran = "項目符號" in latency
         if not reached and not recipe_ran:
             check("notice-action-recovers-the-session", False,
                   observed={"stateAfterRecipe": (blocked or {}).get("state"),

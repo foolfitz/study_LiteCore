@@ -143,14 +143,20 @@ def self_test(project: Path) -> int:
     check("driven without a method is not driven",
           not rejudge(lambda r: r["driven"].append(
               {"path": "action:undo", "by": "somebody", "how": ""}))["ok"])
-    # The path here has to be one that is CURRENTLY uncovered, or the mutation
-    # adds a duplicate to `driven` instead of an overlap and proves nothing.
-    # `action:undo` used to serve; it moved to `driven` on 2026-08-16 and this
-    # check went green for the wrong reason until it was pointed somewhere else.
-    check("a path cannot be driven and uncovered at once",
-          not rejudge(lambda r: r["driven"].append(
-              {"path": "listener:click#notice-action", "by": "x",
-               "how": "y"}))["ok"])
+    # DERIVED, not named.  This mutation has gone stale twice by naming a path
+    # that later moved into `driven` -- once with `action:undo`, once with
+    # `listener:click#notice-action` -- and each time it went green for the
+    # wrong reason: it was adding a duplicate to `driven` instead of creating
+    # the overlap it exists to detect.  Taking whatever is uncovered right now
+    # cannot go stale, and the guard below says so if nothing is.
+    check("there is an uncovered path to build the overlap mutation from",
+          bool(registry.get("uncovered")))
+    if registry.get("uncovered"):
+        overlapping = registry["uncovered"][0]["path"]
+        check("a path cannot be driven and uncovered at once",
+              not rejudge(lambda r: r["driven"].append(
+                  {"path": overlapping, "by": "x", "how": "y"}))["ok"],
+              overlapping)
     check("an uncovered path with no risk is not accounted for",
           not rejudge(lambda r: r["uncovered"].append(
               {"path": "listener:focus"}))["ok"])
@@ -160,7 +166,7 @@ def self_test(project: Path) -> int:
     print("      (not checked: whether the named driver really drives that path;"
           " this audit reads the page, not the harness)")
 
-    print(f"\nself-test: {6 - len(failures)}/6 checks moved the verdict")
+    print(f"\nself-test: {7 - len(failures)}/7 checks moved the verdict")
     return 1 if failures else 0
 
 

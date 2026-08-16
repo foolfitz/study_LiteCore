@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認（讀原始碼＋已記錄的錯誤實例）／產品頁端到端重現未做** |
+| **狀態** | **已修（殼層 v9 `eb76c5be…`，2026-08-16）／修法有突變驗證過的單元測試／使用者端可達性仍未證明** |
 | **Bugzilla** | —（我方產品層，不是 core） |
 | **發現日** | 2026-08-16（產品路徑覆蓋率清單把 `listener:click#notice-action` 標 HIGH 之後，第一次去驅動它） |
 | **嚴重度** | **嚴重**——處置欄位是 SPEC E2-B 5.13 規定 host 必須遵守的，而 host 在這一類錯誤上遵守不了 |
@@ -168,3 +168,44 @@ el.notice.dataset.show = recoverable ? "1" : "0";
       的 catch 擋 queue**（規格已決定，見上）。**尚未執行**：它把 E2 殼層推到 v9，
       而今天的 D5 第七輪綁在 v8，所以那是一次有計畫的動作，不是順手改。
 - [ ] 修好之後，`run_e2_c_product_path.py` 要有一格會紅的檢查
+
+## 修法（2026-08-16，殼層 v8 → v9）
+
+`NarrowEditorV2Session` 的 `action()` 在**排進佇列的那個操作內部**攔一次：
+`recoveryFor(error) === "rollback"` 就呼叫
+`this._blockQueue(error, "recoverable-error", "editor-recovery")` 再重新丟出。
+
+**為什麼在這個接縫**：`editor-shell/editor-session.js` 是 E1-C 綁的，動它會解除
+已出貨的判定；`editor-shell-v2/` 存在的理由正是「要放那些否則得寫進去的改動」
+（那個檔案開頭就這麼寫）。而**從操作內部擋，效果與擴充 `RECOVERY_ERRORS` 相同**：
+`_blockQueue` 會作廢 drain，於是 drain 自己的 catch 走
+`this._activeDrain !== drain` 那一支、`finally` 也不會把狀態轉回 `ready`。
+
+**測試**：`editor-shell-v2/tests/narrow-editor-v2-session.test.mjs` 新增三格，
+其中承重的一格是「**dispatched 的 postcondition 失敗也要擋佇列**」——
+**把修法拿掉，那一格會紅**（實測 14 → 13 pass、1 fail）。
+
+順帶記一件事，因為它是這棵樹反覆出現的形狀：**原本就有一格叫
+「a post-dispatch failure blocks the queue and asks for a rollback」**，
+而它用的是 `MUTATION_OUTCOME_UNKNOWN`——基底類別**本來就處理**的那一個碼。
+**測試的名字宣稱的是通則，涵蓋的只有一個實例。**
+
+## 使用者端可達性：仍然沒有證明
+
+產品路徑 harness 現在有一條會走到 `recoverable-error` 的路（點在行尾之後、
+分段、對新的空段落按項目符號＝046 的那一格），而且**那顆按鈕確實出現、按下去
+回到 `ready`、之後還能存出真的 ODT**。
+
+**但那一輪不是這個修法的證據**：它掉出來的碼是 `MUTATION_OUTCOME_UNKNOWN`
+（「the postcondition read covered more than one paragraph」），**那個碼本來就在
+`RECOVERY_ERRORS` 裡**，沒有修法也會擋佇列。
+
+所以到現在為止：
+
+| | |
+|---|---|
+| 兩個集合對不上 | **已證明**（原始碼三處 ＋ D2 presweep 記錄的錯誤實例） |
+| 修法擋得住 | **已證明**（接縫的單元測試，突變驗證過） |
+| **使用者按得到那個錯誤** | **仍未證明**——已知會產生 `EDITOR_FORMAT_POSTCONDITION_FAILED` 的只有 D2 那條直接驅動殼層的路 |
+
+最後一列是這張單子還沒關的原因。

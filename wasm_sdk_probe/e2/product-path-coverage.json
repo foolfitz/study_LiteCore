@@ -48,16 +48,21 @@
     {
       "path": "action:undo",
       "by": "tools/run_e2_c_product_path.py",
-      "how": "pressed straight after the insert above; the marker text must be GONE from the saved ODT, read from the document rather than from the revision counter, because D1 covers undo through the shell and this is the button. Mutation `undo` replaces session.undo() with Promise.resolve() and the check must go red."
+      "how": "pressed straight after the insert above; the marker text must be GONE from the saved ODT, read from the document rather than from the revision counter, because D1 covers undo through the shell and this is the button. Mutations `undo` (does nothing) and `undo-twice` (takes back one edit too many) must each turn it red."
+    },
+    {
+      "path": "listener:click#notice-action",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the product's own recovery button, pressed in the state the product OFFERS it in -- reached through the page's own buttons: click past the end of a line, insert-paragraph-break, then a list action on the new empty paragraph (finding 046's cell). The oracle is that the notice is shown and enabled, that pressing it returns the session to ready, and that the product can save a real ODT afterwards. Mutation `rollback` (wired to undo instead) is detected; mutation `toolbar-drops-the-list-action` proves the NOT_ESTABLISHED branch cannot hide a broken toolbar."
+    },
+    {
+      "path": "action:insert-paragraph-break",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed to create the empty paragraph the recovery route needs; not separately asserted, so it is driven rather than verified -- if it stopped working the recovery route would go red, which is a real if indirect signal."
     }
   ],
   "waived": [],
   "uncovered": [
-    {
-      "path": "listener:click#notice-action",
-      "risk": "HIGH -- this is the PRODUCT'S RECOVERY PATH (session.rollback()). SPEC E2-C 2.6/5.13 makes rollback the prescribed recovery for a dispatched failure. Still uncovered on 2026-08-16 AFTER being driven, which is a different thing from never driven: run_e2_c_product_path.py presses it every run, but the product offers it only while the session is in `recoverable-error` or `restart-required`, and the one recorded route into that state from the product's UI (finding 047's sequence) no longer reproduces. The check (`notice-action-recovers-the-session` -- renamed from `...-rolls-back-to-the-checkpoint` after review, because the product's own save clears the checkpoint, so any recovery reached this way would be from authority bytes) is therefore NOT_ESTABLISHED rather than green, and the press produced FINDING 053: the product prescribes this recovery for EDITOR_FORMAT_POSTCONDITION_FAILED, whose state leaves the button hidden. What would close this row is a way to induce a queue-blocking failure from the product's own UI.",
-      "note": "The audit predicted this: 'a recovery path that has never been exercised is a recovery path nobody knows works.' The first press found a defect."
-    },
     {
       "path": "listener:change#fixture",
       "risk": "MEDIUM -- opening a second document in one page. The session disposes its engine on close, so this is also the only product path that comes near the search-after-reopen wedge."
@@ -76,10 +81,6 @@
     },
     {
       "path": "action:delete-forward",
-      "risk": "LOW"
-    },
-    {
-      "path": "action:insert-paragraph-break",
       "risk": "LOW"
     },
     {

@@ -174,6 +174,58 @@ test("rollback reopens from the engine's own bytes with a fresh worker",
        assert.equal(calls.filter((c) => c === "open").length, opens + 1);
      });
 
+// Finding 053.  The test above is titled "a post-dispatch failure" and
+// exercises MUTATION_OUTCOME_UNKNOWN -- the one code the base class already had
+// in RECOVERY_ERRORS.  The property it claims is general and was not: an
+// EDITOR_FORMAT_POSTCONDITION_FAILED with `dispatched: true` prescribed a
+// rollback and left the session in `ready`, where the button that performs it
+// is not shown.  A test whose name claims more than its case is the shape this
+// tree keeps paying for.
+test("a DISPATCHED postcondition failure blocks the queue too, not just the "
+     + "codes the base class knows", async () => {
+       const failure = Object.assign(
+         new Error("the document does not show the state this action asked for"),
+         { code: "EDITOR_FORMAT_POSTCONDITION_FAILED",
+           details: { formatBarrier: { dispatched: true,
+                                       failureShape: "postcondition-not-met" } } });
+       const { session } = await opened({ failing: "set-list-unordered", failure });
+       const error = await session.setList("unordered").then(() => null, (e) => e);
+       assert.equal(error.code, "EDITOR_FORMAT_POSTCONDITION_FAILED");
+       assert.equal(error.recovery, "rollback");
+       assert.equal(session.state.snapshot.state, "recoverable-error",
+                    "the host must ENTER recoverable-error, not merely name the "
+                    + "disposition (SPEC E2-B 5.13 clause three)");
+       // The prescription is now performable: rollback() accepts this state.
+       await session.rollback();
+       assert.equal(session.state.snapshot.state, "ready");
+     });
+
+test("the base-class seam this depends on is still there", async () => {
+  const { session } = await opened();
+  // `_blockQueue` is a private of the frozen base class.  Depending on it is
+  // the same trade as the client interception above, and it is pinned the same
+  // way: if the base class ever renames or removes it, this fails loudly here
+  // instead of silently leaving dispatched failures unblocked in the product.
+  assert.equal(typeof session._blockQueue, "function");
+  assert.equal(typeof session._blockQueueIfDispatched, "function");
+});
+
+test("an undispatched failure still leaves the queue running", async () => {
+  // The other side of the same branch: `_blockQueueIfDispatched` must not turn
+  // every failure into a blocked queue.
+  const failure = Object.assign(new Error("refused before dispatch"), {
+    code: "EDITOR_FORMAT_POSTCONDITION_FAILED",
+    details: { formatBarrier: { dispatched: false,
+                                failureShape: "routing-selection-not-observed" } },
+  });
+  const { session } = await opened({ failing: "set-list-ordered", failure });
+  const error = await session.setList("ordered").then(() => null, (e) => e);
+  assert.equal(error.recovery, "none");
+  assert.equal(session.state.snapshot.state, "ready");
+  const next = await session.action("set-bold", { enabled: true });
+  assert.equal(next.action, "set-bold");
+});
+
 test("a pre-dispatch refusal does not ask for a rollback", async () => {
   const failure = Object.assign(new Error("nothing was dispatched"), {
     code: "EDITOR_FORMAT_GESTURE_UNSUPPORTED",

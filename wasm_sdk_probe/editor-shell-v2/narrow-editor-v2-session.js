@@ -77,7 +77,14 @@ export class NarrowEditorV2Session extends EditorSession {
     }
     return this._enqueue(
       `action:${action}`,
-      ({ editor }) => editor.action(action, options),
+      async ({ editor }) => {
+        try {
+          return await editor.action(action, options);
+        } catch (error) {
+          this._blockQueueIfDispatched(error);
+          throw error;
+        }
+      },
       { mutation: true },
     ).catch((error) => { throw this._withDisposition(error); });
   }
@@ -126,6 +133,40 @@ export class NarrowEditorV2Session extends EditorSession {
    */
   rollback() {
     return this.restart();
+  }
+
+  /**
+   * A dispatched failure blocks the queue.  (Finding 053.)
+   *
+   * SPEC E2-B 5.13 clause three does not merely say the disposition is
+   * rollback -- it says **the host enters `recoverable-error`**, and clause two
+   * is written on that premise ("擋了 queue 就沒有『下一個 mutation』").  The
+   * base class only enters it for the codes in its own RECOVERY_ERRORS list,
+   * and `EDITOR_FORMAT_POSTCONDITION_FAILED` is not one of them.  So the
+   * product told the user the document might have changed unverifiably and
+   * prescribed "go back to the checkpoint", while the button that performs it
+   * -- shown only in `recoverable-error` or `restart-required` -- stayed
+   * hidden.  A prescription the host cannot carry out.
+   *
+   * The fix is here rather than in that list for a reason that is not
+   * aesthetic: `editor-shell/editor-session.js` is hash-registered by E1-C's
+   * shell bundle and cannot change without unbinding a shipped verdict, while
+   * this directory exists precisely to hold the changes that would otherwise
+   * have to go there (see the header).  Blocking from inside the enqueued
+   * operation is what makes the two equivalent: `_blockQueue` invalidates the
+   * drain, so the drain's own catch takes its `this._activeDrain !== drain`
+   * branch and its `finally` does not transition back to `ready` -- the same
+   * end state as extending the list, reached one frame earlier.
+   *
+   * Codes the base class already handles are unaffected: it never sees them,
+   * because this call has already invalidated the drain by then.
+   */
+  _blockQueueIfDispatched(error) {
+    if (recoveryFor(error) !== "rollback")
+      return;
+    if (!["ready", "busy"].includes(this.state.snapshot.state))
+      return;
+    this._blockQueue(error, "recoverable-error", "editor-recovery");
   }
 
   /**

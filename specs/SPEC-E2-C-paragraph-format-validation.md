@@ -1307,10 +1307,46 @@ round 1 開頭那句「游標沒辦法被放置」當時被判讀成「產品沒
    但那格永遠是 `NOT_ESTABLISHED`，於是「必紅」永遠達不到；宣告縮回實際做得到的
    三格。
 
+### 9.5.15 053／054 修法：殼層 v8 → **v9**，而 D5 第七輪因此綁在被取代的一代上（2026-08-16）
+
+9.5.14 掉出來的兩個缺陷都修了，**而修法本身推進了一代殼層**，代價要寫清楚。
+
+| | |
+|---|---|
+| 殼層 | **v9 `eb76c5be…`**（`e2/editor-shell-v2-bundle-v9.json`，v8 原樣保留） |
+| 改動 | `editor-shell-v2/narrow-editor-v2-session.js`（053）、`web/e2-editor-app.js`（054） |
+| artifact | `572035ac…`（未動，**沒有 relink**） |
+
+**053 的修法在哪個接縫，以及為什麼**：`NarrowEditorV2Session.action()` 排進佇列的
+那個操作內部，`recoveryFor(error) === "rollback"` 就 `_blockQueue(...)` 再重新丟出。
+不放進 `editor-shell/editor-session.js` 的 `RECOVERY_ERRORS`，是因為那個檔案由
+**E1-C 的 bundle 綁著**，動它會解除已出貨的判定——而 `editor-shell-v2/` 存在的理由
+正是收容這類改動。兩者效果相同：`_blockQueue` 作廢 drain，drain 自己的 catch 因此
+走 `this._activeDrain !== drain`、`finally` 不會轉回 `ready`。
+
+**054 的檢查寫成通則**：「頁面讀的每一個 `snapshot.<欄位>`，都必須是狀態機真的會
+發布的欄位」。兩格都做過突變驗證（把修法還原就會紅）。
+
+**產品路徑因此補上一條真的路**：點在行尾之後 → 分段 → 對新的空段落按項目符號
+（046 的那一格）→ 佇列被擋 → 那顆按鈕出現 → 按下去回到 `ready` → 還能存出真的
+ODT。**HIGH 清空，11／28 條路徑已驅動**，而 `rollback` 突變**從「宣告抓不到」變成
+真的被抓到**——是 harness 自己報「這個宣告過期了」。
+
+**但這一輪不是 053 修法的證據**，要說清楚：那條路掉出來的碼是
+`MUTATION_OUTCOME_UNKNOWN`，**本來就在 `RECOVERY_ERRORS` 裡**。修法的證據是接縫上
+那格突變驗證過的單元測試；**使用者按得到 `EDITOR_FORMAT_POSTCONDITION_FAILED` 這件
+事仍未證明**（目前只有 D2 那條直接驅動殼層的路產生過它）。
+
+**代價：D5 第七輪綁在 v8 上，而 v8 已被取代。** 那一輪的證據與判定原樣保留、也沒有
+被推翻，但它**不再描述現行殼層**——與同日早上 E1-C 的處境同一個形狀，處方也一樣：
+**重新綁定要靠重跑，不是靠重新申報**。D5 的主題是可信輸入，所以那需要 operator。
+**第八輪人工輪是欠著的**，在它跑完之前，不得說「D5 在現行殼層上通過」。
+
 ## 10. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-16 | **v18。053／054 修法進樹（9.5.15），殼層 v8 → v9 `eb76c5be…`，artifact 未動。** 053 修在 `NarrowEditorV2Session.action()` 的接縫（不動 E1-C 綁的檔案），054 改成同時看 `error.code` 與 `error.details`；兩格突變驗證過的檢查，其中 054 的寫成通則（「頁面讀的每個 snapshot 欄位都要是狀態機發布的」）。產品路徑補上一條真的能走到 `recoverable-error` 的路，**HIGH 清空、11／28 已驅動**，`rollback` 突變由 harness 自己報「宣告過期」後變成真驗證。**這一輪不是 053 修法的證據**（掉出來的碼本來就會擋佇列），修法的證據在單元測試。**代價：D5 第七輪綁在 v8，第八輪人工輪欠著。** |
 | 2026-08-16 | **v17。產品路徑第二輪（9.5.14）：三條 HIGH 的路徑走完兩條，第三條掉出 [finding 053](../findings/053-the-product-prescribes-a-recovery-whose-button-it-does-not-show.md)。** `action:insert-text` 與 `action:undo` 各自被自己的突變證明會紅；`listener:click#notice-action` 判 `NOT_ESTABLISHED`——產品只在 `recoverable-error`／`restart-required` 提供那顆按鈕，而唯一有記錄的產品 UI 路線（finding 047 的順序）在現行殼層上跑不出來（**不足以判定 047 修好了**，見 `queue-047-may-have-closed-under-048`）。**053 是產品開了一個它自己不提供的處方**：`EDITOR_FORMAT_POSTCONDITION_FAILED` 的 `recovery` 是 `"rollback"`，但它不在 `RECOVERY_ERRORS` 裡，所以 session 留在 `ready`、`#notice` 不顯示。同時 harness 學到三件事並寫進 9.5.14：判定要有三個值、缺席型判準要有見證、宣告不能比 harness 承諾得多。**另一半是 block identity**：四輪 native 量完（`findings/evidence/queue-block-identity/`），佇列項 `queue-verify-caret-by-block-identity` 依實測改寫——LOK **沒有**段落序號，能拿到的段落文字是**指紋不是身分**，它解得掉 046 的已量格與「同一行不同 x」，**解不掉 052 的殘留**（x 在行上帶入、在文字下方丟掉）。設計與四條事前預測在 `research/DESIGN-2026-08-16-caret-by-block-and-offset.md`。對抗性審查（codex）打在判準上收掉九條，掉出 round 4。 |
 | 2026-08-16 | **v16。D5 的機器那一半做完（9.5.12）：四格 `NOT_ESTABLISHED`、相位 PARTIAL，等 operator。** 產品頁面未修改——它是殼層 bundle 綁的模組之一，所以 D5 頁面把它放進同源 iframe 從外面觀察（事件的 `isTrusted`、一個已申報的 `URL.createObjectURL` shim、產品自己的狀態列），**殼層摘要前後未變**。機器半邊四條預測全部成立：合成事件一律記成不可信、由它們支撐的格判 `NOT_ESTABLISHED`、shim 攔得到存檔、觀察沒有改動摘要。自我測試 10／10，承重的一對是「補齊其他條件會過、翻一個事件成合成就不過」。**至此 D2～D5 全部寫好並在 v2 上跑過**，對抗性審查第 8 項的門檻達成（D5 的人工四格依矩陣本來就是 PARTIAL）。 |
 | 2026-08-16 | **v15。D4 執行完畢（9.5.11），判定 `PARTIAL`。** 十輪 × 兩瀏覽器：`d4-sessions` 與 `d4-residuals` 兩格全過（10／10、generation 各 1、worker 與 handle 每次取樣都是 0），`d4-regression` 11 個目標全綠且掃描前後 artifact 未變。**`d4-memory` 是 PARTIAL**：產品沒有任何路徑回報 WASM heap（`sdk-worker.js` 不報、R7-D 的欄位一直是 `null`、`measureUserAgentSpecificMemory` 的 breakdown 沒有 WASM 歸屬、Firefox 沒有那個 API），**這是 D4 掉出來的 relink 佇列新項目**。另記兩件：Firefox 的 PSS 斜率 7.52／8 通過但**絕對成長 +35.1 MB 讓我自己登記的 P-D4-3 第二子句不成立**（格子與預測分開計分）；曲線是「平—階梯—平」的形狀，沒有量到成因所以不宣稱。 |

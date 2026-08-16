@@ -5,6 +5,20 @@
     "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/e1/validation-matrix-v1.json",
     "status": "executed-automatic-phases-bound-to-835b453d-manual-round-pending",
     "corpusCount": 5,
+    "schemaVersion": 1,
+    "expectedRelease": "E1-C-editor-validation",
+    "crashScenarios": [
+      "crash-during-preedit-zero-mutation",
+      "crash-with-queued-mutation-no-replay",
+      "crash-before-save-unsaved-not-recovered",
+      "crash-after-save-authority-restored"
+    ],
+    "crashBarriersPerBrowser": 4,
+    "checks": {
+      "knownSchema": true,
+      "release": true,
+      "crashBarrierCount": true
+    },
     "pass": true
   },
   "profile": {
@@ -13,6 +27,81 @@
     "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
     "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
     "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+    "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b",
+    "shellBundle": {
+      "manifest": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/e1/editor-shell-bundle-v2.json",
+      "algorithm": "SHA-256 of UTF-8 path + NUL + lowercase file SHA-256 + LF for each included path in lexicographic order",
+      "loadedModules": [
+        "editor-shell/editor-client.js",
+        "editor-shell/editor-session.js",
+        "editor-shell/state-machine.js",
+        "input/clipboard-adapter.js",
+        "input/input-adapter.js"
+      ],
+      "availableModules": [
+        "editor-shell/editor-client.js",
+        "editor-shell/editor-session.js",
+        "editor-shell/recovery-notice.js",
+        "editor-shell/state-machine.js",
+        "input/clipboard-adapter.js",
+        "input/input-adapter.js"
+      ],
+      "included": [
+        {
+          "path": "editor-shell/editor-client.js",
+          "expectedSha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+          "sourceSha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+          "distSha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+          "sourcePass": true,
+          "distPass": true
+        },
+        {
+          "path": "editor-shell/editor-session.js",
+          "expectedSha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+          "sourceSha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+          "distSha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+          "sourcePass": true,
+          "distPass": true
+        },
+        {
+          "path": "editor-shell/state-machine.js",
+          "expectedSha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+          "sourceSha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+          "distSha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+          "sourcePass": true,
+          "distPass": true
+        },
+        {
+          "path": "input/clipboard-adapter.js",
+          "expectedSha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+          "sourceSha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+          "distSha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+          "sourcePass": true,
+          "distPass": true
+        },
+        {
+          "path": "input/input-adapter.js",
+          "expectedSha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+          "sourceSha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+          "distSha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+          "sourcePass": true,
+          "distPass": true
+        }
+      ],
+      "excluded": [
+        {
+          "path": "editor-shell/recovery-notice.js",
+          "reason": "Host-side decision module not imported by the E1-C validation page; covered by editor-shell/tests/recovery-notice.test.mjs. Including it would invalidate browser evidence for code the matrix does not execute."
+        }
+      ],
+      "unaccountedModules": [],
+      "missingModules": [],
+      "differences": [],
+      "sourceBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b",
+      "distBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b",
+      "expectedBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b",
+      "pass": true
+    },
     "actions": [
       "move-character-left",
       "move-character-right",
@@ -3967,7 +4056,31 @@
             }
           ],
           "cancelledCount": 0,
-          "pass": true
+          "pass": true,
+          "desktop": {
+            "command": [
+              "/usr/bin/soffice",
+              "--headless",
+              "--nologo",
+              "--nodefault",
+              "--nofirststartwizard",
+              "--norestore",
+              "-env:UserInstallation=file:///tmp/r7-desktop-jfi4nlxn/profile",
+              "--convert-to",
+              "pdf:writer_pdf_Export",
+              "--outdir",
+              "/tmp/r7-desktop-jfi4nlxn",
+              "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/manual/chrome-output.odt"
+            ],
+            "returnCode": 0,
+            "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/manual/chrome-output.odt as a Writer document -> /tmp/r7-desktop-jfi4nlxn/chrome-output.pdf using filter : writer_pdf_Export",
+            "stderr": "",
+            "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/manual/chrome-output.desktop.pdf",
+            "pdfBytes": 38999,
+            "pdfSha256": "e08d4e5ebb02f9041d3f28b619cf693b7766de53f02e69e63aa6f0c4b32bc6a4",
+            "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 23:16:55 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       38999 bytes\nOptimized:       no\nPDF version:     1.7",
+            "pass": true
+          }
         },
         "pass": true
       },
@@ -4011,7 +4124,31 @@
             }
           ],
           "cancelledCount": 0,
-          "pass": true
+          "pass": true,
+          "desktop": {
+            "command": [
+              "/usr/bin/soffice",
+              "--headless",
+              "--nologo",
+              "--nodefault",
+              "--nofirststartwizard",
+              "--norestore",
+              "-env:UserInstallation=file:///tmp/r7-desktop-jbgqoh7p/profile",
+              "--convert-to",
+              "pdf:writer_pdf_Export",
+              "--outdir",
+              "/tmp/r7-desktop-jbgqoh7p",
+              "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/manual/firefox-output.odt"
+            ],
+            "returnCode": 0,
+            "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/manual/firefox-output.odt as a Writer document -> /tmp/r7-desktop-jbgqoh7p/firefox-output.pdf using filter : writer_pdf_Export",
+            "stderr": "",
+            "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation/manual/firefox-output.desktop.pdf",
+            "pdfBytes": 38999,
+            "pdfSha256": "328f1d4fdfa027b2748fe2fb37795805175c25997425e1dd51562bf44b8d398e",
+            "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 23:16:55 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       38999 bytes\nOptimized:       no\nPDF version:     1.7",
+            "pass": true
+          }
         },
         "pass": true
       }

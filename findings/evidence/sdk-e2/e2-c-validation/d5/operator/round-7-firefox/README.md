@@ -81,3 +81,32 @@ python3 tools/analyze_e2_c_d5.py --criteria round-two \
   `notEstablishedByTheJudge`.
 * **That the pasted text is the text that was copied** — the export records the
   events, not the clipboard.
+
+## 2026-08-16, later the same day: this round's shell generation was superseded
+
+`session-attestation-2.json` binds these four cells to shell bundle
+**v8 `4daad6b4…`**, before and after, unchanged.  That is still true of what
+happened, and nothing here has been edited.
+
+Later the same day the shell moved to **v9 `eb76c5be…`** — two files changed,
+`editor-shell-v2/narrow-editor-v2-session.js` (finding 053) and
+`web/e2-editor-app.js` (finding 054), both of them in the bundle.
+
+**So this round no longer describes the current shell.**  It is not withdrawn
+and it was not wrong; it is bound to a generation that has been superseded,
+which is exactly the situation E1-C was in earlier the same day.  The remedy is
+the same one: **rebind by re-running, not by re-declaring** — and D5's whole
+subject is trusted input, so that needs an operator.  An **eighth operator
+round on v9** is owed before anything says "D5 passes on the current shell".
+
+What the two changes touch, so the size of the risk is legible rather than
+assumed:
+
+* the v2 session now blocks the queue when a dispatched failure prescribes a
+  rollback.  None of these four cells dispatches a paragraph action, so none of
+  them can reach that branch;
+* the page's recovery button now disables at the Worker generation ceiling.
+  These cells never reached the ceiling (`generation` stayed 1).
+
+That is an argument that the risk is small.  **It is not a measurement, and it
+does not substitute for the round.**
