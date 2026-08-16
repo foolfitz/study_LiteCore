@@ -56,6 +56,84 @@ globalThis.__e2c_d5_save_count = () => saves.length;
 globalThis.__e2c_d5_save = (index) => saves[index] || null;
 
 const logNode = document.querySelector("#log");
+const liveNode = document.querySelector("#live");
+const traceNode = document.querySelector("#trace");
+
+// ---- what the operator can actually see -----------------------------------
+//
+// This build paints no caret and no selection highlight -- `caret` appears once
+// in the whole product app, in a comment.  So a person doing these four cells
+// gets NO feedback from the product: the click lands, the engine moves the
+// caret, and the screen does not change.  Measured 2026-08-16 in the iframe:
+// state stays `ready`, no error notice, the events are recorded.
+//
+// The harness therefore shows what the HARNESS recorded -- which is exactly
+// what the cell will be judged on, so this is telemetry rather than a
+// reconstruction of product UI it does not have.
+
+function drawTrace() {
+  const frame = document.querySelector("#product");
+  const width = frame.clientWidth;
+  const height = frame.clientHeight;
+  if (traceNode.width !== width) traceNode.width = width;
+  if (traceNode.height !== height) traceNode.height = height;
+  const context = traceNode.getContext("2d");
+  context.clearRect(0, 0, width, height);
+  if (!current) return;
+  const points = metrics.events.filter(
+    (entry) => entry.cell === current && Number.isFinite(entry.x));
+  if (!points.length) return;
+  context.lineWidth = 2;
+  context.strokeStyle = "rgba(49,120,198,.85)";
+  context.beginPath();
+  points.forEach((point, index) => {
+    if (index === 0) context.moveTo(point.x, point.y);
+    else context.lineTo(point.x, point.y);
+  });
+  context.stroke();
+  const mark = (point, colour) => {
+    context.fillStyle = colour;
+    context.beginPath();
+    context.arc(point.x, point.y, 5, 0, Math.PI * 2);
+    context.fill();
+  };
+  const down = points.find((point) => point.type === "pointerdown");
+  const up = [...points].reverse().find((point) => point.type === "pointerup");
+  if (down) mark(down, "rgba(43,122,75,.95)");
+  if (up) mark(up, "rgba(168,52,42,.95)");
+}
+
+let stripReader = null;
+
+function refreshLive() {
+  const strip = stripReader ? stripReader() : null;
+  if (!current) {
+    liveNode.textContent = [
+      "尚未開始任何一格。",
+      strip ? `產品狀態  ${strip.state}  修訂 ${strip.revision}  generation ${strip.generation}` : "",
+    ].filter(Boolean).join("\n");
+    drawTrace();
+    return;
+  }
+  const events = metrics.events.filter((entry) => entry.cell === current);
+  const counts = {};
+  let synthetic = 0;
+  for (const entry of events) {
+    counts[entry.type] = (counts[entry.type] || 0) + 1;
+    if (!entry.isTrusted) synthetic += 1;
+  }
+  const shape = Object.entries(counts)
+    .map(([type, count]) => `${type}×${count}`).join("  ") || "（還沒有事件）";
+  liveNode.textContent = [
+    `進行中  ${current}`,
+    `已記錄  ${shape}`,
+    // The one thing that decides the cell.  Said in the operator's own view,
+    // not only in the file they hand back.
+    synthetic ? `⚠ 合成事件 ${synthetic} 個 —— 這一格不會成立` : "✓ 全部是真人事件",
+    strip ? `產品狀態  ${strip.state}  修訂 ${strip.revision}  generation ${strip.generation}` : "",
+  ].filter(Boolean).join("\n");
+  drawTrace();
+}
 const log = (value) => { logNode.textContent += `${JSON.stringify(value)}\n`; };
 
 let current = null;   // the cell being recorded, or null
@@ -73,6 +151,7 @@ function record(type, event, extra = {}) {
   };
   metrics.events.push(entry);
   if (metrics.events.length % 25 === 0) log({ events: metrics.events.length });
+  scheduleLive();
   return entry;
 }
 
@@ -134,6 +213,7 @@ function attach(frameWindow) {
     revision: doc.querySelector("#s-revision")?.textContent ?? null,
     generation: doc.querySelector("#s-generation")?.textContent ?? null,
   });
+  stripReader = strip;
   return strip;
 }
 
@@ -146,6 +226,7 @@ function beginCell(id, strip) {
     eventIndex: metrics.events.length,
   };
   log({ began: id });
+  scheduleLive();
 }
 
 function endCell(id, strip) {
@@ -160,6 +241,16 @@ function endCell(id, strip) {
   current = null;
   log({ ended: id, events: cell.events.length,
         synthetic: cell.syntheticEvents });
+  scheduleLive();
+}
+
+// Coalesced: a drag produces a burst, and repainting per event would make the
+// overlay the slowest thing in the round.
+let livePending = false;
+function scheduleLive() {
+  if (livePending) return;
+  livePending = true;
+  requestAnimationFrame(() => { livePending = false; refreshLive(); });
 }
 
 void (async () => {
@@ -236,5 +327,10 @@ void (async () => {
   globalThis.__e2c_d5_finish = () => { metrics.complete = true; };
   globalThis.__e2c_d5_frame = () => frame.contentWindow;
   metrics.ready = true;
+  // The product strip moves without any event of ours (a save finishing, a
+  // revision advancing), so the readout is polled as well as event-driven.
+  setInterval(refreshLive, 1000);
+  globalThis.addEventListener("resize", scheduleLive);
+  refreshLive();
   log({ ready: true, mode: metrics.mode });
 })();

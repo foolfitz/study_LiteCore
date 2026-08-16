@@ -63,6 +63,17 @@ python3 tools/run_e2_c_d5.py --serve --port 8791   # prints a URL for a real bro
 Step-by-step instructions for the person doing it:
 `handoff/RUNBOOK-operator-d5.md`.
 
+**Addendum 2026-08-16 (b)**: the page also gained a live readout and a pointer
+trace, because the first attempt at an operator session stopped at the first
+cell -- **this build paints no caret and no selection highlight**, so a person
+clicking in the document sees nothing change and reasonably concludes it is
+broken.  Measured in the iframe: the click lands, state stays `ready`, no error
+notice, the events are recorded.  The harness now shows what the HARNESS
+recorded (event counts, trusted/synthetic, the product's own revision) and draws
+where the pointer went.  The overlay is `pointer-events: none` and
+`elementFromPoint` over the product area returns the iframe, so it cannot
+swallow the gesture being measured.
+
 **Addendum 2026-08-16**: the page gained an export button that saves the whole
 round -- metrics and every captured document -- as one JSON file, because the
 alternative was telling an operator to copy a global out of the console at the
