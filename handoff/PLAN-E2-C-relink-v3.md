@@ -255,6 +255,7 @@ contract version 與 capability 維持 2／`narrow-editor-v2`。
       Chrome 的 `measureUserAgentSpecificMemory` breakdown 沒有 WASM 歸屬，
       Firefox 連那個 API 都沒有。因此 D4 第一輪的 `d4-memory` 只能判 PARTIAL。
       **沒有這一欄，第二輪的 `d4-memory` 一樣只能 PARTIAL。**
+- [x] **矩陣 v2 草稿已寫**（`e2/validation-matrix-v2-draft.json`，2026-08-16）：84 格＝v1 的 75 格全部帶過來 ＋ 九格新的（D0 的凍結守衛、真的跨段、範圍上的 inline 格式帶文件判準、空段落兩手勢並排、barrier 要驗自己動過的那一段、相鄰清單合併規則**先寫**、結構對控制格比、跨瀏覽器位元組相同改成正規化後相同、D5 的機器半邊當進場檢查）。五個雜湊全部是佔位字串，`status` 是 `DRAFT-NOT-FROZEN`，由 `tests/test_e2_c_matrix.py` 七條釘住。
 - [ ] **矩陣 v2 的凍結時機沒有守衛**（外部裁決指出）：baseline 要 v3 的五個雜湊，
       而雜湊要等連結才存在，於是「連結之後、第二輪 D0 之前」有一個必須補雜湊並
       凍結的窗口，**但沒有人檢查凍結真的發生在 D0 之前**。第一輪就是被「矩陣沒

@@ -21,6 +21,71 @@ PROFILE = PROJECT / "dist" / "profiles" / "e2-editor-v2"
 DISPOSITIONS = {"STOP", "PARTIAL", "NONE", "PREDICTION"}
 
 
+
+class E2CMatrixV2DraftTest(unittest.TestCase):
+    """The round-two draft, and the one property that makes it safe to have.
+
+    A draft matrix sitting beside a frozen one is a hazard: the first round was
+    bitten by criteria that moved after the round started, and a file that LOOKS
+    like a matrix is exactly what someone would run against.  So the draft has
+    to be unmistakably not-frozen, and its placeholders have to be detectable.
+    """
+
+    DRAFT = PROJECT / "e2" / "validation-matrix-v2-draft.json"
+    PLACEHOLDER = "TO-BE-FILLED-AT-RELINK"
+
+    def setUp(self) -> None:
+        self.draft = json.loads(self.DRAFT.read_text(encoding="utf-8"))
+
+    def test_the_draft_says_it_is_not_frozen(self) -> None:
+        self.assertEqual(self.draft["status"], "DRAFT-NOT-FROZEN")
+        self.assertIsNone(self.draft["frozenDate"])
+
+    def test_every_baseline_hash_is_still_a_placeholder(self) -> None:
+        """Until the relink happens there is nothing true to put here.
+
+        A real hash in this file before v3 exists would be a hash copied from
+        somewhere -- and evidence filed under an artifact that never ran it is
+        finding 027.
+        """
+        for name in ("wasmSha256", "loaderSha256", "workerSha256",
+                     "shellBundleSha256", "manifestSha256"):
+            with self.subTest(hash=name):
+                self.assertEqual(self.draft["baseline"][name], self.PLACEHOLDER)
+
+    def test_the_second_round_binds_five_identities(self) -> None:
+        self.assertIn("manifestSha256", self.draft["baseline"])
+        self.assertIn("whyFive", self.draft["baseline"])
+
+    def test_the_draft_carries_every_frozen_cell_forward(self) -> None:
+        frozen = json.loads(
+            (PROJECT / "e2" / "validation-matrix-v1.json").read_text(encoding="utf-8"))
+        carried = {cell["id"] for cell in self.draft["cells"]
+                   if cell.get("carriedFrom")}
+        self.assertEqual(carried, {cell["id"] for cell in frozen["cells"]})
+
+    def test_every_new_cell_says_why_it_exists(self) -> None:
+        """A cell added because a round taught us something has to carry what it
+        taught, or the next person reads it as arbitrary and deletes it."""
+        for cell in self.draft["cells"]:
+            if cell.get("addedIn") != "round-two":
+                continue
+            with self.subTest(cell=cell["id"]):
+                self.assertTrue(cell.get("note"), cell["id"])
+                self.assertIn(cell["onFailure"], ("STOP", "PARTIAL"))
+
+    def test_the_freeze_has_an_entry_assertion(self) -> None:
+        procedure = self.draft["freezeProcedure"]
+        self.assertIn("entryAssertion", procedure)
+        self.assertIn("D0", procedure["entryAssertion"])
+
+    def test_the_draft_writes_to_its_own_evidence_root(self) -> None:
+        """Round one's evidence is a record, not a place to write into."""
+        frozen = json.loads(
+            (PROJECT / "e2" / "validation-matrix-v1.json").read_text(encoding="utf-8"))
+        self.assertNotEqual(self.draft["evidenceRoot"], frozen["evidenceRoot"])
+
+
 class TestE2CMatrix(unittest.TestCase):
     def setUp(self) -> None:
         self.matrix = json.loads(MATRIX.read_text(encoding="utf-8"))

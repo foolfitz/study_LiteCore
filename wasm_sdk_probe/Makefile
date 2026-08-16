@@ -2095,6 +2095,7 @@ test-e2-c-static:
 	# dist/).  Read-only: --write is a deliberate act with its own diff.
 	python3 tools/build_e2_c_shell_bundle.py > /dev/null
 	python3 -m json.tool e2/validation-matrix-v1.json > /dev/null
+	python3 -m json.tool e2/validation-matrix-v2-draft.json > /dev/null
 	# SPEC E2-C 9.1: every predicate that can turn the verdict has to be shown
 	# to go red.  Read-only -- it mutates a COPY of the recorded result and
 	# never writes into findings/.
