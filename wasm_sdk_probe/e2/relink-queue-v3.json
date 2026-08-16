@@ -373,6 +373,21 @@
           "file": "e2/editor-shell-v2-bundle-v4.json"
         }
       ]
+    },
+    {
+      "id": "queue-input-adapter-trace-is-discarded",
+      "title": "the input adapter's own trace is thrown away by the product, and IME commits are being lost in that layer -- OPEN, not blocking",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "findings/evidence/sdk-e2/e2-c-validation/d5/operator/round-3-firefox/, 2026-08-16",
+      "note": "Firefox operator round: four IME commits advanced the revision once, and a real paste advanced it not at all. A control ruled out the shell -- four consecutive session.commitText() calls all advanced (0-1-2-3-4). So the loss sits between the browser's composition events and commitText, in HostInputAdapter -- and EditorSession accepts onInputTrace while web/e2-editor-app.js passes none, so that layer is the one layer nobody records. Next controlled variable: wire onInputTrace/onClipboardTrace into a page an operator can drive, and repeat the cell.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "web/e2-editor-app.js",
+          "text": "onInputTrace"
+        }
+      ]
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

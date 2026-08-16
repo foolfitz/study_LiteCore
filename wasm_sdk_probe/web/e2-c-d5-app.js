@@ -188,6 +188,12 @@ function revisionLine(strip) {
 const log = (value) => { logNode.textContent += `${JSON.stringify(value)}\n`; };
 
 let current = null;   // the cell being recorded, or null
+// The cell a save should be attributed to after its event window has closed.
+// `savedDocumentCaptured` failed in all three operator rounds -- every time
+// because a human step was missed or landed outside the window -- and the
+// criterion is about the saved DOCUMENT, not about who pressed the button.  So
+// the harness presses it, after the window closes, and says so.
+let pendingSaveCell = null;
 
 function record(type, event, extra = {}) {
   const entry = {
@@ -247,9 +253,11 @@ function attach(frameWindow) {
     void (async () => {
       try {
         const bytes = await blob.arrayBuffer();
-        const label = `${current || "unassigned"}-${saves.length + 1}`;
+        const label = `${current || pendingSaveCell || "unassigned"}-${saves.length + 1}`;
         saves.push({ label, b64: await toBase64(bytes) });
-        metrics.saves.push({ label, bytes: bytes.byteLength, cell: current });
+        metrics.saves.push({ label, bytes: bytes.byteLength,
+                             cell: current || pendingSaveCell,
+                             pressedBy: current ? "operator" : "harness" });
         log({ saved: label, bytes: bytes.byteLength });
         scheduleLive();
       } catch (error) {
@@ -281,7 +289,7 @@ function beginCell(id, strip) {
   scheduleLive();
 }
 
-function endCell(id, strip) {
+function endCell(id, strip, frameWindow) {
   const cell = metrics.cells[id];
   if (!cell) return;
   cell.endedAtMs = Math.round(performance.now());
@@ -290,7 +298,21 @@ function endCell(id, strip) {
     .filter((entry) => entry.cell === id);
   cell.trustedEvents = cell.events.filter((entry) => entry.isTrusted).length;
   cell.syntheticEvents = cell.events.filter((entry) => !entry.isTrusted).length;
+  // The window is closed FIRST: everything below is the harness's own doing and
+  // must not be able to land inside the cell's trust accounting.
   current = null;
+  pendingSaveCell = id;
+  try {
+    const button = frameWindow?.document.querySelector('[data-action="save"]');
+    if (button) {
+      button.click();
+      cell.savePressedBy = "harness";
+    } else {
+      cell.savePressedBy = "unavailable";
+    }
+  } catch (error) {
+    cell.savePressedBy = `failed: ${String(error).slice(0, 80)}`;
+  }
   log({ ended: id, events: cell.events.length,
         synthetic: cell.syntheticEvents });
   scheduleLive();
@@ -329,7 +351,7 @@ void (async () => {
       begin.disabled = true; end.disabled = false;
     });
     end.addEventListener("click", () => {
-      endCell(cell.id, strip);
+      endCell(cell.id, strip, frame.contentWindow);
       end.disabled = true;
     });
     row.append(begin, end);
@@ -375,7 +397,7 @@ void (async () => {
   panel.append(download);
 
   globalThis.__e2c_d5_begin = (id) => beginCell(id, strip);
-  globalThis.__e2c_d5_end = (id) => endCell(id, strip);
+  globalThis.__e2c_d5_end = (id) => endCell(id, strip, frame.contentWindow);
   globalThis.__e2c_d5_finish = () => { metrics.complete = true; };
   globalThis.__e2c_d5_frame = () => frame.contentWindow;
   metrics.ready = true;

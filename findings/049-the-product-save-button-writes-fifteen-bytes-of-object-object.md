@@ -93,7 +93,9 @@ D5 的四格是「非人不可」的那一類，而這個缺陷證明了「非�
 const { bytes } = await run("儲存", () => session.save());
 ```
 
-**驗證**（在 D5 harness 裡按下產品自己的儲存鈕，由已申報的 shim 攔下來）：
+**驗證兩次**——一次由我在 harness 裡按、一次**由發現它的人在人工輪裡按**
+（`evidence/049/verified-by-operator/product-save-after-fix.odt`，
+12,949 位元組、合法 ZIP、9 個 entry，內文可見 `E1-LC-SPACER你好`）：
 
 | | 修之前 | 修之後 |
 |---|---|---|
