@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-C-product-path-coverage",
+  "why": "Three product defects were found by a person on 2026-08-16 (findings 049, 050, and the unbound Ctrl+C) and none of them was reachable by any automated round, because every harness calls the shell directly and none of them went through the product page's own handlers. They were found one at a time, by walking into them. This file turns that into a rule with the same shape as the shell bundle's: every handler and every toolbar action the product page has must be either DRIVEN by a named harness or WAIVED with a reason, and anything else fails the audit. What is uncovered here is where the next one of those defects is.",
+  "rule": "paths(page) - driven - waived must be empty",
+  "auditedPage": "web/e2-editor-app.js",
+  "driven": [
+    {
+      "path": "listener:pointerdown",
+      "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
+      "how": "a synthesised PointerEvent on #canvas, through the page's own handler; placeCaret is confirmed by the engine"
+    },
+    {
+      "path": "listener:pointermove",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the drag that precedes the copy check"
+    },
+    {
+      "path": "listener:pointerup",
+      "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
+      "how": "ends every click and every drag"
+    },
+    {
+      "path": "listener:copy",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a ClipboardEvent on #sink; the check classifies the outcome by which error the clipboard adapter raises"
+    },
+    {
+      "path": "listener:click",
+      "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
+      "how": "the toolbar's delegated click handler, via a real button.click()"
+    },
+    {
+      "path": "action:save",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the product's own save button; the bytes are captured through a declared URL.createObjectURL shim and must BE an ODT"
+    },
+    {
+      "path": "action:set-paragraph-heading",
+      "by": "tools/run_e2_c_page_smoke.py",
+      "how": "the default --action of the smoke run; the revision must advance by exactly one"
+    }
+  ],
+  "waived": [],
+  "uncovered": [
+    {
+      "path": "action:undo",
+      "risk": "HIGH -- the same shape as finding 049: the page calls session.undo() at a line nothing has executed. D1 covers undo through the SHELL (d1-undo), which is the distinction that let 049 live.",
+      "note": "Registered as uncovered on 2026-08-16 rather than silently absent."
+    },
+    {
+      "path": "action:insert-text",
+      "risk": "HIGH -- reads el.text.value and calls session.commitText(); the only automated commits go through the adapter or the shell, never this button."
+    },
+    {
+      "path": "listener:click#notice-action",
+      "risk": "HIGH -- this is the PRODUCT'S RECOVERY PATH (session.rollback()). SPEC E2-C 2.6/5.13 makes rollback the prescribed recovery for a dispatched failure, and no automated round has ever pressed it. A recovery path that has never been exercised is a recovery path nobody knows works."
+    },
+    {
+      "path": "listener:change#fixture",
+      "risk": "MEDIUM -- opening a second document in one page. The session disposes its engine on close, so this is also the only product path that comes near the search-after-reopen wedge."
+    },
+    {
+      "path": "action:move-character-left",
+      "risk": "LOW -- covered through the shell by D1; the button itself is untested."
+    },
+    {
+      "path": "action:move-character-right",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:delete-backward",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:delete-forward",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:insert-paragraph-break",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:insert-line-break",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:set-bold",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:set-italic",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:set-underline",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:set-strikethrough",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:set-list-unordered",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:set-list-ordered",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:set-list-none",
+      "risk": "LOW"
+    },
+    {
+      "path": "action:set-paragraph-body",
+      "risk": "LOW"
+    },
+    {
+      "path": "listener:pointercancel",
+      "risk": "LOW -- endDrag(null); reachable when the browser takes the pointer away."
+    },
+    {
+      "path": "listener:blur",
+      "risk": "LOW -- endDrag(null) on window blur."
+    },
+    {
+      "path": "listener:resize",
+      "risk": "LOW -- relayout and re-render."
+    }
+  ]
+}

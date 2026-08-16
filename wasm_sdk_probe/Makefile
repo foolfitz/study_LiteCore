@@ -2180,6 +2180,7 @@ test-e2-c-static:
 		tools/analyze_f048_boundary.py tools/analyze_f046_diagnostic.py \
 		tools/analyze_f046_overshoot.py \
 		tools/run_e2_c_product_path.py \
+		tools/audit_product_path_coverage.py \
 		tools/validate_e2_c.py
 	python3 -m json.tool e2/relink-queue-v3.json > /dev/null
 	# The relink queue, run instead of read.  It lied twice while it was prose
@@ -2190,6 +2191,13 @@ test-e2-c-static:
 	# expectation being flipped fails too.
 	python3 tools/check_relink_queue.py > /dev/null
 	python3 tools/check_relink_queue.py --self-test > /dev/null
+	# Which of the PRODUCT PAGE's own paths any automated round has ever
+	# driven.  Same shape as the shell bundle's rule -- page minus driven
+	# minus waived must be empty -- so a handler cannot arrive unaccounted
+	# for.  Findings 049, 050 and the unbound Ctrl+C were all found one at a
+	# time by walking into them; this is that list, kept.
+	python3 tools/audit_product_path_coverage.py > /dev/null
+	python3 tools/audit_product_path_coverage.py --self-test > /dev/null
 	# The freeze window: between the relink and the freeze, the second round's
 	# matrix still carries placeholder hashes and nothing checked that the
 	# freeze happened before D0.  The assertion refuses on three counts, and
