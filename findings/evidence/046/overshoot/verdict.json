@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-046-overshoot",
+  "predictionFile": "findings/evidence/046/overshoot/PREDICTION.md",
+  "evidenceClass": "diagnostic",
+  "engineIsFrozenShipping": true,
+  "runs": [
+    {
+      "run": "../findings/evidence/046/overshoot/e2-readback-diagnostic-572035ac/chrome",
+      "browser": "chrome",
+      "cells": 8,
+      "matrixEntryAssertion": {
+        "skipped": true,
+        "reason": "characterise the SelectText overshoot: is it empty paragraphs, or any caret at a paragraph edge? frozen engine, raw record",
+        "evidenceClass": "diagnostic",
+        "note": "This round did NOT pass the matrix entry assertion and is not matrix evidence. It is filed to answer a question the product projection cannot answer."
+      }
+    },
+    {
+      "run": "../findings/evidence/046/overshoot/e2-readback-diagnostic-572035ac/firefox",
+      "browser": "firefox",
+      "cells": 8,
+      "matrixEntryAssertion": {
+        "skipped": true,
+        "reason": "characterise the SelectText overshoot: is it empty paragraphs, or any caret at a paragraph edge? frozen engine, raw record",
+        "evidenceClass": "diagnostic",
+        "note": "This round did NOT pass the matrix entry assertion and is not matrix evidence. It is filed to answer a question the product projection cannot answer."
+      }
+    }
+  ],
+  "findings": {
+    "P-OV-1": {
+      "claim": "the control (mid-text) reads one block and succeeds",
+      "observed": [
+        {
+          "blocks": 1,
+          "accepted": true
+        },
+        {
+          "blocks": 1,
+          "accepted": true
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-OV-2": {
+      "claim": "the empty paragraph reads two blocks and fails multi-block",
+      "observed": [
+        {
+          "blocks": 2,
+          "accepted": false,
+          "shape": "multi-block-readback"
+        },
+        {
+          "blocks": 2,
+          "accepted": false,
+          "shape": "multi-block-readback"
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-OV-3": {
+      "claim": "a caret PAST THE LAST CHARACTER of a paragraph with text reads one block -- the overshoot is about emptiness, not about being at an edge",
+      "observed": [
+        {
+          "cell": "text-end",
+          "blocks": 1,
+          "caretX": 3578,
+          "caretPastText": true,
+          "accepted": true
+        },
+        {
+          "cell": "isolated-end",
+          "blocks": 1,
+          "caretX": 5304,
+          "caretPastText": true,
+          "accepted": true
+        },
+        {
+          "cell": "text-end",
+          "blocks": 1,
+          "caretX": 3578,
+          "caretPastText": true,
+          "accepted": true
+        },
+        {
+          "cell": "isolated-end",
+          "blocks": 1,
+          "caretX": 5304,
+          "caretPastText": true,
+          "accepted": true
+        }
+      ],
+      "premiseHeld": true,
+      "status": "HELD"
+    },
+    "P-OV-4": {
+      "claim": "a caret at the START of a paragraph reads one block",
+      "observed": [
+        {
+          "blocks": 1
+        },
+        {
+          "blocks": 1
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-OV-5": {
+      "claim": "being inside a list does not by itself cause the overshoot",
+      "observed": [
+        {
+          "blocks": 1,
+          "accepted": true
+        },
+        {
+          "blocks": 1,
+          "accepted": true
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-OV-6": {
+      "claim": "every overshooting cell still reports containment held -- containment cannot catch an overshoot",
+      "observed": [
+        {
+          "cell": "empty-mid",
+          "blocks": 2,
+          "held": true
+        },
+        {
+          "cell": "empty-mid",
+          "blocks": 2,
+          "held": true
+        }
+      ],
+      "status": "HELD"
+    }
+  },
+  "held": [
+    "P-OV-1",
+    "P-OV-2",
+    "P-OV-3",
+    "P-OV-4",
+    "P-OV-5",
+    "P-OV-6"
+  ],
+  "failed": [],
+  "overshootingCells": [
+    "empty-mid"
+  ],
+  "scope": "EMPTY-PARAGRAPH-ONLY"
+}

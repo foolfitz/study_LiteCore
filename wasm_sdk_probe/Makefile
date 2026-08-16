@@ -1635,6 +1635,18 @@ dist/e2-c-048-boundary.html: web/e2-c-048-boundary.html | dist
 dist/e2-c-048-boundary-app.js: web/e2-c-048-boundary-app.js | dist
 	cp $< $@
 
+dist/e2-c-046-overshoot.html: web/e2-c-046-overshoot.html | dist
+	cp $< $@
+
+dist/e2-c-046-overshoot-app.js: web/e2-c-046-overshoot-app.js | dist
+	cp $< $@
+
+dist/e2-c-046-overshoot.html: web/e2-c-046-overshoot.html | dist
+	cp $< $@
+
+dist/e2-c-046-overshoot-app.js: web/e2-c-046-overshoot-app.js | dist
+	cp $< $@
+
 dist/e2-c-046-empty.html: web/e2-c-046-empty.html | dist
 	cp $< $@
 
@@ -1687,6 +1699,8 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/e2-c-d4.html dist/e2-c-d4-app.js \
 	dist/e2-c-d4-heap.html dist/e2-c-d4-heap-app.js \
 	dist/e2-c-046-empty.html dist/e2-c-046-empty-app.js \
+	dist/e2-c-046-overshoot.html dist/e2-c-046-overshoot-app.js \
+	dist/e2-c-046-overshoot.html dist/e2-c-046-overshoot-app.js \
 	dist/e2-c-048-boundary.html dist/e2-c-048-boundary-app.js \
 	dist/e2-c-d5.html dist/e2-c-d5-app.js \
 	$(addprefix dist/r7-compat-fixtures/,$(R7_COMPAT_FILES)) \
@@ -2079,6 +2093,8 @@ test-e2-c-static:
 	node --check web/e2-c-d4-app.js
 	node --check web/e2-c-d4-heap-app.js
 	node --check web/e2-c-046-empty-app.js
+	node --check web/e2-c-046-overshoot-app.js
+	node --check web/e2-c-046-overshoot-app.js
 	node --check web/e2-c-048-boundary-app.js
 	node --check web/e2-c-d5-app.js
 	# SPEC E2-C 2.2: the manifest declares fifteen actions, so fifteen must be
@@ -2116,6 +2132,7 @@ test-e2-c-static:
 		tools/analyze_e2_c_d4_heap.py tools/check_relink_queue.py \
 		tools/e2_c_matrix_entry.py tools/analyze_f046_browser.py \
 		tools/analyze_f048_boundary.py tools/analyze_f046_diagnostic.py \
+		tools/analyze_f046_overshoot.py \
 		tools/validate_e2_c.py
 	python3 -m json.tool e2/relink-queue-v3.json > /dev/null
 	# The relink queue, run instead of read.  It lied twice while it was prose
@@ -2153,6 +2170,12 @@ test-e2-c-static:
 		--diagnostic $$(find ../findings/evidence/046/diagnostic-readback \
 			-name result.json -printf '%h\n' | sort) \
 		--product $$(find ../findings/evidence/046/browser-vs-native/run-2 \
+			-name result.json -printf '%h\n' | sort) > /dev/null
+	# The overshoot round scoped a defect to empty paragraphs.  Its self-test
+	# has to be able to widen that scope again -- an edge cell that overshoots
+	# must change the sentence, or "empty-paragraph-only" is not a measurement.
+	python3 tools/analyze_f046_overshoot.py --self-test \
+		$$(find ../findings/evidence/046/overshoot \
 			-name result.json -printf '%h\n' | sort) > /dev/null
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves

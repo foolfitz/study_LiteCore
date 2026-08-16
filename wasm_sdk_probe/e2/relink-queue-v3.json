@@ -341,11 +341,11 @@
     },
     {
       "id": "queue-selecttext-overshoots-empty-paragraph",
-      "title": "the barrier's own selection overshoots an empty paragraph, so a successful mutation is refused -- OPEN, not blocking",
+      "title": "the barrier's selection overshoots an EMPTY paragraph, so a successful mutation is refused -- OPEN, scoped 2026-08-16, not blocking",
       "expectation": "absent",
       "blocksRelink": false,
       "source": "findings/evidence/046/diagnostic-readback/, 2026-08-16",
-      "note": "This is finding 046's actual defect, now precise. Raw readback on the empty paragraph: `<ul><li><p></p></li></ul><p>E1-EMPTY-AFTER</p>` -- the bullet APPLIED and the read swallowed the paragraph below. Both browsers, both gestures. Not blocking this link: the fix needs a design (verify by block identity rather than refuse) plus its own measurement, and the link is for changes already decided. Round two needs a matrix cell for it.",
+      "note": "This is finding 046's actual defect, now precise. Raw readback on the empty paragraph: `<ul><li><p></p></li></ul><p>E1-EMPTY-AFTER</p>` -- the bullet APPLIED and the read swallowed the paragraph below. Both browsers, both gestures. Not blocking this link: the fix needs a design (verify by block identity rather than refuse) plus its own measurement, and the link is for changes already decided. Round two needs a matrix cell for it. SCOPE MEASURED (findings/evidence/046/overshoot/, 8 cells x 2 browsers, frozen engine): EMPTY-PARAGRAPH-ONLY. The discriminator was a caret placed PAST the last character of a paragraph with text -- it reads one block and succeeds, so this is not the 'caret at a paragraph edge' failure finding 034 named. Containment holds on every overshooting cell, so a fix has to compare the read against the paragraph the action was dispatched on, not against the caret.",
       "checks": [
         {
           "kind": "absent",

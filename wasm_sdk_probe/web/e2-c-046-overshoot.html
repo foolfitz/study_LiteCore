@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>046 — 選取過頭的範圍</title>
+<style>
+  body { margin: 0; font: 13px/1.5 ui-monospace, Menlo, monospace; padding: 12px;
+         background: #101820; color: #d7e2ea; }
+  h1 { font: 600 15px/1.4 system-ui, sans-serif; margin: 0 0 8px; }
+  p { font: 12px/1.5 system-ui, sans-serif; color: #93a6b5; margin: 0 0 12px;
+      max-width: 68em; }
+  #log { white-space: pre-wrap; word-break: break-all; }
+  #sink { position: absolute; width: 1px; height: 1px; opacity: 0; }
+</style>
+</head>
+<body>
+  <h1>046 — 選取過頭到底涵蓋多遠</h1>
+  <p>讀回那一輪只在<strong>一份語料的一個位置</strong>上量到「空段落上
+     <code>.uno:SelectText</code> 會把下一段也選進來」。一個位置不是刻畫。
+     這一頁的關鍵格是 <code>text-end</code>：finding 034 說舊的選取對是因為
+     <strong>游標在段落邊界</strong>才逃到鄰段的，而空段落正是「兩個邊界同時成立」。
+     所以——<strong>有文字的段落，游標放在最後面，會不會也選過頭？</strong>
+     會的話這就是一個日常手勢上的缺陷。全程在凍結的引擎上（診斷 profile 的
+     wasm 與出貨逐位元相同）。判準寫在
+     <code>findings/evidence/046/overshoot/PREDICTION.md</code>。這一頁不判定。</p>
+  <textarea id="sink" aria-label="輸入"></textarea>
+  <div id="log"></div>
+  <script type="module" src="./e2-c-046-overshoot-app.js"></script>
+</body>
+</html>
