@@ -70,3 +70,22 @@ reported success for a build that silently discards two thirds of a user's
 typing.
 
 **A rerun is needed after the fix**, judged against the stronger criterion.
+
+## Addendum, 2026-08-16 — the strengthened criterion, applied to this round
+
+`tools/analyze_e2_c_d5.py --criteria round-two` now requires one revision
+advance per commit the oracle names.  Re-judged with it, **this round's IME cell
+is `NOT_ESTABLISHED`** — where round one's judge reported `PASS`:
+
+```
+commitsObserved: 3      revisionAdvance: 1
+bothCommitsAttempted: true      everyCommitLanded: FALSE
+```
+
+The round-one verdict in `verdict.json` is **left exactly as it was**.  It was
+made honestly under the rule of the day, and rewriting it would hide the thing
+worth keeping: a judge can be weaker than its own frozen oracle, and the way to
+find out is to run the stronger rule against evidence you already have.
+
+Round 6, judged by the same stronger rule, is still `PASS` — so the rule
+discriminates rather than rejecting everything.

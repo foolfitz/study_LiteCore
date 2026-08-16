@@ -84,3 +84,19 @@ Two cells, one short session:
    another cell in between;
 2. `d5-clipboard` — after the trace question above is answered, because a fourth
    round of the same result would measure nothing new.
+
+## Addendum, 2026-08-16 — the strengthened criterion, applied to this round
+
+The gap recorded above ("the analyzer only checks that a document was
+*captured*") is now implemented as a criterion:
+`tools/analyze_e2_c_d5.py --criteria round-two` counts `<text:list>` in the
+document each drag cell saved, against the document saved immediately before it.
+
+Re-judged with it, **both drag cells still PASS** — 2 → 3 → 4, the counts read
+by hand above, now read by the judge.
+
+One thing this round taught the implementation: the baseline must follow the
+**save order**, not the cell order.  This operator opened `d5-ime-commit` second
+while `d5-pointer-drag-cross` was run third, so a judge that walked the cells in
+matrix order compared the cross-drag against the IME cell's document and made
+its own false negative.  Measured here, fixed before the criterion was recorded.

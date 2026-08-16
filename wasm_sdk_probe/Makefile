@@ -2267,6 +2267,14 @@ e2-editor-v2-572035ac/chrome > /dev/null
 	python3 tools/analyze_e2_c_d5.py --self-test \
 		../findings/evidence/sdk-e2/e2-c-validation/d5/machine-half/chrome \
 		> /dev/null
+	# And the round-two criteria, on the round that established the phase.
+	# Read-only: the self-test judges clones in a temporary directory and
+	# never writes into the evidence it reads.  Two of these mutations are
+	# the two places round one's judge was weaker than its own frozen oracle,
+	# so a criterion added to fix that is itself shown to be able to fail.
+	python3 tools/analyze_e2_c_d5.py --self-test --criteria round-two \
+		../findings/evidence/sdk-e2/e2-c-validation/d5/operator/round-6-firefox \
+		> /dev/null
 	# D2's judge is build-aware, so its self-test mutates the EXPECTATION table
 	# as well as the results: an expectation nobody can break is an expectation
 	# that stopped describing the build some time ago and said nothing.
