@@ -3,7 +3,15 @@
 Design and criteria in `PREDICTION.md`, registered before the harness existed.
 Judged offline by `tools/analyze_e2_c_d5.py`; self-test 10/10 in both browsers.
 
-**Verdict: `PARTIAL`, with all four cells `NOT_ESTABLISHED`** — which is exactly
+> **Updated 2026-08-16 after four operator rounds**: two cells are now
+> **PASS** (`d5-pointer-drag-single`, `d5-pointer-drag-cross`, round 4,
+> Firefox), with their bullets visible in the captured documents.  The IME cell
+> needs one clean redo on Firefox — Chrome marks `compositionend` untrusted, a
+> measured platform limit — and the clipboard cell is waiting on a question
+> about where a real paste is lost.  Rounds and readings:
+> `operator/round-{1-chrome,2-chrome,3-firefox,4-firefox}/`.
+
+**Verdict of the machine half: `PARTIAL`, with all four cells `NOT_ESTABLISHED`** — which is exactly
 what the frozen matrix says an unrun D5 cell is (`onFailure: PARTIAL`).  Nothing
 here claims a product property; what it establishes is that **the harness can
 tell a real gesture from a fake one**, which is the only thing about D5 that can
