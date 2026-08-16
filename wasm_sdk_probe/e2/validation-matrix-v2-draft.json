@@ -799,7 +799,8 @@
       "onFailure": "PARTIAL",
       "note": "E1-C's IME evidence is bound to 835b453d and may not be cited for v2.",
       "carriedFrom": "validation-matrix-v1.json",
-      "platformLimit": "MEASURED 2026-08-16, both browsers, same operator and same Fcitx5 Chewing: Chrome delivers compositionend with isTrusted:false while start and every update are trusted, so this cell cannot pass there. Firefox delivers all four events trusted and the cell is obtainable. The strict rule stays as frozen -- it is what makes this phase mean anything -- and the cell is run on Firefox. Evidence: findings/evidence/sdk-e2/e2-c-validation/d5/operator/round-1-chrome/ and round-3-firefox/."
+      "platformLimit": "MEASURED 2026-08-16, both browsers, same operator and same Fcitx5 Chewing: Chrome delivers compositionend with isTrusted:false while start and every update are trusted, so this cell cannot pass there. Firefox delivers all four events trusted and the cell is obtainable. The strict rule stays as frozen -- it is what makes this phase mean anything -- and the cell is run on Firefox. Evidence: findings/evidence/sdk-e2/e2-c-validation/d5/operator/round-1-chrome/ and round-3-firefox/.",
+      "strengthenedCriterion": "ONE REVISION ADVANCE PER COMMIT the oracle names, not merely 'the revision moved'. Round 5 (2026-08-16) passed the round-one analyzer while the product silently dropped two of three real commits (finding 050): the analyzer asked whether the revision moved at all, and it had -- for the first commit. A criterion that cannot see two thirds of a user's typing disappear is not measuring the thing the oracle names."
     },
     {
       "id": "d5-clipboard",

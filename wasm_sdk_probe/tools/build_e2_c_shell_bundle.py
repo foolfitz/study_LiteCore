@@ -54,11 +54,15 @@ PROJECT = Path(__file__).resolve().parent.parent
 #         button had been writing 15 bytes of "[object Object]".  A new
 #         manifest rather than a rewrite of v3, for the same reason as every
 #         generation before it -- v3 is the record of what those rounds ran on.
+#   v5 -- the shell with finding 050's fix in input/input-adapter.js: every IME
+#         commit after the first was being rejected as a buffer mismatch,
+#         because nothing cleared the host sink.
 FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v2.json"),
-                    Path("e2/editor-shell-v2-bundle-v3.json"))
+                    Path("e2/editor-shell-v2-bundle-v3.json"),
+                    Path("e2/editor-shell-v2-bundle-v4.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v4.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v5.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

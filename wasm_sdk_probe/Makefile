@@ -1727,6 +1727,7 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/editor-shell-v2/paragraph-editor-client.js \
 	dist/editor-shell-v2/paragraph-editor-session.js \
 	dist/sdk/document-sdk.js dist/e1-fixtures/manifest.json \
+	dist/input/input-adapter.js dist/input/clipboard-adapter.js \
 	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
 
 dist/demo-structure-discovery.html: web/demo-structure-discovery.html | dist

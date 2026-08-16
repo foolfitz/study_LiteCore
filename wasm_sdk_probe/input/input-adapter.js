@@ -197,6 +197,25 @@ export class HostInputAdapter {
     }
     this._committedCompositionIds.add(compositionId);
 
+    // Reset the sink now that this composition is committed.
+    //
+    // The check above compares compositionend's data against the host buffer to
+    // catch a desynchronised IME -- but NOTHING ever cleared that buffer, and
+    // `beforeinput` for `insertCompositionText` is not cancelable during
+    // composition, so the committed text stays in the textarea.  From the
+    // second commit onward the buffer therefore always disagreed and every
+    // commit was rejected as INPUT_COMPOSITION_MISMATCH: Chinese could be typed
+    // exactly once per session, and the rejection was invisible because the
+    // product wires no onInputTrace.  Finding 050, measured by an operator
+    // round and reproduced at unit level.
+    //
+    // Cleared only on the success path: a genuine mid-composition desync still
+    // rejects, which is what the check was written for.
+    if (this._target && typeof this._target.value === "string") {
+      this._target.value = "";
+      this._trace(event, "sink-cleared", { compositionId });
+    }
+
     const token = { text, available: true };
     this._duplicateToken = token;
     queueMicrotask(() => {

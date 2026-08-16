@@ -189,3 +189,61 @@ test("composition buffer disagreement is typed and causes zero mutation", async 
   assert.equal(mutations, 0);
   assert.equal(adapter.state.status, "recoverable-error");
 });
+
+test("a second composition commits too -- the sink is cleared after the first", async () => {
+  // Finding 050.  The buffer check above compares compositionend's data with the
+  // host textarea, and NOTHING used to clear that textarea; `beforeinput` for
+  // `insertCompositionText` is not cancelable during composition, so the
+  // committed text stayed there and every commit after the first was rejected
+  // as a mismatch.  Chinese could be typed exactly once per session, and the
+  // rejection was invisible because the product wires no onInputTrace.
+  //
+  // Found by an operator round (three commits, one revision advance), then
+  // reproduced here.
+  const committed = [];
+  const listeners = new Map();
+  const target = {
+    value: "",
+    addEventListener(type, listener) { listeners.set(type, listener); },
+    removeEventListener() {},
+  };
+  const adapter = new HostInputAdapter({
+    commit: async (text) => { committed.push(text); },
+  });
+  adapter.attach(target);
+
+  for (const text of ["你好", "取代", "取代二"]) {
+    adapter.handleCompositionStart(event());
+    adapter.handleCompositionUpdate(event({ data: text }));
+    // What a real IME does: the committed text lands in the textarea.
+    target.value += text;
+    await adapter.handleCompositionEnd(event({ data: text }));
+  }
+
+  assert.deepEqual(committed, ["你好", "取代", "取代二"]);
+  assert.equal(target.value, "", "the sink must not accumulate across commits");
+});
+
+test("clearing the sink does NOT disarm the mismatch guard", async () => {
+  // The fix above could have been written as "stop comparing", which would have
+  // removed the check finding 050's guard exists for.  A genuine desync -- a
+  // buffer holding something this composition never produced -- must still be
+  // typed and must still mutate nothing.
+  let mutations = 0;
+  const listeners = new Map();
+  const target = {
+    value: "",
+    addEventListener(type, listener) { listeners.set(type, listener); },
+    removeEventListener() {},
+  };
+  const adapter = new HostInputAdapter({ commit: async () => { mutations += 1; } });
+  adapter.attach(target);
+  adapter.handleCompositionStart(event());
+  adapter.handleCompositionUpdate(event({ data: "新的" }));
+  target.value = "字典裡沒有的東西";
+  await assert.rejects(
+    adapter.handleCompositionEnd(event({ data: "新的" })),
+    (error) => error.code === "INPUT_COMPOSITION_MISMATCH",
+  );
+  assert.equal(mutations, 0);
+});
