@@ -134,7 +134,13 @@ def main() -> int:
         except subprocess.TimeoutExpired:
             server.kill()
 
-    inventory = (metrics.get("cells") or {}).get("d0-inventory") or {}
+    # D0 publishes its hashes as a cell; pages that reuse this runner publish a
+    # top-level `inventory` block instead.  Both are read, because the
+    # alternative is an attribution check that silently reads null and reports
+    # "inconsistent" about a round that was perfectly attributed -- a guard that
+    # cries wolf gets ignored, which is worse than not having it.
+    inventory = ((metrics.get("cells") or {}).get("d0-inventory")
+                 or metrics.get("inventory") or {})
     reported = {key: inventory.get(key)
                 for key in ("wasmSha256", "loaderSha256", "workerSha256")}
     metrics["artifact"] = artifact

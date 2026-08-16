@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>046 — 瀏覽器與 core 對空段落讀回的不一致</title>
+<style>
+  body { margin: 0; font: 13px/1.5 ui-monospace, Menlo, monospace; padding: 12px;
+         background: #101820; color: #d7e2ea; }
+  h1 { font: 600 15px/1.4 system-ui, sans-serif; margin: 0 0 8px; }
+  p { font: 12px/1.5 system-ui, sans-serif; color: #93a6b5; margin: 0 0 12px;
+      max-width: 68em; }
+  #log { white-space: pre-wrap; word-break: break-all; }
+  #sink { position: absolute; width: 1px; height: 1px; opacity: 0; }
+</style>
+</head>
+<body>
+  <h1>046 — 瀏覽器與 core 對空段落讀回的不一致</h1>
+  <p>同一份 <code>empty-paragraph.odt</code>、同一個空段落：原生量到選取對把游標
+     往上帶一段、讀回 <code>E1-EMPTY-BEFORE</code>（一個 block）；出貨 build 六輪
+     都記 <code>preBlocks: 0</code>。這一頁在<strong>凍結的 e2-editor-v2</strong> 上
+     重跑，帶著 048 修好之後的確認點擊，並且加一格<strong>有文字的控制格</strong>
+     ——如果連有文字的段落也讀回零個 block，那這個欄位根本不是在描述內容。
+     判準寫在 <code>findings/evidence/046/browser-vs-native/PREDICTION.md</code>。
+     這一頁不判定。</p>
+  <textarea id="sink" aria-label="輸入"></textarea>
+  <div id="log"></div>
+  <script type="module" src="./e2-c-046-empty-app.js"></script>
+</body>
+</html>

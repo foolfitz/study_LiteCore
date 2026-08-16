@@ -1,0 +1,297 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-046-browser-vs-native",
+  "predictionFile": "findings/evidence/046/browser-vs-native/PREDICTION.md",
+  "runs": [
+    {
+      "run": "../findings/evidence/046/browser-vs-native/e2-editor-v2-572035ac/chrome",
+      "browser": "chrome",
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": false,
+      "arms": [
+        "A1-empty-click",
+        "A2-empty-selectrange",
+        "A3-text-click",
+        "A4-last-empty-click",
+        "A5-text-range"
+      ]
+    },
+    {
+      "run": "../findings/evidence/046/browser-vs-native/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": false,
+      "arms": [
+        "A1-empty-click",
+        "A2-empty-selectrange",
+        "A3-text-click",
+        "A4-last-empty-click",
+        "A5-text-range"
+      ]
+    },
+    {
+      "run": "../findings/evidence/046/browser-vs-native/run-2/e2-editor-v2-572035ac/chrome",
+      "browser": "chrome",
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true,
+      "arms": [
+        "A1-empty-click",
+        "A2-empty-selectrange",
+        "A3-text-click",
+        "A4-last-empty-click",
+        "A5-text-range"
+      ]
+    },
+    {
+      "run": "../findings/evidence/046/browser-vs-native/run-2/e2-editor-v2-572035ac/firefox",
+      "browser": "firefox",
+      "artifact": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "attributionConsistent": true,
+      "arms": [
+        "A1-empty-click",
+        "A2-empty-selectrange",
+        "A3-text-click",
+        "A4-last-empty-click",
+        "A5-text-range"
+      ]
+    }
+  ],
+  "findings": {
+    "P-046B-1": {
+      "claim": "the control (a paragraph WITH text) reports preBlocks >= 1",
+      "observed": [
+        {
+          "browser": "chrome",
+          "accepted": true,
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0
+        },
+        {
+          "browser": "firefox",
+          "accepted": true,
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0
+        },
+        {
+          "browser": "chrome",
+          "accepted": true,
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0
+        },
+        {
+          "browser": "firefox",
+          "accepted": true,
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0
+        }
+      ],
+      "status": "FAILED"
+    },
+    "P-046B-2": {
+      "claim": "with the caret CONFIRMED on the empty paragraph, the browser still reports preBlocks 0 -- the 048 fix does not explain it",
+      "observed": [
+        {
+          "browser": "chrome",
+          "arm": "A1-empty-click",
+          "caretY": 1807,
+          "preBlocks": 0
+        },
+        {
+          "browser": "chrome",
+          "arm": "A2-empty-selectrange",
+          "caretY": 1807,
+          "preBlocks": 0
+        },
+        {
+          "browser": "firefox",
+          "arm": "A1-empty-click",
+          "caretY": 1807,
+          "preBlocks": 0
+        },
+        {
+          "browser": "firefox",
+          "arm": "A2-empty-selectrange",
+          "caretY": 1807,
+          "preBlocks": 0
+        },
+        {
+          "browser": "chrome",
+          "arm": "A1-empty-click",
+          "caretY": 1807,
+          "preBlocks": 0
+        },
+        {
+          "browser": "chrome",
+          "arm": "A2-empty-selectrange",
+          "caretY": 1807,
+          "preBlocks": 0
+        },
+        {
+          "browser": "firefox",
+          "arm": "A1-empty-click",
+          "caretY": 1807,
+          "preBlocks": 0
+        },
+        {
+          "browser": "firefox",
+          "arm": "A2-empty-selectrange",
+          "caretY": 1807,
+          "preBlocks": 0
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-046B-3": {
+      "claim": "the click gesture and the zero-width selectRange read the same",
+      "observed": [
+        {
+          "browser": "chrome",
+          "click": "multi-block-readback",
+          "selectRange": "multi-block-readback"
+        },
+        {
+          "browser": "firefox",
+          "click": "multi-block-readback",
+          "selectRange": "multi-block-readback"
+        },
+        {
+          "browser": "chrome",
+          "click": "multi-block-readback",
+          "selectRange": "multi-block-readback"
+        },
+        {
+          "browser": "firefox",
+          "click": "multi-block-readback",
+          "selectRange": "multi-block-readback"
+        }
+      ],
+      "status": "HELD"
+    },
+    "P-046B-4": {
+      "claim": "the fixture's last empty paragraph behaves like the first one",
+      "observed": [
+        {
+          "browser": "chrome",
+          "shape": "stage-deadline:awaiting-selection",
+          "caretY": 2585
+        },
+        {
+          "browser": "firefox",
+          "shape": "stage-deadline:awaiting-selection",
+          "caretY": 2585
+        },
+        {
+          "browser": "chrome",
+          "shape": "stage-deadline:awaiting-selection",
+          "caretY": 2585
+        },
+        {
+          "browser": "firefox",
+          "shape": "stage-deadline:awaiting-selection",
+          "caretY": 2585
+        }
+      ],
+      "status": "FAILED"
+    },
+    "P-046B-5": {
+      "claim": "no arm reaches a successful action",
+      "observed": [
+        {
+          "browser": "chrome",
+          "arm": "A3-text-click",
+          "accepted": true
+        },
+        {
+          "browser": "chrome",
+          "arm": "A5-text-range",
+          "accepted": true
+        },
+        {
+          "browser": "firefox",
+          "arm": "A3-text-click",
+          "accepted": true
+        },
+        {
+          "browser": "firefox",
+          "arm": "A5-text-range",
+          "accepted": true
+        },
+        {
+          "browser": "chrome",
+          "arm": "A3-text-click",
+          "accepted": true
+        },
+        {
+          "browser": "chrome",
+          "arm": "A5-text-range",
+          "accepted": true
+        },
+        {
+          "browser": "firefox",
+          "arm": "A3-text-click",
+          "accepted": true
+        },
+        {
+          "browser": "firefox",
+          "arm": "A5-text-range",
+          "accepted": true
+        }
+      ],
+      "status": "FAILED"
+    },
+    "P-046B-6": {
+      "claim": "a RANGE arm reports preBlocks >= 1 and postBlocks 0 on route range-single",
+      "observed": [
+        {
+          "browser": "chrome",
+          "route": "range-single",
+          "preBlocks": 1,
+          "postBlocks": 0,
+          "accepted": true
+        },
+        {
+          "browser": "firefox",
+          "route": "range-single",
+          "preBlocks": 1,
+          "postBlocks": 0,
+          "accepted": true
+        },
+        {
+          "browser": "chrome",
+          "route": "range-single",
+          "preBlocks": 1,
+          "postBlocks": 0,
+          "accepted": true
+        },
+        {
+          "browser": "firefox",
+          "route": "range-single",
+          "preBlocks": 1,
+          "postBlocks": 0,
+          "accepted": true
+        }
+      ],
+      "status": "HELD"
+    }
+  },
+  "held": [
+    "P-046B-2",
+    "P-046B-3",
+    "P-046B-6"
+  ],
+  "failed": [
+    "P-046B-1",
+    "P-046B-4",
+    "P-046B-5"
+  ],
+  "conclusion": {
+    "collapsedRouteAlwaysZero": true,
+    "aSucceededCollapsedArmAlsoReadZero": true,
+    "aRangeArmReportsNonZero": true,
+    "disagreement": "DISSOLVED-THE-BROWSER-NUMBER-WAS-NEVER-A-READBACK"
+  }
+}

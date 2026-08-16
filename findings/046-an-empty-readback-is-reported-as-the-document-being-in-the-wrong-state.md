@@ -123,6 +123,48 @@ barrier 自己的註解就寫著這個區別（`probe_engine.cpp:3488`）：
 [048](048-place-caret-confirms-before-the-click-takes-effect.md) 同一個家族
 （產品確認了一次還沒落地的點擊）。**046 原本的修法（改個名字）碰不到這一件。**
 
+## 2026-08-16 瀏覽器對照：**不一致消失了——瀏覽器那個數字從來不是讀回**
+
+原生說「上一段、一個 block」，出貨 build 說「零個 block」。本檔把這兩個並排當成
+矛盾，而 3b 就卡在這個矛盾上。**它們從來不可比。**
+
+`preBlocks` 與 `postBlocks` 在這些格走的那條路徑上根本沒有被寫入：
+
+- `preBlockCount` 全樹只有一處指派（`probe_engine.cpp:3329`），在「選取矩形不為空」
+  的分支裡——也就是兩條 **range** 路徑。`collapsed` 上永遠不會被寫。
+- `postBlockCount` 全樹只有一處指派（`:3368`），在 `checkFormatBarrierCrossParagraph()`
+  裡——只有 **cross** 路徑。
+
+而這場爭論的每一格，兩邊都是 `route: "collapsed"`。
+
+不是靠讀原始碼定案的，是靠控制格：**一個成功的 barrier，打在有文字的段落上，
+回報 `preBlocks: 0`**（`A3-text-click`，`verified-format-readback`）。零不可能是
+「讀了而且什麼都沒有」，因為那個讀明明成功了。而 `A5-text-range` 在 range-single
+上回 `preBlocks: 1`——欄位不是壞掉，是只在某些路徑上被寫。兩瀏覽器、兩輪，完全一樣。
+
+證據：`findings/evidence/046/browser-vs-native/`（四輪，凍結的 e2-editor-v2，
+一個檔案都沒改）。
+
+**順帶量到兩件**：
+
+- **兩個手勢現在一致了。** D2 記到「點擊 → `postcondition-not-met`、
+  零寬 selectRange → `multi-block-readback`」；帶 048 修好之後的確認點擊，
+  **兩者都是 `multi-block-readback`**。那個差別是「點擊還沒落地」的性質。
+- **文件最後一段的空段落不一樣**：同一份文件同一個手勢，barrier 連讀回都沒走到
+  （`stage-deadline:awaiting-selection`，兩瀏覽器一致）——與本檔「還缺什麼」
+  第二項是同一條路徑。
+
+## 這對 3b 的意思
+
+**卡住的東西沒了，但問題換了位置。** 沒有 native／WASM 矛盾要解釋。3b 真正還缺的是：
+host 要怎麼分辨「什麼都沒讀到」與「只讀到清單項」。引擎自己的紀錄有這個資訊
+（`readback.parsed`／`blockCount`／`itemCount`），而**產品投影前兩個都沒有**——
+`itemCount` 進 v3，`parsed` 與 `blockCount` 沒有。這是一個投影決定，要進這次 relink。
+
+**而且掉出一個與第 3 項同族的新佇列項**：第 3 項存在，是因為 barrier 會回報一條
+它沒有分類過的 route——把預設值當觀測值。`preBlocks`／`postBlocks` 又做了兩次，
+而這份證據已經被當成量測讀了兩輪。處方二選一：每條路徑都寫，或改名到不會被誤讀。
+
 ## 還缺什麼
 
 - [ ] 修完之後在 v3 上重測，並補一格**空段落**進第二輪的矩陣。

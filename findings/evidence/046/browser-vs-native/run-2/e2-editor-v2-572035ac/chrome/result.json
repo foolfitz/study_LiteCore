@@ -1,0 +1,412 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-046-browser-vs-native",
+  "profile": "e2-editor-v2",
+  "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+  "fixture": "empty-paragraph.odt",
+  "geometry": {
+    "before": {
+      "x": 1418,
+      "y": 1418,
+      "width": 2160,
+      "height": 275
+    },
+    "after": {
+      "x": 1418,
+      "y": 2196,
+      "width": 1999,
+      "height": 275
+    },
+    "empty": {
+      "x": 1418,
+      "y": 1693,
+      "width": 2160,
+      "height": 503
+    },
+    "lastEmpty": {
+      "x": 1418,
+      "y": 2471,
+      "width": 1999,
+      "height": 275,
+      "estimated": true
+    },
+    "plausible": true
+  },
+  "arms": {
+    "A3-text-click": {
+      "arm": "A3-text-click",
+      "target": "before",
+      "geometry": {
+        "x": 1418,
+        "y": 1418,
+        "width": 2160,
+        "height": 275
+      },
+      "clickedAt": {
+        "x": 2498,
+        "y": 1555
+      },
+      "caretBefore": {
+        "caret": {
+          "available": true,
+          "x": 2577,
+          "y": 1418,
+          "height": 276,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "arrivedAfterMs": 38,
+        "confirmedBy": "engine-acknowledged",
+        "gesture": "click-verified"
+      },
+      "stateBeforeAction": {
+        "caret": {
+          "available": true,
+          "x": 2577,
+          "y": 1418,
+          "height": 276,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        }
+      },
+      "accepted": true,
+      "result": {
+        "completion": "verified-format-readback",
+        "revision": 1,
+        "formatBarrier": {
+          "failureShape": "",
+          "dispatched": true,
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false
+        }
+      },
+      "sessionState": "ready",
+      "savedBytes": 9303
+    },
+    "A1-empty-click": {
+      "arm": "A1-empty-click",
+      "target": "empty",
+      "geometry": {
+        "x": 1418,
+        "y": 1693,
+        "width": 2160,
+        "height": 503
+      },
+      "clickedAt": {
+        "x": 2498,
+        "y": 1944
+      },
+      "caretBefore": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 1807,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "arrivedAfterMs": 37,
+        "confirmedBy": "engine-acknowledged",
+        "gesture": "click-verified"
+      },
+      "stateBeforeAction": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 1807,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        }
+      },
+      "accepted": false,
+      "result": {
+        "code": "MUTATION_OUTCOME_UNKNOWN",
+        "message": "the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on",
+        "formatBarrier": {
+          "failureShape": "multi-block-readback",
+          "dispatched": true,
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false
+        },
+        "details": {
+          "operation": "editor-action",
+          "code": "MUTATION_OUTCOME_UNKNOWN",
+          "message": "the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on",
+          "documentHandle": 1
+        }
+      },
+      "sessionState": "recoverable-error",
+      "rollback": "ok",
+      "sessionStateAfterRollback": "ready",
+      "savedBytes": 8533
+    },
+    "A2-empty-selectrange": {
+      "arm": "A2-empty-selectrange",
+      "target": "empty",
+      "geometry": {
+        "x": 1418,
+        "y": 1693,
+        "width": 2160,
+        "height": 503
+      },
+      "clickedAt": {
+        "x": 2498,
+        "y": 1944
+      },
+      "caretBefore": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 1807,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "gesture": "selectrange-zero-width"
+      },
+      "stateBeforeAction": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 1807,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        }
+      },
+      "accepted": false,
+      "result": {
+        "code": "MUTATION_OUTCOME_UNKNOWN",
+        "message": "the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on",
+        "formatBarrier": {
+          "failureShape": "multi-block-readback",
+          "dispatched": true,
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false
+        },
+        "details": {
+          "operation": "editor-action",
+          "code": "MUTATION_OUTCOME_UNKNOWN",
+          "message": "the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on",
+          "documentHandle": 1
+        }
+      },
+      "sessionState": "recoverable-error",
+      "rollback": "ok",
+      "sessionStateAfterRollback": "ready",
+      "savedBytes": 8531
+    },
+    "A4-last-empty-click": {
+      "arm": "A4-last-empty-click",
+      "target": "lastEmpty",
+      "geometry": {
+        "x": 1418,
+        "y": 2471,
+        "width": 1999,
+        "height": 275,
+        "estimated": true
+      },
+      "clickedAt": {
+        "x": 2417,
+        "y": 2608
+      },
+      "caretBefore": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 2585,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "arrivedAfterMs": 37,
+        "confirmedBy": "engine-acknowledged",
+        "gesture": "click-verified"
+      },
+      "stateBeforeAction": {
+        "caret": {
+          "available": true,
+          "x": 1418,
+          "y": 2585,
+          "height": 277,
+          "observed": true,
+          "collapsed": true,
+          "selectionType": "none"
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": true,
+          "start": null,
+          "end": null,
+          "rectangles": []
+        }
+      },
+      "accepted": false,
+      "result": {
+        "code": "MUTATION_OUTCOME_UNKNOWN",
+        "message": "the format barrier stopped advancing before it could read the paragraph, so what the dispatch did is unknown",
+        "formatBarrier": {
+          "failureShape": "stage-deadline:awaiting-selection",
+          "dispatched": true,
+          "route": "collapsed",
+          "preBlocks": 0,
+          "postBlocks": 0,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false
+        },
+        "details": {
+          "operation": "editor-action",
+          "code": "MUTATION_OUTCOME_UNKNOWN",
+          "message": "the format barrier stopped advancing before it could read the paragraph, so what the dispatch did is unknown",
+          "documentHandle": 1
+        }
+      },
+      "sessionState": "recoverable-error",
+      "rollback": "ok",
+      "sessionStateAfterRollback": "ready",
+      "savedBytes": 8532
+    },
+    "A5-text-range": {
+      "arm": "A5-text-range",
+      "target": "before",
+      "gesture": "selectrange-text",
+      "geometry": {
+        "x": 1418,
+        "y": 1418,
+        "width": 2160,
+        "height": 275
+      },
+      "stateBeforeAction": {
+        "caret": {
+          "available": true,
+          "x": 3578,
+          "y": 1418,
+          "height": 276,
+          "observed": true,
+          "collapsed": false,
+          "selectionType": "text"
+        },
+        "selection": {
+          "observed": true,
+          "collapsed": false,
+          "start": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "end": {
+            "x": 3578,
+            "y": 1418,
+            "width": 0,
+            "height": 275
+          },
+          "rectangles": [
+            {
+              "x": 1418,
+              "y": 1418,
+              "width": 2160,
+              "height": 275
+            }
+          ]
+        }
+      },
+      "accepted": true,
+      "result": {
+        "completion": "verified-format-readback",
+        "revision": 1,
+        "formatBarrier": {
+          "failureShape": "",
+          "dispatched": true,
+          "route": "range-single",
+          "preBlocks": 1,
+          "postBlocks": 0,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false
+        }
+      },
+      "sessionState": "ready"
+    }
+  },
+  "complete": true,
+  "error": null,
+  "inventory": {
+    "profile": "e2-editor-v2",
+    "abiVersion": 2,
+    "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+    "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+    "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+  },
+  "artifact": {
+    "profile": "e2-editor-v2",
+    "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+    "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+    "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+  },
+  "attribution": {
+    "runnerProfile": "e2-editor-v2",
+    "pageReported": {
+      "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+      "loaderSha256": "cdb7c8436852ae72b0a41fe710c0ddf13a01ce68eeb58998c94c6e1fb7bbe7c0",
+      "workerSha256": "c01f1f2fa421ab8f5b035dc44387211a6c9581fc78f429fcc4ee2e8899ba36de"
+    },
+    "consistent": true
+  },
+  "browserName": "chrome",
+  "savedDocuments": [
+    {
+      "label": "A3-text-click.odt",
+      "file": "saved/A3-text-click.odt.odt"
+    },
+    {
+      "label": "A1-empty-click.odt",
+      "file": "saved/A1-empty-click.odt.odt"
+    },
+    {
+      "label": "A2-empty-selectrange.odt",
+      "file": "saved/A2-empty-selectrange.odt.odt"
+    },
+    {
+      "label": "A4-last-empty-click.odt",
+      "file": "saved/A4-last-empty-click.odt.odt"
+    }
+  ]
+}

@@ -58,7 +58,7 @@
     },
     {
       "id": "p1-3b-empty-readback",
-      "title": "the `empty-readback` shape -- STILL BLOCKED, and must not appear until the native/WASM disagreement is explained",
+      "title": "the `empty-readback` shape -- the native/WASM disagreement is RESOLVED (2026-08-16); what remains is a projection decision",
       "expectation": "absent",
       "source": "finding 046 + findings/evidence/046/native/; PLAN P1 row 3b",
       "checks": [
@@ -73,7 +73,8 @@
           "text": "empty-readback"
         }
       ],
-      "blocksRelink": true
+      "blocksRelink": true,
+      "note": "Measured: preBlocks/postBlocks are never assigned on the collapsed route (probe_engine.cpp:3329 is range-only, :3368 is cross-only), so core's readback measurement and the browser's zero were never comparable. Shown by control rather than by source reading: a SUCCEEDED barrier over a text paragraph also reports preBlocks 0, and a range arm reports 1. Evidence: findings/evidence/046/browser-vs-native/. 3b now needs the product to be able to tell 'nothing read' from 'only list items read' -- readback.parsed and readback.blockCount are in the engine record and not in the projection."
     },
     {
       "id": "p1-3c-itemcount-projection",
@@ -285,6 +286,21 @@
         }
       ],
       "blocksRelink": false
+    },
+    {
+      "id": "queue-preblocks-postblocks-not-observations",
+      "title": "preBlocks/postBlocks must not report an unwritten default as an observation -- OPEN",
+      "expectation": "absent",
+      "blocksRelink": true,
+      "source": "findings/evidence/046/browser-vs-native/, 2026-08-16",
+      "note": "Same family as P1 item 3 (the route field). preBlockCount is assigned only on the range routes, postBlockCount only on the cross route; both read 0 everywhere else, including on barriers that succeeded. Two rounds of evidence were read as measurements. Fix: populate on every route, or rename so 'not read' cannot be mistaken for 'read zero'. The check below is a placeholder for whichever lands.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "src/probe_engine.cpp",
+          "text": "preBlockCountObserved"
+        }
+      ]
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown."
