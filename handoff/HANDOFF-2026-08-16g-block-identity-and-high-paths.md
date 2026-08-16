@@ -16,7 +16,8 @@
   [finding 053](../findings/053-the-product-prescribes-a-recovery-whose-button-it-does-not-show.md)**：
   產品開了一個它自己不提供的處方。
 - **對抗性審查（codex）打在判準上收掉九條**，掉出 block identity 的 round 4。
-- **relink 仍照你的決定等著**；佇列 25 項、8 項未做、**0 項擋連結**；三個 static 全綠。
+- **relink 仍照你的決定等著**；佇列 26 項、9 項未做、**0 項擋連結**；三個 static 全綠。
+- 本段四個 commit：`38c6a54` → `c9d0f6f`。
 
 ## 現在的狀態
 
@@ -25,7 +26,7 @@
 | 分支 | `main` |
 | E1 artifact／殼層 | `835b453d…`／v2 `187706b2…`，`E1_GO_ODT_EDITOR` |
 | E2 artifact／殼層 | `572035ac…`／v8 `4daad6b4…` |
-| 佇列 | 25 項、8 項未做、**0 項擋連結** |
+| 佇列 | **26 項、9 項未做、0 項擋連結** |
 | 靜態 | `test-e1-c-static`／`test-e2-b-static`／`test-e2-c-static` 全部 exit 0 |
 | relink | 未發生 |
 
@@ -64,7 +65,13 @@
 |---|---|---|
 | `action:insert-text` | **PASS** | 讀 `el.text.placeholder` 而不是 `.value`（049 的形狀）→ 紅 |
 | `action:undo` | **PASS** | `session.undo()` 換成 `Promise.resolve()` → 紅 |
-| `listener:click#notice-action` | **`NOT_ESTABLISHED`** | 有寫、而且宣告了「預期抓不到」，因為那格根本跑不到 |
+| `listener:click#notice-action` | **`NOT_ESTABLISHED`** | `rollback` 突變宣告「預期抓不到」（那格跑不到）；**`toolbar-drops-the-list-action` 證明這格仍然會紅** |
+
+**九個 arm 全部 `ok: true`**，證據在
+[`findings/evidence/sdk-e2/e2-c-validation/product-path/round-2-high-paths/`](../findings/evidence/sdk-e2/e2-c-validation/product-path/round-2-high-paths/)。
+**`NOT_ESTABLISHED` 不是藏身處**：那一格先要求 047 的順序**看得見地做了事**
+（擋了 queue，或格式動作完成），否則判紅——
+`toolbar-drops-the-list-action` 就是這道守衛的突變證明。
 
 第三條為什麼跑不到：產品**只在** `recoverable-error`／`restart-required` 顯示那顆
 按鈕，而那正是 `EditorSession.restart()` 接受的同一個集合。要走到那個狀態，唯一
@@ -160,6 +167,7 @@ agent id `a71bfffebd6e98742`（要續談就用 SendMessage）。
    做完之後 `notice-action-recovers-the-session` 就會有真正的前置條件，
    而那個已經寫好、宣告為「預期抓不到」的 `rollback` 突變會變成一次真的驗證。
 3. **053 的端到端重現**（在產品頁上把游標放到空段落再按項目符號）。
+   修好之後 `rollback` 那個突變會從「宣告抓不到」變成一次真的驗證。
 4. **`queue-047-may-have-closed-under-048`** —— 兩個殼層代、兩個瀏覽器、四組對照
    照原樣重跑。
 5. `findings/README.md` 的清單停在 048，**049–053 五筆沒有進去**（今天沒補，因為
