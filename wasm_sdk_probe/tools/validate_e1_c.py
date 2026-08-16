@@ -8,6 +8,7 @@ import hashlib
 import json
 import re
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -650,6 +651,7 @@ def validate_outputs(cases: list[dict[str, Any]], skip_desktop: bool,
 
 def manual_gate(
     root: Path, project: Path, matrix: dict[str, Any] | None = None,
+    refresh_desktop: bool = False,
 ) -> dict[str, Any]:
     profile = profile_inventory(project)
     keys = artifact_hash_keys(matrix)
@@ -695,11 +697,29 @@ def manual_gate(
         # the roundtrip phase, and this gate stopped at zip/crc/xml plus anchor
         # counts.  That literal gap was present in every previous GO.  One
         # soffice invocation per browser, no operator cost (SPEC-E1-C v9).
-        desktop = desktop_pdf_roundtrip(
-            output_path, output_path.with_suffix(".desktop.pdf"),
-        ) if inspected.get("exists") is True else {
-            "pass": False, "reason": "manual output missing",
-        }
+        # A recorded `*.desktop.pdf` is never overwritten by a run that is only
+        # reading.  Measured on 2026-08-16: running this validator to READ a
+        # verdict rewrote both browsers' desktop PDFs in the namespace of an
+        # operator round from 2026-08-07, because this phase -- added on
+        # 2026-08-14 -- never got the guard the round-trip phase has had since
+        # the same day, one function above.
+        #
+        # It re-exports either way, because the export succeeding IS the
+        # measurement (SPEC-E1-C section 6 item 5).  What changes is where the
+        # bytes land: to a scratch path when a record already exists, so the
+        # round keeps the file it was judged with.  LibreOffice stamps a fresh
+        # CreationDate into every export, so a re-export can never reproduce the
+        # recorded bytes and "unchanged" is not available as a test.
+        desktop_path = output_path.with_suffix(".desktop.pdf")
+        if inspected.get("exists") is not True:
+            desktop = {"pass": False, "reason": "manual output missing"}
+        elif desktop_path.is_file() and not refresh_desktop:
+            with tempfile.TemporaryDirectory() as scratch:
+                desktop = desktop_pdf_roundtrip(
+                    output_path, Path(scratch) / desktop_path.name)
+            desktop["recordPreserved"] = str(desktop_path)
+        else:
+            desktop = desktop_pdf_roundtrip(output_path, desktop_path)
         content["desktop"] = desktop
         output_pass = all(
             inspected.get(key) is True for key in ("exists", "zip", "crc", "xml")
@@ -909,7 +929,8 @@ def main() -> None:
         refresh_desktop=args.refresh_desktop,
     )
     write_json(root / "roundtrip" / "summary.json", outputs)
-    manual = manual_gate(root, project, matrix)
+    manual = manual_gate(root, project, matrix,
+                         refresh_desktop=args.refresh_desktop)
     regression = run_regression(project, root) if args.run_regression else load_json(
         root / "regression" / "summary.json", {"pass": False, "error": "missing regression"}
     )
