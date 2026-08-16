@@ -80,6 +80,24 @@ oracle？** 回來的每一條我自己重跑再採信。
 
 結果回填這份計畫、記憶更新、一份交接。
 
-## 結果
+## 結果（2026-08-16 執行完畢，六個 commit `8283a8d` … `33764b2`）
 
-（執行時回填）
+| 任務 | 結果 |
+|---|---|
+| **T1** 產品那條路的回歸 harness | **做完**。`tools/run_e2_c_product_path.py`＋`make test-e2-c-product-path`。兩個瀏覽器各跑基準與突變，全部如預期。**它第一次跑就掉出 finding 051** |
+| **T2** D5 判定器補兩個缺口 | **做完**。`--criteria round-two`：強化模式判 round 5 為 NOT_ESTABLISHED（弱判定器給過）、round 6 為 PASS；預設模式對六輪輸出不變 |
+| **T3** 機器半邊在新殼層重跑 | **做完**。判定與 v3 相同、self-test 兩瀏覽器各 10/10 |
+| **T4** search 卡住特徵化 | **做完**，而且**一條預測不成立**：是 reopen 本身，不需要先 search 過 |
+| **T5** codex 對抗性審查 | **做完**。九條逐條複驗：修掉七條、**掉出 finding 052**、兩條記成具名極限 |
+| **T6/T7** 收束 | 這一份 ＋ 交接 `HANDOFF-2026-08-16e-product-path.md` ＋ 記憶更新 |
+
+**計畫外掉出來的兩個產品缺陷**（兩個都是「量測順手看見的」，不是找它們找到的）：
+
+- **[051](../findings/051-the-caret-confirmation-refuses-the-bottom-half-of-every-line.md)**
+  ——點在一行的**下半**永遠放不了游標（048 的判準把矩形上緣當中線）。約一半的點擊，
+  每次卡 30 秒。抓到它的是 08-15 綠、08-16 紅的 page smoke。
+- **[052](../findings/052-a-click-outside-the-text-waits-out-the-timeout.md)**
+  ——點在**文字以外**（最後一段下面）一樣卡 30 秒。是為了回答 codex 對 051 的質疑
+  去量行框幾何時，順手看見「被拒的 13 次全在文字外」。
+
+殼層 bundle 走了兩代：**v7**（051）→ **v8 `4daad6b4…`**（052）。沒有 relink。
