@@ -120,3 +120,55 @@ is never forwarded to JS」）。那個決定要保留：殼層需要的是「�
 佇列項的檢查 `caretBlockIndex` 名字取錯了——不存在的東西不會被實作出來，這個檢查
 永遠是綠的，而**永遠綠的檢查不是檢查**。改成對得上這份設計的名字，並把
 「一次關掉三個模糊」改寫成量到的形狀。
+
+---
+
+## 附錄（2026-08-17，**寫在連結之前**）：實作把一句話改掉了，還有一條預測要修正
+
+程式碼寫完了（等連結）。實作過程推翻了第三節的一句話,而且動到一條事前預測 ——
+兩件都寫在這裡,寫在量測之前。
+
+### 一、「引擎把自己的主迴圈抽乾」做不到,而且不需要
+
+第三節寫的是「引擎送出滑鼠事件、**把自己的主迴圈抽乾**、然後讀
+`getA11yFocusedParagraph()` 回答」。**那一句是錯的。** 這個引擎的命令是**從 poll
+callback 裡派送**的,處理常式本身就跑在那個 callback 裡面,而 VCL 的排程是在**兩個
+命令之間**被主迴圈 tick 抽的（`probe_engine.cpp` 開頭那段註解寫得很清楚,還加了一句
+「**the engine does not sleep**」）。在處理常式裡想把迴圈抽乾,不是死鎖就是什麼都沒
+處理到。`unit_lok_process_events_to_idle()` 這個 hook 也**沒有連進這顆 profile**。
+
+**但機制早就存在,而且是為了同一個形狀做的。** E1-D 的
+`readbackDeadlineArmed`：「一個什麼都沒選到的範圍選取不會改變任何狀態,所以 core
+不發回呼,等它就是永遠等下去」—— **那就是 052 的殘留,低一層。** 它的處方也正是這份
+設計要的:
+
+> This does not turn a timeout into a success. It reports the selection that is
+> actually there, read back at the deadline... **Callers judge by the reported
+> selection, never by the fact that the call returned.**
+
+所以 `editorPlaceCaret` 是一個**非同步請求**:送出點擊、掛上要等
+`INVALIDATE_VISIBLE_CURSOR` 的 pending、**deadline 一律掛上**（不像 select 那樣是
+參數,因為「點在游標已經在的地方」不是邊角,是使用者連點兩下就會到的地方）。
+回呼來就從回呼回答,不來就在 deadline 讀回來回答。**兩條路都會回答。**
+
+### 二、`D-BI-1` 的門檻,我沒有為了讓它過而調
+
+`D-BI-1` 登記的是「第二次點在文字外的同一點,**200 ms 內**回來」。實作用的 deadline
+是 **250 ms** —— 選這個數字的理由是它自己的:點擊在這顆引擎上要 22–28 ms 生效
+（finding 048 實測）,250 是它的一個數量級,和 select 那條 deadline 對它自己的操作是
+同一個比例。
+
+**所以那條預測按字面會不成立**,而我**不改它**。要看的數字是「有界而且小」對上
+「30 秒」;`D-BI-1` 的門檻是我在不知道實作會長什麼樣時猜的,猜錯了就記成猜錯。
+連結之後那一輪要照原樣判,然後把 250 這個數字連同它的理由一起寫進結果。
+
+### 三、實作過程量到的、原本沒想到的一件事
+
+**指紋必須扣掉清單前綴,否則這個修法會比缺陷還糟。** round 3 的資料:同一個空段落在
+`.uno:DefaultBullet` 之前讀到 `content: ""`,之後讀到 `content: "• "`、
+`listPrefixLength: 2`。如果指紋取整串,那麼**每一次成功的清單動作**,dispatch 與
+readback 的指紋都會不同 —— 046 的修法會在每一格正常的清單動作上誤報。
+
+扣掉前綴之後:空段落那格 dispatch `""`、readback（逃逸到鄰段）`"BI-AFTER-EMPTY"`,
+**分得開**;而正常那格前後都是同一段的文字,**不誤報**。
+切的是 core 數的 UTF-16 字元索引,不是位元組 —— `"• "` 是兩個字元、四個位元組。

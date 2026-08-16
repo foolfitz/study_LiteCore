@@ -40,6 +40,7 @@ const OPERATION_CAPABILITIES = new Map([
   ["editorActionV2", "narrow-editor-v2"],
   ["editorGetStateV2", "narrow-editor-v2"],
   ["editorSelectRangeV2", "narrow-editor-v2"],
+  ["editorPlaceCaretV2", "narrow-editor-v2"],
   ["editorDiscoveryAction", "editor-discovery-closed-actions"],
   ["editorDiscoverySelect", "editor-discovery-closed-actions"],
   ["editorDiscoveryGetState", "editor-discovery-closed-actions"],
@@ -143,6 +144,7 @@ const EDITOR_OPERATIONS = new Map([
   ["editorActionV2", { capability: "narrow-editor-v2", version: 2 }],
   ["editorGetStateV2", { capability: "narrow-editor-v2", version: 2 }],
   ["editorSelectRangeV2", { capability: "narrow-editor-v2", version: 2 }],
+  ["editorPlaceCaretV2", { capability: "narrow-editor-v2", version: 2 }],
 ]);
 
 // The operations whose result carries the PRODUCT projection of editor state.
@@ -247,6 +249,25 @@ function productEditorState(value = {}) {
       bold: typeof value.format?.bold === "boolean" ? value.format.bold : null,
       italic: typeof value.format?.italic === "boolean" ? value.format.italic : null,
     },
+    // queue-verify-caret-by-block-identity.  This projection is an ALLOWLIST,
+    // so an engine field that nothing adds here never reaches the product --
+    // which is exactly how `itemCount` came to be measured natively and
+    // reported nowhere (relink queue item p1-3c).  Adding the engine half
+    // without this one would have repeated it.
+    //
+    // A fingerprint and an offset, never the paragraph's text: the engine keeps
+    // the raw a11y payload closed on purpose, and the host's question is "is
+    // this the same paragraph as before", not "what does it say".
+    caretParagraph: value.a11y ? {
+      observed: value.a11y.observed === true,
+      fingerprint: value.a11y.paragraphFingerprint ?? null,
+      length: typeof value.a11y.contentLength === "number"
+        ? value.a11y.contentLength : null,
+      offset: typeof value.a11y.position === "number"
+        ? value.a11y.position : null,
+      listPrefixLength: typeof value.a11y.listPrefixLength === "number"
+        ? value.a11y.listPrefixLength : null,
+    } : null,
   };
 }
 
@@ -684,6 +705,21 @@ function handleCEvent(rawEvent) {
           callbackSequenceBefore: event.callbackSequenceBefore,
           callbackSequenceAfter: event.callbackSequenceAfter,
           state: event.state,
+        });
+      }
+      break;
+    // The answer to "where did the caret go", forwarded whole.  The state goes
+    // through the product projection like every other product operation's, so
+    // the paragraph fingerprint and offset reach the host and the document's
+    // text does not.
+    case "editor-caret-placed":
+      if (requestId) {
+        complete(requestId, {
+          revision: event.revision,
+          completion: event.completion,
+          callbackSequenceBefore: event.callbackSequenceBefore,
+          callbackSequenceAfter: event.callbackSequenceAfter,
+          state: productEditorState(event.state),
         });
       }
       break;
@@ -1131,6 +1167,30 @@ function handleRequest(request) {
     // synthesised-mouse-event path reports success while selecting nothing
     // (SPEC E1-D section 2.1).  A range that selects nothing is a valid
     // outcome; the caller judges by reading the selection back.
+    // queue-verify-caret-by-block-identity.  `click` replies before core has
+    // processed anything and says nothing about where the caret went, so every
+    // caller had to invert the mapping and guess from a rectangle -- findings
+    // 048, 051 and 052 are that inversion's three shapes.  This one answers
+    // with the caret paragraph's fingerprint and the offset in it, and it
+    // answers even when nothing moved, which is the case the 30-second waits
+    // were made of.
+    case "editorPlaceCaretV2": {
+      if (!Number.isInteger(payload.xTwips) || payload.xTwips < 0
+          || !Number.isInteger(payload.yTwips) || payload.yTwips < 0) {
+        postResponse(request.requestId, false, {
+          code: "INVALID_ARGUMENT",
+          message: `${request.operation} requires non-negative integer twips`,
+        });
+        break;
+      }
+      accept(request, () => callStatus(
+        "oxsdk_editor_place_caret",
+        ["number", "number", "number", "number"],
+        [request.requestId, payload.documentHandle,
+          payload.xTwips, payload.yTwips],
+      ));
+      break;
+    }
     case "editorSelectRangeV2":
     case "editorSelectRangeV1": {
       const coordinates = [

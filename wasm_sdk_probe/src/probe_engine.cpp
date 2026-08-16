@@ -135,6 +135,8 @@ enum class CommandType {
   EditorAction,
   EditorSelect,
   EditorSelectReadback,
+  EditorPlaceCaret,
+  EditorPlaceCaretReadback,
   EditorGetState,
 #ifdef OXSDK_FINDING_016_SELECTION_BARRIER
   EditorSelectionBarrierStep,
@@ -256,6 +258,13 @@ struct EditorState {
   std::uint64_t a11yLastSequence = 0;
   int a11yContentLength = -1;
   int a11yPosition = -1;
+  // The caret paragraph's fingerprint and list prefix, kept for the same reason
+  // the length is kept: so the barrier can ask whether a readback describes the
+  // paragraph the action was dispatched on (finding 046), and so a host can ask
+  // whether a click moved the caret to a different paragraph without receiving
+  // any of the document's text.
+  std::uint64_t a11yContentHash = 0;
+  int a11yListPrefixLength = 0;
   bool boldKnown = false;
   bool bold = false;
   bool italicKnown = false;
@@ -304,6 +313,8 @@ struct EditorPendingOperation {
   bool mutation = false;
   bool selection = false;
   bool option = false;
+  // A click whose ANSWER is where the caret ended up.  See handleEditorPlaceCaret.
+  bool caret = false;
   std::string name;
   // SPEC E1-D.  A range that selects nothing when nothing was selected before
   // changes no state, so core emits no LOK_CALLBACK_TEXT_SELECTION and waiting
@@ -318,6 +329,15 @@ struct EditorPendingOperation {
 };
 
 constexpr int EditorSelectReadbackDeadlineMs = 250;
+
+// The same 250, chosen for its own reason rather than because it is nearby.
+// A click takes 22-28 ms to take effect on this engine (finding 048, measured
+// both browsers), so this is an order of magnitude above the thing it bounds --
+// the same ratio the select deadline has to its own operation.  It is a floor
+// on the answer for the ONE case that produces no callback at all: a click on
+// the point the caret already occupies, where core emits nothing because
+// nothing changed.
+constexpr int EditorPlaceCaretDeadlineMs = 250;
 
 struct SelectionReadback {
   int type = LOK_SELTYPE_NONE;
@@ -726,6 +746,22 @@ struct FormatStateBarrier {
   bool dispatchSelectionCollapsed = true;
   bool dispatchSelectionObserved = false;
   std::size_t dispatchSelectionRectangles = 0;
+  // Finding 046, and the reason it needed a measurement before it could have a
+  // fix: the barrier verified the WRONG PARAGRAPH.  `.uno:SelectText` on an
+  // empty paragraph overshoots into the neighbour, so the readback describes a
+  // paragraph the action was never dispatched on -- and containment cannot see
+  // it, because containment asks whether the selection COVERS the caret, never
+  // whether it covers ONLY the caret's paragraph.
+  //
+  // Captured at the dispatch, next to restorePoint, for the same reason: it is
+  // the only moment that can say what the caller acted on.  Compared after the
+  // read.  A fingerprint, so two paragraphs with the same text are the named
+  // limit of this check rather than a silent hole
+  // (findings/evidence/queue-block-identity/).
+  std::uint64_t dispatchParagraphFingerprint = 0;
+  bool dispatchParagraphKnown = false;
+  std::uint64_t readbackParagraphFingerprint = 0;
+  bool readbackParagraphKnown = false;
   // What the postcondition demands of the readback.  Empty means "this action
   // makes no claim about that half".
   std::string expectedListTag;   // "ul" / "ol" / "none"
@@ -1020,6 +1056,9 @@ void appendEditorState(std::ostringstream &json) {
        << ",\"lastSequence\":" << gEditorState.a11yLastSequence
        << ",\"contentLength\":" << gEditorState.a11yContentLength
        << ",\"position\":" << gEditorState.a11yPosition
+       << ",\"paragraphFingerprint\":\"" << std::hex
+       << gEditorState.a11yContentHash << std::dec << "\""
+       << ",\"listPrefixLength\":" << gEditorState.a11yListPrefixLength
        << "},\"format\":{\"bold\":";
   if (gEditorState.boldKnown)
     json << (gEditorState.bold ? "true" : "false");
@@ -1447,7 +1486,29 @@ struct EditorSemanticSnapshot {
   int selectionEnd = -1;
   int contentLength = -1;
   int listPrefixLength = 0;
+  // A FINGERPRINT of the paragraph's text, not the text.  Measured natively
+  // over four rounds (findings/evidence/queue-block-identity/): LOK carries no
+  // paragraph index anywhere, and this payload's `content` is the only
+  // per-block datum there is -- so "is this the paragraph I dispatched on?" is
+  // answerable and "which paragraph is this?" is not.  Two paragraphs with the
+  // same text are indistinguishable here, deliberately named as the limit
+  // rather than papered over.
+  //
+  // A hash, because the engine does not forward the raw payload to JS (see the
+  // typed-counter comment on EditorState) and the host needs to compare, not to
+  // read.  FNV-1a: this is an equality check between two observations made
+  // seconds apart in one process, not a security boundary.
+  std::uint64_t contentHash = 0;
 };
+
+std::uint64_t fingerprintOf(const std::string &content) {
+  std::uint64_t hash = 1469598103934665603ull;
+  for (const unsigned char byte : content) {
+    hash ^= static_cast<std::uint64_t>(byte);
+    hash *= 1099511628211ull;
+  }
+  return hash;
+}
 
 // Parses the documented focused-paragraph JSON shape shared by
 // getA11yFocusedParagraph() and the LOK_CALLBACK_A11Y_FOCUS_CHANGED payload:
@@ -1465,10 +1526,29 @@ bool parseEditorSemanticJson(const std::string &json,
     snapshot.selectionStart = tree.get<int>("start", -1);
     snapshot.selectionEnd = tree.get<int>("end", -1);
     snapshot.listPrefixLength = tree.get<int>("listPrefixLength", 0);
-    snapshot.contentLength =
-        rtl::OUString::fromUtf8(rtl::OString(
-            content.data(), static_cast<sal_Int32>(content.size())))
-            .getLength();
+    const rtl::OUString wide = rtl::OUString::fromUtf8(rtl::OString(
+        content.data(), static_cast<sal_Int32>(content.size())));
+    snapshot.contentLength = wide.getLength();
+    // The fingerprint is taken over the paragraph WITHOUT its list prefix, and
+    // that is not a detail -- it is what makes the fingerprint an identity for
+    // the paragraph rather than a description of its current formatting.
+    //
+    // Measured, round 3 (findings/evidence/queue-block-identity/native/run-3/):
+    // the same empty paragraph reads `content: ""` before `.uno:DefaultBullet`
+    // and `content: "\u2022 "`, `listPrefixLength: 2` after it.  A fingerprint
+    // over the whole string would therefore differ across every successful list
+    // action, and a check comparing dispatch against readback would fire on
+    // every one of them -- the false positive that would have made this fix
+    // worse than the defect.
+    //
+    // Sliced on the UTF-16 index core counts in, not on bytes: the prefix is a
+    // character count, and `"\u2022 "` is two characters and four bytes.
+    const sal_Int32 prefix = std::min<sal_Int32>(
+        snapshot.listPrefixLength, wide.getLength());
+    const rtl::OString body = wide.copy(prefix).toUtf8();
+    snapshot.contentHash =
+        fingerprintOf(std::string(body.getStr(),
+                                  static_cast<std::size_t>(body.getLength())));
   } catch (const std::exception &) {
     return false;
   }
@@ -1491,6 +1571,29 @@ bool readEditorSemanticSnapshot(EditorSemanticSnapshot &snapshot) {
   const std::string json(value);
   std::free(value);
   return parseEditorSemanticJson(json, snapshot);
+}
+
+// Refresh the caret paragraph's fingerprint from the SYNCHRONOUS query.
+//
+// The callback above is gated on the paragraph's TEXT changing (core:
+// `if (m_sFocusedParagraph != sText)`), so moving between two paragraphs that
+// read the same emits nothing at all -- while the query behind
+// getA11yFocusedParagraph() is refreshed on every caret event.  Measured
+// natively, four rounds.  So anything that wants to know WHICH paragraph the
+// caret is in now has to ask, not wait.
+//
+// Called at the three points that need it rather than on every callback: the
+// query walks the accessibility tree, and paying for it on every cursor blink
+// would be a cost nothing reads.
+bool refreshCaretParagraph() {
+  EditorSemanticSnapshot snapshot;
+  if (!readEditorSemanticSnapshot(snapshot))
+    return false;
+  gEditorState.a11yContentLength = snapshot.contentLength;
+  gEditorState.a11yPosition = snapshot.position;
+  gEditorState.a11yContentHash = snapshot.contentHash;
+  gEditorState.a11yListPrefixLength = snapshot.listPrefixLength;
+  return true;
 }
 
 bool deleteHasSafeSemanticPrecondition(const char *action,
@@ -1609,12 +1712,21 @@ void completePendingEditorOperation(int callbackType) {
   if (pending.mutation)
     advanceRevision();
   std::ostringstream json;
+  // Asked for before the state is serialised, because the a11y CALLBACK is
+  // gated on the paragraph's text changing: a click that moves the caret to a
+  // paragraph reading the same as the last one emits nothing, and the answer
+  // would describe wherever the caret was before.
+  if (pending.caret)
+    refreshCaretParagraph();
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion << ",\"type\":\""
-       << (pending.selection ? "editor-selection-completed"
-                             : "editor-action-completed")
+       << (pending.caret ? "editor-caret-placed"
+                         : pending.selection ? "editor-selection-completed"
+                                             : "editor-action-completed")
        << "\",\"requestId\":" << pending.requestId
        << ",\"documentHandle\":" << pending.documentHandle;
-  if (pending.selection) {
+  if (pending.caret) {
+    json << ",\"revision\":" << gState.revision;
+  } else if (pending.selection) {
     json << ",\"revision\":" << gState.revision << ",\"method\":\""
          << jsonEscape(pending.name.c_str()) << "\"";
   } else {
@@ -1658,19 +1770,28 @@ void completePendingEditorOperation(int callbackType) {
 // own completion name so callers can tell the two paths apart.  Callers judge
 // by the reported selection, never by the fact that the call returned.
 void completePendingEditorSelectByReadback() {
-  if (gEditorPending.requestId == 0 || !gEditorPending.selection ||
+  if (gEditorPending.requestId == 0 ||
+      !(gEditorPending.selection || gEditorPending.caret) ||
       !gEditorPending.readbackDeadlineArmed) {
     return;
   }
   const EditorPendingOperation pending = gEditorPending;
   gEditorPending = EditorPendingOperation{};
+  if (pending.caret)
+    refreshCaretParagraph();
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
-       << ",\"type\":\"editor-selection-completed\",\"requestId\":"
+       << ",\"type\":\""
+       << (pending.caret ? "editor-caret-placed"
+                         : "editor-selection-completed")
+       << "\",\"requestId\":"
        << pending.requestId << ",\"documentHandle\":"
        << pending.documentHandle << ",\"revision\":" << gState.revision
        << ",\"method\":\"" << jsonEscape(pending.name.c_str())
-       << "\",\"completion\":\"verified-selection-readback\""
+       << "\",\"completion\":\""
+       << (pending.caret ? "verified-caret-readback"
+                         : "verified-selection-readback")
+       << "\""
        << ",\"callbackSequenceBefore\":" << pending.beforeSequence
        << ",\"callbackSequenceAfter\":" << gEditorState.sourceSequence
        << ",\"state\":{";
@@ -1951,6 +2072,8 @@ void onLokCallback(int type, const char *payload, void *) {
       ++gEditorState.a11yChangeCount;
       gEditorState.a11yContentLength = snapshot.contentLength;
       gEditorState.a11yPosition = snapshot.position;
+      gEditorState.a11yContentHash = snapshot.contentHash;
+      gEditorState.a11yListPrefixLength = snapshot.listPrefixLength;
       editorStateChanged = true;
       editorSource = "a11y-paragraph-changed";
     } else {
@@ -3430,6 +3553,12 @@ void checkFormatBarrierCrossParagraph() {
 }
 
 void readFormatBarrierPostcondition() {
+  // Finding 046.  Asked HERE, at the read, and not at the verdict: by the time
+  // the verdict runs the restore has been posted, so the caret is back on the
+  // dispatch paragraph and the comparison would hold for the wrong reason --
+  // it would be measuring the restore, not the read.
+  gFormatBarrier.readbackParagraphKnown = refreshCaretParagraph();
+  gFormatBarrier.readbackParagraphFingerprint = gEditorState.a11yContentHash;
   char *html = gState.document->pClass->getTextSelection(
       gState.document, "text/html", nullptr);
   const std::string markup = html ? std::string(html) : std::string();
@@ -3586,6 +3715,44 @@ void finishFormatBarrierAfterRestore() {
         kFormatMutationOutcomeUnknown,
         "the postcondition read covered more than one paragraph, so it does "
         "not describe the paragraph this action was dispatched on");
+    return;
+  }
+  // Finding 046, and the fix the finding has been waiting for since 2026-08-15.
+  //
+  // The barrier used to report `postcondition-not-met` -- "the document does
+  // not show the state this action asked for" -- when `.uno:SelectText`
+  // overshot an empty paragraph and the read described the NEIGHBOUR.  That
+  // message is a claim about the document made from evidence about a different
+  // paragraph, and its disposition sends the host into a rollback that throws
+  // away the user's work since the last checkpoint.  The bullet had in fact
+  // applied.
+  //
+  // Containment cannot catch it: it asks whether the selection COVERS the
+  // caret, never whether it covers ONLY the caret's paragraph, and it HELD on
+  // every overshooting cell measured (findings/evidence/046/native/).
+  //
+  // This compares the paragraph the action was dispatched on against the
+  // paragraph the read is of.  Both are fingerprints of the paragraph's own
+  // text, which is the only per-block datum LOK carries (four native rounds,
+  // findings/evidence/queue-block-identity/) -- so two paragraphs with the same
+  // text are indistinguishable, and this check is silent on exactly that case.
+  // Said out loud rather than left to be discovered: an overshoot from one
+  // empty paragraph into another is NOT caught here.
+  //
+  // Placed BEFORE the postcondition test on purpose.  If the read describes
+  // another paragraph then the postcondition verdict has nothing to stand on,
+  // and reporting the weaker, more alarming shape first is how 046 came to say
+  // something the evidence contradicted.
+  if (gFormatBarrier.dispatchParagraphKnown
+      && gFormatBarrier.readbackParagraphKnown
+      && gFormatBarrier.dispatchParagraphFingerprint
+             != gFormatBarrier.readbackParagraphFingerprint) {
+    gFormatBarrier.failureShape = "readback-is-a-different-paragraph";
+    failFormatBarrier(
+        kFormatMutationOutcomeUnknown,
+        "the postcondition read describes a different paragraph from the one "
+        "this action was dispatched on, so it says nothing about whether the "
+        "action took effect");
     return;
   }
   if (gFormatBarrier.containmentChecked && !gFormatBarrier.containmentHeld) {
@@ -3854,6 +4021,11 @@ void startFormatBarrierActionResolved(const Command &command,
   barrier.dispatchSelectionCollapsed = gEditorState.selectionRectangles.empty();
   barrier.dispatchSelectionObserved = gEditorState.selectionObserved;
   barrier.dispatchSelectionRectangles = gEditorState.selectionRectangles.size();
+  // Finding 046.  Asked for at the dispatch, because from the next stage onward
+  // every paragraph the engine can see is one the barrier's own selection
+  // reached.
+  barrier.dispatchParagraphKnown = refreshCaretParagraph();
+  barrier.dispatchParagraphFingerprint = gEditorState.a11yContentHash;
   barrier.stage = FormatBarrierStage::AwaitingResult;
   barrier.serial = gNextFormatBarrierSerial++;
   gFormatBarrier = barrier;
@@ -4226,9 +4398,85 @@ void handleEditorSelect(const Command &command) {
   }
 }
 
+// SPEC E2-C, queue item queue-verify-caret-by-block-identity.
+//
+// Placing the caret is a CALL THAT ANSWERS, not a click followed by a guess.
+//
+// `handleClick` posts the two mouse events and replies "clicked" in the same
+// breath -- before core has processed anything, and saying nothing about where
+// the caret went.  Everything downstream had to invert that: the host posted a
+// pixel and then tried to decide, from a returned rectangle, whether the caret
+// had landed where it asked.  Findings 048, 051 and 052 are all that inversion:
+// a confirmation that was already true before the click; a band that refused
+// the bottom half of every line; and a click outside the text, where the line
+// the host is comparing against does not exist, waiting out thirty seconds.
+//
+// Four native rounds (findings/evidence/queue-block-identity/) say the datum
+// the host wanted -- which paragraph -- exists nowhere in LOK as an index, and
+// the reference implementation (Muya) says why that does not matter: an editor's
+// cursor IS (block, offset), and geometry only ever runs model->pixels.  So the
+// engine answers with what it can see: the caret rectangle, the paragraph's
+// fingerprint, and the offset within it.
+//
+// The deadline is not a timeout dressed up as success.  It is the E1-D shape,
+// and E1-D's comment is the argument: a click on the point the caret already
+// occupies changes nothing, so core emits no callback and waiting for one waits
+// for ever.  The answer arrives either way, and the CALLER judges from what it
+// reports -- never from the fact that it returned.
+void handleEditorPlaceCaret(const Command &command) {
+  if (!requireDocument(command, "editor-place-caret"))
+    return;
+#ifdef OXSDK_FINDING_016_SELECTION_BARRIER
+  if (selectionBarrierActive()) {
+    emitCommandError(command, "editor-place-caret", "BUSY",
+                     "a verified selection delete is still in flight");
+    return;
+  }
+#endif
+#ifdef OXSDK_E2_FORMAT_BARRIER
+  if (formatBarrierActive()) {
+    emitCommandError(command, "editor-place-caret", "BUSY",
+                     "a verified format-state action is still in flight");
+    return;
+  }
+#endif
+  if (gEditorPending.requestId != 0) {
+    emitCommandError(command, "editor-place-caret", "BUSY",
+                     "another callback-correlated editor operation is in flight");
+    return;
+  }
+  gEditorPending.requestId = command.requestId;
+  gEditorPending.documentHandle = command.documentHandle;
+  gEditorPending.beforeRevision = gState.revision;
+  gEditorPending.beforeSequence = gEditorState.sourceSequence;
+  gEditorPending.requiredCallback = LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR;
+  gEditorPending.mutation = false;
+  gEditorPending.selection = false;
+  gEditorPending.caret = true;
+  gEditorPending.name = "click";
+  // ALWAYS armed, unlike the select path where it is a parameter.  The case it
+  // covers -- a click that changes nothing -- is not an edge here; it is the
+  // one a user reaches by clicking twice in the same place.
+  gEditorPending.readbackDeadlineArmed = true;
+  gEditorPending.readbackDeadline =
+      std::chrono::steady_clock::now() +
+      std::chrono::milliseconds(EditorPlaceCaretDeadlineMs);
+  markAsynchronous(command.requestId);
+  gState.document->pClass->postMouseEvent(
+      gState.document, LOK_MOUSEEVENT_MOUSEBUTTONDOWN, command.values[0],
+      command.values[1], 1, 1, 0);
+  gState.document->pClass->postMouseEvent(
+      gState.document, LOK_MOUSEEVENT_MOUSEBUTTONUP, command.values[0],
+      command.values[1], 1, 1, 0);
+}
+
 void handleEditorGetState(const Command &command) {
   if (!requireDocument(command, "editor-get-state"))
     return;
+  // Asked for, not waited for: the a11y CALLBACK is gated on the paragraph's
+  // text changing, so a state read that relied on it would report the last
+  // paragraph whose text differed rather than the one the caret is in.
+  refreshCaretParagraph();
   const SelectionReadback readback = readSelection();
   std::ostringstream json;
   json << "{\"schemaVersion\":" << ProtocolSchemaVersion
@@ -4450,10 +4698,14 @@ void dispatch(const Command &command) {
     handleEditorSelect(command);
     break;
   case CommandType::EditorSelectReadback:
+  case CommandType::EditorPlaceCaretReadback:
     if (command.requestId == gEditorPending.requestId &&
         command.documentHandle == gEditorPending.documentHandle) {
       completePendingEditorSelectByReadback();
     }
+    break;
+  case CommandType::EditorPlaceCaret:
+    handleEditorPlaceCaret(command);
     break;
   case CommandType::EditorGetState:
     handleEditorGetState(command);
@@ -4526,7 +4778,9 @@ void engineLoop(Command initialReady) {
               gEditorPending.requestId != 0 &&
               gEditorPending.readbackDeadlineArmed &&
               std::chrono::steady_clock::now() >= deadline) {
-            command = Command{CommandType::EditorSelectReadback};
+            command = Command{gEditorPending.caret
+                                  ? CommandType::EditorPlaceCaretReadback
+                                  : CommandType::EditorSelectReadback};
             command.requestId = gEditorPending.requestId;
             command.documentHandle = gEditorPending.documentHandle;
             syntheticSelectionDeadline = true;
@@ -5277,6 +5531,18 @@ bool editorGesturePermitted(std::uint32_t internalAction,
   return (gEditorActionGestures[internalAction] & gesture) != 0;
 }
 #endif
+
+SubmitStatus editorPlaceCaret(std::uint32_t requestId,
+                             std::uint32_t documentHandle,
+                             std::int32_t xTwips, std::int32_t yTwips) {
+  Command command{CommandType::EditorPlaceCaret};
+  command.sdk = true;
+  command.requestId = requestId;
+  command.documentHandle = documentHandle;
+  command.values[0] = xTwips;
+  command.values[1] = yTwips;
+  return submit(std::move(command));
+}
 
 SubmitStatus editorGetState(std::uint32_t requestId,
                             std::uint32_t documentHandle) {

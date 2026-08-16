@@ -164,6 +164,18 @@ extern "C" EMSCRIPTEN_KEEPALIVE std::int32_t oxsdk_editor_get_state(
       [&] { return probe::editorGetState(requestId, documentHandle); });
 }
 
+extern "C" EMSCRIPTEN_KEEPALIVE std::int32_t oxsdk_editor_place_caret(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
+    std::int32_t xTwips, std::int32_t yTwips) {
+  if (!validRequest(requestId) || documentHandle == 0 || xTwips < 0 ||
+      yTwips < 0) {
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  }
+  return safeStatus([&] {
+    return probe::editorPlaceCaret(requestId, documentHandle, xTwips, yTwips);
+  });
+}
+
 extern "C" EMSCRIPTEN_KEEPALIVE std::int32_t oxsdk_editor_select_range(
     oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
     std::int32_t startXTwips, std::int32_t startYTwips,

@@ -347,18 +347,32 @@
     },
     {
       "id": "queue-selecttext-overshoots-empty-paragraph",
-      "title": "the barrier's selection overshoots an EMPTY paragraph, so a successful mutation is refused -- OPEN, scoped 2026-08-16, not blocking",
-      "expectation": "absent",
-      "blocksRelink": false,
+      "title": "the barrier verified the WRONG PARAGRAPH -- finding 046's actual fix, WRITTEN 2026-08-17, waiting for the link",
+      "expectation": "present",
+      "blocksRelink": true,
       "source": "findings/evidence/046/diagnostic-readback/, 2026-08-16",
       "note": "This is finding 046's actual defect, now precise. Raw readback on the empty paragraph: `<ul><li><p></p></li></ul><p>E1-EMPTY-AFTER</p>` -- the bullet APPLIED and the read swallowed the paragraph below. Both browsers, both gestures. Not blocking this link: the fix needs a design (verify by block identity rather than refuse) plus its own measurement, and the link is for changes already decided. Round two needs a matrix cell for it. SCOPE MEASURED (findings/evidence/046/overshoot/, 8 cells x 2 browsers, frozen engine): EMPTY-PARAGRAPH-ONLY. The discriminator was a caret placed PAST the last character of a paragraph with text -- it reads one block and succeeds, so this is not the 'caret at a paragraph edge' failure finding 034 named. Containment holds on every overshooting cell, so a fix has to compare the read against the paragraph the action was dispatched on, not against the caret.",
       "checks": [
         {
-          "kind": "absent",
+          "kind": "contains",
           "file": "src/probe_engine.cpp",
-          "text": "selectionOvershootChecked"
+          "text": "readback-is-a-different-paragraph",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "barrier.dispatchParagraphKnown = refreshCaretParagraph();",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "gFormatBarrier.readbackParagraphKnown = refreshCaretParagraph();",
+          "atLeast": 1
         }
-      ]
+      ],
+      "checkNote": "The fix compares the paragraph the action was DISPATCHED on against the paragraph the READ is of, both as fingerprints of the paragraph\u0027s own text with the list prefix removed. The prefix removal is load-bearing and measured: the same empty paragraph reads \"\" before .uno:DefaultBullet and \"\\u2022 \" after it, so a fingerprint over the whole string would differ on every SUCCESSFUL list action and this check would fire on all of them. The two capture points are separate checks because taking either at the wrong moment silently breaks it -- the dispatch one after the dispatch describes a paragraph the action already changed, and the readback one after the restore describes the restore rather than the read. NAMED LIMIT: two paragraphs with the same text are indistinguishable, so an overshoot from one empty paragraph into another is not caught."
     },
     {
       "id": "queue-product-save-button-writes-object-object",
@@ -521,15 +535,46 @@
     {
       "id": "queue-verify-caret-by-block-identity",
       "title": "answer a click with (paragraph, offset) instead of inferring it from rectangles -- OPEN, engine-side, DESIGNED and measured 2026-08-16",
-      "expectation": "absent",
-      "blocksRelink": false,
+      "expectation": "present",
+      "blocksRelink": true,
       "source": "findings 046, 051, 052; measured 2026-08-16, findings/evidence/queue-block-identity/",
       "note": "REWORDED after measurement. The old wording said three ambiguities 'all reduce to the same missing datum -- which BLOCK the caret is in', and that turned out to be half right. Measured natively over three rounds: (a) there IS no block index anywhere in LOK -- the focused-paragraph payload carries content/position/start/end/listPrefixLength and nothing else, and no getCommandValues command supplies one; (b) what does exist, the paragraph's own text, is a FINGERPRINT, not an identity -- two paragraphs with the same text produce a byte-identical payload while the caret rectangle moves; (c) it settles finding 046 on the cells 046 was measured on -- but NOT in general, because the comparison is between two paragraphs' text and `empty-paragraph.odt` ends with two adjacent empty paragraphs whose text is identical -- (the dispatch paragraph read '\\u2022 ' and the barrier's .uno:SelectText read '    \\u2022 \\nBI-AFTER-EMPTY'), and it settles the same-line-different-x case by OFFSET rather than by block; (d) it does NOT settle finding 052's residual, because x is carried on a line and dropped below it (offset 4 on the line, 7 below it, same x) so every click outside the text lands at the same offset -- a real block index would not help either, since the caret genuinely is in the last block. Every one of (a)-(d) is a NATIVE result on core 26.8; whether the shipped WASM engine reports the same offsets and refreshes the a11y payload on the same schedule is owed to a relink round and is not established here. The remedy for (d) is a different shape and comes from the reference implementation rather than from the measurement: make placing the caret a CALL THAT RETURNS (paragraph fingerprint, offset), instead of posting a click and inferring the outcome from a rectangle. Muya (MarkText's editor core) never inverts that mapping -- its cursor IS {offset, block, path} and geometry only ever goes model->pixels. Design and pre-registered predictions: research/DESIGN-2026-08-16-caret-by-block-and-offset.md.",
       "checks": [
         {
-          "kind": "absent",
+          "kind": "contains",
           "file": "src/probe_engine.cpp",
-          "text": "editorPlaceCaretV2"
+          "text": "void handleEditorPlaceCaret(const Command &command) {",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "editor-caret-placed",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "src/editor_api.cpp",
+          "text": "oxsdk_editor_place_caret",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "Makefile",
+          "text": "_oxsdk_editor_place_caret",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "sdk/sdk-worker.js",
+          "text": "editorPlaceCaretV2",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "sdk/sdk-worker.js",
+          "text": "caretParagraph",
+          "atLeast": 1
         },
         {
           "kind": "contains",
@@ -538,7 +583,7 @@
           "atLeast": 1
         }
       ],
-      "checkNote": "The old check watched for `caretBlockIndex`, a field for a datum that does not exist in LOK -- so nothing could ever have implemented it and the check was green by construction. A check that cannot go red is not a check. The replacement watches for the entry point this design actually adds, and the second check binds the item to the registered predictions so the design cannot quietly go missing before the link that is supposed to carry it."
+      "checkNote": "WRITTEN 2026-08-17, waiting for the link. The old check watched for `caretBlockIndex`, a field for a datum that does not exist in LOK -- so nothing could ever have implemented it and the check was green by construction. These watch the five places the change actually lives: the engine handler, the reply type, the entry point, the EXPORT LIST (an entry point that is not exported is stripped at link time and the symbol is simply absent at run time), and both halves of the worker -- the operation and the PROJECTION, because that projection is an allowlist and adding the engine half without it is how p1-3c\u0027s itemCount came to be measured natively and reported nowhere."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

@@ -133,6 +133,25 @@ int32_t oxsdk_editor_set_action_gestures(uint32_t action, uint32_t gesture_mask)
  * judge the result by reading the selection back (oxsdk_editor_get_state),
  * never by the fact that this call completed.
  */
+/*
+ * Place the caret at a point and ANSWER with where it went.
+ *
+ * queue-verify-caret-by-block-identity.  The existing click entry point replies
+ * before core has processed anything and says nothing about the outcome, so
+ * every caller had to invert the mapping -- post a pixel, then guess from a
+ * rectangle.  Findings 048, 051 and 052 are that inversion's three shapes.
+ *
+ * The reply carries the caret rectangle, the caret paragraph's FINGERPRINT and
+ * the offset within it.  A fingerprint, not an index: four native rounds
+ * established that LOK carries no paragraph index anywhere, and not the text
+ * itself, because this ABI does not hand the document's contents to the host
+ * through the state channel.  Two paragraphs with the same text are therefore
+ * indistinguishable -- the named limit, not a hidden one.
+ */
+int32_t oxsdk_editor_place_caret(
+    oxsdk_request_id request_id, oxsdk_document_handle document_handle,
+    int32_t x_twips, int32_t y_twips);
+
 int32_t oxsdk_editor_select_range(
     oxsdk_request_id request_id, oxsdk_document_handle document_handle,
     int32_t start_x_twips, int32_t start_y_twips,

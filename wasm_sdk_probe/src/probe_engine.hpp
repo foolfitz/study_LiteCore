@@ -75,6 +75,13 @@ SubmitStatus editorSelect(std::uint32_t requestId,
                           std::uint32_t method, int startXTwips,
                           int startYTwips, int endXTwips, int endYTwips,
                           bool boundedReadback = false);
+// queue-verify-caret-by-block-identity: a click whose reply says where the
+// caret went (paragraph fingerprint + offset), instead of a click that replies
+// before core has processed it.
+SubmitStatus editorPlaceCaret(std::uint32_t requestId,
+                              std::uint32_t documentHandle,
+                              std::int32_t xTwips, std::int32_t yTwips);
+
 SubmitStatus editorGetState(std::uint32_t requestId,
                             std::uint32_t documentHandle);
 #ifdef OXSDK_E2_FORMAT_BARRIER

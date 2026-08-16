@@ -964,6 +964,7 @@ $(E2_C_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
 		_oxsdk_editor_action \
 		_oxsdk_editor_get_state \
 		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
 		_oxsdk_editor_abi_version \
 		_oxsdk_editor_set_action_gestures >> $@
 	@if grep -q editor_discovery $@; then \
