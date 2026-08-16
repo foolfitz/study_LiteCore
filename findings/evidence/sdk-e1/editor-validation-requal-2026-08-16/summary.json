@@ -1,0 +1,4461 @@
+{
+  "schemaVersion": 1,
+  "release": "E1-C-editor-validation",
+  "matrix": {
+    "path": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/e1/validation-matrix-v2.json",
+    "status": "effective-from-the-2026-08-16-rebinding",
+    "corpusCount": 5,
+    "schemaVersion": 2,
+    "expectedRelease": "E1-C-editor-validation-next",
+    "crashScenarios": [
+      "crash-during-preedit-zero-mutation",
+      "crash-with-queued-mutation-no-replay",
+      "crash-before-save-unsaved-not-recovered",
+      "crash-after-save-authority-restored",
+      "crash-after-checkpoint-restores-and-marks-dirty"
+    ],
+    "crashBarriersPerBrowser": 5,
+    "checks": {
+      "knownSchema": true,
+      "release": true,
+      "crashBarrierCount": true,
+      "nextRebinding": true,
+      "activationConsistent": true,
+      "shellBundleBaseline": true
+    },
+    "pass": true
+  },
+  "profile": {
+    "manifest": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/dist/profiles/e1-editor-v1/sdk-manifest.json",
+    "exports": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/build/e1/editor-v1/exports.txt",
+    "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+    "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+    "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+    "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b",
+    "shellBundle": {
+      "manifest": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/e1/editor-shell-bundle-v2.json",
+      "algorithm": "SHA-256 of UTF-8 path + NUL + lowercase file SHA-256 + LF for each included path in lexicographic order",
+      "loadedModules": [
+        "editor-shell/editor-client.js",
+        "editor-shell/editor-session.js",
+        "editor-shell/state-machine.js",
+        "input/clipboard-adapter.js",
+        "input/input-adapter.js"
+      ],
+      "availableModules": [
+        "editor-shell/editor-client.js",
+        "editor-shell/editor-session.js",
+        "editor-shell/recovery-notice.js",
+        "editor-shell/state-machine.js",
+        "input/clipboard-adapter.js",
+        "input/input-adapter.js"
+      ],
+      "included": [
+        {
+          "path": "editor-shell/editor-client.js",
+          "expectedSha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+          "sourceSha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+          "distSha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+          "sourcePass": true,
+          "distPass": true
+        },
+        {
+          "path": "editor-shell/editor-session.js",
+          "expectedSha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+          "sourceSha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+          "distSha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+          "sourcePass": true,
+          "distPass": true
+        },
+        {
+          "path": "editor-shell/state-machine.js",
+          "expectedSha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+          "sourceSha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+          "distSha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+          "sourcePass": true,
+          "distPass": true
+        },
+        {
+          "path": "input/clipboard-adapter.js",
+          "expectedSha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+          "sourceSha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+          "distSha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+          "sourcePass": true,
+          "distPass": true
+        },
+        {
+          "path": "input/input-adapter.js",
+          "expectedSha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+          "sourceSha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+          "distSha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+          "sourcePass": true,
+          "distPass": true
+        }
+      ],
+      "excluded": [
+        {
+          "path": "editor-shell/recovery-notice.js",
+          "reason": "Host-side decision module not imported by the E1-C validation page; covered by editor-shell/tests/recovery-notice.test.mjs. Including it would invalidate browser evidence for code the matrix does not execute."
+        }
+      ],
+      "unaccountedModules": [],
+      "missingModules": [],
+      "differences": [],
+      "sourceBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b",
+      "distBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b",
+      "expectedBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b",
+      "pass": true
+    },
+    "actions": [
+      "move-character-left",
+      "move-character-right",
+      "delete-backward",
+      "delete-forward",
+      "insert-paragraph-break",
+      "insert-line-break",
+      "set-bold",
+      "set-italic",
+      "set-underline",
+      "set-strikethrough"
+    ],
+    "forbiddenExports": [],
+    "pass": true
+  },
+  "artifactBinding": {
+    "schemaVersion": 1,
+    "release": "E1-C-editor-validation",
+    "expected": {
+      "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+      "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+      "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+      "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+    },
+    "results": [
+      {
+        "phase": "integration",
+        "browser": "chrome",
+        "case": "integration-01",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/chrome/integration-01/attempt-02/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "integration",
+        "browser": "chrome",
+        "case": "integration-02",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/chrome/integration-02/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "integration",
+        "browser": "chrome",
+        "case": "integration-03",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/chrome/integration-03/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "integration",
+        "browser": "firefox",
+        "case": "integration-01",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/firefox/integration-01/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "integration",
+        "browser": "firefox",
+        "case": "integration-02",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/firefox/integration-02/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "integration",
+        "browser": "firefox",
+        "case": "integration-03",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/firefox/integration-03/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "boundary-start",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/boundary-start/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "boundary-table",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/boundary-table/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "crash-preedit",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-preedit/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "crash-queued",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-queued/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "crash-unsaved",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-unsaved/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "crash-saved",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-saved/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "crash-after-checkpoint",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-after-checkpoint/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "boundary-start",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/boundary-start/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "boundary-table",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/boundary-table/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "crash-preedit",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-preedit/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "crash-queued",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-queued/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "crash-unsaved",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-unsaved/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "crash-saved",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-saved/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "crash-after-checkpoint",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-after-checkpoint/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "corpus",
+        "browser": "chrome",
+        "case": "l0-t1",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t1/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "corpus",
+        "browser": "chrome",
+        "case": "l0-t2",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t2/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "corpus",
+        "browser": "chrome",
+        "case": "l0-t3",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t3/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "corpus",
+        "browser": "chrome",
+        "case": "l1-review-odt",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l1-review-odt/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "corpus",
+        "browser": "chrome",
+        "case": "l4-stress-100",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l4-stress-100/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "corpus",
+        "browser": "firefox",
+        "case": "l0-t1",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t1/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "corpus",
+        "browser": "firefox",
+        "case": "l0-t2",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t2/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "corpus",
+        "browser": "firefox",
+        "case": "l0-t3",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t3/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "corpus",
+        "browser": "firefox",
+        "case": "l1-review-odt",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l1-review-odt/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "corpus",
+        "browser": "firefox",
+        "case": "l4-stress-100",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l4-stress-100/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-01",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-01/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-02",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-02/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-03",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-03/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-04",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-04/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-05",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-05/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-06",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-06/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-07",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-07/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-08",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-08/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-09",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-09/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-10",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-10/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-01",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-01/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-02",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-02/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-03",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-03/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-04",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-04/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-05",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-05/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-06",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-06/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-07",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-07/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-08",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-08/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-09",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-09/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-10",
+        "resultPath": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-10/result.json",
+        "observed": {
+          "loaderSha256": "1fe83aedcc6d57d80757abadb3d36e7e4d5c6c253bbe1c47d69a248e0cfc42de",
+          "wasmSha256": "835b453dd85adebbfcc6ada30fd47cdd7d5679a6abaaff3f1faebf47b484979d",
+          "workerSha256": "e4f37ffe11963259f184c159b6c94a851eca5aa5bf8b8f72b38b17575029b761",
+          "shellBundleSha256": "187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b"
+        },
+        "pass": true,
+        "reason": null
+      }
+    ],
+    "boundCases": 50,
+    "supersededCases": 0,
+    "unattributableCases": 0,
+    "pass": true
+  },
+  "phases": {
+    "integration:chrome": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/chrome/summary.json",
+      "pass": true,
+      "expectedCases": 3,
+      "completedCases": 3,
+      "memory": {
+        "status": "recorded-not-lifecycle-gate",
+        "samples": 3,
+        "pass": true
+      }
+    },
+    "integration:firefox": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/firefox/summary.json",
+      "pass": true,
+      "expectedCases": 3,
+      "completedCases": 3,
+      "memory": {
+        "status": "recorded-not-lifecycle-gate",
+        "samples": 3,
+        "pass": true
+      }
+    },
+    "integration": {
+      "expectedCases": 6,
+      "observedCases": 6,
+      "pass": true
+    },
+    "recovery:chrome": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/summary.json",
+      "pass": true,
+      "expectedCases": 7,
+      "completedCases": 7,
+      "memory": {
+        "status": "recorded-not-lifecycle-gate",
+        "samples": 7,
+        "pass": true
+      }
+    },
+    "recovery:firefox": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/summary.json",
+      "pass": true,
+      "expectedCases": 7,
+      "completedCases": 7,
+      "memory": {
+        "status": "recorded-not-lifecycle-gate",
+        "samples": 7,
+        "pass": true
+      }
+    },
+    "recovery": {
+      "expectedCases": 14,
+      "observedCases": 14,
+      "pass": true
+    },
+    "corpus:chrome": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/summary.json",
+      "pass": true,
+      "expectedCases": 5,
+      "completedCases": 5,
+      "memory": {
+        "status": "recorded-not-lifecycle-gate",
+        "samples": 5,
+        "pass": true
+      }
+    },
+    "corpus:firefox": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/summary.json",
+      "pass": true,
+      "expectedCases": 5,
+      "completedCases": 5,
+      "memory": {
+        "status": "recorded-not-lifecycle-gate",
+        "samples": 5,
+        "pass": true
+      }
+    },
+    "corpus": {
+      "expectedCases": 10,
+      "observedCases": 10,
+      "pass": true
+    },
+    "lifecycle:chrome": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/summary.json",
+      "pass": true,
+      "expectedCases": 10,
+      "completedCases": 10,
+      "memory": {
+        "browser": "chrome",
+        "metric": "pss-or-rss-process-tree",
+        "samples": 10,
+        "firstBytes": 1648066560,
+        "lastBytes": 1155452928,
+        "growthBytes": -492613632,
+        "growthRatio": -0.29890396659707724,
+        "maximumGrowthBytes": 536870912,
+        "maximumGrowthRatio": 0.35,
+        "pass": true
+      }
+    },
+    "lifecycle:firefox": {
+      "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/summary.json",
+      "pass": true,
+      "expectedCases": 10,
+      "completedCases": 10,
+      "memory": {
+        "browser": "firefox",
+        "metric": "pss-or-rss-process-tree",
+        "samples": 10,
+        "firstBytes": 727913472,
+        "lastBytes": 749901824,
+        "growthBytes": 21988352,
+        "growthRatio": 0.030207370581540768,
+        "maximumGrowthBytes": 536870912,
+        "maximumGrowthRatio": 0.35,
+        "pass": true
+      }
+    },
+    "lifecycle": {
+      "expectedCases": 20,
+      "observedCases": 20,
+      "pass": true
+    }
+  },
+  "caseCount": 50,
+  "roundtrip": {
+    "schemaVersion": 1,
+    "release": "E1-C-editor-validation",
+    "documents": [
+      {
+        "phase": "integration",
+        "browser": "chrome",
+        "case": "integration-01",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/chrome/integration-01/attempt-02/output.odt",
+        "bytes": 11929,
+        "sha256": "d0bdef78b23d8fc79ef626f68077eab0e2f64549097f32af1a467f31b7428afb",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 7,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-COMMIT-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-AFTER-MOVE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測E1C-REPLACE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "012345678E1C-PASTE-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-PARAGRAPH",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LINE",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CANCEL",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-UNDO",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "<b>forbidden</b>",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "integration",
+        "browser": "chrome",
+        "case": "integration-02",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/chrome/integration-02/output.odt",
+        "bytes": 11921,
+        "sha256": "0baa9e6cd2f496473f5a8cabcd71c2dd6528babb1b7621373f0e17ab12e23dd9",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 7,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-COMMIT-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-AFTER-MOVE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測E1C-REPLACE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "012345678E1C-PASTE-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-PARAGRAPH",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LINE",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CANCEL",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-UNDO",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "<b>forbidden</b>",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "integration",
+        "browser": "chrome",
+        "case": "integration-03",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/chrome/integration-03/output.odt",
+        "bytes": 11922,
+        "sha256": "bf645f032abe16f11a38be7f662712b91ec3122c9e898f0577699fd5e03ed6c6",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 7,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-COMMIT-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-AFTER-MOVE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測E1C-REPLACE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "012345678E1C-PASTE-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-PARAGRAPH",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LINE",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CANCEL",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-UNDO",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "<b>forbidden</b>",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-_g08uxj3/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-_g08uxj3",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/chrome/integration-03/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/chrome/integration-03/output.odt as a Writer document -> /tmp/r7-desktop-_g08uxj3/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/chrome/integration-03/desktop.pdf",
+          "pdfBytes": 34319,
+          "pdfSha256": "f0cdafd6dfce0947621a0d12920ea07bcacbc8ff25f58c1d3c69801b9d29a2f5",
+          "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:23 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       34319 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "integration",
+        "browser": "firefox",
+        "case": "integration-01",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/firefox/integration-01/output.odt",
+        "bytes": 11897,
+        "sha256": "7644ba9d11050dc5ad9d2cfaf55cf1a94c20c5a95db359b1a7785030c594168a",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 7,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-COMMIT-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-AFTER-MOVE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測E1C-REPLACE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "012345678E1C-PASTE-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-PARAGRAPH",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LINE",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CANCEL",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-UNDO",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "<b>forbidden</b>",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "integration",
+        "browser": "firefox",
+        "case": "integration-02",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/firefox/integration-02/output.odt",
+        "bytes": 11897,
+        "sha256": "8b9339b791c038b806d763b5a6fffea9504dd358af856b8cd5d2eaaa872aed97",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 7,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-COMMIT-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-AFTER-MOVE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測E1C-REPLACE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "012345678E1C-PASTE-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-PARAGRAPH",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LINE",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CANCEL",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-UNDO",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "<b>forbidden</b>",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "integration",
+        "browser": "firefox",
+        "case": "integration-03",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/firefox/integration-03/output.odt",
+        "bytes": 11895,
+        "sha256": "8ea13e7793555cff844a932e7cf28262653a31abcff659ad9ec4ff5e6cf03cc4",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 7,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-COMMIT-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-AFTER-MOVE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測E1C-REPLACE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "012345678E1C-PASTE-臺灣😀",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-PARAGRAPH",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LINE",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CANCEL",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-UNDO",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "<b>forbidden</b>",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-4ahefk5p/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-4ahefk5p",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/firefox/integration-03/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/firefox/integration-03/output.odt as a Writer document -> /tmp/r7-desktop-4ahefk5p/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/browser/firefox/integration-03/desktop.pdf",
+          "pdfBytes": 34397,
+          "pdfSha256": "0f12541d3b2376051688f5018b8db303a645c1aca48aca74a26900e36949228b",
+          "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:24 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       34397 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "boundary-start",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/boundary-start/output.odt",
+        "bytes": 10061,
+        "sha256": "633ac5e523d117ae829f63fdac19bdb08dfbe2beb71d5374493689242dcf7420",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-BOUNDARY-QUEUED-MUST-NOT-REPLAY",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "boundary-table",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/boundary-table/output.odt",
+        "bytes": 9704,
+        "sha256": "b74f748ac9c00b89b46d92221dae2827d980ad00d5085d70d1bdc73cbaa1680b",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 1
+        },
+        "required": [
+          {
+            "text": "E1-TABLE-BEFORE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-CELL-A1",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-CELL-B2",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-TABLE-AFTER",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-BOUNDARY-QUEUED-MUST-NOT-REPLAY",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "crash-preedit",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-preedit/output.odt",
+        "bytes": 10056,
+        "sha256": "f5d421e6d29938f1f85a0add3c2d690196c4a26239bd458ea1509bb0acc791b4",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CRASH-PREEDIT-MUST-NOT-REPLAY",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-PREEDIT-MUST-NOT-REPLAY-FIRST",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-PREEDIT-MUST-NOT-REPLAY-QUEUED",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "crash-queued",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-queued/output.odt",
+        "bytes": 10057,
+        "sha256": "27dd16caae50d9875a69a239734412e8abe8a23aaaf19d3bfbee75942e31b007",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CRASH-QUEUED-MUST-NOT-REPLAY",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-QUEUED-MUST-NOT-REPLAY-FIRST",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-QUEUED-MUST-NOT-REPLAY-QUEUED",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "crash-unsaved",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-unsaved/output.odt",
+        "bytes": 10058,
+        "sha256": "660f8d01271b69b6b6d580ea308d1576cfababe942985a7cad88fb1002cfbecd",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CRASH-UNSAVED-MUST-NOT-REPLAY",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-UNSAVED-MUST-NOT-REPLAY-FIRST",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-UNSAVED-MUST-NOT-REPLAY-QUEUED",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "crash-saved",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-saved/output.odt",
+        "bytes": 10906,
+        "sha256": "4cf7bd236d515e8b24f475c5d86ef0160cdc426b398c3f2e4a67d2ab82f1ff30",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1C-CRASH-SAVED-MUST-SURVIVE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CRASH-SAVED-MUST-NOT-REPLAY-FIRST",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-SAVED-MUST-NOT-REPLAY-QUEUED",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-y0crhyyr/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-y0crhyyr",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-saved/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-saved/output.odt as a Writer document -> /tmp/r7-desktop-y0crhyyr/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-saved/desktop.pdf",
+          "pdfBytes": 33556,
+          "pdfSha256": "98cc1cdbc503c1990e678cf548b12de7c295f48a94b5098d47510fbfe92815af",
+          "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:24 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       33556 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "chrome",
+        "case": "crash-after-checkpoint",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-after-checkpoint/output.odt",
+        "bytes": 10771,
+        "sha256": "a1128350295bef448c0fd22c1dd03d470179a1cb22fbc76d0f63d7dbc26a28e1",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-CKPT-MUST-SURVIVE",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CKPT-MUST-NOT-RETURN",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CKPT-PREEDIT-FORBIDDEN",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CKPT-QUEUED",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-4v4nv3p3/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-4v4nv3p3",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-after-checkpoint/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-after-checkpoint/output.odt as a Writer document -> /tmp/r7-desktop-4v4nv3p3/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/chrome/crash-after-checkpoint/desktop.pdf",
+          "pdfBytes": 33619,
+          "pdfSha256": "a13eac4abcd197963206270b03f691abed468e95ea9b99afc71b495db49e2a71",
+          "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:24 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       33619 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "boundary-start",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/boundary-start/output.odt",
+        "bytes": 10050,
+        "sha256": "64d28af1e301fc0ea2bad18cafc83ac8c34116971b964fcdbf5dc005b5e712be",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-BOUNDARY-QUEUED-MUST-NOT-REPLAY",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "boundary-table",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/boundary-table/output.odt",
+        "bytes": 9688,
+        "sha256": "93d469841bac5ec42eedb36b30a290ecda69d11620feeaba6a80eab9845453d4",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 1
+        },
+        "required": [
+          {
+            "text": "E1-TABLE-BEFORE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-CELL-A1",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-CELL-B2",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-TABLE-AFTER",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-BOUNDARY-QUEUED-MUST-NOT-REPLAY",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "crash-preedit",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-preedit/output.odt",
+        "bytes": 10047,
+        "sha256": "138485ca0507f86295e497a65225a7568442fd1b74dc4e7924e9b7458f52ad2b",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CRASH-PREEDIT-MUST-NOT-REPLAY",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-PREEDIT-MUST-NOT-REPLAY-FIRST",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-PREEDIT-MUST-NOT-REPLAY-QUEUED",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "crash-queued",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-queued/output.odt",
+        "bytes": 10045,
+        "sha256": "d7db6846c053618f18a74e51908a89232009d74e95df2dbe0e35860fccac4158",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CRASH-QUEUED-MUST-NOT-REPLAY",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-QUEUED-MUST-NOT-REPLAY-FIRST",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-QUEUED-MUST-NOT-REPLAY-QUEUED",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "crash-unsaved",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-unsaved/output.odt",
+        "bytes": 10047,
+        "sha256": "976ff61c14d3715b5c383fbb20b53adbdd991783f7cb2bc9abb2daea966b0fd6",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CRASH-UNSAVED-MUST-NOT-REPLAY",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-UNSAVED-MUST-NOT-REPLAY-FIRST",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-UNSAVED-MUST-NOT-REPLAY-QUEUED",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "crash-saved",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-saved/output.odt",
+        "bytes": 10889,
+        "sha256": "d8c8275bf7a588a3aabff599254885094aeaf07a0d5063b14d8315321e922df6",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1C-CRASH-SAVED-MUST-SURVIVE",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CRASH-SAVED-MUST-NOT-REPLAY-FIRST",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CRASH-SAVED-MUST-NOT-REPLAY-QUEUED",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-8l4x1d9o/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-8l4x1d9o",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-saved/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-saved/output.odt as a Writer document -> /tmp/r7-desktop-8l4x1d9o/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-saved/desktop.pdf",
+          "pdfBytes": 33636,
+          "pdfSha256": "162224de0c7830a43e745e4abc37a630986e0fb2352e1a861db10685fc1a9a23",
+          "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:25 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       33636 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "recovery",
+        "browser": "firefox",
+        "case": "crash-after-checkpoint",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-after-checkpoint/output.odt",
+        "bytes": 10750,
+        "sha256": "687600d45b7835f592465e78b1bfd6654696a443bf2ae45b94bf158b28b337a5",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-CKPT-MUST-SURVIVE",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [
+          {
+            "text": "E1C-CKPT-MUST-NOT-RETURN",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CKPT-PREEDIT-FORBIDDEN",
+            "count": 0,
+            "pass": true
+          },
+          {
+            "text": "E1C-CKPT-QUEUED",
+            "count": 0,
+            "pass": true
+          }
+        ],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-rh18dnxn/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-rh18dnxn",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-after-checkpoint/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-after-checkpoint/output.odt as a Writer document -> /tmp/r7-desktop-rh18dnxn/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/recovery/firefox/crash-after-checkpoint/desktop.pdf",
+          "pdfBytes": 33699,
+          "pdfSha256": "af24dc399c8f5db12ca902d19e2056508480cfd1cf5fedac85d7138b413ffe3b",
+          "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:25 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       33699 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "corpus",
+        "browser": "chrome",
+        "case": "l0-t1",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t1/output.odt",
+        "bytes": 19096,
+        "sha256": "d953b331b6ae983807f8b98ed734dfa13c63321c4a111821a4dbb796cea471c4",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 4,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "Final line：ODT round-trip 完整性檢查。",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-l0-t1-臺灣😀",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-bjpidust/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-bjpidust",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t1/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t1/output.odt as a Writer document -> /tmp/r7-desktop-bjpidust/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t1/desktop.pdf",
+          "pdfBytes": 104765,
+          "pdfSha256": "afc12f00ec95df3fbb980d8b50790b9d557ded3c4074c2c4b6eefe2fe8839a25",
+          "pdfinfo": "Title:           R1 純文字中英混排測試\nSubject:         wasm_sdk_probe R1 fixture\nCreator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:25 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       104765 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "corpus",
+        "browser": "chrome",
+        "case": "l0-t2",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t2/output.odt",
+        "bytes": 34384,
+        "sha256": "f58a153f0d697f4840e57d8f5d995ab4134e470ca262b24e288b3fa43be3022a",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 17,
+          "headings": 3,
+          "lists": 0,
+          "tables": 1
+        },
+        "required": [
+          {
+            "text": "文件結尾：請確認表格、圖片、註解與標題樣式均保留。",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-l0-t2-臺灣😀",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-ji6swh1v/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-ji6swh1v",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t2/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t2/output.odt as a Writer document -> /tmp/r7-desktop-ji6swh1v/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t2/desktop.pdf",
+          "pdfBytes": 99918,
+          "pdfSha256": "3a1287f07c5566943c8cd5c5b2c7485045f4157d362d56cbc90f367860c62700",
+          "pdfinfo": "Title:           R1 樣式、表格、圖片與註解測試\nSubject:         wasm_sdk_probe R1 fixture\nCreator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:26 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           3\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       99918 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "corpus",
+        "browser": "chrome",
+        "case": "l0-t3",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t3/output.odt",
+        "bytes": 38181,
+        "sha256": "9774b4e358af77e83a320b0718b2a3645776a24b92f837ab8c7aa505b12aaf74",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 111,
+          "headings": 22,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "第 1 頁：長文件記憶體與效能測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "第 22 頁：長文件記憶體與效能測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-l0-t3-臺灣😀",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-hjg1isju/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-hjg1isju",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t3/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t3/output.odt as a Writer document -> /tmp/r7-desktop-hjg1isju/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l0-t3/desktop.pdf",
+          "pdfBytes": 359217,
+          "pdfSha256": "2a183378c9b4af608cf8f02f52754334b809adf9d76bcb890b91026c90ceccf9",
+          "pdfinfo": "Title:           R1 20 頁以上長文件測試\nSubject:         wasm_sdk_probe R1 fixture\nCreator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:26 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           22\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       359217 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "corpus",
+        "browser": "chrome",
+        "case": "l1-review-odt",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l1-review-odt/output.odt",
+        "bytes": 36060,
+        "sha256": "19795cc8d5b3762ef215a633364dd8fcaa8558a648be4b81834ed8b28e9f366c",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 115,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "Lorem ipsum",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-l1-review-odt-臺灣😀",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-ipsjnzp5/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-ipsjnzp5",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l1-review-odt/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l1-review-odt/output.odt as a Writer document -> /tmp/r7-desktop-ipsjnzp5/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l1-review-odt/desktop.pdf",
+          "pdfBytes": 122840,
+          "pdfSha256": "7ac487734d53619d3470294e8c86c9c8146e502c54505e10df1569abdbdc314a",
+          "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:26 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           2\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       122840 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "corpus",
+        "browser": "chrome",
+        "case": "l4-stress-100",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l4-stress-100/output.odt",
+        "bytes": 15352,
+        "sha256": "0a3b3fb5a98df1eff6d05720ce76330ea95c77c7b187c27fbc249ca39ae39398",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 300,
+          "headings": 100,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "R7 stress page 001 頁面錨點",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "R7 stress page 050 頁面錨點",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "R7 stress page 100 頁面錨點",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-l4-stress-100-臺灣😀",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-g0pp5sv1/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-g0pp5sv1",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l4-stress-100/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l4-stress-100/output.odt as a Writer document -> /tmp/r7-desktop-g0pp5sv1/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/chrome/l4-stress-100/desktop.pdf",
+          "pdfBytes": 459974,
+          "pdfSha256": "b7db8a483acd97012b269105af7274608c0374e0de4e406a836918252dd2f015",
+          "pdfinfo": "Title:           R1 純文字中英混排測試\nSubject:         wasm_sdk_probe R1 fixture\nCreator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:27 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           100\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       459974 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "corpus",
+        "browser": "firefox",
+        "case": "l0-t1",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t1/output.odt",
+        "bytes": 19093,
+        "sha256": "d5580b72dff68afdc433be12b7b121ecfe988d0e1f6258859e52d4d46f5cbc61",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 4,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "Final line：ODT round-trip 完整性檢查。",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-l0-t1-臺灣😀",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-aht7aw5x/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-aht7aw5x",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t1/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t1/output.odt as a Writer document -> /tmp/r7-desktop-aht7aw5x/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t1/desktop.pdf",
+          "pdfBytes": 104765,
+          "pdfSha256": "5c2d53e08e44e73ef2bd0e9ddd532bbc796d97f343eb7cf100396016621fb598",
+          "pdfinfo": "Title:           R1 純文字中英混排測試\nSubject:         wasm_sdk_probe R1 fixture\nCreator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:27 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       104765 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "corpus",
+        "browser": "firefox",
+        "case": "l0-t2",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t2/output.odt",
+        "bytes": 34383,
+        "sha256": "039a904a900585f6c5f3315f450105e82663f90529f36c3f02494966cf0e3a60",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 17,
+          "headings": 3,
+          "lists": 0,
+          "tables": 1
+        },
+        "required": [
+          {
+            "text": "文件結尾：請確認表格、圖片、註解與標題樣式均保留。",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-l0-t2-臺灣😀",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-szqe_n6z/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-szqe_n6z",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t2/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t2/output.odt as a Writer document -> /tmp/r7-desktop-szqe_n6z/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t2/desktop.pdf",
+          "pdfBytes": 99918,
+          "pdfSha256": "8ce516d5758c0cfc25dd0b2e78f9b7a4d0ede62ef8236c322500b6ca33a04a2d",
+          "pdfinfo": "Title:           R1 樣式、表格、圖片與註解測試\nSubject:         wasm_sdk_probe R1 fixture\nCreator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:28 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           3\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       99918 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "corpus",
+        "browser": "firefox",
+        "case": "l0-t3",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t3/output.odt",
+        "bytes": 38181,
+        "sha256": "b9d43d4354c3c84ca00919b33ef34b9e27f9a37608cf999985c75b04e252e41f",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 111,
+          "headings": 22,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "第 1 頁：長文件記憶體與效能測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "第 22 頁：長文件記憶體與效能測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-l0-t3-臺灣😀",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-14q0tdpr/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-14q0tdpr",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t3/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t3/output.odt as a Writer document -> /tmp/r7-desktop-14q0tdpr/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l0-t3/desktop.pdf",
+          "pdfBytes": 359217,
+          "pdfSha256": "94d8f1c6b3fa196a50b79f57fbc5026912d96ec49fff02006b5644102f9e151d",
+          "pdfinfo": "Title:           R1 20 頁以上長文件測試\nSubject:         wasm_sdk_probe R1 fixture\nCreator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:28 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           22\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       359217 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "corpus",
+        "browser": "firefox",
+        "case": "l1-review-odt",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l1-review-odt/output.odt",
+        "bytes": 36044,
+        "sha256": "5ecda04fca3f36a1625fd74c73aa1e089712b859eb97db23adbf14f009a2bb34",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 115,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "Lorem ipsum",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-l1-review-odt-臺灣😀",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-ndfz_57j/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-ndfz_57j",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l1-review-odt/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l1-review-odt/output.odt as a Writer document -> /tmp/r7-desktop-ndfz_57j/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l1-review-odt/desktop.pdf",
+          "pdfBytes": 122840,
+          "pdfSha256": "9886b310de33adce36560c2ed8e2cacb3a300b7d5c6a0eebd3d39f3e6a590c80",
+          "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:28 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           2\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       122840 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "corpus",
+        "browser": "firefox",
+        "case": "l4-stress-100",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l4-stress-100/output.odt",
+        "bytes": 15356,
+        "sha256": "c4ddb1594ad4988b4189f8fd8272eab330d09ce092def0d773f4708fb67e05e9",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 300,
+          "headings": 100,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "R7 stress page 001 頁面錨點",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "R7 stress page 050 頁面錨點",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "R7 stress page 100 頁面錨點",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-l4-stress-100-臺灣😀",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-cp4zgl5u/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-cp4zgl5u",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l4-stress-100/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l4-stress-100/output.odt as a Writer document -> /tmp/r7-desktop-cp4zgl5u/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/corpus/firefox/l4-stress-100/desktop.pdf",
+          "pdfBytes": 459974,
+          "pdfSha256": "810cd16388ef11b38fd233510dc9979be9fa1b391492439b6c49af60a070c5ef",
+          "pdfinfo": "Title:           R1 純文字中英混排測試\nSubject:         wasm_sdk_probe R1 fixture\nCreator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:29 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           100\nEncrypted:       no\nPage size:       595.304 x 841.89 pts (A4)\nPage rot:        0\nFile size:       459974 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-01",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-01/output.odt",
+        "bytes": 10487,
+        "sha256": "933859bc2d8bdb4845065fb915607de881155f58d9bd7432b3e7f369d064be46",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-01",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-02",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-02/output.odt",
+        "bytes": 10491,
+        "sha256": "c7a33ca765dac402be60dec6cff58be4c9e5b592c50d4401720cb6e6984b4e68",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-02",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-03",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-03/output.odt",
+        "bytes": 10489,
+        "sha256": "8dfc70c6b2f81953100c818081730b147640de968bf94e244dc2a9b0dd99bb59",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-03",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-04",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-04/output.odt",
+        "bytes": 10489,
+        "sha256": "e2ebe59be9ab8692216bb5b11d349f94290213a0fb0f25e0cacaea8c2d3ecd00",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-04",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-05",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-05/output.odt",
+        "bytes": 10485,
+        "sha256": "4b272fa0ff3e2e6984687c74f26cb1fea3240ea950c6475cc4156d633a31e5df",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-05",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-06",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-06/output.odt",
+        "bytes": 10492,
+        "sha256": "dfab41469e3dff10e2fb0327b35e246596cc84725281e6aa184ac5358585a564",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-06",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-07",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-07/output.odt",
+        "bytes": 10494,
+        "sha256": "49ebd6497723e8f2e4ec76a93bb172449b0d5a3a9bc60f7daff3873557634ff9",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-07",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-08",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-08/output.odt",
+        "bytes": 10489,
+        "sha256": "6e26d111c04a5a918fd84b1ddf1b8dbbb27ffd79e915a853665182f7b9de5261",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-08",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-09",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-09/output.odt",
+        "bytes": 10499,
+        "sha256": "7f13c3c44402ed05d2aee70a1932c863e153bae65e44d55a415a8a1173b6125e",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-09",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "chrome",
+        "case": "cycle-10",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-10/output.odt",
+        "bytes": 10490,
+        "sha256": "650fd2d906d4f430a4dff4cf545937b6b5f3625ad9620fe49c91e889371f9ab8",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-10",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-b_zzzgs6/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-b_zzzgs6",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-10/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-10/output.odt as a Writer document -> /tmp/r7-desktop-b_zzzgs6/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/chrome/cycle-10/desktop.pdf",
+          "pdfBytes": 33096,
+          "pdfSha256": "017dde5033a5c0755ead6fe63a2cdd5e5aeddf58354d1fc43b737d3326d924ba",
+          "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:29 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       33096 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-01",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-01/output.odt",
+        "bytes": 10463,
+        "sha256": "ab308265304c911eddb17b3cd115c12115730f851aa7aa71b0145e4f3287c4a9",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-01",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-02",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-02/output.odt",
+        "bytes": 10470,
+        "sha256": "1772053752ca91a1e5b11d9d3e6e38d995a6fbfd14ca331af9cb4cce1068f5bc",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-02",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-03",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-03/output.odt",
+        "bytes": 10465,
+        "sha256": "fde0d8b0a78332be2f2bea3c68c04670c122d1e17c1d6d96eb7ba9c02a88e57c",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-03",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-04",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-04/output.odt",
+        "bytes": 10464,
+        "sha256": "9c1f67f525b0cb5bab5b7817b1ac5d74470d11789355400b222b08c20dba84bb",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-04",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-05",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-05/output.odt",
+        "bytes": 10482,
+        "sha256": "0b43b30d6d102086dd9f943ca6c1d0a297c1108c394a165d3fdc9fe81d565401",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-05",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-06",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-06/output.odt",
+        "bytes": 10466,
+        "sha256": "2cd8218bb98aef2b35d7ab51b7a60200178489a0464c6552dbe08abbe20fc522",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-06",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-07",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-07/output.odt",
+        "bytes": 10470,
+        "sha256": "ad9fba511702481d8e219ce9c977a72261e317ed0ec5d84cb15cf9cd2936fa6f",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-07",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-08",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-08/output.odt",
+        "bytes": 10465,
+        "sha256": "4f2cc223529f60886f6a8a9ba1cee2d5fa483e4e01e394db2515c7f0b2e14180",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-08",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-09",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-09/output.odt",
+        "bytes": 10473,
+        "sha256": "c25b3e7613b443b63854da90e959a597422f3916842eae20320f4628451cd504",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-09",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "pass": true,
+          "required": false
+        },
+        "pass": true
+      },
+      {
+        "phase": "lifecycle",
+        "browser": "firefox",
+        "case": "cycle-10",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-10/output.odt",
+        "bytes": 10463,
+        "sha256": "bdf5880155b6feef6a661f113a73d463003dace244c6c84e82ca4a6a357ba0f2",
+        "inspection": {
+          "exists": true,
+          "zip": true,
+          "crc": true,
+          "xml": true,
+          "paragraphs": 6,
+          "headings": 0,
+          "lists": 0,
+          "tables": 0
+        },
+        "required": [
+          {
+            "text": "E1-PLAIN-START",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "臺灣中文游標測試",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "emoji 😀 grapheme",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "combining é boundary",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1-PLAIN-END",
+            "count": 1,
+            "pass": true
+          },
+          {
+            "text": "E1C-LIFECYCLE-10",
+            "count": 1,
+            "pass": true
+          }
+        ],
+        "forbidden": [],
+        "desktop": {
+          "command": [
+            "/usr/bin/soffice",
+            "--headless",
+            "--nologo",
+            "--nodefault",
+            "--nofirststartwizard",
+            "--norestore",
+            "-env:UserInstallation=file:///tmp/r7-desktop-b995s6es/profile",
+            "--convert-to",
+            "pdf:writer_pdf_Export",
+            "--outdir",
+            "/tmp/r7-desktop-b995s6es",
+            "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-10/output.odt"
+          ],
+          "returnCode": 0,
+          "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-10/output.odt as a Writer document -> /tmp/r7-desktop-b995s6es/output.pdf using filter : writer_pdf_Export",
+          "stderr": "",
+          "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/lifecycle/firefox/cycle-10/desktop.pdf",
+          "pdfBytes": 33176,
+          "pdfSha256": "16de883d68d23f46fcee57383440d834edafa9b430db64ad7a20b7ec1ace6e96",
+          "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:36:30 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       33176 bytes\nOptimized:       no\nPDF version:     1.7",
+          "pass": true,
+          "reused": true
+        },
+        "pass": true
+      }
+    ],
+    "desktopRequired": 18,
+    "desktopReused": 18,
+    "desktopSkipped": 0,
+    "pass": true
+  },
+  "manual": {
+    "requiredBrowsers": 2,
+    "results": [
+      {
+        "browser": "chrome",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/manual/chrome-chewing.json",
+        "present": true,
+        "savedOutput": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/manual/chrome-output.odt",
+        "checks": {
+          "operatorConfirmedChewing": true,
+          "trustedComposition": true,
+          "trustedNativeCopy": true,
+          "trustedPaste": true,
+          "cancel": true,
+          "clipboardWrite": true,
+          "clipboardRead": true,
+          "artifact": true,
+          "output": true
+        },
+        "content": {
+          "required": [
+            {
+              "text": "E1C人工第一筆中文輸入",
+              "count": 1,
+              "pass": true
+            },
+            {
+              "text": "E1C人工選取替換",
+              "count": 1,
+              "pass": true
+            },
+            {
+              "text": "E1C人工原生貼上臺灣😀",
+              "count": 1,
+              "pass": true
+            },
+            {
+              "text": "E1C人工剪貼簿臺灣😀",
+              "count": 1,
+              "pass": true
+            }
+          ],
+          "cancelledCount": 0,
+          "pass": true,
+          "desktop": {
+            "command": [
+              "/usr/bin/soffice",
+              "--headless",
+              "--nologo",
+              "--nodefault",
+              "--nofirststartwizard",
+              "--norestore",
+              "-env:UserInstallation=file:///tmp/r7-desktop-acm00ouz/profile",
+              "--convert-to",
+              "pdf:writer_pdf_Export",
+              "--outdir",
+              "/tmp/r7-desktop-acm00ouz",
+              "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/manual/chrome-output.odt"
+            ],
+            "returnCode": 0,
+            "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/manual/chrome-output.odt as a Writer document -> /tmp/r7-desktop-acm00ouz/chrome-output.pdf using filter : writer_pdf_Export",
+            "stderr": "",
+            "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/manual/chrome-output.desktop.pdf",
+            "pdfBytes": 38999,
+            "pdfSha256": "a811d85666d623735d7487d0e7bd9983e3b55a5ff94a9e7fc59a8807d71b72d0",
+            "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:38:18 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       38999 bytes\nOptimized:       no\nPDF version:     1.7",
+            "pass": true
+          }
+        },
+        "pass": true
+      },
+      {
+        "browser": "firefox",
+        "path": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/manual/firefox-chewing.json",
+        "present": true,
+        "savedOutput": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/manual/firefox-output.odt",
+        "checks": {
+          "operatorConfirmedChewing": true,
+          "trustedComposition": true,
+          "trustedNativeCopy": true,
+          "trustedPaste": true,
+          "cancel": true,
+          "clipboardWrite": true,
+          "clipboardRead": true,
+          "artifact": true,
+          "output": true
+        },
+        "content": {
+          "required": [
+            {
+              "text": "E1C人工第一筆中文輸入",
+              "count": 1,
+              "pass": true
+            },
+            {
+              "text": "E1C人工選取替換",
+              "count": 1,
+              "pass": true
+            },
+            {
+              "text": "E1C人工原生貼上臺灣😀",
+              "count": 1,
+              "pass": true
+            },
+            {
+              "text": "E1C人工剪貼簿臺灣😀",
+              "count": 1,
+              "pass": true
+            }
+          ],
+          "cancelledCount": 0,
+          "pass": true,
+          "desktop": {
+            "command": [
+              "/usr/bin/soffice",
+              "--headless",
+              "--nologo",
+              "--nodefault",
+              "--nofirststartwizard",
+              "--norestore",
+              "-env:UserInstallation=file:///tmp/r7-desktop-sqowkzij/profile",
+              "--convert-to",
+              "pdf:writer_pdf_Export",
+              "--outdir",
+              "/tmp/r7-desktop-sqowkzij",
+              "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/manual/firefox-output.odt"
+            ],
+            "returnCode": 0,
+            "stdout": "convert /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/manual/firefox-output.odt as a Writer document -> /tmp/r7-desktop-sqowkzij/firefox-output.pdf using filter : writer_pdf_Export",
+            "stderr": "",
+            "pdf": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/manual/firefox-output.desktop.pdf",
+            "pdfBytes": 38999,
+            "pdfSha256": "51a19b56e6d0835e88a9f19096e503ea94fb4ce0d0d91b756f0fa34939dc9167",
+            "pdfinfo": "Creator:         Writer\nProducer:        LibreOffice 26.2.4.2 (X86_64)\nCreationDate:    Sun Aug 16 20:38:18 2026 CST\nCustom Metadata: no\nMetadata Stream: yes\nTagged:          yes\nUserProperties:  no\nSuspects:        no\nForm:            none\nJavaScript:      no\nPages:           1\nEncrypted:       no\nPage size:       612 x 792 pts (letter)\nPage rot:        0\nFile size:       38999 bytes\nOptimized:       no\nPDF version:     1.7",
+            "pass": true
+          }
+        },
+        "pass": true
+      }
+    ],
+    "complete": true,
+    "pass": true
+  },
+  "regression": {
+    "command": [
+      "make",
+      "test-r6-release",
+      "test-r7-b-static",
+      "test-r7-c-static",
+      "test-r7-d-static",
+      "test-r8-d-static",
+      "test-e1-a-static",
+      "test-e1-b-static",
+      "test-e1-c-static"
+    ],
+    "returnCode": 0,
+    "stdout": "python3 tools/validate_r6_release.py\n{\n  \"schemaVersion\": 1,\n  \"release\": \"R6\",\n  \"decision\": \"GO\",\n  \"checks\": {\n    \"r6ADiscovery\": true,\n    \"r6AReaderChrome3of3\": true,\n    \"r6AReaderFirefox3of3\": true,\n    \"r6BDomain12of12\": true,\n    \"r6BHttp12of12\": true,\n    \"r6BAdaptersEquivalent\": true,\n    \"r6CChromeChrome3of3\": true,\n    \"r6CFirefoxFirefox3of3\": true,\n    \"r6CMixedRequiredScenarios\": true,\n    \"r6CEditAfterAcceptChrome\": true,\n    \"r6CEditAfterAcceptFirefox\": true,\n    \"r6CRoundtrip\": true,\n    \"r1ToR5Regression\": true,\n    \"coreAndR5ArtifactsUnchanged\": true\n  },\n  \"regressions\": {\n    \"r5UnitAbiProfileAndArtifactContract\": true,\n    \"r5ReviewChrome\": true,\n    \"r5ReviewFirefox\": true,\n    \"r5ReaderChrome\": true,\n    \"r5ReaderFirefox\": true,\n    \"providerChrome\": true,\n    \"providerFirefox\": true,\n    \"r3Abi\": true,\n    \"r3SemanticFlow\": true,\n    \"r3Roundtrip\": true,\n    \"r2LifecycleCrash\": true,\n    \"r1Legacy\": true,\n    \"r1Roundtrip\": true\n  },\n  \"counts\": {\n    \"r6AReaderSamples\": 6,\n    \"r6BConformanceScenarios\": 24,\n    \"r6CFullScenarioRuns\": 6,\n    \"r6CMixedRuns\": 1,\n    \"r6CManualEditRegressions\": 2,\n    \"r6COdtPdfSamples\": 7\n  },\n  \"artifacts\": {\n    \"coreCommit\": \"671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb\",\n    \"writerReviewLoaderSha256\": \"35d96f5fdcb9ed0cdb19f28a743245e0dbd255cbf90a2c14d680f0b1b9c63566\",\n    \"writerReviewWasmSha256\": \"ba257beb038b6a2df751156d90e5b299840eced2ed68ec5800bff731bf26dfc6\",\n    \"desktopLibreOffice\": \"LibreOffice 26.2.4.2 620(Build:2)\"\n  },\n  \"knownLimitation\": {\n    \"finding\": 12,\n    \"status\": \"open\",\n    \"scope\": \"t2-styled close timeout after discovery operations; required t1/t3 paths pass\"\n  },\n  \"pass\": true\n}\nnode --test input/tests/*.test.mjs\n✔ copy uses public plain-text selection and a browser write (1.013135ms)\n✔ denied clipboard read is typed and causes zero mutation (0.964665ms)\n✔ paste requires a user gesture and empty reads cause zero mutation (0.153907ms)\n✔ plain text wins over HTML and commits exactly once (0.503497ms)\n✔ non-text clipboard is rejected without mutation (0.149829ms)\n✔ composition commits exactly once and suppresses duplicate beforeinput (2.024768ms)\n✔ cancel, empty composition and teardown cause zero mutation (0.305479ms)\n✔ plain text clipboard ignores HTML and preserves Unicode (0.202897ms)\n✔ empty and oversized input generate no mutation (0.345513ms)\n✔ commits are serialized and Unicode summary distinguishes combining forms (0.265023ms)\n✔ bounded queue rejects newest input without dropping accepted commits (0.269421ms)\n✔ stale invalidation cancels queued input and does not replay it (0.302283ms)\n✔ blocked state cancels composition and rejects commits (0.182389ms)\n✔ composition buffer disagreement is typed and causes zero mutation (0.234436ms)\n✔ a second composition commits too -- the sink is cleared after the first (0.332158ms)\n✔ clearing the sink does NOT disarm the mismatch guard (0.205703ms)\nℹ tests 16\nℹ suites 0\nℹ pass 16\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 51.405555\nnode --test r7/tests/page-navigation.test.mjs\n✔ page intents clamp to first and last page (0.511101ms)\n✔ scroll produces an explicitly approximate page hint (0.150931ms)\n✔ hyperlink policy allows HTTP and bookmarks but blocks dangerous schemes (0.132707ms)\nℹ tests 3\nℹ suites 0\nℹ pass 3\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 34.505905\nnode --check input/input-adapter.js\nnode --check input/clipboard-adapter.js\nnode --check web/r7-reference-app.js\npython3 -m py_compile tools/r7_support.py tools/run_r7_input.py tools/validate_r7_b.py\nnode --test r7/tests/*.test.mjs\n✔ valid project ODT passes closed-format preflight (3.38504ms)\n✔ public DOCX name and disguised DOCX bytes are rejected (1.397351ms)\n✔ truncated ODT and unsafe names receive typed failures (1.362997ms)\n✔ compressed file limit rejects before parsing and does not truncate (0.223956ms)\n✔ page intents clamp to first and last page (0.498178ms)\n✔ scroll produces an explicitly approximate page hint (0.151992ms)\n✔ hyperlink policy allows HTTP and bookmarks but blocks dangerous schemes (0.13459ms)\nℹ tests 7\nℹ suites 0\nℹ pass 7\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 48.713725\npython3 -m unittest tests/test_r7_compatibility_corpus.py\nnode --check r7/document-preflight.js\nnode --check web/r7-compatibility-app.js\npython3 -m py_compile tools/create_r7_compatibility_corpus.py \\\n\ttools/validate_r7_compatibility_corpus.py tools/run_r7_compatibility.py \\\n\ttools/validate_r7_c.py tests/test_r7_compatibility_corpus.py\nnode --check web/r7-longevity-app.js\npython3 -m unittest tests/test_r7_longevity.py\npython3 -m py_compile tools/r7_longevity_analysis.py tools/run_r7_usability.py \\\n\ttools/run_r7_longevity.py tools/validate_r7_d.py tests/test_r7_longevity.py\npython3 -m unittest tests/test_r8_bundle.py tests/test_r8_c.py\nnode --test delivery/tests/verified-loader.test.mjs \\\n\tdelivery/tests/release-state.test.mjs\n✔ fresh candidate becomes active and last-known-good only after health (0.96199ms)\n✔ failed candidate health restores previous known-good (1.286975ms)\n✔ interrupted staging and health-pending activation recover conservatively (0.388463ms)\n✔ client pin forbids hot switch and eviction (0.438176ms)\n✔ eviction plan deletes failed and excess retiring releases but protects pins (1.173815ms)\n✔ failed staging leaves active release untouched (0.194582ms)\n✔ repair commit atomically switches cache identity and preserves active health (0.209801ms)\n✔ safe relative URL contract rejects schemes, traversal, credentials, and fragments (1.25738ms)\n✔ standard and full-fidelity closed manifests validate (6.882448ms)\n✔ all required artifacts verify before Worker start is authorized (16.88399ms)\n✔ verified artifact callback receives exact bytes before Worker authorization (6.322777ms)\n✔ artifact persistence failure prevents release verification (1.850915ms)\n✔ wrong media, encoding, size, and hash are typed pre-Worker failures (5.807297ms)\n✔ unsafe or self-inconsistent manifest is rejected before artifact fetch (0.933597ms)\n✔ verified engine checks release handshake and enforces fidelity restart (2.818515ms)\n✔ handshake mismatch disposes the engine and never claims a session (2.688433ms)\n✔ timeout and external abort retain their delivery taxonomy (5.990809ms)\n✔ abort during a body read stays DELIVERY_ABORTED at every read site (3.207368ms)\n✔ body failure without abort keeps its original typed failure (2.698432ms)\n✔ artifact origin must be a credential-free origin-only URL (1.736601ms)\nℹ tests 20\nℹ suites 0\nℹ pass 20\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 110.786941\nnode --check web/r8-service-worker.js\nnode --check web/r8-update-app.js\npython3 -m py_compile tools/build_r8_c_release_set.py \\\n\ttools/run_r8_service_worker.py tools/validate_r8_c_preflight.py \\\n\ttools/validate_r8_c.py tests/test_r8_c.py\npython3 -m unittest tests/test_r8_d.py\npython3 -m json.tool r8/production-matrix-v1.json >/dev/null\npython3 -m py_compile tools/run_r8_production.py tools/validate_r8_d.py \\\n\ttests/test_r8_d.py\npython3 -m unittest tests/test_e1_corpus.py \\\n\ttests/test_e1_discovery_profile.py tests/test_e1_a.py \\\n\ttests/test_content_axis_inventory.py \\\n\ttests/test_finding_016_remediation.py\nnode --test e1/tests/editor-discovery-client.test.mjs \\\n\tsdk/tests/document-sdk.test.mjs\n✔ closed action request never carries key codes or UNO commands (0.856043ms)\n✔ unknown actions and malformed selection coordinates fail closed (4.04586ms)\n✔ format state is explicit and the candidate action list is frozen (0.262199ms)\n✔ manual delete observation remains a closed diagnostic action (0.273409ms)\n✔ scheduler drain is capability-gated and carries only the document handle (0.184384ms)\n✔ version handshake and request correlation expose no runtime internals (5.27686ms)\n✔ open makes transfer ownership explicit and close is idempotent (0.839522ms)\n✔ close timeout recycles the owning Worker and keeps the engine reusable (5.463928ms)\n✔ aborted close remains a typed failure and does not claim recovery (0.33338ms)\n✔ timeout rejects and emits a best-effort cancel (5.75456ms)\n✔ AbortSignal rejects and emits cancel (0.440099ms)\n✔ worker crash rejects pending work and restart invalidates old handles (0.323312ms)\n✔ protocol mismatch is treated as a worker crash (0.170107ms)\n✔ R3 semantic review operations propagate monotonic revisions (0.39208ms)\n✔ R3 stale revision is a typed error with current revision details (0.266786ms)\n✔ unsupported profile operations remain typed SDK errors (0.176618ms)\n✔ an empty selection reads back as a success, not a LOK error (0.125474ms)\n✔ a complex selection is never reported as an empty selection (0.097461ms)\n✔ a text selection still carries its text (0.099194ms)\n✔ a typed readback failure stays a typed error (0.137776ms)\n✔ a missing selection type never surfaces as an empty selection (0.084968ms)\nℹ tests 21\nℹ suites 0\nℹ pass 21\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 57.763145\nnode --check e1/editor-discovery-client.js\nnode --check sdk/sdk-worker.js\nnode --check web/e1-discovery-app.js\nnode --check web/e1-manual-delete-app.js\npython3 -m json.tool e1/discovery-matrix-v1.json >/dev/null\nc++ -std=c++17 -Isrc -fsyntax-only tests/editor_discovery_abi_header_test.cpp\npython3 tools/validate_e1_corpus.py\n{\"output\": \"/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/baseline/corpus.json\", \"pass\": true}\npython3 -m json.tool e1/content-axis-suites.json >/dev/null\npython3 tools/inventory_corpus_axes.py --check\n{\n  \"output\": \"/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/baseline/content-axes.json\",\n  \"fixtures\": 29,\n  \"unreadable\": 2,\n  \"suites\": {\n    \"E1-C-C3\": {\n      \"absentAxes\": 13,\n      \"emptyComposites\": 36\n    },\n    \"E1-C-C3-next\": {\n      \"absentAxes\": 11,\n      \"emptyComposites\": 50\n    },\n    \"E1-A-frozen\": {\n      \"absentAxes\": 19,\n      \"emptyComposites\": 15\n    },\n    \"E2-A-A3-A4\": {\n      \"absentAxes\": 25,\n      \"emptyComposites\": 2\n    },\n    \"E2-A-A5\": {\n      \"absentAxes\": 23,\n      \"emptyComposites\": 6\n    },\n    \"finding-038-repro\": {\n      \"absentAxes\": 12,\n      \"emptyComposites\": 51\n    }\n  },\n  \"pass\": true,\n  \"failures\": []\n}\npython3 -m py_compile tools/e1_support.py \\\n\ttools/build_e1_discovery_profile.py tools/create_e1_corpus.py \\\n\ttools/validate_e1_corpus.py tools/validate_e1_preflight.py \\\n\ttools/run_e1_discovery.py tools/validate_e1_roundtrip.py \\\n\ttools/validate_e1_a.py tools/validate_finding_016_remediation.py \\\n\ttools/inventory_corpus_axes.py tools/run_e1_wedge_harness.py \\\n\ttests/test_e1_corpus.py tests/test_e1_discovery_profile.py \\\n\ttests/test_e1_a.py tests/test_content_axis_inventory.py \\\n\ttests/test_finding_016_remediation.py\npython3 -m unittest tests/test_e1_b_profile.py tests/test_e1_b.py\nnode --test editor-shell/tests/*.test.mjs sdk/tests/document-sdk.test.mjs \\\n\tinput/tests/input-adapter.test.mjs reader-shell/tests/tile-scheduler.test.mjs\n✔ EditorV1Action declares exactly the actions the runtime exports (1.275274ms)\n✔ setInlineFormat declares exactly the formats the runtime accepts (1.110357ms)\n✔ product action list is frozen and contains only the approved actions (2.303817ms)\n✔ closed movement request carries no key code or UNO escape hatch (0.409692ms)\n✔ delete requires the verified-selection completion and advances revision once (0.471237ms)\n✔ format requires an explicit boolean and always reports a change (0.203439ms)\n✔ unsupported capabilities and malformed options fail before dispatch (0.318323ms)\n✔ typed state readback updates the document revision (0.260826ms)\n✔ a documented-state-noop reply is rejected: finding 022 must not come back (0.213186ms)\n✔ selectRange reports what the engine read back, not that the call returned (0.375118ms)\n✔ a range that selects nothing is a reported outcome, not an error (0.215672ms)\n✔ a readback that contradicts itself is rejected (0.337959ms)\n✔ selectRange rejects non-integer and negative twips before dispatch (0.456469ms)\n✔ selectRange applies the bounded selection timeout by default (3.922149ms)\n✔ selectRange preserves a caller timeout over the configured selection timeout (3.658719ms)\n✔ only selection-extending character movement gets the selection timeout (0.959906ms)\n✔ a dirty session checkpoints before issuing a selection (0.857707ms)\n✔ a clean session does not take a selection checkpoint (0.460046ms)\n✔ a second selection at the checkpointed revision does not save again (0.560243ms)\n✔ a rejected checkpoint does not prevent the selection (0.544484ms)\n✔ a later successful checkpoint clears the reported failure (0.508045ms)\n✔ a selection TIMEOUT enters recovery without saving after the timeout (1.061695ms)\n✔ restart reopens newer checkpoint bytes after a selection TIMEOUT (0.819696ms)\n✔ a repeated post-recovery revision still creates a new checkpoint (0.596841ms)\n✔ restart opens the newest bytes when Worker revisions restart (1.025147ms)\n✔ a successful save supersedes an older checkpoint for restart (0.534574ms)\n✔ session serializes committed text and editor mutations (0.482077ms)\n✔ boundary rejection blocks queued mutations and restart does not replay them (0.49432ms)\n✔ save replaces restart authority bytes and clears dirty state (0.318392ms)\n✔ restart isolates a late old-generation drain from queued new-generation operations (0.427606ms)\n✔ a late old-generation rejection cannot re-enter recovery after restart (0.3063ms)\n✔ a late old-generation save cannot replace current authority bytes (0.258461ms)\n✔ plain-text clipboard copy is non-mutating and paste enters the FIFO input boundary (0.874888ms)\n✔ clipboard denial causes zero mutation (0.336566ms)\n✔ Worker generation ceiling fails closed and requires a page reload (0.482818ms)\n✔ composition replaces one selected unit exactly once and suppresses duplicate beforeinput (2.656574ms)\n✔ cancel after caret navigation causes zero mutation (0.87061ms)\n✔ HTML plus plain clipboard replaces selection only with plain text (0.69843ms)\n✔ E1-C frozen matrix matches the product action list and bounded manual policy (0.599355ms)\n✔ manual input sink exposes commit feedback and refreshes the rendered document (0.4838ms)\n✔ a click the engine acknowledges resolves once the caret is on the line (2.951572ms)\n✔ a click the engine never processes is a failure, not a success (121.70029ms)\n✔ a caret that arrives late is waited for, not missed (16.394069ms)\n✔ clicking the point the caret already occupies resolves without an acknowledgement (33.016202ms)\n✔ an acknowledgement that is not about the caret does not end the wait (121.304154ms)\n✔ caretIsOnLine scales with the caret, not with a corpus (0.254594ms)\n✔ the bottom half of a line is on that line (finding 051) (0.112991ms)\n✔ a click in the bottom half of the line resolves rather than timing out (finding 051) (0.420923ms)\n✔ a click outside every line box is confirmed when the engine moves the caret (finding 052) (0.306441ms)\n✔ finding 052's path does not weaken finding 048's guard (151.880774ms)\n✔ caretDiffers compares position, not size (0.282806ms)\n✔ a stopped session holding a checkpoint offers the rescue and the restart (1.081202ms)\n✔ a running session says nothing (0.154318ms)\n✔ restart-required is stopped too (0.230108ms)\n✔ without a checkpoint the notice appears but promises no rescue (0.110395ms)\n✔ a failure before any engine existed is not reported as lost work (0.119382ms)\n✔ a checkpoint alone is enough to speak, whatever the generation says (0.108783ms)\n✔ an exhausted session must not point at its restart button (0.110396ms)\n✔ requiresPageReload alone exhausts the session (0.185395ms)\n✔ a non-integer checkpoint revision is reported as unknown, not printed (0.17742ms)\n✔ a checkpoint that was attempted and failed is not the same as none (0.217094ms)\n✔ a stale failure alongside a good checkpoint does not raise the alarm (0.12895ms)\n✔ a running session reports no checkpoint failure either (0.117438ms)\n✔ editor states allow only the frozen lifecycle (1.690776ms)\n✔ illegal transitions fail closed (0.156391ms)\n✔ composition commits exactly once and suppresses duplicate beforeinput (3.196939ms)\n✔ cancel, empty composition and teardown cause zero mutation (0.567326ms)\n✔ plain text clipboard ignores HTML and preserves Unicode (0.305578ms)\n✔ empty and oversized input generate no mutation (0.48378ms)\n✔ commits are serialized and Unicode summary distinguishes combining forms (0.332589ms)\n✔ bounded queue rejects newest input without dropping accepted commits (0.355601ms)\n✔ stale invalidation cancels queued input and does not replay it (0.386199ms)\n✔ blocked state cancels composition and rejects commits (0.170828ms)\n✔ composition buffer disagreement is typed and causes zero mutation (0.272988ms)\n✔ a second composition commits too -- the sink is cleared after the first (0.472349ms)\n✔ clearing the sink does NOT disarm the mismatch guard (0.252981ms)\n✔ CSS/twips adapter and boundary clamp are deterministic (1.668816ms)\n✔ visible tiles precede prefetch and the in-flight ceiling is enforced (17.975071ms)\n✔ same key uses cache and revision invalidation clears it (1.154859ms)\n✔ late completion from an old generation never paints the new viewport (1.706656ms)\n✔ LRU cache respects its byte ceiling (0.315217ms)\n✔ version handshake and request correlation expose no runtime internals (2.75661ms)\n✔ open makes transfer ownership explicit and close is idempotent (0.699352ms)\n✔ close timeout recycles the owning Worker and keeps the engine reusable (7.566722ms)\n✔ aborted close remains a typed failure and does not claim recovery (0.448334ms)\n✔ timeout rejects and emits a best-effort cancel (5.094862ms)\n✔ AbortSignal rejects and emits cancel (0.433907ms)\n✔ worker crash rejects pending work and restart invalidates old handles (0.35999ms)\n✔ protocol mismatch is treated as a worker crash (0.172832ms)\n✔ R3 semantic review operations propagate monotonic revisions (0.439207ms)\n✔ R3 stale revision is a typed error with current revision details (0.270453ms)\n✔ unsupported profile operations remain typed SDK errors (0.18217ms)\n✔ an empty selection reads back as a success, not a LOK error (0.136064ms)\n✔ a complex selection is never reported as an empty selection (0.097922ms)\n✔ a text selection still carries its text (0.122248ms)\n✔ a typed readback failure stays a typed error (0.13969ms)\n✔ a missing selection type never surfaces as an empty selection (0.09114ms)\nℹ tests 97\nℹ suites 0\nℹ pass 97\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 520.53579\nnode --check sdk/sdk-worker.js\nnode --check editor-shell/editor-client.js\nnode --check editor-shell/state-machine.js\nnode --check editor-shell/editor-session.js\nnode --check editor-shell/recovery-notice.js\nnode --check web/e1-editor-app.js\n# The demo shell ships from this tree and imports the same editor-shell\n# modules, so it belongs under the same gate as the harness that validated\n# them.  It was outside every static target until 2026-08-13.\nnode --check web/demo-editor-app.js\nc++ -std=c++17 -Isrc -fsyntax-only tests/editor_abi_header_test.cpp\npython3 -m py_compile tools/build_e1_b_profile.py tools/run_e1_b.py \\\n\ttools/validate_e1_b.py tests/test_e1_b_profile.py tests/test_e1_b.py\npython3 -m unittest tests/test_e1_c.py\nnode --test editor-shell/tests/*.test.mjs sdk/tests/document-sdk.test.mjs \\\n\tinput/tests/*.test.mjs reader-shell/tests/tile-scheduler.test.mjs\n✔ EditorV1Action declares exactly the actions the runtime exports (1.47202ms)\n✔ setInlineFormat declares exactly the formats the runtime accepts (1.881491ms)\n✔ product action list is frozen and contains only the approved actions (3.016133ms)\n✔ closed movement request carries no key code or UNO escape hatch (0.611387ms)\n✔ delete requires the verified-selection completion and advances revision once (0.728827ms)\n✔ format requires an explicit boolean and always reports a change (0.551295ms)\n✔ unsupported capabilities and malformed options fail before dispatch (0.423908ms)\n✔ typed state readback updates the document revision (0.491264ms)\n✔ a documented-state-noop reply is rejected: finding 022 must not come back (0.277837ms)\n✔ selectRange reports what the engine read back, not that the call returned (0.465377ms)\n✔ a range that selects nothing is a reported outcome, not an error (0.248673ms)\n✔ a readback that contradicts itself is rejected (0.423538ms)\n✔ selectRange rejects non-integer and negative twips before dispatch (0.44612ms)\n✔ selectRange applies the bounded selection timeout by default (3.887765ms)\n✔ selectRange preserves a caller timeout over the configured selection timeout (3.177233ms)\n✔ only selection-extending character movement gets the selection timeout (1.149319ms)\n✔ a dirty session checkpoints before issuing a selection (1.725902ms)\n✔ a clean session does not take a selection checkpoint (0.961008ms)\n✔ a second selection at the checkpointed revision does not save again (0.633579ms)\n✔ a rejected checkpoint does not prevent the selection (0.490363ms)\n✔ a later successful checkpoint clears the reported failure (0.501704ms)\n✔ a selection TIMEOUT enters recovery without saving after the timeout (2.146535ms)\n✔ restart reopens newer checkpoint bytes after a selection TIMEOUT (1.425983ms)\n✔ a repeated post-recovery revision still creates a new checkpoint (0.62329ms)\n✔ restart opens the newest bytes when Worker revisions restart (0.952933ms)\n✔ a successful save supersedes an older checkpoint for restart (0.487147ms)\n✔ session serializes committed text and editor mutations (0.404934ms)\n✔ boundary rejection blocks queued mutations and restart does not replay them (0.449316ms)\n✔ save replaces restart authority bytes and clears dirty state (0.26848ms)\n✔ restart isolates a late old-generation drain from queued new-generation operations (0.450057ms)\n✔ a late old-generation rejection cannot re-enter recovery after restart (0.348589ms)\n✔ a late old-generation save cannot replace current authority bytes (0.318573ms)\n✔ plain-text clipboard copy is non-mutating and paste enters the FIFO input boundary (0.959947ms)\n✔ clipboard denial causes zero mutation (0.413329ms)\n✔ Worker generation ceiling fails closed and requires a page reload (0.556426ms)\n✔ composition replaces one selected unit exactly once and suppresses duplicate beforeinput (1.354852ms)\n✔ cancel after caret navigation causes zero mutation (0.516862ms)\n✔ HTML plus plain clipboard replaces selection only with plain text (0.469714ms)\n✔ E1-C frozen matrix matches the product action list and bounded manual policy (0.475565ms)\n✔ manual input sink exposes commit feedback and refreshes the rendered document (0.325065ms)\n✔ a click the engine acknowledges resolves once the caret is on the line (7.044068ms)\n✔ a click the engine never processes is a failure, not a success (125.038864ms)\n✔ a caret that arrives late is waited for, not missed (16.918936ms)\n✔ clicking the point the caret already occupies resolves without an acknowledgement (33.806684ms)\n✔ an acknowledgement that is not about the caret does not end the wait (120.65775ms)\n✔ caretIsOnLine scales with the caret, not with a corpus (0.175757ms)\n✔ the bottom half of a line is on that line (finding 051) (0.097151ms)\n✔ a click in the bottom half of the line resolves rather than timing out (finding 051) (0.303564ms)\n✔ a click outside every line box is confirmed when the engine moves the caret (finding 052) (0.251128ms)\n✔ finding 052's path does not weaken finding 048's guard (152.461967ms)\n✔ caretDiffers compares position, not size (0.322299ms)\n✔ a stopped session holding a checkpoint offers the rescue and the restart (2.481849ms)\n✔ a running session says nothing (0.174645ms)\n✔ restart-required is stopped too (0.248472ms)\n✔ without a checkpoint the notice appears but promises no rescue (0.138588ms)\n✔ a failure before any engine existed is not reported as lost work (0.133299ms)\n✔ a checkpoint alone is enough to speak, whatever the generation says (0.126005ms)\n✔ an exhausted session must not point at its restart button (0.117679ms)\n✔ requiresPageReload alone exhausts the session (0.238364ms)\n✔ a non-integer checkpoint revision is reported as unknown, not printed (0.46205ms)\n✔ a checkpoint that was attempted and failed is not the same as none (0.41884ms)\n✔ a stale failure alongside a good checkpoint does not raise the alarm (0.293656ms)\n✔ a running session reports no checkpoint failure either (0.11808ms)\n✔ editor states allow only the frozen lifecycle (2.006674ms)\n✔ illegal transitions fail closed (0.215802ms)\n✔ copy uses public plain-text selection and a browser write (2.097123ms)\n✔ denied clipboard read is typed and causes zero mutation (1.657143ms)\n✔ paste requires a user gesture and empty reads cause zero mutation (0.337879ms)\n✔ plain text wins over HTML and commits exactly once (1.222616ms)\n✔ non-text clipboard is rejected without mutation (0.335254ms)\n✔ composition commits exactly once and suppresses duplicate beforeinput (4.288191ms)\n✔ cancel, empty composition and teardown cause zero mutation (0.534966ms)\n✔ plain text clipboard ignores HTML and preserves Unicode (0.334262ms)\n✔ empty and oversized input generate no mutation (0.540185ms)\n✔ commits are serialized and Unicode summary distinguishes combining forms (0.38718ms)\n✔ bounded queue rejects newest input without dropping accepted commits (0.416324ms)\n✔ stale invalidation cancels queued input and does not replay it (0.562898ms)\n✔ blocked state cancels composition and rejects commits (0.214859ms)\n✔ composition buffer disagreement is typed and causes zero mutation (0.38699ms)\n✔ a second composition commits too -- the sink is cleared after the first (0.557477ms)\n✔ clearing the sink does NOT disarm the mismatch guard (0.26874ms)\n✔ CSS/twips adapter and boundary clamp are deterministic (1.448496ms)\n✔ visible tiles precede prefetch and the in-flight ceiling is enforced (16.820723ms)\n✔ same key uses cache and revision invalidation clears it (1.115115ms)\n✔ late completion from an old generation never paints the new viewport (1.664577ms)\n✔ LRU cache respects its byte ceiling (0.372373ms)\n✔ version handshake and request correlation expose no runtime internals (2.913451ms)\n✔ open makes transfer ownership explicit and close is idempotent (0.903481ms)\n✔ close timeout recycles the owning Worker and keeps the engine reusable (6.671175ms)\n✔ aborted close remains a typed failure and does not claim recovery (0.511021ms)\n✔ timeout rejects and emits a best-effort cancel (6.143292ms)\n✔ AbortSignal rejects and emits cancel (0.410103ms)\n✔ worker crash rejects pending work and restart invalidates old handles (0.400275ms)\n✔ protocol mismatch is treated as a worker crash (0.212756ms)\n✔ R3 semantic review operations propagate monotonic revisions (0.488089ms)\n✔ R3 stale revision is a typed error with current revision details (3.51989ms)\n✔ unsupported profile operations remain typed SDK errors (0.316539ms)\n✔ an empty selection reads back as a success, not a LOK error (0.206084ms)\n✔ a complex selection is never reported as an empty selection (0.201465ms)\n✔ a text selection still carries its text (0.163424ms)\n✔ a typed readback failure stays a typed error (0.2202ms)\n✔ a missing selection type never surfaces as an empty selection (0.116136ms)\nℹ tests 102\nℹ suites 0\nℹ pass 102\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 534.801077\nnode --check editor-shell/editor-session.js\nnode --check web/e1-editor-app.js\nnode --check web/e1-editor-validation-app.js\npython3 -m json.tool e1/validation-matrix-v1.json >/dev/null\npython3 -m json.tool e1/validation-matrix-v2.json >/dev/null\npython3 -m json.tool e1/editor-shell-bundle-v1.json >/dev/null\npython3 -m py_compile tools/run_e1_c.py tools/validate_e1_c.py \\\n\ttests/test_e1_c.py tools/regenerate_shell_bundle.py\npython3 tools/regenerate_shell_bundle.py\nmanifest : /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/e1/editor-shell-bundle-v2.json\nbundle   : 187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b  (pinned)\n           187706b2dcb07d2bb0e8830d95b4ee4cbdaa9277d0b3ceeda6aabedf2dce672b  (computed)\n\nno change: the tree, the manifest, the matrix and the test agree.\n",
+    "stderr": "Makefile:1661: warning: overriding recipe for target 'dist/e2-c-046-overshoot.html'\nMakefile:1655: warning: ignoring old recipe for target 'dist/e2-c-046-overshoot.html'\nMakefile:1664: warning: overriding recipe for target 'dist/e2-c-046-overshoot-app.js'\nMakefile:1658: warning: ignoring old recipe for target 'dist/e2-c-046-overshoot-app.js'\n.....\n----------------------------------------------------------------------\nRan 5 tests in 0.059s\n\nOK\n.....\n----------------------------------------------------------------------\nRan 5 tests in 0.000s\n\nOK\n........\n----------------------------------------------------------------------\nRan 8 tests in 0.056s\n\nOK\n......\n----------------------------------------------------------------------\nRan 6 tests in 0.001s\n\nOK\n.....................\n----------------------------------------------------------------------\nRan 21 tests in 0.348s\n\nOK\n....\n----------------------------------------------------------------------\nRan 4 tests in 0.001s\n\nOK\n.....................\n----------------------------------------------------------------------\nRan 21 tests in 0.118s\n\nOK\n",
+    "pass": true
+  },
+  "preflight": {
+    "before": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/baseline/preflight-before.json",
+    "after": "/home/jiajun/LibreOffice/study_LiteCore/findings/evidence/sdk-e1/editor-validation-requal-2026-08-16/baseline/preflight-after.json",
+    "pass": true
+  },
+  "properties": {
+    "profileFailClosed": true,
+    "evidenceArtifactBinding": true,
+    "browserPhases": true,
+    "odtRoundtrip": true,
+    "boundedLifecycle": true,
+    "regression": true,
+    "workspaceBaseline": true,
+    "trustedManualDelta": true
+  },
+  "automaticPass": true,
+  "decision": "E1_GO_ODT_EDITOR",
+  "complete": true
+}

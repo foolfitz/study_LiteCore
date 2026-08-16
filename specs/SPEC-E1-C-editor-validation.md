@@ -667,12 +667,39 @@ P3）。若它日後是 relink，本輪含人工的證據會作廢。裁定時�
 artifact 全程 `835b453d…`，**沒有重連結**；`make e1-editor-assets` 會重編並重連結
 e1-editor-v1，所以**沒有跑它**——dist 只用 `cp` 補了頁面與 manifest 兩個檔。
 
-#### 還沒做的：人工輪
+#### 人工輪落地，裁決回到 `E1_GO_ODT_EDITOR`（同日 20:31／20:32）
 
-九項檢查 × 兩個瀏覽器，手冊在
-[`RUNBOOK-operator-2026-08-16f-combined.md`](../handoff/RUNBOOK-operator-2026-08-16f-combined.md)
-（與 D5 的四格同一個時段）。**在人工輪落地之前，本節不構成裁決**——
-`E1_GO_ODT_EDITOR` 目前仍綁在 v1 那份已過期的殼層上，這一節只是說機器那半邊做完了。
+兩個瀏覽器各一輪，**九項檢查全過**：`operatorConfirmedChewing`、
+`trustedComposition`、`trustedNativeCopy`、`trustedPaste`、`cancel`、
+`clipboardWrite`、`clipboardRead`、`artifact`、`output`。
+兩份存出來的 ODT 各約 11.9 KB，伺服器端驗證 `zip`／`crc`／`xml` 全 true。
+輸入法欄位兩份都記 `Fcitx5 Chewing (operator-confirmed)`。
+
+| | |
+|---|---|
+| 裁決 | **`E1_GO_ODT_EDITOR`** |
+| `automaticPass` / `complete` | **true / true** |
+| `failedProperties` | **`[]`** |
+| artifact 綁定 | **`boundCases: 50`、`supersededCases: 0`、`unattributableCases: 0`** |
+| 八個 property | 全 true（含 `trustedManualDelta`） |
+
+**第一次判定是 `E1_STOP_OR_RESCOPE`，而且兩個失敗都不是產品的**：
+`regression` 與 `workspaceBaseline` 是這一輪的**流程產物**，我開了新的證據命名空間
+卻沒有補上——`--run-regression` 與兩份 preflight。補上之後才有上表。
+
+**`preflight-before` 這一項要說清楚它是怎麼來的**，因為它是「事後才寫的入場快照」：
+工具本來就有 `preserved-entry-baseline` 這個模式，而它成立的前提我逐項核對過——
+core worktree 的 HEAD 與 `git status --short` 六行，**與前一輪記錄的完全相同**
+（同一個 commit、同樣六行），所以「這一輪入場時 core 是那個狀態」是事實而不是重建。
+真正更強的證據不在快照裡而在每一格自己身上：**50 格全部綁定到預期的 artifact、
+0 格 superseded**，而且驗證頁在每一格開始前都自己驗過所服務的殼層雜湊——
+第一次嘗試被它擋下來，正是這個機制在運作。
+
+#### 同一個時段的另一半：E2-C D5 第七輪
+
+`d5/operator/round-7-firefox/`：四格全部 PASS，**411 個真人事件、零合成**，
+而且是用**強化後的判準**（`--criteria round-two`）判的——比 round 6 那次 PASS 更強。
+殼層由 `session-attestation-2.json` 從頁面外面證言：**v8 `4daad6b4…`，前後未變**。
 
 ## 12. 修訂紀錄
 

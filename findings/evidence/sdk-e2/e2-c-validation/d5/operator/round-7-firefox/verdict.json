@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "release": "spec-e2c-d5",
+  "criteria": "round-two",
+  "predictionFile": "findings/evidence/sdk-e2/e2-c-validation/d5/PREDICTION.md",
+  "runs": [
+    {
+      "run": "../findings/evidence/sdk-e2/e2-c-validation/d5/operator/round-7-firefox",
+      "criteria": "round-two",
+      "mode": "operator",
+      "browser": null,
+      "shims": [
+        "URL.createObjectURL"
+      ],
+      "shellBundleUnchanged": null,
+      "cells": {
+        "d5-pointer-drag-single": {
+          "cell": "d5-pointer-drag-single",
+          "status": "PASS",
+          "checks": {
+            "hasEvents": true,
+            "allTrusted": true,
+            "dragHadMoves": true,
+            "revisionAdvanced": true,
+            "savedDocumentCaptured": true,
+            "documentReadable": true,
+            "documentShowsTheFormat": true,
+            "listCountBefore": 2,
+            "listCountAfter": 3
+          },
+          "eventCount": 85,
+          "syntheticEventCount": 0,
+          "syntheticTypes": []
+        },
+        "d5-pointer-drag-cross": {
+          "cell": "d5-pointer-drag-cross",
+          "status": "PASS",
+          "checks": {
+            "hasEvents": true,
+            "allTrusted": true,
+            "dragHadMoves": true,
+            "spannedMoreThanOneLine": true,
+            "spanRecorded": 258,
+            "revisionAdvanced": true,
+            "savedDocumentCaptured": true,
+            "documentReadable": true,
+            "documentShowsTheFormat": true,
+            "listCountBefore": 3,
+            "listCountAfter": 4
+          },
+          "eventCount": 76,
+          "syntheticEventCount": 0,
+          "syntheticTypes": []
+        },
+        "d5-ime-commit": {
+          "cell": "d5-ime-commit",
+          "status": "PASS",
+          "checks": {
+            "hasEvents": true,
+            "allTrusted": true,
+            "hasComposition": true,
+            "revisionAdvanced": true,
+            "savedDocumentCaptured": true,
+            "commitsObserved": 2,
+            "revisionAdvance": 2,
+            "bothCommitsAttempted": true,
+            "everyCommitLanded": true,
+            "documentReadable": true,
+            "committedTextInDocument": true,
+            "committedTexts": [
+              "中文輸入",
+              "阿卍"
+            ]
+          },
+          "eventCount": 172,
+          "syntheticEventCount": 0,
+          "syntheticTypes": []
+        },
+        "d5-clipboard": {
+          "cell": "d5-clipboard",
+          "status": "PASS",
+          "checks": {
+            "hasEvents": true,
+            "allTrusted": true,
+            "hasClipboardEvent": true,
+            "hasCopy": true,
+            "hasPaste": true,
+            "revisionAdvanced": true,
+            "savedDocumentCaptured": true
+          },
+          "eventCount": 78,
+          "syntheticEventCount": 0,
+          "syntheticTypes": []
+        }
+      },
+      "established": [
+        "d5-pointer-drag-single",
+        "d5-pointer-drag-cross",
+        "d5-ime-commit",
+        "d5-clipboard"
+      ],
+      "verdict": "PASS"
+    }
+  ],
+  "verdict": "PASS"
+}
