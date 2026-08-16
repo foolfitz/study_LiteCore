@@ -22,22 +22,38 @@ const RECOVERY_ERRORS = new Set([
 ]);
 
 /**
- * Is the reported caret on the line that was clicked?  (Finding 048.)
+ * Is the reported caret on the line that was clicked?  (Findings 048, 051.)
  *
- * Scaled by the caret's own rectangle rather than by a twips constant: the
- * caret rectangle IS the line box, so half its height is half a line whatever
- * the document's font size is.  A constant tuned on one corpus would silently
- * mean "two lines" in another.
+ * The caret rectangle IS the line box, so the question is whether the clicked
+ * y falls in that box.  Scaled by the rectangle rather than by a twips
+ * constant: a constant tuned on one corpus would silently mean "two lines" in
+ * another.
  *
- * Half rather than the whole height, and that is measured: the real landings
- * sit up to 119 twips from the rectangle's top while the rectangles are 276-414
- * twips tall, so half clears every real landing, and a caret stranded one line
- * away (390 twips in that corpus) is further than half of any of them.
+ * The band is NOT symmetric, and finding 051 is what the symmetric version
+ * cost.  It was `|yTwips - caret.y| <= height/2`, which reads `caret.y` as the
+ * middle of the line; it is the TOP.  So the accepted band ran from half a line
+ * above the box to the box's own midpoint, and every click landing in the
+ * BOTTOM HALF of the line it correctly hit was refused -- 30 seconds of waiting
+ * and then EDITOR_CARET_NOT_PLACED, on the product page, for about half of all
+ * clicks.  Measured on the shipped v2 artifact: a click at y=1739 with the
+ * caret reported at y=1418 height=414 (box 1418..1832, sequence advanced, the
+ * engine had done exactly what was asked) failed twice at 30.1 s, while a click
+ * 200 twips higher on the SAME line confirmed in 0.3 s.
+ *
+ * Downward: to the bottom of the box and no further.  Below it is the next
+ * line's box.
+ *
+ * Upward: half a line of slack, and that is measured -- real landings sit up to
+ * 119 twips ABOVE the rectangle's top, because a click can fall in the gap
+ * between two line boxes and the engine attributes it to the line below.  Half
+ * a line clears every landing measured (119 in rectangles 276-414 tall) while a
+ * caret stranded one line away (390 twips in that corpus) stays out.
  */
 export function caretIsOnLine(caret, yTwips) {
   if (!caret || !Number.isFinite(caret.y) || !Number.isFinite(caret.height))
     return false;
-  return Math.abs(yTwips - caret.y) <= Math.max(caret.height / 2, 1);
+  const slackAbove = Math.max(caret.height / 2, 1);
+  return yTwips >= caret.y - slackAbove && yTwips <= caret.y + caret.height;
 }
 
 export class EditorSession {

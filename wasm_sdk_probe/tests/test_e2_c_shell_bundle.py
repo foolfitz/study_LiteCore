@@ -149,6 +149,34 @@ class TestShellBundle(unittest.TestCase):
                          "editor-shell/editor-session.js"):
             self.assertIn(required, paths)
 
+    def test_make_owns_the_dist_copy_of_every_bound_module(self) -> None:
+        # `make e2-c-assets` must rebuild every module the bundle binds,
+        # because serve.py serves dist/ and the product page therefore runs the
+        # dist copy.  This gap has bitten twice: input/input-adapter.js on
+        # 2026-08-16 (finding 050's fix could not be served) and the three
+        # editor-shell modules the same day (finding 051's fix could not be
+        # served), each discovered only because something downstream refused.
+        #
+        # `test_a_stale_dist_copy_is_caught` covers the symptom after the fact;
+        # this covers the cause, in the build graph, before anybody runs a
+        # browser.
+        manifest = json.loads(
+            (PROJECT / bundle.MANIFEST).read_text(encoding="utf-8"))
+        makefile = (PROJECT / "Makefile").read_text(encoding="utf-8")
+        start = makefile.index("\ne2-c-assets:")
+        block = makefile[start:]
+        block = block[:block.index("\n\n")]
+        prerequisites = set(block.replace("\\\n", " ").split())
+        missing = []
+        for item in manifest["included"]:
+            path = item["path"]
+            # The page itself is copied under its own name in dist's root.
+            expected = ("dist/" + path[len("web/"):] if path.startswith("web/")
+                        else "dist/" + path)
+            if expected not in prerequisites:
+                missing.append(expected)
+        self.assertEqual(missing, [], f"e2-c-assets does not own {missing}")
+
 
 if __name__ == "__main__":
     unittest.main()

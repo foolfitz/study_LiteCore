@@ -28,9 +28,17 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
+    # A root other than dist/ exists for exactly one purpose: serving a mirror
+    # of dist in which one file has been deliberately broken, so that a check
+    # can be shown to go red.  It must never be pointed at dist itself with an
+    # edit in place -- the mirror is built in a scratch directory and dist stays
+    # byte-identical (tools/run_e2_c_product_path.py --mutate).
+    parser.add_argument("--root", default=None,
+                        help="serve this directory instead of dist/")
     args = parser.parse_args()
 
-    dist = Path(__file__).resolve().parent.parent / "dist"
+    dist = (Path(args.root).resolve() if args.root
+            else Path(__file__).resolve().parent.parent / "dist")
     handler = partial(ProbeRequestHandler, directory=str(dist))
     server = ThreadingHTTPServer((args.host, args.port), handler)
     print(f"Serving {dist} at http://{args.host}:{args.port}/index.html")

@@ -222,7 +222,20 @@ def serve(args) -> int:
     finally:
         digest_after = bundle_digest()
         evidence.mkdir(parents=True, exist_ok=True)
-        write_json(evidence / "session-attestation.json", {
+        # One file per server session, never an overwrite.  This used to write a
+        # single `session-attestation.json`, and on 2026-08-16 a server that was
+        # still alive from an earlier round exited AFTER the shell bundle had
+        # moved v4 -> v6 and rewrote the file with v6's digest.  The value was
+        # not wrong for the round that had just run, but it was decided by when
+        # a background process happened to die rather than by what any round ran
+        # on -- and it is evidence a verdict cites.  Evidence is appended to, not
+        # replaced.
+        target = evidence / "session-attestation.json"
+        index = 2
+        while target.exists():
+            target = evidence / f"session-attestation-{index}.json"
+            index += 1
+        write_json(target, {
             "schemaVersion": 1,
             "release": "spec-e2c-d5",
             "mode": "operator",
@@ -235,7 +248,7 @@ def serve(args) -> int:
                     "is what the harness can attest to from outside it.",
         })
         print(json.dumps({
-            "attestation": str(evidence / "session-attestation.json"),
+            "attestation": str(target),
             "shellBundleUnchanged": digest_before == digest_after,
         }, indent=2, ensure_ascii=False))
     return 0

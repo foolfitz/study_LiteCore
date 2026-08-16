@@ -179,3 +179,44 @@ test("caretIsOnLine scales with the caret, not with a corpus", () => {
   assert.ok(!caretIsOnLine(null, 1250));
   assert.ok(!caretIsOnLine({ y: 1000 }, 1000));
 });
+
+test("the bottom half of a line is on that line (finding 051)", () => {
+  // `caret.y` is the TOP of the rectangle, and the first version of this
+  // predicate compared against it symmetrically -- so it accepted half a line
+  // ABOVE the box and only the top half of the box itself.
+  //
+  // These three numbers are one measurement from the product page on the
+  // shipped v2 artifact (Chrome, list-contexts.odt): a click at y=1739 with the
+  // engine reporting caret y=1418 height=414 and its sequence advanced.  The
+  // engine had put the caret on the clicked line; the predicate refused it for
+  // 30 s.  Under the old rule this assertion is false.
+  assert.ok(caretIsOnLine({ y: 1418, height: 414 }, 1739));
+  // The whole box, to its last twip.
+  assert.ok(caretIsOnLine({ y: 1418, height: 414 }, 1418));
+  assert.ok(caretIsOnLine({ y: 1418, height: 414 }, 1832));
+  // And not past it: below the box is the next line's box, and accepting it
+  // would reinstate the stale caret finding 048 exists to catch.
+  assert.ok(!caretIsOnLine({ y: 1418, height: 414 }, 1833));
+});
+
+test("a click in the bottom half of the line resolves rather than timing out "
+     + "(finding 051)", async () => {
+       // The same case as above, driven through placeCaret: the engine moves
+       // the caret to the clicked line and acknowledges, exactly as the shipped
+       // artifact does.  Under the old predicate this test does not fail fast
+       // -- it hangs for the full 30 s timeout and then rejects, which is what
+       // the product did to every such click.
+       const value = fixture({
+         caret: { x: 100, y: 1418, width: 0, height: 414 },
+         sourceSequence: 3,
+         onClick(state) {
+           state.caret = { x: 4298, y: 1418, width: 0, height: 414 };
+           state.sourceSequence += 1;
+         },
+       });
+       await value.open();
+       const result = await value.session.placeCaret(5123, 1739,
+                                                     { caretTimeoutMs: 2000 });
+       assert.equal(result.caretConfirmedBy, "engine-acknowledged");
+       assert.equal(result.state.caret.y, 1418);
+     });

@@ -59,13 +59,17 @@ PROJECT = Path(__file__).resolve().parent.parent
 #         because nothing cleared the host sink.
 #   v6 -- the shell that wires Ctrl+C to session.copySelection() and surfaces
 #         the input/clipboard traces, so a silently rejected commit is visible.
+#   v7 -- finding 051: caretIsOnLine accepts the whole line box.  Under v1-v6
+#         every click landing in the BOTTOM HALF of the line it hit waited 30 s
+#         and was then refused, so about half of the product's clicks failed.
 FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v2.json"),
                     Path("e2/editor-shell-v2-bundle-v3.json"),
                     Path("e2/editor-shell-v2-bundle-v4.json"),
-                    Path("e2/editor-shell-v2-bundle-v5.json"))
+                    Path("e2/editor-shell-v2-bundle-v5.json"),
+                    Path("e2/editor-shell-v2-bundle-v6.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v6.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v7.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
@@ -274,6 +278,15 @@ def main() -> int:
             json.dumps(body, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8")
         report["written"] = True
+        # Re-checked against what was just written.  `found` above was computed
+        # with no manifest (a new generation has none yet), so it reports every
+        # exclusion as unaccounted for -- a report that reads like four problems
+        # when the file on disk has none.  A tool that prints stale problems
+        # trains its reader to ignore the field.
+        found = problems(PROJECT, state,
+                         json.loads(manifest_path.read_text(encoding="utf-8")))
+        report["problems"] = found
+        report["problemsRecheckedAfterWrite"] = True
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0 if not found else 1
 

@@ -1,26 +1,38 @@
 {
-  "schemaVersion": 1,
-  "about": "Deliberate changes to files that E1-C's shell bundle registered. The bundle manifest itself is NOT rewritten -- it is the record of what E1_GO_ODT_EDITOR was bound to, and rewriting it would leave that verdict looking bound to a shell it never ran on (finding 027's shape). This file records what moved, why, and what it costs.",
-  "unbinds": "E1_GO_ODT_EDITOR's shell binding. The four automatic phases bind wasm/loader/worker hashes and are unaffected; the SHELL half of the binding is broken until E1-C is requalified on the current shell.",
-  "diverged": [
-    {
-      "path": "editor-shell/editor-session.js",
-      "registeredSha256": "56f2be28563c74442a50877f4ad074e8bbabb20fffbae14a46fa9bc1d45631ea",
-      "nowSha256": "c658035212f6b1fbe78582e7e86709efa03fe0df3a4afe3317540d00f6d3a784",
-      "date": "2026-08-16",
-      "reason": "finding 048 -- placeCaret confirmed a click with a predicate that was already true before the click, so it returned before the engine had processed one and the next action landed on the previous caret's paragraph. The fix waits for the engine to acknowledge the click AND for the caret to be on the clicked line.",
-      "whyHere": "The defect is in the session E1 and E2 share. Overriding placeCaret in editor-shell-v2/ alone would have kept E1-C's binding intact and left E1's own product page clicking into the same defect, with two different caret gestures in one tree.",
-      "costsRequalification": "E1-C's manual rounds (nine checks per browser) plus whichever automatic phases the shell participates in, against the current shell bundle. Not scheduled here."
-    },
-    {
-      "path": "input/input-adapter.js",
-      "registeredSha256": "ff35c56074e9a14d8c5d6ee9130030cc59601db18d374e8cd133abadb6c5c41b",
-      "nowSha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
-      "date": "2026-08-16",
-      "reason": "finding 050 -- the adapter compares compositionend's data against the host sink to catch a desynchronised IME, and nothing ever cleared that sink. `beforeinput` for insertCompositionText is not cancelable during composition, so the committed text stayed in the textarea and every commit after the first was rejected as INPUT_COMPOSITION_MISMATCH: Chinese could be typed exactly once per session. The fix clears the sink on the success path only, so a genuine desync still rejects.",
-      "whyHere": "The defect is in the input adapter E1 and E2 share, and it is the layer an IME actually goes through. Fixing it only for E2 would leave E1's product page dropping every commit after the first, with two adapters that disagree about the same event -- the shape SPEC E2-C 2.2 rejects.",
-      "foundBy": "An operator round: three real Fcitx5 Chewing commits, one revision advance. No automated round could see it -- they call session.commitText directly and never go through the adapter's composition path.",
-      "cost": "E1-C's shell binding was already broken by finding 048's divergence above; this adds a second file to the same requalification, not a new cost."
-    }
-  ]
+    "schemaVersion": 1,
+    "about": "Deliberate changes to files that E1-C's shell bundle registered. The bundle manifest itself is NOT rewritten -- it is the record of what E1_GO_ODT_EDITOR was bound to, and rewriting it would leave that verdict looking bound to a shell it never ran on (finding 027's shape). This file records what moved, why, and what it costs.",
+    "unbinds": "E1_GO_ODT_EDITOR's shell binding. The four automatic phases bind wasm/loader/worker hashes and are unaffected; the SHELL half of the binding is broken until E1-C is requalified on the current shell.",
+    "diverged": [
+        {
+            "path": "editor-shell/editor-session.js",
+            "registeredSha256": "56f2be28563c74442a50877f4ad074e8bbabb20fffbae14a46fa9bc1d45631ea",
+            "nowSha256": "c658035212f6b1fbe78582e7e86709efa03fe0df3a4afe3317540d00f6d3a784",
+            "date": "2026-08-16",
+            "reason": "finding 048 -- placeCaret confirmed a click with a predicate that was already true before the click, so it returned before the engine had processed one and the next action landed on the previous caret's paragraph. The fix waits for the engine to acknowledge the click AND for the caret to be on the clicked line.",
+            "whyHere": "The defect is in the session E1 and E2 share. Overriding placeCaret in editor-shell-v2/ alone would have kept E1-C's binding intact and left E1's own product page clicking into the same defect, with two different caret gestures in one tree.",
+            "costsRequalification": "E1-C's manual rounds (nine checks per browser) plus whichever automatic phases the shell participates in, against the current shell bundle. Not scheduled here.",
+            "supersededBy": "the finding 051 entry below, which changes the same file again on the same day. This entry stays as written: it is the record of what the file was between the two fixes."
+        },
+        {
+            "path": "input/input-adapter.js",
+            "registeredSha256": "ff35c56074e9a14d8c5d6ee9130030cc59601db18d374e8cd133abadb6c5c41b",
+            "nowSha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+            "date": "2026-08-16",
+            "reason": "finding 050 -- the adapter compares compositionend's data against the host sink to catch a desynchronised IME, and nothing ever cleared that sink. `beforeinput` for insertCompositionText is not cancelable during composition, so the committed text stayed in the textarea and every commit after the first was rejected as INPUT_COMPOSITION_MISMATCH: Chinese could be typed exactly once per session. The fix clears the sink on the success path only, so a genuine desync still rejects.",
+            "whyHere": "The defect is in the input adapter E1 and E2 share, and it is the layer an IME actually goes through. Fixing it only for E2 would leave E1's product page dropping every commit after the first, with two adapters that disagree about the same event -- the shape SPEC E2-C 2.2 rejects.",
+            "foundBy": "An operator round: three real Fcitx5 Chewing commits, one revision advance. No automated round could see it -- they call session.commitText directly and never go through the adapter's composition path.",
+            "cost": "E1-C's shell binding was already broken by finding 048's divergence above; this adds a second file to the same requalification, not a new cost."
+        },
+        {
+            "path": "editor-shell/editor-session.js",
+            "registeredSha256": "56f2be28563c74442a50877f4ad074e8bbabb20fffbae14a46fa9bc1d45631ea",
+            "previousDivergenceSha256": "c658035212f6b1fbe78582e7e86709efa03fe0df3a4afe3317540d00f6d3a784",
+            "nowSha256": "b0ca6a7e27e9c066e9538572645c1a7a79a6c0b2ffa5a4692935183da60c22ee",
+            "date": "2026-08-16",
+            "reason": "finding 051 -- the confirmation predicate finding 048 introduced compares the clicked y against caret.y with a half-height tolerance, and caret.y is the TOP of the line box, not its middle. So the accepted band covered half a line above the box and only the box's top half: every click landing in the BOTTOM HALF of the line it correctly hit waited the full 30 s timeout and was then refused with EDITOR_CARET_NOT_PLACED. About half of the product's clicks. The fix accepts the whole box, with half a line of slack ABOVE it only (the measured gap between line boxes), so a caret stranded on another line is still refused.",
+            "whyHere": "Same file and same reason as the 048 entry: the defect is in the session E1 and E2 share, and a caret gesture that works in one product and hangs for 30 s in the other is the shape SPEC E2-C 2.2 rejects.",
+            "foundBy": "An automated run of the product page -- tools/run_e2_c_page_smoke.py, green on 2026-08-15 and red on 2026-08-16 -- while building the product-path regression harness. The operator rounds did not catch it: their cells drag rather than click, and a drag selects through selectRange, whose confirmation is unaffected.",
+            "cost": "E1-C's shell binding was already broken by the two entries above; this adds no new requalification cost, and it is a fix E1's own product page needs before any requalification round would pass."
+        }
+    ]
 }

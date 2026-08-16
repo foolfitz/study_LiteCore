@@ -411,6 +411,32 @@
           "atLeast": 1
         }
       ]
+    },
+    {
+      "id": "queue-caret-confirmation-refuses-the-bottom-half-of-a-line",
+      "title": "finding 051: the 048 caret confirmation refused every click landing in the bottom half of its own line -- FIXED 2026-08-16",
+      "expectation": "present",
+      "blocksRelink": false,
+      "source": "findings/evidence/051/, 2026-08-16; found while building the product-path harness",
+      "note": "Not an engine change and not a relink: JS, in editor-shell/editor-session.js. `caretIsOnLine` compared |y - caret.y| against half the caret height, and caret.y is the TOP of the line box -- so the accepted band was half a line ABOVE the box plus the box's own top half. Measured on the shipped v2 artifact through the product page: a click at y=1739 with the engine reporting caret y=1418 height=414 (the box 1418..1832 contains it, and the engine's sourceSequence had advanced) failed twice at 30.1 s, while a click 200 twips higher on the SAME line confirmed in 0.3 s. The fix accepts the whole box with slack ABOVE it only. The stale-caret guard 048 exists for is unchanged and pinned by the same unit tests. Shell bundle v7 = e9668347…; v6 = 9b7e7d2a… stays as the record of what the four D5 operator cells ran on. E1-C divergence declared (third entry).",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "editor-shell/editor-session.js",
+          "text": "yTwips <= caret.y + caret.height",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "editor-shell/tests/place-caret.test.mjs",
+          "text": "the bottom half of a line is on that line (finding 051)",
+          "atLeast": 1
+        },
+        {
+          "kind": "file-exists",
+          "file": "e2/editor-shell-v2-bundle-v7.json"
+        }
+      ]
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
