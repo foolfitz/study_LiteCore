@@ -77,6 +77,52 @@ barrier 自己的註解就寫著這個區別（`probe_engine.cpp:3488`）：
 > **這一項是「D2 要在 relink 之前寫」那個要求的直接產物。** 對抗性審查說
 > D2 是最可能再長出引擎佇列項的地方；它第一次跑就長出了這一個。
 
+## 2026-08-16 原生量測：**讀回描述的是上一段，而且動作其實成功了**
+
+3b 的判準本來卡在「產品看不到 `itemCount`」。原生可以看，而且看到的東西比預期的
+更根本。證據 `findings/evidence/046/native/`（三輪，預測先寫，分類由
+`tools/test_format_readback_parser.py` **把引擎自己的 scanner 從 `probe_engine.cpp`
+切出來編譯**後施加，不是第二份實作）。
+
+**量到的：在空段落上，barrier 自己的選取對（`.uno:GoToStartOfPara` ＋
+`.uno:EndOfParaSel`）會把游標往上帶一段，然後選中上一段。**
+
+| 臂 | 游標 y | 選取型態 | 讀回 |
+|---|---|---|---|
+| `click-empty-bare` | **1807**（空段落上） | 0（無） | **空字串** |
+| `click-empty-pair` | **1418** | 1 | **`E1-EMPTY-BEFORE`**（上一段） |
+| `select-empty-pair` | **1418** | 1 | 同上——**兩個手勢在原生上完全相同** |
+| `after-bullet-pair` | **1418** | 1 | 同上（動作之後也一樣） |
+| `last-empty-pair` | 2585 → **2196** | 1 | `E1-EMPTY-AFTER`（上一段） |
+
+**而動作是成功的**：存出來的文件裡那個空段落確實變成了
+`<text:list><text:list-item><text:p/></text:list-item></text:list>`。
+所以**不是「bullet 沒生效」，是「檢查看了別的地方」**。
+
+**引擎自己的 parser 對幾種標記的分類**（量出來的，不是推的）：
+
+| 標記 | parsed | blockCount | itemCount | multiBlock |
+|---|---|---|---|---|
+| 上面那些成對讀回 | 1 | **1** | 0 | 0 |
+| 空字串／只有空白／`<html><body></body></html>` | **0** | 0 | 0 | 0 |
+| `<ul><li></li></ul>` | 1 | **0** | 1 | 0 |
+| `<ul><li></li><li></li></ul>` | 1 | **0** | 2 | **1** |
+
+兩件因此定案：**空的讀回是 `parsed = false`**（不是「parsed 但零個 block」——
+任何寫成後者的判準都會漏掉它）；而**「零個 block ＋ itemCount ≥ 1」在 parser 裡
+是真的存在的**，兩個 item 就會變成「沒有任何 block 的 multiBlock」，正是本檔
+推論過的那個矛盾組合。
+
+**對 3b 的影響：不撤回，也還不能寫。** 卡住的問題換了一個，而且更尖銳了——
+**core 對空段落的讀回是「上一段、一個 block」，而出貨的 build 對同一個手勢回報
+「零個 block」。兩者不一致，在解釋清楚之前，`empty-readback` 這個名字會取在一個
+機制未明的症狀上。**
+
+**而且浮出一件比 046 的分類 bug 更大的事**：**barrier 驗的是動作沒有碰到的那一段。**
+空段落上選取對往上走一段，於是後置條件比對的是錯的文字——與
+[048](048-place-caret-confirms-before-the-click-takes-effect.md) 同一個家族
+（產品確認了一次還沒落地的點擊）。**046 原本的修法（改個名字）碰不到這一件。**
+
 ## 還缺什麼
 
 - [ ] 修完之後在 v3 上重測，並補一格**空段落**進第二輪的矩陣。

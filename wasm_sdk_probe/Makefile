@@ -2079,6 +2079,7 @@ test-e2-c-static:
 		tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py \
 		tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py \
 		tools/analyze_e2_c_d3_corpus.py tools/run_e2_c_d4.py \
+		tools/analyze_e2_c_d4.py tools/run_e2_c_d4_regression.py \
 		tools/validate_e2_c.py
 	# SPEC E2-C 6: the verdict binds a fourth hash, and the shell it names has
 	# to still be the shell on disk AND the shell in dist/ (serve.py serves
@@ -2116,6 +2117,12 @@ test-e2-c-static:
 	python3 tools/analyze_e2_c_d3_corpus.py --self-test \
 		../findings/evidence/sdk-e2/e2-c-validation/d3-corpus/\
 run-3-with-controls/e2-editor-v2-572035ac/chrome > /dev/null
+	# D4's thresholds are numbers, so the self-test's job is to prove each one
+	# can be crossed -- including that `notValidated` can become pass OR fail
+	# once a figure exists, or it is just a nicer word for "we did not look".
+	python3 tools/analyze_e2_c_d4.py --self-test \
+		../findings/evidence/sdk-e2/e2-c-validation/d4/\
+e2-editor-v2-572035ac/chrome > /dev/null
 	# D2's judge is build-aware, so its self-test mutates the EXPECTATION table
 	# as well as the results: an expectation nobody can break is an expectation
 	# that stopped describing the build some time ago and said nothing.

@@ -234,7 +234,17 @@ contract version 與 capability 維持 2／`narrow-editor-v2`。
 
 **因此連結前的待辦更正為**：
 
-- [ ] **3b**：`empty-readback` shape 進 `probe_engine.cpp`（判準先量再寫，見上）；
+- [ ] **3b**：**原生量過了（2026-08-16），判準仍不能定案，而且卡住的問題換了。**
+      core 對空段落的讀回是「**上一段**、blockCount 1」——barrier 的選取對在空段落
+      上會往上走一段——而出貨 build 對同一個手勢回報「零個 block」。**兩者不一致，
+      解釋清楚之前不要把 `empty-readback` 這個名字寫進引擎。** 另外量到：空的讀回
+      是 `parsed = false`（不是「parsed 但零 block」），而「零 block ＋ itemCount ≥ 2」
+      在引擎自己的 parser 裡確實會變成沒有 block 的 `multiBlock`。
+      證據：`findings/evidence/046/native/`
+- [ ] **（3b 掉出來的新項）barrier 驗的是動作沒碰到的段落**：空段落上
+      `.uno:GoToStartOfPara` ＋ `.uno:EndOfParaSel` 選到上一段，所以後置條件比對的是
+      錯的文字（原生實測，動作本身是成功的——存檔證明空段落確實變成 list item）。
+      與 048 同一個家族。**這一項比 046 原本的改名修法根本，而且它也要進這次 relink。**
 - [ ] **3c**：只剩 `sdk/sdk-worker.js` 的產品投影補 `itemCount`（引擎那半已完成）；
 - [ ] **8 的第二處**：`routeFormatBarrier()` 的 `selectionObserved` fail-closed；
 - [ ] **12**：把 `inlineFormatEnabledIsHonoured` 記進佇列與規格
