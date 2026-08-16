@@ -259,6 +259,13 @@ function productEditorState(value = {}) {
     // the raw a11y payload closed on purpose, and the host's question is "is
     // this the same paragraph as before", not "what does it say".
     caretParagraph: value.a11y ? {
+      // `enabled` is not decoration.  The v3 link shipped with accessibility
+      // never switched on, and the only symptom was that every paragraph read
+      // back empty -- indistinguishable from a genuinely empty paragraph.  A
+      // host that gets `enabled: false` knows the fingerprint means nothing;
+      // one that only gets `observed` cannot tell.
+      enabled: value.a11y.enabled === true,
+      unavailable: value.a11y.unavailable || null,
       observed: value.a11y.observed === true,
       fingerprint: value.a11y.paragraphFingerprint ?? null,
       length: typeof value.a11y.contentLength === "number"

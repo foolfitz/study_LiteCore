@@ -76,6 +76,12 @@ def judge(run: dict) -> dict:
         record("D-BI-2", NOT_ESTABLISHED,
                "the two clicks did not land on different lines, so identical"
                " payloads would say nothing")
+    elif on_anchor.get("enabled") is False:
+        record("D-BI-2", FAILED,
+               "the engine says accessibility is not on:"
+               f" {on_anchor.get('unavailable')!r}.  The fingerprint means"
+               " nothing, and the engine said so rather than leaving an empty"
+               " string to be mistaken for an empty paragraph.")
     elif on_anchor.get("fingerprint") in EMPTY_FINGERPRINTS:
         record("D-BI-2", FAILED,
                "every paragraph reports the fingerprint of an EMPTY string"
@@ -187,6 +193,10 @@ def self_test() -> int:
     check("D-BI-1 fails when the second click does not answer at all",
           "D-BI-1" in rejudge(lambda c: c["d-bi-1-outside-twice"]["outsideSecond"]
                               .__setitem__("error", {"code": "TIMEOUT"}))["failed"])
+    check("D-BI-2 fails, and says WHY, when the engine reports a11y off",
+          "D-BI-2" in rejudge(lambda c: c["d-bi-2-freshness"]["onAnchor"]["paragraph"]
+                              .update({"enabled": False,
+                                       "unavailable": "lok-lacks-setAccessibilityState"}))["failed"])
     check("D-BI-2 fails when every paragraph hashes to the empty string",
           "D-BI-2" in rejudge(lambda c: c["d-bi-2-freshness"]["onAnchor"]["paragraph"]
                               .__setitem__("fingerprint", "14650fb0739d0383"))["failed"])
@@ -209,7 +219,7 @@ def self_test() -> int:
               lambda c: c["d-bi-3-empty-paragraph"].update(
                   {"reached": False, "code": "STALE_REVISION"}))["notEstablished"])
 
-    total = 10
+    total = 11
     print(f"\nself-test: {total - len(failures)}/{total} checks moved the verdict")
     return 1 if failures else 0
 

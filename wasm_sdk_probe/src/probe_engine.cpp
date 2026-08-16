@@ -873,6 +873,15 @@ std::uint32_t gEditorUnoBeforeRevision = 0;
 std::uint64_t gEditorUnoBeforeSequence = 0;
 bool gEditorUnoOption = false;
 bool gEditorUnoSemanticReadback = false;
+// Why accessibility is not on, when it is not on.  Empty means "it is".
+//
+// The v3 link shipped with accessibility never switched on, and the ONLY
+// symptom was that every paragraph read back as empty -- which is exactly what
+// a genuinely empty paragraph looks like.  A mechanism whose "off" is
+// indistinguishable from a legitimate reading is a mechanism that can be off
+// for a month.  So it says so now, and the three silent guards below each say
+// which one refused.
+const char *gEditorAccessibilityUnavailable = "not-attempted";
 bool gEditorAccessibilityEnabled = false;
 constexpr int EditorShiftModifier = 0x1000;
 constexpr int EditorCaretOrSelectionCallback = -2;
@@ -1056,6 +1065,10 @@ void appendEditorState(std::ostringstream &json) {
        << ",\"lastSequence\":" << gEditorState.a11yLastSequence
        << ",\"contentLength\":" << gEditorState.a11yContentLength
        << ",\"position\":" << gEditorState.a11yPosition
+       << ",\"enabled\":"
+       << (gEditorAccessibilityEnabled ? "true" : "false")
+       << ",\"unavailable\":\""
+       << jsonEscape(gEditorAccessibilityUnavailable) << "\""
        << ",\"paragraphFingerprint\":\"" << std::hex
        << gEditorState.a11yContentHash << std::dec << "\""
        << ",\"listPrefixLength\":" << gEditorState.a11yListPrefixLength
@@ -1683,12 +1696,24 @@ void handleFormatBarrierUnoResult(const char *payload) {
 #endif
 
 void refreshEditorAccessibility() {
-  if (!gState.document ||
-      !LIBREOFFICEKIT_DOCUMENT_HAS(gState.document, setAccessibilityState) ||
-      !LIBREOFFICEKIT_DOCUMENT_HAS(gState.document, getView) ||
-      !LIBREOFFICEKIT_DOCUMENT_HAS(gState.document,
-                                   getA11yFocusedParagraph))
+  if (!gState.document) {
+    gEditorAccessibilityUnavailable = "no-document";
     return;
+  }
+  if (!LIBREOFFICEKIT_DOCUMENT_HAS(gState.document, setAccessibilityState)) {
+    gEditorAccessibilityUnavailable = "lok-lacks-setAccessibilityState";
+    return;
+  }
+  if (!LIBREOFFICEKIT_DOCUMENT_HAS(gState.document, getView)) {
+    gEditorAccessibilityUnavailable = "lok-lacks-getView";
+    return;
+  }
+  if (!LIBREOFFICEKIT_DOCUMENT_HAS(gState.document,
+                                   getA11yFocusedParagraph)) {
+    gEditorAccessibilityUnavailable = "lok-lacks-getA11yFocusedParagraph";
+    return;
+  }
+  gEditorAccessibilityUnavailable = "";
   const int viewId = gState.document->pClass->getView(gState.document);
   if (gEditorAccessibilityEnabled)
     gState.document->pClass->setAccessibilityState(gState.document, viewId,
