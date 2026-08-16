@@ -180,6 +180,10 @@ def judge(rows: list[dict]) -> dict:
         void("P-BI-3", "the control did not hold")
     elif not left or not right:
         void("P-BI-3", "long-left or long-right is missing")
+    elif not (left.get("caretValid") and right.get("caretValid")):
+        void("P-BI-3",
+             "one of the two arms has no caret rectangle, so 'the same line'"
+             " is not established")
     elif left.get("caretY") != right.get("caretY"):
         void("P-BI-3",
              f"the two x landed on different lines (y {left.get('caretY')} vs"
@@ -202,6 +206,10 @@ def judge(rows: list[dict]) -> dict:
         void("P-BI-4", "the control did not hold")
     elif not twin_a or not twin_b:
         void("P-BI-4", "twin-first or twin-second is missing")
+    elif not (twin_a.get("caretValid") and twin_b.get("caretValid")):
+        void("P-BI-4",
+             "one of the twins has no caret rectangle, so 'the caret moved'"
+             " is not established and an identical payload says nothing")
     elif twin_a.get("caretY") == twin_b.get("caretY"):
         void("P-BI-4",
              "the caret did not move between the twins, so an identical payload"
@@ -217,10 +225,23 @@ def judge(rows: list[dict]) -> dict:
 
     # ---- P-BI-5: is the click below the text delivered at all? -------------
     from_elsewhere = by_arm.get("below-from-elsewhere")
+    before_below = by_arm.get("before-below-from-elsewhere")
     if not control_ok:
         void("P-BI-5", "the control did not hold")
     elif not from_elsewhere:
         void("P-BI-5", "below-from-elsewhere is missing")
+    elif not before_below:
+        # Adversarial review, 2026-08-16: without this the arm's whole premise
+        # -- "from a caret on ANOTHER paragraph" -- was the probe's word for it.
+        # A caret already on BI-LAST and a click that never arrived produce the
+        # same row.
+        void("P-BI-5",
+             "no arm records where the caret was immediately before the click,"
+             " so 'from elsewhere' is the probe's claim rather than a reading")
+    elif field(before_below, "content") == "BI-LAST":
+        void("P-BI-5",
+             "the caret was already in the last paragraph before the click, so"
+             " landing there afterwards shows nothing")
     elif field(from_elsewhere, "content") == "BI-LAST":
         record("P-BI-5", HELD,
                "from a caret on another paragraph, a click below the text"
@@ -236,7 +257,19 @@ def judge(rows: list[dict]) -> dict:
     if not control_ok:
         void("P-BI-6", "the control did not hold")
     elif not on_line or not below_inside or not from_elsewhere:
-        void("P-BI-6", "round 3's line/below pair is not all present")
+        void("P-BI-6", "the line/below pair is not all present")
+    elif on_line.get("clickX") != below_inside.get("clickX"):
+        void("P-BI-6",
+             f"the two arms did not use the same x ({on_line.get('clickX')} vs"
+             f" {below_inside.get('clickX')}), so 'the same x' is not what was"
+             " measured")
+    elif not (isinstance(on_line.get("clickY"), int)
+              and isinstance(below_inside.get("clickY"), int)
+              and on_line["clickY"] < below_inside["clickY"]):
+        void("P-BI-6",
+             "the arm named 'on the line' was not clicked above the one named"
+             f" 'below it' (y {on_line.get('clickY')} vs"
+             f" {below_inside.get('clickY')})")
     else:
         end_offset = field(from_elsewhere, "position")
         on_line_moved = field(on_line, "position") != end_offset
@@ -263,17 +296,22 @@ def judge(rows: list[dict]) -> dict:
     else:
         dispatch_content = (field(bulleted, "content") or "").strip()
         read_text = (shipped.get("plainText") or "").strip()
-        # The dispatch paragraph is empty apart from its list prefix, so any
-        # word in the read that is not that prefix came from another paragraph.
-        escaped = bool(read_text) and read_text != dispatch_content
+        # Named, not merely different.  Adversarial review, 2026-08-16: a read
+        # of the SAME paragraph that differed only in whitespace, indentation or
+        # serialisation would have satisfied `read_text != dispatch_content`,
+        # and the predicate would have reported an overshoot that did not
+        # happen.  The neighbour has a name in the fixture; require it.
+        escaped = (bool(read_text) and read_text != dispatch_content
+                   and "BI-AFTER-EMPTY" in read_text)
         if escaped:
             record("P-BI-7", HELD,
                    f"the caret paragraph read {dispatch_content!r} while"
                    f" .uno:SelectText returned {read_text!r}")
         else:
             record("P-BI-7", FAILED,
-                   f"the shipped read returned {read_text!r}, which is the"
-                   " dispatch paragraph -- no overshoot on this fixture")
+                   f"the shipped read returned {read_text!r}, which does not"
+                   " contain the neighbouring paragraph -- no overshoot on"
+                   " this fixture")
 
     outcomes = {r["prediction"]: r["outcome"] for r in results}
     return {
@@ -296,7 +334,7 @@ def _row(arm: str, content: str, position: int, y: int, **extra) -> dict:
     payload = json.dumps({"content": content, "position": position,
                           "start": position, "end": position})
     return {"probe": "arm", "arm": arm, "payload": payload, "caretY": y,
-            "caretValid": True, **extra}
+            "caretValid": True, "clickX": -1, "clickY": -1, **extra}
 
 
 def _fixture_rows() -> list[dict]:
@@ -316,9 +354,12 @@ def _fixture_rows() -> list[dict]:
         _row("below-second-other-x", "BI-LAST", 7, 700),
         _row("below-second-inside-x", "BI-LAST", 5, 700),
         _row("below-control-on-text", "BI-ANCHOR-ONE", 0, 100),
-        _row("on-line-inside-x", "BI-LAST", 5, 700),
-        _row("below-from-elsewhere", "BI-LAST", 7, 700),
-        _row("below-from-elsewhere-inside-x", "BI-LAST", 7, 700),
+        _row("on-line-inside-x", "BI-LAST", 5, 700, clickX=1900, clickY=3752),
+        _row("before-below-from-elsewhere", "BI-ANCHOR-ONE", 13, 100),
+        _row("below-from-elsewhere", "BI-LAST", 7, 700, clickX=2337, clickY=5000),
+        _row("before-below-inside-x", "BI-ANCHOR-ONE", 13, 100),
+        _row("below-from-elsewhere-inside-x", "BI-LAST", 7, 700,
+             clickX=1900, clickY=5000),
         _row("empty-caret", "", 0, 200),
         _row("empty-after-bullet", "• ", 2, 200),
         dict(_row("empty-after-bullet-readback", "", 0, 200),
@@ -412,12 +453,44 @@ def self_test() -> int:
           "P-BI-6" in rejudge(lambda rows: set_payload(
               find(rows, "below-from-elsewhere-inside-x"),
               position=5))["failed"])
+    # Sub-clauses that the review of 2026-08-16 showed were unexercised: each
+    # of these mutations moves ONLY the clause named, so removing that clause
+    # from the predicate would make the self-test go green with it gone.
+    check("P-BI-2c fails when an x inside the line does not separate",
+          "P-BI-2c" in rejudge(lambda rows: set_payload(
+              find(rows, "below-second-inside-x"), position=7))["failed"])
+    check("P-BI-3 fails when the two x are in different paragraphs",
+          "P-BI-3" in rejudge(lambda rows: set_payload(
+              find(rows, "long-right"), content="a different paragraph"))["failed"])
+    check("P-BI-3 is void when a caret rectangle is not valid",
+          "P-BI-3" in rejudge(lambda rows: find(rows, "long-right").update(
+              {"caretValid": False}))["notEstablished"])
+    check("P-BI-4 is void when a caret rectangle is not valid",
+          "P-BI-4" in rejudge(lambda rows: find(rows, "twin-second").update(
+              {"caretValid": False}))["notEstablished"])
+    check("P-BI-5 is void when the caret was already in the last paragraph",
+          "P-BI-5" in rejudge(lambda rows: set_payload(
+              find(rows, "before-below-from-elsewhere"),
+              content="BI-LAST"))["notEstablished"])
+    check("P-BI-5 is void with no arm recording where the caret was",
+          "P-BI-5" in rejudge(lambda rows: rows.remove(
+              find(rows, "before-below-from-elsewhere")))["notEstablished"])
+    check("P-BI-6 is void when the two arms did not use the same x",
+          "P-BI-6" in rejudge(lambda rows: find(
+              rows, "on-line-inside-x").update({"clickX": 999}))["notEstablished"])
+    check("P-BI-6 is void when the 'on the line' arm was not above the other",
+          "P-BI-6" in rejudge(lambda rows: find(
+              rows, "on-line-inside-x").update({"clickY": 9999}))["notEstablished"])
+    check("P-BI-7 fails when the read differs only in whitespace",
+          "P-BI-7" in rejudge(lambda rows: find(
+              rows, "empty-after-selecttext").update(
+                  {"plainText": "   \u2022   "}))["failed"])
     check("P-BI-7 fails when the shipped read stays in its own paragraph",
           "P-BI-7" in rejudge(lambda rows: find(
               rows, "empty-after-selecttext").update(
                   {"plainText": "• "}))["failed"])
 
-    total = 18
+    total = 27
     print(f"\nself-test: {total - len(failures)}/{total} checks moved the verdict")
     return 1 if failures else 0
 

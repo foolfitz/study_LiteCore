@@ -69,6 +69,12 @@ struct Rectangle {
 
 Rectangle gCaret;
 long gA11yCallbacks = 0;
+// Where the last click went, so the judge can check the geometry an arm CLAIMS
+// rather than trusting the arm's name.  Adversarial review, 2026-08-16: P-BI-6
+// asserted "the same x, on the line and below it" while the judge compared only
+// offsets and never saw a coordinate.  Reset by anything that moves the caret
+// without a click, so an arm that was not reached by one reports -1.
+long gClickX = -1, gClickY = -1;
 
 void onCallback(int type, const char *payload, void *) {
   if (type == LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR && payload) {
@@ -83,11 +89,14 @@ void onCallback(int type, const char *payload, void *) {
 void drain(int ms) { std::this_thread::sleep_for(std::chrono::milliseconds(ms)); }
 
 void dispatch(LibreOfficeKitDocument *document, const char *command, int ms = 600) {
+  gClickX = gClickY = -1;
   document->pClass->postUnoCommand(document, command, nullptr, false);
   drain(ms);
 }
 
 void click(LibreOfficeKitDocument *document, long x, long y, int ms = 700) {
+  gClickX = x;
+  gClickY = y;
   document->pClass->postMouseEvent(document, LOK_MOUSEEVENT_MOUSEBUTTONDOWN,
                                    x, y, 1, 1, 0);
   document->pClass->postMouseEvent(document, LOK_MOUSEEVENT_MOUSEBUTTONUP,
@@ -107,6 +116,7 @@ bool searchFor(LibreOfficeKitDocument *document, const char *needle) {
       "\"},\"SearchItem.Backward\":{\"type\":\"boolean\",\"value\":false},"
       "\"SearchItem.Command\":{\"type\":\"unsigned short\",\"value\":0}}";
   gCaret = Rectangle{};
+  gClickX = gClickY = -1;
   document->pClass->postUnoCommand(document, ".uno:ExecuteSearch",
                                    arguments.c_str(), false);
   drain(900);
@@ -141,7 +151,8 @@ void emit(const char *arm, LibreOfficeKitDocument *document,
             << ",\"caretX\":" << (gCaret.valid ? gCaret.x : -1)
             << ",\"caretY\":" << (gCaret.valid ? gCaret.y : -1)
             << ",\"caretHeight\":" << (gCaret.valid ? gCaret.height : -1)
-            << ",\"a11yCallbacks\":" << gA11yCallbacks;
+            << ",\"a11yCallbacks\":" << gA11yCallbacks
+            << ",\"clickX\":" << gClickX << ",\"clickY\":" << gClickY;
   if (html)
     std::cout << ",\"html\":\"" << jsonEscape(html) << "\"";
   if (plain)
@@ -304,10 +315,12 @@ int main(int argc, char **argv) {
   emit("on-line-inside-x", document);
 
   click(document, anchorLine.x, anchorLine.y + anchorLine.height / 2);
+  emit("before-below-from-elsewhere", document);
   click(document, lastLine.x, belowFirstY);
   emit("below-from-elsewhere", document);
 
   click(document, anchorLine.x, anchorLine.y + anchorLine.height / 2);
+  emit("before-below-inside-x", document);
   click(document, lastLine.x - 400, belowFirstY);
   emit("below-from-elsewhere-inside-x", document);
 

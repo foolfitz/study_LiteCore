@@ -206,6 +206,38 @@ Registered for round 3, informed by round 2 and written before round 3 runs:
   would narrow finding 046 rather than settle it — and would mean the escape
   round 2 saw belongs to the retired pair.
 
+## Third addendum: an adversarial review, and round 4
+
+An external adversarial review (codex, 2026-08-16) attacked the judge and the
+probe rather than the conclusions, and was right about six things.  **No
+prediction is changed**; the criteria were tightened so that each one tests what
+it says it tests, and round 4 re-ran with the arms the tightened criteria need.
+
+| what was wrong | how it was closed |
+|---|---|
+| **P-BI-5 took the probe's word for it.**  "From a caret on another paragraph" was the arm's name; nothing recorded where the caret was immediately before the click, so a caret already on `BI-LAST` and a click that never arrived produced the same row | the probe emits `before-below-from-elsewhere`, and the judge voids the prediction unless it shows a different paragraph |
+| **P-BI-6 never saw a coordinate.**  It compared three offsets while asserting "the same x, on the line and below it" | the probe records `clickX`/`clickY` per arm; the judge voids the prediction unless the two arms share an x and the "on the line" one is above the other |
+| **P-BI-7 accepted a whitespace difference as an escape.**  `read_text != dispatch_content` is true of the same paragraph serialised differently | the read must contain `BI-AFTER-EMPTY` — the neighbour, by name |
+| **P-BI-3 and P-BI-4 compared `caretY` without reading `caretValid`.**  Two invalid rectangles both report −1 | both arms must have a valid rectangle |
+| **P-BI-2c's `separates` half had no mutation**, and neither did P-BI-3's `same_content` half: deleting either clause left the self-test green | one mutation per clause; the self-test is 27 checks |
+
+Also corrected, and it is a correction to this file: the list of Writer
+`getCommandValues` commands above is **incomplete**.  It omits the singular
+`.uno:TextFormField`, `.uno:Bookmark` and `.uno:Field`, and the generic commands
+handled before Writer's dispatcher in `desktop/source/lib/init.cxx`
+(`.uno:ReadOnly`, `.uno:LanguageStatus`, `.uno:CharFontName`, `.uno:StyleApply`,
+`.uno:Undo`, `.uno:Redo`, `.uno:UndoCount`, `.uno:RedoCount`,
+`.uno:AcceptTrackedChanges`, `.uno:TrackedChangeAuthors`,
+`.uno:ViewAnnotations`, `.uno:ViewAnnotationsPosition`, `.uno:RulerState`,
+`.uno:ViewRenderState`, `.uno:AllPageSize`).  **None of them reports a caret
+paragraph index either**, so the conclusion is unchanged — but "the surface was
+enumerated" was a stronger claim than what had been read.
+
+Round 4 is round 3's arms plus the two witnesses, judged by the tightened
+criteria.  Rounds 1–3 were re-judged by the same criteria and their verdict
+files rewritten; round 3's P-BI-5 and P-BI-6 move from HELD to NOT_ESTABLISHED,
+because the arms that would establish them did not exist yet.
+
 ## How it is judged
 
 Offline, by `tools/analyze_queue_block_identity.py`, which carries its own

@@ -15,8 +15,8 @@
     },
     {
       "prediction": "P-BI-1",
-      "outcome": "FAILED",
-      "detail": "the read did not reach the neighbour: 'BI-ANCHOR-ONE'"
+      "outcome": "NOT_ESTABLISHED",
+      "detail": "empty-caret or empty-after-bullet-readback is missing"
     },
     {
       "prediction": "P-BI-2a",
@@ -45,35 +45,35 @@
     },
     {
       "prediction": "P-BI-5",
-      "outcome": "NOT_ESTABLISHED",
-      "detail": "below-from-elsewhere is missing"
+      "outcome": "HELD",
+      "detail": "from a caret on another paragraph, a click below the text reports the last paragraph, so it arrives and clamps"
     },
     {
       "prediction": "P-BI-6",
-      "outcome": "NOT_ESTABLISHED",
-      "detail": "the line/below pair is not all present"
+      "outcome": "HELD",
+      "detail": "the same x reads 4 on the line and 7 below it"
     },
     {
       "prediction": "P-BI-7",
-      "outcome": "NOT_ESTABLISHED",
-      "detail": "empty-after-selecttext or empty-after-bullet is missing"
+      "outcome": "HELD",
+      "detail": "the caret paragraph read '•' while .uno:SelectText returned '• \\nBI-AFTER-EMPTY'"
     }
   ],
   "held": [
     "P-BI-0 control",
     "P-BI-2a",
     "P-BI-3",
-    "P-BI-4"
+    "P-BI-4",
+    "P-BI-5",
+    "P-BI-6",
+    "P-BI-7"
   ],
   "failed": [
-    "P-BI-1",
     "P-BI-2b",
     "P-BI-2c"
   ],
   "notEstablished": [
-    "P-BI-5",
-    "P-BI-6",
-    "P-BI-7"
+    "P-BI-1"
   ],
   "controlHeld": true
 }

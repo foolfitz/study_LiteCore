@@ -12,14 +12,28 @@ Exit 0.  Preserved exactly as it ran.  This is the round the design rests on.
 | P-BI-2c | **FAILED** | there is no "inside the line" below the line — the clamp ignores x entirely |
 | P-BI-3 | HELD | one line, `position` 13 → 45 |
 | P-BI-4 | HELD | identical payload, caret y 2585 → 2974 |
-| P-BI-5 | HELD | from another paragraph, a click below the text reports `BI-LAST` |
-| P-BI-6 | HELD | the same x reads **4** on the line and **7** below it |
+| P-BI-5 | ~~HELD~~ **NOT_ESTABLISHED** | see below |
+| P-BI-6 | ~~HELD~~ **NOT_ESTABLISHED** | see below |
 | P-BI-7 | HELD | `.uno:SelectText` returned `'    • \nBI-AFTER-EMPTY'` |
 
 P-BI-1 is NOT_ESTABLISHED here by design: this round does not repeat the retired
 pair.  `.uno:SelectText` sets `m_bInSelect` and nothing on that path clears it
 (finding 039), so anything posted after it would be measuring a shell already in
 selection mode.
+
+## Two of this round's HELDs were withdrawn on 2026-08-16
+
+An adversarial review pointed out that P-BI-5 and P-BI-6 were taking the
+probe's word for their own premises: nothing recorded where the caret was
+immediately before a below-the-text click, and nothing recorded the coordinates
+of a click whose arm was named "the same x, on the line and below it".  Both
+predicates were tightened to require those readings, and this round has neither
+-- so the judge now reports NOT_ESTABLISHED here.
+
+**The numbers below are unchanged and were not wrong.**  [Round 4](../run-4/)
+re-runs the same arms with the two witnesses added and carries both predictions.
+This round's captures are untouched; only `verdict.json` was regenerated, under
+criteria that are strictly harder.
 
 ## The two results that decide the design
 
