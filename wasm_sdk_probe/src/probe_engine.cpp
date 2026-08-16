@@ -1502,7 +1502,13 @@ struct EditorSemanticSnapshot {
 };
 
 std::uint64_t fingerprintOf(const std::string &content) {
-  std::uint64_t hash = 1469598103934665603ull;
+  // 14695981039346656037, the FNV-1a 64-bit offset basis.  Written here as
+  // 1469598103934665603 until 2026-08-17 -- one digit short, so it was a
+  // perfectly serviceable hash that was not the algorithm the comment named.
+  // It was caught by the first measurement after the link, because every
+  // paragraph reported this constant: the hash of an empty string, which is
+  // what the loop returns when it never runs.
+  std::uint64_t hash = 14695981039346656037ull;
   for (const unsigned char byte : content) {
     hash ^= static_cast<std::uint64_t>(byte);
     hash *= 1099511628211ull;
@@ -2420,6 +2426,28 @@ void handleOpen(const Command &command) {
   emitStage("open.registerCallback");
   gState.document->pClass->registerCallback(gState.document, onLokCallback,
                                             &gState);
+  // Accessibility has to be ASKED FOR, and until 2026-08-17 the product build
+  // never asked.
+  //
+  // `refreshEditorAccessibility()` had exactly one call site, inside
+  // `#ifdef OXSDK_EDITOR_DISCOVERY` AND `#ifndef
+  // OXSDK_FINDING_016_SELECTION_BARRIER` -- and the product defines both, so
+  // the call was compiled out of the profile that ships.  Every
+  // `getA11yFocusedParagraph()` in the product therefore returned an empty
+  // focused paragraph, and `a11yObserved` stayed false because the callback
+  // that sets it only fires once accessibility is on.
+  //
+  // Measured, not deduced: the first run after the v3 link reported the SAME
+  // fingerprint for every paragraph, and that fingerprint was the hash of the
+  // empty string.  The whole block-identity mechanism was inert.
+  //
+  // This is the lesson this tree keeps paying for, one level in: my native
+  // rounds enabled accessibility themselves, so they measured a capability the
+  // product does not switch on -- "what the harness does" standing in for
+  // "what the product does" again.
+  //
+  // At open, because that is the one moment every profile reaches.
+  refreshEditorAccessibility();
   emitStage("open.query-metadata");
   long width = 0;
   long height = 0;

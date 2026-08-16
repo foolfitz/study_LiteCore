@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<title>E2-C — caret 由「猜」變成「問」,以及 barrier 不再驗錯段落</title>
+<style>
+  body { margin: 0; font: 13px/1.5 ui-monospace, Menlo, monospace; padding: 12px;
+         background: #101820; color: #d7e2ea; }
+  h1 { font: 600 15px/1.4 system-ui, sans-serif; margin: 0 0 8px; }
+  p { font: 12px/1.5 system-ui, sans-serif; color: #93a6b5; margin: 0 0 12px;
+      max-width: 68em; }
+  #log { white-space: pre-wrap; word-break: break-all; }
+  #sink { position: absolute; width: 1px; height: 1px; opacity: 0; }
+</style>
+</head>
+<body>
+  <h1>E2-C — caret 由「猜」變成「問」,barrier 不再驗錯段落</h1>
+  <p>量 v3 連結帶進來的兩件引擎改動,對的是連結之前就登記好的四條預測
+     （<code>research/DESIGN-2026-08-16-caret-by-block-and-offset.md</code>
+     第四節與附錄）。這一頁**不判定**——判讀離線,在
+     <code>tools/analyze_block_identity_link.py</code>。
+     它走 SDK 的 <code>editorPlaceCaretV2</code>,**不經過殼層的
+     <code>placeCaret</code>**:殼層還沒改成用新的呼叫,而這一輪要先回答「引擎答不答
+     得出來」,答得出來才值得去改殼層。</p>
+  <textarea id="sink" aria-label="輸入"></textarea>
+  <div id="log"></div>
+  <script type="module" src="./e2-c-block-identity-app.js"></script>
+</body>
+</html>

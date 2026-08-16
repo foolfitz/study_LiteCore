@@ -1697,6 +1697,12 @@ dist/e2-c-caret.js: web/e2-c-caret.js | dist
 dist/e2-c-caret-ack.html: web/e2-c-caret-ack.html | dist
 	cp $< $@
 
+dist/e2-c-block-identity.html: web/e2-c-block-identity.html | dist
+	cp $< $@
+
+dist/e2-c-block-identity-app.js: web/e2-c-block-identity-app.js | dist
+	cp $< $@
+
 dist/e2-c-caret-ack-app.js: web/e2-c-caret-ack-app.js | dist
 	cp $< $@
 
@@ -1731,6 +1737,7 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/e2-c-search-wedge.html dist/e2-c-search-wedge-app.js \
 	$(addprefix dist/r7-compat-fixtures/,$(R7_COMPAT_FILES)) \
 	dist/e2-c-caret-ack.html dist/e2-c-caret-ack-app.js \
+	dist/e2-c-block-identity.html dist/e2-c-block-identity-app.js \
 	dist/e1-fixtures/list-contexts.odt \
 	dist/e2-fixtures/manifest.json dist/e2-fixtures/list-split.odt \
 	dist/e2-fixtures/d1-anchors.odt \

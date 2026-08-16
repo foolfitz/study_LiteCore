@@ -533,6 +533,29 @@
       ]
     },
     {
+      "id": "queue-product-never-enables-accessibility",
+      "title": "the product build never calls setAccessibilityState, so every focused-paragraph read is empty -- WRITTEN 2026-08-17, needs a SECOND link",
+      "expectation": "present",
+      "blocksRelink": true,
+      "source": "measured after the v3 link, findings/evidence/queue-block-identity/after-link-v3/",
+      "note": "`refreshEditorAccessibility()` is the only thing that calls setAccessibilityState(..., true), and its single call site sits inside `#ifdef OXSDK_EDITOR_DISCOVERY` AND `#ifndef OXSDK_FINDING_016_SELECTION_BARRIER`. The product profile defines both, so the call is compiled out and getA11yFocusedParagraph() has always returned an empty paragraph there. Found by measurement, not by reading: the first run after the v3 link reported the SAME fingerprint for every paragraph while the caret moved, and that fingerprint was the hash of the empty string. Consequence: the block-identity half of the v3 link -- the barrier comparison and the paragraph in the caret answer -- is INERT on the shipped artifact, and D-BI-2 and D-BI-3 could not have held. The four native rounds this was designed from enabled accessibility themselves, which is the tree\u0027s standing lesson (harness path vs product path) landing one level in. Fixed by calling it at document open, where every profile reaches it.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "  refreshEditorAccessibility();",
+          "atLeast": 2
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "14695981039346656037ull",
+          "atLeast": 1
+        }
+      ],
+      "checkNote": "Two call sites now: the search one that was already there for the discovery profiles, and the open one that every profile reaches. The second check pins the FNV-1a offset basis, which was typed one digit short until the same measurement exposed it -- a serviceable hash that was not the algorithm its comment named."
+    },
+    {
       "id": "queue-verify-caret-by-block-identity",
       "title": "answer a click with (paragraph, offset) instead of inferring it from rectangles -- OPEN, engine-side, DESIGNED and measured 2026-08-16",
       "expectation": "present",

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "release": "block-identity-after-link",
+  "artifact": "4dbe9b74d3c55f925dc330d69e8c24dcb7cdae61d95f8b61ce0d0a7c2333e4af",
+  "predictions": [
+    {
+      "prediction": "D-BI-1",
+      "outcome": "FAILED",
+      "detail": "the second click at the same point answered in 251 ms via 'verified-caret-readback' -- over the 200 ms registered, which the appendix said to expect: the implementation's deadline is 250 ms and the threshold was not moved to make this pass"
+    },
+    {
+      "prediction": "D-BI-1 substance",
+      "outcome": "HELD",
+      "detail": "bounded and small (251 ms) against the 30 s the caret confirmation used to wait out"
+    },
+    {
+      "prediction": "D-BI-2",
+      "outcome": "FAILED",
+      "detail": "every paragraph reports the fingerprint of an EMPTY string (14650fb0739d0383), so the datum is not stale -- it is absent.  Accessibility is never enabled in this build."
+    },
+    {
+      "prediction": "D-BI-3 control",
+      "outcome": "HELD",
+      "detail": "a list action on an ordinary paragraph still verifies (verified-format-readback) -- the comparison introduces no false positive there"
+    },
+    {
+      "prediction": "D-BI-3 empty",
+      "outcome": "FAILED",
+      "detail": "the cell reported 'multi-block-readback', not the new shape -- the comparison did not fire"
+    }
+  ],
+  "held": [
+    "D-BI-1 substance",
+    "D-BI-3 control"
+  ],
+  "failed": [
+    "D-BI-1",
+    "D-BI-2",
+    "D-BI-3 empty"
+  ],
+  "notEstablished": []
+}
