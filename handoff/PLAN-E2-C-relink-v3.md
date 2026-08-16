@@ -208,4 +208,37 @@ version 2，而 `ParagraphEditorClient:64` 又自己再檢查一次。
    一個什麼都不測而且會過的 negative row**。現在取 `declared + 1`。
 5. **manifest sha256 進矩陣與 D0 證據**（#9）——builder 已經會印出來，
    還要進第二輪的矩陣 baseline 與判定器。
-6. **D2～D5 全部寫好並在 v2 上跑過**（#8）——最大的一件，還沒開始。
+6. **D2～D5 全部寫好並在 v2 上跑過**（#8）——最大的一件。D2 與 D3 的清單八格
+   已完成；**D3 結構輪、D4、D5 未開始**。
+
+---
+
+## 佇列稽核（2026-08-16，第二方 codex ＋ 自行覆核）
+
+**動機**：這張表上一次把 3b 記成「已寫」而 `grep` 零筆。所以這次由第二方逐項用
+工具查，**輸出檔案與行號**，而不是採信本文件自己的勾選。三項與本文件不符：
+
+| 項 | 本文件宣稱 | 實際 | 證據 |
+|---|---|---|---|
+| **3c** | 待做 | **PARTIAL——引擎那半已經在樹裡** | `src/probe_engine.cpp:1241` 已有 `readback.itemCount`；缺的是**產品 worker 投影**（`sdk/sdk-worker.js:172–190`，成功與失敗路徑都用它），`editor-shell-v2/` 也沒有 |
+| **8**（審查修正的 `selectionObserved` fail-closed） | 「既有的段落路由（`:3300`）有同一個缺陷，一併修」 | **PARTIAL——段落路由那一處沒修** | 十個繼承動作的新閘門已修（`:3901–3907`）；`routeFormatBarrier()` 仍是 `if (gEditorState.selectionRectangles.empty()) route = Collapsed`（`src/probe_engine.cpp:3300–3302`），**沒有看 `selectionObserved`**。**我自己讀過原始碼確認**，不是轉述 |
+| **12**（反向） | 沒記載 | **樹裡有、文件沒有**：`tools/build_e2_c_profile.py:93` 會輸出 `editorContract.inlineFormatEnabledIsHonoured = true` | 在 handoff／specs／evidence 全樹 `grep` 零筆。它不進 WASM 位元組，但**會進 v3 的 manifest**，而 manifest 這次是第五個綁定身分 |
+
+其餘九項（1、2、3、3b、4、5、6、7、9、10、11）與本文件相符：P1 的 1／2／3 在樹裡、
+**3b 確實不在樹裡**（`grep` 零筆，與本文件一致）、ABI = 3、Makefile 的 v3 變體存在
+且 v2 的四段規則雜湊逐段未變、builder 產出 abiVersion 3、header test 斷言 3、
+未分類範圍改成兩個位元都要允許、negative 產生器改成 `declared + 1`、
+contract version 與 capability 維持 2／`narrow-editor-v2`。
+
+**因此連結前的待辦更正為**：
+
+- [ ] **3b**：`empty-readback` shape 進 `probe_engine.cpp`（判準先量再寫，見上）；
+- [ ] **3c**：只剩 `sdk/sdk-worker.js` 的產品投影補 `itemCount`（引擎那半已完成）；
+- [ ] **8 的第二處**：`routeFormatBarrier()` 的 `selectionObserved` fail-closed；
+- [ ] **12**：把 `inlineFormatEnabledIsHonoured` 記進佇列與規格
+      （**它會改變 v3 的 manifest，而 manifest 是第五個綁定身分**）；
+- [ ] **矩陣 v2 的凍結時機沒有守衛**（外部裁決指出）：baseline 要 v3 的五個雜湊，
+      而雜湊要等連結才存在，於是「連結之後、第二輪 D0 之前」有一個必須補雜湊並
+      凍結的窗口，**但沒有人檢查凍結真的發生在 D0 之前**。第一輪就是被「矩陣沒
+      規定手勢」咬的。處方：D0 的 runner／判定器把「矩陣 baseline 五個雜湊齊全且
+      與現場一致」當**進場斷言**。
