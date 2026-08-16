@@ -105,11 +105,39 @@ function drawTrace() {
 
 let stripReader = null;
 
+/** Where the next keystroke will actually go.
+ *
+ *  The IME and the clipboard deliver to whatever has focus.  Pressing a button
+ *  in THIS page moves focus out of the product, and then a real Ctrl+V or a
+ *  real Fcitx5 commit lands on a button in the left panel and does nothing --
+ *  with no feedback anywhere, because this build paints no caret either.  That
+ *  is a failure mode an operator cannot see and cannot guess.
+ */
+function focusReport() {
+  const frame = document.querySelector("#product");
+  const inFrame = document.activeElement === frame;
+  let inner = null;
+  try {
+    const active = frame.contentDocument?.activeElement;
+    inner = active ? (active.id || active.tagName.toLowerCase()) : null;
+  } catch { inner = "（讀不到）"; }
+  if (!inFrame)
+    return { ok: false,
+             text: `⚠ 鍵盤焦點在這一頁（${document.activeElement?.tagName?.toLowerCase() || "?"}）`
+                   + " —— 中文輸入與 Ctrl+V 不會進產品，先在文件上點一下" };
+  if (inner === "sink")
+    return { ok: true, text: "✓ 鍵盤焦點在產品的輸入接收器（sink）" };
+  return { ok: false,
+           text: `⚠ 焦點在產品裡，但不在 sink（${inner}）——先在文件上點一下` };
+}
+
 function refreshLive() {
   const strip = stripReader ? stripReader() : null;
+  const focus = focusReport();
   if (!current) {
     liveNode.textContent = [
       "尚未開始任何一格。",
+      focus.text,
       strip ? `產品狀態  ${strip.state}  修訂 ${strip.revision}  generation ${strip.generation}` : "",
     ].filter(Boolean).join("\n");
     drawTrace();
@@ -130,6 +158,7 @@ function refreshLive() {
     // The one thing that decides the cell.  Said in the operator's own view,
     // not only in the file they hand back.
     synthetic ? `⚠ 合成事件 ${synthetic} 個 —— 這一格不會成立` : "✓ 全部是真人事件",
+    focus.text,
     strip ? `產品狀態  ${strip.state}  修訂 ${strip.revision}  generation ${strip.generation}` : "",
   ].filter(Boolean).join("\n");
   drawTrace();
@@ -331,6 +360,8 @@ void (async () => {
   // revision advancing), so the readout is polled as well as event-driven.
   setInterval(refreshLive, 1000);
   globalThis.addEventListener("resize", scheduleLive);
+  for (const type of ["focus", "blur", "click"])
+    globalThis.addEventListener(type, scheduleLive, true);
   refreshLive();
   log({ ready: true, mode: metrics.mode });
 })();

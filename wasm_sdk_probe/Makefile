@@ -1635,6 +1635,12 @@ dist/e2-c-048-boundary.html: web/e2-c-048-boundary.html | dist
 dist/e2-c-048-boundary-app.js: web/e2-c-048-boundary-app.js | dist
 	cp $< $@
 
+dist/e2-c-ime-replace.html: web/e2-c-ime-replace.html | dist
+	cp $< $@
+
+dist/e2-c-ime-replace-app.js: web/e2-c-ime-replace-app.js | dist
+	cp $< $@
+
 dist/e2-c-046-overshoot.html: web/e2-c-046-overshoot.html | dist
 	cp $< $@
 
@@ -1700,6 +1706,7 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/e2-c-d4-heap.html dist/e2-c-d4-heap-app.js \
 	dist/e2-c-046-empty.html dist/e2-c-046-empty-app.js \
 	dist/e2-c-046-overshoot.html dist/e2-c-046-overshoot-app.js \
+	dist/e2-c-ime-replace.html dist/e2-c-ime-replace-app.js \
 	dist/e2-c-046-overshoot.html dist/e2-c-046-overshoot-app.js \
 	dist/e2-c-048-boundary.html dist/e2-c-048-boundary-app.js \
 	dist/e2-c-d5.html dist/e2-c-d5-app.js \
