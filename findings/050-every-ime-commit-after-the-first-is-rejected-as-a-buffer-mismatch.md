@@ -94,6 +94,22 @@ if (this._target && typeof this._target.value === "string") {
 - **E1-C**：manifest 不改寫，**申報 divergence**（`e1/editor-shell-bundle-v1-divergence.json`）。
   E1-C 的殼層綁定本來就已經因 048 斷開，這一項併入同一次收復，不是新的成本。
 
+## 同日一併修掉的兩件（都是這一輪人工輪逼出來的）
+
+**一、Ctrl+C 從來沒有複製到文件的選取。** adapter 綁的是 composition／beforeinput／
+paste，**沒有 `copy`**；而殼層一直有 `copySelection()`（它會去問引擎要選取的文字），
+產品從來沒呼叫過（`grep` 零筆）。文件是畫布，所以瀏覽器的預設複製沒有 DOM 選取可以
+拿——四輪剪貼簿格裡唯一貼得出東西的那一輪，是 operator 早先從別的程式複製過東西。
+
+已接上 `copy` → `session.copySelection()`。**驗到哪裡要說清楚**：處理器會觸發、
+而且會回報有型別的錯（沒有選取時現在說 `CLIPBOARD_EMPTY_SELECTION`，以前完全沉默）；
+**真正的剪貼簿寫入 headless 驗不了**（WebDriver 擋掉 clipboard 讀寫，`NotAllowedError`），
+那一半由人工輪確立——而那正是 D5 存在的理由。
+
+**二、adapter 的 trace 產品沒有接。** `EditorSession` 收 `onInputTrace` 與
+`onClipboardTrace`，產品兩個都沒給。**050 之所以能存在這麼久，就是因為它們哪裡都沒去。**
+已接上，且**只有失敗才彈提示**（每次按鍵都彈提示是另一個缺陷）。
+
 ## 順帶修掉一個建置缺口
 
 `make e2-c-assets` **沒有負責 `dist/input/input-adapter.js`**——E2-C 綁著那個檔，

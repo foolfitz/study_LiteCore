@@ -34,7 +34,7 @@ PROJECT = Path(__file__).resolve().parent.parent
 # The CURRENT generation: this file attests what a round ran on, so it moves
 # with the shell.  v3 was the generation D5's machine half and both operator
 # rounds ran on; v4 carries finding 049's fix.
-BUNDLE = PROJECT / "e2" / "editor-shell-v2-bundle-v5.json"
+BUNDLE = PROJECT / "e2" / "editor-shell-v2-bundle-v6.json"
 
 
 def bundle_digest() -> str | None:

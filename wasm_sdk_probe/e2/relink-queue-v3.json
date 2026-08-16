@@ -376,31 +376,39 @@
     },
     {
       "id": "queue-input-adapter-trace-is-discarded",
-      "title": "the input adapter's own trace is thrown away by the product, and IME commits are being lost in that layer -- OPEN, not blocking",
-      "expectation": "absent",
+      "title": "the input and clipboard traces are surfaced by the product -- DONE 2026-08-16",
+      "expectation": "present",
       "blocksRelink": false,
       "source": "findings/evidence/sdk-e2/e2-c-validation/d5/operator/round-3-firefox/, 2026-08-16",
-      "note": "Firefox operator round: four IME commits advanced the revision once, and a real paste advanced it not at all. A control ruled out the shell -- four consecutive session.commitText() calls all advanced (0-1-2-3-4). So the loss sits between the browser's composition events and commitText, in HostInputAdapter -- and EditorSession accepts onInputTrace while web/e2-editor-app.js passes none, so that layer is the one layer nobody records. Next controlled variable: wire onInputTrace/onClipboardTrace into a page an operator can drive, and repeat the cell. RESOLVED IN PART 2026-08-16: the loss was found without the trace -- finding 050, the sink was never cleared, so every commit after the first was rejected as a buffer mismatch. Fixed and mutation-tested. What remains under this item is the trace itself: the product still wires no onInputTrace, so the next thing that goes wrong in that layer will be just as invisible. The clipboard half is now its own item.",
+      "note": "Firefox operator round: four IME commits advanced the revision once, and a real paste advanced it not at all. A control ruled out the shell -- four consecutive session.commitText() calls all advanced (0-1-2-3-4). So the loss sits between the browser's composition events and commitText, in HostInputAdapter -- and EditorSession accepts onInputTrace while web/e2-editor-app.js passes none, so that layer is the one layer nobody records. Next controlled variable: wire onInputTrace/onClipboardTrace into a page an operator can drive, and repeat the cell. RESOLVED IN PART 2026-08-16: the loss was found without the trace -- finding 050, the sink was never cleared, so every commit after the first was rejected as a buffer mismatch. Fixed and mutation-tested. What remains under this item is the trace itself: the product still wires no onInputTrace, so the next thing that goes wrong in that layer will be just as invisible. The clipboard half is now its own item. DONE: web/e2-editor-app.js now wires onInputTrace and onClipboardTrace, and toasts the FAILURES only (a toast per keystroke would be its own defect). Finding 050 was invisible for as long as it existed precisely because these went nowhere.",
       "checks": [
         {
-          "kind": "absent",
+          "kind": "contains",
           "file": "web/e2-editor-app.js",
-          "text": "onInputTrace"
+          "text": "onInputTrace(entry)",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "web/e2-editor-app.js",
+          "text": "onClipboardTrace(entry)",
+          "atLeast": 1
         }
       ]
     },
     {
       "id": "queue-ctrl-c-does-not-copy-the-documents-selection",
-      "title": "Ctrl+C copies nothing from the document: no copy handler anywhere, and the product never calls session.copySelection() -- OPEN, not blocking",
-      "expectation": "absent",
+      "title": "Ctrl+C now asks the engine for the selection -- DONE 2026-08-16, happy path unverified headlessly",
+      "expectation": "present",
       "blocksRelink": false,
       "source": "D5 operator rounds 2-4, 2026-08-16",
-      "note": "The input adapter binds compositionstart/update/end, beforeinput and paste -- no `copy`. The clipboard adapter HAS copySelection(), and web/e2-editor-app.js never calls it (0 occurrences). The document is a canvas, so the browser's default copy has no DOM selection to take, and Ctrl+C leaves the clipboard holding whatever was there before. That explains the clipboard cell across four rounds: the only round whose paste moved the document was the one where the operator had copied something else earlier. NOT yet measured directly -- the reading is from the source and the round pattern, and it needs its own arm before it is called a finding.",
+      "note": "The input adapter binds compositionstart/update/end, beforeinput and paste -- no `copy`. The clipboard adapter HAS copySelection(), and web/e2-editor-app.js never calls it (0 occurrences). The document is a canvas, so the browser's default copy has no DOM selection to take, and Ctrl+C leaves the clipboard holding whatever was there before. That explains the clipboard cell across four rounds: the only round whose paste moved the document was the one where the operator had copied something else earlier. NOT yet measured directly -- the reading is from the source and the round pattern, and it needs its own arm before it is called a finding. DONE: the product binds `copy` on its input sink and calls session.copySelection(), which asks the ENGINE for the selected text. VERIFIED: the handler fires and reports typed errors -- with no selection it now says CLIPBOARD_EMPTY_SELECTION where it used to say nothing at all. NOT VERIFIED headlessly: the clipboard write itself, because WebDriver blocks clipboard read/write (NotAllowedError). That half is what the operator round establishes, which is the same reason D5 exists.",
       "checks": [
         {
-          "kind": "absent",
+          "kind": "contains",
           "file": "web/e2-editor-app.js",
-          "text": "copySelection"
+          "text": "session.copySelection()",
+          "atLeast": 1
         }
       ]
     }

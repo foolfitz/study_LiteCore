@@ -57,12 +57,15 @@ PROJECT = Path(__file__).resolve().parent.parent
 #   v5 -- the shell with finding 050's fix in input/input-adapter.js: every IME
 #         commit after the first was being rejected as a buffer mismatch,
 #         because nothing cleared the host sink.
+#   v6 -- the shell that wires Ctrl+C to session.copySelection() and surfaces
+#         the input/clipboard traces, so a silently rejected commit is visible.
 FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v2.json"),
                     Path("e2/editor-shell-v2-bundle-v3.json"),
-                    Path("e2/editor-shell-v2-bundle-v4.json"))
+                    Path("e2/editor-shell-v2-bundle-v4.json"),
+                    Path("e2/editor-shell-v2-bundle-v5.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v5.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v6.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

@@ -309,6 +309,20 @@ el.canvas.addEventListener("pointerdown", (event) => {
     .catch(() => {});
 });
 
+// Ctrl+C.  The document is a canvas, so the browser's default copy has no DOM
+// selection to take and puts nothing on the clipboard -- which is why four
+// operator rounds of the D5 clipboard cell pasted either nothing or whatever
+// had been copied from some other application earlier.  The shell has always
+// had `copySelection()`, which asks the ENGINE for the selected text; nothing
+// called it.
+el.sink.addEventListener("copy", (event) => {
+  if (!session?.document) return;
+  event.preventDefault();
+  void run("複製", () => session.copySelection())
+    .then((result) => toast(`已複製 ${result?.codePoints ?? "?"} 字`))
+    .catch(() => {});
+});
+
 el.canvas.addEventListener("pointermove", (event) => {
   if (!drag.active || !session?.document) return;
   if ((event.buttons & 1) === 0) { endDrag(event); return; }
@@ -362,6 +376,20 @@ async function openFixture(id) {
     onEvent(event) {
       if (event.event === "document-invalidated")
         queueMicrotask(() => void renderDocument());
+    },
+    // Finding 050 was invisible for as long as it existed because these two
+    // callbacks were never wired: the input adapter rejected every commit after
+    // the first, said so in its trace, and the trace went nowhere.  A rejection
+    // the user cannot see is a rejection nobody reports.
+    //
+    // Only failures surface -- a toast per keystroke would be its own defect.
+    onInputTrace(entry) {
+      if (entry?.action === "composition-rejected" || entry?.status === "failed")
+        toast(`輸入未送出：${entry.reason || entry.code || entry.action}`, true);
+    },
+    onClipboardTrace(entry) {
+      if (entry?.status === "failed" || entry?.status === "rejected")
+        toast(`剪貼簿未完成：${entry.code || entry.status}`, true);
     },
   });
   await session.open({ bytes, name });
