@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "release": "finding-049",
+  "measuredOn": "2026-08-16",
+  "profile": "e2-editor-v2",
+  "wasmSha256": "572035accd0f27544ed485d994f065bcad2b73d5d21eafbf361c8cc11630c0a5",
+  "how": "Pressed the product page's own 儲存 ODT button inside the D5 harness (Firefox), which hosts web/e2-editor.html unmodified in a same-origin iframe. The declared URL.createObjectURL shim captured what the product handed to the download link.",
+  "observed": {
+    "capturedByShim": 1,
+    "capturedBytes": 15,
+    "capturedContent": "[object Object]",
+    "productToast": "已存出 NaN KB",
+    "productLatency": "儲存 211 ms"
+  },
+  "operatorArtefact": {
+    "file": "product-save-output.odt",
+    "bytes": 15,
+    "note": "Downloaded by the operator during the 2026-08-16 D5 round, before the cause was known. Same 15 bytes."
+  },
+  "cause": {
+    "file": "web/e2-editor-app.js",
+    "lines": "215-217",
+    "what": "const bytes = await run(\"儲存\", () => session.save()); new Blob([bytes], ...)",
+    "why": "EditorSession.save() resolves to {bytes, revision, contentStamp} (editor-shell/editor-session.js:507-513). The page treats the whole result object as the bytes, so Blob stringifies it.",
+    "contrast": "web/demo-editor-app.js:626-627 does it correctly (saved.bytes)."
+  }
+}

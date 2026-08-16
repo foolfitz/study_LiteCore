@@ -353,6 +353,21 @@
           "text": "selectionOvershootChecked"
         }
       ]
+    },
+    {
+      "id": "queue-product-save-button-writes-object-object",
+      "title": "finding 049: the product page's save button writes 15 bytes of [object Object] -- OPEN, blocks D5, not the relink",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "findings/049-…md, 2026-08-16, found by an operator round",
+      "note": "web/e2-editor-app.js treats EditorSession.save()'s {bytes, revision, contentStamp} result as the bytes. Fix is one line and needs NO relink (it is JS) -- but web/e2-editor-app.js is one of the twelve modules the E2-C shell bundle binds, so it is a declared divergence, handled the way E1-C's was. It BLOCKS D5: the frozen oracle for the drag cells says 'and the saved ODT shows it', which is unreachable while save is broken. The check below flips to `present` when the fix lands.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "web/e2-editor-app.js",
+          "text": "const { bytes } = await run(\"儲存\""
+        }
+      ]
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
