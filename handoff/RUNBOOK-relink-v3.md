@@ -37,8 +37,9 @@ done
 決定被寫進 `e2/relink-queue-v3.json` 的 `blocksRelink`（一次刻意的編輯，會出現在
 diff 裡）。
 
-現行狀態（2026-08-16）：**擋著的兩項是 `p1-3b-empty-readback` 與
-`queue-barrier-verifies-own-paragraph`**。
+現行狀態（2026-08-16，診斷輪之後）：**`p1Complete: True`，blocking 是空的**——
+原本擋著的兩項（`p1-3b-empty-readback`、containment 重排）都在凍結的引擎上量掉了。
+**但決定是等一等**（見本檔開頭）：沒有東西擋著，不等於現在就該連。
 
 ## 1. archive（**已經做過，這裡是核對用的**）
 
