@@ -472,18 +472,25 @@
     },
     {
       "id": "queue-verify-caret-by-block-identity",
-      "title": "verify the caret by BLOCK IDENTITY rather than by rectangles -- OPEN, engine-side, would close three recorded ambiguities at once",
+      "title": "answer a click with (paragraph, offset) instead of inferring it from rectangles -- OPEN, engine-side, DESIGNED and measured 2026-08-16",
       "expectation": "absent",
       "blocksRelink": false,
-      "source": "findings 046, 051, 052; 2026-08-16",
-      "note": "Three separate ambiguities have now been measured and they all reduce to the same missing datum -- which BLOCK the caret/selection is in: (1) finding 046, `.uno:SelectText` overshoots an empty paragraph and the barrier verifies the neighbour; (2) finding 052's residual, a second click outside the text is indistinguishable from a swallowed click; (3) a caret on the clicked line at a completely different x is accepted after the grace period, because caretIsOnLine has no x. Geometry cannot separate any of them. An engine that reported the caret's block index in editorGetStateV2 would settle all three by comparison instead of by tolerance. NOT costed and NOT designed here; the point of this item is that it is ONE item, not three.",
+      "source": "findings 046, 051, 052; measured 2026-08-16, findings/evidence/queue-block-identity/",
+      "note": "REWORDED after measurement. The old wording said three ambiguities 'all reduce to the same missing datum -- which BLOCK the caret is in', and that turned out to be half right. Measured natively over three rounds: (a) there IS no block index anywhere in LOK -- the focused-paragraph payload carries content/position/start/end/listPrefixLength and nothing else, and no getCommandValues command supplies one; (b) what does exist, the paragraph's own text, is a FINGERPRINT, not an identity -- two paragraphs with the same text produce a byte-identical payload while the caret rectangle moves; (c) it settles finding 046 (the dispatch paragraph read '\\u2022 ' and the barrier's .uno:SelectText read '    \\u2022 \\nBI-AFTER-EMPTY'), and it settles the same-line-different-x case by OFFSET rather than by block; (d) it does NOT settle finding 052's residual, because x is carried on a line and dropped below it (offset 4 on the line, 7 below it, same x) so every click outside the text lands at the same offset -- a real block index would not help either, since the caret genuinely is in the last block. The remedy for (d) is a different shape and comes from the reference implementation rather than from the measurement: make placing the caret a CALL THAT RETURNS (paragraph fingerprint, offset), instead of posting a click and inferring the outcome from a rectangle. Muya (MarkText's editor core) never inverts that mapping -- its cursor IS {offset, block, path} and geometry only ever goes model->pixels. Design and pre-registered predictions: research/DESIGN-2026-08-16-caret-by-block-and-offset.md.",
       "checks": [
         {
           "kind": "absent",
           "file": "src/probe_engine.cpp",
-          "text": "caretBlockIndex"
+          "text": "editorPlaceCaretV2"
+        },
+        {
+          "kind": "contains",
+          "file": "../research/DESIGN-2026-08-16-caret-by-block-and-offset.md",
+          "text": "D-BI-1",
+          "atLeast": 1
         }
-      ]
+      ],
+      "checkNote": "The old check watched for `caretBlockIndex`, a field for a datum that does not exist in LOK -- so nothing could ever have implemented it and the check was green by construction. A check that cannot go red is not a check. The replacement watches for the entry point this design actually adds, and the second check binds the item to the registered predictions so the design cannot quietly go missing before the link that is supposed to carry it."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
