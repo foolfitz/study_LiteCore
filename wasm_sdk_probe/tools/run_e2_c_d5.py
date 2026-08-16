@@ -32,9 +32,10 @@ from run_browser_probe import ChromeSession, FirefoxSession, free_port  # noqa: 
 
 PROJECT = Path(__file__).resolve().parent.parent
 # The CURRENT generation: this file attests what a round ran on, so it moves
-# with the shell.  v3 was the generation D5's machine half and both operator
-# rounds ran on; v4 carries finding 049's fix.
-BUNDLE = PROJECT / "e2" / "editor-shell-v2-bundle-v6.json"
+# with the shell.  v3 was the generation D5's machine half and the first two
+# operator rounds ran on; v6 is what the four established operator cells ran on;
+# v7 carries finding 051's fix.
+BUNDLE = PROJECT / "e2" / "editor-shell-v2-bundle-v7.json"
 
 
 def bundle_digest() -> str | None:
@@ -165,6 +166,16 @@ def machine_half(args) -> int:
         "unchanged": digest_before == digest_after,
     }
     evidence = args.output / "machine-half" / args.browser
+    # Evidence is written once.  The default --output is D5's own directory, so
+    # a second machine-half run would silently replace the result a verdict
+    # cites -- and it would be bound to a DIFFERENT shell generation than the
+    # one that verdict was made on, which is the whole reason a re-run exists.
+    # Same rule as session-attestation: append, never replace.
+    if (evidence / "result.json").exists() and not args.allow_overwrite:
+        raise SystemExit(
+            f"{evidence / 'result.json'} already exists.  Point --output at a "
+            f"new directory (one per shell generation), or pass "
+            f"--allow-overwrite if replacing it is what you mean.")
     (evidence / "saved").mkdir(parents=True, exist_ok=True)
     written = []
     for entry in saves:
@@ -264,6 +275,9 @@ def main() -> int:
     parser.add_argument("--port", type=int, default=0,
                         help="fixed port for --serve, so the operator's URL is "
                              "stable across restarts")
+    parser.add_argument("--allow-overwrite", action="store_true",
+                        help="replace an existing machine-half result instead "
+                             "of refusing; evidence is written once by default")
     parser.add_argument("--output", type=Path,
                         default=PROJECT.parent / "findings" / "evidence" / "sdk-e2"
                         / "e2-c-validation" / "d5")
