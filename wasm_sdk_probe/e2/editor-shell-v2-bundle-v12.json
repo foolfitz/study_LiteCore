@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "release": "E2-C-editor-shell-v2-bundle",
+  "frozenDate": "2026-08-17",
+  "entrypoint": "web/e2-editor-app.js",
+  "scope": "JavaScript modules reached by the E2-C product page's import graph, plus every *.js in editor-shell-v2, editor-shell, input, sdk, reader-shell",
+  "algorithm": "SHA-256 of UTF-8 path + NUL + lowercase file SHA-256 + LF for each included path in lexicographic order",
+  "included": [
+    {
+      "path": "editor-shell-v2/narrow-editor-v2-client.js",
+      "sha256": "147b6cd6abcaf556ea58f6237733b382d3d09d335d8fb4978b050582fa306980"
+    },
+    {
+      "path": "editor-shell-v2/narrow-editor-v2-session.js",
+      "sha256": "5e9483ad62379027fe258607cd78b5f9c4c535ac7099ad93dd81b778f6e44a64"
+    },
+    {
+      "path": "editor-shell-v2/paragraph-editor-client.js",
+      "sha256": "2e856d8e5cf346a7cb7309db339157690a3e71aec37282b8b233ec13bc9b11da"
+    },
+    {
+      "path": "editor-shell-v2/paragraph-editor-session.js",
+      "sha256": "165e5cc368f200bf265219d38b83c3ac5a77b74c47075ce9302bd20f86be58b7"
+    },
+    {
+      "path": "editor-shell/editor-client.js",
+      "sha256": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a"
+    },
+    {
+      "path": "editor-shell/editor-session.js",
+      "sha256": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a"
+    },
+    {
+      "path": "editor-shell/state-machine.js",
+      "sha256": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3"
+    },
+    {
+      "path": "input/clipboard-adapter.js",
+      "sha256": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8"
+    },
+    {
+      "path": "input/input-adapter.js",
+      "sha256": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16"
+    },
+    {
+      "path": "reader-shell/tile-scheduler.js",
+      "sha256": "4c60ab4e5ed11e32155af50a7b6983500cdab47431c8fc494aaf2369f046e722"
+    },
+    {
+      "path": "sdk/document-sdk.js",
+      "sha256": "64e626c14c0459b43e8fe407ed823b2edf35bf24e832ceebd20d13c8495a83c6"
+    },
+    {
+      "path": "web/e2-editor-app.js",
+      "sha256": "09b7d347e55f749b03791db02232cab9a0eaf8a33804ce35524dbb4e1bf58b19"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "editor-shell/recovery-notice.js",
+      "reason": "Host-side decision module; the E2-C product page renders its own notice element and never imports it. Covered by editor-shell/tests/recovery-notice.test.mjs."
+    },
+    {
+      "path": "sdk/sdk-worker.js",
+      "reason": "Bound separately and more precisely as workerSha256: the copy that actually runs is the one inside the profile, not this source file."
+    },
+    {
+      "path": "reader-shell/reader-session.js",
+      "reason": "The R6 reader shell. Not in the editor page's import graph; only reader-shell/tile-scheduler.js is."
+    },
+    {
+      "path": "reader-shell/state-machine.js",
+      "reason": "The reader shell's own state machine, not the editor's. Not in the editor page's import graph."
+    }
+  ],
+  "bundleSha256": "98a8dc48b13c7d02c636dd8fea3a566b805a6d36cbdf3f0eac24d8ef39841c4b"
+}

@@ -118,6 +118,19 @@ async function main() {
       if ((selection.text || "").includes("E1-LC-ISOLATED")) { anchorY = y; break; }
     } catch { /* keep sweeping */ }
   }
+  // The RAW a11y block, which `editorGetStateV2` forwards whole (the product
+  // projection is an allowlist and drops the counters).  This is the
+  // discriminator the second link's result needs: `changeCount` says whether a
+  // LOK_CALLBACK_A11Y_FOCUS_CHANGED has EVER arrived in this build.  Natively,
+  // the focused paragraph is populated the moment accessibility is switched on;
+  // here it comes back empty with `enabled: true, fresh: true`, so the question
+  // is whether the event pipeline runs at all under WASM.
+  const rawState = await engine._request("editorGetStateV2", {
+    documentHandle: handle.handle,
+  }, { timeoutMs: stepTimeoutMs });
+  metrics.cells.rawA11y = rawState?.a11y ?? null;
+  log({ step: "raw-a11y", a11y: metrics.cells.rawA11y });
+
   metrics.cells.anchor = { anchorY };
   log({ step: "anchor", anchorY });
 

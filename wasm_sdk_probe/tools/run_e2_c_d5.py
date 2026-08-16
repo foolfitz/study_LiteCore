@@ -35,7 +35,7 @@ PROJECT = Path(__file__).resolve().parent.parent
 # with the shell.  v3 was the generation D5's machine half and the first two
 # operator rounds ran on; v6 is what the four established operator cells ran on;
 # v7 carries finding 051's fix and v8 finding 052's.
-BUNDLE = PROJECT / "e2" / "editor-shell-v2-bundle-v11.json"
+BUNDLE = PROJECT / "e2" / "editor-shell-v2-bundle-v12.json"
 
 
 def bundle_digest() -> str | None:

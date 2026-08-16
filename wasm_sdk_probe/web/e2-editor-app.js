@@ -32,7 +32,7 @@ import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js"
 
 // The artifact this page is for.  A page that runs on whatever build happens to
 // be in dist/ is a page that can show behaviour no evidence covers.
-const PINNED_WASM_SHA256 = "4dbe9b74d3c55f92";
+const PINNED_WASM_SHA256 = "d538ce0b91478426";
 
 const $ = (selector) => document.querySelector(selector);
 const el = {

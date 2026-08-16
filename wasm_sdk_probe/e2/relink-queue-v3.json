@@ -480,7 +480,7 @@
         },
         {
           "kind": "file-exists",
-          "file": "e2/editor-shell-v2-bundle-v11.json"
+          "file": "e2/editor-shell-v2-bundle-v12.json"
         }
       ]
     },
@@ -534,11 +534,11 @@
     },
     {
       "id": "queue-product-never-enables-accessibility",
-      "title": "the product build never calls setAccessibilityState, so every focused-paragraph read is empty -- WRITTEN 2026-08-17, needs a SECOND link",
+      "title": "the product build never calls setAccessibilityState -- SHIPPED in the second link (d538ce0b); the datum is STILL empty under WASM, which is finding 056",
       "expectation": "present",
       "blocksRelink": true,
       "source": "measured after the v3 link, findings/evidence/queue-block-identity/after-link-v3/",
-      "note": "`refreshEditorAccessibility()` is the only thing that calls setAccessibilityState(..., true), and its single call site sits inside `#ifdef OXSDK_EDITOR_DISCOVERY` AND `#ifndef OXSDK_FINDING_016_SELECTION_BARRIER`. The product profile defines both, so the call is compiled out and getA11yFocusedParagraph() has always returned an empty paragraph there. Found by measurement, not by reading: the first run after the v3 link reported the SAME fingerprint for every paragraph while the caret moved, and that fingerprint was the hash of the empty string. Consequence: the block-identity half of the v3 link -- the barrier comparison and the paragraph in the caret answer -- is INERT on the shipped artifact, and D-BI-2 and D-BI-3 could not have held. The four native rounds this was designed from enabled accessibility themselves, which is the tree\u0027s standing lesson (harness path vs product path) landing one level in. Fixed by calling it at document open, where every profile reaches it.",
+      "note": "`refreshEditorAccessibility()` is the only thing that calls setAccessibilityState(..., true), and its single call site sits inside `#ifdef OXSDK_EDITOR_DISCOVERY` AND `#ifndef OXSDK_FINDING_016_SELECTION_BARRIER`. The product profile defines both, so the call is compiled out and getA11yFocusedParagraph() has always returned an empty paragraph there. Found by measurement, not by reading: the first run after the v3 link reported the SAME fingerprint for every paragraph while the caret moved, and that fingerprint was the hash of the empty string. Consequence: the block-identity half of the v3 link -- the barrier comparison and the paragraph in the caret answer -- is INERT on the shipped artifact, and D-BI-2 and D-BI-3 could not have held. The four native rounds this was designed from enabled accessibility themselves, which is the tree\u0027s standing lesson (harness path vs product path) landing one level in. Fixed by calling it at document open, where every profile reaches it. SHIPPED 2026-08-17 in artifact d538ce0b: the engine now reports enabled:true, unavailable empty and paragraphFresh true -- and the focused paragraph is STILL empty, with changeCount 0. Native, same sequence, same core commit, is populated at once. That is a platform difference and it is finding 056; this item is done, the datum is not.",
       "checks": [
         {
           "kind": "contains",
@@ -554,6 +554,21 @@
         }
       ],
       "checkNote": "Two call sites now: the search one that was already there for the discovery profiles, and the open one that every profile reaches. The second check pins the FNV-1a offset basis, which was typed one digit short until the same measurement exposed it -- a serviceable hash that was not the algorithm its comment named."
+    },
+    {
+      "id": "queue-identity-checked-is-reported-as-unavailable-when-preempted",
+      "title": "paragraphIdentity.checked says 'not run' when another shape answered first -- small, engine-side, next link",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "measured 2026-08-17, findings/evidence/queue-block-identity/after-link-2-d538ce0b/",
+      "note": "The empty-paragraph cell reports paragraphIdentity {checked:false, dispatchKnown:true, readbackKnown:true} -- both reads were available, and the flag still says the check did not run, because multi-block-readback returns from the verdict path before the assignment. The two are consistent but `checked` reads as \u0027the data was missing\u0027 when it means \u0027something else answered first\u0027, and a field that can be read two ways will be. Set it where the data becomes known (right after the readback capture) rather than in the verdict path.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "src/probe_engine.cpp",
+          "text": "identityCheckedAtCapture"
+        }
+      ]
     },
     {
       "id": "queue-verify-caret-by-block-identity",
