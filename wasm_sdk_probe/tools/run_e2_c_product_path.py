@@ -81,11 +81,15 @@ IME_TEXTS = ["甲一", "乙二", "丙三"]
 # --------------------------------------------------------------------- shims
 
 INSTALL = """(() => {
-if (globalThis.__pp) return "already";
+// `window`, not `globalThis`: geckodriver evaluates each script in a
+// Marionette sandbox whose global is recreated per call, so a shim
+// installed on `globalThis` is gone by the next evaluate.  Reads of page
+// globals work either way, which is what made this look fine in Chrome.
+if (window.__pp) return "already";
 const pp = { saves: [], anchorClicks: 0, error: null };
-globalThis.__pp = pp;
-const nativeCreate = URL.createObjectURL.bind(URL);
-URL.createObjectURL = (blob) => {
+window.__pp = pp;
+const nativeCreate = window.URL.createObjectURL.bind(window.URL);
+window.URL.createObjectURL = (blob) => {
   const url = nativeCreate(blob);
   void (async () => {
     try {
@@ -97,8 +101,8 @@ URL.createObjectURL = (blob) => {
   })();
   return url;
 };
-const nativeClick = HTMLAnchorElement.prototype.click;
-HTMLAnchorElement.prototype.click = function () {
+const nativeClick = window.HTMLAnchorElement.prototype.click;
+window.HTMLAnchorElement.prototype.click = function () {
   if (this.hasAttribute("download")) { pp.anchorClicks += 1; return; }
   return nativeClick.call(this);
 };
@@ -112,9 +116,9 @@ return true;
 
 READ_TOAST = "(() => document.querySelector('#toast').textContent)()"
 
-SAVE_COUNT = "(() => globalThis.__pp.saves.length)()"
+SAVE_COUNT = "(() => (window.__pp ? window.__pp.saves.length : -1))()"
 
-READ_SAVE = "(() => globalThis.__pp.saves[ARG_INDEX] || null)()"
+READ_SAVE = "(() => (window.__pp ? window.__pp.saves[ARG_INDEX] : null) || null)()"
 
 PRESS = """(() => {
 const button = document.querySelector('#toolbar button[data-action="ARG_ACTION"]');
@@ -190,6 +194,14 @@ MUTATIONS = {
         "find": 'const { bytes } = await run("儲存", () => session.save());',
         "replace": 'const bytes = await run("儲存", () => session.save());',
         "reintroduces": "finding 049",
+        # Breaking the save button also blinds the IME check, whose document
+        # half is read THROUGH the product's own save -- there is no other way
+        # out of the page, which is the reason finding 049 could hide for as
+        # long as it did.  Declared rather than papered over: the alternative
+        # is an IME check that asks only whether the revision moved, and that
+        # is exactly the criterion round 5 passed while two thirds of a user's
+        # typing was being dropped.
+        "alsoRed": ["every-ime-commit-reaches-the-document"],
     },
     "ime": {
         "check": "every-ime-commit-reaches-the-document",
@@ -383,7 +395,7 @@ def main() -> int:
                         "entries": first.get("entries"),
                         "toast": toast_after_save,
                         "anchorClicks": evaluate(session,
-                                                 "(() => globalThis.__pp.anchorClicks)()")},
+                                                 "(() => window.__pp.anchorClicks)()")},
               oracle="the bytes the product hands to the download begin with the ZIP "
                      "magic and open as an ODT, and its own toast reports a size "
                      "rather than NaN")
@@ -439,19 +451,37 @@ def main() -> int:
         copy_result = evaluate(session, COPY)
         time.sleep(1.5)
         copy_toast = evaluate(session, READ_TOAST) or ""
-        # Three outcomes, and only one of them is the defect: silence.  A typed
-        # clipboard error still means the product asked the engine -- and the
-        # real clipboard write cannot be established headless anyway (WebDriver
-        # refuses it), which is why finding 050's note leaves that half to D5.
-        copied = "已複製" in copy_toast
-        spoke = bool(copy_toast.strip())
+        # The outcome is classified by WHERE in copySelection it came from, not
+        # by whether the product said something.  Read against
+        # input/clipboard-adapter.js:
+        #   已複製 N 字             -- selection read, clipboard written
+        #   CLIPBOARD_DENIED        -- raised only by typedClipboardError(_, "write"),
+        #                              i.e. AFTER getSelection returned a non-empty
+        #                              text/plain selection.  The engine answered;
+        #                              WebDriver refused the OS clipboard.
+        #   CLIPBOARD_EMPTY_SELECTION -- the engine was asked and had nothing
+        #   CLIPBOARD_UNAVAILABLE   -- never reached the engine
+        #   (silence)               -- the defect: no handler at all
+        if "已複製" in copy_toast:
+            outcome = "copied"
+        elif "CLIPBOARD_DENIED" in copy_toast:
+            outcome = "selection-read-clipboard-write-denied"
+        elif "CLIPBOARD_EMPTY_SELECTION" in copy_toast:
+            outcome = "engine-asked-nothing-selected"
+        elif copy_toast.strip():
+            outcome = "other-failure"
+        else:
+            outcome = "silent"
         check("ctrl-c-asks-the-engine",
-              bool(copy_result and copy_result.get("handlerRan")) and spoke,
+              bool(copy_result and copy_result.get("handlerRan"))
+              and outcome in ("copied", "selection-read-clipboard-write-denied"),
               observed={"handlerRan": (copy_result or {}).get("handlerRan"),
-                        "toast": copy_toast, "reportedACount": copied},
+                        "toast": copy_toast, "outcome": outcome},
               oracle="a copy event on the product page is handled by the product "
-                     "(default prevented) and produces a clipboard outcome rather "
-                     "than silence",
+                     "(default prevented) and the ENGINE returns a non-empty "
+                     "selection for it -- proved by which error the clipboard "
+                     "adapter raises, since CLIPBOARD_DENIED on the copy path is "
+                     "reachable only after getSelection has succeeded",
               notEstablished="whether the OS clipboard received the text; WebDriver "
                              "refuses clipboard access, so that half belongs to D5")
         return finish(report, args)
@@ -468,11 +498,14 @@ def main() -> int:
 
 def finish(report: dict, args) -> int:
     checks = report["checks"]
-    must_be_red = MUTATIONS[args.mutate]["check"] if args.mutate != "none" else None
-    if must_be_red:
-        red = next((c for c in checks if c["id"] == must_be_red), None)
-        others_ok = all(c["ok"] for c in checks if c["id"] != must_be_red)
-        report["ok"] = bool(red is not None and not red["ok"] and others_ok)
+    spec = MUTATIONS[args.mutate] if args.mutate != "none" else None
+    if spec:
+        must_be_red = {spec["check"], *spec.get("alsoRed", [])}
+        report["mustGoRed"] = sorted(must_be_red)
+        reds = [c for c in checks if c["id"] in must_be_red]
+        others_ok = all(c["ok"] for c in checks if c["id"] not in must_be_red)
+        report["ok"] = bool(len(reds) == len(must_be_red)
+                            and all(not c["ok"] for c in reds) and others_ok)
         report["verdict"] = (
             "the mutation was detected by the check that owns it"
             if report["ok"] else

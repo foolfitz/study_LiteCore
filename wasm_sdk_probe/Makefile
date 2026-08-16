@@ -175,7 +175,7 @@ FINDING_016_SELECTION_OBJECTS := $(patsubst src/%.cpp,$(FINDING_016_SELECTION_BU
 	test-r7-c-static test-r7-d-static test-r8-a-static test-r8-b-static \
 	test-r8-c-static test-r8-d-static \
 	test-e1-a-static test-e1-b-static test-e1-c-static test-e2-a-static \
-	test-e2-b-static test-e2-c-static e2-c-assets \
+	test-e2-b-static test-e2-c-static test-e2-c-product-path e2-c-assets \
 	test-e1-c-frozen-guard test-e1-c-shell-bundle-tool \
 	test-finding-016-scheduler-static \
 	test-finding-016-selection-barrier-static \
@@ -2092,6 +2092,23 @@ test-e2-b-static:
 	# is a deliberate act with its own note, never a thing `make` does.
 	python3 tools/check_e1_c_bundle_intact.py > /dev/null
 
+# The product page driven down the paths a USER takes.  Not part of
+# test-e2-c-static: it starts browsers, and static means static.
+#
+# Three product defects on 2026-08-16 were found by a person and by nothing
+# else, because every harness in this tree calls session.save() and
+# session.commitText() itself and so never went through the product's own
+# handlers.  This target is that gap closed for the shapes now known, and it
+# proves itself: each --mutate run reintroduces one defect into a symlink
+# mirror of dist (dist is never written) and REQUIRES the matching check to go
+# red.
+test-e2-c-product-path: e2-c-assets
+	python3 tools/run_e2_c_product_path.py --browser chrome
+	python3 tools/run_e2_c_product_path.py --browser firefox
+	python3 tools/run_e2_c_product_path.py --browser chrome --mutate save
+	python3 tools/run_e2_c_product_path.py --browser chrome --mutate ime
+	python3 tools/run_e2_c_product_path.py --browser chrome --mutate copy
+
 # SPEC E2-C.  No prerequisites, same reason as the two below: E2-C's whole
 # scope is shell, runner and judge, and nothing in it may relink or restage an
 # artifact.  If this target ever needs a profile to be built, that is the signal
@@ -2150,6 +2167,7 @@ test-e2-c-static:
 		tools/e2_c_matrix_entry.py tools/analyze_f046_browser.py \
 		tools/analyze_f048_boundary.py tools/analyze_f046_diagnostic.py \
 		tools/analyze_f046_overshoot.py \
+		tools/run_e2_c_product_path.py \
 		tools/validate_e2_c.py
 	python3 -m json.tool e2/relink-queue-v3.json > /dev/null
 	# The relink queue, run instead of read.  It lied twice while it was prose

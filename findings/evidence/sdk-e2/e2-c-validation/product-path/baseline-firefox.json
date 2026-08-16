@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "release": "e2-c-product-path",
+  "browser": "firefox",
+  "fixture": "list-contexts",
+  "isTrusted": false,
+  "notD5": "synthetic events; SPEC E2-C D5 requires trusted input and a human",
+  "shims": [
+    "URL.createObjectURL",
+    "HTMLAnchorElement.prototype.click (download anchors)",
+    "#toast.textContent cleared between steps"
+  ],
+  "mutation": null,
+  "checks": [
+    {
+      "id": "product-save-button-writes-a-real-odt",
+      "ok": true,
+      "observed": {
+        "capturedBytes": 12211,
+        "magic": "504b0304",
+        "head": null,
+        "entries": 9,
+        "toast": "已存出 11.9 KB",
+        "anchorClicks": 1
+      },
+      "oracle": "the bytes the product hands to the download begin with the ZIP magic and open as an ODT, and its own toast reports a size rather than NaN"
+    },
+    {
+      "id": "every-ime-commit-reaches-the-document",
+      "ok": true,
+      "observed": {
+        "revisionBefore": 0,
+        "revisionAfter": 3,
+        "advancedBy": 3,
+        "committed": [
+          "甲一",
+          "乙二",
+          "丙三"
+        ],
+        "foundInSavedOdt": [
+          "甲一",
+          "乙二",
+          "丙三"
+        ],
+        "savedBytes": 12523
+      },
+      "oracle": "three commits through the product's composition path advance the revision three times AND all three strings are in the saved ODT"
+    },
+    {
+      "id": "ctrl-c-asks-the-engine",
+      "ok": true,
+      "observed": {
+        "handlerRan": true,
+        "toast": "複製：CLIPBOARD_DENIED：clipboard write was denied",
+        "outcome": "selection-read-clipboard-write-denied"
+      },
+      "oracle": "a copy event on the product page is handled by the product (default prevented) and the ENGINE returns a non-empty selection for it -- proved by which error the clipboard adapter raises, since CLIPBOARD_DENIED on the copy path is reachable only after getSelection has succeeded",
+      "notEstablished": "whether the OS clipboard received the text; WebDriver refuses clipboard access, so that half belongs to D5"
+    }
+  ],
+  "steps": [
+    {
+      "step": "boot",
+      "state": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "—",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "step": "install-shims",
+      "result": "installed"
+    },
+    {
+      "step": "place-caret",
+      "state": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "定位游標 34 ms",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "step": "ime-commits",
+      "commits": [
+        {
+          "text": "甲一",
+          "sinkAfter": "",
+          "revision": 1,
+          "toast": ""
+        },
+        {
+          "text": "乙二",
+          "sinkAfter": "",
+          "revision": 2,
+          "toast": ""
+        },
+        {
+          "text": "丙三",
+          "sinkAfter": "",
+          "revision": 3,
+          "toast": ""
+        }
+      ],
+      "revisionBefore": 0,
+      "revisionAfter": 3
+    }
+  ],
+  "ok": true,
+  "verdict": "every product path this covers behaves"
+}
