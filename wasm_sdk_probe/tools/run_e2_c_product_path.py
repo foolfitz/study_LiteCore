@@ -144,6 +144,25 @@ return true;
 
 READ_TOAST = "(() => document.querySelector('#toast').textContent)()"
 
+# Hand the product a file through its own <input type=file>, the way a chooser
+# would.  The File is synthesised because neither driver can operate a native
+# file dialog -- so this exercises the page's change handler and NOT the picker,
+# which the check records as its own limit rather than leaving implied.
+OPEN_FILE = """(() => {
+const input = document.querySelector('#file');
+if (!input) return "no-input";
+void (async () => {
+  const bytes = await (await fetch("ARG_URL", { cache: "no-cache" })).arrayBuffer();
+  const file = new File([bytes], "ARG_NAME",
+                        { type: "application/vnd.oasis.opendocument.text" });
+  const transfer = new DataTransfer();
+  transfer.items.add(file);
+  input.files = transfer.files;
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+})();
+return "dispatched";
+})()"""
+
 SAVE_COUNT = "(() => (window.__pp ? window.__pp.saves.length : -1))()"
 
 READ_SAVE = "(() => (window.__pp ? window.__pp.saves[ARG_INDEX] : null) || null)()"
@@ -306,6 +325,23 @@ return { handlerRan: !notPrevented };
 # ----------------------------------------------------------------- mutations
 
 MUTATIONS = {
+    # The failure this check exists to catch is not "opening crashes" -- it is
+    # opening that LOOKS right: the filename updates, the state goes ready, and
+    # the document the engine holds is still the old one.  So the mutation keeps
+    # every visible signal and swaps only the bytes.  A check that asked whether
+    # the label changed would pass this mutation, which is why it does not ask.
+    "open-file": {
+        "check": "product-opens-a-document-the-user-chose",
+        "path": "e2-editor-app.js",
+        "find": "    .then((bytes) => openDocument(bytes, file.name))",
+        "replace": ('    .then(() => fetch("./e1-fixtures/list-contexts.odt")\n'
+                    '      .then((r) => r.arrayBuffer())\n'
+                    '      .then((b) => openDocument(b, file.name)))'),
+        "reintroduces": "a product that can only open its own samples",
+        # Nothing else: the open runs last, after every other check has already
+        # been judged, so this mutation cannot reach them.
+        "alsoRed": [],
+    },
     "save": {
         "check": "product-save-button-writes-a-real-odt",
         "path": "e2-editor-app.js",
@@ -1031,6 +1067,46 @@ def main() -> int:
                              "of the page except by saving, so an edit made after "
                              "the failure cannot be shown to have been discarded "
                              "without destroying the thing being measured")
+
+        # --------------------------------- opening a document the user chose
+        # Until 2026-08-17 the product could only open the samples in its own
+        # dropdown, which makes it a demo of an editor rather than an editor.
+        # The oracle is deliberately NOT "the filename changed" -- a page that
+        # ignored the bytes entirely would still pass that.  It saves afterwards
+        # and looks for text that exists ONLY in the file that was handed over.
+        evaluate(session, CLEAR_TOAST)
+        opened = evaluate(session, OPEN_FILE
+                          .replace("ARG_URL", "./e1-fixtures/markdown-syntax.odt")
+                          .replace("ARG_NAME", "chosen-by-the-user.odt"))
+        shown = wait_for(session,
+                         lambda s: (s.get("doc") or "") == "chosen-by-the-user.odt",
+                         60)
+        saves_before = evaluate(session, SAVE_COUNT)
+        evaluate(session, PRESS.replace("ARG_ACTION", "save"))
+        captured_open = wait_saves(session, (saves_before or 0) + 1)
+        after_open = (zip_report(base64.b64decode(
+            evaluate(session, READ_SAVE.replace(
+                "ARG_INDEX", str((saves_before or 0))))["b64"]))
+            if captured_open else {})
+        text_after = (after_open.get("content") or "")
+        check("product-opens-a-document-the-user-chose",
+              opened == "dispatched" and bool(shown)
+              and is_an_odt(after_open)
+              and "MD-CONTROL" in text_after
+              and "E1-LC-HEADING" not in text_after,
+              observed={"dispatch": opened,
+                        "docLabel": (shown or {}).get("doc"),
+                        "savedIsOdt": is_an_odt(after_open),
+                        "hasChosenFilesText": "MD-CONTROL" in text_after,
+                        "stillHasFixtureText": "E1-LC-HEADING" in text_after},
+              oracle="a file handed to the product's own file input is the "
+                     "document the engine now holds: saving afterwards returns "
+                     "text that exists only in THAT file and none of the text "
+                     "from the fixture that was open before",
+              notEstablished="that a real OS file picker reaches this handler. "
+                             "The File is synthesised and assigned to the input, "
+                             "which exercises the page's change handler and not "
+                             "the chooser -- the same class of gap D5 exists for")
         return finish(report, args)
     finally:
         if session is not None:

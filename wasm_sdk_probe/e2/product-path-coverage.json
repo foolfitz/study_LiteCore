@@ -59,6 +59,11 @@
       "path": "action:insert-paragraph-break",
       "by": "tools/run_e2_c_product_path.py",
       "how": "pressed to create the empty paragraph the recovery route needs; not separately asserted, so it is driven rather than verified -- if it stopped working the recovery route would go red, which is a real if indirect signal."
+    },
+    {
+      "path": "listener:change#file",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a File synthesised from a fixture's bytes is assigned to #file and a change event dispatched, through the page's own handler. The oracle is the document the ENGINE ends up holding -- the run saves afterwards and requires text that exists only in the handed-over file, and none from the fixture that was open before. Mutation `open-file` re-opens the fixture while still updating the filename, and is detected."
     }
   ],
   "waived": [],
@@ -130,6 +135,10 @@
     {
       "path": "listener:resize",
       "risk": "LOW -- relayout and re-render."
+    },
+    {
+      "path": "listener:click#open-file",
+      "risk": "LOW -- one line that forwards a click to #file.click(). Not driven because clicking it opens the OS file chooser, which no driver here can operate and which would block the browser. The handler it forwards to IS driven (listener:change#file), so what is unproven is the forwarding itself, not the opening. Same class of gap as D5's trusted-input requirement: it needs a human, not a better harness."
     }
   ]
 }

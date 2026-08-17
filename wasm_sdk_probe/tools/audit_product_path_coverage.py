@@ -39,7 +39,12 @@ ACTION = re.compile(r"""data-action=["']([a-z-]+)["']""")
 # `el.<name>` in the page maps to the element it was looked up as; the audit
 # names a listener by its event type, and by its element when one element's
 # listener is a different product path from another's with the same type.
-NAMED_ELEMENTS = {"noticeAction": "notice-action", "fixture": "fixture"}
+# `openFile` earns a name for a reason worth stating: without it, the open
+# button's click collapses into the toolbar's `listener:click` and the audit
+# reports full coverage of a path nothing drives.  A path that hides inside
+# another path is the failure this audit exists to prevent.
+NAMED_ELEMENTS = {"noticeAction": "notice-action", "fixture": "fixture",
+                  "openFile": "open-file", "file": "file"}
 
 
 def page_paths(project: Path, page: Path, markup: Path) -> list[str]:

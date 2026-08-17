@@ -38,6 +38,7 @@ const $ = (selector) => document.querySelector(selector);
 const el = {
   canvas: $("#canvas"), paper: $("#paper"), desk: $("#desk"), sink: $("#sink"),
   toolbar: $("#toolbar"), fixture: $("#fixture"), text: $("#text"),
+  openFile: $("#open-file"), file: $("#file"),
   statePill: $("#state-pill"), toast: $("#toast"), expired: $("#expired"),
   notice: $("#notice"), noticeText: $("#notice-text"),
   noticeAction: $("#notice-action"),
@@ -371,17 +372,20 @@ function showExpired(details) {
   for (const button of el.toolbar.querySelectorAll("button"))
     button.disabled = true;
   el.fixture.disabled = true;
+  // The hidden input is unreachable once its button is disabled, but a control
+  // that is only unreachable by layout is not disabled -- say it outright.
+  el.file.disabled = true;
 }
 
-async function openFixture(id) {
+// The bytes are the only thing that ever differed between a bundled sample and
+// a document the user chose: both end at the same `session.open({bytes, name})`.
+// Splitting the fetch off is the whole of "open a real file" -- there is no
+// engine side to it, which is why it does not need a link.
+async function openDocument(bytes, name) {
   if (session) {
     try { await session.close(); } catch { /* a dead session must not block */ }
     session = null;
   }
-  const name = `${id}.odt`;
-  const response = await fetch(`./e1-fixtures/${name}`, { cache: "no-cache" });
-  if (!response.ok) throw new Error(`fixture fetch failed: ${response.status}`);
-  const bytes = await response.arrayBuffer();
   session = new NarrowEditorV2Session({
     engineFactory,
     clipboard: navigator.clipboard,
@@ -421,8 +425,32 @@ async function openFixture(id) {
   updateGestureAffordance();
 }
 
+async function openFixture(id) {
+  const name = `${id}.odt`;
+  const response = await fetch(`./e1-fixtures/${name}`, { cache: "no-cache" });
+  if (!response.ok) throw new Error(`fixture fetch failed: ${response.status}`);
+  await openDocument(await response.arrayBuffer(), name);
+}
+
 el.fixture.addEventListener("change", () => {
   void openFixture(el.fixture.value)
+    .catch((error) => toast(describeError(error), true));
+});
+
+el.openFile.addEventListener("click", () => el.file.click());
+
+el.file.addEventListener("change", () => {
+  const file = el.file.files?.[0];
+  // Clearing the input is what lets the same file be re-opened; without it a
+  // second pick of the same path fires no change event at all.
+  el.file.value = "";
+  if (!file) return;
+  // The fixture select must stop naming a document that is no longer open --
+  // a control that reports the wrong document is the shape of finding 054.
+  el.fixture.value = "";
+  void file.arrayBuffer()
+    .then((bytes) => openDocument(bytes, file.name))
+    .then(() => toast(`已開啟 ${file.name}`))
     .catch((error) => toast(describeError(error), true));
 });
 

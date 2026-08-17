@@ -65,6 +65,19 @@ PROJECT = Path(__file__).resolve().parent.parent
 #   v8 -- finding 052: a click OUTSIDE every line box (below the last line, say)
 #         is confirmed when the engine moves the caret, instead of waiting out
 #         the 30 s timeout and being refused.
+#   v9 -- findings 053 and 054: the product prescribed a recovery whose button
+#         it did not show, and read a reload flag nobody ever wrote.
+#   v10, v11 -- pinning the product page at the v3 artifact.  Two generations
+#         because pointing a page at an artifact turned out to be two separate
+#         statements (the worker URL and the pin), and the guard caught the
+#         first attempt with only one of them changed.
+#   v12 -- the second v3 link (artifact d538ce0b): the worker projects the
+#         engine's new caretParagraph/formatStale fields.  The generation the
+#         finding 056 measurement is bound to.
+#   v13 -- the product can open a document the USER chose, not only the samples
+#         in its own dropdown (web/e2-editor.html + web/e2-editor-app.js).  A
+#         shell-only change: `session.open({bytes, name})` was already the one
+#         door in, so there is no engine side and it needed no link.
 FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v2.json"),
                     Path("e2/editor-shell-v2-bundle-v3.json"),
@@ -75,9 +88,10 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v8.json"),
                     Path("e2/editor-shell-v2-bundle-v9.json"),
                     Path("e2/editor-shell-v2-bundle-v10.json"),
-                    Path("e2/editor-shell-v2-bundle-v11.json"))
+                    Path("e2/editor-shell-v2-bundle-v11.json"),
+                    Path("e2/editor-shell-v2-bundle-v12.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v12.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v13.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
