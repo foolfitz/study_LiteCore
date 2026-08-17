@@ -39,6 +39,12 @@ import { recoveryFor } from "./paragraph-editor-session.js";
 const PARAGRAPH = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
 const ACTIONS = new Set(EDITOR_V2_ACTIONS);
 
+// A Symbol, not a string key: this rides through the base class's resolve path
+// on an object the base class treats as an opaque result, and a string key
+// could collide with a field a future engine payload adds.  It never leaves
+// `action()` -- the `.then` below unwraps it and rethrows the original error.
+const DISPATCHED_UNVERIFIED = Symbol("dispatchedUnverified");
+
 export class NarrowEditorV2Session extends EditorSession {
   constructor(options = {}) {
     super(options);
@@ -82,11 +88,37 @@ export class NarrowEditorV2Session extends EditorSession {
           return await editor.action(action, options);
         } catch (error) {
           this._blockQueueIfDispatched(error);
+          // Finding 046's residual.  Declining to block is NOT enough to keep
+          // the queue open: the base class blocks on the CODE, and
+          // MUTATION_OUTCOME_UNKNOWN is in its RECOVERY_ERRORS
+          // (editor-shell/editor-session.js:20, reached at :325).  That file is
+          // hash-registered by E1-C, so it cannot be edited.
+          //
+          // The base class only reaches that decision when the operation
+          // REJECTS -- `item.reject(error)` at :316 runs first, then the block
+          // is a side effect keyed on the code.  So resolve instead, and
+          // rethrow outside the drain.  The caller still gets the original
+          // error object, with its original code.
+          //
+          // The sentinel carries no `state`, so the drain's success path takes
+          // its fallback at :301-302 and asks the engine for one.  That is not
+          // incidental: if the engine is wedged the call raises TIMEOUT, which
+          // IS in RECOVERY_ERRORS, and the queue blocks after all.  The
+          // softening revokes itself whenever the engine cannot show it is
+          // alive.
+          if (recoveryFor(error) === "review")
+            return { [DISPATCHED_UNVERIFIED]: error };
           throw error;
         }
       },
       { mutation: true },
-    ).catch((error) => { throw this._withDisposition(error); });
+    )
+      .then((result) => {
+        const carried = result?.[DISPATCHED_UNVERIFIED];
+        if (carried) throw carried;
+        return result;
+      })
+      .catch((error) => { throw this._withDisposition(error); });
   }
 
   setList(kind, options = {}) {

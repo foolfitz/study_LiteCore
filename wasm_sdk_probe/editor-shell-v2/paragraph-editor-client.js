@@ -235,6 +235,26 @@ export function formatFailureDisposition(error) {
   const barrier = error?.details?.formatBarrier ?? error?.formatBarrier ?? null;
   if (barrier && barrier.dispatched === false)
     return "refused-no-mutation";
+  // Finding 046's residual.  On the collapsed route the barrier makes its own
+  // read with `.uno:SelectText`, and on an EMPTY paragraph that selection
+  // swallows the paragraph below (measured, 8 cells x 2 browsers,
+  // findings/evidence/046/overshoot/, scope EMPTY-PARAGRAPH-ONLY).  The read
+  // then covers two paragraphs, the barrier rightly declines to say which one
+  // it describes -- and the disposition turned that into "roll back", so
+  // pressing the bullet button on a blank line told the user to discard every
+  // edit since the last checkpoint.  The bullet had applied.
+  //
+  // This is NOT a claim that the action succeeded; the barrier did not verify
+  // it and nothing here does either.  It is a claim about what a host should DO
+  // about an unverified dispatch whose only cost, if it went wrong, is one undo
+  // -- as against a rollback that is always destructive.
+  //
+  // Narrow on purpose: dispatched, collapsed route, and this one shape.  Any
+  // other unverified dispatch keeps the rollback it has today.
+  if (barrier && barrier.dispatched === true
+      && barrier.route === "collapsed"
+      && barrier.failureShape === "multi-block-readback")
+    return "dispatched-unverified";
   if (barrier && barrier.dispatched === true)
     return "dispatched-rollback";
   // Checked after the barrier, never before: if the engine ever did attach a

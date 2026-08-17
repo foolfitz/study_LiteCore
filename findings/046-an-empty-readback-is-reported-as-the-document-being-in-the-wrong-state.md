@@ -302,3 +302,58 @@ gesture mask、route 不謊報、ABI → 3）確實在樹裡。
 `findings/evidence/sdk-e2/e2-c-validation/d2-presweep/`（D2 的掃描輪），
 `d2-refused-no-mutation-engine` 那一格。更正用的兩個出口在
 `d2-narrow/run-2/`（零寬 selectRange）與 `d2-narrow/caret-click-arm/`（產品點擊）。
+
+---
+
+## 2026-08-17 —— 殘留的**處置**已修（殼層 v14),驗證仍然沒有恢復
+
+**分清楚兩件事**:
+
+| | 狀態 |
+|---|---|
+| barrier **拒絕給結論** | **沒有改,而且是對的**——讀回涵蓋兩段,它確實不知道描述的是哪一段 |
+| 那個拒絕**被翻譯成「回檢查點」** | **已修** |
+
+也就是說:修的是**處置**,不是判決。在空白行上按項目符號,現在 session 留在
+`ready`、佇列不擋、復原可用,訊息說「已送出、無法單獨核對、請自行確認」。
+
+### 為什麼 a11y 那條路死了也沒關係
+
+原本的處方是用 accessibility 的段落指紋去比對「派送的那一段」與「讀回的那一段」。
+[[056]]／[[057]] 之後那條路在這個平台上沒有輸入。**但那條路本來就修不好這一格**:
+`multiBlock` 的檢查在**識別檢查之前**就 return 了(`probe_engine.cpp:3806` 對
+`:3852`),所以這一格從來走不到識別比對。失去 a11y 對這個缺陷的代價,比看起來小。
+
+### 判準之外的三件事,都記下來
+
+1. **B 案（驗 block[0])被否決,不是延後。** 既有證據顯示目標在 block[0] 且已帶目標
+   狀態,但那是**同一顆引擎跑兩次**——兩個瀏覽器不是這個宣稱的兩次獨立量測——而且
+   只涵蓋 `empty-mid` 一種形狀。反例:向**上**溢出、而上面那段本來就已經是項目符號、
+   動作其實失敗——「恰好一塊帶目標狀態」的護欄照樣放行,而且放行的正是它要擋的那格。
+2. **文件最後一行的空段落不在涵蓋範圍。** 實測它**到不了 readback**
+   （`stage-deadline:awaiting-selection`,另一條路)。**不要說「空白行按項目符號不會
+   再叫你回檔」——對最常見的那種空白行,那句是假的。**
+3. **代價已量到:回歸網失去了唯一進得了 `recoverable-error` 的路。**
+   `notice-action-recovers-the-session` 現在報 `NOT_ESTABLISHED`;
+   `review-disposition` 突變讓這一對同時反向移動。recovery 路徑**不是壞了,是沒被涵蓋**,
+   欠一個新的誘發手段。
+
+### 實作為什麼長這樣
+
+「不要擋佇列」比想像難:基底類別是看**錯誤碼**擋的
+（`editor-shell/editor-session.js:20` 的 `RECOVERY_ERRORS` 含
+`MUTATION_OUTCOME_UNKNOWN`,在 `:325` 生效),而那個檔案**綁在 E1-C 的雜湊上,不能動**。
+第一版只改了 `_blockQueueIfDispatched`,**訊息換了、session 照樣被擋**——量出來的。
+
+做法是:讓那個操作以 sentinel **resolve**(基底的 catch 只在 reject 時才跑),
+在 drain 外面再把原始錯誤丟出來。原始錯誤碼原封不動。
+
+**而且它會自我撤銷**:sentinel 沒有帶 `state`,所以 drain 走成功路徑時會向引擎
+要一次 `getState`。引擎若卡住,那一次會 TIMEOUT,而 TIMEOUT **在** `RECOVERY_ERRORS`
+裡——佇列照樣會被擋。放寬只在引擎能證明自己活著的時候成立。
+
+外部裁決:fable(2026-08-17)。**我原本的兩個候選都被否決**:直接 `_invalidateDrain()`
+會讓 session 卡在 `busy`（drain 的 `finally` 只在 token 相符時才轉回 `ready`),
+而換錯誤碼會讓 host 看到的碼和引擎送出的碼分岔。第三條路是 fable 提的。
+
+契約變更寫在 SPEC E2-C **2.6b**,與殼層世代**同一次**出貨。

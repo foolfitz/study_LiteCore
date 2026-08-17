@@ -206,7 +206,15 @@ async function run(label, operation) {
     const recovery = error?.recovery;
     toast(`${label}：${describeError(error)}` +
           (recovery === "rollback" ? "（可能已經改到文件：請回到檢查點）"
-           : recovery === "restart" ? "（需要重新開啟文件）" : ""), true);
+           : recovery === "restart" ? "（需要重新開啟文件）"
+           // Finding 046's residual.  Says dispatched-and-unverified, and does
+           // NOT say it worked -- the barrier did not verify it.  Undo is
+           // named because "review" leaves the queue open, which is the only
+           // reason that advice is honest.
+           : recovery === "review"
+             ? "（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。"
+               + "請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+           : ""), true);
     throw error;
   }
 }
@@ -331,6 +339,23 @@ el.sink.addEventListener("copy", (event) => {
     .then((result) => toast(`已複製 ${result?.codePoints ?? "?"} 字`))
     .catch(() => {});
 });
+
+// NO paste listener here, deliberately, and it is not an oversight.
+//
+// Ctrl+V looks like the copy defect above -- `session.pasteEvent()` exists and
+// nothing calls it -- and on 2026-08-17 a handler was written on exactly that
+// reasoning.  The mutation round measured it: the marker landed in the saved
+// document TWICE (markOccurrences 2, revision +2).  Paste already arrives, as
+// `beforeinput` with inputType insertFromPaste, which the input adapter
+// attached to this sink already commits.  Adding a page-level handler makes a
+// second commit of the same text.
+//
+// The two cases are not the same shape after all: the canvas has no DOM
+// selection for the browser to copy FROM, so copy needed the engine asked; the
+// sink is a real editable target, so paste arrives on its own.  `pasteEvent()`
+// is for hosts without an input sink.  `ctrl-v-reaches-the-document` in the
+// product-path runner now requires EXACTLY ONE occurrence, so re-adding a
+// handler here goes red rather than looking like success.
 
 el.canvas.addEventListener("pointermove", (event) => {
   if (!drag.active || !session?.document) return;

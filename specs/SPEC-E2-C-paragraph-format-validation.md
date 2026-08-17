@@ -224,6 +224,53 @@ fail closed 是對的——**但它適用的是「不知道有沒有派送」**�
 測試同時測常數表與**客戶端真的丟出來的那些錯誤**，因為只測常數表的話，
 客戶端改丟別的碼也會通過。
 
+### 2.6b `recovery` 新增第四個值 `review`（2026-08-17，殼層 v14）
+
+**契約變更。** `recovery` 是 host 面向的欄位——「處置是欄位,不是從訊息猜的」
+（`e2-editor-app.js`）——所以**加一個值就是改契約**,即使沒有任何錯誤碼改變。
+與殼層世代**同一次出貨**,不是先出行為再補文件。
+
+| 值 | 意思 |
+|---|---|
+| `none` | 沒派送,文件沒被碰過 |
+| `rollback` | 派送了且無法驗證 → 從 checkpoint 重開 |
+| **`review`** | **派送了,這個 build 驗不了「這一個形狀」,而且佇列沒有被擋** |
+| `restart` | handle 不能用了 |
+
+**觸發條件（窄,而且只有這一組)**：
+`dispatched === true && route === "collapsed" && failureShape === "multi-block-readback"`。
+其他任何無法驗證的派送**維持 `rollback` 不變**。
+
+**為什麼**：finding 046 的殘留。收合游標落在**空段落**時,barrier 自己用
+`.uno:SelectText` 讀回,而那個選取會**吞掉下面那一段**(實測 8 格 × 2 瀏覽器,
+`findings/evidence/046/overshoot/`,範圍 EMPTY-PARAGRAPH-ONLY)。讀回涵蓋兩段,
+barrier **正確地**拒絕說它描述的是哪一段——然後處置把這件事變成「回檢查點」。
+於是「在空白行上按項目符號」這種再普通不過的編輯,會叫使用者丟掉自上次
+checkpoint 以來的所有工作。**而項目符號其實已經套用了。**
+
+**這不是宣稱動作成功。** barrier 沒驗證,這裡也沒有。它宣稱的是「host 該怎麼做」:
+一個未驗證的派送若真的出錯,代價是一次復原;而 rollback **一定**是破壞性的。
+
+**新增行為,值得單獨一句**：排在 review 形狀失敗**後面**的操作現在會**執行**,
+而不是被拒絕。這是刻意的——`_blockQueue` 會把佇列裡每一個項目都 reject,
+而「請按復原」這個建議,只有在復原真的還能用的時候才是誠實的。
+
+**自我撤銷**：實作讓該操作以 sentinel **resolve**,所以基底類別的 drain 走成功路徑,
+而 sentinel 沒有帶 `state` → drain 會向引擎要一次 `getState`。**引擎若卡住,
+那一次呼叫會 TIMEOUT,而 TIMEOUT 在基底的 `RECOVERY_ERRORS` 裡,佇列照樣會被擋。**
+換句話說,這個放寬在「引擎無法證明自己活著」的時候會自己收回。
+
+**明確不涵蓋**：文件**最後一行**的空段落。實測它**根本到不了 readback**
+（`stage-deadline:awaiting-selection`,另一條路徑,見
+`findings/evidence/046/overshoot/README.md`),所以它仍然是 `rollback`。
+**不要說「在空白行上按項目符號不會再叫你回檔了」——對最常見的那種空白行,
+那句話是假的。**
+
+**已知代價（量過兩邊)**：046 這一格是產品路徑回歸網**唯一**進得了
+`recoverable-error` 的路,所以 `notice-action-recovers-the-session` 失去它的誘發手段,
+現在報 `NOT_ESTABLISHED`。`review-disposition` 突變讓這一對同時反向移動。
+**recovery 路徑不是壞了,是沒有被涵蓋**;欠一個新的誘發手段。
+
 ### 2.7 一併繼承的縮限
 
 **從 E2-A 繼承六項**（[SPEC E2-B](./SPEC-E2-B-paragraph-format-contract.md) 2.2）：

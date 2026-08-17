@@ -643,6 +643,38 @@
         }
       ],
       "checkNote": "Declared absent and watched as absent, per the queue's own semantics: when the next link implements this, these go DRIFT and force a deliberate expectation flip in the diff, rather than the tree quietly acquiring it. Both halves deliberately -- the string alone could be typed into a comment, and the include alone could sit there unused."
+    },
+    {
+      "id": "queue-quantifier-check-for-multi-block-readback",
+      "title": "verify a multi-block readback by QUANTIFIER (all blocks / no blocks) instead of refusing outright -- engine-side, needs a link",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "finding 046 residual; adjudicated by fable 2026-08-17",
+      "note": "The shell now softens the DISPOSITION for this shape (recovery: review, shell v14, SPEC E2-C 2.6b), which stops an ordinary blank-line bullet from demanding a rollback. It does not restore VERIFICATION. The engine-side fix that would, without depending on the accessibility paragraph identity that findings 056/057 established is unavailable on this platform: checkFormatBarrierCrossParagraph() already verifies that EVERY block reached the target (itemCount == blocks, everyBlockHasTag). Apply the same quantifier on the collapsed route when multiBlock fires and containment held -- all blocks in the target state means the target is too (containment put it among them), and no block in the target state means the postcondition genuinely failed and a rollback is earned. Mixed stays UNKNOWN and keeps the review disposition. Sound with NO assumption about block order, which is why it is this and not 'verify block[0]' -- that was rejected with a counterexample, see finding 046. Needs its own PREDICTION.md covering the shapes the overshoot README names as unmeasured: empty-before-empty, empty-before-list, and empty-at-document-end (which does not reach a readback at all today -- stage-deadline:awaiting-selection -- and is a separate problem).",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "src/probe_engine.cpp",
+          "text": "collapsedQuantifierVerdict"
+        }
+      ],
+      "checkNote": "Declared absent and watched as absent: when a link implements it, this goes DRIFT and forces a deliberate expectation flip in the diff rather than the tree quietly acquiring it."
+    },
+    {
+      "id": "queue-recovery-path-lost-its-inducer",
+      "title": "the product-path net has no route into recoverable-error any more -- not an engine item, but it is owed",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "measured 2026-08-17 when shell v14 landed",
+      "note": "Finding 046's cell was the only route this runner had into recoverable-error, and softening its disposition removed it: notice-action-recovers-the-session now reports NOT_ESTABLISHED. The review-disposition mutation shows the pair moving together, so this is measured rather than inferred. The recovery path is not broken and is not covered. A new inducer needs a dispatched failure whose shape is NOT multi-block-readback; the footnote-apparatus shape is the obvious candidate and the endnote-frame fixture exists, and the product can now open an arbitrary document, so the runner could open it rather than needing a second fixture argument. Recorded here rather than in a backlog nobody reads because losing coverage silently is exactly what this queue exists to prevent.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "tools/run_e2_c_product_path.py",
+          "text": "INDUCE_FOOTNOTE_APPARATUS"
+        }
+      ],
+      "checkNote": "Absent until a new inducer exists; flipping it is a deliberate edit."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

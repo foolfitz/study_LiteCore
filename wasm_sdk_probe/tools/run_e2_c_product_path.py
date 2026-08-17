@@ -83,6 +83,8 @@ IME_TEXTS = ["甲一", "乙二", "丙三"]
 # every fixture, so finding it in a saved ODT is a statement about the press
 # that put it there.
 INSERT_MARK = "插入鈕標記"
+# Non-ASCII on purpose: a paste path that mangles UTF-8 passes an ASCII marker.
+PASTE_MARK = "貼上標記PASTEMARK"
 
 # The fixture's own text, used as a witness that a check did not destroy the
 # document around what it was measuring.  It is only ever REQUIRED if a previous
@@ -322,9 +324,83 @@ const notPrevented = sink.dispatchEvent(
 return { handlerRan: !notPrevented };
 })()"""
 
+# A paste carrying real text.  `clipboardData` is only settable through the
+# ClipboardEvent constructor on some engines; when it is not, the event arrives
+# with nothing on it and the check must say it could not run rather than fail
+# the product -- so the driver reports whether the payload survived.
+PASTE = """(() => {
+const sink = document.querySelector('#sink');
+sink.focus();
+let data = null;
+try {
+  data = new DataTransfer();
+  data.setData('text/plain', 'ARG_TEXT');
+} catch (error) { return { payloadSurvived: false, why: String(error) }; }
+const event = new ClipboardEvent('paste',
+  { bubbles: true, cancelable: true, clipboardData: data });
+// Firefox's constructor drops clipboardData (measured 2026-08-17: the handler
+// ran and reported an empty clipboard).  Define it instead, exposing only the
+// two members the clipboard adapter reads -- `types` and `getData` -- so the
+// shim cannot accidentally supply an affordance the real event lacks.
+let shimmed = false;
+if (!event.clipboardData || event.clipboardData.getData('text/plain') !== 'ARG_TEXT') {
+  Object.defineProperty(event, 'clipboardData', {
+    configurable: true,
+    get: () => ({ types: ['text/plain'],
+                  getData: (type) => (type === 'text/plain' ? 'ARG_TEXT' : '') }),
+  });
+  shimmed = true;
+}
+const payloadSurvived =
+  !!event.clipboardData &&
+  event.clipboardData.getData('text/plain') === 'ARG_TEXT';
+const notPrevented = sink.dispatchEvent(event);
+return { payloadSurvived, shimmed, eventCanceled: !notPrevented };
+})()"""
+
 # ----------------------------------------------------------------- mutations
 
 MUTATIONS = {
+    # The defect as it actually was until 2026-08-17: the session had
+    # pasteEvent() and no listener called it, so a paste fell through to the
+    # browser's default on a canvas -- silently nothing.  Renaming the event is
+    # the closest thing to "the handler was never written".
+    # Finding 046's residual, the disposition half.  Turning the sentinel off
+    # restores the pre-2026-08-17 behaviour exactly: the operation rejects, the
+    # frozen base class sees MUTATION_OUTCOME_UNKNOWN in its RECOVERY_ERRORS,
+    # and the session blocks -- so an ordinary blank-line bullet again leaves
+    # rollback as the user's only exit.
+    "review-disposition": {
+        "check": "bulleting-a-blank-line-does-not-demand-a-rollback",
+        "path": "editor-shell-v2/narrow-editor-v2-session.js",
+        "find": '          if (recoveryFor(error) === "review")',
+        "replace": '          if (recoveryFor(error) === "review-off-by-mutation")',
+        "reintroduces": "a blank-line bullet that bricks the session",
+        "alsoRed": [],
+        # With the queue blocked again, the recovery path HAS an inducer again,
+        # so this check goes from NOT_ESTABLISHED back to PASS. Declared so the
+        # run does not look like the mutation fixed something.
+        "alsoNotEstablished": [],
+    },
+    # Aimed at the mechanism that actually commits a paste. Measured
+    # 2026-08-17, twice: a page-level paste handler was written first on the
+    # assumption that nothing handled paste, and it DOUBLED every paste
+    # (markOccurrences 2); then this mutation was aimed at beforeinput's
+    # commit-text branch and was not detected either. The adapter binds `paste`
+    # directly (input-adapter.js:78) and `handlePaste` commits it. Two wrong
+    # guesses about which code runs, both caught by requiring the mutation to
+    # be detected rather than by reading.
+    "paste": {
+        "check": "ctrl-v-reaches-the-document",
+        "path": "input/input-adapter.js",
+        "find": '    this._trace(event, "paste", { action: "commit-plain-text", htmlPresent });',
+        "replace": ('    this._trace(event, "paste", { action: "paste-dropped-by-mutation" });\n'
+                    '    if (text) return Promise.resolve({ committed: false, reason: "mutation" });'),
+        "reintroduces": "a product you cannot paste into",
+        # Nothing else: the paste runs after every other check has been judged,
+        # and the IME checks commit through the composition path.
+        "alsoRed": [],
+    },
     # The failure this check exists to catch is not "opening crashes" -- it is
     # opening that LOOKS right: the filename updates, the state goes ready, and
     # the document the engine holds is still the old one.  So the mutation keeps
@@ -651,7 +727,9 @@ def main() -> int:
         "notD5": "synthetic events; SPEC E2-C D5 requires trusted input and a human",
         "shims": ["URL.createObjectURL",
                   "HTMLAnchorElement.prototype.click (download anchors)",
-                  "#toast.textContent cleared between steps"],
+                  "#toast.textContent cleared between steps",
+                  "ClipboardEvent.clipboardData (Firefox drops it from the "
+                  "constructor; defined onto the event with types/getData only)"],
         "mutation": args.mutate if args.mutate != "none" else None,
         "checks": [],
         "steps": [],
@@ -975,12 +1053,48 @@ def main() -> int:
             blocked = wait_for(
                 session, lambda s: s.get("state") in ("recoverable-error",
                                                       "restart-required"), 60)
+            empty_cell_state = evaluate(session, READ_STATE) or {}
+            empty_cell_toast = evaluate(session, READ_TOAST) or ""
             attempts.append({
                 "recipe": "finding 053: click past the line end, break the "
                           "paragraph, list the empty one (finding 046's cell)",
                 "state": (blocked or {}).get("state"),
                 "latency": (blocked or {}).get("latency"),
-                "toast": evaluate(session, READ_TOAST)})
+                "toast": empty_cell_toast})
+
+            # Finding 046's residual.  Bulleting a blank line is an ordinary
+            # edit; until 2026-08-17 it put the session into recoverable-error
+            # and told the user to discard everything since the checkpoint.
+            # The barrier still declines to verify this shape -- that part is
+            # correct and unchanged -- but the DISPOSITION is now "review": the
+            # queue stays open, so undo is reachable, which is the only thing
+            # that makes the advice honest.
+            check("bulleting-a-blank-line-does-not-demand-a-rollback",
+                  empty_cell_state.get("state") == "ready"
+                  and "無法單獨核對" in empty_cell_toast
+                  and "請回到檢查點" not in empty_cell_toast,
+                  observed={"state": empty_cell_state.get("state"),
+                            "toast": empty_cell_toast,
+                            "queueStillOpen":
+                                empty_cell_state.get("state") == "ready"},
+                  oracle="the product's own buttons, on the cell finding 046 was "
+                         "measured on: the session stays ready (so undo is "
+                         "reachable) and the message says dispatched-but-"
+                         "unverified rather than prescribing a rollback",
+                  notEstablished="that the bullet APPLIED. The barrier could not "
+                                 "verify it and neither can this check -- saying "
+                                 "otherwise is the claim finding 046 was filed "
+                                 "for. What is checked is the disposition")
+
+            # DECLARED COST, measured both ways on 2026-08-17: this cell was the
+            # only route this runner had into `recoverable-error`, so keeping the
+            # queue open costs `notice-action-recovers-the-session` its inducer
+            # and it now reports NOT_ESTABLISHED. The `review-disposition`
+            # mutation shows the pair moving together -- sentinel off, this check
+            # red and the recovery check PASS again. The recovery path is not
+            # broken and is not covered; a new inducer is owed (a dispatched
+            # failure whose shape is NOT multi-block-readback, e.g. the
+            # footnote-apparatus shape on the endnote fixture).
         offered = evaluate(session, READ_NOTICE)
         report["steps"].append({"step": "induce-dispatched-failure",
                                 "state": blocked, "notice": offered,
@@ -1005,6 +1119,13 @@ def main() -> int:
         # queue, or the format action it dispatched completed.
         latency = (blocked or {}).get("latency") or ""
         recipe_ran = "項目符號" in latency
+        # The notice verdict used to `return finish()` on both of its
+        # unreachable branches. That was fine while it was the last check; it is
+        # not fine now that checks follow it, and shell v14 made the
+        # NOT_ESTABLISHED branch the NORMAL path -- so returning there silently
+        # stopped running the paste and open-file checks. Measured, not noticed:
+        # the run came back with seven checks instead of nine.
+        notice_judged = False
         if not reached and not recipe_ran:
             check("notice-action-recovers-the-session", False,
                   observed={"stateAfterRecipe": (blocked or {}).get("state"),
@@ -1014,8 +1135,8 @@ def main() -> int:
                          " complete the format action it dispatches; neither"
                          " happened, so the product path itself is broken --"
                          " this is NOT the 'precondition unreachable' case")
-            return finish(report, args)
-        if not reached:
+            notice_judged = True
+        if not reached and not notice_judged:
             # Finding 047's sequence did not block the queue here.  That is NOT
             # a verdict on 047: it was measured on 2026-08-15 through a
             # different harness and a shell generation before finding 048
@@ -1042,31 +1163,89 @@ def main() -> int:
                   oracle="a dispatched failure blocks the queue, the product "
                          "OFFERS its recovery button, pressing it returns the "
                          "session to ready, and the product can save afterwards")
-            return finish(report, args)
-        check("notice-action-recovers-the-session",
-              reached and bool((offered or {}).get("shown"))
-              and (offered or {}).get("disabled") is False
-              and bool(pressed_notice)
-              and (restarted or {}).get("state") == "ready"
-              and is_an_odt(after_rollback),
-              observed={"stateAfterFailure": (blocked or {}).get("state"),
-                        "noticeOffered": offered,
-                        "buttonFound": pressed_notice,
-                        "stateAfterPress": (restarted or {}).get("state"),
-                        "toast": notice_toast,
-                        "savedBytesAfter": after_rollback.get("bytes"),
-                        "savedIsOdt": is_an_odt(after_rollback)},
-              oracle="a dispatched failure blocks the queue, the product OFFERS "
-                     "its recovery button, pressing it returns the session to "
-                     "ready, and the product can save a real ODT afterwards -- "
-                     "undo in its place would return EDITOR_NOT_READY on the "
-                     "queue the failure just blocked, which is why SPEC E2-B "
-                     "5.13 prescribes rollback and not undo",
-              notEstablished="WHICH bytes came back.  A save moves the authority "
-                             "bytes and there is no way to read the document out "
-                             "of the page except by saving, so an edit made after "
-                             "the failure cannot be shown to have been discarded "
-                             "without destroying the thing being measured")
+            notice_judged = True
+        if not notice_judged:
+          check("notice-action-recovers-the-session",
+                reached and bool((offered or {}).get("shown"))
+                and (offered or {}).get("disabled") is False
+                and bool(pressed_notice)
+                and (restarted or {}).get("state") == "ready"
+                and is_an_odt(after_rollback),
+                observed={"stateAfterFailure": (blocked or {}).get("state"),
+                          "noticeOffered": offered,
+                          "buttonFound": pressed_notice,
+                          "stateAfterPress": (restarted or {}).get("state"),
+                          "toast": notice_toast,
+                          "savedBytesAfter": after_rollback.get("bytes"),
+                          "savedIsOdt": is_an_odt(after_rollback)},
+                oracle="a dispatched failure blocks the queue, the product OFFERS "
+                       "its recovery button, pressing it returns the session to "
+                       "ready, and the product can save a real ODT afterwards -- "
+                       "undo in its place would return EDITOR_NOT_READY on the "
+                       "queue the failure just blocked, which is why SPEC E2-B "
+                       "5.13 prescribes rollback and not undo",
+                notEstablished="WHICH bytes came back.  A save moves the authority "
+                               "bytes and there is no way to read the document out "
+                               "of the page except by saving, so an edit made after "
+                               "the failure cannot be shown to have been discarded "
+                               "without destroying the thing being measured")
+
+        # ------------------------------------------------------ Ctrl+V arrives
+        # The mirror of the copy defect: `pasteEvent()` sat on the session and
+        # nothing called it, so the product could copy OUT of the document and
+        # not back in.  Placed here, after every check with a positional save
+        # index, so adding it cannot renumber them.
+        evaluate(session, POINT_AT.replace("ARG_X", "0.35").replace("ARG_Y", "0.28"))
+        wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+        evaluate(session, CLEAR_TOAST)
+        before_paste = revision_of(evaluate(session, READ_STATE))
+        paste_result = evaluate(session, PASTE.replace("ARG_TEXT", PASTE_MARK))
+        pasted_state = wait_for(
+            session,
+            lambda s, floor=before_paste: revision_of(s) is not None
+            and floor is not None and revision_of(s) > floor, 20)
+        paste_toast = evaluate(session, READ_TOAST) or ""
+        saves_before_paste = evaluate(session, SAVE_COUNT) or 0
+        evaluate(session, PRESS.replace("ARG_ACTION", "save"))
+        pasted_doc = (zip_report(base64.b64decode(
+            evaluate(session, READ_SAVE.replace(
+                "ARG_INDEX", str(saves_before_paste)))["b64"]))
+            if wait_saves(session, saves_before_paste + 1) else {})
+        payload_survived = bool((paste_result or {}).get("payloadSurvived"))
+        check("ctrl-v-reaches-the-document",
+              payload_survived
+              and pasted_state is not None
+              and is_an_odt(pasted_doc)
+              and (pasted_doc.get("content") or "").count(PASTE_MARK) == 1,
+              outcome=None if payload_survived else "NOT_ESTABLISHED",
+              observed={"payloadSurvived": payload_survived,
+                        "clipboardDataShimmed": (paste_result or {}).get("shimmed"),
+                        # Observed, NOT required: whoever cancels the paste
+                        # event is not the subject. The product has no paste
+                        # listener at all (see e2-editor-app.js) and the text
+                        # still arrives, which is the whole point.
+                        "eventCanceled": (paste_result or {}).get("eventCanceled"),
+                        "revisionBefore": before_paste,
+                        "revisionAfter": revision_of(pasted_state or {}),
+                        "toast": paste_toast,
+                        "markOccurrences":
+                            (pasted_doc.get("content") or "").count(PASTE_MARK)},
+              oracle="a paste event on the product page reaches the DOCUMENT: it "
+                     "advances the revision, and the pasted "
+                     "text appears EXACTLY ONCE in the ODT the product saves "
+                     "afterwards -- the document, not the toast. Exactly once, not "
+                     "merely present: the sink also sees `beforeinput` with "
+                     "insertFromPaste, so a page-level paste handler that fails to "
+                     "cancel the event commits the same text twice, and `in` would "
+                     "call that a pass",
+              notEstablished="whether a REAL Ctrl+V carrying the OS clipboard "
+                             "reaches this handler. The payload is synthesised "
+                             "through the ClipboardEvent constructor, and where "
+                             "that constructor drops the payload (Firefox) it is "
+                             "defined onto the event exposing only `types` and "
+                             "`getData`. If even that does not take, the check "
+                             "reports NOT_ESTABLISHED rather than failing the "
+                             "product")
 
         # --------------------------------- opening a document the user chose
         # Until 2026-08-17 the product could only open the samples in its own

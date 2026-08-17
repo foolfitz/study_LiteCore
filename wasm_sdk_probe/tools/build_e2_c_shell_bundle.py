@@ -78,6 +78,11 @@ PROJECT = Path(__file__).resolve().parent.parent
 #         in its own dropdown (web/e2-editor.html + web/e2-editor-app.js).  A
 #         shell-only change: `session.open({bytes, name})` was already the one
 #         door in, so there is no engine side and it needed no link.
+#   v14 -- finding 046's residual: bulleting a blank line no longer demands a
+#         rollback.  `recovery` gains a fourth value, `review` (SPEC E2-C 2.6b,
+#         written in the same generation).  Also shell-only, and also no link --
+#         the disposition was always decided host-side from fields the frozen
+#         worker already projects.
 FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v2.json"),
                     Path("e2/editor-shell-v2-bundle-v3.json"),
@@ -89,9 +94,10 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v9.json"),
                     Path("e2/editor-shell-v2-bundle-v10.json"),
                     Path("e2/editor-shell-v2-bundle-v11.json"),
-                    Path("e2/editor-shell-v2-bundle-v12.json"))
+                    Path("e2/editor-shell-v2-bundle-v12.json"),
+                    Path("e2/editor-shell-v2-bundle-v13.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v13.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v14.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

@@ -36,6 +36,9 @@ import { formatFailureDisposition, ParagraphEditorClient }
  *                     session may continue
  *   "rollback"        something was dispatched and could not be verified; reopen
  *                     from the last checkpoint (or authority) bytes
+ *   "review"          something was dispatched, this build cannot verify THIS
+ *                     shape, and the queue is NOT blocked -- so undo is still
+ *                     reachable.  Show the result and let the user decide.
  *   "restart"         the handle is not usable; a fresh worker is required
  */
 export function recoveryFor(error) {
@@ -50,6 +53,12 @@ export function recoveryFor(error) {
   const disposition = formatFailureDisposition(error);
   if (disposition === "refused-no-mutation")
     return "none";
+  // Deliberately NOT "rollback": `_blockQueueIfDispatched` blocks the queue only
+  // for "rollback", and a blocked queue is what makes undo unreachable and
+  // rollback the user's only exit.  Keeping the queue open is the whole point --
+  // the advice "check it and undo if it is wrong" is honest only if undo works.
+  if (disposition === "dispatched-unverified")
+    return "review";
   // "unknown-rollback" lands here too, and deliberately: when the barrier was
   // not forwarded there is no way to tell a refusal from a dispatch, and the
   // asymmetry is stark.  A needless rollback costs one action; a missed one
