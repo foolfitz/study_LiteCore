@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "release": "core-build-capability",
+  "coreBuild": "/home/jiajun/LibreOffice/study_LiteCore/wasm-lite/build-headless-probe",
+  "capabilities": [
+    {
+      "capability": "writer-lok-accessibility",
+      "why": "getA11yFocusedParagraph() and LOK_CALLBACK_A11Y_FOCUS_CHANGED are the only source of paragraph identity in LOK (measured: LOK has no paragraph index anywhere).  Without this, every caret fingerprint is the hash of an empty string and finding 046's identity gate has no input -- not broken, unfed.",
+      "objectsCompiled": false,
+      "missingObjects": [
+        "workdir/CxxObject/sw/source/core/access/accmap.o",
+        "workdir/CxxObject/sw/source/core/access/accpara.o",
+        "workdir/CxxObject/sw/source/core/access/accdoc.o"
+      ],
+      "macro": "ENABLE_WASM_STRIP_ACCESSIBILITY",
+      "macroValue": 1,
+      "macroRequired": 0,
+      "callersCompiled": false,
+      "provided": false
+    }
+  ],
+  "notProvidedByCoreBuild": [
+    "writer-lok-accessibility"
+  ],
+  "ok": false
+}

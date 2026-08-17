@@ -1,0 +1,22 @@
+# Object counts in sw/source/core/access, same source commit
+wasm  2
+native 28
+
+# Which two survive in the wasm build
+AccessibilityCheck.o
+AccessibilityIssue.o
+
+# Build switches
+wasm   make-var: export ENABLE_WASM_STRIP_ACCESSIBILITY=TRUE
+native make-var: export ENABLE_WASM_STRIP_ACCESSIBILITY=
+wasm   cxx-macro: #define ENABLE_WASM_STRIP_ACCESSIBILITY 1
+native cxx-macro: #define ENABLE_WASM_STRIP_ACCESSIBILITY 0
+
+# Symbols in the SHIPPED artifact probe.wasm d538ce0b9147...
+SwAccessibleMap                    0
+SwAccessibleDocument               0
+SwAccessibleParagraph              0
+accmap.cxx                         0
+accpara.cxx                        0
+LOKDocumentFocusListener           45
+LOK_CALLBACK_A11Y_FOCUS_CHANGED    1

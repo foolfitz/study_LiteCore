@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "release": "core-build-capability",
+  "coreBuild": "/home/jiajun/LibreOffice/study_LiteCore/build-native-26-8",
+  "capabilities": [
+    {
+      "capability": "writer-lok-accessibility",
+      "why": "getA11yFocusedParagraph() and LOK_CALLBACK_A11Y_FOCUS_CHANGED are the only source of paragraph identity in LOK (measured: LOK has no paragraph index anywhere).  Without this, every caret fingerprint is the hash of an empty string and finding 046's identity gate has no input -- not broken, unfed.",
+      "objectsCompiled": true,
+      "missingObjects": [],
+      "macro": "ENABLE_WASM_STRIP_ACCESSIBILITY",
+      "macroValue": 0,
+      "macroRequired": 0,
+      "callersCompiled": true,
+      "provided": true
+    }
+  ],
+  "notProvidedByCoreBuild": [],
+  "ok": true
+}
