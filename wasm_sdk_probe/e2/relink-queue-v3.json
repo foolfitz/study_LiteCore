@@ -675,6 +675,102 @@
         }
       ],
       "checkNote": "Absent until a new inducer exists; flipping it is a deliberate edit."
+    },
+    {
+      "id": "queue-typing-path-has-no-delete-or-arrows",
+      "title": "Backspace and Delete are dropped by the input adapter, and arrows produce no beforeinput -- correcting a typo needs the mouse",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "usable-editor acceptance checklist, 2026-08-17",
+      "note": "input/input-adapter.js falls deleteContentBackward and deleteContentForward into `ignored-input-type`, and arrow keys raise no beforeinput at all. So the product can be typed into but not corrected from the keyboard: fixing a character means clicking and pressing the toolbar's delete button. This is NOT a keyboard-shortcut nicety -- backspace is the primary deletion path of any editor. Shell-only: beforeinput carries the inputType, and delete-backward/delete-forward are already contracted actions with wire ids.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "input/input-adapter.js",
+          "text": "deleteContentBackward"
+        }
+      ],
+      "checkNote": "Absent until the adapter maps those input types. Watched as absent so acquiring it is a deliberate edit."
+    },
+    {
+      "id": "queue-redo-and-line-movement-need-wire-ids",
+      "title": "redo and move-line-up/down/home/end exist in the engine but have no product wire id -- a link, not a shell change",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "usable-editor acceptance checklist, 2026-08-17",
+      "note": "The engine implements both (redo dispatches .uno:Redo; the four move-line actions postKeyEvent Key::UP/DOWN/HOME/END, and the product build's preprocessor confirms they are reachable). What is missing is the CONTRACT: EDITOR_V2_ACTION_IDS is exactly fifteen actions and wire ids 1-15 are used up, while the engine's own enum numbers move-line-up as 3 -- the same wire id the product uses for delete-backward. So adding them needs new ids, an engine mapping and a manifest entry. SPEC E2-C 4.2 also lists both under 明確不承諾, so it is a contract revision as well as a link. Corrected here after I told the user it was shell-only: I checked the engine and stopped, which is the wrong layer to stop at.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "sdk/sdk-worker.js",
+          "text": "\"redo\": 16"
+        }
+      ],
+      "checkNote": "Absent until a new wire id exists for redo. 16 rather than 12 on purpose: 12 is the DISCOVERY map's id for redo and is already taken in the v2 map by set-list-unordered, which is how the two numberings were confused in the first place."
+    },
+    {
+      "id": "queue-no-keyboard-shortcuts",
+      "title": "the product has no keydown handler at all -- no Ctrl+Z, no Ctrl+B, no Ctrl+A",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "usable-editor acceptance checklist, 2026-08-17",
+      "note": "grep for keydown/keyup/keypress across editor-shell-v2, editor-shell, input, sdk, reader-shell and the page returns nothing. Deliberately sequenced AFTER driving the fourteen uncovered actions: binding Ctrl+B onto today's set-bold would duplicate whatever is wrong with it onto a second path, and this tree has three findings (049, 050, Ctrl+C) that are all 'the surface existed and nobody exercised it'. Ctrl+S also needs a preventDefault or the browser's own save dialog opens.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "web/e2-editor-app.js",
+          "text": "addEventListener(\"keydown\""
+        }
+      ],
+      "checkNote": "Absent until the page binds keydown."
+    },
+    {
+      "id": "queue-no-cut",
+      "title": "cut is not wired anywhere",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "usable-editor acceptance checklist, 2026-08-17",
+      "note": "No cut handler in the page or the adapters. Copy works without any keydown because the browser fires a `copy` event on Ctrl+C; cut is the same listener pattern plus a delete of the selection. Shell-only.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "input/input-adapter.js",
+          "text": "\"cut\""
+        }
+      ],
+      "checkNote": "Absent until a cut path exists."
+    },
+    {
+      "id": "queue-viewport-wall-never-measured",
+      "title": "the page draws the whole document as one canvas and repaints all of it per edit -- never measured past one page",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "usable-editor acceptance checklist, 2026-08-17",
+      "note": "layoutCanvas sizes a single canvas to the full document and renderDocument repaints it after every edit. Browsers cap canvas dimensions near 32767px, so at MAX_BACKING_WIDTH 2400 an A4 document reaches the cap somewhere around a dozen pages and rendering breaks silently and browser-dependently; below the cap the per-edit repaint cost grows with document length. 'Open a user's own file' is verified for OPENING only -- nothing has ever measured that a realistic document stays editable. The machinery for the fix is already imported: editor-session.js pulls TileScheduler from reader-shell. First step is a measurement, not a fix: add a 20-page cell and find out where it actually breaks.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "tools/run_e2_c_product_path.py",
+          "text": "LONG_DOCUMENT_CELL"
+        }
+      ],
+      "checkNote": "Absent until a long-document cell exists in the product-path runner."
+    },
+    {
+      "id": "queue-inline-format-argument-is-rejected-by-core",
+      "title": "finding 059: the 045 fix shipped and all four inline formats now fail with LOK_COMMAND_FAILED -- engine-side, needs a link",
+      "expectation": "absent",
+      "blocksRelink": true,
+      "source": "finding 059, measured on the shipped v3 artifact 2026-08-17",
+      "note": "inlineFormatArgument() dispatches .uno:Bold with {\"Bold\":{\"type\":\"boolean\",\"value\":...}} and core rejects it on the shipped WASM build; bold, italic and underline all return LOK_COMMAND_FAILED and put the session into recoverable-error. The list actions use the same parameterised mechanism and still work, so the difference is this slot's argument name or type, not parameters in general. On v2 (before the fix) bold APPLIED and merely ignored `enabled` -- which is finding 045 -- so the fix turned a wrong-direction action into no action at all. BLOCKS the next link because shipping again without resolving it ships a build whose formatting buttons cannot be used. Two candidates, both needing native measurement FIRST: withdraw inlineFormatArgument (back to v2 behaviour, on-only), or find the argument form core accepts. Mechanism deliberately not named (040/048 precedent).",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "src/probe_engine.cpp",
+          "text": "inlineFormatArgumentResolved"
+        }
+      ],
+      "checkNote": "Absent until the engine carries a resolved form, under a name that did not exist before so the flip is visible in the diff. Deliberately NOT watching `inlineFormatArgument` itself: it is present today and present is exactly the state that is broken."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

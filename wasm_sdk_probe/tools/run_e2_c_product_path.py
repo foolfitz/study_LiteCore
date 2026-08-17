@@ -82,6 +82,18 @@ IME_TEXTS = ["甲一", "乙二", "丙三"]
 # The marker the insert button types.  Distinct from IME_TEXTS and absent from
 # every fixture, so finding it in a saved ODT is a statement about the press
 # that put it there.
+# Checks that are RED for a real, filed defect rather than for anything this run
+# did.  Declared here so a mutation round is not confounded by them -- and
+# declared with the finding, because "known failure" without a name is how a red
+# check becomes wallpaper.  `finish()` reports the declaration STALE the moment
+# one of these passes, so it cannot outlive the defect.
+KNOWN_RED = {
+    "bold-can-be-turned-off-again":
+        "finding 059: the 045 fix shipped and core now rejects the parameterised "
+        ".uno:Bold, so all four inline formats fail with LOK_COMMAND_FAILED. "
+        "Engine-side, needs a link (queue-inline-format-argument-is-rejected-by-core).",
+}
+
 INSERT_MARK = "插入鈕標記"
 # Non-ASCII on purpose: a paste path that mangles UTF-8 passes an ASCII marker.
 PASTE_MARK = "貼上標記PASTEMARK"
@@ -163,6 +175,28 @@ void (async () => {
   input.dispatchEvent(new Event("change", { bubbles: true }));
 })();
 return "dispatched";
+})()"""
+
+# Finding 058.  Not "did the image change" -- that passes on any repaint, and
+# not "read the caret rectangle from the session" either: the product page
+# deliberately publishes no handle, which is the convention that keeps it a
+# product rather than a harness.
+#
+# So: sample a narrow column of the canvas at the point that was clicked, with
+# the caret there and again after it has moved away.  The tile does not change
+# between the two reads -- only the caret does -- so the DIFFERENCE is the
+# caret's ink at a place the harness chose. A page that draws no caret scores
+# the same both times, whatever glyphs happen to be in the column.
+CARET_INK = """(() => {
+const canvas = document.querySelector('#canvas');
+const y = Math.floor(canvas.height * ARG_Y) - 18;
+const h = 46;
+if (y < 0 || y + h > canvas.height) return { available: false };
+const data = canvas.getContext('2d').getImageData(0, y, canvas.width, h).data;
+let dark = 0;
+for (let i = 0; i < data.length; i += 4)
+  if (data[i] < 100 && data[i+1] < 100 && data[i+2] < 100) dark += 1;
+return { available: true, dark, band: { y, h, width: canvas.width } };
 })()"""
 
 SAVE_COUNT = "(() => (window.__pp ? window.__pp.saves.length : -1))()"
@@ -365,6 +399,17 @@ MUTATIONS = {
     # pasteEvent() and no listener called it, so a paste fell through to the
     # browser's default on a canvas -- silently nothing.  Renaming the event is
     # the closest thing to "the handler was never written".
+    # Finding 058.  Turning off the caret draw restores the state the product
+    # shipped in until 2026-08-17: a tile and nothing else. The check has to go
+    # red on that, or it is measuring a repaint rather than a caret.
+    "caret": {
+        "check": "the-caret-is-drawn-where-it-was-placed",
+        "path": "e2-editor-app.js",
+        "find": "  if (caret && editorState.selection?.collapsed !== false) {",
+        "replace": '  if (caret && editorState.selection?.collapsed === "never") {',
+        "reintroduces": "an editor with no visible caret",
+        "alsoRed": [],
+    },
     # Finding 046's residual, the disposition half.  Turning the sentinel off
     # restores the pre-2026-08-17 behaviour exactly: the operation rejects, the
     # frozen base class sees MUTATION_OUTCOME_UNKNOWN in its RECOVERY_ERRORS,
@@ -1247,6 +1292,88 @@ def main() -> int:
                              "reports NOT_ESTABLISHED rather than failing the "
                              "product")
 
+        # --------------------------------------- 058: is the caret DRAWN?
+        # Every other check in this file reads the DOM or the saved ODT, and
+        # all of them pass on a page that paints nothing but the tile. That is
+        # how a product with no visible caret kept nine checks green.
+        CARET_A = ("0.35", "0.28")
+        CARET_B = ("0.35", "0.42")
+        evaluate(session, POINT_AT.replace("ARG_X", CARET_A[0])
+                 .replace("ARG_Y", CARET_A[1]))
+        wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+        time.sleep(1.0)
+        ink_present = evaluate(session, CARET_INK.replace("ARG_Y", CARET_A[1]))
+        # Move it away; the tile is unchanged, so whatever the column loses is
+        # the caret.
+        evaluate(session, POINT_AT.replace("ARG_X", CARET_B[0])
+                 .replace("ARG_Y", CARET_B[1]))
+        wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+        time.sleep(1.0)
+        ink_absent = evaluate(session, CARET_INK.replace("ARG_Y", CARET_A[1]))
+        reachable = bool((ink_present or {}).get("available")
+                         and (ink_absent or {}).get("available"))
+        check("the-caret-is-drawn-where-it-was-placed",
+              reachable
+              and (ink_present or {}).get("dark", 0)
+                  > (ink_absent or {}).get("dark", 0),
+              outcome=None if reachable else "NOT_ESTABLISHED",
+              observed={"darkWithCaret": (ink_present or {}).get("dark"),
+                        "darkAfterItMovedAway": (ink_absent or {}).get("dark"),
+                        "band": (ink_present or {}).get("band")},
+              oracle="the canvas band containing the line the caret was placed "
+                     "on carries more dark pixels than the same band after the "
+                     "caret moved to another line -- the tile is identical "
+                     "between the two reads, so the difference is the caret. A "
+                     "band and not a column because the caret snaps to a text "
+                     "position and its x is not the click's x",
+              notEstablished="the sample band fell outside the canvas, which is "
+                             "a harness problem, not a product one")
+
+        # ------------------------------- 045, the product half: bold turns OFF
+        # LAST on purpose. Three constraints stack up: the checks above take
+        # saves by POSITIONAL index so inserting anything earlier renumbers
+        # them; the session must be healthy, and the notice block can leave it
+        # in recoverable-error; and set-bold is offered for a COLLAPSED caret
+        # only -- measured here, `EDITOR_FORMAT_GESTURE_UNSUPPORTED` on a range
+        # selection, which is SPEC E2-C 2.5's gesture mask doing its job.
+        #
+        # The oracle is the product's own rendering of engine state. The page
+        # sets aria-pressed on B from `editorState.format.bold`, and sends
+        # `enabled: !(state === true)`. If it went back to sending `true`
+        # unconditionally -- the defect -- the engine would stay bold and
+        # aria-pressed would stay "true" on the second press.
+        evaluate(session, POINT_AT.replace("ARG_X", "0.30").replace("ARG_Y", "0.24"))
+        wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+        evaluate(session, CLEAR_TOAST)
+        read_pressed = ("(() => document.querySelector('#toolbar "
+                        "button[data-action=\"set-bold\"]')"
+                        ".getAttribute('aria-pressed'))()")
+        pressed_before = evaluate(session, read_pressed)
+        evaluate(session, PRESS.replace("ARG_ACTION", "set-bold"))
+        time.sleep(2.0)
+        pressed_on = evaluate(session, read_pressed)
+        bold_toast = evaluate(session, READ_TOAST) or ""
+        evaluate(session, PRESS.replace("ARG_ACTION", "set-bold"))
+        time.sleep(2.0)
+        pressed_off = evaluate(session, read_pressed)
+        # The engine has to be able to answer at all; a build whose format cache
+        # never fills would leave this null and the check cannot speak.
+        answerable = pressed_on is not None or pressed_off is not None
+        check("bold-can-be-turned-off-again",
+              answerable and pressed_on == "true" and pressed_off == "false",
+              outcome=None if answerable else "NOT_ESTABLISHED",
+              observed={"ariaPressedBefore": pressed_before,
+                        "ariaPressedAfterFirstPress": pressed_on,
+                        "ariaPressedAfterSecondPress": pressed_off,
+                        "toastAfterFirstPress": bold_toast},
+              oracle="pressing B twice on a collapsed caret leaves the engine "
+                     "reporting NOT bold. Until 2026-08-17 the page sent "
+                     "`enabled: true` unconditionally, so the second press "
+                     "asked for bold again and this would stay \"true\"",
+              notEstablished="the engine reported no format state at all "
+                             "(aria-pressed absent), so nothing here is about "
+                             "the page's choice of `enabled`")
+
         # --------------------------------- opening a document the user chose
         # Until 2026-08-17 the product could only open the samples in its own
         # dropdown, which makes it a demo of an editor rather than an editor.
@@ -1308,6 +1435,13 @@ def finish(report: dict, args) -> int:
                      if c.get("outcome") == "NOT_ESTABLISHED"]
     report["notEstablishedChecks"] = unestablished
     judged = [c for c in checks if c.get("outcome") != "NOT_ESTABLISHED"]
+    # A declared known-red check that PASSES means the defect is fixed and the
+    # declaration is now hiding a real signal.  Reported either way.
+    still_red = [c["id"] for c in judged if c["id"] in KNOWN_RED and not c["ok"]]
+    healed = [c["id"] for c in judged if c["id"] in KNOWN_RED and c["ok"]]
+    report["knownRed"] = {cid: KNOWN_RED[cid] for cid in still_red}
+    report["staleKnownRedDeclarations"] = healed
+
     spec = MUTATIONS[args.mutate] if args.mutate != "none" else None
     if spec and spec.get("expectedToBeDetected") is False:
         # A mutation this harness does NOT claim to catch.  Recorded with its
@@ -1349,7 +1483,8 @@ def finish(report: dict, args) -> int:
         reds = [c for c in judged if c["id"] in must_be_red]
         others_ok = all(c["ok"] for c in judged
                         if c["id"] not in must_be_red
-                        and c["id"] not in declared_void)
+                        and c["id"] not in declared_void
+                        and c["id"] not in KNOWN_RED)
         report["ok"] = bool(len(reds) == len(must_be_red)
                             and all(not c["ok"] for c in reds) and others_ok
                             and not stale_void)
@@ -1361,11 +1496,18 @@ def finish(report: dict, args) -> int:
              "THE MUTATION WAS NOT DETECTED -- the check cannot fail, did not "
              "run, or another check failed with it"))
     else:
-        report["ok"] = bool(judged) and all(c["ok"] for c in judged)
+        report["ok"] = bool(judged) and all(
+            c["ok"] for c in judged if c["id"] not in KNOWN_RED)
         report["verdict"] = (
             ("every product path this covers behaves"
-             + (f"; {len(unestablished)} not established" if unestablished else ""))
+             + (f"; {len(unestablished)} not established" if unestablished else "")
+             + (f"; {len(still_red)} known red" if still_red else ""))
             if report["ok"] else "a product path is broken")
+    if healed:
+        report["ok"] = False
+        report["verdict"] = (f"a check declared KNOWN_RED passed: {healed} -- the "
+                             "defect is fixed and the declaration must be removed "
+                             "before it hides the next one")
     text = json.dumps(report, indent=2, ensure_ascii=False)
     if args.out:
         Path(args.out).write_text(text + "\n", encoding="utf-8")

@@ -39,6 +39,7 @@ const el = {
   canvas: $("#canvas"), paper: $("#paper"), desk: $("#desk"), sink: $("#sink"),
   toolbar: $("#toolbar"), fixture: $("#fixture"), text: $("#text"),
   openFile: $("#open-file"), file: $("#file"),
+  clearFormat: $("#clear-format"),
   statePill: $("#state-pill"), toast: $("#toast"), expired: $("#expired"),
   notice: $("#notice"), noticeText: $("#notice-text"),
   noticeAction: $("#notice-action"),
@@ -59,6 +60,10 @@ let documentName = "—";
 let rendering = false;
 let renderAgain = false;
 let lastSelectionShape = "collapsed";
+// The last tile the engine painted, kept so a caret move can be drawn without
+// asking for pixels again (finding 058).  Cleared on resize, where the canvas
+// changes size and the cached pixels stop describing it.
+let lastTile = null;
 
 function toast(message, bad = false) {
   el.toast.textContent = message;
@@ -109,6 +114,9 @@ function updateState(snapshot) {
       || snapshot.error?.details?.requiresPageReload === true;
   }
   updateGestureAffordance();
+  // Finding 058.  The caret arrives as a state update, not as a document
+  // change, so redrawing only on render would leave it a gesture behind.
+  paint();
 }
 
 /**
@@ -131,6 +139,18 @@ function updateGestureAffordance() {
     button.title = offered ? "" :
       `manifest 沒有為「${lastSelectionShape}」宣告這個動作`;
   }
+  // Show the state for the two formats the engine can actually answer for, and
+  // for no others.  `aria-pressed` is only set when the answer is known: a
+  // button that renders a state it is guessing at is the trap the toggle bug
+  // already was, one layer up.  Underline and strikethrough get no pressed
+  // state because core keeps no cache for them.
+  for (const action of ["set-bold", "set-italic"]) {
+    const button = el.toolbar.querySelector(`[data-action="${action}"]`);
+    if (!button) continue;
+    const state = formatStateFor(action);
+    if (state === null) button.removeAttribute("aria-pressed");
+    else button.setAttribute("aria-pressed", state ? "true" : "false");
+  }
 }
 
 /* ----------------------------------------------------------------- canvas */
@@ -146,6 +166,9 @@ function layoutCanvas() {
   el.canvas.height = Math.round(backingWidth * ratio);
   el.canvas.style.width = `${cssWidth}px`;
   el.canvas.style.height = `${Math.round(cssWidth * ratio)}px`;
+  // Setting width/height clears the canvas AND invalidates the cached tile,
+  // which is sized in device pixels for the old dimensions.
+  lastTile = null;
 }
 
 async function renderDocument(retriesLeft = 6) {
@@ -162,8 +185,9 @@ async function renderDocument(retriesLeft = 6) {
       canvasWidthPx: el.canvas.width,
       canvasHeightPx: el.canvas.height,
     }, { timeoutMs: 60000 });
-    el.canvas.getContext("2d").putImageData(new ImageData(
-      new Uint8ClampedArray(tile.pixels), tile.width, tile.height), 0, 0);
+    lastTile = new ImageData(
+      new Uint8ClampedArray(tile.pixels), tile.width, tile.height);
+    paint();
   } catch (error) {
     // A repaint that lands while a barrier is still settling comes back BUSY.
     // The canvas is a frame behind; the document is fine.
@@ -176,6 +200,63 @@ async function renderDocument(retriesLeft = 6) {
   } finally {
     rendering = false;
     if (renderAgain) { renderAgain = false; void renderDocument(); }
+  }
+}
+
+/**
+ * Finding 058: draw the caret and the selection.
+ *
+ * The engine has always sent both -- `caret` and `selection.rectangles` reach
+ * the page in `editorState`, and the page used the rectangles only to COUNT
+ * them for gesture shape.  Its one drawing call pasted the tile.  LOK does not
+ * paint the text cursor or the selection into tiles; they arrive as callback
+ * rectangles for the client to draw, and the client never did.  So a user
+ * clicked and saw nothing move, dragged and saw nothing highlight.
+ *
+ * Nine product-path checks were green throughout, because every one of them
+ * reads the DOM or the saved ODT -- and all of those pass on a page that draws
+ * nothing at all.
+ *
+ * The tile is cached so the overlay can be repainted on a caret move without
+ * asking the engine for pixels again: a caret arriving as a state update must
+ * not cost a full document render.
+ */
+function paint() {
+  if (!lastTile) return;
+  const context = el.canvas.getContext("2d");
+  context.putImageData(lastTile, 0, 0);
+  const editorState = session?.state?.snapshot?.editorState;
+  if (!editorState || !session?.document) return;
+
+  // Rectangles are twips in document space; the canvas is the whole document.
+  const scaleX = el.canvas.width / session.document.widthTwips;
+  const scaleY = el.canvas.height / session.document.heightTwips;
+  const box = (r) => [r.x * scaleX, r.y * scaleY,
+                      Math.max(1, r.width * scaleX),
+                      Math.max(1, r.height * scaleY)];
+
+  const rectangles = editorState.selection?.rectangles;
+  if (Array.isArray(rectangles) && rectangles.length) {
+    context.save();
+    // Multiply keeps the glyphs readable under the wash instead of covering
+    // them, which a filled rectangle at any useful opacity would do.
+    context.globalCompositeOperation = "multiply";
+    context.fillStyle = "#b7d3f2";
+    for (const rectangle of rectangles) context.fillRect(...box(rectangle));
+    context.restore();
+  }
+
+  // The caret last, so it is never washed over by the selection it sits in.
+  // Drawn only when the selection is collapsed: LOK keeps sending a cursor
+  // rectangle during a range selection, and painting a caret in the middle of
+  // a highlight says something about the document that is not true.
+  const caret = editorState.caret;
+  if (caret && editorState.selection?.collapsed !== false) {
+    const [x, y, , height] = box(caret);
+    context.save();
+    context.fillStyle = "#1a1a1a";
+    context.fillRect(x, y, Math.max(1, Math.round(scaleX * 15)), height);
+    context.restore();
   }
 }
 
@@ -219,10 +300,50 @@ async function run(label, operation) {
   }
 }
 
+// Finding 045, the product half.  The ENGINE has taken an explicit boolean
+// since the v3 link -- `inlineFormatArgument` builds
+// {"Bold":{"type":"boolean","value":...}} from it -- and this line sent `true`
+// unconditionally, so from a user's seat bold could be turned on and never off.
+// The fix shipped in the artifact and the page never used it.
+//
+// Bold and italic are decided from state: the worker already projects
+// `format: {bold, italic}` as a tri-state (null = the engine does not know).
+// Underline and strikethrough have no state to read -- core keeps no cache for
+// them (probe_engine.cpp says neither is in GetKitUnoCommandList) -- so they
+// stay one-way here and get their off path from 清除格式 below, which claims
+// nothing about the current state.
+//
+// Note what the 045 fix buys beyond correctness: an explicit set is ROBUST
+// under a stale read.  Guess wrong and the user presses again and it is right,
+// because the second dispatch names the value it wants.  A toggle would turn a
+// stale read into a silent no-op.
+function formatStateFor(action) {
+  const format = session?.state?.snapshot?.editorState?.format;
+  if (action === "set-bold") return format?.bold ?? null;
+  if (action === "set-italic") return format?.italic ?? null;
+  return null;
+}
+
 async function editorAction(action) {
   const label = el.toolbar.querySelector(`[data-action="${action}"]`).textContent.trim();
-  const options = FORMAT_ACTIONS.has(action) ? { enabled: true } : {};
+  const options = FORMAT_ACTIONS.has(action)
+    // `=== true` and not truthiness: null means the engine has no answer, and
+    // the honest response to that is to ask for ON, which is what the button
+    // says it does.
+    ? { enabled: formatStateFor(action) !== true }
+    : {};
   await run(label, () => session.action(action, options));
+}
+
+// Every inline format turned off in one press.  This is the off path for
+// underline and strikethrough, which have no readable state, and it is honest
+// precisely because it asserts nothing about what was on: it asks for off.
+async function clearInlineFormatting() {
+  for (const action of ["set-bold", "set-italic", "set-underline",
+                        "set-strikethrough"]) {
+    await run("清除格式", () => session.action(action, { enabled: false }));
+  }
+  toast("已清除粗體、斜體、底線、刪除線");
 }
 
 async function insertText() {
@@ -463,6 +584,11 @@ el.fixture.addEventListener("change", () => {
 });
 
 el.openFile.addEventListener("click", () => el.file.click());
+
+el.clearFormat.addEventListener("click", () => {
+  if (!session?.document) return;
+  void clearInlineFormatting().catch(() => {});
+});
 
 el.file.addEventListener("change", () => {
   const file = el.file.files?.[0];

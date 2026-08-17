@@ -83,6 +83,11 @@ PROJECT = Path(__file__).resolve().parent.parent
 #         written in the same generation).  Also shell-only, and also no link --
 #         the disposition was always decided host-side from fields the frozen
 #         worker already projects.
+#   v15 -- finding 058: the page draws the caret and the selection.  Both were
+#         delivered all along (editorState.caret, selection.rectangles) and the
+#         page's only drawing call pasted the tile, so a user clicked and saw
+#         nothing move.  Plus finding 045's product half: the page stopped
+#         sending `enabled: true` unconditionally.
 FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v2.json"),
                     Path("e2/editor-shell-v2-bundle-v3.json"),
@@ -95,9 +100,10 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v10.json"),
                     Path("e2/editor-shell-v2-bundle-v11.json"),
                     Path("e2/editor-shell-v2-bundle-v12.json"),
-                    Path("e2/editor-shell-v2-bundle-v13.json"))
+                    Path("e2/editor-shell-v2-bundle-v13.json"),
+                    Path("e2/editor-shell-v2-bundle-v14.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v14.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v15.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
@@ -250,6 +256,10 @@ def main() -> int:
                         help="exclude a module from the bundle, with a reason; "
                              "'this file is not covered' is a claim somebody has "
                              "to make, so it does not get a default")
+    parser.add_argument("--force", action="store_true",
+                        help="rewrite an existing manifest whose digest would "
+                             "change -- discards the record of what a round ran "
+                             "on, so it is never the routine answer")
     parser.add_argument("--frozen-date", default=None,
                         help="the date THIS generation was frozen; defaults to "
                              "the existing manifest's, and a new generation "
@@ -297,7 +307,34 @@ def main() -> int:
         # decide them, and the reader should know which manifest did.
         "exclusionsInheritedFrom": report_inherited,
     }
-    if args.write and not [p for p in found if "dist copy" in p]:
+    # Refuse to change a generation that already exists.
+    #
+    # 2026-08-17: bumping MANIFEST to v15 was done with a string replace that did
+    # not match, so MANIFEST was still v14 and `--write` regenerated it in place
+    # with a DIFFERENT digest -- the generation `e2/validation-matrix-v2.json`
+    # and finding 046's evidence both name.  It was restored from git and no
+    # measurement had been taken against the rewritten copy, so the damage was
+    # nil, but only by luck: nothing complained.
+    #
+    # A generation is the record of what some round ran on (the comment at the
+    # top of this file has said so since v1).  Adding it to FROZEN_MANIFESTS is
+    # a manual step, so "not yet listed there" cannot be what protects it.  What
+    # protects it is this: an existing manifest may be rewritten only when the
+    # bytes it describes are unchanged.
+    rewrites_existing = (manifest is not None
+                         and manifest.get("bundleSha256") != state["digest"])
+    if rewrites_existing and not args.force:
+        # `.append`, not `found = found + [...]`: `report["problems"]` already
+        # holds a reference to this list, and rebinding would leave the refusal
+        # out of the report -- a guard that stops the write and says nothing,
+        # which is the failure mode it was written for.
+        found.append(
+            f"refusing to rewrite {args.manifest} -- it exists with digest "
+            f"{manifest.get('bundleSha256', '')[:16]}... and the tree now hashes "
+            f"{state['digest'][:16]}.... A changed shell needs a NEW generation: "
+            f"bump MANIFEST and add this one to FROZEN_MANIFESTS. --force only if "
+            f"you mean to discard the record of what a round actually ran on.")
+    if args.write and not rewrites_existing and not [p for p in found if "dist copy" in p]:
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
         body = manifest_body(state, excluded, args.frozen_date
                              or (manifest or {}).get("frozenDate")

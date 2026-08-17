@@ -44,7 +44,8 @@ ACTION = re.compile(r"""data-action=["']([a-z-]+)["']""")
 # reports full coverage of a path nothing drives.  A path that hides inside
 # another path is the failure this audit exists to prevent.
 NAMED_ELEMENTS = {"noticeAction": "notice-action", "fixture": "fixture",
-                  "openFile": "open-file", "file": "file"}
+                  "openFile": "open-file", "file": "file",
+                  "clearFormat": "clear-format"}
 
 
 def page_paths(project: Path, page: Path, markup: Path) -> list[str]:

@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "release": "usable-editor-acceptance",
+  "writtenOn": "2026-08-17",
+  "goal": "一個可以讀檔、擁有基本編輯功能的編輯器。2026-08-17 使用者裁示的短期目標。",
+  "why": "在這份清單之前，短期目標沒有寫下來的驗收條件，工作是從 findings 和 relink queue 長出來的，所以感覺零碎。但真正的原因比「沒有清單」深一層：產品介面從來沒有被設計過，它是從『驗證需要哪十五個動作可達』長出來的——工具列上有「游標左移」「游標右移」按鈕，沒有任何使用者需要那種東西。所以這份清單刻意以『使用者做得到什麼』為單位，不是以按鈕或動作 id 為單位；照現有頁面反推會把那個累積物固化成規格。",
+  "rule": "每一格都必須指到一個真的存在的東西：`check`（tools/run_e2_c_product_path.py 裡的檢查 id）、`queue`（e2/relink-queue-v3.json 的項目 id）、或 `finding`（findings/ 底下的編號）。tools/check_usable_editor.py 會逐一解析；指到不存在的東西就是紅的。一份不會紅的清單不是清單。",
+  "statuses": {
+    "done": "有一格會失敗的檢查在跑，而且它是綠的",
+    "unverified": "產品裡有，但沒有任何檢查驅動它——這棵樹被這個形狀咬過四次",
+    "missing": "使用者做不到",
+    "blocked": "要一次 relink 才做得到"
+  },
+  "capabilities": [
+    {
+      "id": "open-my-own-file",
+      "user": "打開我自己電腦上的 .odt",
+      "status": "done",
+      "evidence": [
+        {
+          "check": "product-opens-a-document-the-user-chose"
+        }
+      ]
+    },
+    {
+      "id": "save-it-back",
+      "user": "把改過的檔案存回我的電腦",
+      "status": "done",
+      "evidence": [
+        {
+          "check": "product-save-button-writes-a-real-odt"
+        }
+      ]
+    },
+    {
+      "id": "type-chinese",
+      "user": "用注音／拼音打中文，而且不只第一次",
+      "status": "done",
+      "evidence": [
+        {
+          "check": "every-ime-commit-reaches-the-document"
+        },
+        {
+          "finding": "050"
+        }
+      ]
+    },
+    {
+      "id": "copy-and-paste",
+      "user": "複製選取的文字，貼上剪貼簿的文字",
+      "status": "done",
+      "evidence": [
+        {
+          "check": "ctrl-c-asks-the-engine"
+        },
+        {
+          "check": "ctrl-v-reaches-the-document"
+        }
+      ]
+    },
+    {
+      "id": "see-where-the-caret-is",
+      "user": "看得到游標在哪，看得到我選了哪一段",
+      "status": "done",
+      "note": "2026-08-17 修好：paint() 在 tile 之上畫 caret 與 selection 矩形,資料本來就送到了（editorState.caret／selection.rectangles),頁面只是沒有畫。選取用 multiply 疊色所以字還讀得到;選取存在時不畫 caret。tile 會被快取,所以游標移動不需要再向引擎要一次像素。",
+      "evidence": [
+        {
+          "check": "the-caret-is-drawn-where-it-was-placed"
+        },
+        {
+          "finding": "058"
+        }
+      ]
+    },
+    {
+      "id": "put-the-caret-where-i-clicked",
+      "user": "點一下，游標就到那裡",
+      "status": "unverified",
+      "note": "產品路徑會驅動它（每一格檢查前都要放游標），但它不是任何一格檢查的『主詞』——driven 與 verified 是兩欄。048／051／052 是這條路徑的既有缺陷史，052 的殘留仍未解。",
+      "evidence": [
+        {
+          "finding": "048"
+        },
+        {
+          "finding": "052"
+        }
+      ]
+    },
+    {
+      "id": "correct-a-typo-from-the-keyboard",
+      "user": "按 Backspace／Delete 改掉打錯的字，用方向鍵移動游標",
+      "status": "missing",
+      "note": "input-adapter.js 把 deleteContentBackward／deleteContentForward 丟進 ignored-input-type，方向鍵根本不產生 beforeinput。今天要改一個錯字得用滑鼠加工具列的「刪除」鈕。這不是快捷鍵，是編輯器的主要刪除路徑。",
+      "evidence": [
+        {
+          "queue": "queue-typing-path-has-no-delete-or-arrows"
+        }
+      ]
+    },
+    {
+      "id": "turn-formatting-off",
+      "user": "把粗體關掉，不只是打開",
+      "status": "blocked",
+      "note": "2026-08-17 第一次驅動 set-bold 就掉出 finding 059:045 的修法出貨之後,四個 inline 格式全部 LOK_COMMAND_FAILED,而且每按一次就把 session 打進 recoverable-error。v2 上粗體會套用只是忽略 enabled;v3 上完全不能用。所以這一格不是『關不掉』,是『開也開不了』,而且要一次連結。產品頁的 enabled 那一行已經修好（由 editorState.format 驅動 B/I,外加一顆清除格式覆蓋四個),但在引擎修好之前它是無效的。",
+      "evidence": [
+        {
+          "check": "bold-can-be-turned-off-again"
+        },
+        {
+          "finding": "059"
+        },
+        {
+          "finding": "045"
+        },
+        {
+          "queue": "queue-inline-format-argument-is-rejected-by-core"
+        }
+      ]
+    },
+    {
+      "id": "undo-a-mistake",
+      "user": "做錯了可以復原",
+      "status": "done",
+      "evidence": [
+        {
+          "check": "product-undo-button-reverses-the-last-edit"
+        }
+      ]
+    },
+    {
+      "id": "redo",
+      "user": "復原之後可以重做",
+      "status": "blocked",
+      "note": "引擎有 .uno:Redo，但 EDITOR_V2_ACTION_IDS 只有十五個動作、不含 redo，而 wire id 1-15 已用滿。加它要新 id、引擎對應、manifest 條目——一次 relink。SPEC E2-C 4.2 也把 Redo 列在明確不承諾。",
+      "evidence": [
+        {
+          "queue": "queue-redo-and-line-movement-need-wire-ids"
+        }
+      ]
+    },
+    {
+      "id": "move-by-line",
+      "user": "用上下鍵、Home／End 移動游標",
+      "status": "blocked",
+      "note": "與 redo 同一格：引擎實作了（postKeyEvent 的 Key::UP 等，產品 build 的前處理器確認可達），但產品的 wire id 表沒有它們。",
+      "evidence": [
+        {
+          "queue": "queue-redo-and-line-movement-need-wire-ids"
+        }
+      ]
+    },
+    {
+      "id": "keyboard-shortcuts",
+      "user": "用 Ctrl+Z／B／I／U／S／A，而不是只能按工具列",
+      "status": "missing",
+      "note": "整個殼層沒有任何 keydown／keyup／keypress。刻意排在把既有動作接進回歸網之後：把 Ctrl+B 接到今天的 set-bold，只是把同一個缺陷複製到鍵盤上。",
+      "evidence": [
+        {
+          "queue": "queue-no-keyboard-shortcuts"
+        }
+      ]
+    },
+    {
+      "id": "cut",
+      "user": "剪下",
+      "status": "missing",
+      "note": "殼層裡沒有任何 cut handler。複製之所以不需要 keydown，是因為瀏覽器在 Ctrl+C 時就會發 copy 事件；cut 是同一個模式加一次刪除。",
+      "evidence": [
+        {
+          "queue": "queue-no-cut"
+        }
+      ]
+    },
+    {
+      "id": "format-a-paragraph",
+      "user": "把一段變成標題、內文、項目符號或編號",
+      "status": "unverified",
+      "note": "十四個動作在 e2/product-path-coverage.json 裡登記為 uncovered——按鈕存在，沒有人按過。049／050／Ctrl+C 三個缺陷都是這個形狀。空白行那一格不再是破壞性的（見 046 殘留），但驗證沒有恢復。",
+      "evidence": [
+        {
+          "finding": "046"
+        },
+        {
+          "queue": "queue-quantifier-check-for-multi-block-readback"
+        }
+      ]
+    },
+    {
+      "id": "recover-from-an-error",
+      "user": "出錯的時候救得回來",
+      "status": "unverified",
+      "note": "殼層 v14 之後這格失去了唯一的誘發手段，檢查報 NOT_ESTABLISHED。路徑不是壞了，是沒被涵蓋。",
+      "evidence": [
+        {
+          "check": "notice-action-recovers-the-session"
+        },
+        {
+          "queue": "queue-recovery-path-lost-its-inducer"
+        }
+      ]
+    },
+    {
+      "id": "edit-a-real-length-document",
+      "user": "開一份二十頁的文件，而且還能編輯",
+      "status": "missing",
+      "note": "頁面把整份文件畫成一張 canvas，每次編輯整張重畫。瀏覽器的 canvas 尺寸上限約 32767px，在 MAX_BACKING_WIDTH 2400 之下，A4 大約十幾頁就會撞到，而且是靜默失敗。『開得起來』已驗證，『在真實長度下編得動』從來沒量過。TileScheduler 已經被 editor-session.js 匯入，機制是現成的。",
+      "evidence": [
+        {
+          "queue": "queue-viewport-wall-never-measured"
+        }
+      ]
+    }
+  ]
+}

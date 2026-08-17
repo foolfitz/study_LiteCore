@@ -139,6 +139,10 @@
     {
       "path": "listener:click#open-file",
       "risk": "LOW -- one line that forwards a click to #file.click(). Not driven because clicking it opens the OS file chooser, which no driver here can operate and which would block the browser. The handler it forwards to IS driven (listener:change#file), so what is unproven is the forwarding itself, not the opening. Same class of gap as D5's trusted-input requirement: it needs a human, not a better harness."
+    },
+    {
+      "path": "listener:click#clear-format",
+      "risk": "LOW -- dispatches enabled:false to all four inline formats. Not driven because finding 059 has every one of those failing with LOK_COMMAND_FAILED on the shipped artifact, so a check here would measure that defect rather than this button."
     }
   ]
 }

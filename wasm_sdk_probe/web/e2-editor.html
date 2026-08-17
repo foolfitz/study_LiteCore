@@ -57,6 +57,9 @@
   button:hover:not(:disabled) { border-color: #a9bccd; background: #f6f9fc; }
   button:disabled { opacity: .4; cursor: default; }
   button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  /* Only ever rendered when the engine gave an answer -- see
+     updateGestureAffordance; the attribute is removed when the state is null. */
+  button[aria-pressed="true"] { background: #dbe7f3; border-color: var(--accent); }
   button.danger { border-color: #eec4c1; color: var(--bad); }
   button.b { font-weight: 700; min-width: 34px; }
   button.i { font-style: italic; font-family: Georgia, serif; min-width: 34px; }
@@ -150,6 +153,7 @@
     <button data-action="set-italic" class="i">I</button>
     <button data-action="set-underline" class="u">U</button>
     <button data-action="set-strikethrough" class="s">S</button>
+    <button id="clear-format" title="把粗體、斜體、底線、刪除線都關掉">清除格式</button>
     <div class="sep"></div>
     <button data-action="set-paragraph-heading">標題</button>
     <button data-action="set-paragraph-body">內文</button>
