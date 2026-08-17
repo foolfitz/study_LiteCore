@@ -88,6 +88,10 @@ PROJECT = Path(__file__).resolve().parent.parent
 #         page's only drawing call pasted the tile, so a user clicked and saw
 #         nothing move.  Plus finding 045's product half: the page stopped
 #         sending `enabled: true` unconditionally.
+#   v16 -- the typing path: Backspace and Delete (beforeinput's two delete
+#         types, which the input adapter drops as `ignored-input-type` without
+#         preventing them), the left/right arrows, Ctrl+Z, Ctrl+S and cut.
+#         Correcting a typo used to require the mouse and a toolbar button.
 FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v2.json"),
                     Path("e2/editor-shell-v2-bundle-v3.json"),
@@ -101,9 +105,10 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v11.json"),
                     Path("e2/editor-shell-v2-bundle-v12.json"),
                     Path("e2/editor-shell-v2-bundle-v13.json"),
-                    Path("e2/editor-shell-v2-bundle-v14.json"))
+                    Path("e2/editor-shell-v2-bundle-v14.json"),
+                    Path("e2/editor-shell-v2-bundle-v15.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v15.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v16.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

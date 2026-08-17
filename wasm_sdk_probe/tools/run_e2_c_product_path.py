@@ -199,6 +199,34 @@ for (let i = 0; i < data.length; i += 4)
 return { available: true, dark, band: { y, h, width: canvas.width } };
 })()"""
 
+# Backspace, Delete and the arrows, through the page's own handlers. `keydown`
+# for the arrows because they raise no beforeinput; `beforeinput` for the two
+# delete types because that is where the browser reports them.
+TYPE_KEY = """(() => {
+const sink = document.querySelector('#sink');
+sink.focus();
+const notPrevented = sink.dispatchEvent(new KeyboardEvent('keydown',
+  { key: 'ARG_KEY', bubbles: true, cancelable: true,
+    ctrlKey: ARG_CTRL }));
+return { handled: !notPrevented };
+})()"""
+
+DELETE_KEY = """(() => {
+const sink = document.querySelector('#sink');
+sink.focus();
+const notPrevented = sink.dispatchEvent(new InputEvent('beforeinput',
+  { inputType: 'ARG_TYPE', bubbles: true, cancelable: true }));
+return { handled: !notPrevented };
+})()"""
+
+CUT = """(() => {
+const sink = document.querySelector('#sink');
+sink.focus();
+const notPrevented = sink.dispatchEvent(
+  new ClipboardEvent('cut', { bubbles: true, cancelable: true }));
+return { handled: !notPrevented };
+})()"""
+
 SAVE_COUNT = "(() => (window.__pp ? window.__pp.saves.length : -1))()"
 
 READ_SAVE = "(() => (window.__pp ? window.__pp.saves[ARG_INDEX] : null) || null)()"
@@ -399,6 +427,28 @@ MUTATIONS = {
     # pasteEvent() and no listener called it, so a paste fell through to the
     # browser's default on a canvas -- silently nothing.  Renaming the event is
     # the closest thing to "the handler was never written".
+    # Cut, restored to what shipped until 2026-08-17: no handler at all, so the
+    # browser's default cut runs against a canvas with no DOM selection and
+    # silently does nothing.
+    "cut": {
+        "check": "ctrl-x-is-handled-by-the-product",
+        "path": "e2-editor-app.js",
+        "find": 'el.sink.addEventListener("cut", (event) => {',
+        "replace": 'el.sink.addEventListener("cut-never-wired", (event) => {',
+        "reintroduces": "an editor with no cut",
+        "alsoRed": [],
+    },
+    # The typing path.  Removing the delete mapping restores the state the
+    # product shipped in: Backspace does nothing, because the adapter ignores
+    # the input type and nothing else was listening.
+    "backspace": {
+        "check": "backspace-and-arrows-reach-the-document",
+        "path": "e2-editor-app.js",
+        "find": "  const action = DELETE_INPUT_TYPES[event.inputType];",
+        "replace": "  const action = undefined;",
+        "reintroduces": "an editor you can type into but cannot correct",
+        "alsoRed": [],
+    },
     # Finding 058.  Turning off the caret draw restores the state the product
     # shipped in until 2026-08-17: a tile and nothing else. The check has to go
     # red on that, or it is measuring a repaint rather than a caret.
@@ -1234,6 +1284,76 @@ def main() -> int:
                                "of the page except by saving, so an edit made after "
                                "the failure cannot be shown to have been discarded "
                                "without destroying the thing being measured")
+
+        # --------------------------- the typing path: Backspace and the arrows
+        # Not shortcuts. Until 2026-08-17 the product could be typed into and
+        # not corrected: the adapter dropped both delete input types and the
+        # arrows raised no beforeinput at all, so fixing one character meant
+        # clicking and pressing a toolbar button.
+        #
+        # Placed after every check that takes a save by POSITIONAL index. The
+        # first attempt ran before them and turned the insert check red -- this
+        # check REMOVES a character, and the insert check's witnesses are
+        # derived from an earlier save, so a backspace can delete the thing
+        # another check is standing on.
+        evaluate(session, POINT_AT.replace("ARG_X", "0.45").replace("ARG_Y", "0.28"))
+        wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+        evaluate(session, CLEAR_TOAST)
+        before_bs = revision_of(evaluate(session, READ_STATE))
+        bs = evaluate(session, DELETE_KEY.replace("ARG_TYPE", "deleteContentBackward"))
+        bs_state = wait_for(
+            session,
+            lambda s, floor=before_bs: revision_of(s) is not None
+            and floor is not None and revision_of(s) > floor, 25)
+        arrow = evaluate(session, TYPE_KEY.replace("ARG_KEY", "ArrowLeft")
+                         .replace("ARG_CTRL", "false"))
+        arrow_state = wait_for(
+            session, lambda s: "游標左移" in (s.get("latency") or "")
+            or "◀" in (s.get("latency") or ""), 25)
+        check("backspace-and-arrows-reach-the-document",
+              bool((bs or {}).get("handled"))
+              and bs_state is not None
+              and bool((arrow or {}).get("handled"))
+              and arrow_state is not None,
+              observed={"backspaceHandled": (bs or {}).get("handled"),
+                        "revisionBefore": before_bs,
+                        "revisionAfterBackspace": revision_of(bs_state or {}),
+                        "arrowHandled": (arrow or {}).get("handled"),
+                        "latencyAfterArrow": (arrow_state or {}).get("latency")},
+              oracle="a Backspace reaches the ENGINE (the page cancels the event "
+                     "and the revision advances) and an ArrowLeft dispatches a "
+                     "caret move -- both through the page's own handlers, "
+                     "neither of which existed before",
+              notEstablished="which character was removed; that is delete-backward's "
+                             "own contract and D1 covers it through the shell")
+
+        # ------------------------------------------------------------- Ctrl+X
+        # Cut is copy plus a delete, in that order, so a failed copy must not
+        # still remove the text. Under WebDriver the clipboard write is refused,
+        # which means the delete correctly does NOT run -- so this check can
+        # only establish that the product handles the event and asks the engine.
+        evaluate(session, DRAG.replace("ARG_X1", "0.20").replace("ARG_Y1", "0.32")
+                 .replace("ARG_X2", "0.60").replace("ARG_Y2", "0.32"))
+        time.sleep(1.5)
+        evaluate(session, CLEAR_TOAST)
+        cut_result = evaluate(session, CUT)
+        time.sleep(2.0)
+        cut_toast = evaluate(session, READ_TOAST) or ""
+        cut_reached_engine = ("已剪下" in cut_toast
+                              or "CLIPBOARD_DENIED" in cut_toast)
+        check("ctrl-x-is-handled-by-the-product",
+              bool((cut_result or {}).get("handled")) and cut_reached_engine,
+              observed={"handled": (cut_result or {}).get("handled"),
+                        "toast": cut_toast},
+              oracle="a cut event on the product page is handled by the product "
+                     "(default prevented) and reaches the engine's selection "
+                     "read -- proved the same way the copy check does, by which "
+                     "error the clipboard adapter raises",
+              notEstablished="that the text was REMOVED. The delete runs only "
+                             "after a successful clipboard write, and WebDriver "
+                             "refuses that -- which is the behaviour we want "
+                             "(a failed copy must not still delete) and it is "
+                             "why the removal half belongs to D5")
 
         # ------------------------------------------------------ Ctrl+V arrives
         # The mirror of the copy defect: `pasteEvent()` sat on the session and

@@ -42,7 +42,12 @@ RUNNER = PROJECT / "tools" / "run_e2_c_product_path.py"
 QUEUE = PROJECT / "e2" / "relink-queue-v3.json"
 FINDINGS = WORKSPACE / "findings"
 
-VALID_STATUSES = ("done", "unverified", "missing", "blocked")
+# The vocabulary lives in the checklist's own `statuses` block, not here.  It
+# was duplicated for about ten minutes on 2026-08-17 and immediately drifted:
+# adding `partial` to the file left the tool rejecting it, which is the right
+# failure but for the wrong reason -- two sources of truth for one list.
+def valid_statuses(checklist: dict) -> tuple:
+    return tuple(checklist.get("statuses", {}))
 
 
 def check_ids(runner_text: str) -> set[str]:
@@ -62,12 +67,15 @@ def resolve(checklist: dict, runner_text: str, queue: dict,
     known_findings = {path.name[:3] for path in findings_dir.glob("*.md")
                       if path.name[:3].isdigit()}
 
+    statuses = valid_statuses(checklist)
     rows, problems = [], []
+    if not statuses:
+        problems.append("the checklist declares no `statuses` vocabulary")
     for capability in checklist.get("capabilities", []):
         cid = capability.get("id", "?")
-        if capability.get("status") not in VALID_STATUSES:
+        if capability.get("status") not in statuses:
             problems.append(f"{cid}: status {capability.get('status')!r} is not "
-                            f"one of {VALID_STATUSES}")
+                            f"one of {statuses}")
         evidence = capability.get("evidence") or []
         if not evidence:
             # A row with no evidence is the prose this file exists to prevent.
@@ -93,7 +101,7 @@ def resolve(checklist: dict, runner_text: str, queue: dict,
                      "evidence": resolved})
 
     by_status = {s: [r["id"] for r in rows if r["status"] == s]
-                 for s in VALID_STATUSES}
+                 for s in statuses}
     return {
         "schemaVersion": 1,
         "release": "usable-editor-acceptance",
@@ -154,7 +162,15 @@ def self_test() -> int:
     verify("an undeclared status is caught",
            not resolve(drifted, runner_text, queue, FINDINGS)["ok"])
 
-    total = 7
+    # And the vocabulary itself: with `statuses` removed there is nothing to
+    # validate against, and silently accepting every status would be worse than
+    # rejecting every one.
+    vocabulary_gone = json.loads(json.dumps(checklist))
+    vocabulary_gone.pop("statuses", None)
+    verify("a checklist with no status vocabulary is caught",
+           not resolve(vocabulary_gone, runner_text, queue, FINDINGS)["ok"])
+
+    total = 8
     print(f"\nself-test: {total - len(failures)}/{total} checks moved the verdict")
     return 1 if failures else 0
 

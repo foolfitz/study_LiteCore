@@ -64,6 +64,21 @@
       "path": "listener:change#file",
       "by": "tools/run_e2_c_product_path.py",
       "how": "a File synthesised from a fixture's bytes is assigned to #file and a change event dispatched, through the page's own handler. The oracle is the document the ENGINE ends up holding -- the run saves afterwards and requires text that exists only in the handed-over file, and none from the fixture that was open before. Mutation `open-file` re-opens the fixture while still updating the filename, and is detected."
+    },
+    {
+      "path": "listener:beforeinput",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a synthesised InputEvent('beforeinput', {inputType: deleteContentBackward}) on #sink; the oracle is that the page cancels it AND the revision advances, i.e. it reached the engine. The input adapter also listens for beforeinput but drops both delete types as `ignored-input-type` without preventing them, which is why this is not a second handler for the same work -- checked before it was written, after the paste episode."
+    },
+    {
+      "path": "listener:keydown",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a synthesised KeyboardEvent('keydown', {key: ArrowLeft}) on #sink; the oracle is the page cancelling it and the status line reporting a dispatched caret move. LIMIT, stated because this audit works per LISTENER and cannot see inside one: the same handler also carries Ctrl+Z and Ctrl+S, and neither is exercised. So `driven` here means the handler is reached, not that every branch in it is. Ctrl+Z's own coverage is the undo check, which presses the button rather than the key."
+    },
+    {
+      "path": "listener:cut",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a synthesised ClipboardEvent('cut') on #sink; classified by which error the clipboard adapter raises, exactly like the copy check. The removal half is NOT established: the delete runs only after a successful clipboard write and WebDriver refuses that."
     }
   ],
   "waived": [],

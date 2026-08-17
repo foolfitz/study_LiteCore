@@ -9,7 +9,8 @@
     "done": "有一格會失敗的檢查在跑，而且它是綠的",
     "unverified": "產品裡有，但沒有任何檢查驅動它——這棵樹被這個形狀咬過四次",
     "missing": "使用者做不到",
-    "blocked": "要一次 relink 才做得到"
+    "blocked": "要一次 relink 才做得到",
+    "partial": "有會失敗的檢查在跑而且是綠的，但它只涵蓋這一格的一部分；沒涵蓋的部分在 note 裡具名。不要把它讀成 done。"
   },
   "capabilities": [
     {
@@ -89,9 +90,12 @@
     {
       "id": "correct-a-typo-from-the-keyboard",
       "user": "按 Backspace／Delete 改掉打錯的字，用方向鍵移動游標",
-      "status": "missing",
-      "note": "input-adapter.js 把 deleteContentBackward／deleteContentForward 丟進 ignored-input-type，方向鍵根本不產生 beforeinput。今天要改一個錯字得用滑鼠加工具列的「刪除」鈕。這不是快捷鍵，是編輯器的主要刪除路徑。",
+      "status": "done",
+      "note": "2026-08-17 修好：頁面接了 beforeinput 的兩個 delete 型別與 keydown 的左右鍵。刻意接在頁面而不是 adapter——adapter 的職責是送出文字，刪除是有 wire id 的編輯動作；而且動手前先確認過 adapter 真的沒有處理這兩個型別（貼上那次的教訓）。上下鍵與 Home/End 沒有接，因為它們在產品的 wire id 表裡不存在。",
       "evidence": [
+        {
+          "check": "backspace-and-arrows-reach-the-document"
+        },
         {
           "queue": "queue-typing-path-has-no-delete-or-arrows"
         }
@@ -152,9 +156,15 @@
     {
       "id": "keyboard-shortcuts",
       "user": "用 Ctrl+Z／B／I／U／S／A，而不是只能按工具列",
-      "status": "missing",
-      "note": "整個殼層沒有任何 keydown／keyup／keypress。刻意排在把既有動作接進回歸網之後：把 Ctrl+B 接到今天的 set-bold，只是把同一個缺陷複製到鍵盤上。",
+      "status": "partial",
+      "note": "2026-08-17：Ctrl+Z 與 Ctrl+S 已接（Ctrl+S 必須 preventDefault，否則開的是瀏覽器的存檔對話框，那是比不回答更糟的回答）；左右鍵已接。**沒涵蓋的部分**：Ctrl+Z／Ctrl+S 兩個分支沒有被任何檢查驅動——覆蓋率審核是以 listener 為單位的，看不進一個 handler 裡面，這一點寫在登記表裡。**Ctrl+B/I/U/S 刻意不接**：finding 059 之下那四個動作在出貨的引擎上必定失敗，把它們接到鍵盤只是把同一個缺陷複製到第二條路徑上。",
       "evidence": [
+        {
+          "check": "backspace-and-arrows-reach-the-document"
+        },
+        {
+          "finding": "059"
+        },
         {
           "queue": "queue-no-keyboard-shortcuts"
         }
@@ -163,9 +173,12 @@
     {
       "id": "cut",
       "user": "剪下",
-      "status": "missing",
-      "note": "殼層裡沒有任何 cut handler。複製之所以不需要 keydown，是因為瀏覽器在 Ctrl+C 時就會發 copy 事件；cut 是同一個模式加一次刪除。",
+      "status": "partial",
+      "note": "2026-08-17 接上了：cut = 複製再刪除，順序刻意如此——複製失敗就不該把文字刪掉。**沒涵蓋的部分**：文字有沒有真的被移除。刪除只在剪貼簿寫入成功之後才跑，而 WebDriver 拒絕剪貼簿寫入，所以那一半屬於 D5（要真人）。",
       "evidence": [
+        {
+          "check": "ctrl-x-is-handled-by-the-product"
+        },
         {
           "queue": "queue-no-cut"
         }

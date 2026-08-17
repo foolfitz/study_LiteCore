@@ -678,19 +678,26 @@
     },
     {
       "id": "queue-typing-path-has-no-delete-or-arrows",
-      "title": "Backspace and Delete are dropped by the input adapter, and arrows produce no beforeinput -- correcting a typo needs the mouse",
-      "expectation": "absent",
+      "title": "Backspace, Delete and the arrows reach the document -- DONE 2026-08-17, shell v16, no link needed",
+      "expectation": "present",
       "blocksRelink": false,
       "source": "usable-editor acceptance checklist, 2026-08-17",
-      "note": "input/input-adapter.js falls deleteContentBackward and deleteContentForward into `ignored-input-type`, and arrow keys raise no beforeinput at all. So the product can be typed into but not corrected from the keyboard: fixing a character means clicking and pressing the toolbar's delete button. This is NOT a keyboard-shortcut nicety -- backspace is the primary deletion path of any editor. Shell-only: beforeinput carries the inputType, and delete-backward/delete-forward are already contracted actions with wire ids.",
+      "note": "input/input-adapter.js falls deleteContentBackward and deleteContentForward into `ignored-input-type`, and arrow keys raise no beforeinput at all. So the product can be typed into but not corrected from the keyboard: fixing a character means clicking and pressing the toolbar's delete button. This is NOT a keyboard-shortcut nicety -- backspace is the primary deletion path of any editor. Shell-only: beforeinput carries the inputType, and delete-backward/delete-forward are already contracted actions with wire ids. DONE in the PAGE, not the adapter: the adapter's job is to commit text and deleting is an editor action with its own wire id. The original check here watched input/input-adapter.js, which is the wrong file -- it could never have gone green no matter what landed. Repointed at the handler that exists.",
       "checks": [
         {
-          "kind": "absent",
-          "file": "input/input-adapter.js",
-          "text": "deleteContentBackward"
+          "kind": "contains",
+          "file": "web/e2-editor-app.js",
+          "text": "DELETE_INPUT_TYPES",
+          "atLeast": 1
+        },
+        {
+          "kind": "contains",
+          "file": "web/e2-editor-app.js",
+          "text": "ArrowLeft",
+          "atLeast": 1
         }
       ],
-      "checkNote": "Absent until the adapter maps those input types. Watched as absent so acquiring it is a deliberate edit."
+      "checkNote": "Both halves: the delete input types and the arrow map. The arrows are the half that needed keydown, because they raise no beforeinput at all."
     },
     {
       "id": "queue-redo-and-line-movement-need-wire-ids",
@@ -710,35 +717,37 @@
     },
     {
       "id": "queue-no-keyboard-shortcuts",
-      "title": "the product has no keydown handler at all -- no Ctrl+Z, no Ctrl+B, no Ctrl+A",
-      "expectation": "absent",
+      "title": "the page has a keydown handler -- PARTIALLY done 2026-08-17, shell v16; Ctrl+B/I/U/S deliberately withheld",
+      "expectation": "present",
       "blocksRelink": false,
       "source": "usable-editor acceptance checklist, 2026-08-17",
-      "note": "grep for keydown/keyup/keypress across editor-shell-v2, editor-shell, input, sdk, reader-shell and the page returns nothing. Deliberately sequenced AFTER driving the fourteen uncovered actions: binding Ctrl+B onto today's set-bold would duplicate whatever is wrong with it onto a second path, and this tree has three findings (049, 050, Ctrl+C) that are all 'the surface existed and nobody exercised it'. Ctrl+S also needs a preventDefault or the browser's own save dialog opens.",
+      "note": "grep for keydown/keyup/keypress across editor-shell-v2, editor-shell, input, sdk, reader-shell and the page returns nothing. Deliberately sequenced AFTER driving the fourteen uncovered actions: binding Ctrl+B onto today's set-bold would duplicate whatever is wrong with it onto a second path, and this tree has three findings (049, 050, Ctrl+C) that are all 'the surface existed and nobody exercised it'. Ctrl+S also needs a preventDefault or the browser's own save dialog opens. PARTIALLY DONE. Landed: Ctrl+Z, Ctrl+S (with preventDefault, or the browser's own save dialog opens and saves the page instead of the document) and the left/right arrows. DELIBERATELY WITHHELD: Ctrl+B/I/U/S, because finding 059 has those four actions failing on the shipped engine, and binding them to a second path would duplicate the defect rather than add a feature. Flipped to `present` as a deliberate edit -- the queue reported DRIFT the moment the handler appeared, which is exactly what it is for.",
       "checks": [
         {
-          "kind": "absent",
+          "kind": "contains",
           "file": "web/e2-editor-app.js",
-          "text": "addEventListener(\"keydown\""
+          "text": "addEventListener(\"keydown\"",
+          "atLeast": 1
         }
       ],
-      "checkNote": "Absent until the page binds keydown."
+      "checkNote": "Watches the handler, not the individual accelerators: this queue is binary and the partial state is recorded in e2/usable-editor-checklist.json, whose vocabulary has a `partial` status for exactly this."
     },
     {
       "id": "queue-no-cut",
-      "title": "cut is not wired anywhere",
-      "expectation": "absent",
+      "title": "cut is wired -- DONE 2026-08-17, shell v16, no link needed",
+      "expectation": "present",
       "blocksRelink": false,
       "source": "usable-editor acceptance checklist, 2026-08-17",
-      "note": "No cut handler in the page or the adapters. Copy works without any keydown because the browser fires a `copy` event on Ctrl+C; cut is the same listener pattern plus a delete of the selection. Shell-only.",
+      "note": "No cut handler in the page or the adapters. Copy works without any keydown because the browser fires a `copy` event on Ctrl+C; cut is the same listener pattern plus a delete of the selection. Shell-only. DONE: page-level `cut` listener, copy THEN delete so a failed clipboard write does not still remove the text. The removal half is not established under WebDriver (it refuses clipboard writes, so the delete correctly never runs) and is recorded as `partial` in the acceptance checklist. Original check watched input/input-adapter.js, the wrong file; repointed.",
       "checks": [
         {
-          "kind": "absent",
-          "file": "input/input-adapter.js",
-          "text": "\"cut\""
+          "kind": "contains",
+          "file": "web/e2-editor-app.js",
+          "text": "addEventListener(\"cut\"",
+          "atLeast": 1
         }
       ],
-      "checkNote": "Absent until a cut path exists."
+      "checkNote": "Watches the listener that exists, in the file it exists in."
     },
     {
       "id": "queue-viewport-wall-never-measured",

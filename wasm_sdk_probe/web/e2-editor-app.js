@@ -478,6 +478,75 @@ el.sink.addEventListener("copy", (event) => {
 // product-path runner now requires EXACTLY ONE occurrence, so re-adding a
 // handler here goes red rather than looking like success.
 
+// Backspace and Delete.  NOT a keyboard shortcut -- this is the primary way
+// anybody corrects a typo, and until now the product had none: the input
+// adapter drops `deleteContentBackward`/`deleteContentForward` into
+// `ignored-input-type` (input-adapter.js) and does not preventDefault, so the
+// keys did nothing and the user had to reach for the toolbar's ⌫ button.
+//
+// Handled HERE and not in the adapter, deliberately: the adapter's job is to
+// commit text, and deleting is an editor action with its own contracted wire
+// id. Checked before writing, after the paste episode: the adapter really does
+// leave these alone, so this is not a second handler for the same event.
+const DELETE_INPUT_TYPES = {
+  deleteContentBackward: "delete-backward",
+  deleteContentForward: "delete-forward",
+};
+
+el.sink.addEventListener("beforeinput", (event) => {
+  const action = DELETE_INPUT_TYPES[event.inputType];
+  if (!action || !session?.document) return;
+  event.preventDefault();
+  void editorAction(action).catch(() => {});
+});
+
+// Arrow keys produce no `beforeinput` at all, so they need keydown. Only the
+// two the contract carries: line up/down and Home/End are implemented in the
+// engine but have no product wire id (see the relink queue), and offering a key
+// that cannot dispatch would be worse than offering nothing.
+const KEY_ACTIONS = {
+  ArrowLeft: "move-character-left",
+  ArrowRight: "move-character-right",
+};
+
+el.sink.addEventListener("keydown", (event) => {
+  if (!session?.document) return;
+  const accel = event.ctrlKey || event.metaKey;
+  if (accel && event.key.toLowerCase() === "z" && !event.shiftKey) {
+    // Ctrl+Z, and it earns its place: finding 046's review disposition tells
+    // the user to press 復原, and until now the only way to do that was to find
+    // the button.
+    event.preventDefault();
+    void run("復原", () => session.undo()).catch(() => {});
+    return;
+  }
+  if (accel && event.key.toLowerCase() === "s") {
+    // Without preventDefault this opens the BROWSER's save dialog, which saves
+    // the page rather than the document -- an answer to the user's request that
+    // is worse than no answer.
+    event.preventDefault();
+    void saveDocument().catch(() => {});
+    return;
+  }
+  if (accel) return;
+  const action = KEY_ACTIONS[event.key];
+  if (!action) return;
+  event.preventDefault();
+  void editorAction(action).catch(() => {});
+});
+
+// Cut = copy, then delete what was copied.  Two dispatches rather than one
+// because the contract has no cut action; the ORDER matters, since a failed
+// copy must not still remove the text.
+el.sink.addEventListener("cut", (event) => {
+  if (!session?.document) return;
+  event.preventDefault();
+  void run("剪下", () => session.copySelection())
+    .then((result) => session.action("delete-backward", {})
+      .then(() => toast(`已剪下 ${result?.codePoints ?? "?"} 字`)))
+    .catch(() => {});
+});
+
 el.canvas.addEventListener("pointermove", (event) => {
   if (!drag.active || !session?.document) return;
   if ((event.buttons & 1) === 0) { endDrag(event); return; }
