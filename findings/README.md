@@ -68,6 +68,7 @@
 | [055](055-the-e1-c-validator-rewrites-the-evidence-it-validates.md) | **E1-C 的驗證器會改寫它正在驗證的那份證據** | **已修**（2026-08-16）／被改寫的紀錄已逐位元還原 | 嚴重 | 否 | — |
 | [056](056-accessibility-produces-no-focused-paragraph-under-wasm.md) | **WASM 上打開 accessibility 之後焦點段落永遠是空的;同樣的順序在原生上立刻就有** | **已確認／機制已定（2026-08-17）／未修**：`--with-wasm-module=writer` → `ENABLE_WASM_STRIP_ACCESSIBILITY` → `sw/source/core/access` 少編 26 個物件（實測 2 對 28）→ `SwEditWin::CreateAccessible()` 回 `{}` → `SetLOKAccessibilityState()` 在 `!xAccessible.is()` 靜靜返回。**出貨的 `d538ce0b` 自己作證**：`SwAccessible*` 0 個命中、`LOKDocumentFocusListener` 45 個——會回報的那一半在，會產生的那一半不在。`setAccessibilityState` 回 `void`，所以失敗是靜音的 | **嚴重** | **否**（是我方組態） | — |
 | [057](057-one-build-switch-two-halves-that-answer-to-different-inputs.md) | **同一個開關的兩半接到不同的輸入**：`--with-wasm-module` 改得動物件、改不動巨集 | **已確認（`configure.ac` 窮舉閱讀）／未修**：Make 變數由 `--with-wasm-module` 決定、C++ 巨集由 `--enable-wasm-strip` 的 `AC_DEFINE` 決定，兩者無同步。而 `enable_wasm_strip` 在 `configure.ac:1280` 對 Emscripten **無條件指派為 yes**，命令列蓋不掉。後果：上游預設的 `calc writer` 會把物件編進去而呼叫端仍被拿掉；**26.8 的 Emscripten 上沒有任何旗標組合能讓 Writer 的 LOK a11y 運作**。由 codex 對抗性審查找到，我原本判錯 | 中 | **是** | —（送出擱置） |
+| [058](058-the-editor-draws-no-caret-and-no-selection.md) | **產品編輯器不畫游標,也不畫選取——使用者是盲打的** | **已確認（截圖)／未修**:引擎與 worker **都有送**（`sdk-worker.js:247-254` 的 `caret` 與 `selection.rectangles`),產品頁只拿 rectangles **數數量**判斷手勢形狀（`:286`),唯一的繪圖是貼 tile（`:165`)。LOK 的慣例本來就是游標／選取**不畫進 tile**。**九格產品路徑回歸網全綠而使用者看不到游標**——前三次是「按鈕沒人按過」,這一次是**「畫面沒人看過」**;截圖不在任何一格檢查裡 | **阻斷** | 否 | — |
 **狀態**：`待驗證` → `可送出` → `已回報` → `已修` ／ `撤銷`
 
 ---
