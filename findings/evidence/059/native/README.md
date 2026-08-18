@@ -69,5 +69,47 @@ failure.
   "consistent with" is not "measured" — and this tree has been wrong in exactly
   that gap before (findings 040, 048, and 059's own first mechanism).
 * **Why core reports `false` for an applied command.** Not measured, not named.
-* **Whether `wasModified` is a sound replacement predicate.** It is the obvious
-  candidate and it is untested; the barrier's readback is the other.
+* **Whether the barrier's readback is a sound replacement predicate**, and
+  whether it is sound for all four slots rather than for Bold alone. Not
+  measured.
+
+## Correction, 2026-08-18 — `wasModified` is not a candidate
+
+This file previously listed `wasModified` as "the obvious candidate" for a
+replacement predicate. That was wrong, and core's source settles it without a
+measurement:
+
+```
+desktop/source/lib/init.cxx:5517-5518
+    new DispatchResultListener(pCommand, pDocument->mpCallbackFlushHandlers[nView],
+                               pDocSh && pDocSh->IsModified()));
+```
+
+The boolean is captured when the listener is **constructed**, which is an
+argument evaluated before `comphelper::dispatchCommand()` runs. The member's own
+comment says so — `//< Whether or not the document was modified before saving`
+(`:5073`) — and `dispatchFinished()` copies that same value into the payload
+unchanged (`:5098`).
+
+So `wasModified` reports **whether the document was already dirty before this
+command**, not whether this command changed anything. A previously edited
+document makes a no-op command report `true`; a freshly saved one makes a
+successful command report `false`.
+
+The `wasModified: true` in the table above is therefore not evidence about that
+arm: this probe shares one document and types a marker in every arm before the
+next dispatch, so the document was already dirty by then.
+
+**The mechanism this file establishes is unaffected** — "core applies the command
+and reports failure" is read out of `fo:font-weight` in the saved document, not
+out of `wasModified`. Only the proposed remedy changes.
+
+### Consequence for the refusal arms
+
+A refusal arm must use a command core **knows but cannot currently run**, never
+an unknown slot: `comphelper::dispatchCommand()` returns false as soon as
+`queryDispatch()` yields null (`comphelper/source/misc/dispatchcommand.cxx:48-50`),
+so the listener is never called and **no `LOK_CALLBACK_UNO_COMMAND_RESULT` is
+emitted at all**. An unknown-slot arm measures nothing, and an analyzer that
+defaults a missing field would score it as a pass. Every arm must show it
+received a fresh callback.

@@ -101,11 +101,99 @@ format barrier 用的就是這個形狀,而且它能用**——同樣回 `succes
 - **短期目標的「格式」那一整格是 blocked 的**,不是 unverified。
 - **修要一次連結**,而且原生量測之後候選變了:**不要撤回 `inlineFormatArgument`**
   ——那會把一個正確的修法丟掉。要改的是**判準**:對這四個命令不要用 `success`
-  判成敗(`wasModified` 是明顯的候選,barrier 的 readback 是另一個)。
-  **兩個候選都還沒量過,所以都還不是結論。**
+  判成敗。**判準已經量出來了(2026-08-18),見〈判準:量完了〉。**
 - 產品端沒有可做的事:頁面送 `enabled: true` 或 `false` 都一樣失敗。
 - **回歸網會是紅的,而且應該是紅的**:`bold-can-be-turned-off-again` 紅著,
   直到這一格修好。
+
+## 修訂 2026-08-18 —— **`wasModified` 出局,而且不需要量**
+
+本篇原本寫「`wasModified` 是明顯的候選」。**那句話是錯的,讀核心的原始碼就知道。**
+
+```
+desktop/source/lib/init.cxx:5517-5518
+    new DispatchResultListener(pCommand, pDocument->mpCallbackFlushHandlers[nView],
+                               pDocSh && pDocSh->IsModified()));
+```
+
+那個布林是 `DispatchResultListener` **建構時**捕捉的 `IsModified()`,而建構發生在
+`comphelper::dispatchCommand()` 被呼叫**之前**——它是那一行的引數。成員自己的註解
+就寫著 `//< Whether or not the document was modified **before** saving`
+(`:5073`),`dispatchFinished()` 只是把同一個值原樣寫回酬載(`:5098`)。
+
+⇒ **`wasModified` 說的是「這個命令跑之前,文件是不是已經髒了」,不是「這個命令
+改了東西沒有」。** 一份先前被編輯過的文件,會讓一個什麼都沒做的命令回報 `true`;
+一份剛存過的乾淨文件,會讓一個成功的命令回報 `false`。
+
+本篇上面那個表裡的 `wasModified: true`,**完全可以只是因為探針在每一臂之前都先
+打了一個標記**(`evidence/059/native/f059_native_inline_format_argument.cpp`:
+共用一份文件、每臂先打字、全部跑完才存檔)。它不是那一臂的證據。
+
+**這一段沒有推翻本篇的機制**——「核心照做了、然後回報失敗」仍然成立,那是靠
+存檔裡的 `fo:font-weight` 判的,不是靠 `wasModified`。被推翻的只有「處方」。
+
+由 codex 對抗性審查(2026-08-18)指出,`init.cxx` 三處與 `dispatchcommand.cxx`
+的行為本人已逐條回讀核對。
+
+### 連帶:拒絕臂不可以用「核心不認得的 slot」
+
+`comphelper::dispatchCommand()` 在 `queryDispatch()` 回 null 時直接 `return false`
+(`comphelper/source/misc/dispatchcommand.cxx:48-50`),**listener 不會被呼叫,
+`LOK_CALLBACK_UNO_COMMAND_RESULT` 根本不會發**。用不存在的 slot 當「失敗對照」
+的臂什麼都沒量到,而一個「欄位缺席就給預設值」的分析器會讓它看起來通過。
+拒絕臂必須是**核心認得、但當下不能跑**的命令,而且每一臂都要證明自己收到了一次
+新的回呼。
+
+## 判準:量完了（2026-08-18,原生,`evidence/059/native/predicate/`)
+
+預測先寫（[`PREDICTION.md`](evidence/059/native/predicate/PREDICTION.md)),
+再跑探針。十臂,每臂用鍵盤(Ctrl+Home、Down×N、End)走到自己的段落——**不是點
+猜出來的 y**,那會讓兩臂共用一段而 pending 屬性互相汙染。判準讀**標記那一段文字
+實際掛著的 style**,不是 grep `fo:font-weight`。
+
+| 臂 | 要求 | 核心廣播 | 存檔 |
+|---|---|---|---|
+| 對照,不派送 | — | — | 無樣式 |
+| `.uno:Bold` true | true | `.uno:Bold=true` | **粗體** |
+| `.uno:Bold` false | false | **（沒有)** | 不粗 |
+| `.uno:Italic` true／false | | `.uno:Italic=true`／**（沒有)** | 斜／不斜 |
+| `.uno:Underline` true／false | | `.uno:Underline=true`／**（沒有)** | 底線／無 |
+| `.uno:Strikeout` true／false | | `.uno:Strikeout=true`／**（沒有)** | 刪除線／無 |
+
+**九臂的存檔結果與要求完全一致。** 四個 slot 全部照做,`success` 全部是 `false`。
+
+### 掉出來的第一件事:**判準不能是「有沒有收到廣播」**
+
+核心廣播的是**狀態改變**,不是狀態。`value:false` 那幾臂因為游標本來就不是粗體,
+**一個廣播都沒有**——而文件結果完全正確。
+
+所以「收到廣播＝成功」會把九臂裡四臂正確的動作judged成失敗。
+
+**站得住的判準是 barrier 已經在用的那一個**:`formatBarrierPostconditionMet()`
+(`probe_engine.cpp:1189`)——**比對觀察到的狀態與要求的狀態**,是一個
+postcondition,不是一個通知。在這十臂上它九次全對,包含四個沒有廣播的。
+
+### 第二件事:引擎裡有一句關於核心的話是錯的
+
+`probe_engine.cpp:4308-4310` 說底線與刪除線之所以不留 format-state cache,是因為
+
+> Neither command appears in core's `GetKitUnoCommandList()`
+
+**兩個都在那份清單裡**(`sfx2/source/control/unoctitm.cxx:1165ff`,而且沒有旗標
+把它關掉),而且本輪實測兩個都會廣播。那個 cache 不是不能有,是沒有人加。
+
+### 第三件事:**拒絕臂沒有拒絕,所以「判準說得出不」沒有被證實**
+
+原本設計用 `setViewReadOnly(doc, 0, true)` 當「核心認得但當下不能跑」。
+**核心照樣做了**——廣播到了,標記也真的變粗。所以那一臂不是拒絕臂,P6 未確立。
+
+**欠一個真的負向臂**:每一臂都是成功的動作,所以這一輪證明了判準會同意,
+沒有證明它會反對。
+
+### 仍未量的
+
+state cache 要被 primed 才讀得到;從來沒廣播過的游標上 `…Known` 是 false。
+finding 021 講的就是這個。本輪沒量。
 
 ## 判準
 
