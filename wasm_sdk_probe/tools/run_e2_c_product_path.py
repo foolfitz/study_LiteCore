@@ -104,12 +104,6 @@ KNOWN_RED = {
         "tells the user an action failed while the document shows it worked. "
         "Engine-side, needs a link "
         "(queue-inline-format-argument-is-rejected-by-core).",
-    "the-caret-is-drawn-where-it-was-placed":
-        "finding 060: the caret IS drawn -- isolated against the `caret` "
-        "mutation as an 8-row, 1px stroke -- but this check samples fixed "
-        "viewport fractions and the canvas is sized from el.desk.clientWidth, "
-        "so its verdict depends on the browser window. Harness-side; the fix is "
-        "the anchored oracle owed to put-the-caret-where-i-clicked.",
 }
 
 INSERT_MARK = "插入鈕標記"
@@ -212,16 +206,31 @@ return "dispatched";
 # between the two reads -- only the caret does -- so the DIFFERENCE is the
 # caret's ink at a place the harness chose. A page that draws no caret scores
 # the same both times, whatever glyphs happen to be in the column.
-CARET_INK = """(() => {
+# The drawn caret's COLUMN, and the line's own ink extent, in one read.
+#
+# Finding 060: the previous oracle counted dark pixels in a band at a fixed
+# viewport fraction, and the canvas is sized from el.desk.clientWidth -- so its
+# verdict depended on the browser window, and it went red on a build where the
+# caret was demonstrably being drawn.
+#
+# This anchors to the CONTENT instead: the columns carrying ink on the clicked
+# line are measured in the same read, so "where the caret is" is expressed
+# relative to where the text is rather than to the viewport.  A wider window
+# moves both together.
+CARET_COLUMNS = """(() => {
 const canvas = document.querySelector('#canvas');
 const y = Math.floor(canvas.height * ARG_Y) - 18;
 const h = 46;
 if (y < 0 || y + h > canvas.height) return { available: false };
 const data = canvas.getContext('2d').getImageData(0, y, canvas.width, h).data;
-let dark = 0;
-for (let i = 0; i < data.length; i += 4)
-  if (data[i] < 100 && data[i+1] < 100 && data[i+2] < 100) dark += 1;
-return { available: true, dark, band: { y, h, width: canvas.width } };
+const columns = new Array(canvas.width).fill(0);
+for (let row = 0; row < h; row += 1) {
+  for (let x = 0; x < canvas.width; x += 1) {
+    const i = (row * canvas.width + x) * 4;
+    if (data[i] < 100 && data[i+1] < 100 && data[i+2] < 100) columns[x] += 1;
+  }
+}
+return { available: true, columns, width: canvas.width, band: { y, h } };
 })()"""
 
 # Backspace, Delete and the arrows, through the page's own handlers. `keydown`
@@ -484,6 +493,23 @@ MUTATIONS = {
         "replace": '  if (caret && editorState.selection?.collapsed === "never") {',
         "reintroduces": "an editor with no visible caret",
         "alsoRed": [],
+    },
+    # Finding 060's fix, the placement half.  The caret is still drawn, and
+    # drawn on the right line -- it just ignores the x it was given.  The old
+    # band-counting oracle passed on exactly this, which is why the check had to
+    # be re-anchored to the line's own ink.
+    "caret-ignores-x": {
+        "check": "the-caret-lands-where-the-click-was",
+        "path": "e2-editor-app.js",
+        "find": "    const [x, y, , height] = box(caret);",
+        "replace": "    const [, y, , height] = box(caret); const x = 0;",
+        "reintroduces": "a caret that is drawn, on the right line, in the wrong "
+                        "place",
+        # Declared, and it names a real limit rather than hiding one: this
+        # oracle sees the caret by watching it MOVE, so a caret pinned to a
+        # constant column is indistinguishable from one that is never drawn.
+        # Both checks therefore go red together under this mutation.
+        "alsoRed": ["the-caret-is-drawn-where-it-was-placed"],
     },
     # Finding 059's disposition half, shell v17.  Turning the branch off
     # restores what shipped until 2026-08-18: LOK_COMMAND_FAILED fell through to
@@ -801,6 +827,48 @@ def apply_mutation(name: str, scratch: Path) -> tuple[Path, dict]:
 
 
 # ------------------------------------------------------------------- helpers
+
+
+def caret_from_columns(near_start: dict, past_end: dict) -> dict:
+    """Where the caret was drawn, expressed relative to the line's own ink.
+
+    Two reads of the same band, one after clicking near the start of the line
+    and one after clicking past its end.  The text does not move between them,
+    so the column that GAINED ink is the caret's second position and the one
+    that LOST it is the first -- no reference image and no knowledge of the
+    engine's coordinates is needed.
+
+    The line's ink extent comes from the columns that carry ink in BOTH reads,
+    which excludes the caret itself precisely because it moved.
+    """
+    a, b = near_start.get("columns") or [], past_end.get("columns") or []
+    if not a or not b or len(a) != len(b):
+        return {"available": False}
+    # Full-height columns are the page frame, not text.  Measured 2026-08-18:
+    # the first run of this oracle reported inkSpan 724 on a 725px canvas,
+    # because the band's leftmost and rightmost inked columns are the document
+    # border -- so "fraction along the line" was really "fraction across the
+    # canvas" and a click at x=0.92 scored 0.605.  A glyph never fills every row
+    # of a band that includes the line spacing; a border does.
+    height = (near_start.get("band") or {}).get("h") or 0
+    shared = [x for x in range(len(a))
+              if 0 < min(a[x], b[x]) and max(a[x], b[x]) < height]
+    if len(shared) < 2:
+        return {"available": False, "why": "the band carries no text ink"}
+    delta = [b[x] - a[x] for x in range(len(a))]
+    gained = max(range(len(delta)), key=lambda x: delta[x])
+    lost = min(range(len(delta)), key=lambda x: delta[x])
+    left, right = shared[0], shared[-1]
+    span = right - left
+    return {
+        "available": True,
+        "inkLeft": left, "inkRight": right, "inkSpan": span,
+        "caretAfterClickNearStart": lost, "caretAfterClickPastEnd": gained,
+        "strokeGained": delta[gained], "strokeLost": -delta[lost],
+        # Position along the line, 0 at the first inked column and 1 at the last.
+        "fractionNearStart": (lost - left) / span if span else None,
+        "fractionPastEnd": (gained - left) / span if span else None,
+    }
 
 
 def wait_for(session, predicate, timeout, poll=0.4):
@@ -1501,42 +1569,74 @@ def main() -> int:
                              "reports NOT_ESTABLISHED rather than failing the "
                              "product")
 
-        # --------------------------------------- 058: is the caret DRAWN?
-        # Every other check in this file reads the DOM or the saved ODT, and
-        # all of them pass on a page that paints nothing but the tile. That is
-        # how a product with no visible caret kept nine checks green.
-        CARET_A = ("0.35", "0.28")
-        CARET_B = ("0.35", "0.42")
-        evaluate(session, POINT_AT.replace("ARG_X", CARET_A[0])
-                 .replace("ARG_Y", CARET_A[1]))
+        # ------------------ 058 and 060: is the caret drawn, and drawn WHERE?
+        # Every other check in this file reads the DOM or the saved ODT, and all
+        # of them pass on a page that paints nothing but the tile.  That is how
+        # a product with no visible caret kept nine checks green (058).
+        #
+        # The oracle is anchored to the LINE'S OWN INK, not to viewport
+        # fractions.  Finding 060: the first version counted dark pixels in a
+        # band at fixed fractions, and since layoutCanvas sizes the canvas from
+        # el.desk.clientWidth its verdict moved with the browser window -- it
+        # went red on a build where the caret was demonstrably being drawn.
+        #
+        # Two clicks on the SAME line: one near its start, one well past its
+        # end.  The text does not move between the reads, so the column that
+        # gains ink is the caret's second position and the one that loses it is
+        # the first.
+        CARET_LINE = "0.28"
+        evaluate(session, POINT_AT.replace("ARG_X", "0.06")
+                 .replace("ARG_Y", CARET_LINE))
         wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
         time.sleep(1.0)
-        ink_present = evaluate(session, CARET_INK.replace("ARG_Y", CARET_A[1]))
-        # Move it away; the tile is unchanged, so whatever the column loses is
-        # the caret.
-        evaluate(session, POINT_AT.replace("ARG_X", CARET_B[0])
-                 .replace("ARG_Y", CARET_B[1]))
+        columns_start = evaluate(session, CARET_COLUMNS
+                                 .replace("ARG_Y", CARET_LINE)) or {}
+        # Past the end of the text: the caret must snap to the line's end, which
+        # is what makes "it went where I clicked" checkable without knowing the
+        # engine's coordinates.
+        evaluate(session, POINT_AT.replace("ARG_X", "0.92")
+                 .replace("ARG_Y", CARET_LINE))
         wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
         time.sleep(1.0)
-        ink_absent = evaluate(session, CARET_INK.replace("ARG_Y", CARET_A[1]))
-        reachable = bool((ink_present or {}).get("available")
-                         and (ink_absent or {}).get("available"))
+        columns_end = evaluate(session, CARET_COLUMNS
+                               .replace("ARG_Y", CARET_LINE)) or {}
+        caret = caret_from_columns(columns_start, columns_end)
+        reachable = bool(columns_start.get("available")
+                         and columns_end.get("available")
+                         and caret.get("available"))
+
         check("the-caret-is-drawn-where-it-was-placed",
-              reachable
-              and (ink_present or {}).get("dark", 0)
-                  > (ink_absent or {}).get("dark", 0),
+              reachable and caret.get("strokeGained", 0) > 0
+              and caret.get("strokeLost", 0) > 0,
               outcome=None if reachable else "NOT_ESTABLISHED",
-              observed={"darkWithCaret": (ink_present or {}).get("dark"),
-                        "darkAfterItMovedAway": (ink_absent or {}).get("dark"),
-                        "band": (ink_present or {}).get("band")},
-              oracle="the canvas band containing the line the caret was placed "
-                     "on carries more dark pixels than the same band after the "
-                     "caret moved to another line -- the tile is identical "
-                     "between the two reads, so the difference is the caret. A "
-                     "band and not a column because the caret snaps to a text "
-                     "position and its x is not the click's x",
-              notEstablished="the sample band fell outside the canvas, which is "
-                             "a harness problem, not a product one")
+              observed=caret,
+              oracle="two clicks on the same line move a drawn caret: one "
+                     "column gains ink and another loses it. Anchored to the "
+                     "line's own ink rather than to viewport fractions, so the "
+                     "verdict does not depend on the browser window (060). "
+                     "LIMIT: this sees the caret by watching it move, so a "
+                     "caret pinned to a constant column reads the same as one "
+                     "that is never drawn",
+              notEstablished="the sampled band carries no text ink, which is a "
+                             "harness problem rather than a product one")
+
+        # And drawn WHERE.  A caret that ignores x, or sits at a fixed offset,
+        # or lands on the wrong line, fails this while passing the one above.
+        span = caret.get("inkSpan") or 0
+        near = caret.get("fractionNearStart")
+        past = caret.get("fractionPastEnd")
+        check("the-caret-lands-where-the-click-was",
+              bool(reachable and span > 0 and near is not None
+                   and past is not None and near < 0.25 and past > 0.75),
+              outcome=None if reachable and span > 0 else "NOT_ESTABLISHED",
+              observed=caret,
+              oracle="a click near the start of a line puts the caret in its "
+                     "first quarter, and a click past the end puts it in the "
+                     "last quarter -- measured against that line's own ink "
+                     "extent. A caret that ignores x, one at a constant offset, "
+                     "and one on the wrong line all fail this",
+              notEstablished="no line ink was found to measure against")
+
 
         # ------------------------------- 045, the product half: bold turns OFF
         # LAST on purpose. Three constraints stack up: the checks above take

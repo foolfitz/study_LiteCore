@@ -62,8 +62,8 @@
     {
       "id": "see-where-the-caret-is",
       "user": "看得到游標在哪，看得到我選了哪一段",
-      "status": "unverified",
-      "note": "2026-08-17 修好：paint() 在 tile 之上畫 caret 與 selection 矩形,資料本來就送到了（editorState.caret／selection.rectangles),頁面只是沒有畫。選取用 multiply 疊色所以字還讀得到;選取存在時不畫 caret。tile 會被快取,所以游標移動不需要再向引擎要一次像素。**2026-08-18 從 done 降回 unverified**:游標確實有畫(對著 caret 突變鏡像做逐列隔離,第 276-283 列、八列一像素寬,只在畫游標那一行還在時出現),但這一格的檢查用寫死的視窗比例取樣,綠不綠取決於瀏覽器視窗多大——finding 060。產品沒有迴歸;是判準不夠強。修法與 put-the-caret-where-i-clicked 是同一個:錨定在引擎回報的文字矩形上。",
+      "status": "done",
+      "note": "2026-08-17 修好：paint() 在 tile 之上畫 caret 與 selection 矩形,資料本來就送到了（editorState.caret／selection.rectangles),頁面只是沒有畫。選取用 multiply 疊色所以字還讀得到;選取存在時不畫 caret。tile 會被快取,所以游標移動不需要再向引擎要一次像素。**2026-08-18 從 done 降回 unverified**:游標確實有畫(對著 caret 突變鏡像做逐列隔離,第 276-283 列、八列一像素寬,只在畫游標那一行還在時出現),但這一格的檢查用寫死的視窗比例取樣,綠不綠取決於瀏覽器視窗多大——finding 060。產品沒有迴歸;是判準不夠強。修法與 put-the-caret-where-i-clicked 是同一個:錨定在引擎回報的文字矩形上。**2026-08-18 收復**:判準改成**錨定在那一行自己的墨水**——同一行點兩次(靠近行首、遠過行尾),文字不會動,所以多出墨水的那一欄是游標的第二個位置、少掉的那一欄是第一個。不再取固定的視窗比例,所以視窗大小不再改變判定(060 的成因)。",
       "evidence": [
         {
           "check": "the-caret-is-drawn-where-it-was-placed"
@@ -79,14 +79,20 @@
     {
       "id": "put-the-caret-where-i-clicked",
       "user": "點一下，游標就到那裡",
-      "status": "unverified",
-      "note": "產品路徑會驅動它（每一格檢查前都要放游標），但它不是任何一格檢查的『主詞』——driven 與 verified 是兩欄。048／051／052 是這條路徑的既有缺陷史，052 的殘留仍未解。",
+      "status": "done",
+      "note": "2026-08-18:這一格從『被驅動但不是主詞』變成有自己的檢查。判準**錨定在那一行自己的墨水範圍**,不需要引擎的座標、也不需要 block identity(那條線已移到長期):靠近行首點一下,游標要落在該行墨水的**前四分之一**;遠過行尾點一下,要落在**後四分之一**。忽略 x 的、固定偏移的、落錯行的,三種壞法都會紅——`caret-ignores-x` 突變就是第三種以外的第一種,而它在舊的帶狀計數判準下是綠的。**沒涵蓋**:052 的殘留(點在所有行框之外)有自己的佇列項。",
       "evidence": [
+        {
+          "check": "the-caret-lands-where-the-click-was"
+        },
         {
           "finding": "048"
         },
         {
           "finding": "052"
+        },
+        {
+          "finding": "060"
         }
       ]
     },

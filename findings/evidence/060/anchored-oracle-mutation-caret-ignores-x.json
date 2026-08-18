@@ -1,0 +1,641 @@
+{
+  "schemaVersion": 1,
+  "release": "e2-c-product-path",
+  "browser": "chrome",
+  "fixture": "list-contexts",
+  "isTrusted": false,
+  "notD5": "synthetic events; SPEC E2-C D5 requires trusted input and a human",
+  "shims": [
+    "URL.createObjectURL",
+    "HTMLAnchorElement.prototype.click (download anchors)",
+    "#toast.textContent cleared between steps",
+    "ClipboardEvent.clipboardData (Firefox drops it from the constructor; defined onto the event with types/getData only)"
+  ],
+  "mutation": "caret-ignores-x",
+  "checks": [
+    {
+      "id": "product-save-button-writes-a-real-odt",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "capturedBytes": 12236,
+        "magic": "504b0304",
+        "head": null,
+        "entries": 9,
+        "hasContentXml": true,
+        "contentXmlParses": true,
+        "mimetype": "application/vnd.oasis.opendocument.text",
+        "zipError": null,
+        "toast": "已存出 11.9 KB",
+        "anchorClicks": 1
+      },
+      "oracle": "the bytes the product hands to the download ARE an ODT -- ZIP magic, clean CRC, an ODT mimetype entry and a content.xml that parses -- and its own toast reports a size rather than NaN"
+    },
+    {
+      "id": "every-ime-commit-reaches-the-document",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "revisionBefore": 0,
+        "revisionAfter": 3,
+        "advancedBy": 3,
+        "committed": [
+          "甲一",
+          "乙二",
+          "丙三"
+        ],
+        "foundInSavedOdt": [
+          "甲一",
+          "乙二",
+          "丙三"
+        ],
+        "perCommitRevision": [
+          {
+            "text": "甲一",
+            "expected": 1,
+            "observed": 1,
+            "ok": true
+          },
+          {
+            "text": "乙二",
+            "expected": 2,
+            "observed": 2,
+            "ok": true
+          },
+          {
+            "text": "丙三",
+            "expected": 3,
+            "observed": 3,
+            "ok": true
+          }
+        ],
+        "savedBytes": 12506
+      },
+      "oracle": "three commits through the product's composition path each advance the revision by exactly one, IN TURN, and all three strings are in the saved ODT"
+    },
+    {
+      "id": "ctrl-c-asks-the-engine",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "handlerRan": true,
+        "toast": "複製：CLIPBOARD_DENIED：clipboard write was denied",
+        "outcome": "selection-read-clipboard-write-denied"
+      },
+      "oracle": "a copy event on the product page is handled by the product (default prevented) and the ENGINE returns a non-empty selection for it -- proved by which error the clipboard adapter raises, since CLIPBOARD_DENIED on the copy path is reachable only after getSelection has succeeded",
+      "notEstablished": "whether the OS clipboard received the text; WebDriver refuses clipboard access, so that half belongs to D5"
+    },
+    {
+      "id": "product-insert-button-inserts-what-the-field-holds",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "fieldAfterSet": "插入鈕標記",
+        "revisionBefore": 3,
+        "revisionAfter": 4,
+        "markInSavedOdt": true,
+        "witnessesExpected": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "witnessesKept": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "toast": "",
+        "savedBytes": 12751
+      },
+      "oracle": "the text standing in the product's own field, inserted by the product's own button, advances the revision by exactly one and is in the document the product then saves"
+    },
+    {
+      "id": "product-undo-button-reverses-the-last-edit",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "revisionBefore": 4,
+        "revisionAfter": 5,
+        "markWasThereBeforeUndo": true,
+        "markStillInSavedOdt": false,
+        "witnessesExpected": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "witnessesKept": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "toast": "",
+        "savedBytes": 12503
+      },
+      "oracle": "pressing the product's own undo button takes the text the insert button just added back OUT of the document -- read from the saved ODT, not from the revision counter, because D1 covers undo through the shell and this is the button"
+    },
+    {
+      "id": "bulleting-a-blank-line-does-not-demand-a-rollback",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "state": "ready",
+        "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）",
+        "queueStillOpen": true
+      },
+      "oracle": "the product's own buttons, on the cell finding 046 was measured on: the session stays ready (so undo is reachable) and the message says dispatched-but-unverified rather than prescribing a rollback",
+      "notEstablished": "that the bullet APPLIED. The barrier could not verify it and neither can this check -- saying otherwise is the claim finding 046 was filed for. What is checked is the disposition"
+    },
+    {
+      "id": "notice-action-recovers-the-session",
+      "ok": false,
+      "outcome": "NOT_ESTABLISHED",
+      "observed": {
+        "stateAfterRecipe": "ready",
+        "latency": "• 項目符號 失敗",
+        "notice": {
+          "shown": false,
+          "text": "",
+          "label": "回到檢查點",
+          "disabled": false
+        },
+        "pressedAnyway": true,
+        "toastFromPressingItAnyway": "回到檢查點：editor cannot restart from ready"
+      },
+      "why": "the product offers this button only in `recoverable-error` or `restart-required`, which is the same set EditorSession.restart() accepts, and finding 047's recipe -- the one documented route into that state from the product's own UI -- did not block the queue in this run.  Pressing the hidden button anyway is recorded above and measures nothing about the recovery path.",
+      "oracle": "a dispatched failure blocks the queue, the product OFFERS its recovery button, pressing it returns the session to ready, and the product can save afterwards"
+    },
+    {
+      "id": "backspace-and-arrows-reach-the-document",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "backspaceHandled": true,
+        "revisionBefore": 7,
+        "revisionAfterBackspace": 8,
+        "arrowHandled": true,
+        "latencyAfterArrow": "◀ 35 ms"
+      },
+      "oracle": "a Backspace reaches the ENGINE (the page cancels the event and the revision advances) and an ArrowLeft dispatches a caret move -- both through the page's own handlers, neither of which existed before",
+      "notEstablished": "which character was removed; that is delete-backward's own contract and D1 covers it through the shell"
+    },
+    {
+      "id": "ctrl-x-is-handled-by-the-product",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "handled": true,
+        "toast": "剪下：CLIPBOARD_DENIED：clipboard write was denied"
+      },
+      "oracle": "a cut event on the product page is handled by the product (default prevented) and reaches the engine's selection read -- proved the same way the copy check does, by which error the clipboard adapter raises",
+      "notEstablished": "that the text was REMOVED. The delete runs only after a successful clipboard write, and WebDriver refuses that -- which is the behaviour we want (a failed copy must not still delete) and it is why the removal half belongs to D5"
+    },
+    {
+      "id": "ctrl-v-reaches-the-document",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "payloadSurvived": true,
+        "clipboardDataShimmed": false,
+        "eventCanceled": true,
+        "revisionBefore": 8,
+        "revisionAfter": 9,
+        "toast": "",
+        "markOccurrences": 1
+      },
+      "oracle": "a paste event on the product page reaches the DOCUMENT: it advances the revision, and the pasted text appears EXACTLY ONCE in the ODT the product saves afterwards -- the document, not the toast. Exactly once, not merely present: the sink also sees `beforeinput` with insertFromPaste, so a page-level paste handler that fails to cancel the event commits the same text twice, and `in` would call that a pass",
+      "notEstablished": "whether a REAL Ctrl+V carrying the OS clipboard reaches this handler. The payload is synthesised through the ClipboardEvent constructor, and where that constructor drops the payload (Firefox) it is defined onto the event exposing only `types` and `getData`. If even that does not take, the check reports NOT_ESTABLISHED rather than failing the product"
+    },
+    {
+      "id": "the-caret-is-drawn-where-it-was-placed",
+      "ok": false,
+      "outcome": "FAIL",
+      "observed": {
+        "available": true,
+        "inkLeft": 82,
+        "inkRight": 437,
+        "inkSpan": 355,
+        "caretAfterClickNearStart": 0,
+        "caretAfterClickPastEnd": 0,
+        "strokeGained": 0,
+        "strokeLost": 0,
+        "fractionNearStart": -0.23098591549295774,
+        "fractionPastEnd": -0.23098591549295774
+      },
+      "oracle": "two clicks on the same line move a drawn caret: one column gains ink and another loses it. Anchored to the line's own ink rather than to viewport fractions, so the verdict does not depend on the browser window (060). LIMIT: this sees the caret by watching it move, so a caret pinned to a constant column reads the same as one that is never drawn",
+      "notEstablished": "the sampled band carries no text ink, which is a harness problem rather than a product one"
+    },
+    {
+      "id": "the-caret-lands-where-the-click-was",
+      "ok": false,
+      "outcome": "FAIL",
+      "observed": {
+        "available": true,
+        "inkLeft": 82,
+        "inkRight": 437,
+        "inkSpan": 355,
+        "caretAfterClickNearStart": 0,
+        "caretAfterClickPastEnd": 0,
+        "strokeGained": 0,
+        "strokeLost": 0,
+        "fractionNearStart": -0.23098591549295774,
+        "fractionPastEnd": -0.23098591549295774
+      },
+      "oracle": "a click near the start of a line puts the caret in its first quarter, and a click past the end puts it in the last quarter -- measured against that line's own ink extent. A caret that ignores x, one at a constant offset, and one on the wrong line all fail this",
+      "notEstablished": "no line ink was found to measure against"
+    },
+    {
+      "id": "bold-can-be-turned-off-again",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "ariaPressedBefore": "false",
+        "ariaPressedAfterFirstPress": "true",
+        "ariaPressedAfterSecondPress": "false",
+        "toastAfterFirstPress": "B：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）"
+      },
+      "oracle": "pressing B twice on a collapsed caret leaves the engine reporting NOT bold. Until 2026-08-17 the page sent `enabled: true` unconditionally, so the second press asked for bold again and this would stay \"true\"",
+      "notEstablished": "the engine reported no format state at all (aria-pressed absent), so nothing here is about the page's choice of `enabled`"
+    },
+    {
+      "id": "a-format-that-worked-is-not-reported-as-failed",
+      "ok": false,
+      "outcome": "FAIL",
+      "observed": {
+        "toastAfterFirstPress": "B：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）"
+      },
+      "oracle": "pressing B does not report a failure to the user. Core applies the command; the engine's predicate requires success:true and turns core's success:false into LOK_COMMAND_FAILED, so the product reports a failure for an action the saved document shows succeeded"
+    },
+    {
+      "id": "a-failed-format-does-not-block-the-session",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "stateAfterTwoBoldPresses": "ready",
+        "notice": {
+          "shown": false,
+          "text": "",
+          "label": "回到檢查點",
+          "disabled": false
+        },
+        "toast": "B：LOK_COMMAND_FAILED：LibreOfficeKit rejected the fixed editor command（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）"
+      },
+      "oracle": "after a format action fails, the session is still `ready` and no rollback notice is shown. LOK_COMMAND_FAILED is emitted only from the UNO command RESULT handler, so core answered and the dispatch is established -- the honest disposition is `review` (undo stays reachable), not `rollback` (discard everything since the checkpoint)"
+    },
+    {
+      "id": "product-opens-a-document-the-user-chose",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "dispatch": "dispatched",
+        "docLabel": "chosen-by-the-user.odt",
+        "savedIsOdt": true,
+        "hasChosenFilesText": true,
+        "stillHasFixtureText": false
+      },
+      "oracle": "a file handed to the product's own file input is the document the engine now holds: saving afterwards returns text that exists only in THAT file and none of the text from the fixture that was open before",
+      "notEstablished": "that a real OS file picker reaches this handler. The File is synthesised and assigned to the input, which exercises the page's change handler and not the chooser -- the same class of gap D5 exists for"
+    }
+  ],
+  "steps": [
+    {
+      "step": "boot",
+      "state": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "—",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "step": "install-shims",
+      "result": "installed"
+    },
+    {
+      "step": "place-caret",
+      "state": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "定位游標 39 ms",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "step": "ime-commits",
+      "commits": [
+        {
+          "text": "甲一",
+          "sinkAfter": "",
+          "revision": 1,
+          "toast": ""
+        },
+        {
+          "text": "乙二",
+          "sinkAfter": "",
+          "revision": 2,
+          "toast": ""
+        },
+        {
+          "text": "丙三",
+          "sinkAfter": "",
+          "revision": 3,
+          "toast": ""
+        }
+      ],
+      "revisionBefore": 0,
+      "revisionAfter": 3
+    },
+    {
+      "step": "induce-dispatched-failure",
+      "state": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "7",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "• 項目符號 失敗",
+        "doc": "list-contexts.odt",
+        "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      },
+      "notice": {
+        "shown": false,
+        "text": "",
+        "label": "回到檢查點",
+        "disabled": false
+      },
+      "attempts": [
+        {
+          "recipe": "finding 047: save, click, format",
+          "state": "ready",
+          "latency": "• 項目符號 465 ms"
+        },
+        {
+          "recipe": "finding 053: click past the line end, break the paragraph, list the empty one (finding 046's cell)",
+          "state": "ready",
+          "latency": "• 項目符號 失敗",
+          "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+        }
+      ]
+    }
+  ],
+  "mutationDetail": {
+    "mutation": "caret-ignores-x",
+    "file": "e2-editor-app.js",
+    "reintroduces": "a caret that is drawn, on the right line, in the wrong place",
+    "mustGoRed": "the-caret-lands-where-the-click-was"
+  },
+  "servedShell": {
+    "bundle": "e2/editor-shell-v2-bundle-v17.json",
+    "declaredSha256": "34289a7bd8ffc3dfea2b2ea7ad1a1da7429b7968e51e9965175d9e8710f538b1",
+    "servedSha256": "91d011f479e4f31c6d7dedff7a9f34efd750f885df6e87eb5508130e5009d2f1",
+    "missing": []
+  },
+  "notEstablishedChecks": [
+    "notice-action-recovers-the-session"
+  ],
+  "knownRed": {
+    "a-format-that-worked-is-not-reported-as-failed": "finding 059: core APPLIES the parameterised inline format on the shipped artifact and reports success:false, and the engine turns that into LOK_COMMAND_FAILED (probe_engine.cpp:1696, :2286). So the product tells the user an action failed while the document shows it worked. Engine-side, needs a link (queue-inline-format-argument-is-rejected-by-core)."
+  },
+  "staleKnownRedDeclarations": [],
+  "declaredNotEstablished": [],
+  "staleNotEstablishedDeclarations": [],
+  "mustGoRed": [
+    "the-caret-is-drawn-where-it-was-placed",
+    "the-caret-lands-where-the-click-was"
+  ],
+  "ok": true,
+  "verdict": "the mutation was detected by the check that owns it"
+}

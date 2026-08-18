@@ -376,6 +376,24 @@ def self_test() -> int:
     verify("the baseline report actually exercises checks",
            len(baseline["checks"]) >= 5, f"{len(baseline['checks'])} checks")
 
+    def first_with(source: dict, status: str) -> dict:
+        """A row of this status that names a check.
+
+        If the live checklist has none -- which happened the moment the last
+        `blocked` row came to rest on a queue item alone -- one is made by
+        restating another row, so these cases keep testing the RULE rather than
+        depending on today's checklist shape.
+        """
+        for capability in source.get("capabilities", []):
+            if capability.get("status") == status and any(
+                    "check" in item for item in capability.get("evidence") or []):
+                return capability
+        for capability in source.get("capabilities", []):
+            if any("check" in item for item in capability.get("evidence") or []):
+                capability["status"] = status
+                return capability
+        raise AssertionError("no row names a check at all")
+
     def rejects(name: str, mutate) -> None:
         broken = json.loads(json.dumps(baseline))
         broken_list = json.loads(json.dumps(checklist))
@@ -392,13 +410,6 @@ def self_test() -> int:
             lambda r, c: r.pop("servedShell"))
     rejects("a report that is not a product-path run is refused",
             lambda r, c: r.update(release="something-else"))
-
-    def first_with(source: dict, status: str) -> dict | None:
-        for capability in source.get("capabilities", []):
-            if capability.get("status") == status and any(
-                    "check" in item for item in capability.get("evidence") or []):
-                return capability
-        return None
 
     def done_row(c: dict) -> dict:
         return first_with(c, "done")
@@ -428,8 +439,13 @@ def self_test() -> int:
                 next(i["check"] for i in done_row(c)["evidence"]
                      if "check" in i): "finding 059: declared"}))
     rejects("a KNOWN_RED for a defect the row does not cite is caught",
-            lambda r, c: r["knownRed"].update({
-                k: "finding 123: something else" for k in r["knownRed"]}))
+            lambda r, c: (
+                r["checks"].append({"id": "mismatched-red", "ok": False,
+                                    "outcome": "FAIL"}),
+                r["knownRed"].update({
+                    "mismatched-red": "finding 123: a defect nobody cites"}),
+                first_with(c, "unverified")["evidence"].append(
+                    {"check": "mismatched-red"})))
     def partial_row(c: dict) -> dict:
         return first_with(c, "partial")
 
