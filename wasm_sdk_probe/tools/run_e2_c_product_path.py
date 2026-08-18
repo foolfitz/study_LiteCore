@@ -68,9 +68,11 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from e1_support import sha256 as sha256_file  # noqa: E402
 from r7_support import evaluate, wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, FirefoxSession, free_port  # noqa: E402
 from run_e2_c_page_smoke import READ_STATE, navigate  # noqa: E402
+from validate_e1_c import shell_bundle_digest  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
 
@@ -696,6 +698,47 @@ def build_mirror(source: Path, target: Path, overrides: dict[str, bytes]) -> Non
     walk(Path("."))
 
 
+# The shell generation this run actually SERVED, derived rather than declared.
+#
+# A report that only says `mutation: none` is a report that says what the runner
+# was ASKED for.  Nothing in it distinguishes a run against today's shell from a
+# run against a mirror with one file rewritten, or from a report written days
+# ago against an older generation -- and a checklist that accepts such a report
+# as acceptance evidence is the finding 044 shape one file further out.
+#
+# So this hashes the twelve files the v2 bundle declares, READ FROM THE ROOT THE
+# SERVER WAS POINTED AT.  A mutation or a shim rewrites one of those twelve (the
+# product page itself is one of them), so the digest moves on its own and no
+# separate honesty flag is needed.  Same digest function as the bundle manifest,
+# imported rather than reimplemented: two copies of a hash rule drift.
+SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v16.json"
+
+
+def served_in_dist(relative: str) -> str:
+    """Where a bundle path lands under a served root.
+
+    The entrypoint lives at web/ in the source tree and at the root in dist/;
+    every other module keeps its directory.  Same rule validate_e1_c documents
+    for the E1-C bundle.
+    """
+    return relative.split("/", 1)[1] if relative.startswith("web/") else relative
+
+
+def served_shell_identity(root: Path) -> dict:
+    manifest = json.loads(SHELL_BUNDLE_V2.read_text(encoding="utf-8"))
+    paths = [entry["path"] for entry in manifest.get("included") or []]
+    hashes: dict[str, str | None] = {}
+    for path in paths:
+        served = root / served_in_dist(path)
+        hashes[path] = sha256_file(served) if served.is_file() else None
+    return {
+        "bundle": SHELL_BUNDLE_V2.relative_to(PROJECT).as_posix(),
+        "declaredSha256": manifest.get("bundleSha256"),
+        "servedSha256": shell_bundle_digest(hashes),
+        "missing": sorted(p for p, h in hashes.items() if h is None),
+    }
+
+
 def apply_mutation(name: str, scratch: Path) -> tuple[Path, dict]:
     spec = MUTATIONS[name]
     original = (PROJECT / "dist" / spec["path"]).read_text(encoding="utf-8")
@@ -835,6 +878,9 @@ def main() -> int:
     if args.mutate != "none":
         root, mutation_report = apply_mutation(args.mutate, scratch)
         report["mutationDetail"] = mutation_report
+    # Written AFTER the mirror is built, so it describes what was served rather
+    # than what was intended.
+    report["servedShell"] = served_shell_identity(root)
 
     def check(cid, ok, outcome=None, **fields):
         """One check, with three outcomes rather than two.

@@ -61,7 +61,7 @@ def check_ids(runner_text: str) -> set[str]:
 
 
 def resolve(checklist: dict, runner_text: str, queue: dict,
-            findings_dir: Path) -> dict:
+            findings_dir: Path, report: dict | None = None) -> dict:
     known_checks = check_ids(runner_text)
     known_queue = {item["id"] for item in queue.get("items", [])}
     known_findings = {path.name[:3] for path in findings_dir.glob("*.md")
@@ -102,14 +102,147 @@ def resolve(checklist: dict, runner_text: str, queue: dict,
 
     by_status = {s: [r["id"] for r in rows if r["status"] == s]
                  for s in statuses}
+    reconciled = reconcile(checklist, report) if report is not None else None
+    if reconciled:
+        problems.extend(reconciled)
     return {
         "schemaVersion": 1,
         "release": "usable-editor-acceptance",
         "capabilities": rows,
         "byStatus": by_status,
+        # None means nobody asked; [] means it was asked and answered.
+        "reconciledAgainstReport": None if report is None else {
+            "browser": report.get("browser"),
+            "servedShell": (report.get("servedShell") or {}).get("servedSha256"),
+            "problems": reconciled,
+        },
         "problems": problems,
         "ok": not problems,
     }
+
+
+# --------------------------------------------------------------- the report
+#
+# Resolving the references answers "does this checklist point at real things".
+# It does not answer "are those things GREEN", and until 2026-08-18 nothing did:
+# a row could say `done`, its check could be red in every run, and this file
+# stayed green.  That is finding 044's shape (a verdict-bound summary still
+# saying there was no verdict) moved one file outwards.
+#
+# The rules below are deliberately two-directional.  A checklist that can only
+# go red when something breaks will quietly keep calling a fixed thing
+# `blocked`, which is how work gets done twice.  The runner already declares a
+# KNOWN_RED stale the moment it passes; this gives the checklist the same
+# property.
+
+FINDING_IN_PROSE = re.compile(r"finding\s+(\d{3})")
+
+
+def baseline_problems(report: dict) -> list[str]:
+    """Is this report a run that may be cited as acceptance evidence?
+
+    Not "did it pass" -- whether it describes THIS product.  A mutation run, a
+    shim run and a run against an older shell generation all produce perfectly
+    well-formed reports, and all three would otherwise be citable.
+
+    The discriminator is `servedShell`, which the runner derives by hashing the
+    twelve bundled modules out of the root it actually served.  It is not a flag
+    anybody sets, so it cannot be forgotten.
+    """
+    problems = []
+    if report.get("release") != "e2-c-product-path":
+        problems.append(f"report is not a product-path run: "
+                        f"release={report.get('release')!r}")
+    if report.get("mutation") is not None:
+        problems.append(f"report is a mutation run ({report['mutation']!r}); a "
+                        "mutation run measures the harness, not the product")
+    served = report.get("servedShell")
+    if not served:
+        problems.append("report has no `servedShell`: it predates shell "
+                        "identity and cannot be tied to a generation")
+        return problems
+    if served.get("missing"):
+        problems.append(f"the served root was missing bundled modules: "
+                        f"{served['missing']}")
+    if served.get("servedSha256") != served.get("declaredSha256"):
+        problems.append(
+            f"the shell that ran is not the declared generation "
+            f"({served.get('bundle')}): served "
+            f"{str(served.get('servedSha256'))[:16]}, declared "
+            f"{str(served.get('declaredSha256'))[:16]} -- a mirror, a shim or an "
+            "older run")
+    return problems
+
+
+def reconcile(checklist: dict, report: dict) -> list[str]:
+    """Every checklist status, against what the runner actually measured."""
+    problems = baseline_problems(report)
+    if problems:
+        # Deliberately first and alone: reconciling a report that does not
+        # describe this product would produce confident nonsense.
+        return problems
+
+    outcomes = {c["id"]: c for c in report.get("checks") or []}
+    known_red = report.get("knownRed") or {}
+    statuses = checklist.get("statuses", {})
+    cited_known_red: set[str] = set()
+
+    for capability in checklist.get("capabilities", []):
+        cid = capability.get("id", "?")
+        status = capability.get("status")
+        evidence = capability.get("evidence") or []
+        checks = [item["check"] for item in evidence if "check" in item]
+        findings = {item["finding"] for item in evidence if "finding" in item}
+
+        # `done` and `partial` are both defined in the checklist's own
+        # vocabulary as "有一格會失敗的檢查在跑，而且它是綠的".  A row that
+        # names only a finding or a queue item satisfies that sentence by
+        # citation rather than by measurement.
+        if status in ("done", "partial") and not checks:
+            problems.append(
+                f"{cid}: status {status!r} but the row names no check -- "
+                f"{statuses.get(status, 'that status')} requires one")
+
+        for name in checks:
+            entry = outcomes.get(name)
+            if status in ("done", "partial"):
+                if entry is None:
+                    problems.append(f"{cid}: check {name!r} did not run in this "
+                                    "report")
+                elif name in known_red:
+                    cited_known_red.add(name)
+                    problems.append(
+                        f"{cid}: status {status!r} but check {name!r} is "
+                        f"declared KNOWN_RED -- {known_red[name]}")
+                elif entry.get("outcome") != "PASS":
+                    problems.append(
+                        f"{cid}: status {status!r} but check {name!r} is "
+                        f"{entry.get('outcome')}")
+            else:
+                if entry is not None and entry.get("outcome") == "PASS":
+                    problems.append(
+                        f"{cid}: status {status!r} is out of date -- check "
+                        f"{name!r} PASSED in this report")
+                if name in known_red:
+                    # A red row is allowed to be red for a named defect, and
+                    # only for one the row itself cites.  Binding it to the
+                    # FINDING rather than to the status word is what lets
+                    # `partial` and `unverified` carry a known defect without
+                    # letting `done` do it.
+                    cited_known_red.add(name)
+                    named = set(FINDING_IN_PROSE.findall(known_red[name]))
+                    if not (named & findings):
+                        problems.append(
+                            f"{cid}: check {name!r} is KNOWN_RED for "
+                            f"{sorted(named) or 'an unnamed defect'} but the row "
+                            f"cites {sorted(findings) or 'no finding'}")
+
+    for name in known_red:
+        if name not in cited_known_red:
+            problems.append(
+                f"check {name!r} is declared KNOWN_RED but no checklist row "
+                "cites it -- the checklist does not know about that defect")
+    return problems
 
 
 def load() -> tuple[dict, str, dict]:
@@ -170,7 +303,118 @@ def self_test() -> int:
     verify("a checklist with no status vocabulary is caught",
            not resolve(vocabulary_gone, runner_text, queue, FINDINGS)["ok"])
 
-    total = 8
+    # ------------------------------------------------- reconciling a report
+    #
+    # Every case below is a report that a checklist-with-no-report would accept
+    # without comment.  If any of them passes, the corresponding rule is not
+    # doing anything.
+
+    def synthetic_report(source: dict) -> dict:
+        """The report a clean run would produce for `source`, by construction.
+
+        Built from the checklist rather than pasted from a real run, so the
+        self-test follows the checklist instead of freezing a copy of it.
+        """
+        checks, known_red = [], {}
+        for capability in source.get("capabilities", []):
+            status = capability.get("status")
+            findings = [item["finding"]
+                        for item in capability.get("evidence") or []
+                        if "finding" in item]
+            for item in capability.get("evidence") or []:
+                if "check" not in item:
+                    continue
+                name = item["check"]
+                if status in ("done", "partial"):
+                    checks.append({"id": name, "ok": True, "outcome": "PASS"})
+                elif status == "blocked":
+                    checks.append({"id": name, "ok": False, "outcome": "FAIL"})
+                    known_red[name] = ("finding "
+                                       + (findings[0] if findings else "000")
+                                       + ": declared for the self-test")
+                else:
+                    checks.append({"id": name, "ok": False,
+                                   "outcome": "NOT_ESTABLISHED"})
+        return {
+            "release": "e2-c-product-path",
+            "browser": "chrome",
+            "mutation": None,
+            "servedShell": {"bundle": "e2/editor-shell-v2-bundle-v16.json",
+                            "declaredSha256": "deadbeef", "servedSha256": "deadbeef",
+                            "missing": []},
+            "checks": checks,
+            "knownRed": known_red,
+        }
+
+    baseline = synthetic_report(checklist)
+    verify("a clean baseline report reconciles",
+           not reconcile(checklist, baseline),
+           json.dumps(reconcile(checklist, baseline), ensure_ascii=False))
+
+    # Non-vacuity: the positive control above must have had rows to judge.  A
+    # reconcile() that silently examined nothing would pass it.
+    verify("the baseline report actually exercises checks",
+           len(baseline["checks"]) >= 5, f"{len(baseline['checks'])} checks")
+
+    def rejects(name: str, mutate) -> None:
+        broken = json.loads(json.dumps(baseline))
+        broken_list = json.loads(json.dumps(checklist))
+        mutate(broken, broken_list)
+        verify(name, bool(reconcile(broken_list, broken)))
+
+    rejects("a mutation run is refused as acceptance evidence",
+            lambda r, c: r.update(mutation="caret"))
+    rejects("a run against another shell generation is refused",
+            lambda r, c: r["servedShell"].update(servedSha256="0" * 64))
+    rejects("a run with a bundled module missing is refused",
+            lambda r, c: r["servedShell"].update(missing=["sdk/document-sdk.js"]))
+    rejects("a report with no served-shell identity is refused",
+            lambda r, c: r.pop("servedShell"))
+    rejects("a report that is not a product-path run is refused",
+            lambda r, c: r.update(release="something-else"))
+
+    def first_with(source: dict, status: str) -> dict | None:
+        for capability in source.get("capabilities", []):
+            if capability.get("status") == status and any(
+                    "check" in item for item in capability.get("evidence") or []):
+                return capability
+        return None
+
+    def done_row(c: dict) -> dict:
+        return first_with(c, "done")
+
+    rejects("a `done` row whose check FAILED is caught",
+            lambda r, c: [ch.update(ok=False, outcome="FAIL")
+                          for ch in r["checks"]
+                          if ch["id"] in {i["check"] for i
+                                          in done_row(c)["evidence"]
+                                          if "check" in i}])
+    rejects("a `done` row whose check did not run is caught",
+            lambda r, c: r.update(checks=[
+                ch for ch in r["checks"]
+                if ch["id"] not in {i["check"] for i in done_row(c)["evidence"]
+                                    if "check" in i}]))
+    rejects("a `done` row that names no check at all is caught",
+            lambda r, c: done_row(c).update(
+                evidence=[{"finding": "058"}]))
+    rejects("a `blocked` row whose check PASSED is caught as stale",
+            lambda r, c: [ch.update(ok=True, outcome="PASS")
+                          for ch in r["checks"]
+                          if ch["id"] in {i["check"] for i
+                                          in first_with(c, "blocked")["evidence"]
+                                          if "check" in i}])
+    rejects("a KNOWN_RED check on a `done` row is caught",
+            lambda r, c: r["knownRed"].update({
+                next(i["check"] for i in done_row(c)["evidence"]
+                     if "check" in i): "finding 059: declared"}))
+    rejects("a KNOWN_RED for a defect the row does not cite is caught",
+            lambda r, c: r["knownRed"].update({
+                k: "finding 123: something else" for k in r["knownRed"]}))
+    rejects("a KNOWN_RED no checklist row cites is caught",
+            lambda r, c: r["knownRed"].update({
+                "a-check-nobody-lists": "finding 059: orphaned"}))
+
+    total = 22
     print(f"\nself-test: {total - len(failures)}/{total} checks moved the verdict")
     return 1 if failures else 0
 
@@ -179,11 +423,16 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--report", type=Path,
+                        help="a product-path run's JSON; reconcile every "
+                             "status against what it measured")
     args = parser.parse_args()
     if args.self_test:
         return self_test()
     checklist, runner_text, queue = load()
-    report = resolve(checklist, runner_text, queue, FINDINGS)
+    run = (json.loads(args.report.read_text(encoding="utf-8"))
+           if args.report else None)
+    report = resolve(checklist, runner_text, queue, FINDINGS, run)
     text = json.dumps(report, indent=2, ensure_ascii=False)
     if args.output:
         args.output.write_text(text + "\n", encoding="utf-8")

@@ -62,14 +62,17 @@
     {
       "id": "see-where-the-caret-is",
       "user": "看得到游標在哪，看得到我選了哪一段",
-      "status": "done",
-      "note": "2026-08-17 修好：paint() 在 tile 之上畫 caret 與 selection 矩形,資料本來就送到了（editorState.caret／selection.rectangles),頁面只是沒有畫。選取用 multiply 疊色所以字還讀得到;選取存在時不畫 caret。tile 會被快取,所以游標移動不需要再向引擎要一次像素。",
+      "status": "unverified",
+      "note": "2026-08-17 修好：paint() 在 tile 之上畫 caret 與 selection 矩形,資料本來就送到了（editorState.caret／selection.rectangles),頁面只是沒有畫。選取用 multiply 疊色所以字還讀得到;選取存在時不畫 caret。tile 會被快取,所以游標移動不需要再向引擎要一次像素。**2026-08-18 從 done 降回 unverified**:游標確實有畫(對著 caret 突變鏡像做逐列隔離,第 276-283 列、八列一像素寬,只在畫游標那一行還在時出現),但這一格的檢查用寫死的視窗比例取樣,綠不綠取決於瀏覽器視窗多大——finding 060。產品沒有迴歸;是判準不夠強。修法與 put-the-caret-where-i-clicked 是同一個:錨定在引擎回報的文字矩形上。",
       "evidence": [
         {
           "check": "the-caret-is-drawn-where-it-was-placed"
         },
         {
           "finding": "058"
+        },
+        {
+          "finding": "060"
         }
       ]
     },

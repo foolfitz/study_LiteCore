@@ -1,0 +1,26 @@
+{
+  "servedShell": {
+    "bundle": "e2/editor-shell-v2-bundle-v16.json",
+    "declaredSha256": "e48685976e8626c5e8064c9f6e2857662500b0dd3b172f810918a297f7a1868b",
+    "servedSha256": "e48685976e8626c5e8064c9f6e2857662500b0dd3b172f810918a297f7a1868b",
+    "missing": []
+  },
+  "browser": "chrome",
+  "mutation": null,
+  "check": {
+    "id": "the-caret-is-drawn-where-it-was-placed",
+    "ok": false,
+    "outcome": "FAIL",
+    "observed": {
+      "darkWithCaret": 2051,
+      "darkAfterItMovedAway": 2051,
+      "band": {
+        "y": 242,
+        "h": 46,
+        "width": 725
+      }
+    },
+    "oracle": "the canvas band containing the line the caret was placed on carries more dark pixels than the same band after the caret moved to another line -- the tile is identical between the two reads, so the difference is the caret. A band and not a column because the caret snaps to a text position and its x is not the click's x",
+    "notEstablished": "the sample band fell outside the canvas, which is a harness problem, not a product one"
+  }
+}
