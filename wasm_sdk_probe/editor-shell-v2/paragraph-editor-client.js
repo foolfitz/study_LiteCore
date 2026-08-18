@@ -257,6 +257,31 @@ export function formatFailureDisposition(error) {
     return "dispatched-unverified";
   if (barrier && barrier.dispatched === true)
     return "dispatched-rollback";
+  // Finding 059, measured on both sides 2026-08-18.
+  //
+  // LOK_COMMAND_FAILED is emitted only from the engine's UNO command RESULT
+  // handler, and only after the payload has been matched to the command that
+  // was sent (probe_engine.cpp:2279-2291).  Core answered about THIS command,
+  // so it was dispatched -- that is known here, not guessed, which is what
+  // separates this from the `unknown-rollback` fallback below.
+  //
+  // It matters because of what the measurement found: on the shipped artifact
+  // core APPLIES the parameterised inline format and reports success:false, and
+  // the engine's own predicate reads that as failure
+  // (findings/evidence/059/wasm/, four slots, each marker coming back carrying
+  // exactly the slot that was pressed).  Prescribing a rollback here asks the
+  // user to discard work in order to undo a change that succeeded.
+  //
+  // This does NOT claim the action worked; nothing at runtime verifies it. It
+  // claims only what "review" means: something was dispatched, this build
+  // cannot verify it, and the queue stays open so undo is still reachable.
+  //
+  // Narrow deliberately, and narrower than "any failure": keyed on the one code
+  // that proves core answered. Finding 046's note that any OTHER unverified
+  // dispatch keeps its rollback still holds -- this is not another shape, it is
+  // a shape where dispatch is established.
+  if (error?.code === "LOK_COMMAND_FAILED")
+    return "dispatched-unverified";
   // Checked after the barrier, never before: if the engine ever did attach a
   // barrier saying `dispatched: true` alongside one of these codes, the
   // barrier wins.  The code list is a fallback for errors that never got far

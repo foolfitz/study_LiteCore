@@ -237,9 +237,9 @@ fail closed 是對的——**但它適用的是「不知道有沒有派送」**�
 | **`review`** | **派送了,這個 build 驗不了「這一個形狀」,而且佇列沒有被擋** |
 | `restart` | handle 不能用了 |
 
-**觸發條件（窄,而且只有這一組)**：
+**觸發條件（2026-08-18 起有兩組,見下方 2.6c)**：
 `dispatched === true && route === "collapsed" && failureShape === "multi-block-readback"`。
-其他任何無法驗證的派送**維持 `rollback` 不變**。
+除了 2.6c 那一組之外,任何無法驗證的派送**維持 `rollback` 不變**。
 
 **為什麼**：finding 046 的殘留。收合游標落在**空段落**時,barrier 自己用
 `.uno:SelectText` 讀回,而那個選取會**吞掉下面那一段**(實測 8 格 × 2 瀏覽器,
@@ -270,6 +270,45 @@ checkpoint 以來的所有工作。**而項目符號其實已經套用了。**
 `recoverable-error` 的路,所以 `notice-action-recovers-the-session` 失去它的誘發手段,
 現在報 `NOT_ESTABLISHED`。`review-disposition` 突變讓這一對同時反向移動。
 **recovery 路徑不是壞了,是沒有被涵蓋**;欠一個新的誘發手段。
+
+### 2.6c 第二組觸發條件：`LOK_COMMAND_FAILED`（2026-08-18，殼層 v17）
+
+**契約變更。** 2.6b 刻意把 `review` 收窄到一個形狀，並寫下「其他任何無法驗證的
+派送維持 `rollback` 不變」。這一節放寬它，而且只放寬到一種**可以證明有派送出去**
+的情形。
+
+**觸發條件**：`error.code === "LOK_COMMAND_FAILED"`。
+
+**為什麼這不是「又一個形狀」**：這個錯誤碼**只**從引擎的 UNO command **result**
+handler 產生，而且是在酬載已經與送出去的那個命令比對成功之後
+（`probe_engine.cpp:2279-2291`）。**核心針對這個命令回答了**，所以「派送出去了」
+在這裡是**知道的**，不是像 `unknown-rollback` 那樣猜的。2.6b 防的是「把猜的當成
+知道的」；這一組正是知道的。
+
+**為什麼值得改**：finding 059，兩側都量過（2026-08-18）。出貨的 artifact 上，
+帶參數的 inline 格式**核心真的照做了**、然後回報 `success: false`，而引擎自己的
+判準把它讀成失敗（原生 `findings/evidence/059/native/predicate/`；WASM
+`findings/evidence/059/wasm/`，四個 slot 各自的標記回來都掛著正好是它按下去的那個
+樣式，不派送命令的對照臂則沒有樣式）。
+
+⇒ 舊的處置是在**叫使用者丟掉自上次 checkpoint 以來的所有工作，去撤銷一個成功的
+改動**。
+
+**這仍然不是宣稱動作成功。** 執行期沒有任何東西驗證它。它宣稱的還是 2.6b 那句：
+派送出去了、這個 build 驗不了、而佇列沒有被擋所以復原還能用。
+
+**提示文字分兩種**：兩組觸發條件的原因不同，把 046 那句「這一格的檢查涵蓋了不只
+一個段落」拿給 059 的使用者看是**錯的解釋**。頁面依 `error.code` 選說法；
+**處置本身仍然只從 `recovery` 欄位讀**（E2-B 5.13）。
+
+**引擎那一半沒有修，而且仍然擋著連結**（`queue-inline-format-argument-is-rejected-by-core`）。
+這一節只改「產品拿這個失敗怎麼辦」，不改「為什麼會失敗」。
+
+**判準**：`a-failed-format-does-not-block-the-session`
+（`tools/run_e2_c_product_path.py`）——格式動作失敗之後 session 仍是 `ready`
+且沒有顯示回檔通知。突變 `inline-format-rollback` 把這一節關掉，它必須變紅。
+**刻意不與 `bold-can-be-turned-off-again` 共用檢查**：那一格為了 059 的引擎半邊
+宣告了 KNOWN_RED，而一個已經紅著的檢查無法證明突變被抓到。
 
 ### 2.7 一併繼承的縮限
 

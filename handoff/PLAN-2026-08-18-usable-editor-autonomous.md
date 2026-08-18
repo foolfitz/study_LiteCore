@@ -681,6 +681,41 @@ null，而四個 null 的原因都不是「核心沒做」。**
 所以上面的結論不依賴它——但它的 null 沒有解釋，游標在粗體 run 裡的 offset 也沒有
 確立。**具名留著，不掃掉。**
 
+**T2b —— 做了（使用者裁示「直接改，不用裁決」），殼層 v17 `34289a7b…`，不需連結。**
+
+`formatFailureDisposition()` 對 `LOK_COMMAND_FAILED` 回 `dispatched-unverified`，
+不再落到 `unknown-rollback`。**依據是可查的，不是類比**：那個碼**只**從引擎的 UNO
+command **result** handler 產生，而且是在酬載已與送出的命令比對成功之後
+（`probe_engine.cpp:2279-2291`）——核心針對這個命令回答了，所以「派送出去了」是
+知道的。046 收窄要防的是「把猜的當成知道的」，這一組正是知道的那一邊。
+
+同批：提示文字依 `error.code` 分成兩種（把 046 的「涵蓋了不只一個段落」拿給 059 的
+使用者看是錯的解釋）；SPEC E2-C **2.6c** 與殼層同一次寫；頁面裡那句重複引擎錯誤
+宣稱的註解也改掉了。
+
+### 它掉出一個我沒預測到的後果
+
+佇列不再被擋之後，**兩次按下都跑得完，`bold-can-be-turned-off-again` 變綠了**——
+從使用者的位置看，粗體現在真的關得掉。runner 立刻宣告它的 KNOWN_RED 過期，
+那正是那個機制的用途。
+
+所以宣告重新排過，而不是留著一個已經綠了的宣告：
+
+| 檢查 | 狀態 |
+|---|---|
+| `bold-can-be-turned-off-again` | **綠**，從 KNOWN_RED 拿掉 |
+| `a-format-that-worked-is-not-reported-as-failed` | **新增，KNOWN_RED 綁 059** —— 產品仍把一個成功的動作回報成失敗，這才是引擎那一半真正剩下的缺陷 |
+| `the-caret-is-drawn-where-it-was-placed` | **KNOWN_RED 綁 060** —— 它本來在突變輪裡默默 confound |
+| `a-failed-format-does-not-block-the-session` | 新增，擁有 `inline-format-rollback` 突變（**刻意不與 bold 那格共用**：一個已經紅著的檢查證明不了突變被抓到） |
+
+⇒ `turn-formatting-off` **從 `blocked` 改成 `partial`**，沒涵蓋的部分具名。
+`blocked` 從三格降到兩格（redo、move-by-line）。
+
+T0 的規則跟著補一條：**`partial` 可以引用一個具名的 KNOWN_RED 當「沒涵蓋的部分」，
+但仍然必須有一格自己的綠檢查**；`done` 一律不准引用。self-test 22 → 24。
+
+基線輪：`ok=True`，「1 not established、2 known red」，沒有過期宣告。
+
 ## 9. 第一版被退回的地方
 
 codex 的對抗性審查問的是一個問題：**哪一項的驗收條件，可以在它宣稱要建立的東西

@@ -92,6 +92,17 @@ PROJECT = Path(__file__).resolve().parent.parent
 #         types, which the input adapter drops as `ignored-input-type` without
 #         preventing them), the left/right arrows, Ctrl+Z, Ctrl+S and cut.
 #         Correcting a typo used to require the mouse and a toolbar button.
+#   v17 -- finding 059's disposition half.  LOK_COMMAND_FAILED now reports
+#         `dispatched-unverified` rather than falling through to
+#         `unknown-rollback`, because that code is emitted only from the UNO
+#         command RESULT handler, after the payload is matched to the command
+#         that was sent -- core answered, so dispatch is established rather than
+#         guessed.  Measured on both sides the same day: core APPLIES the
+#         parameterised inline format on the shipped artifact and reports
+#         success:false, so the old disposition asked the user to discard work
+#         in order to undo a change that had succeeded
+#         (findings/evidence/059/wasm/).  Shell-only; no link.  The engine fix
+#         still needs one and still blocks it.
 FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v2.json"),
                     Path("e2/editor-shell-v2-bundle-v3.json"),
@@ -106,9 +117,10 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v12.json"),
                     Path("e2/editor-shell-v2-bundle-v13.json"),
                     Path("e2/editor-shell-v2-bundle-v14.json"),
-                    Path("e2/editor-shell-v2-bundle-v15.json"))
+                    Path("e2/editor-shell-v2-bundle-v15.json"),
+                    Path("e2/editor-shell-v2-bundle-v16.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v16.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v17.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

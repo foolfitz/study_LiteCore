@@ -203,6 +203,19 @@ def reconcile(checklist: dict, report: dict) -> list[str]:
                 f"{cid}: status {status!r} but the row names no check -- "
                 f"{statuses.get(status, 'that status')} requires one")
 
+        # `partial` is the one status that may cite a KNOWN_RED check, because
+        # its whole meaning is "green as far as it goes, and the part it does
+        # not cover is named".  A named, filed defect IS such a part.  It still
+        # has to rest on at least one GREEN check, or "partial" would be a way
+        # to hold a row up on nothing.  `done` may never cite one.
+        green_checks = [n for n in checks
+                        if n not in known_red
+                        and (outcomes.get(n) or {}).get("outcome") == "PASS"]
+        if status == "partial" and checks and not green_checks:
+            problems.append(
+                f"{cid}: status 'partial' but no check of its own is green; "
+                f"partial means green as far as it goes")
+
         for name in checks:
             entry = outcomes.get(name)
             if status in ("done", "partial"):
@@ -211,9 +224,16 @@ def reconcile(checklist: dict, report: dict) -> list[str]:
                                     "report")
                 elif name in known_red:
                     cited_known_red.add(name)
-                    problems.append(
-                        f"{cid}: status {status!r} but check {name!r} is "
-                        f"declared KNOWN_RED -- {known_red[name]}")
+                    named = set(FINDING_IN_PROSE.findall(known_red[name]))
+                    if status == "done":
+                        problems.append(
+                            f"{cid}: status 'done' but check {name!r} is "
+                            f"declared KNOWN_RED -- {known_red[name]}")
+                    elif not (named & findings):
+                        problems.append(
+                            f"{cid}: check {name!r} is KNOWN_RED for "
+                            f"{sorted(named) or 'an unnamed defect'} but the row "
+                            f"cites {sorted(findings) or 'no finding'}")
                 elif entry.get("outcome") != "PASS":
                     problems.append(
                         f"{cid}: status {status!r} but check {name!r} is "
@@ -410,11 +430,30 @@ def self_test() -> int:
     rejects("a KNOWN_RED for a defect the row does not cite is caught",
             lambda r, c: r["knownRed"].update({
                 k: "finding 123: something else" for k in r["knownRed"]}))
+    def partial_row(c: dict) -> dict:
+        return first_with(c, "partial")
+
+    rejects("a `partial` row resting only on a KNOWN_RED check is caught",
+            lambda r, c: (
+                r["knownRed"].update({
+                    n: "finding 059: declared"
+                    for n in [i["check"] for i in partial_row(c)["evidence"]
+                              if "check" in i]}),
+                partial_row(c).update(evidence=partial_row(c)["evidence"]
+                                      + [{"finding": "059"}])))
+    rejects("a `partial` row citing a KNOWN_RED for a defect it does not name "
+            "is caught",
+            lambda r, c: (
+                r["checks"].append({"id": "extra-red", "ok": False,
+                                    "outcome": "FAIL"}),
+                r["knownRed"].update({"extra-red": "finding 777: elsewhere"}),
+                partial_row(c)["evidence"].append({"check": "extra-red"})))
+
     rejects("a KNOWN_RED no checklist row cites is caught",
             lambda r, c: r["knownRed"].update({
                 "a-check-nobody-lists": "finding 059: orphaned"}))
 
-    total = 22
+    total = 24
     print(f"\nself-test: {total - len(failures)}/{total} checks moved the verdict")
     return 1 if failures else 0
 

@@ -292,9 +292,17 @@ async function run(label, operation) {
            // NOT say it worked -- the barrier did not verify it.  Undo is
            // named because "review" leaves the queue open, which is the only
            // reason that advice is honest.
+           // Two different reasons reach `review`, and telling the user the
+           // wrong one is worse than saying less.  The disposition is still
+           // read from the field (E2-B 5.13); only the EXPLANATION is chosen
+           // by code.
            : recovery === "review"
-             ? "（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。"
-               + "請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+             ? (error?.code === "LOK_COMMAND_FAILED"
+                // Finding 059.
+                ? "（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，"
+                  + "所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）"
+                : "（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。"
+                  + "請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）")
            : ""), true);
     throw error;
   }
@@ -308,8 +316,12 @@ async function run(label, operation) {
 //
 // Bold and italic are decided from state: the worker already projects
 // `format: {bold, italic}` as a tri-state (null = the engine does not know).
-// Underline and strikethrough have no state to read -- core keeps no cache for
-// them (probe_engine.cpp says neither is in GetKitUnoCommandList) -- so they
+// Underline and strikethrough have no state to read -- OUR engine keeps no
+// cache for them.  The reason probe_engine.cpp gives (that neither is in core's
+// GetKitUnoCommandList) is false: both are in it
+// (sfx2/source/control/unoctitm.cxx:1165ff) and both were measured broadcasting
+// on 2026-08-18, findings/evidence/059/native/predicate/.  The cache is missing,
+// not impossible -- so they
 // stay one-way here and get their off path from 清除格式 below, which claims
 // nothing about the current state.
 //

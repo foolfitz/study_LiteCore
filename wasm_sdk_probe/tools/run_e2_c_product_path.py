@@ -90,10 +90,26 @@ IME_TEXTS = ["甲一", "乙二", "丙三"]
 # check becomes wallpaper.  `finish()` reports the declaration STALE the moment
 # one of these passes, so it cannot outlive the defect.
 KNOWN_RED = {
-    "bold-can-be-turned-off-again":
-        "finding 059: the 045 fix shipped and core now rejects the parameterised "
-        ".uno:Bold, so all four inline formats fail with LOK_COMMAND_FAILED. "
-        "Engine-side, needs a link (queue-inline-format-argument-is-rejected-by-core).",
+    # 2026-08-18: `bold-can-be-turned-off-again` came OFF this list. It passes
+    # now -- shell v17 stopped blocking the queue on a dispatched failure, so
+    # both presses run and the engine's format state toggles. Bold turns on and
+    # off from the product's seat. What has NOT been fixed is the engine's
+    # predicate, and the check below is what stays red for it: keeping a passing
+    # check declared would have been the stale declaration the runner is built
+    # to shout about.
+    "a-format-that-worked-is-not-reported-as-failed":
+        "finding 059: core APPLIES the parameterised inline format on the "
+        "shipped artifact and reports success:false, and the engine turns that "
+        "into LOK_COMMAND_FAILED (probe_engine.cpp:1696, :2286). So the product "
+        "tells the user an action failed while the document shows it worked. "
+        "Engine-side, needs a link "
+        "(queue-inline-format-argument-is-rejected-by-core).",
+    "the-caret-is-drawn-where-it-was-placed":
+        "finding 060: the caret IS drawn -- isolated against the `caret` "
+        "mutation as an 8-row, 1px stroke -- but this check samples fixed "
+        "viewport fractions and the canvas is sized from el.desk.clientWidth, "
+        "so its verdict depends on the browser window. Harness-side; the fix is "
+        "the anchored oracle owed to put-the-caret-where-i-clicked.",
 }
 
 INSERT_MARK = "插入鈕標記"
@@ -159,6 +175,13 @@ return true;
 })()"""
 
 READ_TOAST = "(() => document.querySelector('#toast').textContent)()"
+
+READ_NOTICE = """(() => {
+const notice = document.querySelector('#notice');
+if (!notice) return { present: false };
+return { present: true, shown: notice.dataset.show === "1",
+         text: document.querySelector('#notice-text').textContent };
+})()"""
 
 # Hand the product a file through its own <input type=file>, the way a chooser
 # would.  The File is synthesised because neither driver can operate a native
@@ -462,6 +485,26 @@ MUTATIONS = {
         "reintroduces": "an editor with no visible caret",
         "alsoRed": [],
     },
+    # Finding 059's disposition half, shell v17.  Turning the branch off
+    # restores what shipped until 2026-08-18: LOK_COMMAND_FAILED fell through to
+    # `unknown-rollback`, the queue blocked, and the product prescribed a
+    # rollback for a change that -- measured on both sides -- had succeeded.
+    "inline-format-rollback": {
+        "check": "a-failed-format-does-not-block-the-session",
+        "path": "editor-shell-v2/paragraph-editor-client.js",
+        "find": '  if (error?.code === "LOK_COMMAND_FAILED")\n'
+                '    return "dispatched-unverified";',
+        "replace": '  if (error?.code === "LOK_COMMAND_FAILED-never")\n'
+                   '    return "dispatched-unverified";',
+        "reintroduces": "an editor that tells you to discard your work to undo a "
+                        "change that succeeded",
+        # Declared collateral, and it is the mutation telling the truth: with
+        # the queue blocked again the SECOND B press never runs, so bold cannot
+        # be turned off either.  Measured 2026-08-18 -- this check went red
+        # under the mutation and green without it, which is what made the
+        # dependency visible rather than assumed.
+        "alsoRed": ["bold-can-be-turned-off-again"],
+    },
     # Finding 046's residual, the disposition half.  Turning the sentinel off
     # restores the pre-2026-08-17 behaviour exactly: the operation rejects, the
     # frozen base class sees MUTATION_OUTCOME_UNKNOWN in its RECOVERY_ERRORS,
@@ -711,7 +754,7 @@ def build_mirror(source: Path, target: Path, overrides: dict[str, bytes]) -> Non
 # product page itself is one of them), so the digest moves on its own and no
 # separate honesty flag is needed.  Same digest function as the bundle manifest,
 # imported rather than reimplemented: two copies of a hash rule drift.
-SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v16.json"
+SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v17.json"
 
 
 def served_in_dist(relative: str) -> str:
@@ -1539,6 +1582,46 @@ def main() -> int:
               notEstablished="the engine reported no format state at all "
                              "(aria-pressed absent), so nothing here is about "
                              "the page's choice of `enabled`")
+
+        # ------------- 059: a format that worked must not be reported as failed
+        # KNOWN_RED, and the check that carries finding 059's ENGINE half now
+        # that `bold-can-be-turned-off-again` passes. The product's own toast is
+        # the subject: the document says the action worked (measured on both
+        # sides, findings/evidence/059/), and the user is told it failed.
+        check("a-format-that-worked-is-not-reported-as-failed",
+              "LOK_COMMAND_FAILED" not in bold_toast,
+              observed={"toastAfterFirstPress": bold_toast},
+              oracle="pressing B does not report a failure to the user. Core "
+                     "applies the command; the engine's predicate requires "
+                     "success:true and turns core's success:false into "
+                     "LOK_COMMAND_FAILED, so the product reports a failure for "
+                     "an action the saved document shows succeeded")
+
+        # ------------------- 059: a failed format must not block the session
+        # Placed here, after the bold presses above, and deliberately NOT
+        # sharing their check: `bold-can-be-turned-off-again` is KNOWN_RED for
+        # finding 059's engine half, and a mutation owned by a check that is
+        # already red cannot be shown to have been detected.
+        #
+        # The subject is the DISPOSITION, not the formatting.  Measured on both
+        # sides on 2026-08-18: core applies the parameterised inline format on
+        # the shipped artifact and reports success:false, so the product used to
+        # prescribe "go back to the checkpoint" for a change that had succeeded
+        # -- it asked the user to discard work to undo something that worked.
+        blocked_state = evaluate(session, READ_STATE) or {}
+        notice_shown = evaluate(session, READ_NOTICE)
+        check("a-failed-format-does-not-block-the-session",
+              blocked_state.get("state") == "ready"
+              and not (notice_shown or {}).get("shown"),
+              observed={"stateAfterTwoBoldPresses": blocked_state.get("state"),
+                        "notice": notice_shown,
+                        "toast": bold_toast},
+              oracle="after a format action fails, the session is still `ready` "
+                     "and no rollback notice is shown. LOK_COMMAND_FAILED is "
+                     "emitted only from the UNO command RESULT handler, so core "
+                     "answered and the dispatch is established -- the honest "
+                     "disposition is `review` (undo stays reachable), not "
+                     "`rollback` (discard everything since the checkpoint)")
 
         # --------------------------------- opening a document the user chose
         # Until 2026-08-17 the product could only open the samples in its own

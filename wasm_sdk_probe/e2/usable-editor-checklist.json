@@ -107,11 +107,14 @@
     {
       "id": "turn-formatting-off",
       "user": "把粗體關掉，不只是打開",
-      "status": "blocked",
-      "note": "2026-08-17 第一次驅動 set-bold 就掉出 finding 059:045 的修法出貨之後,四個 inline 格式全部 LOK_COMMAND_FAILED,而且每按一次就把 session 打進 recoverable-error。v2 上粗體會套用只是忽略 enabled;v3 上完全不能用。所以這一格不是『關不掉』,是『開也開不了』,而且要一次連結。產品頁的 enabled 那一行已經修好（由 editorState.format 驅動 B/I,外加一顆清除格式覆蓋四個),但在引擎修好之前它是無效的。",
+      "status": "partial",
+      "note": "2026-08-17 第一次驅動 set-bold 就掉出 finding 059:045 的修法出貨之後,四個 inline 格式全部 LOK_COMMAND_FAILED,而且每按一次就把 session 打進 recoverable-error。v2 上粗體會套用只是忽略 enabled;v3 上完全不能用。所以這一格不是『關不掉』,是『開也開不了』,而且要一次連結。產品頁的 enabled 那一行已經修好（由 editorState.format 驅動 B/I,外加一顆清除格式覆蓋四個),但在引擎修好之前它是無效的。**2026-08-18 兩側都量完了,而且答案是壞的那個**:核心在 WASM 上也照做了——四個 slot 各自的標記回來都掛著正好是它按下去的那個樣式,不派送命令的對照臂沒有樣式（findings/evidence/059/wasm/)。所以出貨的產品是按下 B 把字變粗,然後叫使用者回到檢查點——叫人丟掉工作去撤銷一個成功的改動。**處置那一半已經修了(殼層 v17,SPEC E2-C 2.6c,不需連結)**:LOK_COMMAND_FAILED 現在回 review 而不是 rollback,佇列不擋、復原還能用,提示文字也和 046 那一組分開。**這一格仍然是 blocked**,因為讓格式真的能用是引擎那一半,那要一次連結。**2026-08-18 從 blocked 改成 partial**:v17 之後佇列不再被擋,兩次按下都跑得完,`bold-can-be-turned-off-again` **變綠了**——把粗體關掉這件事,從使用者的位置看現在做得到,而且是量到的。**沒涵蓋的部分具名**:產品仍然把一個成功的動作回報成失敗（`a-format-that-worked-is-not-reported-as-failed`,為 finding 059 宣告 KNOWN_RED),那要引擎那一半、要一次連結。**不要把這一格讀成做完了**:使用者按下 B 之後仍然會看到一則說它失敗的訊息。",
       "evidence": [
         {
           "check": "bold-can-be-turned-off-again"
+        },
+        {
+          "check": "a-format-that-worked-is-not-reported-as-failed"
         },
         {
           "finding": "059"
