@@ -118,11 +118,66 @@ more than the confirmation:
 | A4 breaks "around a dozen pages" | 33 pages at dpr 1, 17 at dpr 2 — and the dpr factor is the part that matters |
 | per-edit repaint cost grows with length | essentially flat (60 → 127 ms from 1 to 20 pages) |
 
+### T1.3's measurement half — the predicate can say no, and the cache is primed
+
+Native round, nine arms, zero disagreements
+(`findings/evidence/059/native/negative-arm/`, analyzer self-test 10/10).
+Nothing was rebuilt: the probe compiles against the LOK headers and loads the
+existing native install.
+
+**Two genuine negatives**, and the predicate said not-met on exactly those: a
+wrong argument TYPE (`{"Bold":{"type":"string",...}}`) leaves the text normal
+with no broadcast, and a paragraph inside a `text:protected` section refuses the
+dispatch and does not even take the typing. Four refusals were tried rather than
+one, because 037's lesson is that a guard may decline for another reason or not
+at all — and `setViewReadOnly`, asked again, **still does not refuse**.
+
+**The cache is primed at document LOAD**, for all four slots including underline
+and strikeout — which contradicts `probe_engine.cpp:4308` a second way, by
+measurement this time. But the priming comes from the load broadcast, **not from
+caret movement**: moving between two paragraphs that already share a state
+broadcasts nothing.
+
+**And one that sharpens why the current gate is wrong rather than weak**:
+`success: true` appeared on exactly the two arms where core **ignored the
+argument and toggled**, and `success: false` on every arm where core honoured
+the parameterised form. The field `commandResultSucceeded()` gates on is
+**anti-correlated** with the caller's request being honoured.
+
+**Why the engine change was not written**: this finding exists *because* 045's
+fix shipped with native evidence, a static check, a queue item and a link — and
+nobody ever pressed the button. Writing a second engine fix that cannot be
+exercised until the next link repeats that shape. The design and both hazards
+are recorded in the queue item instead.
+
+### fable adjudicated finding 061, and overturned part of it
+
+Verdict: **061 stands** — the shell's own spec revision (SPEC-E1-C §4.1 v8)
+says the `checkpointError` field exists precisely so the two cases are not
+conflated, and the product re-derives a two-way branch that conflates them
+anyway. But one plank was wrong and is now removed: **the notice is not false**.
+In that state `hasCheckpoint` really is false and the bytes really are the same
+as the nothing-to-rescue case. It is *literally true and causally misleading* —
+"the notice lies" loses the argument to the first hostile reader.
+
+It also found **three holes in my check**, one of them self-disarming:
+
+1. comparing against a hard-coded copy of the no-checkpoint sentence meant a
+   rewording would make the check **silently pass**, defect intact;
+2. requiring only "different from (b)" would pass the strictly worse regression
+   of printing the *has-checkpoint* sentence, claiming a rescue that does not
+   exist;
+3. the branch never required the unsaved work to be gone.
+
+All three fixed: both sentences are now read out of the **served source**, so a
+rewording moves the reference instead of disarming the check, and an unreadable
+reference reports NOT_ESTABLISHED rather than passing.
+
 ## 3. Not done
 
 | | why it is still open |
 |---|---|
-| **T1.3 — the engine-side fix for 059** | The predicate was decided on 2026-08-18 but a genuine NEGATIVE arm is still owed: the predicate was shown to agree, never to disagree. Plus state-cache priming (finding 021's shape). Needs a link, and the link is held. |
+| **T1.3 — the engine-side fix for 059** | **The two owed measurements are done** (see §2.4); the change itself was deliberately not written. Gated only on the link now, which is the user's decision. The full design and two measured hazards are in `queue-inline-format-argument-is-rejected-by-core`. |
 | **Finding 062's layer** | The experiment is written down in `queue-long-document-renders-blank-in-silence`: call `document.render()` through the shell at `canvasHeightPx` 32,590 and 32,889 and compare the returned width/height and pixel byte length. This decides engine-side vs page-side, i.e. whether the fix needs a link. |
 | **A defect-independent second inducer** | `queue-recovery-inducer-depends-on-an-unfixed-defect`. Recovery coverage is currently tied to finding 038 staying broken. |
 | **D0** | Still not run. Once it is, moving the shell means changing the matrix. |
