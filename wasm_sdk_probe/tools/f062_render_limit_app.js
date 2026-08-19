@@ -27,6 +27,7 @@
 // is on the page side; if they are not, it is on the engine side.
 
 import { createDocumentEngine } from "./sdk/document-sdk.js";
+import { NarrowEditorV2Session } from "./editor-shell-v2/narrow-editor-v2-session.js";
 
 const report = {
   schemaVersion: 1,
@@ -53,16 +54,63 @@ function say(message) {
   node.textContent += message + "\n";
 }
 
-async function main() {
-  const engine = await createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v3/sdk-worker.js",
-    timeoutMs: 60000,
+// The product reaches the same engine through NarrowEditorV2Session, and the
+// request it sends is byte for byte the one this page sends -- measured by
+// wrapping Worker.prototype.postMessage.  Yet the product's tile comes back all
+// zeros and this page's comes back inked.  `viaSession=1` is the bisect: same
+// page, same document, same heights, with the SHELL in between.
+function makeSession() {
+  return new NarrowEditorV2Session({
+    engineFactory: () => createDocumentEngine({
+      workerUrl: "./profiles/e2-editor-v3/sdk-worker.js",
+      timeoutMs: 30000,
+    }),
+    clipboard: navigator.clipboard,
+    secureContext: globalThis.isSecureContext,
+    onState: () => {},
   });
+}
+
+async function openThroughSession(bytes) {
+  // The product NEVER opens the long document first: the page boots a fixture,
+  // so every long open is at least the second, and `openDocument()` closes the
+  // previous session -- and therefore the previous Worker -- before making a
+  // new one.  This page opened it first every time until now, which is the last
+  // structural difference between the two.
+  if (params.get("second") === "1") {
+    const first = makeSession();
+    await first.open({ bytes, name: "f062-first.odt" });
+    // Render it, so the first worker has actually allocated a tile.
+    await first.document.render({
+      xTwips: 0, yTwips: 0,
+      widthTwips: first.document.widthTwips,
+      heightTwips: first.document.heightTwips,
+      canvasWidthPx: 725, canvasHeightPx: 3002,
+    }, { timeoutMs: 120000 });
+    try { await first.close(); } catch { /* a dead session must not block */ }
+    report.openedFirst = true;
+  }
+  const session = makeSession();
+  await session.open({ bytes, name: "f062-long.odt" });
+  report.viaSession = true;
+  return session.document;
+}
+
+async function main() {
   const bytes = await (await fetch(documentPath, { cache: "no-cache" }))
     .arrayBuffer();
-  const handle = await engine.open(bytes, {
-    name: "f062-long.odt", transfer: true, timeoutMs: 180000,
-  });
+  let handle;
+  if (params.get("viaSession") === "1") {
+    handle = await openThroughSession(bytes);
+  } else {
+    const engine = await createDocumentEngine({
+      workerUrl: "./profiles/e2-editor-v3/sdk-worker.js",
+      timeoutMs: 60000,
+    });
+    handle = await engine.open(bytes, {
+      name: "f062-long.odt", transfer: true, timeoutMs: 180000,
+    });
+  }
   report.document = {
     widthTwips: handle.widthTwips,
     heightTwips: handle.heightTwips,
@@ -70,9 +118,29 @@ async function main() {
   };
   say(`document ${handle.widthTwips} x ${handle.heightTwips} twips`);
 
+  const preallocate = params.get("preallocate") === "1";
+  report.preallocate = preallocate;
   for (const canvasHeightPx of heights) {
     const arm = { canvasWidthPx: canvasWidth, canvasHeightPx,
-                  expectedBytes: canvasWidth * canvasHeightPx * 4 };
+                  expectedBytes: canvasWidth * canvasHeightPx * 4,
+                  preallocated: preallocate };
+    // The ORDER the product does it in: `layoutCanvas()` sizes the canvas to
+    // the whole document BEFORE `renderDocument()` asks for the tile, so a
+    // canvas of exactly these dimensions is already allocated when the engine
+    // tries to allocate its own copy.  The first version of this probe created
+    // the canvas AFTERWARDS, which is the one difference left between a render
+    // that comes back inked here and the all-zero buffer the product receives.
+    let held = null;
+    if (preallocate) {
+      held = document.createElement("canvas");
+      held.width = canvasWidth;
+      held.height = canvasHeightPx;
+      held.style.width = `${Math.round(canvasWidth / dpr())}px`;
+      held.style.height = `${Math.round(canvasHeightPx / dpr())}px`;
+      document.querySelector("#stage").replaceChildren(held);
+      // Touch it, so the backing store is really allocated rather than lazy.
+      held.getContext("2d").fillRect(0, 0, 1, 1);
+    }
     const started = performance.now();
     try {
       const tile = await handle.render({
@@ -179,6 +247,7 @@ async function main() {
       arm.errorCode = error?.code ?? null;
       arm.error = `${error?.name ?? "Error"}: ${error?.message ?? error}`;
     }
+    if (held) document.querySelector("#stage").replaceChildren();
     report.arms.push(arm);
     say(`${canvasHeightPx}: ${arm.threw ? "THREW " + arm.error
         : `${arm.reportedWidth}x${arm.reportedHeight} bytes=${arm.byteLength}`

@@ -50,6 +50,18 @@ def main() -> int:
     parser.add_argument("--pages", type=int, default=17)
     parser.add_argument("--heights",
                         default="31048,32590,32767,32768,32889,34847")
+    parser.add_argument("--via-session", action="store_true",
+                        help="open through NarrowEditorV2Session, the way the "
+                             "product does, instead of the raw SDK")
+    parser.add_argument("--width", type=int, default=725,
+                        help="canvas width; the discriminator between a 2^15 "
+                             "height limit and a byte-size ceiling")
+    parser.add_argument("--second", action="store_true",
+                        help="open and close a document first, the way the "
+                             "product always has by the time it opens a long one")
+    parser.add_argument("--preallocate", action="store_true",
+                        help="allocate a canvas of the target size BEFORE the "
+                             "render, the way layoutCanvas() does")
     parser.add_argument("--out", default=None)
     parser.add_argument("--timeout", type=float, default=900)
     args = parser.parse_args()
@@ -75,7 +87,10 @@ def main() -> int:
                     "browser": args.browser, "pages": args.pages}
     try:
         base = (f"http://127.0.0.1:{port}/f062-render-limit.html"
-                f"?heights={args.heights}")
+                f"?heights={args.heights}&width={args.width}"
+                + ("&preallocate=1" if args.preallocate else "")
+                + ("&viaSession=1" if args.via_session else "")
+                + ("&second=1" if args.second else ""))
         wait_page(f"http://127.0.0.1:{port}/f062-render-limit.html")
         session = (ChromeSession("cold") if args.browser == "chrome"
                    else FirefoxSession("cold"))
