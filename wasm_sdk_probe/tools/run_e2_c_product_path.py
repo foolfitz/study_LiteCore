@@ -58,6 +58,7 @@ import base64
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -105,6 +106,13 @@ KNOWN_RED = {
         "Engine-side, needs a link "
         "(queue-inline-format-argument-is-rejected-by-core).",
 }
+
+# The two markers `recover-from-an-error` is scored on. RESCUE_SAVED is typed
+# and then saved, so it lives in the authority bytes; RESCUE_UNSAVED is typed
+# after that save and exists only inside the engine -- it is the work a user
+# would lose. Non-ASCII on purpose, and distinct from every other marker here.
+RESCUE_SAVED = "救回標記已存"
+RESCUE_UNSAVED = "救回標記未存"
 
 INSERT_MARK = "插入鈕標記"
 # Non-ASCII on purpose: a paste path that mangles UTF-8 passes an ASCII marker.
@@ -231,6 +239,76 @@ for (let row = 0; row < h; row += 1) {
   }
 }
 return { available: true, columns, width: canvas.width, band: { y, h } };
+})()"""
+
+# Which LINE is which, from the page's own pixels.
+#
+# `format-a-paragraph` has to aim the caret at a NAMED paragraph using nothing
+# but the user's route -- a click on the canvas.  The product publishes no
+# handle on the session and the v2 shell has no text search, so the only thing
+# that can say where a paragraph is drawn is the drawing.
+#
+# Rows carrying ink are grouped into bands and matched, in order, against the
+# lines of the document the product just saved.  Three things had to be
+# measured rather than assumed (2026-08-19, all three got this wrong first):
+#
+#   * unpainted canvas reads as (0,0,0,0), which passes a "dark pixel" test --
+#     without the alpha term the whole margin counted as ink and the page came
+#     back as three bands;
+#   * the page border is a column inked down the whole page and two solid
+#     rules across it.  The columns are dropped here; the rules are dropped by
+#     their density, below;
+#   * a repaint in flight reports a different band count from the same page,
+#     so the scan is taken until it stops moving.
+INK_ROWS = """(() => {
+const canvas = document.querySelector('#canvas');
+const w = canvas.width, h = canvas.height;
+const data = canvas.getContext('2d').getImageData(0, 0, w, h).data;
+const dark = new Uint8Array(w * h);
+const columnTotals = new Int32Array(w);
+for (let y = 0; y < h; y += 1) {
+  for (let x = 0; x < w; x += 1) {
+    const i = (y * w + x) * 4;
+    if (data[i+3] > 128 && data[i] < 100 && data[i+1] < 100 && data[i+2] < 100) {
+      dark[y * w + x] = 1; columnTotals[x] += 1;
+    }
+  }
+}
+// A column inked down a large fraction of the page is the page border, not a
+// glyph.  0.20 rather than 0.50: a two-page document's border runs down 41% of
+// the canvas, and at 0.50 neither edge was found.  Measured 2026-08-19 --
+// border columns score 0.41-0.43 of the height, the noise outside the page
+// 0.005-0.010, and no glyph column comes near either.
+const border = [];
+for (let x = 0; x < w; x += 1) border.push(columnTotals[x] > h * 0.20);
+// The border columns bracket the printable area.  Everything outside them is
+// off-page, and off-page is where the renderer leaves uninitialised pixels:
+// two ragged strips about 13px wide putting 10-18 dark pixels into EVERY row,
+// which merged a whole page of separate lines into one 340-row band.
+let inside = -1, outside = w;
+for (let x = 0; x < w; x += 1) if (border[x]) { if (inside < 0) inside = x; outside = x; }
+const clipped = inside >= 0 && outside - inside > w * 0.5;
+const counts = [], firsts = [], lasts = [];
+for (let y = 0; y < h; y += 1) {
+  let count = 0, first = -1, last = -1;
+  for (let x = 0; x < w; x += 1) {
+    if (!dark[y * w + x] || border[x]) continue;
+    if (clipped && (x < inside || x > outside)) continue;
+    count += 1; if (first < 0) first = x; last = x;
+  }
+  counts.push(count); firsts.push(first); lasts.push(last);
+}
+return { width: w, height: h, counts, firsts, lasts, clipped,
+         page: [inside, outside],
+         borderColumns: border.reduce((n, v) => n + (v ? 1 : 0), 0) };
+})()"""
+
+# The product writes the button's own text into #s-latency, so the wait for
+# "this action finished" is discriminating without the harness inventing a
+# name for it.
+BUTTON_LABEL = """(() => {
+const button = document.querySelector('#toolbar button[data-action="ARG_ACTION"]');
+return button ? button.textContent.trim() : null;
 })()"""
 
 # Backspace, Delete and the arrows, through the page's own handlers. `keydown`
@@ -547,6 +625,113 @@ MUTATIONS = {
         # so this check goes from NOT_ESTABLISHED back to PASS. Declared so the
         # run does not look like the mutation fixed something.
         "alsoNotEstablished": [],
+    },
+    # `format-a-paragraph`, the swallow: 標題 and 內文 fall off the end of the
+    # toolbar's handler chain, so pressing them does nothing at all.  This is
+    # the state the coverage registry said all five structure actions were in
+    # -- present on the toolbar, driven by nobody -- and it is the shape of
+    # findings 049 and 050.
+    #
+    # Deliberately NARROWED to the two paragraph-style actions.  Measured
+    # 2026-08-19: swallowing `set-list-*` as well turns three unrelated checks
+    # red, two of them for a real reason worth writing down -- the 046 cell and
+    # the recovery recipe both reach their subject by pressing 項目符號, so with
+    # that button dead they have no way in -- and one by accident, because the
+    # cut check drags at fixed viewport fractions and an unbulleted paragraph
+    # moves the line it was aiming at.  A mutation whose collateral is an
+    # aiming accident teaches its reader to ignore red.  The misroute mutation
+    # below covers the list actions.
+    "paragraph-action-swallowed": {
+        "check": "format-a-paragraph-changes-that-paragraph",
+        "path": "e2-editor-app.js",
+        "find": "    : EDITOR_V2_ACTIONS.includes(action) ? () => editorAction(action)",
+        "replace": '    : EDITOR_V2_ACTIONS.includes(action)\n'
+                   '      && !action.startsWith("set-paragraph")\n'
+                   '      ? () => editorAction(action)',
+        "reintroduces": "a toolbar whose 標題 and 內文 buttons do nothing",
+        "alsoRed": [],
+    },
+    # The same five buttons, wired to the wrong command.  Every arm still
+    # dispatches, the session stays healthy, the revision advances and a
+    # document-wide "is there a numbered list" test still passes -- the
+    # paragraph the user aimed at is simply in the wrong state.  This is the
+    # mutation the exact-text anchor exists for.
+    "paragraph-action-misrouted": {
+        "check": "format-a-paragraph-changes-that-paragraph",
+        "path": "e2-editor-app.js",
+        "find": "    : EDITOR_V2_ACTIONS.includes(action) ? () => editorAction(action)",
+        "replace": '    : EDITOR_V2_ACTIONS.includes(action)\n'
+                   '      ? () => editorAction(action === "set-list-ordered"\n'
+                   '                           ? "set-list-unordered" : action)',
+        "reintroduces": "a 編號 button that makes bullets",
+        "alsoRed": [],
+    },
+    # Finding 046's shape: the action lands on the paragraph BELOW the one the
+    # user clicked.  Every completion code is green, the document changes, and
+    # the wrong paragraph moved.  390 twips is this corpus's line pitch (the
+    # D3 scorer's caret tolerance is half of it).
+    "caret-off-by-one-line": {
+        "check": "format-a-paragraph-changes-that-paragraph",
+        "path": "e2-editor-app.js",
+        "find": "    yTwips: Math.max(0, Math.round(\n"
+                "      (event.clientY - rectangle.top) / rectangle.height\n"
+                "      * session.document.heightTwips)),",
+        "replace": "    yTwips: Math.max(0, 390 + Math.round(\n"
+                   "      (event.clientY - rectangle.top) / rectangle.height\n"
+                   "      * session.document.heightTwips)),",
+        "reintroduces": "an editor that formats the paragraph below the one you "
+                        "clicked",
+        # Declared collateral, measured 2026-08-19 rather than predicted: this
+        # mutation shifts EVERY click in the run by a line, and the two checks
+        # below aim by fixed viewport fractions, so the 046 cell and the cut
+        # check's drag both land somewhere else.  That is the mutation telling
+        # the truth about how those two aim.
+        "alsoRed": ["bulleting-a-blank-line-does-not-demand-a-rollback",
+                    "ctrl-x-is-handled-by-the-product"],
+        # A NAMED LIMIT, and it is the opposite of what I predicted when this
+        # mutation was written: both caret checks stay GREEN under it.  Their
+        # oracle is horizontal -- two clicks on one line, scored against that
+        # line's own ink -- and a caret displaced a whole line down is still
+        # "where the click was" as far as they can tell, because the band they
+        # sample is tall enough to contain the line below.  So the caret row
+        # covers WHICH COLUMN, not which line; which line is covered here, by
+        # the neighbour clause, and nowhere else.
+    },
+    # `recover-from-an-error`, the mechanism the whole row rests on.  With the
+    # pre-gesture checkpoint degraded to a no-op the product still recovers,
+    # still comes back `ready`, and still saves a legal ODT -- it just silently
+    # drops everything typed since the last save.  The three-branch oracle
+    # alone CANNOT see this: the product would declare 無 and deliver 無, which
+    # is consistent.  The capability clause is what catches it, and this
+    # mutation is why that clause exists (adjudicated 2026-08-18).
+    "checkpoint-before-selection-noop": {
+        "check": "recovery-returns-what-the-product-promised",
+        "path": "editor-shell/editor-session.js",
+        "find": "    if (!this.state.snapshot.dirty "
+                "|| contentStamp === this._checkpointStamp)\n      return;",
+        "replace": "    if (true || !this.state.snapshot.dirty\n"
+                   "        || contentStamp === this._checkpointStamp)\n"
+                   "      return;",
+        "reintroduces": "an editor that loses everything since your last save "
+                        "and does not say so",
+        "alsoRed": [],
+    },
+    # The third branch, reached by making the checkpoint save miss its
+    # deadline.  Not a defect being reintroduced but a CONDITION being
+    # injected, and the check is expected to go red on it for a reason worth
+    # writing down: the shell distinguishes "nothing to rescue" from "we tried
+    # to protect your work and failed" (recovery-notice.js, checkpointFailed)
+    # and the product's notice does not, so the user is told the first when the
+    # second is true.  If the notice ever learns to say it, this declaration
+    # goes stale loudly.
+    "checkpoint-write-fails": {
+        "check": "recovery-returns-what-the-product-promised",
+        "path": "editor-shell/editor-session.js",
+        "find": "        { timeoutMs: this._selectionTimeoutMs },",
+        "replace": "        { timeoutMs: 1 },",
+        "reintroduces": "a rescue that fails silently and reads as 'there was "
+                        "nothing to rescue'",
+        "alsoRed": [],
     },
     # Aimed at the mechanism that actually commits a paste. Measured
     # 2026-08-17, twice: a page-level paste handler was written first on the
@@ -871,6 +1056,133 @@ def caret_from_columns(near_start: dict, past_end: dict) -> dict:
     }
 
 
+ODF_NS = {"office": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0"}
+
+# A text line that has been split by a thin row inside its own glyphs is still
+# one line; two lines of this corpus are 16px apart at the closest.
+BAND_MERGE_GAP = 5
+
+
+def text_bands(scan: dict, floor: int = 2) -> list[dict]:
+    """The canvas's lines of text, as row bands.
+
+    Everything that is not a line of text is rejected by DENSITY -- the widest
+    inked row of the band over the band's own horizontal extent.  Measured
+    2026-08-19 on this fixture: the page's rules score 1.00, the sparse noise
+    along the page edges 0.004-0.024, and lines of text 0.43-0.60.  Two orders
+    of magnitude of daylight on either side, and the rejected bands are
+    reported so the reason is visible rather than assumed.
+    """
+    runs: list[dict] = []
+    start = None
+    for y, count in enumerate(scan["counts"]):
+        if count > floor and start is None:
+            start = y
+        elif count <= floor and start is not None:
+            runs.append({"top": start, "bottom": y - 1})
+            start = None
+    if start is not None:
+        runs.append({"top": start, "bottom": len(scan["counts"]) - 1})
+    merged: list[dict] = []
+    for run in runs:
+        if merged and run["top"] - merged[-1]["bottom"] <= BAND_MERGE_GAP:
+            merged[-1]["bottom"] = run["bottom"]
+        else:
+            merged.append(run)
+    out: list[dict] = []
+    for band in merged:
+        rows = range(band["top"], band["bottom"] + 1)
+        firsts = [scan["firsts"][y] for y in rows if scan["firsts"][y] >= 0]
+        if not firsts:
+            continue
+        band["maxInk"] = max(scan["counts"][y] for y in rows)
+        band["first"] = min(firsts)
+        band["last"] = max(scan["lasts"][y] for y in rows)
+        band["extent"] = band["last"] - band["first"] + 1
+        band["density"] = band["maxInk"] / band["extent"]
+        band["centreFraction"] = ((band["top"] + band["bottom"]) / 2
+                                  / scan["height"])
+        if 0.15 <= band["density"] < 0.9:
+            out.append(band)
+    return out
+
+
+def stable_bands(session, tries: int = 12) -> tuple[dict, list[dict]]:
+    """A scan the page has stopped changing under.
+
+    Measured 2026-08-19: read straight after a save, the same page reported 11
+    bands once and 9 a moment later -- a repaint caught in flight.  A fixed
+    sleep would have hidden that; this waits for the shape to repeat.
+    """
+    scan: dict = {}
+    bands: list[dict] = []
+    previous = None
+    for _ in range(tries):
+        scan = evaluate(session, INK_ROWS) or {"counts": [], "firsts": [],
+                                               "lasts": [], "height": 1,
+                                               "width": 1}
+        bands = text_bands(scan)
+        shape = [(b["top"], b["bottom"]) for b in bands]
+        if previous is not None and shape == previous:
+            return scan, bands
+        previous = shape
+        time.sleep(0.5)
+    return scan, bands
+
+
+def document_lines(report: dict) -> list[dict]:
+    """The body as the flat list of LINES a user sees, with each line's kind.
+
+    A list contributes one line per item, because that is what is drawn and
+    what a click lands on.
+
+    The kind is read from the paragraph's STYLE, not from its element name.
+    Measured 2026-08-19: the product's own heading action writes
+    `<text:p text:style-name="Heading_20_1">`, not `<text:h>`, so an oracle
+    keyed on the element name reports a working heading action as a no-op --
+    which is exactly what the first version of this check did.
+    """
+    content = report.get("content") or ""
+    if not content:
+        return []
+    kinds: dict[str, str] = {}
+    for blob in (content, report.get("styles") or ""):
+        for match in re.finditer(
+                r'<text:list-style[^>]*style:name="([^"]+)"(.*?)</text:list-style>',
+                blob, re.S):
+            levels = set(re.findall(r"<text:list-level-style-(\w+)",
+                                    match.group(2)))
+            if "bullet" in levels:
+                kinds[match.group(1)] = "bullet"
+            elif "number" in levels:
+                kinds[match.group(1)] = "number"
+    try:
+        root = ElementTree.fromstring(content)
+    except ElementTree.ParseError:
+        return []
+    body = root.find("office:body/office:text", ODF_NS)
+    style_of = f"{{{ODF_NS['text']}}}style-name"
+    out: list[dict] = []
+    for child in (body if body is not None else []):
+        tag = child.tag.split("}")[-1]
+        if tag in ("p", "h"):
+            style = child.get(style_of) or ""
+            out.append({"kind": "heading" if tag == "h"
+                        or style.startswith("Heading") else "body",
+                        "style": style,
+                        "text": "".join(child.itertext()).strip()})
+        elif tag == "list":
+            style = child.get(style_of) or ""
+            kind = kinds.get(style) or "list"
+            for item in child:
+                if item.tag.split("}")[-1] != "list-item":
+                    continue
+                out.append({"kind": kind, "style": style,
+                            "text": "".join(item.itertext()).strip()})
+    return out
+
+
 def wait_for(session, predicate, timeout, poll=0.4):
     deadline = time.monotonic() + timeout
     state = None
@@ -933,6 +1245,13 @@ def zip_report(raw: bytes) -> dict:
             out["mimetype"] = (archive.read("mimetype").decode("utf-8", "replace")
                                if "mimetype" in names else None)
             out["content"] = archive.read("content.xml").decode("utf-8", "replace")
+            # The corpus defines its own list styles in styles.xml and an
+            # action creates automatic ones in content.xml; reading only one of
+            # the two leaves half the lists unclassifiable, and
+            # "unclassifiable" is what a bullet list masquerading as a numbered
+            # one looks like.
+            out["styles"] = (archive.read("styles.xml").decode("utf-8", "replace")
+                             if "styles.xml" in names else "")
     except Exception as error:            # noqa: BLE001 -- reported, not raised
         out["zipError"] = str(error)
     if out.get("content"):
@@ -1723,6 +2042,167 @@ def main() -> int:
                      "disposition is `review` (undo stays reachable), not "
                      "`rollback` (discard everything since the checkpoint)")
 
+        # --------------------- format-a-paragraph: five actions, five states
+        # The checklist row is "把一段變成標題、內文、項目符號或編號" and until
+        # now nothing pressed those buttons -- the coverage registry carried
+        # all five as uncovered, which is the shape findings 049, 050 and the
+        # unbound Ctrl+C all had.
+        #
+        # Three disciplines, each of which a simpler version of this check
+        # would have got wrong:
+        #
+        #   * every arm aims at a paragraph in the OPPOSITE state, so an
+        #     implementation that does nothing cannot pass.  `set-list-none` on
+        #     a paragraph that is not a list, or `set-paragraph-body` on a body
+        #     paragraph, is a no-op that scores green;
+        #   * the verdict is anchored to the target paragraph's exact TEXT.
+        #     The fixture already contains a heading, a bullet list and a
+        #     numbered list, so "this document has a heading in it" passes both
+        #     when the action changed the wrong paragraph and when it changed
+        #     nothing;
+        #   * the NEIGHBOURS must survive -- finding 046's shape, where an
+        #     action reported against one paragraph had acted on another.
+        #
+        # The document is re-opened from the fixture first, through the
+        # product's own file input, because everything above this point has
+        # been editing it: the paste, the backspace and the rollback all move
+        # the line structure this check reads.  And it is verified by its BYTES
+        # (a witness only that file carries), not by the name the page was
+        # handed -- 2026-08-18 spent four rounds measuring a 404 page that the
+        # label said was the fixture.
+        evaluate(session, CLEAR_TOAST)
+        reopened = evaluate(session, OPEN_FILE
+                            .replace("ARG_URL", "./e1-fixtures/list-contexts.odt")
+                            .replace("ARG_NAME", "format-a-paragraph.odt"))
+        wait_for(session, lambda s: (s.get("doc") or "") == "format-a-paragraph.odt"
+                 and s.get("state") == "ready", 90)
+        baseline = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+        lines = document_lines(baseline)
+        arms_spec = [
+            {"action": "set-paragraph-heading", "marker": "E1-LC-ISOLATED",
+             "was": "body", "becomes": "heading"},
+            {"action": "set-paragraph-body", "marker": "E1-LC-HEADING",
+             "was": "heading", "becomes": "body"},
+            {"action": "set-list-unordered", "marker": "E1-LC-BETWEEN",
+             "was": "body", "becomes": "bullet"},
+            {"action": "set-list-ordered", "marker": "E1-LC-END",
+             "was": "body", "becomes": "number"},
+            {"action": "set-list-none", "marker": "E1-LC-BULLET-ONE",
+             "was": "bullet", "becomes": "body"},
+        ]
+        fixture_is_open = (
+            is_an_odt(baseline)
+            and bool(lines)
+            and all(line["text"] for line in lines)
+            and all(sum(1 for line in lines if arm["marker"] in line["text"]) == 1
+                    for arm in arms_spec))
+        arms: list[dict] = []
+        for arm in arms_spec:
+            record = {"action": arm["action"], "marker": arm["marker"],
+                      "from": arm["was"], "to": arm["becomes"]}
+            arms.append(record)
+            if not fixture_is_open:
+                record["outcome"] = "NOT_ESTABLISHED"
+                record["why"] = "the fixture is not open (see openedFixture)"
+                continue
+            scan, bands = stable_bands(session)
+            hits = [i for i, line in enumerate(lines)
+                    if arm["marker"] in line["text"]]
+            record["bands"] = len(bands)
+            record["lines"] = len(lines)
+            if len(hits) != 1 or len(bands) != len(lines):
+                record["outcome"] = "NOT_ESTABLISHED"
+                record["why"] = (
+                    f"{len(hits)} lines carry the marker and the canvas shows "
+                    f"{len(bands)} bands for {len(lines)} lines, so this arm "
+                    "cannot say WHICH paragraph it is clicking on")
+                continue
+            target = hits[0]
+            record["lineIndex"] = target
+            record["observedBefore"] = lines[target]["kind"]
+            if lines[target]["kind"] != arm["was"]:
+                record["outcome"] = "NOT_ESTABLISHED"
+                record["why"] = (
+                    f"the target is already {lines[target]['kind']}, so this "
+                    "arm would score green on an action that does nothing")
+                continue
+            band = bands[target]
+            x_fraction = (band["first"] + 4) / scan["width"]
+            record["aim"] = {"x": round(x_fraction, 5),
+                             "y": round(band["centreFraction"], 5),
+                             "band": [band["top"], band["bottom"]]}
+            evaluate(session, POINT_AT
+                     .replace("ARG_X", f"{x_fraction:.5f}")
+                     .replace("ARG_Y", f"{band['centreFraction']:.5f}"))
+            placed = wait_for(session,
+                              lambda s: "定位游標" in (s.get("latency") or ""), 60)
+            record["caret"] = (placed or {}).get("latency")
+            # 052's shape: a click the engine will not turn into a caret. The
+            # arm has no seat to act from, which is a precondition and not a
+            # verdict on the action.
+            if not placed or "失敗" in (placed.get("latency") or ""):
+                record["outcome"] = "NOT_ESTABLISHED"
+                record["why"] = "the caret could not be placed on the target"
+                continue
+            label = evaluate(session, BUTTON_LABEL
+                             .replace("ARG_ACTION", arm["action"]))
+            record["buttonLabel"] = label
+            evaluate(session, CLEAR_TOAST)
+            record["pressed"] = evaluate(session, PRESS
+                                         .replace("ARG_ACTION", arm["action"]))
+            # A button that does nothing is a FAILURE, not an unreachable
+            # precondition: the swallow mutation has to be able to turn this
+            # red, so the arm goes on to read the document either way.
+            acted = wait_for(session,
+                             lambda s, want=label: bool(want)
+                             and want in (s.get("latency") or ""), 30)
+            record["latency"] = (acted or {}).get("latency")
+            record["toast"] = evaluate(session, READ_TOAST)
+            after_doc = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+            after = document_lines(after_doc)
+            same_shape = len(after) == len(lines)
+            record["observedAfter"] = (after[target]["kind"]
+                                       if same_shape and target < len(after)
+                                       else None)
+            record["style"] = (after[target]["style"]
+                               if same_shape and target < len(after) else None)
+            reached = same_shape and after[target]["kind"] == arm["becomes"]
+            text_kept = same_shape and after[target]["text"] == lines[target]["text"]
+            neighbours = [
+                after[j]["kind"] == lines[j]["kind"]
+                and after[j]["text"] == lines[j]["text"]
+                for j in (target - 1, target + 1)
+                if same_shape and 0 <= j < len(lines)]
+            record["neighboursSurvived"] = all(neighbours)
+            record["lineCountKept"] = same_shape
+            record["textKept"] = text_kept
+            record["ok"] = bool(is_an_odt(after_doc) and reached and text_kept
+                                and all(neighbours))
+            record["outcome"] = "PASS" if record["ok"] else "FAIL"
+            if after:
+                lines = after
+        judged = [a for a in arms if a["outcome"] in ("PASS", "FAIL")]
+        established = len(judged) == len(arms_spec)
+        check("format-a-paragraph-changes-that-paragraph",
+              established and all(a["ok"] for a in judged),
+              outcome=None if established else "NOT_ESTABLISHED",
+              observed={"openedFixture": {"dispatch": reopened,
+                                          "isOdt": is_an_odt(baseline),
+                                          "lines": len(lines),
+                                          "markersUnique": fixture_is_open},
+                        "arms": arms},
+              oracle="each of the five paragraph actions, pressed on the "
+                     "product's own toolbar with the caret clicked onto a "
+                     "paragraph in the OPPOSITE state, leaves THAT paragraph "
+                     "in the target state with its text unchanged and both "
+                     "neighbours untouched -- read from the ODT the product "
+                     "saves, and matched by the paragraph's own text",
+              notEstablished="range gestures. The five arms all act on a "
+                             "collapsed caret; converting several paragraphs "
+                             "at once is refused by the gesture mask "
+                             "(p1-2-gesture-mask-inherited), and the blank-line "
+                             "cell belongs to finding 046's queue item")
+
         # --------------------------------- opening a document the user chose
         # Until 2026-08-17 the product could only open the samples in its own
         # dropdown, which makes it a demo of an editor rather than an editor.
@@ -1762,6 +2242,261 @@ def main() -> int:
                              "The File is synthesised and assigned to the input, "
                              "which exercises the page's change handler and not "
                              "the chooser -- the same class of gap D5 exists for")
+
+        # ------------------- recover-from-an-error: judge the product by its
+        # ------------------- own declaration, not by our hopes
+        #
+        # LAST in the file, and it has to be: the inducer is finding 038, which
+        # leaves the engine's pthread unable to answer anything ever again.  A
+        # check that runs after it is running against a corpse.
+        #
+        # The oracle is NOT "a legal ODT comes back afterwards" -- that passes
+        # on reopening the untouched authority bytes, which is precisely the
+        # outcome a user would call losing their work.
+        #
+        # Adjudicated 2026-08-18: it is also not "M1 must survive and M2 may or
+        # may not".  `_checkpointBeforeSelection` saves before EVERY selection
+        # gesture on a dirty document, and 038's inducer IS a selection
+        # gesture, so on today's shell M2 should come back too.  An oracle that
+        # accepts either answer cannot go red when that mechanism degrades to a
+        # no-op -- finding 046's shape exactly.
+        #
+        # So the product is judged against what IT declared, in the place the
+        # user can see it, BEFORE the button was pressed: `#s-checkpoint` reads
+        # 有（rN） / 寫入失敗 / 無.  Three branches, and the oracle is decoupled
+        # from the inducer -- when 038 is fixed and the inducer is replaced,
+        # only the recipe changes.
+        #
+        # Plus a CAPABILITY clause the three branches cannot supply on their
+        # own: when the inducer is a selection gesture on a dirty document, the
+        # declaration may not be 無.  Without it, a `_checkpointBeforeSelection`
+        # that had degraded to a no-op would declare 無, deliver 無, and be
+        # scored consistent.
+        recovery: dict = {}
+        evaluate(session, CLEAR_TOAST)
+        recovery["opened"] = evaluate(session, OPEN_FILE
+                                      .replace("ARG_URL",
+                                               "./e1-fixtures/endnote-frame.odt")
+                                      .replace("ARG_NAME",
+                                               "recover-from-an-error.odt"))
+        wait_for(session,
+                 lambda s: (s.get("doc") or "") == "recover-from-an-error.odt"
+                 and s.get("state") == "ready", 90)
+        # The save comes FIRST: it is a round trip through the engine, so it
+        # both proves the fixture is really open (by its bytes) and gives the
+        # line list the aim is derived from.  Measured 2026-08-19: scanning
+        # straight after `ready` caught the page still showing the PREVIOUS
+        # document's tile -- four bands that belonged to a file this check had
+        # already finished with -- and the marker went into the wrong
+        # paragraph.  `ready` is a statement about the session, not about what
+        # is on the screen.
+        opening = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+        base_lines = document_lines(opening)
+        recovery["openedLines"] = [line["text"][:48] for line in base_lines]
+        note_index = [i for i, line in enumerate(base_lines)
+                      if "EN-NOTE" in line["text"]]
+        scan, bands = stable_bands(session)
+        # The page draws the endnote apparatus as well as the body, so there
+        # are MORE bands than lines here -- but the body paragraphs are drawn
+        # first and in order, so the note paragraph's line index is its band
+        # index.  Waiting for that inequality is what makes "the tile on
+        # screen is this document's" a condition rather than a hope.
+        for _ in range(8):
+            if len(bands) >= len(base_lines):
+                break
+            time.sleep(1.0)
+            scan, bands = stable_bands(session)
+        recovery["bands"] = [[b["top"], b["bottom"]] for b in bands]
+        recovery["noteLineIndex"] = note_index
+        established = (is_an_odt(opening) and len(note_index) == 1
+                       and len(bands) >= len(base_lines))
+        if established:
+            band = bands[note_index[0]]
+            x_fraction = (band["first"] + 4) / scan["width"]
+            evaluate(session, POINT_AT.replace("ARG_X", f"{x_fraction:.5f}")
+                     .replace("ARG_Y", f"{band['centreFraction']:.5f}"))
+            placed = wait_for(session,
+                              lambda s: "定位游標" in (s.get("latency") or ""), 60)
+            recovery["caret"] = (placed or {}).get("latency")
+            established = bool(placed) and "失敗" not in (placed.get("latency") or "")
+        if established:
+            floor = revision_of(evaluate(session, READ_STATE))
+            evaluate(session, COMPOSE.replace("ARG_TEXT", RESCUE_SAVED))
+            wait_for(session, lambda s, f=floor: revision_of(s) is not None
+                     and f is not None and revision_of(s) > f, 25)
+            saved_doc = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+            saved_lines = document_lines(saved_doc)
+            # The marker is typed a few pixels into the first glyph, so the
+            # caret lands after the first CHARACTER and the marker is inserted
+            # inside the word: "E救回標記已存N-NOTE ...".  Matching the anchor
+            # without removing the marker first reported that a marker sitting
+            # in the right paragraph was in the wrong one.
+            host = [line for line in saved_lines
+                    if "EN-NOTE" in line["text"].replace(RESCUE_SAVED, "")]
+            recovery["markerLandedOnTheNoteParagraph"] = bool(host) \
+                and RESCUE_SAVED in host[0]["text"]
+            recovery["markerLandedIn"] = [line["text"][:48]
+                                          for line in saved_lines
+                                          if RESCUE_SAVED in line["text"]]
+            recovery["checkpointAfterSave"] = \
+                (evaluate(session, READ_STATE) or {}).get("checkpoint")
+            established = bool(recovery["markerLandedOnTheNoteParagraph"])
+        if established:
+            # M2: typed AFTER the save, so it exists only in the engine.  This
+            # is the work a user would lose.
+            floor = revision_of(evaluate(session, READ_STATE))
+            evaluate(session, COMPOSE.replace("ARG_TEXT", RESCUE_UNSAVED))
+            dirty = wait_for(session, lambda s, f=floor: revision_of(s) is not None
+                             and f is not None and revision_of(s) > f, 25)
+            recovery["revisionWithUnsavedWork"] = revision_of(dirty or {})
+            established = dirty is not None
+        if established:
+            # The inducer.  Finding 038: a drag that COVERS the endnote
+            # reference mark of a paragraph whose note body holds an as-char
+            # frame.  The selection itself returns; the drain's next read of
+            # the selection never does, and TIMEOUT is in RECOVERY_ERRORS.
+            scan, bands = stable_bands(session)
+            for _ in range(8):
+                if len(bands) >= len(base_lines):
+                    break
+                time.sleep(1.0)
+                scan, bands = stable_bands(session)
+            recovery["bandsAtInducer"] = [[b["top"], b["bottom"]] for b in bands]
+            # The SAME derived index as the marker used. The first version of
+            # this left a hard-coded 1 here and dragged across the endnote's
+            # own body instead of the reference mark -- the selection was
+            # healthy, nothing wedged, and the check reported "038 no longer
+            # reproduces". A wrong aim reads exactly like a fixed defect.
+            band = (bands[note_index[0]]
+                    if len(bands) >= len(base_lines) else None)
+            if band is None:
+                established = False
+            else:
+                left = max(0.0, (band["first"] - 6) / scan["width"])
+                right = min(1.0, (band["last"] + 10) / scan["width"])
+                recovery["inducer"] = {
+                    "name": "INDUCE_FOOTNOTE_APPARATUS",
+                    "finding": "038",
+                    "recipe": "drag across the endnote reference mark, then one "
+                              "more operation -- the selection returns healthy "
+                              "and the NEXT read is what wedges the engine",
+                    "drag": [round(left, 5), round(right, 5),
+                             round(band["centreFraction"], 5)]}
+                evaluate(session, DRAG
+                         .replace("ARG_X1", f"{left:.5f}")
+                         .replace("ARG_Y1", f"{band['centreFraction']:.5f}")
+                         .replace("ARG_X2", f"{right:.5f}")
+                         .replace("ARG_Y2", f"{band['centreFraction']:.5f}"))
+                # The checkpoint is written INSIDE the selection's queue item,
+                # before the engine is asked to select anything, so it is
+                # already there while the session is still healthy.  Waiting
+                # for it is how the recipe proves the gesture ran at all.
+                after_drag = wait_for(
+                    session, lambda s: (s.get("checkpoint") or "").startswith("有"),
+                    60)
+                recovery["stateAfterDrag"] = (after_drag or {}).get("state")
+                recovery["checkpointAfterDrag"] = (after_drag or {}).get("checkpoint")
+                # ONE MORE OPERATION, and it is not optional.  Finding 038's
+                # own correction (2026-08-13): the selection returns and the
+                # engine is still alive -- what kills it is the first READ of
+                # that selection.  `_drain` short-circuits its getState when
+                # the operation's result already carries `state`, so the
+                # selection's own drain never performs that read and the
+                # session sits `ready` indefinitely.  Measured 2026-08-19: 77
+                # seconds of health after the drag, then a single click ->
+                # `busy` -> `recoverable-error` about 30 s later, which is the
+                # drain's own getState deadline.
+                #
+                # A CLICK, not a drag: placeCaret takes no checkpoint, so the
+                # declaration under test is the one the drag already made.
+                evaluate(session, POINT_AT.replace("ARG_X", "0.30")
+                         .replace("ARG_Y", f"{band['centreFraction']:.5f}"))
+                wedged = wait_for(session,
+                                  lambda s: s.get("state") in ("recoverable-error",
+                                                               "restart-required"),
+                                  150)
+                recovery["stateAfterNextOperation"] = (wedged or {}).get("state")
+                established = (wedged or {}).get("state") in ("recoverable-error",
+                                                              "restart-required")
+        if established:
+            # The declaration, read at the moment the product offers the
+            # button -- before it is pressed, which is the whole point.
+            declared = (wedged or {}).get("checkpoint") or ""
+            offered = evaluate(session, READ_NOTICE) or {}
+            recovery["declaredCheckpoint"] = declared
+            recovery["notice"] = offered
+            recovery["pressed"] = evaluate(session, CLICK_NOTICE)
+            back = wait_for(session, lambda s: s.get("state") == "ready", 240)
+            recovery["stateAfterPressing"] = (back or {}).get("state")
+            rescued = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+            text = rescued.get("content") or ""
+            saved_back = RESCUE_SAVED in text
+            unsaved_back = RESCUE_UNSAVED in text
+            recovery["savedWorkCameBack"] = saved_back
+            recovery["unsavedWorkCameBack"] = unsaved_back
+            recovery["stillAnOdt"] = is_an_odt(rescued)
+            branch = ("checkpoint" if declared.startswith("有")
+                      else "write-failed" if "寫入失敗" in declared
+                      else "none")
+            recovery["branch"] = branch
+            # 無 is a legitimate answer for a session that has nothing to
+            # rescue -- but not for THIS inducer, which is a selection gesture
+            # on a dirty document, the exact case the checkpoint exists for.
+            capability_held = branch != "none"
+            recovery["capabilityClause"] = {
+                "requires": "a selection gesture on a dirty document must not "
+                            "leave the product declaring 無",
+                "held": capability_held}
+            if branch == "checkpoint":
+                honoured = saved_back and unsaved_back
+            elif branch == "none":
+                honoured = saved_back and not unsaved_back
+            else:
+                # "We tried to protect your work and the save FAILED" is not
+                # the same thing to say as "there was nothing to protect", and
+                # the product's notice has only the second sentence -- its
+                # branch is on `hasCheckpoint` alone, so both cases print the
+                # line below.  The shell already decides the difference
+                # (recovery-notice.js, `checkpointFailed`); the product does
+                # not render it.  So this branch requires the notice to SAY
+                # something else, and today it cannot.
+                honoured = saved_back and (offered.get("text") or "") != \
+                    "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+            recovery["declarationHonoured"] = honoured
+            check("recovery-returns-what-the-product-promised",
+                  bool(honoured and capability_held
+                       and (back or {}).get("state") == "ready"
+                       and is_an_odt(rescued)),
+                  observed=recovery,
+                  oracle="the product declares where its recovery button will "
+                         "take the user BEFORE it is pressed -- #s-checkpoint "
+                         "reads 有（rN）, 寫入失敗 or 無 -- and pressing it "
+                         "delivers exactly that: with a checkpoint, both the "
+                         "saved and the unsaved marker come back; without one, "
+                         "the saved marker comes back and the unsaved one does "
+                         "not. Plus a capability clause the branches cannot "
+                         "supply: this inducer IS a selection gesture on a "
+                         "dirty document, so the declaration may not be 無",
+                  notEstablished="whether a checkpoint WRITE FAILURE is "
+                                 "surfaced. The shell decides it "
+                                 "(recovery-notice.js: checkpointFailed) and "
+                                 "the product's notice has a two-way branch on "
+                                 "hasCheckpoint only, so that case reaches the "
+                                 "user as 'there was nothing to rescue'. This "
+                                 "run did not produce it")
+        else:
+            check("recovery-returns-what-the-product-promised", False,
+                  outcome="NOT_ESTABLISHED",
+                  observed=recovery,
+                  why="the inducer did not put the session into a state where "
+                      "the product OFFERS its recovery button. The recipe is "
+                      "finding 038 -- a drag covering the endnote reference "
+                      "mark of a paragraph whose note body holds an as-char "
+                      "frame -- and this is the loud exit for 038 no longer "
+                      "reproducing, NOT a silent pass. The recovery path is "
+                      "then uncovered again and needs a new inducer",
+                  oracle="see the established branch: the product's own "
+                         "declaration, honoured")
         return finish(report, args)
     finally:
         if session is not None:

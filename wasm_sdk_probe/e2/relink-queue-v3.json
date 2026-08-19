@@ -1,794 +1,826 @@
 {
-  "schemaVersion": 1,
-  "release": "spec-e2c-relink-v3",
-  "writtenOn": "2026-08-16",
-  "why": "The relink queue lived only in handoff/PLAN-E2-C-relink-v3.md, in prose with checkboxes, and it was wrong twice: 3b was recorded as written into the tree when grep found zero hits, and item 8 said 'both places were fixed' when only one was. Both were caught by a human audit, and a human audit does not run itself on the day of the link. This file is the same queue as data, so tools/check_relink_queue.py can run it. P1 complete is the condition for linking; missing one item means a second relink.",
-  "expectationSemantics": "`present` means the item is done and must stay done. `absent` means the item is NOT done and the tree must not quietly acquire it either -- an item that appears without its expectation being flipped is drift in the direction nobody audits. Flipping an expectation is a deliberate edit and shows up in the diff.",
-  "items": [
+ "schemaVersion": 1,
+ "release": "spec-e2c-relink-v3",
+ "writtenOn": "2026-08-16",
+ "why": "The relink queue lived only in handoff/PLAN-E2-C-relink-v3.md, in prose with checkboxes, and it was wrong twice: 3b was recorded as written into the tree when grep found zero hits, and item 8 said 'both places were fixed' when only one was. Both were caught by a human audit, and a human audit does not run itself on the day of the link. This file is the same queue as data, so tools/check_relink_queue.py can run it. P1 complete is the condition for linking; missing one item means a second relink.",
+ "expectationSemantics": "`present` means the item is done and must stay done. `absent` means the item is NOT done and the tree must not quietly acquire it either -- an item that appears without its expectation being flipped is drift in the direction nobody audits. Flipping an expectation is a deliberate edit and shows up in the diff.",
+ "items": [
+  {
+   "id": "p1-1-inline-parameter",
+   "title": "the four inline formats each dispatch an explicit boolean argument",
+   "expectation": "present",
+   "source": "finding 045, natively verified; PLAN-E2-C-relink-v3.md P1 row 1",
+   "checks": [
     {
-      "id": "p1-1-inline-parameter",
-      "title": "the four inline formats each dispatch an explicit boolean argument",
-      "expectation": "present",
-      "source": "finding 045, natively verified; PLAN-E2-C-relink-v3.md P1 row 1",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "std::string inlineFormatArgument(const char *slot, bool enabled)",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "inlineFormatArgument(\"",
-          "atLeast": 4
-        }
-      ],
-      "blocksRelink": true
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "std::string inlineFormatArgument(const char *slot, bool enabled)",
+     "atLeast": 1
     },
     {
-      "id": "p1-2-gesture-mask-inherited",
-      "title": "the gesture mask is consulted for the ten inherited actions too, not only in routeFormatBarrier",
-      "expectation": "present",
-      "source": "SPEC E2-C 2.5; PLAN P1 row 2",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "editorGesturePermitted(",
-          "atLeast": 3
-        }
-      ],
-      "blocksRelink": true
-    },
-    {
-      "id": "p1-3-route-not-default",
-      "title": "the barrier payload never reports a route it did not classify",
-      "expectation": "present",
-      "source": "SPEC E2-C 9.5.4; PLAN P1 row 3",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "shape = \"routing-selection-not-readable\";",
-          "atLeast": 1
-        }
-      ],
-      "blocksRelink": true
-    },
-    {
-      "id": "p1-3b-empty-readback",
-      "title": "the `empty-readback` shape -- WITHDRAWN 2026-08-16, measured: there is nothing for it to name",
-      "expectation": "absent",
-      "source": "finding 046 + findings/evidence/046/native/; PLAN P1 row 3b",
-      "checks": [
-        {
-          "kind": "absent",
-          "file": "src/probe_engine.cpp",
-          "text": "empty-readback"
-        },
-        {
-          "kind": "absent",
-          "file": "sdk/sdk-worker.js",
-          "text": "empty-readback"
-        }
-      ],
-      "blocksRelink": false,
-      "note": "Withdrawn on data, off the FROZEN engine (a diagnostic profile whose probe.wasm is byte-identical to e2-editor-v2). On the empty paragraph the barrier reads parsed:true, blockCount:2, itemCount:1 -- a genuine two-paragraph read, accurately reported as multi-block-readback. NO arm produced a parsed readback with zero blocks. The 'zero blocks' this item was built on was postBlocks:0, the field never written on the collapsed route. Evidence: findings/evidence/046/diagnostic-readback/. The check stays `absent`: nothing should acquire this shape quietly now that it is known to name a case that does not occur. If it ever does occur, the round-two cell below is what would show it."
-    },
-    {
-      "id": "p1-3c-itemcount-projection",
-      "title": "itemCount reaches the product's formatBarrier projection",
-      "expectation": "present",
-      "source": "finding 046 correction; PLAN P1 row 3c",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "sdk/sdk-worker.js",
-          "text": "itemCount: value.readback?.itemCount",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "itemCount",
-          "atLeast": 1
-        }
-      ],
-      "blocksRelink": true
-    },
-    {
-      "id": "p1-4-abi-3",
-      "title": "the editor ABI constant is 3",
-      "expectation": "present",
-      "source": "\"a version is an identity\"; PLAN P1 row 4",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "src/editor_api.h",
-          "text": "#define OXSDK_EDITOR_ABI_VERSION 3u",
-          "atLeast": 1
-        }
-      ],
-      "blocksRelink": true
-    },
-    {
-      "id": "p1-5-makefile-v3",
-      "title": "a v3 build variant exists with its own directories, and v2 is behind the relink refusal",
-      "expectation": "present",
-      "source": "SPEC E2-C 5.12; PLAN P1 row 5",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "Makefile",
-          "text": "E2_C_BUILD := build/e2/editor-v3",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "Makefile",
-          "text": "E2_C_DIST := dist/profiles/e2-editor-v3",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "Makefile",
-          "text": "refuse_unasked_relink,the E2-B product v2 artifact",
-          "atLeast": 1
-        }
-      ],
-      "blocksRelink": true
-    },
-    {
-      "id": "p1-6-builder-v3",
-      "title": "a separate builder writes the v3 manifest",
-      "expectation": "present",
-      "source": "SPEC E2-C 5.8; PLAN P1 row 6",
-      "checks": [
-        {
-          "kind": "file-exists",
-          "file": "tools/build_e2_c_profile.py"
-        },
-        {
-          "kind": "contains",
-          "file": "tools/build_e2_c_profile.py",
-          "text": "abiVersion",
-          "atLeast": 1
-        }
-      ],
-      "blocksRelink": true
-    },
-    {
-      "id": "p1-7-header-test",
-      "title": "a compile-time assertion pins the ABI constant",
-      "expectation": "present",
-      "source": "PLAN P1 row 7",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "tests/editor_abi_header_test.cpp",
-          "text": "static_assert(OXSDK_EDITOR_ABI_VERSION == 3u);",
-          "atLeast": 1
-        }
-      ],
-      "blocksRelink": true
-    },
-    {
-      "id": "p1-8b-selection-observed",
-      "title": "routeFormatBarrier fails closed when no selection has ever been observed, and the caller has its own branch for it",
-      "expectation": "present",
-      "source": "2026-08-16 second-party audit; PLAN P1 row 8b",
-      "checks": [
-        {
-          "kind": "line-equals",
-          "file": "src/probe_engine.cpp",
-          "text": "  if (!gEditorState.selectionObserved) {",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "shape = \"routing-selection-not-observed\";",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "refusal == \"routing-selection-not-observed\"",
-          "atLeast": 1
-        }
-      ],
-      "blocksRelink": true
-    },
-    {
-      "id": "p1-9b-inline-honoured-declared",
-      "title": "inlineFormatEnabledIsHonoured is in the builder AND written down, because it enters the v3 manifest and the manifest is the fifth bound identity",
-      "expectation": "present",
-      "source": "2026-08-16 audit, reverse direction; PLAN P1 row 9b",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "tools/build_e2_c_profile.py",
-          "text": "inlineFormatEnabledIsHonoured",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "../specs/SPEC-E2-C-paragraph-format-validation.md",
-          "text": "inlineFormatEnabledIsHonoured",
-          "atLeast": 1
-        }
-      ],
-      "blocksRelink": true
-    },
-    {
-      "id": "queue-barrier-verifies-own-paragraph",
-      "title": "the containment reorder -- NOT in this link (2026-08-16, measured): it would change no disputed cell",
-      "expectation": "absent",
-      "source": "findings/evidence/046/native/, 2026-08-16; PLAN queue addition",
-      "note": "Measured off the frozen engine: on the disputed cells containment is checked and HELD (selection 1807-2471, restore centre 1945). Reordering it ahead of multiBlock therefore changes nothing there. This retreat condition was named by external adjudication before the data existed. The real defect is different and is filed separately: .uno:SelectText overshoots an empty paragraph, so the barrier refuses a mutation that succeeded -- and containment cannot catch that, because it asks whether the selection COVERS the caret, never whether it covers ONLY the caret's paragraph.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "void checkFormatBarrierContainment() {",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "gFormatBarrier.failureShape = \"selection-does-not-contain-restore-point\";",
-          "atLeast": 1
-        },
-        {
-          "kind": "absent",
-          "file": "src/probe_engine.cpp",
-          "text": "containmentJudgedBeforeMultiBlock"
-        }
-      ],
-      "blocksRelink": false
-    },
-    {
-      "id": "queue-engine-reports-wasm-heap",
-      "title": "the engine must report its WASM heap in the typed state -- WITHDRAWN 2026-08-16, measured",
-      "expectation": "absent",
-      "source": "D4, 2026-08-16",
-      "note": "Withdrawn, not deferred.  The figure is already reachable on the shipped artifact (engine prints it every stage, worker forwards it under `debug`, SDK already accepts `debug`), and emscripten_get_heap_size() is a constant 1073741824 because every profile links -sTOTAL_MEMORY=1GB without ALLOW_MEMORY_GROWTH -- so the field would have carried a number that cannot move, and d4-memory's slope criterion would have passed on it forever. The moving figure is `sbrk`, on the same stage line. Evidence: findings/evidence/sdk-e2/e2-c-validation/d4/heap/. The check below stays `absent` deliberately: nothing should acquire this field quietly now that it is known to be the wrong one.",
-      "checks": [
-        {
-          "kind": "absent",
-          "file": "src/probe_engine.cpp",
-          "text": "wasmHeapBytes"
-        }
-      ],
-      "blocksRelink": false
-    },
-    {
-      "id": "matrix-v2-not-frozen-yet",
-      "title": "the second round's matrix is a draft until the v3 hashes exist",
-      "expectation": "present",
-      "source": "PLAN queue, matrix v2 draft",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "e2/validation-matrix-v2-draft.json",
-          "text": "DRAFT-NOT-FROZEN",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "e2/validation-matrix-v2-draft.json",
-          "text": "TO-BE-FILLED-AT-RELINK",
-          "atLeast": 5
-        }
-      ],
-      "blocksRelink": true
-    },
-    {
-      "id": "queue-search-after-reopen-wedges",
-      "title": "on a reused engine, the FIRST search after the first close never returns -- CHARACTERISED 2026-08-16, still open",
-      "expectation": "absent",
-      "source": "findings/evidence/sdk-e2/e2-c-validation/d4/heap/, 2026-08-16",
-      "note": "Characterised, not fixed. Four arms, one variable each, both browsers, on the frozen v2 artifact (findings/evidence/sdk-e2/e2-c-validation/search-wedge/). Two searches on ONE open return in 19 ms, so a second search is not the trigger. `search, close, open, search` wedges at 30 s -- the minimal reproduction. And `open, insert, save, close, open, search`, whose first document is NEVER searched, ALSO wedges: the prediction that it would return is recorded FAILED. So the trigger is the reopen alone, and the item's old wording ('a second document's search') was wider than the fact. Where inside the engine the search stops is NOT established and must not be guessed (findings 040 and 048 are the precedents). Still not a product defect: EditorSession builds a fresh engine per session, so the product never reaches a second open on one engine.",
-      "checks": [
-        {
-          "kind": "absent",
-          "file": "src/probe_engine.cpp",
-          "text": "searchAfterReopen"
-        },
-        {
-          "kind": "contains",
-          "file": "web/e2-c-search-wedge-app.js",
-          "text": "no-search-then-search",
-          "atLeast": 1
-        }
-      ],
-      "blocksRelink": false
-    },
-    {
-      "id": "queue-preblocks-postblocks-not-observations",
-      "title": "preBlocks/postBlocks must not report an unwritten default as an observation -- DONE in the tree (object-compiled, not linked)",
-      "expectation": "present",
-      "blocksRelink": true,
-      "source": "findings/evidence/046/browser-vs-native/, 2026-08-16",
-      "note": "Same family as P1 item 3 (the route field). Fixed by saying so rather than by guessing: the counts keep their type and value, and preBlocksObserved/postBlocksObserved say whether the value is one. Worker projects both, plus readbackParsed, readbackBlockCount and containment{checked,held} -- the fields 3b's criterion needs and the field that says whether the verdict is about the caller's paragraph at all. Engine change is object-compiled only (scratch dir, never a profile build dir); it enters the artifact at the relink.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "bool preBlockCountObserved = false;",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "bool postBlockCountObserved = false;",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "preBlocksObserved",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "sdk/sdk-worker.js",
-          "text": "preBlocksObserved: value.preBlocksObserved ?? null,",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "sdk/sdk-worker.js",
-          "text": "readbackBlockCount: value.readback?.blockCount ?? null,",
-          "atLeast": 1
-        }
-      ]
-    },
-    {
-      "id": "queue-selecttext-overshoots-empty-paragraph",
-      "title": "the barrier verified the WRONG PARAGRAPH -- finding 046's actual fix, WRITTEN 2026-08-17, waiting for the link",
-      "expectation": "present",
-      "blocksRelink": true,
-      "source": "findings/evidence/046/diagnostic-readback/, 2026-08-16",
-      "note": "This is finding 046's actual defect, now precise. Raw readback on the empty paragraph: `<ul><li><p></p></li></ul><p>E1-EMPTY-AFTER</p>` -- the bullet APPLIED and the read swallowed the paragraph below. Both browsers, both gestures. Not blocking this link: the fix needs a design (verify by block identity rather than refuse) plus its own measurement, and the link is for changes already decided. Round two needs a matrix cell for it. SCOPE MEASURED (findings/evidence/046/overshoot/, 8 cells x 2 browsers, frozen engine): EMPTY-PARAGRAPH-ONLY. The discriminator was a caret placed PAST the last character of a paragraph with text -- it reads one block and succeeds, so this is not the 'caret at a paragraph edge' failure finding 034 named. Containment holds on every overshooting cell, so a fix has to compare the read against the paragraph the action was dispatched on, not against the caret.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "readback-is-a-different-paragraph",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "barrier.dispatchParagraphKnown = refreshCaretParagraph();",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "gFormatBarrier.readbackParagraphKnown = refreshCaretParagraph();",
-          "atLeast": 1
-        }
-      ],
-      "checkNote": "The fix compares the paragraph the action was DISPATCHED on against the paragraph the READ is of, both as fingerprints of the paragraph's own text with the list prefix removed. The prefix removal is load-bearing and measured: the same empty paragraph reads \"\" before .uno:DefaultBullet and \"\\u2022 \" after it, so a fingerprint over the whole string would differ on every SUCCESSFUL list action and this check would fire on all of them. The two capture points are separate checks because taking either at the wrong moment silently breaks it -- the dispatch one after the dispatch describes a paragraph the action already changed, and the readback one after the restore describes the restore rather than the read. NAMED LIMIT: two paragraphs with the same text are indistinguishable, so an overshoot from one empty paragraph into another is not caught."
-    },
-    {
-      "id": "queue-product-save-button-writes-object-object",
-      "title": "finding 049: the product page's save button wrote 15 bytes of [object Object] -- FIXED 2026-08-16",
-      "expectation": "present",
-      "blocksRelink": false,
-      "source": "findings/049-…md, 2026-08-16, found by an operator round",
-      "note": "Fixed the same day it was found, by an operator pressing the button. Verified through the D5 harness's declared shim: 15 bytes of '[object Object]' became 12,200 bytes starting with the ZIP magic, and the product's own toast went from 'NaN KB' to '11.9 KB'. No relink (JS), but web/e2-editor-app.js is one of the twelve modules the E2-C shell bundle binds, so a NEW generation was frozen: v4 = 85795b80…, v3 = 34e95e10… stays as the record of what D3-corpus/D4/D5 and both operator rounds ran on. This item's expectation was flipped deliberately, which is what the checker's DRIFTED state exists to force.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "web/e2-editor-app.js",
-          "text": "const { bytes } = await run(\"儲存\"",
-          "atLeast": 1
-        },
-        {
-          "kind": "file-exists",
-          "file": "e2/editor-shell-v2-bundle-v4.json"
-        }
-      ]
-    },
-    {
-      "id": "queue-input-adapter-trace-is-discarded",
-      "title": "the input and clipboard traces are surfaced by the product -- DONE 2026-08-16",
-      "expectation": "present",
-      "blocksRelink": false,
-      "source": "findings/evidence/sdk-e2/e2-c-validation/d5/operator/round-3-firefox/, 2026-08-16",
-      "note": "Firefox operator round: four IME commits advanced the revision once, and a real paste advanced it not at all. A control ruled out the shell -- four consecutive session.commitText() calls all advanced (0-1-2-3-4). So the loss sits between the browser's composition events and commitText, in HostInputAdapter -- and EditorSession accepts onInputTrace while web/e2-editor-app.js passes none, so that layer is the one layer nobody records. Next controlled variable: wire onInputTrace/onClipboardTrace into a page an operator can drive, and repeat the cell. RESOLVED IN PART 2026-08-16: the loss was found without the trace -- finding 050, the sink was never cleared, so every commit after the first was rejected as a buffer mismatch. Fixed and mutation-tested. What remains under this item is the trace itself: the product still wires no onInputTrace, so the next thing that goes wrong in that layer will be just as invisible. The clipboard half is now its own item. DONE: web/e2-editor-app.js now wires onInputTrace and onClipboardTrace, and toasts the FAILURES only (a toast per keystroke would be its own defect). Finding 050 was invisible for as long as it existed precisely because these went nowhere.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "web/e2-editor-app.js",
-          "text": "onInputTrace(entry)",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "web/e2-editor-app.js",
-          "text": "onClipboardTrace(entry)",
-          "atLeast": 1
-        }
-      ]
-    },
-    {
-      "id": "queue-ctrl-c-does-not-copy-the-documents-selection",
-      "title": "Ctrl+C now asks the engine for the selection -- DONE 2026-08-16, happy path unverified headlessly",
-      "expectation": "present",
-      "blocksRelink": false,
-      "source": "D5 operator rounds 2-4, 2026-08-16",
-      "note": "The input adapter binds compositionstart/update/end, beforeinput and paste -- no `copy`. The clipboard adapter HAS copySelection(), and web/e2-editor-app.js never calls it (0 occurrences). The document is a canvas, so the browser's default copy has no DOM selection to take, and Ctrl+C leaves the clipboard holding whatever was there before. That explains the clipboard cell across four rounds: the only round whose paste moved the document was the one where the operator had copied something else earlier. NOT yet measured directly -- the reading is from the source and the round pattern, and it needs its own arm before it is called a finding. DONE: the product binds `copy` on its input sink and calls session.copySelection(), which asks the ENGINE for the selected text. VERIFIED: the handler fires and reports typed errors -- with no selection it now says CLIPBOARD_EMPTY_SELECTION where it used to say nothing at all. NOT VERIFIED headlessly: the clipboard write itself, because WebDriver blocks clipboard read/write (NotAllowedError). That half is what the operator round establishes, which is the same reason D5 exists.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "web/e2-editor-app.js",
-          "text": "session.copySelection()",
-          "atLeast": 1
-        }
-      ]
-    },
-    {
-      "id": "queue-caret-confirmation-refuses-the-bottom-half-of-a-line",
-      "title": "finding 051: the 048 caret confirmation refused every click landing in the bottom half of its own line -- FIXED 2026-08-16",
-      "expectation": "present",
-      "blocksRelink": false,
-      "source": "findings/evidence/051/, 2026-08-16; found while building the product-path harness",
-      "note": "Not an engine change and not a relink: JS, in editor-shell/editor-session.js. `caretIsOnLine` compared |y - caret.y| against half the caret height, and caret.y is the TOP of the line box -- so the accepted band was half a line ABOVE the box plus the box's own top half. Measured on the shipped v2 artifact through the product page: a click at y=1739 with the engine reporting caret y=1418 height=414 (the box 1418..1832 contains it, and the engine's sourceSequence had advanced) failed twice at 30.1 s, while a click 200 twips higher on the SAME line confirmed in 0.3 s. The fix accepts the whole box with slack ABOVE it only. The stale-caret guard 048 exists for is unchanged and pinned by the same unit tests. Shell bundle v7 = e9668347…; v6 = 9b7e7d2a… stays as the record of what the four D5 operator cells ran on. E1-C divergence declared (third entry).",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "editor-shell/editor-session.js",
-          "text": "yTwips <= caret.y + caret.height",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "editor-shell/tests/place-caret.test.mjs",
-          "text": "the bottom half of a line is on that line (finding 051)",
-          "atLeast": 1
-        },
-        {
-          "kind": "file-exists",
-          "file": "e2/editor-shell-v2-bundle-v7.json"
-        }
-      ]
-    },
-    {
-      "id": "queue-click-outside-the-text-waits-out-the-timeout",
-      "title": "finding 052: a click outside every line box waited 30 s and was refused -- FIXED 2026-08-16 for the case the engine moves the caret",
-      "expectation": "present",
-      "blocksRelink": false,
-      "source": "findings/evidence/052/, 2026-08-16",
-      "note": "JS, no relink. placeCaret now also accepts when the engine acknowledged AND the caret moved. Measured: first click below the text 30 s -> 203 ms. RESIDUAL, recorded rather than hidden: a SECOND click outside the text, with the caret already clamped there, still waits out the 30 s -- nothing moves, and nothing moving is what a swallowed click looks like too. Same for a caret on the clicked line at a different x after the grace period. Both have the same non-geometric remedy as finding 046's overshoot: the engine reporting WHICH BLOCK the caret is in. Filed as queue-verify-caret-by-block-identity.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "editor-shell/editor-session.js",
-          "text": "acknowledged && caretMoved",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "editor-shell/tests/place-caret.test.mjs",
-          "text": "finding 052's path does not weaken finding 048's guard",
-          "atLeast": 1
-        },
-        {
-          "kind": "file-exists",
-          "file": "e2/editor-shell-v2-bundle-v12.json"
-        }
-      ]
-    },
-    {
-      "id": "queue-047-may-have-closed-under-048",
-      "title": "finding 047's sequence no longer reproduces on the current shell -- OPEN, needs its own round before anything is judged",
-      "expectation": "absent",
-      "blocksRelink": false,
-      "source": "tools/run_e2_c_product_path.py, two rounds, 2026-08-16",
-      "note": "The product-path harness needed a queue-blocking failure to drive the product's recovery button, and finding 047 is the one recorded route into that state from the product's own UI. It did not reproduce: save, click-placed caret and format action, dispatched back to back from inside the page with no WebDriver round trips, completed in 28 ms with the state still `ready`. That is NOT a verdict on 047. 047 was measured on 2026-08-15 through a different harness and a shell generation before finding 048 changed what placeCaret waits for -- and 047's own diagnosis was that placeCaret's confirmation did not guarantee the next action, which is the same sentence from the other side. Judging it needs its own round: both shell generations, both browsers, 047's four controlled arms rerun as they were. Until then the finding stays as it is, with the observation recorded in it.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "../findings/047-a-save-immediately-before-a-click-placed-caret-makes-the-next-format-action-time-out.md",
-          "text": "queue-047-may-have-closed-under-048",
-          "atLeast": 1
-        }
-      ]
-    },
-    {
-      "id": "queue-v2-page-reads-a-flag-nobody-writes",
-      "title": "the v2 product page disables its recovery button on a snapshot field that is never written -- finding 054, FIXED on shell v9",
-      "expectation": "absent",
-      "blocksRelink": false,
-      "source": "finding 054; found 2026-08-16 while adjudicating 053",
-      "note": "`web/e2-editor-app.js` reads `snapshot.requiresPageReload`, and nothing writes that name at the top level of a snapshot: `editor-shell/editor-session.js` puts it in `error.details` at the WORKER_GENERATION_LIMIT, and the v1 component `editor-shell/recovery-notice.js` reads it from there (and also checks `error.code`). So the v2 page's button never disables, and at the generation limit it points the user at a control that will refuse them -- which is what recovery-notice.js's own comment says a host must not do. Same family as finding 053 and found the same way: nobody had ever pressed this path. FIXED 2026-08-16 on shell v9, riding with the 053 fix as planned. The check is written as the general form -- every snapshot field a page reads must be one the state machine publishes -- and it goes red if the fix is reverted.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "../findings/054-the-v2-page-reads-a-reload-flag-that-is-never-written.md",
-          "text": "requiresPageReload",
-          "atLeast": 1
-        }
-      ]
-    },
-    {
-      "id": "queue-prescribed-rollback-is-not-offered",
-      "title": "the product prescribes a rollback whose button it does not show -- finding 053, FIXED on shell v9, user-side reachability still unproven",
-      "expectation": "absent",
-      "blocksRelink": false,
-      "source": "finding 053; found 2026-08-16 by driving listener:click#notice-action for the first time",
-      "note": "`recoveryFor()` returns \"rollback\" for any format failure whose barrier says dispatched:true, and the product toasts that prescription; but `#notice`, which carries the button, is displayed only while the session state is `recoverable-error` or `restart-required`, and EDITOR_FORMAT_POSTCONDITION_FAILED puts it in neither -- it is not in RECOVERY_ERRORS. So the user is told the document may have changed unverifiably, and is offered no way back. The error is reachable on the shipped artifact: d2-presweep records it with recovery:\"rollback\", dispatched:true, in both browsers. WHICH SIDE TO CHANGE IS NOW DECIDED (2026-08-16, external adjudication, verified line by line): SPEC E2-B 5.13 clause three prescribes not merely rollback but that the host ENTER `recoverable-error`, so the shell is out of spec and the page is correct. The fix goes in `NarrowEditorV2Session.action()`'s catch -- compute recoveryFor(error) and call this._blockQueue(error, \"recoverable-error\", \"editor-recovery\") before rethrowing -- which touches NOTHING in the E1-C bundle (5 files, none under editor-shell-v2/). It DOES put the E2-C shell bundle from v8 to v9, and D5 round 7 is bound to v8, so it is a planned rebinding and not a slip-in. EXECUTED 2026-08-16: shell v8 -> v9 eb76c5be…, E1-C verified still intact (E1_GO_ODT_EDITOR, failedProperties []), and the seam test goes red without the fix. What is still NOT shown is that a user can reach EDITOR_FORMAT_POSTCONDITION_FAILED through the product page: the product-path route reaches recoverable-error via MUTATION_OUTCOME_UNKNOWN, which blocked the queue before the fix too.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "../findings/053-the-product-prescribes-a-recovery-whose-button-it-does-not-show.md",
-          "text": "EDITOR_FORMAT_POSTCONDITION_FAILED",
-          "atLeast": 1
-        }
-      ]
-    },
-    {
-      "id": "queue-product-never-enables-accessibility",
-      "title": "the product build never calls setAccessibilityState -- SHIPPED in the second link (d538ce0b); the datum is STILL empty under WASM, which is finding 056",
-      "expectation": "present",
-      "blocksRelink": true,
-      "source": "measured after the v3 link, findings/evidence/queue-block-identity/after-link-v3/",
-      "note": "`refreshEditorAccessibility()` is the only thing that calls setAccessibilityState(..., true), and its single call site sits inside `#ifdef OXSDK_EDITOR_DISCOVERY` AND `#ifndef OXSDK_FINDING_016_SELECTION_BARRIER`. The product profile defines both, so the call is compiled out and getA11yFocusedParagraph() has always returned an empty paragraph there. Found by measurement, not by reading: the first run after the v3 link reported the SAME fingerprint for every paragraph while the caret moved, and that fingerprint was the hash of the empty string. Consequence: the block-identity half of the v3 link -- the barrier comparison and the paragraph in the caret answer -- is INERT on the shipped artifact, and D-BI-2 and D-BI-3 could not have held. The four native rounds this was designed from enabled accessibility themselves, which is the tree's standing lesson (harness path vs product path) landing one level in. Fixed by calling it at document open, where every profile reaches it. SHIPPED 2026-08-17 in artifact d538ce0b: the engine now reports enabled:true, unavailable empty and paragraphFresh true -- and the focused paragraph is STILL empty, with changeCount 0. Native, same sequence, same core commit, is populated at once. That is a platform difference and it is finding 056; this item is done, the datum is not. MECHANISM ESTABLISHED same day, findings/evidence/queue-block-identity/mechanism-of-056/: the call is fine and core cannot honour it. The core build is configured --with-wasm-module=writer, which sets ENABLE_WASM_STRIP_ACCESSIBILITY, which removes 26 objects from sw/source/core/access (measured: 2 objects in the wasm build, 28 native) and makes SwEditWin::CreateAccessible() return {} -- so Window::GetAccessible() is empty and SetLOKAccessibilityState() returns at `if (!xAccessible.is())` without ever attaching a listener. The shipped artifact d538ce0b agrees: zero hits for SwAccessibleMap/Document/Paragraph, 45 for LOKDocumentFocusListener. The reporting half is in the binary, the producing half is not. setAccessibilityState returns void, which is why this was silent.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "  refreshEditorAccessibility();",
-          "atLeast": 2
-        },
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "14695981039346656037ull",
-          "atLeast": 1
-        }
-      ],
-      "checkNote": "Two call sites now: the search one that was already there for the discovery profiles, and the open one that every profile reaches. The second check pins the FNV-1a offset basis, which was typed one digit short until the same measurement exposed it -- a serviceable hash that was not the algorithm its comment named."
-    },
-    {
-      "id": "queue-identity-checked-is-reported-as-unavailable-when-preempted",
-      "title": "paragraphIdentity.checked says 'not run' when another shape answered first -- small, engine-side, next link",
-      "expectation": "absent",
-      "blocksRelink": false,
-      "source": "measured 2026-08-17, findings/evidence/queue-block-identity/after-link-2-d538ce0b/",
-      "note": "The empty-paragraph cell reports paragraphIdentity {checked:false, dispatchKnown:true, readbackKnown:true} -- both reads were available, and the flag still says the check did not run, because multi-block-readback returns from the verdict path before the assignment. The two are consistent but `checked` reads as 'the data was missing' when it means 'something else answered first', and a field that can be read two ways will be. Set it where the data becomes known (right after the readback capture) rather than in the verdict path.",
-      "checks": [
-        {
-          "kind": "absent",
-          "file": "src/probe_engine.cpp",
-          "text": "identityCheckedAtCapture"
-        }
-      ]
-    },
-    {
-      "id": "queue-verify-caret-by-block-identity",
-      "title": "answer a click with (paragraph, offset) instead of inferring it from rectangles -- OPEN, engine-side, DESIGNED and measured 2026-08-16",
-      "expectation": "present",
-      "blocksRelink": true,
-      "source": "findings 046, 051, 052; measured 2026-08-16, findings/evidence/queue-block-identity/",
-      "note": "REWORDED after measurement. The old wording said three ambiguities 'all reduce to the same missing datum -- which BLOCK the caret is in', and that turned out to be half right. Measured natively over three rounds: (a) there IS no block index anywhere in LOK -- the focused-paragraph payload carries content/position/start/end/listPrefixLength and nothing else, and no getCommandValues command supplies one; (b) what does exist, the paragraph's own text, is a FINGERPRINT, not an identity -- two paragraphs with the same text produce a byte-identical payload while the caret rectangle moves; (c) it settles finding 046 on the cells 046 was measured on -- but NOT in general, because the comparison is between two paragraphs' text and `empty-paragraph.odt` ends with two adjacent empty paragraphs whose text is identical -- (the dispatch paragraph read '\\u2022 ' and the barrier's .uno:SelectText read '    \\u2022 \\nBI-AFTER-EMPTY'), and it settles the same-line-different-x case by OFFSET rather than by block; (d) it does NOT settle finding 052's residual, because x is carried on a line and dropped below it (offset 4 on the line, 7 below it, same x) so every click outside the text lands at the same offset -- a real block index would not help either, since the caret genuinely is in the last block. Every one of (a)-(d) is a NATIVE result on core 26.8; whether the shipped WASM engine reports the same offsets and refreshes the a11y payload on the same schedule is owed to a relink round and is not established here. The remedy for (d) is a different shape and comes from the reference implementation rather than from the measurement: make placing the caret a CALL THAT RETURNS (paragraph fingerprint, offset), instead of posting a click and inferring the outcome from a rectangle. Muya (MarkText's editor core) never inverts that mapping -- its cursor IS {offset, block, path} and geometry only ever goes model->pixels. Design and pre-registered predictions: research/DESIGN-2026-08-16-caret-by-block-and-offset.md. BLOCKED 2026-08-17, and NOT on a link. The paragraph datum this design consumes cannot exist in the current core build (finding 056 mechanism), and no configure flag combination in 26.8 can produce one on Emscripten (finding 057: the Make variable and the C++ macro answer to different configure inputs, and --enable-wasm-strip is forced yes for Emscripten at configure.ac:1280, overriding the command line). Unblocking this needs a configure.ac change and a CORE REBUILD, which is the user's call and the user's machine time. The editorPlaceCaretV2 half already shipped and works (38 ms / 251 ms, replacing a 30 s wait); it does not depend on the paragraph datum. Note also that a rebuild buys a TEST, not a feature: adversarial review enumerated further independent runtime conditions past attachRecursive that have never been exercised.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "void handleEditorPlaceCaret(const Command &command) {",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "src/probe_engine.cpp",
-          "text": "editor-caret-placed",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "src/editor_api.cpp",
-          "text": "oxsdk_editor_place_caret",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "Makefile",
-          "text": "_oxsdk_editor_place_caret",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "sdk/sdk-worker.js",
-          "text": "editorPlaceCaretV2",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "sdk/sdk-worker.js",
-          "text": "caretParagraph",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "../research/DESIGN-2026-08-16-caret-by-block-and-offset.md",
-          "text": "D-BI-1",
-          "atLeast": 1
-        }
-      ],
-      "checkNote": "WRITTEN 2026-08-17, waiting for the link. The old check watched for `caretBlockIndex`, a field for a datum that does not exist in LOK -- so nothing could ever have implemented it and the check was green by construction. These watch the five places the change actually lives: the engine handler, the reply type, the entry point, the EXPORT LIST (an entry point that is not exported is stripped at link time and the symbol is simply absent at run time), and both halves of the worker -- the operation and the PROJECTION, because that projection is an allowlist and adding the engine half without it is how p1-3c's itemCount came to be measured natively and reported nowhere."
-    },
-    {
-      "id": "queue-engine-must-report-core-lacks-accessibility",
-      "title": "the engine reports enabled:true on a core build where accessibility can never work -- a capability failure wearing the costume of data",
-      "expectation": "absent",
-      "blocksRelink": false,
-      "source": "finding 056 mechanism, findings/evidence/queue-block-identity/mechanism-of-056/",
-      "note": "LOK's setAccessibilityState() returns void and silently does nothing when there is no accessible object, so the engine's `enabled: true` / `unavailable: \"\"` only ever meant 'this call did not throw'. On the shipped build it can never mean more than that, because core was built with ENABLE_WASM_STRIP_ACCESSIBILITY. The observability the second link added asked the right question of the wrong side of the boundary: it reports what WE did, not what core accepted. Remedy is small and compile-time, no new runtime machinery: include <config_wasm_strip.h> in the engine and, when ENABLE_WASM_STRIP_ACCESSIBILITY is 1, report unavailable: \"core-built-without-accessibility\" instead of enabled: true. Not worth a link on its own -- ride along with the next one. Until then tools/check_core_build_provides.py is the standing guard and it is RED, which is the honest state.",
-      "checks": [
-        {
-          "kind": "absent",
-          "file": "src/probe_engine.cpp",
-          "text": "core-built-without-accessibility"
-        },
-        {
-          "kind": "absent",
-          "file": "src/probe_engine.cpp",
-          "text": "config_wasm_strip.h"
-        }
-      ],
-      "checkNote": "Declared absent and watched as absent, per the queue's own semantics: when the next link implements this, these go DRIFT and force a deliberate expectation flip in the diff, rather than the tree quietly acquiring it. Both halves deliberately -- the string alone could be typed into a comment, and the include alone could sit there unused."
-    },
-    {
-      "id": "queue-quantifier-check-for-multi-block-readback",
-      "title": "verify a multi-block readback by QUANTIFIER (all blocks / no blocks) instead of refusing outright -- engine-side, needs a link",
-      "expectation": "absent",
-      "blocksRelink": false,
-      "source": "finding 046 residual; adjudicated by fable 2026-08-17",
-      "note": "The shell now softens the DISPOSITION for this shape (recovery: review, shell v14, SPEC E2-C 2.6b), which stops an ordinary blank-line bullet from demanding a rollback. It does not restore VERIFICATION. The engine-side fix that would, without depending on the accessibility paragraph identity that findings 056/057 established is unavailable on this platform: checkFormatBarrierCrossParagraph() already verifies that EVERY block reached the target (itemCount == blocks, everyBlockHasTag). Apply the same quantifier on the collapsed route when multiBlock fires and containment held -- all blocks in the target state means the target is too (containment put it among them), and no block in the target state means the postcondition genuinely failed and a rollback is earned. Mixed stays UNKNOWN and keeps the review disposition. Sound with NO assumption about block order, which is why it is this and not 'verify block[0]' -- that was rejected with a counterexample, see finding 046. Needs its own PREDICTION.md covering the shapes the overshoot README names as unmeasured: empty-before-empty, empty-before-list, and empty-at-document-end (which does not reach a readback at all today -- stage-deadline:awaiting-selection -- and is a separate problem).",
-      "checks": [
-        {
-          "kind": "absent",
-          "file": "src/probe_engine.cpp",
-          "text": "collapsedQuantifierVerdict"
-        }
-      ],
-      "checkNote": "Declared absent and watched as absent: when a link implements it, this goes DRIFT and forces a deliberate expectation flip in the diff rather than the tree quietly acquiring it."
-    },
-    {
-      "id": "queue-recovery-path-lost-its-inducer",
-      "title": "the product-path net has no route into recoverable-error any more -- not an engine item, but it is owed",
-      "expectation": "absent",
-      "blocksRelink": false,
-      "source": "measured 2026-08-17 when shell v14 landed",
-      "note": "Finding 046's cell was the only route this runner had into recoverable-error, and softening its disposition removed it: notice-action-recovers-the-session now reports NOT_ESTABLISHED. The review-disposition mutation shows the pair moving together, so this is measured rather than inferred. The recovery path is not broken and is not covered. A new inducer needs a dispatched failure whose shape is NOT multi-block-readback; the footnote-apparatus shape is the obvious candidate and the endnote-frame fixture exists, and the product can now open an arbitrary document, so the runner could open it rather than needing a second fixture argument. Recorded here rather than in a backlog nobody reads because losing coverage silently is exactly what this queue exists to prevent.",
-      "checks": [
-        {
-          "kind": "absent",
-          "file": "tools/run_e2_c_product_path.py",
-          "text": "INDUCE_FOOTNOTE_APPARATUS"
-        }
-      ],
-      "checkNote": "Absent until a new inducer exists; flipping it is a deliberate edit."
-    },
-    {
-      "id": "queue-typing-path-has-no-delete-or-arrows",
-      "title": "Backspace, Delete and the arrows reach the document -- DONE 2026-08-17, shell v16, no link needed",
-      "expectation": "present",
-      "blocksRelink": false,
-      "source": "usable-editor acceptance checklist, 2026-08-17",
-      "note": "input/input-adapter.js falls deleteContentBackward and deleteContentForward into `ignored-input-type`, and arrow keys raise no beforeinput at all. So the product can be typed into but not corrected from the keyboard: fixing a character means clicking and pressing the toolbar's delete button. This is NOT a keyboard-shortcut nicety -- backspace is the primary deletion path of any editor. Shell-only: beforeinput carries the inputType, and delete-backward/delete-forward are already contracted actions with wire ids. DONE in the PAGE, not the adapter: the adapter's job is to commit text and deleting is an editor action with its own wire id. The original check here watched input/input-adapter.js, which is the wrong file -- it could never have gone green no matter what landed. Repointed at the handler that exists.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "web/e2-editor-app.js",
-          "text": "DELETE_INPUT_TYPES",
-          "atLeast": 1
-        },
-        {
-          "kind": "contains",
-          "file": "web/e2-editor-app.js",
-          "text": "ArrowLeft",
-          "atLeast": 1
-        }
-      ],
-      "checkNote": "Both halves: the delete input types and the arrow map. The arrows are the half that needed keydown, because they raise no beforeinput at all."
-    },
-    {
-      "id": "queue-redo-and-line-movement-need-wire-ids",
-      "title": "redo and move-line-up/down/home/end exist in the engine but have no product wire id -- a link, not a shell change",
-      "expectation": "absent",
-      "blocksRelink": false,
-      "source": "usable-editor acceptance checklist, 2026-08-17",
-      "note": "The engine implements both (redo dispatches .uno:Redo; the four move-line actions postKeyEvent Key::UP/DOWN/HOME/END, and the product build's preprocessor confirms they are reachable). What is missing is the CONTRACT: EDITOR_V2_ACTION_IDS is exactly fifteen actions and wire ids 1-15 are used up, while the engine's own enum numbers move-line-up as 3 -- the same wire id the product uses for delete-backward. So adding them needs new ids, an engine mapping and a manifest entry. SPEC E2-C 4.2 also lists both under 明確不承諾, so it is a contract revision as well as a link. Corrected here after I told the user it was shell-only: I checked the engine and stopped, which is the wrong layer to stop at.",
-      "checks": [
-        {
-          "kind": "absent",
-          "file": "sdk/sdk-worker.js",
-          "text": "\"redo\": 16"
-        }
-      ],
-      "checkNote": "Absent until a new wire id exists for redo. 16 rather than 12 on purpose: 12 is the DISCOVERY map's id for redo and is already taken in the v2 map by set-list-unordered, which is how the two numberings were confused in the first place."
-    },
-    {
-      "id": "queue-no-keyboard-shortcuts",
-      "title": "the page has a keydown handler -- PARTIALLY done 2026-08-17, shell v16; Ctrl+B/I/U/S deliberately withheld",
-      "expectation": "present",
-      "blocksRelink": false,
-      "source": "usable-editor acceptance checklist, 2026-08-17",
-      "note": "grep for keydown/keyup/keypress across editor-shell-v2, editor-shell, input, sdk, reader-shell and the page returns nothing. Deliberately sequenced AFTER driving the fourteen uncovered actions: binding Ctrl+B onto today's set-bold would duplicate whatever is wrong with it onto a second path, and this tree has three findings (049, 050, Ctrl+C) that are all 'the surface existed and nobody exercised it'. Ctrl+S also needs a preventDefault or the browser's own save dialog opens. PARTIALLY DONE. Landed: Ctrl+Z, Ctrl+S (with preventDefault, or the browser's own save dialog opens and saves the page instead of the document) and the left/right arrows. DELIBERATELY WITHHELD: Ctrl+B/I/U/S, because finding 059 has those four actions failing on the shipped engine, and binding them to a second path would duplicate the defect rather than add a feature. Flipped to `present` as a deliberate edit -- the queue reported DRIFT the moment the handler appeared, which is exactly what it is for.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "web/e2-editor-app.js",
-          "text": "addEventListener(\"keydown\"",
-          "atLeast": 1
-        }
-      ],
-      "checkNote": "Watches the handler, not the individual accelerators: this queue is binary and the partial state is recorded in e2/usable-editor-checklist.json, whose vocabulary has a `partial` status for exactly this."
-    },
-    {
-      "id": "queue-no-cut",
-      "title": "cut is wired -- DONE 2026-08-17, shell v16, no link needed",
-      "expectation": "present",
-      "blocksRelink": false,
-      "source": "usable-editor acceptance checklist, 2026-08-17",
-      "note": "No cut handler in the page or the adapters. Copy works without any keydown because the browser fires a `copy` event on Ctrl+C; cut is the same listener pattern plus a delete of the selection. Shell-only. DONE: page-level `cut` listener, copy THEN delete so a failed clipboard write does not still remove the text. The removal half is not established under WebDriver (it refuses clipboard writes, so the delete correctly never runs) and is recorded as `partial` in the acceptance checklist. Original check watched input/input-adapter.js, the wrong file; repointed.",
-      "checks": [
-        {
-          "kind": "contains",
-          "file": "web/e2-editor-app.js",
-          "text": "addEventListener(\"cut\"",
-          "atLeast": 1
-        }
-      ],
-      "checkNote": "Watches the listener that exists, in the file it exists in."
-    },
-    {
-      "id": "queue-viewport-wall-never-measured",
-      "title": "the page draws the whole document as one canvas and repaints all of it per edit -- never measured past one page",
-      "expectation": "absent",
-      "blocksRelink": false,
-      "source": "usable-editor acceptance checklist, 2026-08-17",
-      "note": "layoutCanvas sizes a single canvas to the full document and renderDocument repaints it after every edit. Browsers cap canvas dimensions near 32767px, so at MAX_BACKING_WIDTH 2400 an A4 document reaches the cap somewhere around a dozen pages and rendering breaks silently and browser-dependently; below the cap the per-edit repaint cost grows with document length. 'Open a user's own file' is verified for OPENING only -- nothing has ever measured that a realistic document stays editable. The machinery for the fix is already imported: editor-session.js pulls TileScheduler from reader-shell. First step is a measurement, not a fix: add a 20-page cell and find out where it actually breaks.",
-      "checks": [
-        {
-          "kind": "absent",
-          "file": "tools/run_e2_c_product_path.py",
-          "text": "LONG_DOCUMENT_CELL"
-        }
-      ],
-      "checkNote": "Absent until a long-document cell exists in the product-path runner."
-    },
-    {
-      "id": "queue-inline-format-argument-is-rejected-by-core",
-      "title": "finding 059: core APPLIES the parameterised inline format and reports success:false, and the engine's own predicate reads that as failure -- engine-side, needs a link",
-      "expectation": "absent",
-      "blocksRelink": true,
-      "source": "finding 059, measured on the shipped v3 artifact 2026-08-17",
-      "note": "inlineFormatArgument() dispatches .uno:Bold with {\"Bold\":{\"type\":\"boolean\",\"value\":...}} and core rejects it on the shipped WASM build; bold, italic and underline all return LOK_COMMAND_FAILED and put the session into recoverable-error. The list actions use the same parameterised mechanism and still work, so the difference is this slot's argument name or type, not parameters in general. On v2 (before the fix) bold APPLIED and merely ignored `enabled` -- which is finding 045 -- so the fix turned a wrong-direction action into no action at all. BLOCKS the next link because shipping again without resolving it ships a build whose formatting buttons cannot be used. Two candidates, both needing native measurement FIRST: withdraw inlineFormatArgument (back to v2 behaviour, on-only), or find the argument form core accepts. Mechanism deliberately not named (040/048 precedent). MECHANISM ESTABLISHED same day by native control (findings/evidence/059/native/): the parameterised .uno:Bold DOES apply -- marker typed after `value:true` comes back fo:font-weight=\"bold\", after `value:false` comes back normal -- while reporting success:false, wasModified:true. The bare form reports success:true and leaves the text NOT bold. The .uno:DefaultBullet control behaves the same way, which is why the barrier path (which does not gate on success) kept working. So DO NOT withdraw inlineFormatArgument: the fix is correct and the defect is commandResultSucceeded() at probe_engine.cpp:1696 requiring success:true, turned into LOK_COMMAND_FAILED at :2286. CANDIDATE PREDICATES, corrected 2026-08-18: the barrier's readback is the ONLY candidate left. wasModified is out, and by source rather than by measurement -- desktop/source/lib/init.cxx:5517-5518 passes pDocSh->IsModified() as a constructor argument to DispatchResultListener, i.e. captured BEFORE dispatchCommand() runs (the member's own comment at :5073 says 'modified before saving', and :5098 copies it out unchanged). It reports whether the document was already dirty, not whether this command changed anything, so it cannot separate an applied command from a refused one. MEASURED 2026-08-18 (findings/evidence/059/native/predicate/, ten arms, prediction committed first): all four slots apply correctly and all four broadcast .uno:<Slot>=true, so the readback IS available for all of them -- including underline and strikeout, whose absence of a state cache is justified in probe_engine.cpp:4308-4310 by a claim about GetKitUnoCommandList() that core's source contradicts. But the predicate must NOT be 'a broadcast arrived': core broadcasts a state CHANGE, so the value:false arms produced no broadcast at all while doing exactly the right thing. The predicate that survives is the barrier's existing one -- compare observed state against requested state (formatBarrierPostconditionMet, :1189). STILL OWED before this ships: a genuine negative arm. The intended refusal (setViewReadOnly) did not refuse -- core applied the command anyway -- so this round proved the predicate agrees, not that it can disagree. Also unmeasured: whether the state cache is primed when the predicate needs it (finding 021's shape). Superseded note follows: the readback was to be measured PER SLOT: bold, italic, underline and strikethrough are four different slots and the last two have no state cache. A refusal arm must use a command core knows but cannot run -- an unknown slot emits no LOK_CALLBACK_UNO_COMMAND_RESULT at all (comphelper/source/misc/dispatchcommand.cxx:48-50), so it would measure nothing. MEASURED 2026-08-18 (findings/evidence/059/wasm/): the WASM build DOES apply the command while reporting failure, for all four slots -- each arm's marker comes back carrying exactly the slot that was pressed, with a no-command control on the same fixture coming back unstyled. So the shipped product applies the user's formatting and then tells them the action failed and to return to a checkpoint: it asks them to discard work to undo a change that succeeded. That raises the cost of NOT fixing this and it is why this item blocks the link. Also measured: the range route is closed engine-side -- with the page's gesture mask lifted all four dispatches return EDITOR_FORMAT_GESTURE_UNSUPPORTED from editorGesturePermitted (probe_engine.cpp:4247-4252), which is the first RUNTIME witness for p1-2-gesture-mask-inherited.",
-      "checks": [
-        {
-          "kind": "absent",
-          "file": "src/probe_engine.cpp",
-          "text": "inlineFormatArgumentResolved"
-        }
-      ],
-      "checkNote": "Absent until the engine carries a resolved form, under a name that did not exist before so the flip is visible in the diff. Deliberately NOT watching `inlineFormatArgument` itself: it is present today and present is exactly the state that is broken."
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "inlineFormatArgument(\"",
+     "atLeast": 4
     }
-  ],
-  "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
-  "externalAdjudication2026_08_16": "fable, called as a subagent, refuted the premise that the two remaining blockers cannot be measured before the relink. Verified independently, all three claims: (1) tools/build_e2_discovery_profile.py COPIES the wasm (shutil.copy2, --wasm is an input), so a diagnostic profile can be packaged around the frozen 572035ac bytes -- no engine build, same engine; (2) the frozen wasm already serialises \"readback\":{\"parsed\": / \"blockCount\": / \"itemCount\": / \"html\":\" and \"containment\":{\"checked\": (one occurrence each; \"preBlocksObserved\": zero, correct -- that is today's unlinked change); (3) all six worker patch anchors match exactly once in the FROZEN dist worker. Consequence: 3b's criterion and the containment ordering are both measurable now, for the price of a Python repackage plus browser rounds. Linking before that measurement would risk a v4, which costs the whole E2-B rerun plus E2-C D0-D5 again.",
-  "linkDecision": {
-    "date": "2026-08-16",
-    "decision": "WAIT",
-    "byWhom": "user",
-    "why": "`p1Complete: True` means nothing is BLOCKING the link; it does not mean the link should happen now. Held deliberately so the newly characterised engine defect (queue-selecttext-overshoots-empty-paragraph) has a chance to ride along: it is an engine fix, so it can only ship through a link, and linking today would make it cost a second one.",
-    "reReadBeforeLinking": "handoff/RUNBOOK-relink-v3.md"
+   ],
+   "blocksRelink": true
+  },
+  {
+   "id": "p1-2-gesture-mask-inherited",
+   "title": "the gesture mask is consulted for the ten inherited actions too, not only in routeFormatBarrier",
+   "expectation": "present",
+   "source": "SPEC E2-C 2.5; PLAN P1 row 2",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "editorGesturePermitted(",
+     "atLeast": 3
+    }
+   ],
+   "blocksRelink": true
+  },
+  {
+   "id": "p1-3-route-not-default",
+   "title": "the barrier payload never reports a route it did not classify",
+   "expectation": "present",
+   "source": "SPEC E2-C 9.5.4; PLAN P1 row 3",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "shape = \"routing-selection-not-readable\";",
+     "atLeast": 1
+    }
+   ],
+   "blocksRelink": true
+  },
+  {
+   "id": "p1-3b-empty-readback",
+   "title": "the `empty-readback` shape -- WITHDRAWN 2026-08-16, measured: there is nothing for it to name",
+   "expectation": "absent",
+   "source": "finding 046 + findings/evidence/046/native/; PLAN P1 row 3b",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "src/probe_engine.cpp",
+     "text": "empty-readback"
+    },
+    {
+     "kind": "absent",
+     "file": "sdk/sdk-worker.js",
+     "text": "empty-readback"
+    }
+   ],
+   "blocksRelink": false,
+   "note": "Withdrawn on data, off the FROZEN engine (a diagnostic profile whose probe.wasm is byte-identical to e2-editor-v2). On the empty paragraph the barrier reads parsed:true, blockCount:2, itemCount:1 -- a genuine two-paragraph read, accurately reported as multi-block-readback. NO arm produced a parsed readback with zero blocks. The 'zero blocks' this item was built on was postBlocks:0, the field never written on the collapsed route. Evidence: findings/evidence/046/diagnostic-readback/. The check stays `absent`: nothing should acquire this shape quietly now that it is known to name a case that does not occur. If it ever does occur, the round-two cell below is what would show it."
+  },
+  {
+   "id": "p1-3c-itemcount-projection",
+   "title": "itemCount reaches the product's formatBarrier projection",
+   "expectation": "present",
+   "source": "finding 046 correction; PLAN P1 row 3c",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "sdk/sdk-worker.js",
+     "text": "itemCount: value.readback?.itemCount",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "itemCount",
+     "atLeast": 1
+    }
+   ],
+   "blocksRelink": true
+  },
+  {
+   "id": "p1-4-abi-3",
+   "title": "the editor ABI constant is 3",
+   "expectation": "present",
+   "source": "\"a version is an identity\"; PLAN P1 row 4",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "src/editor_api.h",
+     "text": "#define OXSDK_EDITOR_ABI_VERSION 3u",
+     "atLeast": 1
+    }
+   ],
+   "blocksRelink": true
+  },
+  {
+   "id": "p1-5-makefile-v3",
+   "title": "a v3 build variant exists with its own directories, and v2 is behind the relink refusal",
+   "expectation": "present",
+   "source": "SPEC E2-C 5.12; PLAN P1 row 5",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "Makefile",
+     "text": "E2_C_BUILD := build/e2/editor-v3",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "Makefile",
+     "text": "E2_C_DIST := dist/profiles/e2-editor-v3",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "Makefile",
+     "text": "refuse_unasked_relink,the E2-B product v2 artifact",
+     "atLeast": 1
+    }
+   ],
+   "blocksRelink": true
+  },
+  {
+   "id": "p1-6-builder-v3",
+   "title": "a separate builder writes the v3 manifest",
+   "expectation": "present",
+   "source": "SPEC E2-C 5.8; PLAN P1 row 6",
+   "checks": [
+    {
+     "kind": "file-exists",
+     "file": "tools/build_e2_c_profile.py"
+    },
+    {
+     "kind": "contains",
+     "file": "tools/build_e2_c_profile.py",
+     "text": "abiVersion",
+     "atLeast": 1
+    }
+   ],
+   "blocksRelink": true
+  },
+  {
+   "id": "p1-7-header-test",
+   "title": "a compile-time assertion pins the ABI constant",
+   "expectation": "present",
+   "source": "PLAN P1 row 7",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "tests/editor_abi_header_test.cpp",
+     "text": "static_assert(OXSDK_EDITOR_ABI_VERSION == 3u);",
+     "atLeast": 1
+    }
+   ],
+   "blocksRelink": true
+  },
+  {
+   "id": "p1-8b-selection-observed",
+   "title": "routeFormatBarrier fails closed when no selection has ever been observed, and the caller has its own branch for it",
+   "expectation": "present",
+   "source": "2026-08-16 second-party audit; PLAN P1 row 8b",
+   "checks": [
+    {
+     "kind": "line-equals",
+     "file": "src/probe_engine.cpp",
+     "text": "  if (!gEditorState.selectionObserved) {",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "shape = \"routing-selection-not-observed\";",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "refusal == \"routing-selection-not-observed\"",
+     "atLeast": 1
+    }
+   ],
+   "blocksRelink": true
+  },
+  {
+   "id": "p1-9b-inline-honoured-declared",
+   "title": "inlineFormatEnabledIsHonoured is in the builder AND written down, because it enters the v3 manifest and the manifest is the fifth bound identity",
+   "expectation": "present",
+   "source": "2026-08-16 audit, reverse direction; PLAN P1 row 9b",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "tools/build_e2_c_profile.py",
+     "text": "inlineFormatEnabledIsHonoured",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "../specs/SPEC-E2-C-paragraph-format-validation.md",
+     "text": "inlineFormatEnabledIsHonoured",
+     "atLeast": 1
+    }
+   ],
+   "blocksRelink": true
+  },
+  {
+   "id": "queue-barrier-verifies-own-paragraph",
+   "title": "the containment reorder -- NOT in this link (2026-08-16, measured): it would change no disputed cell",
+   "expectation": "absent",
+   "source": "findings/evidence/046/native/, 2026-08-16; PLAN queue addition",
+   "note": "Measured off the frozen engine: on the disputed cells containment is checked and HELD (selection 1807-2471, restore centre 1945). Reordering it ahead of multiBlock therefore changes nothing there. This retreat condition was named by external adjudication before the data existed. The real defect is different and is filed separately: .uno:SelectText overshoots an empty paragraph, so the barrier refuses a mutation that succeeded -- and containment cannot catch that, because it asks whether the selection COVERS the caret, never whether it covers ONLY the caret's paragraph.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "void checkFormatBarrierContainment() {",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "gFormatBarrier.failureShape = \"selection-does-not-contain-restore-point\";",
+     "atLeast": 1
+    },
+    {
+     "kind": "absent",
+     "file": "src/probe_engine.cpp",
+     "text": "containmentJudgedBeforeMultiBlock"
+    }
+   ],
+   "blocksRelink": false
+  },
+  {
+   "id": "queue-engine-reports-wasm-heap",
+   "title": "the engine must report its WASM heap in the typed state -- WITHDRAWN 2026-08-16, measured",
+   "expectation": "absent",
+   "source": "D4, 2026-08-16",
+   "note": "Withdrawn, not deferred.  The figure is already reachable on the shipped artifact (engine prints it every stage, worker forwards it under `debug`, SDK already accepts `debug`), and emscripten_get_heap_size() is a constant 1073741824 because every profile links -sTOTAL_MEMORY=1GB without ALLOW_MEMORY_GROWTH -- so the field would have carried a number that cannot move, and d4-memory's slope criterion would have passed on it forever. The moving figure is `sbrk`, on the same stage line. Evidence: findings/evidence/sdk-e2/e2-c-validation/d4/heap/. The check below stays `absent` deliberately: nothing should acquire this field quietly now that it is known to be the wrong one.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "src/probe_engine.cpp",
+     "text": "wasmHeapBytes"
+    }
+   ],
+   "blocksRelink": false
+  },
+  {
+   "id": "matrix-v2-not-frozen-yet",
+   "title": "the second round's matrix is a draft until the v3 hashes exist",
+   "expectation": "present",
+   "source": "PLAN queue, matrix v2 draft",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "e2/validation-matrix-v2-draft.json",
+     "text": "DRAFT-NOT-FROZEN",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "e2/validation-matrix-v2-draft.json",
+     "text": "TO-BE-FILLED-AT-RELINK",
+     "atLeast": 5
+    }
+   ],
+   "blocksRelink": true
+  },
+  {
+   "id": "queue-search-after-reopen-wedges",
+   "title": "on a reused engine, the FIRST search after the first close never returns -- CHARACTERISED 2026-08-16, still open",
+   "expectation": "absent",
+   "source": "findings/evidence/sdk-e2/e2-c-validation/d4/heap/, 2026-08-16",
+   "note": "Characterised, not fixed. Four arms, one variable each, both browsers, on the frozen v2 artifact (findings/evidence/sdk-e2/e2-c-validation/search-wedge/). Two searches on ONE open return in 19 ms, so a second search is not the trigger. `search, close, open, search` wedges at 30 s -- the minimal reproduction. And `open, insert, save, close, open, search`, whose first document is NEVER searched, ALSO wedges: the prediction that it would return is recorded FAILED. So the trigger is the reopen alone, and the item's old wording ('a second document's search') was wider than the fact. Where inside the engine the search stops is NOT established and must not be guessed (findings 040 and 048 are the precedents). Still not a product defect: EditorSession builds a fresh engine per session, so the product never reaches a second open on one engine.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "src/probe_engine.cpp",
+     "text": "searchAfterReopen"
+    },
+    {
+     "kind": "contains",
+     "file": "web/e2-c-search-wedge-app.js",
+     "text": "no-search-then-search",
+     "atLeast": 1
+    }
+   ],
+   "blocksRelink": false
+  },
+  {
+   "id": "queue-preblocks-postblocks-not-observations",
+   "title": "preBlocks/postBlocks must not report an unwritten default as an observation -- DONE in the tree (object-compiled, not linked)",
+   "expectation": "present",
+   "blocksRelink": true,
+   "source": "findings/evidence/046/browser-vs-native/, 2026-08-16",
+   "note": "Same family as P1 item 3 (the route field). Fixed by saying so rather than by guessing: the counts keep their type and value, and preBlocksObserved/postBlocksObserved say whether the value is one. Worker projects both, plus readbackParsed, readbackBlockCount and containment{checked,held} -- the fields 3b's criterion needs and the field that says whether the verdict is about the caller's paragraph at all. Engine change is object-compiled only (scratch dir, never a profile build dir); it enters the artifact at the relink.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "bool preBlockCountObserved = false;",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "bool postBlockCountObserved = false;",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "preBlocksObserved",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "sdk/sdk-worker.js",
+     "text": "preBlocksObserved: value.preBlocksObserved ?? null,",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "sdk/sdk-worker.js",
+     "text": "readbackBlockCount: value.readback?.blockCount ?? null,",
+     "atLeast": 1
+    }
+   ]
+  },
+  {
+   "id": "queue-selecttext-overshoots-empty-paragraph",
+   "title": "the barrier verified the WRONG PARAGRAPH -- finding 046's actual fix, WRITTEN 2026-08-17, waiting for the link",
+   "expectation": "present",
+   "blocksRelink": true,
+   "source": "findings/evidence/046/diagnostic-readback/, 2026-08-16",
+   "note": "This is finding 046's actual defect, now precise. Raw readback on the empty paragraph: `<ul><li><p></p></li></ul><p>E1-EMPTY-AFTER</p>` -- the bullet APPLIED and the read swallowed the paragraph below. Both browsers, both gestures. Not blocking this link: the fix needs a design (verify by block identity rather than refuse) plus its own measurement, and the link is for changes already decided. Round two needs a matrix cell for it. SCOPE MEASURED (findings/evidence/046/overshoot/, 8 cells x 2 browsers, frozen engine): EMPTY-PARAGRAPH-ONLY. The discriminator was a caret placed PAST the last character of a paragraph with text -- it reads one block and succeeds, so this is not the 'caret at a paragraph edge' failure finding 034 named. Containment holds on every overshooting cell, so a fix has to compare the read against the paragraph the action was dispatched on, not against the caret.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "readback-is-a-different-paragraph",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "barrier.dispatchParagraphKnown = refreshCaretParagraph();",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "gFormatBarrier.readbackParagraphKnown = refreshCaretParagraph();",
+     "atLeast": 1
+    }
+   ],
+   "checkNote": "The fix compares the paragraph the action was DISPATCHED on against the paragraph the READ is of, both as fingerprints of the paragraph's own text with the list prefix removed. The prefix removal is load-bearing and measured: the same empty paragraph reads \"\" before .uno:DefaultBullet and \"\\u2022 \" after it, so a fingerprint over the whole string would differ on every SUCCESSFUL list action and this check would fire on all of them. The two capture points are separate checks because taking either at the wrong moment silently breaks it -- the dispatch one after the dispatch describes a paragraph the action already changed, and the readback one after the restore describes the restore rather than the read. NAMED LIMIT: two paragraphs with the same text are indistinguishable, so an overshoot from one empty paragraph into another is not caught."
+  },
+  {
+   "id": "queue-product-save-button-writes-object-object",
+   "title": "finding 049: the product page's save button wrote 15 bytes of [object Object] -- FIXED 2026-08-16",
+   "expectation": "present",
+   "blocksRelink": false,
+   "source": "findings/049-…md, 2026-08-16, found by an operator round",
+   "note": "Fixed the same day it was found, by an operator pressing the button. Verified through the D5 harness's declared shim: 15 bytes of '[object Object]' became 12,200 bytes starting with the ZIP magic, and the product's own toast went from 'NaN KB' to '11.9 KB'. No relink (JS), but web/e2-editor-app.js is one of the twelve modules the E2-C shell bundle binds, so a NEW generation was frozen: v4 = 85795b80…, v3 = 34e95e10… stays as the record of what D3-corpus/D4/D5 and both operator rounds ran on. This item's expectation was flipped deliberately, which is what the checker's DRIFTED state exists to force.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "web/e2-editor-app.js",
+     "text": "const { bytes } = await run(\"儲存\"",
+     "atLeast": 1
+    },
+    {
+     "kind": "file-exists",
+     "file": "e2/editor-shell-v2-bundle-v4.json"
+    }
+   ]
+  },
+  {
+   "id": "queue-input-adapter-trace-is-discarded",
+   "title": "the input and clipboard traces are surfaced by the product -- DONE 2026-08-16",
+   "expectation": "present",
+   "blocksRelink": false,
+   "source": "findings/evidence/sdk-e2/e2-c-validation/d5/operator/round-3-firefox/, 2026-08-16",
+   "note": "Firefox operator round: four IME commits advanced the revision once, and a real paste advanced it not at all. A control ruled out the shell -- four consecutive session.commitText() calls all advanced (0-1-2-3-4). So the loss sits between the browser's composition events and commitText, in HostInputAdapter -- and EditorSession accepts onInputTrace while web/e2-editor-app.js passes none, so that layer is the one layer nobody records. Next controlled variable: wire onInputTrace/onClipboardTrace into a page an operator can drive, and repeat the cell. RESOLVED IN PART 2026-08-16: the loss was found without the trace -- finding 050, the sink was never cleared, so every commit after the first was rejected as a buffer mismatch. Fixed and mutation-tested. What remains under this item is the trace itself: the product still wires no onInputTrace, so the next thing that goes wrong in that layer will be just as invisible. The clipboard half is now its own item. DONE: web/e2-editor-app.js now wires onInputTrace and onClipboardTrace, and toasts the FAILURES only (a toast per keystroke would be its own defect). Finding 050 was invisible for as long as it existed precisely because these went nowhere.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "web/e2-editor-app.js",
+     "text": "onInputTrace(entry)",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "web/e2-editor-app.js",
+     "text": "onClipboardTrace(entry)",
+     "atLeast": 1
+    }
+   ]
+  },
+  {
+   "id": "queue-ctrl-c-does-not-copy-the-documents-selection",
+   "title": "Ctrl+C now asks the engine for the selection -- DONE 2026-08-16, happy path unverified headlessly",
+   "expectation": "present",
+   "blocksRelink": false,
+   "source": "D5 operator rounds 2-4, 2026-08-16",
+   "note": "The input adapter binds compositionstart/update/end, beforeinput and paste -- no `copy`. The clipboard adapter HAS copySelection(), and web/e2-editor-app.js never calls it (0 occurrences). The document is a canvas, so the browser's default copy has no DOM selection to take, and Ctrl+C leaves the clipboard holding whatever was there before. That explains the clipboard cell across four rounds: the only round whose paste moved the document was the one where the operator had copied something else earlier. NOT yet measured directly -- the reading is from the source and the round pattern, and it needs its own arm before it is called a finding. DONE: the product binds `copy` on its input sink and calls session.copySelection(), which asks the ENGINE for the selected text. VERIFIED: the handler fires and reports typed errors -- with no selection it now says CLIPBOARD_EMPTY_SELECTION where it used to say nothing at all. NOT VERIFIED headlessly: the clipboard write itself, because WebDriver blocks clipboard read/write (NotAllowedError). That half is what the operator round establishes, which is the same reason D5 exists.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "web/e2-editor-app.js",
+     "text": "session.copySelection()",
+     "atLeast": 1
+    }
+   ]
+  },
+  {
+   "id": "queue-caret-confirmation-refuses-the-bottom-half-of-a-line",
+   "title": "finding 051: the 048 caret confirmation refused every click landing in the bottom half of its own line -- FIXED 2026-08-16",
+   "expectation": "present",
+   "blocksRelink": false,
+   "source": "findings/evidence/051/, 2026-08-16; found while building the product-path harness",
+   "note": "Not an engine change and not a relink: JS, in editor-shell/editor-session.js. `caretIsOnLine` compared |y - caret.y| against half the caret height, and caret.y is the TOP of the line box -- so the accepted band was half a line ABOVE the box plus the box's own top half. Measured on the shipped v2 artifact through the product page: a click at y=1739 with the engine reporting caret y=1418 height=414 (the box 1418..1832 contains it, and the engine's sourceSequence had advanced) failed twice at 30.1 s, while a click 200 twips higher on the SAME line confirmed in 0.3 s. The fix accepts the whole box with slack ABOVE it only. The stale-caret guard 048 exists for is unchanged and pinned by the same unit tests. Shell bundle v7 = e9668347…; v6 = 9b7e7d2a… stays as the record of what the four D5 operator cells ran on. E1-C divergence declared (third entry).",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "editor-shell/editor-session.js",
+     "text": "yTwips <= caret.y + caret.height",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "editor-shell/tests/place-caret.test.mjs",
+     "text": "the bottom half of a line is on that line (finding 051)",
+     "atLeast": 1
+    },
+    {
+     "kind": "file-exists",
+     "file": "e2/editor-shell-v2-bundle-v7.json"
+    }
+   ]
+  },
+  {
+   "id": "queue-click-outside-the-text-waits-out-the-timeout",
+   "title": "finding 052: a click outside every line box waited 30 s and was refused -- FIXED 2026-08-16 for the case the engine moves the caret",
+   "expectation": "present",
+   "blocksRelink": false,
+   "source": "findings/evidence/052/, 2026-08-16",
+   "note": "JS, no relink. placeCaret now also accepts when the engine acknowledged AND the caret moved. Measured: first click below the text 30 s -> 203 ms. RESIDUAL, recorded rather than hidden: a SECOND click outside the text, with the caret already clamped there, still waits out the 30 s -- nothing moves, and nothing moving is what a swallowed click looks like too. Same for a caret on the clicked line at a different x after the grace period. Both have the same non-geometric remedy as finding 046's overshoot: the engine reporting WHICH BLOCK the caret is in. Filed as queue-verify-caret-by-block-identity.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "editor-shell/editor-session.js",
+     "text": "acknowledged && caretMoved",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "editor-shell/tests/place-caret.test.mjs",
+     "text": "finding 052's path does not weaken finding 048's guard",
+     "atLeast": 1
+    },
+    {
+     "kind": "file-exists",
+     "file": "e2/editor-shell-v2-bundle-v12.json"
+    }
+   ]
+  },
+  {
+   "id": "queue-047-may-have-closed-under-048",
+   "title": "finding 047's sequence no longer reproduces on the current shell -- OPEN, needs its own round before anything is judged",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "tools/run_e2_c_product_path.py, two rounds, 2026-08-16",
+   "note": "The product-path harness needed a queue-blocking failure to drive the product's recovery button, and finding 047 is the one recorded route into that state from the product's own UI. It did not reproduce: save, click-placed caret and format action, dispatched back to back from inside the page with no WebDriver round trips, completed in 28 ms with the state still `ready`. That is NOT a verdict on 047. 047 was measured on 2026-08-15 through a different harness and a shell generation before finding 048 changed what placeCaret waits for -- and 047's own diagnosis was that placeCaret's confirmation did not guarantee the next action, which is the same sentence from the other side. Judging it needs its own round: both shell generations, both browsers, 047's four controlled arms rerun as they were. Until then the finding stays as it is, with the observation recorded in it.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "../findings/047-a-save-immediately-before-a-click-placed-caret-makes-the-next-format-action-time-out.md",
+     "text": "queue-047-may-have-closed-under-048",
+     "atLeast": 1
+    }
+   ]
+  },
+  {
+   "id": "queue-v2-page-reads-a-flag-nobody-writes",
+   "title": "the v2 product page disables its recovery button on a snapshot field that is never written -- finding 054, FIXED on shell v9",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "finding 054; found 2026-08-16 while adjudicating 053",
+   "note": "`web/e2-editor-app.js` reads `snapshot.requiresPageReload`, and nothing writes that name at the top level of a snapshot: `editor-shell/editor-session.js` puts it in `error.details` at the WORKER_GENERATION_LIMIT, and the v1 component `editor-shell/recovery-notice.js` reads it from there (and also checks `error.code`). So the v2 page's button never disables, and at the generation limit it points the user at a control that will refuse them -- which is what recovery-notice.js's own comment says a host must not do. Same family as finding 053 and found the same way: nobody had ever pressed this path. FIXED 2026-08-16 on shell v9, riding with the 053 fix as planned. The check is written as the general form -- every snapshot field a page reads must be one the state machine publishes -- and it goes red if the fix is reverted.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "../findings/054-the-v2-page-reads-a-reload-flag-that-is-never-written.md",
+     "text": "requiresPageReload",
+     "atLeast": 1
+    }
+   ]
+  },
+  {
+   "id": "queue-prescribed-rollback-is-not-offered",
+   "title": "the product prescribes a rollback whose button it does not show -- finding 053, FIXED on shell v9, user-side reachability still unproven",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "finding 053; found 2026-08-16 by driving listener:click#notice-action for the first time",
+   "note": "`recoveryFor()` returns \"rollback\" for any format failure whose barrier says dispatched:true, and the product toasts that prescription; but `#notice`, which carries the button, is displayed only while the session state is `recoverable-error` or `restart-required`, and EDITOR_FORMAT_POSTCONDITION_FAILED puts it in neither -- it is not in RECOVERY_ERRORS. So the user is told the document may have changed unverifiably, and is offered no way back. The error is reachable on the shipped artifact: d2-presweep records it with recovery:\"rollback\", dispatched:true, in both browsers. WHICH SIDE TO CHANGE IS NOW DECIDED (2026-08-16, external adjudication, verified line by line): SPEC E2-B 5.13 clause three prescribes not merely rollback but that the host ENTER `recoverable-error`, so the shell is out of spec and the page is correct. The fix goes in `NarrowEditorV2Session.action()`'s catch -- compute recoveryFor(error) and call this._blockQueue(error, \"recoverable-error\", \"editor-recovery\") before rethrowing -- which touches NOTHING in the E1-C bundle (5 files, none under editor-shell-v2/). It DOES put the E2-C shell bundle from v8 to v9, and D5 round 7 is bound to v8, so it is a planned rebinding and not a slip-in. EXECUTED 2026-08-16: shell v8 -> v9 eb76c5be…, E1-C verified still intact (E1_GO_ODT_EDITOR, failedProperties []), and the seam test goes red without the fix. What is still NOT shown is that a user can reach EDITOR_FORMAT_POSTCONDITION_FAILED through the product page: the product-path route reaches recoverable-error via MUTATION_OUTCOME_UNKNOWN, which blocked the queue before the fix too.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "../findings/053-the-product-prescribes-a-recovery-whose-button-it-does-not-show.md",
+     "text": "EDITOR_FORMAT_POSTCONDITION_FAILED",
+     "atLeast": 1
+    }
+   ]
+  },
+  {
+   "id": "queue-product-never-enables-accessibility",
+   "title": "the product build never calls setAccessibilityState -- SHIPPED in the second link (d538ce0b); the datum is STILL empty under WASM, which is finding 056",
+   "expectation": "present",
+   "blocksRelink": true,
+   "source": "measured after the v3 link, findings/evidence/queue-block-identity/after-link-v3/",
+   "note": "`refreshEditorAccessibility()` is the only thing that calls setAccessibilityState(..., true), and its single call site sits inside `#ifdef OXSDK_EDITOR_DISCOVERY` AND `#ifndef OXSDK_FINDING_016_SELECTION_BARRIER`. The product profile defines both, so the call is compiled out and getA11yFocusedParagraph() has always returned an empty paragraph there. Found by measurement, not by reading: the first run after the v3 link reported the SAME fingerprint for every paragraph while the caret moved, and that fingerprint was the hash of the empty string. Consequence: the block-identity half of the v3 link -- the barrier comparison and the paragraph in the caret answer -- is INERT on the shipped artifact, and D-BI-2 and D-BI-3 could not have held. The four native rounds this was designed from enabled accessibility themselves, which is the tree's standing lesson (harness path vs product path) landing one level in. Fixed by calling it at document open, where every profile reaches it. SHIPPED 2026-08-17 in artifact d538ce0b: the engine now reports enabled:true, unavailable empty and paragraphFresh true -- and the focused paragraph is STILL empty, with changeCount 0. Native, same sequence, same core commit, is populated at once. That is a platform difference and it is finding 056; this item is done, the datum is not. MECHANISM ESTABLISHED same day, findings/evidence/queue-block-identity/mechanism-of-056/: the call is fine and core cannot honour it. The core build is configured --with-wasm-module=writer, which sets ENABLE_WASM_STRIP_ACCESSIBILITY, which removes 26 objects from sw/source/core/access (measured: 2 objects in the wasm build, 28 native) and makes SwEditWin::CreateAccessible() return {} -- so Window::GetAccessible() is empty and SetLOKAccessibilityState() returns at `if (!xAccessible.is())` without ever attaching a listener. The shipped artifact d538ce0b agrees: zero hits for SwAccessibleMap/Document/Paragraph, 45 for LOKDocumentFocusListener. The reporting half is in the binary, the producing half is not. setAccessibilityState returns void, which is why this was silent.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "  refreshEditorAccessibility();",
+     "atLeast": 2
+    },
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "14695981039346656037ull",
+     "atLeast": 1
+    }
+   ],
+   "checkNote": "Two call sites now: the search one that was already there for the discovery profiles, and the open one that every profile reaches. The second check pins the FNV-1a offset basis, which was typed one digit short until the same measurement exposed it -- a serviceable hash that was not the algorithm its comment named."
+  },
+  {
+   "id": "queue-identity-checked-is-reported-as-unavailable-when-preempted",
+   "title": "paragraphIdentity.checked says 'not run' when another shape answered first -- small, engine-side, next link",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "measured 2026-08-17, findings/evidence/queue-block-identity/after-link-2-d538ce0b/",
+   "note": "The empty-paragraph cell reports paragraphIdentity {checked:false, dispatchKnown:true, readbackKnown:true} -- both reads were available, and the flag still says the check did not run, because multi-block-readback returns from the verdict path before the assignment. The two are consistent but `checked` reads as 'the data was missing' when it means 'something else answered first', and a field that can be read two ways will be. Set it where the data becomes known (right after the readback capture) rather than in the verdict path.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "src/probe_engine.cpp",
+     "text": "identityCheckedAtCapture"
+    }
+   ]
+  },
+  {
+   "id": "queue-verify-caret-by-block-identity",
+   "title": "answer a click with (paragraph, offset) instead of inferring it from rectangles -- OPEN, engine-side, DESIGNED and measured 2026-08-16",
+   "expectation": "present",
+   "blocksRelink": true,
+   "source": "findings 046, 051, 052; measured 2026-08-16, findings/evidence/queue-block-identity/",
+   "note": "REWORDED after measurement. The old wording said three ambiguities 'all reduce to the same missing datum -- which BLOCK the caret is in', and that turned out to be half right. Measured natively over three rounds: (a) there IS no block index anywhere in LOK -- the focused-paragraph payload carries content/position/start/end/listPrefixLength and nothing else, and no getCommandValues command supplies one; (b) what does exist, the paragraph's own text, is a FINGERPRINT, not an identity -- two paragraphs with the same text produce a byte-identical payload while the caret rectangle moves; (c) it settles finding 046 on the cells 046 was measured on -- but NOT in general, because the comparison is between two paragraphs' text and `empty-paragraph.odt` ends with two adjacent empty paragraphs whose text is identical -- (the dispatch paragraph read '\\u2022 ' and the barrier's .uno:SelectText read '    \\u2022 \\nBI-AFTER-EMPTY'), and it settles the same-line-different-x case by OFFSET rather than by block; (d) it does NOT settle finding 052's residual, because x is carried on a line and dropped below it (offset 4 on the line, 7 below it, same x) so every click outside the text lands at the same offset -- a real block index would not help either, since the caret genuinely is in the last block. Every one of (a)-(d) is a NATIVE result on core 26.8; whether the shipped WASM engine reports the same offsets and refreshes the a11y payload on the same schedule is owed to a relink round and is not established here. The remedy for (d) is a different shape and comes from the reference implementation rather than from the measurement: make placing the caret a CALL THAT RETURNS (paragraph fingerprint, offset), instead of posting a click and inferring the outcome from a rectangle. Muya (MarkText's editor core) never inverts that mapping -- its cursor IS {offset, block, path} and geometry only ever goes model->pixels. Design and pre-registered predictions: research/DESIGN-2026-08-16-caret-by-block-and-offset.md. BLOCKED 2026-08-17, and NOT on a link. The paragraph datum this design consumes cannot exist in the current core build (finding 056 mechanism), and no configure flag combination in 26.8 can produce one on Emscripten (finding 057: the Make variable and the C++ macro answer to different configure inputs, and --enable-wasm-strip is forced yes for Emscripten at configure.ac:1280, overriding the command line). Unblocking this needs a configure.ac change and a CORE REBUILD, which is the user's call and the user's machine time. The editorPlaceCaretV2 half already shipped and works (38 ms / 251 ms, replacing a 30 s wait); it does not depend on the paragraph datum. Note also that a rebuild buys a TEST, not a feature: adversarial review enumerated further independent runtime conditions past attachRecursive that have never been exercised.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "void handleEditorPlaceCaret(const Command &command) {",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "src/probe_engine.cpp",
+     "text": "editor-caret-placed",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "src/editor_api.cpp",
+     "text": "oxsdk_editor_place_caret",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "Makefile",
+     "text": "_oxsdk_editor_place_caret",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "sdk/sdk-worker.js",
+     "text": "editorPlaceCaretV2",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "sdk/sdk-worker.js",
+     "text": "caretParagraph",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "../research/DESIGN-2026-08-16-caret-by-block-and-offset.md",
+     "text": "D-BI-1",
+     "atLeast": 1
+    }
+   ],
+   "checkNote": "WRITTEN 2026-08-17, waiting for the link. The old check watched for `caretBlockIndex`, a field for a datum that does not exist in LOK -- so nothing could ever have implemented it and the check was green by construction. These watch the five places the change actually lives: the engine handler, the reply type, the entry point, the EXPORT LIST (an entry point that is not exported is stripped at link time and the symbol is simply absent at run time), and both halves of the worker -- the operation and the PROJECTION, because that projection is an allowlist and adding the engine half without it is how p1-3c's itemCount came to be measured natively and reported nowhere."
+  },
+  {
+   "id": "queue-engine-must-report-core-lacks-accessibility",
+   "title": "the engine reports enabled:true on a core build where accessibility can never work -- a capability failure wearing the costume of data",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "finding 056 mechanism, findings/evidence/queue-block-identity/mechanism-of-056/",
+   "note": "LOK's setAccessibilityState() returns void and silently does nothing when there is no accessible object, so the engine's `enabled: true` / `unavailable: \"\"` only ever meant 'this call did not throw'. On the shipped build it can never mean more than that, because core was built with ENABLE_WASM_STRIP_ACCESSIBILITY. The observability the second link added asked the right question of the wrong side of the boundary: it reports what WE did, not what core accepted. Remedy is small and compile-time, no new runtime machinery: include <config_wasm_strip.h> in the engine and, when ENABLE_WASM_STRIP_ACCESSIBILITY is 1, report unavailable: \"core-built-without-accessibility\" instead of enabled: true. Not worth a link on its own -- ride along with the next one. Until then tools/check_core_build_provides.py is the standing guard and it is RED, which is the honest state.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "src/probe_engine.cpp",
+     "text": "core-built-without-accessibility"
+    },
+    {
+     "kind": "absent",
+     "file": "src/probe_engine.cpp",
+     "text": "config_wasm_strip.h"
+    }
+   ],
+   "checkNote": "Declared absent and watched as absent, per the queue's own semantics: when the next link implements this, these go DRIFT and force a deliberate expectation flip in the diff, rather than the tree quietly acquiring it. Both halves deliberately -- the string alone could be typed into a comment, and the include alone could sit there unused."
+  },
+  {
+   "id": "queue-quantifier-check-for-multi-block-readback",
+   "title": "verify a multi-block readback by QUANTIFIER (all blocks / no blocks) instead of refusing outright -- engine-side, needs a link",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "finding 046 residual; adjudicated by fable 2026-08-17",
+   "note": "The shell now softens the DISPOSITION for this shape (recovery: review, shell v14, SPEC E2-C 2.6b), which stops an ordinary blank-line bullet from demanding a rollback. It does not restore VERIFICATION. The engine-side fix that would, without depending on the accessibility paragraph identity that findings 056/057 established is unavailable on this platform: checkFormatBarrierCrossParagraph() already verifies that EVERY block reached the target (itemCount == blocks, everyBlockHasTag). Apply the same quantifier on the collapsed route when multiBlock fires and containment held -- all blocks in the target state means the target is too (containment put it among them), and no block in the target state means the postcondition genuinely failed and a rollback is earned. Mixed stays UNKNOWN and keeps the review disposition. Sound with NO assumption about block order, which is why it is this and not 'verify block[0]' -- that was rejected with a counterexample, see finding 046. Needs its own PREDICTION.md covering the shapes the overshoot README names as unmeasured: empty-before-empty, empty-before-list, and empty-at-document-end (which does not reach a readback at all today -- stage-deadline:awaiting-selection -- and is a separate problem).",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "src/probe_engine.cpp",
+     "text": "collapsedQuantifierVerdict"
+    }
+   ],
+   "checkNote": "Declared absent and watched as absent: when a link implements it, this goes DRIFT and forces a deliberate expectation flip in the diff rather than the tree quietly acquiring it."
+  },
+  {
+   "id": "queue-recovery-path-lost-its-inducer",
+   "title": "the product-path net has a route into recoverable-error again -- INDUCE_FOOTNOTE_APPARATUS, finding 038",
+   "expectation": "present",
+   "blocksRelink": false,
+   "source": "measured 2026-08-17 when shell v14 landed",
+   "note": "Finding 046's cell was the only route this runner had into recoverable-error, and softening its disposition removed it: notice-action-recovers-the-session now reports NOT_ESTABLISHED. The review-disposition mutation shows the pair moving together, so this is measured rather than inferred. The recovery path is not broken and is not covered. A new inducer needs a dispatched failure whose shape is NOT multi-block-readback; the footnote-apparatus shape is the obvious candidate and the endnote-frame fixture exists, and the product can now open an arbitrary document, so the runner could open it rather than needing a second fixture argument. Recorded here rather than in a backlog nobody reads because losing coverage silently is exactly what this queue exists to prevent. DONE 2026-08-19: the inducer exists and the recovery path is covered by `recovery-returns-what-the-product-promised`. One correction the design did not predict, and it cost a round: the drag ALONE does not wedge anything. Finding 038's own 2026-08-13 correction says the selection returns and the engine is still alive -- what kills it is the first READ of that selection -- and `_drain` short-circuits its getState whenever the operation's result already carries `state`, so the selection's own drain never performs that read. Measured: 77 seconds of health after the drag, then a single click -> busy -> recoverable-error about 30 s later. The recipe is therefore two steps, and a one-step version reports '038 no longer reproduces' -- a wrong aim reads exactly like a fixed defect.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "tools/run_e2_c_product_path.py",
+     "text": "INDUCE_FOOTNOTE_APPARATUS"
+    }
+   ],
+   "checkNote": "Present now. If a future change removes the inducer this goes DRIFT and the recovery path is uncovered again."
+  },
+  {
+   "id": "queue-typing-path-has-no-delete-or-arrows",
+   "title": "Backspace, Delete and the arrows reach the document -- DONE 2026-08-17, shell v16, no link needed",
+   "expectation": "present",
+   "blocksRelink": false,
+   "source": "usable-editor acceptance checklist, 2026-08-17",
+   "note": "input/input-adapter.js falls deleteContentBackward and deleteContentForward into `ignored-input-type`, and arrow keys raise no beforeinput at all. So the product can be typed into but not corrected from the keyboard: fixing a character means clicking and pressing the toolbar's delete button. This is NOT a keyboard-shortcut nicety -- backspace is the primary deletion path of any editor. Shell-only: beforeinput carries the inputType, and delete-backward/delete-forward are already contracted actions with wire ids. DONE in the PAGE, not the adapter: the adapter's job is to commit text and deleting is an editor action with its own wire id. The original check here watched input/input-adapter.js, which is the wrong file -- it could never have gone green no matter what landed. Repointed at the handler that exists.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "web/e2-editor-app.js",
+     "text": "DELETE_INPUT_TYPES",
+     "atLeast": 1
+    },
+    {
+     "kind": "contains",
+     "file": "web/e2-editor-app.js",
+     "text": "ArrowLeft",
+     "atLeast": 1
+    }
+   ],
+   "checkNote": "Both halves: the delete input types and the arrow map. The arrows are the half that needed keydown, because they raise no beforeinput at all."
+  },
+  {
+   "id": "queue-redo-and-line-movement-need-wire-ids",
+   "title": "redo and move-line-up/down/home/end exist in the engine but have no product wire id -- a link, not a shell change",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "usable-editor acceptance checklist, 2026-08-17",
+   "note": "The engine implements both (redo dispatches .uno:Redo; the four move-line actions postKeyEvent Key::UP/DOWN/HOME/END, and the product build's preprocessor confirms they are reachable). What is missing is the CONTRACT: EDITOR_V2_ACTION_IDS is exactly fifteen actions and wire ids 1-15 are used up, while the engine's own enum numbers move-line-up as 3 -- the same wire id the product uses for delete-backward. So adding them needs new ids, an engine mapping and a manifest entry. SPEC E2-C 4.2 also lists both under 明確不承諾, so it is a contract revision as well as a link. Corrected here after I told the user it was shell-only: I checked the engine and stopped, which is the wrong layer to stop at.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "sdk/sdk-worker.js",
+     "text": "\"redo\": 16"
+    }
+   ],
+   "checkNote": "Absent until a new wire id exists for redo. 16 rather than 12 on purpose: 12 is the DISCOVERY map's id for redo and is already taken in the v2 map by set-list-unordered, which is how the two numberings were confused in the first place."
+  },
+  {
+   "id": "queue-no-keyboard-shortcuts",
+   "title": "the page has a keydown handler -- PARTIALLY done 2026-08-17, shell v16; Ctrl+B/I/U/S deliberately withheld",
+   "expectation": "present",
+   "blocksRelink": false,
+   "source": "usable-editor acceptance checklist, 2026-08-17",
+   "note": "grep for keydown/keyup/keypress across editor-shell-v2, editor-shell, input, sdk, reader-shell and the page returns nothing. Deliberately sequenced AFTER driving the fourteen uncovered actions: binding Ctrl+B onto today's set-bold would duplicate whatever is wrong with it onto a second path, and this tree has three findings (049, 050, Ctrl+C) that are all 'the surface existed and nobody exercised it'. Ctrl+S also needs a preventDefault or the browser's own save dialog opens. PARTIALLY DONE. Landed: Ctrl+Z, Ctrl+S (with preventDefault, or the browser's own save dialog opens and saves the page instead of the document) and the left/right arrows. DELIBERATELY WITHHELD: Ctrl+B/I/U/S, because finding 059 has those four actions failing on the shipped engine, and binding them to a second path would duplicate the defect rather than add a feature. Flipped to `present` as a deliberate edit -- the queue reported DRIFT the moment the handler appeared, which is exactly what it is for.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "web/e2-editor-app.js",
+     "text": "addEventListener(\"keydown\"",
+     "atLeast": 1
+    }
+   ],
+   "checkNote": "Watches the handler, not the individual accelerators: this queue is binary and the partial state is recorded in e2/usable-editor-checklist.json, whose vocabulary has a `partial` status for exactly this."
+  },
+  {
+   "id": "queue-no-cut",
+   "title": "cut is wired -- DONE 2026-08-17, shell v16, no link needed",
+   "expectation": "present",
+   "blocksRelink": false,
+   "source": "usable-editor acceptance checklist, 2026-08-17",
+   "note": "No cut handler in the page or the adapters. Copy works without any keydown because the browser fires a `copy` event on Ctrl+C; cut is the same listener pattern plus a delete of the selection. Shell-only. DONE: page-level `cut` listener, copy THEN delete so a failed clipboard write does not still remove the text. The removal half is not established under WebDriver (it refuses clipboard writes, so the delete correctly never runs) and is recorded as `partial` in the acceptance checklist. Original check watched input/input-adapter.js, the wrong file; repointed.",
+   "checks": [
+    {
+     "kind": "contains",
+     "file": "web/e2-editor-app.js",
+     "text": "addEventListener(\"cut\"",
+     "atLeast": 1
+    }
+   ],
+   "checkNote": "Watches the listener that exists, in the file it exists in."
+  },
+  {
+   "id": "queue-viewport-wall-never-measured",
+   "title": "the page draws the whole document as one canvas and repaints all of it per edit -- never measured past one page",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "usable-editor acceptance checklist, 2026-08-17",
+   "note": "layoutCanvas sizes a single canvas to the full document and renderDocument repaints it after every edit. Browsers cap canvas dimensions near 32767px, so at MAX_BACKING_WIDTH 2400 an A4 document reaches the cap somewhere around a dozen pages and rendering breaks silently and browser-dependently; below the cap the per-edit repaint cost grows with document length. 'Open a user's own file' is verified for OPENING only -- nothing has ever measured that a realistic document stays editable. The machinery for the fix is already imported: editor-session.js pulls TileScheduler from reader-shell. First step is a measurement, not a fix: add a 20-page cell and find out where it actually breaks.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "tools/run_e2_c_product_path.py",
+     "text": "LONG_DOCUMENT_CELL"
+    }
+   ],
+   "checkNote": "Absent until a long-document cell exists in the product-path runner."
+  },
+  {
+   "id": "queue-inline-format-argument-is-rejected-by-core",
+   "title": "finding 059: core APPLIES the parameterised inline format and reports success:false, and the engine's own predicate reads that as failure -- engine-side, needs a link",
+   "expectation": "absent",
+   "blocksRelink": true,
+   "source": "finding 059, measured on the shipped v3 artifact 2026-08-17",
+   "note": "inlineFormatArgument() dispatches .uno:Bold with {\"Bold\":{\"type\":\"boolean\",\"value\":...}} and core rejects it on the shipped WASM build; bold, italic and underline all return LOK_COMMAND_FAILED and put the session into recoverable-error. The list actions use the same parameterised mechanism and still work, so the difference is this slot's argument name or type, not parameters in general. On v2 (before the fix) bold APPLIED and merely ignored `enabled` -- which is finding 045 -- so the fix turned a wrong-direction action into no action at all. BLOCKS the next link because shipping again without resolving it ships a build whose formatting buttons cannot be used. Two candidates, both needing native measurement FIRST: withdraw inlineFormatArgument (back to v2 behaviour, on-only), or find the argument form core accepts. Mechanism deliberately not named (040/048 precedent). MECHANISM ESTABLISHED same day by native control (findings/evidence/059/native/): the parameterised .uno:Bold DOES apply -- marker typed after `value:true` comes back fo:font-weight=\"bold\", after `value:false` comes back normal -- while reporting success:false, wasModified:true. The bare form reports success:true and leaves the text NOT bold. The .uno:DefaultBullet control behaves the same way, which is why the barrier path (which does not gate on success) kept working. So DO NOT withdraw inlineFormatArgument: the fix is correct and the defect is commandResultSucceeded() at probe_engine.cpp:1696 requiring success:true, turned into LOK_COMMAND_FAILED at :2286. CANDIDATE PREDICATES, corrected 2026-08-18: the barrier's readback is the ONLY candidate left. wasModified is out, and by source rather than by measurement -- desktop/source/lib/init.cxx:5517-5518 passes pDocSh->IsModified() as a constructor argument to DispatchResultListener, i.e. captured BEFORE dispatchCommand() runs (the member's own comment at :5073 says 'modified before saving', and :5098 copies it out unchanged). It reports whether the document was already dirty, not whether this command changed anything, so it cannot separate an applied command from a refused one. MEASURED 2026-08-18 (findings/evidence/059/native/predicate/, ten arms, prediction committed first): all four slots apply correctly and all four broadcast .uno:<Slot>=true, so the readback IS available for all of them -- including underline and strikeout, whose absence of a state cache is justified in probe_engine.cpp:4308-4310 by a claim about GetKitUnoCommandList() that core's source contradicts. But the predicate must NOT be 'a broadcast arrived': core broadcasts a state CHANGE, so the value:false arms produced no broadcast at all while doing exactly the right thing. The predicate that survives is the barrier's existing one -- compare observed state against requested state (formatBarrierPostconditionMet, :1189). STILL OWED before this ships: a genuine negative arm. The intended refusal (setViewReadOnly) did not refuse -- core applied the command anyway -- so this round proved the predicate agrees, not that it can disagree. Also unmeasured: whether the state cache is primed when the predicate needs it (finding 021's shape). Superseded note follows: the readback was to be measured PER SLOT: bold, italic, underline and strikethrough are four different slots and the last two have no state cache. A refusal arm must use a command core knows but cannot run -- an unknown slot emits no LOK_CALLBACK_UNO_COMMAND_RESULT at all (comphelper/source/misc/dispatchcommand.cxx:48-50), so it would measure nothing. MEASURED 2026-08-18 (findings/evidence/059/wasm/): the WASM build DOES apply the command while reporting failure, for all four slots -- each arm's marker comes back carrying exactly the slot that was pressed, with a no-command control on the same fixture coming back unstyled. So the shipped product applies the user's formatting and then tells them the action failed and to return to a checkpoint: it asks them to discard work to undo a change that succeeded. That raises the cost of NOT fixing this and it is why this item blocks the link. Also measured: the range route is closed engine-side -- with the page's gesture mask lifted all four dispatches return EDITOR_FORMAT_GESTURE_UNSUPPORTED from editorGesturePermitted (probe_engine.cpp:4247-4252), which is the first RUNTIME witness for p1-2-gesture-mask-inherited.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "src/probe_engine.cpp",
+     "text": "inlineFormatArgumentResolved"
+    }
+   ],
+   "checkNote": "Absent until the engine carries a resolved form, under a name that did not exist before so the flip is visible in the diff. Deliberately NOT watching `inlineFormatArgument` itself: it is present today and present is exactly the state that is broken."
+  },
+  {
+   "id": "queue-recovery-inducer-depends-on-an-unfixed-defect",
+   "title": "the only route into recoverable-error is an UNFIXED upstream defect (038); a second, defect-independent inducer is owed",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "fable adjudication 2026-08-18, condition three; measured 2026-08-19 when the first inducer landed",
+   "note": "This is the same structural weakness that removed the previous inducer: when finding 046's disposition was softened, the route into recoverable-error disappeared with it. The recovery coverage is now tied to finding 038 staying broken. When 038 is fixed the inducer will vanish again -- silently, unless something is watching. The check does report NOT_ESTABLISHED and names 038 rather than passing, which is the loud exit, but a second inducer would mean the coverage does not depend on an upstream bug at all. Two candidates, both reachable through public API: selectRange with a deliberately short timeoutMs (TIMEOUT is in RECOVERY_ERRORS), and terminating the worker from the page (worker-crashed -> _enterRecovery). VERIFICATION OBLIGATION: both must first be shown to land in `recoverable-error` rather than being refused by name -- that is finding 037's lesson, where a guard declined the shape before it could wedge. And both measure the RECOVERY MACHINE rather than the user's route INTO it, so they are a supplement, never a replacement.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "tools/run_e2_c_product_path.py",
+     "text": "INDUCE_RECOVERY_WITHOUT_A_DEFECT"
+    }
+   ],
+   "checkNote": "Absent until a second inducer exists; flipping it is a deliberate edit."
+  },
+  {
+   "id": "queue-checkpoint-write-failure-reads-as-nothing-to-rescue",
+   "title": "the product tells the user 'there was no checkpoint' when the checkpoint save FAILED -- shell-side, no link needed",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "finding 061; measured 2026-08-19 by the checkpoint-write-fails mutation",
+   "note": "editor-shell/recovery-notice.js already decides the difference (`checkpointFailed`: hasCheckpoint false AND checkpointError set) and says in its own comment why -- 'there is nothing to rescue' and 'we tried to protect your work and the save failed' are not the same thing to say to someone. web/e2-editor-app.js does not use that module; its notice branches on `hasCheckpoint` alone, so the failure case prints '沒有檢查點，所以自上次儲存以來的內容不會回來'. The status strip does show 寫入失敗, so the fact is on screen -- in a debug pill, not in the notice that is telling the user what they are about to lose. Measured, not read: with the checkpoint save given a 1 ms deadline the pill reads 寫入失敗 and the notice prints the nothing-to-rescue sentence verbatim.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "web/e2-editor-app.js",
+     "text": "checkpointFailed"
+    }
+   ],
+   "checkNote": "Watched by NAME, and the name is not arbitrary: the shell's own module calls this decision `checkpointFailed` (editor-shell/recovery-notice.js), and the honest fix is for the page to take that decision rather than re-deriving a two-way branch from `hasCheckpoint`. A fix written inline under some other name would leave this item reading 'still open' when it is done -- an approximation recorded here rather than hidden, because the alternative sentinel is the notice's WORDING and this queue must not start depending on a sentence nobody has written yet. The first sentinel tried was `checkpointError ?`, which the STATUS PILL already contains: it drifted immediately, which is the checker doing its job."
   }
+ ],
+ "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
+ "externalAdjudication2026_08_16": "fable, called as a subagent, refuted the premise that the two remaining blockers cannot be measured before the relink. Verified independently, all three claims: (1) tools/build_e2_discovery_profile.py COPIES the wasm (shutil.copy2, --wasm is an input), so a diagnostic profile can be packaged around the frozen 572035ac bytes -- no engine build, same engine; (2) the frozen wasm already serialises \"readback\":{\"parsed\": / \"blockCount\": / \"itemCount\": / \"html\":\" and \"containment\":{\"checked\": (one occurrence each; \"preBlocksObserved\": zero, correct -- that is today's unlinked change); (3) all six worker patch anchors match exactly once in the FROZEN dist worker. Consequence: 3b's criterion and the containment ordering are both measurable now, for the price of a Python repackage plus browser rounds. Linking before that measurement would risk a v4, which costs the whole E2-B rerun plus E2-C D0-D5 again.",
+ "linkDecision": {
+  "date": "2026-08-16",
+  "decision": "WAIT",
+  "byWhom": "user",
+  "why": "`p1Complete: True` means nothing is BLOCKING the link; it does not mean the link should happen now. Held deliberately so the newly characterised engine defect (queue-selecttext-overshoots-empty-paragraph) has a chance to ride along: it is an engine fix, so it can only ship through a link, and linking today would make it cost a second one.",
+  "reReadBeforeLinking": "handoff/RUNBOOK-relink-v3.md"
+ }
 }

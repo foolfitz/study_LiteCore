@@ -1,239 +1,251 @@
 {
-  "schemaVersion": 1,
-  "release": "usable-editor-acceptance",
-  "writtenOn": "2026-08-17",
-  "goal": "一個可以讀檔、擁有基本編輯功能的編輯器。2026-08-17 使用者裁示的短期目標。",
-  "why": "在這份清單之前，短期目標沒有寫下來的驗收條件，工作是從 findings 和 relink queue 長出來的，所以感覺零碎。但真正的原因比「沒有清單」深一層：產品介面從來沒有被設計過，它是從『驗證需要哪十五個動作可達』長出來的——工具列上有「游標左移」「游標右移」按鈕，沒有任何使用者需要那種東西。所以這份清單刻意以『使用者做得到什麼』為單位，不是以按鈕或動作 id 為單位；照現有頁面反推會把那個累積物固化成規格。",
-  "rule": "每一格都必須指到一個真的存在的東西：`check`（tools/run_e2_c_product_path.py 裡的檢查 id）、`queue`（e2/relink-queue-v3.json 的項目 id）、或 `finding`（findings/ 底下的編號）。tools/check_usable_editor.py 會逐一解析；指到不存在的東西就是紅的。一份不會紅的清單不是清單。",
-  "statuses": {
-    "done": "有一格會失敗的檢查在跑，而且它是綠的",
-    "unverified": "產品裡有，但沒有任何檢查驅動它——這棵樹被這個形狀咬過四次",
-    "missing": "使用者做不到",
-    "blocked": "要一次 relink 才做得到",
-    "partial": "有會失敗的檢查在跑而且是綠的，但它只涵蓋這一格的一部分；沒涵蓋的部分在 note 裡具名。不要把它讀成 done。"
-  },
-  "capabilities": [
+ "schemaVersion": 1,
+ "release": "usable-editor-acceptance",
+ "writtenOn": "2026-08-17",
+ "goal": "一個可以讀檔、擁有基本編輯功能的編輯器。2026-08-17 使用者裁示的短期目標。",
+ "why": "在這份清單之前，短期目標沒有寫下來的驗收條件，工作是從 findings 和 relink queue 長出來的，所以感覺零碎。但真正的原因比「沒有清單」深一層：產品介面從來沒有被設計過，它是從『驗證需要哪十五個動作可達』長出來的——工具列上有「游標左移」「游標右移」按鈕，沒有任何使用者需要那種東西。所以這份清單刻意以『使用者做得到什麼』為單位，不是以按鈕或動作 id 為單位；照現有頁面反推會把那個累積物固化成規格。",
+ "rule": "每一格都必須指到一個真的存在的東西：`check`（tools/run_e2_c_product_path.py 裡的檢查 id）、`queue`（e2/relink-queue-v3.json 的項目 id）、或 `finding`（findings/ 底下的編號）。tools/check_usable_editor.py 會逐一解析；指到不存在的東西就是紅的。一份不會紅的清單不是清單。",
+ "statuses": {
+  "done": "有一格會失敗的檢查在跑，而且它是綠的",
+  "unverified": "產品裡有，但沒有任何檢查驅動它——這棵樹被這個形狀咬過四次",
+  "missing": "使用者做不到",
+  "blocked": "要一次 relink 才做得到",
+  "partial": "有會失敗的檢查在跑而且是綠的，但它只涵蓋這一格的一部分；沒涵蓋的部分在 note 裡具名。不要把它讀成 done。"
+ },
+ "capabilities": [
+  {
+   "id": "open-my-own-file",
+   "user": "打開我自己電腦上的 .odt",
+   "status": "done",
+   "evidence": [
     {
-      "id": "open-my-own-file",
-      "user": "打開我自己電腦上的 .odt",
-      "status": "done",
-      "evidence": [
-        {
-          "check": "product-opens-a-document-the-user-chose"
-        }
-      ]
-    },
-    {
-      "id": "save-it-back",
-      "user": "把改過的檔案存回我的電腦",
-      "status": "done",
-      "evidence": [
-        {
-          "check": "product-save-button-writes-a-real-odt"
-        }
-      ]
-    },
-    {
-      "id": "type-chinese",
-      "user": "用注音／拼音打中文，而且不只第一次",
-      "status": "done",
-      "evidence": [
-        {
-          "check": "every-ime-commit-reaches-the-document"
-        },
-        {
-          "finding": "050"
-        }
-      ]
-    },
-    {
-      "id": "copy-and-paste",
-      "user": "複製選取的文字，貼上剪貼簿的文字",
-      "status": "done",
-      "evidence": [
-        {
-          "check": "ctrl-c-asks-the-engine"
-        },
-        {
-          "check": "ctrl-v-reaches-the-document"
-        }
-      ]
-    },
-    {
-      "id": "see-where-the-caret-is",
-      "user": "看得到游標在哪，看得到我選了哪一段",
-      "status": "done",
-      "note": "2026-08-17 修好：paint() 在 tile 之上畫 caret 與 selection 矩形,資料本來就送到了（editorState.caret／selection.rectangles),頁面只是沒有畫。選取用 multiply 疊色所以字還讀得到;選取存在時不畫 caret。tile 會被快取,所以游標移動不需要再向引擎要一次像素。**2026-08-18 從 done 降回 unverified**:游標確實有畫(對著 caret 突變鏡像做逐列隔離,第 276-283 列、八列一像素寬,只在畫游標那一行還在時出現),但這一格的檢查用寫死的視窗比例取樣,綠不綠取決於瀏覽器視窗多大——finding 060。產品沒有迴歸;是判準不夠強。修法與 put-the-caret-where-i-clicked 是同一個:錨定在引擎回報的文字矩形上。**2026-08-18 收復**:判準改成**錨定在那一行自己的墨水**——同一行點兩次(靠近行首、遠過行尾),文字不會動,所以多出墨水的那一欄是游標的第二個位置、少掉的那一欄是第一個。不再取固定的視窗比例,所以視窗大小不再改變判定(060 的成因)。",
-      "evidence": [
-        {
-          "check": "the-caret-is-drawn-where-it-was-placed"
-        },
-        {
-          "finding": "058"
-        },
-        {
-          "finding": "060"
-        }
-      ]
-    },
-    {
-      "id": "put-the-caret-where-i-clicked",
-      "user": "點一下，游標就到那裡",
-      "status": "done",
-      "note": "2026-08-18:這一格從『被驅動但不是主詞』變成有自己的檢查。判準**錨定在那一行自己的墨水範圍**,不需要引擎的座標、也不需要 block identity(那條線已移到長期):靠近行首點一下,游標要落在該行墨水的**前四分之一**;遠過行尾點一下,要落在**後四分之一**。忽略 x 的、固定偏移的、落錯行的,三種壞法都會紅——`caret-ignores-x` 突變就是第三種以外的第一種,而它在舊的帶狀計數判準下是綠的。**沒涵蓋**:052 的殘留(點在所有行框之外)有自己的佇列項。",
-      "evidence": [
-        {
-          "check": "the-caret-lands-where-the-click-was"
-        },
-        {
-          "finding": "048"
-        },
-        {
-          "finding": "052"
-        },
-        {
-          "finding": "060"
-        }
-      ]
-    },
-    {
-      "id": "correct-a-typo-from-the-keyboard",
-      "user": "按 Backspace／Delete 改掉打錯的字，用方向鍵移動游標",
-      "status": "done",
-      "note": "2026-08-17 修好：頁面接了 beforeinput 的兩個 delete 型別與 keydown 的左右鍵。刻意接在頁面而不是 adapter——adapter 的職責是送出文字，刪除是有 wire id 的編輯動作；而且動手前先確認過 adapter 真的沒有處理這兩個型別（貼上那次的教訓）。上下鍵與 Home/End 沒有接，因為它們在產品的 wire id 表裡不存在。",
-      "evidence": [
-        {
-          "check": "backspace-and-arrows-reach-the-document"
-        },
-        {
-          "queue": "queue-typing-path-has-no-delete-or-arrows"
-        }
-      ]
-    },
-    {
-      "id": "turn-formatting-off",
-      "user": "把粗體關掉，不只是打開",
-      "status": "partial",
-      "note": "2026-08-17 第一次驅動 set-bold 就掉出 finding 059:045 的修法出貨之後,四個 inline 格式全部 LOK_COMMAND_FAILED,而且每按一次就把 session 打進 recoverable-error。v2 上粗體會套用只是忽略 enabled;v3 上完全不能用。所以這一格不是『關不掉』,是『開也開不了』,而且要一次連結。產品頁的 enabled 那一行已經修好（由 editorState.format 驅動 B/I,外加一顆清除格式覆蓋四個),但在引擎修好之前它是無效的。**2026-08-18 兩側都量完了,而且答案是壞的那個**:核心在 WASM 上也照做了——四個 slot 各自的標記回來都掛著正好是它按下去的那個樣式,不派送命令的對照臂沒有樣式（findings/evidence/059/wasm/)。所以出貨的產品是按下 B 把字變粗,然後叫使用者回到檢查點——叫人丟掉工作去撤銷一個成功的改動。**處置那一半已經修了(殼層 v17,SPEC E2-C 2.6c,不需連結)**:LOK_COMMAND_FAILED 現在回 review 而不是 rollback,佇列不擋、復原還能用,提示文字也和 046 那一組分開。**這一格仍然是 blocked**,因為讓格式真的能用是引擎那一半,那要一次連結。**2026-08-18 從 blocked 改成 partial**:v17 之後佇列不再被擋,兩次按下都跑得完,`bold-can-be-turned-off-again` **變綠了**——把粗體關掉這件事,從使用者的位置看現在做得到,而且是量到的。**沒涵蓋的部分具名**:產品仍然把一個成功的動作回報成失敗（`a-format-that-worked-is-not-reported-as-failed`,為 finding 059 宣告 KNOWN_RED),那要引擎那一半、要一次連結。**不要把這一格讀成做完了**:使用者按下 B 之後仍然會看到一則說它失敗的訊息。",
-      "evidence": [
-        {
-          "check": "bold-can-be-turned-off-again"
-        },
-        {
-          "check": "a-format-that-worked-is-not-reported-as-failed"
-        },
-        {
-          "finding": "059"
-        },
-        {
-          "finding": "045"
-        },
-        {
-          "queue": "queue-inline-format-argument-is-rejected-by-core"
-        }
-      ]
-    },
-    {
-      "id": "undo-a-mistake",
-      "user": "做錯了可以復原",
-      "status": "done",
-      "evidence": [
-        {
-          "check": "product-undo-button-reverses-the-last-edit"
-        }
-      ]
-    },
-    {
-      "id": "redo",
-      "user": "復原之後可以重做",
-      "status": "blocked",
-      "note": "引擎有 .uno:Redo，但 EDITOR_V2_ACTION_IDS 只有十五個動作、不含 redo，而 wire id 1-15 已用滿。加它要新 id、引擎對應、manifest 條目——一次 relink。SPEC E2-C 4.2 也把 Redo 列在明確不承諾。",
-      "evidence": [
-        {
-          "queue": "queue-redo-and-line-movement-need-wire-ids"
-        }
-      ]
-    },
-    {
-      "id": "move-by-line",
-      "user": "用上下鍵、Home／End 移動游標",
-      "status": "blocked",
-      "note": "與 redo 同一格：引擎實作了（postKeyEvent 的 Key::UP 等，產品 build 的前處理器確認可達），但產品的 wire id 表沒有它們。",
-      "evidence": [
-        {
-          "queue": "queue-redo-and-line-movement-need-wire-ids"
-        }
-      ]
-    },
-    {
-      "id": "keyboard-shortcuts",
-      "user": "用 Ctrl+Z／B／I／U／S／A，而不是只能按工具列",
-      "status": "partial",
-      "note": "2026-08-17：Ctrl+Z 與 Ctrl+S 已接（Ctrl+S 必須 preventDefault，否則開的是瀏覽器的存檔對話框，那是比不回答更糟的回答）；左右鍵已接。**沒涵蓋的部分**：Ctrl+Z／Ctrl+S 兩個分支沒有被任何檢查驅動——覆蓋率審核是以 listener 為單位的，看不進一個 handler 裡面，這一點寫在登記表裡。**Ctrl+B/I/U/S 刻意不接**：finding 059 之下那四個動作在出貨的引擎上必定失敗，把它們接到鍵盤只是把同一個缺陷複製到第二條路徑上。",
-      "evidence": [
-        {
-          "check": "backspace-and-arrows-reach-the-document"
-        },
-        {
-          "finding": "059"
-        },
-        {
-          "queue": "queue-no-keyboard-shortcuts"
-        }
-      ]
-    },
-    {
-      "id": "cut",
-      "user": "剪下",
-      "status": "partial",
-      "note": "2026-08-17 接上了：cut = 複製再刪除，順序刻意如此——複製失敗就不該把文字刪掉。**沒涵蓋的部分**：文字有沒有真的被移除。刪除只在剪貼簿寫入成功之後才跑，而 WebDriver 拒絕剪貼簿寫入，所以那一半屬於 D5（要真人）。",
-      "evidence": [
-        {
-          "check": "ctrl-x-is-handled-by-the-product"
-        },
-        {
-          "queue": "queue-no-cut"
-        }
-      ]
-    },
-    {
-      "id": "format-a-paragraph",
-      "user": "把一段變成標題、內文、項目符號或編號",
-      "status": "unverified",
-      "note": "十四個動作在 e2/product-path-coverage.json 裡登記為 uncovered——按鈕存在，沒有人按過。049／050／Ctrl+C 三個缺陷都是這個形狀。空白行那一格不再是破壞性的（見 046 殘留），但驗證沒有恢復。",
-      "evidence": [
-        {
-          "finding": "046"
-        },
-        {
-          "queue": "queue-quantifier-check-for-multi-block-readback"
-        }
-      ]
-    },
-    {
-      "id": "recover-from-an-error",
-      "user": "出錯的時候救得回來",
-      "status": "unverified",
-      "note": "殼層 v14 之後這格失去了唯一的誘發手段，檢查報 NOT_ESTABLISHED。路徑不是壞了，是沒被涵蓋。",
-      "evidence": [
-        {
-          "check": "notice-action-recovers-the-session"
-        },
-        {
-          "queue": "queue-recovery-path-lost-its-inducer"
-        }
-      ]
-    },
-    {
-      "id": "edit-a-real-length-document",
-      "user": "開一份二十頁的文件，而且還能編輯",
-      "status": "missing",
-      "note": "頁面把整份文件畫成一張 canvas，每次編輯整張重畫。瀏覽器的 canvas 尺寸上限約 32767px，在 MAX_BACKING_WIDTH 2400 之下，A4 大約十幾頁就會撞到，而且是靜默失敗。『開得起來』已驗證，『在真實長度下編得動』從來沒量過。TileScheduler 已經被 editor-session.js 匯入，機制是現成的。",
-      "evidence": [
-        {
-          "queue": "queue-viewport-wall-never-measured"
-        }
-      ]
+     "check": "product-opens-a-document-the-user-chose"
     }
-  ]
+   ]
+  },
+  {
+   "id": "save-it-back",
+   "user": "把改過的檔案存回我的電腦",
+   "status": "done",
+   "evidence": [
+    {
+     "check": "product-save-button-writes-a-real-odt"
+    }
+   ]
+  },
+  {
+   "id": "type-chinese",
+   "user": "用注音／拼音打中文，而且不只第一次",
+   "status": "done",
+   "evidence": [
+    {
+     "check": "every-ime-commit-reaches-the-document"
+    },
+    {
+     "finding": "050"
+    }
+   ]
+  },
+  {
+   "id": "copy-and-paste",
+   "user": "複製選取的文字，貼上剪貼簿的文字",
+   "status": "done",
+   "evidence": [
+    {
+     "check": "ctrl-c-asks-the-engine"
+    },
+    {
+     "check": "ctrl-v-reaches-the-document"
+    }
+   ]
+  },
+  {
+   "id": "see-where-the-caret-is",
+   "user": "看得到游標在哪，看得到我選了哪一段",
+   "status": "done",
+   "note": "2026-08-17 修好：paint() 在 tile 之上畫 caret 與 selection 矩形,資料本來就送到了（editorState.caret／selection.rectangles),頁面只是沒有畫。選取用 multiply 疊色所以字還讀得到;選取存在時不畫 caret。tile 會被快取,所以游標移動不需要再向引擎要一次像素。**2026-08-18 從 done 降回 unverified**:游標確實有畫(對著 caret 突變鏡像做逐列隔離,第 276-283 列、八列一像素寬,只在畫游標那一行還在時出現),但這一格的檢查用寫死的視窗比例取樣,綠不綠取決於瀏覽器視窗多大——finding 060。產品沒有迴歸;是判準不夠強。修法與 put-the-caret-where-i-clicked 是同一個:錨定在引擎回報的文字矩形上。**2026-08-18 收復**:判準改成**錨定在那一行自己的墨水**——同一行點兩次(靠近行首、遠過行尾),文字不會動,所以多出墨水的那一欄是游標的第二個位置、少掉的那一欄是第一個。不再取固定的視窗比例,所以視窗大小不再改變判定(060 的成因)。",
+   "evidence": [
+    {
+     "check": "the-caret-is-drawn-where-it-was-placed"
+    },
+    {
+     "finding": "058"
+    },
+    {
+     "finding": "060"
+    }
+   ]
+  },
+  {
+   "id": "put-the-caret-where-i-clicked",
+   "user": "點一下，游標就到那裡",
+   "status": "done",
+   "note": "2026-08-18:這一格從『被驅動但不是主詞』變成有自己的檢查。判準**錨定在那一行自己的墨水範圍**,不需要引擎的座標、也不需要 block identity(那條線已移到長期):靠近行首點一下,游標要落在該行墨水的**前四分之一**;遠過行尾點一下,要落在**後四分之一**。忽略 x 的、固定偏移的、落錯行的,三種壞法都會紅——`caret-ignores-x` 突變就是第三種以外的第一種,而它在舊的帶狀計數判準下是綠的。**沒涵蓋**:052 的殘留(點在所有行框之外)有自己的佇列項。",
+   "evidence": [
+    {
+     "check": "the-caret-lands-where-the-click-was"
+    },
+    {
+     "finding": "048"
+    },
+    {
+     "finding": "052"
+    },
+    {
+     "finding": "060"
+    }
+   ]
+  },
+  {
+   "id": "correct-a-typo-from-the-keyboard",
+   "user": "按 Backspace／Delete 改掉打錯的字，用方向鍵移動游標",
+   "status": "done",
+   "note": "2026-08-17 修好：頁面接了 beforeinput 的兩個 delete 型別與 keydown 的左右鍵。刻意接在頁面而不是 adapter——adapter 的職責是送出文字，刪除是有 wire id 的編輯動作；而且動手前先確認過 adapter 真的沒有處理這兩個型別（貼上那次的教訓）。上下鍵與 Home/End 沒有接，因為它們在產品的 wire id 表裡不存在。",
+   "evidence": [
+    {
+     "check": "backspace-and-arrows-reach-the-document"
+    },
+    {
+     "queue": "queue-typing-path-has-no-delete-or-arrows"
+    }
+   ]
+  },
+  {
+   "id": "turn-formatting-off",
+   "user": "把粗體關掉，不只是打開",
+   "status": "partial",
+   "note": "2026-08-17 第一次驅動 set-bold 就掉出 finding 059:045 的修法出貨之後,四個 inline 格式全部 LOK_COMMAND_FAILED,而且每按一次就把 session 打進 recoverable-error。v2 上粗體會套用只是忽略 enabled;v3 上完全不能用。所以這一格不是『關不掉』,是『開也開不了』,而且要一次連結。產品頁的 enabled 那一行已經修好（由 editorState.format 驅動 B/I,外加一顆清除格式覆蓋四個),但在引擎修好之前它是無效的。**2026-08-18 兩側都量完了,而且答案是壞的那個**:核心在 WASM 上也照做了——四個 slot 各自的標記回來都掛著正好是它按下去的那個樣式,不派送命令的對照臂沒有樣式（findings/evidence/059/wasm/)。所以出貨的產品是按下 B 把字變粗,然後叫使用者回到檢查點——叫人丟掉工作去撤銷一個成功的改動。**處置那一半已經修了(殼層 v17,SPEC E2-C 2.6c,不需連結)**:LOK_COMMAND_FAILED 現在回 review 而不是 rollback,佇列不擋、復原還能用,提示文字也和 046 那一組分開。**這一格仍然是 blocked**,因為讓格式真的能用是引擎那一半,那要一次連結。**2026-08-18 從 blocked 改成 partial**:v17 之後佇列不再被擋,兩次按下都跑得完,`bold-can-be-turned-off-again` **變綠了**——把粗體關掉這件事,從使用者的位置看現在做得到,而且是量到的。**沒涵蓋的部分具名**:產品仍然把一個成功的動作回報成失敗（`a-format-that-worked-is-not-reported-as-failed`,為 finding 059 宣告 KNOWN_RED),那要引擎那一半、要一次連結。**不要把這一格讀成做完了**:使用者按下 B 之後仍然會看到一則說它失敗的訊息。",
+   "evidence": [
+    {
+     "check": "bold-can-be-turned-off-again"
+    },
+    {
+     "check": "a-format-that-worked-is-not-reported-as-failed"
+    },
+    {
+     "finding": "059"
+    },
+    {
+     "finding": "045"
+    },
+    {
+     "queue": "queue-inline-format-argument-is-rejected-by-core"
+    }
+   ]
+  },
+  {
+   "id": "undo-a-mistake",
+   "user": "做錯了可以復原",
+   "status": "done",
+   "evidence": [
+    {
+     "check": "product-undo-button-reverses-the-last-edit"
+    }
+   ]
+  },
+  {
+   "id": "redo",
+   "user": "復原之後可以重做",
+   "status": "blocked",
+   "note": "引擎有 .uno:Redo，但 EDITOR_V2_ACTION_IDS 只有十五個動作、不含 redo，而 wire id 1-15 已用滿。加它要新 id、引擎對應、manifest 條目——一次 relink。SPEC E2-C 4.2 也把 Redo 列在明確不承諾。",
+   "evidence": [
+    {
+     "queue": "queue-redo-and-line-movement-need-wire-ids"
+    }
+   ]
+  },
+  {
+   "id": "move-by-line",
+   "user": "用上下鍵、Home／End 移動游標",
+   "status": "blocked",
+   "note": "與 redo 同一格：引擎實作了（postKeyEvent 的 Key::UP 等，產品 build 的前處理器確認可達），但產品的 wire id 表沒有它們。",
+   "evidence": [
+    {
+     "queue": "queue-redo-and-line-movement-need-wire-ids"
+    }
+   ]
+  },
+  {
+   "id": "keyboard-shortcuts",
+   "user": "用 Ctrl+Z／B／I／U／S／A，而不是只能按工具列",
+   "status": "partial",
+   "note": "2026-08-17：Ctrl+Z 與 Ctrl+S 已接（Ctrl+S 必須 preventDefault，否則開的是瀏覽器的存檔對話框，那是比不回答更糟的回答）；左右鍵已接。**沒涵蓋的部分**：Ctrl+Z／Ctrl+S 兩個分支沒有被任何檢查驅動——覆蓋率審核是以 listener 為單位的，看不進一個 handler 裡面，這一點寫在登記表裡。**Ctrl+B/I/U/S 刻意不接**：finding 059 之下那四個動作在出貨的引擎上必定失敗，把它們接到鍵盤只是把同一個缺陷複製到第二條路徑上。",
+   "evidence": [
+    {
+     "check": "backspace-and-arrows-reach-the-document"
+    },
+    {
+     "finding": "059"
+    },
+    {
+     "queue": "queue-no-keyboard-shortcuts"
+    }
+   ]
+  },
+  {
+   "id": "cut",
+   "user": "剪下",
+   "status": "partial",
+   "note": "2026-08-17 接上了：cut = 複製再刪除，順序刻意如此——複製失敗就不該把文字刪掉。**沒涵蓋的部分**：文字有沒有真的被移除。刪除只在剪貼簿寫入成功之後才跑，而 WebDriver 拒絕剪貼簿寫入，所以那一半屬於 D5（要真人）。",
+   "evidence": [
+    {
+     "check": "ctrl-x-is-handled-by-the-product"
+    },
+    {
+     "queue": "queue-no-cut"
+    }
+   ]
+  },
+  {
+   "id": "format-a-paragraph",
+   "user": "把一段變成標題、內文、項目符號或編號",
+   "status": "partial",
+   "note": "2026-08-19：五個動作全部接進回歸網，走產品自己的工具列按鈕（`format-a-paragraph-changes-that-paragraph`）。三條紀律都在：每一臂打在**處於相反狀態**的段落上，所以什麼都不做的實作過不了；判準錨在**目標段落的確切文字**上，不是全文件的存在性檢查（語料本來就有標題、項目清單、編號清單各一，全文件 grep 在「改錯段落」時也會過）；**鄰居要活著**（046 的形狀）。瞄準用產品自己的路——點畫布——並由頁面自己的像素定位：掃出墨水列的帶，和產品剛存出的那份文件的行一對一對上；對不上就報 NOT_ESTABLISHED，不猜。**量出來的一個更正**：產品的標題動作寫的是 `<text:p text:style-name=\"Heading_20_1\">`，不是 `<text:h>`——以元素名為準的判準會把一個**會動**的標題動作判成沒動，第一版就是這樣。三個突變都被抓到：吞掉動作、按鈕送錯 action、動作打在鄰居身上。**沒涵蓋（所以是 partial）**：範圍手勢。五臂都是收合游標，一次轉換多個段落被 gesture mask 擋掉（佇列項 `p1-2-gesture-mask-inherited`）；空白行那一格屬於 046 的佇列項，不在這一格。**順帶量到的一個具名極限**（寫在 `caret-off-by-one-line` 突變旁）：把每一次點擊往下位移一整行，兩格游標檢查**都還是綠的**——它們的判準是水平的，所以游標那兩格涵蓋的是**哪一欄**，**哪一行**只由這一格的鄰居條款涵蓋。",
+   "evidence": [
+    {
+     "check": "format-a-paragraph-changes-that-paragraph"
+    },
+    {
+     "finding": "046"
+    },
+    {
+     "queue": "queue-quantifier-check-for-multi-block-readback"
+    }
+   ]
+  },
+  {
+   "id": "recover-from-an-error",
+   "user": "出錯的時候救得回來——回到哪一點，按下按鈕之前產品就講清楚；最壞是上次存檔（沒存過＝剛開檔的樣子）",
+   "status": "partial",
+   "note": "2026-08-19：這一格重新有了誘發手段，也重新被量。判準**不是**「之後存得出一份合法的 ODT」——那個在「重開一份原封不動的 authority bytes」時也會過。判準是**產品自己的宣告**：按下按鈕**之前**，`#s-checkpoint` 就已經寫著「有（rN）」／「寫入失敗」／「無」，三分支各自要求不同的兌現。**外加一條能力條款**（fable 2026-08-18 裁決）：誘發路徑是 dirty 狀態下的選取手勢時，宣告不得是「無」——沒有這一條，一個退化成 no-op 的 `_checkpointBeforeSelection` 會宣告「無」、兌現「無」，形式上完全一致。實測證實了這一點：`checkpoint-before-selection-noop` 突變下 `declarationHonoured` 仍是 true，紅的是能力條款。**實測結果**：分支落在「有（r2）」，已存與未存的兩個標記**都回來了**。**誘發器的一個更正**（花了一輪）：拖曳**本身不會**卡死任何東西。038 自己2026-08-13 的更正就說了，選取會回來、引擎還活著，殺掉它的是**選取之後的第一次讀取**；而 `_drain` 在動作結果自帶 `state` 時會短路掉那次 getState。實測：拖曳後健康了 77 秒，然後一次點擊 → busy → 約 30 秒後 recoverable-error。**沒涵蓋（所以是 partial）**：「寫入失敗」那一分支**產品沒有呈現**——殼層已經把這個判斷做出來（`recovery-notice.js` 的 `checkpointFailed`），產品的通知只有 `hasCheckpoint` 的兩分支，所以那個情況會被說成「沒有檢查點」。finding 061，佇列項 `queue-checkpoint-write-failure-reads-as-nothing-to-rescue`。**還欠一個與缺陷無關的第二誘發器**：現在的覆蓋率綁在一個**未修的上游缺陷**（038）上，038 修好那天誘發器會再消失一次——檢查會報 NOT_ESTABLISHED 並具名說是 038，不會靜靜通過，但佇列項 `queue-recovery-inducer-depends-on-an-unfixed-defect` 記著這筆債。",
+   "evidence": [
+    {
+     "check": "recovery-returns-what-the-product-promised"
+    },
+    {
+     "finding": "038"
+    },
+    {
+     "finding": "061"
+    },
+    {
+     "queue": "queue-recovery-inducer-depends-on-an-unfixed-defect"
+    },
+    {
+     "queue": "queue-checkpoint-write-failure-reads-as-nothing-to-rescue"
+    }
+   ]
+  },
+  {
+   "id": "edit-a-real-length-document",
+   "user": "開一份二十頁的文件，而且還能編輯",
+   "status": "missing",
+   "note": "頁面把整份文件畫成一張 canvas，每次編輯整張重畫。瀏覽器的 canvas 尺寸上限約 32767px，在 MAX_BACKING_WIDTH 2400 之下，A4 大約十幾頁就會撞到，而且是靜默失敗。『開得起來』已驗證，『在真實長度下編得動』從來沒量過。TileScheduler 已經被 editor-session.js 匯入，機制是現成的。",
+   "evidence": [
+    {
+     "queue": "queue-viewport-wall-never-measured"
+    }
+   ]
+  }
+ ]
 }
