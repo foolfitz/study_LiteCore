@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "release": "f059-negative-arm",
+  "arms": [
+    {
+      "arm": "control-no-command",
+      "arguments": "",
+      "requested": null,
+      "commandSucceeded": false,
+      "broadcastAfterDispatch": [],
+      "observedAfterDispatch": false,
+      "known": true,
+      "predicate": "not-met",
+      "markerWeight": "inherited",
+      "document": "not-applied",
+      "agrees": true
+    },
+    {
+      "arm": "positive-bold-true",
+      "arguments": "{\"Bold\":{\"type\":\"boolean\",\"value\":true}}",
+      "requested": true,
+      "commandSucceeded": false,
+      "broadcastAfterDispatch": [
+        ".uno:Bold=true"
+      ],
+      "observedAfterDispatch": true,
+      "known": true,
+      "predicate": "met",
+      "markerWeight": "bold",
+      "document": "applied",
+      "agrees": true
+    },
+    {
+      "arm": "wrong-argument-type",
+      "arguments": "{\"Bold\":{\"type\":\"string\",\"value\":\"true\"}}",
+      "requested": true,
+      "commandSucceeded": false,
+      "broadcastAfterDispatch": [],
+      "observedAfterDispatch": false,
+      "known": true,
+      "predicate": "not-met",
+      "markerWeight": "normal",
+      "document": "not-applied",
+      "agrees": true
+    },
+    {
+      "arm": "wrong-argument-name",
+      "arguments": "{\"Bald\":{\"type\":\"boolean\",\"value\":true}}",
+      "requested": true,
+      "commandSucceeded": true,
+      "broadcastAfterDispatch": [
+        ".uno:Bold=true"
+      ],
+      "observedAfterDispatch": true,
+      "known": true,
+      "predicate": "met",
+      "markerWeight": "bold",
+      "document": "applied",
+      "agrees": true
+    },
+    {
+      "arm": "bare-no-argument",
+      "arguments": "",
+      "requested": true,
+      "commandSucceeded": true,
+      "broadcastAfterDispatch": [
+        ".uno:Bold=true"
+      ],
+      "observedAfterDispatch": true,
+      "known": true,
+      "predicate": "met",
+      "markerWeight": "bold",
+      "document": "applied",
+      "agrees": true
+    },
+    {
+      "arm": "readonly-control",
+      "arguments": "{\"Bold\":{\"type\":\"boolean\",\"value\":true}}",
+      "requested": true,
+      "commandSucceeded": false,
+      "broadcastAfterDispatch": [
+        ".uno:Bold=true"
+      ],
+      "observedAfterDispatch": true,
+      "known": true,
+      "predicate": "met",
+      "markerWeight": "bold",
+      "document": "applied",
+      "agrees": true
+    },
+    {
+      "arm": "protected-section",
+      "arguments": "{\"Bold\":{\"type\":\"boolean\",\"value\":true}}",
+      "requested": true,
+      "commandSucceeded": false,
+      "broadcastAfterDispatch": [],
+      "observedAfterDispatch": false,
+      "known": true,
+      "predicate": "not-met",
+      "markerWeight": null,
+      "document": "not-typed",
+      "agrees": true
+    },
+    {
+      "arm": "after-the-section",
+      "arguments": "{\"Bold\":{\"type\":\"boolean\",\"value\":true}}",
+      "requested": true,
+      "commandSucceeded": false,
+      "broadcastAfterDispatch": [
+        ".uno:Bold=true"
+      ],
+      "observedAfterDispatch": true,
+      "known": true,
+      "predicate": "met",
+      "markerWeight": "bold",
+      "document": "applied",
+      "agrees": true
+    },
+    {
+      "arm": "positive-bold-true-2",
+      "arguments": "{\"Bold\":{\"type\":\"boolean\",\"value\":true}}",
+      "requested": true,
+      "commandSucceeded": false,
+      "broadcastAfterDispatch": [
+        ".uno:Bold=true"
+      ],
+      "observedAfterDispatch": true,
+      "known": true,
+      "predicate": "met",
+      "markerWeight": "bold",
+      "document": "applied",
+      "agrees": true
+    }
+  ],
+  "priming": {
+    "slotsKnownBeforeAnyDispatch": [
+      "bold",
+      "italic",
+      "strikeout",
+      "underline"
+    ],
+    "values": {
+      "italic": false,
+      "bold": false,
+      "strikeout": false,
+      "underline": false
+    }
+  },
+  "negativeArms": [
+    "wrong-argument-type",
+    "protected-section"
+  ],
+  "positiveArms": [
+    "positive-bold-true",
+    "wrong-argument-name",
+    "bare-no-argument",
+    "readonly-control",
+    "after-the-section",
+    "positive-bold-true-2"
+  ],
+  "disagreements": [],
+  "hasPositive": true,
+  "hasNegative": true,
+  "predicateSaidNoOnEveryNegative": true,
+  "predicateNeverGuessed": true,
+  "ok": true
+}

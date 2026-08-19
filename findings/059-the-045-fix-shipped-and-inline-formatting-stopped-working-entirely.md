@@ -195,6 +195,54 @@ postcondition,不是一個通知。在這十臂上它九次全對,包含四個�
 state cache 要被 primed 才讀得到;從來沒廣播過的游標上 `…Known` 是 false。
 finding 021 講的就是這個。本輪沒量。
 
+## 那兩件欠的事量完了（2026-08-19,原生,`evidence/059/native/negative-arm/`)
+
+九臂、一份文件、判準讀標記自己那一段掛的 style。**零個不一致。**
+
+### 判準說得出「不」——兩臂,而且正好落在文件也說不的地方
+
+| 臂 | 參數 | `success` | 廣播 | 判準 | 文件 |
+|---|---|---|---|---|---|
+| 對照,不派送 | — | — | — | not-met | 沒套用 |
+| `{"Bold":{"type":"boolean","value":true}}` | 正常 | false | `.uno:Bold=true` | met | **套用了** |
+| **型別錯**:`{"Bold":{"type":"string","value":"true"}}` | | false | **(無)** | **not-met** | **沒套用** |
+| **名稱錯**:`{"Bald":{…}}` | | **true** | `.uno:Bold=true` | met | 套用了 |
+| **不帶參數** | | **true** | `.uno:Bold=true` | met | 套用了 |
+| `setViewReadOnly` | | false | `.uno:Bold=true` | met | 套用了（**還是沒拒絕**) |
+| **受保護的 section 裡** | | false | **(無)** | **not-met** | **連字都打不進去** |
+
+刻意問了不只一種拒絕法:037 的教訓是「你以為會拒絕的守衛,可能為了別的理由拒絕、
+也可能根本不拒絕」,而 059 自己的第一個拒絕臂就沒拒絕。問四種、報告哪幾種真的拒絕,
+才是量測。
+
+受保護 section 那一臂:游標**進得去**（記到 `.uno:StateTableCell=read-only : …`
+與一整片 `disabled` 廣播),派送被拒,而且**連標記都沒打進去**。報成 `not-typed`
+而不是「沒樣式」——「什麼都沒打」和「打了但沒變粗」是兩個不同的觀察。
+
+### 快取是 primed 的,而且是**開檔**那一刻,四個 slot 都是
+
+```
+"slotsKnownBeforeAnyDispatch": ["bold", "italic", "strikeout", "underline"]
+"values": {"bold": false, "italic": false, "strikeout": false, "underline": false}
+```
+
+核心在開檔時廣播一份**完整**的狀態(第一臂的 `fromCaretMove` 有約 120 筆),
+之後只廣播**改變**。所以 021 的形狀在這裡不咬——**但理由是開檔那一次廣播,不是
+游標移動**。實測:游標在兩個狀態相同的段落之間移動,一個廣播都沒有。一個晚一點才
+開始聽、或漏掉開檔廣播的引擎,會回到 021 的形狀。
+
+**底線與刪除線也在那份廣播裡**,所以〈第二件事〉那句假話這一輪又被反證一次——
+這次是實測,不只是讀核心的原始碼。
+
+### 順帶:`success` 這個欄位是**反相關**的
+
+`success: true` 只出現在**兩臂**——名稱錯的、和不帶參數的——而那兩臂正是核心
+**忽略了參數、改成 toggle** 的臂。每一個核心真的照參數做的臂,`success` 都是 false。
+
+所以引擎現在 gate 的那個欄位(`commandResultSucceeded()`,`probe_engine.cpp:1696`)
+在這個 build 上不只是沒用:它和「呼叫者的要求有沒有被照做」**方向相反**。
+回報成功,是核心沒讀你參數的時候會做的事。
+
 ## 判準
 
 `bold-can-be-turned-off-again`(`tools/run_e2_c_product_path.py`)。

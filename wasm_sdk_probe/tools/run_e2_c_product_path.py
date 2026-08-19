@@ -1294,6 +1294,40 @@ def document_lines(report: dict) -> list[dict]:
     return out
 
 
+# The product's notice is a two-way branch on `hasCheckpoint`, and its two
+# sentences are read out of the SERVED bundle rather than typed here.
+#
+# Adjudicated 2026-08-19: the first version compared the notice against a
+# hard-coded copy of the no-checkpoint sentence, and that check was
+# self-DISARMING rather than merely brittle.  Rephrase that sentence for any
+# unrelated reason and the state-(c) notice shows the NEW wording, which
+# differs from the stale constant -- so the check goes GREEN with the defect
+# untouched.  Reading both sentences from the code that renders them means the
+# reference moves when the product moves, and a failure to find them is
+# reported as NOT_ESTABLISHED rather than as a pass.
+NOTICE_SENTENCES = re.compile(
+    r'el\.noticeText\.textContent\s*=\s*snapshot\.hasCheckpoint\s*'
+    r'\?\s*"([^"]+)"\s*'
+    r':\s*"([^"]+)"')
+
+
+def notice_sentences(root: Path) -> dict:
+    """The two sentences the product can print, as the served build prints them."""
+    try:
+        source = (root / "e2-editor-app.js").read_text(encoding="utf-8")
+    except OSError as error:
+        return {"found": False, "why": f"{type(error).__name__}: {error}"}
+    match = NOTICE_SENTENCES.search(source)
+    if not match:
+        return {"found": False,
+                "why": "the notice's two-way branch could not be read out of "
+                       "the served e2-editor-app.js; the shape it is matched by "
+                       "has changed and this check cannot say what the product "
+                       "would have printed in the other case"}
+    return {"found": True, "withCheckpoint": match.group(1),
+            "withoutCheckpoint": match.group(2)}
+
+
 def set_device_pixel_ratio(session, ratio):
     """Chrome only. Firefox has no CDP here, so its arms say so and score nothing.
 
@@ -2886,18 +2920,44 @@ def main() -> int:
                 # "We tried to protect your work and the save FAILED" is not
                 # the same thing to say as "there was nothing to protect", and
                 # the product's notice has only the second sentence -- its
-                # branch is on `hasCheckpoint` alone, so both cases print the
-                # line below.  The shell already decides the difference
-                # (recovery-notice.js, `checkpointFailed`); the product does
-                # not render it.  So this branch requires the notice to SAY
-                # something else, and today it cannot.
-                honoured = saved_back and (offered.get("text") or "") != \
-                    "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。"
+                # branch is on `hasCheckpoint` alone.  The shell already decides
+                # the difference (recovery-notice.js, `checkpointFailed`); the
+                # product does not render it.
+                #
+                # Note what the defect is NOT, because getting this wrong loses
+                # the argument to the first hostile reader: the sentence is not
+                # false.  In this state `hasCheckpoint` really is false and the
+                # bytes really are the same as case (b).  It is literally true
+                # and causally misleading -- it attributes the loss to there
+                # having been no protection, when protection was attempted and
+                # its save failed.
+                #
+                # Three requirements, and the second and third were missing
+                # until an adjudication on 2026-08-19 pointed at them:
+                #   * the saved work comes back and the unsaved work does not,
+                #     which is what 寫入失敗 implies and what nothing checked;
+                #   * the notice is NEITHER of the product's two sentences --
+                #     asking only that it differ from the no-checkpoint one
+                #     would pass the strictly worse regression of printing the
+                #     HAS-checkpoint sentence, which claims a rescue that does
+                #     not exist;
+                #   * both sentences come from the served source, so a rewording
+                #     moves the reference instead of silently disarming this.
+                sentences = notice_sentences(root)
+                recovery["noticeSentences"] = sentences
+                text = offered.get("text") or ""
+                if not sentences["found"]:
+                    honoured = None
+                else:
+                    honoured = (saved_back and not unsaved_back
+                                and text != sentences["withCheckpoint"]
+                                and text != sentences["withoutCheckpoint"])
             recovery["declarationHonoured"] = honoured
             check("recovery-returns-what-the-product-promised",
                   bool(honoured and capability_held
                        and (back or {}).get("state") == "ready"
                        and is_an_odt(rescued)),
+                  outcome=None if honoured is not None else "NOT_ESTABLISHED",
                   observed=recovery,
                   oracle="the product declares where its recovery button will "
                          "take the user BEFORE it is pressed -- #s-checkpoint "
