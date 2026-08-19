@@ -30,8 +30,16 @@ because something was finally measured rather than because anything was fixed.
 **A long document is drawn as a blank page, in silence.** Above a canvas height
 of about 32,767 px the product paints nothing, reports `ready`, and says
 nothing at all — and the *same* twenty-page document draws on a 1× display and
-is blank on a 2×. Finding 062. The layer is deliberately **not** named, and
-naming it is what decides whether the fix needs a link.
+is blank on a 2×. Finding 062.
+
+**The layer is now established: the page side, so the fix needs no link.** Asked
+step by step on the shipped artifact — the engine's tile is correct at every
+height, `ImageData` builds, `putImageData` paints it, and with the product
+sitting in its blank state a block painted onto *that same canvas* by the
+harness lands 36,250 of 36,250 expected pixels while the product's own ink is
+one column. Same canvas, same size, same moment. The product never puts the tile
+there. **Which** page-side step is not established, and the two candidates are
+named as candidates in `queue-long-document-blank-page-is-page-side`.
 
 ## 2. What was done
 
@@ -178,7 +186,7 @@ reference reports NOT_ESTABLISHED rather than passing.
 | | why it is still open |
 |---|---|
 | **T1.3 — the engine-side fix for 059** | **The two owed measurements are done** (see §2.4); the change itself was deliberately not written. Gated only on the link now, which is the user's decision. The full design and two measured hazards are in `queue-inline-format-argument-is-rejected-by-core`. |
-| **Finding 062's layer** | The experiment is written down in `queue-long-document-renders-blank-in-silence`: call `document.render()` through the shell at `canvasHeightPx` 32,590 and 32,889 and compare the returned width/height and pixel byte length. This decides engine-side vs page-side, i.e. whether the fix needs a link. |
+| **Finding 062's page-side step** | The layer is settled (page side, no link). Which step drops the tile is not — see `queue-long-document-blank-page-is-page-side`. The likely shape of the fix is to stop drawing the whole document as one canvas; `TileScheduler` is already imported by `editor-session.js`. |
 | **A defect-independent second inducer** | `queue-recovery-inducer-depends-on-an-unfixed-defect`. Recovery coverage is currently tied to finding 038 staying broken. |
 | **D0** | Still not run. Once it is, moving the shell means changing the matrix. |
 

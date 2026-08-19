@@ -815,19 +815,19 @@
   },
   {
    "id": "queue-long-document-renders-blank-in-silence",
-   "title": "above a canvas height of ~32,767 the product paints a blank page and reports success -- LAYER NOT ESTABLISHED, so it is not yet known whether the fix needs a link",
-   "expectation": "absent",
+   "title": "finding 062's LAYER is established: the blank page is page-side, so the fix needs no link",
+   "expectation": "present",
    "blocksRelink": false,
    "source": "finding 062, measured 2026-08-19",
-   "note": "The wall is bracketed narrowly: with one document held fixed and devicePixelRatio swept, 32,590 px of canvas height draws and 32,889 px is blank, and 32,767 = 2^15-1 sits between them. It is NOT the canvas element's cap -- that was measured separately at 65,535 in both Chrome and Firefox, and 65,234 for Chrome at 2400 px wide -- so this is a 16-bit limit inside the render path. The same twenty-page document draws at devicePixelRatio 1 and is blank at 2, so it is a property of the document times the display, not of the document. blocksRelink is FALSE and that is not a judgement that this is unimportant: the first work owed is the experiment that says WHICH LAYER loses the pixels, and until that is done, declaring it engine-side would be the mistake findings 040 and 048 were filed against. THE EXPERIMENT: call document.render() through the shell with canvasHeightPx 32,590 and 32,889 and compare the returned width/height and pixel byte length. render() does not throw today and the product page publishes no session handle, which is why this cannot be answered from the product path. If the engine returns an empty tile this item becomes engine-side and blocksRelink must be flipped.",
+   "note": "The wall is bracketed narrowly: with one document held fixed and devicePixelRatio swept, 32,590 px of canvas height draws and 32,889 px is blank, and 32,767 = 2^15-1 sits between them. It is NOT the canvas element's cap -- that was measured separately at 65,535 in both Chrome and Firefox, and 65,234 for Chrome at 2400 px wide -- so this is a 16-bit limit inside the render path. The same twenty-page document draws at devicePixelRatio 1 and is blank at 2, so it is a property of the document times the display, not of the document. blocksRelink is FALSE and that is not a judgement that this is unimportant: the first work owed is the experiment that says WHICH LAYER loses the pixels, and until that is done, declaring it engine-side would be the mistake findings 040 and 048 were filed against. THE EXPERIMENT: call document.render() through the shell with canvasHeightPx 32,590 and 32,889 and compare the returned width/height and pixel byte length. render() does not throw today and the product page publishes no session handle, which is why this cannot be answered from the product path. If the engine returns an empty tile this item becomes engine-side and blocksRelink must be flipped. ANSWERED 2026-08-19 (findings/evidence/062/layer/): THE PAGE SIDE, and no link is needed. Asked step by step on the shipped artifact, at heights straddling the wall. The engine's tile is correct at every height -- byte length exactly width x height x 4, dark pixels present, nothing thrown, including at 34,847 where the product is blank on the same document. ImageData builds from all of them. putImageData paints them, on a detached canvas and on one attached and CSS-sized like the product's. And the decisive one: with the PRODUCT sitting in its blank state, a block painted onto that same canvas by the harness lands 36,250 of 36,250 expected pixels while the product's own ink is one column. Same canvas, same size, same moment. So the canvas is fine, the engine is fine, and the product never put the tile there. WHICH page-side step is NOT established and is tracked separately as queue-long-document-blank-page-is-page-side.",
    "checks": [
     {
-     "kind": "absent",
+     "kind": "contains",
      "file": "../findings/062-a-long-document-is-drawn-as-a-blank-page-in-silence.md",
      "text": "LAYER-ESTABLISHED"
     }
    ],
-   "checkNote": "Whoever runs the experiment writes the token LAYER-ESTABLISHED into finding 062's status line, together with which layer it turned out to be; this item flips when they do. The token lives HERE and not in the finding on purpose: the first two attempts both failed, and instructively. A sentinel naming a file the experiment would create drifted at once, because the checker fails closed on a file it cannot read. A sentinel on a Chinese phrase then drifted because the finding's own instruction SPELLED that phrase -- the file matched the sentence explaining the sentinel. A watched string must not appear in the text that explains it."
+   "checkNote": "Present now: finding 062 carries the token. The item is about the LAYER question only; the remaining work is its own item."
   },
   {
    "id": "queue-canvas-does-not-follow-a-document-that-grew",
@@ -844,6 +844,22 @@
     }
    ],
    "checkNote": "Watched for the shape of the fix at the invalidation handler. Approximate, like the 061 sentinel, and recorded as approximate rather than hidden."
+  },
+  {
+   "id": "queue-long-document-blank-page-is-page-side",
+   "title": "the long-document blank page is page-side and unfixed -- WHICH step is not established",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "finding 062, layer established 2026-08-19",
+   "note": "The layer question is answered (see queue-long-document-renders-blank-in-silence): the engine returns a correct tile, ImageData builds, putImageData paints, and the product's own canvas takes pixels from the harness at the size where the product shows none. What is left is which step of the page's own render-and-paint path drops it, and that is NOT measured. TWO CANDIDATES, named as candidates only: (a) `paint()` returns early on `if (!lastTile) return;` and `layoutCanvas()` sets lastTile = null (web/e2-editor-app.js:171), so anything that re-runs layoutCanvas() after a render clears both the canvas and the cached tile -- and a canvas tens of thousands of pixels tall changes whether the desk has a scrollbar, which changes el.desk.clientWidth, which is exactly what layoutCanvas() reads; (b) renderDocument() coalesces through `renderAgain`, so a repaint arriving mid-flight replaces rather than follows. The fix is probably to stop drawing the whole document as one canvas at all -- TileScheduler is already imported by editor-session.js -- but that is a design decision and it should follow the measurement, not replace it.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "tools/run_e2_c_product_path.py",
+     "text": "PAGE_SIDE_BLANK_STEP"
+    }
+   ],
+   "checkNote": "Absent until a check drives the specific step. Watching the product-path runner because that is where a fix would have to be shown to work from the user's seat."
   }
  ],
  "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

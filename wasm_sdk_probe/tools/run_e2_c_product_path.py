@@ -112,10 +112,12 @@ KNOWN_RED = {
         "twenty-page document draws on a 1x display and is blank on a 2x one. "
         "The canvas element's own cap was measured at 65,535 in both browsers, "
         "so this is a 16-bit limit inside the render path and not the browser's. "
-        "The LAYER is deliberately not named: render() does not throw, so this "
-        "cannot say whether the engine returned an empty tile or the page lost "
-        "a good one, and that is what decides whether the fix needs a link "
-        "(queue-long-document-renders-blank-in-silence).",
+        "The layer was established on 2026-08-19 and it is the PAGE SIDE: the "
+        "engine's tile is correct at every height, ImageData builds, "
+        "putImageData paints it, and the product's own blank canvas takes "
+        "pixels from the harness at that size -- the product simply never puts "
+        "the tile there. No link needed; which page-side step is still open "
+        "(queue-long-document-blank-page-is-page-side).",
 }
 
 # The two markers `recover-from-an-error` is scored on. RESCUE_SAVED is typed
@@ -2662,12 +2664,14 @@ def main() -> int:
                      "and no message is the failure this checks for. Includes "
                      "the growth case: an edit that makes the document taller "
                      "must either be drawn or be explained",
-              notEstablished="WHERE the pixels are lost. render() does not "
-                             "throw and no error reaches the page, so this "
-                             "cannot say whether the engine returned an empty "
-                             "tile or the page failed to paint a good one -- "
-                             "and naming a layer without measuring it is what "
-                             "findings 040 and 048 were about")
+              notEstablished="WHICH page-side step drops the tile. The layer "
+                             "is settled (findings/evidence/062/layer/: the "
+                             "engine's tile is correct, ImageData builds, "
+                             "putImageData paints, and this very canvas takes "
+                             "pixels from the harness while the product shows "
+                             "none) -- but this check reads pixels, and the "
+                             "step inside renderDocument/paint is not something "
+                             "pixels can name")
 
         # A DEVIATION from the plan, recorded rather than quietly taken: the
         # plan asked for a mutation that shrinks MAX_BACKING_WIDTH, so that the

@@ -240,7 +240,7 @@
    "id": "edit-a-real-length-document",
    "user": "開一份二十頁的文件，而且還能編輯",
    "status": "partial",
-   "note": "2026-08-19 第一次被量。預測先提交（commit `7b4a38c`，語料、探針、檢查都還不存在），三條登記的預測**兩條成立、一條錯兩個量級**。**可用性是綠的**：按鍵到看得見墨水，1 頁 60 ms、5 頁 62 ms、20 頁 127 ms，門檻 1000 ms 在牆之前一次都沒被逼近——`editing-a-long-document-stays-responsive`。門檻是事前登記的，而且證明得了它會咬：`slow-repaint` 突變下量到 1.85 秒、紅。**誠實是紅的，而且是 KNOWN_RED（finding 062）**：畫布高度超過約 32,767 px 之後，產品畫出一張**全白**的頁面、狀態回報 `ready`、一則訊息都沒有。**同一份 20 頁文件，在 1× 螢幕上正常、在 2× 螢幕上全白**——所以這是『文件乘上螢幕』的性質，不是文件的性質，而 headless 的 dpr=1 是最寬鬆的那一格。**這道牆不是 canvas 元素的上限**：同機同兩個瀏覽器實測 canvas 上限是 65,535，所以 32,767 是 render 這條路自己的 16 位元限制。**層級（引擎側還是頁面側）刻意沒有指認**，那決定要不要 relink，分辨的實驗寫在佇列項 `queue-long-document-renders-blank-in-silence` 裡。另外量到一道與長度無關的：**一個變高的編輯，畫布不跟**——2 頁的文件插入 3,336 個字元後畫布不動，存檔重開才變成 3 頁的高度（佇列項 `queue-canvas-does-not-follow-a-document-that-grew`，頁面側，不需連結）。**原本這一列寫的『瀏覽器 canvas 上限約 32767px，A4 大約十幾頁』兩個數字都是推的**：上限實測是 65,535，而 A4 在 dpr 1 這個視窗上是 33 頁、dpr 2 是 17 頁。牆的位置對了一半，理由完全不同。",
+   "note": "2026-08-19 第一次被量。預測先提交（commit `7b4a38c`，語料、探針、檢查都還不存在），三條登記的預測**兩條成立、一條錯兩個量級**。**可用性是綠的**：按鍵到看得見墨水，1 頁 60 ms、5 頁 62 ms、20 頁 127 ms，門檻 1000 ms 在牆之前一次都沒被逼近——`editing-a-long-document-stays-responsive`。門檻是事前登記的，而且證明得了它會咬：`slow-repaint` 突變下量到 1.85 秒、紅。**誠實是紅的，而且是 KNOWN_RED（finding 062）**：畫布高度超過約 32,767 px 之後，產品畫出一張**全白**的頁面、狀態回報 `ready`、一則訊息都沒有。**同一份 20 頁文件，在 1× 螢幕上正常、在 2× 螢幕上全白**——所以這是『文件乘上螢幕』的性質，不是文件的性質，而 headless 的 dpr=1 是最寬鬆的那一格。**這道牆不是 canvas 元素的上限**：同機同兩個瀏覽器實測 canvas 上限是 65,535，所以 32,767 是 render 這條路自己的 16 位元限制。**層級當天就量完了：頁面側，不需要 relink**（`evidence/062/layer/`）——引擎回的 tile 每個高度都是對的、ImageData 建得起來、putImageData 畫得上去，而且**產品自己那張空白的畫布**由 harness 直接塗一塊黑會吃下 36,250 個像素一個不差。是產品沒有把 tile 畫上去。**哪一步**還沒確立，佇列項 `queue-long-document-blank-page-is-page-side`。另外量到一道與長度無關的：**一個變高的編輯，畫布不跟**——2 頁的文件插入 3,336 個字元後畫布不動，存檔重開才變成 3 頁的高度（佇列項 `queue-canvas-does-not-follow-a-document-that-grew`，頁面側，不需連結）。**原本這一列寫的『瀏覽器 canvas 上限約 32767px，A4 大約十幾頁』兩個數字都是推的**：上限實測是 65,535，而 A4 在 dpr 1 這個視窗上是 33 頁、dpr 2 是 17 頁。牆的位置對了一半，理由完全不同。",
    "evidence": [
     {
      "check": "editing-a-long-document-stays-responsive"
@@ -259,6 +259,9 @@
     },
     {
      "queue": "queue-viewport-wall-never-measured"
+    },
+    {
+     "queue": "queue-long-document-blank-page-is-page-side"
     }
    ]
   }
