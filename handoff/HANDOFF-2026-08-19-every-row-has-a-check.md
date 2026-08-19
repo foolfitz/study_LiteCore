@@ -15,15 +15,39 @@
 
 | | |
 |---|---|
-| artifact | `d538ce0b91478426…` (**untouched**; no link this round) |
-| shell | v17 `34289a7bd8ffc3df…` (unchanged) |
+| artifact | **`296f3ea727725fbb…` — RELINKED 2026-08-19** (was `d538ce0b91478426…`, archived) |
+| shell | **v20 `1e59bee886d21311…`** (v17 → v18 → v19 → v20) |
 | matrix | `e2/validation-matrix-v2.json`, **D0 still not run** |
-| checklist | **8 done / 6 partial / 0 unverified / 0 missing / 2 blocked** |
-| queue | `P1 complete: **False**` — blocked by the engine half of 059 **and** by finding 062's growth half, both correctly |
+| checklist | **10 done / 4 partial / 0 unverified / 0 missing / 2 blocked** |
+| queue | `P1 complete: **True**` — nothing blocking, and `KNOWN_RED` is **empty** for the first time |
 
 **Zero `unverified` and zero `missing` rows.** Every row now points at a check
 that runs and can fail. Three rows moved this round, and two of them moved
 because something was finally measured rather than because anything was fixed.
+
+## 0.5 The relink of 2026-08-19
+
+The user asked for it after the evidence for both engine-side items was
+complete. Two changes rode it, both guarded by `OXSDK_E2_FORMAT_BARRIER` so the
+frozen `e1-editor` profiles keep the exact behaviour E1-C validated:
+
+* **finding 059** — the engine stops gating the four inline formats on core's
+  `success`, which was measured *anti-correlated* with the request being
+  honoured, and calls `inlineFormatArgumentResolved()` instead: observed state
+  against requested state, with `…Known` required so "I don't know" can never
+  read as "yes". Underline and Strikeout gained the state cache they never had.
+* **finding 062's second half** — `handlePaintTile` re-reads `getDocumentSize`
+  and reports it on the reply, so a document that grew a page is no longer drawn
+  at the size it had when it was opened.
+
+**Both KNOWN_RED declarations went green on the first run after the link, and
+the runner is what said so** — it reports a declared-red check that passes as a
+STALE DECLARATION and fails the round. Neither could have quietly outlived its
+defect.
+
+One thing worth carrying: **the worker's reply is a whitelist**
+(`sdk/sdk-worker.js`), so the engine change alone was invisible to every client.
+An engine field that nobody forwards is an engine field that does not exist.
 
 ## 1. The one sentence that matters most
 

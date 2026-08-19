@@ -179,6 +179,12 @@ struct EngineState {
   std::uint32_t nextDocumentHandle = 1;
   std::uint32_t documentHandle = 0;
   std::uint32_t revision = 0;
+  // The document's size as of the last time anything looked (finding 062).
+  // Written at open and refreshed on every paint, so a client can be told that
+  // the page count moved under it -- which until 2026-08-19 nothing could,
+  // because getDocumentSize was called once and never again.
+  long documentWidthTwips = 0;
+  long documentHeightTwips = 0;
 };
 
 EngineState gState;
@@ -284,6 +290,19 @@ struct EditorState {
   // Guarded, so that the frozen e1-editor-discovery and e1-editor-v1 profiles
   // keep the exact state shape E1-C validated.  Adding fields here unguarded
   // silently changes what those profiles emit.
+  // Finding 059.  Underline and Strikeout ARE in core's GetKitUnoCommandList
+  // (unoctitm.cxx:1165ff) and both were measured broadcasting -- at document
+  // load, with values, alongside Bold and Italic
+  // (findings/evidence/059/native/negative-arm/).  The comment further down
+  // that said otherwise was wrong, and it was the reason no cache was kept.
+  //
+  // Inside the barrier guard on purpose: boldKnown/italicKnown are unguarded
+  // and E1-C validated the frozen e1-editor profiles at a specific WASM hash,
+  // so a field added beside them changes what those profiles emit.
+  bool underlineKnown = false;
+  bool underline = false;
+  bool strikeoutKnown = false;
+  bool strikeout = false;
   bool listBulletKnown = false;
   bool listBullet = false;
   bool listNumberKnown = false;
@@ -1166,7 +1185,8 @@ struct FormatStatePayload {
 bool parseFormatStatePayload(const std::string &value,
                              FormatStatePayload &parsed) {
   static const char *const booleanCommands[] = {
-      ".uno:Bold", ".uno:Italic", ".uno:DefaultBullet", ".uno:DefaultNumbering"};
+      ".uno:Bold", ".uno:Italic", ".uno:Underline", ".uno:Strikeout",
+      ".uno:DefaultBullet", ".uno:DefaultNumbering"};
   for (const char *command : booleanCommands) {
     const std::string prefix(command);
     if (value == prefix + "=true" || value == prefix + "=false") {
@@ -1437,6 +1457,12 @@ void updateEditorFormatState(const char *payload) {
   } else if (parsed.command == ".uno:Italic") {
     gEditorState.italicKnown = true;
     gEditorState.italic = parsed.booleanValue;
+  } else if (parsed.command == ".uno:Underline") {
+    gEditorState.underlineKnown = true;
+    gEditorState.underline = parsed.booleanValue;
+  } else if (parsed.command == ".uno:Strikeout") {
+    gEditorState.strikeoutKnown = true;
+    gEditorState.strikeout = parsed.booleanValue;
   } else if (parsed.command == ".uno:DefaultBullet") {
     gEditorState.listBulletKnown = true;
     gEditorState.listBullet = parsed.booleanValue;
@@ -1701,6 +1727,47 @@ bool commandResultSucceeded(const char *payload) {
 }
 
 #ifdef OXSDK_E2_FORMAT_BARRIER
+/**
+ * Finding 059: did the inline format the caller asked for actually take?
+ *
+ * `success` cannot answer that.  Measured on 2026-08-19 against core 26.8, nine
+ * arms: `success: true` appeared on exactly the two arms where core IGNORED the
+ * argument and toggled, and `success: false` on every arm where core honoured
+ * the parameterised form.  On this build the field is ANTI-CORRELATED with the
+ * caller's request being honoured, so gating on it turns every working
+ * parameterised format into LOK_COMMAND_FAILED -- which is what shipped.
+ *
+ * What survives is the format barrier's own shape: compare the OBSERVED state
+ * against the REQUESTED one.  Not "did a broadcast arrive": core broadcasts a
+ * state CHANGE, so a request for the state the caret already had produces no
+ * broadcast at all while being perfectly satisfied.  Asking about the state
+ * instead of the event makes that case a pass, which is the honest answer --
+ * the postcondition holds either way.
+ *
+ * `...Known` is required, so "I do not know" can never be read as "yes".  It is
+ * reliably true in practice because core emits a complete state set at document
+ * load (measured, all four slots), but the guard stays: the load broadcast is
+ * the only thing that primes this, caret movement does not, and an engine that
+ * started listening later would be back in finding 021's shape.
+ *
+ * A genuine negative exists and was measured, which is what makes this a
+ * predicate rather than a rubber stamp: a wrong argument TYPE leaves the text
+ * unchanged with no broadcast, and a paragraph inside a protected section
+ * refuses the dispatch -- and this returns false for both, agreeing with the
+ * saved document on all nine arms.
+ */
+bool inlineFormatArgumentResolved(const std::string &unoCommand, bool requested) {
+  if (unoCommand == ".uno:Bold")
+    return gEditorState.boldKnown && gEditorState.bold == requested;
+  if (unoCommand == ".uno:Italic")
+    return gEditorState.italicKnown && gEditorState.italic == requested;
+  if (unoCommand == ".uno:Underline")
+    return gEditorState.underlineKnown && gEditorState.underline == requested;
+  if (unoCommand == ".uno:Strikeout")
+    return gEditorState.strikeoutKnown && gEditorState.strikeout == requested;
+  return false;
+}
+
 void queueFormatBarrierStep(FormatBarrierStage next);
 void maybeAdvanceFormatBarrierSelection();
 
@@ -2283,7 +2350,16 @@ void onLokCallback(int type, const char *payload, void *) {
           finishAsynchronous(requestId);
           return;
         }
-        if (!commandResultSucceeded(payload)) {
+        bool rejected = !commandResultSucceeded(payload);
+#ifdef OXSDK_E2_FORMAT_BARRIER
+        // Finding 059: for the four inline formats, `success` is not evidence
+        // about the document.  Ask the document's own state instead, and only
+        // fall back to reporting a failure when the state disagrees with what
+        // was asked for.  Every other command keeps the old gate.
+        if (rejected && inlineFormatArgumentResolved(command, gEditorUnoOption))
+          rejected = false;
+#endif
+        if (rejected) {
           emitSdkError(requestId, documentHandle, "editor-action",
                        "LOK_COMMAND_FAILED",
                        "LibreOfficeKit rejected the fixed editor command");
@@ -2518,6 +2594,11 @@ void handleOpen(const Command &command) {
   long width = 0;
   long height = 0;
   gState.document->pClass->getDocumentSize(gState.document, &width, &height);
+  // Remembered so a later paint can say whether the document has changed shape
+  // since (finding 062).  Set here rather than lazily, or the first paint of
+  // every document would report a change it never observed.
+  gState.documentWidthTwips = width;
+  gState.documentHeightTwips = height;
   const int parts = gState.document->pClass->getParts(gState.document);
   const int tileMode = gState.document->pClass->getTileMode(gState.document);
 
@@ -2562,10 +2643,43 @@ void handlePaintTile(const Command &command) {
       gState.document, pixels, canvasWidth, canvasHeight, command.values[0],
       command.values[1], command.values[2], command.values[3]);
 
+  // Finding 062, the half the page could not fix: `getDocumentSize` was called
+  // exactly once, at open, and NOTHING re-read it -- so after an edit that adds
+  // a page the client's height is stale, and the canvas it sizes from that
+  // height is the wrong size, silently.  None of the SDK's operations reported
+  // a size, so no client could have known.
+  //
+  // Reported on the paint reply rather than as a new event: paint's caller is
+  // by definition about to draw the document, so it is the caller that needs
+  // the number, and it already awaits this message.
+  long documentWidth = 0;
+  long documentHeight = 0;
+  gState.document->pClass->getDocumentSize(gState.document, &documentWidth,
+                                           &documentHeight);
+  const bool documentSizeChanged =
+      documentWidth != gState.documentWidthTwips ||
+      documentHeight != gState.documentHeightTwips;
+  gState.documentWidthTwips = documentWidth;
+  gState.documentHeightTwips = documentHeight;
+
   std::ostringstream json;
   json << "{\"type\":\"tile\",\"ptr\":"
        << reinterpret_cast<std::uintptr_t>(pixels) << ",\"size\":" << byteCount
        << ",\"w\":" << canvasWidth << ",\"h\":" << canvasHeight;
+#ifdef OXSDK_E2_FORMAT_BARRIER
+  // Guarded, and the guard is about blast radius rather than about formatting:
+  // every profile shares this function, and the frozen e1-editor profiles were
+  // validated at a specific WASM hash with a specific reply shape.  Adding
+  // fields to their replies unguarded is the shape the EditorState comment
+  // above warns about, so the new fields go only to the profile that needs
+  // them.
+  json << ",\"documentWidthTwips\":" << documentWidth
+       << ",\"documentHeightTwips\":" << documentHeight
+       << ",\"documentSizeChanged\":"
+       << (documentSizeChanged ? "true" : "false");
+#else
+  (void)documentSizeChanged;
+#endif
   if (command.sdk) {
     json << ",\"schemaVersion\":" << ProtocolSchemaVersion
          << ",\"requestId\":" << command.requestId
@@ -4306,9 +4420,15 @@ void handleEditorAction(const Command &command) {
                                               command.values[2] != 0));
     return;
   // Same shape as bold and italic: an explicit boolean, dispatched
-  // unconditionally, judged by the saved document.  Neither command appears in
-  // core's GetKitUnoCommandList(), so no format-state cache is kept for them --
-  // which suits product route C, where the precondition is never read anyway.
+  // unconditionally, judged by the saved document.
+  //
+  // This comment used to say neither command appears in core's
+  // GetKitUnoCommandList(), and that no format-state cache was therefore kept
+  // for them.  BOTH HALVES WERE WRONG.  Both commands are in that list
+  // (sfx2/source/control/unoctitm.cxx:1165ff, ungated), and both were measured
+  // broadcasting at document load with values
+  // (findings/evidence/059/native/negative-arm/).  A cache is now kept, and it
+  // is what `inlineFormatArgumentResolved` reads.
   case OXSDK_EDITOR_SET_UNDERLINE:
     // finding 045: the value has to reach core, or the command toggles.
     startEditorUnoAction(command, name, ".uno:Underline", false,

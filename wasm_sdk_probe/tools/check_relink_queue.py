@@ -100,6 +100,10 @@ def evaluate(queue: dict, root: Path) -> dict:
     for item in queue.get("items") or []:
         checks = [evaluate_check(check, root) for check in item.get("checks") or []]
         expectation = item.get("expectation")
+        # Two items with the same id is not a cosmetic problem: every tool that
+        # updates this file finds an item by id and updates the FIRST match, so
+        # a duplicate silently swallows edits -- which is how one of these was
+        # left declaring `absent` for a thing that had shipped, on 2026-08-19.
         if expectation not in ("present", "absent"):
             items.append({"id": item.get("id"), "status": "UNEVALUABLE",
                           "why": f"unknown expectation {expectation!r}",
@@ -126,6 +130,7 @@ def evaluate(queue: dict, root: Path) -> dict:
                         if item.get("expectation") == "present"]
     declared_absent = [item for item in items
                        if item.get("expectation") == "absent"]
+    duplicates = duplicate_ids(items)
     return {
         "schemaVersion": 1,
         "queue": str(queue.get("release")),
@@ -148,7 +153,11 @@ def evaluate(queue: dict, root: Path) -> dict:
         "openItems": [item["id"] for item in declared_absent],
         "blockingOpenItems": [item["id"] for item in declared_absent
                               if item.get("blocksRelink")],
-        "verdict": "AS-DECLARED" if not drifted else "DRIFTED",
+        # A duplicated id makes every by-id edit land on one copy and leave the
+        # other declaring something that is no longer true, so it fails the
+        # round rather than being reported as a note.
+        "duplicateIds": duplicates,
+        "verdict": ("DRIFTED" if drifted or duplicates else "AS-DECLARED"),
     }
 
 
@@ -286,9 +295,31 @@ def self_test() -> int:
     check("a file the queue names but cannot read fails closed",
           status_of(with_tree(unreadable_file), "p1-4-abi-3") == "DRIFTED")
 
+    # A duplicated id makes every by-id edit land on one copy and leave the
+    # other declaring something that is no longer true.  It happened on
+    # 2026-08-19 -- an item was appended twice and the update hit the first,
+    # so the queue went on blocking a link for work that had shipped.
+    check("a duplicated item id is caught",
+          duplicate_ids([{"id": "a"}, {"id": "b"}, {"id": "a"}]) == ["a"])
+    check("distinct ids are not",
+          duplicate_ids([{"id": "a"}, {"id": "b"}]) == [])
+    duplicated = copy.deepcopy(queue)
+    duplicated["items"].append(copy.deepcopy(duplicated["items"][0]))
+    check("a queue with a duplicated id fails the round",
+          evaluate(duplicated, PROJECT)["verdict"] == "DRIFTED")
+
     print(f"\nself-test: {len(ran) - len(failures)}/{len(ran)} "
           "checks moved the verdict")
     return 1 if failures else 0
+
+
+def duplicate_ids(items) -> list[str]:
+    """Ids that appear more than once, which no tool that edits this file survives."""
+    seen: dict[str, int] = {}
+    for item in items:
+        key = str(item.get("id"))
+        seen[key] = seen.get(key, 0) + 1
+    return sorted(key for key, count in seen.items() if count > 1)
 
 
 def main() -> int:

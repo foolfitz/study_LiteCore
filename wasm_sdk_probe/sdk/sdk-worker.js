@@ -602,6 +602,13 @@ function handleCEvent(rawEvent) {
           width: event.w,
           height: event.h,
           revision: event.revision,
+          // Finding 062: the document's size, as of this paint.  The reply is
+          // whitelisted rather than forwarded wholesale, so a field the engine
+          // starts sending is invisible to every client until it is named here
+          // -- which is why adding it to the engine alone changed nothing.
+          documentWidthTwips: event.documentWidthTwips,
+          documentHeightTwips: event.documentHeightTwips,
+          documentSizeChanged: event.documentSizeChanged,
         }, [pixels]);
       } catch (error) {
         fail(requestId, "BUFFER_ERROR", String(error?.stack || error));

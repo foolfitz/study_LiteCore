@@ -406,6 +406,16 @@ export class DocumentHandle {
       canvasHeightPx: region.canvasHeightPx ?? 512,
     }, options);
     this.revision = result.revision;
+    // Finding 062: the document's size was read once, at open, and nothing ever
+    // re-read it -- so after an edit that added a page every client was sizing
+    // its canvas from a stale number and had no way to find out.  The engine
+    // now reports the size on the paint reply; keeping the handle current here
+    // means a client that only ever calls render() is already correct, and
+    // `documentSizeChanged` lets one that has already sized something act.
+    if (typeof result.documentWidthTwips === "number")
+      this.widthTwips = result.documentWidthTwips;
+    if (typeof result.documentHeightTwips === "number")
+      this.heightTwips = result.documentHeightTwips;
     return result;
   }
 

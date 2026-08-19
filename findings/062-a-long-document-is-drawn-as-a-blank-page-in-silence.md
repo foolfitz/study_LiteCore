@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **一半已修（2026-08-19，殼層 v19，不需連結）／一半未修（要連結）**——層級已確立：引擎側（LAYER-ESTABLISHED，`evidence/062/layer/`） |
+| **狀態** | **兩半都已修（2026-08-19）**——空白頁走殼層 v19 的分段繪製（不需連結），成長那一半走連結（artifact `296f3ea727725fbb`）。層級已確立：引擎側（LAYER-ESTABLISHED，`evidence/062/layer/`） |
 | **Bugzilla** | —（**我方產品缺陷，不是上游**，不送出） |
 | **發現日** | 2026-08-19 |
 | **嚴重度** | **嚴重**——使用者看到的是一份空白文件，而產品回報一切正常 |
@@ -230,7 +230,7 @@ render」。這棵樹自己也有同型的前例——探針殺死了它要觀�
 > 靠近開頭的一點就足以騙過整個判準。改成**多數決**（一半以上的取樣點不透明）：
 > 畫過的圖約 90% 不透明，沒畫過的是 0%，兩邊各留兩個數量級的餘裕。
 
-### 未修，而且**頁面修不了**：變高的編輯，畫布不跟
+### 已修（連結，2026-08-19）：變高的編輯，畫布跟上了
 
 `getDocumentSize` **只在開檔那一刻被呼叫過**（`probe_engine.cpp:2520`），
 而 SDK 的操作裡（open／paint／click／insertText／search／getSelection／
@@ -238,8 +238,21 @@ replaceSelection／undo／save／註解／追蹤修訂）**沒有任何一個會
 所以沒有東西能告訴頁面文件變高了——在 `document-invalidated` 裡呼叫 `layoutCanvas()`
 也沒用，它只會拿同一個過期的數字重算一次。
 
-修法在引擎側而且很小（在 paint 的結果裡帶上文件尺寸，或加一個操作），**要搭一次連結**。
-佇列項 `queue-canvas-does-not-follow-a-document-that-grew`，`blocksRelink: true`。
+**修法就是那個很小的引擎改動**，而它搭上了 2026-08-19 的連結：
+`handlePaintTile` 現在會重讀 `getDocumentSize`，並在回覆裡帶上
+`documentWidthTwips`／`documentHeightTwips`／`documentSizeChanged`；
+worker 把它們轉出去（**它的回覆是白名單**——只改引擎的話這些欄位對所有 client 都是
+隱形的，這一點值得記住）；`DocumentHandle.render()` 順手更新 handle；頁面看到尺寸
+變了就重新 layout 並重畫，走的是它本來就有的 `renderAgain` 合併路徑。
+
+一樣用 `OXSDK_E2_FORMAT_BARRIER` 包住：`handlePaintTile` 是所有 profile 共用的，
+而凍結的那些是在特定回覆形狀上驗過的。
+
+`the-canvas-follows-a-document-that-grew` 從 KNOWN_RED 變綠，由
+`ignore-a-document-that-grew` 突變守著。
+
+**留著的具名極限**：引擎本身仍然不會畫高過 32,767 的 tile，而且會回報成功。產品是
+繞開它，不是它被修好了——佇列項 `queue-engine-reports-success-for-an-unpainted-tile`。
 
 ## 環境
 

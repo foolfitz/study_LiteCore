@@ -32,7 +32,7 @@ import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js"
 
 // The artifact this page is for.  A page that runs on whatever build happens to
 // be in dist/ is a page that can show behaviour no evidence covers.
-const PINNED_WASM_SHA256 = "d538ce0b91478426";
+const PINNED_WASM_SHA256 = "296f3ea727725fbb";
 
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -192,6 +192,7 @@ async function renderDocument(retriesLeft = 6) {
     // canvas, which is the request this page has always made -- so nothing
     // changes for the common case.
     const strips = [];
+    let documentResized = false;
     const total = el.canvas.height;
     const documentHeight = session.document.heightTwips;
     for (let top = 0; top < total; top += MAX_TILE_HEIGHT) {
@@ -213,6 +214,12 @@ async function renderDocument(retriesLeft = 6) {
           new Error("引擎回了一張沒有畫進去的圖"),
           { code: "TILE_NOT_PAINTED" });
       }
+      // Finding 062's second half: until the engine started reporting it, a
+      // document that grew a page left this canvas sized from the height it
+      // had when it was opened, and nothing could tell.  The SDK has already
+      // updated the handle by the time this returns, so re-laying out picks up
+      // the new height.
+      if (tile.documentSizeChanged) documentResized = true;
       strips.push({
         image: new ImageData(new Uint8ClampedArray(tile.pixels),
                              tile.width, tile.height),
@@ -221,6 +228,15 @@ async function renderDocument(retriesLeft = 6) {
     }
     lastTiles = strips;
     paint();
+    if (documentResized) {
+      // Through `renderAgain` rather than by recursing here: that is the
+      // path this function already uses to coalesce a repaint, and the
+      // `finally` below is what runs it.  It terminates because the engine
+      // reports a CHANGE, so the next reply for an unchanged document says
+      // false.
+      layoutCanvas();
+      renderAgain = true;
+    }
   } catch (error) {
     // A repaint that lands while a barrier is still settling comes back BUSY.
     // The canvas is a frame behind; the document is fine.

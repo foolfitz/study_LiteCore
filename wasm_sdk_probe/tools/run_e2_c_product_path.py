@@ -91,33 +91,24 @@ IME_TEXTS = ["甲一", "乙二", "丙三"]
 # declared with the finding, because "known failure" without a name is how a red
 # check becomes wallpaper.  `finish()` reports the declaration STALE the moment
 # one of these passes, so it cannot outlive the defect.
-KNOWN_RED = {
-    # 2026-08-18: `bold-can-be-turned-off-again` came OFF this list. It passes
-    # now -- shell v17 stopped blocking the queue on a dispatched failure, so
-    # both presses run and the engine's format state toggles. Bold turns on and
-    # off from the product's seat. What has NOT been fixed is the engine's
-    # predicate, and the check below is what stays red for it: keeping a passing
-    # check declared would have been the stale declaration the runner is built
-    # to shout about.
-    "a-format-that-worked-is-not-reported-as-failed":
-        "finding 059: core APPLIES the parameterised inline format on the "
-        "shipped artifact and reports success:false, and the engine turns that "
-        "into LOK_COMMAND_FAILED (probe_engine.cpp:1696, :2286). So the product "
-        "tells the user an action failed while the document shows it worked. "
-        "Engine-side, needs a link "
-        "(queue-inline-format-argument-is-rejected-by-core).",
-    "the-canvas-follows-a-document-that-grew":
-        "finding 062, the half that is NOT fixed: an edit that makes the "
-        "document taller leaves the canvas at its old size and says nothing, at "
-        "any length -- a two-page document opens at canvas height 2007, an "
-        "insert of 3,336 characters leaves it at 2007, and re-opening the saved "
-        "bytes gives 3002, which is what a genuine three-page document reports. "
-        "This one the page CANNOT fix: `getDocumentSize` is called only at open "
-        "(probe_engine.cpp:2520) and no SDK operation re-reads it, so nothing "
-        "tells the page the document grew. Engine-side, needs a link "
-        "(queue-canvas-does-not-follow-a-document-that-grew). The OTHER half -- "
-        "the blank page above 32,767 px -- was fixed on 2026-08-19 by splitting "
-        "the request into strips, which needed no link.",
+KNOWN_RED: dict[str, str] = {
+    # Empty as of 2026-08-19, and that is a first for this file.
+    #
+    # Both entries came off on the same run, and the runner is what said so:
+    # it reports a declared-red check that PASSES as a STALE DECLARATION and
+    # fails the round, so neither could quietly outlive its defect.
+    #
+    #   * `a-format-that-worked-is-not-reported-as-failed` -- finding 059's
+    #     engine half. The engine no longer gates the four inline formats on
+    #     core's `success` field, which was measured ANTI-correlated with the
+    #     request being honoured; it compares the observed state against the
+    #     requested one instead.
+    #   * `the-canvas-follows-a-document-that-grew` -- finding 062's second
+    #     half. The engine reports the document's size on the paint reply, so a
+    #     page that grew by a page is no longer drawn at the size it had when
+    #     it was opened.
+    #
+    # Both shipped in the relink of 2026-08-19 (artifact 296f3ea727725fbb).
 }
 
 # The two markers `recover-from-an-error` is scored on. RESCUE_SAVED is typed
@@ -874,6 +865,20 @@ MUTATIONS = {
         # the check goes red on `drawn` rather than on `silentArms`.
         "alsoRed": [],
     },
+    # Finding 062's second half, the page's side of it.  The engine now reports
+    # that the document changed size, and this is the page acting on it; with
+    # the branch off, the canvas keeps the height the document had when it was
+    # opened and the new page is never drawn -- which is exactly what shipped
+    # until the 2026-08-19 relink.
+    "ignore-a-document-that-grew": {
+        "check": "the-canvas-follows-a-document-that-grew",
+        "path": "e2-editor-app.js",
+        "find": "      if (tile.documentSizeChanged) documentResized = true;",
+        "replace": "      if (false) documentResized = true;",
+        "reintroduces": "an editor whose page count is frozen at the moment you "
+                        "opened the file",
+        "alsoRed": [],
+    },
     # Aimed at the mechanism that actually commits a paste. Measured
     # 2026-08-17, twice: a page-level paste handler was written first on the
     # assumption that nothing handled paste, and it DOUBLED every paste
@@ -1106,7 +1111,7 @@ def build_mirror(source: Path, target: Path, overrides: dict[str, bytes]) -> Non
 # product page itself is one of them), so the digest moves on its own and no
 # separate honesty flag is needed.  Same digest function as the bundle manifest,
 # imported rather than reimplemented: two copies of a hash rule drift.
-SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v19.json"
+SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v20.json"
 
 
 def served_in_dist(relative: str) -> str:
@@ -1200,13 +1205,32 @@ def caret_from_columns(near_start: dict, past_end: dict) -> dict:
 ODF_NS = {"office": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
           "text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0"}
 
-# A text line that has been split by a thin row inside its own glyphs is still
-# one line; two lines of this corpus are 16px apart at the closest.
-BAND_MERGE_GAP = 5
+# A text line split by a thin row inside its own glyphs is still one line.
+#
+# Two populations, both measured rather than assumed: the gaps BETWEEN lines in
+# these fixtures are 10-16 rows (list-contexts 12-16, endnote-frame 10), and a
+# split inside one line is a few rows.  8 sits between them with room on each
+# side.
+#
+# It was 5, and 5 was too tight: on the relinked artifact of 2026-08-19 a 16pt
+# heading split into two runs and four arms reported NOT_ESTABLISHED.  The first
+# repair was cleverer -- half the MEDIAN gap on the page -- and it was WORSE: on
+# a page with a large empty area (the endnote fixture, whose body lines are
+# followed by an 873-row gap) the median is a page gap, the threshold becomes
+# 133, and three separate lines merge into one band.  A fixed number that both
+# populations are measured against beats a rule that is right on the page it was
+# written for.
+BAND_MERGE_GAP = 8
 
 
-def text_bands(scan: dict, floor: int = 2) -> list[dict]:
+def text_bands(scan: dict, floor: int = 0) -> list[dict]:
     """The canvas's lines of text, as row bands.
+
+    The floor is 0, not 2, and that is the point: the scan already excludes the
+    page-border columns, so a row between two lines carries EXACTLY no ink,
+    while a thin row inside a tall glyph carries one or two pixels.  A floor of
+    2 threw those away and split a 16pt heading into two bands -- intermittently,
+    which is worse than always.  Ink inside the printable area is ink.
 
     Everything that is not a line of text is rejected by DENSITY -- the widest
     inked row of the band over the band's own horizontal extent.  Measured
@@ -1225,6 +1249,11 @@ def text_bands(scan: dict, floor: int = 2) -> list[dict]:
             start = None
     if start is not None:
         runs.append({"top": start, "bottom": len(scan["counts"]) - 1})
+    # Recorded so that a future mismatch is diagnosable from the report rather
+    # than from another round of probing: if bands and lines ever disagree
+    # again, these are the numbers that say whether the threshold is wrong.
+    observed_gaps = sorted(runs[index + 1]["top"] - runs[index]["bottom"]
+                           for index in range(len(runs) - 1))
     merged: list[dict] = []
     for run in runs:
         if merged and run["top"] - merged[-1]["bottom"] <= BAND_MERGE_GAP:
@@ -1244,6 +1273,7 @@ def text_bands(scan: dict, floor: int = 2) -> list[dict]:
         band["density"] = band["maxInk"] / band["extent"]
         band["centreFraction"] = ((band["top"] + band["bottom"]) / 2
                                   / scan["height"])
+        band["gapsOnThisPage"] = observed_gaps[:12]
         if 0.15 <= band["density"] < 0.9:
             out.append(band)
     return out
