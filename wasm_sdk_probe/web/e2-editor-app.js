@@ -63,7 +63,16 @@ let lastSelectionShape = "collapsed";
 // The last tile the engine painted, kept so a caret move can be drawn without
 // asking for pixels again (finding 058).  Cleared on resize, where the canvas
 // changes size and the cached pixels stop describing it.
-let lastTile = null;
+let lastTiles = [];
+
+// Finding 062: the engine will not paint a tile taller than this.  Above it, it
+// returns a correctly sized buffer it never drew into AND reports success --
+// measured at two widths whose buffers differ by a factor of two (45 MB paints
+// at 32,767 and 45 MB is blank at 32,768), so it is the height and not the
+// memory.  Asking for one is therefore the PAGE's mistake: nothing forces this
+// page to want the whole document in a single bitmap, and splitting the request
+// needs no engine change and no link.
+const MAX_TILE_HEIGHT = 32767;
 
 function toast(message, bad = false) {
   el.toast.textContent = message;
@@ -168,7 +177,7 @@ function layoutCanvas() {
   el.canvas.style.height = `${Math.round(cssWidth * ratio)}px`;
   // Setting width/height clears the canvas AND invalidates the cached tile,
   // which is sized in device pixels for the old dimensions.
-  lastTile = null;
+  lastTiles = [];
 }
 
 async function renderDocument(retriesLeft = 6) {
@@ -178,19 +187,46 @@ async function renderDocument(retriesLeft = 6) {
   if (rendering) { renderAgain = true; return; }
   rendering = true;
   try {
-    const tile = await session.document.render({
-      xTwips: 0, yTwips: 0,
-      widthTwips: session.document.widthTwips,
-      heightTwips: session.document.heightTwips,
-      canvasWidthPx: el.canvas.width,
-      canvasHeightPx: el.canvas.height,
-    }, { timeoutMs: 60000 });
-    lastTile = new ImageData(
-      new Uint8ClampedArray(tile.pixels), tile.width, tile.height);
+    // One request per strip, none of them taller than the engine will paint.
+    // A document short enough to fit takes exactly one strip covering the whole
+    // canvas, which is the request this page has always made -- so nothing
+    // changes for the common case.
+    const strips = [];
+    const total = el.canvas.height;
+    const documentHeight = session.document.heightTwips;
+    for (let top = 0; top < total; top += MAX_TILE_HEIGHT) {
+      const rows = Math.min(MAX_TILE_HEIGHT, total - top);
+      // The twips edges are derived from the PIXEL edges rather than by
+      // multiplying a per-strip height, so rounding cannot accumulate into a
+      // seam or leave the last strip short.
+      const yTwips = Math.round((top / total) * documentHeight);
+      const endTwips = Math.round(((top + rows) / total) * documentHeight);
+      const tile = await session.document.render({
+        xTwips: 0, yTwips,
+        widthTwips: session.document.widthTwips,
+        heightTwips: endTwips - yTwips,
+        canvasWidthPx: el.canvas.width,
+        canvasHeightPx: rows,
+      }, { timeoutMs: 60000 });
+      if (!tileWasPainted(tile)) {
+        throw Object.assign(
+          new Error("引擎回了一張沒有畫進去的圖"),
+          { code: "TILE_NOT_PAINTED" });
+      }
+      strips.push({
+        image: new ImageData(new Uint8ClampedArray(tile.pixels),
+                             tile.width, tile.height),
+        y: top,
+      });
+    }
+    lastTiles = strips;
     paint();
   } catch (error) {
     // A repaint that lands while a barrier is still settling comes back BUSY.
     // The canvas is a frame behind; the document is fine.
+    // TILE_NOT_PAINTED is not transient: the same request will come back
+    // unpainted every time, so retrying it would only make the user wait
+    // longer for the same silence.
     if (error?.code === "BUSY" && retriesLeft > 0) {
       await new Promise((resolve) => setTimeout(resolve, 120));
       rendering = false;
@@ -221,10 +257,45 @@ async function renderDocument(retriesLeft = 6) {
  * asking the engine for pixels again: a caret arriving as a state update must
  * not cost a full document render.
  */
+/**
+ * Did the engine actually draw into this buffer?
+ *
+ * Finding 062: above a certain height it returns a correctly sized buffer,
+ * never draws into it, and reports success -- so the return value cannot be
+ * trusted and the page has no other way to tell.  It can tell from the pixels,
+ * cheaply, because an UNPAINTED buffer is all zeros including its alpha channel
+ * while a page that is merely blank is opaque white.  So this asks about alpha
+ * only, at a few hundred sample points: a bounded number of reads on a buffer
+ * that can be a hundred megabytes.
+ *
+ * Deliberately not a colour test.  "Is there any dark pixel" would call a
+ * genuinely blank page a failure, and a blank page is a thing documents have.
+ *
+ * And deliberately a MAJORITY, not "any opaque pixel".  The first version
+ * returned true on the first non-zero alpha it found, and an unpainted buffer
+ * is not uniformly zero -- measured, 88 of 2,105,340 sampled points are not,
+ * and one of them near the start defeats the whole test.  A painted tile is
+ * about 90% opaque and an unpainted one is 0%, so half is a threshold with two
+ * orders of magnitude of room on either side.
+ */
+function tileWasPainted(tile) {
+  const pixels = new Uint8Array(tile.pixels);
+  if (pixels.length === 0) return false;
+  const samples = 512;
+  const step = Math.max(4, Math.floor(pixels.length / 4 / samples) * 4);
+  let seen = 0;
+  let opaque = 0;
+  for (let index = 3; index < pixels.length; index += step) {
+    seen += 1;
+    if (pixels[index] > 128) opaque += 1;
+  }
+  return seen > 0 && opaque * 2 >= seen;
+}
+
 function paint() {
-  if (!lastTile) return;
+  if (!lastTiles.length) return;
   const context = el.canvas.getContext("2d");
-  context.putImageData(lastTile, 0, 0);
+  for (const strip of lastTiles) context.putImageData(strip.image, 0, strip.y);
   const editorState = session?.state?.snapshot?.editorState;
   if (!editorState || !session?.document) return;
 

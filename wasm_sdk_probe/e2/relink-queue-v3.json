@@ -847,19 +847,35 @@
   },
   {
    "id": "queue-long-document-tile-request-exceeds-the-engine-limit",
-   "title": "the product asks the engine for a tile taller than it will paint -- page-side fix, no link needed",
-   "expectation": "absent",
+   "title": "the page splits its tile request so it never exceeds the engine's 32,767 px limit -- DONE, no link was needed",
+   "expectation": "present",
    "blocksRelink": false,
    "source": "finding 062, layer established 2026-08-19",
-   "note": "SUPERSEDES the version of this item written on 2026-08-19 before the layer was corrected; that one asked which PAGE-SIDE step dropped the tile, and the premise was wrong -- no page-side step drops it, the engine returns an unpainted buffer above 32,767 px (see queue-long-document-renders-blank-in-silence and finding 062). What is owed is on the page after all, but it is not a bug hunt: layoutCanvas() sizes ONE canvas to the whole document and renderDocument() asks for ONE tile that size, so any document past about 33 pages at devicePixelRatio 1 -- or 17 at 2 -- requests something the engine will not paint. The fix is to stop doing that: render in strips no taller than 32,767, or use the TileScheduler that editor-session.js already imports. No link is needed. AND, separately, the product must not paint a tile it cannot verify: the engine reports success for an unpainted buffer, so a page that trusts the return value has no way to tell. Whatever the fix, it owes the user an error rather than a blank page -- that half is what makes a-long-document-is-drawn-or-the-product-says-it-is-not KNOWN_RED today.",
+   "note": "SUPERSEDES the version of this item written on 2026-08-19 before the layer was corrected; that one asked which PAGE-SIDE step dropped the tile, and the premise was wrong -- no page-side step drops it, the engine returns an unpainted buffer above 32,767 px (see queue-long-document-renders-blank-in-silence and finding 062). What is owed is on the page after all, but it is not a bug hunt: layoutCanvas() sizes ONE canvas to the whole document and renderDocument() asks for ONE tile that size, so any document past about 33 pages at devicePixelRatio 1 -- or 17 at 2 -- requests something the engine will not paint. The fix is to stop doing that: render in strips no taller than 32,767, or use the TileScheduler that editor-session.js already imports. No link is needed. AND, separately, the product must not paint a tile it cannot verify: the engine reports success for an unpainted buffer, so a page that trusts the return value has no way to tell. Whatever the fix, it owes the user an error rather than a blank page -- that half is what makes a-long-document-is-drawn-or-the-product-says-it-is-not KNOWN_RED today. DONE 2026-08-19, shell v18. renderDocument() now issues one request per strip, none taller than MAX_TILE_HEIGHT = 32767, and composes them at their own y. A document short enough to fit takes exactly one strip covering the whole canvas, so nothing changes for the common case. Measured: 35 pages at dpr 1 (canvas 34,847) and the same 20-page document at dpr 2 (39,839) both draw, where both were blank; and there is no seam -- bands sampled at 32,300 / 32,600 / 32,900 and at the bottom are all fully opaque and all carry ink. Guarded by the `one-tile-for-the-whole-document` mutation, which puts the limit back to a million and turns the check red. ALSO ADDED: renderDocument() refuses a tile the engine did not paint (`TILE_NOT_PAINTED`), by sampling ALPHA at 512 points -- an unpainted buffer is all zeros including alpha, while a genuinely blank page is opaque white, so the two are told apart in a bounded number of reads on a buffer that can be a hundred megabytes. That is the half that makes the failure loud if the limit is ever hit again.",
    "checks": [
     {
-     "kind": "absent",
+     "kind": "contains",
      "file": "web/e2-editor-app.js",
      "text": "MAX_TILE_HEIGHT"
     }
    ],
-   "checkNote": "Watching for the page learning that a tile has a maximum height. Approximate, like the other name sentinels in this file, and recorded as approximate."
+   "checkNote": "Present now. If the page goes back to one tile for the whole document this goes DRIFT."
+  },
+  {
+   "id": "queue-canvas-does-not-follow-a-document-that-grew",
+   "title": "nothing tells the page the document got taller -- getDocumentSize is called once, at open. Engine-side, needs a link",
+   "expectation": "absent",
+   "blocksRelink": true,
+   "source": "finding 062's second half; established 2026-08-19 when the first half was fixed",
+   "note": "Measured through the product's own buttons: a two-page document opens at canvas height 2007, an insert of 3,336 characters leaves it at 2007, and saving those bytes and re-opening them gives 3002 -- exactly what a genuine three-page document reports. So the document grew by a page, the canvas did not, and nothing was said. It fires at two pages: there is no length threshold. WHY THIS ONE IS NOT PAGE-SIDE, unlike the blank-page half: `DocumentHandle.heightTwips` is assigned once from the open metadata (sdk/document-sdk.js:374), the engine calls getDocumentSize exactly once, at open (probe_engine.cpp:2520), and no SDK operation re-reads it -- the operations are open, paint, click, insertText, search, getSelection, replaceSelection, undo, save, comments, tracked changes, and none of them reports a size. So the page has no way to learn the document is taller, and `document-invalidated` calling layoutCanvas() would not help: it would recompute from the same stale number. THE FIX is engine-side and small -- report the document size on the paint result, or add an operation for it -- and it therefore has to ride a link. blocksRelink is TRUE because the fix cannot happen without one and shipping again without it ships an editor whose page count is frozen at the moment the file was opened.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "src/probe_engine.cpp",
+     "text": "documentSizeChanged"
+    }
+   ],
+   "checkNote": "Watching for the engine learning to report a size after open, under a name that does not exist today so the flip is visible in the diff."
   }
  ],
  "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

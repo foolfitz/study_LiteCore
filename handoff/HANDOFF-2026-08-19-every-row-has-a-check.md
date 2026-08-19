@@ -19,7 +19,7 @@
 | shell | v17 `34289a7bd8ffc3df…` (unchanged) |
 | matrix | `e2/validation-matrix-v2.json`, **D0 still not run** |
 | checklist | **8 done / 6 partial / 0 unverified / 0 missing / 2 blocked** |
-| queue | `P1 complete: **False**` — still blocked by the engine half of 059, and that is correct |
+| queue | `P1 complete: **False**` — blocked by the engine half of 059 **and** by finding 062's growth half, both correctly |
 
 **Zero `unverified` and zero `missing` rows.** Every row now points at a check
 that runs and can fail. Three rows moved this round, and two of them moved
@@ -38,11 +38,24 @@ success. Measured at two widths whose buffers differ twofold — 45 MB paints at
 32,767 and 45 MB is blank at 32,768 — so it is the **height**, not the memory.
 2^15 − 1.
 
-**It still does not need a link.** Nothing forces the product to ask for one
-tile as tall as the whole document; rendering in strips no taller than 32,767,
-or using the `TileScheduler` that `editor-session.js` already imports, avoids
-the limit and is a page-side change
-(`queue-long-document-tile-request-exceeds-the-engine-limit`).
+**It did not need a link, and it is now FIXED** (shell v19). `renderDocument()`
+issues one request per strip, none taller than 32,767, composed at their own y.
+A document short enough to fit takes exactly one strip covering the whole
+canvas, so nothing changes for the common case. Measured: 35 pages at 1x and the
+same 20-page document at 2x both draw, and there is no seam — bands at 32,300 /
+32,600 / 32,900 and at the bottom are all opaque and all carry ink.
+
+The page also **refuses a tile the engine did not paint** (`TILE_NOT_PAINTED`),
+by sampling alpha: an unpainted buffer is zero including alpha, a genuinely
+blank page is opaque white. With the strips removed by mutation the product now
+*says* `重繪失敗：TILE_NOT_PAINTED` instead of showing a silent blank page.
+
+**The other half is not fixable from the page.** An edit that makes the document
+taller leaves the canvas at its old size, at any length — and nothing tells the
+page: `getDocumentSize` is called exactly once, at open
+(`probe_engine.cpp:2520`), and none of the SDK's operations re-reads it. That
+half is engine-side, needs a link, and now blocks it
+(`queue-canvas-does-not-follow-a-document-that-grew`).
 
 **This corrects a conclusion committed earlier the same day.** The first answer
 was "page side", and it was wrong for a reason worth keeping: every probe run
@@ -198,7 +211,7 @@ reference reports NOT_ESTABLISHED rather than passing.
 | | why it is still open |
 |---|---|
 | **T1.3 — the engine-side fix for 059** | **The two owed measurements are done** (see §2.4); the change itself was deliberately not written. Gated only on the link now, which is the user's decision. The full design and two measured hazards are in `queue-inline-format-argument-is-rejected-by-core`. |
-| **Finding 062's fix** | The layer is settled (engine side, no link needed). The page must stop asking for a tile taller than 32,767 — strips, or the `TileScheduler` already imported by `editor-session.js` — and must not present an unverifiable tile as a success. See `queue-long-document-tile-request-exceeds-the-engine-limit`. |
+| **Finding 062's second half** | The blank page is **fixed** (shell v19, strips, no link). What is left is the canvas not following a document that grew, and the page *cannot* fix it: `getDocumentSize` is called once, at open, and no SDK operation re-reads it. Engine-side, `blocksRelink: true` — see `queue-canvas-does-not-follow-a-document-that-grew`. |
 | **A defect-independent second inducer** | `queue-recovery-inducer-depends-on-an-unfixed-defect`. Recovery coverage is currently tied to finding 038 staying broken. |
 | **D0** | Still not run. Once it is, moving the shell means changing the matrix. |
 

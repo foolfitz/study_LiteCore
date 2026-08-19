@@ -240,7 +240,7 @@
    "id": "edit-a-real-length-document",
    "user": "開一份二十頁的文件，而且還能編輯",
    "status": "partial",
-   "note": "2026-08-19 第一次被量。預測先提交（commit `7b4a38c`，語料、探針、檢查都還不存在），三條登記的預測**兩條成立、一條錯兩個量級**。**可用性是綠的**：按鍵到看得見墨水，1 頁 60 ms、5 頁 62 ms、20 頁 127 ms，門檻 1000 ms 在牆之前一次都沒被逼近——`editing-a-long-document-stays-responsive`。門檻是事前登記的，而且證明得了它會咬：`slow-repaint` 突變下量到 1.85 秒、紅。**誠實是紅的，而且是 KNOWN_RED（finding 062）**：畫布高度超過約 32,767 px 之後，產品畫出一張**全白**的頁面、狀態回報 `ready`、一則訊息都沒有。**同一份 20 頁文件，在 1× 螢幕上正常、在 2× 螢幕上全白**——所以這是『文件乘上螢幕』的性質，不是文件的性質，而 headless 的 dpr=1 是最寬鬆的那一格。**這道牆不是 canvas 元素的上限**：同機同兩個瀏覽器實測 canvas 上限是 65,535，所以 32,767 是 render 這條路自己的 16 位元限制。**層級當天量完，而且當天更正過一次**（`evidence/062/layer/`）：答案是**引擎側**——一次**冷啟動**的 render 只要高過 32,767 就回一張尺寸正確、內容全零、而且回報成功的 buffer。兩個寬度（45 MB 與 90 MB）在**同一個高度**翻面，所以是高度不是記憶體；32,767 = 2^15−1。頁面那三步都量過都沒問題。**但仍然不擋連結**：沒有東西逼產品把整份文件要成一張 tile，分段繪製就避得開，那是頁面側的改動（佇列項 `queue-long-document-tile-request-exceeds-the-engine-limit`）。**第一版判成頁面側是錯的**，錯因是探針在同一個 session 裡由小到大掃高度，第一次 render 在上限以下就把引擎洗白了——教訓寫在證據 README 裡。另外量到一道與長度無關的：**一個變高的編輯，畫布不跟**——2 頁的文件插入 3,336 個字元後畫布不動，存檔重開才變成 3 頁的高度（佇列項 `queue-canvas-does-not-follow-a-document-that-grew`，頁面側，不需連結）。**原本這一列寫的『瀏覽器 canvas 上限約 32767px，A4 大約十幾頁』兩個數字都是推的**：上限實測是 65,535，而 A4 在 dpr 1 這個視窗上是 33 頁、dpr 2 是 17 頁。牆的位置對了一半，理由完全不同。",
+   "note": "2026-08-19 第一次被量。預測先提交（commit `7b4a38c`，語料、探針、檢查都還不存在），三條登記的預測**兩條成立、一條錯兩個量級**。**可用性是綠的**：按鍵到看得見墨水，1 頁 60 ms、5 頁 62 ms、20 頁 127 ms，門檻 1000 ms 在牆之前一次都沒被逼近——`editing-a-long-document-stays-responsive`。門檻是事前登記的，而且證明得了它會咬：`slow-repaint` 突變下量到 1.85 秒、紅。**誠實是紅的，而且是 KNOWN_RED（finding 062）**：畫布高度超過約 32,767 px 之後，產品畫出一張**全白**的頁面、狀態回報 `ready`、一則訊息都沒有。**同一份 20 頁文件，在 1× 螢幕上正常、在 2× 螢幕上全白**——所以這是『文件乘上螢幕』的性質，不是文件的性質，而 headless 的 dpr=1 是最寬鬆的那一格。**這道牆不是 canvas 元素的上限**：同機同兩個瀏覽器實測 canvas 上限是 65,535，所以 32,767 是 render 這條路自己的 16 位元限制。**層級當天量完，而且當天更正過一次**（`evidence/062/layer/`）：答案是**引擎側**——一次**冷啟動**的 render 只要高過 32,767 就回一張尺寸正確、內容全零、而且回報成功的 buffer。兩個寬度（45 MB 與 90 MB）在**同一個高度**翻面，所以是高度不是記憶體；32,767 = 2^15−1。頁面那三步都量過都沒問題。**但仍然不擋連結**：沒有東西逼產品把整份文件要成一張 tile，分段繪製就避得開，那是頁面側的改動（佇列項 `queue-long-document-tile-request-exceeds-the-engine-limit`）。**第一版判成頁面側是錯的**，錯因是探針在同一個 session 裡由小到大掃高度，第一次 render 在上限以下就把引擎洗白了——教訓寫在證據 README 裡。另外量到一道與長度無關的：**一個變高的編輯，畫布不跟**——2 頁的文件插入 3,336 個字元後畫布不動，存檔重開才變成 3 頁的高度（佇列項 `queue-canvas-does-not-follow-a-document-that-grew`，頁面側，不需連結）。**原本這一列寫的『瀏覽器 canvas 上限約 32767px，A4 大約十幾頁』兩個數字都是推的**：上限實測是 65,535，而 A4 在 dpr 1 這個視窗上是 33 頁、dpr 2 是 17 頁。牆的位置對了一半，理由完全不同。**2026-08-19 當天修好了一半**：頁面改成**分段繪製**（每段不超過 32,767），35 頁在 1× 與 20 頁在 2× 都畫得出來了（原本都是全白），而且量過沒有接縫——跨過分段邊界那一帶完全不透明而且有墨水，最底下那一段也在。殼層 v19。檢查拆成兩格：`a-long-document-is-drawn-or-the-product-says-it-is-not` 現在是**綠的**，並由 `one-tile-for-the-whole-document` 突變守著（把上限拿掉，白紙就回來——而且產品現在會說「重繪失敗：TILE_NOT_PAINTED」，不再是靜靜給白紙）。**另一半沒修，而且頁面修不了**：`the-canvas-follows-a-document-that-grew` —— 一個變高的編輯之後畫布不跟。`getDocumentSize` 只在開檔那一刻被呼叫過（`probe_engine.cpp:2520`），而 SDK 沒有任何操作可以重讀它，所以**沒有東西告訴頁面文件變高了**。那一格是 KNOWN_RED，綁 finding 062，**引擎側、要連結**。",
    "evidence": [
     {
      "check": "editing-a-long-document-stays-responsive"
@@ -249,19 +249,19 @@
      "check": "a-long-document-is-drawn-or-the-product-says-it-is-not"
     },
     {
-     "finding": "062"
+     "check": "the-canvas-follows-a-document-that-grew"
     },
     {
-     "queue": "queue-long-document-renders-blank-in-silence"
+     "finding": "062"
     },
     {
      "queue": "queue-canvas-does-not-follow-a-document-that-grew"
     },
     {
-     "queue": "queue-viewport-wall-never-measured"
+     "queue": "queue-long-document-tile-request-exceeds-the-engine-limit"
     },
     {
-     "queue": "queue-long-document-tile-request-exceeds-the-engine-limit"
+     "queue": "queue-viewport-wall-never-measured"
     }
    ]
   }

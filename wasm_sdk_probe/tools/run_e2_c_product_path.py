@@ -106,22 +106,18 @@ KNOWN_RED = {
         "tells the user an action failed while the document shows it worked. "
         "Engine-side, needs a link "
         "(queue-inline-format-argument-is-rejected-by-core).",
-    "a-long-document-is-drawn-or-the-product-says-it-is-not":
-        "finding 062: above a canvas height of about 32,767 the product paints "
-        "a blank page, reports `ready`, and says nothing -- and the SAME "
-        "twenty-page document draws on a 1x display and is blank on a 2x one. "
-        "The canvas element's own cap was measured at 65,535 in both browsers, "
-        "so this is a 16-bit limit inside the render path and not the browser's. "
-        "The layer was established on 2026-08-19 and it is the ENGINE SIDE: a "
-        "COLD render taller than 32,767 px comes back correctly sized, entirely "
-        "zero, and reported as a success. Measured at two widths whose buffers "
-        "differ by a factor of two (45 MB and 90 MB both paint at 32,767 and "
-        "are both blank at 32,768/34,847), so it is the height and not the "
-        "memory. The page is faithful throughout: it paints exactly the all-"
-        "zero image it is handed. Still NOT a link: nothing forces the product "
-        "to ask for one tile as tall as the document, and rendering in strips "
-        "avoids the limit "
-        "(queue-long-document-tile-request-exceeds-the-engine-limit).",
+    "the-canvas-follows-a-document-that-grew":
+        "finding 062, the half that is NOT fixed: an edit that makes the "
+        "document taller leaves the canvas at its old size and says nothing, at "
+        "any length -- a two-page document opens at canvas height 2007, an "
+        "insert of 3,336 characters leaves it at 2007, and re-opening the saved "
+        "bytes gives 3002, which is what a genuine three-page document reports. "
+        "This one the page CANNOT fix: `getDocumentSize` is called only at open "
+        "(probe_engine.cpp:2520) and no SDK operation re-reads it, so nothing "
+        "tells the page the document grew. Engine-side, needs a link "
+        "(queue-canvas-does-not-follow-a-document-that-grew). The OTHER half -- "
+        "the blank page above 32,767 px -- was fixed on 2026-08-19 by splitting "
+        "the request into strips, which needed no link.",
 }
 
 # The two markers `recover-from-an-error` is scored on. RESCUE_SAVED is typed
@@ -198,9 +194,21 @@ window.HTMLAnchorElement.prototype.click = function () {
 pp.toasts = [];
 const toastNode = document.querySelector('#toast');
 if (toastNode) {
-  new MutationObserver(() => {
-    const text = toastNode.textContent;
-    if (text && pp.toasts[pp.toasts.length - 1] !== text) pp.toasts.push(text);
+  // Read the RECORDS, not the node.  Reading `toastNode.textContent` once per
+  // callback loses every message that was replaced inside the same batch, and
+  // that is exactly the case this has to catch: `openDocument()` renders and
+  // its caller then toasts "opened", so a repaint failure raised during the
+  // open is overwritten in the same turn.  Measured 2026-08-19 -- the product
+  // DID report a failed repaint and this observer recorded only the success.
+  new MutationObserver((records) => {
+    for (const record of records) {
+      for (const node of record.addedNodes) {
+        const text = node.textContent;
+        if (text) pp.toasts.push(text);
+      }
+      if (record.type === "characterData" && record.target.data)
+        pp.toasts.push(record.target.data);
+    }
   }).observe(toastNode, { childList: true, characterData: true, subtree: true });
 }
 return "installed";
@@ -850,6 +858,22 @@ MUTATIONS = {
         "reintroduces": "an editor you wait for after every keystroke",
         "alsoRed": [],
     },
+    # Finding 062's fix, taken away: one tile for the whole document again.
+    # Above 32,767 px the engine returns a correctly sized buffer it never drew
+    # into and reports success, so this restores exactly what shipped until
+    # 2026-08-19 -- a blank page, `ready`, and no message.
+    "one-tile-for-the-whole-document": {
+        "check": "a-long-document-is-drawn-or-the-product-says-it-is-not",
+        "path": "e2-editor-app.js",
+        "find": "const MAX_TILE_HEIGHT = 32767;",
+        "replace": "const MAX_TILE_HEIGHT = 1000000;",
+        "reintroduces": "a long document drawn as a blank page, in silence",
+        # The tile check inside renderDocument turns the silence into a message,
+        # so with the strips gone the product now SAYS the repaint failed
+        # instead of showing nothing -- which is why the arms are not silent and
+        # the check goes red on `drawn` rather than on `silentArms`.
+        "alsoRed": [],
+    },
     # Aimed at the mechanism that actually commits a paste. Measured
     # 2026-08-17, twice: a page-level paste handler was written first on the
     # assumption that nothing handled paste, and it DOUBLED every paste
@@ -1082,7 +1106,7 @@ def build_mirror(source: Path, target: Path, overrides: dict[str, bytes]) -> Non
 # product page itself is one of them), so the digest moves on its own and no
 # separate honesty flag is needed.  Same digest function as the bundle manifest,
 # imported rather than reimplemented: two copies of a hash rule drift.
-SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v17.json"
+SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v19.json"
 
 
 def served_in_dist(relative: str) -> str:
@@ -2657,17 +2681,21 @@ def main() -> int:
         long_report["silentArms"] = [record["arm"] for record in silent]
         long_report["silentGrowth"] = silent_growth
         check("a-long-document-is-drawn-or-the-product-says-it-is-not",
-              below["drawn"] and not silent and not silent_growth,
+              below["drawn"] and above["drawn"] and above_dpr2["drawn"]
+              and not silent,
               observed={"belowTheWallDrawn": below["drawn"],
+                        "aboveTheWallDrawn": above["drawn"],
+                        "sameDocumentAt2xDrawn": above_dpr2["drawn"],
                         "silentArms": long_report["silentArms"],
-                        "silentGrowth": silent_growth,
                         "arms": long_report["arms"]},
-              oracle="a document short enough to render IS rendered, and at "
-                     "any length where rendering has broken the product says "
-                     "so -- a blank canvas with the session reporting `ready` "
-                     "and no message is the failure this checks for. Includes "
-                     "the growth case: an edit that makes the document taller "
-                     "must either be drawn or be explained",
+              oracle="every length the product will open is DRAWN, and at any "
+                     "length where rendering has broken it says so -- a blank "
+                     "canvas with the session reporting `ready` and no message "
+                     "is the failure this checks for. The two long arms are "
+                     "past the engine's 32,767 px tile limit (finding 062), so "
+                     "they pass only because the page splits the request into "
+                     "strips; the `one-tile-for-the-whole-document` mutation "
+                     "takes that away and this must go red",
               notEstablished="WHERE in the engine the 2^15 boundary lives. "
                              "That it is a height limit and not a memory one is "
                              "measured (findings/evidence/062/layer/: two "
@@ -2675,6 +2703,25 @@ def main() -> int:
                              "boundary); that a 2^15 boundary is a signed "
                              "16-bit quantity is an inference from the number, "
                              "and no source at that point has been read")
+
+        # --- the half that is NOT fixed, as its own check ------------------
+        # Splitting it out on 2026-08-19 when the drawing half was fixed: a
+        # mutation owned by a check that is already red cannot be shown to have
+        # been detected, so leaving both halves on one id would have meant the
+        # strip fix could never be guarded.
+        check("the-canvas-follows-a-document-that-grew",
+              really_grew and grew["canvasFollowedTheDocument"],
+              outcome=None if really_grew else "NOT_ESTABLISHED",
+              observed=grew,
+              oracle="an edit that makes the document taller is either drawn or "
+                     "explained. Ground truth is the SAME code path: the edited "
+                     "bytes are saved and re-opened, and if that canvas is "
+                     "taller than the one on screen then the document grew and "
+                     "the screen did not",
+              notEstablished="that the edit made the document taller at all. "
+                             "Without that, 'the canvas did not change' is not "
+                             "evidence of anything -- which is what caught a "
+                             "corpus whose pages held 83 lines")
 
         # A DEVIATION from the plan, recorded rather than quietly taken: the
         # plan asked for a mutation that shrinks MAX_BACKING_WIDTH, so that the

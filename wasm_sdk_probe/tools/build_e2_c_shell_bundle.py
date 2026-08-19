@@ -118,9 +118,11 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v13.json"),
                     Path("e2/editor-shell-v2-bundle-v14.json"),
                     Path("e2/editor-shell-v2-bundle-v15.json"),
-                    Path("e2/editor-shell-v2-bundle-v16.json"))
+                    Path("e2/editor-shell-v2-bundle-v16.json"),
+                    Path("e2/editor-shell-v2-bundle-v17.json"),
+                    Path("e2/editor-shell-v2-bundle-v18.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v17.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v19.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
