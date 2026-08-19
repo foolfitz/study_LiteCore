@@ -751,19 +751,19 @@
   },
   {
    "id": "queue-viewport-wall-never-measured",
-   "title": "the page draws the whole document as one canvas and repaints all of it per edit -- never measured past one page",
-   "expectation": "absent",
+   "title": "the long-document wall has been measured -- one canvas for the whole document, and where that stops working",
+   "expectation": "present",
    "blocksRelink": false,
    "source": "usable-editor acceptance checklist, 2026-08-17",
-   "note": "layoutCanvas sizes a single canvas to the full document and renderDocument repaints it after every edit. Browsers cap canvas dimensions near 32767px, so at MAX_BACKING_WIDTH 2400 an A4 document reaches the cap somewhere around a dozen pages and rendering breaks silently and browser-dependently; below the cap the per-edit repaint cost grows with document length. 'Open a user's own file' is verified for OPENING only -- nothing has ever measured that a realistic document stays editable. The machinery for the fix is already imported: editor-session.js pulls TileScheduler from reader-shell. First step is a measurement, not a fix: add a 20-page cell and find out where it actually breaks.",
+   "note": "layoutCanvas sizes a single canvas to the full document and renderDocument repaints it after every edit. Browsers cap canvas dimensions near 32767px, so at MAX_BACKING_WIDTH 2400 an A4 document reaches the cap somewhere around a dozen pages and rendering breaks silently and browser-dependently; below the cap the per-edit repaint cost grows with document length. 'Open a user's own file' is verified for OPENING only -- nothing has ever measured that a realistic document stays editable. The machinery for the fix is already imported: editor-session.js pulls TileScheduler from reader-shell. First step is a measurement, not a fix: add a 20-page cell and find out where it actually breaks. DONE 2026-08-19, and THREE of the guesses in the note above were wrong. (1) 'Browsers cap canvas dimensions near 32767px': measured by bisection on this machine, the cap is 65,535 in both Chrome and Firefox (65,234 for Chrome at 2400px wide). The wall the product hits is at ~32,767, which is therefore a 16-bit limit INSIDE the render path and not the browser's. (2) 'Around a dozen pages': at this viewport it is 33 pages at devicePixelRatio 1 and 17 at 2 -- and the dpr factor is the part that matters, because the same twenty-page document draws at 1x and is blank at 2x. (3) 'The per-edit repaint cost grows with document length': measured essentially flat -- 60 ms at one page, 127 ms at twenty, about 3.6 ms per page. Latency is not the problem here and the pre-registered 1,000 ms threshold was never approached below the wall. What IS the problem is that past the wall the product paints a blank page and says nothing: finding 062, and the two items that carry it are queue-long-document-renders-blank-in-silence and queue-canvas-does-not-follow-a-document-that-grew.",
    "checks": [
     {
-     "kind": "absent",
+     "kind": "contains",
      "file": "tools/run_e2_c_product_path.py",
-     "text": "LONG_DOCUMENT_CELL"
+     "text": "a-long-document-is-drawn-or-the-product-says-it-is-not"
     }
    ],
-   "checkNote": "Absent until a long-document cell exists in the product-path runner."
+   "checkNote": "Present now. The cell is named by its check rather than by the `LONG_DOCUMENT_CELL` placeholder the plan used -- the sentinel names the thing that exists, not the thing that was going to be called that."
   },
   {
    "id": "queue-inline-format-argument-is-rejected-by-core",
@@ -812,6 +812,38 @@
     }
    ],
    "checkNote": "Watched by NAME, and the name is not arbitrary: the shell's own module calls this decision `checkpointFailed` (editor-shell/recovery-notice.js), and the honest fix is for the page to take that decision rather than re-deriving a two-way branch from `hasCheckpoint`. A fix written inline under some other name would leave this item reading 'still open' when it is done -- an approximation recorded here rather than hidden, because the alternative sentinel is the notice's WORDING and this queue must not start depending on a sentence nobody has written yet. The first sentinel tried was `checkpointError ?`, which the STATUS PILL already contains: it drifted immediately, which is the checker doing its job."
+  },
+  {
+   "id": "queue-long-document-renders-blank-in-silence",
+   "title": "above a canvas height of ~32,767 the product paints a blank page and reports success -- LAYER NOT ESTABLISHED, so it is not yet known whether the fix needs a link",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "finding 062, measured 2026-08-19",
+   "note": "The wall is bracketed narrowly: with one document held fixed and devicePixelRatio swept, 32,590 px of canvas height draws and 32,889 px is blank, and 32,767 = 2^15-1 sits between them. It is NOT the canvas element's cap -- that was measured separately at 65,535 in both Chrome and Firefox, and 65,234 for Chrome at 2400 px wide -- so this is a 16-bit limit inside the render path. The same twenty-page document draws at devicePixelRatio 1 and is blank at 2, so it is a property of the document times the display, not of the document. blocksRelink is FALSE and that is not a judgement that this is unimportant: the first work owed is the experiment that says WHICH LAYER loses the pixels, and until that is done, declaring it engine-side would be the mistake findings 040 and 048 were filed against. THE EXPERIMENT: call document.render() through the shell with canvasHeightPx 32,590 and 32,889 and compare the returned width/height and pixel byte length. render() does not throw today and the product page publishes no session handle, which is why this cannot be answered from the product path. If the engine returns an empty tile this item becomes engine-side and blocksRelink must be flipped.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "../findings/062-a-long-document-is-drawn-as-a-blank-page-in-silence.md",
+     "text": "LAYER-ESTABLISHED"
+    }
+   ],
+   "checkNote": "Whoever runs the experiment writes the token LAYER-ESTABLISHED into finding 062's status line, together with which layer it turned out to be; this item flips when they do. The token lives HERE and not in the finding on purpose: the first two attempts both failed, and instructively. A sentinel naming a file the experiment would create drifted at once, because the checker fails closed on a file it cannot read. A sentinel on a Chinese phrase then drifted because the finding's own instruction SPELLED that phrase -- the file matched the sentence explaining the sentinel. A watched string must not appear in the text that explains it."
+  },
+  {
+   "id": "queue-canvas-does-not-follow-a-document-that-grew",
+   "title": "an edit that adds a page leaves the new page undrawn and unmentioned -- page-side, no link needed",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "finding 062's second half, measured 2026-08-19",
+   "note": "DocumentHandle.heightTwips is assigned once from the open metadata (sdk/document-sdk.js:374) and `document-invalidated` calls renderDocument() and nothing else (web/e2-editor-app.js:622) -- no metadata re-read, no layoutCanvas(). Measured through the product's own buttons: a two-page document opens at a canvas height of 2007, an insert of 3,336 characters leaves it at 2007, and saving those bytes and re-opening them gives 3002 -- which is exactly what a genuine three-page document reports. So the document grew by a page, the canvas did not, and nothing was said. This half has no page-count threshold: it fires at two pages. Fix: re-read the document metadata on invalidation and call layoutCanvas() when the height changed.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "web/e2-editor-app.js",
+     "text": "layoutCanvas();\n        void renderDocument()"
+    }
+   ],
+   "checkNote": "Watched for the shape of the fix at the invalidation handler. Approximate, like the 061 sentinel, and recorded as approximate rather than hidden."
   }
  ],
  "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

@@ -69,6 +69,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from create_long_document import build as build_long_document  # noqa: E402
 from e1_support import sha256 as sha256_file  # noqa: E402
 from r7_support import evaluate, wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, FirefoxSession, free_port  # noqa: E402
@@ -105,6 +106,16 @@ KNOWN_RED = {
         "tells the user an action failed while the document shows it worked. "
         "Engine-side, needs a link "
         "(queue-inline-format-argument-is-rejected-by-core).",
+    "a-long-document-is-drawn-or-the-product-says-it-is-not":
+        "finding 062: above a canvas height of about 32,767 the product paints "
+        "a blank page, reports `ready`, and says nothing -- and the SAME "
+        "twenty-page document draws on a 1x display and is blank on a 2x one. "
+        "The canvas element's own cap was measured at 65,535 in both browsers, "
+        "so this is a 16-bit limit inside the render path and not the browser's. "
+        "The LAYER is deliberately not named: render() does not throw, so this "
+        "cannot say whether the engine returned an empty tile or the page lost "
+        "a good one, and that is what decides whether the fix needs a link "
+        "(queue-long-document-renders-blank-in-silence).",
 }
 
 # The two markers `recover-from-an-error` is scored on. RESCUE_SAVED is typed
@@ -114,14 +125,19 @@ KNOWN_RED = {
 RESCUE_SAVED = "救回標記已存"
 RESCUE_UNSAVED = "救回標記未存"
 
+# Long enough to push a two-page document onto a third page, and its first
+# characters are a marker, so "the edit reached the document" is a question
+# about a string rather than about a length.
+LONG_INSERT = "LDGROW" + (" grow the document past its last page" * 90)
+
 INSERT_MARK = "插入鈕標記"
 # Non-ASCII on purpose: a paste path that mangles UTF-8 passes an ASCII marker.
 PASTE_MARK = "貼上標記PASTEMARK"
 
 # The fixture's own text, used as a witness that a check did not destroy the
 # document around what it was measuring.  It is only ever REQUIRED if a previous
-# capture in the same run showed it present, so a different --fixture degrades to
-# the IME witnesses rather than to a false red.
+# capture in the same run showed it present, so a run on a document that does
+# not contain it degrades to the IME witnesses rather than to a false red.
 FIXTURE_SENTINEL = "E1-LC-END"
 
 
@@ -168,7 +184,83 @@ window.HTMLAnchorElement.prototype.click = function () {
   if (this.hasAttribute("download")) { pp.anchorClicks += 1; return; }
   return nativeClick.call(this);
 };
+// EVERY toast, not just the one still on screen.  `openDocument()` renders and
+// then its caller toasts "opened", so a repaint failure raised during the open
+// is overwritten before anything can read it -- and "the product said nothing"
+// is the subject of a check, so it cannot be measured by reading a field that
+// the success message has already scribbled over.
+pp.toasts = [];
+const toastNode = document.querySelector('#toast');
+if (toastNode) {
+  new MutationObserver(() => {
+    const text = toastNode.textContent;
+    if (text && pp.toasts[pp.toasts.length - 1] !== text) pp.toasts.push(text);
+  }).observe(toastNode, { childList: true, characterData: true, subtree: true });
+}
 return "installed";
+})()"""
+
+READ_TOASTS = "(() => (window.__pp ? window.__pp.toasts.slice() : null))()"
+
+CLEAR_TOASTS = """(() => {
+if (window.__pp) window.__pp.toasts.length = 0;
+return true;
+})()"""
+
+# A document of a KNOWN page count, handed to the product's own file input as
+# bytes.  Not fetched from the server: a user's document does not arrive from
+# the host that served the page, and nothing has to be written into dist/ --
+# which is the frozen artifact tree and the one place this round must not
+# quietly grow a file (the E2-B lesson).
+OPEN_BYTES = """(() => {
+const input = document.querySelector('#file');
+if (!input) return "no-input";
+const binary = atob("ARG_B64");
+const bytes = new Uint8Array(binary.length);
+for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+const file = new File([bytes], "ARG_NAME",
+                      { type: "application/vnd.oasis.opendocument.text" });
+const transfer = new DataTransfer();
+transfer.items.add(file);
+input.files = transfer.files;
+input.dispatchEvent(new Event("change", { bubbles: true }));
+return "dispatched";
+})()"""
+
+GEOMETRY = """(() => {
+const canvas = document.querySelector('#canvas');
+return { width: canvas.width, height: canvas.height,
+         cssWidth: canvas.style.width, cssHeight: canvas.style.height,
+         devicePixelRatio: globalThis.devicePixelRatio };
+})()"""
+
+# Ink in the top strip only.  Cheap enough to poll on a 32,000-pixel canvas,
+# and it answers the only question that matters here: is the document drawn AT
+# ALL.  Finding 058 is why this is asked in pixels rather than inferred from a
+# state field -- data arriving is not the same as anything being painted.
+TOP_INK = """(() => {
+const canvas = document.querySelector('#canvas');
+const w = canvas.width;
+const rows = Math.min(400, canvas.height);
+const data = canvas.getContext('2d').getImageData(0, 0, w, rows).data;
+const inked = new Uint8Array(w);
+let count = 0;
+for (let y = 0; y < rows; y += 1) {
+  for (let x = 0; x < w; x += 1) {
+    const i = (y * w + x) * 4;
+    if (data[i+3] > 128 && data[i] < 100 && data[i+1] < 100 && data[i+2] < 100) {
+      count += 1; inked[x] = 1;
+    }
+  }
+}
+let columns = 0;
+for (let x = 0; x < w; x += 1) if (inked[x]) columns += 1;
+// COLUMNS, not a pixel count.  The caret is two pixels wide and about thirty
+// tall, so on a 2x display it puts 56 dark pixels on an otherwise blank canvas
+// -- which passed a "more than 50 dark pixels" test and reported a blank
+// document as drawn.  Text spans hundreds of columns; a caret spans two.
+return { ink: count, columns, rows,
+         height: canvas.height, width: w };
 })()"""
 
 CLEAR_TOAST = """(() => {
@@ -733,6 +825,25 @@ MUTATIONS = {
                         "nothing to rescue'",
         "alsoRed": [],
     },
+    # The registered latency threshold, made to bite.  A pre-registered number
+    # that nothing can ever exceed is decoration, and this tree has been caught
+    # by that shape before: `renderDocument()` allows itself 60 seconds, so the
+    # cell would pass on an editor where every keystroke took half a minute.
+    # 3,000 ms, and the reason it is not 1,500 is a measurement rather than a
+    # margin: a 1,500 ms delay per REPAINT produced only 765-832 ms of
+    # user-visible latency, because what this times is keystroke to visible
+    # ink and the page coalesces repaints (`renderAgain`).  The delay a build
+    # carries and the wait a user feels are not the same number, and the
+    # threshold is written about the second one.
+    "slow-repaint": {
+        "check": "editing-a-long-document-stays-responsive",
+        "path": "e2-editor-app.js",
+        "find": "async function renderDocument(retriesLeft = 6) {",
+        "replace": "async function renderDocument(retriesLeft = 6) {\n"
+                   "  await new Promise((resolve) => setTimeout(resolve, 3000));",
+        "reintroduces": "an editor you wait for after every keystroke",
+        "alsoRed": [],
+    },
     # Aimed at the mechanism that actually commits a paste. Measured
     # 2026-08-17, twice: a page-level paste handler was written first on the
     # assumption that nothing handled paste, and it DOUBLED every paste
@@ -1183,6 +1294,113 @@ def document_lines(report: dict) -> list[dict]:
     return out
 
 
+def set_device_pixel_ratio(session, ratio):
+    """Chrome only. Firefox has no CDP here, so its arms say so and score nothing.
+
+    The wall this cell measures moves by more than a factor of three across
+    ordinary displays, and a headless run sits on the most forgiving square --
+    so a cell that reported one number would be describing the harness rather
+    than the product.
+    """
+    call = getattr(session, "call", None)
+    if call is None:
+        return {"requested": ratio, "applied": None,
+                "why": "this browser session has no CDP; dpr cannot be set"}
+    try:
+        call("Emulation.setDeviceMetricsOverride",
+             {"width": 0, "height": 0, "deviceScaleFactor": ratio,
+              "mobile": False})
+        return {"requested": ratio,
+                "applied": evaluate(session,
+                                    "(() => globalThis.devicePixelRatio)()")}
+    except Exception as error:            # noqa: BLE001 -- reported, not raised
+        return {"requested": ratio, "applied": None,
+                "why": f"{type(error).__name__}: {error}"}
+
+
+def open_long_document(session, pages: int, name: str, timeout: float = 300):
+    """A document of an EXACT page count, through the product's file input."""
+    payload = base64.b64encode(build_long_document(pages)).decode("ascii")
+    dispatched = evaluate(session, OPEN_BYTES.replace("ARG_B64", payload)
+                          .replace("ARG_NAME", name))
+    state = wait_for(session,
+                     lambda s: (s.get("doc") or "") == name
+                     and s.get("state") == "ready", timeout)
+    return {"pages": pages, "name": name, "dispatched": dispatched,
+            "state": (state or {}).get("state")}
+
+
+# A caret is about 60 dark pixels and it MOVES on every edit, so "the ink
+# changed" is satisfied by the caret alone -- measured 2026-08-19 under the
+# slow-repaint mutation, which reported 0.28 s while every repaint was being
+# delayed by a second and a half.  The marker below is long enough that its own
+# glyphs are several hundred pixels of ink, and the delta has to clear that.
+KEYSTROKE_MARKER = "LDXLDXLDXLDXLDXLDXLDXLDX"
+CARET_SIZED_INK = 200
+
+
+def wait_until_drawn(session, timeout: float = 45):
+    """Is the document ON SCREEN yet -- not: is the session ready.
+
+    `ready` is a statement about the session; the tile arrives afterwards.
+    Reading the pixels once, straight after `ready`, reports a page that is
+    merely still rendering as a page that renders nothing.
+    """
+    deadline = time.monotonic() + timeout
+    last: dict = {}
+    while time.monotonic() < deadline:
+        last = evaluate(session, TOP_INK) or {}
+        if (last.get("columns") or 0) > 40:
+            return {"drawn": True, "ink": last,
+                    "seconds": round(timeout - (deadline - time.monotonic()), 2)}
+        time.sleep(0.5)
+    return {"drawn": False, "ink": last, "seconds": timeout}
+
+
+def settle_ink(session, tries: int = 40, poll: float = 0.4):
+    """Wait until the canvas stops changing, and say what it settled on.
+
+    Measured 2026-08-19: without this, a repaint still in flight from the
+    PREVIOUS action lands a fraction of a second after the keystroke and the
+    measurement stops on it -- so a build with every repaint delayed by a
+    second and a half reported a third of a second, and the mutation aimed at
+    the latency threshold went undetected.  The clock cannot start while the
+    picture is still moving.
+    """
+    previous = None
+    for _ in range(tries):
+        current = (evaluate(session, TOP_INK) or {}).get("ink")
+        if current is not None and current == previous:
+            return current
+        previous = current
+        time.sleep(poll)
+    return previous
+
+
+def keystroke_to_ink(session, timeout: float = 90):
+    """How long a user waits to SEE the characters they typed.
+
+    Not the latency pill: `run()` writes that BEFORE awaiting renderDocument
+    (`web/e2-editor-app.js:281-282`), so the pill excludes the repaint, which
+    is the whole of what gets expensive on a long document.
+    """
+    before = settle_ink(session)
+    started = time.monotonic()
+    evaluate(session, SET_TEXT.replace("ARG_TEXT", KEYSTROKE_MARKER))
+    evaluate(session, PRESS.replace("ARG_ACTION", "insert-text"))
+    while time.monotonic() - started < timeout:
+        now = (evaluate(session, TOP_INK) or {}).get("ink")
+        if now is not None and before is not None \
+                and abs(now - before) > CARET_SIZED_INK:
+            return {"seconds": round(time.monotonic() - started, 3),
+                    "inkBefore": before, "inkAfter": now,
+                    "requiredDelta": CARET_SIZED_INK}
+        time.sleep(0.05)
+    return {"seconds": None, "inkBefore": before,
+            "inkAfter": (evaluate(session, TOP_INK) or {}).get("ink"),
+            "requiredDelta": CARET_SIZED_INK}
+
+
 def wait_for(session, predicate, timeout, poll=0.4):
     deadline = time.monotonic() + timeout
     state = None
@@ -1280,7 +1498,6 @@ def is_an_odt(report: dict) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--browser", choices=("chrome", "firefox"), default="chrome")
-    parser.add_argument("--fixture", default="list-contexts")
     parser.add_argument("--mutate", choices=tuple(MUTATIONS) + ("none",), default="none")
     parser.add_argument("--timeout", type=float, default=300)
     parser.add_argument("--out", default=None, help="write the report here as JSON")
@@ -1290,14 +1507,28 @@ def main() -> int:
         "schemaVersion": 1,
         "release": "e2-c-product-path",
         "browser": args.browser,
-        "fixture": args.fixture,
+        # NOT a parameter.  Until 2026-08-19 this was `--fixture`, a flag that
+        # was written into the report and read by nothing: `navigate()` does
+        # not carry it and the page always boots `list-contexts`
+        # (web/e2-editor-app.js:701).  A report field that does not control
+        # what it names is finding 029's shape, and a run claiming to have
+        # measured a document it never opened is worse than one that says
+        # nothing.  Filled in below from what the page itself reports.
+        "fixture": None,
         "isTrusted": False,
         "notD5": "synthetic events; SPEC E2-C D5 requires trusted input and a human",
         "shims": ["URL.createObjectURL",
                   "HTMLAnchorElement.prototype.click (download anchors)",
                   "#toast.textContent cleared between steps",
                   "ClipboardEvent.clipboardData (Firefox drops it from the "
-                  "constructor; defined onto the event with types/getData only)"],
+                  "constructor; defined onto the event with types/getData only)",
+                  "#toast is observed and every message recorded -- the "
+                  "product's success toast overwrites a repaint failure raised "
+                  "during the same open, and 'the product said nothing' is "
+                  "the subject of a check",
+                  "Emulation.setDeviceMetricsOverride (Chrome only) to sweep "
+                  "devicePixelRatio; the wall this measures moves by more than "
+                  "3x across ordinary displays"],
         "mutation": args.mutate if args.mutate != "none" else None,
         "checks": [],
         "steps": [],
@@ -1340,6 +1571,7 @@ def main() -> int:
         booted = wait_for(session, lambda s: s.get("state") in ("ready", "stopped",
                                                                "expired"),
                           args.timeout)
+        report["fixture"] = (booted or {}).get("doc")
         report["steps"].append({"step": "boot", "state": booted})
         if not booted or booted.get("state") != "ready":
             report["failedAt"] = "boot"
@@ -2242,6 +2474,205 @@ def main() -> int:
                              "The File is synthesised and assigned to the input, "
                              "which exercises the page's change handler and not "
                              "the chooser -- the same class of gap D5 exists for")
+
+        # ----------------------------- edit-a-real-length-document: the wall
+        # The one checklist row still marked `missing`, and it was marked that
+        # way without a measurement -- nothing in this tree could produce a
+        # document of a known page count until today.
+        #
+        # What is judged is NOT "twenty pages must work". Two things, each able
+        # to fail on its own, both registered before anything was measured
+        # (findings/evidence/sdk-e2/e2-c-validation/long-document/PREDICTION.md):
+        #
+        #   HONESTY  -- at a length where rendering has broken, the product must
+        #               SAY so. Handing back a blank canvas in silence is a
+        #               failure, and finding 058 is the precedent: nine checks
+        #               stayed green on a page that painted nothing.
+        #   USABILITY -- keystroke to visible ink, against a threshold written
+        #               down in advance (1,000 ms). `renderDocument()` allows
+        #               itself 60 seconds, so without a pre-registered number
+        #               this cell would pass while every keystroke took half a
+        #               minute.
+        #
+        # The dpr sweep is not decoration. The wall is a canvas HEIGHT, and
+        # canvas height is backingWidth x devicePixelRatio x pages -- so the
+        # same document that draws on a 1x display is blank on a 2x one, and a
+        # headless run at dpr 1 sits on the most forgiving square there is.
+        long_report: dict = {"registeredThresholdMs": 1000, "arms": []}
+
+        def long_arm(pages, dpr, label, edit=True):
+            record = {"arm": label, "pages": pages}
+            record["dpr"] = set_device_pixel_ratio(session, dpr)
+            evaluate(session, CLEAR_TOAST)
+            evaluate(session, CLEAR_TOASTS)
+            record.update(open_long_document(
+                session, pages, f"long-{pages:02d}p-dpr{dpr}.odt"))
+            record["geometry"] = evaluate(session, GEOMETRY)
+            settled = wait_until_drawn(session)
+            record["ink"] = settled["ink"]
+            record["drawnAfterSeconds"] = settled["seconds"]
+            record["drawn"] = settled["drawn"]
+            if edit and record["drawn"]:
+                scan, bands = stable_bands(session)
+                if bands:
+                    band = bands[0]
+                    evaluate(session, POINT_AT
+                             .replace("ARG_X",
+                                      f"{(band['first'] + 4) / scan['width']:.5f}")
+                             .replace("ARG_Y", f"{band['centreFraction']:.5f}"))
+                    wait_for(session,
+                             lambda s: "定位游標" in (s.get("latency") or ""), 60)
+                    floor = revision_of(evaluate(session, READ_STATE))
+                    record["latency"] = keystroke_to_ink(session)
+                    record["revisionAdvanced"] = (
+                        revision_of(evaluate(session, READ_STATE)) or 0) > (floor or 0)
+            # Every toast the product raised, not the one still on screen.
+            record["toasts"] = evaluate(session, READ_TOASTS)
+            record["state"] = (evaluate(session, READ_STATE) or {}).get("state")
+            long_report["arms"].append(record)
+            return record
+
+        # 995 canvas pixels per page at devicePixelRatio 1 on this viewport
+        # (measured: 2 pages 2007px, 3 pages 3002px), so the wall sits near 33
+        # pages at 1x and near 17 at 2x. The pair is chosen so that the SAME
+        # twenty-page document is the drawn arm at 1x and the blank arm at 2x:
+        # nothing about the document changes between them, only the display.
+        short = long_arm(1, 1, "one-page")
+        middle = long_arm(5, 1, "five-pages")
+        below = long_arm(20, 1, "below-the-wall")
+        above = long_arm(35, 1, "above-the-wall", edit=False)
+        above_dpr2 = long_arm(20, 2, "the-same-document-on-a-2x-display",
+                              edit=False)
+
+        # The fourth wall, and the one a size sweep alone cannot see:
+        # `heightTwips` is assigned once from the open metadata
+        # (`sdk/document-sdk.js:374`) and `document-invalidated` calls
+        # `renderDocument()` and nothing else (`web/e2-editor-app.js:622`) --
+        # no metadata re-read, no `layoutCanvas()`. So after an edit that makes
+        # the document taller the canvas still describes the document as it was
+        # opened.
+        #
+        # The ground truth is the SAME code path: save the edited bytes and
+        # open them fresh. If that canvas is taller than the one on screen, the
+        # document grew and the screen did not.
+        set_device_pixel_ratio(session, 1)
+        evaluate(session, CLEAR_TOASTS)
+        grew = {"arm": "an-edit-that-makes-the-document-taller", "pages": 2}
+        grew.update(open_long_document(session, 2, "long-grow.odt"))
+        first_geometry = evaluate(session, GEOMETRY) or {}
+        grew["heightWhenOpened"] = first_geometry.get("height")
+        scan, bands = stable_bands(session)
+        if bands and grew["state"] == "ready":
+            band = bands[-1]
+            evaluate(session, POINT_AT
+                     .replace("ARG_X",
+                              f"{(band['first'] + 4) / scan['width']:.5f}")
+                     .replace("ARG_Y", f"{band['centreFraction']:.5f}"))
+            wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+            floor = revision_of(evaluate(session, READ_STATE))
+            evaluate(session, SET_TEXT.replace("ARG_TEXT", LONG_INSERT))
+            evaluate(session, PRESS.replace("ARG_ACTION", "insert-text"))
+            wait_for(session, lambda s, f=floor: revision_of(s) is not None
+                     and f is not None and revision_of(s) > f, 60)
+            grew["heightAfterTheEdit"] = (evaluate(session, GEOMETRY)
+                                          or {}).get("height")
+            edited = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+            grew["editReachedTheDocument"] = LONG_INSERT[:32] in (
+                edited.get("content") or "")
+            # Re-open the saved bytes through the product's own file input, so
+            # the comparison is between two runs of the same code.
+            raw = evaluate(session, READ_SAVE.replace(
+                "ARG_INDEX", str((evaluate(session, SAVE_COUNT) or 1) - 1)))
+            if raw:
+                evaluate(session, OPEN_BYTES.replace("ARG_B64", raw["b64"])
+                         .replace("ARG_NAME", "long-grown-reopened.odt"))
+                wait_for(session,
+                         lambda s: (s.get("doc") or "") == "long-grown-reopened.odt"
+                         and s.get("state") == "ready", 300)
+                grew["heightWhenReopened"] = (evaluate(session, GEOMETRY)
+                                              or {}).get("height")
+        grew["toasts"] = evaluate(session, READ_TOASTS)
+        long_report["arms"].append(grew)
+
+        really_grew = (isinstance(grew.get("heightWhenReopened"), int)
+                       and isinstance(grew.get("heightWhenOpened"), int)
+                       and grew["heightWhenReopened"] > grew["heightWhenOpened"]
+                       and bool(grew.get("editReachedTheDocument")))
+        grew["canvasFollowedTheDocument"] = (
+            really_grew
+            and grew.get("heightAfterTheEdit") == grew.get("heightWhenReopened"))
+        grew["groundTruthEstablished"] = really_grew
+
+        # --- HONESTY -------------------------------------------------------
+        def spoke_up(record):
+            """Did the product tell the user anything about the failure?"""
+            said = " ".join(record.get("toasts") or [])
+            return ("重繪" in said or "失敗" in said
+                    or record.get("state") not in ("ready", None))
+
+        silent = [record for record in (above, above_dpr2)
+                  if not record["drawn"] and not spoke_up(record)]
+        silent_growth = (really_grew and not grew["canvasFollowedTheDocument"]
+                         and not spoke_up(grew))
+        long_report["silentArms"] = [record["arm"] for record in silent]
+        long_report["silentGrowth"] = silent_growth
+        check("a-long-document-is-drawn-or-the-product-says-it-is-not",
+              below["drawn"] and not silent and not silent_growth,
+              observed={"belowTheWallDrawn": below["drawn"],
+                        "silentArms": long_report["silentArms"],
+                        "silentGrowth": silent_growth,
+                        "arms": long_report["arms"]},
+              oracle="a document short enough to render IS rendered, and at "
+                     "any length where rendering has broken the product says "
+                     "so -- a blank canvas with the session reporting `ready` "
+                     "and no message is the failure this checks for. Includes "
+                     "the growth case: an edit that makes the document taller "
+                     "must either be drawn or be explained",
+              notEstablished="WHERE the pixels are lost. render() does not "
+                             "throw and no error reaches the page, so this "
+                             "cannot say whether the engine returned an empty "
+                             "tile or the page failed to paint a good one -- "
+                             "and naming a layer without measuring it is what "
+                             "findings 040 and 048 were about")
+
+        # A DEVIATION from the plan, recorded rather than quietly taken: the
+        # plan asked for a mutation that shrinks MAX_BACKING_WIDTH, so that the
+        # wall moves and this cell has to follow it -- proof that it measures a
+        # wall and not a constant somebody typed. That mutation would be owned
+        # by the check above, which is KNOWN_RED, and a mutation owned by a
+        # check that is already red cannot be shown to have been detected. The
+        # wall's independence from any constant in this file is instead
+        # established by measurement: it was found by sweeping devicePixelRatio
+        # on one fixed document (32,590 draws, 32,889 blank), and the canvas
+        # element's own cap was measured separately at 65,535. The falsifier
+        # the plan wanted is owed again once 062 is fixed.
+        #
+        # --- USABILITY -----------------------------------------------------
+        measured = [record for record in (short, middle, below)
+                    if (record.get("latency") or {}).get("seconds") is not None]
+        worst = max((record["latency"]["seconds"] for record in measured),
+                    default=None)
+        long_report["worstKeystrokeSeconds"] = worst
+        check("editing-a-long-document-stays-responsive",
+              len(measured) == 3 and worst is not None
+              and worst * 1000 <= long_report["registeredThresholdMs"]
+              and all(record.get("revisionAdvanced") for record in measured),
+              outcome=None if len(measured) == 3 else "NOT_ESTABLISHED",
+              observed={"thresholdMs": long_report["registeredThresholdMs"],
+                        "worstSeconds": worst,
+                        "perArm": [{"pages": r["pages"],
+                                    "seconds": (r.get("latency") or {}).get("seconds"),
+                                    "revisionAdvanced": r.get("revisionAdvanced")}
+                                   for r in (short, middle, below)]},
+              oracle="a keystroke becomes visible ink within the 1,000 ms "
+                     "registered in PREDICTION.md, at every length the product "
+                     "can still draw, and the document actually advances a "
+                     "revision. The threshold was written down before the "
+                     "measurement because renderDocument() allows itself 60 "
+                     "seconds and would otherwise pass",
+              notEstablished="lengths past the wall. Nothing is drawn there, "
+                             "so there is no ink to time")
+        set_device_pixel_ratio(session, 1)
 
         # ------------------- recover-from-an-error: judge the product by its
         # ------------------- own declaration, not by our hopes
