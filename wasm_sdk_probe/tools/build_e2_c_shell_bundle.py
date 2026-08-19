@@ -121,9 +121,14 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v16.json"),
                     Path("e2/editor-shell-v2-bundle-v17.json"),
                     Path("e2/editor-shell-v2-bundle-v18.json"),
-                    Path("e2/editor-shell-v2-bundle-v19.json"))
+                    Path("e2/editor-shell-v2-bundle-v19.json"),
+                    Path("e2/editor-shell-v2-bundle-v20.json"),
+                    Path("e2/editor-shell-v2-bundle-v21.json"),
+                    Path("e2/editor-shell-v2-bundle-v22.json"),
+                    Path("e2/editor-shell-v2-bundle-v23.json"),
+                    Path("e2/editor-shell-v2-bundle-v24.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v20.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v25.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
@@ -233,6 +238,16 @@ def problems(project: Path, state: dict[str, Any],
     uncovered = sorted(set(state["available"]) - covered)
     if uncovered:
         out.append(f"in scope but neither included nor excluded: {uncovered}")
+    # A path in BOTH lists is a manifest that contradicts itself, and the
+    # exclusion's stated reason is by then describing a file that is imported
+    # after all.  It happened on 2026-08-19: the page started importing
+    # recovery-notice.js, the builder correctly moved it into `included`, and
+    # the inherited exclusion -- "the product page never imports it" -- came
+    # along for the ride.  The digest was right; the document was lying.
+    both = sorted(set(state["included"]) & {
+        str(item.get("path")) for item in (manifest or {}).get("excluded", [])})
+    if both:
+        out.append(f"included AND excluded, so one of the two is wrong: {both}")
     for path in state["included"]:
         if state["distHashes"].get(path) != state["hashes"][path]:
             out.append(f"dist copy differs from source: {path} "

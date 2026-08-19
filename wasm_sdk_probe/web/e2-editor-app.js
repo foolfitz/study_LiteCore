@@ -28,11 +28,19 @@
 
 import { createDocumentEngine } from "./sdk/document-sdk.js";
 import { NarrowEditorV2Session } from "./editor-shell-v2/narrow-editor-v2-session.js";
+// Finding 061: this page used to re-derive the recovery notice from
+// `hasCheckpoint` alone, and that two-way branch told a user whose checkpoint
+// SAVE FAILED that there had never been one.  The shell decides this already,
+// and its own spec revision (SPEC-E1-C 4.1 v8) says the third case exists
+// precisely so nobody is left silent about a failed rescue.  Taking the
+// decision instead of re-deriving it also retires the second defect the same
+// re-derivation produced: finding 054, a flag nothing wrote.
+import { recoveryNotice } from "./editor-shell/recovery-notice.js";
 import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js";
 
 // The artifact this page is for.  A page that runs on whatever build happens to
 // be in dist/ is a page that can show behaviour no evidence covers.
-const PINNED_WASM_SHA256 = "296f3ea727725fbb";
+const PINNED_WASM_SHA256 = "29ec627bf8a5588b";
 
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -103,24 +111,27 @@ function updateState(snapshot) {
   el.s.checkpoint.textContent = snapshot.hasCheckpoint
     ? `有（r${snapshot.checkpointRevision ?? "?"}）`
     : snapshot.checkpointError ? "寫入失敗" : "無";
-  const recoverable = ["recoverable-error", "restart-required"]
-    .includes(snapshot.state);
-  el.notice.dataset.show = recoverable ? "1" : "0";
-  if (recoverable) {
-    el.noticeText.textContent = snapshot.hasCheckpoint
+  const notice = recoveryNotice(snapshot);
+  el.notice.dataset.show = notice.visible ? "1" : "0";
+  // The decision, stamped where a reader can see it: hosts may differ in
+  // wording, they may not differ in whether they claim work was preserved.  A
+  // check that asserts the wording would go green the day somebody rephrases
+  // the sentence; this is the thing that must not change.
+  el.notice.dataset.rescue = notice.canRescue ? "checkpoint"
+    : notice.checkpointFailed ? "failed" : "none";
+  if (notice.visible) {
+    el.noticeText.textContent = notice.canRescue
       ? "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。"
+      : notice.checkpointFailed
+      ? "引擎需要重新開啟。我們試著先保住你的工作，那次存檔失敗了——自上次儲存以來的內容不會回來。"
       : "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。";
-    el.noticeAction.textContent = snapshot.hasCheckpoint
+    el.noticeAction.textContent = notice.canRescue
       ? "回到檢查點" : "重新開啟";
-    // Finding 054: this read `snapshot.requiresPageReload`, and nothing writes
-    // that name at the top level of a snapshot -- the flag lives in the error's
-    // details (`editor-session.js`, at the generation ceiling), which is where
-    // the v1 component reads it from.  So the button never disabled, and at the
-    // ceiling it pointed the user at a control guaranteed to refuse them.
-    // Both conditions, like recovery-notice.js: the code alone is enough.
-    el.noticeAction.disabled =
-      snapshot.error?.code === "WORKER_GENERATION_LIMIT"
-      || snapshot.error?.details?.requiresPageReload === true;
+    // Finding 054 was this line reading a flag nothing writes.  It now comes
+    // from the same module as everything else about this notice, which is the
+    // point: one place decides, and re-deriving it here is what produced both
+    // 054 and 061.
+    el.noticeAction.disabled = !notice.restartPossible;
   }
   updateGestureAffordance();
   // Finding 058.  The caret arrives as a state update, not as a document
@@ -148,12 +159,14 @@ function updateGestureAffordance() {
     button.title = offered ? "" :
       `manifest 沒有為「${lastSelectionShape}」宣告這個動作`;
   }
-  // Show the state for the two formats the engine can actually answer for, and
-  // for no others.  `aria-pressed` is only set when the answer is known: a
-  // button that renders a state it is guessing at is the trap the toggle bug
-  // already was, one layer up.  Underline and strikethrough get no pressed
-  // state because core keeps no cache for them.
-  for (const action of ["set-bold", "set-italic"]) {
+  // `aria-pressed` is set only when the answer is KNOWN: a button that renders
+  // a state it is guessing at is the trap the toggle bug already was, one layer
+  // up.  All four now, because since the 2026-08-19 relink the engine keeps a
+  // cache for underline and strikethrough too -- they were always in core's
+  // GetKitUnoCommandList and always broadcast; nobody had written the cache,
+  // and this list was hard-coded to the two that had one.
+  for (const action of ["set-bold", "set-italic", "set-underline",
+                        "set-strikethrough"]) {
     const button = el.toolbar.querySelector(`[data-action="${action}"]`);
     if (!button) continue;
     const state = formatStateFor(action);
@@ -418,8 +431,13 @@ async function run(label, operation) {
 // stale read into a silent no-op.
 function formatStateFor(action) {
   const format = session?.state?.snapshot?.editorState?.format;
+  // All four, since the 2026-08-19 relink gave underline and strikethrough the
+  // state cache they never had.  `?? null` and not `||`: the engine says null
+  // when it does not know, and "I do not know" must not read as "off".
   if (action === "set-bold") return format?.bold ?? null;
   if (action === "set-italic") return format?.italic ?? null;
+  if (action === "set-underline") return format?.underline ?? null;
+  if (action === "set-strikethrough") return format?.strikethrough ?? null;
   return null;
 }
 
@@ -434,9 +452,14 @@ async function editorAction(action) {
   await run(label, () => session.action(action, options));
 }
 
-// Every inline format turned off in one press.  This is the off path for
-// underline and strikethrough, which have no readable state, and it is honest
-// precisely because it asserts nothing about what was on: it asks for off.
+// Every inline format turned off in one press.  It is honest precisely because
+// it asserts nothing about what was on: it asks for off.
+//
+// It used to say this was the ONLY off path for underline and strikethrough,
+// "which have no readable state".  As of the 2026-08-19 relink the engine keeps
+// a cache for both -- they were always in core's GetKitUnoCommandList and
+// always broadcast; nobody had written the cache.  Whether the page can SEE
+// them is a separate question from whether the engine knows them.
 async function clearInlineFormatting() {
   for (const action of ["set-bold", "set-italic", "set-underline",
                         "set-strikethrough"]) {
@@ -627,6 +650,31 @@ el.sink.addEventListener("keydown", (event) => {
     void saveDocument().catch(() => {});
     return;
   }
+  // The inline formats, on the keys everybody already knows.  Deliberately NOT
+  // wired until 2026-08-19: under finding 059 all four of these failed on the
+  // shipped engine, and binding them to the keyboard would only have copied one
+  // defect onto a second path.  With 059 fixed they go through `editorAction`,
+  // the same function the toolbar buttons call, so the shortcut and the button
+  // cannot drift apart -- including the `enabled` it derives from the engine's
+  // own state.
+  if (accel && !event.shiftKey) {
+    const formatAction = { b: "set-bold", i: "set-italic",
+                           u: "set-underline" }[event.key.toLowerCase()];
+    if (formatAction) {
+      event.preventDefault();
+      void editorAction(formatAction).catch(() => {});
+      return;
+    }
+    // Ctrl+A is deliberately NOT bound.  Select-all is not one of the fifteen
+    // actions, and expressing it as a geometric range -- (0,0) to the
+    // document's width and height -- was tried and MEASURED on 2026-08-19:
+    // `selectRange` reports success in about half a second, the engine reports
+    // the selection still collapsed, and the canvas shows no selection wash at
+    // all.  A shortcut that looks like it worked and selected nothing is worse
+    // than no shortcut, which is the same rule that put `preventDefault` on
+    // Ctrl+S.  A real one needs a select-all ACTION in the contract
+    // (queue-no-select-all-action).
+  }
   if (accel) return;
   const action = KEY_ACTIONS[event.key];
   if (!action) return;
@@ -640,9 +688,20 @@ el.sink.addEventListener("keydown", (event) => {
 el.sink.addEventListener("cut", (event) => {
   if (!session?.document) return;
   event.preventDefault();
-  void run("剪下", () => session.copySelection())
-    .then((result) => session.action("delete-backward", {})
-      .then(() => toast(`已剪下 ${result?.codePoints ?? "?"} 字`)))
+  // BOTH halves inside `run`, so the delete's failure is reported with its
+  // disposition like every other action.  It used to sit in a `.then` whose
+  // `.catch` swallowed it, and that hid finding 063 completely: with a working
+  // clipboard the copy succeeds, the delete fails, the session lands in
+  // recoverable-error, and the only thing the user saw was a notice telling
+  // them to restart -- no word about what had failed.  "A rejection the user
+  // cannot see is a rejection nobody reports" is already written in this file,
+  // three handlers down, for finding 050.
+  void run("剪下", async () => {
+    const copied = await session.copySelection();
+    await session.action("delete-backward", {});
+    return copied;
+  })
+    .then((copied) => toast(`已剪下 ${copied?.codePoints ?? "?"} 字`))
     .catch(() => {});
 });
 

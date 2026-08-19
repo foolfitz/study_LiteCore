@@ -49,6 +49,17 @@ export function recoveryFor(error) {
     return "restart";
   if (code === "WORKER_CRASHED" || code === "WORKER_RESTARTED")
     return "restart";
+  // Finding 063.  The gesture mask refuses BEFORE dispatching -- the engine
+  // emits this from `emitCommandError` with "nothing was dispatched and the
+  // document is unchanged" in the message itself (probe_engine.cpp, the
+  // SPEC E2-C 2.5 gate).  It carries no formatBarrier detail, so it used to
+  // fall through to the `unknown-rollback` default at the bottom, block the
+  // queue, and put the session into recoverable-error: the product told a user
+  // whose document had not been touched that they should discard everything
+  // since their last save.  A refusal that says it changed nothing is the
+  // clearest `none` there is.
+  if (code === "EDITOR_FORMAT_GESTURE_UNSUPPORTED")
+    return "none";
 
   const disposition = formatFailureDisposition(error);
   if (disposition === "refused-no-mutation")

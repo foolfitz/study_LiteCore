@@ -164,10 +164,13 @@
   },
   {
    "id": "keyboard-shortcuts",
-   "user": "用 Ctrl+Z／B／I／U／S／A，而不是只能按工具列",
-   "status": "partial",
-   "note": "2026-08-17：Ctrl+Z 與 Ctrl+S 已接（Ctrl+S 必須 preventDefault，否則開的是瀏覽器的存檔對話框，那是比不回答更糟的回答）；左右鍵已接。**沒涵蓋的部分**：Ctrl+Z／Ctrl+S 兩個分支沒有被任何檢查驅動——覆蓋率審核是以 listener 為單位的，看不進一個 handler 裡面，這一點寫在登記表裡。**Ctrl+B/I/U/S 刻意不接**：finding 059 之下那四個動作在出貨的引擎上必定失敗，把它們接到鍵盤只是把同一個缺陷複製到第二條路徑上。",
+   "user": "用 Ctrl+Z／B／I／U／S 打字，而不是只能按工具列",
+   "status": "done",
+   "note": "2026-08-17：Ctrl+Z 與 Ctrl+S 已接（Ctrl+S 必須 preventDefault，否則開的是瀏覽器的存檔對話框，那是比不回答更糟的回答）；左右鍵已接。**沒涵蓋的部分**：Ctrl+Z／Ctrl+S 兩個分支沒有被任何檢查驅動——覆蓋率審核是以 listener 為單位的，看不進一個 handler 裡面，這一點寫在登記表裡。**Ctrl+B/I/U/S 刻意不接**：finding 059 之下那四個動作在出貨的引擎上必定失敗，把它們接到鍵盤只是把同一個缺陷複製到第二條路徑上。**2026-08-19：done。** 059 修好之後 Ctrl+B／I／U 接上了——它們走的是工具列按鈕**同一個** `editorAction`，所以捷徑和按鈕不會各走各的，包含那個從引擎狀態導出的`enabled`。`the-keyboard-reaches-the-document` 驅動的是鍵盤本身：Ctrl+B 與 Ctrl+U **各開各關一次**（開得起來也關得掉，而底線在這次連結給它 state cache 之前根本答不出來）、Ctrl+Z 把打進去的標記從**存出來的文件**裡拿掉、Ctrl+S 在沒有人按存檔鈕的情況下寫出那份文件。**列句改了**：拿掉 Ctrl+A。全選不在那十五個動作裡，而用幾何範圍代替是**量過**的——`selectRange` 從 (0,0) 到文件寬高回報成功約半秒，引擎仍回報選取是收合的，畫布上一點選取色都沒有。一個看起來成功、實際什麼都沒選的捷徑比沒有更糟，所以刻意不接（佇列項 `queue-no-select-all-action`）。",
    "evidence": [
+    {
+     "check": "the-keyboard-reaches-the-document"
+    },
     {
      "check": "backspace-and-arrows-reach-the-document"
     },
@@ -175,7 +178,7 @@
      "finding": "059"
     },
     {
-     "queue": "queue-no-keyboard-shortcuts"
+     "queue": "queue-no-select-all-action"
     }
    ]
   },
@@ -183,21 +186,24 @@
    "id": "cut",
    "user": "剪下",
    "status": "partial",
-   "note": "2026-08-17 接上了：cut = 複製再刪除，順序刻意如此——複製失敗就不該把文字刪掉。**沒涵蓋的部分**：文字有沒有真的被移除。刪除只在剪貼簿寫入成功之後才跑，而 WebDriver 拒絕剪貼簿寫入，所以那一半屬於 D5（要真人）。",
+   "note": "2026-08-17 接上了：cut = 複製再刪除，順序刻意如此——複製失敗就不該把文字刪掉。**沒涵蓋的部分**：文字有沒有真的被移除。刪除只在剪貼簿寫入成功之後才跑，而 WebDriver 拒絕剪貼簿寫入，所以那一半屬於 D5（要真人）。**2026-08-19 量到底了，而答案是：剪下剪不掉東西。** 給 harness 開了剪貼簿權限（`Browser.grantPermissions` 加 `Emulation.setFocusEmulationEnabled`——只給權限不夠，`clipboard.writeText` 還要求文件是聚焦的）之後，複製成功了、刪除跑了，而刪除**每次都被拒絕**：`delete-backward` 在這份合約裡宣告成 caret-only，而剪下必然在範圍上。所以今天的「剪下」實際上等於「複製」。**而且掉出 finding 063**：那個拒絕原本會讓 session 進入 `recoverable-error`、通知叫使用者重新開啟並宣告未存內容會消失——**對一個自己聲明「什麼都沒派送、文件沒有改變」的拒絕**。而且完全沒有訊息，錯誤被一個空的 `.catch` 吃掉。**處置與沉默都修好了**（殼層 v25，不需連結）：session 保持 `ready`，使用者看得到被拒絕的理由。檢查現在驗的就是這個——拒絕要被回報、文件要一個字都沒動、session 要還活著。**沒涵蓋（所以仍是 partial）**：把文字真的移除。那要先**量過**範圍刪除再寫進manifest 的 gestures，或加一個刪除選取的動作（佇列項 `queue-cut-cannot-remove-text`，不需連結）。**這條路以前不是被走錯，是走不到**：harness 沒有剪貼簿，刪除那一半從來沒跑過。",
    "evidence": [
     {
      "check": "ctrl-x-is-handled-by-the-product"
     },
     {
-     "queue": "queue-no-cut"
+     "finding": "063"
+    },
+    {
+     "queue": "queue-cut-cannot-remove-text"
     }
    ]
   },
   {
    "id": "format-a-paragraph",
    "user": "把一段變成標題、內文、項目符號或編號",
-   "status": "partial",
-   "note": "2026-08-19：五個動作全部接進回歸網，走產品自己的工具列按鈕（`format-a-paragraph-changes-that-paragraph`）。三條紀律都在：每一臂打在**處於相反狀態**的段落上，所以什麼都不做的實作過不了；判準錨在**目標段落的確切文字**上，不是全文件的存在性檢查（語料本來就有標題、項目清單、編號清單各一，全文件 grep 在「改錯段落」時也會過）；**鄰居要活著**（046 的形狀）。瞄準用產品自己的路——點畫布——並由頁面自己的像素定位：掃出墨水列的帶，和產品剛存出的那份文件的行一對一對上；對不上就報 NOT_ESTABLISHED，不猜。**量出來的一個更正**：產品的標題動作寫的是 `<text:p text:style-name=\"Heading_20_1\">`，不是 `<text:h>`——以元素名為準的判準會把一個**會動**的標題動作判成沒動，第一版就是這樣。三個突變都被抓到：吞掉動作、按鈕送錯 action、動作打在鄰居身上。**沒涵蓋（所以是 partial）**：範圍手勢。五臂都是收合游標，一次轉換多個段落被 gesture mask 擋掉（佇列項 `p1-2-gesture-mask-inherited`）；空白行那一格屬於 046 的佇列項，不在這一格。**順帶量到的一個具名極限**（寫在 `caret-off-by-one-line` 突變旁）：把每一次點擊往下位移一整行，兩格游標檢查**都還是綠的**——它們的判準是水平的，所以游標那兩格涵蓋的是**哪一欄**，**哪一行**只由這一格的鄰居條款涵蓋。",
+   "status": "done",
+   "note": "2026-08-19：五個動作全部接進回歸網，走產品自己的工具列按鈕（`format-a-paragraph-changes-that-paragraph`）。三條紀律都在：每一臂打在**處於相反狀態**的段落上，所以什麼都不做的實作過不了；判準錨在**目標段落的確切文字**上，不是全文件的存在性檢查（語料本來就有標題、項目清單、編號清單各一，全文件 grep 在「改錯段落」時也會過）；**鄰居要活著**（046 的形狀）。瞄準用產品自己的路——點畫布——並由頁面自己的像素定位：掃出墨水列的帶，和產品剛存出的那份文件的行一對一對上；對不上就報 NOT_ESTABLISHED，不猜。**量出來的一個更正**：產品的標題動作寫的是 `<text:p text:style-name=\"Heading_20_1\">`，不是 `<text:h>`——以元素名為準的判準會把一個**會動**的標題動作判成沒動，第一版就是這樣。三個突變都被抓到：吞掉動作、按鈕送錯 action、動作打在鄰居身上。**沒涵蓋（所以是 partial）**：範圍手勢。五臂都是收合游標，一次轉換多個段落被 gesture mask 擋掉（佇列項 `p1-2-gesture-mask-inherited`）；空白行那一格屬於 046 的佇列項，不在這一格。**順帶量到的一個具名極限**（寫在 `caret-off-by-one-line` 突變旁）：把每一次點擊往下位移一整行，兩格游標檢查**都還是綠的**——它們的判準是水平的，所以游標那兩格涵蓋的是**哪一欄**，**哪一行**只由這一格的鄰居條款涵蓋。**2026-08-19：done。** 範圍手勢補上了，而原本說它被 gesture mask 擋掉的那句話**是錯的**——被擋的是**四個 inline 格式**（宣告 `[\"collapsed\"]`），五個段落動作三種手勢全都宣告了，profile 的 `crossParagraphDisposition` 也是 `verify-every-block`。沒有東西擋著，只是沒有人驅動過。第六臂拖過**兩個**段落再按「移除清單」：兩段都要變、範圍外的鄰居都要活著、而且產品自己得**願意提供**那顆按鈕（按鈕若被 grey 掉，使用者根本做不到，那一臂就沒有東西可量）。",
    "evidence": [
     {
      "check": "format-a-paragraph-changes-that-paragraph"
@@ -213,8 +219,8 @@
   {
    "id": "recover-from-an-error",
    "user": "出錯的時候救得回來——回到哪一點，按下按鈕之前產品就講清楚；最壞是上次存檔（沒存過＝剛開檔的樣子）",
-   "status": "partial",
-   "note": "2026-08-19：這一格重新有了誘發手段，也重新被量。判準**不是**「之後存得出一份合法的 ODT」——那個在「重開一份原封不動的 authority bytes」時也會過。判準是**產品自己的宣告**：按下按鈕**之前**，`#s-checkpoint` 就已經寫著「有（rN）」／「寫入失敗」／「無」，三分支各自要求不同的兌現。**外加一條能力條款**（fable 2026-08-18 裁決）：誘發路徑是 dirty 狀態下的選取手勢時，宣告不得是「無」——沒有這一條，一個退化成 no-op 的 `_checkpointBeforeSelection` 會宣告「無」、兌現「無」，形式上完全一致。實測證實了這一點：`checkpoint-before-selection-noop` 突變下 `declarationHonoured` 仍是 true，紅的是能力條款。**實測結果**：分支落在「有（r2）」，已存與未存的兩個標記**都回來了**。**誘發器的一個更正**（花了一輪）：拖曳**本身不會**卡死任何東西。038 自己2026-08-13 的更正就說了，選取會回來、引擎還活著，殺掉它的是**選取之後的第一次讀取**；而 `_drain` 在動作結果自帶 `state` 時會短路掉那次 getState。實測：拖曳後健康了 77 秒，然後一次點擊 → busy → 約 30 秒後 recoverable-error。**沒涵蓋（所以是 partial）**：「寫入失敗」那一分支**產品沒有呈現**——殼層已經把這個判斷做出來（`recovery-notice.js` 的 `checkpointFailed`），產品的通知只有 `hasCheckpoint` 的兩分支，所以那個情況會被說成「沒有檢查點」。finding 061，佇列項 `queue-checkpoint-write-failure-reads-as-nothing-to-rescue`。**還欠一個與缺陷無關的第二誘發器**：現在的覆蓋率綁在一個**未修的上游缺陷**（038）上，038 修好那天誘發器會再消失一次——檢查會報 NOT_ESTABLISHED 並具名說是 038，不會靜靜通過，但佇列項 `queue-recovery-inducer-depends-on-an-unfixed-defect` 記著這筆債。",
+   "status": "done",
+   "note": "2026-08-19：這一格重新有了誘發手段，也重新被量。判準**不是**「之後存得出一份合法的 ODT」——那個在「重開一份原封不動的 authority bytes」時也會過。判準是**產品自己的宣告**：按下按鈕**之前**，`#s-checkpoint` 就已經寫著「有（rN）」／「寫入失敗」／「無」，三分支各自要求不同的兌現。**外加一條能力條款**（fable 2026-08-18 裁決）：誘發路徑是 dirty 狀態下的選取手勢時，宣告不得是「無」——沒有這一條，一個退化成 no-op 的 `_checkpointBeforeSelection` 會宣告「無」、兌現「無」，形式上完全一致。實測證實了這一點：`checkpoint-before-selection-noop` 突變下 `declarationHonoured` 仍是 true，紅的是能力條款。**實測結果**：分支落在「有（r2）」，已存與未存的兩個標記**都回來了**。**誘發器的一個更正**（花了一輪）：拖曳**本身不會**卡死任何東西。038 自己2026-08-13 的更正就說了，選取會回來、引擎還活著，殺掉它的是**選取之後的第一次讀取**；而 `_drain` 在動作結果自帶 `state` 時會短路掉那次 getState。實測：拖曳後健康了 77 秒，然後一次點擊 → busy → 約 30 秒後 recoverable-error。**沒涵蓋（所以是 partial）**：「寫入失敗」那一分支**產品沒有呈現**——殼層已經把這個判斷做出來（`recovery-notice.js` 的 `checkpointFailed`），產品的通知只有 `hasCheckpoint` 的兩分支，所以那個情況會被說成「沒有檢查點」。finding 061，佇列項 `queue-checkpoint-write-failure-reads-as-nothing-to-rescue`。**還欠一個與缺陷無關的第二誘發器**：現在的覆蓋率綁在一個**未修的上游缺陷**（038）上，038 修好那天誘發器會再消失一次——檢查會報 NOT_ESTABLISHED 並具名說是 038，不會靜靜通過，但佇列項 `queue-recovery-inducer-depends-on-an-unfixed-defect` 記著這筆債。**2026-08-19 補完：done。** 061 修好了——產品頁不再自己重新推導那則通知，改用殼層的`recoveryNotice(snapshot)`，三分支照它的判斷走。「寫入失敗」那一格現在寫的是「我們試著先保住你的工作，那次存檔失敗了」，不再是「沒有檢查點」。順帶把 finding 054 的根源也收掉了：按鈕的 disabled 從同一個模組的 `restartPossible` 來，不再讀一個沒有人寫的欄位——**054 和 061 是同一次重新推導生出來的兩個缺陷**。**判準改成結構式的**（fable 2026-08-19 的建議）：產品把它渲染的判斷蓋在 `#notice[data-rescue]` 上，檢查要求**兩個介面一致**（狀態列的藥丸與通知），而不是比對措辭——比對措辭的版本會在別人改一次句子時**靜靜變綠**。由 `notice-does-not-declare-its-decision` 突變守著；而 `checkpoint-write-fails` 現在宣告成**不應該被偵測**（產品已經處理得對了），它哪天又被偵測到，那一輪會喊。**留著的具名債**：現在的復原覆蓋率仍綁在未修的 038 上，欠一個與缺陷無關的第二誘發器（佇列項 `queue-recovery-inducer-depends-on-an-unfixed-defect`）。那是覆蓋率的韌性問題，不是使用者做不到的事——038 修好那天檢查會報 NOT_ESTABLISHED 並具名，不會靜靜通過。",
    "evidence": [
     {
      "check": "recovery-returns-what-the-product-promised"
@@ -226,10 +232,10 @@
      "finding": "061"
     },
     {
-     "queue": "queue-recovery-inducer-depends-on-an-unfixed-defect"
+     "finding": "054"
     },
     {
-     "queue": "queue-checkpoint-write-failure-reads-as-nothing-to-rescue"
+     "queue": "queue-recovery-inducer-depends-on-an-unfixed-defect"
     }
    ]
   },

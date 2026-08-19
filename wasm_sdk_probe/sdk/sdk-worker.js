@@ -255,6 +255,15 @@ function productEditorState(value = {}) {
     format: {
       bold: typeof value.format?.bold === "boolean" ? value.format.bold : null,
       italic: typeof value.format?.italic === "boolean" ? value.format.italic : null,
+      // Added 2026-08-19 with the engine cache for these two.  The allowlist
+      // note below is not decoration: the engine started reporting underline
+      // and strikethrough and the product still saw null, because nothing here
+      // named them -- the same way the tile reply's document size was invisible
+      // until the tile branch named it, in the same afternoon.
+      underline: typeof value.format?.underline === "boolean"
+        ? value.format.underline : null,
+      strikethrough: typeof value.format?.strikethrough === "boolean"
+        ? value.format.strikethrough : null,
     },
     // queue-verify-caret-by-block-identity.  This projection is an ALLOWLIST,
     // so an engine field that nothing adds here never reaches the product --

@@ -123,6 +123,9 @@ RESCUE_UNSAVED = "救回標記未存"
 # about a string rather than about a length.
 LONG_INSERT = "LDGROW" + (" grow the document past its last page" * 90)
 
+# Typed through the composition path and then undone from the keyboard.
+KEYBOARD_MARK = "鍵盤標記KBD"
+
 INSERT_MARK = "插入鈕標記"
 # Non-ASCII on purpose: a paste path that mangles UTF-8 passes an ASCII marker.
 PASTE_MARK = "貼上標記PASTEMARK"
@@ -274,13 +277,6 @@ return true;
 })()"""
 
 READ_TOAST = "(() => document.querySelector('#toast').textContent)()"
-
-READ_NOTICE = """(() => {
-const notice = document.querySelector('#notice');
-if (!notice) return { present: false };
-return { present: true, shown: notice.dataset.show === "1",
-         text: document.querySelector('#notice-text').textContent };
-})()"""
 
 # Hand the product a file through its own <input type=file>, the way a chooser
 # would.  The File is synthesised because neither driver can operate a native
@@ -574,6 +570,11 @@ return {
   text: document.querySelector('#notice-text').textContent,
   label: button ? button.textContent : null,
   disabled: button ? button.disabled : null,
+  // The DECISION the product rendered, not the sentence it chose to render it
+  // with.  Adjudicated 2026-08-19: an oracle that compares wording goes green
+  // the day somebody rephrases, and the shell's whole point is that hosts may
+  // differ in wording and may not differ in whether they claim work was saved.
+  rescue: notice ? (notice.dataset.rescue || null) : null,
 };
 })()"""
 
@@ -826,8 +827,32 @@ MUTATIONS = {
         "path": "editor-shell/editor-session.js",
         "find": "        { timeoutMs: this._selectionTimeoutMs },",
         "replace": "        { timeoutMs: 1 },",
-        "reintroduces": "a rescue that fails silently and reads as 'there was "
-                        "nothing to rescue'",
+        "reintroduces": "a checkpoint save that misses its deadline",
+        "alsoRed": [],
+        # Declared NOT detectable, and the declaration is the point: this
+        # injects a CONDITION rather than a defect, and since finding 061 was
+        # fixed the product handles that condition correctly -- it says the
+        # rescue was attempted and failed instead of saying there was never one.
+        # So the round asserts the product is RIGHT here. If this ever starts
+        # being detected, the run says the declaration is out of date, which is
+        # exactly the alarm wanted: it would mean the third branch regressed.
+        "expectedToBeDetected": False,
+        "why": "the third branch is a state the product now renders correctly. "
+               "Before 2026-08-19 this mutation WAS detected, and that was "
+               "finding 061 -- the pill read 寫入失敗 while the notice told the "
+               "user there had never been a checkpoint.",
+    },
+    # What must still be able to fail: the product declaring its decision at
+    # all.  With the stamp gone the notice and the status pill can disagree
+    # again, and the check's `surfacesAgree` clause is what notices.
+    "notice-does-not-declare-its-decision": {
+        "check": "recovery-returns-what-the-product-promised",
+        "path": "e2-editor-app.js",
+        "find": '  el.notice.dataset.rescue = notice.canRescue ? "checkpoint"\n'
+                '    : notice.checkpointFailed ? "failed" : "none";',
+        "replace": '  el.notice.dataset.rescue = "none";',
+        "reintroduces": "a notice whose account of your work does not have to "
+                        "match the product's own status",
         "alsoRed": [],
     },
     # The registered latency threshold, made to bite.  A pre-registered number
@@ -877,6 +902,35 @@ MUTATIONS = {
         "replace": "      if (false) documentResized = true;",
         "reintroduces": "an editor whose page count is frozen at the moment you "
                         "opened the file",
+        "alsoRed": [],
+    },
+    # The keyboard row's whole point: the toolbar is not the only way in.  With
+    # the format branch gone the buttons still work and the shortcuts do
+    # nothing, which is exactly the state the row was in until 2026-08-19.
+    "keyboard-formats-not-bound": {
+        "check": "the-keyboard-reaches-the-document",
+        "path": "e2-editor-app.js",
+        "find": '    const formatAction = { b: "set-bold", i: "set-italic",\n'
+                '                           u: "set-underline" }[event.key.toLowerCase()];',
+        "replace": "    const formatAction = undefined;",
+        "reintroduces": "an editor whose formats are toolbar-only",
+        "alsoRed": [],
+    },
+    # Finding 063, the silence half: the delete's failure back inside a bare
+    # `.catch`.  The session still survives (the disposition fix is separate),
+    # but the user is told nothing at all -- which is how this went unseen.
+    "cut-swallows-its-failure": {
+        "check": "ctrl-x-is-handled-by-the-product",
+        "path": "e2-editor-app.js",
+        "find": "  void run(\"剪下\", async () => {\n"
+                "    const copied = await session.copySelection();\n"
+                "    await session.action(\"delete-backward\", {});\n"
+                "    return copied;\n"
+                "  })",
+        "replace": "  void run(\"剪下\", () => session.copySelection())\n"
+                   "    .then((copied) => session.action(\"delete-backward\", {})\n"
+                   "      .then(() => copied))",
+        "reintroduces": "a cut whose failure the user never hears about",
         "alsoRed": [],
     },
     # Aimed at the mechanism that actually commits a paste. Measured
@@ -1111,7 +1165,7 @@ def build_mirror(source: Path, target: Path, overrides: dict[str, bytes]) -> Non
 # product page itself is one of them), so the digest moves on its own and no
 # separate honesty flag is needed.  Same digest function as the bundle manifest,
 # imported rather than reimplemented: two copies of a hash rule drift.
-SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v20.json"
+SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v25.json"
 
 
 def served_in_dist(relative: str) -> str:
@@ -1354,40 +1408,6 @@ def document_lines(report: dict) -> list[dict]:
     return out
 
 
-# The product's notice is a two-way branch on `hasCheckpoint`, and its two
-# sentences are read out of the SERVED bundle rather than typed here.
-#
-# Adjudicated 2026-08-19: the first version compared the notice against a
-# hard-coded copy of the no-checkpoint sentence, and that check was
-# self-DISARMING rather than merely brittle.  Rephrase that sentence for any
-# unrelated reason and the state-(c) notice shows the NEW wording, which
-# differs from the stale constant -- so the check goes GREEN with the defect
-# untouched.  Reading both sentences from the code that renders them means the
-# reference moves when the product moves, and a failure to find them is
-# reported as NOT_ESTABLISHED rather than as a pass.
-NOTICE_SENTENCES = re.compile(
-    r'el\.noticeText\.textContent\s*=\s*snapshot\.hasCheckpoint\s*'
-    r'\?\s*"([^"]+)"\s*'
-    r':\s*"([^"]+)"')
-
-
-def notice_sentences(root: Path) -> dict:
-    """The two sentences the product can print, as the served build prints them."""
-    try:
-        source = (root / "e2-editor-app.js").read_text(encoding="utf-8")
-    except OSError as error:
-        return {"found": False, "why": f"{type(error).__name__}: {error}"}
-    match = NOTICE_SENTENCES.search(source)
-    if not match:
-        return {"found": False,
-                "why": "the notice's two-way branch could not be read out of "
-                       "the served e2-editor-app.js; the shape it is matched by "
-                       "has changed and this check cannot say what the product "
-                       "would have printed in the other case"}
-    return {"found": True, "withCheckpoint": match.group(1),
-            "withoutCheckpoint": match.group(2)}
-
-
 def set_device_pixel_ratio(session, ratio):
     """Chrome only. Firefox has no CDP here, so its arms say so and score nothing.
 
@@ -1622,7 +1642,13 @@ def main() -> int:
                   "the subject of a check",
                   "Emulation.setDeviceMetricsOverride (Chrome only) to sweep "
                   "devicePixelRatio; the wall this measures moves by more than "
-                  "3x across ordinary displays"],
+                  "3x across ordinary displays",
+                  "Browser.grantPermissions clipboardReadWrite (Chrome only). "
+                  "WebDriver refuses clipboard writes by default, and the "
+                  "product's cut is copy-then-delete -- so without the "
+                  "permission the delete correctly never runs and whether the "
+                  "text is REMOVED cannot be measured at all. Granting it is "
+                  "how a real user's browser behaves after they allow it"],
         "mutation": args.mutate if args.mutate != "none" else None,
         "checks": [],
         "steps": [],
@@ -1660,6 +1686,28 @@ def main() -> int:
         wait_page(base)
         session_class = ChromeSession if args.browser == "chrome" else FirefoxSession
         session = session_class("cold")
+        # Before navigating, so the page never sees a denied clipboard.
+        clipboard_grant = {"granted": False, "why": "not attempted"}
+        call = getattr(session, "call", None)
+        if call is not None:
+            try:
+                call("Browser.grantPermissions",
+                     {"origin": f"http://127.0.0.1:{port}",
+                      "permissions": ["clipboardReadWrite",
+                                      "clipboardSanitizedWrite"]})
+                # A granted permission is not enough: `clipboard.writeText`
+                # also requires the document to be FOCUSED, and a headless page
+                # driven over CDP is not.  Both, or the write is refused for a
+                # reason that has nothing to do with the product.
+                call("Emulation.setFocusEmulationEnabled", {"enabled": True})
+                clipboard_grant = {"granted": True, "focusEmulated": True}
+            except Exception as error:      # noqa: BLE001 -- reported, not raised
+                clipboard_grant = {"granted": False,
+                                   "why": f"{type(error).__name__}: {error}"}
+        else:
+            clipboard_grant = {"granted": False,
+                               "why": "this browser session has no CDP"}
+        report["clipboardPermission"] = clipboard_grant
         navigate(session, base)
 
         booted = wait_for(session, lambda s: s.get("state") in ("ready", "stopped",
@@ -2129,33 +2177,88 @@ def main() -> int:
               notEstablished="which character was removed; that is delete-backward's "
                              "own contract and D1 covers it through the shell")
 
-        # ------------------------------------------------------------- Ctrl+X
-        # Cut is copy plus a delete, in that order, so a failed copy must not
-        # still remove the text. Under WebDriver the clipboard write is refused,
-        # which means the delete correctly does NOT run -- so this check can
-        # only establish that the product handles the event and asks the engine.
-        evaluate(session, DRAG.replace("ARG_X1", "0.20").replace("ARG_Y1", "0.32")
-                 .replace("ARG_X2", "0.60").replace("ARG_Y2", "0.32"))
-        time.sleep(1.5)
-        evaluate(session, CLEAR_TOAST)
-        cut_result = evaluate(session, CUT)
-        time.sleep(2.0)
-        cut_toast = evaluate(session, READ_TOAST) or ""
-        cut_reached_engine = ("已剪下" in cut_toast
-                              or "CLIPBOARD_DENIED" in cut_toast)
-        check("ctrl-x-is-handled-by-the-product",
-              bool((cut_result or {}).get("handled")) and cut_reached_engine,
-              observed={"handled": (cut_result or {}).get("handled"),
-                        "toast": cut_toast},
-              oracle="a cut event on the product page is handled by the product "
-                     "(default prevented) and reaches the engine's selection "
-                     "read -- proved the same way the copy check does, by which "
-                     "error the clipboard adapter raises",
-              notEstablished="that the text was REMOVED. The delete runs only "
-                             "after a successful clipboard write, and WebDriver "
-                             "refuses that -- which is the behaviour we want "
-                             "(a failed copy must not still delete) and it is "
-                             "why the removal half belongs to D5")
+        # ------------------------------------------- the keyboard, on its own
+        # The row promises Ctrl+Z / B / I / U / A, and until 2026-08-19 four of
+        # those were deliberately unwired: under finding 059 every inline format
+        # failed on the shipped engine, so binding them to the keyboard would
+        # have copied one defect onto a second path.  With 059 fixed they are
+        # wired, and this drives them WITHOUT touching the toolbar -- the whole
+        # point of the row is that the toolbar is not the only way in.
+        keyboard: dict = {}
+        read_pressed_for = ("(() => { const b = document.querySelector("
+                            "'#toolbar button[data-action=\"ARG_ACTION\"]'); "
+                            "return b ? b.getAttribute('aria-pressed') : null; })()")
+        scan, bands = stable_bands(session)
+        if bands:
+            band = bands[1] if len(bands) > 1 else bands[0]
+            evaluate(session, POINT_AT
+                     .replace("ARG_X", f"{(band['first'] + 4) / scan['width']:.5f}")
+                     .replace("ARG_Y", f"{band['centreFraction']:.5f}"))
+            wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+
+        def press_accel(key):
+            evaluate(session, TYPE_KEY.replace("ARG_KEY", key)
+                     .replace("ARG_CTRL", "true"))
+            time.sleep(1.6)
+
+        # Bold and underline, twice each: once to turn on, once to turn off.
+        # Off is what makes it a toggle rather than a one-way switch, and
+        # underline could not answer at all until the relink gave it a state
+        # cache.
+        for action, key in (("set-bold", "b"), ("set-underline", "u")):
+            press_accel(key)
+            on = evaluate(session, read_pressed_for.replace("ARG_ACTION", action))
+            press_accel(key)
+            off = evaluate(session, read_pressed_for.replace("ARG_ACTION", action))
+            keyboard[action] = {"afterFirst": on, "afterSecond": off,
+                                "toggled": on == "true" and off == "false"}
+
+        # Ctrl+A is not measured because it is not bound: select-all is not one
+        # of the fifteen actions, and the geometric substitute was measured
+        # selecting nothing (see the page's own comment).  The row's sentence
+        # was changed rather than the check widened.
+        # Ctrl+Z: type a marker through the composition path, then undo it from
+        # the keyboard and read the DOCUMENT, not the revision counter.
+        floor = revision_of(evaluate(session, READ_STATE))
+        evaluate(session, COMPOSE.replace("ARG_TEXT", KEYBOARD_MARK))
+        wait_for(session, lambda s, f=floor: revision_of(s) is not None
+                 and f is not None and revision_of(s) > f, 25)
+        typed_doc = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+        keyboard["markerTyped"] = KEYBOARD_MARK in (typed_doc.get("content") or "")
+        press_accel("z")
+        # Ctrl+S: the save itself is the observation -- the shim captures the
+        # bytes, and nothing pressed the button.
+        saves_before = evaluate(session, SAVE_COUNT) or 0
+        press_accel("s")
+        keyboard["ctrlSSaved"] = wait_saves(session, saves_before + 1, 90)
+        undone_doc = (zip_report(base64.b64decode(evaluate(
+            session, READ_SAVE.replace("ARG_INDEX", str(saves_before)))["b64"]))
+            if keyboard["ctrlSSaved"] else {})
+        keyboard["markerGoneAfterUndo"] = KEYBOARD_MARK not in (
+            undone_doc.get("content") or "")
+        check("the-keyboard-reaches-the-document",
+              bool(keyboard.get("set-bold", {}).get("toggled")
+                   and keyboard.get("set-underline", {}).get("toggled")
+                   and keyboard["markerTyped"]
+                   and keyboard["ctrlSSaved"]
+                   and keyboard["markerGoneAfterUndo"]
+                   and is_an_odt(undone_doc)),
+              observed=keyboard,
+              oracle="Ctrl+B and Ctrl+U each turn their format ON and then OFF, "
+                     "read from the engine's own state as the page renders it "
+                     "into aria-pressed; Ctrl+A produces a selection the "
+                     "product recognises as a RANGE (its collapsed-only format "
+                     "buttons go disabled); Ctrl+Z takes a typed marker back "
+                     "out of the SAVED document; and Ctrl+S writes that "
+                     "document without anything pressing the save button",
+              notEstablished="Ctrl+I, which goes through exactly the same "
+                             "`editorAction` call as Ctrl+B and Ctrl+U with a "
+                             "different slot, so a third identical arm would "
+                             "re-measure the same wiring; and Ctrl+A, which is "
+                             "not bound at all -- select-all is not one of the "
+                             "fifteen actions and the geometric substitute was "
+                             "measured selecting nothing "
+                             "(queue-no-select-all-action)")
 
         # ------------------------------------------------------ Ctrl+V arrives
         # The mirror of the copy defect: `pasteEvent()` sat on the session and
@@ -2507,8 +2610,71 @@ def main() -> int:
             record["outcome"] = "PASS" if record["ok"] else "FAIL"
             if after:
                 lines = after
+        # --- and one RANGE arm, which the row was wrongly said to be missing --
+        # The note on this checklist row used to say multi-paragraph conversion
+        # was refused by the gesture mask.  That was a real thing measured on
+        # the wrong actions: the FOUR INLINE formats declare `["collapsed"]`,
+        # but all five paragraph actions declare all three gestures and the
+        # profile's crossParagraphDisposition is `verify-every-block`.  Nothing
+        # was blocking it; nothing had driven it.
+        #
+        # Aimed at the two numbered lines, which the five arms above leave
+        # untouched, so this arm still acts on paragraphs in the opposite state.
+        cross: dict = {"arm": "range-cross", "action": "set-list-none"}
+        arms.append(cross)
+        scan, bands = stable_bands(session)
+        numbered = [index for index, line in enumerate(lines)
+                    if line["kind"] == "number"]
+        pair = next(([a, b] for a, b in zip(numbered, numbered[1:])
+                     if b == a + 1), [])
+        cross["numberedLines"] = numbered
+        cross["lineIndexes"] = pair
+        cross["bands"] = len(bands)
+        cross["lines"] = len(lines)
+        if len(pair) == 2 and len(bands) == len(lines):
+            first, second = bands[pair[0]], bands[pair[1]]
+            evaluate(session, DRAG
+                     .replace("ARG_X1", f"{(first['first'] + 4) / scan['width']:.5f}")
+                     .replace("ARG_Y1", f"{first['centreFraction']:.5f}")
+                     .replace("ARG_X2", f"{(second['last'] + 6) / scan['width']:.5f}")
+                     .replace("ARG_Y2", f"{second['centreFraction']:.5f}"))
+            time.sleep(2.0)
+            # The product's own affordance is the precondition: if it greys the
+            # button out for this selection shape, the user cannot do this and
+            # the arm has nothing to measure.
+            offered = {b["action"]: b["disabled"]
+                       for b in (evaluate(session, READ_STATE) or {}).get("buttons", [])}
+            cross["buttonOffered"] = offered.get("set-list-none") is False
+            label = evaluate(session, BUTTON_LABEL.replace("ARG_ACTION",
+                                                           "set-list-none"))
+            evaluate(session, CLEAR_TOAST)
+            evaluate(session, PRESS.replace("ARG_ACTION", "set-list-none"))
+            wait_for(session, lambda s, want=label: bool(want)
+                     and want in (s.get("latency") or ""), 30)
+            cross["toast"] = evaluate(session, READ_TOAST)
+            after = document_lines(capture_save(
+                session, evaluate(session, SAVE_COUNT) or 0))
+            same = len(after) == len(lines)
+            cross["bothChanged"] = same and all(
+                after[index]["kind"] == "body"
+                and after[index]["text"] == lines[index]["text"] for index in pair)
+            cross["neighboursSurvived"] = same and all(
+                after[index]["kind"] == lines[index]["kind"]
+                and after[index]["text"] == lines[index]["text"]
+                for index in (pair[0] - 1, pair[1] + 1)
+                if 0 <= index < len(lines))
+            cross["ok"] = bool(cross["buttonOffered"] and cross["bothChanged"]
+                               and cross["neighboursSurvived"])
+            cross["outcome"] = "PASS" if cross["ok"] else "FAIL"
+            if after:
+                lines = after
+        else:
+            cross["outcome"] = "NOT_ESTABLISHED"
+            cross["why"] = ("no adjacent pair of numbered lines to drag across, "
+                            "or the band-to-line mapping did not hold")
+
         judged = [a for a in arms if a["outcome"] in ("PASS", "FAIL")]
-        established = len(judged) == len(arms_spec)
+        established = len(judged) == len(arms_spec) + 1
         check("format-a-paragraph-changes-that-paragraph",
               established and all(a["ok"] for a in judged),
               outcome=None if established else "NOT_ESTABLISHED",
@@ -2523,11 +2689,108 @@ def main() -> int:
                      "in the target state with its text unchanged and both "
                      "neighbours untouched -- read from the ODT the product "
                      "saves, and matched by the paragraph's own text",
-              notEstablished="range gestures. The five arms all act on a "
-                             "collapsed caret; converting several paragraphs "
-                             "at once is refused by the gesture mask "
-                             "(p1-2-gesture-mask-inherited), and the blank-line "
-                             "cell belongs to finding 046's queue item")
+              notEstablished="the blank-line cell, which belongs to finding "
+                             "046's queue item. Range gestures ARE covered now: "
+                             "the sixth arm drags across two paragraphs and "
+                             "requires both to change and their neighbours to "
+                             "survive")
+
+        # ------------------------------------------------------------- Ctrl+X
+        # MOVED here on 2026-08-19, from before the paste check.  It aims at a
+        # NAMED line, and by its old position the document had picked up an
+        # empty paragraph from the recovery recipe -- ten lines, eight ink
+        # bands, no way to say which paragraph the drag would cover, so the
+        # check reported NOT_ESTABLISHED and measured nothing.  Here the
+        # paragraph-format block has just re-opened the fixture, so the mapping
+        # holds.
+        # Cut is copy plus a delete, in that order, so a failed copy must not
+        # still remove the text. Under WebDriver the clipboard write is refused,
+        # which means the delete correctly does NOT run -- so this check can
+        # only establish that the product handles the event and asks the engine.
+        # Aimed at a NAMED line rather than at a viewport fraction, so "the text
+        # went away" is a statement about a specific paragraph and its
+        # neighbours can be required to survive.  E1-LC-BETWEEN is chosen
+        # because nothing else in this run stands on it: it is not one of the
+        # witnesses `surviving_witnesses()` derives, and T3b re-opens the
+        # fixture before it uses it.
+        cut_before = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+        cut_lines = document_lines(cut_before)
+        cut_target = [index for index, line in enumerate(cut_lines)
+                      if "E1-LC-BETWEEN" in line["text"]]
+        scan, bands = stable_bands(session)
+        cut_record: dict = {"lines": len(cut_lines), "bands": len(bands),
+                            "targetIndex": cut_target}
+        cut_aimed = len(cut_target) == 1 and len(bands) == len(cut_lines)
+        if cut_aimed:
+            band = bands[cut_target[0]]
+            # PART of the line, not all of it.  Dragging across the whole line
+            # and cutting removes the paragraph, which is a multi-block
+            # mutation: the barrier cannot verify it, the outcome comes back
+            # MUTATION_OUTCOME_UNKNOWN, and the session lands in
+            # recoverable-error -- measured 2026-08-19, and it is finding 046's
+            # family rather than anything about cut.  Cutting inside one
+            # paragraph is both the ordinary thing a user does and the thing
+            # this check can hold the product to.
+            evaluate(session, DRAG
+                     .replace("ARG_X1", f"{max(0.0, (band['first'] + 2) / scan['width']):.5f}")
+                     .replace("ARG_Y1", f"{band['centreFraction']:.5f}")
+                     .replace("ARG_X2", f"{((band['first'] + band['last']) / 2) / scan['width']:.5f}")
+                     .replace("ARG_Y2", f"{band['centreFraction']:.5f}"))
+            time.sleep(1.5)
+        evaluate(session, CLEAR_TOAST)
+        evaluate(session, CLEAR_TOASTS)
+        cut_result = evaluate(session, CUT)
+        time.sleep(2.5)
+        cut_toast = evaluate(session, READ_TOAST) or ""
+        cut_record["toast"] = cut_toast
+        cut_record["handled"] = (cut_result or {}).get("handled")
+        cut_after = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+        after_lines = document_lines(cut_after)
+        # What a cut can and cannot do under THIS contract, measured rather than
+        # assumed on 2026-08-19 once the clipboard actually worked:
+        #
+        #   * the copy half succeeds;
+        #   * the delete half is REFUSED, because `delete-backward` is declared
+        #     caret-only for the v1 actions and a cut necessarily runs on a
+        #     range -- so cut cannot remove text at all here;
+        #   * therefore the document must be UNCHANGED, which is exactly what
+        #     the refusal's own message claims.
+        #
+        # This became visible only when the harness stopped being denied the
+        # clipboard: with the write refused the delete never ran, so the whole
+        # path was unmeasured. It also found finding 063 -- the refusal used to
+        # brick the session.
+        after_texts = [line["text"] for line in after_lines]
+        cut_record["documentUnchanged"] = after_texts == [
+            line["text"] for line in cut_lines]
+        cut_record["stateAfterCut"] = (evaluate(session, READ_STATE) or {}).get("state")
+        cut_record["toasts"] = evaluate(session, READ_TOASTS)
+        said = " ".join(cut_record.get("toasts") or [])
+        cut_record["refusalReported"] = "EDITOR_FORMAT_GESTURE_UNSUPPORTED" in said
+        check("ctrl-x-is-handled-by-the-product",
+              bool(cut_aimed and (cut_result or {}).get("handled")
+                   and cut_record["stateAfterCut"] == "ready"
+                   and cut_record["refusalReported"]
+                   and cut_record["documentUnchanged"]
+                   and is_an_odt(cut_after)),
+              outcome=None if cut_aimed else "NOT_ESTABLISHED",
+              observed=cut_record,
+              oracle="a cut on a range is handled by the product, its refusal "
+                     "is REPORTED to the user with the reason, the document is "
+                     "left exactly as it was -- which is what the refusal "
+                     "claims -- and the session is still `ready`. Finding 063: "
+                     "until 2026-08-19 the refusal was swallowed by a bare "
+                     "`.catch`, the session went to recoverable-error, and the "
+                     "user was told to discard their work over an action that "
+                     "had not touched the document",
+              notEstablished="that a cut REMOVES text. It cannot, under this "
+                             "contract: `delete-backward` is declared "
+                             "caret-only for the ten v1 actions and a cut runs "
+                             "on a range by definition, so the delete half is "
+                             "refused every time "
+                             "(queue-cut-cannot-remove-text). What is checked "
+                             "is that the product says so and changes nothing")
+
 
         # --------------------------------- opening a document the user chose
         # Until 2026-08-17 the product could only open the samples in its own
@@ -2996,6 +3259,15 @@ def main() -> int:
                 "requires": "a selection gesture on a dirty document must not "
                             "leave the product declaring 無",
                 "held": capability_held}
+            # The product declares its decision in two places -- the status
+            # pill and the notice -- and they must not disagree.  This is what
+            # finding 061 was: the pill said 寫入失敗 and the notice told the
+            # user there had never been a checkpoint.
+            expected_rescue = {"checkpoint": "checkpoint",
+                               "none": "none",
+                               "write-failed": "failed"}[branch]
+            recovery["declaredByNotice"] = offered.get("rescue")
+            recovery["surfacesAgree"] = offered.get("rescue") == expected_rescue
             if branch == "checkpoint":
                 honoured = saved_back and unsaved_back
             elif branch == "none":
@@ -3027,21 +3299,13 @@ def main() -> int:
                 #     not exist;
                 #   * both sentences come from the served source, so a rewording
                 #     moves the reference instead of silently disarming this.
-                sentences = notice_sentences(root)
-                recovery["noticeSentences"] = sentences
-                text = offered.get("text") or ""
-                if not sentences["found"]:
-                    honoured = None
-                else:
-                    honoured = (saved_back and not unsaved_back
-                                and text != sentences["withCheckpoint"]
-                                and text != sentences["withoutCheckpoint"])
+                honoured = saved_back and not unsaved_back
             recovery["declarationHonoured"] = honoured
             check("recovery-returns-what-the-product-promised",
                   bool(honoured and capability_held
+                       and recovery["surfacesAgree"]
                        and (back or {}).get("state") == "ready"
                        and is_an_odt(rescued)),
-                  outcome=None if honoured is not None else "NOT_ESTABLISHED",
                   observed=recovery,
                   oracle="the product declares where its recovery button will "
                          "take the user BEFORE it is pressed -- #s-checkpoint "

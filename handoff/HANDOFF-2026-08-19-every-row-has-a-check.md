@@ -15,10 +15,10 @@
 
 | | |
 |---|---|
-| artifact | **`296f3ea727725fbb…` — RELINKED 2026-08-19** (was `d538ce0b91478426…`, archived) |
-| shell | **v20 `1e59bee886d21311…`** (v17 → v18 → v19 → v20) |
+| artifact | **`29ec627bf8a5588b…` — relinked twice on 2026-08-19** (`d538ce0b…` → `296f3ea7…` → `29ec627b…`, both archived) |
+| shell | **v25 `07143f961d82c4b3…`** (v17 → … → v25; one generation per shell change, as the tool insists) |
 | matrix | `e2/validation-matrix-v2.json`, **D0 still not run** |
-| checklist | **10 done / 4 partial / 0 unverified / 0 missing / 2 blocked** |
+| checklist | **13 done / 1 partial / 0 unverified / 0 missing / 2 blocked** |
 | queue | `P1 complete: **True**` — nothing blocking, and `KNOWN_RED` is **empty** for the first time |
 
 **Zero `unverified` and zero `missing` rows.** Every row now points at a check
@@ -48,6 +48,41 @@ defect.
 One thing worth carrying: **the worker's reply is a whitelist**
 (`sdk/sdk-worker.js`), so the engine change alone was invisible to every client.
 An engine field that nobody forwards is an engine field that does not exist.
+
+## 0.7 Closing the four `partial` rows
+
+Three closed, one honestly characterised, and the fourth is the interesting one.
+
+* **`recover-from-an-error` → done.** Finding 061 fixed: the page stops
+  re-deriving the notice and takes `recoveryNotice()`'s decision, so a FAILED
+  rescue has its own sentence. The same edit retired finding 054's cause — both
+  defects came from one re-derivation. The oracle is now structural: the page
+  stamps `#notice[data-rescue]` and the check requires the two surfaces (pill and
+  notice) to AGREE, instead of comparing wording that would go green on a
+  rephrase.
+* **`keyboard-shortcuts` → done.** Ctrl+B/I/U wired now that 059 is fixed, going
+  through the same `editorAction` the buttons call. Ctrl+A was **removed**:
+  select-all is not one of the fifteen actions and the geometric substitute was
+  measured selecting nothing. The row's sentence was changed rather than the
+  check widened.
+* **`format-a-paragraph` → done.** The note claiming the gesture mask blocked
+  multi-paragraph conversion was **wrong** — that mask is on the four inline
+  formats; all five paragraph actions declare all three gestures and the
+  disposition is `verify-every-block`. Nothing was blocking it; nothing had
+  driven it. A sixth arm drags across two paragraphs.
+* **`cut` → still partial, and it turned up two things.** Granting the harness a
+  clipboard (permission *and* focus emulation — `writeText` needs both) made the
+  delete half run for the first time. It is refused every time:
+  `delete-backward` is caret-only and a cut is always a range, so **cut is
+  effectively copy**. And the refusal used to put the session into
+  `recoverable-error` and tell the user their unsaved work was gone — for an
+  action whose own error says "nothing was dispatched and the document is
+  unchanged" — with no message at all, swallowed by a bare `.catch`. That is
+  **finding 063**, now fixed.
+
+**The lesson worth carrying**: that path was not measured wrong, it was
+*unreachable* — the harness had no clipboard, so the delete never ran, and the
+check looked green while only ever exercising one branch.
 
 ## 1. The one sentence that matters most
 

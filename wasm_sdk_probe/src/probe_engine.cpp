@@ -1111,6 +1111,20 @@ void appendEditorState(std::ostringstream &json) {
   else
     json << "null";
 #ifdef OXSDK_E2_FORMAT_BARRIER
+  // Underline and Strikeout, now that a cache exists for them.  Without these
+  // the page can dispatch the two commands but can never read them back, so a
+  // toolbar button or a shortcut for either can only ever ask for ON -- the
+  // asymmetry `clearInlineFormatting()` was written to work around.
+  json << ",\"underline\":";
+  if (gEditorState.underlineKnown)
+    json << (gEditorState.underline ? "true" : "false");
+  else
+    json << "null";
+  json << ",\"strikethrough\":";
+  if (gEditorState.strikeoutKnown)
+    json << (gEditorState.strikeout ? "true" : "false");
+  else
+    json << "null";
   json << ",\"listBullet\":";
   if (gEditorState.listBulletKnown)
     json << (gEditorState.listBullet ? "true" : "false");

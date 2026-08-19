@@ -799,19 +799,19 @@
   },
   {
    "id": "queue-checkpoint-write-failure-reads-as-nothing-to-rescue",
-   "title": "the product tells the user 'there was no checkpoint' when the checkpoint save FAILED -- shell-side, no link needed",
-   "expectation": "absent",
+   "title": "the product renders the shell's three-way recovery decision instead of re-deriving a two-way one -- DONE",
+   "expectation": "present",
    "blocksRelink": false,
    "source": "finding 061; measured 2026-08-19 by the checkpoint-write-fails mutation",
-   "note": "editor-shell/recovery-notice.js already decides the difference (`checkpointFailed`: hasCheckpoint false AND checkpointError set) and says in its own comment why -- 'there is nothing to rescue' and 'we tried to protect your work and the save failed' are not the same thing to say to someone. web/e2-editor-app.js does not use that module; its notice branches on `hasCheckpoint` alone, so the failure case prints '沒有檢查點，所以自上次儲存以來的內容不會回來'. The status strip does show 寫入失敗, so the fact is on screen -- in a debug pill, not in the notice that is telling the user what they are about to lose. Measured, not read: with the checkpoint save given a 1 ms deadline the pill reads 寫入失敗 and the notice prints the nothing-to-rescue sentence verbatim.",
+   "note": "editor-shell/recovery-notice.js already decides the difference (`checkpointFailed`: hasCheckpoint false AND checkpointError set) and says in its own comment why -- 'there is nothing to rescue' and 'we tried to protect your work and the save failed' are not the same thing to say to someone. web/e2-editor-app.js does not use that module; its notice branches on `hasCheckpoint` alone, so the failure case prints '沒有檢查點，所以自上次儲存以來的內容不會回來'. The status strip does show 寫入失敗, so the fact is on screen -- in a debug pill, not in the notice that is telling the user what they are about to lose. Measured, not read: with the checkpoint save given a 1 ms deadline the pill reads 寫入失敗 and the notice prints the nothing-to-rescue sentence verbatim. DONE 2026-08-19, shell v21. web/e2-editor-app.js imports recoveryNotice() and renders its decision, so the failed-rescue case has its own sentence and its own stamped value. The same edit retired finding 054's cause: the button's disabled state now comes from the module's restartPossible rather than from a flag nothing wrote -- 054 and 061 were two defects from one re-derivation, which is the argument for consuming the module rather than copying its logic.",
    "checks": [
     {
-     "kind": "absent",
+     "kind": "contains",
      "file": "web/e2-editor-app.js",
-     "text": "checkpointFailed"
+     "text": "recoveryNotice"
     }
    ],
-   "checkNote": "Watched by NAME, and the name is not arbitrary: the shell's own module calls this decision `checkpointFailed` (editor-shell/recovery-notice.js), and the honest fix is for the page to take that decision rather than re-deriving a two-way branch from `hasCheckpoint`. A fix written inline under some other name would leave this item reading 'still open' when it is done -- an approximation recorded here rather than hidden, because the alternative sentinel is the notice's WORDING and this queue must not start depending on a sentence nobody has written yet. The first sentinel tried was `checkpointError ?`, which the STATUS PILL already contains: it drifted immediately, which is the checker doing its job."
+   "checkNote": "Present now: the page takes the decision instead of re-deriving it."
   },
   {
    "id": "queue-long-document-renders-blank-in-silence",
@@ -876,6 +876,38 @@
     }
    ],
    "checkNote": "Watching for the engine learning to refuse, or to paint, above the limit -- under a name that does not exist today."
+  },
+  {
+   "id": "queue-cut-cannot-remove-text",
+   "title": "cut is copy plus a delete that is always refused -- delete-backward is caret-only and a cut is always a range",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "finding 063; measured 2026-08-19 once the harness had a clipboard",
+   "note": "The product's cut is copy-then-delete in that order, deliberately. The copy works. The delete is refused every time, because the ten v1 actions are declared caret-only in the manifest (tools/build_e2_b_profile.py:86 -- 'range dispatch was characterised for the paragraph actions, not for delete or insert') and a cut runs on a range by definition. So cut is effectively copy. The disposition half of this was finding 063 and is fixed; this item is the CAPABILITY half. The fix is not simply to widen the manifest: what the declaration is missing is the measurement behind it. Either characterise range delete for the v1 actions and then declare it, or add an action that deletes a selection. NOT a link either way -- gestures are a manifest choice (probe_engine.cpp says so where the mask is defined).",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "tools/build_e2_b_profile.py",
+     "text": "RANGE_DELETE_CHARACTERISED"
+    }
+   ],
+   "checkNote": "Absent until somebody measures range delete and says so where the manifest is built."
+  },
+  {
+   "id": "queue-no-select-all-action",
+   "title": "there is no select-all action, so Ctrl+A is not bound",
+   "expectation": "absent",
+   "blocksRelink": false,
+   "source": "measured 2026-08-19 while wiring the keyboard row",
+   "note": "The contract has fifteen actions and none of them selects everything. Expressing it geometrically was tried and MEASURED: selectRange from (0,0) to the document's width and height reports success in about half a second, the engine still reports the selection collapsed, and the canvas shows no selection wash. So the substitute selects nothing, and a shortcut that looks like it worked is worse than no shortcut -- the same rule that put preventDefault on Ctrl+S. Ctrl+A is therefore deliberately unbound and the checklist row says so rather than promising it. A real one needs an action in the contract, which is an ABI change and a link.",
+   "checks": [
+    {
+     "kind": "absent",
+     "file": "editor-shell-v2/narrow-editor-v2-client.js",
+     "text": "select-all"
+    }
+   ],
+   "checkNote": "Absent until the contract has one."
   }
  ],
  "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
