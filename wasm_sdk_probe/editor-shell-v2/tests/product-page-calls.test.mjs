@@ -20,7 +20,7 @@ import { fileURLToPath } from "node:url";
 
 import { EditorStateMachine } from "../../editor-shell/state-machine.js";
 import { ParagraphEditorClient } from "../paragraph-editor-client.js";
-import { NarrowEditorV2Client } from "../narrow-editor-v2-client.js";
+import { EDITOR_V2_ACTIONS, NarrowEditorV2Client } from "../narrow-editor-v2-client.js";
 import { NarrowEditorV2Session } from "../narrow-editor-v2-session.js";
 
 const read = (relative) =>
@@ -111,3 +111,38 @@ test("every snapshot field a page reads is a field the state machine has",
                           + `${unknown.join(", ")}`);
        }
      });
+
+// FINDING 067: the Enter key, bound in the page's keydown handler.
+//
+// The binding lives in the page rather than at the input adapter's commit
+// boundary because a <textarea> reports BOTH Enter and Shift+Enter as
+// `insertLineBreak` (measured, findings/evidence/067/), so the two are
+// indistinguishable there -- and the adapter is in E1-C's frozen bundle
+// anyway.  These cases pin the three things that make the binding correct;
+// each of them fails if the corresponding clause is deleted.
+test("Enter is bound to the paragraph break and Shift+Enter to the line break",
+  () => {
+    const page = read("../../web/e2-editor-app.js");
+    const start = page.indexOf('el.sink.addEventListener("keydown"');
+    assert.ok(start > 0, "the page has a keydown handler on the sink");
+    const handler = page.slice(start, page.indexOf("\n});", start));
+
+    assert.match(handler, /event\.key === "Enter"/,
+      "the handler branches on Enter");
+    assert.match(handler, /event\.shiftKey \? "insert-line-break"/,
+      "Shift+Enter asks for the LINE break");
+    assert.match(handler, /"insert-paragraph-break"/,
+      "a plain Enter asks for the PARAGRAPH break");
+
+    // Not optional: Enter during an IME composition COMMITS the composition,
+    // and preventing it there breaks Chinese input.  Finding 050's
+    // neighbourhood, in a file that is frozen and cannot be repaired.
+    assert.match(handler, /!event\.isComposing/,
+      "the Enter branch is guarded on isComposing");
+
+    // Both must be real contract actions, or `editorAction` cannot label them.
+    for (const action of ["insert-paragraph-break", "insert-line-break"]) {
+      assert.ok(EDITOR_V2_ACTIONS.includes(action),
+        `${action} is one of the contract's actions`);
+    }
+  });

@@ -143,7 +143,7 @@
     {
       "path": "listener:keydown",
       "by": "tools/run_e2_c_product_path.py",
-      "how": "a synthesised KeyboardEvent('keydown', {key: ArrowLeft}) on #sink; the oracle is the page cancelling it and the status line reporting a dispatched caret move. LIMIT, stated because this audit works per LISTENER and cannot see inside one: the same handler also carries Ctrl+Z and Ctrl+S, and neither is exercised. So `driven` here means the handler is reached, not that every branch in it is. Ctrl+Z's own coverage is the undo check, which presses the button rather than the key."
+      "how": "TWO branches now, and both are named because this audit works per LISTENER and cannot see inside one. (1) a synthesised KeyboardEvent('keydown', {key: ArrowLeft}) on #sink; the oracle is the page cancelling it and the status line reporting a dispatched caret move. (2) a REAL Enter and a REAL Shift+Enter delivered through CDP Input.dispatchMouseEvent's sibling Input.dispatchKeyEvent, judged by the-enter-key-reaches-the-document on the PARAGRAPH COUNT in the saved ODT -- never on the revision, which advanced on every broken press under finding 067. That arm is CHROME ONLY: only a real key runs the default action that produces `beforeinput`, so a synthesised keydown would pass it on a page where the binding is absent; Firefox reports NOT_ESTABLISHED. Mutation `enter-key-not-bound` disables the branch and the check must go red. STILL NOT EXERCISED in this handler: Ctrl+Z and Ctrl+S. Ctrl+Z's own coverage is the undo check, which presses the button rather than the key."
     },
     {
       "path": "listener:pointerdown",

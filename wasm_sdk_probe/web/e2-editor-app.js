@@ -708,6 +708,46 @@ el.sink.addEventListener("keydown", (event) => {
     // Ctrl+S.  A real one needs a select-all ACTION in the contract
     // (queue-no-select-all-action).
   }
+  // FINDING 067.  Enter did nothing, and the revision counter said it worked.
+  //
+  // The frozen input adapter turns `beforeinput` with `insertParagraph` or
+  // `insertLineBreak` into `commitText("\n")` -- a text insert of a newline --
+  // and the engine's `paste` ACCEPTS that newline, does nothing with it, and
+  // increments the revision anyway (measured: method "paste", revision 1 -> 2,
+  // content.xml byte-identical, findings/evidence/067/).  Meanwhile the toolbar
+  // buttons for both breaks work and are covered every run: only the user's
+  // keyboard was broken.
+  //
+  // WHY HERE AND NOT AT THE ADAPTER'S COMMIT BOUNDARY.  Measured on this page:
+  // a plain Enter and Shift+Enter BOTH arrive as `insertLineBreak`, because
+  // this sink is a <textarea> -- `insertParagraph` is what a contenteditable
+  // reports, so that branch of the adapter is dead code here.  The two keys are
+  // therefore indistinguishable at `commit(text, metadata)`, and no routing
+  // decision taken there can offer both breaks.  `keydown` carries `shiftKey`;
+  // `InputEvent` does not, and the adapter does not listen for keydown at all.
+  //
+  // `preventDefault` here means the browser generates NO `beforeinput`, so the
+  // adapter's branch never fires and the two paths are disjoint by
+  // construction -- no ordering dependency, and none of the double-commit the
+  // paste handler was measured doing when it duplicated the adapter's work.
+  //
+  // `isComposing` is not optional: during an IME composition Enter COMMITS the
+  // composition, and preventing it there would break Chinese input -- finding
+  // 050's neighbourhood, and that file is frozen so a mistake here cannot be
+  // repaired there.
+  //
+  // Ctrl/Cmd+Enter is swallowed rather than passed on. The contract has no
+  // page-break action, and letting it fall through would reproduce 067 on that
+  // chord -- the same rule that put `preventDefault` on Ctrl+S and left Ctrl+A
+  // unbound: offering a key that cannot dispatch is worse than offering none.
+  if (event.key === "Enter" && !event.isComposing) {
+    event.preventDefault();
+    if (!accel) {
+      void editorAction(event.shiftKey ? "insert-line-break"
+                                       : "insert-paragraph-break").catch(() => {});
+    }
+    return;
+  }
   if (accel) return;
   const action = KEY_ACTIONS[event.key];
   if (!action) return;

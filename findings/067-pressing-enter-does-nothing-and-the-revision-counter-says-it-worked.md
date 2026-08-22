@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認，未修**（2026-08-22） |
+| **狀態** | **產品那一半已修並驗證**（2026-08-22，殼層 v27）；**引擎那一半未修**，需要連結 |
 | **Bugzilla** | —（**不是上游**：兩個候選層級都在我們這一側，見〈機制〉） |
 | **發現日** | 2026-08-22（operator 2026-08-21 那一輪先撞到，當時被 [066](066-the-toolbar-takes-the-keyboard-and-never-gives-it-back.md) 遮住而無法判讀；066 修好之後才問得出來） |
 | **嚴重度** | **高**——使用者按 Enter 想分段，文件完全沒變，沒有任何提示，**而且進度計數器往前跳了一格** |
@@ -83,26 +83,102 @@ if (inputType === "insertLineBreak" || inputType === "insertParagraph") {
 
 **這是 022 那個形狀（安靜的 no-op）換一個位置。**
 
-### 沒有量到的部分
+### 已經量到了（2026-08-22 補）
 
-`paste()` 的回傳值在這裡看不到，所以**不知道**是「paste 回 true 但 Writer 對單獨一個
-`"\n"` 不做事」，還是「paste 回 false、走了 `postKeyEvent` 退版路徑而那也沒作用」。
-`method` 欄位分得出來，**這一輪沒有把它接出來**——下一輪先接那個欄位，成本接近零。
+`method` 接出來了：**`paste`**。所以 LOK 的 `paste` **回傳 true**，引擎沒有走
+`postKeyEvent` 退版路徑。故事因此是**paste 收下了一個單獨的換行然後什麼都沒做**，
+不是「paste 拒絕了它」。
 
-## 處方（未實作，而且刻意先不做）
+同一次量測還掉出一件改變處方的事：**Enter 與 Shift+Enter 在 commit 邊界上分不出來**
+（兩顆都報 `insertLineBreak`，因為輸入面是 `<textarea>`；`insertParagraph` 是
+contenteditable 才會報的，所以轉接器那個分支在這個頁面上是**死碼**）。
+證據：`findings/evidence/067/engine-route-and-which-key.json`。
 
-**主修法在轉接器**：`insertParagraph` 應該派送 `insert-paragraph-break`，
-`insertLineBreak` 應該派送 `insert-line-break`，兩者分開，而不是折成
-`commitText("\n")`。這是**殼層那一側**，不需要連結。
+## 處方（產品那一半已實作，殼層 v27）
 
-**沒有今晚動手，理由具名**：
+**綁在頁面自己的 keydown 處理器裡**，也就是這個檔案已經放了方向鍵與
+Ctrl+Z／S／B／I／U 的地方，而它自己的註解就寫著理由：「走 `editorAction`，
+和工具列按鈕呼叫的是同一個函式，所以快捷鍵和按鈕不會走散」。
 
-1. `input/input-adapter.js` 是 finding 050（一個 session 只能打一次中文）住過的地方，
-   它的 composition 狀態機不是可以在無人看管時順手改的東西。
-2. 轉接器目前只拿得到 `commitText`；要讓它派送動作是**介面的改動**，不只是換一行。
-3. 今晚已經鑄過一次殼層身分（v25 → v26），而使用者還沒看過那一次。
-4. **第二個候選要不要一起修是個判斷題**：`++gState.revision` 無條件加一是引擎那一側，
-   而那需要連結。在量出 `method` 之前不該把它塞進任何清單。
+```js
+if (event.key === "Enter" && !event.isComposing) {
+  event.preventDefault();
+  if (!accel) {
+    void editorAction(event.shiftKey ? "insert-line-break"
+                                     : "insert-paragraph-break").catch(() => {});
+  }
+  return;
+}
+```
+
+### 為什麼不放在轉接器的 commit 邊界（本來的計畫，被否掉了）
+
+原本要在 `NarrowEditorV2Session` 裡換掉繼承來的轉接器，在 commit 邊界上分流。
+**兩個獨立的理由把它殺掉，兩個都是查證過的：**
+
+1. **基底類別的建構子把轉接器交出去了。**
+   `editor-shell/editor-session.js:97` 把 `this.input` 傳給
+   `PlainTextClipboardAdapter`，而剪貼簿轉接器把它存成 `this._input`
+   （`clipboard-adapter.js:33`）並透過它 commit。事後替換欄位只會留下**兩個**
+   轉接器：`setBlocked` 只到得了新的那個，DOM 貼上與 API 貼上會走不同的轉接器。
+   一個安靜的分裂狀態。
+2. **兩顆鍵在那個邊界上分不出來。**（量到的，見〈證據〉）Enter 與 Shift+Enter
+   都報 `insertLineBreak`，因為輸入面是 `<textarea>`。所以任何在
+   `commit(text, metadata)` 上做的決定，只能提供兩種斷行的其中一種——而原本的
+   對照表會把真人的 Enter 對到**行**斷行，在畫面上像對的、在 XML 裡是錯的。
+
+`keydown` 上的 `preventDefault` 讓瀏覽器**根本不產生 `beforeinput`**，所以轉接器
+那條分支永遠不會觸發——兩條路是**構造上互斥**的，不靠註冊順序。
+
+### 三個承重的細節
+
+- **`!event.isComposing` 不是可選的。**IME 組字中的 Enter 是**確定組字**，在那裡
+  preventDefault 會弄壞中文輸入——finding 050 的鄰居，而那個檔是凍結的，這裡犯錯
+  沒辦法在那邊補救。
+- **Ctrl/Cmd+Enter 被吞掉**，不往下傳。契約裡沒有分頁動作，讓它落到轉接器就會在
+  那個組合鍵上重現 067。這和 Ctrl+S 加 preventDefault、Ctrl+A 不綁是同一條規矩：
+  提供一個派送不出去的鍵，比不提供更糟。
+- **走 `editorAction` 而不是 `session.insertBreak`**，因為前者才有 046 殘留的
+  處置邏輯（`DISPATCHED_UNVERIFIED` 拆封、`_blockQueueIfDispatched`、`recovery`
+  欄位），而 `run()` 的提示文字就是看那個欄位。**鍵盤走的是工具列那條路。**
+
+### 驗證
+
+| | |
+|---|---|
+| 探針 | `real-enter` 從 FAIL 轉 **PASS**：段落 9 → 10，`content.xml` 不再相同，正向對照仍然成立 |
+| 出貨頁 Chrome | `the-enter-key-reaches-the-document` **PASS**，兩個臂：Enter 段落 10 → 11 且兩個標記不在同一段；Shift+Enter 段落 12 → 12 且兩者之間有 `<text:line-break/>` |
+| 突變 `enter-key-not-bound` | **偵測到**，而且**只有**擁有它的那一格變紅；兩個臂的段落數都不動，正好重現 067 |
+| 單元測試 | `product-page-calls.test.mjs` 釘住三件事（分支存在、Shift 對到行斷行、`isComposing` 守衛），把分支關掉會紅 |
+| 殼層身分 | v26 → **v27**（`55a91f837f21…`），矩陣第五個綁定就地重述、`refreezeLog` 第三列 |
+
+**判準是段落數，不是 revision。**這棵樹有收據：每一次壞掉的按鍵 revision 都前進了。
+
+### 這一輪自己踩到的坑（同一個檔案兩天內第三次）
+
+新檢查第一版放在 `the-edit-buttons-do-what-they-say` **前面**。它會**增加段落**，
+而那一格是用**幾何**瞄準的——它刻意點在 y=0.28 那一行的末端，好讓斷行落在行尾。
+我的區塊讓文件重排，那一下就落在段落中間，殘餘文字跟了過來，它的精確字串判準當場
+失敗。**紅的是它，錯的是我。**現在移到最後一個用幾何瞄準的檢查之後、長文件區塊
+之前（那一段會自己開一份文件，把我留下的東西沖掉），而且自己先重開一次 fixture。
+
+## 引擎那一半（未修，需要連結）
+
+`handleInsertText` 的 `++gState.revision` **無條件執行**，所以「貼上一個換行什麼都
+沒做」與「插入了文字」在協定上長得一模一樣。這是 022 那個形狀（安靜的 no-op）換一
+個位置，而修它要一次連結。
+
+**現在它是可以具名的**：`method` 已經量到是 `paste`，也就是 LOK 收下了那個換行、
+回傳 true、然後什麼都沒做。所以處方不是「處理 paste 失敗」，而是**在 revision 前進
+之前要有證據說文件真的變了**。
+
+**還沒放進任何清單**，因為它需要一次連結而連結的貨載目前是六項定案。
+
+## 沒有涵蓋的路徑（具名，未量測）
+
+一個**沒有 keydown 就到達的** `beforeinput insertLineBreak`——行動裝置的虛擬鍵盤、
+自動更正——仍然會走到凍結的轉接器、仍然撞上引擎這個 no-op、仍然讓 revision 說謊。
+**沒有量過**，也不該只憑推理先修：貼上那次雙重 commit 就是這樣長出來的。
 
 ## 這一輪的形狀，記下來
 

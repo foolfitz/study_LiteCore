@@ -745,6 +745,19 @@ return { payloadSurvived, shimmed, eventCanceled: !notPrevented };
 # ----------------------------------------------------------------- mutations
 
 MUTATIONS = {
+    # FINDING 067.  The binding lives in the page's keydown handler because a
+    # <textarea> reports Enter and Shift+Enter identically at the adapter's
+    # commit boundary (measured), and the adapter is frozen anyway.  Disabling
+    # the branch hands both keys back to the adapter, which is what 067 was.
+    "enter-key-not-bound": {
+        "check": "the-enter-key-reaches-the-document",
+        "path": "e2-editor-app.js",
+        "find": '  if (event.key === "Enter" && !event.isComposing) {',
+        "replace": '  if (false && !event.isComposing) {',
+        "reintroduces": "finding 067",
+        "alsoRed": [],
+        "alsoNotEstablished": [],
+    },
     # FINDING 066, and the reason it needs a mutation at all: the check that
     # owns it is the only one in this file that uses a REAL click, so nothing
     # else would notice if it stopped being able to fail.  Reverting the two
@@ -1356,7 +1369,7 @@ def build_mirror(source: Path, target: Path, overrides: dict[str, bytes]) -> Non
 # product page itself is one of them), so the digest moves on its own and no
 # separate honesty flag is needed.  Same digest function as the bundle manifest,
 # imported rather than reimplemented: two copies of a hash rule drift.
-SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v26.json"
+SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v27.json"
 
 
 def served_in_dist(relative: str) -> str:
@@ -4153,6 +4166,157 @@ return { available: true, afterButton };
                              "The File is synthesised and assigned to the input, "
                              "which exercises the page's change handler and not "
                              "the chooser -- the same class of gap D5 exists for")
+
+        # PLACED HERE, and the placement is the third lesson of its kind in
+        # this file in two days.
+        #
+        # This block ADDS PARAGRAPHS, and everything between the inline formats
+        # and here aims its caret by GEOMETRY -- `the-edit-buttons-do-what-they-say`
+        # clicks past the end of the line at y=0.28 specifically so its
+        # paragraph break lands at a line END.  Run before it, this block
+        # reflows the document, that click lands mid-paragraph, the remainder
+        # comes along, and its exact-string oracle fails.  Measured: it went red
+        # the first time this check was inserted above it, and the check itself
+        # was fine.
+        #
+        # So it runs after the last geometry-aimed check and immediately before
+        # the long-document section, which opens a document of its own and
+        # washes away everything this one leaves.  The first thing below is a
+        # re-open, so it does not depend on what came before either.
+        # ------------------------- 067: does the Enter KEY reach the document?
+        #
+        # It did not, and the revision counter said it had: the frozen input
+        # adapter turns `beforeinput` insertParagraph/insertLineBreak into
+        # `commitText("\\n")`, the engine's `paste` ACCEPTS that newline and does
+        # nothing with it, and `handleInsertText` increments the revision anyway
+        # (measured: method "paste", revision 1 -> 2, content.xml byte-identical,
+        # findings/evidence/067/).  The toolbar's break buttons worked the whole
+        # time -- only the user's keyboard was broken, which is why nothing here
+        # noticed for as long as it existed.
+        #
+        # THE ORACLE IS THE PARAGRAPH COUNT, NEVER THE REVISION.  This tree has
+        # the receipt: the revision advanced on every one of the broken presses.
+        #
+        # A REAL key, and CHROME ONLY: only a real key runs the default action
+        # that produces `beforeinput`, and only CDP can deliver one.  Firefox
+        # reports NOT_ESTABLISHED rather than passing, because a synthetic
+        # keydown would pass this on a page where the binding is absent.
+        enter_record: dict = {"arms": []}
+        enter_cdp = getattr(session, "call", None)
+        # A known document, through the product's own file input: everything
+        # above this point has been editing the one that was open, and this
+        # block counts PARAGRAPHS.
+        evaluate(session, CLEAR_TOAST)
+        enter_record["reopened"] = evaluate(
+            session, OPEN_FILE.replace("ARG_URL", "./e1-fixtures/list-contexts.odt")
+            .replace("ARG_NAME", "enter-key.odt"))
+        wait_for(session, lambda s: (s.get("doc") or "") == "enter-key.odt"
+                 and s.get("state") == "ready", 90)
+
+        def press_key(shift: bool) -> None:
+            for kind in ("rawKeyDown", "char", "keyUp"):
+                payload = {"type": kind, "key": "Enter",
+                           "windowsVirtualKeyCode": 13,
+                           "nativeVirtualKeyCode": 13, "code": "Enter",
+                           "modifiers": 8 if shift else 0}
+                if kind == "char":
+                    payload["text"] = "\r"
+                enter_cdp("Input.dispatchKeyEvent", payload)
+            time.sleep(1.5)
+
+        def paragraphs_of(report: dict) -> list[str]:
+            content = (report or {}).get("content") or ""
+            if not content:
+                return []
+            try:
+                root = ElementTree.fromstring(content)
+            except ElementTree.ParseError:
+                return []
+            return ["".join(node.itertext()) for node in root.iter()
+                    if node.tag.split("}")[-1] in ("p", "h")]
+
+        def enter_arm(shift: bool, first: str, second: str) -> dict:
+            arm = {"shift": shift, "first": first, "second": second}
+            aim = caret_click_fractions(
+                evaluate(session, LINE_INK.replace("ARG_Y", "0.24")) or {})
+            arm["clicks"] = {k: aim.get(k) for k in ("derived", "near")}
+            place_caret_and_settle(session, POINT_AT, aim["near"], "0.24")
+            evaluate(session, PRESS.replace("ARG_ACTION", "insert-paragraph-break"))
+            time.sleep(1.2)
+            before_first = revision_of(evaluate(session, READ_STATE))
+            evaluate(session, TYPE_WHEREVER_FOCUS_IS.replace("ARG_TEXT", first))
+            wait_for(session,
+                     lambda st, floor=before_first: revision_of(st) is not None
+                     and floor is not None and revision_of(st) > floor, 12)
+            baseline = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+            arm["paragraphsBefore"] = len(paragraphs_of(baseline))
+            arm["firstLanded"] = first in ((baseline or {}).get("content") or "")
+
+            press_key(shift)
+            before_second = revision_of(evaluate(session, READ_STATE))
+            evaluate(session, TYPE_WHEREVER_FOCUS_IS.replace("ARG_TEXT", second))
+            wait_for(session,
+                     lambda st, floor=before_second: revision_of(st) is not None
+                     and floor is not None and revision_of(st) > floor, 12)
+            after = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+            content = (after or {}).get("content") or ""
+            paragraphs = paragraphs_of(after)
+            arm["paragraphsAfter"] = len(paragraphs)
+            arm["secondLanded"] = second in content
+            arm["together"] = any(first in para and second in para
+                                  for para in paragraphs)
+            arm["lineBreaksBetween"] = any(
+                first in para and second in para for para in paragraphs) and (
+                    f"{first}<text:line-break/>{second}" in content)
+            arm["savedIsOdt"] = is_an_odt(after)
+            # A question asked of text that is not in the document has no answer.
+            if not arm["savedIsOdt"] or not arm["firstLanded"] \
+                    or not arm["secondLanded"]:
+                arm["outcome"] = "NOT_ESTABLISHED"
+                arm["why"] = ("the keyboard did not put both markers in the "
+                              "document, so what the key between them did "
+                              "cannot be read")
+                return arm
+            if shift:
+                # A LINE break: same paragraph, with a <text:line-break/>
+                # between the two markers.
+                arm["ok"] = (arm["paragraphsAfter"] == arm["paragraphsBefore"]
+                             and arm["lineBreaksBetween"])
+            else:
+                # A PARAGRAPH break: one more paragraph, and the two markers
+                # are no longer in the same one.
+                arm["ok"] = (arm["paragraphsAfter"] == arm["paragraphsBefore"] + 1
+                             and not arm["together"])
+            arm["outcome"] = "PASS" if arm["ok"] else "FAIL"
+            return arm
+
+        if enter_cdp is None:
+            enter_record["why"] = ("this browser session has no CDP, so a real "
+                                   "key cannot be delivered")
+        else:
+            enter_record["arms"].append(enter_arm(False, "ENTKEYA", "ENTKEYB"))
+            enter_record["arms"].append(enter_arm(True, "SHFTKEYA", "SHFTKEYB"))
+        judged_enter = [a for a in enter_record["arms"]
+                        if a["outcome"] in ("PASS", "FAIL")]
+        enter_measurable = len(judged_enter) == 2
+        check("the-enter-key-reaches-the-document",
+              bool(enter_measurable and all(a["ok"] for a in judged_enter)),
+              outcome=None if enter_measurable else "NOT_ESTABLISHED",
+              observed=enter_record,
+              oracle="a REAL Enter delivered through CDP splits the paragraph -- "
+                     "the saved ODT has one more <text:p> and the marker typed "
+                     "before the key is no longer in the same paragraph as the "
+                     "one typed after -- and a REAL Shift+Enter instead leaves "
+                     "the paragraph count alone and puts a <text:line-break/> "
+                     "between the two markers. THE ORACLE IS THE PARAGRAPH "
+                     "COUNT, NEVER THE REVISION: under finding 067 the revision "
+                     "advanced on every broken press while content.xml stayed "
+                     "byte-identical",
+              notEstablished="anything, on a browser without CDP. A real key is "
+                             "the whole point: only it runs the default action "
+                             "that produces `beforeinput`, so a synthetic "
+                             "keydown would pass this on a page where the "
+                             "binding is absent")
 
         # ----------------------------- edit-a-real-length-document: the wall
         # The one checklist row still marked `missing`, and it was marked that
