@@ -133,8 +133,19 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v28.json"),
                     Path("e2/editor-shell-v2-bundle-v29.json"),
                     Path("e2/editor-shell-v2-bundle-v30.json"),
-                    Path("e2/editor-shell-v2-bundle-v31.json"))
+                    Path("e2/editor-shell-v2-bundle-v31.json"),
+                    Path("e2/editor-shell-v2-bundle-v32.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v33, 2026-08-22: redo and cut, prepared ahead of the ABI 4 link.
+# 重做 joins the toolbar HIDDEN, plus Ctrl+Shift+Z and Ctrl+Y, all three gated on
+# `offersRedo()` -- a separate accessor from `offers()` because redo is not an
+# action: it has no wire id and no gesture, and the action map would answer
+# "absent" for it on every profile including the ones that carry it.  Hidden
+# rather than disabled: a disabled control promises a later moment that never
+# arrives on a profile without redo.  Cut now prefers `delete-selection` when
+# the profile offers it and otherwise falls back to today's behaviour rather
+# than to an untested path.
+#
 # v32, 2026-08-22: the arrow keys, bound ahead of the ABI 4 link.
 # The page now lists all six (Left/Right/Up/Down/Home/End) and gates each on
 # `offers()`, a new client method that separates "this profile does not carry
@@ -203,7 +214,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v32.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v33.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

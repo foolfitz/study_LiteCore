@@ -68,6 +68,37 @@ test("no contract at all offers everything", () => {
   assert.equal(client.offers("move-character-left"), true);
 });
 
+test("offersRedo reads the contract, not the action map", () => {
+  // redo has no wire id and no gesture; asking the action map about it would
+  // answer "absent" on every profile including the ones that carry it.
+  const v4 = clientWith({});
+  v4.document._engine.manifest.editorContract.redo = "document-sdk-redo";
+  assert.equal(v4.offersRedo(), true);
+  assert.equal(v4.offers("redo"), false);
+
+  const v3 = clientWith({ "move-character-left": { id: 1, gestures: ["collapsed"] } });
+  assert.equal(v3.offersRedo(), false);
+});
+
+test("a profile with no contract at all does not claim redo", () => {
+  // `offers()` answers true here -- nothing is withheld -- but redo is a
+  // COMPILED EXPORT, so absence of a declaration must not be read as consent.
+  const client = clientWith(undefined);
+  assert.equal(client.offers("move-character-left"), true);
+  assert.equal(client.offersRedo(), false);
+});
+
+test("the product page gates redo and cut on the profile too", () => {
+  const source = readFileSync(
+    new URL("../../web/e2-editor-app.js", import.meta.url), "utf8");
+  // The button is hidden, not disabled: a disabled control promises a later
+  // moment that never arrives on a profile without redo.
+  assert.match(source, /button\.hidden = !session\?\.offersRedo\?\.\(\)/);
+  assert.match(source, /if \(!session\.offersRedo\?\.\(\)\) return;/);
+  // Cut prefers delete-selection and falls back to today's behaviour.
+  assert.match(source, /session\.offers\("delete-selection"\)/);
+});
+
 test("the product page gates its arrow keys on offers, not gesturesFor", () => {
   // The binding and the gate are in one file and could drift apart silently:
   // listing a key without gating it is exactly the "looks like it worked"

@@ -134,6 +134,7 @@ function updateState(snapshot) {
     el.noticeAction.disabled = !notice.restartPossible;
   }
   updateGestureAffordance();
+  updateRedoAffordance();
   // Finding 058.  The caret arrives as a state update, not as a document
   // change, so redrawing only on render would leave it a gesture behind.
   paint();
@@ -173,6 +174,24 @@ function updateGestureAffordance() {
     if (state === null) button.removeAttribute("aria-pressed");
     else button.setAttribute("aria-pressed", state ? "true" : "false");
   }
+}
+
+/**
+ * Show 重做 only on a profile that carries redo.
+ *
+ * HIDDEN rather than DISABLED, and the difference is the point: a disabled
+ * button says "this exists but not right now", which is a promise about a
+ * later moment that will never arrive on this profile. Redo is absent from the
+ * contract until the ABI 4 artifact, so on anything older there is nothing to
+ * say.
+ *
+ * The same rule kept Ctrl+A unbound and kept Up/Down out of the key map until
+ * the manifest carried their action.
+ */
+function updateRedoAffordance() {
+  const button = el.toolbar.querySelector('[data-action="redo"]');
+  if (!button) return;
+  button.hidden = !session?.offersRedo?.();
 }
 
 /* ----------------------------------------------------------------- canvas */
@@ -559,6 +578,7 @@ el.toolbar.addEventListener("click", (event) => {
   if (!action || !session) return;
   const handler =
     action === "undo" ? () => run("復原", () => session.undo())
+    : action === "redo" ? () => run("重做", () => session.redo())
     : action === "insert-text" ? () => insertText()
     : action === "save" ? () => saveDocument()
     : EDITOR_V2_ACTIONS.includes(action) ? () => editorAction(action)
@@ -717,6 +737,16 @@ el.sink.addEventListener("keydown", (event) => {
     void run("復原", () => session.undo()).catch(() => {});
     return;
   }
+  if (accel && ((event.key.toLowerCase() === "z" && event.shiftKey)
+                || event.key.toLowerCase() === "y")) {
+    // Both spellings, because both are in the muscle memory this editor is
+    // competing with. Gated like the button: on a profile without redo the key
+    // is left alone rather than taken and dropped.
+    if (!session.offersRedo?.()) return;
+    event.preventDefault();
+    void run("重做", () => session.redo()).catch(() => {});
+    return;
+  }
   if (accel && event.key.toLowerCase() === "s") {
     // Without preventDefault this opens the BROWSER's save dialog, which saves
     // the page rather than the document -- an answer to the user's request that
@@ -817,7 +847,22 @@ el.sink.addEventListener("cut", (event) => {
   // three handlers down, for finding 050.
   void run("剪下", async () => {
     const copied = await session.copySelection();
-    await session.action("delete-backward", {});
+    // `delete-selection` when the profile carries it.
+    //
+    // `delete-backward` is declared caret-only in every manifest up to v3, and
+    // a cut is a range BY DEFINITION -- so the delete half is refused every
+    // time and cut has been effectively copy (finding 063,
+    // queue-cut-cannot-remove-text). The remedy measured out as a distinct
+    // action rather than a widening: widening delete-backward's gestures would
+    // have discarded the one characterisation this pair has behind it, and the
+    // run that tried it hit the selection barrier instead.
+    //
+    // On a profile without it this falls back to today's behaviour rather than
+    // to a new one: the fallback is the defect, and replacing a known defect
+    // with an untested path on the day of a link is how a link acquires a
+    // second cause.
+    await session.action(session.offers("delete-selection")
+                         ? "delete-selection" : "delete-backward", {});
     return copied;
   })
     .then((copied) => toast(`已剪下 ${copied?.codePoints ?? "?"} 字`))

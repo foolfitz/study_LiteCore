@@ -208,6 +208,24 @@ export class NarrowEditorV2Session extends EditorSession {
     return this.editor?.offers(action) ?? false;
   }
 
+  offersRedo() {
+    return this.editor?.offersRedo() ?? false;
+  }
+
+  /**
+   * The sibling of the base class's `undo()`, and here rather than there for
+   * the same reason `_handleEngineEvent` is: `editor-shell/editor-session.js`
+   * is bound to E1-C's verdict, and redo has nothing to do with that verdict.
+   *
+   * Through the same queue as everything else -- a redo that ran outside it
+   * could interleave with a committed keystroke, and then neither one knows
+   * which revision it started from.
+   */
+  redo(options = {}) {
+    return this._enqueue("redo", ({ document }) => document.redo(options),
+                         { mutation: true });
+  }
+
   limitsFor(action) {
     return this.editor?.limitsFor(action) ?? [];
   }

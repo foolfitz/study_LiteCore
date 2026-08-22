@@ -171,6 +171,25 @@ export class NarrowEditorV2Client {
     return !Array.isArray(spec.gestures) || spec.gestures.length > 0;
   }
 
+  /**
+   * Whether this profile carries `redo`.
+   *
+   * Deliberately NOT expressed through `offers()`: redo is not an editor
+   * action, it has no wire id and no gesture, and it is declared on the
+   * contract as `redo: "document-sdk-redo"` -- the same shape `undo` has.
+   * Asking the action map about it would answer "absent" on every profile,
+   * including the ones that have it.
+   *
+   * The gate matters because `oxsdk_document_redo` is a COMPILED EXPORT: on a
+   * profile whose binary predates it the call does not fail politely, it
+   * reaches for a symbol that is not there.
+   */
+  offersRedo() {
+    const contract = this.document._engine.manifest?.editorContract;
+    if (!contract) return false;
+    return contract.redo === "document-sdk-redo";
+  }
+
   limitsFor(action) {
     const spec = this.document._engine.manifest?.editorContract?.actions?.[action];
     return Array.isArray(spec?.limits) ? spec.limits : [];

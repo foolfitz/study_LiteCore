@@ -107,11 +107,13 @@ TRACE_PATCHED = """    onInputTrace(entry) {
 # withheld it.  These two hooks ask the page directly.  Inert without
 # `globalThis.__f068`.
 STATE_ANCHOR = """  updateGestureAffordance();
+  updateRedoAffordance();
   // Finding 058.  The caret arrives as a state update, not as a document
   // change, so redrawing only on render would leave it a gesture behind.
   paint();"""
 
 STATE_PATCHED = """  updateGestureAffordance();
+  updateRedoAffordance();
   // DIAGNOSTIC, finding 068.  Not shipped.
   {
     const diag = globalThis.__f068;
