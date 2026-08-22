@@ -89,3 +89,70 @@ the measurement.
   at the pre-commit rectangle should still leave a run somewhere on the line.
   Not forced into agreement here: this arm reads the state directly and is the
   stronger instrument, and the discrepancy stays named.
+
+---
+
+# Second round, same day: the engine was never the problem
+
+Four more runs (`f068-cb1..4.json`) with two further mirror patches, and they
+answer the question the section above left open — differently from the way it
+was framed.
+
+The engine's `editor-state` events carry a `source` naming the callback that
+caused them, and a cursor-range callback whose payload will not parse emits
+`editor-callback-parse-error`. The worker already forwards both. Both are
+gated behind `editorDiscoveryEnabled()`, which is **false on a product
+profile** because the builder pops `diagnostic` from the manifest — so on the
+shipped page these events are constructed and then dropped. The mirror ungates
+exactly those two forwards.
+
+## What the engine actually does
+
+```
+click       selection-rectangles   caretX=1418  seq=2
+click       visible-cursor         caretX=1598  seq=3
+commit      visible-cursor         caretX=3131  seq=6      <-- correct, and prompt
+commit      format-state           caretX=3131  seq=7..11
+move        visible-cursor         caretX=2984  seq=12
+```
+
+**The cursor callback arrives, on time, with the right rectangle.** No parse
+errors in any run. Every earlier reading of this finding — "no caret drawn",
+"the caret rectangle is not refreshed", "LOK's paste does not emit the
+callback" — is wrong.
+
+## Where the stale value comes from
+
+The page's snapshot is refreshed only by the drain, which does
+`result?.state || await getState()` once per queued operation. Reading the two
+streams together:
+
+```
+snapshot read  caretX=1598   sourceSequence=5     <-- the page's last read
+engine event   caretX=3131   sourceSequence=6     <-- arrives just after
+```
+
+The page's last `getState()` is answered at sequence **5**. The cursor callback
+is sequence **6**. Nothing asks again, and the engine's own announcement of
+sequence 6 is dropped by the worker. So the page keeps the pre-commit
+rectangle and draws it faithfully.
+
+This accounts for **all eleven runs**, passing and failing:
+
+| outcome | last `getState()` answered at | caret |
+|---|---|---|
+| FAIL (9) | sequence 5 — before the cursor callback | pre-commit |
+| PASS (2) | sequence 6 — after it | correct |
+
+It is a race between the drain's `getState()` and the cursor callback, and the
+reason it is never corrected afterwards is that the product profile drops the
+engine's state announcements.
+
+## Consequences
+
+- **Not an engine defect, and not a link.** The engine's behaviour is correct
+  and prompt in every run.
+- **Not upstream.** LOK emits what it should.
+- The remedy is in the worker and the session, and `sdk-worker.js` is one of
+  the five identities a profile binds — so a worker fix landed before the ABI 4
+  link ships inside that profile at no extra cost.

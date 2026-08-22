@@ -178,8 +178,63 @@ PAINT_PATCHED_3 = """  const caret = editorState.caret;
                        ? editorState.selection.collapsed : null });
   if (caret && editorState.selection?.collapsed !== false) {"""
 
+# FINDING 068's SECOND QUESTION, and the one that decides the remedy: does
+# LOK's cursor callback ARRIVE after a paste-based commit?
+#
+# Two answers, two different fixes, and `sourceSequence` cannot separate them --
+# it counts callbacks that CHANGED state, and a callback that arrives with an
+# unparseable payload changes nothing, exactly like one that never came.
+#
+# The engine already distinguishes them and already says so out loud.  Every
+# state change emits `editor-state` with a `source` naming the callback
+# ("visible-cursor", "invalidate-tiles", "selection-rectangles", ...), and a
+# cursor-range callback whose payload does not parse emits
+# `editor-callback-parse-error` (probe_engine.cpp:2316).  The WORKER already
+# forwards both.  Both are gated behind `editorDiscoveryEnabled()`, which is
+# false on a product profile because the builder pops `diagnostic` from the
+# manifest -- so on the shipped page these events are constructed and dropped.
+#
+# The mirror ungates exactly those two forwards.  Named constant rather than
+# `|| true` so the edit is greppable and cannot be mistaken for the shipped
+# condition.
+WORKER_GATE_ANCHOR = """function editorDiscoveryEnabled() {"""
+
+WORKER_GATE_PATCHED = """// DIAGNOSTIC, finding 068.  Not shipped.  Ungates the two events below; it
+// does not enable discovery, and no discovery OPERATION becomes reachable.
+const DIAGNOSTIC_F068_FORWARD_STATE_EVENTS = true;
+function editorDiscoveryEnabled() {"""
+
+WORKER_STATE_ANCHOR = """    case "editor-state":
+      if (editorDiscoveryEnabled()) {"""
+
+WORKER_STATE_PATCHED = """    case "editor-state":
+      if (editorDiscoveryEnabled() || DIAGNOSTIC_F068_FORWARD_STATE_EVENTS) {"""
+
+WORKER_PARSE_ANCHOR = """    case "editor-callback-parse-error":
+      if (editorDiscoveryEnabled()) {"""
+
+WORKER_PARSE_PATCHED = """    case "editor-callback-parse-error":
+      if (editorDiscoveryEnabled() || DIAGNOSTIC_F068_FORWARD_STATE_EVENTS) {"""
+
+EVENT_ANCHOR = """    onEvent(event) {
+      if (event.event === "document-invalidated")"""
+
+EVENT_PATCHED = """    onEvent(event) {
+      // DIAGNOSTIC, finding 068.  Records only; changes no behaviour.
+      {
+        const diag = globalThis.__f068;
+        if (diag) diag.events.push({
+          label: diag.label, event: event && event.event,
+          source: event && event.source,
+          callbackId: event && event.callbackId,
+          caretX: event && event.caret ? event.caret.x : null,
+          sourceSequence: event && event.sourceSequence,
+        });
+      }
+      if (event.event === "document-invalidated")"""
+
 INSTALL_068 = """(() => {
-globalThis.__f068 = { updates: [], paints: [], label: "boot" };
+globalThis.__f068 = { updates: [], paints: [], events: [], label: "boot" };
 return true;
 })()"""
 
@@ -192,7 +247,7 @@ return globalThis.__f068.label;
 READ_068 = """(() => {
 const d = globalThis.__f068;
 if (!d) return null;
-return { updates: d.updates, paints: d.paints };
+return { updates: d.updates, paints: d.paints, events: d.events };
 })()"""
 
 INSTALL_TRACES = """(() => {
@@ -2204,6 +2259,7 @@ def caret_state_after_commit(session, base, timeout) -> dict:
     seen = evaluate(session, READ_068) or {}
     record["updates"] = seen.get("updates") or []
     record["paints"] = seen.get("paints") or []
+    record["events"] = seen.get("events") or []
     record["hook"] = evaluate(session, READ_HOOK)
 
     def paints(label):
@@ -2219,6 +2275,16 @@ def caret_state_after_commit(session, base, timeout) -> dict:
             "caretX": [(u.get("caret") or {}).get("x") for u in updates(label)],
             "collapsed": [u.get("collapsed") for u in updates(label)],
             "sourceSequence": [u.get("sourceSequence") for u in updates(label)],
+            # THE ANSWER TO THE REMEDY QUESTION.  Each engine state change names
+            # the callback that caused it, so "visible-cursor" appearing (or
+            # not) between the commit and the next step is the discriminator
+            # that `sourceSequence` alone cannot be.
+            "callbackSources": [e.get("source") for e in record["events"]
+                                if e.get("label") == label
+                                and e.get("event") == "editor-state"],
+            "parseErrors": [e.get("callbackId") for e in record["events"]
+                            if e.get("label") == label
+                            and e.get("event") == "editor-callback-parse-error"],
             "documentChangeSequence": [u.get("documentChangeSequence")
                                        for u in updates(label)],
         }
@@ -2391,7 +2457,8 @@ def main() -> int:
     # A patch that silently fails to apply produces a probe that records
     # nothing and reports it as "the condition never fired" -- the same shape
     # as a real absence, and green.
-    for name, anchor in (("the state-update tail", STATE_ANCHOR),
+    for name, anchor in (("the page's onEvent", EVENT_ANCHOR),
+                         ("the state-update tail", STATE_ANCHOR),
                          ("paint()'s head", PAINT_ANCHOR),
                          ("paint()'s editorState guard", PAINT_ANCHOR_2),
                          ("paint()'s caret branch", PAINT_ANCHOR_3)):
@@ -2407,7 +2474,8 @@ def main() -> int:
                .replace(STATE_ANCHOR, STATE_PATCHED, 1)
                .replace(PAINT_ANCHOR, PAINT_PATCHED, 1)
                .replace(PAINT_ANCHOR_2, PAINT_PATCHED_2, 1)
-               .replace(PAINT_ANCHOR_3, PAINT_PATCHED_3, 1))
+               .replace(PAINT_ANCHOR_3, PAINT_PATCHED_3, 1)
+               .replace(EVENT_ANCHOR, EVENT_PATCHED, 1))
     # And the patches must have LANDED.  Counting anchors before is not the
     # same claim: `.replace` on an anchor that overlaps another patch's output
     # can consume it.
@@ -2415,7 +2483,28 @@ def main() -> int:
         if marker not in patched:
             raise SystemExit(f"finding 068's patch did not land: {marker!r} is "
                              "absent from the mirrored page")
-    build_mirror(root, mirror, {page_rel: patched.encode("utf-8")})
+    # The worker is the SECOND mirrored file, and it has to be: the two events
+    # that answer finding 068's remaining question are built in the engine,
+    # forwarded by the worker, and dropped there on a product profile.  Patching
+    # only the page would record an empty list and read as "no callback ever
+    # arrived" -- the very answer under test, arrived at by not listening.
+    worker_rel = "profiles/e2-editor-v3/sdk-worker.js"
+    worker_text = (root / worker_rel).read_text(encoding="utf-8")
+    for name, anchor in (("the discovery gate", WORKER_GATE_ANCHOR),
+                         ("the editor-state forward", WORKER_STATE_ANCHOR),
+                         ("the parse-error forward", WORKER_PARSE_ANCHOR)):
+        if worker_text.count(anchor) != 1:
+            raise SystemExit(
+                f"{name} is not where finding 068's diagnostic expects it in "
+                + worker_rel + f" (found {worker_text.count(anchor)})")
+    worker_patched = (worker_text
+                      .replace(WORKER_GATE_ANCHOR, WORKER_GATE_PATCHED, 1)
+                      .replace(WORKER_STATE_ANCHOR, WORKER_STATE_PATCHED, 1)
+                      .replace(WORKER_PARSE_ANCHOR, WORKER_PARSE_PATCHED, 1))
+    if worker_patched.count("DIAGNOSTIC_F068_FORWARD_STATE_EVENTS") != 3:
+        raise SystemExit("finding 068's worker patch did not land three times")
+    build_mirror(root, mirror, {page_rel: patched.encode("utf-8"),
+                                worker_rel: worker_patched.encode("utf-8")})
 
     report: dict = {
         "schemaVersion": 1,
