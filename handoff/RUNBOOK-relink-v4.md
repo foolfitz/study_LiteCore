@@ -58,8 +58,8 @@ node --test editor-shell-v2/tests/*.test.mjs # 61 pass
 ```
 
 State at the time of writing: 46 queue items, 33 present, 13 open, **0 drifted,
-P1 complete: True, blocking: none**. Shell bundle generation **v30**,
-`a920f3792838bfb1…`. (The extra open item is
+P1 complete: True, blocking: none**. Shell bundle generation **v33**,
+`debec482106d1a45…`. (The extra open item is
 `queue-caret-does-not-follow-typed-text` — finding 068, fixed in source and
 staying open until it ships and a product-path check can measure it.)
 
@@ -103,6 +103,27 @@ make ALLOW_FROZEN_RELINK=1 dist/profiles/e2-editor-v4/sdk-manifest.json
 - The builder prints the five identities plus `withheld: ["select-all"]`.
   If `withheld` comes back empty, stop: the dark action reached the manifest
   with gestures, and the mask cannot take back what a manifest granted.
+
+## 2b. The shell is already waiting for it
+
+Nothing in the shell needs editing on the day. Three capabilities were wired
+ahead of the link and each gates itself on what the running profile declares,
+so they light up when the manifest carries them:
+
+- **arrow keys** — all six listed, each gated on `offers()`. On v3 Up/Down/
+  Home/End fall through untouched (measured: not taken, `defaultPrevented`
+  false, no error). Re-run `--arms arrow-keys-match-the-profile` afterwards:
+  it reads the profile and will then *require* ArrowUp to move the caret, with
+  no edit to the check.
+- **redo** — a hidden 重做 button plus Ctrl+Shift+Z and Ctrl+Y, gated on
+  `offersRedo()`. Hidden rather than disabled, because a disabled control
+  promises a later moment that never arrives on a profile without redo.
+- **cut** — dispatches `delete-selection` when the profile offers it, and
+  otherwise falls back to today's behaviour rather than to an untested path.
+
+Shell bundle **v33**, `debec482106d1a45…`. Finding 068's caret fix and
+069's sink fix are in it too; 068's other half is the worker, which this link
+hashes.
 
 ## 3. Immediately after the link, before any measurement
 
