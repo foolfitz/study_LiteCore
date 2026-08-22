@@ -255,14 +255,22 @@ def self_test() -> int:
           status_of(with_tree(drop_itemcount),
                     "p1-3c-itemcount-projection") == "DRIFTED")
 
-    def abi_back_to_2(root: Path):
+    def abi_back_a_version(root: Path):
+        # Mutate FROM WHAT THE QUEUE DECLARES, not from a literal written down
+        # when this self-test was.  Pinned to `3u`, this mutation silently
+        # stopped biting the moment the constant went to 4: the replace found
+        # nothing, the tree was left correct, the check passed, and the
+        # self-test reported that its own mutation had not moved the verdict.
+        # Measured 2026-08-22 -- and it is the same shape as the thing the
+        # queue itself exists to catch, one level up.
         path = root / "src" / "editor_api.h"
+        declared = next(item["checks"][0]["text"] for item in queue["items"]
+                        if item["id"] == "p1-4-abi-3")
         path.write_text(path.read_text(encoding="utf-8").replace(
-            "#define OXSDK_EDITOR_ABI_VERSION 3u",
-            "#define OXSDK_EDITOR_ABI_VERSION 2u"), encoding="utf-8")
+            declared, "#define OXSDK_EDITOR_ABI_VERSION 2u"), encoding="utf-8")
 
-    check("an ABI constant back at 2 is caught",
-          status_of(with_tree(abi_back_to_2), "p1-4-abi-3") == "DRIFTED")
+    check("an ABI constant back at an older version is caught",
+          status_of(with_tree(abi_back_a_version), "p1-4-abi-3") == "DRIFTED")
 
     def delete_v3_target(root: Path):
         path = root / "Makefile"
