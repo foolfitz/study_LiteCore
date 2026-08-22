@@ -45,20 +45,67 @@ export const EDITOR_V2_INHERITED_ACTIONS = Object.freeze([
   "set-strikethrough",
 ]);
 
+// ABI 4 appends these under the e2-editor-v4 successor identity.  The four
+// movements are a contract surface over behaviour the engine already had -- it
+// has mapped them to arrow/Home/End key codes since the discovery ABI -- and
+// the fifth is the one new behaviour.
+//
+// The v4 contract carries a SIXTH id that is not named here and must not be:
+// its gesture list is empty, so the engine refuses it every time, and a client
+// that names an action the engine always refuses is a client offering a control
+// that cannot work.  It is withheld in the manifest rather than absent from the
+// binary, which is what makes granting it later a measurement instead of a
+// relink.
+export const EDITOR_V3_APPENDED_ACTIONS = Object.freeze([
+  "move-line-up",
+  "move-line-down",
+  "move-line-home",
+  "move-line-end",
+  "delete-selection",
+]);
+
 export const EDITOR_V2_ACTIONS = Object.freeze([
   ...EDITOR_V2_INHERITED_ACTIONS,
   ...EDITOR_V2_PARAGRAPH_ACTIONS,
 ]);
 
+export const EDITOR_V3_ACTIONS = Object.freeze([
+  ...EDITOR_V2_ACTIONS,
+  ...EDITOR_V3_APPENDED_ACTIONS,
+]);
+
 const INHERITED = new Set(EDITOR_V2_INHERITED_ACTIONS);
+const APPENDED = new Set(EDITOR_V3_APPENDED_ACTIONS);
 const PARAGRAPH = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
 const MOVE_ACTIONS = new Set(["move-character-left", "move-character-right"]);
+// Movement by line takes the SAME postcondition as movement by character --
+// revision unchanged, `changed: false`, a documented callback -- because it
+// takes the same route through the engine: a posted key event with
+// `mutation = false`, not a UNO dispatch.  Sharing the postcondition is the
+// point: these inherit one somebody measured instead of getting a new one
+// nobody has.
+//
+// They are NOT in MOVE_ACTIONS, and that is deliberate rather than an
+// oversight: MOVE_ACTIONS is also what permits `extendSelection`, and the ABI
+// refuses that flag for anything but the two character moves
+// (editor_api.cpp:159).  A shift+Up that the client accepts and the engine
+// rejects is worse than one the client refuses.
+const LINE_MOVE_ACTIONS = new Set([
+  "move-line-up", "move-line-down", "move-line-home", "move-line-end",
+]);
 const DELETE_ACTIONS = new Set(["delete-backward", "delete-forward"]);
 const FORMAT_ACTIONS = new Set(["set-bold", "set-italic", "set-underline",
   "set-strikethrough"]);
+// delete-selection belongs here and NOT in DELETE_ACTIONS, which is the
+// distinction the postconditions turn on: DELETE_ACTIONS are the two
+// caret-relative deletes that go through the selection barrier and complete
+// with `verified-selection-delete`.  delete-selection dispatches .uno:Delete on
+// a selection the caller already made, so it completes like any other UNO
+// mutation.  Filing it with the barrier deletes would assert a completion
+// string it never produces.
 const MUTATION_ACTIONS = new Set([
   ...DELETE_ACTIONS, "insert-paragraph-break", "insert-line-break",
-  ...FORMAT_ACTIONS,
+  ...FORMAT_ACTIONS, "delete-selection",
 ]);
 
 function unsignedRevision(value, label = "expectedRevision") {
@@ -119,7 +166,7 @@ export class NarrowEditorV2Client {
         "editor action returned a malformed or mismatched result",
         { action, expectedRevision, result });
     }
-    if (MOVE_ACTIONS.has(action)) {
+    if (MOVE_ACTIONS.has(action) || LINE_MOVE_ACTIONS.has(action)) {
       if (result.revision !== expectedRevision || result.changed !== false
           || !String(result.completion || "").startsWith("documented-callback-")) {
         throw invalidResult(
@@ -150,7 +197,7 @@ export class NarrowEditorV2Client {
     if (PARAGRAPH.has(action)) return this.paragraph.action(action, options);
 
     this._assertAvailable();
-    if (!INHERITED.has(action)) {
+    if (!INHERITED.has(action) && !APPENDED.has(action)) {
       throw new DocumentSdkError(
         "EDITOR_ACTION_UNSUPPORTED",
         `unsupported narrow editor action: ${String(action)}`,
@@ -189,6 +236,22 @@ export class NarrowEditorV2Client {
     this._validateInherited(action, expectedRevision, result);
     this.document.revision = result.revision;
     return result;
+  }
+
+  moveLine(direction, options = {}) {
+    if (!LINE_MOVE_ACTIONS.has(`move-line-${direction}`)) {
+      throw new DocumentSdkError(
+        "INVALID_ARGUMENT", "direction must be up, down, home or end");
+    }
+    return this.action(`move-line-${direction}`, options);
+  }
+
+  // The caller makes the selection; this removes it.  There is no arity here
+  // and no direction: an action named for a selection that ran without one
+  // would be delete-backward wearing a different name, which is why the v4
+  // manifest withholds the collapsed gesture from it.
+  deleteSelection(options = {}) {
+    return this.action("delete-selection", options);
   }
 
   moveCharacter(direction, options = {}) {

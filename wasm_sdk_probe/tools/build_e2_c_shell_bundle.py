@@ -129,8 +129,24 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v24.json"),
                     Path("e2/editor-shell-v2-bundle-v25.json"),
                     Path("e2/editor-shell-v2-bundle-v26.json"),
-                    Path("e2/editor-shell-v2-bundle-v27.json"))
+                    Path("e2/editor-shell-v2-bundle-v27.json"),
+                    Path("e2/editor-shell-v2-bundle-v28.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v29, 2026-08-22: the ABI 4 relink's client half.
+# `editor-shell-v2/narrow-editor-v2-client.js` learned the five appended actions
+# -- four movements by line and delete-selection -- with the movements sharing
+# the character moves' postcondition (same route through the engine: a posted
+# key event, `mutation = false`) and delete-selection filed with the UNO
+# mutations rather than the barrier deletes, because it completes as
+# `uno-command-result` and never produces `verified-selection-delete`.
+#
+# TWO GENERATIONS IN ONE DAY, and the second one is the honest cost of freezing
+# the first too early: v28 was minted mid-work, before the client change was
+# written. No round ran on v28, so rewriting it would have been harmless in
+# fact -- which is exactly the argument this file's guard exists to refuse. A
+# generation number is cheap; a generation that says one thing and holds another
+# is what cost a day in 2026-08-17.
+#
 # v28, 2026-08-22: the ABI 4 relink's shell half.  `sdk/document-sdk.js` gained
 # `redo()`, the sibling of `undo()` -- a document-level operation with no wire
 # id, because an action id would drag the gesture mask and the option-flag
@@ -150,7 +166,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v28.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v29.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

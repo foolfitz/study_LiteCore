@@ -24,8 +24,25 @@ export type EditorV2InheritedAction =
 
 export type EditorV2Action = EditorV2InheritedAction | EditorV2ParagraphAction;
 
+/**
+ * ABI 4's append, under the e2-editor-v4 successor identity.  Five, not six:
+ * the contract carries one more id whose gesture list is empty, so the engine
+ * refuses it every time and naming it here would declare a control that cannot
+ * work.
+ */
+export type EditorV3AppendedAction =
+  | "move-line-up"
+  | "move-line-down"
+  | "move-line-home"
+  | "move-line-end"
+  | "delete-selection";
+
+export type EditorV3Action = EditorV2Action | EditorV3AppendedAction;
+
 export const EDITOR_V2_INHERITED_ACTIONS: readonly EditorV2InheritedAction[];
 export const EDITOR_V2_ACTIONS: readonly EditorV2Action[];
+export const EDITOR_V3_APPENDED_ACTIONS: readonly EditorV3AppendedAction[];
+export const EDITOR_V3_ACTIONS: readonly EditorV3Action[];
 
 /**
  * The result shape of an inherited action -- v1's, unchanged.  `changed` is a
@@ -51,12 +68,23 @@ export class NarrowEditorV2Client {
     : Promise<EditorV2InheritedResult>;
   action(action: EditorV2ParagraphAction,
          options?: RevisionOptions): Promise<EditorV2ActionResult>;
+  /**
+   * `extendSelection` is absent on purpose: the ABI refuses that flag for
+   * anything but the two character moves, so offering it here would type a
+   * call the engine rejects.
+   */
+  action(action: EditorV3AppendedAction,
+         options?: RevisionOptions): Promise<EditorV2InheritedResult>;
 
   moveCharacter(direction: "left" | "right",
                 options?: RevisionOptions & { extendSelection?: boolean })
     : Promise<EditorV2InheritedResult>;
+  moveLine(direction: "up" | "down" | "home" | "end",
+           options?: RevisionOptions): Promise<EditorV2InheritedResult>;
   delete(direction: "backward" | "forward",
          options?: RevisionOptions): Promise<EditorV2InheritedResult>;
+  /** The caller makes the selection; this removes it.  No direction, no arity. */
+  deleteSelection(options?: RevisionOptions): Promise<EditorV2InheritedResult>;
   insertBreak(kind: "paragraph" | "line",
               options?: RevisionOptions): Promise<EditorV2InheritedResult>;
   setInlineFormat(format: "bold" | "italic" | "underline" | "strikethrough",
@@ -72,6 +100,6 @@ export class NarrowEditorV2Client {
   selectRange(start: { xTwips: number; yTwips: number },
               end: { xTwips: number; yTwips: number },
               options?: AbortableOptions): Promise<unknown>;
-  gesturesFor(action: EditorV2Action): EditorV2Gesture[] | null;
-  limitsFor(action: EditorV2Action): string[];
+  gesturesFor(action: EditorV3Action): EditorV2Gesture[] | null;
+  limitsFor(action: EditorV3Action): string[];
 }
