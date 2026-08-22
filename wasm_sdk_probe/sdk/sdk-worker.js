@@ -336,6 +336,22 @@ function productEditorState(value = {}) {
         ? value.a11y.position : null,
       listPrefixLength: typeof value.a11y.listPrefixLength === "number"
         ? value.a11y.listPrefixLength : null,
+      // ROADMAP 3.4.  The paragraph's TEXT, and its arrival here reverses the
+      // closure the comment above describes rather than sneaking past it: the
+      // fingerprint exists because "the host needs to compare, not to read",
+      // which was true while the only consumer was the identity gate. A screen
+      // reader needs to read, and measured 2026-08-22 no other layer has the
+      // text -- the engine hashed it and dropped it, and `selectionText` is
+      // the SELECTION, so reading a paragraph through it would mean changing
+      // the user's selection to announce it.
+      //
+      // `null` rather than `""` when the profile does not carry it, and the
+      // distinction is load-bearing: a profile built without
+      // OXSDK_A11Y_PARAGRAPH_TEXT emits no field at all, and "" would say the
+      // paragraph is empty. The manifest's `caretParagraphText` is how a host
+      // tells the two apart BEFORE reading, the same way `redo` is declared.
+      text: typeof value.a11y.paragraphText === "string"
+        ? value.a11y.paragraphText : null,
     } : null,
   };
 }

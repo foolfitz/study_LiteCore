@@ -1016,11 +1016,23 @@ $(E2_C_BUILD) $(E2_C_DIST):
 # values): what differs between the two artifacts is in the SOURCE, which is
 # where an ABI change belongs.  If these flags ever need to differ from v3's,
 # that is a different artifact than the one this profile claims to be.
+# EXTRA_DEFINES is EMPTY by default and must stay empty here.
+#
+# It exists so that a variant artifact -- roadmap 3.4's needs
+# -DOXSDK_A11Y_PARAGRAPH_TEXT -- is built by NAMING the extra define on the
+# command line, instead of retyping the whole flag set into an override. A
+# retyped copy stops tracking this line the moment this line changes, and then
+# two artifacts differ in a way nobody can see.
+#
+# With it empty the command is character-for-character what it was, so the
+# shipped v4 recipe is unchanged.
+EXTRA_DEFINES ?=
+
 $(E2_V4_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
 		src/format_readback_text.hpp Makefile | $(E2_V4_BUILD)
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
 		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
-		-c $< -o $@
+		$(EXTRA_DEFINES) -c $< -o $@
 
 $(E2_V4_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
 		| $(E2_V4_BUILD)

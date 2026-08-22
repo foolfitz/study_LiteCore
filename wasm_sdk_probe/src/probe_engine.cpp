@@ -301,6 +301,12 @@ struct EditorState {
   // switched on once).  Neither of those answers "is the fingerprint below
   // describing where the caret is now".
   bool a11yParagraphFresh = false;
+#ifdef OXSDK_A11Y_PARAGRAPH_TEXT
+  // Cleared wherever the fingerprint is cleared, never left standing: a stale
+  // paragraph read aloud is worse than silence, and it is the same rule the
+  // fingerprint already obeys one field up.
+  std::string a11yParagraphText;
+#endif
   bool boldKnown = false;
   bool bold = false;
   bool italicKnown = false;
@@ -1128,6 +1134,14 @@ void appendEditorState(std::ostringstream &json) {
        << ",\"paragraphFingerprint\":\"" << std::hex
        << gEditorState.a11yContentHash << std::dec << "\""
        << ",\"listPrefixLength\":" << gEditorState.a11yListPrefixLength
+#ifdef OXSDK_A11Y_PARAGRAPH_TEXT
+       // Uncapped, like `selectionText` beside it. Capping one text field and
+       // not the other would be an inconsistency a host cannot see, and a
+       // silently truncated paragraph is exactly the kind of plausible wrong
+       // answer this engine clears fields to avoid.
+       << ",\"paragraphText\":\""
+       << jsonEscape(gEditorState.a11yParagraphText.c_str()) << "\""
+#endif
        << "},\"format\":{\"bold\":";
   if (gEditorState.boldKnown)
     json << (gEditorState.bold ? "true" : "false");
@@ -1609,6 +1623,25 @@ struct EditorSemanticSnapshot {
   // read.  FNV-1a: this is an equality check between two observations made
   // seconds apart in one process, not a security boundary.
   std::uint64_t contentHash = 0;
+#ifdef OXSDK_A11Y_PARAGRAPH_TEXT
+  // ROADMAP 3.4.  The text itself, and it is behind a guard for the reason the
+  // format-barrier members two hundred lines up are: adding a field to the
+  // emitted editor state changes the SHAPE the frozen E1 profiles would emit,
+  // and E1-C's verdict binds to that shape.  A build without this flag is
+  // byte-for-byte the same engine it was.
+  //
+  // Opened deliberately, and the closure it reverses is worth naming rather
+  // than quietly dropping: the fingerprint exists because "the host needs to
+  // compare, not to read".  That premise held while the only consumer was the
+  // identity gate.  A screen reader genuinely needs to READ, and no other
+  // layer has the text -- so the premise changed, and this is the reversal.
+  //
+  // The WHOLE content, prefix included.  `listPrefixLength` is emitted beside
+  // it, so a host can slice; sending only the body would throw away the "1."
+  // of an ordered list with no way to get it back.  The fingerprint stays
+  // defined over `content[listPrefixLength:]`, unchanged.
+  std::string content;
+#endif
 };
 
 std::uint64_t fingerprintOf(const std::string &content) {
@@ -1665,6 +1698,9 @@ bool parseEditorSemanticJson(const std::string &json,
     snapshot.contentHash =
         fingerprintOf(std::string(body.getStr(),
                                   static_cast<std::size_t>(body.getLength())));
+#ifdef OXSDK_A11Y_PARAGRAPH_TEXT
+    snapshot.content = content;
+#endif
   } catch (const std::exception &) {
     return false;
   }
@@ -1732,6 +1768,9 @@ bool refreshCaretParagraph() {
     gEditorState.a11yPosition = -1;
     gEditorState.a11yContentHash = 0;
     gEditorState.a11yListPrefixLength = 0;
+#ifdef OXSDK_A11Y_PARAGRAPH_TEXT
+    gEditorState.a11yParagraphText.clear();
+#endif
     return false;
   }
   if (!readEditorSemanticSnapshot(snapshot)) {
@@ -1745,12 +1784,18 @@ bool refreshCaretParagraph() {
     gEditorState.a11yPosition = -1;
     gEditorState.a11yContentHash = 0;
     gEditorState.a11yListPrefixLength = 0;
+#ifdef OXSDK_A11Y_PARAGRAPH_TEXT
+    gEditorState.a11yParagraphText.clear();
+#endif
     return false;
   }
   gEditorState.a11yContentLength = snapshot.contentLength;
   gEditorState.a11yPosition = snapshot.position;
   gEditorState.a11yContentHash = snapshot.contentHash;
   gEditorState.a11yListPrefixLength = snapshot.listPrefixLength;
+#ifdef OXSDK_A11Y_PARAGRAPH_TEXT
+  gEditorState.a11yParagraphText = snapshot.content;
+#endif
   gEditorState.a11yParagraphFresh = true;
   return true;
 }
@@ -2306,6 +2351,9 @@ void onLokCallback(int type, const char *payload, void *) {
       gEditorState.a11yPosition = snapshot.position;
       gEditorState.a11yContentHash = snapshot.contentHash;
       gEditorState.a11yListPrefixLength = snapshot.listPrefixLength;
+#ifdef OXSDK_A11Y_PARAGRAPH_TEXT
+      gEditorState.a11yParagraphText = snapshot.content;
+#endif
       editorStateChanged = true;
       editorSource = "a11y-paragraph-changed";
     } else {

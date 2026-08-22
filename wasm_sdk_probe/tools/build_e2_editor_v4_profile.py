@@ -193,6 +193,11 @@ def main() -> int:
     # different artifact than the one inside it.
     #
     # Defaulted, so omitting it reproduces the shipped invocation byte for byte.
+    parser.add_argument("--paragraph-text", action="store_true",
+                        help="declare caretParagraphText: the engine being "
+                             "packaged was built with "
+                             "OXSDK_A11Y_PARAGRAPH_TEXT. Off by default, so "
+                             "the shipped invocation is unchanged")
     parser.add_argument("--profile", default=PROFILE,
                         help="profile identity to stamp; defaults to the "
                              "product's. Use another name for any profile "
@@ -209,6 +214,7 @@ def main() -> int:
         wasm=args.wasm, worker=args.worker, output=args.output,
         exports=args.exports, cross_paragraph=True)
 
+    paragraph_text = args.paragraph_text
     manifest_path = args.output / "sdk-manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["profile"] = args.profile
@@ -221,6 +227,18 @@ def main() -> int:
     # The sibling of `undo`, and declared the same way: a document-level SDK
     # operation, not an action, so it has no wire id and no gesture.
     contract["redo"] = "document-sdk-redo"
+    # ROADMAP 3.4.  DECLARED, so a host can tell "this profile does not carry
+    # the text" from "this paragraph is empty" BEFORE reading the field --
+    # exactly the distinction `redo` above is declared for, and the one the
+    # worker projects as `null` rather than `""`.
+    #
+    # Tied to the flag rather than asserted: the field is emitted only by an
+    # engine built with OXSDK_A11Y_PARAGRAPH_TEXT, so a manifest that claimed
+    # it unconditionally would be the "describes but does not constrain" defect
+    # that cost this tree the 2026-08-22 cut. The builder is TOLD which kind of
+    # artifact it is packaging; it does not guess.
+    if paragraph_text:
+        contract["caretParagraphText"] = "focused-paragraph-text"
     manifest["editorContract"] = contract
     write_json(manifest_path, manifest)
 
