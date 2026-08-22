@@ -1703,6 +1703,37 @@ bool readEditorSemanticSnapshot(EditorSemanticSnapshot &snapshot) {
 // would be a cost nothing reads.
 bool refreshCaretParagraph() {
   EditorSemanticSnapshot snapshot;
+  // THE SAME LIE ONE LEVEL DOWN, and it was found by running the control the
+  // gate needed rather than by reading (2026-08-22,
+  // findings/evidence/a11y-gate-0/).
+  //
+  // On a core built with ENABLE_WASM_STRIP_ACCESSIBILITY, every LOK entry
+  // point below still EXISTS and getA11yFocusedParagraph() returns a
+  // well-formed empty answer -- `content: ""`, `position: 0`.  The parse then
+  // succeeds (`position >= 0 && contentLength >= 0`), so this used to record
+  // `paragraphFresh = true` with contentLength 0 and the FNV-1a offset basis
+  // as the fingerprint.  Measured on the shipped profile: all three caret
+  // placements, identical.
+  //
+  // `fresh` is the bit that says "the LAST read succeeded, so the fingerprint
+  // describes where the caret is NOW".  Saying that on a build where no read
+  // can succeed is exactly the defect
+  // `queue-engine-must-report-core-lacks-accessibility` fixed for `enabled` --
+  // a capability failure wearing the costume of data.  A host that gates on
+  // `fresh` alone, which is what the field is FOR, would take the empty-string
+  // fingerprint for a live identity.
+  //
+  // Gated on the enabled flag rather than on a second `#if`: this also covers
+  // the runtime cases (no document, LOK missing an entry point) where the
+  // answer is equally not a reading.
+  if (!gEditorAccessibilityEnabled) {
+    gEditorState.a11yParagraphFresh = false;
+    gEditorState.a11yContentLength = -1;
+    gEditorState.a11yPosition = -1;
+    gEditorState.a11yContentHash = 0;
+    gEditorState.a11yListPrefixLength = 0;
+    return false;
+  }
   if (!readEditorSemanticSnapshot(snapshot)) {
     // Cleared, not left standing.  The first version returned false and touched
     // nothing, so a reply built after a failed read serialised the PREVIOUS

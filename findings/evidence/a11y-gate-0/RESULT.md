@@ -60,6 +60,56 @@ does the work: "three different numbers" would also be produced by a counter.
 **PASS**: the bar was ≥ 2 distinct identities each matching the paragraph
 targeted. Two match exactly; the third is distinct and is discussed below.
 
+## The control: the same harness on the product profile
+
+Added 2026-08-22, after the runs above. **This is the arm that makes the PASS
+mean something**: same harness, same page, same fixture, same three bands —
+only the profile and the core differ. Without it, "three distinct fingerprints"
+could have been produced by the harness rather than by LOK.
+
+`--profile e2-editor-v4 --core-build ../wasm-lite/build-headless-probe`
+
+The probe **refused** first, which is the refusal working: G0-1 fails on that
+core and a gate number from it would be about the patch not having been
+applied. Re-run with `--i-know-the-macro-is-set`, which stamps the record
+`UNMEASURABLE` — this is a check on the engine's self-report, **not** a gate
+outcome, and it may not be quoted as one.
+
+All three placements, identical:
+
+```
+enabled: false   unavailable: "core-built-without-accessibility"
+contentLength: 0   position: 0   fingerprint: cbf29ce484222325
+```
+
+So the two profiles are cleanly opposed, and roadmap §3.5's queue item
+(`queue-engine-must-report-core-lacks-accessibility`) is **verified by
+measurement rather than by its own note**: the engine no longer claims a
+working mechanism on a core that has none.
+
+### And the control found a second lie one level down
+
+`paragraphFresh: true` — on a build where no read can succeed.
+
+On a stripped core every LOK entry point still **exists**;
+`getA11yFocusedParagraph()` returns a well-formed empty answer (`content: ""`,
+`position: 0`); and `parseEditorSemanticJson`'s postcondition is
+`position >= 0 && contentLength >= 0`, which that satisfies. So the engine
+recorded a *successful reading of nothing*.
+
+`fresh` is the bit whose whole job is to say "the last read succeeded, so the
+fingerprint describes where the caret is **now**". This is the `enabled: true`
+defect again, one level down — and it matters directly to §3.4, because an ARIA
+projection decides whether to trust a fingerprint by reading exactly this bit.
+
+Fixed in source (`refreshCaretParagraph` returns early with the fields cleared
+unless `gEditorAccessibilityEnabled`), syntax-checked against both core
+configs, and **not in the product until a link**. Recorded as
+`queue-fresh-is-true-where-no-read-can-succeed`.
+
+Worth naming the shape: this was found by running the arm whose only job was to
+be a control. The gate would have passed without it.
+
 ## The one thing that is NOT clean, stated rather than rounded off
 
 Placement 0 is the heading `E1-LC-HEADING` (13 characters). LOK reported

@@ -1003,6 +1003,28 @@
         }
       ],
       "checkNote": "Absent until the native build has been asked what listPrefixLength it reports for the same heading. Flipping it is a deliberate edit, and it needs a measurement rather than a reading of the code."
+    },
+    {
+      "id": "queue-fresh-is-true-where-no-read-can-succeed",
+      "title": "paragraphFresh reports true on a core with accessibility compiled out -- the same capability-failure-as-data defect one level below the one that was just fixed",
+      "expectation": "present",
+      "blocksRelink": false,
+      "source": "found 2026-08-22 by running the PRODUCT-profile control that the a11y gate needed; findings/evidence/a11y-gate-0/RESULT.md",
+      "note": "MEASURED, not read: on `e2-editor-v4` all three caret placements came back `enabled: false`, `unavailable: \"core-built-without-accessibility\"` -- which is `queue-engine-must-report-core-lacks-accessibility` working -- AND `paragraphFresh: true`, contentLength 0, fingerprint cbf29ce484222325 (the FNV-1a offset basis). The mechanism: on a stripped core every LOK entry point still EXISTS, getA11yFocusedParagraph() returns a well-formed empty answer (`content: \"\"`, `position: 0`), and `parseEditorSemanticJson` returns true because its postcondition is `position >= 0 && contentLength >= 0`. So the engine recorded a successful reading of nothing. `fresh` is THE bit that says 'the last read succeeded, so the fingerprint describes where the caret is NOW' -- a host that gates on it, which is what the field is for, takes the empty-string fingerprint for a live identity. That is the same shape as the `enabled: true` defect, one level down, and it matters directly to roadmap 3.4: an ARIA projection decides whether to trust the fingerprint by reading exactly this bit. FIXED IN SOURCE: `refreshCaretParagraph()` now returns early with the fields cleared unless `gEditorAccessibilityEnabled`. Gated on the flag rather than a second `#if` so it also covers the runtime cases (no document, LOK missing an entry point) where the answer is equally not a reading. Syntax-checked against BOTH core configs. IT DOES NOT REACH THE PRODUCT UNTIL A LINK -- dist/ still carries the old behaviour, and that is the honest state; ride along with the next link, exactly as its predecessor did.",
+      "checks": [
+        {
+          "kind": "line-equals",
+          "file": "src/probe_engine.cpp",
+          "text": "  if (!gEditorAccessibilityEnabled) {"
+        },
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "a11yParagraphFresh = false",
+          "atLeast": 2
+        }
+      ],
+      "checkNote": "Two checks because either alone is weak: the guard could be typed without clearing the fields, and the clearing already existed on the failed-read path. `atLeast: 2` is what says there are now two paths that clear rather than one."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
