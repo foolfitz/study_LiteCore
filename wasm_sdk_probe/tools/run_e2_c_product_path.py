@@ -298,6 +298,18 @@ return true;
 
 READ_TOAST = "(() => document.querySelector('#toast').textContent)()"
 
+# Roadmap 3.4's region, read from the page because THIS check is about what the
+# page decided to say. The accessibility TREE is measured by
+# `probe_aria_projection.py`; asking the DOM here would be the wrong instrument
+# for that question and the right one for this.
+READ_A11Y_REGION = """(() => {
+const para = document.querySelector('#a11y-para');
+const doc = document.querySelector('#a11y-doc');
+if (!para || !doc) return { present: false };
+return { present: true, text: para.textContent,
+         reason: para.dataset.reason, offers: doc.dataset.offers };
+})()"""
+
 # Hand the product a file through its own <input type=file>, the way a chooser
 # would.  The File is synthesised because neither driver can operate a native
 # file dialog -- so this exercises the page's change handler and NOT the picker,
@@ -1301,6 +1313,19 @@ MUTATIONS = {
     # would report "the product survived it", which is the reading a dead
     # mutation gives and the reason `cut-swallows-its-failure` had to be
     # replaced.
+    # Roadmap 3.4. The projection is wired by ONE call in `updateState`;
+    # removing it leaves the region in the page and empty, which is precisely
+    # the failure mode the check exists for -- a screen reader reads an empty
+    # document region as a blank document.
+    "projection-not-wired": {
+        "check": "the-document-region-says-why-it-is-empty",
+        "path": "e2-editor-app.js",
+        "find": "  projectFocusedParagraph(snapshot);\n",
+        "replace": "",
+        "reintroduces": "a document region that is silently empty instead of "
+                        "saying why it has nothing",
+        "alsoRed": [],
+    },
     "cut-swallows-the-refusal": {
         "check": "a-refused-action-is-reported-and-changes-nothing",
         "path": "e2-editor-app.js",
@@ -4970,6 +4995,35 @@ return { available: true, afterButton };
                                  "nothing about the product -- it is the "
                                  "instrument, not the page")
 
+        # ------------------------------------ roadmap 3.4, the honesty half
+        #
+        # THIS RUN IS ON THE SHIPPED PROFILE, which does not carry the focused
+        # paragraph's text, so the reading half of the projection cannot be
+        # measured here -- that lives in `probe_aria_projection.py` against a
+        # profile that does. What CAN be measured here, and matters more on the
+        # product, is that the document region SAYS SO instead of standing
+        # empty.
+        #
+        # An empty region announces to a screen reader as "document, blank",
+        # which is a confident wrong answer about the user's own file. The
+        # engine already refuses that shape one layer down by reporting
+        # `core-built-without-accessibility` rather than `enabled: true`, and
+        # this is the same rule at the top of the stack.
+        projection = evaluate(session, READ_A11Y_REGION) or {}
+        check("the-document-region-says-why-it-is-empty",
+              bool(projection.get("present")
+                   and projection.get("offers") == "0"
+                   and projection.get("reason") == "profile"
+                   and (projection.get("text") or "").strip()),
+              observed=projection,
+              oracle="on a profile whose contract does not declare "
+                     "`caretParagraphText`, the accessibility region carries a "
+                     "sentence saying so. Empty is the failure: a screen "
+                     "reader reads an empty document region as a blank "
+                     "document, and the user has no way to tell that apart "
+                     "from a file that lost its contents. `offers` and "
+                     "`reason` are both required so that a region which "
+                     "happens to hold stale text cannot pass")
 
         resized = evaluate(session, RESIZE_DESK) or {}
         time.sleep(2.0)

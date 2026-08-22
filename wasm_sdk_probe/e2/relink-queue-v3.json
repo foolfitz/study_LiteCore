@@ -1025,6 +1025,22 @@
         }
       ],
       "checkNote": "Two checks because either alone is weak: the guard could be typed without clearing the fields, and the clearing already existed on the failed-read path. `atLeast: 2` is what says there are now two paths that clear rather than one."
+    },
+    {
+      "id": "queue-product-page-holds-the-raw-editor-state",
+      "title": "the product page's editorState is the RAW engine state -- a11y counters and schedulerProbe included -- which is what E1-B bans, and productEditorState never reaches it",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "measured 2026-08-23 while building roadmap 3.4's projection",
+      "note": "MEASURED, not read: across three caret placements the page's `snapshot.editorState` carried `a11y` and `schedulerProbe` every time and `caretParagraph` none of the times. Two writers disagree about the shape. `productEditorState` is applied to the v2 ACTIONS' replies and to `editorGetStateV1`; the product's own `editorGetStateV2` falls through to the raw branch, and the `editor-state` ANNOUNCEMENT -- which fires on every engine state change and is gated only on a rising sourceSequence -- is the writer that wins in practice. So the same datum reaches the page under two names depending on which reply landed last, and a consumer cannot know which one it holds. E1-B section: '不把a11y diagnostic counters、scheduler probe或raw callback payload升格為產品state' -- on today's page they are promoted. PARTIALLY MITIGATED 2026-08-23, additively: the announcement now also carries `caretParagraph`, derived from the same `productEditorState` the actions use rather than from a second copy of the rule, and the v2 session override copies it through. That gives 3.4's projection one name that is always present. IT DOES NOT CLOSE THIS: the raw fields are still on the page, the two operations still answer in two shapes, and `editorGetStateV2` still bypasses the projection. Removing them is the right end state and a wider change -- `web/e2-c-d2-app.js` issues editorGetStateV2 directly, and the diagnostic harnesses read raw fields -- so it wants a round that can measure what it breaks rather than a late-night edit beside a feature.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "sdk/sdk-worker.js",
+          "text": "operation === \"editorGetStateV2\""
+        }
+      ],
+      "checkNote": "Absent until editorGetStateV2 is routed through the product projection like the actions and editorGetStateV1 are. That string appearing is the smallest honest signal that the asymmetry was addressed rather than described."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

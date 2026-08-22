@@ -60,6 +60,14 @@
   /* Only ever rendered when the engine gave an answer -- see
      updateGestureAffordance; the attribute is removed when the state is null. */
   button[aria-pressed="true"] { background: #dbe7f3; border-color: var(--accent); }
+  /* 看不見，但**留在 accessibility tree 上**。display:none 與
+     visibility:hidden 會把節點拿掉，1px clip 不會。 */
+  .a11y-only {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0); clip-path: inset(50%);
+    overflow: hidden; white-space: nowrap;
+  }
   button.danger { border-color: #eec4c1; color: var(--bad); }
   button.b { font-weight: 700; min-width: 34px; }
   button.i { font-style: italic; font-family: Georgia, serif; min-width: 34px; }
@@ -219,6 +227,15 @@
     <div class="paper" id="paper">
       <canvas id="canvas" aria-label="ODT 文件畫面"></canvas>
       <textarea id="sink" aria-label="輸入" autocomplete="off"></textarea>
+      <!-- 路線圖 3.4：報讀軟體讀不到 canvas，所以引擎給的「游標在哪一段、
+           那一段寫什麼」必須投影成 DOM。這裡是那份投影。
+
+           .a11y-only 用 clip 而不是 display:none／visibility:hidden——後兩者
+           會把節點從 accessibility tree 上整個拿掉，於是投影會量成「不存在」，
+           而那讀起來像投影壞了，不像 CSS 寫錯了。 -->
+      <div id="a11y-doc" class="a11y-only" role="group" aria-label="文件內容">
+        <p id="a11y-para" aria-live="polite" aria-atomic="true"></p>
+      </div>
     </div>
     <div id="expired">
       <h2>這個頁面已經過期</h2>

@@ -31,10 +31,25 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from r7_support import wait_page  # noqa: E402
+from r7_support import evaluate, wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, free_port  # noqa: E402
 from run_e2_c_page_smoke import READ_STATE, navigate  # noqa: E402
 from probe_a11y_gate0 import gate_mirror, wait_until  # noqa: E402
+from run_e2_c_product_path import (  # noqa: E402
+    LINE_INK, POINT_AT, caret_click_fractions, place_caret_and_settle,
+    stable_bands,
+)
+
+# What the projection put in the tree, read from the tree rather than from the
+# DOM.  The two differ -- that difference is the whole reason this instrument
+# was chosen over `document.querySelector`, and reading the DOM here would be
+# the 068 mistake again (measuring the page and calling it the other side).
+READ_REGION = """(() => {
+const el = document.querySelector('#a11y-para');
+return el ? { text: el.textContent, reason: el.dataset.reason,
+              offers: document.querySelector('#a11y-doc')?.dataset.offers }
+          : { missing: true };
+})()"""
 
 PROJECT = Path(__file__).resolve().parent.parent
 
@@ -103,6 +118,37 @@ def main() -> int:
         nodes = ax_tree(session)
         record["nodeCount"] = len(nodes)
         record["nodes"] = nodes
+        record["regionAtLoad"] = evaluate(session, READ_REGION)
+
+        # G3.4-1 terms 2 and 3: three placements, and each reading has to match
+        # the paragraph it was aimed at.  Three different strings would also be
+        # produced by a counter -- the MATCH is what a page doing nothing
+        # cannot fake, which is why it carries the conjunction (PREDICTION.md).
+        scan, bands = stable_bands(session)
+        targets = [b for b in bands if (b["last"] - b["first"]) > 40][:3]
+        record["bandsFound"] = len(bands)
+        record["placements"] = []
+        for index, band in enumerate(targets):
+            ink = evaluate(session, LINE_INK.replace(
+                "ARG_Y", f"{band['centreFraction']:.5f}")) or {}
+            clicks = caret_click_fractions(ink)
+            place_caret_and_settle(session, POINT_AT, clicks["near"],
+                                   f"{band['centreFraction']:.5f}")
+            time.sleep(1.0)
+            placed = ax_tree(session)
+            carried = [n for n in placed
+                       if "E1-LC" in str(n.get("name") or "")
+                       or "E1-LC" in str(n.get("value") or "")]
+            record["placements"].append({
+                "index": index,
+                "yFraction": round(band["centreFraction"], 5),
+                "region": evaluate(session, READ_REGION),
+                "axNodesCarryingText": carried,
+                "axReading": (carried[0].get("name") if carried else None),
+            })
+        readings = [p["axReading"] for p in record["placements"]]
+        record["distinctAxReadings"] = len(set(r for r in readings if r))
+        record["axReadings"] = readings
         # THE NUMBER SECTION 3.4 IS ABOUT.  A screen reader reads the document
         # through this tree; if nothing in it carries document text, the
         # document is not readable no matter what the canvas draws.

@@ -58,6 +58,7 @@ const el = {
   noticeAction: $("#notice-action"),
   pinnedHash: $("#pinned-hash"), expectedHash: $("#expected-hash"),
   actualHash: $("#actual-hash"),
+  a11yDoc: $("#a11y-doc"), a11yPara: $("#a11y-para"),
   s: { state: $("#s-state"), revision: $("#s-revision"), pending: $("#s-pending"),
        generation: $("#s-generation"), checkpoint: $("#s-checkpoint"),
        latency: $("#s-latency"), doc: $("#s-doc") },
@@ -102,6 +103,79 @@ function describeError(error) {
 
 /* ------------------------------------------------------------------ state */
 
+/* ------------------------------------------------- roadmap 3.4: the projection
+ *
+ * A screen reader cannot read a canvas, and this whole document is one canvas.
+ * Measured 2026-08-22 on the core that DOES provide accessibility: 171
+ * accessibility-tree nodes and not one carrying a character of the document
+ * (findings/evidence/aria-projection/BASELINE.md). So what the engine knows --
+ * which paragraph the caret is in and what it says -- has to be put somewhere
+ * the browser will build a tree from.
+ *
+ * SCOPE, named here rather than discovered in testing: this projects the
+ * FOCUSED paragraph, because that is what the engine hands over. It is not a
+ * browsable document; browse mode would need every paragraph and the engine
+ * gives exactly one.
+ *
+ * The honesty rules are the point, not the decoration:
+ *
+ *   * a profile that does not carry the text SAYS SO. An empty region reads to
+ *     a screen reader as "document, blank" -- a confident wrong answer about
+ *     the user's own file, and the same defect the engine already refuses one
+ *     layer down by reporting `core-built-without-accessibility` instead of
+ *     `enabled: true`.
+ *   * `fresh` is checked, not just `enabled`. `fresh` is the bit that says the
+ *     last read succeeded, and until 2026-08-22 the engine reported it true on
+ *     a build where no read can succeed -- so a projection that trusted
+ *     `enabled` alone would read out the hash of an empty string as if it were
+ *     a paragraph.
+ *   * `dataset.reason` records WHY the region says what it says, so a run can
+ *     tell "the projection is off" from "the projection ran and had nothing".
+ */
+// One reason per CAUSE, not one per user-visible sentence.
+//
+// The first run of this projection came back with two of three placements
+// saying `engine`, and `engine` covered four different things at once -- so
+// the reading was "something upstream is unhappy" and the run could not say
+// which. A diagnosis that cannot name the layer is the defect this tree writes
+// down every time (040, 048, 062); here it was in the instrument rather than
+// in a conclusion, which is the cheap place for it to be.
+//
+// Several map to the same sentence on purpose: a screen reader user does not
+// need to hear the difference between an absent block and a disabled one.
+// `dataset.reason` carries it for the run; the text does not.
+const A11Y_REASONS = {
+  paragraph: null,
+  profile: "這一版引擎沒有提供段落文字，所以無法朗讀文件內容。",
+  noDocument: "尚未開啟文件。",
+  noParagraph: "無障礙資訊目前不可用。",
+  disabled: "無障礙資訊目前不可用。",
+  stale: "尚未讀到游標所在的段落。",
+  noText: "尚未讀到游標所在的段落。",
+};
+
+function projectFocusedParagraph(snapshot) {
+  const para = snapshot?.editorState?.caretParagraph;
+  let reason = "paragraph";
+  let text = null;
+  if (!session?.document) reason = "noDocument";
+  else if (!session.offersCaretParagraphText?.()) reason = "profile";
+  else if (!para) reason = "noParagraph";
+  else if (para.enabled !== true) reason = "disabled";
+  else if (para.fresh !== true) reason = "stale";
+  else if (typeof para.text !== "string") reason = "noText";
+  else text = para.text;
+
+  const next = text ?? A11Y_REASONS[reason];
+  // Compared before assigning, because an aria-live region announces when its
+  // text CHANGES. updateState runs on every snapshot, and reassigning the same
+  // string would be a repeat announcement of a paragraph the user is still
+  // sitting in -- the projection would be talking over them.
+  if (el.a11yPara.textContent !== next) el.a11yPara.textContent = next;
+  el.a11yPara.dataset.reason = reason;
+  el.a11yDoc.dataset.offers = session?.offersCaretParagraphText?.() ? "1" : "0";
+}
+
 function updateState(snapshot) {
   el.statePill.dataset.state = snapshot.state;
   el.statePill.textContent = {
@@ -116,6 +190,7 @@ function updateState(snapshot) {
   el.s.checkpoint.textContent = snapshot.hasCheckpoint
     ? `有（r${snapshot.checkpointRevision ?? "?"}）`
     : snapshot.checkpointError ? "寫入失敗" : "無";
+  projectFocusedParagraph(snapshot);
   const notice = recoveryNotice(snapshot);
   el.notice.dataset.show = notice.visible ? "1" : "0";
   // The decision, stamped where a reader can see it: hosts may differ in

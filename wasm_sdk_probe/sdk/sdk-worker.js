@@ -848,6 +848,19 @@ function handleCEvent(rawEvent) {
           caret: event.caret,
           selection: event.selection,
           a11y: event.a11y,
+          // THE SECOND WRITER, and it had to be found by measuring.
+          //
+          // Adding `caretParagraph` to the `editor-state` announcement alone
+          // was not enough: `editor-session.js` REPLACES the page's
+          // `editorState` with this reply, while the announcement MERGES into
+          // it. So whichever landed last decided whether the projected name
+          // existed, and roadmap 3.4's projection reported "no paragraph" on
+          // two of three caret placements -- the exact half-working shape that
+          // motivated carrying the name at all.
+          //
+          // Same function as the actions use, for the same reason: two copies
+          // of a projection rule drift.
+          caretParagraph: productEditorState(event).caretParagraph,
           // Defaults to "unknown", never "none": an engine that predates the
           // selection-type readback emits no field, and treating that as
           // "nothing is selected" would let a caret precondition pass while a
@@ -903,6 +916,32 @@ function handleCEvent(rawEvent) {
           caret: event.caret,
           selection: event.selection,
           a11y: event.a11y,
+          // MEASURED 2026-08-23: the page NEVER holds the product projection.
+          //
+          // `productEditorState` is applied to the v2 ACTIONS' replies, and
+          // this announcement -- which fires on every engine state change and
+          // is gated only on a rising sourceSequence -- is the most frequent
+          // writer of the page's `editorState`. So the page's snapshot is the
+          // raw shape essentially always: three caret placements, `a11y`
+          // present every time and `caretParagraph` absent every time.
+          //
+          // That means the same datum reaches the page under two names
+          // depending on which reply landed last, and a consumer cannot know
+          // which one it holds. Roadmap 3.4's projection is exactly such a
+          // consumer, and "works after an action, silent after a state read"
+          // is the half-working failure this tree keeps paying for.
+          //
+          // ADDED, not swapped. Removing the raw fields is the right end state
+          // (E1-B bans promoting a11y counters and the scheduler probe to
+          // product state, and today they are on the page) but it is a
+          // different, wider change with its own blast radius -- recorded as
+          // `queue-product-page-holds-the-raw-editor-state`. One name that is
+          // always there is what 3.4 needs; taking the other away can wait for
+          // a round that can measure what it breaks.
+          //
+          // Derived from the SAME function the actions use, never a second
+          // copy of the rule: two copies of a projection drift.
+          caretParagraph: productEditorState(event).caretParagraph,
           format: event.format,
           schedulerProbe: event.schedulerProbe,
         });

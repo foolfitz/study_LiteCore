@@ -190,6 +190,23 @@ export class NarrowEditorV2Client {
     return contract.redo === "document-sdk-redo";
   }
 
+  /**
+   * Whether this profile carries the focused paragraph's TEXT.
+   *
+   * Declared exactly like `redo` above, and for the same reason: the field is
+   * emitted only by an engine built with OXSDK_A11Y_PARAGRAPH_TEXT, so a host
+   * that just read `caretParagraph.text` could not tell "this profile does not
+   * carry it" from "this paragraph is empty".  For roadmap 3.4's projection
+   * that difference is the whole of its honesty: an empty document region
+   * announces to a screen reader as "document, blank", which is a confident
+   * wrong answer about the user's file.
+   */
+  offersCaretParagraphText() {
+    const contract = this.document._engine.manifest?.editorContract;
+    if (!contract) return false;
+    return contract.caretParagraphText === "focused-paragraph-text";
+  }
+
   limitsFor(action) {
     const spec = this.document._engine.manifest?.editorContract?.actions?.[action];
     return Array.isArray(spec?.limits) ? spec.limits : [];

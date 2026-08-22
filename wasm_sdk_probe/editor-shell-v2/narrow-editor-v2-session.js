@@ -129,6 +129,12 @@ export class NarrowEditorV2Session extends EditorSession {
         caret: event.caret,
         selection: event.selection,
         a11y: event.a11y,
+        // The projected name, carried so the page has ONE name for the focused
+        // paragraph whichever reply last wrote this snapshot.  Measured: this
+        // announcement is the writer that wins in practice, so without this
+        // line `caretParagraph` is absent from the page's state essentially
+        // always -- see the worker's comment at the postEvent that sends it.
+        caretParagraph: event.caretParagraph,
         format: event.format,
         schedulerProbe: event.schedulerProbe,
       },
@@ -222,6 +228,10 @@ export class NarrowEditorV2Session extends EditorSession {
 
   offersRedo() {
     return this.editor?.offersRedo() ?? false;
+  }
+
+  offersCaretParagraphText() {
+    return this.editor?.offersCaretParagraphText() ?? false;
   }
 
   /**

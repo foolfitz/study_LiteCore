@@ -137,8 +137,29 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v32.json"),
                     Path("e2/editor-shell-v2-bundle-v33.json"),
                     Path("e2/editor-shell-v2-bundle-v34.json"),
-                    Path("e2/editor-shell-v2-bundle-v35.json"))
+                    Path("e2/editor-shell-v2-bundle-v35.json"),
+                    Path("e2/editor-shell-v2-bundle-v36.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v37, 2026-08-23: roadmap 3.4 -- the screen reader can read the paragraph.
+#
+# A screen reader cannot read a canvas and this whole document is one canvas.
+# Measured on the core that DOES provide accessibility: 171 accessibility-tree
+# nodes and not one carrying a character of the document
+# (findings/evidence/aria-projection/BASELINE.md).
+#
+# Three files changed. The page gained the projection itself -- a clipped
+# region carrying the focused paragraph, updated from `updateState` -- and the
+# v2 client and session gained `offersCaretParagraphText()`, declared the way
+# `offersRedo()` is so a host can tell "this profile does not carry the text"
+# from "this paragraph is empty" BEFORE reading it. An empty document region
+# announces as "document, blank", which is a confident wrong answer about the
+# user's own file.
+#
+# Measured after: 175 nodes, three caret placements, three distinct readings,
+# each matching the paragraph targeted (findings/evidence/aria-projection/
+# RESULT.md). On the shipped profile the region says why it is empty instead,
+# and `the-document-region-says-why-it-is-empty` holds the product to that.
+#
 # v36, 2026-08-22: finding 073 -- the user could not see what they were typing.
 #
 # The input sink is one transparent pixel wide by design, and the browser draws
@@ -266,7 +287,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v36.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v37.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
