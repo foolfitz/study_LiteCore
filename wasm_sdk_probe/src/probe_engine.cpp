@@ -12,6 +12,22 @@
 #include "editor_discovery_api.h"
 #endif
 
+/*
+ * queue-engine-must-report-core-lacks-accessibility.
+ *
+ * The core build's own generated configuration, on the include path already
+ * (`-I$(LOBUILD)/config_host`).  It is read here so the engine can say
+ * `core-built-without-accessibility` instead of reporting `enabled: true` for a
+ * mechanism this build compiled out -- a capability failure wearing the costume
+ * of data, which is the shape finding 056 spent a round on.
+ *
+ * Measured, not assumed: the WASM build's copy says
+ * `ENABLE_WASM_STRIP_ACCESSIBILITY 1` and the native build's says `0`, which is
+ * why the same source answers differently on the two and why this has to be a
+ * compile-time question rather than a LOK capability probe.
+ */
+#include <config_wasm_strip.h>
+
 #include <LibreOfficeKit/LibreOfficeKit.h>
 #include <LibreOfficeKit/LibreOfficeKitEnums.h>
 #ifdef OXSDK_EDITOR_DISCOVERY
@@ -1827,6 +1843,25 @@ void handleFormatBarrierUnoResult(const char *payload) {
 #endif
 
 void refreshEditorAccessibility() {
+#if ENABLE_WASM_STRIP_ACCESSIBILITY
+  /*
+   * FIRST, and before any question about the document or about LOK.
+   *
+   * The three guards below ask whether LOK HAS the entry points.  On a build
+   * with accessibility stripped they are all present and all useless: the calls
+   * link, return, and change nothing, so the engine used to fall through to
+   * `gEditorAccessibilityEnabled = true` and report a working mechanism.  The
+   * only symptom was that every paragraph read back empty -- indistinguishable
+   * from a genuinely empty paragraph, which is how it stayed unnoticed.
+   *
+   * This is not a runtime failure to be retried or a document that is not ready
+   * yet.  It is a property of the binary, so it is answered at compile time and
+   * it can never be anything else for this artifact.
+   */
+  gEditorAccessibilityUnavailable = "core-built-without-accessibility";
+  gEditorAccessibilityEnabled = false;
+  return;
+#else
   if (!gState.document) {
     gEditorAccessibilityUnavailable = "no-document";
     return;
@@ -1852,6 +1887,7 @@ void refreshEditorAccessibility() {
   gState.document->pClass->setAccessibilityState(gState.document, viewId,
                                                  true);
   gEditorAccessibilityEnabled = true;
+#endif
 }
 
 void completePendingEditorOperation(int callbackType) {
@@ -2645,6 +2681,47 @@ void handlePaintTile(const Command &command) {
 
   const int canvasWidth = command.values[4];
   const int canvasHeight = command.values[5];
+
+  // FINDING 062.  Refuse a tile Cairo cannot make, INSTEAD of asking for one
+  // and reporting success over the blank buffer that comes back.
+  //
+  // The limit is Cairo's, and it is attributed rather than inferred
+  // (findings/evidence/062/layer/ATTRIBUTION.md):
+  //
+  //     cairo/src/cairo-image-surface.c:59
+  //     /* Limit on the width / height of an image surface in pixels.  This is
+  //      * mainly determined by coordinates of things sent to pixman at the
+  //      * moment being in 16.16 format. */
+  //     #define MAX_IMAGE_SIZE 32767
+  //
+  // Note what the source says and the number does not: it is NOT a signed
+  // 16-bit height and NOT an overflow -- pixman_fixed_t is int32_t.  It is an
+  // explicit range check, and it applies to WIDTH EQUALLY.  Our widths have
+  // always been small, so what was measured was a height boundary; it is a
+  // dimension boundary, so both are checked here.
+  //
+  // Why the engine has to refuse rather than forward what happened: LOK's
+  // `paintTile` returns **void**.  SVP computes a correct boolean and
+  // `doc_paintTile` (init.cxx:4288) discards it, so there is no failure for
+  // this layer to pass on -- the caller gets a correctly sized buffer that was
+  // never drawn into, and every downstream surface reads that as a blank page.
+  // That is the upstream defect; refusing early is the honest thing to do
+  // while it stands.
+  //
+  // `<=` is Cairo's own comparison: 32767 is valid, 32768 is not.
+  constexpr int kCairoMaxImageSize = 32767;
+  if (canvasWidth > kCairoMaxImageSize || canvasHeight > kCairoMaxImageSize) {
+    std::ostringstream refusal;
+    refusal << "tilePaintRefusedAboveLimit: requested " << canvasWidth << "x"
+            << canvasHeight << " px and Cairo's image-surface limit is "
+            << kCairoMaxImageSize
+            << " per dimension; core would return an undrawn buffer and report "
+               "nothing, so this is refused instead of painted";
+    emitCommandError(command, "tile", "TILE_EXCEEDS_ENGINE_LIMIT",
+                     refusal.str().c_str());
+    return;
+  }
+
   const std::uint64_t byteCount = static_cast<std::uint64_t>(canvasWidth) *
                                   static_cast<std::uint64_t>(canvasHeight) * 4;
   if (byteCount > std::numeric_limits<std::uint32_t>::max() ||
