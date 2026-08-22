@@ -25,6 +25,13 @@ stay byte-identical.
 | redo | a document-level SDK operation | **no wire id** |
 | a11y honesty | reports `core-built-without-accessibility` at compile time | — |
 | 32,767 refusal | refuses an oversized tile before allocating | — |
+| finding 068 | the worker stops dropping the engine's `editor-state` | — |
+
+Finding 068's fix rides this link **for free and needs nothing done for it**:
+half of it is in `sdk/sdk-worker.js`, the builder hashes whichever worker is in
+the tree, and the other half already shipped in shell bundle v30. It was
+verified in a mirror first — 5/5 against 2/7 before — which is the condition
+for putting anything into an already-green payload.
 
 Ids 1–15 are inherited verbatim. `tests/editor_abi_header_test.cpp` pins every
 one of the twenty-one.
@@ -50,9 +57,11 @@ python3 -m unittest tests.test_e2_editor_v4_profile
 node --test editor-shell-v2/tests/*.test.mjs # 61 pass
 ```
 
-State at the time of writing: 45 queue items, 33 present, 12 open, **0 drifted,
-P1 complete: True, blocking: none**. Shell bundle generation **v29**,
-`d3bc2fe4963efda3…`.
+State at the time of writing: 46 queue items, 33 present, 13 open, **0 drifted,
+P1 complete: True, blocking: none**. Shell bundle generation **v30**,
+`a920f3792838bfb1…`. (The extra open item is
+`queue-caret-does-not-follow-typed-text` — finding 068, fixed in source and
+staying open until it ships and a product-path check can measure it.)
 
 **Do not link on `p1Complete: False`** — that guard is what "missing one item
 means a second relink" cost us. The only exception is a user decision recorded
