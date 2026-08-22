@@ -115,7 +115,16 @@ a generation gets frozen with work still to come.
 ```bash
 cd /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe
 
-make test-e2-c-static && make test-e2-b-static && make test-e2-c-reachability
+# test-e2-a-static belongs in this list and was missing from it, which is how
+# it sat RED for a while (see "A gate nobody ran" below).
+make test-e2-a-static && make test-e2-c-static && make test-e2-b-static \
+  && make test-e2-c-reachability
+
+# DO NOT run `make test-e1-c-static` casually: it pulls
+# e1-editor-validation-assets and therefore RELINKS the frozen e1-editor-v1
+# profile. The Makefile says so at test-e2-a-static, which has no prerequisites
+# for exactly that reason. `check_e1_c_bundle_intact.py` (inside
+# test-e2-b-static) is the safe way to ask whether E1-C still binds.
 python3 tools/check_relink_queue.py && python3 tools/check_relink_queue.py --self-test
 node --test editor-shell-v2/tests/*.test.mjs
 python3 -m unittest tests/test_product_path_mutations.py tests/test_e2_editor_v4_profile.py
@@ -133,6 +142,32 @@ TMPDIR=/home/jiajun/.cache/litecore-probe-tmp setsid nohup \
   python3 tools/run_e2_c_product_path.py --browser chrome --out <path> \
   > <log> 2>&1 < /dev/null &
 ```
+
+## A gate nobody ran, found by not trusting the routine list
+
+`make test-e2-a-static` was **red**, and had been since commit `7461800`
+(finding 046's fix). That commit added a ninth `failFormatBarrier` exit
+carrying `MUTATION_OUTCOME_UNKNOWN` — the shape
+`readback-is-a-different-paragraph` — and did not add it to the registry in
+`tests/test_e2_profile.py`. The target is not in the routine command list, so
+nobody invoked it.
+
+Found by running `unittest discover` over the whole `tests/` directory instead
+of the modules the Makefile names. **Then swept every other cheap gate**
+(`test-r2` … `test-finding-012-static`, twenty of them): all green. This was
+the only one.
+
+Two things worth keeping:
+
+* **The count assertion is what caught it.** That test carries a comment
+  arguing that counting occurrences is the wrong question and that pairing each
+  exit with its shape is the right one. Both are needed and neither is
+  redundant: the shape-by-shape assertions can only check shapes somebody
+  remembered to list, so the raw count is the **only** term that notices a new
+  exit arriving. Registry updated with the reason written in, rather than the
+  assertion loosened.
+* A gate that exists but is not in the list people actually run is a gate that
+  is off. The list above now includes it.
 
 ## One operational note
 

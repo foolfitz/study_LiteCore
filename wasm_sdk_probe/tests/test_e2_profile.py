@@ -490,6 +490,21 @@ class TestFormatBarrierRefusesWhatItCannotJudge(unittest.TestCase):
             "malformed-readback-nesting",
             "multi-block-readback",
             "selection-does-not-contain-restore-point",
+            # Ninth, and it arrived without being declared here.
+            #
+            # Finding 046's fix (commit 7461800, "barrier 不再驗錯段落") added
+            # this exit to the engine and did not add it to this list, so
+            # `make test-e2-a-static` went red and stayed red -- that target is
+            # not in the handoff's routine command list, so nobody ran it.
+            # Found 2026-08-23 by running `unittest discover` over the whole
+            # tests/ directory rather than the modules the Makefile names.
+            #
+            # THE COUNT ASSERTION BELOW IS WHAT CAUGHT IT, which is the answer
+            # to the comment further up arguing that counting is the wrong
+            # question: the shape-by-shape assertions can only check the shapes
+            # somebody remembered to list, so the count is the only term that
+            # notices a NEW exit. Both are needed; neither is redundant.
+            "readback-is-a-different-paragraph",
         ]
         # "block-text-mismatch" rides the same exit as "block-count-changed"
         # (one ternary, two shapes), so the exit count and the shape count are
