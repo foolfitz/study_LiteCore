@@ -30,6 +30,11 @@ const OPERATION_CAPABILITIES = new Map([
   ["getSelection", "selection-text"],
   ["replaceSelection", "replace-selection"],
   ["undo", "undo"],
+  // redo rides on undo's capability rather than minting one, because it is the
+  // same faculty: a profile that can walk the undo stack one way can walk it
+  // the other, and a separate capability string would let a manifest claim a
+  // half of it that the engine does not have halves of.
+  ["redo", "undo"],
   ["addComment", "comments"],
   ["listComments", "comments"],
   ["setTrackChanges", "tracked-changes"],
@@ -70,6 +75,25 @@ const EDITOR_V2_ACTION_IDS = Object.freeze({
   "set-paragraph-heading": 14,
   "set-paragraph-body": 15,
 });
+// ABI 4 appends six under a SUCCESSOR profile identity.  Ids 1-15 are spread in
+// verbatim -- that is what "successor" means here, and the exact-match ABI
+// handshake at init is what makes appending safe: a v3 client that reaches a v4
+// profile dies with INCOMPATIBLE_ABI instead of sending id 16 to a binary where
+// it means nothing.
+//
+// Widening the table does NOT widen what a v2 or v3 profile can dispatch: the
+// manifest intersection below is what decides, and their manifests do not list
+// these names.  That is exactly the job the intersection exists to do.
+const EDITOR_V3_ACTION_IDS = Object.freeze({
+  ...EDITOR_V2_ACTION_IDS,
+  "move-line-up": 16,
+  "move-line-down": 17,
+  "move-line-home": 18,
+  "move-line-end": 19,
+  "delete-selection": 20,
+  "select-all": 21,
+});
+
 // Neither option flag is accepted by the five paragraph actions (N7).
 const EDITOR_V2_PARAGRAPH_ACTIONS = new Set([
   "set-list-none", "set-list-unordered", "set-list-ordered",
@@ -89,7 +113,20 @@ function manifestAllowsAction(action) {
     return true;                      // v1 profiles carry a name list; unchanged
   if (Array.isArray(actions))
     return actions.includes(action);
-  return Object.hasOwn(actions, action);
+  if (!Object.hasOwn(actions, action))
+    return false;
+  // WITHHELD IS NOT ABSENT, and both spellings have to mean the same thing here
+  // or they mean different things to the client and the engine.
+  //
+  // An action ships dark by being PRESENT with no gestures -- it must be
+  // present, because the engine initialises every entry to all-permitted on the
+  // first mask call and an omitted action would keep that default.  Reading
+  // presence alone would then report a dark action as offered, and the client
+  // would build a control for something the engine refuses every time.
+  const gestures = actions[action]?.gestures;
+  if (Array.isArray(gestures) && gestures.length === 0)
+    return false;
+  return true;
 }
 
 const EDITOR_V1_MOVE_ACTIONS = new Set([
@@ -1086,6 +1123,20 @@ function handleRequest(request) {
         [request.requestId, payload.documentHandle, payload.expectedRevision],
       ));
       break;
+    // A document-level operation and NOT an editor action, so it has no wire id
+    // and no gesture -- the same shape as undo, which it is the sibling of.
+    // The relink queue asked for `"redo": 16` in this file; that criterion was
+    // written before the design and describes a different remedy. Giving redo a
+    // wire id would put it in the action table, where the gesture mask and the
+    // extendSelection/enabled validation apply to it, and none of the three has
+    // a meaning for walking the undo stack.
+    case "redo":
+      accept(request, () => callStatus(
+        "oxsdk_document_redo",
+        ["number", "number", "number"],
+        [request.requestId, payload.documentHandle, payload.expectedRevision],
+      ));
+      break;
     case "addComment":
       accept(request, () => withUtf8(String(payload.text || ""),
         (textPointer, textLength) => withUtf8(String(payload.author || ""),
@@ -1149,7 +1200,7 @@ function handleRequest(request) {
       break;
     }
     case "editorActionV2": {
-      const actionId = EDITOR_V2_ACTION_IDS[payload.action];
+      const actionId = EDITOR_V3_ACTION_IDS[payload.action];
       const forbiddenFields = ["keyCode", "unoCommand", "command"];
       const hasForbiddenField = forbiddenFields.some((field) =>
         Object.hasOwn(payload, field));

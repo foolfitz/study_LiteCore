@@ -57,7 +57,7 @@ static_assert(OXSDK_EDITOR_GESTURE_COLLAPSED == probe::kGestureCollapsed);
 static_assert(OXSDK_EDITOR_GESTURE_RANGE_SINGLE == probe::kGestureRangeSingle);
 static_assert(OXSDK_EDITOR_GESTURE_RANGE_CROSS == probe::kGestureRangeCross);
 #endif
-// 20 as of ABI 4.  This bounds `oxsdk_editor_set_action_gestures`, so it has to
+// 21 as of ABI 4.  This bounds `oxsdk_editor_set_action_gestures`, so it has to
 // move with the action list or a profile could not narrow the new actions at
 // all -- and a gesture a manifest cannot restrict is one the binary grants
 // unconditionally, which is the "manifest describes but does not constrain"

@@ -65,6 +65,16 @@ E2_C_DIST := dist/profiles/e2-editor-v3
 E2_C_SOURCES := $(E2_B_SOURCES)
 E2_C_OBJECTS := $(patsubst src/%.cpp,$(E2_C_BUILD)/%.o,$(E2_C_SOURCES))
 
+# The ABI 4 successor identity.  Named for what it builds, not for a phase:
+# this relink happens INSIDE E2-C, so an `E2_D_` prefix would announce a phase
+# that does not exist.  Its own build and dist directories for the same reason
+# v3 got its own -- v3 must stay byte-identical, because round two's verdict and
+# every scrap of its evidence bind to that artifact.
+E2_V4_BUILD := build/e2/editor-v4
+E2_V4_DIST := dist/profiles/e2-editor-v4
+E2_V4_SOURCES := $(E2_C_SOURCES)
+E2_V4_OBJECTS := $(patsubst src/%.cpp,$(E2_V4_BUILD)/%.o,$(E2_V4_SOURCES))
+
 # finding 022 verification build: same flags as e1-editor-v1, separate output.
 # The frozen e1-editor-v1 must not be rebuilt (SPEC E2-A section 3), so the fix
 # is verified on its own artifact and the frozen one keeps carrying the bug
@@ -998,6 +1008,63 @@ $(E2_C_DIST)/sdk-manifest.json: $(E2_C_BUILD)/probe.js $(E2_C_BUILD)/probe.wasm 
 	@test -s $(E2_C_DIST)/sdk-worker.js
 
 $(E2_C_BUILD) $(E2_C_DIST):
+	mkdir -p $@
+
+# ---- the ABI 4 successor identity -------------------------------------------
+#
+# Identical flags to v3 by construction (the same variables, not a copy of their
+# values): what differs between the two artifacts is in the SOURCE, which is
+# where an ABI change belongs.  If these flags ever need to differ from v3's,
+# that is a different artifact than the one this profile claims to be.
+$(E2_V4_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/format_readback_text.hpp Makefile | $(E2_V4_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-c $< -o $@
+
+$(E2_V4_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V4_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# Guarded from the FIRST link, same as v2 and v3 were: no v4 artifact ever
+# appears by accident, including the one that later gets bound to.
+$(E2_V4_BUILD)/probe.js: $(E2_V4_OBJECTS) $(E2_V4_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the ABI 4 successor product artifact -- every link mints a new hash and five identities bind to one)
+	$(call link_r5_product,$(E2_V4_OBJECTS),$(E2_V4_BUILD)/exports.txt,$@)
+
+$(E2_V4_BUILD)/probe.wasm: $(E2_V4_BUILD)/probe.js
+	@test -s $@
+
+# The v4 product profile.  Same packaging as v2 and v3 -- the builder copies
+# bytes, it does not link -- with abiVersion 4, six appended actions, and two of
+# them withheld by the gesture mask rather than left out of the manifest.
+$(E2_V4_DIST)/sdk-manifest.json: $(E2_V4_BUILD)/probe.js \
+		$(E2_V4_BUILD)/probe.wasm \
+		$(E2_V4_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V4_DIST)
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_V4_BUILD)/probe.js --wasm $(E2_V4_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --exports $(E2_V4_BUILD)/exports.txt \
+		--output $(E2_V4_DIST)
+	@test -s $(E2_V4_DIST)/probe.js
+	@test -s $(E2_V4_DIST)/probe.wasm
+	@test -s $(E2_V4_DIST)/sdk-worker.js
+
+$(E2_V4_BUILD) $(E2_V4_DIST):
 	mkdir -p $@
 
 # The v2 product profile.  --cross-paragraph selects disposition B' (dispatch

@@ -489,6 +489,21 @@ export class DocumentHandle {
     return result;
   }
 
+  // The sibling of undo, and deliberately written as one: same shape, same
+  // revision handling, same absence of arguments.  redo is a document-level
+  // operation rather than an editor action, so it has no wire id -- an action
+  // id would drag the gesture mask and the option-flag validation along with
+  // it, and none of those has a meaning for walking the undo stack.
+  async redo(options = {}) {
+    this._assertUsable();
+    const result = await this._engine._request("redo", {
+      documentHandle: this.handle,
+      expectedRevision: this._expectedRevision(options),
+    }, options);
+    this.revision = result.revision;
+    return result;
+  }
+
   async addComment(text, options = {}) {
     this._assertUsable();
     if (typeof text !== "string" || text.length === 0)

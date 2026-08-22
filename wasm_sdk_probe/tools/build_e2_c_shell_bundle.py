@@ -128,8 +128,17 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v23.json"),
                     Path("e2/editor-shell-v2-bundle-v24.json"),
                     Path("e2/editor-shell-v2-bundle-v25.json"),
-                    Path("e2/editor-shell-v2-bundle-v26.json"))
+                    Path("e2/editor-shell-v2-bundle-v26.json"),
+                    Path("e2/editor-shell-v2-bundle-v27.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v28, 2026-08-22: the ABI 4 relink's shell half.  `sdk/document-sdk.js` gained
+# `redo()`, the sibling of `undo()` -- a document-level operation with no wire
+# id, because an action id would drag the gesture mask and the option-flag
+# validation along with it and none of the three means anything for walking the
+# undo stack.  One file, and it is NOT the entrypoint this time, which is the
+# point: the bundle covers the SDK the shell loads, so a change there moves the
+# generation exactly as an entrypoint change does.
+#
 # v27, 2026-08-22: finding 067's fix.  `web/e2-editor-app.js` binds the Enter
 # key in its own keydown handler -- paragraph break, or line break with Shift --
 # instead of letting it reach the frozen input adapter, which turned it into a
@@ -141,7 +150,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v27.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v28.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
