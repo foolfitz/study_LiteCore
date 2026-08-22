@@ -69,8 +69,17 @@ typing** — both driven by a check on the linked artifact.
 > nothing". `backspace-and-arrows-reach-the-document` drives only the LEFT
 > arrow (`◀ 35 ms`). So nothing has ever measured that the vertical arrows
 > move the caret — the claim came from "the link gives them wire ids" plus a
-> green check that means something else. The acceptance row is now
-> `unverified`, not `done`; see below.
+> green check that means something else.
+>
+> **Then measured, same day.** The diagnostic arm re-run on v4 says
+> `move-line-up: true` and ArrowUp moves the caret 2491 → 2457, taken by the
+> page, with ArrowLeft holding as the control. And the regression net gained
+> `the-vertical-arrows-move-the-caret`, which drives all four: End
+> `left 132→509`, Home `509→80`, ArrowDown `top 250→272`, ArrowUp `272→250`,
+> every one `defaultPrevented`. Its mutation `line-movement-keys-unbound`
+> takes it PASS → FAIL with nothing else moving. The acceptance row is `done`,
+> and the acceptance list is now 16 of 16 with no `partial` and no
+> `unverified`.
 
 ## THE ONE THING IN FLIGHT
 

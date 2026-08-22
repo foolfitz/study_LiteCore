@@ -1245,6 +1245,30 @@ MUTATIONS = {
     # It is a better control than the old one for two reasons: it applies, and
     # it drives the REFUSAL path, which the widened manifest has removed from
     # the product's own route (queue-cut-refusal-lost-its-inducer).
+    # The four line-movement keys, back to the state the product shipped in
+    # from 2026-08-17 until the ABI 4 link: not in the map at all, so
+    # `KEY_ACTIONS[event.key]` is undefined, the handler returns before
+    # preventDefault, and the key is left to the browser -- which on a canvas
+    # does nothing at all, silently.
+    #
+    # This mutation exists because the check it guards did not, for four days
+    # after the actions shipped. The acceptance row read `blocked` through the
+    # link and then read as satisfied on the strength of an arm that asserts
+    # AGREEMENT with the running profile -- green on v3 because the keys were
+    # correctly absent, and green on v4 for the opposite reason. Nothing drove
+    # the keys themselves.
+    "line-movement-keys-unbound": {
+        "check": "the-vertical-arrows-move-the-caret",
+        "path": "e2-editor-app.js",
+        "find": '  ArrowUp: "move-line-up",\n'
+                '  ArrowDown: "move-line-down",\n'
+                '  Home: "move-line-home",\n'
+                '  End: "move-line-end",\n',
+        "replace": "",
+        "reintroduces": "an editor whose Up, Down, Home and End keys do "
+                        "nothing and say nothing",
+        "alsoRed": [],
+    },
     "cut-falls-back-to-the-caret-only-delete": {
         "check": "cut-removes-the-selected-text",
         "path": "e2-editor-app.js",
@@ -1498,6 +1522,48 @@ def build_mirror(source: Path, target: Path, overrides: dict[str, bytes]) -> Non
 # separate honesty flag is needed.  Same digest function as the bundle manifest,
 # imported rather than reimplemented: two copies of a hash rule drift.
 SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v27.json"
+
+
+def offered_actions(root: Path, names) -> dict:
+    """Which of these actions the SERVED manifest offers.
+
+    Read from the profile the SERVED PAGE points at, rather than from a profile
+    name written here.  The diagnostic runs serve a mirror and the product's
+    profile has been renamed once per link, so a hardcoded path answers about
+    whatever is in `dist/` while the page may be running something else --
+    which is exactly the trap `probe_064_format_reaches_typing.py`'s READ_OFFERS
+    is sitting in today (it fetches `profiles/e2-editor-v4/` unconditionally and
+    would report v4's offers on a page running v3).
+
+    An empty dict means "could not tell", and the caller reports
+    NOT_ESTABLISHED rather than reading it as "nothing is offered".
+    """
+    page = root / "e2-editor-app.js"
+    if not page.is_file():
+        return {}
+    match = re.search(r"\./profiles/([A-Za-z0-9._-]+)/sdk-worker\.js",
+                      page.read_text(encoding="utf-8"))
+    if not match:
+        return {}
+    manifest = root / "profiles" / match.group(1) / "sdk-manifest.json"
+    if not manifest.is_file():
+        return {}
+    contract = json.loads(manifest.read_text(encoding="utf-8")).get(
+        "editorContract") or {}
+    actions = contract.get("actions") or {}
+    out: dict = {"profile": match.group(1),
+                 "abiVersion": contract.get("abiVersion")}
+    for name in names:
+        if isinstance(actions, list):
+            out[name] = name in actions
+        else:
+            spec = actions.get(name)
+            # An empty `gestures` list is WITHHELD, not unrestricted -- the
+            # same rule the worker's mask loop and the client's offers() use.
+            out[name] = bool(spec) and (
+                not isinstance(spec.get("gestures"), list)
+                or len(spec["gestures"]) > 0)
+    return out
 
 
 def served_in_dist(relative: str) -> str:
@@ -2135,6 +2201,30 @@ if (!sink) return null;
 // to apply would otherwise read back as if it had.
 return { left: sink.offsetLeft, top: sink.offsetTop,
          height: sink.offsetHeight };
+})()"""
+
+
+# Whether the page TOOK a key, which is a different question from whether the
+# caret moved.  A key the page never bound is left to the browser and does
+# nothing; a key it bound and could not act on also does nothing.  Measured on
+# v3, where ArrowUp came back `defaultPrevented: false` with no error shown --
+# so without this the two readings are the same.
+INSTALL_KEY_TAKEN = """(() => {
+if (globalThis.__keytaken) { globalThis.__keytaken.keys = []; return true; }
+globalThis.__keytaken = { keys: [] };
+// On `document`, and in the BUBBLE phase: the page's handler is on #sink, so a
+// capture-phase listener here would run BEFORE it and read defaultPrevented as
+// false for every key including the ones that work.
+document.addEventListener("keydown", (event) => {
+  globalThis.__keytaken.keys.push({ key: event.key,
+                                    defaultPrevented: event.defaultPrevented });
+});
+return true;
+})()"""
+
+READ_KEY_TAKEN = """(() => {
+const d = globalThis.__keytaken;
+return d ? d.keys : null;
 })()"""
 
 
@@ -4436,6 +4526,139 @@ return { available: true, afterButton };
                              "defect was intermittent at 2/7, and a single "
                              "round would report green about a fifth of the "
                              "time")
+
+        # ----------------------------------------- the OTHER four arrow keys
+        #
+        # Added 2026-08-22, and the reason it did not exist until now is the
+        # point of it.  The acceptance row for line movement sat at `blocked`
+        # ("needs a relink") through the ABI 4 link and then read as done,
+        # because `arrow-keys-match-the-profile` was PASSing -- but every file
+        # under findings/evidence/arrow-keys/ was run against `e2-editor-v3`,
+        # where `move-line-up` is FALSE, and that arm asserts AGREEMENT with the
+        # running profile.  On v3 the agreeing behaviour is "the key does
+        # nothing".  The same green means the opposite thing on v4, and nobody
+        # had re-run it.  Meanwhile `backspace-and-arrows-reach-the-document`
+        # drives only the LEFT arrow.
+        #
+        # So four of the six arrows were shipped, believed to work, and driven
+        # by nothing.  This is the tree's own rule arriving from a new
+        # direction: a check that is green when the thing it checks is turned
+        # OFF carries no information, and reading its verdict without reading
+        # which artifact it ran on is how that goes unnoticed.
+        #
+        # READ FROM THE SINK, like caret-follows above: finding 069 pinned it to
+        # the caret, so the caret's position is a DOM observable.  Same stated
+        # limit -- this is the position the page draws FROM, not the pixels.
+        #
+        # LAST, and after everything that aims by band index: it moves the caret
+        # around without typing, but the caret is ink and ink is what the band
+        # scan reads.
+        arrows: dict = {"line": "0.28", "presses": []}
+        arrow_cdp = getattr(session, "call", None)
+        vertical = ["move-line-up", "move-line-down",
+                    "move-line-home", "move-line-end"]
+        arrow_offers = offered_actions(root, vertical)
+        arrows["offered"] = arrow_offers
+        arrows["allOffered"] = bool(arrow_offers) and all(
+            arrow_offers.get(name) is True for name in vertical)
+        if arrow_cdp is None or not arrows["allOffered"]:
+            check("the-vertical-arrows-move-the-caret", False,
+                  outcome="NOT_ESTABLISHED", observed=arrows,
+                  why="no CDP (so a real key cannot be delivered), or this "
+                      "profile does not offer the four line-movement actions. "
+                      "On a profile without them the page deliberately leaves "
+                      "those keys to the browser, and "
+                      "`arrow-keys-match-the-profile` is the arm that checks "
+                      "THAT",
+                  oracle="see the established branch")
+        else:
+            arrow_clicks = caret_click_fractions(
+                evaluate(session, LINE_INK.replace("ARG_Y", arrows["line"]))
+                or {})
+            place_caret_and_settle(session, POINT_AT, arrow_clicks["near"],
+                                   arrows["line"])
+            time.sleep(0.8)
+
+            def arrow(key, code, vk):
+                before = evaluate(session, SINK_POSITION) or {}
+                evaluate(session, INSTALL_KEY_TAKEN)
+                for kind in ("rawKeyDown", "keyUp"):
+                    arrow_cdp("Input.dispatchKeyEvent",
+                              {"type": kind, "key": key, "code": code,
+                               "windowsVirtualKeyCode": vk,
+                               "nativeVirtualKeyCode": vk})
+                time.sleep(1.2)
+                after = evaluate(session, SINK_POSITION) or {}
+                taken = evaluate(session, READ_KEY_TAKEN) or []
+                record = {"key": key,
+                          "leftBefore": before.get("left"),
+                          "leftAfter": after.get("left"),
+                          "topBefore": before.get("top"),
+                          "topAfter": after.get("top"),
+                          # THE INSTRUMENT'S OWN CONTROL, and it is not
+                          # optional here: a key the page never took is
+                          # indistinguishable from one it took and could not
+                          # act on, and both look like "the caret did not
+                          # move".  Measured on v3, where ArrowUp came back
+                          # defaultPrevented FALSE and no error was shown.
+                          "takenByThePage": [k.get("defaultPrevented")
+                                             for k in taken
+                                             if k.get("key") == key]}
+                arrows["presses"].append(record)
+                return record
+
+            # End then Home, on one line, so the horizontal pair is judged
+            # without a vertical move in between; then Down and Up, which must
+            # be inverses of each other.
+            to_end = arrow("End", "End", 35)
+            to_home = arrow("Home", "Home", 36)
+            down = arrow("ArrowDown", "ArrowDown", 40)
+            up = arrow("ArrowUp", "ArrowUp", 38)
+
+            def moved(record, axis, direction):
+                a, b = record[f"{axis}Before"], record[f"{axis}After"]
+                if a is None or b is None:
+                    return False
+                return b > a if direction > 0 else b < a
+
+            arrows["endWentRight"] = moved(to_end, "left", +1)
+            arrows["homeWentLeft"] = moved(to_home, "left", -1)
+            arrows["downWentLower"] = moved(down, "top", +1)
+            arrows["upWentBack"] = moved(up, "top", -1)
+            # Inverses, not just "each moved something".  A pair that both
+            # travel the same way is two broken keys that each pass a
+            # "did it move" test.
+            #
+            # AND THIS ONE IS VACUOUSLY TRUE WHEN NOTHING HAPPENS -- measured,
+            # not foreseen: under `line-movement-keys-unbound` both presses
+            # leave the caret at row 250, so `up.topAfter == down.topBefore`
+            # holds and this reads green while all four keys are dead.  It is
+            # carried by the conjunction below (`downWentLower` is False there),
+            # so the check still fails -- but a predicate that a page doing
+            # NOTHING satisfies is the shape this tree keeps being bitten by,
+            # and it is written down rather than left to hold by luck.
+            arrows["downAndUpAreInverses"] = (
+                down.get("topAfter") is not None
+                and up.get("topAfter") == down.get("topBefore"))
+            arrows["everyKeyWasTaken"] = all(
+                bool(r["takenByThePage"]) and all(r["takenByThePage"])
+                for r in arrows["presses"])
+            check("the-vertical-arrows-move-the-caret",
+                  bool(arrows["endWentRight"] and arrows["homeWentLeft"]
+                       and arrows["downWentLower"] and arrows["upWentBack"]
+                       and arrows["downAndUpAreInverses"]
+                       and arrows["everyKeyWasTaken"]),
+                  observed=arrows,
+                  oracle="End moves the caret right along its line and Home "
+                         "moves it back left; ArrowDown moves it onto a lower "
+                         "line and ArrowUp returns it to exactly the row it "
+                         "started on -- inverses, not merely both moving, "
+                         "because two keys travelling the same way each pass a "
+                         "'did it move' test. Every one of the four must also "
+                         "come back `defaultPrevented`: a key the page never "
+                         "took looks exactly like one it took and could not "
+                         "act on. LIMIT: read from `#sink`, so this is the "
+                         "position the page draws FROM, not the pixels it drew")
 
 
         resized = evaluate(session, RESIZE_DESK) or {}
