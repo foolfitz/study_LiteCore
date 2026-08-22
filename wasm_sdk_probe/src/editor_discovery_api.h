@@ -33,7 +33,19 @@ typedef enum oxsdk_editor_action {
   OXSDK_EDITOR_SET_LIST_UNORDERED = 18,
   OXSDK_EDITOR_SET_LIST_ORDERED = 19,
   OXSDK_EDITOR_SET_UNDERLINE = 20,
-  OXSDK_EDITOR_SET_STRIKETHROUGH = 21
+  OXSDK_EDITOR_SET_STRIKETHROUGH = 21,
+  /*
+   * Added with the product ABI's version 4.  These are the engine's INTERNAL
+   * numbers -- the product contract calls this one 20, and editor_api.cpp is
+   * the only thing that converts between the two lists.
+   *
+   * Deleting a range that the caller already selected. Distinct from
+   * DELETE_BACKWARD/DELETE_FORWARD, which the selection barrier characterises
+   * as caret-only: those refuse a pre-existing selection on purpose and make
+   * their own one-unit one. This is the opposite gesture and needs the
+   * opposite treatment, so it dispatches on the selection that is there.
+   */
+  OXSDK_EDITOR_DELETE_SELECTION = 22
 } oxsdk_editor_action;
 
 typedef enum oxsdk_editor_selection_method {

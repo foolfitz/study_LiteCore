@@ -99,18 +99,19 @@
     },
     {
       "id": "p1-4-abi-3",
-      "title": "the editor ABI constant is 3",
+      "title": "the editor ABI constant is 4",
       "expectation": "present",
       "source": "\"a version is an identity\"; PLAN P1 row 4",
       "checks": [
         {
           "kind": "contains",
           "file": "src/editor_api.h",
-          "text": "#define OXSDK_EDITOR_ABI_VERSION 3u",
+          "text": "#define OXSDK_EDITOR_ABI_VERSION 4u",
           "atLeast": 1
         }
       ],
-      "blocksRelink": true
+      "blocksRelink": true,
+      "supersedes": "`#define OXSDK_EDITOR_ABI_VERSION 3u`, this row's value for the v3 link. Bumped 2026-08-22 for the v4 successor identity. The row is the same requirement -- a version is an identity -- at a new value; it is not a relaxation, and it drifted loudly when the header moved before this file did."
     },
     {
       "id": "p1-5-makefile-v3",
@@ -167,11 +168,12 @@
         {
           "kind": "contains",
           "file": "tests/editor_abi_header_test.cpp",
-          "text": "static_assert(OXSDK_EDITOR_ABI_VERSION == 3u);",
+          "text": "static_assert(OXSDK_EDITOR_ABI_VERSION == 4u);",
           "atLeast": 1
         }
       ],
-      "blocksRelink": true
+      "blocksRelink": true,
+      "supersedes": "the same assertion against `3u`. The compile-time pin is what failed FIRST when the header went to 4, before anything was built -- which is the deliberate two-place edit the header's own comment asks for."
     },
     {
       "id": "p1-8b-selection-observed",

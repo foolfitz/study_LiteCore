@@ -19,15 +19,28 @@ extern "C" {
  * semantics are what let E1-C extend v1 in place while the freeze test kept
  * pinning only eight of the ten actions.
  *
- * 3 as of 2026-08-15.  The action list is unchanged -- what changed is the
+ * 3 as of 2026-08-15.  The action list was unchanged -- what changed was the
  * SEMANTICS of one field: `enabled` on the four inline format actions is now
  * sent to core instead of being stored and discarded (finding 045), so a
  * client that asks for `false` gets "off" rather than a toggle.  A caller
  * cannot tell those two builds apart by looking at the action list, which is
  * exactly why the version has to move: an allowlist's version is an identity,
  * and the identity now includes what the fields mean.
+ *
+ * 4 as of 2026-08-22.  A SUCCESSOR identity, not an edit: ids 1-15 are
+ * inherited verbatim and the new ones start at 16, so a v3 caller's constants
+ * still mean what they meant.  What makes appending safe here -- and unsafe in
+ * place -- is that the runtime handshake is an EXACT match: a client built for
+ * one version and a binary built for the other refuse each other at init
+ * rather than agreeing about the first fifteen and disagreeing about the rest.
+ *
+ * What is new is a contract surface, not new behaviour: the engine has
+ * dispatched line movement (arrow/Home/End key codes) since the E2-A discovery
+ * ABI drove it, and the product ABI simply never named it -- `internalAction()`
+ * returned 0 and the boundary refused. So 16-19 open a door the engine was
+ * already standing behind. 20 is the exception and is genuinely new.
  */
-#define OXSDK_EDITOR_ABI_VERSION 3u
+#define OXSDK_EDITOR_ABI_VERSION 4u
 
 typedef enum oxsdk_editor_v1_action {
   OXSDK_EDITOR_V1_MOVE_CHARACTER_LEFT = 1,
@@ -65,6 +78,37 @@ typedef enum oxsdk_editor_v2_action {
   OXSDK_EDITOR_V2_SET_PARAGRAPH_HEADING = 14,
   OXSDK_EDITOR_V2_SET_PARAGRAPH_BODY = 15
 } oxsdk_editor_v2_action;
+
+/*
+ * v3 (ABI 4) appends five.  A separate enum again, for the reason v2 gave: the
+ * enums above are pinned verbatim by tests/editor_abi_header_test.cpp, and
+ * editing a test that exists to pin an earlier version is how a freeze test
+ * turns into something that follows the implementation around.
+ *
+ * MOVE_LINE_* are the caret movements the engine has always had and the product
+ * ABI never named. They take the same shape as the two character movements and
+ * are subject to the same rule below: `extend_selection` is accepted ONLY by
+ * the two character movements, NOT by these four. That is deliberate and it is
+ * a narrowing, not an oversight -- a shift-selected line movement is a
+ * selection this build has never classified, and granting it here would let a
+ * caller build a range the gesture router cannot describe. It can be added
+ * later by a version that measures it first.
+ *
+ * DELETE_SELECTION is the one genuinely new behaviour. It exists because
+ * `delete-backward` is characterised caret-only and cut runs on a range by
+ * definition, so cut could not remove text at all
+ * (queue-cut-cannot-remove-text). It is NOT a widened delete-backward:
+ * widening that one would discard its measured caret-only characterisation,
+ * and a distinct action can declare its own gestures natively and refuse at a
+ * collapsed caret rather than silently doing nothing.
+ */
+typedef enum oxsdk_editor_v3_action {
+  OXSDK_EDITOR_V3_MOVE_LINE_UP = 16,
+  OXSDK_EDITOR_V3_MOVE_LINE_DOWN = 17,
+  OXSDK_EDITOR_V3_MOVE_LINE_HOME = 18,
+  OXSDK_EDITOR_V3_MOVE_LINE_END = 19,
+  OXSDK_EDITOR_V3_DELETE_SELECTION = 20
+} oxsdk_editor_v3_action;
 
 /*
  * Which selection shapes an action may be dispatched on.  The classes are the

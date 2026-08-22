@@ -12,7 +12,12 @@
 // 3 since 2026-08-15: the action list did not change, the meaning of
 // `enabled` did (finding 045).  Pinned here so the bump is a deliberate
 // edit in two places rather than a silent drift in one.
-static_assert(OXSDK_EDITOR_ABI_VERSION == 3u);
+//
+// 4 since 2026-08-22, and the bump behaved: this assertion is what failed
+// first when the header moved, before anything was built.  Ids 1-15 below are
+// untouched, which is the whole claim v4 makes -- a successor identity that
+// inherits verbatim rather than an edit to what v3 callers were told.
+static_assert(OXSDK_EDITOR_ABI_VERSION == 4u);
 static_assert(OXSDK_EDITOR_V1_MOVE_CHARACTER_LEFT == 1);
 static_assert(OXSDK_EDITOR_V1_MOVE_CHARACTER_RIGHT == 2);
 static_assert(OXSDK_EDITOR_V1_DELETE_BACKWARD == 3);
@@ -38,6 +43,20 @@ static_assert(OXSDK_EDITOR_V2_SET_LIST_UNORDERED == 12);
 static_assert(OXSDK_EDITOR_V2_SET_LIST_ORDERED == 13);
 static_assert(OXSDK_EDITOR_V2_SET_PARAGRAPH_HEADING == 14);
 static_assert(OXSDK_EDITOR_V2_SET_PARAGRAPH_BODY == 15);
+/*
+ * v3 (ABI 4) appends five, pinned the same way and for the same reason.
+ *
+ * 16-19 are a contract surface over behaviour the engine already had; 20 is
+ * the one new action.  Pinning them here now means the NEXT version cannot
+ * quietly renumber them either -- which is the failure this file caught in
+ * 2026-08-15, when two shipped artifacts had a freeze test that froze eight of
+ * ten actions because the header grew and the test did not.
+ */
+static_assert(OXSDK_EDITOR_V3_MOVE_LINE_UP == 16);
+static_assert(OXSDK_EDITOR_V3_MOVE_LINE_DOWN == 17);
+static_assert(OXSDK_EDITOR_V3_MOVE_LINE_HOME == 18);
+static_assert(OXSDK_EDITOR_V3_MOVE_LINE_END == 19);
+static_assert(OXSDK_EDITOR_V3_DELETE_SELECTION == 20);
 /* The gesture mask bits are ABI too -- the worker writes them from the manifest. */
 static_assert(OXSDK_EDITOR_GESTURE_COLLAPSED == 1u);
 static_assert(OXSDK_EDITOR_GESTURE_RANGE_SINGLE == 2u);

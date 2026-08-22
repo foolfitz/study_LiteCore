@@ -25,6 +25,19 @@ enum InternalEditorAction : std::uint32_t {
   InternalSetListNone = 17,
   InternalSetListUnordered = 18,
   InternalSetListOrdered = 19,
+  // v3 (ABI 4).  The four movements are the engine's OWN long-standing ids --
+  // it has mapped them to arrow/Home/End key codes since the discovery ABI --
+  // so this is a translation entry, not new behaviour.  The external numbers
+  // (16-19) and these internal ones (3-6) deliberately do not line up, and the
+  // proposal recorded why that is safe: this table is the only thing that
+  // converts between them, so a collision between the discovery numbering and
+  // the product's is a documentation hazard, not a mechanical one.
+  InternalMoveLineUp = 3,
+  InternalMoveLineDown = 4,
+  InternalMoveLineHome = 5,
+  InternalMoveLineEnd = 6,
+  // The one new behaviour.  22 because the discovery ABI's own list ends at 21.
+  InternalDeleteSelection = 22,
 };
 
 // The mask itself lives in the engine (probe::editorSetActionGestures): the
@@ -43,7 +56,12 @@ static_assert(OXSDK_EDITOR_GESTURE_COLLAPSED == probe::kGestureCollapsed);
 static_assert(OXSDK_EDITOR_GESTURE_RANGE_SINGLE == probe::kGestureRangeSingle);
 static_assert(OXSDK_EDITOR_GESTURE_RANGE_CROSS == probe::kGestureRangeCross);
 #endif
-constexpr std::uint32_t kMaxExternalAction = 15;
+// 20 as of ABI 4.  This bounds `oxsdk_editor_set_action_gestures`, so it has to
+// move with the action list or a profile could not narrow the new actions at
+// all -- and a gesture a manifest cannot restrict is one the binary grants
+// unconditionally, which is the "manifest describes but does not constrain"
+// defect the mask exists to remove.
+constexpr std::uint32_t kMaxExternalAction = 20;
 
 // The engine's selection methods, of which the narrow ABI exposes exactly one.
 // Mirrors oxsdk_editor_selection_method in editor_discovery_api.h; that header
@@ -100,6 +118,16 @@ std::uint32_t internalAction(std::uint32_t action) {
     return InternalSetParagraphHeading;
   case OXSDK_EDITOR_V2_SET_PARAGRAPH_BODY:
     return InternalSetParagraphBody;
+  case OXSDK_EDITOR_V3_MOVE_LINE_UP:
+    return InternalMoveLineUp;
+  case OXSDK_EDITOR_V3_MOVE_LINE_DOWN:
+    return InternalMoveLineDown;
+  case OXSDK_EDITOR_V3_MOVE_LINE_HOME:
+    return InternalMoveLineHome;
+  case OXSDK_EDITOR_V3_MOVE_LINE_END:
+    return InternalMoveLineEnd;
+  case OXSDK_EDITOR_V3_DELETE_SELECTION:
+    return InternalDeleteSelection;
   default:
     return 0;
   }

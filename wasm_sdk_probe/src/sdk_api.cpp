@@ -188,6 +188,16 @@ extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_undo(
   });
 }
 
+extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_redo(
+    oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
+    std::uint32_t expectedRevision) {
+  if (!validRequest(requestId) || documentHandle == 0)
+    return OXSDK_STATUS_INVALID_ARGUMENT;
+  return safeStatus([&] {
+    return probe::redo(requestId, documentHandle, expectedRevision);
+  });
+}
+
 extern "C" EMSCRIPTEN_KEEPALIVE int32_t oxsdk_document_add_comment(
     oxsdk_request_id requestId, oxsdk_document_handle documentHandle,
     std::uint32_t expectedRevision, const char *textUtf8,

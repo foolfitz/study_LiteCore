@@ -127,6 +127,15 @@ enum class CommandType {
   GetSelection,
   ReplaceSelection,
   Undo,
+  // Redo is a SIBLING OF UNDO, not an editor action with a wire id.
+  //
+  // The engine has dispatched `.uno:Redo` through the editor-action path since
+  // the discovery ABI, but that path is the narrow editor's allowlist and redo
+  // does not belong in it: undo is not in it either. Undo reached the product
+  // as a document operation, and redo is the same kind of thing -- so it costs
+  // a compiled export and ZERO wire ids, and a caller that has undo already
+  // knows the shape.
+  Redo,
   AddComment,
   ListComments,
   SetTrackChanges,
@@ -3237,6 +3246,13 @@ void handleUndo(const Command &command) {
   startUnoMutation(command, "undone", ".uno:Undo", {});
 }
 
+void handleRedo(const Command &command) {
+  if (!requireDocument(command, "redone") ||
+      !requireRevision(command, "redo"))
+    return;
+  startUnoMutation(command, "redone", ".uno:Redo", {});
+}
+
 void handleAddComment(const Command &command) {
   if (!requireDocument(command, "comment-added") ||
       !requireRevision(command, "add-comment"))
@@ -3326,6 +3342,8 @@ const char *editorActionName(std::uint32_t action) {
     return "set-underline";
   case OXSDK_EDITOR_SET_STRIKETHROUGH:
     return "set-strikethrough";
+  case OXSDK_EDITOR_DELETE_SELECTION:
+    return "delete-selection";
   case OXSDK_EDITOR_SET_PARAGRAPH_BODY:
     return "set-paragraph-body";
   case OXSDK_EDITOR_SET_PARAGRAPH_HEADING:
@@ -4409,6 +4427,26 @@ void handleEditorAction(const Command &command) {
                          command.values[2] == 0);
 #endif
     return;
+  case OXSDK_EDITOR_DELETE_SELECTION:
+    // queue-cut-cannot-remove-text.  A plain dispatch on the selection the
+    // caller already has -- deliberately NOT startSelectionBarrierDelete,
+    // which refuses a pre-existing selection by design (:3143-3151) and posts
+    // shift+Left/Right to manufacture its own. That barrier is right for a
+    // caret-only delete and exactly wrong here: the whole point of this action
+    // is that the range is the caller's.
+    //
+    // Nor is it a widened delete-backward. Widening that one would discard the
+    // caret-only characterisation it was measured under, and this way the
+    // manifest can declare range-single + range-cross for this action alone
+    // and the engine's gesture gate refuses it at a collapsed caret -- a
+    // refusal, not a silent no-op.
+    //
+    // The empty-paste route was measured on 2026-08-21 and is closed: the
+    // refusal lives in COMPILED code at sdk_api.cpp:172-174, one layer above
+    // the handler that has no gate, so relaxing it would be an engine change
+    // too and would buy nothing.
+    startEditorUnoAction(command, name, ".uno:Delete");
+    return;
   case OXSDK_EDITOR_INSERT_PARAGRAPH_BREAK:
     startEditorUnoAction(command, name, ".uno:InsertPara");
     return;
@@ -4914,6 +4952,9 @@ void dispatch(const Command &command) {
     break;
   case CommandType::Undo:
     handleUndo(command);
+    break;
+  case CommandType::Redo:
+    handleRedo(command);
     break;
   case CommandType::AddComment:
     handleAddComment(command);
@@ -5646,6 +5687,16 @@ SubmitStatus replaceSelection(std::uint32_t requestId,
 SubmitStatus undo(std::uint32_t requestId, std::uint32_t documentHandle,
                   std::uint32_t expectedRevision) {
   Command command{CommandType::Undo};
+  command.sdk = true;
+  command.requestId = requestId;
+  command.documentHandle = documentHandle;
+  command.expectedRevision = expectedRevision;
+  return submit(std::move(command));
+}
+
+SubmitStatus redo(std::uint32_t requestId, std::uint32_t documentHandle,
+                  std::uint32_t expectedRevision) {
+  Command command{CommandType::Redo};
   command.sdk = true;
   command.requestId = requestId;
   command.documentHandle = documentHandle;

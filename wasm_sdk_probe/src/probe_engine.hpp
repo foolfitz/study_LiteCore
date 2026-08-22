@@ -50,6 +50,8 @@ SubmitStatus replaceSelection(std::uint32_t requestId,
                               std::string utf8);
 SubmitStatus undo(std::uint32_t requestId, std::uint32_t documentHandle,
                   std::uint32_t expectedRevision);
+SubmitStatus redo(std::uint32_t requestId, std::uint32_t documentHandle,
+                  std::uint32_t expectedRevision);
 SubmitStatus addComment(std::uint32_t requestId,
                         std::uint32_t documentHandle,
                         std::uint32_t expectedRevision, std::string text,

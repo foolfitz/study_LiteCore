@@ -79,6 +79,15 @@ int32_t oxsdk_document_replace_selection(
 int32_t oxsdk_document_undo(oxsdk_request_id request_id,
                             oxsdk_document_handle document_handle,
                             uint32_t expected_revision);
+/*
+ * Redo, added 2026-08-22 beside undo rather than as an editor action.
+ * queue-redo-and-line-movement-need-wire-ids asked for a wire id and the answer
+ * is that it needs none: the narrow editor ABI is an allowlist of the actions a
+ * NARROWED product exposes, and undo was never in it either.
+ */
+int32_t oxsdk_document_redo(oxsdk_request_id request_id,
+                            oxsdk_document_handle document_handle,
+                            uint32_t expected_revision);
 int32_t oxsdk_document_add_comment(
     oxsdk_request_id request_id, oxsdk_document_handle document_handle,
     uint32_t expected_revision, const char *text_utf8, uint32_t text_length,
