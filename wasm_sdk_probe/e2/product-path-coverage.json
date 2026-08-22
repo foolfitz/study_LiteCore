@@ -171,7 +171,15 @@
       "how": "a REAL mouse click is delivered onto the set-bold button through CDP Input.dispatchMouseEvent, and then two things are read: document.activeElement must still be the editing sink, and text typed straight afterwards -- with NOTHING restoring focus -- must reach the saved document. The check is the-toolbar-gives-the-keyboard-back. A real click is the whole point: HTMLElement.click() runs no default action and therefore never moves focus, so every synthetic press in this file would pass on a page where this is broken -- which is exactly how finding 066 survived until an operator hit it. CHROME ONLY; Firefox has no CDP here and the check reports NOT_ESTABLISHED rather than passing. Mutation `focus` reverts the two lines and the check must go red."
     }
   ],
-  "waived": [],
+  "waived": [
+    {
+      "path": "action:redo",
+      "reason": "UNREACHABLE ON THIS PROFILE, and by construction rather than by omission: the 重做 button is `hidden` and both shortcuts return early unless `offersRedo()` is true, and it is false here because e2-editor-v3's contract carries no `redo` declaration. There is nothing for a harness to drive -- driving it would mean reaching past the gate that is the feature. The gate itself IS covered, by editor-shell-v2/tests/offers.test.mjs, which pins that the page reads `offersRedo()` for the button and both shortcuts and that a contract without a `redo` declaration answers false. Waived rather than listed as uncovered because 'nobody has driven it' would misdescribe it: it is not reachable, so there is no risk to weigh.",
+      "reasonBoundTo": {
+        "manifestSha256": "ff6834f9301d4ec113fe12c1486958c2b47ac1ec84b503cf1fd21acb57db1561"
+      }
+    }
+  ],
   "uncovered": [
     {
       "path": "listener:blur",
