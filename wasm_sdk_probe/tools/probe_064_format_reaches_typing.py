@@ -85,6 +85,41 @@ RENDER_PATCHED = """async function renderDocument(retriesLeft = 6) {
   }
   if (!session?.document"""
 
+# FINDING 067's engine half.  The adapter already traces `commit-end` with the
+# WHOLE result of the commit, and the engine's insertText reply carries
+# `method` -- "paste" when LOK's paste accepted the text, "postKeyEvent" when it
+# refused and the engine fell back to posting key events.  Nobody forwards that
+# field anywhere a probe can see it, so this mirror records the traces the page
+# already receives.  Inert without `globalThis.__f067`.
+TRACE_ANCHOR = """    onInputTrace(entry) {
+      if (entry?.action === "composition-rejected" || entry?.status === "failed")"""
+
+TRACE_PATCHED = """    onInputTrace(entry) {
+      // DIAGNOSTIC, finding 067.  Not shipped.
+      if (globalThis.__f067) globalThis.__f067.traces.push(entry);
+      if (entry?.action === "composition-rejected" || entry?.status === "failed")"""
+
+INSTALL_TRACES = """(() => {
+globalThis.__f067 = { traces: [] };
+return true;
+})()"""
+
+READ_TRACES = """(() => {
+const d = globalThis.__f067;
+if (!d) return null;
+// `type` is the TRACE LABEL ("commit-start", "commit-end", "beforeinput"):
+// eventSnapshot() builds {type, isTrusted, inputType, data, ...extra}, so the
+// label lives in `type` and `action` only exists when a caller put it in
+// `extra`.  Read the wrong one and every commit-end looks like it is missing.
+return d.traces.map((e) => ({
+  label: e && e.type, action: e && e.action, status: e && e.status,
+  requestNumber: e && e.requestNumber,
+  inputType: (e && e.metadata && e.metadata.inputType) || (e && e.inputType),
+  result: e && e.result ? { method: e.result.method,
+                            revision: e.result.revision } : null,
+}));
+})()"""
+
 INSTALL_HOOK = """(() => {
 globalThis.__f064 = { renders: 0, suppressed: 0, suppress: false };
 return true;
@@ -1511,6 +1546,113 @@ def caret_drawn_where(session, base, timeout) -> dict:
     return record
 
 
+def enter_insert_method(session, base, timeout) -> dict:
+    """WHICH route did the engine take for the newline, and did it claim success?
+
+    Finding 067 half two.  `handleInsertText` (src/probe_engine.cpp:2730-2755)
+    tries LOK's `paste` and falls back to `postKeyEvent`, then increments the
+    revision **unconditionally** and reports `{"type":"inserted"}`.  Its reply
+    already carries `method`, which says which route ran -- and nothing forwards
+    it anywhere a probe can read.  So this mirrors the page's `onInputTrace` to
+    record what it is already being handed.
+
+    It answers a question the fix does not: whether `paste("\n")` was ACCEPTED
+    and did nothing, or was refused and the fallback did nothing.  Those are
+    different upstream stories and the engine half should not be specified
+    without knowing which.
+    """
+    record: dict = {"id": "enter-insert-method"}
+    call = getattr(session, "call", None)
+    if call is None:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "no CDP, so a real Enter cannot be delivered"
+        return record
+    if not boot(session, base, timeout):
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the page did not reach ready"
+        return record
+    evaluate(session, INSTALL_TRACES)
+
+    clicks = caret_click_fractions(
+        evaluate(session, LINE_INK.replace("ARG_Y", "0.24")) or {})
+    place_caret_and_settle(session, POINT_AT, clicks["near"], "0.24")
+
+    # A control first: ordinary text through the same boundary, so the trace
+    # shape is known to be readable before the interesting key is pressed.
+    record["controlCommit"] = commit(session, "MTHCONTROL")
+    time.sleep(1.0)
+    record["tracesAfterControl"] = evaluate(session, READ_TRACES)
+
+    def press_enter(shift: bool):
+        floor = revision_of(evaluate(session, READ_STATE))
+        for kind in ("rawKeyDown", "char", "keyUp"):
+            payload = {"type": kind, "key": "Enter",
+                       "windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13,
+                       "code": "Enter", "modifiers": 8 if shift else 0}
+            if kind == "char":
+                payload["text"] = "\r"
+            call("Input.dispatchKeyEvent", payload)
+        wait_for(session,
+                 lambda s, f=floor: revision_of(s) is not None
+                 and f is not None and revision_of(s) > f, 8)
+        time.sleep(1.0)
+        return evaluate(session, READ_TRACES) or []
+
+    def input_types(entries):
+        return sorted({e.get("inputType") for e in entries if e.get("inputType")})
+
+    plain = press_enter(False)
+    record["traces"] = plain
+    record["plainEnterInputTypes"] = input_types(plain)
+    # SHIFT+ENTER.  The routing design turns on this: in a <textarea> the
+    # browser may report BOTH as insertLineBreak, and then `inputType` alone
+    # cannot say which key the user pressed -- so a fix cannot offer the
+    # paragraph break and the line break as different things from the keyboard.
+    evaluate(session, INSTALL_TRACES)
+    shifted = press_enter(True)
+    record["shiftEnterInputTypes"] = input_types(shifted)
+    record["shiftTraces"] = shifted
+    record["distinguishable"] = (
+        record["plainEnterInputTypes"] != record["shiftEnterInputTypes"]
+        if record["plainEnterInputTypes"] and record["shiftEnterInputTypes"]
+        else None)
+    traces = plain
+
+    ends = [e for e in traces if e.get("label") == "commit-end" and e.get("result")]
+    record["commitEnds"] = ends
+    # PAIR BY requestNumber.  `commit-end` is traced with a null event, so it
+    # carries no inputType of its own -- only `commit-start` does.  Filtering
+    # the ends on inputType therefore matches nothing and reads as "the Enter
+    # never reached the commit boundary", which is the opposite of the truth.
+    starts = {e.get("requestNumber"): e.get("inputType")
+              for e in traces if e.get("label") == "commit-start"}
+    enter = [e for e in ends
+             if starts.get(e.get("requestNumber")) in ("insertParagraph",
+                                                       "insertLineBreak")]
+    record["enterCommit"] = enter[-1] if enter else None
+    if record["enterCommit"]:
+        record["enterCommit"] = dict(
+            record["enterCommit"],
+            inputType=starts.get(record["enterCommit"].get("requestNumber")))
+    control_readable = any(e.get("result", {}).get("method") for e in ends)
+    if not control_readable:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("no commit-end trace carried a `method`, so the mirror "
+                         "is not reading what it claims to read")
+        return record
+    if not record["enterCommit"]:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("the Enter produced no commit at all -- it never "
+                         "reached the adapter's commit boundary")
+        return record
+    record["method"] = record["enterCommit"]["result"].get("method")
+    record["outcome"] = "PASS"
+    record["conclusion"] = (
+        f"the newline went through the engine's `{record['method']}` route and "
+        f"the engine reported revision {record['enterCommit']['result'].get('revision')}")
+    return record
+
+
 ARMS: dict[str, dict] = {
     # P-064-0.  The negative control: this must reproduce 064.
     "baseline": {"marker": "MKF064BASE", "suppressed": False,
@@ -1574,7 +1716,8 @@ def main() -> int:
                                 "focus-after-toolbar",
                                 "click-between-format-and-typing",
                                 "real-enter", "caret-model-or-drawing",
-                                "keyboard-formats", "caret-drawn-where")]
+                                "keyboard-formats", "caret-drawn-where",
+                                "enter-insert-method")]
     if unknown:
         raise SystemExit(f"unknown arm(s): {unknown}; known: {sorted(ARMS)}")
 
@@ -1590,8 +1733,13 @@ def main() -> int:
 
     scratch = Path(tempfile.mkdtemp(prefix="f064-mechanism-"))
     mirror = scratch / "root"
+    if page_text.count(TRACE_ANCHOR) != 1:
+        raise SystemExit(
+            "the page's onInputTrace is not where this diagnostic expects it in "
+            + page_rel + "; the tree moved under the diagnostic.")
     build_mirror(root, mirror,
                  {page_rel: page_text.replace(RENDER_ANCHOR, RENDER_PATCHED, 1)
+                  .replace(TRACE_ANCHOR, TRACE_PATCHED, 1)
                   .encode("utf-8")})
 
     report: dict = {
@@ -1666,6 +1814,10 @@ def main() -> int:
             if name == "caret-model-or-drawing":
                 report["arms"].append(
                     caret_model_or_drawing(session, base, args.timeout))
+                continue
+            if name == "enter-insert-method":
+                report["arms"].append(
+                    enter_insert_method(session, base, args.timeout))
                 continue
             if name == "real-enter":
                 report["arms"].append(real_enter(session, base, args.timeout))

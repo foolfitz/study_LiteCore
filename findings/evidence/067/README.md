@@ -27,3 +27,47 @@ dead", because finding 066 had focus parked on a toolbar button throughout.
 **The revision moving is the sharp part.** This is not a refusal — nothing
 refused. The product's own progress counter advanced, so every surface that
 reads it believes an edit happened.
+
+
+## `engine-route-and-which-key.json` — two more facts, 2026-08-22
+
+The page's `onInputTrace` already receives the whole commit result; nothing
+forwards it anywhere a probe can see. A mirror records it (one file, one added
+line, inert without `globalThis.__f067`).
+
+### The engine took its `paste` route and reported success
+
+```json
+{"label": "commit-end", "requestNumber": 1, "result": {"method": "paste", "revision": 2}}
+```
+
+`method: "paste"` means LOK's `paste("text/plain;charset=utf-8", "\n", 1)`
+**returned true**. The engine did **not** fall back to `postKeyEvent`. So the
+story is not "paste refused it": **paste accepted a bare newline and did nothing
+with it**, and `handleInsertText` then incremented the revision unconditionally.
+That is the engine half of 067, now attributed rather than open.
+
+### Plain Enter and Shift+Enter cannot be told apart
+
+| key | `inputType` at the commit boundary |
+|---|---|
+| Enter | `insertLineBreak` |
+| Shift+Enter | `insertLineBreak` |
+
+`distinguishable: false`. The sink is a `<textarea>`, and a textarea reports
+Enter as `insertLineBreak`; `insertParagraph` is what a **contenteditable**
+reports, so the adapter's `insertParagraph` branch is **dead code on this
+page**.
+
+This is a design fact, not a defect: any fix that decides at
+`commit(text, metadata)` can offer **one** of the two breaks from the keyboard,
+not both, unless `shiftKey` is captured somewhere else.
+
+### A trap this cost twice
+
+The first version of this arm read `entry.action` looking for `commit-end` and
+found nothing, then reported "the Enter never reached the commit boundary" —
+the opposite of the truth. `eventSnapshot()` puts the trace **label** in
+`type`; `action` only exists when a caller passed it in `extra`. And
+`commit-end` is traced with a **null event**, so it carries no `inputType` of
+its own — the two have to be paired by `requestNumber`.
