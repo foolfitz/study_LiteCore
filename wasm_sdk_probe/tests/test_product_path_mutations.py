@@ -78,6 +78,27 @@ class MutationsStillApply(unittest.TestCase):
                 with self.subTest(mutation=name, check=cid):
                     self.assertIn(f'check("{cid}"', source,
                                   f"{name} names a check id nothing emits")
+    def test_a_mutation_that_needs_a_flag_names_one_the_runner_has(self):
+        """`requiresFlag` must name an option this runner actually accepts.
+
+        Some checks cannot be established without a diagnostic arm -- the
+        refusal one needs `--refusal-diagnostic`, because on the shipped
+        manifest the cut succeeds and there is no refusal to judge.  A mutation
+        for such a check reports "the product survived it" when run without the
+        flag, which is exactly what a DEAD mutation reports.  So the dependency
+        is declared, and a renamed flag fails here rather than in a run nobody
+        reads.
+        """
+        source = (ROOT / "tools" / "run_e2_c_product_path.py").read_text(
+            encoding="utf-8")
+        for name, spec in sorted(_specs().items()):
+            flag = spec.get("requiresFlag")
+            if flag is None:
+                continue
+            with self.subTest(mutation=name, flag=flag):
+                self.assertIn(f'parser.add_argument("{flag}"', source,
+                              f"{name} requires {flag}, which this runner does "
+                              f"not define")
 
 
 if __name__ == "__main__":

@@ -1285,6 +1285,36 @@ MUTATIONS = {
                         "nothing and say nothing",
         "alsoRed": [],
     },
+    # FINDING 063 ITSELF, put back -- the swallow, not the fallback.
+    #
+    # 063's shape was that the delete's failure never reached the user: it sat
+    # outside `run()`, in a `.then` whose `.catch` discarded it, so with a
+    # working clipboard the copy succeeded, the delete was refused, the session
+    # went to recoverable-error, and the only thing on screen was a notice
+    # telling the user to restart -- no word about what had failed. This
+    # restores the discard at the point where it still does that: inside the
+    # operation, where `run()` can no longer see the rejection.
+    #
+    # ONLY MEANINGFUL WITH --refusal-diagnostic, and that is declared rather
+    # than left to be discovered. On the shipped manifest the delete succeeds,
+    # nothing throws, and this mutation changes no observable at all -- it
+    # would report "the product survived it", which is the reading a dead
+    # mutation gives and the reason `cut-swallows-its-failure` had to be
+    # replaced.
+    "cut-swallows-the-refusal": {
+        "check": "a-refused-action-is-reported-and-changes-nothing",
+        "path": "e2-editor-app.js",
+        "requiresFlag": "--refusal-diagnostic",
+        "find": "    await session.action(session.offers(\"delete-selection\")\n"
+                "                         ? \"delete-selection\" : \"delete-backward\", {});",
+        "replace": "    try {\n"
+                   "      await session.action(session.offers(\"delete-selection\")\n"
+                   "                           ? \"delete-selection\" : \"delete-backward\", {});\n"
+                   "    } catch (swallowed) { void swallowed; }",
+        "reintroduces": "a refused cut that tells the user nothing, which is "
+                        "finding 063 as it shipped",
+        "alsoRed": [],
+    },
     "cut-falls-back-to-the-caret-only-delete": {
         "check": "cut-removes-the-selected-text",
         "path": "e2-editor-app.js",
@@ -2381,6 +2411,32 @@ def main() -> int:
                              "both range gestures in a MIRRORED manifest, to "
                              "measure whether the engine removes a range at "
                              "all; stamps the report diagnostic")
+    # THE INVERSE OF THE ABOVE, AND IT IS WHY THIS FLAG EXISTS.
+    #
+    # Finding 063 is that a REFUSED cut used to send the session into
+    # recoverable-error and tell the user to discard unsaved work, over an
+    # action that had dispatched nothing.  `ctrl-x-is-handled-by-the-product`
+    # verified the fix on every run -- until 2026-08-22 widened
+    # `delete-selection`, which removed the refusal from the product's own path
+    # and left the coverage to a mutation.  A mutation asserts that a check goes
+    # RED; it does not assert that the refusal was reported, the document left
+    # alone and the session kept alive.  That is a weaker claim about a defect
+    # that bricked sessions (`queue-cut-refusal-lost-its-inducer`).
+    #
+    # NARROWING to `gestures: []` reproduces the ORIGINAL inducer rather than an
+    # approximation of it: `offers()` reads a present-but-empty gesture list as
+    # withheld, so the page falls back to `delete-backward` exactly as it did on
+    # v3, and the engine refuses it on a range because it is caret-only.  Same
+    # action, same refusal, same code -- on the shipped wasm, with one mirrored
+    # manifest and no product change.
+    parser.add_argument("--refusal-diagnostic", action="store_true",
+                        help="withhold the action named by --refusal-action in "
+                             "a MIRRORED manifest (gestures: []), so the "
+                             "product's cut path meets a refusal again and "
+                             "finding 063's three properties can be asserted; "
+                             "stamps the report diagnostic")
+    parser.add_argument("--refusal-action", default="delete-selection",
+                        help="which action --refusal-diagnostic withholds")
     parser.add_argument("--no-caret-exclusion", action="store_true",
                         help="leave the drawn caret in the ink scan. Finding "
                              "072: the caret bridges the gap between two "
@@ -2563,6 +2619,58 @@ def main() -> int:
             "wasmUnchanged": True,
             "prediction": "findings/evidence/queue-cut-cannot-remove-text/"
                           "PREDICTION.md",
+        }
+    if args.refusal_diagnostic:
+        if args.range_delete_diagnostic:
+            raise SystemExit(
+                "--refusal-diagnostic and --range-delete-diagnostic both "
+                "rewrite the same manifest in opposite directions; running "
+                "them together would produce a report whose gesture list is "
+                "whichever one happened to be applied second")
+        relative = "profiles/e2-editor-v4/sdk-manifest.json"
+        manifest = json.loads((root / relative).read_text(encoding="utf-8"))
+        contract = manifest["editorContract"]
+        withheld_action = args.refusal_action
+        if withheld_action not in contract["actions"]:
+            raise SystemExit(
+                f"--refusal-action {withheld_action!r} is not in this "
+                f"profile's action map: {sorted(contract['actions'])}")
+        before = list(contract["actions"][withheld_action]["gestures"])
+        if not before:
+            raise SystemExit(
+                f"--refusal-action {withheld_action!r} already ships with no "
+                f"gestures, so withholding it changes nothing and the run "
+                f"would report a refusal the SHIPPED manifest also produces")
+        # PRESENT AND EMPTY, never removed.  The engine sets every entry to
+        # all-permitted on the first mask call and intersects from there, so
+        # deleting the action here would ship it WIDE OPEN -- the opposite of
+        # this arm's intent, and silent.  Same rule the shipped manifest obeys
+        # for select-all.
+        contract["actions"][withheld_action]["gestures"] = []
+        narrowed = json.dumps(manifest, ensure_ascii=False,
+                              indent=2).encode("utf-8")
+        mirror = scratch / "refusal-root"
+        build_mirror(root, mirror, {relative: narrowed})
+        root = mirror
+        report["refusalDiagnostic"] = {
+            "evidenceClass": "diagnostic",
+            "note": "This run did NOT use the shipped manifest. It withholds "
+                    "one action so the product's cut path meets a refusal "
+                    "again, which is the state finding 063 is about and which "
+                    "the 2026-08-22 widening removed from the product's own "
+                    "path. It is a measurement of the REFUSAL DISPOSITION and "
+                    "must never be read as a measurement of what cut does on "
+                    "the shipped profile.",
+            "action": withheld_action,
+            "gesturesBefore": before,
+            "gesturesAfter": [],
+            "wasmUnchanged": True,
+            "expectedFallback":
+                "the page reads a present-but-empty gesture list as withheld "
+                "(`offers()`), so cut's delete half falls back to "
+                "`delete-backward`, which is caret-only and is refused on the "
+                "range a cut necessarily has -- the v3 path verbatim",
+            "restores": "queue-cut-refusal-lost-its-inducer",
         }
     # Written AFTER the mirror is built, so it describes what was served rather
     # than what was intended.
@@ -3813,10 +3921,20 @@ def main() -> int:
         # WHAT THIS COST, written here rather than left to be discovered: the
         # refusal that finding 063 is about no longer happens on the product's
         # own path, so this run no longer exercises it.  That route now lives
-        # only in the `cut-falls-back-to-the-caret-only-delete` mutation, and
-        # `queue-cut-refusal-lost-its-inducer` records the debt.  Losing
-        # coverage quietly is the thing that queue exists to prevent.
+        # in the `cut-falls-back-to-the-caret-only-delete` mutation and, since
+        # 2026-08-22, in `--refusal-diagnostic` -- which asserts finding 063's
+        # three properties positively instead of asserting that a check goes
+        # red.  `queue-cut-refusal-lost-its-inducer` carries the reasoning.
         removed = cut_record.get("rangeDelete") or {}
+        # THE TWO ARMS ARE MUTUALLY EXCLUSIVE, and saying so here is the point.
+        #
+        # Under --refusal-diagnostic the manifest withholds the delete, so the
+        # text is SUPPOSED to survive.  Scoring `cut-removes-the-selected-text`
+        # there would report a product failure caused by the harness's own
+        # mirror -- the shape of mistake this file already carries a NOT_ESTAB-
+        # LISHED path for on the clipboard axis.
+        refusal_induced = bool(args.refusal_diagnostic)
+        cut_scorable = cut_measurable and not refusal_induced
         check("cut-removes-the-selected-text",
               bool(cut_measurable and (cut_result or {}).get("handled")
                    and cut_record["stateAfterCut"] == "ready"
@@ -3826,7 +3944,7 @@ def main() -> int:
                    and removed.get("targetTextAnywhere") is False
                    and removed.get("neighboursSurvive")
                    and is_an_odt(cut_after)),
-              outcome=None if cut_measurable else "NOT_ESTABLISHED",
+              outcome=None if cut_scorable else "NOT_ESTABLISHED",
               observed=cut_record,
               oracle="a cut on a range REMOVES that text from the saved "
                      "document, leaves both neighbouring paragraphs verbatim, "
@@ -3845,8 +3963,70 @@ def main() -> int:
                              "reported to the user and changes nothing "
                              "(finding 063). The manifest now grants the "
                              "gesture, so the product path produces no refusal "
-                             "to observe -- see "
-                             "queue-cut-refusal-lost-its-inducer")
+                             "to observe -- that is what --refusal-diagnostic "
+                             "is for, and under it THIS check is the one that "
+                             "cannot be established")
+
+        # ------------------------------------------------- finding 063, kept
+        #
+        # The three properties of a refused cut, asserted rather than implied.
+        # It abstains on the shipped manifest because there is no refusal to
+        # judge, and it is the reason `--refusal-diagnostic` exists: the widen-
+        # ing that made cut work took away the state its own regression check
+        # needed, for the third time in this tree (046's disposition, 038's
+        # inducer, now this).
+        #
+        # `documentUnchanged` is the term that needs a POSITIVE CONTROL, and it
+        # has one without any extra driving: the SAME drive, on the SAME line,
+        # with the shipped manifest, is `cut-removes-the-selected-text`, which
+        # requires the target to be GONE. One run of each says the document is
+        # untouched because the action was refused, and not because the drag
+        # missed or the key never arrived. Without that pair, "nothing changed"
+        # and "nothing happened" are the same observation -- and this tree has
+        # written that lesson down three times in one day.
+        #
+        # `saveStillWorks` is the third property and it is not decoration:
+        # finding 063's actual harm was a notice telling the user to discard
+        # unsaved work. A session that reports `ready` but can no longer save
+        # has failed 063 while passing a state check.
+        refusal_measurable = cut_measurable and refusal_induced
+        refusal_record = {
+            "induced": refusal_induced,
+            "withheldAction": (report.get("refusalDiagnostic") or {}).get("action"),
+            "refusalReported": cut_record["refusalReported"],
+            "toasts": cut_record.get("toasts"),
+            "documentUnchanged": cut_record["documentUnchanged"],
+            "stateAfterCut": cut_record["stateAfterCut"],
+            "saveStillWorks": is_an_odt(cut_after) and bool(after_lines),
+            "handled": cut_record["handled"],
+        }
+        check("a-refused-action-is-reported-and-changes-nothing",
+              bool(refusal_measurable
+                   and refusal_record["handled"]
+                   and refusal_record["refusalReported"]
+                   and refusal_record["documentUnchanged"]
+                   and refusal_record["stateAfterCut"] == "ready"
+                   and refusal_record["saveStillWorks"]),
+              outcome=None if refusal_measurable else "NOT_ESTABLISHED",
+              observed=refusal_record,
+              oracle="a cut whose delete half the profile REFUSES is reported "
+                     "to the user with its reason, leaves the saved document "
+                     "byte-for-byte what it was, leaves the session `ready`, "
+                     "and leaves saving available. Finding 063 was all four "
+                     "going wrong at once: the refusal was swallowed, the "
+                     "session went to recoverable-error, and the only thing "
+                     "the user saw was a notice telling them to discard "
+                     "unsaved work -- over an action that had dispatched "
+                     "nothing",
+              notEstablished="anything, unless --refusal-diagnostic mirrored a "
+                             "manifest that withholds the delete. On the "
+                             "shipped profile the gesture is granted and the "
+                             "cut succeeds, so there is no refusal to judge "
+                             "and this check must abstain rather than pass on "
+                             "an empty precondition. Also not established when "
+                             "clipboardGranted is false: the copy half is "
+                             "denied by the driver and the delete half never "
+                             "runs")
 
 
         # --------------- the other three inline formats, and clear-format
