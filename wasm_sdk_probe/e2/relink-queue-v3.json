@@ -987,6 +987,22 @@
         }
       ],
       "checkNote": "The registry line is the load-bearing one, not the tool line: `listener:blur#sink` is a path that EXISTS ONLY under target-keying, so reverting the parser does not merely fail this check -- it fails `make test-e2-c-reachability`, because the registry would then name a path the page does not have. A substring assertion about a tool is worth little on its own (the redo check DRIFTed on a comment); this one is backed by a gate that runs the code."
+    },
+    {
+      "id": "queue-a11y-prefix-swallows-the-paragraph",
+      "title": "a paragraph whose listPrefixLength equals its contentLength fingerprints as the EMPTY STRING, so two of them are indistinguishable -- measured on the heading, 2026-08-22",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "a11y gate 0's own run, three times identically (findings/evidence/a11y-gate-0/RESULT.md)",
+      "note": "The engine fingerprints a focused paragraph as FNV-1a 64 over the body AFTER stripping listPrefixLength characters (probe_engine.cpp:1614-1667). On `E1-LC-HEADING` LOK reported listPrefixLength 13 against contentLength 13 -- the whole paragraph as prefix -- so the hashed body was empty and the fingerprint came back cbf29ce484222325, the FNV-1a offset basis. That constant already has a meaning in this tree: it is what EVERY paragraph reported when the basis was mistyped on 2026-08-17, i.e. it is the value that means UNFED. So the failure mode is not a wrong answer, it is an answer that cannot be told apart from a broken one, and any two such paragraphs share it. It did NOT move the gate verdict: the criterion asks for >= 2 distinct identities matching their targets and placements 1 and 2 supply that, matching both hash and length against the fixture's own XML. TWO HYPOTHESES, NEITHER MEASURED, AND NO LAYER IS NAMED (040, 048, 062): LOK reports the prefix that way for an outline-numbered heading, or our parse of the focused-paragraph JSON mis-assigns the field. The cheap discriminator is the NATIVE build -- build-native-26-8 has the same LOK, provides accessibility already, and needs no rebuild; tools/queue_native_a11y_attach_timing.cpp is the existing place to ask it from. This matters most to roadmap 3.4 and to block identity, both of which would read the fingerprint as an identity.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "../findings/evidence/a11y-gate-0/RESULT.md",
+          "text": "PREFIX HYPOTHESIS MEASURED"
+        }
+      ],
+      "checkNote": "Absent until the native build has been asked what listPrefixLength it reports for the same heading. Flipping it is a deliberate edit, and it needs a measurement rather than a reading of the code."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

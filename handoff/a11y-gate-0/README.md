@@ -11,6 +11,13 @@
 > product's core (`build-headless-probe`) is not touched, so step 3's archive
 > requirement is met by not disturbing what it protects (and `dist/profiles/`
 > v4 is confirmed byte-identical to its archive anyway).
+>
+> **2026-08-22, all eight steps are done: the gate PASSED.** Core rebuilt
+> (`wasm-lite/build-a11y-gate0`, 40 min, one finding-003 retry), gate profile
+> linked and packaged (`dist/profiles/a11y-gate0`, wasm `7dddbc6e…`), probe run
+> three times identically. Roadmap §3.3's branch therefore goes to §3.4 — the
+> ARIA projection, still zero lines. See
+> [`findings/evidence/a11y-gate-0/RESULT.md`](../../findings/evidence/a11y-gate-0/RESULT.md).
 
 
 Everything here is **ready for the user's hands**. Nothing in it has been

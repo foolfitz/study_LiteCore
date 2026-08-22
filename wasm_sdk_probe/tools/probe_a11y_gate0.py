@@ -26,8 +26,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -36,36 +38,98 @@ from r7_support import evaluate, wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, FirefoxSession, free_port  # noqa: E402
 from run_e2_c_page_smoke import READ_STATE, navigate  # noqa: E402
 from run_e2_c_product_path import (  # noqa: E402
-    LINE_INK, POINT_AT, caret_click_fractions, place_caret_and_settle,
-    stable_bands,
+    LINE_INK, POINT_AT, build_mirror, caret_click_fractions,
+    place_caret_and_settle, stable_bands,
 )
 
 PROJECT = Path(__file__).resolve().parent.parent
 
-# The engine already publishes this; the worker forwards the editor state.  Read
-# it through the page's own session rather than adding a field.
+# RESOLVED 2026-08-22: the page does NOT surface it, and it never will.
+#
+# The first version of this constant looked for `#s-a11y` and fell back to
+# saying "read it from the editor state instead".  There is no such element and
+# adding one would be a permanent product change bought for one diagnostic run.
+# The block is already in the editor state -- `sdk-worker.js:318` projects the
+# engine's `a11y` into `caretParagraph` -- so the mirror below appends a reader
+# that closes over the page's own `session`, and this asks that.
+#
+# It also answers the PREDICTION's own trap in passing: reading through
+# `caretParagraph` proves the WORKER FORWARDED the field. An engine field
+# nobody forwards does not exist, and a probe that read the engine some other
+# way could not tell those apart.
 READ_A11Y = """(() => {
-const el = document.querySelector('#s-a11y');
-if (el && el.dataset && el.dataset.json) return JSON.parse(el.dataset.json);
-return { unavailableToProbe:
-  'the page does not surface the engine accessibility block; read it from the '
-  + 'editor state instead -- see PREDICTION.md G0-2' };
+if (typeof globalThis.__a11yGate0 !== 'function')
+  return { unavailableToProbe:
+    'the served page carries no __a11yGate0 reader, so this run was NOT '
+    + 'against the gate mirror and measures nothing -- see PREDICTION.md G0-2' };
+return globalThis.__a11yGate0();
 })()"""
 
+# The three edits the mirror makes to the product page, each with a reason.
+#
+#   1. the worker URL, because the product page hard-codes the SHIPPED profile
+#      and the gate needs the one linked against the a11y core;
+#   2. the pinned wasm hash, because the page refuses to open a document whose
+#      wasm does not start with it (PAGE_BUILD_MISMATCH) -- that guard is
+#      doing its job, and a gate artifact is exactly what it is built to
+#      reject;
+#   3. the reader above.
+#
+# dist/ is never written: `build_mirror` symlinks everything and materialises
+# only what is overridden, which is the same machinery the product path's
+# diagnostic arms use.
+GATE_READER = """
+// APPENDED BY probe_a11y_gate0.py -- not part of the product page.
+//
+// The KEYS as well as the value, because run 1 came back
+// `caretParagraph: null` and null has two readings that matter differently:
+// the worker projected the block and the engine's `a11y` was falsy, or this
+// snapshot never went through that projection at all. `keys` tells them
+// apart, and `hasKey` says whether the field is present-and-null or absent.
+globalThis.__a11yGate0 = () => {
+  const snapshot = session?.state?.snapshot?.editorState;
+  if (!snapshot) return { unavailableToProbe: 'no editor state on the page' };
+  // BOTH, and which one carried it is part of the record.
+  //
+  // Run 2 measured that this page's snapshot is the RAW engine state -- its
+  // keys include `a11y` and `schedulerProbe`, which the product projection
+  // drops -- so `caretParagraph` is absent here rather than null-because-empty.
+  // Reading only the projected name would have reported "nothing came back"
+  // about a block that was sitting right there under its engine name.
+  return {
+    a11y: snapshot.a11y ?? null,
+    caretParagraph: snapshot.caretParagraph ?? null,
+    projected: Object.prototype.hasOwnProperty.call(snapshot, 'caretParagraph'),
+    keys: Object.keys(snapshot).sort(),
+    sourceSequence: snapshot.sourceSequence ?? null,
+  };
+};
+"""
 
-def build_provides_accessibility() -> dict:
+
+def build_provides_accessibility(core_build: str | None) -> dict:
     """G0-1, and it runs BEFORE a browser starts.
 
     Delegated to the standing guard rather than reimplemented:
     `check_core_build_provides.py` already reads
-    `config_host/config_wasm_strip.h` for ENABLE_WASM_STRIP_ACCESSIBILITY, and
-    it is RED today -- which is the honest state, not a problem to route around.
+    `config_host/config_wasm_strip.h` for the macro AND `sw/source/core/access`
+    for the objects, and it requires both -- one alone agrees with a build that
+    cannot work.
+
+    `--core-build` is passed through rather than defaulted away.  With no
+    argument the guard judges the PRODUCT's core, which is red and SHOULD stay
+    red: the shipped profile does not provide accessibility and nothing about
+    this gate changes that.  The gate build is a different core, and naming it
+    here is what keeps the two claims apart.
     """
     guard = PROJECT / "tools" / "check_core_build_provides.py"
-    completed = subprocess.run([sys.executable, str(guard)],
-                               capture_output=True, text=True)
+    command = [sys.executable, str(guard)]
+    if core_build:
+        command += ["--build", core_build]
+    completed = subprocess.run(command, capture_output=True, text=True)
     return {
         "guard": "tools/check_core_build_provides.py",
+        "coreBuild": core_build or "(the product's)",
         "exitCode": completed.returncode,
         "provides": completed.returncode == 0,
         "stdout": completed.stdout[-2000:],
@@ -73,11 +137,61 @@ def build_provides_accessibility() -> dict:
     }
 
 
+def gate_mirror(scratch: Path, profile: str) -> dict:
+    """Serve the product page against the gate profile, without changing it."""
+    page_relative = "e2-editor-app.js"
+    source = (PROJECT / "dist" / page_relative).read_text(encoding="utf-8")
+
+    worker_before = '"./profiles/e2-editor-v4/sdk-worker.js"'
+    worker_after = f'"./profiles/{profile}/sdk-worker.js"'
+    if source.count(worker_before) != 1:
+        raise SystemExit(
+            f"expected exactly one {worker_before} in dist/{page_relative}; "
+            f"the page moved under this probe and the mirror would be silent "
+            f"about it")
+    page = source.replace(worker_before, worker_after, 1)
+
+    manifest = json.loads(
+        (PROJECT / "dist" / "profiles" / profile / "sdk-manifest.json")
+        .read_text(encoding="utf-8"))
+    wasm_sha = manifest["editorContract"]["wasmSha256"]
+    pin_match = re.search(r'const PINNED_WASM_SHA256 = "([0-9a-f]+)";', page)
+    if not pin_match:
+        raise SystemExit("the page no longer pins a wasm hash the way this "
+                         "mirror expects")
+    page = page.replace(pin_match.group(0),
+                        f'const PINNED_WASM_SHA256 = "{wasm_sha[:16]}";', 1)
+    page += GATE_READER
+
+    root = scratch / "a11y-gate0-root"
+    build_mirror(PROJECT / "dist", root,
+                 {page_relative: page.encode("utf-8")})
+    return {
+        "root": str(root),
+        "profile": profile,
+        "wasmSha256": wasm_sha,
+        "pinBefore": pin_match.group(1),
+        "pinAfter": wasm_sha[:16],
+        "workerUrl": worker_after,
+        "note": "The product page is MIRRORED, not modified: dist/ is never "
+                "written and the shipped page still pins the shipped wasm. "
+                "This run is diagnostic on both counts -- a core that is not "
+                "the product's, and a page that was edited to reach it.",
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--browser", choices=("chrome", "firefox"),
                         default="chrome")
-    parser.add_argument("--profile", default="e2-editor-v4")
+    parser.add_argument("--profile", default="a11y-gate0",
+                        help="the profile the mirrored page is pointed at. "
+                             "NOT the product's: the gate needs the artifact "
+                             "linked against the core whose accessibility call "
+                             "sites are compiled in")
+    parser.add_argument("--core-build",
+                        default="../wasm-lite/build-a11y-gate0",
+                        help="the core build G0-1 is judged against")
     parser.add_argument("--fixture", default="list-contexts.odt")
     parser.add_argument("--out", default=None)
     parser.add_argument("--check-build-only", action="store_true")
@@ -98,7 +212,8 @@ def main() -> int:
         "placements": [],
     }
 
-    record["G0_1_buildProvidesAccessibility"] = build_provides_accessibility()
+    record["G0_1_buildProvidesAccessibility"] = build_provides_accessibility(
+        args.core_build)
     if args.check_build_only:
         return finish(record, args)
 
@@ -114,10 +229,12 @@ def main() -> int:
             return finish(record, args)
         record["outcome"] = "UNMEASURABLE"
 
+    scratch = Path(tempfile.mkdtemp(prefix="a11y-gate0-"))
+    record["mirror"] = gate_mirror(scratch, args.profile)
     port = free_port()
     server = subprocess.Popen(
         [sys.executable, str(PROJECT / "web" / "serve.py"),
-         "--port", str(port), "--root", str(PROJECT / "dist")],
+         "--port", str(port), "--root", record["mirror"]["root"]],
         cwd=PROJECT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     base = f"http://127.0.0.1:{port}/e2-editor.html"
     wait_page(base)

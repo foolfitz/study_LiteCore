@@ -1,5 +1,14 @@
 # Prediction for a11y gate 0 — written 2026-08-21, before the rebuild
 
+> **RESULT 2026-08-22: PASS.** Three placements, three distinct fingerprints,
+> two of them matching both the hash and the length of the paragraph actually
+> targeted; identical across three runs. G0-1 green on both halves. The full
+> record, including the one thing that is not clean, is
+> [`findings/evidence/a11y-gate-0/RESULT.md`](../../findings/evidence/a11y-gate-0/RESULT.md).
+> Nothing in this file was edited after the run — the criteria below are what
+> the result was judged against.
+
+
 Roadmap §3.3's gate asks **one** question:
 
 > **Does LOK emit a focused paragraph on WASM?**

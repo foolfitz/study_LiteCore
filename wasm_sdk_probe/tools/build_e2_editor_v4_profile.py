@@ -183,6 +183,20 @@ def main() -> int:
     parser.add_argument("--worker", type=Path, required=True)
     parser.add_argument("--exports", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    # A DIAGNOSTIC PROFILE MUST NOT WEAR THE PRODUCT'S NAME.
+    #
+    # a11y gate 0 needs this packaging against a DIFFERENT core build (one whose
+    # accessibility call sites are compiled in), and `profile` is one of the
+    # five identities a profile is.  Two artifacts declaring `e2-editor-v4`
+    # would make every report that quotes a profile name ambiguous, and this
+    # tree has already paid once for an archive directory that named a
+    # different artifact than the one inside it.
+    #
+    # Defaulted, so omitting it reproduces the shipped invocation byte for byte.
+    parser.add_argument("--profile", default=PROFILE,
+                        help="profile identity to stamp; defaults to the "
+                             "product's. Use another name for any profile "
+                             "built against a core that is not the product's")
     args = parser.parse_args()
 
     problems = v2.refuse_non_product(args.exports)
@@ -197,9 +211,9 @@ def main() -> int:
 
     manifest_path = args.output / "sdk-manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    manifest["profile"] = PROFILE
+    manifest["profile"] = args.profile
     manifest["sdkVersion"] = manifest["sdkVersion"].replace(
-        "+e2-editor-v2", "+" + PROFILE)
+        "+e2-editor-v2", "+" + args.profile)
     contract = manifest["editorContract"]
     contract["abiVersion"] = ABI_VERSION
     contract["actions"] = action_map()
@@ -212,7 +226,7 @@ def main() -> int:
 
     digest = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
     print(json.dumps({
-        "profile": PROFILE,
+        "profile": args.profile,
         "abiVersion": ABI_VERSION,
         "wasmSha256": contract.get("wasmSha256"),
         "manifestSha256": digest,
