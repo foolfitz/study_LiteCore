@@ -182,6 +182,42 @@ page decides `enabled` from its cache — so the next check's "turn it on" sent
 `enabled: false` and killed its own precondition. The comment warning about
 exactly this was already in the file. Order changed; the reason is in the code.
 
+## 4c. The v4 link work started, and the archive guard caught itself
+
+Pre-link gates from `RUNBOOK-relink-v3.md` §0, all four green:
+
+| | |
+|---|---|
+| queue | `P1 complete: True`, blocking `(none)`, 0 drifted |
+| `make test-e2-c-reachability` | exit 0 |
+| `make test-e2-c-static` | exit 0 |
+| `make test-e2-b-static` | exit 0 |
+
+The shipped profile's hashes match the matrix baseline on all four
+(`29ec627b` / `6ff0f962` / `a9afbc01` / `ff6834f9`), and the still-open queue
+items are exactly the six payload items.
+
+**§1's check failed, which is the guard doing its job.**
+`build/archive/e2-editor-v3-29ec627b/` is **not** byte-identical to the shipped
+profile: `probe.wasm` and `probe.js` match, but its `sdk-worker.js` is
+`aa1564ce…` against the shipped `a9afbc01…`, and its manifest records the older
+one.
+
+**The shape is worth carrying.** `sdk-worker.js` is one of the five bindings but
+it is **packaged JavaScript, not a compiled artifact** — so it can change
+*without a relink*. On 2026-08-19 the worker was changed (to forward `underline`
+and `strikethrough` from the engine's format cache), the manifest's
+`workerSha256` was regenerated to match, and nothing re-archived. The rule in
+`wasm-build-not-reproducible` was honoured for the engine and missed for the
+worker, because the rule is phrased around rebuilding the engine.
+
+Fixed without destroying anything: the old directory is a faithful record of a
+real earlier state and is untouched; a new
+`build/archive/e2-editor-v3-29ec627b-worker-a9afbc01/` holds the four files
+byte-identical to `dist/`, with a README explaining both. **Neither is in
+version control** — `.gitignore` is an allowlist and frozen artifacts go to
+checksum backup by design, so this paragraph is the tracked record of it.
+
 ## 5. What is left
 
 | | |
