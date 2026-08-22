@@ -1355,6 +1355,75 @@ def caret_columns_when_painted(session, y: str, timeout: float = 20) -> dict:
     return read
 
 
+# THE CARET IS THE ONLY THING THE PAGE DRAWS.
+#
+# Everything else on the canvas arrives inside the engine's tile.  `paint()`
+# fills the caret with `#1a1a1a` = rgb(26,26,26) exactly, and the selection wash
+# with #b7d3f2 under `multiply`.  So an exact (26,26,26) pixel is the page's own
+# ink -- and this scans the WHOLE canvas for it rather than a band, which is
+# what defeated five earlier attempts: banding needs a y guess, and pairing two
+# banded reads gets swamped by the page borders (full-band-height strokes that
+# differ between reads).
+#
+# Anti-aliasing of black-on-white does produce the odd exact (26,26,26) pixel --
+# four of them, measured, on a canvas with no caret in the band.  A caret is a
+# SOLID rectangle a few columns wide and tens of rows tall, so the two
+# populations separate on "how many such pixels does this column hold": noise is
+# ones and twos, a caret is tens.  The threshold is reported next to the data so
+# a reader can see the separation instead of trusting it.
+#
+# Scanned in strips: this canvas is sized to the document and can be tens of
+# thousands of rows, and one getImageData over all of it is hundreds of
+# megabytes.
+CARET_PIXELS = """(() => {
+const canvas = document.querySelector('#canvas');
+const context = canvas.getContext('2d');
+const width = canvas.width, height = canvas.height;
+const STRIP = 512;
+const caretPerColumn = new Array(width).fill(0);
+const glyphPerColumn = new Array(width).fill(0);
+let caretTop = null, caretBottom = null;
+let glyphTop = null, glyphBottom = null;
+for (let top = 0; top < height; top += STRIP) {
+  const rows = Math.min(STRIP, height - top);
+  const data = context.getImageData(0, top, width, rows).data;
+  for (let row = 0; row < rows; row += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const i = (row * width + x) * 4;
+      if (data[i + 3] < 128) continue;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (r === 26 && g === 26 && b === 26) {
+        caretPerColumn[x] += 1;
+        const y = top + row;
+        if (caretTop === null || y < caretTop) caretTop = y;
+        if (caretBottom === null || y > caretBottom) caretBottom = y;
+      } else if (r < 110 && g < 110 && b < 110) {
+        glyphPerColumn[x] += 1;
+        const y = top + row;
+        if (glyphTop === null || y < glyphTop) glyphTop = y;
+        if (glyphBottom === null || y > glyphBottom) glyphBottom = y;
+      }
+    }
+  }
+}
+const columns = (arr, floor) => arr.reduce(
+  (out, v, x) => (v >= floor ? out.concat([[x, v]]) : out), []);
+// The WHOLE-CANVAS dark profile as well.  Exact-colour matching finds nothing
+// because the caret is `Math.round(scaleX * 15)` = ONE pixel wide at this
+// scale and sits at a fractional x, so `fillRect` anti-aliases it across two
+// columns and no pixel is ever exactly (26,26,26).  A difference between two
+// whole-canvas profiles cancels the static glyphs and leaves the caret --
+// provided the page borders are stable, which is checked rather than assumed.
+const scale = { widthTwips: null, caretWidthPx: null };
+return { available: true, width, height,
+         caretColumns: columns(caretPerColumn, 1),
+         caretRows: { top: caretTop, bottom: caretBottom },
+         glyphRows: { top: glyphTop, bottom: glyphBottom },
+         darkPerColumn: glyphPerColumn.map((v, x) => v + caretPerColumn[x]),
+         scale };
+})()"""
+
+
 def line_ink_when_painted(session, y: str, timeout: float = 20) -> dict:
     """`LINE_INK`, but waited for rather than hoped for.
 
@@ -1417,7 +1486,12 @@ def caret_drawn_where(session, base, timeout) -> dict:
         return record
     place_caret_and_settle(session, POINT_AT, clicks["past"], "0.24")
 
-    MARKER = "CARETHERE"
+    # LONG ENOUGH THAT THE MOVES STAY ON THE LINE.  With a nine-character
+    # marker, five moves and then five more walk off the front of the line and
+    # the "caret" is found at the page border -- measured, and the advance that
+    # came out of it (23px) contradicted the marker's own width (88px for nine
+    # characters).  Twice MOVES must be comfortably less than the marker.
+    MARKER = "CARETRULERABCDEFGHIJKLMN"
     record["commit"] = commit(session, MARKER)
     if record["commit"]["after"] is None:
         record["outcome"] = "NOT_ESTABLISHED"
@@ -1653,6 +1727,333 @@ def enter_insert_method(session, base, timeout) -> dict:
     return record
 
 
+# The text's right edge on a given band of ROWS, excluding the page's own caret
+# colour.  Paired with CARET_PIXELS so both are measured on the same rows.
+GLYPH_RIGHT_ON_ROWS = """(() => {
+const canvas = document.querySelector('#canvas');
+const top = ARG_TOP, bottom = ARG_BOTTOM;
+if (top === null || bottom === null) return null;
+const rows = bottom - top + 1;
+const width = canvas.width;
+const data = canvas.getContext('2d').getImageData(0, top, width, rows).data;
+let left = null, right = null, count = 0;
+for (let x = 0; x < width; x += 1) {
+  let dark = 0;
+  for (let row = 0; row < rows; row += 1) {
+    const i = (row * width + x) * 4;
+    if (data[i + 3] < 128) continue;
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    if (r === 26 && g === 26 && b === 26) continue;   // the page's caret
+    if (r < 110 && g < 110 && b < 110) dark += 1;
+  }
+  // A glyph never fills every row of the caret's band; the page border does.
+  if (dark > 0 && dark < rows) {
+    if (left === null) left = x;
+    right = x;
+    count += 1;
+  }
+}
+return { inkLeft: left, inkRight: right, inkedColumns: count, rows };
+})()"""
+
+
+# Which ROWS are dark in a named column.  Two columns that changed between two
+# reads are only caret positions if they are on the SAME LINE and about as tall
+# as each other; a two-row difference and a fifteen-row one are not the same
+# kind of thing, and the column index alone cannot say so.
+COLUMN_ROWS = """(() => {
+const canvas = document.querySelector('#canvas');
+const x = ARG_X, width = canvas.width, height = canvas.height;
+const data = canvas.getContext('2d').getImageData(x, 0, 1, height).data;
+const rows = [];
+for (let y = 0; y < height; y += 1) {
+  const i = y * 4;
+  if (data[i + 3] >= 128 && data[i] < 110 && data[i+1] < 110 && data[i+2] < 110)
+    rows.push(y);
+}
+const runs = [];
+for (const y of rows) {
+  const last = runs[runs.length - 1];
+  if (last && y === last[1] + 1) last[1] = y;
+  else runs.push([y, y]);
+}
+return { column: x, darkRows: rows.length, runs: runs.slice(0, 12) };
+})()"""
+
+
+# Every column holding a run of consecutive dark rows at least ARG_MIN long.
+#
+# A caret is a solid vertical stroke; a glyph stem in this font at this scale is
+# about eleven rows and the caret is fifteen, so a floor between them separates
+# them.  This asks WHERE THE CARET IS without differencing anything -- which
+# matters, because the caret right after typing leaves no difference at all.
+TALL_RUNS = """(() => {
+const canvas = document.querySelector('#canvas');
+const width = canvas.width, height = canvas.height, MIN = ARG_MIN;
+const out = [];
+const STRIP = 512;
+const runStart = new Array(width).fill(-1);
+const runLen = new Array(width).fill(0);
+for (let top = 0; top < height; top += STRIP) {
+  const rows = Math.min(STRIP, height - top);
+  const data = canvas.getContext('2d').getImageData(0, top, width, rows).data;
+  for (let row = 0; row < rows; row += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const i = (row * width + x) * 4;
+      const dark = data[i + 3] >= 128 && data[i] < 110
+                   && data[i + 1] < 110 && data[i + 2] < 110;
+      if (dark) {
+        if (runLen[x] === 0) runStart[x] = top + row;
+        runLen[x] += 1;
+      } else {
+        if (runLen[x] >= MIN) out.push([x, runStart[x], runLen[x]]);
+        runLen[x] = 0;
+      }
+    }
+  }
+}
+for (let x = 0; x < width; x += 1)
+  if (runLen[x] >= MIN) out.push([x, runStart[x], runLen[x]]);
+return { minimum: MIN, runs: out };
+})()"""
+
+
+def caret_pixels(session, base, timeout) -> dict:
+    """Where is the caret DRAWN, in canvas columns, and is that after the text?
+
+    Finding 068's open half.  The model side is settled -- typing twice at one
+    caret produces contiguous, in-order text -- so what is left is the drawing,
+    and an operator has now reported it twice, two days apart, with a
+    screenshot.
+
+    Five earlier attempts failed and each failure is written into the finding.
+    This one drops the two things that defeated them: it does not band (no y
+    guess) and it does not pair two reads (nothing for the page borders to
+    swamp).  It isolates the caret by the one property nothing else on the
+    canvas has -- the page draws it, in a colour of its own.
+
+    POSITIVE CONTROL: the caret must MOVE when asked to.  A column of caret-
+    coloured pixels that sits still under `move-character-left` is not a caret,
+    and the arm says so rather than reporting its position.
+    """
+    record: dict = {"id": "caret-pixels"}
+    if not boot(session, base, timeout):
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the page did not reach ready"
+        return record
+
+    ink = line_ink_when_painted(session, "0.24")
+    clicks = caret_click_fractions(ink)
+    record["clicks"] = {k: clicks.get(k) for k in ("derived", "near", "past")}
+    if not clicks.get("derived"):
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the line's ink was not found, so nothing here is aimed"
+        return record
+    # `past`, not `near`: breaking at the END of a line leaves the new paragraph
+    # EMPTY, so the marker is the only thing on its line and the line's right
+    # edge IS the marker's right edge.  Breaking mid-line brings the remainder
+    # along -- measured in the earlier arms of this probe, where marker
+    # paragraphs came back as `CARETHERE1-LC-NUMBER-ONE` -- and then the ink
+    # span is not the marker's and every number derived from it is wrong.
+    place_caret_and_settle(session, POINT_AT, clicks["past"], "0.24")
+
+    # An empty paragraph, so the line the caret ends up on carries the marker
+    # and nothing else.
+    floor = revision_of(evaluate(session, READ_STATE))
+    evaluate(session, PRESS.replace("ARG_ACTION", "insert-paragraph-break"))
+    wait_for(session,
+             lambda s, f=floor: revision_of(s) is not None
+             and f is not None and revision_of(s) > f, 20)
+
+    # LONG ENOUGH THAT THE MOVES STAY ON THE LINE.  With a nine-character
+    # marker, five moves and then five more walk off the front of it and the
+    # "caret" is found at the page border -- measured, and the advance that came
+    # out of it (23px) contradicted the marker's own width (88px for nine
+    # characters).  Twice MOVES must be comfortably less than the marker.
+    MARKER = "CARETRULERABCDEFGHIJKLMN"
+    # TYPED ON THE KEYBOARD, not through the insert field.  `commit()` drives
+    # the page's "insert text" field and button; the operator who reported this
+    # typed.  Those are different paths -- the gap that produced findings 066
+    # and 067 in one night -- so this arm takes the one the report came from.
+    before_typing = revision_of(evaluate(session, READ_STATE))
+    record["dispatch"] = evaluate(
+        session, TYPE_SINK.replace("ARG_FOCUS", "sink.focus();")
+        .replace("ARG_TEXT", MARKER))
+    settled = wait_for(session,
+                       lambda s, f=before_typing: revision_of(s) is not None
+                       and f is not None and revision_of(s) > f, 12)
+    record["commit"] = {"before": before_typing, "after": revision_of(settled)}
+    if record["commit"]["after"] is None:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the marker did not reach the document"
+        return record
+    # THE PRECONDITION, checked rather than assumed: the marker must be alone in
+    # its paragraph, or the line's ink is not the marker's ink.
+    saved = capture_save(session, 0)
+    paragraphs = []
+    content = (saved or {}).get("content") or ""
+    if content:
+        try:
+            root = ElementTree.fromstring(content)
+            paragraphs = ["".join(n.itertext()) for n in root.iter()
+                          if n.tag.split("}")[-1] in ("p", "h")]
+        except ElementTree.ParseError:
+            paragraphs = []
+    record["markerParagraph"] = next(
+        (para for para in paragraphs if MARKER in para), None)
+    if record["markerParagraph"] != MARKER:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("the marker is not alone in its paragraph "
+                         f"({record['markerParagraph']!r}), so the line's ink "
+                         "span is not the marker's and no advance can be "
+                         "derived from it")
+        return record
+    time.sleep(1.5)
+
+    def scan(label: str) -> dict:
+        read = evaluate(session, CARET_PIXELS) or {}
+        columns = read.get("caretColumns") or []
+        solid = [(x, n) for x, n in columns if n >= 8]
+        return {"label": label, "width": read.get("width"),
+                "height": read.get("height"),
+                "caretRows": read.get("caretRows"),
+                "glyphRows": read.get("glyphRows"),
+                "allCaretColumns": columns,
+                "solidColumns": solid,
+                "noiseColumns": [(x, n) for x, n in columns if n < 8],
+                "darkPerColumn": read.get("darkPerColumn") or []}
+
+    # SUPPRESS THE REPAINT BETWEEN THE TWO READS.
+    #
+    # Without this the delta is unreadable: a caret move goes through `run()`,
+    # which repaints, and a fresh paintTile anti-aliases slightly differently
+    # everywhere -- 686 of 725 columns changed, measured, swamping a caret that
+    # is one column wide.  With `renderDocument` suppressed, `updateState` still
+    # calls `paint()`, which redraws the CACHED tile (byte-identical) plus the
+    # caret at its new place.  So the only thing that can differ between the two
+    # reads is the caret.
+    #
+    # This is the same hook the very first arm of this probe installed, used for
+    # the opposite purpose: there it asked whether a repaint destroyed
+    # formatting, here it holds the background still so a one-pixel mark can be
+    # seen against it.
+    record["hookBefore"] = evaluate(session, READ_HOOK)
+    suppress(session, True)
+    after_typing = scan("after typing")
+    record["afterTyping"] = after_typing
+    # WHERE IS THE CARET RIGHT NOW -- asked directly, not by differencing.
+    # A glyph stem in this font at this scale runs about eleven rows and the
+    # caret fifteen, so a floor of thirteen separates them.
+    record["tallRunsAfterTyping"] = evaluate(
+        session, TALL_RUNS.replace("ARG_MIN", "13"))
+
+    MOVES = 5
+    for _ in range(MOVES):
+        evaluate(session, PRESS.replace("ARG_ACTION", "move-character-left"))
+        time.sleep(0.4)
+    time.sleep(1.0)
+    after_move = scan("after five moves left")
+    record["afterMove"] = after_move
+    record["tallRunsAfterMove"] = evaluate(
+        session, TALL_RUNS.replace("ARG_MIN", "13"))
+    record["hookAfter"] = evaluate(session, READ_HOOK)
+    suppress(session, False)
+
+    # POSITIVE CONTROL for the suppression itself: renders must not have
+    # advanced across the window, and the flag must have bitten at least once.
+    before_hook = record["hookBefore"] or {}
+    after_hook = record["hookAfter"] or {}
+    record["renderWindow"] = {
+        "renders": after_hook.get("renders", 0) - before_hook.get("renders", 0),
+        "suppressed": after_hook.get("suppressed", 0)
+                      - before_hook.get("suppressed", 0),
+    }
+    if record["renderWindow"]["renders"] != 0 \
+            or record["renderWindow"]["suppressed"] < 1:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("the repaint was not held still between the two reads "
+                         f"({record['renderWindow']}), so the difference "
+                         "between them is not the caret alone")
+        return record
+
+    # THE VERDICT IS BUILT ON THE DIRECT OBSERVATION, not on a difference.
+    #
+    # Five earlier attempts tried to locate the caret by differencing two reads,
+    # and every one of them abstained: the caret is `Math.round(scaleX * 15)` =
+    # ONE pixel wide at this scale, drawn at a fractional x, so it never lands
+    # on an exact colour, and a fresh paintTile re-anti-aliases the whole canvas
+    # so the difference is noise everywhere.  Suppressing the repaint fixed the
+    # noise, and then the differencing still could not see the caret after
+    # typing -- because there is nothing there to see.
+    #
+    # So: ask each read directly which columns hold a run of dark rows tall
+    # enough to be a caret.  A glyph in this font at this scale runs about
+    # eleven rows and the caret fifteen.
+    runs_typed = {tuple(r) for r in
+                  (record.get("tallRunsAfterTyping") or {}).get("runs") or []}
+    runs_moved = {tuple(r) for r in
+                  (record.get("tallRunsAfterMove") or {}).get("runs") or []}
+    record["tallRunDiff"] = {
+        "onlyAfterTyping": sorted(runs_typed - runs_moved),
+        "onlyAfterMove": sorted(runs_moved - runs_typed),
+    }
+
+    # The caret after the move is the run that appears; it is also the POSITIVE
+    # CONTROL, because a caret that never appears anywhere means the scan
+    # cannot see carets at all and nothing below may be read.
+    appeared = record["tallRunDiff"]["onlyAfterMove"]
+    if len(appeared) != 1:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("the caret did not appear as exactly one new tall run "
+                         f"when it was moved ({appeared}), so this scan cannot "
+                         "see the caret and its silence elsewhere means nothing")
+        return record
+    caret_column, caret_top, caret_len = appeared[0]
+    record["caretAfterMove"] = {"column": caret_column, "top": caret_top,
+                                "rows": caret_len}
+
+    band = (caret_top, caret_top + caret_len - 1)
+    record["caretBand"] = band
+    on_band = sorted(r for r in runs_typed if band[0] - 4 <= r[1] <= band[1] + 4)
+    record["tallRunsOnThatLineAfterTyping"] = on_band
+
+    record["textOnCaretRows"] = evaluate(
+        session, GLYPH_RIGHT_ON_ROWS.replace("ARG_TOP", str(band[0]))
+        .replace("ARG_BOTTOM", str(band[1])))
+    text = record["textOnCaretRows"] or {}
+    left, right = text.get("inkLeft"), text.get("inkRight")
+    record["measured"] = {
+        "caretColumnAfterMove": caret_column,
+        "caretRows": caret_len,
+        "movesLeft": MOVES,
+        "textInkLeft": left,
+        "textInkRight": right,
+        "caretWidthPx": 1,
+    }
+    if left is not None and right is not None and right > left:
+        advance = (right - left) / (len(MARKER) - 1)
+        record["measured"]["characterAdvancePx"] = round(advance, 2)
+        record["measured"]["expectedCaretAfterMove"] = round(
+            right - MOVES * advance, 1)
+        record["measured"]["caretAfterMoveIsWhereExpected"] = (
+            abs(caret_column - (right - MOVES * advance)) <= advance)
+
+    if not on_band:
+        record["outcome"] = "FAIL"
+        record["conclusion"] = (
+            "AFTER TYPING THERE IS NO CARET ON THAT LINE AT ALL -- not one "
+            "column in the band holds a caret-height run -- and the very same "
+            f"scan finds one at column {caret_column} as soon as the caret is "
+            "moved. The caret is not redrawn when text is committed; it appears "
+            "only once a caret action runs")
+        return record
+    record["outcome"] = "PASS"
+    record["conclusion"] = (
+        f"a caret-height run is present on that line after typing: {on_band}")
+    return record
+
+
+
 ARMS: dict[str, dict] = {
     # P-064-0.  The negative control: this must reproduce 064.
     "baseline": {"marker": "MKF064BASE", "suppressed": False,
@@ -1717,7 +2118,7 @@ def main() -> int:
                                 "click-between-format-and-typing",
                                 "real-enter", "caret-model-or-drawing",
                                 "keyboard-formats", "caret-drawn-where",
-                                "enter-insert-method")]
+                                "enter-insert-method", "caret-pixels")]
     if unknown:
         raise SystemExit(f"unknown arm(s): {unknown}; known: {sorted(ARMS)}")
 
@@ -1810,6 +2211,9 @@ def main() -> int:
             if name == "keyboard-formats":
                 report["arms"].append(
                     keyboard_formats(session, base, args.timeout))
+                continue
+            if name == "caret-pixels":
+                report["arms"].append(caret_pixels(session, base, args.timeout))
                 continue
             if name == "caret-model-or-drawing":
                 report["arms"].append(

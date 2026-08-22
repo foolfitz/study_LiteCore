@@ -10,7 +10,7 @@ operator 在跑 `handoff/RUNBOOK-operator-2026-08-21-finding-065.md` 的時候�
 
 | | 狀態 |
 |---|---|
-| 1 游標畫在最後一個字元之前 | **開單 [068](../findings/068-the-caret-is-drawn-in-the-wrong-place.md)**：模型正確、繪製錯誤（量到的）；**偏移量六次都沒分離出來**，失敗原因逐條記在單子裡 |
+| 1 游標畫在最後一個字元之前 | **量完了，主張換了**：[068](../findings/068-the-caret-is-not-redrawn-after-you-type.md)——不是畫錯位置，是**打完字之後那一行上沒有游標**；游標一動就出現，而且位置是對的。operator 描述的「在最後一個字元前面」**沒有重現**，那一段列成未解 |
 | 2 換行之後游標沒換行 | **2026-08-22 operator 回報正常了**，文件也對（`<text:line-break/>` 在、`AFTERBREAK` 在它後面）。中間唯一的變化是 066 的修法，**沒有獨立量過** |
 | 3 真人按 Enter 什麼都沒發生 | **量完了，開單**：[067](../findings/067-pressing-enter-does-nothing-and-the-revision-counter-says-it-worked.md) |
 
