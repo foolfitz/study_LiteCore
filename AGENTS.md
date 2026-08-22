@@ -66,3 +66,69 @@
 
 量測方法可重跑：留言原文走 REST API（`/rest/bug/{id}/comment`，不受反機器人擋），
 渲染規則要用真瀏覽器量 `getComputedStyle`——`curl` 抓 HTML 會被 Anubis 擋掉。
+
+---
+
+# 工作結論（2026-08-22）
+
+## 現況：**v4 連結等使用者跑一行指令**
+
+貨載做完、閘門全綠、樹是乾淨的。**連結那一步是使用者的**：
+
+```bash
+cd /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe
+make ALLOW_FROZEN_RELINK=1 dist/profiles/e2-editor-v4/sdk-manifest.json
+```
+
+手冊：`handoff/RUNBOOK-relink-v4.md`（含連結後必做的四件事）。
+**輸出要看 `withheld: ["select-all"]`**；那一格若是空的就停手——被扣住的動作帶著
+gesture 進了 manifest，而 mask 收不回 manifest 已經給出去的東西。
+
+出貨內容：後繼身分 `e2-editor-v4`、ABI 4、id 1–15 逐字繼承、16–21 往後 append；
+redo 走 document 層沒有 wire id；select-all 與跨段刪除**出貨但扣住**；
+a11y 誠實化、32,767 拒絕、finding 068 的修法（免費搭車）。
+
+## 這一輪逼出來的規矩（會重複發生的那幾種）
+
+**界限要跟著清單走，否則它靜默地全面失效。**`kMaxInternalEditorAction` 當時是 21，
+而上一個 commit 剛加了 internal action 22。超過界限，`editorSetActionGestures` 直接
+return（manifest 的 mask 從沒寫入），`editorGesturePermitted` 回 false——**manifest
+說給了，引擎無條件拒絕**。是在建置之前讀界限才抓到的。
+
+**「扣住」和「沒寫」是相反的意思，不是同義詞。**引擎在第一次 mask 呼叫時把每一格
+初始化成**全許可**再往下交集。所以 manifest 裡**省略**一個動作＝把它全開出去；
+扣住必須寫成 `gestures: []`（present but empty）。別「順手清掉」一個看起來沒用的
+dark action。
+
+**驗收條件是為某個處方寫的；換了處方就要改條件，並寫下理由。**這一輪有三個佇列項
+的檢查釘的是我們沒採用的處方。改寫不是放寬——但**絕不能不寫理由就改**。
+順帶：那個 redo 的檢查在 worker 多了一行「引用該字串」的註解時就 DRIFT 了，
+**子字串斷言當證據就值這麼多**。
+
+**間歇缺陷：次數就是量測，一次跑會給你一個有信心而且錯的結論。**finding 068 的臂
+第一次 FAIL、第二次 PASS，同一支臂同一個頁面。修法前 2/7，修法後 5/5。
+回歸網要寫成「N 次全過」，不要單次。
+
+**像素分不出「沒畫」和「畫在別處」。**068 為此繞了五輪。畫布上「什麼都沒有」有四
+種成因，長得完全一樣。**去問狀態，不要數像素**——而且要問到**引擎**那一側：我第三
+次還是錯，因為我量了頁面的 snapshot 然後把它當成引擎的狀態。
+
+**改動之前先問這個檔案綁著誰的判定。**068 的修法最自然的位置是
+`EditorSession._handleEngineEvent`，而那個檔案綁著 **E1-C 的判定**
+（`187706b2…`）——`check_e1_c_bundle_intact.py` 擋下來了。子類別覆寫拿得到同一個
+事件，沒有那個代價。**是樹擋下來的，不是我想到的。**
+
+**殼層 generation 要等該輪的殼層改完再凍。**同一天凍了 v28、v29、v30 三次，其中
+v28 是在還有東西要改的時候凍的。號碼很便宜，但「凍了之後才發現還要改」會誘使你去
+覆寫一個已經存在的 generation——那正是守衛存在要拒絕的事。
+
+**archive 的名字要能識別它綁的東西。**`build/archive/e2-editor-v3-29ec627b/` 用出貨
+的 wasm 雜湊命名，但四個檔裡有兩個不是出貨的那份；真正逐位元相同的是
+`e2-editor-v3-29ec627b-worker-a9afbc01/`。**一顆 profile 是五個綁定身分，不是一個
+artifact。**已加 `ATTRIBUTION.md`。
+
+## 給 operator 的一件事
+
+**068 的修法沒有人用眼睛看過。**量到的是狀態不是畫面。使用者兩天講的是同一句話
+（「游標在最後一個字元的前面」），而那句話最後被證明是對的、我兩次都不對——
+**他是這件事最可靠的觀測者**，請他再看一次。
