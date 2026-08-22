@@ -64,18 +64,32 @@ def live_bindings(profile: str = BINDING_PROFILE) -> dict[str, str]:
     return bindings
 
 LISTENER = re.compile(r"""(el\.[A-Za-z]+|globalThis)\.addEventListener\(\s*["']([a-z]+)["']""")
+ANY_LISTENER = re.compile(r"""\.addEventListener\(""")
 ACTION = re.compile(r"""data-action=["']([a-z-]+)["']""")
 
-# `el.<name>` in the page maps to the element it was looked up as; the audit
-# names a listener by its event type, and by its element when one element's
-# listener is a different product path from another's with the same type.
-# `openFile` earns a name for a reason worth stating: without it, the open
-# button's click collapses into the toolbar's `listener:click` and the audit
-# reports full coverage of a path nothing drives.  A path that hides inside
-# another path is the failure this audit exists to prevent.
-NAMED_ELEMENTS = {"noticeAction": "notice-action", "fixture": "fixture",
-                  "openFile": "open-file", "file": "file",
-                  "clearFormat": "clear-format"}
+
+def listener_target(receiver: str) -> str:
+    """The element a listener is attached to, as the audit names it.
+
+    A LISTENER IS A PATH ONLY TOGETHER WITH ITS TARGET.  Until 2026-08-22 this
+    keyed on the event name alone, with a hand-kept table of the five elements
+    thought to deserve their own name.  Finding 073 then added `blur` on #sink
+    to hide an abandoned IME composition, `listener:blur` was already in the
+    registry for the global `endDrag(null)` handler, and the new listener
+    arrived SILENTLY -- reported as covered by an entry about a different
+    handler on a different element.  Nothing was wrong with either entry: the
+    granularity was the hole, and the datum was already here, being discarded.
+
+    So the table is gone.  Deriving the name means it cannot be forgotten for
+    the sixth element, which is the failure mode a hand-kept table has.  It
+    reproduces every name that table gave (`noticeAction` -> `notice-action`,
+    `openFile` -> `open-file`, ...), so this is a rename for thirteen paths and
+    a SPLIT for one -- not a re-judgement of any of them.
+    """
+    if receiver == "globalThis":
+        return "global"
+    name = receiver.split(".")[-1]
+    return re.sub(r"(?<!^)(?=[A-Z])", "-", name).lower()
 
 
 def page_paths(project: Path, page: Path, markup: Path) -> list[str]:
@@ -83,13 +97,25 @@ def page_paths(project: Path, page: Path, markup: Path) -> list[str]:
     source = (project / page).read_text(encoding="utf-8")
     html = (project / markup).read_text(encoding="utf-8")
     paths: set[str] = set()
-    for element, event in LISTENER.findall(source):
-        name = element.split(".")[-1]
-        suffix = f"#{NAMED_ELEMENTS[name]}" if name in NAMED_ELEMENTS else ""
-        paths.add(f"listener:{event}{suffix}")
+    for receiver, event in LISTENER.findall(source):
+        paths.add(f"listener:{event}#{listener_target(receiver)}")
     for action in ACTION.findall(html):
         paths.add(f"action:{action}")
     return sorted(paths)
+
+
+def unattributed_listeners(project: Path, page: Path) -> int:
+    """How many `addEventListener` calls this parser could NOT attribute.
+
+    The same lesson one level up.  `page_paths` only sees `el.<name>` and
+    `globalThis`; a listener on `document`, on `window`, or on a local variable
+    is not narrowed by the audit, it is INVISIBLE to it -- and an invisible
+    path is reported as full coverage, which is the one answer this audit must
+    never give by accident.  Counting is enough: the audit does not need to
+    name what it cannot parse, only to refuse to stay quiet about it.
+    """
+    source = (project / page).read_text(encoding="utf-8")
+    return len(ANY_LISTENER.findall(source)) - len(LISTENER.findall(source))
 
 
 def audit(project: Path, registry_path: Path = REGISTRY,
@@ -107,6 +133,13 @@ def audit(project: Path, registry_path: Path = REGISTRY,
     accounted = driven | waived | uncovered
 
     problems = []
+    unparsed = unattributed_listeners(project, page)
+    if unparsed:
+        problems.append(
+            f"{unparsed} addEventListener call(s) in the page attach to "
+            f"something this audit cannot name, so they are not in "
+            f"paths(page) at all and 'accounted for' would be a claim about "
+            f"a smaller page than the one that ships")
     unaccounted = [p for p in paths if p not in accounted]
     if unaccounted:
         problems.append(
@@ -174,6 +207,7 @@ def audit(project: Path, registry_path: Path = REGISTRY,
         "release": "e2-c-product-path-coverage",
         "page": str(page),
         "pathsInPage": len(paths),
+        "listenersNotAttributable": unparsed,
         "driven": sorted(driven),
         "uncovered": sorted(uncovered),
         "waived": sorted(waived),
@@ -191,13 +225,16 @@ def self_test(project: Path) -> int:
     registry = json.loads((project / REGISTRY).read_text(encoding="utf-8"))
     bindings = live_bindings()
 
+    ran: list[str] = []
+
     def check(name: str, condition: bool, detail: str = "") -> None:
         print(f"  {'ok  ' if condition else 'FAIL'}  {name}"
               + (f"  -- {detail}" if detail and not condition else ""))
+        ran.append(name)
         if not condition:
             failures.append(name)
 
-    def rejudge(mutate) -> dict:
+    def rejudge(mutate=lambda r: None, mutate_page=None) -> dict:
         cloned = copy.deepcopy(registry)
         mutate(cloned)
         import tempfile
@@ -211,6 +248,11 @@ def self_test(project: Path) -> int:
             markup = page.with_name(page.name.replace("-app.js", ".html"))
             for relative in (page, markup):
                 (root / relative).write_bytes((project / relative).read_bytes())
+            if mutate_page is not None:
+                source = (root / page).read_text(encoding="utf-8")
+                mutated = mutate_page(source)
+                assert mutated != source, "the page mutation changed nothing"
+                (root / page).write_text(mutated, encoding="utf-8")
             return audit(root, REGISTRY, bindings=bindings)
 
     # Split from the expiry rule below on purpose.  The ACCOUNTING rule
@@ -292,10 +334,45 @@ def self_test(project: Path) -> int:
         check("a path with no reasonBoundTo is judged exactly as before",
               rejudge(pin())["ok"], str(rejudge(pin())["problems"]))
 
+    # THE GRANULARITY RULE, AND IT IS THE REASON THIS FILE CHANGED.
+    #
+    # Before 2026-08-22 a listener was named by its event alone.  Finding 073's
+    # `blur` on #sink landed while `listener:blur` was already registered for
+    # the global `endDrag(null)` handler, and it arrived without the audit
+    # saying a word.  Both cases below are RED ONLY BECAUSE the two are now
+    # separate paths: under the old keying the page would still have had a
+    # `listener:blur` either way, and both would have been green.
+    paths = page_paths(project, Path(registry["auditedPage"]),
+                       Path(registry["auditedPage"]).with_name(
+                           Path(registry["auditedPage"]).name.replace(
+                               "-app.js", ".html")))
+    shared = [p for p in paths if p.startswith("listener:blur#")]
+    check("one event name with two targets is two paths", len(shared) == 2,
+          str(shared))
+    check("deleting one of two listeners that share an event name is caught",
+          not rejudge(mutate_page=lambda t: t.replace(
+              'el.sink.addEventListener("blur", hideComposition);\n', ""))["ok"])
+    check("deleting the other one is caught too",
+          not rejudge(mutate_page=lambda t: t.replace(
+              'globalThis.addEventListener("blur", () => endDrag(null));\n',
+              ""))["ok"])
+    # One level up from granularity: a listener this parser cannot attribute to
+    # a target is not narrowed, it is INVISIBLE -- and invisible reads as full
+    # coverage, the one answer this audit must never give by accident.
+    check("a listener on a receiver the parser cannot name is not ignored",
+          not rejudge(mutate_page=lambda t: t.replace(
+              "const el = {", 'document.addEventListener("visibilitychange",'
+                              " () => {});\nconst el = {", 1))["ok"])
+
     print("      (not checked: whether the named driver really drives that path;"
           " this audit reads the page, not the harness)")
 
-    print(f"\nself-test: {12 - len(failures)}/12 checks moved the verdict")
+    # Counted, not written down.  Some of these run only when the profile is on
+    # disk, and the hand-kept total was already one short of the lines it
+    # printed -- a self-test that miscounts itself is not a good look for a
+    # file whose whole subject is a registry drifting from what it describes.
+    print(f"\nself-test: {len(ran) - len(failures)}/{len(ran)} "
+          f"checks moved the verdict")
     return 1 if failures else 0
 
 

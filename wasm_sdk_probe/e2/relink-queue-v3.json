@@ -965,18 +965,28 @@
     {
       "id": "queue-coverage-audit-keys-on-the-event-name",
       "title": "the product-path coverage audit cannot see a second listener for an event name it already knows -- measured 2026-08-22 when one arrived",
-      "expectation": "absent",
+      "expectation": "present",
       "blocksRelink": false,
       "source": "finding 073; noticed while registering the composition listeners the audit DID catch",
-      "note": "`tools/audit_product_path_coverage.py` enforces page minus driven minus waived is empty, and it did its job on 2026-08-22: three new composition listeners failed the build until they were registered. But it keys on the EVENT NAME. Finding 073 added a fourth listener in the same edit -- `blur` on #sink, to hide an abandoned IME composition -- and `listener:blur` was already registered (for the global `endDrag(null)` handler), so it arrived silently and appears in the report as covered by an entry about a different handler on a different element. Nothing was wrong with either entry; the GRANULARITY is the hole. Any listener whose event name is already in the registry can be added without the audit noticing, and this tree has three findings (049, 050, the unbound Ctrl+C) that were exactly 'a handler nobody had exercised'. The remedy is to key on target+event rather than event -- the parser already sees `el.sink.addEventListener(\"blur\"` and `globalThis.addEventListener(\"blur\"` as distinct text, so the datum exists and is being discarded. Cost: every existing registry entry needs its target written in, which is why this is recorded rather than done in the same commit as the finding it came out of.",
+      "note": "`tools/audit_product_path_coverage.py` enforces page minus driven minus waived is empty, and it did its job on 2026-08-22: three new composition listeners failed the build until they were registered. But it keys on the EVENT NAME. Finding 073 added a fourth listener in the same edit -- `blur` on #sink, to hide an abandoned IME composition -- and `listener:blur` was already registered (for the global `endDrag(null)` handler), so it arrived silently and appears in the report as covered by an entry about a different handler on a different element. Nothing was wrong with either entry; the GRANULARITY is the hole. Any listener whose event name is already in the registry can be added without the audit noticing, and this tree has three findings (049, 050, the unbound Ctrl+C) that were exactly 'a handler nobody had exercised'. The remedy is to key on target+event rather than event -- the parser already sees `el.sink.addEventListener(\"blur\"` and `globalThis.addEventListener(\"blur\"` as distinct text, so the datum exists and is being discarded. Cost: every existing registry entry needs its target written in, which is why this is recorded rather than done in the same commit as the finding it came out of. DONE 2026-08-22. The hand-kept NAMED_ELEMENTS table is gone rather than extended: `listener_target()` derives the name from the receiver (`el.noticeAction` -> `notice-action`, `globalThis` -> `global`), which reproduces every name that table gave, so this is a rename for thirteen paths and a SPLIT for one -- `listener:blur` became `listener:blur#global` (endDrag, uncovered as before) and `listener:blur#sink` (073's hideComposition, uncovered with its own risk and the route to driving it named). A table cannot be forgotten for the sixth element if there is no table. Two mutations prove the granularity can fail -- deleting either blur listener now reddens the audit, and under the old keying BOTH would have stayed green because a `listener:blur` remained either way. One hole found while in here and closed in the same edit: the parser only sees `el.<name>` and `globalThis`, so a listener on `document` or a local variable was not narrowed but INVISIBLE, and invisible reads as full coverage; the audit now counts what it cannot attribute and refuses. The self-test also counts its own checks instead of carrying a hand-written total, which was already one short of the lines it printed.",
       "checks": [
         {
-          "kind": "absent",
+          "kind": "line-equals",
           "file": "tools/audit_product_path_coverage.py",
-          "text": "listenerTarget"
+          "text": "        paths.add(f\"listener:{event}#{listener_target(receiver)}\")"
+        },
+        {
+          "kind": "line-equals",
+          "file": "e2/product-path-coverage.json",
+          "text": "      \"path\": \"listener:blur#sink\","
+        },
+        {
+          "kind": "contains",
+          "file": "tools/audit_product_path_coverage.py",
+          "text": "deleting one of two listeners that share an event name is caught"
         }
       ],
-      "checkNote": "Absent until the audit distinguishes two listeners for one event name. Flipping it is a deliberate edit."
+      "checkNote": "The registry line is the load-bearing one, not the tool line: `listener:blur#sink` is a path that EXISTS ONLY under target-keying, so reverting the parser does not merely fail this check -- it fails `make test-e2-c-reachability`, because the registry would then name a path the page does not have. A substring assertion about a tool is worth little on its own (the redo check DRIFTed on a comment); this one is backed by a gate that runs the code."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

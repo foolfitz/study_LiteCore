@@ -101,7 +101,7 @@
       "how": "pressed straight after the insert above; the marker text must be GONE from the saved ODT, read from the document rather than from the revision counter, because D1 covers undo through the shell and this is the button. Mutations `undo` (does nothing) and `undo-twice` (takes back one edit too many) must each turn it red."
     },
     {
-      "path": "listener:beforeinput",
+      "path": "listener:beforeinput#sink",
       "by": "tools/run_e2_c_product_path.py",
       "how": "a synthesised InputEvent('beforeinput', {inputType: deleteContentBackward}) on #sink; the oracle is that the page cancels it AND the revision advances, i.e. it reached the engine. The input adapter also listens for beforeinput but drops both delete types as `ignored-input-type` without preventing them, which is why this is not a second handler for the same work -- checked before it was written, after the paste episode."
     },
@@ -114,11 +114,6 @@
       "path": "listener:change#fixture",
       "by": "tools/run_e2_c_product_path.py",
       "how": "a different sample is chosen through the product's own picker: the document name becomes the chosen one, the session returns to `ready`, and the new document is actually DRAWN -- ink found ANYWHERE via stable_bands, not at one hardcoded band, because a different sample puts its text on different lines. This is the product's second open on one page and so the only product path near queue-search-after-reopen-wedges. Mutation `sample-picker-does-nothing` must redden it."
-    },
-    {
-      "path": "listener:click",
-      "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
-      "how": "the toolbar's delegated click handler, via a real button.click()"
     },
     {
       "path": "listener:click#clear-format",
@@ -136,69 +131,78 @@
       "how": "the product's own #open-file button is clicked and must forward exactly one click to the hidden #file input. #file.click is shimmed to be COUNTED rather than performed -- the same technique this runner already uses for download anchors -- so no OS chooser opens and no human is needed. Registered as un-drivable until 2026-08-21; that was wrong, and waiving it would have closed the row without walking the path. What the chooser hands back is listener:change#file's job. Mutation `open-button-forwards-nowhere` must redden it."
     },
     {
-      "path": "listener:copy",
-      "by": "tools/run_e2_c_product_path.py",
-      "how": "a ClipboardEvent on #sink; the check classifies the outcome by which error the clipboard adapter raises"
-    },
-    {
-      "path": "listener:cut",
-      "by": "tools/run_e2_c_product_path.py",
-      "how": "a synthesised ClipboardEvent('cut') on #sink; classified by which error the clipboard adapter raises, exactly like the copy check. The removal half is NOT established: the delete runs only after a successful clipboard write and WebDriver refuses that."
-    },
-    {
-      "path": "listener:keydown",
-      "by": "tools/run_e2_c_product_path.py",
-      "how": "TWO branches now, and both are named because this audit works per LISTENER and cannot see inside one. (1) a synthesised KeyboardEvent('keydown', {key: ArrowLeft}) on #sink; the oracle is the page cancelling it and the status line reporting a dispatched caret move. (2) a REAL Enter and a REAL Shift+Enter delivered through CDP Input.dispatchMouseEvent's sibling Input.dispatchKeyEvent, judged by the-enter-key-reaches-the-document on the PARAGRAPH COUNT in the saved ODT -- never on the revision, which advanced on every broken press under finding 067. That arm is CHROME ONLY: only a real key runs the default action that produces `beforeinput`, so a synthesised keydown would pass it on a page where the binding is absent; Firefox reports NOT_ESTABLISHED. Mutation `enter-key-not-bound` disables the branch and the check must go red. STILL NOT EXERCISED in this handler: Ctrl+Z and Ctrl+S. Ctrl+Z's own coverage is the undo check, which presses the button rather than the key."
-    },
-    {
-      "path": "listener:mousedown",
-      "by": "tools/run_e2_c_product_path.py",
-      "how": "a REAL mouse click is delivered onto the set-bold button through CDP Input.dispatchMouseEvent, and then two things are read: document.activeElement must still be the editing sink, and text typed straight afterwards -- with NOTHING restoring focus -- must reach the saved document. The check is the-toolbar-gives-the-keyboard-back. A real click is the whole point: HTMLElement.click() runs no default action and therefore never moves focus, so every synthetic press in this file would pass on a page where this is broken -- which is exactly how finding 066 survived until an operator hit it. CHROME ONLY; Firefox has no CDP here and the check reports NOT_ESTABLISHED rather than passing. Mutation `focus` reverts the two lines and the check must go red."
-    },
-    {
-      "path": "listener:pointerdown",
+      "path": "listener:click#toolbar",
       "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
-      "how": "a synthesised PointerEvent on #canvas, through the page's own handler; placeCaret is confirmed by the engine"
+      "how": "the toolbar's delegated click handler, via a real button.click()"
     },
     {
-      "path": "listener:pointermove",
+      "path": "listener:compositionend#sink",
       "by": "tools/run_e2_c_product_path.py",
-      "how": "the drag that precedes the copy check"
+      "how": "the check cancels the composition and requires the sink back at opacity 0 and 1px -- the half that matters most, since a sink left visible is a box of stale text on top of the document and the user would have to reload. It is `compositionend` and not the `blur` handler that does it here, and the report says so: `afterwards` carries `focused: true`, so the sink never lost focus."
     },
     {
-      "path": "listener:pointerup",
-      "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
-      "how": "ends every click and every drag"
-    },
-    {
-      "path": "listener:resize",
-      "by": "tools/run_e2_c_product_path.py",
-      "how": "the desk is narrowed and a resize event dispatched: the canvas backing store must change size AND the document must still be drawn afterwards (725 -> 404 px, ink still found). A relayout that resizes and never repaints leaves a blank page -- finding 062's shape one layer up. Mutation `resize-does-not-repaint` must redden it."
-    },
-    {
-      "path": "listener:compositionstart",
+      "path": "listener:compositionstart#sink",
       "by": "tools/run_e2_c_product_path.py",
       "how": "CDP `Input.imeSetComposition` with bopomofo, which drives the renderer's OWN ime path rather than a synthesised CompositionEvent -- so compositionstart fires the way it does for a real input method. The oracle is `the-composition-you-are-typing-is-visible`: at rest the sink is opacity 0 and 1px wide; while composing it is opacity 1, at least 14px wide, and at the SAME left/top as before, because a visible box in the corner of the page is not the user seeing what they type. Mutation `composition-never-shown` renames the handler and must redden it."
     },
     {
-      "path": "listener:compositionupdate",
+      "path": "listener:compositionupdate#sink",
       "by": "tools/run_e2_c_product_path.py",
       "how": "same call: the composition text reaches the sink and its width is sized to that text (measured: value ㄊㄞˊ, width 1 -> 38). Covered by the same check and the same mutation, which renames both handlers together -- they are one path in two events and splitting the mutation would let either half rot alone."
     },
     {
-      "path": "listener:compositionend",
+      "path": "listener:copy#sink",
       "by": "tools/run_e2_c_product_path.py",
-      "how": "the check cancels the composition and requires the sink back at opacity 0 and 1px -- the half that matters most, since a sink left visible is a box of stale text on top of the document and the user would have to reload. It is `compositionend` and not the `blur` handler that does it here, and the report says so: `afterwards` carries `focused: true`, so the sink never lost focus."
+      "how": "a ClipboardEvent on #sink; the check classifies the outcome by which error the clipboard adapter raises"
+    },
+    {
+      "path": "listener:cut#sink",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a synthesised ClipboardEvent('cut') on #sink; classified by which error the clipboard adapter raises, exactly like the copy check. The removal half is NOT established: the delete runs only after a successful clipboard write and WebDriver refuses that."
+    },
+    {
+      "path": "listener:keydown#sink",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "TWO branches now, and both are named because this audit works per LISTENER and cannot see inside one. (1) a synthesised KeyboardEvent('keydown', {key: ArrowLeft}) on #sink; the oracle is the page cancelling it and the status line reporting a dispatched caret move. (2) a REAL Enter and a REAL Shift+Enter delivered through CDP Input.dispatchMouseEvent's sibling Input.dispatchKeyEvent, judged by the-enter-key-reaches-the-document on the PARAGRAPH COUNT in the saved ODT -- never on the revision, which advanced on every broken press under finding 067. That arm is CHROME ONLY: only a real key runs the default action that produces `beforeinput`, so a synthesised keydown would pass it on a page where the binding is absent; Firefox reports NOT_ESTABLISHED. Mutation `enter-key-not-bound` disables the branch and the check must go red. STILL NOT EXERCISED in this handler: Ctrl+Z and Ctrl+S. Ctrl+Z's own coverage is the undo check, which presses the button rather than the key."
+    },
+    {
+      "path": "listener:mousedown#toolbar",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a REAL mouse click is delivered onto the set-bold button through CDP Input.dispatchMouseEvent, and then two things are read: document.activeElement must still be the editing sink, and text typed straight afterwards -- with NOTHING restoring focus -- must reach the saved document. The check is the-toolbar-gives-the-keyboard-back. A real click is the whole point: HTMLElement.click() runs no default action and therefore never moves focus, so every synthetic press in this file would pass on a page where this is broken -- which is exactly how finding 066 survived until an operator hit it. CHROME ONLY; Firefox has no CDP here and the check reports NOT_ESTABLISHED rather than passing. Mutation `focus` reverts the two lines and the check must go red."
+    },
+    {
+      "path": "listener:pointerdown#canvas",
+      "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
+      "how": "a synthesised PointerEvent on #canvas, through the page's own handler; placeCaret is confirmed by the engine"
+    },
+    {
+      "path": "listener:pointermove#canvas",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the drag that precedes the copy check"
+    },
+    {
+      "path": "listener:pointerup#canvas",
+      "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
+      "how": "ends every click and every drag"
+    },
+    {
+      "path": "listener:resize#global",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the desk is narrowed and a resize event dispatched: the canvas backing store must change size AND the document must still be drawn afterwards (725 -> 404 px, ink still found). A relayout that resizes and never repaints leaves a blank page -- finding 062's shape one layer up. Mutation `resize-does-not-repaint` must redden it."
     }
   ],
   "waived": [],
   "uncovered": [
     {
-      "path": "listener:blur",
-      "risk": "LOW -- endDrag(null). A check EXISTS (`an-aborted-gesture-stops-selecting`, with a positive control) and it reports NOT_ESTABLISHED rather than passing. Measured 2026-08-21: four gesture shapes were tried -- split evaluate() calls, one-script mid-gesture abort, LINE_INK-derived coordinates, and the stable_bands derivation the copy/cut drags use -- and on EVERY one the no-abort CONTROL arm failed to extend the selection as read through the product's own gesture affordance. So the observable, not the gesture, is what is unproven here: the copy and cut checks do produce a range at their own named line, so a range is reachable; reading it back through button.disabled is what has not been made to work. Registered as uncovered rather than driven BECAUSE the check cannot yet fail: the `gesture-abort-not-wired` mutation, which unwires pointercancel entirely, leaves it abstaining rather than red. Next step is a direct selection observable (the copy path reports codePoints) instead of the affordance. -- AND A SECOND HANDLER NOW SHARES THIS NAME (2026-08-22): finding 073 added `blur` on #sink to hide an abandoned IME composition. This audit keys on the EVENT NAME, not on the element, so that handler arrived under an entry that already existed and was accounted for -- it did not appear in `problems`. The granularity is the limit, not an oversight in this entry: any listener whose event name is already registered can be added without the audit noticing. The 073 handler is driven only in the sense that `the-composition-you-are-typing-is-visible` proves compositionend does the hiding while the sink still has focus, i.e. that arm does NOT exercise the blur path."
+      "path": "listener:blur#global",
+      "risk": "LOW -- endDrag(null). A check EXISTS (`an-aborted-gesture-stops-selecting`, with a positive control) and it reports NOT_ESTABLISHED rather than passing. Measured 2026-08-21: four gesture shapes were tried -- split evaluate() calls, one-script mid-gesture abort, LINE_INK-derived coordinates, and the stable_bands derivation the copy/cut drags use -- and on EVERY one the no-abort CONTROL arm failed to extend the selection as read through the product's own gesture affordance. So the observable, not the gesture, is what is unproven here: the copy and cut checks do produce a range at their own named line, so a range is reachable; reading it back through button.disabled is what has not been made to work. Registered as uncovered rather than driven BECAUSE the check cannot yet fail: the `gesture-abort-not-wired` mutation, which unwires pointercancel entirely, leaves it abstaining rather than red. Next step is a direct selection observable (the copy path reports codePoints) instead of the affordance. The `blur` on #sink that finding 073 added used to be invisible behind this entry, because the audit keyed on the event name alone; it is now `listener:blur#sink` and carries its own risk."
     },
     {
-      "path": "listener:pointercancel",
+      "path": "listener:blur#sink",
+      "risk": "MEDIUM -- `hideComposition` on the IME sink, added by finding 073. It is the SECOND of the two endings, and the one that gets forgotten: `compositionend` covers a composition that finishes, `blur` covers one the user walks away from. If it regresses, the sink stays at opacity 1 with stale bopomofo on top of the document and only a reload clears it -- worse than the defect 073 fixed. UNDRIVEN, and the neighbouring entry says so precisely rather than by omission: `the-composition-you-are-typing-is-visible` reports `focused: true` in its `afterwards` block, so that arm proves compositionend did the hiding WITH THE SINK STILL FOCUSED and therefore never touches this path. The route to driving it exists and is cheap -- the same CDP `Input.imeSetComposition` machinery, then take focus away instead of committing -- so this is registered as uncovered because it has not been measured, not because it cannot be."
+    },
+    {
+      "path": "listener:pointercancel#canvas",
       "risk": "LOW -- endDrag(null). A check EXISTS (`an-aborted-gesture-stops-selecting`, with a positive control) and it reports NOT_ESTABLISHED rather than passing. Measured 2026-08-21: four gesture shapes were tried -- split evaluate() calls, one-script mid-gesture abort, LINE_INK-derived coordinates, and the stable_bands derivation the copy/cut drags use -- and on EVERY one the no-abort CONTROL arm failed to extend the selection as read through the product's own gesture affordance. So the observable, not the gesture, is what is unproven here: the copy and cut checks do produce a range at their own named line, so a range is reachable; reading it back through button.disabled is what has not been made to work. Registered as uncovered rather than driven BECAUSE the check cannot yet fail: the `gesture-abort-not-wired` mutation, which unwires pointercancel entirely, leaves it abstaining rather than red. Next step is a direct selection observable (the copy path reports codePoints) instead of the affordance."
     }
   ]
