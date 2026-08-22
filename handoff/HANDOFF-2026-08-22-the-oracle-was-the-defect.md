@@ -1,5 +1,8 @@
 # Handoff — 2026-08-22: both findings were the oracle, and an operator found it
 
+> **SUPERSEDED 2026-08-22 by [`HANDOFF-2026-08-22-abi-4-is-linked-and-measured.md`](HANDOFF-2026-08-22-abi-4-is-linked-and-measured.md).** The ABI 4 link it was written ahead of has been run, and the product now binds to `e2-editor-v4`. Kept because the 064/065 retraction it records is still the reason `inline_styles_of()` looks the way it does.
+
+
 > Entry point. Reading this page is enough to take over.
 > Supersedes `HANDOFF-2026-08-21b-the-gate-was-a-measurement-error.md`, which is
 > **wrong about the mechanism** and carries a forward pointer.
