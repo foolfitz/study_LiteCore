@@ -14,6 +14,16 @@ E2-C **不新增 Editor 動作**。它要證明凍結的窄版契約——**十�
 一個 profile、一個 session**——在真實 host 輸入、代表性 ODT、故障復原與較長操作
 序列裡仍然 exactly-once、可保存、可解釋，然後對整個 E2 里程碑作判定。
 
+> **2026-08-22 再次修訂：「不新增動作」這一條到此為止，而且它守不住的原因不是
+> 它錯了，是它守的範圍過期了。** 第三輪連結（ABI 4）**新增六個動作**，id 16–21，
+> 1–15 逐字繼承。這一條原本守的是「第一輪的十五格判定不會在腳下被抽換」，而那個
+> 危險由**後繼身分**擋掉，不需要靠這句話擋：新動作出現在 `e2-editor-v4` 這個新
+> profile 上，`e2-editor-v3` 的位元組一個都不動，worker 對 `abiVersion` 的完全相符
+> 比對讓 v3 client 撞到 v4 profile 時在 init 就死。**就地擴充才是這條禁令真正要擋
+> 的東西，而後繼身分不是就地擴充。** 六個之中兩個**出貨但由 manifest 扣住**
+> （delete-selection 只給 range-single；還有一個 gestures 是空陣列），扣住的方向是
+> 單向的——mask 只會收窄——所以之後放行需要的是一次量測，不是再連結一次。
+>
 > **2026-08-15 修訂：原文寫「不再擴充 Editor ABI」，而第二輪要動 ABI 版本常數。**
 > 兩者不衝突，但原文的措辭不夠精確，所以就地改成「不新增動作」——
 > 那才是這條真正守的東西。第二輪把 `OXSDK_EDITOR_ABI_VERSION` 由 2 改成 3，
@@ -381,7 +391,24 @@ readback markup 不是有文件的契約；`changed` 永遠 `null`；不提供�
   匯出仍是 `<text:p>`、沒有 `text:outline-level`。**契約承諾的是樣式**；
   任何「套了標題就會進大綱／目錄」的期待都不在承諾內。
 - 清單縮排／階層、自訂樣式、字型／字級／顏色、對齊與行距。
-- Redo、line up/down/home/end、表格／圖片／shape 的結構編輯。
+- ~~Redo、line up/down/home/end、~~表格／圖片／shape 的結構編輯。
+
+> **2026-08-22 就地修訂：Redo 與 line up/down/home/end 移出「明確不承諾」。**
+> 它們在第三輪連結（ABI 4、`e2-editor-v4`）進入契約：四個按行移動是 id 16–19，
+> redo **沒有 wire id**——它是 document 層的 SDK 操作、`undo` 的手足，給它 action
+> id 會把 gesture mask 與 `extendSelection`／`enabled` 驗證一起拖進來，這三個對
+> 「走 undo 堆疊」都沒有意義。
+>
+> **這一條移出的是「承諾範圍」，不是「已經量過」。** 承諾它們存在於契約，等於承諾
+> 它們有 typed 後置條件、有 manifest 條目、有 header pin；**它們在連結出來的
+> artifact 上表現如何，要等第三輪的產品路徑跑過才知道**，而第一次跑紅在哪裡就是
+> 那次量測本身。四個按行移動共用字元移動的後置條件（revision 不動、
+> `changed: false`、`documented-callback-*`），因為它們走引擎裡同一條路。
+>
+> 同時新增而**仍不承諾**的兩個：`delete-selection`（id 20）只拿到
+> `range-single`，跨段刪除沒有人量過所以 manifest 不宣告；另一個 id 的 `gestures`
+> 是空陣列，引擎每次都會拒絕，client 一個字都不提它。
+> **出貨但扣住不是承諾**——它買到的只有「之後放行不必再連結一次」。
 - DOCX 與其他格式（屬 E3）；markdown（屬 E4）。
 - **註腳本文帶 as-char frame 的文件**（9.2）。
 - **任何帶註腳／尾註的段落，段落格式動作一律不支援。**
@@ -1432,6 +1459,7 @@ ODT。**HIGH 清空，11／28 條路徑已驅動**，而 `rollback` 突變**從�
 
 | 日期 | 內容 |
 |---|---|
+| 2026-08-22 | **v19。第三輪連結（ABI 4、後繼身分 `e2-editor-v4`）的規格半邊：第 1 節與 4.2 就地修訂。** 「不新增動作」到期——它守的是「第一輪的判定不會在腳下被抽換」，而那件事由**後繼身分**擋掉：新動作出現在新 profile 上，v3 的位元組不動，worker 的 `abiVersion` 完全相符比對讓 v3 client 撞到 v4 時在 init 就死。**就地擴充才是那條禁令要擋的，後繼身分不是就地擴充。** 4.2 把 Redo 與 line up/down/home/end 移出不承諾（id 16–19；**redo 沒有 wire id**，它是 document 層操作、`undo` 的手足）。同時新增而仍不承諾的有兩個：`delete-selection`（id 20）只給 `range-single`——跨段刪除沒人量過——以及一個 `gestures` 空陣列、引擎每次都拒絕的 id。**「出貨但扣住」不是承諾**，它買到的只有「之後放行需要一次量測、不是再連結一次」，而方向單向是因為 mask 只會收窄。**移出不承諾 ≠ 已經量過**：承諾的是契約位置（typed 後置條件、manifest 條目、header pin），行為要等第三輪產品路徑跑過。 |
 | 2026-08-16 | **v18。053／054 修法進樹（9.5.15），殼層 v8 → v9 `eb76c5be…`，artifact 未動。** 053 修在 `NarrowEditorV2Session.action()` 的接縫（不動 E1-C 綁的檔案），054 改成同時看 `error.code` 與 `error.details`；兩格突變驗證過的檢查，其中 054 的寫成通則（「頁面讀的每個 snapshot 欄位都要是狀態機發布的」）。產品路徑補上一條真的能走到 `recoverable-error` 的路，**HIGH 清空、11／28 已驅動**，`rollback` 突變由 harness 自己報「宣告過期」後變成真驗證。**這一輪不是 053 修法的證據**（掉出來的碼本來就會擋佇列），修法的證據在單元測試。**代價：D5 第七輪綁在 v8，第八輪人工輪欠著。** |
 | 2026-08-16 | **v17。產品路徑第二輪（9.5.14）：三條 HIGH 的路徑走完兩條，第三條掉出 [finding 053](../findings/053-the-product-prescribes-a-recovery-whose-button-it-does-not-show.md)。** `action:insert-text` 與 `action:undo` 各自被自己的突變證明會紅；`listener:click#notice-action` 判 `NOT_ESTABLISHED`——產品只在 `recoverable-error`／`restart-required` 提供那顆按鈕，而唯一有記錄的產品 UI 路線（finding 047 的順序）在現行殼層上跑不出來（**不足以判定 047 修好了**，見 `queue-047-may-have-closed-under-048`）。**053 是產品開了一個它自己不提供的處方**：`EDITOR_FORMAT_POSTCONDITION_FAILED` 的 `recovery` 是 `"rollback"`，但它不在 `RECOVERY_ERRORS` 裡，所以 session 留在 `ready`、`#notice` 不顯示。同時 harness 學到三件事並寫進 9.5.14：判定要有三個值、缺席型判準要有見證、宣告不能比 harness 承諾得多。**另一半是 block identity**：四輪 native 量完（`findings/evidence/queue-block-identity/`），佇列項 `queue-verify-caret-by-block-identity` 依實測改寫——LOK **沒有**段落序號，能拿到的段落文字是**指紋不是身分**，它解得掉 046 的已量格與「同一行不同 x」，**解不掉 052 的殘留**（x 在行上帶入、在文字下方丟掉）。設計與四條事前預測在 `research/DESIGN-2026-08-16-caret-by-block-and-offset.md`。對抗性審查（codex）打在判準上收掉九條，掉出 round 4。 |
 | 2026-08-16 | **v16。D5 的機器那一半做完（9.5.12）：四格 `NOT_ESTABLISHED`、相位 PARTIAL，等 operator。** 產品頁面未修改——它是殼層 bundle 綁的模組之一，所以 D5 頁面把它放進同源 iframe 從外面觀察（事件的 `isTrusted`、一個已申報的 `URL.createObjectURL` shim、產品自己的狀態列），**殼層摘要前後未變**。機器半邊四條預測全部成立：合成事件一律記成不可信、由它們支撐的格判 `NOT_ESTABLISHED`、shim 攔得到存檔、觀察沒有改動摘要。自我測試 10／10，承重的一對是「補齊其他條件會過、翻一個事件成合成就不過」。**至此 D2～D5 全部寫好並在 v2 上跑過**，對抗性審查第 8 項的門檻達成（D5 的人工四格依矩陣本來就是 PARTIAL）。 |
