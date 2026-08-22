@@ -136,8 +136,30 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v31.json"),
                     Path("e2/editor-shell-v2-bundle-v32.json"),
                     Path("e2/editor-shell-v2-bundle-v33.json"),
-                    Path("e2/editor-shell-v2-bundle-v34.json"))
+                    Path("e2/editor-shell-v2-bundle-v34.json"),
+                    Path("e2/editor-shell-v2-bundle-v35.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v36, 2026-08-22: finding 073 -- the user could not see what they were typing.
+#
+# The input sink is one transparent pixel wide by design, and the browser draws
+# an IME's PREEDIT inside it, so composing 台 with 新酷音 wrote ㄊㄞˊ into a box
+# nobody can see: the first thing the user saw was the committed character.
+# There were no composition handlers in this file at all, so nothing had to be
+# undone -- composition was entirely the browser's until `beforeinput` delivered
+# the result, and that half was working.
+#
+# The sink is now visible WHILE COMPOSING and back to one transparent pixel
+# after. Both endings are wired, and the second is the one that gets forgotten:
+# an IME abandoned by clicking away does not fire `compositionend` everywhere,
+# and a sink left visible is a box of stale text sitting on top of the document,
+# which is worse than the defect it repairs.
+#
+# It reached this file because an OPERATOR typed Chinese. It is now driven by
+# `the-composition-you-are-typing-is-visible`, which turned out not to need a
+# human after all: CDP's `Input.imeSetComposition` drives the renderer's own IME
+# path, so compositionstart/update fire for real. The instrument existed; nobody
+# had looked for it, because "IME" had been filed under "D5 by definition".
+#
 # v35, 2026-08-22: two layers the ABI 4 profile found within minutes of it.
 #
 # Both were latent the whole time and neither was reachable until a manifest
@@ -244,7 +266,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v35.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v36.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

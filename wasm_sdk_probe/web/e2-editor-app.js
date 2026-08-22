@@ -721,6 +721,55 @@ const DELETE_INPUT_TYPES = {
   deleteContentForward: "delete-forward",
 };
 
+// FINDING 073: show the user what they are part way through typing.
+//
+// The sink is one transparent pixel by design, and the browser draws an IME's
+// preedit INSIDE it -- so composing 台 with 新酷音 wrote ㄊㄞˊ into a box
+// nobody can see, and the first thing the user saw was the committed
+// character. There are no compositionstart/update handlers anywhere else in
+// this file: composition is entirely the browser's until `beforeinput`
+// delivers the result, which is why nothing had to be undone to add this.
+//
+// The measuring context is a detached canvas, not the document's: this asks
+// how wide the preedit is, and borrowing the drawing surface for that would
+// make a text measurement depend on the render state.
+const compositionRuler = document.createElement("canvas").getContext("2d");
+
+function showComposition(text) {
+  const style = getComputedStyle(el.sink);
+  // The font size comes from the CARET's own height, which
+  // `moveSinkToCaret` already set from the engine's cursor rectangle -- so the
+  // preedit is about the size of the line it will land on rather than a
+  // constant that is wrong at every zoom level. 0.75 is the usual ratio of an
+  // em to a line box; the floor is legibility, not geometry.
+  const line = el.sink.offsetHeight || 16;
+  el.sink.style.fontSize = `${Math.max(11, Math.round(line * 0.75))}px`;
+  compositionRuler.font = `${el.sink.style.fontSize} ${style.fontFamily}`;
+  const width = compositionRuler.measureText(text || "").width;
+  // A floor, because compositionstart arrives with nothing composed yet and a
+  // zero-width box would flash. The padding is for the caret the browser draws
+  // at the end of the preedit.
+  el.sink.style.width = `${Math.max(14, Math.ceil(width) + 10)}px`;
+  el.sink.dataset.composing = "1";
+}
+
+function hideComposition() {
+  delete el.sink.dataset.composing;
+  // Cleared rather than set back to 1px: the stylesheet owns the resting size,
+  // and an inline width would silently outrank a later change to it.
+  el.sink.style.width = "";
+  el.sink.style.fontSize = "";
+}
+
+el.sink.addEventListener("compositionstart", () => showComposition(el.sink.value));
+el.sink.addEventListener("compositionupdate", (event) => showComposition(event.data));
+// BOTH endings. `compositionend` is the ordinary one; `blur` is the one that
+// gets forgotten -- an IME abandoned by clicking away never fires
+// compositionend in every browser, and a sink left visible sits on top of the
+// document with stale text in it.
+el.sink.addEventListener("compositionend", hideComposition);
+el.sink.addEventListener("blur", hideComposition);
+
 el.sink.addEventListener("beforeinput", (event) => {
   const action = DELETE_INPUT_TYPES[event.inputType];
   if (!action || !session?.document) return;

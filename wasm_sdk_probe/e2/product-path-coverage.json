@@ -174,13 +174,28 @@
       "path": "listener:resize",
       "by": "tools/run_e2_c_product_path.py",
       "how": "the desk is narrowed and a resize event dispatched: the canvas backing store must change size AND the document must still be drawn afterwards (725 -> 404 px, ink still found). A relayout that resizes and never repaints leaves a blank page -- finding 062's shape one layer up. Mutation `resize-does-not-repaint` must redden it."
+    },
+    {
+      "path": "listener:compositionstart",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "CDP `Input.imeSetComposition` with bopomofo, which drives the renderer's OWN ime path rather than a synthesised CompositionEvent -- so compositionstart fires the way it does for a real input method. The oracle is `the-composition-you-are-typing-is-visible`: at rest the sink is opacity 0 and 1px wide; while composing it is opacity 1, at least 14px wide, and at the SAME left/top as before, because a visible box in the corner of the page is not the user seeing what they type. Mutation `composition-never-shown` renames the handler and must redden it."
+    },
+    {
+      "path": "listener:compositionupdate",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "same call: the composition text reaches the sink and its width is sized to that text (measured: value ㄊㄞˊ, width 1 -> 38). Covered by the same check and the same mutation, which renames both handlers together -- they are one path in two events and splitting the mutation would let either half rot alone."
+    },
+    {
+      "path": "listener:compositionend",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the check cancels the composition and requires the sink back at opacity 0 and 1px -- the half that matters most, since a sink left visible is a box of stale text on top of the document and the user would have to reload. It is `compositionend` and not the `blur` handler that does it here, and the report says so: `afterwards` carries `focused: true`, so the sink never lost focus."
     }
   ],
   "waived": [],
   "uncovered": [
     {
       "path": "listener:blur",
-      "risk": "LOW -- endDrag(null). A check EXISTS (`an-aborted-gesture-stops-selecting`, with a positive control) and it reports NOT_ESTABLISHED rather than passing. Measured 2026-08-21: four gesture shapes were tried -- split evaluate() calls, one-script mid-gesture abort, LINE_INK-derived coordinates, and the stable_bands derivation the copy/cut drags use -- and on EVERY one the no-abort CONTROL arm failed to extend the selection as read through the product's own gesture affordance. So the observable, not the gesture, is what is unproven here: the copy and cut checks do produce a range at their own named line, so a range is reachable; reading it back through button.disabled is what has not been made to work. Registered as uncovered rather than driven BECAUSE the check cannot yet fail: the `gesture-abort-not-wired` mutation, which unwires pointercancel entirely, leaves it abstaining rather than red. Next step is a direct selection observable (the copy path reports codePoints) instead of the affordance."
+      "risk": "LOW -- endDrag(null). A check EXISTS (`an-aborted-gesture-stops-selecting`, with a positive control) and it reports NOT_ESTABLISHED rather than passing. Measured 2026-08-21: four gesture shapes were tried -- split evaluate() calls, one-script mid-gesture abort, LINE_INK-derived coordinates, and the stable_bands derivation the copy/cut drags use -- and on EVERY one the no-abort CONTROL arm failed to extend the selection as read through the product's own gesture affordance. So the observable, not the gesture, is what is unproven here: the copy and cut checks do produce a range at their own named line, so a range is reachable; reading it back through button.disabled is what has not been made to work. Registered as uncovered rather than driven BECAUSE the check cannot yet fail: the `gesture-abort-not-wired` mutation, which unwires pointercancel entirely, leaves it abstaining rather than red. Next step is a direct selection observable (the copy path reports codePoints) instead of the affordance. -- AND A SECOND HANDLER NOW SHARES THIS NAME (2026-08-22): finding 073 added `blur` on #sink to hide an abandoned IME composition. This audit keys on the EVENT NAME, not on the element, so that handler arrived under an entry that already existed and was accounted for -- it did not appear in `problems`. The granularity is the limit, not an oversight in this entry: any listener whose event name is already registered can be added without the audit noticing. The 073 handler is driven only in the sense that `the-composition-you-are-typing-is-visible` proves compositionend does the hiding while the sink still has focus, i.e. that arm does NOT exercise the blur path."
     },
     {
       "path": "listener:pointercancel",

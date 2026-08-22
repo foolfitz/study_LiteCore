@@ -1257,6 +1257,22 @@ MUTATIONS = {
     # AGREEMENT with the running profile -- green on v3 because the keys were
     # correctly absent, and green on v4 for the opposite reason. Nothing drove
     # the keys themselves.
+    # Finding 073, restored: the sink stays one transparent pixel while an IME
+    # composes, so the user cannot see the bopomofo they are part way through.
+    # Renaming the event is the closest thing to "the handler was never
+    # written", which is literally what shipped until 2026-08-22 -- there were
+    # no composition handlers in this file at all.
+    "composition-never-shown": {
+        "check": "the-composition-you-are-typing-is-visible",
+        "path": "e2-editor-app.js",
+        "find": 'el.sink.addEventListener("compositionstart", () => showComposition(el.sink.value));\n'
+                'el.sink.addEventListener("compositionupdate", (event) => showComposition(event.data));',
+        "replace": 'el.sink.addEventListener("compositionstart-never-wired", () => showComposition(el.sink.value));\n'
+                   'el.sink.addEventListener("compositionupdate-never-wired", (event) => showComposition(event.data));',
+        "reintroduces": "an editor where typing Chinese shows you nothing "
+                        "until the character commits",
+        "alsoRed": [],
+    },
     "line-movement-keys-unbound": {
         "check": "the-vertical-arrows-move-the-caret",
         "path": "e2-editor-app.js",
@@ -2221,6 +2237,22 @@ document.addEventListener("keydown", (event) => {
 });
 return true;
 })()"""
+
+# FINDING 073.  What the sink LOOKS like, not only where it is.
+#
+# `opacity` and `width` come from getComputedStyle rather than from the inline
+# style, so a rule that failed to apply reads as not applied instead of as
+# whatever was last assigned -- the same reason SINK_POSITION uses offsetLeft.
+SINK_APPEARANCE = """(() => {
+const sink = document.querySelector('#sink');
+if (!sink) return null;
+const style = getComputedStyle(sink);
+return { opacity: Number(style.opacity), width: sink.offsetWidth,
+         left: sink.offsetLeft, top: sink.offsetTop,
+         composing: sink.dataset.composing === "1",
+         value: sink.value, focused: document.activeElement === sink };
+})()"""
+
 
 READ_KEY_TAKEN = """(() => {
 const d = globalThis.__keytaken;
@@ -4659,6 +4691,104 @@ return { available: true, afterButton };
                          "took looks exactly like one it took and could not "
                          "act on. LIMIT: read from `#sink`, so this is the "
                          "position the page draws FROM, not the pixels it drew")
+
+        # -------------------------------- what you are part way through typing
+        #
+        # FINDING 073, reported by an operator using 新酷音 on 2026-08-22: the
+        # bopomofo is invisible.  The sink is one transparent pixel by design
+        # and the browser draws an IME's PREEDIT inside it, so a user composing
+        # 台 sees nothing at all until the character commits.
+        #
+        # THIS ARM EXISTS BECAUSE IT TURNED OUT NOT TO BE HUMAN-ONLY.  A real
+        # input method cannot be driven from here -- that is D5 by definition,
+        # and `every-ime-commit-reaches-the-document` above uses a synthetic
+        # composition for the COMMIT path.  But CDP's `Input.imeSetComposition`
+        # drives the renderer's own IME path, which is what fires
+        # compositionstart/update on the focused element.  So the question "can
+        # the user see what they are typing" has an instrument after all, and
+        # the operator does not have to be the regression net.
+        #
+        # BOTH ENDS ARE CHECKED.  A sink that becomes visible and stays visible
+        # is a box of stale text sitting on top of the document, which is worse
+        # than the defect: the user would have to reload to get their page back.
+        composing: dict = {}
+        comp_cdp = getattr(session, "call", None)
+        if comp_cdp is None:
+            check("the-composition-you-are-typing-is-visible", False,
+                  outcome="NOT_ESTABLISHED", observed=composing,
+                  why="no CDP, so `Input.imeSetComposition` cannot be sent and "
+                      "no composition can be started at all",
+                  oracle="see the established branch")
+        else:
+            comp_clicks = caret_click_fractions(
+                evaluate(session, LINE_INK.replace("ARG_Y", "0.28")) or {})
+            place_caret_and_settle(session, POINT_AT, comp_clicks["near"], "0.28")
+            time.sleep(0.8)
+            composing["atRest"] = evaluate(session, SINK_APPEARANCE) or {}
+            # Bopomofo, because that is what the operator was typing and because
+            # a Latin preedit would be narrow enough to hide inside the
+            # resting box's own width.
+            preedit = "ㄊㄞˊ"
+            try:
+                comp_cdp("Input.imeSetComposition",
+                         {"text": preedit, "selectionStart": len(preedit),
+                          "selectionEnd": len(preedit)})
+                composing["sent"] = True
+            except Exception as error:            # noqa: BLE001
+                composing["sent"] = False
+                composing["error"] = repr(error)
+            time.sleep(1.0)
+            composing["whileComposing"] = evaluate(session, SINK_APPEARANCE) or {}
+            # Cancelled rather than committed: this arm is about what is VISIBLE
+            # during composition, and committing would put text in the document
+            # and make it about the commit path, which is another check's job.
+            try:
+                comp_cdp("Input.imeSetComposition",
+                         {"text": "", "selectionStart": 0, "selectionEnd": 0})
+            except Exception:                     # noqa: BLE001
+                pass
+            time.sleep(1.0)
+            composing["afterwards"] = evaluate(session, SINK_APPEARANCE) or {}
+
+            rest = composing["atRest"]
+            during = composing["whileComposing"]
+            after = composing["afterwards"]
+            # THE POSITIVE CONTROL, and without it this whole arm is worthless:
+            # if the composition never started, the sink is invisible for a
+            # reason that has nothing to do with the product, and "invisible"
+            # would read as the defect.
+            composing["compositionActuallyStarted"] = bool(
+                during.get("composing") or during.get("value"))
+            composing["visibleWhileComposing"] = (
+                during.get("opacity", 0) > 0 and during.get("width", 0) > 2)
+            composing["wideEnoughToRead"] = during.get("width", 0) >= 14
+            # AT THE CARET, not merely somewhere.  A visible box in the corner
+            # of the page is not the user seeing what they type.
+            composing["stayedAtTheCaret"] = (
+                rest.get("left") is not None
+                and during.get("left") == rest.get("left")
+                and during.get("top") == rest.get("top"))
+            composing["hiddenAgainAfterwards"] = (
+                after.get("opacity", 1) == 0 and after.get("width", 99) <= 2)
+            check("the-composition-you-are-typing-is-visible",
+                  bool(composing["visibleWhileComposing"]
+                       and composing["wideEnoughToRead"]
+                       and composing["stayedAtTheCaret"]
+                       and composing["hiddenAgainAfterwards"]),
+                  outcome=None if composing["compositionActuallyStarted"]
+                  else "NOT_ESTABLISHED",
+                  observed=composing,
+                  oracle="while an IME is composing, the sink is visible, wide "
+                         "enough to read, and still at the caret -- and it is "
+                         "back to one transparent pixel when the composition "
+                         "ends. Both halves: a sink that becomes visible and "
+                         "stays visible is a box of stale text on top of the "
+                         "document, which is worse than not seeing the preedit",
+                  notEstablished="that the composition started at all. `Input."
+                                 "imeSetComposition` reached the renderer but "
+                                 "nothing composed, so an invisible sink says "
+                                 "nothing about the product -- it is the "
+                                 "instrument, not the page")
 
 
         resized = evaluate(session, RESIZE_DESK) or {}

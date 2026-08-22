@@ -91,6 +91,34 @@
     width: 1px; height: 1px; opacity: 0; border: 0;
     padding: 0; margin: 0; outline: none;
     pointer-events: none;
+    resize: none; overflow: hidden; white-space: pre; line-height: 1;
+  }
+
+  /*
+   * FINDING 073.  While an IME is composing, the sink has to be SEEN.
+   *
+   * Everything above this rule is written for an element nobody looks at: one
+   * transparent pixel that collects keystrokes.  That is right until an input
+   * method starts composing, because the PREEDIT -- the bopomofo or pinyin the
+   * user is part way through, before it becomes a character -- is drawn by the
+   * browser INSIDE this element.
+   * At `opacity: 0` and one pixel wide it cannot be seen, so a user typing
+   * Chinese watches an empty page and finds out what they typed only when it
+   * commits.  Reported by an operator using 新酷音, 2026-08-22.
+   *
+   * Visible only while composing, and back to one transparent pixel after: a
+   * sink left visible would sit on top of the document forever.
+   *
+   * `z-index` because it has to be above the canvas it overlaps; the border and
+   * the background because preedit over glyphs is unreadable without them.
+   */
+  #sink[data-composing] {
+    opacity: 1;
+    z-index: 5;
+    background: var(--bar, #eef3f8);
+    color: var(--ink, #16202b);
+    border: 1px solid #7aa7d8;
+    border-radius: 2px;
   }
 
   .statusbar {

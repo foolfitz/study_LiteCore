@@ -961,6 +961,22 @@
         }
       ],
       "checkNote": "Absent until a route into a refusal exists that does not require breaking the product first. Flipping it is a deliberate edit."
+    },
+    {
+      "id": "queue-coverage-audit-keys-on-the-event-name",
+      "title": "the product-path coverage audit cannot see a second listener for an event name it already knows -- measured 2026-08-22 when one arrived",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "finding 073; noticed while registering the composition listeners the audit DID catch",
+      "note": "`tools/audit_product_path_coverage.py` enforces page minus driven minus waived is empty, and it did its job on 2026-08-22: three new composition listeners failed the build until they were registered. But it keys on the EVENT NAME. Finding 073 added a fourth listener in the same edit -- `blur` on #sink, to hide an abandoned IME composition -- and `listener:blur` was already registered (for the global `endDrag(null)` handler), so it arrived silently and appears in the report as covered by an entry about a different handler on a different element. Nothing was wrong with either entry; the GRANULARITY is the hole. Any listener whose event name is already in the registry can be added without the audit noticing, and this tree has three findings (049, 050, the unbound Ctrl+C) that were exactly 'a handler nobody had exercised'. The remedy is to key on target+event rather than event -- the parser already sees `el.sink.addEventListener(\"blur\"` and `globalThis.addEventListener(\"blur\"` as distinct text, so the datum exists and is being discarded. Cost: every existing registry entry needs its target written in, which is why this is recorded rather than done in the same commit as the finding it came out of.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "tools/audit_product_path_coverage.py",
+          "text": "listenerTarget"
+        }
+      ],
+      "checkNote": "Absent until the audit distinguishes two listeners for one event name. Flipping it is a deliberate edit."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
