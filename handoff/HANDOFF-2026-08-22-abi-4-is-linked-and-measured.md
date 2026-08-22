@@ -1,5 +1,13 @@
 # Handoff: ABI 4 is linked, measured, and the product path is green
 
+> **SUPERSEDED** as the entry point by
+> [`HANDOFF-2026-08-22b-cut-arrows-and-the-ime.md`](HANDOFF-2026-08-22b-cut-arrows-and-the-ime.md).
+> Still the record of the link itself and of the five identities it
+> minted. Note the correction block below: its claim about the vertical
+> arrow keys was inherited from a check that means the opposite thing on
+> the two artifacts, and the manifest it names (`f88c6289…`) has since
+> been repackaged to `cbf93923…`.
+
 Written 2026-08-22, after the link and its measuring round. Supersedes
 [`HANDOFF-2026-08-22-the-oracle-was-the-defect.md`](HANDOFF-2026-08-22-the-oracle-was-the-defect.md)
 as the entry point. The link runbook,
