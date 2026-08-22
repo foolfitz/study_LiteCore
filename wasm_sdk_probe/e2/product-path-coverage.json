@@ -1,168 +1,185 @@
 {
- "schemaVersion": 1,
- "release": "E2-C-product-path-coverage",
- "why": "Three product defects were found by a person on 2026-08-16 (findings 049, 050, and the unbound Ctrl+C) and none of them was reachable by any automated round, because every harness calls the shell directly and none of them went through the product page's own handlers. They were found one at a time, by walking into them. This file turns that into a rule with the same shape as the shell bundle's: every handler and every toolbar action the product page has must be either DRIVEN by a named harness or WAIVED with a reason, and anything else fails the audit. What is uncovered here is where the next one of those defects is.",
- "rule": "paths(page) - driven - waived must be empty",
- "auditedPage": "web/e2-editor-app.js",
- "driven": [
-  {
-   "path": "action:insert-paragraph-break",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "pressed to create the empty paragraph the recovery route needs; not separately asserted, so it is driven rather than verified -- if it stopped working the recovery route would go red, which is a real if indirect signal."
-  },
-  {
-   "path": "action:insert-text",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "text is typed into the product's own #text field and the product's own button is pressed; the revision must advance by exactly one AND the text must be in the ODT the product then saves. Mutation `insert-text` reads el.text.placeholder instead of el.text.value -- finding 049's shape on this path -- and the check must go red."
-  },
-  {
-   "path": "action:save",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "the product's own save button; the bytes are captured through a declared URL.createObjectURL shim and must BE an ODT"
-  },
-  {
-   "path": "action:set-bold",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "pressed twice on a collapsed caret; the oracle is the engine's own format state as the page renders it into aria-pressed (bold-can-be-turned-off-again)"
-  },
-  {
-   "path": "action:set-list-none",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "the product's own toolbar button, with the caret clicked onto a paragraph in the OPPOSITE state so that doing nothing cannot pass; the verdict is read from the saved ODT and anchored to the target paragraph's exact text, and both neighbours must survive"
-  },
-  {
-   "path": "action:set-list-ordered",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "the product's own toolbar button, with the caret clicked onto a paragraph in the OPPOSITE state so that doing nothing cannot pass; the verdict is read from the saved ODT and anchored to the target paragraph's exact text, and both neighbours must survive"
-  },
-  {
-   "path": "action:set-list-unordered",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "the product's own toolbar button, with the caret clicked onto a paragraph in the OPPOSITE state so that doing nothing cannot pass; the verdict is read from the saved ODT and anchored to the target paragraph's exact text, and both neighbours must survive"
-  },
-  {
-   "path": "action:set-paragraph-body",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "the product's own toolbar button, with the caret clicked onto a paragraph in the OPPOSITE state so that doing nothing cannot pass; the verdict is read from the saved ODT and anchored to the target paragraph's exact text, and both neighbours must survive"
-  },
-  {
-   "path": "action:set-paragraph-heading",
-   "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
-   "how": "the default --action of the smoke run; the revision must advance by exactly one. Since 2026-08-19 also driven by the product-path runner: the product's own toolbar button, with the caret clicked onto a paragraph in the OPPOSITE state so that doing nothing cannot pass; the verdict is read from the saved ODT and anchored to the target paragraph's exact text, and both neighbours must survive"
-  },
-  {
-   "path": "action:undo",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "pressed straight after the insert above; the marker text must be GONE from the saved ODT, read from the document rather than from the revision counter, because D1 covers undo through the shell and this is the button. Mutations `undo` (does nothing) and `undo-twice` (takes back one edit too many) must each turn it red."
-  },
-  {
-   "path": "listener:beforeinput",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "a synthesised InputEvent('beforeinput', {inputType: deleteContentBackward}) on #sink; the oracle is that the page cancels it AND the revision advances, i.e. it reached the engine. The input adapter also listens for beforeinput but drops both delete types as `ignored-input-type` without preventing them, which is why this is not a second handler for the same work -- checked before it was written, after the paste episode."
-  },
-  {
-   "path": "listener:change#file",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "a File synthesised from a fixture's bytes is assigned to #file and a change event dispatched, through the page's own handler. The oracle is the document the ENGINE ends up holding -- the run saves afterwards and requires text that exists only in the handed-over file, and none from the fixture that was open before. Mutation `open-file` re-opens the fixture while still updating the filename, and is detected."
-  },
-  {
-   "path": "listener:click",
-   "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
-   "how": "the toolbar's delegated click handler, via a real button.click()"
-  },
-  {
-   "path": "listener:click#notice-action",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "the product's own recovery button, pressed in the state the product OFFERS it in -- reached through the page's own buttons: click past the end of a line, insert-paragraph-break, then a list action on the new empty paragraph (finding 046's cell). The oracle is that the notice is shown and enabled, that pressing it returns the session to ready, and that the product can save a real ODT afterwards. Mutation `rollback` (wired to undo instead) is detected; mutation `toolbar-drops-the-list-action` proves the NOT_ESTABLISHED branch cannot hide a broken toolbar."
-  },
-  {
-   "path": "listener:copy",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "a ClipboardEvent on #sink; the check classifies the outcome by which error the clipboard adapter raises"
-  },
-  {
-   "path": "listener:cut",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "a synthesised ClipboardEvent('cut') on #sink; classified by which error the clipboard adapter raises, exactly like the copy check. The removal half is NOT established: the delete runs only after a successful clipboard write and WebDriver refuses that."
-  },
-  {
-   "path": "listener:keydown",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "a synthesised KeyboardEvent('keydown', {key: ArrowLeft}) on #sink; the oracle is the page cancelling it and the status line reporting a dispatched caret move. LIMIT, stated because this audit works per LISTENER and cannot see inside one: the same handler also carries Ctrl+Z and Ctrl+S, and neither is exercised. So `driven` here means the handler is reached, not that every branch in it is. Ctrl+Z's own coverage is the undo check, which presses the button rather than the key."
-  },
-  {
-   "path": "listener:pointerdown",
-   "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
-   "how": "a synthesised PointerEvent on #canvas, through the page's own handler; placeCaret is confirmed by the engine"
-  },
-  {
-   "path": "listener:pointermove",
-   "by": "tools/run_e2_c_product_path.py",
-   "how": "the drag that precedes the copy check"
-  },
-  {
-   "path": "listener:pointerup",
-   "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
-   "how": "ends every click and every drag"
-  }
- ],
- "waived": [],
- "uncovered": [
-  {
-   "path": "listener:change#fixture",
-   "risk": "MEDIUM -- opening a second document in one page. The session disposes its engine on close, so this is also the only product path that comes near the search-after-reopen wedge."
-  },
-  {
-   "path": "action:move-character-left",
-   "risk": "LOW -- covered through the shell by D1; the button itself is untested."
-  },
-  {
-   "path": "action:move-character-right",
-   "risk": "LOW"
-  },
-  {
-   "path": "action:delete-backward",
-   "risk": "LOW"
-  },
-  {
-   "path": "action:delete-forward",
-   "risk": "LOW"
-  },
-  {
-   "path": "action:insert-line-break",
-   "risk": "LOW"
-  },
-  {
-   "path": "action:set-italic",
-   "risk": "LOW"
-  },
-  {
-   "path": "action:set-underline",
-   "risk": "LOW"
-  },
-  {
-   "path": "action:set-strikethrough",
-   "risk": "LOW"
-  },
-  {
-   "path": "listener:pointercancel",
-   "risk": "LOW -- endDrag(null); reachable when the browser takes the pointer away."
-  },
-  {
-   "path": "listener:blur",
-   "risk": "LOW -- endDrag(null) on window blur."
-  },
-  {
-   "path": "listener:resize",
-   "risk": "LOW -- relayout and re-render."
-  },
-  {
-   "path": "listener:click#open-file",
-   "risk": "LOW -- one line that forwards a click to #file.click(). Not driven because clicking it opens the OS file chooser, which no driver here can operate and which would block the browser. The handler it forwards to IS driven (listener:change#file), so what is unproven is the forwarding itself, not the opening. Same class of gap as D5's trusted-input requirement: it needs a human, not a better harness."
-  },
-  {
-   "path": "listener:click#clear-format",
-   "risk": "LOW -- dispatches enabled:false to all four inline formats. Not driven because finding 059 has every one of those failing with LOK_COMMAND_FAILED on the shipped artifact, so a check here would measure that defect rather than this button."
-  }
- ]
+  "schemaVersion": 1,
+  "release": "E2-C-product-path-coverage",
+  "why": "Three product defects were found by a person on 2026-08-16 (findings 049, 050, and the unbound Ctrl+C) and none of them was reachable by any automated round, because every harness calls the shell directly and none of them went through the product page's own handlers. They were found one at a time, by walking into them. This file turns that into a rule with the same shape as the shell bundle's: every handler and every toolbar action the product page has must be either DRIVEN by a named harness or WAIVED with a reason, and anything else fails the audit. What is uncovered here is where the next one of those defects is.",
+  "rule": "paths(page) - driven - waived must be empty",
+  "auditedPage": "web/e2-editor-app.js",
+  "driven": [
+    {
+      "path": "action:delete-backward",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed as a TOOLBAR BUTTON in a sequence where each action being a no-op yields a different final string: type ABCDEFG, delete-backward x2, move-character-left x2, insert X, move-character-right, delete-forward must leave exactly EDITBTNABCXD, and insert-line-break must put a <text:line-break/> in the saved ODT. The break is taken at a LINE END so the new paragraph starts empty and the oracle can be equality rather than startswith -- startswith would pass a delete-forward no-op. The keyboard path (beforeinput) is a separate check; this is the button, which no round had pressed. Mutation `edit-arrows-swapped` must redden it."
+    },
+    {
+      "path": "action:delete-forward",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed as a TOOLBAR BUTTON in a sequence where each action being a no-op yields a different final string: type ABCDEFG, delete-backward x2, move-character-left x2, insert X, move-character-right, delete-forward must leave exactly EDITBTNABCXD, and insert-line-break must put a <text:line-break/> in the saved ODT. The break is taken at a LINE END so the new paragraph starts empty and the oracle can be equality rather than startswith -- startswith would pass a delete-forward no-op. The keyboard path (beforeinput) is a separate check; this is the button, which no round had pressed. Mutation `edit-arrows-swapped` must redden it."
+    },
+    {
+      "path": "action:insert-line-break",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed as a TOOLBAR BUTTON in a sequence where each action being a no-op yields a different final string: type ABCDEFG, delete-backward x2, move-character-left x2, insert X, move-character-right, delete-forward must leave exactly EDITBTNABCXD, and insert-line-break must put a <text:line-break/> in the saved ODT. The break is taken at a LINE END so the new paragraph starts empty and the oracle can be equality rather than startswith -- startswith would pass a delete-forward no-op. The keyboard path (beforeinput) is a separate check; this is the button, which no round had pressed. Mutation `edit-arrows-swapped` must redden it."
+    },
+    {
+      "path": "action:insert-paragraph-break",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed to create the empty paragraph the recovery route needs; not separately asserted, so it is driven rather than verified -- if it stopped working the recovery route would go red, which is a real if indirect signal."
+    },
+    {
+      "path": "action:insert-text",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "text is typed into the product's own #text field and the product's own button is pressed; the revision must advance by exactly one AND the text must be in the ODT the product then saves. Mutation `insert-text` reads el.text.placeholder instead of el.text.value -- finding 049's shape on this path -- and the check must go red."
+    },
+    {
+      "path": "action:move-character-left",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed as a TOOLBAR BUTTON in a sequence where each action being a no-op yields a different final string: type ABCDEFG, delete-backward x2, move-character-left x2, insert X, move-character-right, delete-forward must leave exactly EDITBTNABCXD, and insert-line-break must put a <text:line-break/> in the saved ODT. The break is taken at a LINE END so the new paragraph starts empty and the oracle can be equality rather than startswith -- startswith would pass a delete-forward no-op. The keyboard path (beforeinput) is a separate check; this is the button, which no round had pressed. Mutation `edit-arrows-swapped` must redden it."
+    },
+    {
+      "path": "action:move-character-right",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed as a TOOLBAR BUTTON in a sequence where each action being a no-op yields a different final string: type ABCDEFG, delete-backward x2, move-character-left x2, insert X, move-character-right, delete-forward must leave exactly EDITBTNABCXD, and insert-line-break must put a <text:line-break/> in the saved ODT. The break is taken at a LINE END so the new paragraph starts empty and the oracle can be equality rather than startswith -- startswith would pass a delete-forward no-op. The keyboard path (beforeinput) is a separate check; this is the button, which no round had pressed. Mutation `edit-arrows-swapped` must redden it."
+    },
+    {
+      "path": "action:save",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the product's own save button; the bytes are captured through a declared URL.createObjectURL shim and must BE an ODT"
+    },
+    {
+      "path": "action:set-bold",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed twice on a collapsed caret; the oracle is the engine's own format state as the page renders it into aria-pressed (bold-can-be-turned-off-again). Since 2026-08-21 its DOCUMENT side is also driven by every-inline-format-reaches-the-document, which measured that bold DOES reach the document -- finding 064, which said otherwise, is retracted. This entry's oracle is still the page's cache and still does not cover the document; it is the wrong oracle for a right answer."
+    },
+    {
+      "path": "action:set-italic",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed ON and then OFF through the product's own toolbar, with a unique marker committed through the product's own insert field after each press and each arm on its own paragraph. The verdict is the SAVED ODT, and EACH ARM IS READ FROM ITS OWN SAVE: each arm is still read at its own time, which is cheap and correct; findings 064 and 065 both claimed a mechanism here and BOTH ARE RETRACTED -- the eight failures were a false negative in inline_styles_of(), which could not see formatting carried on a paragraph's own automatic style, and that is exactly what a marker alone in its paragraph produces. Not aria-pressed either: the page's cache can be written correctly while the document is untouched, and that is a different question from this one. Whether the formatting SURVIVES is asked separately by formatting-survives-the-next-paragraph-break, which passes."
+    },
+    {
+      "path": "action:set-list-none",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the product's own toolbar button, with the caret clicked onto a paragraph in the OPPOSITE state so that doing nothing cannot pass; the verdict is read from the saved ODT and anchored to the target paragraph's exact text, and both neighbours must survive"
+    },
+    {
+      "path": "action:set-list-ordered",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the product's own toolbar button, with the caret clicked onto a paragraph in the OPPOSITE state so that doing nothing cannot pass; the verdict is read from the saved ODT and anchored to the target paragraph's exact text, and both neighbours must survive"
+    },
+    {
+      "path": "action:set-list-unordered",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the product's own toolbar button, with the caret clicked onto a paragraph in the OPPOSITE state so that doing nothing cannot pass; the verdict is read from the saved ODT and anchored to the target paragraph's exact text, and both neighbours must survive"
+    },
+    {
+      "path": "action:set-paragraph-body",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the product's own toolbar button, with the caret clicked onto a paragraph in the OPPOSITE state so that doing nothing cannot pass; the verdict is read from the saved ODT and anchored to the target paragraph's exact text, and both neighbours must survive"
+    },
+    {
+      "path": "action:set-paragraph-heading",
+      "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
+      "how": "the default --action of the smoke run; the revision must advance by exactly one. Since 2026-08-19 also driven by the product-path runner: the product's own toolbar button, with the caret clicked onto a paragraph in the OPPOSITE state so that doing nothing cannot pass; the verdict is read from the saved ODT and anchored to the target paragraph's exact text, and both neighbours must survive"
+    },
+    {
+      "path": "action:set-strikethrough",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed ON and then OFF through the product's own toolbar, with a unique marker committed through the product's own insert field after each press and each arm on its own paragraph. The verdict is the SAVED ODT, and EACH ARM IS READ FROM ITS OWN SAVE: each arm is still read at its own time, which is cheap and correct; findings 064 and 065 both claimed a mechanism here and BOTH ARE RETRACTED -- the eight failures were a false negative in inline_styles_of(), which could not see formatting carried on a paragraph's own automatic style, and that is exactly what a marker alone in its paragraph produces. Not aria-pressed either: the page's cache can be written correctly while the document is untouched, and that is a different question from this one. Whether the formatting SURVIVES is asked separately by formatting-survives-the-next-paragraph-break, which passes."
+    },
+    {
+      "path": "action:set-underline",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed ON and then OFF through the product's own toolbar, with a unique marker committed through the product's own insert field after each press and each arm on its own paragraph. The verdict is the SAVED ODT, and EACH ARM IS READ FROM ITS OWN SAVE: each arm is still read at its own time, which is cheap and correct; findings 064 and 065 both claimed a mechanism here and BOTH ARE RETRACTED -- the eight failures were a false negative in inline_styles_of(), which could not see formatting carried on a paragraph's own automatic style, and that is exactly what a marker alone in its paragraph produces. Not aria-pressed either: the page's cache can be written correctly while the document is untouched, and that is a different question from this one. Whether the formatting SURVIVES is asked separately by formatting-survives-the-next-paragraph-break, which passes."
+    },
+    {
+      "path": "action:undo",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed straight after the insert above; the marker text must be GONE from the saved ODT, read from the document rather than from the revision counter, because D1 covers undo through the shell and this is the button. Mutations `undo` (does nothing) and `undo-twice` (takes back one edit too many) must each turn it red."
+    },
+    {
+      "path": "listener:beforeinput",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a synthesised InputEvent('beforeinput', {inputType: deleteContentBackward}) on #sink; the oracle is that the page cancels it AND the revision advances, i.e. it reached the engine. The input adapter also listens for beforeinput but drops both delete types as `ignored-input-type` without preventing them, which is why this is not a second handler for the same work -- checked before it was written, after the paste episode."
+    },
+    {
+      "path": "listener:change#file",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a File synthesised from a fixture's bytes is assigned to #file and a change event dispatched, through the page's own handler. The oracle is the document the ENGINE ends up holding -- the run saves afterwards and requires text that exists only in the handed-over file, and none from the fixture that was open before. Mutation `open-file` re-opens the fixture while still updating the filename, and is detected."
+    },
+    {
+      "path": "listener:change#fixture",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a different sample is chosen through the product's own picker: the document name becomes the chosen one, the session returns to `ready`, and the new document is actually DRAWN -- ink found ANYWHERE via stable_bands, not at one hardcoded band, because a different sample puts its text on different lines. This is the product's second open on one page and so the only product path near queue-search-after-reopen-wedges. Mutation `sample-picker-does-nothing` must redden it."
+    },
+    {
+      "path": "listener:click",
+      "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
+      "how": "the toolbar's delegated click handler, via a real button.click()"
+    },
+    {
+      "path": "listener:click#clear-format",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "all four inline formats turned ON, the product's own #clear-format button clicked, and a marker committed after it: the first marker must carry all four and the second none. Clearing an already-clear document is the no-op a broken button would pass. The precondition is read from MKALLON's OWN save rather than from the post-clear document: asking a cleared document whether every format WAS on asks it about a moment it no longer records, which is why this looked unbuildable. Same mistake as finding 064, one check over."
+    },
+    {
+      "path": "listener:click#notice-action",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the product's own recovery button, pressed in the state the product OFFERS it in -- reached through the page's own buttons: click past the end of a line, insert-paragraph-break, then a list action on the new empty paragraph (finding 046's cell). The oracle is that the notice is shown and enabled, that pressing it returns the session to ready, and that the product can save a real ODT afterwards. Mutation `rollback` (wired to undo instead) is detected; mutation `toolbar-drops-the-list-action` proves the NOT_ESTABLISHED branch cannot hide a broken toolbar."
+    },
+    {
+      "path": "listener:click#open-file",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the product's own #open-file button is clicked and must forward exactly one click to the hidden #file input. #file.click is shimmed to be COUNTED rather than performed -- the same technique this runner already uses for download anchors -- so no OS chooser opens and no human is needed. Registered as un-drivable until 2026-08-21; that was wrong, and waiving it would have closed the row without walking the path. What the chooser hands back is listener:change#file's job. Mutation `open-button-forwards-nowhere` must redden it."
+    },
+    {
+      "path": "listener:copy",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a ClipboardEvent on #sink; the check classifies the outcome by which error the clipboard adapter raises"
+    },
+    {
+      "path": "listener:cut",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a synthesised ClipboardEvent('cut') on #sink; classified by which error the clipboard adapter raises, exactly like the copy check. The removal half is NOT established: the delete runs only after a successful clipboard write and WebDriver refuses that."
+    },
+    {
+      "path": "listener:keydown",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a synthesised KeyboardEvent('keydown', {key: ArrowLeft}) on #sink; the oracle is the page cancelling it and the status line reporting a dispatched caret move. LIMIT, stated because this audit works per LISTENER and cannot see inside one: the same handler also carries Ctrl+Z and Ctrl+S, and neither is exercised. So `driven` here means the handler is reached, not that every branch in it is. Ctrl+Z's own coverage is the undo check, which presses the button rather than the key."
+    },
+    {
+      "path": "listener:pointerdown",
+      "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
+      "how": "a synthesised PointerEvent on #canvas, through the page's own handler; placeCaret is confirmed by the engine"
+    },
+    {
+      "path": "listener:pointermove",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the drag that precedes the copy check"
+    },
+    {
+      "path": "listener:pointerup",
+      "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
+      "how": "ends every click and every drag"
+    },
+    {
+      "path": "listener:resize",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "the desk is narrowed and a resize event dispatched: the canvas backing store must change size AND the document must still be drawn afterwards (725 -> 404 px, ink still found). A relayout that resizes and never repaints leaves a blank page -- finding 062's shape one layer up. Mutation `resize-does-not-repaint` must redden it."
+    },
+    {
+      "path": "listener:mousedown",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a REAL mouse click is delivered onto the set-bold button through CDP Input.dispatchMouseEvent, and then two things are read: document.activeElement must still be the editing sink, and text typed straight afterwards -- with NOTHING restoring focus -- must reach the saved document. The check is the-toolbar-gives-the-keyboard-back. A real click is the whole point: HTMLElement.click() runs no default action and therefore never moves focus, so every synthetic press in this file would pass on a page where this is broken -- which is exactly how finding 066 survived until an operator hit it. CHROME ONLY; Firefox has no CDP here and the check reports NOT_ESTABLISHED rather than passing. Mutation `focus` reverts the two lines and the check must go red."
+    }
+  ],
+  "waived": [],
+  "uncovered": [
+    {
+      "path": "listener:blur",
+      "risk": "LOW -- endDrag(null). A check EXISTS (`an-aborted-gesture-stops-selecting`, with a positive control) and it reports NOT_ESTABLISHED rather than passing. Measured 2026-08-21: four gesture shapes were tried -- split evaluate() calls, one-script mid-gesture abort, LINE_INK-derived coordinates, and the stable_bands derivation the copy/cut drags use -- and on EVERY one the no-abort CONTROL arm failed to extend the selection as read through the product's own gesture affordance. So the observable, not the gesture, is what is unproven here: the copy and cut checks do produce a range at their own named line, so a range is reachable; reading it back through button.disabled is what has not been made to work. Registered as uncovered rather than driven BECAUSE the check cannot yet fail: the `gesture-abort-not-wired` mutation, which unwires pointercancel entirely, leaves it abstaining rather than red. Next step is a direct selection observable (the copy path reports codePoints) instead of the affordance."
+    },
+    {
+      "path": "listener:pointercancel",
+      "risk": "LOW -- endDrag(null). A check EXISTS (`an-aborted-gesture-stops-selecting`, with a positive control) and it reports NOT_ESTABLISHED rather than passing. Measured 2026-08-21: four gesture shapes were tried -- split evaluate() calls, one-script mid-gesture abort, LINE_INK-derived coordinates, and the stable_bands derivation the copy/cut drags use -- and on EVERY one the no-abort CONTROL arm failed to extend the selection as read through the product's own gesture affordance. So the observable, not the gesture, is what is unproven here: the copy and cut checks do produce a range at their own named line, so a range is reachable; reading it back through button.disabled is what has not been made to work. Registered as uncovered rather than driven BECAUSE the check cannot yet fail: the `gesture-abort-not-wired` mutation, which unwires pointercancel entirely, leaves it abstaining rather than red. Next step is a direct selection observable (the copy path reports codePoints) instead of the affordance."
+    }
+  ]
 }

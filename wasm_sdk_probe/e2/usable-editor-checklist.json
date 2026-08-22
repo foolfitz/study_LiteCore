@@ -1,266 +1,272 @@
 {
- "schemaVersion": 1,
- "release": "usable-editor-acceptance",
- "writtenOn": "2026-08-17",
- "goal": "一個可以讀檔、擁有基本編輯功能的編輯器。2026-08-17 使用者裁示的短期目標。",
- "why": "在這份清單之前，短期目標沒有寫下來的驗收條件，工作是從 findings 和 relink queue 長出來的，所以感覺零碎。但真正的原因比「沒有清單」深一層：產品介面從來沒有被設計過，它是從『驗證需要哪十五個動作可達』長出來的——工具列上有「游標左移」「游標右移」按鈕，沒有任何使用者需要那種東西。所以這份清單刻意以『使用者做得到什麼』為單位，不是以按鈕或動作 id 為單位；照現有頁面反推會把那個累積物固化成規格。",
- "rule": "每一格都必須指到一個真的存在的東西：`check`（tools/run_e2_c_product_path.py 裡的檢查 id）、`queue`（e2/relink-queue-v3.json 的項目 id）、或 `finding`（findings/ 底下的編號）。tools/check_usable_editor.py 會逐一解析；指到不存在的東西就是紅的。一份不會紅的清單不是清單。",
- "statuses": {
-  "done": "有一格會失敗的檢查在跑，而且它是綠的",
-  "unverified": "產品裡有，但沒有任何檢查驅動它——這棵樹被這個形狀咬過四次",
-  "missing": "使用者做不到",
-  "blocked": "要一次 relink 才做得到",
-  "partial": "有會失敗的檢查在跑而且是綠的，但它只涵蓋這一格的一部分；沒涵蓋的部分在 note 裡具名。不要把它讀成 done。"
- },
- "capabilities": [
-  {
-   "id": "open-my-own-file",
-   "user": "打開我自己電腦上的 .odt",
-   "status": "done",
-   "evidence": [
-    {
-     "check": "product-opens-a-document-the-user-chose"
-    }
-   ]
+  "schemaVersion": 1,
+  "release": "usable-editor-acceptance",
+  "writtenOn": "2026-08-17",
+  "goal": "一個可以讀檔、擁有基本編輯功能的編輯器。2026-08-17 使用者裁示的短期目標。",
+  "why": "在這份清單之前，短期目標沒有寫下來的驗收條件，工作是從 findings 和 relink queue 長出來的，所以感覺零碎。但真正的原因比「沒有清單」深一層：產品介面從來沒有被設計過，它是從『驗證需要哪十五個動作可達』長出來的——工具列上有「游標左移」「游標右移」按鈕，沒有任何使用者需要那種東西。所以這份清單刻意以『使用者做得到什麼』為單位，不是以按鈕或動作 id 為單位；照現有頁面反推會把那個累積物固化成規格。",
+  "rule": "每一格都必須指到一個真的存在的東西：`check`（tools/run_e2_c_product_path.py 裡的檢查 id）、`queue`（e2/relink-queue-v3.json 的項目 id）、或 `finding`（findings/ 底下的編號）。tools/check_usable_editor.py 會逐一解析；指到不存在的東西就是紅的。一份不會紅的清單不是清單。",
+  "statuses": {
+    "done": "有一格會失敗的檢查在跑，而且它是綠的",
+    "unverified": "產品裡有，但沒有任何檢查驅動它——這棵樹被這個形狀咬過四次",
+    "missing": "使用者做不到",
+    "blocked": "要一次 relink 才做得到",
+    "partial": "有會失敗的檢查在跑而且是綠的，但它只涵蓋這一格的一部分；沒涵蓋的部分在 note 裡具名。不要把它讀成 done。"
   },
-  {
-   "id": "save-it-back",
-   "user": "把改過的檔案存回我的電腦",
-   "status": "done",
-   "evidence": [
+  "capabilities": [
     {
-     "check": "product-save-button-writes-a-real-odt"
+      "id": "open-my-own-file",
+      "user": "打開我自己電腦上的 .odt",
+      "status": "done",
+      "evidence": [
+        {
+          "check": "product-opens-a-document-the-user-chose"
+        }
+      ]
+    },
+    {
+      "id": "save-it-back",
+      "user": "把改過的檔案存回我的電腦",
+      "status": "done",
+      "evidence": [
+        {
+          "check": "product-save-button-writes-a-real-odt"
+        }
+      ]
+    },
+    {
+      "id": "type-chinese",
+      "user": "用注音／拼音打中文，而且不只第一次",
+      "status": "done",
+      "evidence": [
+        {
+          "check": "every-ime-commit-reaches-the-document"
+        },
+        {
+          "finding": "050"
+        }
+      ]
+    },
+    {
+      "id": "copy-and-paste",
+      "user": "複製選取的文字，貼上剪貼簿的文字",
+      "status": "done",
+      "evidence": [
+        {
+          "check": "ctrl-c-asks-the-engine"
+        },
+        {
+          "check": "ctrl-v-reaches-the-document"
+        }
+      ]
+    },
+    {
+      "id": "see-where-the-caret-is",
+      "user": "看得到游標在哪，看得到我選了哪一段",
+      "status": "done",
+      "note": "2026-08-17 修好：paint() 在 tile 之上畫 caret 與 selection 矩形,資料本來就送到了（editorState.caret／selection.rectangles),頁面只是沒有畫。選取用 multiply 疊色所以字還讀得到;選取存在時不畫 caret。tile 會被快取,所以游標移動不需要再向引擎要一次像素。**2026-08-18 從 done 降回 unverified**:游標確實有畫(對著 caret 突變鏡像做逐列隔離,第 276-283 列、八列一像素寬,只在畫游標那一行還在時出現),但這一格的檢查用寫死的視窗比例取樣,綠不綠取決於瀏覽器視窗多大——finding 060。產品沒有迴歸;是判準不夠強。修法與 put-the-caret-where-i-clicked 是同一個:錨定在引擎回報的文字矩形上。**2026-08-18 收復**:判準改成**錨定在那一行自己的墨水**——同一行點兩次(靠近行首、遠過行尾),文字不會動,所以多出墨水的那一欄是游標的第二個位置、少掉的那一欄是第一個。不再取固定的視窗比例,所以視窗大小不再改變判定(060 的成因)。",
+      "evidence": [
+        {
+          "check": "the-caret-is-drawn-where-it-was-placed"
+        },
+        {
+          "finding": "058"
+        },
+        {
+          "finding": "060"
+        }
+      ]
+    },
+    {
+      "id": "put-the-caret-where-i-clicked",
+      "user": "點一下，游標就到那裡",
+      "status": "done",
+      "note": "2026-08-18:這一格從『被驅動但不是主詞』變成有自己的檢查。判準**錨定在那一行自己的墨水範圍**,不需要引擎的座標、也不需要 block identity(那條線已移到長期):靠近行首點一下,游標要落在該行墨水的**前四分之一**;遠過行尾點一下,要落在**後四分之一**。忽略 x 的、固定偏移的、落錯行的,三種壞法都會紅——`caret-ignores-x` 突變就是第三種以外的第一種,而它在舊的帶狀計數判準下是綠的。**沒涵蓋**:052 的殘留(點在所有行框之外)有自己的佇列項。",
+      "evidence": [
+        {
+          "check": "the-caret-lands-where-the-click-was"
+        },
+        {
+          "finding": "048"
+        },
+        {
+          "finding": "052"
+        },
+        {
+          "finding": "060"
+        }
+      ]
+    },
+    {
+      "id": "correct-a-typo-from-the-keyboard",
+      "user": "按 Backspace／Delete 改掉打錯的字，用方向鍵移動游標",
+      "status": "done",
+      "note": "2026-08-17 修好：頁面接了 beforeinput 的兩個 delete 型別與 keydown 的左右鍵。刻意接在頁面而不是 adapter——adapter 的職責是送出文字，刪除是有 wire id 的編輯動作；而且動手前先確認過 adapter 真的沒有處理這兩個型別（貼上那次的教訓）。上下鍵與 Home/End 沒有接，因為它們在產品的 wire id 表裡不存在。",
+      "evidence": [
+        {
+          "check": "backspace-and-arrows-reach-the-document"
+        },
+        {
+          "queue": "queue-typing-path-has-no-delete-or-arrows"
+        }
+      ]
+    },
+    {
+      "id": "turn-formatting-off",
+      "user": "把粗體關掉，不只是打開",
+      "status": "done",
+      "note": "2026-08-17 第一次驅動 set-bold 就掉出 finding 059:045 的修法出貨之後,四個 inline 格式全部 LOK_COMMAND_FAILED,而且每按一次就把 session 打進 recoverable-error。v2 上粗體會套用只是忽略 enabled;v3 上完全不能用。所以這一格不是『關不掉』,是『開也開不了』,而且要一次連結。產品頁的 enabled 那一行已經修好（由 editorState.format 驅動 B/I,外加一顆清除格式覆蓋四個),但在引擎修好之前它是無效的。**2026-08-18 兩側都量完了,而且答案是壞的那個**:核心在 WASM 上也照做了——四個 slot 各自的標記回來都掛著正好是它按下去的那個樣式,不派送命令的對照臂沒有樣式（findings/evidence/059/wasm/)。所以出貨的產品是按下 B 把字變粗,然後叫使用者回到檢查點——叫人丟掉工作去撤銷一個成功的改動。**處置那一半已經修了(殼層 v17,SPEC E2-C 2.6c,不需連結)**:LOK_COMMAND_FAILED 現在回 review 而不是 rollback,佇列不擋、復原還能用,提示文字也和 046 那一組分開。**這一格仍然是 blocked**,因為讓格式真的能用是引擎那一半,那要一次連結。**2026-08-18 從 blocked 改成 partial**:v17 之後佇列不再被擋,兩次按下都跑得完,`bold-can-be-turned-off-again` **變綠了**——把粗體關掉這件事,從使用者的位置看現在做得到,而且是量到的。**沒涵蓋的部分具名**:產品仍然把一個成功的動作回報成失敗（`a-format-that-worked-is-not-reported-as-failed`,為 finding 059 宣告 KNOWN_RED),那要引擎那一半、要一次連結。**不要把這一格讀成做完了**:使用者按下 B 之後仍然會看到一則說它失敗的訊息。**2026-08-19 連結之後：done。** 059 的引擎那一半修好並出貨了（artifact `296f3ea727725fbb`）。引擎不再拿核心的 `success` 當判準——那個欄位實測和「呼叫者的要求有沒有被照做」**方向相反**——改成比對**觀察到的狀態與要求的狀態**（`inlineFormatArgumentResolved`）。`a-format-that-worked-is-not-reported-as-failed` 從 KNOWN_RED 變綠，而且是 runner 自己喊出來的（宣告過期會讓整輪紅）。順帶：底線與刪除線現在也有 state cache 了——它們一直都在核心的 `GetKitUnoCommandList` 裡，引擎裡那句說它們不在的註解是假的。 **2026-08-21 從 done 改回 partial，理由是 finding 064。**T1 第一次從**文件那一側**問這件事：把游標放在收合位置、按下工具列的 B／I／U／S，然後用產品自己的插入欄位打一段標記文字，存檔——**四個格式、開與關八個臂，標記身上一個格式都沒有。**而 `bold-can-be-turned-off-again` 在**同一輪**裡是綠的，因為它的判準是 `aria-pressed`：頁面對「引擎說了什麼」的快取被寫對了，文件從來沒有被改到。**歸因已經做完，不是猜的**：同一顆 artifact `29ec627b` 上用 D1 自己的 harness 問同一個問題，四個格式兩個方向**八個臂全部正確**——所以引擎沒有迴歸，壞的是產品那條路（`harness-path-vs-user-path`）。機制**尚未確立**，候選是產品的 `run()` 在設格式與打字之間插進的那次 `renderDocument()`，但沒有量過，不得指認。新檢查 `every-inline-format-reaches-the-document` 已宣告 KNOWN_RED 並具名 064。**這一格因此不能算做完**：使用者按下 B 之後，接下來打的字不會是粗體。**2026-08-21（同日）064 被改判，但這一格留在 partial。**把機制量完之後：格式**有**到打出來的字上——`runner-sequence-saved` 那一臂每一臂各存一次檔，四個格式兩個方向**八個臂在打字當下全部正確**，和 D1 完全一致。原本量到的「八個臂全錯」是判讀取自**八個臂跑完之後的那一次存檔**，而每一臂開頭的 `insert-paragraph-break` 正好會把前一臂標記的格式拿走——**檢查為了打敗併段陷阱而加的隔離手段，變成了那個陷阱更糟的第二版**。`every-inline-format-reaches-the-document` 已改成每一臂讀自己的存檔，064 的 `KNOWN_RED` 撤除。**改判撤掉了原本判 partial 的理由，同一輪又補上一個新的**：同一輪掉出 [065](../findings/065-pressing-enter-takes-the-formatting-off-the-text-you-just-typed.md)——在剛套過格式那段字的結尾按 Enter，那段字的格式會被拿走（span 從 1 掉到 0，而且會跟著游標跑到新段落）。那件事由新檢查 `formatting-survives-the-next-paragraph-break` 驅動並宣告 `KNOWN_RED`，層級尚未歸因（斷行是一句 `.uno:InsertPara`，只排除了產品那一側）。所以「把粗體關掉」這件事使用者做得到、也真的改到文件了——那一半是 done；**沒涵蓋的部分具名：打完粗體字之後按 Enter，那段字就不再是粗體了。**一個帶著 `KNOWN_RED` 檢查的格子不算做完，這是 2026-08-18 那次「不要把這一格讀成做完了」的同一條規矩。**2026-08-22：連 065 也撤銷了，這一格回到 done。**兩張單是同一個錯誤的兩個角度，而錯的既不是產品也不是引擎，是判讀工具：`inline_styles_of()` 停在「標記不在 `<text:span>` 裡就沒有格式」，而 ODF 對**整段一致**的段落是把字元屬性寫進**段落自己的 automatic style**、完全不產生 span 的。「標記獨自待在自己的段落裡」正是每一臂都會產生的狀態，所以每一個標記都被讀成沒有格式。修好之後，連原本「一次存檔讀八個答案」的讀法都是**四個格式兩個方向全對**。`formatting-survives-the-next-paragraph-break` 留著但已不是 `KNOWN_RED`——它現在是綠的，而且它問的那一句（按 B、打字、按 Enter，那段字還是粗體）在這之前沒有任何檢查問過。**是 operator 抓到的**：他在畫布上看得到粗體，存檔讀回來是 `bold: false`；這棵樹裡沒有任何自動化抓得到，因為每一個有機會抓到的檢查都在同一個函式的下游。",
+      "evidence": [
+        {
+          "check": "bold-can-be-turned-off-again"
+        },
+        {
+          "check": "a-format-that-worked-is-not-reported-as-failed"
+        },
+        {
+          "finding": "059"
+        },
+        {
+          "finding": "045"
+        },
+        {
+          "check": "every-inline-format-reaches-the-document"
+        },
+        {
+          "check": "formatting-survives-the-next-paragraph-break"
+        }
+      ]
+    },
+    {
+      "id": "undo-a-mistake",
+      "user": "做錯了可以復原",
+      "status": "done",
+      "evidence": [
+        {
+          "check": "product-undo-button-reverses-the-last-edit"
+        }
+      ]
+    },
+    {
+      "id": "redo",
+      "user": "復原之後可以重做",
+      "status": "blocked",
+      "note": "引擎有 .uno:Redo，但 EDITOR_V2_ACTION_IDS 只有十五個動作、不含 redo，而 wire id 1-15 已用滿。加它要新 id、引擎對應、manifest 條目——一次 relink。SPEC E2-C 4.2 也把 Redo 列在明確不承諾。",
+      "evidence": [
+        {
+          "queue": "queue-redo-and-line-movement-need-wire-ids"
+        }
+      ]
+    },
+    {
+      "id": "move-by-line",
+      "user": "用上下鍵、Home／End 移動游標",
+      "status": "blocked",
+      "note": "與 redo 同一格：引擎實作了（postKeyEvent 的 Key::UP 等，產品 build 的前處理器確認可達），但產品的 wire id 表沒有它們。",
+      "evidence": [
+        {
+          "queue": "queue-redo-and-line-movement-need-wire-ids"
+        }
+      ]
+    },
+    {
+      "id": "keyboard-shortcuts",
+      "user": "用 Ctrl+Z／B／I／U／S 打字，而不是只能按工具列",
+      "status": "done",
+      "note": "2026-08-17：Ctrl+Z 與 Ctrl+S 已接（Ctrl+S 必須 preventDefault，否則開的是瀏覽器的存檔對話框，那是比不回答更糟的回答）；左右鍵已接。**沒涵蓋的部分**：Ctrl+Z／Ctrl+S 兩個分支沒有被任何檢查驅動——覆蓋率審核是以 listener 為單位的，看不進一個 handler 裡面，這一點寫在登記表裡。**Ctrl+B/I/U/S 刻意不接**：finding 059 之下那四個動作在出貨的引擎上必定失敗，把它們接到鍵盤只是把同一個缺陷複製到第二條路徑上。**2026-08-19：done。** 059 修好之後 Ctrl+B／I／U 接上了——它們走的是工具列按鈕**同一個** `editorAction`，所以捷徑和按鈕不會各走各的，包含那個從引擎狀態導出的`enabled`。`the-keyboard-reaches-the-document` 驅動的是鍵盤本身：Ctrl+B 與 Ctrl+U **各開各關一次**（開得起來也關得掉，而底線在這次連結給它 state cache 之前根本答不出來）、Ctrl+Z 把打進去的標記從**存出來的文件**裡拿掉、Ctrl+S 在沒有人按存檔鈕的情況下寫出那份文件。**列句改了**：拿掉 Ctrl+A。全選不在那十五個動作裡，而用幾何範圍代替是**量過**的——`selectRange` 從 (0,0) 到文件寬高回報成功約半秒，引擎仍回報選取是收合的，畫布上一點選取色都沒有。一個看起來成功、實際什麼都沒選的捷徑比沒有更糟，所以刻意不接（佇列項 `queue-no-select-all-action`）。",
+      "evidence": [
+        {
+          "check": "the-keyboard-reaches-the-document"
+        },
+        {
+          "check": "backspace-and-arrows-reach-the-document"
+        },
+        {
+          "finding": "059"
+        },
+        {
+          "queue": "queue-no-select-all-action"
+        }
+      ]
+    },
+    {
+      "id": "cut",
+      "user": "剪下",
+      "status": "partial",
+      "note": "2026-08-17 接上了：cut = 複製再刪除，順序刻意如此——複製失敗就不該把文字刪掉。**沒涵蓋的部分**：文字有沒有真的被移除。刪除只在剪貼簿寫入成功之後才跑，而 WebDriver 拒絕剪貼簿寫入，所以那一半屬於 D5（要真人）。**2026-08-19 量到底了，而答案是：剪下剪不掉東西。** 給 harness 開了剪貼簿權限（`Browser.grantPermissions` 加 `Emulation.setFocusEmulationEnabled`——只給權限不夠，`clipboard.writeText` 還要求文件是聚焦的）之後，複製成功了、刪除跑了，而刪除**每次都被拒絕**：`delete-backward` 在這份合約裡宣告成 caret-only，而剪下必然在範圍上。所以今天的「剪下」實際上等於「複製」。**而且掉出 finding 063**：那個拒絕原本會讓 session 進入 `recoverable-error`、通知叫使用者重新開啟並宣告未存內容會消失——**對一個自己聲明「什麼都沒派送、文件沒有改變」的拒絕**。而且完全沒有訊息，錯誤被一個空的 `.catch` 吃掉。**處置與沉默都修好了**（殼層 v25，不需連結）：session 保持 `ready`，使用者看得到被拒絕的理由。檢查現在驗的就是這個——拒絕要被回報、文件要一個字都沒動、session 要還活著。**沒涵蓋（所以仍是 partial）**：把文字真的移除。那要先**量過**範圍刪除再寫進manifest 的 gestures，或加一個刪除選取的動作（佇列項 `queue-cut-cannot-remove-text`，不需連結）。**這條路以前不是被走錯，是走不到**：harness 沒有剪貼簿，刪除那一半從來沒跑過。 **2026-08-21：量到底了，而答案是「放寬 manifest 不夠」。**先寫 PREDICTION，再用一份**鏡像**的 manifest 把 `delete-backward` 的兩個 range bit 一起授予（`dist/` 沒有被寫、`probe.wasm` 與 `29ec627b` 逐位元相同；兩個 bit 必須一起給，因為 `probe_engine.cpp:4364-4374` 對未分類的選取要求**兩個都有**）。結果：`EDITOR_FORMAT_GESTURE_UNSUPPORTED` **消失了**——證實 caret-only 的宣告就是舊拒絕的來源——但**選取屏障**接手拒絕：`EDITOR_STATE_UNAVAILABLE：selection barrier requires a callback-confirmed collapsed caret`，session 進 `recoverable-error`，而本來要回答「文字有沒有被移除」的那次存檔被 `EDITOR_NOT_READY` 拒絕。**所以引擎能不能刪掉一個範圍，仍然沒有量到。**兩輪一致。**這一格因此仍是 partial，但理由從「沒人量過」變成「量過了，處方不是那個」**：要嘛引擎的屏障要能確認**範圍**，要嘛加一個刪除選取的動作——**兩者都是引擎工作，都要一次連結**，所以這一項不再是「不需連結」的工作，改與 redo／上下鍵／select-all 一起放進 ABI 提案。證據：`findings/evidence/queue-cut-cannot-remove-text/`（PREDICTION.md ＋ RESULT.md）。",
+      "evidence": [
+        {
+          "check": "ctrl-x-is-handled-by-the-product"
+        },
+        {
+          "finding": "063"
+        },
+        {
+          "queue": "queue-cut-cannot-remove-text"
+        }
+      ]
+    },
+    {
+      "id": "format-a-paragraph",
+      "user": "把一段變成標題、內文、項目符號或編號",
+      "status": "done",
+      "note": "2026-08-19：五個動作全部接進回歸網，走產品自己的工具列按鈕（`format-a-paragraph-changes-that-paragraph`）。三條紀律都在：每一臂打在**處於相反狀態**的段落上，所以什麼都不做的實作過不了；判準錨在**目標段落的確切文字**上，不是全文件的存在性檢查（語料本來就有標題、項目清單、編號清單各一，全文件 grep 在「改錯段落」時也會過）；**鄰居要活著**（046 的形狀）。瞄準用產品自己的路——點畫布——並由頁面自己的像素定位：掃出墨水列的帶，和產品剛存出的那份文件的行一對一對上；對不上就報 NOT_ESTABLISHED，不猜。**量出來的一個更正**：產品的標題動作寫的是 `<text:p text:style-name=\"Heading_20_1\">`，不是 `<text:h>`——以元素名為準的判準會把一個**會動**的標題動作判成沒動，第一版就是這樣。三個突變都被抓到：吞掉動作、按鈕送錯 action、動作打在鄰居身上。**沒涵蓋（所以是 partial）**：範圍手勢。五臂都是收合游標，一次轉換多個段落被 gesture mask 擋掉（佇列項 `p1-2-gesture-mask-inherited`）；空白行那一格屬於 046 的佇列項，不在這一格。**順帶量到的一個具名極限**（寫在 `caret-off-by-one-line` 突變旁）：把每一次點擊往下位移一整行，兩格游標檢查**都還是綠的**——它們的判準是水平的，所以游標那兩格涵蓋的是**哪一欄**，**哪一行**只由這一格的鄰居條款涵蓋。**2026-08-19：done。** 範圍手勢補上了，而原本說它被 gesture mask 擋掉的那句話**是錯的**——被擋的是**四個 inline 格式**（宣告 `[\"collapsed\"]`），五個段落動作三種手勢全都宣告了，profile 的 `crossParagraphDisposition` 也是 `verify-every-block`。沒有東西擋著，只是沒有人驅動過。第六臂拖過**兩個**段落再按「移除清單」：兩段都要變、範圍外的鄰居都要活著、而且產品自己得**願意提供**那顆按鈕（按鈕若被 grey 掉，使用者根本做不到，那一臂就沒有東西可量）。",
+      "evidence": [
+        {
+          "check": "format-a-paragraph-changes-that-paragraph"
+        },
+        {
+          "finding": "046"
+        },
+        {
+          "queue": "queue-quantifier-check-for-multi-block-readback"
+        }
+      ]
+    },
+    {
+      "id": "recover-from-an-error",
+      "user": "出錯的時候救得回來——回到哪一點，按下按鈕之前產品就講清楚；最壞是上次存檔（沒存過＝剛開檔的樣子）",
+      "status": "done",
+      "note": "2026-08-19：這一格重新有了誘發手段，也重新被量。判準**不是**「之後存得出一份合法的 ODT」——那個在「重開一份原封不動的 authority bytes」時也會過。判準是**產品自己的宣告**：按下按鈕**之前**，`#s-checkpoint` 就已經寫著「有（rN）」／「寫入失敗」／「無」，三分支各自要求不同的兌現。**外加一條能力條款**（fable 2026-08-18 裁決）：誘發路徑是 dirty 狀態下的選取手勢時，宣告不得是「無」——沒有這一條，一個退化成 no-op 的 `_checkpointBeforeSelection` 會宣告「無」、兌現「無」，形式上完全一致。實測證實了這一點：`checkpoint-before-selection-noop` 突變下 `declarationHonoured` 仍是 true，紅的是能力條款。**實測結果**：分支落在「有（r2）」，已存與未存的兩個標記**都回來了**。**誘發器的一個更正**（花了一輪）：拖曳**本身不會**卡死任何東西。038 自己2026-08-13 的更正就說了，選取會回來、引擎還活著，殺掉它的是**選取之後的第一次讀取**；而 `_drain` 在動作結果自帶 `state` 時會短路掉那次 getState。實測：拖曳後健康了 77 秒，然後一次點擊 → busy → 約 30 秒後 recoverable-error。**沒涵蓋（所以是 partial）**：「寫入失敗」那一分支**產品沒有呈現**——殼層已經把這個判斷做出來（`recovery-notice.js` 的 `checkpointFailed`），產品的通知只有 `hasCheckpoint` 的兩分支，所以那個情況會被說成「沒有檢查點」。finding 061，佇列項 `queue-checkpoint-write-failure-reads-as-nothing-to-rescue`。**還欠一個與缺陷無關的第二誘發器**：現在的覆蓋率綁在一個**未修的上游缺陷**（038）上，038 修好那天誘發器會再消失一次——檢查會報 NOT_ESTABLISHED 並具名說是 038，不會靜靜通過，但佇列項 `queue-recovery-inducer-depends-on-an-unfixed-defect` 記著這筆債。**2026-08-19 補完：done。** 061 修好了——產品頁不再自己重新推導那則通知，改用殼層的`recoveryNotice(snapshot)`，三分支照它的判斷走。「寫入失敗」那一格現在寫的是「我們試著先保住你的工作，那次存檔失敗了」，不再是「沒有檢查點」。順帶把 finding 054 的根源也收掉了：按鈕的 disabled 從同一個模組的 `restartPossible` 來，不再讀一個沒有人寫的欄位——**054 和 061 是同一次重新推導生出來的兩個缺陷**。**判準改成結構式的**（fable 2026-08-19 的建議）：產品把它渲染的判斷蓋在 `#notice[data-rescue]` 上，檢查要求**兩個介面一致**（狀態列的藥丸與通知），而不是比對措辭——比對措辭的版本會在別人改一次句子時**靜靜變綠**。由 `notice-does-not-declare-its-decision` 突變守著；而 `checkpoint-write-fails` 現在宣告成**不應該被偵測**（產品已經處理得對了），它哪天又被偵測到，那一輪會喊。**留著的具名債**：現在的復原覆蓋率仍綁在未修的 038 上，欠一個與缺陷無關的第二誘發器（佇列項 `queue-recovery-inducer-depends-on-an-unfixed-defect`）。那是覆蓋率的韌性問題，不是使用者做不到的事——038 修好那天檢查會報 NOT_ESTABLISHED 並具名，不會靜靜通過。",
+      "evidence": [
+        {
+          "check": "recovery-returns-what-the-product-promised"
+        },
+        {
+          "finding": "038"
+        },
+        {
+          "finding": "061"
+        },
+        {
+          "finding": "054"
+        },
+        {
+          "queue": "queue-recovery-inducer-depends-on-an-unfixed-defect"
+        }
+      ]
+    },
+    {
+      "id": "edit-a-real-length-document",
+      "user": "開一份二十頁的文件，而且還能編輯",
+      "status": "done",
+      "note": "2026-08-19 第一次被量。預測先提交（commit `7b4a38c`，語料、探針、檢查都還不存在），三條登記的預測**兩條成立、一條錯兩個量級**。**可用性是綠的**：按鍵到看得見墨水，1 頁 60 ms、5 頁 62 ms、20 頁 127 ms，門檻 1000 ms 在牆之前一次都沒被逼近——`editing-a-long-document-stays-responsive`。門檻是事前登記的，而且證明得了它會咬：`slow-repaint` 突變下量到 1.85 秒、紅。**誠實是紅的，而且是 KNOWN_RED（finding 062）**：畫布高度超過約 32,767 px 之後，產品畫出一張**全白**的頁面、狀態回報 `ready`、一則訊息都沒有。**同一份 20 頁文件，在 1× 螢幕上正常、在 2× 螢幕上全白**——所以這是『文件乘上螢幕』的性質，不是文件的性質，而 headless 的 dpr=1 是最寬鬆的那一格。**這道牆不是 canvas 元素的上限**：同機同兩個瀏覽器實測 canvas 上限是 65,535，所以 32,767 是 render 這條路自己的 16 位元限制。**層級當天量完，而且當天更正過一次**（`evidence/062/layer/`）：答案是**引擎側**——一次**冷啟動**的 render 只要高過 32,767 就回一張尺寸正確、內容全零、而且回報成功的 buffer。兩個寬度（45 MB 與 90 MB）在**同一個高度**翻面，所以是高度不是記憶體；32,767 = 2^15−1。頁面那三步都量過都沒問題。**但仍然不擋連結**：沒有東西逼產品把整份文件要成一張 tile，分段繪製就避得開，那是頁面側的改動（佇列項 `queue-long-document-tile-request-exceeds-the-engine-limit`）。**第一版判成頁面側是錯的**，錯因是探針在同一個 session 裡由小到大掃高度，第一次 render 在上限以下就把引擎洗白了——教訓寫在證據 README 裡。另外量到一道與長度無關的：**一個變高的編輯，畫布不跟**——2 頁的文件插入 3,336 個字元後畫布不動，存檔重開才變成 3 頁的高度（佇列項 `queue-canvas-does-not-follow-a-document-that-grew`，頁面側，不需連結）。**原本這一列寫的『瀏覽器 canvas 上限約 32767px，A4 大約十幾頁』兩個數字都是推的**：上限實測是 65,535，而 A4 在 dpr 1 這個視窗上是 33 頁、dpr 2 是 17 頁。牆的位置對了一半，理由完全不同。**2026-08-19 當天修好了一半**：頁面改成**分段繪製**（每段不超過 32,767），35 頁在 1× 與 20 頁在 2× 都畫得出來了（原本都是全白），而且量過沒有接縫——跨過分段邊界那一帶完全不透明而且有墨水，最底下那一段也在。殼層 v19。檢查拆成兩格：`a-long-document-is-drawn-or-the-product-says-it-is-not` 現在是**綠的**，並由 `one-tile-for-the-whole-document` 突變守著（把上限拿掉，白紙就回來——而且產品現在會說「重繪失敗：TILE_NOT_PAINTED」，不再是靜靜給白紙）。**另一半沒修，而且頁面修不了**：`the-canvas-follows-a-document-that-grew` —— 一個變高的編輯之後畫布不跟。`getDocumentSize` 只在開檔那一刻被呼叫過（`probe_engine.cpp:2520`），而 SDK 沒有任何操作可以重讀它，所以**沒有東西告訴頁面文件變高了**。那一格是 KNOWN_RED，綁 finding 062，**引擎側、要連結**。**2026-08-19 連結之後：done。** 成長那一半也修好了——引擎現在在 paint 的回覆裡帶上文件當下的尺寸（`documentSizeChanged`），SDK 順手更新 handle，頁面看到尺寸變了就重新 layout 並重畫。`the-canvas-follows-a-document-that-grew` 從 KNOWN_RED 變綠，由 `ignore-a-document-that-grew` 突變守著。**留著的具名極限**：引擎本身仍然不會畫高過 32,767 的 tile，而且會回報成功——產品是用分段繞開它，不是它被修好了（finding 062、佇列項 `queue-engine-reports-success-for-an-unpainted-tile`）。",
+      "evidence": [
+        {
+          "check": "editing-a-long-document-stays-responsive"
+        },
+        {
+          "check": "a-long-document-is-drawn-or-the-product-says-it-is-not"
+        },
+        {
+          "check": "the-canvas-follows-a-document-that-grew"
+        },
+        {
+          "finding": "062"
+        },
+        {
+          "queue": "queue-engine-reports-success-for-an-unpainted-tile"
+        }
+      ]
     }
-   ]
-  },
-  {
-   "id": "type-chinese",
-   "user": "用注音／拼音打中文，而且不只第一次",
-   "status": "done",
-   "evidence": [
-    {
-     "check": "every-ime-commit-reaches-the-document"
-    },
-    {
-     "finding": "050"
-    }
-   ]
-  },
-  {
-   "id": "copy-and-paste",
-   "user": "複製選取的文字，貼上剪貼簿的文字",
-   "status": "done",
-   "evidence": [
-    {
-     "check": "ctrl-c-asks-the-engine"
-    },
-    {
-     "check": "ctrl-v-reaches-the-document"
-    }
-   ]
-  },
-  {
-   "id": "see-where-the-caret-is",
-   "user": "看得到游標在哪，看得到我選了哪一段",
-   "status": "done",
-   "note": "2026-08-17 修好：paint() 在 tile 之上畫 caret 與 selection 矩形,資料本來就送到了（editorState.caret／selection.rectangles),頁面只是沒有畫。選取用 multiply 疊色所以字還讀得到;選取存在時不畫 caret。tile 會被快取,所以游標移動不需要再向引擎要一次像素。**2026-08-18 從 done 降回 unverified**:游標確實有畫(對著 caret 突變鏡像做逐列隔離,第 276-283 列、八列一像素寬,只在畫游標那一行還在時出現),但這一格的檢查用寫死的視窗比例取樣,綠不綠取決於瀏覽器視窗多大——finding 060。產品沒有迴歸;是判準不夠強。修法與 put-the-caret-where-i-clicked 是同一個:錨定在引擎回報的文字矩形上。**2026-08-18 收復**:判準改成**錨定在那一行自己的墨水**——同一行點兩次(靠近行首、遠過行尾),文字不會動,所以多出墨水的那一欄是游標的第二個位置、少掉的那一欄是第一個。不再取固定的視窗比例,所以視窗大小不再改變判定(060 的成因)。",
-   "evidence": [
-    {
-     "check": "the-caret-is-drawn-where-it-was-placed"
-    },
-    {
-     "finding": "058"
-    },
-    {
-     "finding": "060"
-    }
-   ]
-  },
-  {
-   "id": "put-the-caret-where-i-clicked",
-   "user": "點一下，游標就到那裡",
-   "status": "done",
-   "note": "2026-08-18:這一格從『被驅動但不是主詞』變成有自己的檢查。判準**錨定在那一行自己的墨水範圍**,不需要引擎的座標、也不需要 block identity(那條線已移到長期):靠近行首點一下,游標要落在該行墨水的**前四分之一**;遠過行尾點一下,要落在**後四分之一**。忽略 x 的、固定偏移的、落錯行的,三種壞法都會紅——`caret-ignores-x` 突變就是第三種以外的第一種,而它在舊的帶狀計數判準下是綠的。**沒涵蓋**:052 的殘留(點在所有行框之外)有自己的佇列項。",
-   "evidence": [
-    {
-     "check": "the-caret-lands-where-the-click-was"
-    },
-    {
-     "finding": "048"
-    },
-    {
-     "finding": "052"
-    },
-    {
-     "finding": "060"
-    }
-   ]
-  },
-  {
-   "id": "correct-a-typo-from-the-keyboard",
-   "user": "按 Backspace／Delete 改掉打錯的字，用方向鍵移動游標",
-   "status": "done",
-   "note": "2026-08-17 修好：頁面接了 beforeinput 的兩個 delete 型別與 keydown 的左右鍵。刻意接在頁面而不是 adapter——adapter 的職責是送出文字，刪除是有 wire id 的編輯動作；而且動手前先確認過 adapter 真的沒有處理這兩個型別（貼上那次的教訓）。上下鍵與 Home/End 沒有接，因為它們在產品的 wire id 表裡不存在。",
-   "evidence": [
-    {
-     "check": "backspace-and-arrows-reach-the-document"
-    },
-    {
-     "queue": "queue-typing-path-has-no-delete-or-arrows"
-    }
-   ]
-  },
-  {
-   "id": "turn-formatting-off",
-   "user": "把粗體關掉，不只是打開",
-   "status": "done",
-   "note": "2026-08-17 第一次驅動 set-bold 就掉出 finding 059:045 的修法出貨之後,四個 inline 格式全部 LOK_COMMAND_FAILED,而且每按一次就把 session 打進 recoverable-error。v2 上粗體會套用只是忽略 enabled;v3 上完全不能用。所以這一格不是『關不掉』,是『開也開不了』,而且要一次連結。產品頁的 enabled 那一行已經修好（由 editorState.format 驅動 B/I,外加一顆清除格式覆蓋四個),但在引擎修好之前它是無效的。**2026-08-18 兩側都量完了,而且答案是壞的那個**:核心在 WASM 上也照做了——四個 slot 各自的標記回來都掛著正好是它按下去的那個樣式,不派送命令的對照臂沒有樣式（findings/evidence/059/wasm/)。所以出貨的產品是按下 B 把字變粗,然後叫使用者回到檢查點——叫人丟掉工作去撤銷一個成功的改動。**處置那一半已經修了(殼層 v17,SPEC E2-C 2.6c,不需連結)**:LOK_COMMAND_FAILED 現在回 review 而不是 rollback,佇列不擋、復原還能用,提示文字也和 046 那一組分開。**這一格仍然是 blocked**,因為讓格式真的能用是引擎那一半,那要一次連結。**2026-08-18 從 blocked 改成 partial**:v17 之後佇列不再被擋,兩次按下都跑得完,`bold-can-be-turned-off-again` **變綠了**——把粗體關掉這件事,從使用者的位置看現在做得到,而且是量到的。**沒涵蓋的部分具名**:產品仍然把一個成功的動作回報成失敗（`a-format-that-worked-is-not-reported-as-failed`,為 finding 059 宣告 KNOWN_RED),那要引擎那一半、要一次連結。**不要把這一格讀成做完了**:使用者按下 B 之後仍然會看到一則說它失敗的訊息。**2026-08-19 連結之後：done。** 059 的引擎那一半修好並出貨了（artifact `296f3ea727725fbb`）。引擎不再拿核心的 `success` 當判準——那個欄位實測和「呼叫者的要求有沒有被照做」**方向相反**——改成比對**觀察到的狀態與要求的狀態**（`inlineFormatArgumentResolved`）。`a-format-that-worked-is-not-reported-as-failed` 從 KNOWN_RED 變綠，而且是 runner 自己喊出來的（宣告過期會讓整輪紅）。順帶：底線與刪除線現在也有 state cache 了——它們一直都在核心的 `GetKitUnoCommandList` 裡，引擎裡那句說它們不在的註解是假的。",
-   "evidence": [
-    {
-     "check": "bold-can-be-turned-off-again"
-    },
-    {
-     "check": "a-format-that-worked-is-not-reported-as-failed"
-    },
-    {
-     "finding": "059"
-    },
-    {
-     "finding": "045"
-    }
-   ]
-  },
-  {
-   "id": "undo-a-mistake",
-   "user": "做錯了可以復原",
-   "status": "done",
-   "evidence": [
-    {
-     "check": "product-undo-button-reverses-the-last-edit"
-    }
-   ]
-  },
-  {
-   "id": "redo",
-   "user": "復原之後可以重做",
-   "status": "blocked",
-   "note": "引擎有 .uno:Redo，但 EDITOR_V2_ACTION_IDS 只有十五個動作、不含 redo，而 wire id 1-15 已用滿。加它要新 id、引擎對應、manifest 條目——一次 relink。SPEC E2-C 4.2 也把 Redo 列在明確不承諾。",
-   "evidence": [
-    {
-     "queue": "queue-redo-and-line-movement-need-wire-ids"
-    }
-   ]
-  },
-  {
-   "id": "move-by-line",
-   "user": "用上下鍵、Home／End 移動游標",
-   "status": "blocked",
-   "note": "與 redo 同一格：引擎實作了（postKeyEvent 的 Key::UP 等，產品 build 的前處理器確認可達），但產品的 wire id 表沒有它們。",
-   "evidence": [
-    {
-     "queue": "queue-redo-and-line-movement-need-wire-ids"
-    }
-   ]
-  },
-  {
-   "id": "keyboard-shortcuts",
-   "user": "用 Ctrl+Z／B／I／U／S 打字，而不是只能按工具列",
-   "status": "done",
-   "note": "2026-08-17：Ctrl+Z 與 Ctrl+S 已接（Ctrl+S 必須 preventDefault，否則開的是瀏覽器的存檔對話框，那是比不回答更糟的回答）；左右鍵已接。**沒涵蓋的部分**：Ctrl+Z／Ctrl+S 兩個分支沒有被任何檢查驅動——覆蓋率審核是以 listener 為單位的，看不進一個 handler 裡面，這一點寫在登記表裡。**Ctrl+B/I/U/S 刻意不接**：finding 059 之下那四個動作在出貨的引擎上必定失敗，把它們接到鍵盤只是把同一個缺陷複製到第二條路徑上。**2026-08-19：done。** 059 修好之後 Ctrl+B／I／U 接上了——它們走的是工具列按鈕**同一個** `editorAction`，所以捷徑和按鈕不會各走各的，包含那個從引擎狀態導出的`enabled`。`the-keyboard-reaches-the-document` 驅動的是鍵盤本身：Ctrl+B 與 Ctrl+U **各開各關一次**（開得起來也關得掉，而底線在這次連結給它 state cache 之前根本答不出來）、Ctrl+Z 把打進去的標記從**存出來的文件**裡拿掉、Ctrl+S 在沒有人按存檔鈕的情況下寫出那份文件。**列句改了**：拿掉 Ctrl+A。全選不在那十五個動作裡，而用幾何範圍代替是**量過**的——`selectRange` 從 (0,0) 到文件寬高回報成功約半秒，引擎仍回報選取是收合的，畫布上一點選取色都沒有。一個看起來成功、實際什麼都沒選的捷徑比沒有更糟，所以刻意不接（佇列項 `queue-no-select-all-action`）。",
-   "evidence": [
-    {
-     "check": "the-keyboard-reaches-the-document"
-    },
-    {
-     "check": "backspace-and-arrows-reach-the-document"
-    },
-    {
-     "finding": "059"
-    },
-    {
-     "queue": "queue-no-select-all-action"
-    }
-   ]
-  },
-  {
-   "id": "cut",
-   "user": "剪下",
-   "status": "partial",
-   "note": "2026-08-17 接上了：cut = 複製再刪除，順序刻意如此——複製失敗就不該把文字刪掉。**沒涵蓋的部分**：文字有沒有真的被移除。刪除只在剪貼簿寫入成功之後才跑，而 WebDriver 拒絕剪貼簿寫入，所以那一半屬於 D5（要真人）。**2026-08-19 量到底了，而答案是：剪下剪不掉東西。** 給 harness 開了剪貼簿權限（`Browser.grantPermissions` 加 `Emulation.setFocusEmulationEnabled`——只給權限不夠，`clipboard.writeText` 還要求文件是聚焦的）之後，複製成功了、刪除跑了，而刪除**每次都被拒絕**：`delete-backward` 在這份合約裡宣告成 caret-only，而剪下必然在範圍上。所以今天的「剪下」實際上等於「複製」。**而且掉出 finding 063**：那個拒絕原本會讓 session 進入 `recoverable-error`、通知叫使用者重新開啟並宣告未存內容會消失——**對一個自己聲明「什麼都沒派送、文件沒有改變」的拒絕**。而且完全沒有訊息，錯誤被一個空的 `.catch` 吃掉。**處置與沉默都修好了**（殼層 v25，不需連結）：session 保持 `ready`，使用者看得到被拒絕的理由。檢查現在驗的就是這個——拒絕要被回報、文件要一個字都沒動、session 要還活著。**沒涵蓋（所以仍是 partial）**：把文字真的移除。那要先**量過**範圍刪除再寫進manifest 的 gestures，或加一個刪除選取的動作（佇列項 `queue-cut-cannot-remove-text`，不需連結）。**這條路以前不是被走錯，是走不到**：harness 沒有剪貼簿，刪除那一半從來沒跑過。",
-   "evidence": [
-    {
-     "check": "ctrl-x-is-handled-by-the-product"
-    },
-    {
-     "finding": "063"
-    },
-    {
-     "queue": "queue-cut-cannot-remove-text"
-    }
-   ]
-  },
-  {
-   "id": "format-a-paragraph",
-   "user": "把一段變成標題、內文、項目符號或編號",
-   "status": "done",
-   "note": "2026-08-19：五個動作全部接進回歸網，走產品自己的工具列按鈕（`format-a-paragraph-changes-that-paragraph`）。三條紀律都在：每一臂打在**處於相反狀態**的段落上，所以什麼都不做的實作過不了；判準錨在**目標段落的確切文字**上，不是全文件的存在性檢查（語料本來就有標題、項目清單、編號清單各一，全文件 grep 在「改錯段落」時也會過）；**鄰居要活著**（046 的形狀）。瞄準用產品自己的路——點畫布——並由頁面自己的像素定位：掃出墨水列的帶，和產品剛存出的那份文件的行一對一對上；對不上就報 NOT_ESTABLISHED，不猜。**量出來的一個更正**：產品的標題動作寫的是 `<text:p text:style-name=\"Heading_20_1\">`，不是 `<text:h>`——以元素名為準的判準會把一個**會動**的標題動作判成沒動，第一版就是這樣。三個突變都被抓到：吞掉動作、按鈕送錯 action、動作打在鄰居身上。**沒涵蓋（所以是 partial）**：範圍手勢。五臂都是收合游標，一次轉換多個段落被 gesture mask 擋掉（佇列項 `p1-2-gesture-mask-inherited`）；空白行那一格屬於 046 的佇列項，不在這一格。**順帶量到的一個具名極限**（寫在 `caret-off-by-one-line` 突變旁）：把每一次點擊往下位移一整行，兩格游標檢查**都還是綠的**——它們的判準是水平的，所以游標那兩格涵蓋的是**哪一欄**，**哪一行**只由這一格的鄰居條款涵蓋。**2026-08-19：done。** 範圍手勢補上了，而原本說它被 gesture mask 擋掉的那句話**是錯的**——被擋的是**四個 inline 格式**（宣告 `[\"collapsed\"]`），五個段落動作三種手勢全都宣告了，profile 的 `crossParagraphDisposition` 也是 `verify-every-block`。沒有東西擋著，只是沒有人驅動過。第六臂拖過**兩個**段落再按「移除清單」：兩段都要變、範圍外的鄰居都要活著、而且產品自己得**願意提供**那顆按鈕（按鈕若被 grey 掉，使用者根本做不到，那一臂就沒有東西可量）。",
-   "evidence": [
-    {
-     "check": "format-a-paragraph-changes-that-paragraph"
-    },
-    {
-     "finding": "046"
-    },
-    {
-     "queue": "queue-quantifier-check-for-multi-block-readback"
-    }
-   ]
-  },
-  {
-   "id": "recover-from-an-error",
-   "user": "出錯的時候救得回來——回到哪一點，按下按鈕之前產品就講清楚；最壞是上次存檔（沒存過＝剛開檔的樣子）",
-   "status": "done",
-   "note": "2026-08-19：這一格重新有了誘發手段，也重新被量。判準**不是**「之後存得出一份合法的 ODT」——那個在「重開一份原封不動的 authority bytes」時也會過。判準是**產品自己的宣告**：按下按鈕**之前**，`#s-checkpoint` 就已經寫著「有（rN）」／「寫入失敗」／「無」，三分支各自要求不同的兌現。**外加一條能力條款**（fable 2026-08-18 裁決）：誘發路徑是 dirty 狀態下的選取手勢時，宣告不得是「無」——沒有這一條，一個退化成 no-op 的 `_checkpointBeforeSelection` 會宣告「無」、兌現「無」，形式上完全一致。實測證實了這一點：`checkpoint-before-selection-noop` 突變下 `declarationHonoured` 仍是 true，紅的是能力條款。**實測結果**：分支落在「有（r2）」，已存與未存的兩個標記**都回來了**。**誘發器的一個更正**（花了一輪）：拖曳**本身不會**卡死任何東西。038 自己2026-08-13 的更正就說了，選取會回來、引擎還活著，殺掉它的是**選取之後的第一次讀取**；而 `_drain` 在動作結果自帶 `state` 時會短路掉那次 getState。實測：拖曳後健康了 77 秒，然後一次點擊 → busy → 約 30 秒後 recoverable-error。**沒涵蓋（所以是 partial）**：「寫入失敗」那一分支**產品沒有呈現**——殼層已經把這個判斷做出來（`recovery-notice.js` 的 `checkpointFailed`），產品的通知只有 `hasCheckpoint` 的兩分支，所以那個情況會被說成「沒有檢查點」。finding 061，佇列項 `queue-checkpoint-write-failure-reads-as-nothing-to-rescue`。**還欠一個與缺陷無關的第二誘發器**：現在的覆蓋率綁在一個**未修的上游缺陷**（038）上，038 修好那天誘發器會再消失一次——檢查會報 NOT_ESTABLISHED 並具名說是 038，不會靜靜通過，但佇列項 `queue-recovery-inducer-depends-on-an-unfixed-defect` 記著這筆債。**2026-08-19 補完：done。** 061 修好了——產品頁不再自己重新推導那則通知，改用殼層的`recoveryNotice(snapshot)`，三分支照它的判斷走。「寫入失敗」那一格現在寫的是「我們試著先保住你的工作，那次存檔失敗了」，不再是「沒有檢查點」。順帶把 finding 054 的根源也收掉了：按鈕的 disabled 從同一個模組的 `restartPossible` 來，不再讀一個沒有人寫的欄位——**054 和 061 是同一次重新推導生出來的兩個缺陷**。**判準改成結構式的**（fable 2026-08-19 的建議）：產品把它渲染的判斷蓋在 `#notice[data-rescue]` 上，檢查要求**兩個介面一致**（狀態列的藥丸與通知），而不是比對措辭——比對措辭的版本會在別人改一次句子時**靜靜變綠**。由 `notice-does-not-declare-its-decision` 突變守著；而 `checkpoint-write-fails` 現在宣告成**不應該被偵測**（產品已經處理得對了），它哪天又被偵測到，那一輪會喊。**留著的具名債**：現在的復原覆蓋率仍綁在未修的 038 上，欠一個與缺陷無關的第二誘發器（佇列項 `queue-recovery-inducer-depends-on-an-unfixed-defect`）。那是覆蓋率的韌性問題，不是使用者做不到的事——038 修好那天檢查會報 NOT_ESTABLISHED 並具名，不會靜靜通過。",
-   "evidence": [
-    {
-     "check": "recovery-returns-what-the-product-promised"
-    },
-    {
-     "finding": "038"
-    },
-    {
-     "finding": "061"
-    },
-    {
-     "finding": "054"
-    },
-    {
-     "queue": "queue-recovery-inducer-depends-on-an-unfixed-defect"
-    }
-   ]
-  },
-  {
-   "id": "edit-a-real-length-document",
-   "user": "開一份二十頁的文件，而且還能編輯",
-   "status": "done",
-   "note": "2026-08-19 第一次被量。預測先提交（commit `7b4a38c`，語料、探針、檢查都還不存在），三條登記的預測**兩條成立、一條錯兩個量級**。**可用性是綠的**：按鍵到看得見墨水，1 頁 60 ms、5 頁 62 ms、20 頁 127 ms，門檻 1000 ms 在牆之前一次都沒被逼近——`editing-a-long-document-stays-responsive`。門檻是事前登記的，而且證明得了它會咬：`slow-repaint` 突變下量到 1.85 秒、紅。**誠實是紅的，而且是 KNOWN_RED（finding 062）**：畫布高度超過約 32,767 px 之後，產品畫出一張**全白**的頁面、狀態回報 `ready`、一則訊息都沒有。**同一份 20 頁文件，在 1× 螢幕上正常、在 2× 螢幕上全白**——所以這是『文件乘上螢幕』的性質，不是文件的性質，而 headless 的 dpr=1 是最寬鬆的那一格。**這道牆不是 canvas 元素的上限**：同機同兩個瀏覽器實測 canvas 上限是 65,535，所以 32,767 是 render 這條路自己的 16 位元限制。**層級當天量完，而且當天更正過一次**（`evidence/062/layer/`）：答案是**引擎側**——一次**冷啟動**的 render 只要高過 32,767 就回一張尺寸正確、內容全零、而且回報成功的 buffer。兩個寬度（45 MB 與 90 MB）在**同一個高度**翻面，所以是高度不是記憶體；32,767 = 2^15−1。頁面那三步都量過都沒問題。**但仍然不擋連結**：沒有東西逼產品把整份文件要成一張 tile，分段繪製就避得開，那是頁面側的改動（佇列項 `queue-long-document-tile-request-exceeds-the-engine-limit`）。**第一版判成頁面側是錯的**，錯因是探針在同一個 session 裡由小到大掃高度，第一次 render 在上限以下就把引擎洗白了——教訓寫在證據 README 裡。另外量到一道與長度無關的：**一個變高的編輯，畫布不跟**——2 頁的文件插入 3,336 個字元後畫布不動，存檔重開才變成 3 頁的高度（佇列項 `queue-canvas-does-not-follow-a-document-that-grew`，頁面側，不需連結）。**原本這一列寫的『瀏覽器 canvas 上限約 32767px，A4 大約十幾頁』兩個數字都是推的**：上限實測是 65,535，而 A4 在 dpr 1 這個視窗上是 33 頁、dpr 2 是 17 頁。牆的位置對了一半，理由完全不同。**2026-08-19 當天修好了一半**：頁面改成**分段繪製**（每段不超過 32,767），35 頁在 1× 與 20 頁在 2× 都畫得出來了（原本都是全白），而且量過沒有接縫——跨過分段邊界那一帶完全不透明而且有墨水，最底下那一段也在。殼層 v19。檢查拆成兩格：`a-long-document-is-drawn-or-the-product-says-it-is-not` 現在是**綠的**，並由 `one-tile-for-the-whole-document` 突變守著（把上限拿掉，白紙就回來——而且產品現在會說「重繪失敗：TILE_NOT_PAINTED」，不再是靜靜給白紙）。**另一半沒修，而且頁面修不了**：`the-canvas-follows-a-document-that-grew` —— 一個變高的編輯之後畫布不跟。`getDocumentSize` 只在開檔那一刻被呼叫過（`probe_engine.cpp:2520`），而 SDK 沒有任何操作可以重讀它，所以**沒有東西告訴頁面文件變高了**。那一格是 KNOWN_RED，綁 finding 062，**引擎側、要連結**。**2026-08-19 連結之後：done。** 成長那一半也修好了——引擎現在在 paint 的回覆裡帶上文件當下的尺寸（`documentSizeChanged`），SDK 順手更新 handle，頁面看到尺寸變了就重新 layout 並重畫。`the-canvas-follows-a-document-that-grew` 從 KNOWN_RED 變綠，由 `ignore-a-document-that-grew` 突變守著。**留著的具名極限**：引擎本身仍然不會畫高過 32,767 的 tile，而且會回報成功——產品是用分段繞開它，不是它被修好了（finding 062、佇列項 `queue-engine-reports-success-for-an-unpainted-tile`）。",
-   "evidence": [
-    {
-     "check": "editing-a-long-document-stays-responsive"
-    },
-    {
-     "check": "a-long-document-is-drawn-or-the-product-says-it-is-not"
-    },
-    {
-     "check": "the-canvas-follows-a-document-that-grew"
-    },
-    {
-     "finding": "062"
-    },
-    {
-     "queue": "queue-engine-reports-success-for-an-unpainted-tile"
-    }
-   ]
-  }
- ]
+  ]
 }

@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "release": "f064-mechanism",
+  "evidenceClass": "diagnostic",
+  "finding": "064",
+  "browser": "chrome",
+  "note": "This run did NOT use the shipped page. It answers ONE named question -- whether the repaint the product performs between a format action and the next commit is what stops the format reaching the text -- and it is not a product measurement.",
+  "prediction": "findings/evidence/064/PREDICTION-render-between-format-and-typing.md",
+  "mirrored": [
+    "e2-editor-app.js"
+  ],
+  "hook": "renderDocument() counts its calls and returns early while globalThis.__f064.suppress is true; inert when __f064 is absent",
+  "whyInsideRenderDocument": "the page has a second render source -- onEvent schedules a repaint on document-invalidated (web/e2-editor-app.js:768-769) -- so a diagnostic at the run() call site (line 382) would leave a render running and report a false negative",
+  "eliminatedBySourceReading": [
+    "an extra editor.getState() between the press and the typing: _drain takes `result?.state ||` first (editor-shell/editor-session.js:301-302) and NarrowEditorV2Client rejects a result without `state` (editor-shell-v2/narrow-editor-v2-client.js:117), so the format action never reaches the fallback",
+    "the engine's format barrier: its targets are the list and paragraph-style commands (src/probe_engine.cpp:1224-1241); the four inline actions take the plain uno-command-result route",
+    "the insert call itself: session.commitText() ends at document.insertText (editor-shell/editor-session.js:511), which is the call D1 makes"
+  ],
+  "wasmUnchanged": true,
+  "profileWasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+  "shims": [
+    "URL.createObjectURL",
+    "HTMLAnchorElement.prototype.click (download anchors)",
+    "#toast.textContent cleared between steps",
+    "globalThis.__f064, this probe's own counter and flag"
+  ],
+  "arms": [
+    {
+      "id": "retention",
+      "steps": [
+        {
+          "after": "break + set-bold ON + type M1",
+          "isOdt": true,
+          "markers": {
+            "RETMARKONE": {
+              "carrier": "span",
+              "styleName": "T1",
+              "bold": true,
+              "italic": false,
+              "underline": false,
+              "strikethrough": false
+            }
+          },
+          "spans": 1,
+          "textStyles": 1,
+          "paragraphsWithMarker": [
+            "<text:p text:style-name=\"P2\"/></text:list-item><text:list-item><text:p text:style-name=\"P3\"><text:span text:style-name=\"T1\">RETMARKONE</text:span>E1-LC-NUMBER-ONE</text:p>"
+          ],
+          "automaticStyles": [
+            "<style:style style:name=\"T1\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\" style:font-weight-asian=\"bold\" style:font-weight-complex=\"bold\"/></style:style>"
+          ]
+        },
+        {
+          "after": "break + type M2, no press",
+          "isOdt": true,
+          "markers": {
+            "RETMARKONE": {
+              "carrier": "paragraph",
+              "styleName": null,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "strikethrough": false
+            },
+            "RETMARKTWO": {
+              "carrier": "span",
+              "styleName": "T1",
+              "bold": true,
+              "italic": false,
+              "underline": false,
+              "strikethrough": false
+            }
+          },
+          "spans": 1,
+          "textStyles": 1,
+          "paragraphsWithMarker": [
+            "<text:p text:style-name=\"P2\"/></text:list-item><text:list-item><text:p text:style-name=\"P3\">RETMARKONE</text:p>",
+            "<text:p text:style-name=\"P4\"><text:span text:style-name=\"T1\">RETMARKTWO</text:span>E1-LC-NUMBER-ONE</text:p>"
+          ],
+          "automaticStyles": [
+            "<style:style style:name=\"T1\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\" style:font-weight-asian=\"bold\" style:font-weight-complex=\"bold\"/></style:style>"
+          ]
+        },
+        {
+          "after": "set-italic ON alone",
+          "isOdt": true,
+          "markers": {
+            "RETMARKONE": {
+              "carrier": "paragraph",
+              "styleName": null,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "strikethrough": false
+            },
+            "RETMARKTWO": {
+              "carrier": "span",
+              "styleName": "T1",
+              "bold": true,
+              "italic": true,
+              "underline": false,
+              "strikethrough": false
+            }
+          },
+          "spans": 2,
+          "textStyles": 2,
+          "paragraphsWithMarker": [
+            "<text:p text:style-name=\"P2\"/></text:list-item><text:list-item><text:p text:style-name=\"P3\">RETMARKONE</text:p>",
+            "<text:p text:style-name=\"P4\"><text:span text:style-name=\"T1\">RETMARKTWO</text:span><text:span text:style-name=\"T2\">E1</text:span>-LC-NUMBER-ONE</text:p>"
+          ],
+          "automaticStyles": [
+            "<style:style style:name=\"T1\" style:family=\"text\"><style:text-properties fo:font-style=\"italic\" fo:font-weight=\"bold\" style:font-style-asian=\"italic\" style:font-weight-asian=\"bold\" style:font-style-complex=\"italic\" style:font-weight-complex=\"bold\"/></style:style>",
+            "<style:style style:name=\"T2\" style:family=\"text\"><style:text-properties fo:font-style=\"italic\" style:font-style-asian=\"italic\" style:font-style-complex=\"italic\"/></style:style>"
+          ]
+        }
+      ],
+      "clicks": {
+        "derived": false,
+        "near": "0.06",
+        "past": "0.92"
+      },
+      "boldPressed": {
+        "pressed": "true",
+        "offered": true
+      },
+      "commit1": {
+        "before": 2,
+        "after": 3
+      },
+      "commit2": {
+        "before": 4,
+        "after": 5
+      },
+      "italicPressed": {
+        "pressed": "true",
+        "offered": true
+      },
+      "m1BoldAfterTyping": false,
+      "m1BoldAfterPress": false,
+      "culprit": "typing/paragraph-break",
+      "outcome": "FAIL"
+    }
+  ],
+  "servedShell": {
+    "bundle": "e2/editor-shell-v2-bundle-v25.json",
+    "declaredSha256": "07143f961d82c4b3558d6df2f628fce11ce376c30364d3fee8344bbd77028129",
+    "servedSha256": "7dcfc394e1dc4a944bbd50c32059e92a8ee62df0457612ff3a516799a450df2e",
+    "missing": []
+  },
+  "control": {
+    "id": "control-instrument",
+    "ink0": {
+      "available": true,
+      "sum": 2016,
+      "inkLeft": 83,
+      "inkRight": 222
+    },
+    "hook0": {
+      "renders": 2,
+      "suppressed": 0,
+      "suppress": false
+    },
+    "visible": {
+      "before": 0,
+      "after": 1
+    },
+    "ink1": {
+      "available": true,
+      "sum": 2526,
+      "inkLeft": 83,
+      "inkRight": 431
+    },
+    "hook1": {
+      "renders": 4,
+      "suppressed": 0,
+      "suppress": false
+    },
+    "hidden": {
+      "before": 1,
+      "after": 2
+    },
+    "ink2": {
+      "available": true,
+      "sum": 2526,
+      "inkLeft": 83,
+      "inkRight": 431
+    },
+    "hook2": {
+      "renders": 4,
+      "suppressed": 2,
+      "suppress": true
+    },
+    "ink3": {
+      "available": true,
+      "sum": 3147,
+      "inkLeft": 83,
+      "inkRight": 639
+    },
+    "hook3": {
+      "renders": 7,
+      "suppressed": 2,
+      "suppress": false
+    },
+    "delta": {
+      "rendered": 510,
+      "frozen": 0,
+      "released": 621,
+      "threshold": 500
+    },
+    "countersBite": true,
+    "canvasBites": true,
+    "ok": true,
+    "outcome": "PASS"
+  },
+  "verdict": "no verdict: the suppressed arm was not run"
+}

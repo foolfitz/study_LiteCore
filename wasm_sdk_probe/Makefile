@@ -1750,6 +1750,7 @@ e2-c-assets: dist/e2-editor.html dist/e2-editor-app.js \
 	dist/input/input-adapter.js dist/input/clipboard-adapter.js \
 	dist/editor-shell/editor-session.js dist/editor-shell/editor-client.js \
 	dist/editor-shell/state-machine.js dist/reader-shell/tile-scheduler.js \
+	dist/editor-shell/recovery-notice.js \
 	$(addprefix dist/e1-fixtures/,$(E1_FIXTURE_FILES))
 
 dist/demo-structure-discovery.html: web/demo-structure-discovery.html | dist
@@ -2177,7 +2178,8 @@ test-e2-c-static:
 		--suites e2/content-axis-suites.json \
 		--output build/e2c/content-axes.json --check > /dev/null
 	python3 -m unittest tests/test_e2_corpus.py tests/test_e2_c_shell_bundle.py \
-		tests/test_e2_c_matrix.py
+		tests/test_e2_c_matrix.py tests/test_caret_from_columns.py \
+		tests/test_inline_styles_of.py
 	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py \
 		tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py \
 		tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py \
@@ -2189,6 +2191,9 @@ test-e2-c-static:
 		tools/analyze_f048_boundary.py tools/analyze_f046_diagnostic.py \
 		tools/analyze_f046_overshoot.py \
 		tools/run_e2_c_product_path.py \
+		tools/probe_second_recovery_inducer.py \
+		tools/probe_a11y_gate0.py \
+		tools/probe_064_format_reaches_typing.py \
 		tools/audit_product_path_coverage.py \
 		tools/validate_e2_c.py
 	python3 -m json.tool e2/relink-queue-v3.json > /dev/null

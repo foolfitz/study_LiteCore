@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "release": "f064-mechanism",
+  "evidenceClass": "diagnostic",
+  "finding": "064",
+  "browser": "chrome",
+  "note": "This run did NOT use the shipped page. It answers ONE named question -- whether the repaint the product performs between a format action and the next commit is what stops the format reaching the text -- and it is not a product measurement.",
+  "prediction": "findings/evidence/064/PREDICTION-render-between-format-and-typing.md",
+  "mirrored": [
+    "e2-editor-app.js"
+  ],
+  "hook": "renderDocument() counts its calls and returns early while globalThis.__f064.suppress is true; inert when __f064 is absent",
+  "whyInsideRenderDocument": "the page has a second render source -- onEvent schedules a repaint on document-invalidated (web/e2-editor-app.js:768-769) -- so a diagnostic at the run() call site (line 382) would leave a render running and report a false negative",
+  "eliminatedBySourceReading": [
+    "an extra editor.getState() between the press and the typing: _drain takes `result?.state ||` first (editor-shell/editor-session.js:301-302) and NarrowEditorV2Client rejects a result without `state` (editor-shell-v2/narrow-editor-v2-client.js:117), so the format action never reaches the fallback",
+    "the engine's format barrier: its targets are the list and paragraph-style commands (src/probe_engine.cpp:1224-1241); the four inline actions take the plain uno-command-result route",
+    "the insert call itself: session.commitText() ends at document.insertText (editor-shell/editor-session.js:511), which is the call D1 makes"
+  ],
+  "wasmUnchanged": true,
+  "profileWasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+  "shims": [
+    "URL.createObjectURL",
+    "HTMLAnchorElement.prototype.click (download anchors)",
+    "#toast.textContent cleared between steps",
+    "globalThis.__f064, this probe's own counter and flag"
+  ],
+  "arms": [
+    {
+      "id": "retention-ladder-adjacent",
+      "clickAway": false,
+      "steps": [
+        {
+          "after": "break + set-bold ON + type the marker",
+          "isOdt": true,
+          "bold": true,
+          "carrier": "span",
+          "styleName": "T1",
+          "spans": 1,
+          "paragraph": "<text:p text:style-name=\"P3\"><text:span text:style-name=\"T1\">RETLADDERONE</text:span>1-LC-NUMBER-ONE</text:p>"
+        },
+        {
+          "after": "move the caret one character left",
+          "isOdt": true,
+          "bold": true,
+          "carrier": "span",
+          "styleName": "T1",
+          "spans": 1,
+          "paragraph": "<text:p text:style-name=\"P3\"><text:span text:style-name=\"T1\">RETLADDERONE</text:span>1-LC-NUMBER-ONE</text:p>"
+        },
+        {
+          "after": "move it back",
+          "isOdt": true,
+          "bold": true,
+          "carrier": "span",
+          "styleName": "T1",
+          "spans": 1,
+          "paragraph": "<text:p text:style-name=\"P3\"><text:span text:style-name=\"T1\">RETLADDERONE</text:span>1-LC-NUMBER-ONE</text:p>"
+        },
+        {
+          "after": "a paragraph break, alone",
+          "isOdt": true,
+          "bold": true,
+          "carrier": "paragraph",
+          "styleName": "P3",
+          "spans": 0,
+          "paragraph": "<text:p text:style-name=\"P3\">RETLADDERONE</text:p>"
+        },
+        {
+          "after": "type a second marker",
+          "isOdt": true,
+          "bold": true,
+          "carrier": "paragraph",
+          "styleName": "P3",
+          "spans": 1,
+          "paragraph": "<text:p text:style-name=\"P3\">RETLADDERONE</text:p>"
+        }
+      ],
+      "clicks": {
+        "derived": true,
+        "near": "0.137490",
+        "past": "0.317710"
+      },
+      "commit": {
+        "before": 2,
+        "after": 3
+      },
+      "commit2": {
+        "before": 4,
+        "after": 5
+      },
+      "outcome": "PASS",
+      "conclusion": "the bold survived every step in this ladder"
+    }
+  ],
+  "servedShell": {
+    "bundle": "e2/editor-shell-v2-bundle-v25.json",
+    "declaredSha256": "07143f961d82c4b3558d6df2f628fce11ce376c30364d3fee8344bbd77028129",
+    "servedSha256": "7dcfc394e1dc4a944bbd50c32059e92a8ee62df0457612ff3a516799a450df2e",
+    "missing": []
+  },
+  "control": {
+    "id": "control-instrument",
+    "ink0": {
+      "available": true,
+      "sum": 2001,
+      "inkLeft": 83,
+      "inkRight": 222
+    },
+    "hook0": {
+      "renders": 2,
+      "suppressed": 0,
+      "suppress": false
+    },
+    "visible": {
+      "before": 0,
+      "after": 1
+    },
+    "ink1": {
+      "available": true,
+      "sum": 2503,
+      "inkLeft": 83,
+      "inkRight": 431
+    },
+    "hook1": {
+      "renders": 4,
+      "suppressed": 0,
+      "suppress": false
+    },
+    "hidden": {
+      "before": 1,
+      "after": 2
+    },
+    "ink2": {
+      "available": true,
+      "sum": 2503,
+      "inkLeft": 83,
+      "inkRight": 431
+    },
+    "hook2": {
+      "renders": 4,
+      "suppressed": 2,
+      "suppress": true
+    },
+    "ink3": {
+      "available": true,
+      "sum": 3159,
+      "inkLeft": 83,
+      "inkRight": 639
+    },
+    "hook3": {
+      "renders": 7,
+      "suppressed": 2,
+      "suppress": false
+    },
+    "delta": {
+      "rendered": 502,
+      "frozen": 0,
+      "released": 656,
+      "threshold": 500
+    },
+    "countersBite": true,
+    "canvasBites": true,
+    "ok": true,
+    "outcome": "PASS"
+  },
+  "verdict": "no verdict: the suppressed arm was not run"
+}

@@ -92,7 +92,27 @@ IME_TEXTS = ["甲一", "乙二", "丙三"]
 # check becomes wallpaper.  `finish()` reports the declaration STALE the moment
 # one of these passes, so it cannot outlive the defect.
 KNOWN_RED: dict[str, str] = {
-    # Empty as of 2026-08-19, and that is a first for this file.
+    # EMPTY, and that is the third time this file has been empty.
+    #
+    # It held finding 064 (2026-08-21) and then finding 065 (2026-08-21), and
+    # BOTH ARE RETRACTED.  They were the same defect seen twice: not in the
+    # product and not in the engine, but in `inline_styles_of()`, which stopped
+    # at "the marker is not inside a <text:span>, therefore it carries no
+    # formatting".  ODF does not work that way -- a uniformly formatted
+    # paragraph carries its character properties on its own automatic style and
+    # emits no span at all -- and "the marker alone in its paragraph" is exactly
+    # what every arm here produces.
+    #
+    # Caught by an OPERATOR on 2026-08-22, who could see bold on the canvas
+    # while the saved document read `bold: false`.  Nothing automated in this
+    # tree could have caught it: every check that could have is downstream of
+    # the same function.
+    #
+    # Both retractions ran through this file's own mechanism -- a declared-red
+    # check that passes fails the round as a stale declaration -- and it worked
+    # both times.
+
+    # Was empty as of 2026-08-19, and that was a first for this file.
     #
     # Both entries came off on the same run, and the runner is what said so:
     # it reports a declared-red check that PASSES as a STALE DECLARATION and
@@ -432,6 +452,35 @@ const notPrevented = sink.dispatchEvent(
 return { handled: !notPrevented };
 })()"""
 
+# FINDING 066.  Where the keyboard is pointing, and where a real click sends it.
+READ_FOCUS = """(() => {
+const a = document.activeElement;
+if (!a) return null;
+return { id: a.id || null, tag: a.tagName,
+         action: a.dataset ? (a.dataset.action || null) : null };
+})()"""
+
+BUTTON_BOX = """(() => {
+const b = document.querySelector('ARG_SELECTOR');
+if (!b) return null;
+const r = b.getBoundingClientRect();
+return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+})()"""
+
+# Typing through the sink WITHOUT restoring focus first.
+#
+# Every other keyboard helper in this file opens with `sink.focus()`, and that
+# line is exactly what hid finding 066 for as long as it existed: the harness
+# handed back, every single time, the focus a user could only recover by
+# clicking the canvas.  This one deliberately does not.
+TYPE_WHEREVER_FOCUS_IS = """(() => {
+const target = document.activeElement;
+if (!target) return { dispatchedTo: null };
+target.dispatchEvent(new InputEvent('beforeinput', {
+  inputType: 'insertText', data: 'ARG_TEXT', bubbles: true, cancelable: true }));
+return { dispatchedTo: target.id || target.tagName };
+})()"""
+
 SAVE_COUNT = "(() => (window.__pp ? window.__pp.saves.length : -1))()"
 
 READ_SAVE = "(() => (window.__pp ? window.__pp.saves[ARG_INDEX] : null) || null)()"
@@ -453,6 +502,69 @@ canvas.dispatchEvent(new PointerEvent('pointerdown', {
 canvas.dispatchEvent(new PointerEvent('pointerup', {
   clientX: x, clientY: y, button: 0, buttons: 0, pointerId: 1, bubbles: true }));
 return true;
+})()"""
+
+# One gesture, one script -- the shape the working DRAG probe uses.
+#
+# Split across separate evaluate() calls this never extended the selection at
+# all, on any arm including the no-abort control, so the check could only ever
+# abstain.  Rebuilt as a single script with the abort injected BETWEEN the two
+# pointermoves, which is also where a real pointercancel or window blur would
+# land: mid-gesture, after the drag has started to select.
+ABORT_DRAG = """(() => {
+const canvas = document.querySelector('#canvas');
+const box = canvas.getBoundingClientRect();
+const at = (fx) => ({ x: box.left + box.width * fx,
+                      y: box.top + box.height * ARG_Y });
+const a = at(ARG_X1);
+const b = at(ARG_X2);
+const send = (type, point, buttons) => canvas.dispatchEvent(
+  new PointerEvent(type, { clientX: point.x, clientY: point.y, button: 0,
+                           buttons, pointerId: 1, bubbles: true }));
+send('pointerdown', a, 1);
+send('pointermove', { x: (a.x + b.x) / 2, y: a.y }, 1);
+if ('ARG_KIND' === 'pointercancel') {
+  canvas.dispatchEvent(new PointerEvent('pointercancel', {
+    button: 0, buttons: 0, pointerId: 1, bubbles: true }));
+} else if ('ARG_KIND' === 'blur') {
+  window.dispatchEvent(new Event('blur'));
+}
+send('pointermove', b, 1);
+send('pointerup', b, 0);
+return true;
+})()"""
+
+RESIZE_DESK = """(() => {
+const desk = document.querySelector('#desk');
+const canvas = document.querySelector('#canvas');
+if (!desk || !canvas) return { available: false };
+const before = canvas.width;
+const previous = desk.style.width;
+desk.style.width = Math.max(320, Math.round(desk.clientWidth * 0.6)) + 'px';
+window.__ppDeskWidth = previous;
+window.dispatchEvent(new Event('resize'));
+return { available: true, beforeCanvasWidth: before };
+})()"""
+
+RESTORE_DESK = """(() => {
+const desk = document.querySelector('#desk');
+if (!desk) return false;
+desk.style.width = window.__ppDeskWidth ?? '';
+window.dispatchEvent(new Event('resize'));
+return true;
+})()"""
+
+SWITCH_FIXTURE = """(() => {
+const picker = document.querySelector('#fixture');
+if (!picker || picker.options.length < 2) return { available: false,
+  options: picker ? picker.options.length : null };
+const current = picker.value;
+const other = [...picker.options].map((o) => o.value).find((v) => v !== current);
+if (!other) return { available: false, options: picker.options.length };
+picker.value = other;
+picker.dispatchEvent(new Event('change', { bubbles: true }));
+return { available: true, from: current, to: other,
+         options: picker.options.length };
 })()"""
 
 DRAG = """(() => {
@@ -633,6 +745,20 @@ return { payloadSurvived, shimmed, eventCanceled: !notPrevented };
 # ----------------------------------------------------------------- mutations
 
 MUTATIONS = {
+    # FINDING 066, and the reason it needs a mutation at all: the check that
+    # owns it is the only one in this file that uses a REAL click, so nothing
+    # else would notice if it stopped being able to fail.  Reverting the two
+    # lines puts the keyboard back on the button.
+    "focus": {
+        "check": "the-toolbar-gives-the-keyboard-back",
+        "path": "e2-editor-app.js",
+        "find": "  event.preventDefault();\n"
+                "  if (session) el.sink.focus({ preventScroll: true });",
+        "replace": "  return;",
+        "reintroduces": "finding 066",
+        "alsoRed": [],
+        "alsoNotEstablished": [],
+    },
     # The defect as it actually was until 2026-08-17: the session had
     # pasteEvent() and no listener called it, so a paste fell through to the
     # browser's default on a canvas -- silently nothing.  Renaming the event is
@@ -657,6 +783,71 @@ MUTATIONS = {
         "find": "  const action = DELETE_INPUT_TYPES[event.inputType];",
         "replace": "  const action = undefined;",
         "reintroduces": "an editor you can type into but cannot correct",
+        "alsoRed": [],
+    },
+    # The edit BUTTONS, 2026-08-21.  Swapping one arrow is enough to move the
+    # marker to the wrong place, and it keeps every action dispatching -- a
+    # mutation that skipped a dispatch would also stop the latency the other
+    # waits key on, and would then be measuring the harness.
+    "edit-arrows-swapped": {
+        "check": "the-edit-buttons-do-what-they-say",
+        "path": "e2-editor-app.js",
+        "find": "  await run(label, () => session.action(action, options));",
+        "replace": "  await run(label, () => session.action("
+                   "action === \"move-character-left\" ? "
+                   "\"move-character-right\" : action, options));",
+        "reintroduces": "arrow buttons that move the caret the wrong way",
+        "alsoRed": [],
+    },
+    # The forwarding this tree nearly WAIVED as undrivable.  One line, and
+    # removing it is exactly the defect the row exists to exclude.
+    "open-button-forwards-nowhere": {
+        "check": "the-open-button-opens-the-file-chooser",
+        "path": "e2-editor-app.js",
+        "find": 'el.openFile.addEventListener("click", () => el.file.click());',
+        "replace": 'el.openFile.addEventListener("click", () => {});',
+        "reintroduces": "an open button that does nothing",
+        "alsoRed": [],
+    },
+    # The three listeners driven for the first time on 2026-08-21.
+    "gesture-abort-not-wired": {
+        "check": "an-aborted-gesture-stops-selecting",
+        "path": "e2-editor-app.js",
+        "find": 'el.canvas.addEventListener("pointercancel", () => endDrag(null));',
+        "replace": 'el.canvas.addEventListener("pointercancel-never", () => endDrag(null));',
+        "reintroduces": "a drag the browser cancelled that keeps selecting",
+        "alsoRed": [],
+        # DECLARED UNDETECTABLE, and the declaration is the honest half of a
+        # check that does not yet work.  `an-aborted-gesture-stops-selecting`
+        # carries a positive control -- a drag with NO abort, which must extend
+        # the selection -- and on 2026-08-21 that control failed on all four
+        # gesture shapes tried, so the check abstains instead of passing.  While
+        # it abstains it cannot go red for this mutation either.  If it ever IS
+        # detected, the run says the declaration is stale, which is precisely
+        # the alarm wanted: it would mean the control finally works.
+        "expectedToBeDetected": False,
+        "why": "the check's positive control cannot start an extending drag "
+               "through this harness, so the check reports NOT_ESTABLISHED and "
+               "nothing about aborting one is measured yet. The observable, not "
+               "the gesture, is what is missing: copy and cut DO produce a "
+               "range at their own named line, so the next step is a direct "
+               "selection observable (the copy path reports codePoints) rather "
+               "than reading button.disabled.",
+    },
+    "resize-does-not-repaint": {
+        "check": "the-canvas-follows-a-window-that-changed-size",
+        "path": "e2-editor-app.js",
+        "find": "globalThis.addEventListener(\"resize\", () => {\n  layoutCanvas();\n  void renderDocument();\n});",
+        "replace": "globalThis.addEventListener(\"resize\", () => {\n  layoutCanvas();\n});",
+        "reintroduces": "a window resize that resizes the canvas and leaves it blank",
+        "alsoRed": [],
+    },
+    "sample-picker-does-nothing": {
+        "check": "the-sample-picker-opens-a-second-document",
+        "path": "e2-editor-app.js",
+        "find": 'el.fixture.addEventListener("change", () => {',
+        "replace": 'el.fixture.addEventListener("change-never", () => {',
+        "reintroduces": "a sample picker that picks nothing",
         "alsoRed": [],
     },
     # Finding 058.  Turning off the caret draw restores the state the product
@@ -1165,7 +1356,7 @@ def build_mirror(source: Path, target: Path, overrides: dict[str, bytes]) -> Non
 # product page itself is one of them), so the digest moves on its own and no
 # separate honesty flag is needed.  Same digest function as the bundle manifest,
 # imported rather than reimplemented: two copies of a hash rule drift.
-SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v25.json"
+SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v26.json"
 
 
 def served_in_dist(relative: str) -> str:
@@ -1214,6 +1405,105 @@ def apply_mutation(name: str, scratch: Path) -> tuple[Path, dict]:
 # ------------------------------------------------------------------- helpers
 
 
+# Where the line's own ink starts and ends, from ONE read.
+#
+# Finding 060 anchored the sampled BAND to the line's ink instead of a viewport
+# fraction.  The click position stayed a hardcoded viewport fraction, and on
+# 2026-08-21 that turned out to be the same defect one layer along: at x=0.06
+# the click lands in the left MARGIN, the engine snaps the caret to the line's
+# first character, and the caret is then drawn on top of ink that is already
+# dark -- so the column shows no delta and the caret reads as "never drawn".
+# Measured on Firefox: x=0.06 gives strokeLost 0 three runs running, x=0.20
+# gives 19.  Whether 0.06 separates depends on the canvas width, which depends
+# on the browser window, which is exactly what 060 was about.
+LINE_INK = """(() => {
+const canvas = document.querySelector('#canvas');
+const y = Math.floor(canvas.height * ARG_Y) - 18;
+const h = 46;
+if (y < 0 || y + h > canvas.height) return { available: false };
+const data = canvas.getContext('2d').getImageData(0, y, canvas.width, h).data;
+let left = null, right = null;
+const columns = new Array(canvas.width).fill(0);
+for (let x = 0; x < canvas.width; x += 1) {
+  let dark = 0;
+  for (let row = 0; row < h; row += 1) {
+    const i = (row * canvas.width + x) * 4;
+    if (data[i] < 100 && data[i+1] < 100 && data[i+2] < 100) dark += 1;
+  }
+  // A glyph never fills every row of a band that includes the line spacing; a
+  // border does.  Same discrimination caret_from_columns makes.
+  if (dark > 0 && dark < h) { if (left === null) left = x; right = x; }
+  columns[x] = dark;
+}
+return { available: left !== null && right !== null && right > left,
+         inkLeft: left, inkRight: right, width: canvas.width,
+         columns };
+})()"""
+
+
+def caret_click_fractions(ink: dict) -> dict:
+    """Two click positions expressed as fractions of the CANVAS, from the LINE.
+
+    POINT_AT multiplies by the bounding rect's width and CARET_COLUMNS indexes
+    the backing store, so the two only agree on a dimensionless fraction --
+    which is what this returns.
+
+    `near` is placed just inside the text rather than at its very first
+    character: the caret at position 0 coincides with the first glyph's left
+    edge and cannot be told apart from it by an ink delta.
+    """
+    if not ink.get("available"):
+        return {"derived": False, "near": "0.06", "past": "0.92",
+                "why": "no line ink found; falling back to viewport fractions, "
+                       "which is the geometry dependence this exists to remove"}
+    left, right = ink["inkLeft"], ink["inkRight"]
+    width, span = ink["width"], ink["inkRight"] - ink["inkLeft"]
+    # Just inside the text, not in the margin.  That is the whole fix: at a
+    # click in the margin the engine snaps the caret to character position 0,
+    # where it coincides with the first glyph's left edge and an ink delta
+    # cannot see it at all (Firefox, strokeLost 0 on three consecutive runs).
+    #
+    # AIMING AT A GAP WAS TRIED AND MADE IT WORSE -- recorded because the
+    # reason generalises.  Picking the sparsest column in the first quarter
+    # took Chrome from strokeLost 2 to 1.  The harness chooses where it
+    # CLICKS; the engine chooses where the caret LANDS, and it lands on a
+    # character boundary, which is adjacent to glyph ink by definition.  A gap
+    # in the ink is not a gap the caret can occupy.
+    near = left + 0.12 * span
+    past = min(right + 0.06 * span, width - 2)
+    return {"derived": True,
+            "near": f"{near / width:.6f}", "past": f"{past / width:.6f}",
+            "inkLeft": left, "inkRight": right, "canvasWidth": width}
+
+
+CLEAR_LATENCY = """(() => {
+document.querySelector('#s-latency').textContent = '';
+return true;
+})()"""
+
+
+def place_caret_and_settle(session, point_at: str, x: str, y: str,
+                           timeout: float = 60) -> dict:
+    """Click, and wait for THIS placement rather than for a stale one.
+
+    `run()` in the page writes "<label> NNN ms" into #s-latency only after the
+    operation resolves and renderDocument() completes -- but it never clears the
+    field first (web/e2-editor-app.js:377-382).  Every earlier step that places
+    a caret therefore leaves "定位游標" sitting there, so a predicate that merely
+    asks whether the text CONTAINS it is already true before the click, returns
+    at once, and leaves the fixed sleep below to cover the whole round trip on
+    its own.
+
+    Clearing the field first makes the wait mean what it says.  Same technique
+    the runner already declares for #toast, and no page change -- so it mints no
+    shell generation.
+    """
+    evaluate(session, CLEAR_LATENCY)
+    evaluate(session, point_at.replace("ARG_X", x).replace("ARG_Y", y))
+    return wait_for(session,
+                    lambda s: "定位游標" in (s.get("latency") or ""), timeout)
+
+
 def caret_from_columns(near_start: dict, past_end: dict) -> dict:
     """Where the caret was drawn, expressed relative to the line's own ink.
 
@@ -1245,19 +1535,167 @@ def caret_from_columns(near_start: dict, past_end: dict) -> dict:
     lost = min(range(len(delta)), key=lambda x: delta[x])
     left, right = shared[0], shared[-1]
     span = right - left
+    # A COLUMN INDEX THAT CAME FROM A TIE-BREAK IS NOT A POSITION.
+    #
+    # `gained`/`lost` are argmax/argmin over `delta`.  When the caret was not
+    # located in one of the two reads that read contributes no non-zero delta,
+    # the extremum is 0, and argmax/argmin return **index 0** -- the leftmost
+    # column of the canvas -- purely by tie-break.  Measured on Firefox
+    # 2026-08-21, mutation none: strokeGained 24, strokeLost 0, and
+    # fractionNearStart was computed from that index anyway as
+    # (0 - 101) / 442 = -0.229.  `the-caret-lands-where-the-click-was` asks for
+    # near < 0.25, so it PASSED -- because the caret had not been found.
+    #
+    # The two checks differ in what they are entitled to here, and that is why
+    # this is not simply `available: False`:
+    #   - `the-caret-is-drawn-where-it-was-placed` has the STROKES as its
+    #     subject.  A zero stroke is its answer, not a gap in its data, and it
+    #     must go on FAILING -- that is finding 058, a product that draws no
+    #     caret at all.
+    #   - `the-caret-lands-where-the-click-was` has the POSITIONS as its
+    #     subject, and a position it cannot support must be withheld.
+    # So the strokes are always reported and a fraction is reported only when
+    # the read it comes from actually found the caret.
+    stroke_gained, stroke_lost = delta[gained], -delta[lost]
     return {
         "available": True,
         "inkLeft": left, "inkRight": right, "inkSpan": span,
-        "caretAfterClickNearStart": lost, "caretAfterClickPastEnd": gained,
-        "strokeGained": delta[gained], "strokeLost": -delta[lost],
+        "caretAfterClickNearStart": lost if stroke_lost > 0 else None,
+        "caretAfterClickPastEnd": gained if stroke_gained > 0 else None,
+        "strokeGained": stroke_gained, "strokeLost": stroke_lost,
         # Position along the line, 0 at the first inked column and 1 at the last.
-        "fractionNearStart": (lost - left) / span if span else None,
-        "fractionPastEnd": (gained - left) / span if span else None,
+        # None means "this read did not find the caret", never "column zero".
+        "fractionNearStart":
+            (lost - left) / span if span and stroke_lost > 0 else None,
+        "fractionPastEnd":
+            (gained - left) / span if span and stroke_gained > 0 else None,
     }
 
 
 ODF_NS = {"office": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
-          "text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0"}
+          "text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
+          "style": "urn:oasis:names:tc:opendocument:xmlns:style:1.0",
+          "fo": "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"}
+
+# Which ODF text property carries each of the four inline formats, and what
+# counts as "on".  Underline and strike are not booleans: ODF spells them as a
+# LINE STYLE whose "off" value is the literal string "none", so `present` and
+# `on` are different questions and only the second one is the format.
+INLINE_FORMAT_PROPERTIES = {
+    "bold": ("fo", "font-weight", lambda v: v not in (None, "normal")),
+    "italic": ("fo", "font-style", lambda v: v not in (None, "normal")),
+    "underline": ("style", "text-underline-style",
+                  lambda v: v not in (None, "none")),
+    "strikethrough": ("style", "text-line-through-style",
+                      lambda v: v not in (None, "none")),
+}
+
+
+def inline_styles_of(report: dict, marker: str) -> dict:
+    """Which inline formats the text carrying `marker` actually has.
+
+    THE ONLY ORACLE THAT WORKS AT A COLLAPSED CARET, and the matrix settled
+    that on 2026-08-15 -- before D1 ran -- by amending its own cells:
+
+        at a collapsed caret an inline format leaves <office:body>
+        byte-identical and shows up only in text committed afterwards.
+
+    So "did the format take" cannot be asked of the document that was already
+    there.  Comparing the saved ODT against the paragraph's own text, the way
+    the paragraph ACTIONS are checked, would pass on a no-op -- which is what
+    the first draft of this plan proposed.  It has to be asked of a marker
+    typed after the format was applied, which is what this reads.
+
+    A marker with no <text:span> around it is not a failure to find it: it is
+    the answer "this text carries no inline formatting at all", which is
+    exactly what a working `clear-format` must produce.
+    """
+    content = report.get("content") or ""
+    if not content:
+        return {"found": False, "why": "no content.xml"}
+    try:
+        root = ElementTree.fromstring(content)
+    except ElementTree.ParseError as error:
+        return {"found": False, "why": f"content.xml does not parse: {error}"}
+
+    name_of = f"{{{ODF_NS['style']}}}name"
+    parent_of = f"{{{ODF_NS['style']}}}parent-style-name"
+    styles: dict[str, dict] = {}
+    for style in root.iter(f"{{{ODF_NS['style']}}}style"):
+        properties = style.find("style:text-properties", ODF_NS)
+        styles[style.get(name_of) or ""] = {
+            "parent": style.get(parent_of),
+            "properties": dict(properties.attrib) if properties is not None else {},
+        }
+
+    def resolved(style_name: str | None) -> dict:
+        """Walk the parent chain, nearest definition winning."""
+        chain, seen = [], set()
+        while style_name and style_name in styles and style_name not in seen:
+            seen.add(style_name)
+            chain.append(styles[style_name]["properties"])
+            style_name = styles[style_name]["parent"]
+        merged: dict = {}
+        for properties in reversed(chain):
+            merged.update(properties)
+        return merged
+
+    span_style_of = f"{{{ODF_NS['text']}}}style-name"
+    carrier, style_name = None, None
+    for span in root.iter(f"{{{ODF_NS['text']}}}span"):
+        if marker in "".join(span.itertext()):
+            carrier, style_name = "span", span.get(span_style_of)
+            break
+    if carrier is None:
+        for tag in ("p", "h"):
+            for paragraph in root.iter(f"{{{ODF_NS['text']}}}{tag}"):
+                if marker in "".join(paragraph.itertext()):
+                    carrier = "paragraph"
+                    style_name = paragraph.get(span_style_of)
+                    break
+            if carrier:
+                break
+    if carrier is None:
+        return {"found": False, "why": f"{marker!r} is not in the saved document"}
+
+    # THE PARAGRAPH'S STYLE COUNTS, and until 2026-08-22 it did not.
+    #
+    # This used to stop at `carrier = "paragraph"` and resolve nothing, on the
+    # stated grounds that "this asks about INLINE formatting, and text that is
+    # not in a span has none of it".  That premise is FALSE for ODF: when a
+    # paragraph is UNIFORMLY formatted, LibreOffice's export writes the
+    # character properties into the paragraph's own automatic style --
+    #
+    #   <style:style style:name="P1" style:family="paragraph"
+    #                style:parent-style-name="Standard">
+    #     <style:text-properties fo:font-weight="bold" .../></style:style>
+    #   <text:p text:style-name="P1">MANUALBOLD</text:p>
+    #
+    # -- and emits no span at all.  So "not in a span" does not mean "not
+    # formatted"; it very often means "formatted, and uniformly".
+    #
+    # This is a FALSE NEGATIVE precisely where these checks live: every arm
+    # presses insert-paragraph-break and then types its marker, so the marker
+    # ends up ALONE in its paragraph, which is the uniform case.  Found on
+    # 2026-08-22 by an operator who could see bold on the canvas while this
+    # function reported `bold: false` on the saved document -- the human's eyes
+    # against the oracle, and the oracle was wrong.
+    #
+    # `fromParagraphStyle` is reported rather than hidden: a caller that needs
+    # to tell "the user pressed B" from "this text is bold because it is a
+    # heading" can look, and the parent chain is walked either way so a named
+    # parent's properties are included.
+    properties = resolved(style_name)
+    out = {"found": True, "carrier": carrier, "styleName": style_name,
+           "fromParagraphStyle": carrier == "paragraph",
+           "properties": properties}
+    for format_name, (prefix, attribute, is_on) in INLINE_FORMAT_PROPERTIES.items():
+        out[format_name] = bool(is_on(properties.get(
+            f"{{{ODF_NS[prefix]}}}{attribute}")))
+    return out
+
+
+
 
 # A text line split by a thin row inside its own glyphs is still one line.
 #
@@ -1615,6 +2053,41 @@ def main() -> int:
     parser.add_argument("--mutate", choices=tuple(MUTATIONS) + ("none",), default="none")
     parser.add_argument("--timeout", type=float, default=300)
     parser.add_argument("--out", default=None, help="write the report here as JSON")
+    # A DECLARED diagnostic, not a product configuration.
+    #
+    # queue-cut-cannot-remove-text: the manifest declares the ten v1 actions
+    # caret-only because range dispatch "was characterised for the paragraph
+    # actions, not for delete or insert" -- an honest declaration of a
+    # measurement nobody made.  This flag supplies the measurement WITHOUT
+    # widening the shipped manifest: the widened one is served from a symlink
+    # mirror, dist/ is never written, and probe.wasm stays byte-identical.
+    #
+    # Both range bits together, never one: probe_engine.cpp:4364-4374 requires
+    # BOTH for a selection the build has not classified, so one bit alone
+    # refuses every range and two arms split by bit would measure the same
+    # refusal twice.
+    # The SECOND cut diagnostic, and it asks whether cut needs the engine AT ALL.
+    #
+    # The empty-text refusal is a JavaScript guard (document-sdk.js:468-472);
+    # the engine's handleReplaceSelection (probe_engine.cpp:3199-3216) is a
+    # plain LOK paste with no empty-text gate.  And replaceSelection does not go
+    # near the selection barrier, whose collapsed-caret requirement is BY DESIGN
+    # (:3143-3151 refuses a pre-existing selection, then posts shift+Left/Right
+    # to make its own).  So if LOK's paste with zero-length text deletes the
+    # selection, cut closes with no engine change and no link.
+    #
+    # Two shipped files are mirrored; dist/ is never written and probe.wasm
+    # stays byte-identical.  Prediction written first:
+    # findings/evidence/queue-cut-cannot-remove-text/PREDICTION-replace-selection.md
+    parser.add_argument("--cut-via-replace-selection", action="store_true",
+                        help="mirror the SDK's empty-text guard away and make "
+                             "cut's delete half call replaceSelection(\"\"); "
+                             "stamps the report diagnostic")
+    parser.add_argument("--range-delete-diagnostic", action="store_true",
+                        help="grant delete-backward both range gestures in a "
+                             "MIRRORED manifest, to measure whether the engine "
+                             "removes a range at all; stamps the report "
+                             "diagnostic")
     args = parser.parse_args()
 
     report: dict = {
@@ -1659,6 +2132,115 @@ def main() -> int:
     if args.mutate != "none":
         root, mutation_report = apply_mutation(args.mutate, scratch)
         report["mutationDetail"] = mutation_report
+    if args.cut_via_replace_selection:
+        sdk_rel = "sdk/document-sdk.js"
+        page_rel = "e2-editor-app.js"
+        sdk_text = (root / sdk_rel).read_text(encoding="utf-8")
+        guard = ('    if (typeof text !== "string" || text.length === 0) {\n'
+                 '      throw new DocumentSdkError(\n'
+                 '        "INVALID_ARGUMENT", "replaceSelection requires '
+                 'non-empty text",\n'
+                 '      );\n'
+                 '    }\n')
+        if guard not in sdk_text:
+            raise SystemExit(
+                "the empty-text guard is not where this diagnostic expects it "
+                "in " + sdk_rel + "; the tree moved under the diagnostic. Fix "
+                "the pattern rather than dropping the guard blindly.")
+        sdk_patched = sdk_text.replace(
+            guard,
+            '    if (typeof text !== "string") {\n'
+            '      throw new DocumentSdkError(\n'
+            '        "INVALID_ARGUMENT", "replaceSelection requires a string",\n'
+            '      );\n'
+            '    }\n', 1)
+        page_text = (root / page_rel).read_text(encoding="utf-8")
+        delete_half = '    await session.action("delete-backward", {});'
+        if delete_half not in page_text:
+            raise SystemExit(
+                "cut's delete half is not where this diagnostic expects it in "
+                + page_rel + "; the tree moved under the diagnostic.")
+        page_patched = page_text.replace(
+            delete_half,
+            '    await session.document.replaceSelection("");', 1)
+        # A THIRD gate, found by running this: the WORKER refuses the call
+        # before the engine sees it.  `withWasmBytes` (sdk-worker.js:348-353)
+        # asks oxsdk_buffer_alloc for `length` bytes and throws when the pointer
+        # is falsy -- and a zero-length allocation returns 0, so a generic
+        # allocation-failure check also refuses every empty payload.
+        # Incidental, not a policy about empty text.  Allocating max(1, length)
+        # while still passing `length` to the callback is identical for every
+        # non-zero payload and only changes the length-0 case.
+        # The worker the PAGE loads is the profile's copy, not dist/sdk/ --
+        # the stack trace in the first run of this diagnostic said so
+        # (profiles/e2-editor-v3/sdk-worker.js). Mirroring the wrong one
+        # changes nothing and looks like the gate moved.
+        worker_rel = "profiles/e2-editor-v3/sdk-worker.js"
+        worker_text = (root / worker_rel).read_text(encoding="utf-8")
+        alloc = ('  const pointer = Number(ccall("oxsdk_buffer_alloc", '
+                 '"number", ["number"], [length]));')
+        if alloc not in worker_text:
+            raise SystemExit(
+                "the buffer allocation is not where this diagnostic expects it "
+                "in " + worker_rel + "; the tree moved under the diagnostic.")
+        worker_patched = worker_text.replace(
+            alloc,
+            '  const pointer = Number(ccall("oxsdk_buffer_alloc", "number", '
+            '["number"], [Math.max(1, length)]));', 1)
+        mirror = scratch / "cut-replace-selection-root"
+        build_mirror(root, mirror,
+                     {sdk_rel: sdk_patched.encode("utf-8"),
+                      page_rel: page_patched.encode("utf-8"),
+                      worker_rel: worker_patched.encode("utf-8")})
+        root = mirror
+        report["cutViaReplaceSelection"] = {
+            "evidenceClass": "diagnostic",
+            "note": "This run did NOT use the shipped SDK or the shipped page. "
+                    "It answers whether LOK's paste with zero-length text "
+                    "deletes a selection -- which decides whether cut needs an "
+                    "engine change at all. Not a product measurement.",
+            "mirrored": [sdk_rel, page_rel, worker_rel],
+            "gatesRemoved": [
+                "document-sdk.js:468 -- the JS empty-text guard",
+                "sdk-worker.js:352 -- withWasmBytes throwing on a zero-length "
+                "allocation, which is a generic allocation-failure check and "
+                "not a policy about empty text",
+            ],
+            "declaredBypass": "session.document.replaceSelection() goes around "
+                              "the shell's _enqueue, so the state machine does "
+                              "not see this mutation. A shipped fix would wrap "
+                              "it in EditorSession -- a shell change, not a "
+                              "link.",
+            "wasmUnchanged": True,
+            "prediction": "findings/evidence/queue-cut-cannot-remove-text/"
+                          "PREDICTION-replace-selection.md",
+        }
+    if args.range_delete_diagnostic:
+        relative = "profiles/e2-editor-v3/sdk-manifest.json"
+        manifest = json.loads((root / relative).read_text(encoding="utf-8"))
+        contract = manifest["editorContract"]
+        before = list(contract["actions"]["delete-backward"]["gestures"])
+        contract["actions"]["delete-backward"]["gestures"] = [
+            "collapsed", "range-single", "range-cross"]
+        widened = json.dumps(manifest, ensure_ascii=False,
+                             indent=2).encode("utf-8")
+        mirror = scratch / "range-delete-root"
+        build_mirror(root, mirror, {relative: widened})
+        root = mirror
+        report["rangeDeleteDiagnostic"] = {
+            "evidenceClass": "diagnostic",
+            "note": "This run did NOT use the shipped manifest. It is filed to "
+                    "answer whether the ENGINE removes a range at all, which "
+                    "the shipped manifest withholds by declaring the ten v1 "
+                    "actions caret-only. It is not a product measurement and "
+                    "must never be read as one.",
+            "action": "delete-backward",
+            "gesturesBefore": before,
+            "gesturesAfter": ["collapsed", "range-single", "range-cross"],
+            "wasmUnchanged": True,
+            "prediction": "findings/evidence/queue-cut-cannot-remove-text/"
+                          "PREDICTION.md",
+        }
     # Written AFTER the mirror is built, so it describes what was served rather
     # than what was intended.
     report["servedShell"] = served_shell_identity(root)
@@ -2333,22 +2915,23 @@ def main() -> int:
         # gains ink is the caret's second position and the one that loses it is
         # the first.
         CARET_LINE = "0.28"
-        evaluate(session, POINT_AT.replace("ARG_X", "0.06")
-                 .replace("ARG_Y", CARET_LINE))
-        wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+        clicks = caret_click_fractions(
+            evaluate(session, LINE_INK.replace("ARG_Y", CARET_LINE)) or {})
+        place_caret_and_settle(session, POINT_AT, clicks["near"], CARET_LINE)
         time.sleep(1.0)
         columns_start = evaluate(session, CARET_COLUMNS
                                  .replace("ARG_Y", CARET_LINE)) or {}
         # Past the end of the text: the caret must snap to the line's end, which
         # is what makes "it went where I clicked" checkable without knowing the
         # engine's coordinates.
-        evaluate(session, POINT_AT.replace("ARG_X", "0.92")
-                 .replace("ARG_Y", CARET_LINE))
-        wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+        place_caret_and_settle(session, POINT_AT, clicks["past"], CARET_LINE)
         time.sleep(1.0)
         columns_end = evaluate(session, CARET_COLUMNS
                                .replace("ARG_Y", CARET_LINE)) or {}
         caret = caret_from_columns(columns_start, columns_end)
+        # Recorded so a later reader can see WHERE this run clicked; a verdict
+        # whose input is derived must show the derivation.
+        caret["clickedAt"] = clicks
         reachable = bool(columns_start.get("available")
                          and columns_end.get("available")
                          and caret.get("available"))
@@ -2361,10 +2944,21 @@ def main() -> int:
               oracle="two clicks on the same line move a drawn caret: one "
                      "column gains ink and another loses it. Anchored to the "
                      "line's own ink rather than to viewport fractions, so the "
-                     "verdict does not depend on the browser window (060). "
+                     "verdict does not depend on the browser window (060), "
+                     "and the CLICK is derived from that ink too rather than "
+                     "from a viewport fraction. "
                      "LIMIT: this sees the caret by watching it move, so a "
                      "caret pinned to a constant column reads the same as one "
-                     "that is never drawn",
+                     "that is never drawn. "
+                     "LIMIT: the caret is 1 px and lands on a character "
+                     "boundary, so it is adjacent to glyph ink by "
+                     "construction and strokeLost can be small -- measured 19 "
+                     "on Firefox and 2 on Chrome at the same derived "
+                     "position. It is a margin, not a cliff, and the robust "
+                     "alternative (differencing a clean root against the "
+                     "`caret` mutation mirror, which is how finding 060 was "
+                     "actually diagnosed) costs a second page load and is not "
+                     "run per round",
               notEstablished="the sampled band carries no text ink, which is a "
                              "harness problem rather than a product one")
 
@@ -2373,17 +2967,26 @@ def main() -> int:
         span = caret.get("inkSpan") or 0
         near = caret.get("fractionNearStart")
         past = caret.get("fractionPastEnd")
+        # NOT_ESTABLISHED now also covers "a read did not find the caret".
+        # Without this the check reads a tie-break index as a position and can
+        # pass on a caret it never saw -- which is what it did on Firefox until
+        # 2026-08-21.  Whether the caret is drawn at all stays the OTHER
+        # check's question, and that one still fails rather than abstaining.
+        measurable = bool(reachable and span > 0
+                          and near is not None and past is not None)
         check("the-caret-lands-where-the-click-was",
-              bool(reachable and span > 0 and near is not None
-                   and past is not None and near < 0.25 and past > 0.75),
-              outcome=None if reachable and span > 0 else "NOT_ESTABLISHED",
+              bool(measurable and near < 0.25 and past > 0.75),
+              outcome=None if measurable else "NOT_ESTABLISHED",
               observed=caret,
               oracle="a click near the start of a line puts the caret in its "
                      "first quarter, and a click past the end puts it in the "
                      "last quarter -- measured against that line's own ink "
                      "extent. A caret that ignores x, one at a constant offset, "
                      "and one on the wrong line all fail this",
-              notEstablished="no line ink was found to measure against")
+              notEstablished="no line ink was found to measure against, or a "
+                             "read did not find the caret at all -- a column "
+                             "index that came from a tie-break is not a "
+                             "position, so no fraction is reported for it")
 
 
         # ------------------------------- 045, the product half: bold turns OFF
@@ -2767,13 +3370,64 @@ def main() -> int:
         cut_record["toasts"] = evaluate(session, READ_TOASTS)
         said = " ".join(cut_record.get("toasts") or [])
         cut_record["refusalReported"] = "EDITOR_FORMAT_GESTURE_UNSUPPORTED" in said
+        # THE MEASUREMENT queue-cut-cannot-remove-text asks for, recorded on
+        # every run and read by the diagnostic one.  `documentUnchanged` answers
+        # "did anything move"; these answer "did the TARGET go, and did its
+        # neighbours survive" -- which is the difference between a delete and a
+        # document that lost a paragraph somewhere else.
+        if cut_aimed:
+            target_text = cut_lines[cut_target[0]]["text"]
+            neighbours = [cut_lines[i]["text"]
+                          for i in (cut_target[0] - 1, cut_target[0] + 1)
+                          if 0 <= i < len(cut_lines)]
+            # AN EMPTY CAPTURE IS NOT AN EMPTY DOCUMENT.
+            #
+            # The first version reported targetStillPresent:false and
+            # neighboursSurvive:false from a save that never happened -- the
+            # session had gone to recoverable-error and the product answered
+            # `EDITOR_NOT_READY: save is unavailable`, so `after_texts` was []
+            # and every "is it still there" question answered "no".  That reads
+            # as "the cut deleted the whole document" and means "nothing was
+            # measured".  Same shape as the caret oracle's tie-break, found the
+            # same day: a question asked of missing data must return null.
+            readable = is_an_odt(cut_after) and bool(after_texts)
+            cut_record["rangeDelete"] = {
+                "documentReadableAfter": readable,
+                "targetText": target_text,
+                "targetStillPresent":
+                    any(target_text == t for t in after_texts) if readable else None,
+                "targetTextAnywhere":
+                    any(target_text in t for t in after_texts) if readable else None,
+                "neighboursSurvive": all(
+                    any(n == t for t in after_texts)
+                    for n in neighbours) if readable else None,
+                "linesBefore": len(cut_lines),
+                "linesAfter": len(after_texts) if readable else None,
+                "why": None if readable
+                       else "the save after the cut did not produce a readable "
+                            "ODT, so whether the text was removed is NOT "
+                            "measured here -- see toasts",
+            }
+        # A CAPABILITY GAP IS NOT A DEFECT, AND MUST NOT WEAR ITS COSTUME.
+        #
+        # The clipboard grant is Chrome-only -- it needs CDP, and the Firefox
+        # session has none.  Without it `clipboard.writeText` is refused, the
+        # copy half fails, and the delete half never runs, so the refusal this
+        # check exists to verify (finding 063) cannot be produced at all.
+        # Until 2026-08-21 the check simply FAILED there, which makes a browser
+        # the harness cannot drive indistinguishable from a product that broke
+        # -- the exact confusion the recovery check's loud exit was built to
+        # avoid.  Measured: Firefox reported `CLIPBOARD_DENIED`, an unchanged
+        # document, and a live session, and was scored a product failure.
+        cut_record["clipboardGranted"] = bool(clipboard_grant.get("granted"))
+        cut_measurable = cut_aimed and cut_record["clipboardGranted"]
         check("ctrl-x-is-handled-by-the-product",
-              bool(cut_aimed and (cut_result or {}).get("handled")
+              bool(cut_measurable and (cut_result or {}).get("handled")
                    and cut_record["stateAfterCut"] == "ready"
                    and cut_record["refusalReported"]
                    and cut_record["documentUnchanged"]
                    and is_an_odt(cut_after)),
-              outcome=None if cut_aimed else "NOT_ESTABLISHED",
+              outcome=None if cut_measurable else "NOT_ESTABLISHED",
               observed=cut_record,
               oracle="a cut on a range is handled by the product, its refusal "
                      "is REPORTED to the user with the reason, the document is "
@@ -2789,7 +3443,675 @@ def main() -> int:
                              "on a range by definition, so the delete half is "
                              "refused every time "
                              "(queue-cut-cannot-remove-text). What is checked "
-                             "is that the product says so and changes nothing")
+                             "is that the product says so and changes nothing. "
+                             "AND, when clipboardGranted is false, nothing at "
+                             "all: this browser session has no CDP, so the "
+                             "copy half is denied by the DRIVER, the delete "
+                             "half never runs, and the refusal under test "
+                             "cannot be produced. That is a gap in what the "
+                             "harness can reach, not a defect in the product")
+
+
+        # --------------- the other three inline formats, and clear-format
+        #
+        # Until 2026-08-21 exactly ONE of the four inline formats was driven
+        # through the product (set-bold), and it was checked against
+        # `aria-pressed` -- the page's own cache of what the engine told it.
+        # The 2026-08-19 relink's entire payload was making underline and
+        # strikethrough REACH that cache so they could be toggled off, and
+        # nothing had pressed either button since.  An engine field nobody
+        # forwards does not exist (handoff section 4), and the same afternoon
+        # proved it twice.
+        #
+        # The oracle here is the SAVED DOCUMENT, not the cache, because the
+        # cache being wrong IS the defect class this is looking for.  And it is
+        # a marker, not the paragraph: at a collapsed caret an inline format
+        # leaves <office:body> byte-identical (matrix, amended 2026-08-15), so
+        # the format shows only in text committed afterwards.
+        #
+        # Both directions for every format.  On-only is what let the toggle bug
+        # live for weeks.
+        formats_record: dict = {"arms": [], "clear": {}}
+        inline_ok = True
+
+        def format_arm(action: str, marker: str, turn_on: bool) -> None:
+            """Press one format button, commit a marker under it, AND SAVE.
+
+            EACH ARM GETS ITS OWN PARAGRAPH, and that is not tidiness.  The
+            first version committed every marker at the same caret, so all six
+            coalesced into ONE text run -- and a format press on a collapsed
+            caret inside a run restyles that run, so each press rewrote the
+            markers before it.  The saved document came back with all six
+            markers in a single <text:span> whose style said
+            fo:font-style="normal", style:text-underline-style="none",
+            style:text-line-through-style="none" -- the LAST arm's state,
+            applied retroactively to all of them.  Measured 2026-08-21; the
+            explicit "none" values are what gave it away, since absence of
+            formatting does not spell itself out.
+
+            AND THEN THE ISOLATION DEVICE BECAME THE SECOND VERSION OF THE TRAP.
+            Finding 064 was filed the same day from this sequence: all eight
+            arms reporting no format at all.  They were wrong.  Every arm is
+            correct AT THE MOMENT ITS MARKER IS TYPED -- measured, eight for
+            eight, findings/evidence/064/ -- and the NEXT arm's opening
+            `insert-paragraph-break` lands exactly where it takes the previous
+            marker's formatting away (finding 065).  Reading all eight verdicts
+            from one save at the end therefore reported eight failures where
+            there were none.
+
+            So each arm now takes its OWN save and is judged from it.  Every
+            question about a document has a time; a check that takes its oracle
+            once at the end has answered about that moment and no other.
+            """
+            evaluate(session, CLEAR_TOAST)
+            # A fresh, empty paragraph: nothing for the format press to
+            # restyle, so it can only set the pending state for what is typed.
+            break_before = revision_of(evaluate(session, READ_STATE))
+            evaluate(session, PRESS.replace("ARG_ACTION", "insert-paragraph-break"))
+            wait_for(session,
+                     lambda st, floor=break_before: revision_of(st) is not None
+                     and floor is not None and revision_of(st) > floor, 20)
+            offered = evaluate(
+                session,
+                "(() => { const b = document.querySelector('#toolbar "
+                f"button[data-action=\"{action}\"]'); "
+                "return b ? !b.disabled : null; })()")
+            evaluate(session, PRESS.replace("ARG_ACTION", action))
+            time.sleep(1.5)
+            before = revision_of(evaluate(session, READ_STATE))
+            evaluate(session, SET_TEXT.replace("ARG_TEXT", marker))
+            evaluate(session, PRESS.replace("ARG_ACTION", "insert-text"))
+            wait_for(session,
+                     lambda st, floor=before: revision_of(st) is not None
+                     and floor is not None and revision_of(st) > floor, 20)
+            # This arm's own document, taken before the next arm can disturb
+            # it.  `prop` comes from INLINE_ARMS below via the action.
+            saved = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+            prop = INLINE_PROPERTY_OF[action]
+            style = inline_styles_of(saved, marker)
+            arm = {"action": action, "marker": marker, "wanted": turn_on,
+                   "buttonOffered": offered,
+                   "toast": evaluate(session, READ_TOAST) or "",
+                   "savedIsOdt": is_an_odt(saved),
+                   "found": style.get("found"),
+                   "styleName": style.get("styleName"),
+                   "carrier": style.get("carrier"),
+                   # ALL FOUR, not only this arm's own.  clear-format's
+                   # precondition is "every format was on at once", and the only
+                   # document in which that is true is this arm's own save.
+                   "styles": {name: style.get(name)
+                              for name in INLINE_FORMAT_PROPERTIES},
+                   prop: style.get(prop)}
+            # A marker that is not in the document has no opinion about
+            # formatting, and `False` is not the honest way to say so.
+            arm["ok"] = (None if not arm["savedIsOdt"] or not style.get("found")
+                         else style.get(prop) is turn_on)
+            formats_record["arms"].append(arm)
+
+        # A collapsed caret: every one of the four is offered for `collapsed`
+        # and for nothing else, so this is the only gesture that can drive them.
+        inline_clicks = caret_click_fractions(
+            evaluate(session, LINE_INK.replace("ARG_Y", "0.24")) or {})
+        place_caret_and_settle(session, POINT_AT, inline_clicks["near"], "0.24")
+
+        # Bold is in here too, and deliberately.  `bold-can-be-turned-off-again`
+        # is GREEN and checks `aria-pressed` -- the page's own cache of what the
+        # engine said.  A cache can be written correctly while the document is
+        # never touched, which is precisely finding 064's shape, so bold's
+        # document side has never actually been asked.  Measured, not assumed.
+        INLINE_ARMS = [("set-bold", "bold", "MKBOLDON", "MKBOLDOFF"),
+                       ("set-italic", "italic", "MKITALON", "MKITALOFF"),
+                       ("set-underline", "underline", "MKUNDON", "MKUNDOFF"),
+                       ("set-strikethrough", "strikethrough",
+                        "MKSTRON", "MKSTROFF")]
+        INLINE_PROPERTY_OF = {action: prop
+                              for action, prop, _on, _off in INLINE_ARMS}
+        for action, prop, on_marker, off_marker in INLINE_ARMS:
+            format_arm(action, on_marker, True)
+            format_arm(action, off_marker, False)
+
+        by_marker = {arm["marker"]: arm for arm in formats_record["arms"]}
+        inline_established = True
+        for action, prop, on_marker, off_marker in INLINE_ARMS:
+            on_arm = by_marker.get(on_marker, {})
+            off_arm = by_marker.get(off_marker, {})
+            verdict = {"format": prop,
+                       "on": {"found": on_arm.get("found"),
+                              prop: on_arm.get(prop),
+                              "styleName": on_arm.get("styleName")},
+                       "off": {"found": off_arm.get("found"),
+                               prop: off_arm.get(prop),
+                               "styleName": off_arm.get("styleName")},
+                       "readFrom": "each arm's own save"}
+            verdict["ok"] = (None if on_arm.get("ok") is None
+                             or off_arm.get("ok") is None
+                             else bool(on_arm["ok"] and off_arm["ok"]))
+            if verdict["ok"] is None:
+                inline_established = False
+            inline_ok = inline_ok and verdict["ok"] is True
+            formats_record.setdefault("verdicts", []).append(verdict)
+
+        check("every-inline-format-reaches-the-document",
+              bool(inline_ok),
+              outcome=None if inline_established else "NOT_ESTABLISHED",
+              observed=formats_record,
+              oracle="italic, underline and strikethrough are each pressed ON "
+                     "and then OFF through the product's own toolbar, and after "
+                     "each press a unique marker is committed through the "
+                     "product's own insert field. In the SAVED ODT the marker "
+                     "typed under the ON press must carry that format's ODF "
+                     "property and the one under the OFF press must not. The "
+                     "oracle is the document rather than aria-pressed because "
+                     "the page's cache being wrong is the defect this looks "
+                     "for -- underline and strikethrough only reached that "
+                     "cache in the 2026-08-19 relink, and nothing had pressed "
+                     "them since. A collapsed caret leaves <office:body> "
+                     "byte-identical, so a marker is the only thing that can "
+                     "carry the answer. EACH ARM IS READ FROM ITS OWN SAVE, "
+                     "taken before the next arm runs: the next arm's opening "
+                     "paragraph break takes the previous marker's formatting "
+                     "away (finding 065), so one save at the end reports eight "
+                     "failures where there are none -- which is what finding "
+                     "064 was, and it is retracted")
+
+        # --- listener:click#clear-format ---------------------------------
+        #
+        # Registered as not-driven since 2026-08-19 with the reason "finding
+        # 059 has every one of those failing on the shipped artifact".  059's
+        # fix shipped in the 296f3ea7 relink and the tree is on 29ec627b, so
+        # that reason was pinned and went red (T0).  This is the path being
+        # driven, which is what actually retires it.
+        #
+        # Turning all four ON first is the point: clearing an already-clear
+        # document is a no-op that any broken button passes.
+        for action in ("set-bold", "set-italic", "set-underline",
+                       "set-strikethrough"):
+            format_arm(action, "MKALLON" if action == "set-strikethrough"
+                       else f"MKPRE{action[-3:].upper()}", True)
+        by_marker = {arm["marker"]: arm for arm in formats_record["arms"]}
+        evaluate(session, CLEAR_TOAST)
+        cleared_pressed = evaluate(
+            session,
+            "(() => { const b = document.querySelector('#clear-format'); "
+            "if (!b) return null; b.click(); return true; })()")
+        time.sleep(2.0)
+        clear_toast = evaluate(session, READ_TOAST) or ""
+        before_clear_mark = revision_of(evaluate(session, READ_STATE))
+        evaluate(session, SET_TEXT.replace("ARG_TEXT", "MKCLEARED"))
+        evaluate(session, PRESS.replace("ARG_ACTION", "insert-text"))
+        wait_for(session,
+                 lambda st, floor=before_clear_mark: revision_of(st) is not None
+                 and floor is not None and revision_of(st) > floor, 20)
+        evaluate(session, PRESS.replace("ARG_ACTION", "save"))
+        cleared_saved = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+        all_on = inline_styles_of(cleared_saved, "MKALLON")
+        cleared = inline_styles_of(cleared_saved, "MKCLEARED")
+        # READ FROM MKALLON'S OWN SAVE, not from the post-clear document.
+        # Asking the cleared document whether every format WAS on is asking it
+        # about a moment it no longer records: clear-format presses at a
+        # collapsed caret restyle the run the caret is in, and MKALLON is in it.
+        # The precondition therefore looked unbuildable when it was simply being
+        # read too late -- the same mistake, one check over, as finding 064.
+        all_on_when_typed = (by_marker.get("MKALLON") or {}).get("styles") or {}
+        formats_record["clear"] = {
+            "buttonFound": cleared_pressed, "toast": clear_toast,
+            "allOnWhenTyped": all_on_when_typed,
+            "allOn": {k: all_on.get(k) for k in
+                      ("found", "bold", "italic", "underline", "strikethrough")},
+            "cleared": {k: cleared.get(k) for k in
+                        ("found", "carrier", "bold", "italic", "underline",
+                         "strikethrough")},
+        }
+        every_format_was_on = bool(
+            (by_marker.get("MKALLON") or {}).get("found")
+            and all(all_on_when_typed.get(k) for k in INLINE_FORMAT_PROPERTIES))
+        formats_record["clear"]["everyFormatWasOn"] = every_format_was_on
+        check("clear-format-removes-every-inline-format",
+              bool(cleared_pressed and every_format_was_on
+                   and cleared.get("found")
+                   and not any(cleared.get(k) for k in INLINE_FORMAT_PROPERTIES)
+                   and is_an_odt(cleared_saved)),
+              outcome=None if every_format_was_on else "NOT_ESTABLISHED",
+              observed=formats_record["clear"],
+              oracle="all four inline formats are turned ON and a marker "
+                     "committed under them, the product's own #clear-format "
+                     "button is clicked, and a second marker is committed "
+                     "after it. The first marker must carry all four in the "
+                     "saved ODT and the second must carry none -- clearing an "
+                     "already-clear document is a no-op that a broken button "
+                     "would pass",
+              notEstablished="the four formats were not all ON before the "
+                             "clear, so what the button did cannot be read: a "
+                             "clear that removes nothing and a clear that "
+                             "never ran look identical from here. The "
+                             "precondition is read from MKALLON's OWN save "
+                             "rather than from the cleared document, because "
+                             "asking a cleared document whether every format "
+                             "WAS on asks it about a moment it no longer "
+                             "records -- which is why this looked unbuildable "
+                             "under finding 064, now retracted")
+
+        # ----------------------------------- 065: does it SURVIVE the next key
+        #
+        # `every-inline-format-reaches-the-document` asks whether the format
+        # reaches the text.  It does.  What nothing asked was whether the text
+        # KEEPS it, and the two were confused for a whole finding: reading eight
+        # arms from one save at the end reported eight failures because each
+        # arm's opening paragraph break had taken the previous arm's formatting
+        # away.
+        #
+        # So this asks the surviving question directly, and it is a user's
+        # sentence: press B, type, press Enter. One marker, one break, nothing
+        # else in between.
+        #
+        # LAST, deliberately.  Every press here goes through the page's own
+        # `editorAction`, which decides `enabled` from the cached format state
+        # -- so an arm that leaves bold ON makes the NEXT block's "turn it on"
+        # press send `enabled: false`.  Placed before clear-format, this arm did
+        # exactly that and knocked out that check's precondition.  Measured, and
+        # it is the same lesson as finding 045 from the other side: a toggle
+        # read from cache is a sequencing dependency between checks.
+        format_arm("set-bold", "MKSURVIVE", True)
+        by_marker = {arm["marker"]: arm for arm in formats_record["arms"]}
+        survive_before = by_marker.get("MKSURVIVE") or {}
+        break_floor = revision_of(evaluate(session, READ_STATE))
+        evaluate(session, PRESS.replace("ARG_ACTION", "insert-paragraph-break"))
+        wait_for(session,
+                 lambda st, floor=break_floor: revision_of(st) is not None
+                 and floor is not None and revision_of(st) > floor, 20)
+        survive_saved = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+        survive_after = inline_styles_of(survive_saved, "MKSURVIVE")
+        survive_established = bool(
+            survive_before.get("savedIsOdt") and survive_before.get("bold") is True
+            and is_an_odt(survive_saved) and survive_after.get("found"))
+        formats_record["survivesBreak"] = {
+            "boldWhenTyped": survive_before.get("bold"),
+            "styleNameWhenTyped": survive_before.get("styleName"),
+            "boldAfterBreak": (survive_after.get("bold")
+                               if survive_after.get("found") else None),
+            "styleNameAfterBreak": survive_after.get("styleName"),
+            "carrierAfterBreak": survive_after.get("carrier"),
+            "spansAfterBreak": (survive_saved.get("content") or "").count(
+                "<text:span"),
+        }
+        check("formatting-survives-the-next-paragraph-break",
+              bool(survive_established and survive_after.get("bold") is True),
+              outcome=None if survive_established else "NOT_ESTABLISHED",
+              observed=formats_record["survivesBreak"],
+              oracle="a marker typed under a bold press is bold in ITS OWN "
+                     "save, and is STILL bold in a save taken after one "
+                     "insert-paragraph-break and nothing else. The precondition "
+                     "is half the check: a marker that was never bold cannot "
+                     "show that it stopped being bold, and that arm reports "
+                     "NOT_ESTABLISHED rather than a failure. Finding 065")
+
+        # AFTER 065, and that placement is load-bearing.
+        #
+        # This arm ends with bold ON (it presses the button and types under it),
+        # and the page decides `enabled` from the cached format state -- so a
+        # check that runs next and means to turn bold ON sends `enabled: false`
+        # instead.  Placed before 065, it did exactly that and knocked out that
+        # check's precondition: NOT_ESTABLISHED, measured 2026-08-22.
+        #
+        # That is the SECOND time this trap has been sprung in this file in two
+        # days, the first being this same 065 arm against clear-format.  A
+        # toggle read from a cache is an ordering dependency between checks, and
+        # the comment saying so was already here when it happened again.
+        # ------------------- 066: does the toolbar give the keyboard back?
+        #
+        # An operator reported this on 2026-08-22 and nothing automated in this
+        # tree could have: EVERY keyboard helper here opens with `sink.focus()`,
+        # handing back the focus a user can only recover by clicking the canvas
+        # -- and that click moves the caret and discards the inline format they
+        # just set.  The harness was papering over the defect on every run.
+        #
+        # A REAL click is required and `button.click()` will not do:
+        # `HTMLElement.click()` runs no default action, so it never moves focus
+        # and this check would pass on a broken page.  CDP only, therefore
+        # CHROME only, and Firefox reports NOT_ESTABLISHED rather than a pass.
+        focus_record: dict = {}
+        cdp = getattr(session, "call", None)
+        if cdp is None:
+            focus_record["why"] = ("this browser session has no CDP, so a real "
+                                   "click cannot be delivered")
+        else:
+            place_caret_and_settle(session, POINT_AT, inline_clicks["near"], "0.24")
+            focus_record["afterCanvasClick"] = evaluate(session, READ_FOCUS)
+            box = evaluate(session, BUTTON_BOX.replace(
+                "ARG_SELECTOR", '#toolbar button[data-action="set-bold"]'))
+            if not box:
+                focus_record["why"] = "the set-bold button has no box to click"
+            else:
+                for kind in ("mousePressed", "mouseReleased"):
+                    cdp("Input.dispatchMouseEvent",
+                        {"type": kind, "x": box["x"], "y": box["y"],
+                         "button": "left", "clickCount": 1})
+                time.sleep(1.5)
+                focus_record["afterButtonClick"] = evaluate(session, READ_FOCUS)
+                before_focus_type = revision_of(evaluate(session, READ_STATE))
+                focus_record["dispatch"] = evaluate(
+                    session,
+                    TYPE_WHEREVER_FOCUS_IS.replace("ARG_TEXT", "MKFOCUS"))
+                settled = wait_for(
+                    session,
+                    lambda st, floor=before_focus_type: revision_of(st) is not None
+                    and floor is not None and revision_of(st) > floor, 12)
+                focus_record["revision"] = {"before": before_focus_type,
+                                            "after": revision_of(settled)}
+                focus_saved = capture_save(
+                    session, evaluate(session, SAVE_COUNT) or 0)
+                focus_record["savedIsOdt"] = is_an_odt(focus_saved)
+                focus_record["markerInDocument"] = (
+                    "MKFOCUS" in ((focus_saved or {}).get("content") or ""))
+        focus_measurable = bool(
+            focus_record.get("afterButtonClick") and focus_record.get("savedIsOdt"))
+        check("the-toolbar-gives-the-keyboard-back",
+              bool(focus_measurable
+                   and (focus_record.get("afterButtonClick") or {}).get("id") == "sink"
+                   and focus_record.get("markerInDocument")),
+              outcome=None if focus_measurable else "NOT_ESTABLISHED",
+              observed=focus_record,
+              oracle="after a REAL mouse click on a style button, "
+                     "document.activeElement is still the editing sink, AND "
+                     "text typed straight afterwards -- with nothing restoring "
+                     "focus -- reaches the saved document. Finding 066: it used "
+                     "to be the button, so typing went nowhere, and the canvas "
+                     "click needed to recover moved the caret and discarded the "
+                     "format",
+              notEstablished="anything, on a browser without CDP. A real click "
+                             "is the whole point: HTMLElement.click() runs no "
+                             "default action and never moves focus, so a "
+                             "synthetic press would pass this on a page where "
+                             "it is broken")
+
+        # ------------- the five caret and edit BUTTONS nobody had pressed
+        #
+        # delete-backward, delete-forward, insert-line-break,
+        # move-character-left and move-character-right all had a toolbar button
+        # and no automated round.  `backspace-and-arrows-reach-the-document`
+        # drives the KEYBOARD path (beforeinput); these are the buttons, and
+        # this tree has been bitten five times by "the button is there, nobody
+        # pressed it" (049, 050, 053, 054, 063).
+        #
+        # One paragraph, one save, five actions -- and the sequence is built so
+        # that EACH action failing produces a DIFFERENT final string, so a green
+        # cannot be bought by any one of them being a no-op:
+        #
+        #   type ABCDEFG            ABCDEFG
+        #   delete-backward x2      ABCDE      (no-op -> ABCDEFG...)
+        #   move-character-left x2  caret after C
+        #   insert X                ABCXDE     (left no-op -> ABCDEX)
+        #   move-character-right    caret after D
+        #   delete-forward          ABCXD      (right no-op -> ABCXE;
+        #                                       forward no-op -> ABCXDE)
+        #   insert-line-break                  (no-op -> no <text:line-break/>)
+        edit_record: dict = {"steps": []}
+
+        def edit_press(action: str, times: int = 1) -> None:
+            for _ in range(times):
+                before = revision_of(evaluate(session, READ_STATE))
+                evaluate(session, CLEAR_TOAST)
+                evaluate(session, PRESS.replace("ARG_ACTION", action))
+                moved = wait_for(
+                    session,
+                    lambda st, floor=before: revision_of(st) is not None
+                    and floor is not None and revision_of(st) > floor, 12)
+                edit_record["steps"].append(
+                    {"action": action,
+                     "revisionBefore": before,
+                     "revisionAfter": revision_of(moved),
+                     "toast": evaluate(session, READ_TOAST) or ""})
+
+        def edit_type(text: str) -> None:
+            before = revision_of(evaluate(session, READ_STATE))
+            evaluate(session, SET_TEXT.replace("ARG_TEXT", text))
+            evaluate(session, PRESS.replace("ARG_ACTION", "insert-text"))
+            wait_for(session,
+                     lambda st, floor=before: revision_of(st) is not None
+                     and floor is not None and revision_of(st) > floor, 20)
+            edit_record["steps"].append({"action": "insert-text", "text": text})
+
+        # Break at the END of a line, so the new paragraph starts EMPTY.
+        #
+        # First run broke mid-paragraph and the remainder came along: the
+        # paragraph read EDITBTNABCXD + "LC-NUMBER-ONE".  Relaxing the oracle to
+        # startswith() would have destroyed the separability this sequence is
+        # built on -- a delete-forward no-op yields EDITBTNABCXDE..., which
+        # still starts with the wanted string.  So the SETUP is fixed instead of
+        # the assertion.  (Do not widen a check to close a row.)
+        edit_clicks = caret_click_fractions(
+            evaluate(session, LINE_INK.replace("ARG_Y", "0.28")) or {})
+        place_caret_and_settle(session, POINT_AT, edit_clicks["past"], "0.28")
+        edit_record["brokeAtLineEnd"] = edit_clicks.get("derived")
+        edit_press("insert-paragraph-break")
+        edit_type("EDITBTNABCDEFG")
+        edit_press("delete-backward", 2)
+        edit_press("move-character-left", 2)
+        edit_type("X")
+        edit_press("move-character-right")
+        edit_press("delete-forward")
+        edit_press("insert-line-break")
+        evaluate(session, PRESS.replace("ARG_ACTION", "save"))
+        edit_saved = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+        edit_texts = [line["text"] for line in document_lines(edit_saved)]
+        edit_record["wanted"] = "EDITBTNABCXD"
+        edit_record["paragraphWithMarker"] = next(
+            (t for t in edit_texts if "EDITBTN" in t), None)
+        # `move-character-*` produce no revision of their own on some builds --
+        # recorded rather than asserted, because the VERDICT is the document.
+        edit_record["revisionSilentActions"] = [
+            step["action"] for step in edit_record["steps"]
+            if step.get("revisionAfter") is not None
+            and step.get("revisionBefore") == step.get("revisionAfter")]
+        edit_record["hasLineBreak"] = "<text:line-break/>" in (
+            edit_saved.get("content") or "")
+        check("the-edit-buttons-do-what-they-say",
+              bool(edit_record["paragraphWithMarker"] == "EDITBTNABCXD"
+                   and edit_record["hasLineBreak"]
+                   and is_an_odt(edit_saved)),
+              observed=edit_record,
+              oracle="delete-backward, delete-forward, insert-line-break and "
+                     "move-character-left/right are pressed as BUTTONS, in a "
+                     "sequence where each one being a no-op yields a different "
+                     "final string: ABCDEFG -> delete-backward x2 -> "
+                     "move-left x2 -> insert X -> move-right -> delete-forward "
+                     "must leave exactly EDITBTNABCXD, and insert-line-break "
+                     "must put a <text:line-break/> in the saved ODT. The "
+                     "keyboard path is a different check; this is the toolbar, "
+                     "which no round had ever pressed")
+
+        # --- listener:click#open-file -------------------------------------
+        #
+        # Registered as uncovered with "it opens the OS file chooser, which no
+        # driver here can operate".  That is true of #file, and NOT true of the
+        # path: the listener is one line that forwards to #file.click(), and
+        # the runner already shims a .click() to COUNT it instead of performing
+        # it (HTMLAnchorElement, for download anchors).  Driving the forwarding
+        # needs no chooser and no human; what still needs a human is the
+        # chooser itself, and `listener:change#file` already covers what comes
+        # back from it.  The first draft of this plan proposed waiving this,
+        # which would have closed the row without walking the path.
+        forwarded = evaluate(session, """(() => {
+const file = document.querySelector('#file');
+const button = document.querySelector('#open-file');
+if (!file || !button) return { available: false };
+const native = file.click;
+let calls = 0;
+file.click = function () { calls += 1; };       // counted, never performed
+button.click();
+const afterButton = calls;
+file.click = native;
+return { available: true, afterButton };
+})()""") or {}
+        edit_record["openFileForwarding"] = forwarded
+        check("the-open-button-opens-the-file-chooser",
+              bool(forwarded.get("available") and forwarded.get("afterButton") == 1),
+              outcome=None if forwarded.get("available") else "NOT_ESTABLISHED",
+              observed=forwarded,
+              oracle="clicking the product's own #open-file button forwards "
+                     "exactly one click to the hidden #file input. The click is "
+                     "shimmed to be counted rather than performed, so no OS "
+                     "chooser opens and no human is needed -- the same "
+                     "technique this runner already uses for download anchors. "
+                     "What the chooser hands back is listener:change#file's "
+                     "job and is checked separately",
+              notEstablished="#open-file or #file is not in the page at all")
+
+
+        # ------------- the three listeners that abort or relayout a gesture
+        #
+        # pointercancel and blur both call endDrag(null); resize relayouts and
+        # re-renders.  None had ever been driven.  The observable for the first
+        # two is the product's OWN state projection: pumpDrag() sets
+        # lastSelectionShape and calls updateGestureAffordance(), which disables
+        # the four inline-format buttons on a range because they are declared
+        # collapsed-only.  So "did the drag really stop" can be read from the
+        # toolbar without reaching into a module-local variable.
+        def format_buttons_disabled() -> bool | None:
+            state = evaluate(session, READ_STATE) or {}
+            flags = [b.get("disabled") for b in (state.get("buttons") or [])
+                     if b.get("action") in ("set-bold", "set-italic",
+                                            "set-underline", "set-strikethrough")]
+            return all(flags) if flags else None
+
+        def abort_arm(kind: str | None) -> dict:
+            """Drag across a line, maybe aborting mid-gesture, and see if it selected.
+
+            `kind=None` is the POSITIVE CONTROL and it is the whole reason this
+            check means anything.  Measured 2026-08-21: without it, the
+            `gesture-abort-not-wired` mutation -- which unwires pointercancel
+            entirely -- left this check GREEN, because the drag had never
+            started and a selection that never extended proved nothing. That is
+            "unreachable rather than untested, and it looks green" (handoff
+            section 5), walked into on the same day it was quoted.
+            """
+            # Coordinates from stable_bands, the SAME derivation the copy and
+            # cut drags use.  Three shapes derived from LINE_INK and viewport
+            # fractions were tried first and none of them extended the
+            # selection on ANY arm, control included -- so the check could only
+            # abstain.  Reuse of a gesture already proven to select beats a
+            # fourth guess at coordinates.
+            scan_a, bands_a = stable_bands(session)
+            band = next((b for b in bands_a
+                         if (b["last"] - b["first"]) > 40), None)
+            if band is None or not scan_a.get("width"):
+                return {"kind": kind or "no-abort (control)",
+                        "aborted": kind is not None,
+                        "formatButtonsDisabledBefore": None,
+                        "formatButtonsDisabledAfterAbortAndMove": None,
+                        "why": "no text band wide enough to drag across"}
+            width = scan_a["width"]
+            x1 = f"{max(0.0, (band['first'] + 2) / width):.5f}"
+            x2 = f"{((band['first'] + band['last']) / 2) / width:.5f}"
+            y = f"{band['centreFraction']:.5f}"
+            place_caret_and_settle(session, POINT_AT, x1, y)
+            time.sleep(0.8)
+            before = format_buttons_disabled()
+            evaluate(session, ABORT_DRAG
+                     .replace("ARG_X1", x1).replace("ARG_X2", x2)
+                     .replace("ARG_Y", y)
+                     .replace("ARG_KIND", kind or "none"))
+            # Poll, do not sleep: selectRange queues behind the placeCaret that
+            # pointerdown itself starts.
+            deadline = time.monotonic() + 20
+            after = format_buttons_disabled()
+            while after is not True and time.monotonic() < deadline:
+                time.sleep(0.5)
+                after = format_buttons_disabled()
+            return {"kind": kind or "no-abort (control)",
+                    "aborted": kind is not None,
+                    "formatButtonsDisabledBefore": before,
+                    "formatButtonsDisabledAfterAbortAndMove": after}
+
+        control = abort_arm(None)
+        aborts = [abort_arm("pointercancel"), abort_arm("blur")]
+        # The control must show a drag EXTENDING the selection, or nothing
+        # below is evidence about aborting one.
+        drag_reaches = control["formatButtonsDisabledAfterAbortAndMove"] is True
+        check("an-aborted-gesture-stops-selecting",
+              bool(drag_reaches
+                   and all(a["formatButtonsDisabledBefore"] is False
+                           and a["formatButtonsDisabledAfterAbortAndMove"] is False
+                           for a in aborts)),
+              outcome=None if drag_reaches else "NOT_ESTABLISHED",
+              observed={"control": control, "arms": aborts},
+              oracle="a drag is started, then aborted by pointercancel (and "
+                     "separately by window blur), then the pointer keeps "
+                     "moving. The selection must NOT extend -- read through the "
+                     "product's own affordance, since the four inline-format "
+                     "buttons are collapsed-only and go disabled the moment a "
+                     "range exists. Both listeners call endDrag(null) and "
+                     "neither had ever been driven",
+              notEstablished="the control arm -- a drag with NO abort -- did "
+                             "not extend the selection, so this harness cannot "
+                             "start a drag here and an abort that stops one "
+                             "proves nothing. Without this clause the check "
+                             "passed even with pointercancel unwired entirely")
+
+        resized = evaluate(session, RESIZE_DESK) or {}
+        time.sleep(2.0)
+        resized["afterCanvasWidth"] = (evaluate(
+            session, "(() => document.querySelector('#canvas').width)()"))
+        resized["inkAfter"] = ((evaluate(
+            session, LINE_INK.replace("ARG_Y", "0.28")) or {}).get("available"))
+        evaluate(session, RESTORE_DESK)
+        time.sleep(1.5)
+        check("the-canvas-follows-a-window-that-changed-size",
+              bool(resized.get("available")
+                   and resized.get("afterCanvasWidth")
+                   and resized["afterCanvasWidth"] != resized.get("beforeCanvasWidth")
+                   and resized.get("inkAfter") is True),
+              outcome=None if resized.get("available") else "NOT_ESTABLISHED",
+              observed=resized,
+              oracle="the desk is narrowed and a resize event dispatched: the "
+                     "canvas backing store must change size AND the document "
+                     "must still be drawn afterwards. A relayout that resizes "
+                     "the canvas and never repaints leaves a blank page, which "
+                     "is finding 062's shape one layer up",
+              notEstablished="#desk or #canvas is not in the page")
+
+        # --- listener:change#fixture --------------------------------------
+        #
+        # MEDIUM, and the registry says why: it is the only product path that
+        # comes near `queue-search-after-reopen-wedges`, because the session
+        # disposes its engine on close and this is the product's second open.
+        fixture_switch = evaluate(session, SWITCH_FIXTURE) or {}
+        if fixture_switch.get("available"):
+            # The picker's VALUE is a stem; the product shows it with `.odt`.
+            # Measured 2026-08-21: comparing them for equality made the wait
+            # burn its whole timeout on a switch that had already happened.
+            switched = wait_for(
+                session,
+                lambda st, want=fixture_switch.get("to"):
+                (st.get("doc") or "").startswith(want)
+                and st.get("state") == "ready", 90)
+            fixture_switch["docAfter"] = (switched or {}).get("doc")
+            fixture_switch["stateAfter"] = (switched or {}).get("state")
+            # Ink ANYWHERE, not at one hardcoded band: a different sample puts
+            # its text somewhere else, and "no ink at y=0.28" would report a
+            # perfectly drawn document as blank.  Same mistake finding 060 was
+            # about, and it does not get to happen twice in one day.
+            _, fixture_bands = stable_bands(session)
+            fixture_switch["inkBands"] = len(fixture_bands)
+        check("the-sample-picker-opens-a-second-document",
+              bool(fixture_switch.get("available")
+                   and str(fixture_switch.get("docAfter") or "").startswith(
+                       str(fixture_switch.get("to")))
+                   and fixture_switch.get("stateAfter") == "ready"
+                   and (fixture_switch.get("inkBands") or 0) > 0),
+              outcome=None if fixture_switch.get("available")
+              else "NOT_ESTABLISHED",
+              observed=fixture_switch,
+              oracle="choosing a different sample from the product's own picker "
+                     "opens it: the document name becomes the chosen one, the "
+                     "session returns to `ready`, and the new document is "
+                     "actually DRAWN -- ink found ANYWHERE, since a different "
+                     "sample puts its text on different lines. This is the "
+                     "product's second open on one "
+                     "page, so it is also the only product path that comes near "
+                     "queue-search-after-reopen-wedges",
+              notEstablished="the picker offers fewer than two samples, so "
+                             "there is nothing to switch to")
 
 
         # --------------------------------- opening a document the user chose
