@@ -270,3 +270,56 @@ worker 把它們轉出去（**它的回覆是白名單**——只改引擎的話
 東西。是那一格的 ground truth 條款（存檔、重開、比高度）把它抓出來的：它報
 `groundTruthEstablished: false` 而不是通過。**一個沒有 ground truth 就拒絕給判決的
 檢查，這一次救了一格。**
+
+## 歸因（2026-08-21）：牆在 Cairo，而我原本的推論是錯的
+
+原本的佇列項寫著「2^15 是 signed 16-bit 量」**是從數字推的，沒有讀過那一點的原始碼**
+——這一條是刻意寫的，而它救了我一次：**讀完之後，數字對，機制錯。**
+
+不是 signed 16-bit，也不是 overflow。是 Cairo 的 image surface **明確尺寸檢查**：
+
+```c
+/* Limit on the width / height of an image surface in pixels.  This is
+ * mainly determined by coordinates of things sent to pixman at the
+ * moment being in 16.16 format. */
+#define MAX_IMAGE_SIZE 32767
+```
+
+（`wasm-lite/build/workdir/UnpackedTarball/cairo/src/cairo-image-surface.c:59`）
+
+理由是 **pixman 的座標是 16.16 定點**——`pixman_fixed_t` 是 `int32_t`，**不是**
+`int16_t`。LibreOffice 這一路的高度型別**從來沒有被窄化成 16 位元**。
+
+**而且它對寬度一樣成立**，只是我們的寬度一直都在上限以下，所以量到的看起來像高度牆。
+
+### 為什麼「回報成功」——每一層都說了實話，合起來是謊
+
+| | |
+|---|---|
+| Cairo | 拒絕尺寸，回一張 **nil／error surface**（`CAIRO_STATUS_INVALID_SIZE`）。它不丟例外，它標記；而在 error context 上繪圖是**文件載明的 no-op** |
+| SVP | `vcl/headless/svpvd.cxx:107-111` **有接到**，`SAL_WARN_IF` 之後 `return status == SUCCESS` |
+| VirtualDevice | `vcl/source/gdi/virdev.cxx:384` 正確地把它當 `bool` 回傳 |
+| **`doc_paintTile`** | **`desktop/source/lib/init.cxx:4288` 把那個 `bool` 丟掉**，然後在 `:4292` 照樣畫下去 |
+| LOK ABI | `paintTile` 是 **`void`**，本來就沒有地方回報；而 `doc_paintTile` 進場時清掉 last-error，失敗後沒有再設 |
+
+所以 buffer 回來**正好 `width*height*4` 位元組、而且完全沒被碰過**——那些零是**我們
+自己 `malloc` 的**，不是 LibreOffice 成功畫了一張透明圖。
+
+**沒有 clamp**：32768 是被拒絕，不是被縮成 32767。
+
+### 是不是上游的
+
+分兩件事：**單一 image surface 不能超過 32,767** 是這個後端的真實限制，呼叫端本來就
+該遵守（我們的產品已經分段）；**LOK 在辦不到的尺寸上靜靜完成**才是上游的錯誤傳播缺陷
+——`LibreOfficeKit.hxx:136-142` 完全沒有記載這個上限。
+
+最小可回報陳述已擬好（送出仍擱置）：
+[`evidence/062/layer/ATTRIBUTION.md`](evidence/062/layer/ATTRIBUTION.md)，
+連同排除掉的六個候選（記憶體總量、`short` overflow、`RECT_EMPTY` sentinel、
+`SalBitmap` copy-back、Qt／瀏覽器 canvas 上限、clamp）各自是怎麼排除的。
+
+**做法**：發包給 codex 做源碼考古，回來之後**關鍵那幾行我自己重讀過才接受**——
+Cairo 的常數與註解、`init.cxx:4288` 被丟掉的 `bool`、SVP 的狀態回傳，以及這顆 build
+確實走 headless／svp。規則是**不要在沒讀到那一行之前指認層級**，而 040、048 與 062
+自己就是不這樣做的前例。
+

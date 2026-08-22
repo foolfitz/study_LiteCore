@@ -1,0 +1,583 @@
+{
+  "schemaVersion": 1,
+  "release": "spec-e2c-d0",
+  "phase": "D0",
+  "profile": "e2-editor-v3",
+  "fixture": "list-contexts.odt",
+  "browser": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+  "crossOriginIsolated": true,
+  "cells": {
+    "d0-inventory": {
+      "profile": "e2-editor-v3",
+      "capabilities": [
+        "open-odt",
+        "rgba-tile",
+        "insert-text",
+        "save-odt",
+        "cancel-queued",
+        "search",
+        "selection-text",
+        "replace-selection",
+        "undo",
+        "comments",
+        "tracked-changes",
+        "provider-contract-1.0",
+        "provider-worker",
+        "validated-provider-operation",
+        "narrow-editor-v2",
+        "verified-selection-delete"
+      ],
+      "contractVersion": 2,
+      "abiVersion": 3,
+      "crossParagraphDisposition": "verify-every-block",
+      "declaredActions": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic",
+        "set-underline",
+        "set-strikethrough",
+        "set-list-none",
+        "set-list-unordered",
+        "set-list-ordered",
+        "set-paragraph-heading",
+        "set-paragraph-body"
+      ],
+      "wasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+      "loaderSha256": "6ff0f962eded5ebc8f7c9f28df48b47dd149177861e6af052983c573411a57d4",
+      "workerSha256": "a9afbc0101eb9d48b1544ade20c21379267de798568998f93aaa2bceef38a537",
+      "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+      "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+      "crossOriginIsolated": true
+    },
+    "d0-no-diagnostic-surface": {
+      "capabilities": [
+        "open-odt",
+        "rgba-tile",
+        "insert-text",
+        "save-odt",
+        "cancel-queued",
+        "search",
+        "selection-text",
+        "replace-selection",
+        "undo",
+        "comments",
+        "tracked-changes",
+        "provider-contract-1.0",
+        "provider-worker",
+        "validated-provider-operation",
+        "narrow-editor-v2",
+        "verified-selection-delete"
+      ],
+      "diagnosticCapabilities": [],
+      "editorActionV1": {
+        "refused": true,
+        "error": {
+          "code": "UNSUPPORTED_OPERATION",
+          "message": "editorActionV1 is unavailable in profile e2-editor-v3",
+          "formatBarrier": null
+        }
+      }
+    },
+    "d0-reachability-single-client": {
+      "client": "editor-shell-v2/narrow-editor-v2-client.js",
+      "declared": [
+        "move-character-left",
+        "move-character-right",
+        "delete-backward",
+        "delete-forward",
+        "insert-paragraph-break",
+        "insert-line-break",
+        "set-bold",
+        "set-italic",
+        "set-underline",
+        "set-strikethrough",
+        "set-list-none",
+        "set-list-unordered",
+        "set-list-ordered",
+        "set-paragraph-heading",
+        "set-paragraph-body"
+      ],
+      "attempts": [
+        {
+          "action": "move-character-left",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 0,
+              "action": "move-character-left",
+              "extendSelection": false,
+              "enabled": false
+            }
+          },
+          "result": {
+            "action": "move-character-left",
+            "beforeRevision": 0,
+            "revision": 0,
+            "changed": false,
+            "completion": "documented-callback-visible-cursor"
+          },
+          "error": null
+        },
+        {
+          "action": "move-character-right",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 0,
+              "action": "move-character-right",
+              "extendSelection": false,
+              "enabled": false
+            }
+          },
+          "result": {
+            "action": "move-character-right",
+            "beforeRevision": 0,
+            "revision": 0,
+            "changed": false,
+            "completion": "documented-callback-visible-cursor"
+          },
+          "error": null
+        },
+        {
+          "action": "delete-backward",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 0,
+              "action": "delete-backward",
+              "extendSelection": false,
+              "enabled": false
+            }
+          },
+          "result": {
+            "action": "delete-backward",
+            "beforeRevision": 0,
+            "revision": 1,
+            "changed": true,
+            "completion": "verified-selection-delete"
+          },
+          "error": null
+        },
+        {
+          "action": "delete-forward",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 1,
+              "action": "delete-forward",
+              "extendSelection": false,
+              "enabled": false
+            }
+          },
+          "result": {
+            "action": "delete-forward",
+            "beforeRevision": 1,
+            "revision": 2,
+            "changed": true,
+            "completion": "verified-selection-delete"
+          },
+          "error": null
+        },
+        {
+          "action": "insert-paragraph-break",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 2,
+              "action": "insert-paragraph-break",
+              "extendSelection": false,
+              "enabled": false
+            }
+          },
+          "result": {
+            "action": "insert-paragraph-break",
+            "beforeRevision": 2,
+            "revision": 3,
+            "changed": true,
+            "completion": "uno-command-result"
+          },
+          "error": null
+        },
+        {
+          "action": "insert-line-break",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 3,
+              "action": "insert-line-break",
+              "extendSelection": false,
+              "enabled": false
+            }
+          },
+          "result": {
+            "action": "insert-line-break",
+            "beforeRevision": 3,
+            "revision": 4,
+            "changed": true,
+            "completion": "uno-command-result"
+          },
+          "error": null
+        },
+        {
+          "action": "set-bold",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 4,
+              "action": "set-bold",
+              "extendSelection": false,
+              "enabled": true
+            }
+          },
+          "result": {
+            "action": "set-bold",
+            "beforeRevision": 4,
+            "revision": 5,
+            "changed": true,
+            "completion": "uno-command-result"
+          },
+          "error": null
+        },
+        {
+          "action": "set-italic",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 5,
+              "action": "set-italic",
+              "extendSelection": false,
+              "enabled": true
+            }
+          },
+          "result": {
+            "action": "set-italic",
+            "beforeRevision": 5,
+            "revision": 6,
+            "changed": true,
+            "completion": "uno-command-result"
+          },
+          "error": null
+        },
+        {
+          "action": "set-underline",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 6,
+              "action": "set-underline",
+              "extendSelection": false,
+              "enabled": true
+            }
+          },
+          "result": {
+            "action": "set-underline",
+            "beforeRevision": 6,
+            "revision": 7,
+            "changed": true,
+            "completion": "uno-command-result"
+          },
+          "error": null
+        },
+        {
+          "action": "set-strikethrough",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 7,
+              "action": "set-strikethrough",
+              "extendSelection": false,
+              "enabled": true
+            }
+          },
+          "result": {
+            "action": "set-strikethrough",
+            "beforeRevision": 7,
+            "revision": 8,
+            "changed": true,
+            "completion": "uno-command-result"
+          },
+          "error": null
+        },
+        {
+          "action": "set-list-none",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 8,
+              "action": "set-list-none",
+              "extendSelection": false,
+              "enabled": false
+            }
+          },
+          "result": {
+            "action": "set-list-none",
+            "beforeRevision": 8,
+            "revision": 9,
+            "changed": null,
+            "completion": "verified-format-readback"
+          },
+          "error": null
+        },
+        {
+          "action": "set-list-unordered",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 9,
+              "action": "set-list-unordered",
+              "extendSelection": false,
+              "enabled": false
+            }
+          },
+          "result": {
+            "action": "set-list-unordered",
+            "beforeRevision": 9,
+            "revision": 10,
+            "changed": null,
+            "completion": "verified-format-readback"
+          },
+          "error": null
+        },
+        {
+          "action": "set-list-ordered",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 10,
+              "action": "set-list-ordered",
+              "extendSelection": false,
+              "enabled": false
+            }
+          },
+          "result": {
+            "action": "set-list-ordered",
+            "beforeRevision": 10,
+            "revision": 11,
+            "changed": null,
+            "completion": "verified-format-readback"
+          },
+          "error": null
+        },
+        {
+          "action": "set-paragraph-heading",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 11,
+              "action": "set-paragraph-heading",
+              "extendSelection": false,
+              "enabled": false
+            }
+          },
+          "result": {
+            "action": "set-paragraph-heading",
+            "beforeRevision": 11,
+            "revision": 12,
+            "changed": null,
+            "completion": "verified-format-readback"
+          },
+          "error": null
+        },
+        {
+          "action": "set-paragraph-body",
+          "dispatched": true,
+          "envelope": {
+            "operation": "editorActionV2",
+            "payload": {
+              "documentHandle": 1,
+              "expectedRevision": 12,
+              "action": "set-paragraph-body",
+              "extendSelection": false,
+              "enabled": false
+            }
+          },
+          "result": {
+            "action": "set-paragraph-body",
+            "beforeRevision": 12,
+            "revision": 13,
+            "changed": null,
+            "completion": "verified-format-readback"
+          },
+          "error": null
+        }
+      ]
+    },
+    "d0-reachability-control-undeclared": {
+      "action": "set-superscript",
+      "refused": true,
+      "error": {
+        "code": "EDITOR_ACTION_UNSUPPORTED",
+        "message": "unsupported narrow editor action: set-superscript",
+        "formatBarrier": null
+      },
+      "actionsDispatched": 0
+    },
+    "d0-unknown-action": {
+      "action": "set-blink",
+      "refused": true,
+      "error": {
+        "code": "EDITOR_ACTION_UNSUPPORTED",
+        "message": "unsupported narrow editor action: set-blink",
+        "formatBarrier": null
+      },
+      "actionsDispatched": 0,
+      "savedBytes": {
+        "before": 12763,
+        "after": 12770
+      },
+      "zeroMutationBy": "saved document comparison"
+    },
+    "d0-forbidden-keycode": {
+      "field": "keyCode",
+      "refused": true,
+      "error": {
+        "code": "INVALID_ARGUMENT",
+        "message": "editorActionV2 requires a closed action and typed options",
+        "formatBarrier": null
+      },
+      "savedBytes": {
+        "before": 12771,
+        "after": 12770
+      },
+      "zeroMutationBy": "saved document comparison"
+    },
+    "d0-forbidden-unocommand": {
+      "field": "unoCommand",
+      "refused": true,
+      "error": {
+        "code": "INVALID_ARGUMENT",
+        "message": "editorActionV2 requires a closed action and typed options",
+        "formatBarrier": null
+      },
+      "savedBytes": {
+        "before": 12770,
+        "after": 12770
+      },
+      "zeroMutationBy": "saved document comparison"
+    },
+    "d0-forbidden-command": {
+      "field": "command",
+      "refused": true,
+      "error": {
+        "code": "INVALID_ARGUMENT",
+        "message": "editorActionV2 requires a closed action and typed options",
+        "formatBarrier": null
+      },
+      "savedBytes": {
+        "before": 12770,
+        "after": 12768
+      },
+      "zeroMutationBy": "saved document comparison"
+    },
+    "d0-session-opens": {
+      "session": "editor-shell-v2/narrow-editor-v2-session.js",
+      "state": "ready",
+      "clientReplacements": 1,
+      "generation": 1
+    }
+  },
+  "complete": true,
+  "error": null,
+  "artifact": {
+    "profile": "e2-editor-v3",
+    "wasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+    "loaderSha256": "6ff0f962eded5ebc8f7c9f28df48b47dd149177861e6af052983c573411a57d4",
+    "workerSha256": "a9afbc0101eb9d48b1544ade20c21379267de798568998f93aaa2bceef38a537"
+  },
+  "attribution": {
+    "runnerProfile": "e2-editor-v3",
+    "pageReported": {
+      "wasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+      "loaderSha256": "6ff0f962eded5ebc8f7c9f28df48b47dd149177861e6af052983c573411a57d4",
+      "workerSha256": "a9afbc0101eb9d48b1544ade20c21379267de798568998f93aaa2bceef38a537"
+    },
+    "consistent": true
+  },
+  "browserName": "firefox",
+  "matrixEntryAssertion": {
+    "matrix": "e2/validation-matrix-v2.json",
+    "status": "frozen-before-D0",
+    "profile": "e2-editor-v3",
+    "baselineHashes": {
+      "wasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+      "loaderSha256": "6ff0f962eded5ebc8f7c9f28df48b47dd149177861e6af052983c573411a57d4",
+      "workerSha256": "a9afbc0101eb9d48b1544ade20c21379267de798568998f93aaa2bceef38a537",
+      "shellBundleSha256": "07143f961d82c4b3558d6df2f628fce11ce376c30364d3fee8344bbd77028129",
+      "manifestSha256": "ff6834f9301d4ec113fe12c1486958c2b47ac1ec84b503cf1fd21acb57db1561"
+    },
+    "onDisk": {
+      "wasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+      "loaderSha256": "6ff0f962eded5ebc8f7c9f28df48b47dd149177861e6af052983c573411a57d4",
+      "workerSha256": "a9afbc0101eb9d48b1544ade20c21379267de798568998f93aaa2bceef38a537"
+    },
+    "ok": true,
+    "problems": []
+  },
+  "savedDocuments": [
+    {
+      "label": "before-unknown-action",
+      "file": "saved/before-unknown-action.odt"
+    },
+    {
+      "label": "after-unknown-action",
+      "file": "saved/after-unknown-action.odt"
+    },
+    {
+      "label": "before-forbidden-keyCode",
+      "file": "saved/before-forbidden-keyCode.odt"
+    },
+    {
+      "label": "after-forbidden-keyCode",
+      "file": "saved/after-forbidden-keyCode.odt"
+    },
+    {
+      "label": "before-forbidden-unoCommand",
+      "file": "saved/before-forbidden-unoCommand.odt"
+    },
+    {
+      "label": "after-forbidden-unoCommand",
+      "file": "saved/after-forbidden-unoCommand.odt"
+    },
+    {
+      "label": "before-forbidden-command",
+      "file": "saved/before-forbidden-command.odt"
+    },
+    {
+      "label": "after-forbidden-command",
+      "file": "saved/after-forbidden-command.odt"
+    }
+  ]
+}
