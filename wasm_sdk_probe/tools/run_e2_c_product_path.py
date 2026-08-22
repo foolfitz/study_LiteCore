@@ -1736,10 +1736,6 @@ def inline_styles_of(report: dict, marker: str) -> dict:
 BAND_MERGE_GAP = 8
 
 
-# Wider than a caret, far narrower than a glyph.  See text_bands().
-CARET_MAX_EXTENT = 3
-
-
 def text_bands(scan: dict, floor: int = 0) -> list[dict]:
     """The canvas's lines of text, as row bands.
 
@@ -1766,39 +1762,6 @@ def text_bands(scan: dict, floor: int = 0) -> list[dict]:
             start = None
     if start is not None:
         runs.append({"top": start, "bottom": len(scan["counts"]) - 1})
-    # A ONE-PIXEL-WIDE RUN IS A CARET, NOT A LINE, AND IT MUST GO BEFORE THE
-    # MERGE.
-    #
-    # The density filter at the bottom already rejects a caret on its own: one
-    # inked pixel over a one-pixel extent scores 1.0, above the 0.9 ceiling.
-    # But the merge below runs FIRST, and a caret sitting in the gap between two
-    # lines bridges them -- so two text bands become one and the density of the
-    # union is a text density, which passes. The caret is never seen; the line
-    # count is just wrong.
-    #
-    # Measured 2026-08-22, and it is why this exists: on the v3 artifact the
-    # inducer read four bands, on v4 it read three, with the first two merged
-    # across a ten-row gap. The document, the fixture and the pre-inducer bands
-    # were IDENTICAL. What changed was finding 068's fix -- the caret is now
-    # drawn where it belongs instead of a commit behind, which put it in that
-    # gap. The harness aims its drag from these bands, so a correct caret moved
-    # the aim and the inducer stopped inducing.
-    #
-    # The threshold is 3, not 1: a caret is `Math.round(scaleX * 15)` = one
-    # pixel at this scale, drawn at a fractional x, so anti-aliasing spreads it
-    # over two columns. The narrowest real glyph on this fixture is ~9px, so
-    # there is a factor of three of daylight and no measured case in between.
-    def run_extent(run: dict) -> int:
-        rows = range(run["top"], run["bottom"] + 1)
-        firsts = [scan["firsts"][y] for y in rows if scan["firsts"][y] >= 0]
-        if not firsts:
-            return 0
-        return max(scan["lasts"][y] for y in rows) - min(firsts) + 1
-
-    thin = [dict(run, extent=run_extent(run)) for run in runs
-            if run_extent(run) <= CARET_MAX_EXTENT]
-    runs = [run for run in runs if run_extent(run) > CARET_MAX_EXTENT]
-
     # Recorded so that a future mismatch is diagnosable from the report rather
     # than from another round of probing: if bands and lines ever disagree
     # again, these are the numbers that say whether the threshold is wrong.
@@ -1824,11 +1787,6 @@ def text_bands(scan: dict, floor: int = 0) -> list[dict]:
         band["centreFraction"] = ((band["top"] + band["bottom"]) / 2
                                   / scan["height"])
         band["gapsOnThisPage"] = observed_gaps[:12]
-        # Reported, not just dropped: "the caret was here and was excluded" is
-        # a different statement from "there was nothing there", and only the
-        # first one is checkable afterwards.
-        band["thinRunsExcluded"] = [(r["top"], r["bottom"], r["extent"])
-                                    for r in thin]
         if 0.15 <= band["density"] < 0.9:
             out.append(band)
     return out
@@ -2041,6 +1999,17 @@ def wait_saves(session, count, timeout=90):
     return False
 
 
+SINK_POSITION = """(() => {
+const sink = document.querySelector('#sink');
+if (!sink) return null;
+// `offsetLeft`/`offsetTop` rather than the inline style, so this reads what the
+// element IS at rather than what was last assigned to it -- a style that failed
+// to apply would otherwise read back as if it had.
+return { left: sink.offsetLeft, top: sink.offsetTop,
+         height: sink.offsetHeight };
+})()"""
+
+
 REDO_BUTTON = """(() => {
 const button = document.querySelector('#toolbar button[data-action="redo"]');
 if (!button) return null;
@@ -2158,10 +2127,18 @@ def main() -> int:
                              "cut's delete half call replaceSelection(\"\"); "
                              "stamps the report diagnostic")
     parser.add_argument("--range-delete-diagnostic", action="store_true",
-                        help="grant delete-backward both range gestures in a "
-                             "MIRRORED manifest, to measure whether the engine "
-                             "removes a range at all; stamps the report "
-                             "diagnostic")
+                        help="grant the action named by --range-delete-action "
+                             "both range gestures in a MIRRORED manifest, to "
+                             "measure whether the engine removes a range at "
+                             "all; stamps the report diagnostic")
+    parser.add_argument("--range-delete-action", default="delete-backward",
+                        help="which action the diagnostic above widens. "
+                             "`delete-selection` is the one that matters since "
+                             "ABI 4: the shipped manifest grants it "
+                             "`range-single` only, and the engine requires BOTH "
+                             "range bits for an unclassified range "
+                             "(probe_engine.cpp:4471), so that grant is an off "
+                             "switch rather than a narrowing")
     args = parser.parse_args()
 
     report: dict = {
@@ -2293,9 +2270,20 @@ def main() -> int:
         relative = "profiles/e2-editor-v4/sdk-manifest.json"
         manifest = json.loads((root / relative).read_text(encoding="utf-8"))
         contract = manifest["editorContract"]
-        before = list(contract["actions"]["delete-backward"]["gestures"])
-        contract["actions"]["delete-backward"]["gestures"] = [
-            "collapsed", "range-single", "range-cross"]
+        widened_action = args.range_delete_action
+        if widened_action not in contract["actions"]:
+            raise SystemExit(
+                f"--range-delete-action {widened_action!r} is not in this "
+                f"profile's action map: {sorted(contract['actions'])}")
+        before = list(contract["actions"][widened_action]["gestures"])
+        # BOTH range bits, and `collapsed` only if it already had it.  Adding
+        # `collapsed` to delete-selection would give it delete-backward's job
+        # as well, and then a green would not say which action removed the
+        # text.
+        after = ["range-single", "range-cross"]
+        if "collapsed" in before:
+            after = ["collapsed", *after]
+        contract["actions"][widened_action]["gestures"] = after
         widened = json.dumps(manifest, ensure_ascii=False,
                              indent=2).encode("utf-8")
         mirror = scratch / "range-delete-root"
@@ -2308,9 +2296,9 @@ def main() -> int:
                     "the shipped manifest withholds by declaring the ten v1 "
                     "actions caret-only. It is not a product measurement and "
                     "must never be read as one.",
-            "action": "delete-backward",
+            "action": widened_action,
             "gesturesBefore": before,
-            "gesturesAfter": ["collapsed", "range-single", "range-cross"],
+            "gesturesAfter": after,
             "wasmUnchanged": True,
             "prediction": "findings/evidence/queue-cut-cannot-remove-text/"
                           "PREDICTION.md",
@@ -4175,6 +4163,121 @@ return { available: true, afterButton };
                              "start a drag here and an abort that stops one "
                              "proves nothing. Without this clause the check "
                              "passed even with pointercancel unwired entirely")
+
+        # MOVED HERE, LATE, AND THE REASON IS THE FIRST RUNS.
+        #
+        # This check types 36 characters into the fixture, and everything from
+        # the format checks through the aborted-gesture one aims by BAND INDEX
+        # on that same document. Sitting among them it changed the line count
+        # -- measured: `ctrl-x` saw 9 bands one round and 8 the next, so its
+        # drag selected nothing and it reported CLIPBOARD_EMPTY_SELECTION.
+        # Intermittently, which is how it was nearly attributed to something
+        # else entirely.
+        #
+        # Nothing after this point aims by band on the pristine fixture: the
+        # next check resizes the desk, and the one after opens another
+        # document.
+        # ------------------- 068: does the caret follow the text you type?
+        #
+        # READ FROM THE SINK, not from pixels. Finding 069 put the hidden input
+        # sink on the caret (it has to be there, or an IME's candidate window
+        # opens somewhere else and composition scrolls the page), so the page
+        # now publishes the caret's position in the DOM as `#sink`'s offset.
+        #
+        # LIMIT, stated because it is the whole shape of this check: this reads
+        # the position the page DRAWS FROM, not the pixels it drew. A page that
+        # computed the right position and painted nothing would pass. Whether a
+        # caret is drawn at all is the OTHER check above; this one is about
+        # whether the position keeps up.
+        #
+        # THREE ROUNDS, and that is not thoroughness for its own sake. Before
+        # the fix this defect was intermittent at 2/7 -- the page's snapshot was
+        # refreshed once per queued operation and the cursor callback landed
+        # one sequence later, so whether the caret was current depended on which
+        # side of that race the read fell. A single round would report green
+        # about a fifth of the time.
+        caret_typing = {"rounds": [], "line": "0.28"}
+        typing_clicks = caret_click_fractions(
+            evaluate(session, LINE_INK.replace("ARG_Y", caret_typing["line"]))
+            or {})
+        # The control for the INSTRUMENT: the sink must track the caret at all.
+        # Without it, a sink pinned at 0,0 reports "never moved" for every round
+        # and the check fails for a reason that has nothing to do with typing.
+        place_caret_and_settle(session, POINT_AT, typing_clicks["near"],
+                               caret_typing["line"])
+        time.sleep(0.8)
+        caret_typing["sinkAtLineStart"] = evaluate(session, SINK_POSITION) or {}
+        place_caret_and_settle(session, POINT_AT, typing_clicks["past"],
+                               caret_typing["line"])
+        time.sleep(0.8)
+        caret_typing["sinkAtLineEnd"] = evaluate(session, SINK_POSITION) or {}
+        start_left = (caret_typing["sinkAtLineStart"] or {}).get("left")
+        end_left = (caret_typing["sinkAtLineEnd"] or {}).get("left")
+        caret_typing["sinkTracksTheCaret"] = (
+            start_left is not None and end_left is not None
+            and end_left > start_left)
+
+        for index in range(3):
+            mark = f"CARETFOLLOW{index}"
+            before = evaluate(session, SINK_POSITION) or {}
+            before_left, before_top = before.get("left"), before.get("top")
+            floor = revision_of(evaluate(session, READ_STATE))
+            evaluate(session, COMPOSE.replace("ARG_TEXT", mark))
+            landed = wait_for(session,
+                              lambda s, f=floor: revision_of(s) is not None
+                              and f is not None and revision_of(s) > f, 25)
+            time.sleep(1.2)
+            after = evaluate(session, SINK_POSITION) or {}
+            after_left, after_top = after.get("left"), after.get("top")
+            # FORWARD IN READING ORDER, not "further right".
+            #
+            # The first version of this check asked for a larger `left`, and
+            # round 1 failed with 617 -> 296. That was not the caret failing to
+            # follow: the typing WRAPPED, so the caret moved onto the next line
+            # and legitimately went left. A caret that wrapped is ahead of where
+            # it was, and an oracle that cannot say so is wrong about the
+            # product rather than the other way round.
+            moved = (before_left is not None and after_left is not None
+                     and before_top is not None and after_top is not None
+                     and (after_top > before_top
+                          or (after_top == before_top
+                              and after_left > before_left)))
+            caret_typing["rounds"].append({
+                "round": index, "mark": mark,
+                "leftBefore": before_left, "leftAfter": after_left,
+                "topBefore": before_top, "topAfter": after_top,
+                "wrapped": (before_top is not None and after_top is not None
+                            and after_top > before_top),
+                "revisionAdvanced": revision_of(landed) != floor,
+                "moved": moved,
+            })
+
+        typed_rounds = [r for r in caret_typing["rounds"]
+                        if r["revisionAdvanced"]]
+        caret_typing["roundsThatReachedTheDocument"] = len(typed_rounds)
+        check("caret-follows-the-text-you-type",
+              bool(typed_rounds) and all(r["moved"] for r in typed_rounds),
+              outcome=None if (caret_typing["sinkTracksTheCaret"]
+                               and len(typed_rounds) == 3)
+              else "NOT_ESTABLISHED",
+              observed=caret_typing,
+              oracle="typing moves the caret FORWARD IN READING ORDER -- "
+                     "further right on the same line, or onto a lower one if "
+                     "the text wrapped -- three times out of three. Read from "
+                     "`#sink`'s offset, "
+                     "which finding 069 pinned to the caret, so this is the "
+                     "position the page draws from. LIMIT: it is not the "
+                     "pixels -- a page that computed the right position and "
+                     "painted nothing would pass here and fail "
+                     "`the-caret-is-drawn-where-it-was-placed`",
+              notEstablished="either the sink does not track the caret at all "
+                             "(so 'it did not move' says nothing about typing) "
+                             "or fewer than three rounds reached the document. "
+                             "Three is not thoroughness: before the fix this "
+                             "defect was intermittent at 2/7, and a single "
+                             "round would report green about a fifth of the "
+                             "time")
+
 
         resized = evaluate(session, RESIZE_DESK) or {}
         time.sleep(2.0)
