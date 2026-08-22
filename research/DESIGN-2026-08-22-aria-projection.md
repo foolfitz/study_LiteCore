@@ -388,9 +388,42 @@ if (m_nListPrefixLength > 0)
 - **(iii) 只做 1.1.1／4.1.2 那一半**（canvas 的文字替代、聚焦段落有名字有角色但角色
   只能說「段落」），把 1.3.1 的結構那一半留成**具名缺口**，等 (i) 或 (ii)。
 
-**沒有先量就選不出來。**要量的是 (i) 的可行性：我們的引擎能不能從既有的 LOK view
-拿到 `XAccessibleContext`，以及拿到之後 role／level 是不是真的對得上文件。這是一格
-可以在**現有 core 上**做的探針量測，不需要重編。
+**沒有先量就選不出來。**要量的是 (i) 的可行性。
+
+### 9.2.1 量了（2026-08-23）：**可以**，代價具名
+
+證據：[`findings/evidence/aria-projection/REACHABILITY.md`](../findings/evidence/aria-projection/REACHABILITY.md)，
+探針原始碼在同一個目錄。不需要重編，閘門那顆 core 就在磁碟上。
+
+`SfxViewShell::Current()` → `GetWindow()` → `GetAccessible()` →
+`getAccessibleContext()` 編得過，而且三個符號都在**已經連在 link line 上的 310 個
+封存檔**裡（`libsfxlo.a`／`libvcllo.a`／`libcomphelper.a`）。
+
+過程值得記：**前三次失敗每一次都長得像牆，其實都是旗標**——`std::cmp_equal` 缺是因為
+沒帶 `-std=c++20`（core 是 C++20）、`OUString` 未限定是因為沒帶 `-DLIBO_INTERNAL_ONLY`、
+第三個根本是我探針自己型別寫錯。**停在第一個就會回報「搆不到」，而那是錯的。**
+
+**代價**：
+
+- `-DLIBO_INTERNAL_ONLY` 是**與 core 的另一份契約**——那是 core 編譯它自己用的，
+  這些是內部 API，跨版本沒有穩定承諾。`SfxViewShell::Current()` 可以在 26.9 無預警
+  改掉，而 LOK 的相容性說法完全不涵蓋它們。
+- **不可以套在整個引擎上。**現有的編譯單元是 LOK client，透過公開標頭看 core；翻了
+  那個 define 會改變那些標頭呈現的樣子。⇒ 形狀是**一個獨立的編譯單元**帶
+  `-std=c++20 -DLIBO_INTERNAL_ONLY`，對引擎其餘部分只露一個窄的 C 介面。內部 API
+  依賴**關在一個檔案裡**，一個地方講得清楚、一個地方刪得掉。
+- ⇒ **(i) 是橋，不是終點。**終點是 (ii)（上游把 role／level 加進 payload），到那時
+  那個檔案是**刪掉**而不是繼續維護。上游送出自 2026-08-15 擱置，但那不改變哪一個是
+  終局。
+
+### 9.2.2 這一格**沒有**回答的事
+
+上面那條鏈停在**編輯視窗自己的** accessible context。從那裡走到**焦點段落**是另一個
+問題——視窗的 accessible 是一棵樹，而 `LOKDocumentFocusListener` 是用**監聽**而不是
+下降去找那一段的。
+
+**刻意不對那段路作任何估計。**這一格量的是「搆不搆得到」；把剩下的路用猜的補完，
+就是這棵樹已經寫過規矩的那種「形狀看起來很輕」。
 
 ### 9.3 順帶：標題前綴塌縮定案成 finding 074
 
