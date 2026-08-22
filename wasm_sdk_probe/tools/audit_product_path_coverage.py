@@ -39,7 +39,7 @@ from run_e2_c_d0 import artifact_hashes  # noqa: E402
 
 # Which profile a pinned reason is judged against.  The product page is served
 # from this profile, so "the shipped artifact" in a registry reason means this.
-BINDING_PROFILE = "e2-editor-v3"
+BINDING_PROFILE = "e2-editor-v4"
 
 
 def live_bindings(profile: str = BINDING_PROFILE) -> dict[str, str]:

@@ -11,7 +11,7 @@ so the run and the criteria stay separable -- and so that a criterion cannot be
 edited into agreement with what came back.
 
 Usage:
-  run_block_identity_link.py --browser firefox [--profile e2-editor-v3] --out FILE
+  run_block_identity_link.py --browser firefox [--profile e2-editor-v4] --out FILE
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ READ = "(() => globalThis.__e2c_bi || null)()"
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--browser", choices=("chrome", "firefox"), default="firefox")
-    parser.add_argument("--profile", default="e2-editor-v3")
+    parser.add_argument("--profile", default="e2-editor-v4")
     parser.add_argument("--timeout", type=float, default=600)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()

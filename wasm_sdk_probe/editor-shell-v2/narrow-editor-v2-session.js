@@ -31,13 +31,25 @@
 // unsaved work.
 
 import { EditorSession } from "../editor-shell/editor-session.js";
-import { NarrowEditorV2Client, EDITOR_V2_ACTIONS }
+import { NarrowEditorV2Client, EDITOR_V3_ACTIONS }
   from "./narrow-editor-v2-client.js";
 import { EDITOR_V2_PARAGRAPH_ACTIONS } from "./paragraph-editor-client.js";
 import { recoveryFor } from "./paragraph-editor-session.js";
 
 const PARAGRAPH = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
-const ACTIONS = new Set(EDITOR_V2_ACTIONS);
+// EDITOR_V3_ACTIONS, not EDITOR_V2_ACTIONS: this set is the SESSION's own
+// allowlist, a second copy of the client's, and it was the layer the ABI 4
+// link found. The client learned the five appended actions when they were
+// written; this did not, so on the v4 profile the manifest offered
+// `move-line-up`, the page gated on that and took the key, the client would
+// have accepted it -- and the session refused it here with
+// EDITOR_ACTION_UNSUPPORTED.
+//
+// The list stays a session-side allowlist rather than being deleted in favour
+// of the client's: refusing an unknown action BEFORE it enters the queue is
+// what keeps a typo from occupying a queue slot and blocking real edits. What
+// was wrong was having a second copy that could lag, not having the check.
+const ACTIONS = new Set(EDITOR_V3_ACTIONS);
 
 // A Symbol, not a string key: this rides through the base class's resolve path
 // on an object the base class treats as an opaque result, and a string key

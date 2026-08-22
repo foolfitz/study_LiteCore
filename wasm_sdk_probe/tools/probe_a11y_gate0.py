@@ -18,7 +18,7 @@ Nothing new is added to the engine.  It already reports every field this needs
 (`:1835`); what has never existed is a build where the call sites are compiled in.
 
 Usage:
-  probe_a11y_gate0.py --browser chrome [--profile e2-editor-v3] [--out FILE]
+  probe_a11y_gate0.py --browser chrome [--profile e2-editor-v4] [--out FILE]
   probe_a11y_gate0.py --check-build-only
 """
 
@@ -77,7 +77,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--browser", choices=("chrome", "firefox"),
                         default="chrome")
-    parser.add_argument("--profile", default="e2-editor-v3")
+    parser.add_argument("--profile", default="e2-editor-v4")
     parser.add_argument("--fixture", default="list-contexts.odt")
     parser.add_argument("--out", default=None)
     parser.add_argument("--check-build-only", action="store_true")

@@ -41,6 +41,11 @@
       "how": "pressed as a TOOLBAR BUTTON in a sequence where each action being a no-op yields a different final string: type ABCDEFG, delete-backward x2, move-character-left x2, insert X, move-character-right, delete-forward must leave exactly EDITBTNABCXD, and insert-line-break must put a <text:line-break/> in the saved ODT. The break is taken at a LINE END so the new paragraph starts empty and the oracle can be equality rather than startswith -- startswith would pass a delete-forward no-op. The keyboard path (beforeinput) is a separate check; this is the button, which no round had pressed. Mutation `edit-arrows-swapped` must redden it."
     },
     {
+      "path": "action:redo",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "pressed as a TOOLBAR BUTTON immediately after undo, which is the check: undo has just taken the insert marker out, so redo putting it back is a statement about redo rather than about whatever the document held before. Read from the SAVED ODT, not from the revision counter. The earlier IME commits are witnesses, so a redo that replayed more than the last edit is not mistaken for a correct one. Two preconditions, both checked rather than assumed: the profile must offer redo (the button's own `hidden`, because `.click()` fires on a hidden button too and pressing a control the product is not offering measures nothing), and the marker must be ABSENT going in, or 'the marker is present' is satisfied by a document that never lost it. Mutation `redo` -- the button wired to a resolved promise -- must redden it. Registered as driven on 2026-08-22, when the ABI 4 link expired the waiver that had covered this path: that waiver's reason was pinned to the v3 manifest hash precisely so it could not survive the artifact that makes redo reachable."
+    },
+    {
       "path": "action:save",
       "by": "tools/run_e2_c_product_path.py",
       "how": "the product's own save button; the bytes are captured through a declared URL.createObjectURL shim and must BE an ODT"
@@ -146,6 +151,11 @@
       "how": "TWO branches now, and both are named because this audit works per LISTENER and cannot see inside one. (1) a synthesised KeyboardEvent('keydown', {key: ArrowLeft}) on #sink; the oracle is the page cancelling it and the status line reporting a dispatched caret move. (2) a REAL Enter and a REAL Shift+Enter delivered through CDP Input.dispatchMouseEvent's sibling Input.dispatchKeyEvent, judged by the-enter-key-reaches-the-document on the PARAGRAPH COUNT in the saved ODT -- never on the revision, which advanced on every broken press under finding 067. That arm is CHROME ONLY: only a real key runs the default action that produces `beforeinput`, so a synthesised keydown would pass it on a page where the binding is absent; Firefox reports NOT_ESTABLISHED. Mutation `enter-key-not-bound` disables the branch and the check must go red. STILL NOT EXERCISED in this handler: Ctrl+Z and Ctrl+S. Ctrl+Z's own coverage is the undo check, which presses the button rather than the key."
     },
     {
+      "path": "listener:mousedown",
+      "by": "tools/run_e2_c_product_path.py",
+      "how": "a REAL mouse click is delivered onto the set-bold button through CDP Input.dispatchMouseEvent, and then two things are read: document.activeElement must still be the editing sink, and text typed straight afterwards -- with NOTHING restoring focus -- must reach the saved document. The check is the-toolbar-gives-the-keyboard-back. A real click is the whole point: HTMLElement.click() runs no default action and therefore never moves focus, so every synthetic press in this file would pass on a page where this is broken -- which is exactly how finding 066 survived until an operator hit it. CHROME ONLY; Firefox has no CDP here and the check reports NOT_ESTABLISHED rather than passing. Mutation `focus` reverts the two lines and the check must go red."
+    },
+    {
       "path": "listener:pointerdown",
       "by": "tools/run_e2_c_product_path.py, tools/run_e2_c_page_smoke.py",
       "how": "a synthesised PointerEvent on #canvas, through the page's own handler; placeCaret is confirmed by the engine"
@@ -164,22 +174,9 @@
       "path": "listener:resize",
       "by": "tools/run_e2_c_product_path.py",
       "how": "the desk is narrowed and a resize event dispatched: the canvas backing store must change size AND the document must still be drawn afterwards (725 -> 404 px, ink still found). A relayout that resizes and never repaints leaves a blank page -- finding 062's shape one layer up. Mutation `resize-does-not-repaint` must redden it."
-    },
-    {
-      "path": "listener:mousedown",
-      "by": "tools/run_e2_c_product_path.py",
-      "how": "a REAL mouse click is delivered onto the set-bold button through CDP Input.dispatchMouseEvent, and then two things are read: document.activeElement must still be the editing sink, and text typed straight afterwards -- with NOTHING restoring focus -- must reach the saved document. The check is the-toolbar-gives-the-keyboard-back. A real click is the whole point: HTMLElement.click() runs no default action and therefore never moves focus, so every synthetic press in this file would pass on a page where this is broken -- which is exactly how finding 066 survived until an operator hit it. CHROME ONLY; Firefox has no CDP here and the check reports NOT_ESTABLISHED rather than passing. Mutation `focus` reverts the two lines and the check must go red."
     }
   ],
-  "waived": [
-    {
-      "path": "action:redo",
-      "reason": "UNREACHABLE ON THIS PROFILE, and by construction rather than by omission: the 重做 button is `hidden` and both shortcuts return early unless `offersRedo()` is true, and it is false here because e2-editor-v3's contract carries no `redo` declaration. There is nothing for a harness to drive -- driving it would mean reaching past the gate that is the feature. The gate itself IS covered, by editor-shell-v2/tests/offers.test.mjs, which pins that the page reads `offersRedo()` for the button and both shortcuts and that a contract without a `redo` declaration answers false. Waived rather than listed as uncovered because 'nobody has driven it' would misdescribe it: it is not reachable, so there is no risk to weigh.",
-      "reasonBoundTo": {
-        "manifestSha256": "ff6834f9301d4ec113fe12c1486958c2b47ac1ec84b503cf1fd21acb57db1561"
-      }
-    }
-  ],
+  "waived": [],
   "uncovered": [
     {
       "path": "listener:blur",

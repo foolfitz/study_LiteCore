@@ -2451,7 +2451,7 @@ return d ? d.keys : null;
 
 READ_OFFERS = """(() => {
 const link = document.querySelector('link[rel="sdk-manifest"]');
-return fetch("profiles/e2-editor-v3/sdk-manifest.json")
+return fetch("profiles/e2-editor-v4/sdk-manifest.json")
   .then((r) => r.json())
   .then((m) => {
     const actions = (m.editorContract || {}).actions || {};
@@ -2964,21 +2964,16 @@ def main() -> int:
     # forwarded by the worker, and dropped there on a product profile.  Patching
     # only the page would record an empty list and read as "no callback ever
     # arrived" -- the very answer under test, arrived at by not listening.
-    worker_rel = "profiles/e2-editor-v3/sdk-worker.js"
-    # SUBSTITUTED FROM SOURCE, and this is declared in the report.
+    worker_rel = "profiles/e2-editor-v4/sdk-worker.js"
+    # THE PROFILE'S OWN WORKER, since 2026-08-22.
     #
-    # The v3 profile's copy of the worker is FROZEN -- it is one of the five
-    # identities that profile binds, and rebuilding the profile to refresh it
-    # would rewrite the manifest and unbind round two's evidence.  So finding
-    # 068's remedy, which lives in the worker, cannot be tested by rebuilding
-    # anything.  The mirror runs the SOURCE worker against the frozen wasm
-    # instead: probe.wasm is untouched and byte-identical, and the worker is
-    # the file under test.
-    #
-    # The fix ships for real in the v4 profile, whose builder will hash
-    # whichever worker is in the tree at link time.
-    worker_source = PROJECT / "sdk" / "sdk-worker.js"
-    worker_text = worker_source.read_text(encoding="utf-8")
+    # Until the ABI 4 link this read `sdk/sdk-worker.js` from source, because
+    # finding 068's remedy lives in the worker and the v3 profile's copy was
+    # frozen -- one of the five identities that profile binds, and rebuilding it
+    # to refresh the worker would have rewritten the manifest and unbound round
+    # two's evidence.  The v4 profile hashes the fixed worker, so the
+    # substitution is gone and this mirror now runs what shipped.
+    worker_text = (root / worker_rel).read_text(encoding="utf-8")
     # `editor-state` is no longer in this list, and its absence is the FIX:
     # finding 068's remedy made that forward unconditional in the shipped
     # worker, so there is nothing left to ungate.  If this probe still patched
@@ -3011,7 +3006,6 @@ def main() -> int:
         "prediction": "findings/evidence/064/"
                       "PREDICTION-render-between-format-and-typing.md",
         "mirrored": [page_rel, worker_rel],
-        "workerSubstitutedFromSource": str(worker_source.relative_to(PROJECT)),
         "hook": "renderDocument() counts its calls and returns early while "
                 "globalThis.__f064.suppress is true; inert when __f064 is absent",
         "whyInsideRenderDocument":
@@ -3035,7 +3029,7 @@ def main() -> int:
         ],
         "wasmUnchanged": True,
         "profileWasmSha256": sha256_file(
-            root / "profiles" / "e2-editor-v3" / "probe.wasm"),
+            root / "profiles" / "e2-editor-v4" / "probe.wasm"),
         "shims": ["URL.createObjectURL",
                   "HTMLAnchorElement.prototype.click (download anchors)",
                   "#toast.textContent cleared between steps",

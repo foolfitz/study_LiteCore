@@ -134,8 +134,38 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v29.json"),
                     Path("e2/editor-shell-v2-bundle-v30.json"),
                     Path("e2/editor-shell-v2-bundle-v31.json"),
-                    Path("e2/editor-shell-v2-bundle-v32.json"))
+                    Path("e2/editor-shell-v2-bundle-v32.json"),
+                    Path("e2/editor-shell-v2-bundle-v33.json"),
+                    Path("e2/editor-shell-v2-bundle-v34.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v35, 2026-08-22: two layers the ABI 4 profile found within minutes of it.
+#
+# Both were latent the whole time and neither was reachable until a manifest
+# offered the new actions, which is what makes them worth naming here:
+#
+#   * `editorAction()` read its label off the toolbar button. The four line
+#     movements and delete-selection have no button, so
+#     `querySelector(...).textContent` threw a TypeError BEFORE `run()` -- the
+#     key was consumed by preventDefault, nothing dispatched, and the call
+#     site's `.catch(() => {})` ate the evidence. A label lookup produced a key
+#     that looks bound and does nothing.
+#   * `NarrowEditorV2Session`'s own `ACTIONS` allowlist was still built from
+#     EDITOR_V2_ACTIONS. The client had learned the appended five; the session
+#     had not, so it refused them with EDITOR_ACTION_UNSUPPORTED -- three
+#     layers agreeing and a fourth lagging.
+#
+# v34, 2026-08-22: the page moves to the ABI 4 artifact.
+# `PINNED_WASM_SHA256` and the worker URL move together to `e2-editor-v4`
+# (`f923cfa5…`).  They HAVE to move together: the pin exists so a page cannot
+# run on whatever build happens to be in dist/, and the expiry screen makes a
+# mismatch loud -- so half a move reads as a broken build rather than as a
+# mistake.
+#
+# This is the generation the ABI 4 round measures on, and the first on which
+# the arrow keys, 重做 and cut-by-delete-selection are reachable at all: every
+# one of them was written to gate itself on what the profile declares, and this
+# is the first profile that declares them.
+#
 # v33, 2026-08-22: redo and cut, prepared ahead of the ABI 4 link.
 # 重做 joins the toolbar HIDDEN, plus Ctrl+Shift+Z and Ctrl+Y, all three gated on
 # `offersRedo()` -- a separate accessor from `offers()` because redo is not an
@@ -214,7 +244,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v33.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v35.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

@@ -108,3 +108,56 @@ test("the product page gates its arrow keys on offers, not gesturesFor", () => {
   assert.match(source, /ArrowUp: "move-line-up"/);
   assert.match(source, /!session\.offers\(action\)/);
 });
+
+test("every dispatchable action has a label, button or not", () => {
+  // `editorAction` reads its label off the toolbar button. That held only
+  // while every action it could be asked for had one -- and the ABI 4 profile
+  // made four movements and delete-selection reachable from the keyboard with
+  // no button behind them, so `querySelector(...).textContent` threw a
+  // TypeError before `run()` ever ran. The key was taken, nothing dispatched,
+  // and the call site's `.catch(() => {})` ate it: a key that looks bound and
+  // does nothing.
+  //
+  // Nothing caught that until the profile changed, which is late. This is the
+  // static half.
+  const here = (name) => new URL(`../../web/${name}`, import.meta.url);
+  const page = readFileSync(here("e2-editor-app.js"), "utf8");
+  const html = readFileSync(here("e2-editor.html"), "utf8");
+
+  const buttons = new Set(
+    [...html.matchAll(/data-action="([^"]+)"/g)].map((m) => m[1]));
+  const labelled = new Set(
+    [...page.slice(page.indexOf("const ACTION_LABELS"),
+                   page.indexOf("async function editorAction"))
+        .matchAll(/"([a-z-]+)":/g)].map((m) => m[1]));
+
+  const keyed = [...page.slice(page.indexOf("const KEY_ACTIONS"),
+                               page.indexOf("el.sink.addEventListener(\"keydown\""))
+      .matchAll(/: "([a-z-]+)"/g)].map((m) => m[1]);
+  assert.ok(keyed.length >= 6, `expected the six arrows, saw ${keyed.length}`);
+
+  for (const action of keyed) {
+    assert.ok(buttons.has(action) || labelled.has(action),
+              `${action} can be dispatched from the keyboard but has neither a `
+              + "toolbar button nor an ACTION_LABELS entry, so editorAction "
+              + "would throw on its label lookup before dispatching");
+  }
+});
+
+test("the session's allowlist covers everything the client offers", () => {
+  // Two copies of one list, and the ABI 4 link found the lag: the client
+  // learned the five appended actions when they were written, the SESSION's own
+  // `ACTIONS` set did not, so on the v4 profile the manifest offered
+  // move-line-up, the page took the key, and the session refused it with
+  // EDITOR_ACTION_UNSUPPORTED -- three layers agreeing and the fourth not.
+  //
+  // The session keeps its own set on purpose: refusing an unknown action BEFORE
+  // it enters the queue stops a typo from occupying a slot and blocking real
+  // edits. What was wrong was that the copy could lag, not that it existed.
+  const source = readFileSync(
+    new URL("../narrow-editor-v2-session.js", import.meta.url), "utf8");
+  assert.match(source, /const ACTIONS = new Set\(EDITOR_V3_ACTIONS\)/,
+               "the session must build its allowlist from the FULL action list, "
+               + "not from the v2 subset");
+  assert.match(source, /import \{ NarrowEditorV2Client, EDITOR_V3_ACTIONS \}/);
+});

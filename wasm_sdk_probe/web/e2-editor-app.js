@@ -40,7 +40,12 @@ import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js"
 
 // The artifact this page is for.  A page that runs on whatever build happens to
 // be in dist/ is a page that can show behaviour no evidence covers.
-const PINNED_WASM_SHA256 = "29ec627bf8a5588b";
+//
+// Moved to the ABI 4 successor on 2026-08-22, with the profile below.  The two
+// move together or the page pins one artifact and loads another -- and the
+// expiry screen exists to make exactly that mismatch loud, so a half-move
+// would look like a broken build rather than a mistake.
+const PINNED_WASM_SHA256 = "f923cfa5aba30749";
 
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -489,8 +494,27 @@ function formatStateFor(action) {
   return null;
 }
 
+// The name to put in front of a failure, for actions that have no button.
+//
+// `editorAction` used to read the label straight off the toolbar button, which
+// held only while every dispatchable action had one. The ABI 4 profile made
+// four movements and delete-selection reachable from the keyboard with no
+// button behind them, and `querySelector(...).textContent` on a null threw a
+// TypeError BEFORE `run()` -- so the key was swallowed by preventDefault,
+// nothing dispatched, and the call site's `.catch(() => {})` ate the evidence.
+// A key that looks bound and does nothing, arrived at through a label lookup.
+const ACTION_LABELS = {
+  "move-line-up": "上移一行",
+  "move-line-down": "下移一行",
+  "move-line-home": "移到行首",
+  "move-line-end": "移到行尾",
+  "delete-selection": "刪除選取",
+};
+
 async function editorAction(action) {
-  const label = el.toolbar.querySelector(`[data-action="${action}"]`).textContent.trim();
+  const button = el.toolbar.querySelector(`[data-action="${action}"]`);
+  const label = button ? button.textContent.trim()
+                       : (ACTION_LABELS[action] ?? action);
   const options = FORMAT_ACTIONS.has(action)
     // `=== true` and not truthiness: null means the engine has no answer, and
     // the honest response to that is to ask for ON, which is what the button
@@ -894,7 +918,7 @@ globalThis.addEventListener("resize", () => {
 // The harness pages (`e2-c-d*-app.js`) do take `?profile=`; they are harnesses.
 function engineFactory() {
   return createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v3/sdk-worker.js",
+    workerUrl: "./profiles/e2-editor-v4/sdk-worker.js",
     timeoutMs: 30000,
   });
 }

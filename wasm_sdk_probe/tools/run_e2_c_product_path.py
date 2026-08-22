@@ -1241,6 +1241,14 @@ MUTATIONS = {
         "reintroduces": "finding 049's shape on the undo path: the button runs, "
                         "the toast reports a time, and the document is untouched",
     },
+    "redo": {
+        "check": "product-redo-button-restores-what-undo-removed",
+        "path": "e2-editor-app.js",
+        "find": '    : action === "redo" ? () => run("重做", () => session.redo())',
+        "replace": '    : action === "redo" ? () => run("重做", () => Promise.resolve())',
+        "reintroduces": "finding 049's shape on the redo path: the button runs, "
+                        "the toast reports a time, and the document is untouched",
+    },
     "insert-text": {
         "check": "product-insert-button-inserts-what-the-field-holds",
         "path": "e2-editor-app.js",
@@ -1991,6 +1999,17 @@ def wait_saves(session, count, timeout=90):
     return False
 
 
+REDO_BUTTON = """(() => {
+const button = document.querySelector('#toolbar button[data-action="redo"]');
+if (!button) return null;
+// `hidden` is the product's own answer to "does this profile carry redo".  It
+// is read rather than assumed because `.click()` fires on a hidden button too,
+// so a profile without redo would otherwise be tested by pressing a control the
+// product is not offering -- the same mistake the notice-action check made.
+return { present: true, hidden: button.hidden === true };
+})()"""
+
+
 def capture_save(session, index: int, timeout=90) -> dict:
     """Press the product's own save button and report what the bytes were.
 
@@ -2186,9 +2205,9 @@ def main() -> int:
         # non-zero payload and only changes the length-0 case.
         # The worker the PAGE loads is the profile's copy, not dist/sdk/ --
         # the stack trace in the first run of this diagnostic said so
-        # (profiles/e2-editor-v3/sdk-worker.js). Mirroring the wrong one
+        # (profiles/e2-editor-v4/sdk-worker.js). Mirroring the wrong one
         # changes nothing and looks like the gate moved.
-        worker_rel = "profiles/e2-editor-v3/sdk-worker.js"
+        worker_rel = "profiles/e2-editor-v4/sdk-worker.js"
         worker_text = (root / worker_rel).read_text(encoding="utf-8")
         alloc = ('  const pointer = Number(ccall("oxsdk_buffer_alloc", '
                  '"number", ["number"], [length]));')
@@ -2229,7 +2248,7 @@ def main() -> int:
                           "PREDICTION-replace-selection.md",
         }
     if args.range_delete_diagnostic:
-        relative = "profiles/e2-editor-v3/sdk-manifest.json"
+        relative = "profiles/e2-editor-v4/sdk-manifest.json"
         manifest = json.loads((root / relative).read_text(encoding="utf-8"))
         contract = manifest["editorContract"]
         before = list(contract["actions"]["delete-backward"]["gestures"])
@@ -2549,6 +2568,60 @@ def main() -> int:
                      "insert button just added back OUT of the document -- read "
                      "from the saved ODT, not from the revision counter, because "
                      "D1 covers undo through the shell and this is the button")
+
+        # --- action:redo ----------------------------------------------------
+        #
+        # Immediately after undo, and that ordering is the check: undo has just
+        # taken the marker out, so redo putting it back is a statement about
+        # redo rather than about whatever was in the document before.
+        #
+        # Reachable only since the ABI 4 profile. The coverage registry carried
+        # this path as WAIVED with the reason pinned to the v3 manifest hash;
+        # that pin expired the moment the v4 artifact shipped, and the audit
+        # demanded the path be driven instead. This is that.
+        redo_button = evaluate(session, REDO_BUTTON) or {}
+        redo_offered = bool(redo_button.get("present")) and not redo_button.get("hidden")
+        # The marker must be ABSENT going in, or "the marker is present after
+        # redo" is satisfied by a document that never lost it -- the same
+        # absence-needs-a-precondition rule the undo check above learned.
+        marker_gone_before_redo = INSERT_MARK not in undo_content
+        before_redo = revision_of(evaluate(session, READ_STATE))
+        evaluate(session, CLEAR_TOAST)
+        if redo_offered:
+            evaluate(session, PRESS.replace("ARG_ACTION", "redo"))
+        redone_state = wait_for(
+            session,
+            lambda s, floor=before_redo: revision_of(s) is not None
+            and revision_of(s) != floor, 20) if redo_offered else None
+        redo_toast = evaluate(session, READ_TOAST) or ""
+        fifth = capture_save(session, 4) if redo_offered else {}
+        redo_content = fifth.get("content") or ""
+        # Same witnesses as undo: redo must put back the last edit and nothing
+        # else. A redo that replayed the whole session would also satisfy "the
+        # marker is back".
+        redo_kept = [w for w in undo_witnesses if w in redo_content]
+        check("product-redo-button-restores-what-undo-removed",
+              is_an_odt(fifth) and INSERT_MARK in redo_content
+              and redo_kept == undo_witnesses
+              and redone_state is not None
+              and revision_of(redone_state) != before_redo,
+              outcome=None if (redo_offered and marker_gone_before_redo
+                               and undo_witnesses) else "NOT_ESTABLISHED",
+              observed={"buttonOffered": redo_button,
+                        "markerGoneBeforeRedo": marker_gone_before_redo,
+                        "revisionBefore": before_redo,
+                        "revisionAfter": revision_of(redone_state) if redone_state else None,
+                        "markBackInSavedOdt": INSERT_MARK in redo_content,
+                        "witnessesExpected": undo_witnesses,
+                        "witnessesKept": redo_kept,
+                        "toast": redo_toast, "savedBytes": fifth.get("bytes")},
+              oracle="pressing the product's own 重做 button puts back exactly "
+                     "the text undo just removed -- read from the saved ODT, and "
+                     "with the earlier commits as witnesses so a redo that "
+                     "replayed more than one edit is not mistaken for a correct "
+                     "one. NOT_ESTABLISHED rather than FAIL on a profile that "
+                     "does not carry redo: the button is hidden there and "
+                     "pressing it would measure nothing")
 
         # --- listener:click#notice-action, the recovery path ----------------
         #
