@@ -1736,6 +1736,10 @@ def inline_styles_of(report: dict, marker: str) -> dict:
 BAND_MERGE_GAP = 8
 
 
+# Wider than a caret, far narrower than a glyph.  See text_bands().
+CARET_MAX_EXTENT = 3
+
+
 def text_bands(scan: dict, floor: int = 0) -> list[dict]:
     """The canvas's lines of text, as row bands.
 
@@ -1762,6 +1766,39 @@ def text_bands(scan: dict, floor: int = 0) -> list[dict]:
             start = None
     if start is not None:
         runs.append({"top": start, "bottom": len(scan["counts"]) - 1})
+    # A ONE-PIXEL-WIDE RUN IS A CARET, NOT A LINE, AND IT MUST GO BEFORE THE
+    # MERGE.
+    #
+    # The density filter at the bottom already rejects a caret on its own: one
+    # inked pixel over a one-pixel extent scores 1.0, above the 0.9 ceiling.
+    # But the merge below runs FIRST, and a caret sitting in the gap between two
+    # lines bridges them -- so two text bands become one and the density of the
+    # union is a text density, which passes. The caret is never seen; the line
+    # count is just wrong.
+    #
+    # Measured 2026-08-22, and it is why this exists: on the v3 artifact the
+    # inducer read four bands, on v4 it read three, with the first two merged
+    # across a ten-row gap. The document, the fixture and the pre-inducer bands
+    # were IDENTICAL. What changed was finding 068's fix -- the caret is now
+    # drawn where it belongs instead of a commit behind, which put it in that
+    # gap. The harness aims its drag from these bands, so a correct caret moved
+    # the aim and the inducer stopped inducing.
+    #
+    # The threshold is 3, not 1: a caret is `Math.round(scaleX * 15)` = one
+    # pixel at this scale, drawn at a fractional x, so anti-aliasing spreads it
+    # over two columns. The narrowest real glyph on this fixture is ~9px, so
+    # there is a factor of three of daylight and no measured case in between.
+    def run_extent(run: dict) -> int:
+        rows = range(run["top"], run["bottom"] + 1)
+        firsts = [scan["firsts"][y] for y in rows if scan["firsts"][y] >= 0]
+        if not firsts:
+            return 0
+        return max(scan["lasts"][y] for y in rows) - min(firsts) + 1
+
+    thin = [dict(run, extent=run_extent(run)) for run in runs
+            if run_extent(run) <= CARET_MAX_EXTENT]
+    runs = [run for run in runs if run_extent(run) > CARET_MAX_EXTENT]
+
     # Recorded so that a future mismatch is diagnosable from the report rather
     # than from another round of probing: if bands and lines ever disagree
     # again, these are the numbers that say whether the threshold is wrong.
@@ -1787,6 +1824,11 @@ def text_bands(scan: dict, floor: int = 0) -> list[dict]:
         band["centreFraction"] = ((band["top"] + band["bottom"]) / 2
                                   / scan["height"])
         band["gapsOnThisPage"] = observed_gaps[:12]
+        # Reported, not just dropped: "the caret was here and was excluded" is
+        # a different statement from "there was nothing there", and only the
+        # first one is checkable afterwards.
+        band["thinRunsExcluded"] = [(r["top"], r["bottom"], r["extent"])
+                                    for r in thin]
         if 0.15 <= band["density"] < 0.9:
             out.append(band)
     return out

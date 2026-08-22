@@ -712,6 +712,16 @@ function handleCEvent(rawEvent) {
       break;
     case "replaced":
     case "undone":
+    // FINDING 071.  The engine has emitted `redone` since redo was added and
+    // nothing here listened, so the request never completed: the session sat
+    // busy forever, the toolbar's `run()` never resolved so not even a failure
+    // toast appeared, and the next save queued behind it and timed out. A
+    // capability that hangs the session is worse than one that is absent.
+    //
+    // Fourth layer of the same lag the ABI 4 link has now found three times --
+    // client, session allowlist, page label map, and here. Each one was a
+    // separate list of what exists, and each was updated on its own.
+    case "redone":
     case "comment-added":
     case "track-changes-set":
       if (requestId)
