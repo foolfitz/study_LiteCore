@@ -68,14 +68,35 @@ class WithheldRatherThanAbsent(unittest.TestCase):
                       "gestures field, not for an empty one -- an empty list "
                       "has to reach the engine as mask 0")
 
-    def test_delete_selection_is_range_only_and_single_paragraph_only(self):
+    def test_delete_selection_is_range_only_and_offered_on_both_range_classes(self):
+        """Widened 2026-08-22, and the reason it is BOTH is the engine's.
+
+        probe_engine.cpp gates an unclassified selection on `range_single AND
+        range_cross`, so a grant of one bit is not a narrower offer -- it is an
+        off switch, and the manifest then declares a gesture the binary will
+        never honour.  This test asserted the off switch from the link until the
+        measurement in findings/evidence/queue-cut-cannot-remove-text/ was made:
+        four cross-paragraph shapes, every one of them correct.
+
+        `collapsed` stays out for the reason it was always out, which the
+        measurement did not touch.
+        """
         spec = v4.action_map()["delete-selection"]
         self.assertNotIn(v2.COLLAPSED, spec["gestures"],
                          "a delete-selection that runs with no selection would "
                          "duplicate delete-backward and widen it by accident")
-        self.assertNotIn(v2.RANGE_CROSS, spec["gestures"],
-                         "cross-paragraph delete is not characterised")
-        self.assertEqual(spec["gestures"], [v2.RANGE_SINGLE])
+        self.assertEqual(spec["gestures"], [v2.RANGE_SINGLE, v2.RANGE_CROSS],
+                         "one range bit alone is refused by the engine for "
+                         "EVERY range, so it declares an offer nothing honours")
+
+    def test_delete_backward_is_still_caret_only(self):
+        """The whole point of adding delete-selection rather than widening this.
+
+        The v1 characterisation is caret-only and was measured that way; a cut
+        that works must not have been bought by discarding it.
+        """
+        spec = v4.action_map()["delete-backward"]
+        self.assertEqual(spec["gestures"], [v2.COLLAPSED])
 
 
 class ContractVersionDoesNotMove(unittest.TestCase):

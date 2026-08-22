@@ -374,6 +374,7 @@ return { available: true, columns, width: canvas.width, band: { y, h } };
 #   * a repaint in flight reports a different band count from the same page,
 #     so the scan is taken until it stops moving.
 INK_ROWS = """(() => {
+const EXCLUDE_CARET = ARG_EXCLUDE_CARET;
 const canvas = document.querySelector('#canvas');
 const w = canvas.width, h = canvas.height;
 const data = canvas.getContext('2d').getImageData(0, 0, w, h).data;
@@ -401,6 +402,113 @@ for (let x = 0; x < w; x += 1) border.push(columnTotals[x] > h * 0.20);
 let inside = -1, outside = w;
 for (let x = 0; x < w; x += 1) if (border[x]) { if (inside < 0) inside = x; outside = x; }
 const clipped = inside >= 0 && outside - inside > w * 0.5;
+// THE CARET IS INK, AND THIS HARNESS AIMS FROM INK.
+//
+// Finding 072.  Once finding 068 made the caret land where the user is
+// actually typing, a 16-row vertical bar started sitting in the 10-row gap
+// between two lines of text -- and text_bands() merges runs separated by 8
+// rows or fewer, so those two lines became ONE band and every check that aims
+// by band index aimed a line off.  The bar makes the ink CONTIGUOUS from the
+// bottom of one line to the top of the next, so there is no separate run for
+// a filter to drop: the caret has to go before the rows are counted, which is
+// here.  (The first remedy dropped thin RUNS, passed seven unit tests, and
+// changed nothing.)
+//
+// WHERE it is comes from the DOM rather than from a guess about which column
+// looks like a caret.  #sink rides the caret since finding 069 because an IME
+// puts its candidate window against the focused element -- that is a PRODUCT
+// requirement, not a handle published for this harness, which the page
+// deliberately does not do (see CARET_COLUMNS above).
+//
+// AND THE DOM ALONE IS NOT ENOUGH.  paint() moves the sink only on the paints
+// where it DRAWS a caret, and it draws none while a selection is a range --
+// so during a drag the sink sits at the caret's last position and there is no
+// caret there now.  Excluding that rectangle would delete real glyphs from
+// the scan.  So the two have to agree: the page says the caret is here, AND a
+// vertical stroke is in fact there.  When they disagree nothing is excluded
+// and the scan is what it always was.
+const sink = document.querySelector('#sink');
+const canvasRect = canvas.getBoundingClientRect();
+let caret = null;
+let caretRemoved = false;
+let caretWhy = 'no #sink in the page';
+if (sink && canvasRect.width > 0 && canvasRect.height > 0) {
+  const s = sink.getBoundingClientRect();
+  const sx = w / canvasRect.width, sy = h / canvasRect.height;
+  const x0 = Math.round((s.left - canvasRect.left) * sx);
+  const y0 = Math.round((s.top - canvasRect.top) * sy);
+  const y1 = Math.round((s.bottom - canvasRect.top) * sy) - 1;
+  // THE INTERIOR ROWS, NOT ALL OF THEM, and this is the difference between a
+  // remedy that fires and one that reports "stale sink" at the caret it is
+  // looking straight at.
+  //
+  // The bar is a fillRect at FRACTIONAL coordinates and, at
+  // devicePixelRatio 1, one nominal backing pixel wide -- so its alpha in a
+  // column is the PRODUCT of the horizontal and vertical coverage, and the
+  // first and last rows are dimmed by the vertical factor on top of a
+  // horizontal factor already below 1.  Measured on this page's own geometry
+  // (725x1012 backing; a 15.59-row bar at y=88.125 whose column coverage is
+  // 0.744): 14 dark rows inside a 16-row sink window.  A ratio taken over all
+  // sixteen wants 14.4 and declines.  Taken over the fourteen interior rows
+  // it is 14/14, and a glyph column is still 5/14.  Both populations keep
+  // their daylight; only the antialiased ends are dropped.
+  const top = y0 + 1, bottom = y1 - 1;
+  const rows = bottom - top + 1;
+  if (x0 < 0 || x0 >= w || y0 < 0 || y1 >= h || rows < 3) {
+    caretWhy = 'the sink is not inside the canvas';
+  } else {
+    // A drawn caret is a filled rectangle, so its column carries ink on
+    // essentially every interior row of its own height.  A glyph column does
+    // not: text is dense per ROW and sparse per COLUMN, and that asymmetry is
+    // the whole reason the two can be told apart.
+    //
+    // PAGE BORDERS ARE EXCLUDED FIRST.  A border is inked down the whole page
+    // and satisfies any vertical-stroke test, so a stale sink parked within
+    // two columns of one would "find" a caret that is not there -- and the
+    // field that records it is the positive control, which would then be
+    // satisfied by the wrong thing.
+    const solid = (x) => {
+      if (x < 0 || x >= w || border[x]) return false;
+      let n = 0;
+      for (let y = top; y <= bottom; y += 1) if (dark[y * w + x]) n += 1;
+      return n >= rows * 0.9;
+    };
+    // THE SINK'S COLUMN IS NOT EXACTLY THE BAR'S COLUMN.  moveSinkToCaret
+    // rounds to CSS pixels and paint() draws in BACKING pixels, so converting
+    // back can land up to 0.5*devicePixelRatio + 0.5 columns away -- two, on
+    // the ratio-3 arm of this harness's own devicePixelRatio sweep.  Three
+    // either side covers that slack plus the widest bar this page can draw
+    // (round(canvasWidth * 15 / widthTwips), three at the 2400-pixel cap).
+    //
+    // Every solid column in that window at once, rather than a seed and two
+    // walks: a walk that goes left to exhaustion before going right can spend
+    // its whole budget on the wrong side of a seed that was not the leftmost
+    // column, and a window has no side to prefer.
+    const columns = [];
+    for (let x = x0 - 3; x <= x0 + 3; x += 1) if (solid(x)) columns.push(x);
+    if (!columns.length) {
+      caretWhy = 'no vertical stroke stands under the sink: either the page '
+               + 'is drawing no caret there and this is a stale sink '
+               + 'position, or the one-pixel bar fell between two columns and '
+               + 'rendered too pale to be ink -- in which case it is not '
+               + 'bridging anything either';
+    } else {
+      caret = { x: columns[0], y: y0, width: columns[columns.length - 1] - columns[0] + 1,
+                height: y1 - y0 + 1, columns: columns.length, rowsTested: rows };
+      caretWhy = null;
+      // One row of margin above and below, for the antialiased ends the
+      // solidity test just declined to count.  Nothing is lost by taking a
+      // row too many where the bar is: the caret is painted LAST and
+      // opaquely, so whatever glyph was under it is already gone from this
+      // canvas.
+      if (EXCLUDE_CARET) {
+        for (let y = Math.max(0, y0 - 1); y <= Math.min(h - 1, y1 + 1); y += 1)
+          for (const x of columns) dark[y * w + x] = 0;
+        caretRemoved = true;
+      }
+    }
+  }
+}
 const counts = [], firsts = [], lasts = [];
 for (let y = 0; y < h; y += 1) {
   let count = 0, first = -1, last = -1;
@@ -413,6 +521,7 @@ for (let y = 0; y < h; y += 1) {
 }
 return { width: w, height: h, counts, firsts, lasts, clipped,
          page: [inside, outside],
+         caret, caretWhy, caretRemoved,
          borderColumns: border.reduce((n, v) => n + (v ? 1 : 0), 0) };
 })()"""
 
@@ -780,7 +889,7 @@ MUTATIONS = {
     # browser's default cut runs against a canvas with no DOM selection and
     # silently does nothing.
     "cut": {
-        "check": "ctrl-x-is-handled-by-the-product",
+        "check": "cut-removes-the-selected-text",
         "path": "e2-editor-app.js",
         "find": 'el.sink.addEventListener("cut", (event) => {',
         "replace": 'el.sink.addEventListener("cut-never-wired", (event) => {',
@@ -989,7 +1098,7 @@ MUTATIONS = {
         # check's drag both land somewhere else.  That is the mutation telling
         # the truth about how those two aim.
         "alsoRed": ["bulleting-a-blank-line-does-not-demand-a-rollback",
-                    "ctrl-x-is-handled-by-the-product"],
+                    "cut-removes-the-selected-text"],
         # A NAMED LIMIT, and it is the opposite of what I predicted when this
         # mutation was written: both caret checks stay GREEN under it.  Their
         # oracle is horizontal -- two clicks on one line, scored against that
@@ -1120,21 +1229,32 @@ MUTATIONS = {
         "reintroduces": "an editor whose formats are toolbar-only",
         "alsoRed": [],
     },
-    # Finding 063, the silence half: the delete's failure back inside a bare
-    # `.catch`.  The session still survives (the disposition fix is separate),
-    # but the user is told nothing at all -- which is how this went unseen.
-    "cut-swallows-its-failure": {
-        "check": "ctrl-x-is-handled-by-the-product",
+    # REPLACES `cut-swallows-its-failure`, WHICH HAD BEEN DEAD SINCE THE LINK.
+    #
+    # That mutation's pattern still named `session.action("delete-backward")`
+    # inside the cut handler, and the v4 link work replaced that line with the
+    # `offers("delete-selection")` ternary.  Its pattern matched dist ZERO
+    # times, so `apply_mutation` would have exited loudly -- but only if
+    # somebody ran it, and nobody did between the link and 2026-08-22.  A
+    # mutation that cannot be applied is a check with no evidence it can fail,
+    # which is the same silence the mutation itself was written to break.
+    #
+    # What this one reintroduces is the state the product actually shipped in
+    # until today: the fallback arm, where the delete half is `delete-backward`,
+    # declared caret-only, and refused on every range.  Cut becomes copy again.
+    # It is a better control than the old one for two reasons: it applies, and
+    # it drives the REFUSAL path, which the widened manifest has removed from
+    # the product's own route (queue-cut-refusal-lost-its-inducer).
+    "cut-falls-back-to-the-caret-only-delete": {
+        "check": "cut-removes-the-selected-text",
         "path": "e2-editor-app.js",
-        "find": "  void run(\"剪下\", async () => {\n"
-                "    const copied = await session.copySelection();\n"
-                "    await session.action(\"delete-backward\", {});\n"
-                "    return copied;\n"
-                "  })",
-        "replace": "  void run(\"剪下\", () => session.copySelection())\n"
-                   "    .then((copied) => session.action(\"delete-backward\", {})\n"
-                   "      .then(() => copied))",
-        "reintroduces": "a cut whose failure the user never hears about",
+        "find": "    await session.action(session.offers(\"delete-selection\")\n"
+                "                         ? \"delete-selection\" : \"delete-backward\", {});",
+        "replace": "    await session.action(session.offers(\"delete-selection\")\n"
+                   "                         ? \"delete-backward\" : \"delete-backward\", {});",
+        "reintroduces": "a cut that copies and then fails to delete, which is "
+                        "what shipped from 2026-08-17 until the manifest was "
+                        "widened",
         "alsoRed": [],
     },
     # Aimed at the mechanism that actually commits a paste. Measured
@@ -1735,6 +1855,12 @@ def inline_styles_of(report: dict, marker: str) -> dict:
 # written for.
 BAND_MERGE_GAP = 8
 
+# Finding 072's remedy, and the switch that turns it off.  A run with
+# --no-caret-exclusion reproduces the merged band directly, so "the caret is
+# what joined those two lines" stays a claim someone can re-measure in one
+# command instead of a claim they have to take from this comment.
+EXCLUDE_CARET = True
+
 
 def text_bands(scan: dict, floor: int = 0) -> list[dict]:
     """The canvas's lines of text, as row bands.
@@ -1803,9 +1929,11 @@ def stable_bands(session, tries: int = 12) -> tuple[dict, list[dict]]:
     bands: list[dict] = []
     previous = None
     for _ in range(tries):
-        scan = evaluate(session, INK_ROWS) or {"counts": [], "firsts": [],
-                                               "lasts": [], "height": 1,
-                                               "width": 1}
+        scan = evaluate(session, INK_ROWS.replace(
+            "ARG_EXCLUDE_CARET", "true" if EXCLUDE_CARET else "false")) or {
+                "counts": [], "firsts": [], "lasts": [], "height": 1,
+                "width": 1, "caret": None,
+                "caretWhy": "the scan itself returned nothing"}
         bands = text_bands(scan)
         shape = [(b["top"], b["bottom"]) for b in bands]
         if previous is not None and shape == previous:
@@ -2131,6 +2259,11 @@ def main() -> int:
                              "both range gestures in a MIRRORED manifest, to "
                              "measure whether the engine removes a range at "
                              "all; stamps the report diagnostic")
+    parser.add_argument("--no-caret-exclusion", action="store_true",
+                        help="leave the drawn caret in the ink scan. Finding "
+                             "072: the caret bridges the gap between two "
+                             "lines and text_bands() merges them, so this "
+                             "reproduces the wrong aim on demand")
     parser.add_argument("--range-delete-action", default="delete-backward",
                         help="which action the diagnostic above widens. "
                              "`delete-selection` is the one that matters since "
@@ -2140,11 +2273,17 @@ def main() -> int:
                              "(probe_engine.cpp:4471), so that grant is an off "
                              "switch rather than a narrowing")
     args = parser.parse_args()
+    global EXCLUDE_CARET
+    EXCLUDE_CARET = not args.no_caret_exclusion
 
     report: dict = {
         "schemaVersion": 1,
         "release": "e2-c-product-path",
         "browser": args.browser,
+        # Finding 072.  Recorded on every run because it changes what every
+        # band-aimed check aims AT, and a report that does not say which scan
+        # produced it cannot be compared with one taken the other way.
+        "caretExcludedFromInk": not args.no_caret_exclusion,
         # NOT a parameter.  Until 2026-08-19 this was `--fixture`, a flag that
         # was written into the report and read by nothing: `navigate()` does
         # not carry it and the page always boots `list-contexts`
@@ -3537,35 +3676,55 @@ def main() -> int:
         # document, and a live session, and was scored a product failure.
         cut_record["clipboardGranted"] = bool(clipboard_grant.get("granted"))
         cut_measurable = cut_aimed and cut_record["clipboardGranted"]
-        check("ctrl-x-is-handled-by-the-product",
+        # WIDENED 2026-08-22, and the oracle is replaced rather than relaxed.
+        #
+        # Until today `delete-selection` shipped with `["range-single"]`, and
+        # under this engine's gate that is an OFF SWITCH rather than a narrower
+        # offer: an unclassified selection needs BOTH range bits, so the cut
+        # was refused on every range and the check's job was to verify that the
+        # product said so and changed nothing (finding 063).  The manifest now
+        # grants both, on four measured cross-paragraph shapes
+        # (findings/evidence/queue-cut-cannot-remove-text/RESULT-range-cross.md),
+        # so the question a check can ask has changed: not "is the refusal
+        # handled" but "is the text GONE".
+        #
+        # WHAT THIS COST, written here rather than left to be discovered: the
+        # refusal that finding 063 is about no longer happens on the product's
+        # own path, so this run no longer exercises it.  That route now lives
+        # only in the `cut-falls-back-to-the-caret-only-delete` mutation, and
+        # `queue-cut-refusal-lost-its-inducer` records the debt.  Losing
+        # coverage quietly is the thing that queue exists to prevent.
+        removed = cut_record.get("rangeDelete") or {}
+        check("cut-removes-the-selected-text",
               bool(cut_measurable and (cut_result or {}).get("handled")
                    and cut_record["stateAfterCut"] == "ready"
-                   and cut_record["refusalReported"]
-                   and cut_record["documentUnchanged"]
+                   and not cut_record["refusalReported"]
+                   and removed.get("documentReadableAfter")
+                   and removed.get("targetStillPresent") is False
+                   and removed.get("targetTextAnywhere") is False
+                   and removed.get("neighboursSurvive")
                    and is_an_odt(cut_after)),
               outcome=None if cut_measurable else "NOT_ESTABLISHED",
               observed=cut_record,
-              oracle="a cut on a range is handled by the product, its refusal "
-                     "is REPORTED to the user with the reason, the document is "
-                     "left exactly as it was -- which is what the refusal "
-                     "claims -- and the session is still `ready`. Finding 063: "
-                     "until 2026-08-19 the refusal was swallowed by a bare "
-                     "`.catch`, the session went to recoverable-error, and the "
-                     "user was told to discard their work over an action that "
-                     "had not touched the document",
-              notEstablished="that a cut REMOVES text. It cannot, under this "
-                             "contract: `delete-backward` is declared "
-                             "caret-only for the ten v1 actions and a cut runs "
-                             "on a range by definition, so the delete half is "
-                             "refused every time "
-                             "(queue-cut-cannot-remove-text). What is checked "
-                             "is that the product says so and changes nothing. "
-                             "AND, when clipboardGranted is false, nothing at "
-                             "all: this browser session has no CDP, so the "
-                             "copy half is denied by the DRIVER, the delete "
-                             "half never runs, and the refusal under test "
-                             "cannot be produced. That is a gap in what the "
-                             "harness can reach, not a defect in the product")
+              oracle="a cut on a range REMOVES that text from the saved "
+                     "document, leaves both neighbouring paragraphs verbatim, "
+                     "reports no refusal, and leaves the session `ready`. The "
+                     "oracle is the SAVED ODT and it is anchored to a named "
+                     "paragraph: a revision that advanced proves a dispatch, "
+                     "not a deletion, and 'the document changed' passes on a "
+                     "cut that removed the wrong paragraph",
+              notEstablished="anything at all, when clipboardGranted is "
+                             "false: this browser session has no CDP, so the "
+                             "copy half is denied by the DRIVER and the delete "
+                             "half never runs. That is a gap in what the "
+                             "harness can reach, not a defect in the product. "
+                             "Also not established here, and it is a LOSS "
+                             "rather than a gap: that a REFUSED cut is "
+                             "reported to the user and changes nothing "
+                             "(finding 063). The manifest now grants the "
+                             "gesture, so the product path produces no refusal "
+                             "to observe -- see "
+                             "queue-cut-refusal-lost-its-inducer")
 
 
         # --------------- the other three inline formats, and clear-format
@@ -4878,6 +5037,15 @@ return { available: true, afterButton };
                 time.sleep(1.0)
                 scan, bands = stable_bands(session)
             recovery["bandsAtInducer"] = [[b["top"], b["bottom"]] for b in bands]
+            # THE POSITIVE CONTROL for finding 072's remedy, and it belongs
+            # here because this is the band count the remedy exists to get
+            # right.  Without it, "the exclusion silently stopped working" and
+            # "this page happened to have no caret drawn" produce the same
+            # bands and the same report.  `caretAtInducer` non-null says the
+            # sink's position and the pixels agreed and a bar was taken out;
+            # `caretWhyAtInducer` says which of the two disagreed when not.
+            recovery["caretAtInducer"] = scan.get("caret")
+            recovery["caretWhyAtInducer"] = scan.get("caretWhy")
             # The SAME derived index as the marker used. The first version of
             # this left a hard-coded 1 here and dragged across the endnote's
             # own body instead of the reference mark -- the selection was
@@ -5040,6 +5208,180 @@ return { available: true, afterButton };
                       "then uncovered again and needs a new inducer",
                   oracle="see the established branch: the product's own "
                          "declaration, honoured")
+
+        # ------------------------------------------ P-CUT-4, the cross shape
+        #
+        # DIAGNOSTIC ONLY, and LAST.  `queue-cut-cannot-remove-text`'s
+        # prediction reserves one arm with NO prediction attached: a range
+        # spanning more than one paragraph, RECORDED rather than forecast,
+        # because the five paragraph actions were characterised for
+        # cross-paragraph ranges and the ten v1 actions were not.  Forecasting
+        # here would be the same undeclared confidence that item exists to
+        # remove.
+        #
+        # It matters now because of how the engine gate is written
+        # (probe_engine.cpp, "an unclassified range must satisfy BOTH range
+        # bits"): granting `range-cross` in order to make the ORDINARY
+        # within-paragraph cut work makes every one of these shapes reachable
+        # in the same stroke.  The widening decision cannot be taken without
+        # them.
+        #
+        # FOUR SHAPES, NOT ONE, and the three past the first are here because
+        # of where this tree's defects have actually lived.  Finding 046 was a
+        # multi-block readback verifying the wrong paragraph, and the fixture's
+        # list items are what a cross-block selection runs into: a cut that
+        # takes two paragraphs cleanly says nothing about one that takes a
+        # bullet list and a numbered list with a plain paragraph between them.
+        #
+        # Last, and behind the flag, because dragging across a whole paragraph
+        # is a multi-block mutation and the 2026-08-21 measurement of the same
+        # shape on `delete-backward` ended in recoverable-error.  If that is
+        # what happens here it must not poison the thirty-four checks above.
+        #
+        # RECORDED, NOT SCORED.  There is no oracle for a behaviour nobody has
+        # characterised, and both paragraph lists are stored WHOLE rather than
+        # reduced to booleans I picked in advance -- a derived flag can only
+        # answer the question I thought to ask, and these arms exist precisely
+        # because I do not know what the question is yet.
+        if args.range_delete_diagnostic:
+            shapes = [
+                {"name": "two-paragraphs-heading-into-body", "from": 0, "to": 1},
+                {"name": "three-paragraphs-into-a-bullet-list",
+                 "from": 2, "to": 4},
+                {"name": "across-a-bullet-list-and-a-numbered-list",
+                 "from": 3, "to": 7},
+                {"name": "within-one-bullet-list", "from": 3, "to": 4},
+            ]
+            arms: list[dict] = []
+            report["rangeDeleteDiagnostic"]["crossParagraph"] = arms
+            # The paragraph list the fixture is supposed to have, learned from
+            # the first arm and required of every later one.  See the name
+            # below for why this is not optional.
+            fixture_texts: list[str] | None = None
+            for index, shape in enumerate(shapes):
+                arm: dict = {"shape": shape["name"], "from": shape["from"],
+                             "to": shape["to"], "why": None}
+                arms.append(arm)
+                evaluate(session, CLEAR_TOAST)
+                evaluate(session, CLEAR_TOASTS)
+                # Re-opened through the product's own file input before EVERY
+                # arm.  The prediction's own trap list: a 2026-08-19 probe swept
+                # a parameter ascending inside one session, carried state
+                # between arms, and exonerated the engine wrongly.  A re-open is
+                # not a fresh engine -- so `stateAfterOpen` is recorded per arm,
+                # and an arm that opens into anything but `ready` measures
+                # nothing and says so.
+                # A DIFFERENT NAME PER ARM, and this is not cosmetic.  With
+                # one name, the wait below is satisfied the instant it is asked
+                # -- by the PREVIOUS arm's document, which already carries that
+                # name and is already ready -- so the arm goes on to measure a
+                # page that is still loading.  Measured: arms two, three and
+                # four of the first sweep all reported `lines: 0` and declined,
+                # which was honest but blamed the band mapping.  Same family as
+                # the 2026-08-18 round that spent four rounds measuring a 404
+                # page the label said was the fixture: a name is a label, and a
+                # label the page already had is no evidence at all.
+                name = f"cross-cut-{index}.odt"
+                arm["openedAs"] = name
+                arm["reopened"] = evaluate(
+                    session, OPEN_FILE
+                    .replace("ARG_URL", "./e1-fixtures/list-contexts.odt")
+                    .replace("ARG_NAME", name))
+                opened = wait_for(
+                    session,
+                    lambda s: (s.get("doc") or "") == name
+                    and s.get("state") == "ready", 90)
+                arm["stateAfterOpen"] = (opened or {}).get("state")
+                if arm["stateAfterOpen"] != "ready":
+                    arm["why"] = ("the fixture did not re-open into a ready "
+                                  "session, so no range was ever selected and "
+                                  "NOTHING in this arm is measured")
+                    continue
+                before_report = capture_save(
+                    session, evaluate(session, SAVE_COUNT) or 0)
+                before_lines = document_lines(before_report)
+                scan, bands = stable_bands(session)
+                arm["lines"] = len(before_lines)
+                arm["bands"] = len(bands)
+                # And the CONTENT, not just the name.  The first arm defines
+                # what this fixture looks like; every later arm has to open
+                # into the same nine paragraphs or it is measuring the leftover
+                # of the arm before it.
+                texts = [line["text"] for line in before_lines]
+                if fixture_texts is None:
+                    fixture_texts = texts
+                elif texts != fixture_texts:
+                    arm["why"] = ("the re-open did not restore the fixture -- "
+                                  "this arm was looking at whatever the "
+                                  "previous arm left behind, so NOTHING here "
+                                  "is measured")
+                    arm["textsSeen"] = texts
+                    continue
+                # The same aiming rule the within-paragraph arm uses: band to
+                # paragraph is a trustworthy mapping only when every paragraph
+                # draws as exactly one band.  Without that, "the drag crossed a
+                # paragraph boundary" is an assumption, not an observation.
+                if (len(bands) != len(before_lines)
+                        or shape["to"] >= len(bands)):
+                    arm["why"] = ("bands and paragraphs did not correspond one "
+                                  "to one, so a drag cannot be aimed at a "
+                                  "KNOWN paragraph boundary")
+                    continue
+                top, bottom = bands[shape["from"]], bands[shape["to"]]
+                arm["fromText"] = before_lines[shape["from"]]["text"]
+                arm["toText"] = before_lines[shape["to"]]["text"]
+                arm["textsBefore"] = [line["text"] for line in before_lines]
+                # Starting near the first paragraph's left edge and ending
+                # halfway through the last: the range covers the whole of the
+                # first, every boundary between, and part of the last -- the
+                # shape a user makes when they drag down through a document.
+                evaluate(session, DRAG
+                         .replace("ARG_X1", f"{max(0.0, (top['first'] + 2) / scan['width']):.5f}")
+                         .replace("ARG_Y1", f"{top['centreFraction']:.5f}")
+                         .replace("ARG_X2", f"{((bottom['first'] + bottom['last']) / 2) / scan['width']:.5f}")
+                         .replace("ARG_Y2", f"{bottom['centreFraction']:.5f}"))
+                time.sleep(1.5)
+                evaluate(session, CLEAR_TOAST)
+                evaluate(session, CLEAR_TOASTS)
+                cut = evaluate(session, CUT)
+                time.sleep(2.5)
+                arm["handled"] = (cut or {}).get("handled")
+                arm["toasts"] = evaluate(session, READ_TOASTS)
+                said = " ".join(arm.get("toasts") or [])
+                arm["refusalReported"] = (
+                    "EDITOR_FORMAT_GESTURE_UNSUPPORTED" in said)
+                arm["stateAfterCut"] = (
+                    evaluate(session, READ_STATE) or {}).get("state")
+                after_report = capture_save(
+                    session, evaluate(session, SAVE_COUNT) or 0)
+                after_lines = document_lines(after_report)
+                after_texts = [line["text"] for line in after_lines]
+                # AN EMPTY CAPTURE IS NOT AN EMPTY DOCUMENT -- the same trap the
+                # within-paragraph arm records.  A session in recoverable-error
+                # answers EDITOR_NOT_READY to a save, and reading "the text is
+                # gone" out of that would turn a refusal into a deletion.
+                readable = is_an_odt(after_report) and bool(after_texts)
+                arm["documentReadableAfter"] = readable
+                arm["textsAfter"] = after_texts if readable else None
+                arm["linesAfter"] = len(after_texts) if readable else None
+                # The paragraphs the drag never touched.  A cut that removes
+                # what was selected and something else as well is finding 046's
+                # shape, and it is the one thing here that would settle the
+                # decision on its own.
+                arm["untouchedSurvive"] = None
+                if readable:
+                    untouched = [line["text"] for index, line
+                                 in enumerate(before_lines)
+                                 if index < shape["from"] or index > shape["to"]]
+                    arm["untouched"] = untouched
+                    arm["untouchedSurvive"] = all(
+                        any(text == other for other in after_texts)
+                        for text in untouched)
+                if not readable:
+                    arm["why"] = ("the save after the cut produced no readable "
+                                  "ODT, so what the cut did to the document is "
+                                  "NOT measured here -- read `toasts` and "
+                                  "`stateAfterCut`")
         return finish(report, args)
     finally:
         if session is not None:

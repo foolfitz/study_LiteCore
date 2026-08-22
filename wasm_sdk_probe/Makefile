@@ -2240,7 +2240,8 @@ test-e2-c-static:
 		--output build/e2c/content-axes.json --check > /dev/null
 	python3 -m unittest tests/test_e2_corpus.py tests/test_e2_c_shell_bundle.py \
 		tests/test_e2_c_matrix.py tests/test_caret_from_columns.py \
-		tests/test_inline_styles_of.py
+		tests/test_inline_styles_of.py tests/test_ink_rows_caret.py \
+		tests/test_product_path_mutations.py
 	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py \
 		tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py \
 		tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py \

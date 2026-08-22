@@ -101,22 +101,49 @@ NEW_ACTIONS: dict[str, dict] = {
     for name, wire in MOVE_LINE_ACTIONS.items()
 }
 
-# delete-selection: RANGE ONLY, and single-paragraph ranges only.
+# delete-selection: RANGE ONLY, both range classes, CHARACTERISED 2026-08-22.
 #
 # `collapsed` is withheld because an action named delete-selection that runs
 # with no selection has no meaning, and delete-backward already owns that case
 # with a characterisation behind it.  Granting collapsed here would put two
 # actions on one behaviour and quietly widen the one that was measured.
 #
-# `range-cross` is withheld because nobody has measured a cross-paragraph
-# delete.  The queue item said "range-single + range-cross", but it said so
-# before the measurement existed, and this tree's rule is the other one:
-# declaring a gesture nobody measured is the manifest claiming coverage the
-# evidence does not have.  Granting it later costs a measurement, not a relink.
+# BOTH RANGE BITS, and the reason it is both rather than one is the engine's,
+# not a preference.  probe_engine.cpp gates an unclassified selection on
+# `range_single AND range_cross` -- it cannot tell the two apart without an
+# html read, and that read is the wedge risk findings 037/038 describe.  So
+# `[range-single]` alone is not a narrower grant, it is an OFF SWITCH: it was
+# shipped that way from the link until this measurement, and the engine
+# refused every cut with "this action is not offered for this kind of
+# selection in this profile" -- a sentence that was true of no selection at
+# all.  A manifest that declares a gesture the binary will never honour is the
+# "describes but does not constrain" defect pointing the other way, and it is
+# worse than either extreme because it reads as a deliberate narrowing.
+#
+# The measurement this rests on, pre-registered before it ran
+# (findings/evidence/queue-cut-cannot-remove-text/PREDICTION.md, and RESULT
+# -range-cross.md for the outcome).  A MIRRORED manifest, dist/ never written,
+# probe.wasm byte-identical to f923cfa5:
+#
+#   P-CUT-1  the refusal disappears                            held
+#   P-CUT-2  a within-paragraph range is removed, neighbours
+#            survive, the document still parses                held
+#   P-CUT-3  the session stays `ready` and can still save      held
+#   P-CUT-4  the cross-paragraph shape, recorded not forecast  four shapes,
+#            all correct: two paragraphs, three paragraphs into a bullet list,
+#            a bullet list through a plain paragraph into a numbered list, and
+#            within one list.  Every arm merged exactly as a word processor
+#            does -- head of the first paragraph plus tail of the last, line
+#            count down by exactly the number of boundaries crossed, every
+#            untouched paragraph verbatim, session ready, document readable.
+#
+# RANGE_DELETE_CHARACTERISED.  What is still NOT characterised is named rather
+# than implied: a range inside a table, and one covering a footnote or endnote
+# reference.  Neither is in this fixture.
 NEW_ACTIONS["delete-selection"] = {
     "id": 20,
-    "gestures": [v2.RANGE_SINGLE],
-    "limits": ["no-cross-paragraph-delete"],
+    "gestures": [v2.RANGE_SINGLE, v2.RANGE_CROSS],
+    "limits": ["not-characterised-in-tables-or-note-apparatus"],
 }
 
 # select-all: SHIPPED DARK.  Empty list, not omitted -- see the module

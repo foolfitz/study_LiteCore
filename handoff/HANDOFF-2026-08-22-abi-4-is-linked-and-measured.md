@@ -58,8 +58,19 @@ checks, 3 NOT_ESTABLISHED and each one explained below. All static gates pass;
 73 node tests; queue **0 drifted, P1 complete, blocking none**, 46 items, 12
 open.
 
-Working now that did not work before: **ArrowUp/Down/Home/End, 重做, and the
-caret keeping up with typing.**
+Working now that did not work before: **重做 and the caret keeping up with
+typing** — both driven by a check on the linked artifact.
+
+> **CORRECTION, same day.** This sentence also claimed ArrowUp/Down/Home/End,
+> and that half was **not measured**. Every file under
+> `findings/evidence/arrow-keys/` was run against `e2-editor-v3`, where
+> `move-line-up` is `false`; the arm passes there because it asserts agreement
+> with the running profile, and on v3 the agreeing behaviour is "the key does
+> nothing". `backspace-and-arrows-reach-the-document` drives only the LEFT
+> arrow (`◀ 35 ms`). So nothing has ever measured that the vertical arrows
+> move the caret — the claim came from "the link gives them wire ids" plus a
+> green check that means something else. The acceptance row is now
+> `unverified`, not `done`; see below.
 
 ## THE ONE THING IN FLIGHT
 
