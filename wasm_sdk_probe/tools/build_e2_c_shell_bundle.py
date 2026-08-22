@@ -130,8 +130,25 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v25.json"),
                     Path("e2/editor-shell-v2-bundle-v26.json"),
                     Path("e2/editor-shell-v2-bundle-v27.json"),
-                    Path("e2/editor-shell-v2-bundle-v28.json"))
+                    Path("e2/editor-shell-v2-bundle-v28.json"),
+                    Path("e2/editor-shell-v2-bundle-v29.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v30, 2026-08-22: finding 068's fix, the session half.
+# `editor-shell-v2/narrow-editor-v2-session.js` overrides `_handleEngineEvent`
+# to take the caret from the engine's own `editor-state` announcement instead of
+# waiting for the next queued operation to read it.
+#
+# AN OVERRIDE, not an edit to the base class, and the tree said so rather than
+# me: the natural home was `EditorSession._handleEngineEvent`, and
+# `check_e1_c_bundle_intact.py` refused it -- `editor-shell/editor-session.js`
+# is bound to E1-C's verdict (shell bundle `187706b2…`), so editing it would
+# unbind a verdict that has nothing to do with this defect.
+#
+# The other half is in the worker, which is NOT in this bundle: it is one of the
+# profile's five bound identities, so it ships with the v4 link.  Verified in a
+# mirror before either shipped: 5/5 with both halves, 0/4 with the worker half
+# alone, 2/7 with neither.
+#
 # v29, 2026-08-22: the ABI 4 relink's client half.
 # `editor-shell-v2/narrow-editor-v2-client.js` learned the five appended actions
 # -- four movements by line and delete-selection -- with the movements sharing
@@ -166,7 +183,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v29.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v30.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

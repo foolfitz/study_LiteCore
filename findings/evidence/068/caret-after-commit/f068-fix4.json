@@ -1,0 +1,1012 @@
+{
+  "schemaVersion": 1,
+  "release": "f064-mechanism",
+  "evidenceClass": "diagnostic",
+  "finding": "064",
+  "browser": "chrome",
+  "note": "This run did NOT use the shipped page. It answers ONE named question -- whether the repaint the product performs between a format action and the next commit is what stops the format reaching the text -- and it is not a product measurement.",
+  "prediction": "findings/evidence/064/PREDICTION-render-between-format-and-typing.md",
+  "mirrored": [
+    "e2-editor-app.js",
+    "profiles/e2-editor-v3/sdk-worker.js"
+  ],
+  "workerSubstitutedFromSource": "sdk/sdk-worker.js",
+  "hook": "renderDocument() counts its calls and returns early while globalThis.__f064.suppress is true; inert when __f064 is absent",
+  "whyInsideRenderDocument": "the page has a second render source -- onEvent schedules a repaint on document-invalidated (web/e2-editor-app.js:768-769) -- so a diagnostic at the run() call site (line 382) would leave a render running and report a false negative",
+  "eliminatedBySourceReading": [
+    "an extra editor.getState() between the press and the typing: _drain takes `result?.state ||` first (editor-shell/editor-session.js:301-302) and NarrowEditorV2Client rejects a result without `state` (editor-shell-v2/narrow-editor-v2-client.js:117), so the format action never reaches the fallback",
+    "the engine's format barrier: its targets are the list and paragraph-style commands (src/probe_engine.cpp:1224-1241); the four inline actions take the plain uno-command-result route",
+    "the insert call itself: session.commitText() ends at document.insertText (editor-shell/editor-session.js:511), which is the call D1 makes"
+  ],
+  "wasmUnchanged": true,
+  "profileWasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+  "shims": [
+    "URL.createObjectURL",
+    "HTMLAnchorElement.prototype.click (download anchors)",
+    "#toast.textContent cleared between steps",
+    "globalThis.__f064, this probe's own counter and flag"
+  ],
+  "arms": [
+    {
+      "id": "caret-state-after-commit",
+      "commit": {
+        "before": 0,
+        "after": 1
+      },
+      "updates": [
+        {
+          "label": "click",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 414
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 0,
+          "sourceSequence": 2,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "click",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 414
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 0,
+          "sourceSequence": 2,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "click",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1418,
+            "y": 1418,
+            "width": 0,
+            "height": 414
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 0,
+          "sourceSequence": 2,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "click",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1744,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 0,
+          "sourceSequence": 3,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "click",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1744,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 0,
+          "sourceSequence": 3,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "click",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1744,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 0,
+          "sourceSequence": 3,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "after-click",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1744,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 0,
+          "sourceSequence": 4,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "after-click",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1744,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 0,
+          "sourceSequence": 5,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "commit",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1744,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 0,
+          "sourceSequence": 5,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "commit",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1744,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 0,
+          "sourceSequence": 5,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "commit",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1744,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 0,
+          "sourceSequence": 5,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "commit",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1744,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 5,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "commit",
+          "hasEditorState": true,
+          "caret": {
+            "x": 1744,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 5,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "commit",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3277,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 6,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "commit",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3277,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 7,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "commit",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3277,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 8,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "commit",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3277,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 9,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "commit",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3277,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 10,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "commit",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3277,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 11,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "move",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3277,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 11,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "move",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3277,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 11,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "move",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3277,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 11,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "move",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3131,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 12,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "move",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3131,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 12,
+          "documentChangeSequence": 0
+        },
+        {
+          "label": "move",
+          "hasEditorState": true,
+          "caret": {
+            "x": 3131,
+            "y": 4034,
+            "width": 0,
+            "height": 276
+          },
+          "collapsed": true,
+          "rectangles": 0,
+          "revision": 1,
+          "sourceSequence": 12,
+          "documentChangeSequence": 0
+        }
+      ],
+      "paints": [
+        {
+          "label": "click",
+          "why": "drew-caret",
+          "caretX": 1418,
+          "collapsed": true
+        },
+        {
+          "label": "click",
+          "why": "drew-caret",
+          "caretX": 1418,
+          "collapsed": true
+        },
+        {
+          "label": "click",
+          "why": "drew-caret",
+          "caretX": 1418,
+          "collapsed": true
+        },
+        {
+          "label": "click",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "click",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "click",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "click",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "click",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "after-click",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "after-click",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 1744,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 3277,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 3277,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 3277,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 3277,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 3277,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 3277,
+          "collapsed": true
+        },
+        {
+          "label": "commit",
+          "why": "drew-caret",
+          "caretX": 3277,
+          "collapsed": true
+        },
+        {
+          "label": "move",
+          "why": "drew-caret",
+          "caretX": 3277,
+          "collapsed": true
+        },
+        {
+          "label": "move",
+          "why": "drew-caret",
+          "caretX": 3277,
+          "collapsed": true
+        },
+        {
+          "label": "move",
+          "why": "drew-caret",
+          "caretX": 3277,
+          "collapsed": true
+        },
+        {
+          "label": "move",
+          "why": "drew-caret",
+          "caretX": 3131,
+          "collapsed": true
+        },
+        {
+          "label": "move",
+          "why": "drew-caret",
+          "caretX": 3131,
+          "collapsed": true
+        },
+        {
+          "label": "move",
+          "why": "drew-caret",
+          "caretX": 3131,
+          "collapsed": true
+        },
+        {
+          "label": "move",
+          "why": "drew-caret",
+          "caretX": 3131,
+          "collapsed": true
+        },
+        {
+          "label": "move",
+          "why": "drew-caret",
+          "caretX": 3131,
+          "collapsed": true
+        }
+      ],
+      "events": [
+        {
+          "label": "click",
+          "event": "document-invalidated",
+          "caretX": null
+        },
+        {
+          "label": "click",
+          "event": "editor-state",
+          "source": "visible-cursor",
+          "caretX": 1744,
+          "sourceSequence": 3
+        },
+        {
+          "label": "after-click",
+          "event": "editor-state",
+          "source": "format-state",
+          "caretX": 1744,
+          "sourceSequence": 4
+        },
+        {
+          "label": "after-click",
+          "event": "editor-state",
+          "source": "format-state",
+          "caretX": 1744,
+          "sourceSequence": 5
+        },
+        {
+          "label": "commit",
+          "event": "document-invalidated",
+          "caretX": null
+        },
+        {
+          "label": "commit",
+          "event": "editor-state",
+          "source": "visible-cursor",
+          "caretX": 3277,
+          "sourceSequence": 6
+        },
+        {
+          "label": "commit",
+          "event": "editor-state",
+          "source": "format-state",
+          "caretX": 3277,
+          "sourceSequence": 7
+        },
+        {
+          "label": "commit",
+          "event": "editor-state",
+          "source": "format-state",
+          "caretX": 3277,
+          "sourceSequence": 8
+        },
+        {
+          "label": "commit",
+          "event": "editor-state",
+          "source": "format-state",
+          "caretX": 3277,
+          "sourceSequence": 9
+        },
+        {
+          "label": "commit",
+          "event": "editor-state",
+          "source": "format-state",
+          "caretX": 3277,
+          "sourceSequence": 10
+        },
+        {
+          "label": "commit",
+          "event": "editor-state",
+          "source": "format-state",
+          "caretX": 3277,
+          "sourceSequence": 11
+        },
+        {
+          "label": "move",
+          "event": "document-invalidated",
+          "caretX": null
+        },
+        {
+          "label": "move",
+          "event": "editor-state",
+          "source": "visible-cursor",
+          "caretX": 3131,
+          "sourceSequence": 12
+        }
+      ],
+      "hook": {
+        "renders": 7,
+        "suppressed": 0,
+        "suppress": false
+      },
+      "byLabel": {
+        "click": {
+          "paints": [
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret"
+          ],
+          "caretInState": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "caretX": [
+            1418,
+            1418,
+            1418,
+            1744,
+            1744,
+            1744
+          ],
+          "collapsed": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "sourceSequence": [
+            2,
+            2,
+            2,
+            3,
+            3,
+            3
+          ],
+          "callbackSources": [
+            "visible-cursor"
+          ],
+          "parseErrors": [],
+          "documentChangeSequence": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "after-click": {
+          "paints": [
+            "drew-caret",
+            "drew-caret"
+          ],
+          "caretInState": [
+            true,
+            true
+          ],
+          "caretX": [
+            1744,
+            1744
+          ],
+          "collapsed": [
+            true,
+            true
+          ],
+          "sourceSequence": [
+            4,
+            5
+          ],
+          "callbackSources": [
+            "format-state",
+            "format-state"
+          ],
+          "parseErrors": [],
+          "documentChangeSequence": [
+            0,
+            0
+          ]
+        },
+        "commit": {
+          "paints": [
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret"
+          ],
+          "caretInState": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "caretX": [
+            1744,
+            1744,
+            1744,
+            1744,
+            1744,
+            3277,
+            3277,
+            3277,
+            3277,
+            3277,
+            3277
+          ],
+          "collapsed": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "sourceSequence": [
+            5,
+            5,
+            5,
+            5,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "callbackSources": [
+            "visible-cursor",
+            "format-state",
+            "format-state",
+            "format-state",
+            "format-state",
+            "format-state"
+          ],
+          "parseErrors": [],
+          "documentChangeSequence": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "move": {
+          "paints": [
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret",
+            "drew-caret"
+          ],
+          "caretInState": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "caretX": [
+            3277,
+            3277,
+            3277,
+            3131,
+            3131,
+            3131
+          ],
+          "collapsed": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "sourceSequence": [
+            11,
+            11,
+            11,
+            12,
+            12,
+            12
+          ],
+          "callbackSources": [
+            "visible-cursor"
+          ],
+          "parseErrors": [],
+          "documentChangeSequence": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "drewAfterCommit": true,
+      "caretX": {
+        "beforeCommit": 1744,
+        "afterCommit": 3277,
+        "afterMove": 3131
+      },
+      "caretMovedOnCommit": true,
+      "outcome": "PASS",
+      "conclusion": "paint() drew a caret after the commit and its x had moved, so the caret follows typed text"
+    }
+  ],
+  "servedShell": {
+    "bundle": "e2/editor-shell-v2-bundle-v27.json",
+    "declaredSha256": "55a91f837f210e8ede727205ab6301408f0edfba14c5708aaffa0ab1b605dfb0",
+    "servedSha256": "1c784d8fbb5bcdf3c4ae61e4269665503699ba0166ad350976a90940ce3c3abe",
+    "missing": []
+  },
+  "control": {
+    "id": "control-instrument",
+    "ink0": {
+      "available": true,
+      "sum": 2001,
+      "inkLeft": 83,
+      "inkRight": 222
+    },
+    "hook0": {
+      "renders": 2,
+      "suppressed": 0,
+      "suppress": false
+    },
+    "visible": {
+      "before": 0,
+      "after": 1
+    },
+    "ink1": {
+      "available": true,
+      "sum": 2503,
+      "inkLeft": 83,
+      "inkRight": 431
+    },
+    "hook1": {
+      "renders": 5,
+      "suppressed": 0,
+      "suppress": false
+    },
+    "hidden": {
+      "before": 1,
+      "after": 2
+    },
+    "ink2": {
+      "available": true,
+      "sum": 2517,
+      "inkLeft": 83,
+      "inkRight": 508
+    },
+    "hook2": {
+      "renders": 5,
+      "suppressed": 2,
+      "suppress": true
+    },
+    "ink3": {
+      "available": true,
+      "sum": 3159,
+      "inkLeft": 83,
+      "inkRight": 639
+    },
+    "hook3": {
+      "renders": 8,
+      "suppressed": 2,
+      "suppress": false
+    },
+    "delta": {
+      "rendered": 502,
+      "frozen": 14,
+      "released": 642,
+      "threshold": 500
+    },
+    "countersBite": true,
+    "canvasBites": true,
+    "ok": true,
+    "outcome": "PASS"
+  },
+  "verdict": "no verdict: the suppressed arm was not run"
+}

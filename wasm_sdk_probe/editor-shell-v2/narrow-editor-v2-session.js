@@ -69,6 +69,61 @@ export class NarrowEditorV2Session extends EditorSession {
   }
 
   /**
+   * Finding 068.  Take the caret from the engine's own announcement.
+   *
+   * WHY THIS IS AN OVERRIDE AND NOT AN EDIT TO THE BASE CLASS.  The natural
+   * home for this is `EditorSession._handleEngineEvent`, and putting it there
+   * is what I did first.  `check_e1_c_bundle_intact.py` refused it:
+   * `editor-shell/editor-session.js` is bound to E1-C's verdict
+   * (`E1_GO_ODT_EDITOR`, shell bundle `187706b2…`), so editing it unbinds a
+   * verdict that has nothing to do with this defect.  A subclass reaches the
+   * same event with none of that cost.
+   *
+   * THE DEFECT.  The drain reads editor state once per queued operation, and
+   * insert replies as soon as the paste is posted -- before the cursor
+   * callback carrying the new caret rectangle.  Measured over eleven runs: the
+   * read is answered at `sourceSequence` 5, the cursor callback is sequence 6,
+   * and nothing asked again, so the caret stayed one commit behind and the page
+   * drew it there. That is what an operator reported twice, two days running.
+   *
+   * TWO GUARDS, neither decoration:
+   *
+   * `sourceSequence` must ADVANCE.  Events and drain reads are two sources for
+   * one field, so without this a slow event could land after a fresher read and
+   * move the caret backwards -- trading a caret that lags for one that jitters,
+   * which is worse because it is not reproducible.
+   *
+   * The session must be USABLE.  During `loading` there is no document to draw
+   * on, and during recovery the snapshot is the thing being rebuilt; publishing
+   * a caret there would describe a document the page has already let go.
+   */
+  _handleEngineEvent(event) {
+    super._handleEngineEvent(event);
+    if (event?.event !== "editor-state") return;
+    const phase = this.state.snapshot.state;
+    if (phase !== "ready" && phase !== "busy") return;
+    const next = event.sourceSequence;
+    if (!Number.isInteger(next)) return;
+    const current = this.state.snapshot.editorState?.sourceSequence;
+    if (Number.isInteger(current) && next <= current) return;
+    this.state.update({
+      editorState: {
+        ...this.state.snapshot.editorState,
+        documentHandle: event.documentHandle,
+        revision: event.revision,
+        sourceSequence: next,
+        documentChangeSequence: event.documentChangeSequence,
+        visible: event.visible,
+        caret: event.caret,
+        selection: event.selection,
+        a11y: event.a11y,
+        format: event.format,
+        schedulerProbe: event.schedulerProbe,
+      },
+    });
+  }
+
+  /**
    * Any of the fifteen, through the same queue as everything else.
    *
    * The queue is the point.  A paragraph action that ran outside it could

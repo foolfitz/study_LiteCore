@@ -156,3 +156,57 @@ engine's state announcements.
 - The remedy is in the worker and the session, and `sdk-worker.js` is one of
   the five identities a profile binds — so a worker fix landed before the ABI 4
   link ships inside that profile at no extra cost.
+
+---
+
+# The remedy, verified before it ships
+
+Two changes, both outside the engine:
+
+- **`sdk/sdk-worker.js`** forwards `editor-state` on every profile instead of
+  only a discovery one. Every field it carries is already in the reply the
+  product's own `editorGetStateV2` returns, so this exposes nothing new — the
+  gate was withholding an announcement, not a surface.
+- **`editor-shell-v2/narrow-editor-v2-session.js`** overrides
+  `_handleEngineEvent` to adopt that announcement into the snapshot, behind
+  two guards: `sourceSequence` must advance, and the session must be
+  `ready` or `busy`.
+
+  An override rather than an edit to `EditorSession._handleEngineEvent`,
+  which is where it went first. `check_e1_c_bundle_intact.py` refused
+  that: `editor-shell/editor-session.js` is bound to E1-C's verdict (shell
+  bundle `187706b2…`), so editing it would unbind a verdict that has
+  nothing to do with this defect. A subclass reaches the same event at no
+  such cost. Re-verified from its new home: `f068-v2sess1..4`, **4/4**.
+
+The monotonicity guard is not decoration. Events and drain reads are now two
+sources for one field; without it a slow event could land after a fresher read
+and move the caret backwards — trading a caret that lags for one that jitters,
+which is worse because it is not reproducible.
+
+## Before and after, same arm
+
+| configuration | PASS |
+|---|---|
+| neither change (`f068-rep*`, `f068-state2`) | **2 / 7** |
+| worker forwards, session ignores (`f068-cb1..4`) | **0 / 4** |
+| both changes (`f068-fix1..5`) | **5 / 5** |
+
+The middle row is the isolation, and it was measured before the fix existed
+rather than reconstructed afterwards: forwarding alone does nothing, because
+nothing was listening. The session half is what closes the defect.
+
+The commit window also goes from five state reads to eleven — the engine's
+announcements arriving is directly visible in the count.
+
+## Why the mirror substitutes the worker from source
+
+The v3 profile's copy of `sdk-worker.js` is frozen: it is one of the five
+identities that profile binds, and rebuilding the profile to refresh it would
+rewrite the manifest and unbind round two's evidence. So a worker fix cannot be
+tested by rebuilding anything. The mirror runs the **source** worker against
+the **frozen** wasm — `probe.wasm` untouched and byte-identical — and the
+report declares the substitution in `workerSubstitutedFromSource`.
+
+The fix ships for real in the v4 profile, whose builder hashes whichever worker
+is in the tree at link time. Nothing extra is needed at the link for it.

@@ -204,12 +204,6 @@ WORKER_GATE_PATCHED = """// DIAGNOSTIC, finding 068.  Not shipped.  Ungates the 
 const DIAGNOSTIC_F068_FORWARD_STATE_EVENTS = true;
 function editorDiscoveryEnabled() {"""
 
-WORKER_STATE_ANCHOR = """    case "editor-state":
-      if (editorDiscoveryEnabled()) {"""
-
-WORKER_STATE_PATCHED = """    case "editor-state":
-      if (editorDiscoveryEnabled() || DIAGNOSTIC_F068_FORWARD_STATE_EVENTS) {"""
-
 WORKER_PARSE_ANCHOR = """    case "editor-callback-parse-error":
       if (editorDiscoveryEnabled()) {"""
 
@@ -2489,9 +2483,26 @@ def main() -> int:
     # only the page would record an empty list and read as "no callback ever
     # arrived" -- the very answer under test, arrived at by not listening.
     worker_rel = "profiles/e2-editor-v3/sdk-worker.js"
-    worker_text = (root / worker_rel).read_text(encoding="utf-8")
+    # SUBSTITUTED FROM SOURCE, and this is declared in the report.
+    #
+    # The v3 profile's copy of the worker is FROZEN -- it is one of the five
+    # identities that profile binds, and rebuilding the profile to refresh it
+    # would rewrite the manifest and unbind round two's evidence.  So finding
+    # 068's remedy, which lives in the worker, cannot be tested by rebuilding
+    # anything.  The mirror runs the SOURCE worker against the frozen wasm
+    # instead: probe.wasm is untouched and byte-identical, and the worker is
+    # the file under test.
+    #
+    # The fix ships for real in the v4 profile, whose builder will hash
+    # whichever worker is in the tree at link time.
+    worker_source = PROJECT / "sdk" / "sdk-worker.js"
+    worker_text = worker_source.read_text(encoding="utf-8")
+    # `editor-state` is no longer in this list, and its absence is the FIX:
+    # finding 068's remedy made that forward unconditional in the shipped
+    # worker, so there is nothing left to ungate.  If this probe still patched
+    # it, the patch would fail to match and the anchor check would refuse --
+    # which is the check working, not a regression.
     for name, anchor in (("the discovery gate", WORKER_GATE_ANCHOR),
-                         ("the editor-state forward", WORKER_STATE_ANCHOR),
                          ("the parse-error forward", WORKER_PARSE_ANCHOR)):
         if worker_text.count(anchor) != 1:
             raise SystemExit(
@@ -2499,10 +2510,9 @@ def main() -> int:
                 + worker_rel + f" (found {worker_text.count(anchor)})")
     worker_patched = (worker_text
                       .replace(WORKER_GATE_ANCHOR, WORKER_GATE_PATCHED, 1)
-                      .replace(WORKER_STATE_ANCHOR, WORKER_STATE_PATCHED, 1)
                       .replace(WORKER_PARSE_ANCHOR, WORKER_PARSE_PATCHED, 1))
-    if worker_patched.count("DIAGNOSTIC_F068_FORWARD_STATE_EVENTS") != 3:
-        raise SystemExit("finding 068's worker patch did not land three times")
+    if worker_patched.count("DIAGNOSTIC_F068_FORWARD_STATE_EVENTS") != 2:
+        raise SystemExit("finding 068's worker patch did not land twice")
     build_mirror(root, mirror, {page_rel: patched.encode("utf-8"),
                                 worker_rel: worker_patched.encode("utf-8")})
 
@@ -2518,7 +2528,8 @@ def main() -> int:
                 "reaching the text -- and it is not a product measurement.",
         "prediction": "findings/evidence/064/"
                       "PREDICTION-render-between-format-and-typing.md",
-        "mirrored": [page_rel],
+        "mirrored": [page_rel, worker_rel],
+        "workerSubstitutedFromSource": str(worker_source.relative_to(PROJECT)),
         "hook": "renderDocument() counts its calls and returns early while "
                 "globalThis.__f064.suppress is true; inert when __f064 is absent",
         "whyInsideRenderDocument":

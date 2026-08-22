@@ -847,7 +847,26 @@ function handleCEvent(rawEvent) {
       }
       break;
     case "editor-state":
-      if (editorDiscoveryEnabled()) {
+      // FINDING 068.  Forwarded on EVERY profile, not just a discovery one.
+      //
+      // The engine announces each editor state change and names the callback
+      // that caused it.  This was gated behind `editorDiscoveryEnabled()`,
+      // which is false on a product profile because the builder pops
+      // `diagnostic` from the manifest -- so on the shipped product these
+      // events were constructed and then dropped.
+      //
+      // What that cost: the page's only other source of editor state is the
+      // drain's `getState()`, called once per queued operation, and insert
+      // replies immediately after `paste()`.  Measured, eleven runs: the
+      // page's last read is answered at sourceSequence 5 and the cursor
+      // callback carrying the new rectangle is sequence 6.  Nothing asked
+      // again, so the caret stayed where it was before the text -- which is
+      // exactly what an operator reported twice, two days running.
+      //
+      // This exposes NOTHING NEW: every field below is already in the reply
+      // the product's own `editorGetStateV2` returns (see "editor-state-result"
+      // above).  The gate was withholding an announcement, not a surface.
+      {
         postEvent("editor-state", {
           documentHandle: event.documentHandle,
           revision: event.revision,
