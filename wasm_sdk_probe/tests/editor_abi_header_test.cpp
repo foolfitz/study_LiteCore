@@ -57,6 +57,14 @@ static_assert(OXSDK_EDITOR_V3_MOVE_LINE_DOWN == 17);
 static_assert(OXSDK_EDITOR_V3_MOVE_LINE_HOME == 18);
 static_assert(OXSDK_EDITOR_V3_MOVE_LINE_END == 19);
 static_assert(OXSDK_EDITOR_V3_DELETE_SELECTION == 20);
+/*
+ * 21 is pinned even though the v4 manifest grants it NO gesture and it is
+ * unreachable on that profile.  A withheld id is still an id: the reason to
+ * ship it dark is that granting it later costs a measurement instead of a
+ * relink, and that only holds if 21 still means select-all when the grant
+ * arrives.  An unpinned dark id is one that can be quietly reused.
+ */
+static_assert(OXSDK_EDITOR_V3_SELECT_ALL == 21);
 /* The gesture mask bits are ABI too -- the worker writes them from the manifest. */
 static_assert(OXSDK_EDITOR_GESTURE_COLLAPSED == 1u);
 static_assert(OXSDK_EDITOR_GESTURE_RANGE_SINGLE == 2u);

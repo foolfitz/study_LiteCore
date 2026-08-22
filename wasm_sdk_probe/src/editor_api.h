@@ -107,7 +107,18 @@ typedef enum oxsdk_editor_v3_action {
   OXSDK_EDITOR_V3_MOVE_LINE_DOWN = 17,
   OXSDK_EDITOR_V3_MOVE_LINE_HOME = 18,
   OXSDK_EDITOR_V3_MOVE_LINE_END = 19,
-  OXSDK_EDITOR_V3_DELETE_SELECTION = 20
+  OXSDK_EDITOR_V3_DELETE_SELECTION = 20,
+  /*
+   * SELECT_ALL is in the contract and WITHHELD BY THE MANIFEST on the v4
+   * profile: the binary implements it, the manifest grants it no gesture, and
+   * the mask is narrowing-only so a manifest can never widen that back.
+   *
+   * That asymmetry is the whole point. A capability can ship dark and be
+   * granted later by a MEASUREMENT rather than another relink -- but only in
+   * that direction, so shipping it dark costs nothing and claims nothing.
+   * Its postcondition is uncharacterised, which is exactly why it is dark.
+   */
+  OXSDK_EDITOR_V3_SELECT_ALL = 21
 } oxsdk_editor_v3_action;
 
 /*

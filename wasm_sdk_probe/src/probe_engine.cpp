@@ -935,6 +935,9 @@ bool gEditorUnoSemanticReadback = false;
 const char *gEditorAccessibilityUnavailable = "not-attempted";
 bool gEditorAccessibilityEnabled = false;
 constexpr int EditorShiftModifier = 0x1000;
+// KEY_MOD1 -- Ctrl.  Same scheme as the shift bit above, and the only other
+// modifier this ABI has any use for.
+constexpr int EditorMod1Modifier = 0x2000;
 constexpr int EditorCaretOrSelectionCallback = -2;
 constexpr int EditorMutationCallback = -3;
 void finishAsynchronous(std::uint32_t requestId);
@@ -3421,6 +3424,8 @@ const char *editorActionName(std::uint32_t action) {
     return "set-strikethrough";
   case OXSDK_EDITOR_DELETE_SELECTION:
     return "delete-selection";
+  case OXSDK_EDITOR_SELECT_ALL:
+    return "select-all";
   case OXSDK_EDITOR_SET_PARAGRAPH_BODY:
     return "set-paragraph-body";
   case OXSDK_EDITOR_SET_PARAGRAPH_HEADING:
@@ -4608,6 +4613,25 @@ void handleEditorAction(const Command &command) {
     break;
   case OXSDK_EDITOR_MOVE_LINE_END:
     keyCode = com::sun::star::awt::Key::END;
+    break;
+  case OXSDK_EDITOR_SELECT_ALL:
+    // queue-no-select-all-action.  Deliberately on the KEY path with the
+    // movements rather than through startEditorUnoAction, and the reason is
+    // the shape this tree keeps finding: select-all changes the SELECTION, not
+    // the document, and the uno-mutation route reports a mutation. Sending it
+    // that way would advance the revision for an edit that never happened --
+    // finding 067's engine half, reproduced on purpose.
+    //
+    // This route is already characterised: `mutation = false`, no revision
+    // advance, completion documented from the callback. Reusing it means
+    // select-all inherits a postcondition somebody measured instead of a new
+    // one nobody has.
+    //
+    // SHIPPED BUT WITHHELD. The manifest grants it no gesture, so this is
+    // unreachable on the v4 profile; what it buys is that granting it later
+    // needs a measurement and not another relink. Its postcondition is NOT
+    // characterised -- that measurement is the precondition for granting it.
+    keyCode = com::sun::star::awt::Key::A | EditorMod1Modifier;
     break;
   default:
     emitCommandError(command, "editor-action", "EDITOR_ACTION_UNSUPPORTED",
@@ -5876,7 +5900,14 @@ SubmitStatus editorSelect(std::uint32_t requestId,
 // exists, which is why neither needs its own link.
 constexpr std::uint32_t kAllEditorGestures =
     kGestureCollapsed | kGestureRangeSingle | kGestureRangeCross;
-constexpr std::uint32_t kMaxInternalEditorAction = 21;
+// 23 as of ABI 4 (was 21).  THIS BOUND MUST MOVE WITH THE ACTION LIST, and the
+// failure mode if it does not is silent and total: `editorSetActionGestures`
+// returns early for an action above it, so the manifest's mask is never stored,
+// and `editorGesturePermitted` returns FALSE for it -- the new action is
+// refused unconditionally while the manifest says it is granted.  Caught here
+// on 2026-08-22 by reading the bound before building, one commit after adding
+// internal action 22.
+constexpr std::uint32_t kMaxInternalEditorAction = 23;
 std::uint32_t gEditorActionGestures[kMaxInternalEditorAction + 1] = {};
 bool gEditorActionGesturesInitialised = false;
 

@@ -38,6 +38,7 @@ enum InternalEditorAction : std::uint32_t {
   InternalMoveLineEnd = 6,
   // The one new behaviour.  22 because the discovery ABI's own list ends at 21.
   InternalDeleteSelection = 22,
+  InternalSelectAll = 23,
 };
 
 // The mask itself lives in the engine (probe::editorSetActionGestures): the
@@ -61,7 +62,7 @@ static_assert(OXSDK_EDITOR_GESTURE_RANGE_CROSS == probe::kGestureRangeCross);
 // all -- and a gesture a manifest cannot restrict is one the binary grants
 // unconditionally, which is the "manifest describes but does not constrain"
 // defect the mask exists to remove.
-constexpr std::uint32_t kMaxExternalAction = 20;
+constexpr std::uint32_t kMaxExternalAction = 21;
 
 // The engine's selection methods, of which the narrow ABI exposes exactly one.
 // Mirrors oxsdk_editor_selection_method in editor_discovery_api.h; that header
@@ -128,6 +129,8 @@ std::uint32_t internalAction(std::uint32_t action) {
     return InternalMoveLineEnd;
   case OXSDK_EDITOR_V3_DELETE_SELECTION:
     return InternalDeleteSelection;
+  case OXSDK_EDITOR_V3_SELECT_ALL:
+    return InternalSelectAll;
   default:
     return 0;
   }

@@ -45,7 +45,9 @@ typedef enum oxsdk_editor_action {
    * their own one-unit one. This is the opposite gesture and needs the
    * opposite treatment, so it dispatches on the selection that is there.
    */
-  OXSDK_EDITOR_DELETE_SELECTION = 22
+  OXSDK_EDITOR_DELETE_SELECTION = 22,
+  /* Ships in the v4 binary and is withheld by the manifest; see the dispatch. */
+  OXSDK_EDITOR_SELECT_ALL = 23
 } oxsdk_editor_action;
 
 typedef enum oxsdk_editor_selection_method {

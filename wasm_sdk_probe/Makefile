@@ -1659,12 +1659,6 @@ dist/e2-c-046-overshoot.html: web/e2-c-046-overshoot.html | dist
 dist/e2-c-046-overshoot-app.js: web/e2-c-046-overshoot-app.js | dist
 	cp $< $@
 
-dist/e2-c-046-overshoot.html: web/e2-c-046-overshoot.html | dist
-	cp $< $@
-
-dist/e2-c-046-overshoot-app.js: web/e2-c-046-overshoot-app.js | dist
-	cp $< $@
-
 dist/e2-c-046-empty.html: web/e2-c-046-empty.html | dist
 	cp $< $@
 
