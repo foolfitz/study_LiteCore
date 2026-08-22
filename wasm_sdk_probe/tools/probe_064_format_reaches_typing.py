@@ -99,6 +99,102 @@ TRACE_PATCHED = """    onInputTrace(entry) {
       if (globalThis.__f067) globalThis.__f067.traces.push(entry);
       if (entry?.action === "composition-rejected" || entry?.status === "failed")"""
 
+# FINDING 068.  The page draws the caret from `editorState.caret` and only when
+# `selection.collapsed !== false`, and `paint()` runs on every state update.
+# Five pixel attempts established WHAT happens -- no caret on that line after
+# typing, one after a move -- and none of them could say WHICH of the three
+# conditions failed, because a pixel that is not there looks the same whatever
+# withheld it.  These two hooks ask the page directly.  Inert without
+# `globalThis.__f068`.
+STATE_ANCHOR = """  updateGestureAffordance();
+  // Finding 058.  The caret arrives as a state update, not as a document
+  // change, so redrawing only on render would leave it a gesture behind.
+  paint();"""
+
+STATE_PATCHED = """  updateGestureAffordance();
+  // DIAGNOSTIC, finding 068.  Not shipped.
+  {
+    const diag = globalThis.__f068;
+    if (diag) {
+      const es = session?.state?.snapshot?.editorState;
+      diag.updates.push({
+        label: diag.label,
+        hasEditorState: !!es,
+        caret: es && es.caret ? { x: es.caret.x, y: es.caret.y,
+                                  width: es.caret.width,
+                                  height: es.caret.height } : null,
+        collapsed: es && es.selection ? es.selection.collapsed : null,
+        rectangles: es && es.selection && es.selection.rectangles
+                    ? es.selection.rectangles.length : null,
+        revision: session?.state?.snapshot?.revision ?? null,
+        // THE DISCRIMINATOR.  `sourceSequence` counts EVERY editor callback
+        // that changed state; `documentChangeSequence` is the value it had at
+        // the last INVALIDATE_TILES.  If the two are equal after a commit, the
+        // tile invalidation was the ONLY callback that arrived -- so no cursor
+        // callback came, as against one that came and reported the same
+        // rectangle.  Those are different defects with different remedies and
+        // a stale caret x cannot tell them apart.
+        sourceSequence: es ? es.sourceSequence : null,
+        documentChangeSequence: es ? es.documentChangeSequence : null,
+      });
+    }
+  }
+  // Finding 058.  The caret arrives as a state update, not as a document
+  // change, so redrawing only on render would leave it a gesture behind.
+  paint();"""
+
+# The decision itself, recorded where it is made.  Recording the inputs is not
+# enough: `paint()` has two earlier returns (no cached tiles; no editorState or
+# no document) and either one produces exactly the same absent pixel.
+PAINT_ANCHOR = """function paint() {
+  if (!lastTiles.length) return;"""
+
+PAINT_PATCHED = """function paint() {
+  const diag068 = globalThis.__f068;
+  const note068 = (why, extra) => {
+    if (diag068) diag068.paints.push({ label: diag068.label, why, ...extra });
+  };
+  if (!lastTiles.length) { note068("no-cached-tiles", {}); return; }"""
+
+PAINT_ANCHOR_2 = """  const editorState = session?.state?.snapshot?.editorState;
+  if (!editorState || !session?.document) return;"""
+
+PAINT_PATCHED_2 = """  const editorState = session?.state?.snapshot?.editorState;
+  if (!editorState || !session?.document) {
+    note068("no-editor-state-or-document",
+            { hasEditorState: !!editorState, hasDocument: !!session?.document });
+    return;
+  }"""
+
+PAINT_ANCHOR_3 = """  const caret = editorState.caret;
+  if (caret && editorState.selection?.collapsed !== false) {"""
+
+PAINT_PATCHED_3 = """  const caret = editorState.caret;
+  note068(caret ? (editorState.selection?.collapsed !== false
+                   ? "drew-caret" : "collapsed-is-false")
+                : "no-caret-in-state",
+          { caretX: caret ? caret.x : null,
+            collapsed: editorState.selection
+                       ? editorState.selection.collapsed : null });
+  if (caret && editorState.selection?.collapsed !== false) {"""
+
+INSTALL_068 = """(() => {
+globalThis.__f068 = { updates: [], paints: [], label: "boot" };
+return true;
+})()"""
+
+LABEL_068 = """(() => {
+if (!globalThis.__f068) return null;
+globalThis.__f068.label = "ARG_LABEL";
+return globalThis.__f068.label;
+})()"""
+
+READ_068 = """(() => {
+const d = globalThis.__f068;
+if (!d) return null;
+return { updates: d.updates, paints: d.paints };
+})()"""
+
 INSTALL_TRACES = """(() => {
 globalThis.__f067 = { traces: [] };
 return true;
@@ -2054,6 +2150,158 @@ def caret_pixels(session, base, timeout) -> dict:
 
 
 
+def caret_state_after_commit(session, base, timeout) -> dict:
+    """Finding 068: WHICH of the three conditions withholds the caret?
+
+    The pixels already said WHAT happens -- no caret-height run on that line
+    after typing, exactly one after a caret move.  What a missing pixel cannot
+    say is WHY, because `paint()` has four ways to draw nothing and they all
+    look identical on a canvas:
+
+      1. it returned early with no cached tiles;
+      2. it returned early with no editorState or no document;
+      3. `editorState.caret` was absent;
+      4. `selection.collapsed` was exactly `false`, which suppresses the caret
+         on purpose so a range highlight does not get a caret painted in it.
+
+    So this arm asks the page instead of the canvas.  Every state update
+    records what the snapshot held, every `paint()` records which of the four
+    it took, and both are labelled with the step that caused them.
+
+    THE POSITIVE CONTROL IS THE MOVE, and it is not optional: if no `paint()`
+    reports `drew-caret` after the move either, the instrument never saw a
+    caret at all and its silence after the commit means nothing.  That is the
+    same discipline the pixel arm needed and for the same reason.
+    """
+    record: dict = {"id": "caret-state-after-commit"}
+    if not boot(session, base, timeout):
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the page did not reach ready"
+        return record
+    if evaluate(session, INSTALL_068) is not True:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the finding 068 hook did not install"
+        return record
+
+    clicks = caret_click_fractions(
+        evaluate(session, LINE_INK.replace("ARG_Y", "0.24")) or {})
+    evaluate(session, LABEL_068.replace("ARG_LABEL", "click"))
+    place_caret_and_settle(session, POINT_AT, clicks["near"], "0.24")
+
+    # A caret must be drawable BEFORE anything is typed, or the arm is measuring
+    # a page that never draws one.
+    evaluate(session, LABEL_068.replace("ARG_LABEL", "after-click"))
+    time.sleep(0.6)
+
+    evaluate(session, LABEL_068.replace("ARG_LABEL", "commit"))
+    record["commit"] = commit(session, "CARETSTATE")
+    time.sleep(1.5)
+
+    evaluate(session, LABEL_068.replace("ARG_LABEL", "move"))
+    evaluate(session, PRESS.replace("ARG_ACTION", "move-character-left"))
+    time.sleep(1.5)
+
+    seen = evaluate(session, READ_068) or {}
+    record["updates"] = seen.get("updates") or []
+    record["paints"] = seen.get("paints") or []
+    record["hook"] = evaluate(session, READ_HOOK)
+
+    def paints(label):
+        return [p for p in record["paints"] if p.get("label") == label]
+
+    def updates(label):
+        return [u for u in record["updates"] if u.get("label") == label]
+
+    record["byLabel"] = {
+        label: {
+            "paints": [p.get("why") for p in paints(label)],
+            "caretInState": [bool(u.get("caret")) for u in updates(label)],
+            "caretX": [(u.get("caret") or {}).get("x") for u in updates(label)],
+            "collapsed": [u.get("collapsed") for u in updates(label)],
+            "sourceSequence": [u.get("sourceSequence") for u in updates(label)],
+            "documentChangeSequence": [u.get("documentChangeSequence")
+                                       for u in updates(label)],
+        }
+        for label in ("click", "after-click", "commit", "move")
+    }
+
+    drew_after_move = any(p.get("why") == "drew-caret" for p in paints("move"))
+    if not drew_after_move:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("no paint() drew a caret after the move either, so "
+                         "this instrument never saw the page draw one and its "
+                         "silence after the commit means nothing")
+        return record
+
+    commit_paints = [p.get("why") for p in paints("commit")]
+    record["drewAfterCommit"] = "drew-caret" in commit_paints
+
+    # WHERE it drew, which is the question the first run of this arm replaced
+    # the original one with.  "A caret was drawn" was never the interesting
+    # half: the page draws whatever rectangle the engine last reported, so a
+    # drawn caret at an unchanged x is a STALE caret, and on a canvas that is
+    # indistinguishable from a caret drawn in the wrong place.
+    def last_x(label):
+        xs = [x for x in record["byLabel"][label]["caretX"] if x is not None]
+        return xs[-1] if xs else None
+
+    before, after, moved = (last_x("click"), last_x("commit"), last_x("move"))
+    record["caretX"] = {"beforeCommit": before, "afterCommit": after,
+                        "afterMove": moved}
+    if before is None or after is None or moved is None:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "one of the three steps reported no caret x at all"
+        return record
+
+    # The positive control for STALENESS, distinct from the one for drawing:
+    # the move must change x, or this arm cannot detect an x that fails to
+    # change and its silence about the commit means nothing.
+    if moved == after:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("the caret x did not change on the move either, so "
+                         "this arm cannot see the caret x move at all")
+        return record
+
+    record["caretMovedOnCommit"] = after != before
+    if record["drewAfterCommit"] and record["caretMovedOnCommit"]:
+        record["outcome"] = "PASS"
+        record["conclusion"] = (
+            "paint() drew a caret after the commit and its x had moved, so the "
+            "caret follows typed text")
+        return record
+
+    if record["drewAfterCommit"] and not record["caretMovedOnCommit"]:
+        seqs = record["byLabel"]["commit"]
+        record["outcome"] = "FAIL"
+        record["conclusion"] = (
+            f"a caret WAS drawn after the commit, at x={after} -- exactly where "
+            f"it was before the commit ({before}) -- and one caret action then "
+            f"moved it to {moved}. The page is not declining to draw; the "
+            "engine is reporting the pre-commit rectangle. On a canvas a stale "
+            "caret and a mis-drawn caret look the same, which is why this is "
+            "read from the state and not from pixels.")
+        record["callbackEvidence"] = {
+            "sourceSequence": seqs["sourceSequence"],
+            "documentChangeSequence": seqs["documentChangeSequence"],
+            "readAs": "equal values mean the tile invalidation was the only "
+                      "callback that arrived, so no cursor callback came at "
+                      "all; different values mean one came and did not move "
+                      "the rectangle",
+        }
+        return record
+
+    # WHICH of the four, named.  This is the whole point of the arm.
+    reasons = sorted(set(commit_paints))
+    record["outcome"] = "FAIL"
+    record["whyNotDrawn"] = reasons
+    record["conclusion"] = (
+        "after the commit paint() ran " + str(len(commit_paints))
+        + " time(s) and drew no caret; the reason(s) it recorded: "
+        + (", ".join(reasons) if reasons else "none -- paint() never ran at all")
+        + ". The same instrument reports drew-caret after the move.")
+    return record
+
+
 ARMS: dict[str, dict] = {
     # P-064-0.  The negative control: this must reproduce 064.
     "baseline": {"marker": "MKF064BASE", "suppressed": False,
@@ -2118,7 +2366,8 @@ def main() -> int:
                                 "click-between-format-and-typing",
                                 "real-enter", "caret-model-or-drawing",
                                 "keyboard-formats", "caret-drawn-where",
-                                "enter-insert-method", "caret-pixels")]
+                                "enter-insert-method", "caret-pixels",
+                                "caret-state-after-commit")]
     if unknown:
         raise SystemExit(f"unknown arm(s): {unknown}; known: {sorted(ARMS)}")
 
@@ -2138,10 +2387,35 @@ def main() -> int:
         raise SystemExit(
             "the page's onInputTrace is not where this diagnostic expects it in "
             + page_rel + "; the tree moved under the diagnostic.")
-    build_mirror(root, mirror,
-                 {page_rel: page_text.replace(RENDER_ANCHOR, RENDER_PATCHED, 1)
-                  .replace(TRACE_ANCHOR, TRACE_PATCHED, 1)
-                  .encode("utf-8")})
+    # FINDING 068's four anchors, each checked for EXACTLY ONE occurrence.
+    # A patch that silently fails to apply produces a probe that records
+    # nothing and reports it as "the condition never fired" -- the same shape
+    # as a real absence, and green.
+    for name, anchor in (("the state-update tail", STATE_ANCHOR),
+                         ("paint()'s head", PAINT_ANCHOR),
+                         ("paint()'s editorState guard", PAINT_ANCHOR_2),
+                         ("paint()'s caret branch", PAINT_ANCHOR_3)):
+        if page_text.count(anchor) != 1:
+            raise SystemExit(
+                f"{name} is not where finding 068's diagnostic expects it in "
+                + page_rel + f" (found {page_text.count(anchor)}); the tree "
+                "moved under the diagnostic. Fix the anchor rather than "
+                "patching blindly.")
+
+    patched = (page_text.replace(RENDER_ANCHOR, RENDER_PATCHED, 1)
+               .replace(TRACE_ANCHOR, TRACE_PATCHED, 1)
+               .replace(STATE_ANCHOR, STATE_PATCHED, 1)
+               .replace(PAINT_ANCHOR, PAINT_PATCHED, 1)
+               .replace(PAINT_ANCHOR_2, PAINT_PATCHED_2, 1)
+               .replace(PAINT_ANCHOR_3, PAINT_PATCHED_3, 1))
+    # And the patches must have LANDED.  Counting anchors before is not the
+    # same claim: `.replace` on an anchor that overlaps another patch's output
+    # can consume it.
+    for marker in ("globalThis.__f068", "note068(", "no-caret-in-state"):
+        if marker not in patched:
+            raise SystemExit(f"finding 068's patch did not land: {marker!r} is "
+                             "absent from the mirrored page")
+    build_mirror(root, mirror, {page_rel: patched.encode("utf-8")})
 
     report: dict = {
         "schemaVersion": 1,
@@ -2214,6 +2488,10 @@ def main() -> int:
                 continue
             if name == "caret-pixels":
                 report["arms"].append(caret_pixels(session, base, args.timeout))
+                continue
+            if name == "caret-state-after-commit":
+                report["arms"].append(
+                    caret_state_after_commit(session, base, args.timeout))
                 continue
             if name == "caret-model-or-drawing":
                 report["arms"].append(

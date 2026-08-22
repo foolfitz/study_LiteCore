@@ -928,6 +928,22 @@
         }
       ],
       "checkNote": "Absent until the contract has one."
+    },
+    {
+      "id": "queue-caret-does-not-follow-typed-text",
+      "title": "after a text commit the engine keeps reporting the pre-commit caret rectangle, five times in seven -- the page draws it faithfully in the wrong place",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "finding 068, measured 2026-08-22, findings/evidence/068/caret-after-commit/",
+      "note": "MEASURED, seven runs, 2 PASS / 7. `gEditorState.caret` is written ONLY when LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR arrives (probe_engine.cpp:2226), and handleInsertText replies immediately after paste() (:2809) without waiting for any callback. The control is in the same file: the key-movement path sets gEditorPending.requiredCallback and completes ON the callback, which is why a move always produces a fresh caret and a commit does not. The counter names the missing one: `sourceSequence` advances by TWO across a commit whose caret stays put and by THREE across one whose caret follows, so the third callback is the cursor one and it is absent 5/7. paint() reported drew-caret in all seven runs -- the page is not declining to draw, it is drawing the rectangle it was given. NOT ESTABLISHED and it gates the remedy: whether LOK's paste emits that callback unreliably, or emits it with a payload that fails to parse. The engine already tells those apart -- a cursor-range callback that does not parse emits `editor-callback-parse-error` (:2316) -- and nobody has looked for that event during a commit. THAT MEASUREMENT NEEDS NO LINK; do it first. Two remedy candidates, both engine and both blocked on it: (a) make handleInsertText wait for the cursor callback, which hangs if the callback never comes; (b) commit via postKeyEvent instead of paste -- that path already exists as paste's fallback and key events do move the cursor -- which needs the cost to IME and long strings measured, and needs to know why paste was chosen. DELIBERATELY NOT IN THE v4 PAYLOAD: that payload is gated and green, and an unverified engine change whose mechanism is still one measurement short is exactly what 'accumulate the payload and ship once' exists to keep out.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "tools/run_e2_c_product_path.py",
+          "text": "caret-follows-the-text-you-type"
+        }
+      ],
+      "checkNote": "Absent until the product path checks it. The check must run the commit MORE THAN ONCE: the defect is intermittent at 5/7, so a single-shot check reports green about a fifth of the time and that is worse than no check."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
