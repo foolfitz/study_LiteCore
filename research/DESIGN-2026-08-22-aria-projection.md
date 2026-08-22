@@ -347,3 +347,61 @@ autocorrect 漂移。**
 > **預測（fable，跑之前寫下）：3/3 都會改。**
 
 這一格即使結論已定也要跑：它是 A 這條路日後被人重提時的擋箭牌，而預測寫在前面才算數。
+
+---
+
+## 9. 處方要修正：LOK 沒有 role，也沒有大綱（2026-08-23，讀原始碼）
+
+§8.5 的處方寫著「v5 帶兩個欄位：聚焦段落補 role／outline-level／list-nesting，
+以及引擎自派序號的文件大綱」。**在寫程式之前先去查引擎給不給得出來，結果是：不給。**
+
+`sfx2/source/view/viewsh.cxx:862-873`，LOK 的 focused-paragraph payload 只有五個欄位：
+
+```cpp
+aPayloadTree.put("content", ...);
+aPayloadTree.put("position", ...);
+aPayloadTree.put("start", ...);
+aPayloadTree.put("end", ...);
+if (m_nListPrefixLength > 0)
+    aPayloadTree.put("listPrefixLength", ...);
+```
+
+**沒有 role、沒有 outline level、沒有清單巢狀、沒有段落序號。**所以「引擎多吐兩個小
+欄位」這個成本估計是錯的——那些資料不在我們現在解析的那份 JSON 裡。
+
+### 9.1 但資料本身在，只是沒被轉發
+
+同一個檔案的 `getListPrefixSize()`（:554）為了算前綴，已經對
+`XAccessibleText::getCharacterAttributes()` 要了 **`UNO_NAME_NUMBERING_LEVEL`**。
+也就是說**大綱層級就在無障礙樹上**，取得到；而無障礙物件本身帶 **role**
+（`AccessibleRole::HEADING` 對 `PARAGRAPH`）。
+
+⇒ 這是「引擎有欄位但沒人轉發＝那個欄位不存在」的同一句話，只是這次那一層在**上游**。
+
+### 9.2 所以 v5 的處方變成三選一，而這一題還沒有答案
+
+- **(i) 我們的引擎繞過 LOK 的 a11y payload，直接走 UNO 無障礙介面**拿 role／level／
+  順序。我們本來就整份連結 core，介面搆得到。代價：引擎要多一塊 UNO 程式碼，而那是
+  這個引擎目前完全沒有的形狀。
+- **(ii) 上游改 LOK 的 payload**（把 role／level 加進那五個欄位）。乾淨，但要送出、
+  要等，而上游送出目前全線擱置。
+- **(iii) 只做 1.1.1／4.1.2 那一半**（canvas 的文字替代、聚焦段落有名字有角色但角色
+  只能說「段落」），把 1.3.1 的結構那一半留成**具名缺口**，等 (i) 或 (ii)。
+
+**沒有先量就選不出來。**要量的是 (i) 的可行性：我們的引擎能不能從既有的 LOK view
+拿到 `XAccessibleContext`，以及拿到之後 role／level 是不是真的對得上文件。這是一格
+可以在**現有 core 上**做的探針量測，不需要重編。
+
+### 9.3 順帶：標題前綴塌縮定案成 finding 074
+
+同一次讀原始碼把 `queue-a11y-prefix-swallows-the-paragraph` 的根因定死了：
+`getListPrefixSize()` 回傳的是 **index 0 那個 ATTRIBUTE_RUN 的結尾**，不是編號前綴的
+長度。前綴自成一個屬性 run 時兩者才相等（項目符號通常是），而字元格式一致的編號段落
+是**一個** run，於是整段長度被當成前綴——標題最常中。
+
+**上游缺陷，一行。**寫成 `findings/074-lok-reports-the-first-attribute-run-as-the-list-prefix.md`。
+兩個假說裡「我們的解析配錯」早先已由量測排除，這次把剩下那一半也定案，
+**native build 不再是判別法，那一格不用跑了**。
+
+但它**不會**讓指紋接合起死回生：重複文字的段落本來就同指紋（實測 r7-compat 語料
+22% 的段落落在碰撞裡），那是與 074 無關的第二個成因。§8 的判定不變。
