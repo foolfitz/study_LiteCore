@@ -684,13 +684,26 @@ el.sink.addEventListener("beforeinput", (event) => {
   void editorAction(action).catch(() => {});
 });
 
-// Arrow keys produce no `beforeinput` at all, so they need keydown. Only the
-// two the contract carries: line up/down and Home/End are implemented in the
-// engine but have no product wire id (see the relink queue), and offering a key
-// that cannot dispatch would be worse than offering nothing.
+// Arrow keys produce no `beforeinput` at all, so they need keydown.
+//
+// All six are listed, and the PROFILE decides which of them bind. Until the
+// ABI 4 link, `move-line-*` exist in the engine but are not in the v3
+// contract, and `offers()` reports them absent -- so on that profile Up/Down/
+// Home/End fall through untouched, exactly as when they were not listed here
+// at all. The rule this file already states twice stays intact: a key that
+// cannot dispatch must not be taken.
+//
+// Listing them now rather than after the link means the binding is not a
+// second thing to remember on the day the artifact changes; it lights up
+// because the manifest says the action exists, which is the same question
+// `updateGestureAffordance` asks for the toolbar.
 const KEY_ACTIONS = {
   ArrowLeft: "move-character-left",
   ArrowRight: "move-character-right",
+  ArrowUp: "move-line-up",
+  ArrowDown: "move-line-down",
+  Home: "move-line-home",
+  End: "move-line-end",
 };
 
 el.sink.addEventListener("keydown", (event) => {
@@ -779,7 +792,11 @@ el.sink.addEventListener("keydown", (event) => {
   }
   if (accel) return;
   const action = KEY_ACTIONS[event.key];
-  if (!action) return;
+  // `offers()`, not `gesturesFor()`: the latter answers null both for a
+  // v1-shaped manifest and for an action the profile does not carry, and
+  // taking the key on the second would be the "looks like it worked" trap that
+  // Ctrl+A is unbound to avoid.
+  if (!action || !session.offers(action)) return;
   event.preventDefault();
   void editorAction(action).catch(() => {});
 });

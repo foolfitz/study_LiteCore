@@ -132,8 +132,17 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v27.json"),
                     Path("e2/editor-shell-v2-bundle-v28.json"),
                     Path("e2/editor-shell-v2-bundle-v29.json"),
-                    Path("e2/editor-shell-v2-bundle-v30.json"))
+                    Path("e2/editor-shell-v2-bundle-v30.json"),
+                    Path("e2/editor-shell-v2-bundle-v31.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v32, 2026-08-22: the arrow keys, bound ahead of the ABI 4 link.
+# The page now lists all six (Left/Right/Up/Down/Home/End) and gates each on
+# `offers()`, a new client method that separates "this profile does not carry
+# the action" from "this manifest has no gesture map at all" -- `gesturesFor`
+# answers null for both, and treating them alike binds a key the engine refuses
+# on every press.  On v3 the four new ones fall through untouched, measured; on
+# v4 they light up because the manifest says the action exists.
+#
 # v31, 2026-08-22: finding 069's fix.  `#sink` had `position: absolute` with no
 # `top`/`left`, so it sat at its static position -- after a canvas the height of
 # the whole document -- and every IME composition scrolled the desk to the
@@ -194,7 +203,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v31.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v32.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

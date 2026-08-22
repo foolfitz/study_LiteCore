@@ -146,6 +146,31 @@ export class NarrowEditorV2Client {
     return Array.isArray(spec?.gestures) ? spec.gestures : null;
   }
 
+  /**
+   * Whether this profile offers the action at all.
+   *
+   * `gesturesFor` cannot answer this and must not be used for it: it returns
+   * `null` both for a v1-shaped manifest (a bare name list, no gesture map)
+   * and for an action this profile simply does not carry.  Treating those
+   * alike in either direction is a defect -- read as "offered" it binds a
+   * control the engine refuses every time, and read as "withheld" it disables
+   * every control on a v1 profile.
+   *
+   * An action PRESENT with an empty gesture list is withheld on purpose (the
+   * manifest ships it dark), so it is not offered either.  Same rule as the
+   * worker's own `manifestAllowsAction`, which is the authoritative one -- this
+   * is the client-side half, and it exists so the UI can decline to draw a
+   * control rather than draw one that always fails.
+   */
+  offers(action) {
+    const actions = this.document._engine.manifest?.editorContract?.actions;
+    if (!actions) return true;
+    if (Array.isArray(actions)) return actions.includes(action);
+    const spec = actions[action];
+    if (!spec) return false;
+    return !Array.isArray(spec.gestures) || spec.gestures.length > 0;
+  }
+
   limitsFor(action) {
     const spec = this.document._engine.manifest?.editorContract?.actions?.[action];
     return Array.isArray(spec?.limits) ? spec.limits : [];

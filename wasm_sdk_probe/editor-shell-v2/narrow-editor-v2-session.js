@@ -204,6 +204,10 @@ export class NarrowEditorV2Session extends EditorSession {
     return this.editor?.gesturesFor(action) ?? null;
   }
 
+  offers(action) {
+    return this.editor?.offers(action) ?? false;
+  }
+
   limitsFor(action) {
     return this.editor?.limitsFor(action) ?? [];
   }

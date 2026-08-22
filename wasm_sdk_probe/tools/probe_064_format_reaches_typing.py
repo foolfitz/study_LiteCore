@@ -2422,6 +2422,182 @@ return sink.offsetTop;
 })()"""
 
 
+# WHETHER THE PAGE TOOK THE KEY, which is the only thing that separates
+# "correctly not bound" from "bound, dispatched, and failed silently".
+#
+# The first version of this arm measured only the caret and the toast, and a
+# mutation that DELETED the gate still passed: without it ArrowUp is
+# preventDefault-ed and dispatched, the client's failure is swallowed by the
+# `.catch(() => {})` at the call site, and the observable result is an
+# unmoved caret and no toast -- identical to the correct behaviour.
+#
+# A bubble-phase listener runs after the page's own handler, so
+# `defaultPrevented` here is the page's answer.
+INSTALL_KEY_WATCH = """(() => {
+globalThis.__f070 = { keys: [] };
+document.addEventListener("keydown", (event) => {
+  globalThis.__f070.keys.push({ key: event.key,
+                                defaultPrevented: event.defaultPrevented });
+});
+return true;
+})()"""
+
+READ_KEY_WATCH = """(() => {
+const d = globalThis.__f070;
+return d ? d.keys : null;
+})()"""
+
+READ_OFFERS = """(() => {
+const link = document.querySelector('link[rel="sdk-manifest"]');
+return fetch("profiles/e2-editor-v3/sdk-manifest.json")
+  .then((r) => r.json())
+  .then((m) => {
+    const actions = (m.editorContract || {}).actions || {};
+    const offered = {};
+    for (const name of ["move-character-left", "move-line-up", "move-line-down",
+                        "move-line-home", "move-line-end"]) {
+      const spec = Array.isArray(actions) ? null : actions[name];
+      offered[name] = Array.isArray(actions)
+        ? actions.includes(name)
+        : !!spec && (!Array.isArray(spec.gestures) || spec.gestures.length > 0);
+    }
+    return { profile: m.profile, abiVersion: (m.editorContract || {}).abiVersion,
+             offered };
+  });
+})()"""
+
+
+def arrow_keys_match_the_profile(session, base, timeout) -> dict:
+    """An arrow key binds if and only if the profile offers its action.
+
+    The product page lists all six arrows and gates each on `offers()`, so that
+    the ABI 4 link lights up Up/Down/Home/End without a second edit.  The risk
+    that creates is the one this project unbound Ctrl+A to avoid: a key that is
+    LISTED but not gated is taken from the browser and dispatched into a profile
+    that has no such action, and the user gets a key that looks bound and does
+    nothing.
+
+    So this arm reads what the running profile actually offers and asserts the
+    MATCHING behaviour, which means it stays correct across the link instead of
+    having to be rewritten on the day.
+
+    POSITIVE CONTROL: an offered arrow (Left) must move the caret.  Without it,
+    "Up did not move the caret" and "no arrow key works here" are the same
+    reading.
+    """
+    record: dict = {"id": "arrow-keys-match-the-profile"}
+    call = getattr(session, "call", None)
+    if call is None:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "no CDP, so a real key cannot be delivered"
+        return record
+    if not boot(session, base, timeout):
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the page did not reach ready"
+        return record
+    if evaluate(session, INSTALL_068) is not True:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the finding 068 hook did not install"
+        return record
+
+    if evaluate(session, INSTALL_KEY_WATCH) is not True:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the keydown watcher did not install"
+        return record
+    record["profile"] = evaluate(session, READ_OFFERS) or {}
+    offered = (record["profile"].get("offered") or {})
+    if not offered:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "could not read the running profile's action map"
+        return record
+
+    clicks = caret_click_fractions(
+        evaluate(session, LINE_INK.replace("ARG_Y", "0.24")) or {})
+    place_caret_and_settle(session, POINT_AT, clicks["near"], "0.24")
+    time.sleep(0.8)
+    commit(session, "ARROWS")
+    time.sleep(1.5)
+
+    def press(key, code, vk, label):
+        evaluate(session, LABEL_068.replace("ARG_LABEL", label))
+        evaluate(session, CLEAR_TOAST)
+        for kind in ("keyDown", "keyUp"):
+            call("Input.dispatchKeyEvent",
+                 {"type": kind, "key": key, "code": code,
+                  "windowsVirtualKeyCode": vk, "nativeVirtualKeyCode": vk})
+        time.sleep(1.2)
+        xs = [(u.get("caret") or {}).get("x")
+              for u in (evaluate(session, READ_068) or {}).get("updates") or []
+              if u.get("label") == label]
+        taken = [k.get("defaultPrevented")
+                 for k in (evaluate(session, READ_KEY_WATCH) or [])
+                 if k.get("key") == key]
+        return {"caretX": [x for x in xs if x is not None],
+                "toast": evaluate(session, READ_TOAST) or "",
+                "defaultPrevented": taken}
+
+    record["arrowLeft"] = press("ArrowLeft", "ArrowLeft", 37, "left")
+    record["arrowUp"] = press("ArrowUp", "ArrowUp", 38, "up")
+
+    left_moved = len(set(record["arrowLeft"]["caretX"])) > 1
+    if not left_moved:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("ArrowLeft -- which every profile here offers -- did "
+                         "not move the caret, so this arm cannot see an arrow "
+                         "key work and its reading of ArrowUp means nothing")
+        return record
+
+    # The control for the INSTRUMENT, distinct from the control for the page:
+    # the offered key must come back `defaultPrevented`, or the watcher is not
+    # observing this page's handler and its reading of ArrowUp is worthless.
+    left_taken = record["arrowLeft"]["defaultPrevented"]
+    if not left_taken or not all(left_taken):
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("ArrowLeft was not reported as defaultPrevented "
+                         f"({left_taken}), so the keydown watcher is not seeing "
+                         "this page's handler")
+        return record
+
+    up_moved = len(set(record["arrowUp"]["caretX"])) > 1
+    up_taken = record["arrowUp"]["defaultPrevented"]
+    up_offered = bool(offered.get("move-line-up"))
+    record["measured"] = {
+        "profile": record["profile"].get("profile"),
+        "abiVersion": record["profile"].get("abiVersion"),
+        "upIsOfferedByTheProfile": up_offered,
+        "upMovedTheCaret": up_moved,
+        "upKeyWasTakenByThePage": up_taken,
+        "toastAfterUp": record["arrowUp"]["toast"],
+    }
+    # THE KEY MUST BE TAKEN IF AND ONLY IF THE ACTION IS OFFERED.  Taking it
+    # without offering the action is a key that looks bound and does nothing --
+    # and it is invisible in the caret, because the failure is swallowed.
+    if any(bool(taken) != up_offered for taken in up_taken):
+        record["outcome"] = "FAIL"
+        record["conclusion"] = (
+            f"the profile offers move-line-up = {up_offered} but the page "
+            f"{'took' if any(up_taken) else 'did not take'} the ArrowUp key "
+            f"(defaultPrevented = {up_taken}). Taking a key whose action the "
+            "profile does not carry dispatches into a refusal that the call "
+            "site swallows, so the user gets a key that looks bound and does "
+            "nothing.")
+        return record
+    if up_offered == up_moved and not record["arrowUp"]["toast"]:
+        record["outcome"] = "PASS"
+        record["conclusion"] = (
+            f"profile {record['profile'].get('profile')} "
+            f"{'offers' if up_offered else 'does not offer'} move-line-up and "
+            f"ArrowUp {'moved' if up_moved else 'did not move'} the caret, with "
+            "no error shown")
+        return record
+    record["outcome"] = "FAIL"
+    record["conclusion"] = (
+        f"the profile offers move-line-up = {up_offered} but ArrowUp moved the "
+        f"caret = {up_moved}, toast = {record['arrowUp']['toast']!r}. A key that "
+        "is listed but not gated is a key that looks bound and does nothing.")
+    return record
+
+
 def sink_does_not_drag_the_page(session, base, timeout) -> dict:
     """The input sink must not drag the document when it is scrolled into view.
 
@@ -2730,7 +2906,8 @@ def main() -> int:
                                 "enter-insert-method", "caret-pixels",
                                 "caret-state-after-commit",
                                 "caret-after-real-typing",
-                                "sink-does-not-drag-the-page")]
+                                "sink-does-not-drag-the-page",
+                                "arrow-keys-match-the-profile")]
     if unknown:
         raise SystemExit(f"unknown arm(s): {unknown}; known: {sorted(ARMS)}")
 
@@ -2891,6 +3068,10 @@ def main() -> int:
                 continue
             if name == "caret-pixels":
                 report["arms"].append(caret_pixels(session, base, args.timeout))
+                continue
+            if name == "arrow-keys-match-the-profile":
+                report["arms"].append(
+                    arrow_keys_match_the_profile(session, base, args.timeout))
                 continue
             if name == "sink-does-not-drag-the-page":
                 report["arms"].append(
