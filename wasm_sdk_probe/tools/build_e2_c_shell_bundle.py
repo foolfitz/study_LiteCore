@@ -131,8 +131,19 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v26.json"),
                     Path("e2/editor-shell-v2-bundle-v27.json"),
                     Path("e2/editor-shell-v2-bundle-v28.json"),
-                    Path("e2/editor-shell-v2-bundle-v29.json"))
+                    Path("e2/editor-shell-v2-bundle-v29.json"),
+                    Path("e2/editor-shell-v2-bundle-v30.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v31, 2026-08-22: finding 069's fix.  `#sink` had `position: absolute` with no
+# `top`/`left`, so it sat at its static position -- after a canvas the height of
+# the whole document -- and every IME composition scrolled the desk to the
+# bottom.  It now rides the caret from `paint()`, in CSS pixels rather than
+# backing pixels, sized to the caret so an IME candidate window has a line to
+# open against, and with `pointer-events: none` so a 1px target over the canvas
+# cannot swallow the pointerdown that places the caret.  Two files, and one of
+# them is the HTML, which is the first time this bundle has moved for a
+# stylesheet.
+#
 # v30, 2026-08-22: finding 068's fix, the session half.
 # `editor-shell-v2/narrow-editor-v2-session.js` overrides `_handleEngineEvent`
 # to take the caret from the engine's own `editor-state` announcement instead of
@@ -183,7 +194,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v30.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v31.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

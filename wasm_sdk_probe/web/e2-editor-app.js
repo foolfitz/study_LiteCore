@@ -352,12 +352,41 @@ function paint() {
   // a highlight says something about the document that is not true.
   const caret = editorState.caret;
   if (caret && editorState.selection?.collapsed !== false) {
+    // The sink rides the caret.  Two reasons, and the second is the one that
+    // was reported: an IME's candidate window opens next to the focused
+    // element, so a sink parked elsewhere puts the candidates in the wrong
+    // place; and the browser scrolls the focused element into view when
+    // composition starts, which is harmless only if the sink is already where
+    // the user is looking.  Parked at the bottom of the document, as it was
+    // until 2026-08-22, that scroll dragged the whole desk down on every
+    // Chinese keystroke.
+    //
+    // CSS pixels, from the canvas's DISPLAYED size -- `box()` above works in
+    // BACKING pixels, which differ by devicePixelRatio, and positioning a DOM
+    // element with those would put the sink at roughly twice the offset on a
+    // HiDPI screen.
+    moveSinkToCaret(caret);
     const [x, y, , height] = box(caret);
     context.save();
     context.fillStyle = "#1a1a1a";
     context.fillRect(x, y, Math.max(1, Math.round(scaleX * 15)), height);
     context.restore();
   }
+}
+
+function moveSinkToCaret(caret) {
+  const width = el.canvas.clientWidth;
+  const height = el.canvas.clientHeight;
+  if (!width || !height || !session?.document) return;
+  const scaleX = width / session.document.widthTwips;
+  const scaleY = height / session.document.heightTwips;
+  el.sink.style.left = `${Math.round(caret.x * scaleX)}px`;
+  el.sink.style.top = `${Math.round(caret.y * scaleY)}px`;
+  // Matching the caret's height rather than staying 1px tall: an IME places
+  // its candidate window against the focused element's box, so a sink the
+  // height of the text line puts the candidates on the line instead of
+  // clipping them to a single pixel row.
+  el.sink.style.height = `${Math.max(1, Math.round(caret.height * scaleY))}px`;
 }
 
 function pointToTwips(event) {

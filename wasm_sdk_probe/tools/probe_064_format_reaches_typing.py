@@ -169,13 +169,30 @@ PAINT_PATCHED_2 = """  const editorState = session?.state?.snapshot?.editorState
 PAINT_ANCHOR_3 = """  const caret = editorState.caret;
   if (caret && editorState.selection?.collapsed !== false) {"""
 
+# The twips x was never the question a pixel can answer.  `paint()` reporting
+# `drew-caret` with a correct RECTANGLE while the canvas holds no caret means
+# the fillRect landed somewhere the scan does not look, or something painted
+# over it afterwards -- and neither is visible from the twips.  So record the
+# CANVAS coordinates actually passed to fillRect, the canvas size they are
+# relative to, and a monotonic counter so the LAST paint can be identified.
 PAINT_PATCHED_3 = """  const caret = editorState.caret;
-  note068(caret ? (editorState.selection?.collapsed !== false
-                   ? "drew-caret" : "collapsed-is-false")
-                : "no-caret-in-state",
-          { caretX: caret ? caret.x : null,
-            collapsed: editorState.selection
-                       ? editorState.selection.collapsed : null });
+  {
+    const drew = !!caret && editorState.selection?.collapsed !== false;
+    const rect = caret ? box(caret) : null;
+    note068(drew ? "drew-caret"
+                 : (caret ? "collapsed-is-false" : "no-caret-in-state"),
+            { caretX: caret ? caret.x : null,
+              collapsed: editorState.selection
+                         ? editorState.selection.collapsed : null,
+              canvasX: rect ? Math.round(rect[0]) : null,
+              canvasY: rect ? Math.round(rect[1]) : null,
+              canvasH: rect ? Math.round(rect[3]) : null,
+              canvasW: el.canvas.width, canvasHeight: el.canvas.height,
+              tiles: lastTiles.length,
+              seq: (globalThis.__f068
+                    ? (globalThis.__f068.paintSeq = (globalThis.__f068.paintSeq || 0) + 1)
+                    : null) });
+  }
   if (caret && editorState.selection?.collapsed !== false) {"""
 
 # FINDING 068's SECOND QUESTION, and the one that decides the remedy: does
@@ -2362,6 +2379,290 @@ def caret_state_after_commit(session, base, timeout) -> dict:
     return record
 
 
+READ_SINK = """(() => {
+const sink = document.querySelector('#sink');
+const canvas = document.querySelector('#canvas');
+const desk = document.querySelector('#desk');
+if (!sink || !canvas || !desk) return null;
+return {
+  sinkTop: sink.offsetTop, sinkLeft: sink.offsetLeft,
+  sinkHeight: sink.offsetHeight,
+  canvasHeight: canvas.offsetHeight,
+  deskScrollTop: desk.scrollTop,
+  deskScrollHeight: desk.scrollHeight,
+  deskClientHeight: desk.clientHeight,
+  pointerEvents: getComputedStyle(sink).pointerEvents,
+};
+})()"""
+
+# What the BROWSER does when an IME starts composing: it brings the focused
+# element into view.  `block: "nearest"` is that behaviour rather than the
+# more aggressive default, so this models the reported symptom instead of an
+# exaggerated version of it.
+SCROLL_THE_SINK_INTO_VIEW = """(() => {
+const sink = document.querySelector('#sink');
+const desk = document.querySelector('#desk');
+if (!sink || !desk) return null;
+desk.scrollTop = 0;
+const before = desk.scrollTop;
+sink.scrollIntoView({ block: "nearest" });
+return { before, after: desk.scrollTop };
+})()"""
+
+# The positive control, and it is a real mutation rather than a second reading:
+# `top: auto` puts the sink back at its STATIC position -- underneath a canvas
+# the height of the whole document -- which is exactly where it lived before
+# the fix.
+PARK_SINK_AT_THE_BOTTOM = """(() => {
+const sink = document.querySelector('#sink');
+if (!sink) return null;
+sink.style.top = 'auto';
+sink.style.left = 'auto';
+return sink.offsetTop;
+})()"""
+
+
+def sink_does_not_drag_the_page(session, base, timeout) -> dict:
+    """The input sink must not drag the document when it is scrolled into view.
+
+    Reported by an operator typing Chinese with 新酷音 on 2026-08-22: the page
+    scrolled down on every keystroke.  `#sink` was `position: absolute` with no
+    `top`/`left`, so it sat at its static position -- directly after a canvas
+    the height of the whole document -- and the browser's "bring the focused
+    element into view" on composition took the desk with it.
+
+    THE POSITIVE CONTROL IS A MUTATION, not a second reading: the same scan is
+    re-run with the sink put back at its static position, and it must report
+    the drag.  Without that, "the page did not scroll" and "this arm cannot see
+    scrolling" are the same green.
+    """
+    record: dict = {"id": "sink-does-not-drag-the-page"}
+    if not boot(session, base, timeout):
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the page did not reach ready"
+        return record
+
+    clicks = caret_click_fractions(
+        evaluate(session, LINE_INK.replace("ARG_Y", "0.24")) or {})
+    place_caret_and_settle(session, POINT_AT, clicks["near"], "0.24")
+    time.sleep(1.0)
+    record["commit"] = commit(session, "SINKPOS")
+    time.sleep(1.5)
+
+    record["sink"] = evaluate(session, READ_SINK) or {}
+    record["scrollWithFix"] = evaluate(session, SCROLL_THE_SINK_INTO_VIEW) or {}
+
+    sink = record["sink"]
+    if not sink or not sink.get("canvasHeight"):
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the page did not report a sink or a canvas"
+        return record
+
+    # The document must be tall enough to scroll, or nothing here can move and
+    # a green means only that there was nowhere to go.
+    room = sink["deskScrollHeight"] - sink["deskClientHeight"]
+    record["scrollableRoom"] = room
+    if room < 50:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = (f"the desk has only {room}px of scroll room, so a "
+                         "drag could not be detected either way")
+        return record
+
+    record["parkedAt"] = evaluate(session, PARK_SINK_AT_THE_BOTTOM)
+    time.sleep(0.3)
+    record["scrollWhenParked"] = evaluate(session, SCROLL_THE_SINK_INTO_VIEW) or {}
+
+    dragged_when_parked = (record["scrollWhenParked"].get("after") or 0) > 50
+    if not dragged_when_parked:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("parking the sink at its old static position did NOT "
+                         "drag the page, so this arm cannot detect the drag and "
+                         "its silence about the fixed case means nothing")
+        return record
+
+    after_fix = record["scrollWithFix"].get("after")
+    parked = record["scrollWhenParked"].get("after")
+
+    # THE CRITERION IS A FRACTION OF THE SCROLLABLE ROOM, NOT A PIXEL COUNT,
+    # and the first version of this check got that wrong.
+    #
+    # It demanded the fixed case scroll less than 50px, and the fixed case
+    # scrolled 125.  That is not the defect: the desk here is 139px tall, so a
+    # caret 228px down IS below the fold, and scrolling to it is the CORRECT
+    # behaviour -- it is what any editor does. What was reported, and what this
+    # arm has to separate, is scrolling PAST the caret to the end of the
+    # document. A pixel threshold cannot tell those apart; where the scroll
+    # lands relative to the available room can.
+    room = record["scrollableRoom"]
+    fraction_fixed = after_fix / room if after_fix is not None and room else None
+    fraction_parked = parked / room if parked is not None and room else None
+    record["measured"] = {
+        "sinkTop": sink["sinkTop"], "canvasHeight": sink["canvasHeight"],
+        "sinkIsAtTheCaretNotTheBottom":
+            sink["sinkTop"] < sink["canvasHeight"] - sink["sinkHeight"] * 2,
+        "pointerEvents": sink.get("pointerEvents"),
+        "deskClientHeight": sink["deskClientHeight"],
+        "scrolledWithFix": after_fix, "scrolledWhenParked": parked,
+        "fractionOfRoomWithFix": None if fraction_fixed is None
+                                 else round(fraction_fixed, 3),
+        "fractionOfRoomWhenParked": None if fraction_parked is None
+                                    else round(fraction_parked, 3),
+    }
+    if fraction_parked is None or fraction_parked < 0.9:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("parked at its old position the sink did not scroll to "
+                         "the END of the document, so this arm is not "
+                         "reproducing the reported symptom and its verdict on "
+                         "the fixed case means nothing")
+        return record
+    if (fraction_fixed is not None and fraction_fixed < 0.5
+            and record["measured"]["sinkIsAtTheCaretNotTheBottom"]
+            and sink.get("pointerEvents") == "none"):
+        record["outcome"] = "PASS"
+        record["conclusion"] = (
+            f"the sink sits at {sink['sinkTop']}px, on the caret, in a canvas "
+            f"{sink['canvasHeight']}px tall; scrolling it into view uses "
+            f"{fraction_fixed:.0%} of the scrollable room against "
+            f"{fraction_parked:.0%} when parked at its old static position. "
+            f"The remaining {after_fix}px is the caret being genuinely below "
+            f"the fold of a {sink['deskClientHeight']}px desk, which is the "
+            "behaviour an editor should have.")
+        return record
+    record["outcome"] = "FAIL"
+    record["conclusion"] = (
+        f"the sink still drags the page to {fraction_fixed:.0%} of the "
+        f"document (parked: {fraction_parked:.0%}), sits at {sink['sinkTop']}px "
+        f"of {sink['canvasHeight']}px, or still takes pointer events "
+        f"({sink.get('pointerEvents')})")
+    return record
+
+
+def caret_after_real_typing(session, base, timeout) -> dict:
+    """Finding 068 ON THE USER'S PATH: real keystrokes, not the insert field.
+
+    `caret-state-after-commit` reported 5/5 with the fix and the operator, on
+    the same page and the same mirror, still saw the old behaviour.  Only one
+    of those two is measuring what a person does.
+
+    The difference is the commit route.  That arm sets the product's insert
+    field and clicks the `insert-text` button; a person types into the sink and
+    the input adapter turns `beforeinput` into `commitText`.  Both end at
+    `document.insertText`, so the difference is everything AROUND the call --
+    which is exactly where findings 066 and 067 lived.
+
+    So this arm types with CDP `Input.dispatchKeyEvent`, one character at a
+    time, and asks the same questions.  Nothing else changes.
+
+    POSITIVE CONTROL: the characters must reach the document, verified from a
+    save.  If they do not, the keyboard is dead and the caret says nothing.
+    """
+    record: dict = {"id": "caret-after-real-typing"}
+    call = getattr(session, "call", None)
+    if call is None:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "no CDP, so a real key cannot be delivered"
+        return record
+    if not boot(session, base, timeout):
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the page did not reach ready"
+        return record
+    if evaluate(session, INSTALL_068) is not True:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "the finding 068 hook did not install"
+        return record
+
+    clicks = caret_click_fractions(
+        evaluate(session, LINE_INK.replace("ARG_Y", "0.24")) or {})
+    evaluate(session, LABEL_068.replace("ARG_LABEL", "click"))
+    place_caret_and_settle(session, POINT_AT, clicks["near"], "0.24")
+    time.sleep(0.8)
+    record["focus"] = evaluate(session, READ_FOCUS)
+
+    marker = "REALKEYS"
+    evaluate(session, LABEL_068.replace("ARG_LABEL", "typing"))
+    floor = revision_of(evaluate(session, READ_STATE))
+    for character in marker:
+        for kind in ("keyDown", "char", "keyUp"):
+            payload = {"type": kind, "key": character,
+                       "code": f"Key{character}",
+                       "windowsVirtualKeyCode": ord(character),
+                       "nativeVirtualKeyCode": ord(character)}
+            if kind == "char":
+                payload["text"] = character
+            call("Input.dispatchKeyEvent", payload)
+        time.sleep(0.25)
+    time.sleep(2.0)
+    record["revision"] = {"before": floor,
+                          "after": revision_of(evaluate(session, READ_STATE))}
+
+    evaluate(session, LABEL_068.replace("ARG_LABEL", "move"))
+    evaluate(session, PRESS.replace("ARG_ACTION", "move-character-left"))
+    time.sleep(1.5)
+
+    saved = capture_save(session, 0)
+    record["markerLanded"] = marker in ((saved or {}).get("content") or "")
+
+    seen = evaluate(session, READ_068) or {}
+    record["updates"] = seen.get("updates") or []
+    record["paints"] = seen.get("paints") or []
+    record["events"] = seen.get("events") or []
+
+    def by(label, key):
+        if key == "paints":
+            return [p.get("why") for p in record["paints"]
+                    if p.get("label") == label]
+        if key == "caretX":
+            return [(u.get("caret") or {}).get("x") for u in record["updates"]
+                    if u.get("label") == label]
+        return [e.get("source") for e in record["events"]
+                if e.get("label") == label and e.get("event") == "editor-state"]
+
+    record["byLabel"] = {
+        label: {"paints": by(label, "paints"), "caretX": by(label, "caretX"),
+                "callbackSources": by(label, "events")}
+        for label in ("click", "typing", "move")
+    }
+
+    if not record["markerLanded"]:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("the typed characters never reached the document, so "
+                         "the keyboard is not working and the caret here says "
+                         "nothing about typing")
+        return record
+
+    def last_x(label):
+        xs = [x for x in record["byLabel"][label]["caretX"] if x is not None]
+        return xs[-1] if xs else None
+
+    before, after, moved = (last_x("click"), last_x("typing"), last_x("move"))
+    record["caretX"] = {"beforeTyping": before, "afterTyping": after,
+                        "afterMove": moved}
+    if before is None or after is None or moved is None:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = "one of the three steps reported no caret x at all"
+        return record
+    if moved == after:
+        record["outcome"] = "NOT_ESTABLISHED"
+        record["why"] = ("the caret x did not change on the move either, so "
+                         "this arm cannot see the caret x move at all")
+        return record
+
+    record["caretFollowedTyping"] = after != before
+    if record["caretFollowedTyping"]:
+        record["outcome"] = "PASS"
+        record["conclusion"] = (
+            f"typed with real keys, the caret moved {before} -> {after}")
+        return record
+    record["outcome"] = "FAIL"
+    record["conclusion"] = (
+        f"typed with real keys, the caret stayed at {before} while "
+        f"{len(marker)} characters reached the document, and one caret action "
+        f"then moved it to {moved}. The insert-field route passes the same "
+        "check, so the defect is in what surrounds the keyboard commit, not in "
+        "insertText.")
+    return record
+
+
 ARMS: dict[str, dict] = {
     # P-064-0.  The negative control: this must reproduce 064.
     "baseline": {"marker": "MKF064BASE", "suppressed": False,
@@ -2427,7 +2728,9 @@ def main() -> int:
                                 "real-enter", "caret-model-or-drawing",
                                 "keyboard-formats", "caret-drawn-where",
                                 "enter-insert-method", "caret-pixels",
-                                "caret-state-after-commit")]
+                                "caret-state-after-commit",
+                                "caret-after-real-typing",
+                                "sink-does-not-drag-the-page")]
     if unknown:
         raise SystemExit(f"unknown arm(s): {unknown}; known: {sorted(ARMS)}")
 
@@ -2588,6 +2891,14 @@ def main() -> int:
                 continue
             if name == "caret-pixels":
                 report["arms"].append(caret_pixels(session, base, args.timeout))
+                continue
+            if name == "sink-does-not-drag-the-page":
+                report["arms"].append(
+                    sink_does_not_drag_the_page(session, base, args.timeout))
+                continue
+            if name == "caret-after-real-typing":
+                report["arms"].append(
+                    caret_after_real_typing(session, base, args.timeout))
                 continue
             if name == "caret-state-after-commit":
                 report["arms"].append(

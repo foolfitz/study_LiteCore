@@ -70,9 +70,27 @@
           justify-content: center; padding: 20px; }
   .paper { position: relative; background: #fff; box-shadow: 0 1px 6px rgba(20,40,60,.14); }
   canvas { display: block; touch-action: none; }
+  /*
+   * `top`/`left` are not decoration.  Without them an absolutely positioned
+   * element sits at its STATIC position -- which for this one is directly
+   * after the canvas, and the canvas is the whole document's height.  The
+   * input sink was therefore lying at the bottom of the page, and every time
+   * an IME began composing, the browser scrolled the focused element into
+   * view and took the whole desk with it.  Reported by an operator typing
+   * Chinese with 新酷音, 2026-08-22.
+   *
+   * `paint()` keeps it on the caret from here on; 0,0 is only where it starts.
+   *
+   * `pointer-events: none` because moving it over the canvas puts a 1px
+   * transparent target on top of the drawing surface, and the canvas's own
+   * pointerdown is what places the caret.  The sink is only ever focused
+   * programmatically -- it is never clicked -- so nothing loses a click.
+   */
   #sink {
-    position: absolute; width: 1px; height: 1px; opacity: 0; border: 0;
+    position: absolute; top: 0; left: 0;
+    width: 1px; height: 1px; opacity: 0; border: 0;
     padding: 0; margin: 0; outline: none;
+    pointer-events: none;
   }
 
   .statusbar {

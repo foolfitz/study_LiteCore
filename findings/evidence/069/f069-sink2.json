@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "release": "f064-mechanism",
+  "evidenceClass": "diagnostic",
+  "finding": "064",
+  "browser": "chrome",
+  "note": "This run did NOT use the shipped page. It answers ONE named question -- whether the repaint the product performs between a format action and the next commit is what stops the format reaching the text -- and it is not a product measurement.",
+  "prediction": "findings/evidence/064/PREDICTION-render-between-format-and-typing.md",
+  "mirrored": [
+    "e2-editor-app.js",
+    "profiles/e2-editor-v3/sdk-worker.js"
+  ],
+  "workerSubstitutedFromSource": "sdk/sdk-worker.js",
+  "hook": "renderDocument() counts its calls and returns early while globalThis.__f064.suppress is true; inert when __f064 is absent",
+  "whyInsideRenderDocument": "the page has a second render source -- onEvent schedules a repaint on document-invalidated (web/e2-editor-app.js:768-769) -- so a diagnostic at the run() call site (line 382) would leave a render running and report a false negative",
+  "eliminatedBySourceReading": [
+    "an extra editor.getState() between the press and the typing: _drain takes `result?.state ||` first (editor-shell/editor-session.js:301-302) and NarrowEditorV2Client rejects a result without `state` (editor-shell-v2/narrow-editor-v2-client.js:117), so the format action never reaches the fallback",
+    "the engine's format barrier: its targets are the list and paragraph-style commands (src/probe_engine.cpp:1224-1241); the four inline actions take the plain uno-command-result route",
+    "the insert call itself: session.commitText() ends at document.insertText (editor-shell/editor-session.js:511), which is the call D1 makes"
+  ],
+  "wasmUnchanged": true,
+  "profileWasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+  "shims": [
+    "URL.createObjectURL",
+    "HTMLAnchorElement.prototype.click (download anchors)",
+    "#toast.textContent cleared between steps",
+    "globalThis.__f064, this probe's own counter and flag"
+  ],
+  "arms": [
+    {
+      "id": "sink-does-not-drag-the-page",
+      "commit": {
+        "before": 0,
+        "after": 1
+      },
+      "sink": {
+        "sinkTop": 228,
+        "sinkLeft": 155,
+        "sinkHeight": 16,
+        "canvasHeight": 929,
+        "deskScrollTop": 0,
+        "deskScrollHeight": 969,
+        "deskClientHeight": 139,
+        "pointerEvents": "none"
+      },
+      "scrollWithFix": {
+        "before": 0,
+        "after": 125
+      },
+      "scrollableRoom": 830,
+      "parkedAt": 929,
+      "scrollWhenParked": {
+        "before": 0,
+        "after": 826
+      },
+      "measured": {
+        "sinkTop": 228,
+        "canvasHeight": 929,
+        "sinkIsAtTheCaretNotTheBottom": true,
+        "pointerEvents": "none",
+        "deskClientHeight": 139,
+        "scrolledWithFix": 125,
+        "scrolledWhenParked": 826,
+        "fractionOfRoomWithFix": 0.151,
+        "fractionOfRoomWhenParked": 0.995
+      },
+      "outcome": "PASS",
+      "conclusion": "the sink sits at 228px, on the caret, in a canvas 929px tall; scrolling it into view uses 15% of the scrollable room against 100% when parked at its old static position. The remaining 125px is the caret being genuinely below the fold of a 139px desk, which is the behaviour an editor should have."
+    }
+  ],
+  "servedShell": {
+    "bundle": "e2/editor-shell-v2-bundle-v27.json",
+    "declaredSha256": "55a91f837f210e8ede727205ab6301408f0edfba14c5708aaffa0ab1b605dfb0",
+    "servedSha256": "e18079832da75bd3a20cf480f7314112f7f9a4e357a6e53ff42316ee2b1d3811",
+    "missing": []
+  },
+  "control": {
+    "id": "control-instrument",
+    "ink0": {
+      "available": true,
+      "sum": 2001,
+      "inkLeft": 83,
+      "inkRight": 222
+    },
+    "hook0": {
+      "renders": 2,
+      "suppressed": 0,
+      "suppress": false
+    },
+    "visible": {
+      "before": 0,
+      "after": 1
+    },
+    "ink1": {
+      "available": true,
+      "sum": 2503,
+      "inkLeft": 83,
+      "inkRight": 431
+    },
+    "hook1": {
+      "renders": 4,
+      "suppressed": 0,
+      "suppress": false
+    },
+    "hidden": {
+      "before": 1,
+      "after": 2
+    },
+    "ink2": {
+      "available": true,
+      "sum": 2517,
+      "inkLeft": 83,
+      "inkRight": 508
+    },
+    "hook2": {
+      "renders": 4,
+      "suppressed": 2,
+      "suppress": true
+    },
+    "ink3": {
+      "available": true,
+      "sum": 3159,
+      "inkLeft": 83,
+      "inkRight": 639
+    },
+    "hook3": {
+      "renders": 7,
+      "suppressed": 2,
+      "suppress": false
+    },
+    "delta": {
+      "rendered": 502,
+      "frozen": 14,
+      "released": 642,
+      "threshold": 500
+    },
+    "countersBite": true,
+    "canvasBites": true,
+    "ok": true,
+    "outcome": "PASS"
+  },
+  "verdict": "no verdict: the suppressed arm was not run"
+}
