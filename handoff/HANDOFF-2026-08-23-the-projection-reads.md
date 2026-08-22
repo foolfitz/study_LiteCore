@@ -84,6 +84,65 @@ days (finding 073's IME composition was the first).
 product's successor identity before the thing it exists for is validated is how
 a generation gets frozen with work still to come.
 
+## After the operator went to bed (autonomy delegated)
+
+**The standard arrived and it moved the goalposts.** 網站無障礙規範 (110.07),
+WCAG 2.1, AA = 68 test codes. **1.3.1 Info and Relationships is Level A** —
+headings must be headings. So "focused paragraph, no roles" is not a scope
+boundary, it is **below the Level A floor**. Roadmap §3.6 now names the
+standard; `DESIGN-2026-08-22-aria-projection.md` §7 maps the nine criteria that
+bite, and says out loud that it is **not** the full audit — the official test
+codes are behind a 403 and getting that document is a thing the operator can do
+and I cannot.
+
+**M2a re-baselines on writer+calc** (roadmap §4.1). Yes, and the reasoning is
+not "the operator asked": the old 64 MB / 169 MB figures were measured on a
+writer-only core that will not ship. Three consequences: **re-measure, do not
+add +19.9 MB by arithmetic** (gzip is not linear); **measure on
+`e2-editor-v5`, not on the dev artifact**, so M2a has no baseline until that
+link; and **do not rebuild to drop calc** — this reverses my own 2026-08-22
+advice, because M4 needs calc to read ODS, and M2a/M2b were split precisely so
+that reductions a module change undoes go after M4.
+
+**The structure fork went to fable (the operator authorised it) and my proposal
+lost.** I wanted skeleton-from-ODT joined to the engine by fingerprint. Killed
+by evidence, most of it this project's own:
+
+* **"The shell knows when structure changes" is false.** Autocorrect turns
+  `- ` into a list *inside the engine*; Enter at the end of a heading applies
+  the follow-on style; and redo is document-level with no wire id. None of
+  those is a shell-dispatched structure action.
+* **The fingerprint join collapses, measured** — new tool
+  `tools/measure_paragraph_fingerprint_collisions.py`: on the realistic
+  corpus, **5 of 12 documents (42%) contain a collision and 182 of 821
+  paragraphs (22%) sit in one**; worst case 133 paragraphs onto 28 identities.
+  And that is the optimistic count. fable also pointed out I was resurrecting
+  what 08-16g's block-identity rounds had already buried ("paragraph text is a
+  fingerprint, not an identity"), and that my "validated once" was n=3 with one
+  known-degenerate arm.
+* **A cannot dodge the relink anyway**, because the degenerate heading
+  fingerprint is an engine-side contract defect.
+
+**Then the prescription itself turned out to rest on a false premise.** fable's
+remedy assumed the engine could cheaply supply role/outline-level/outline.
+Reading the core source: LOK's focused-paragraph payload has exactly five
+fields — `content`, `position`, `start`, `end`, `listPrefixLength`. **No role,
+no level, no nesting, no ordinal.** So: **A is dead on its own evidence, and
+B's shape is open.** Three options and the measurement that picks between them
+are in `DESIGN-2026-08-22-aria-projection.md` §9. Do not start building until
+that measurement is done — it runs on the core already on disk.
+
+**Finding 074, upstream, root cause read from source.**
+`getListPrefixSize()` (`sfx2/source/view/viewsh.cxx:554-588`) returns the end
+of the **first attribute run**, not the length of the numbering prefix. They
+coincide only when the prefix is its own run — which is why bullet lists look
+fine and a uniformly formatted numbered paragraph does not. A heading is the
+common case. That closes
+`queue-a11y-prefix-swallows-the-paragraph` (the native build is no longer the
+discriminator; that arm need not be run) and it does **not** revive the
+fingerprint join, because identical-text paragraphs collide for an unrelated
+reason.
+
 ## Open work, in the order I would take it
 
 1. **`queue-product-page-holds-the-raw-editor-state`.** The additive mitigation
@@ -95,9 +154,16 @@ a generation gets frozen with work still to come.
    field, and `queue-fresh-is-true-where-no-read-can-succeed` all ride it.
    Note it costs the shipped artifact +19.9 MB, which lands squarely in M2a's
    lap.
-3. **`queue-a11y-prefix-swallows-the-paragraph`** — one hypothesis was
-   eliminated for free (our parse is faithful; the text LOK carried is the
-   heading's own). The native build is still the discriminator.
+3. **Pick B's shape** — `DESIGN…§9`'s three options, after the probe that asks
+   whether our engine can reach `XAccessibleContext` from the LOK view (role
+   and outline level are on the accessibility tree; LOK simply does not
+   forward them). **No rebuild needed to find out.**
+4. **The pre-registered falsification** that is still unrun: type `- `, press
+   Enter at the end of a heading, undo/redo across a paragraph split, and see
+   whether the engine changed structure with no shell-dispatched structure
+   action. **Prediction, written before the run: 3/3 will change.** The verdict
+   does not depend on it; it is the record for the next person who proposes
+   route A.
 
 ## Two questions only the operator can answer
 
