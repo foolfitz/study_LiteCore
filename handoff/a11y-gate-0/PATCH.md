@@ -110,6 +110,26 @@ something.** If that coupling is judged unacceptable, the alternative is to give
 the module loop a way to say "writer, with accessibility" — a bigger upstream
 change, and not needed to answer gate 0.
 
+## As applied, 2026-08-22 — one deviation, recorded
+
+The patch above is what was applied, with one difference in step 1: instead of
+deleting the `AC_DEFINE` line and leaving nothing, three `dnl` lines take its
+place saying the define now happens after `--with-wasm-module` is parsed.
+`:3498` is where a reader looks for it, and a silent absence there is how this
+defect got built in the first place. No behavioural difference — `dnl` is a
+comment.
+
+Validated before the rebuild, by running `autoconf` on the patched
+`configure.ac` and reading the generated script: exactly one
+`printf "#define ENABLE_WASM_STRIP_ACCESSIBILITY 1" >>confdefs.h`, and it sits
+inside `if test -n "$ENABLE_WASM_STRIP_ACCESSIBILITY"; then`, after the module
+loop. The old unconditional write is gone. That is the whole patch, checked for
+about a second's cost instead of an hour's.
+
+Snapshot: `wasm-lite/patches/libreoffice-26.8-wasm-strip-accessibility-single-input.patch`,
+listed in that directory's `INVENTORY.md` with the per-configuration behaviour
+it changes.
+
 ## Cost and risk
 
 * **Cost**: one core rebuild (the user's hours). The patch itself is ~6 lines.

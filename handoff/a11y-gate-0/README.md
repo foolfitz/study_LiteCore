@@ -1,5 +1,18 @@
 # A11y gate 0 — prepared, not run (2026-08-21)
 
+> **Status 2026-08-22**: step 2 is done — `PATCH.md` is applied to
+> `libreoffice-26-8/configure.ac`, snapshotted as
+> `wasm-lite/patches/libreoffice-26.8-wasm-strip-accessibility-single-input.patch`,
+> and verified at the autoconf level (the generated `configure` now writes the
+> `#define` in exactly one place, under the module-loop condition). Steps 3–5
+> are the operator's and have their own runbook:
+> [`handoff/RUNBOOK-a11y-gate0-core-rebuild.md`](../RUNBOOK-a11y-gate0-core-rebuild.md).
+> The build goes to a **new** directory, `wasm-lite/build-a11y-gate0/` — the
+> product's core (`build-headless-probe`) is not touched, so step 3's archive
+> requirement is met by not disturbing what it protects (and `dist/profiles/`
+> v4 is confirmed byte-identical to its archive anyway).
+
+
 Everything here is **ready for the user's hands**. Nothing in it has been
 executed: the core rebuild is the user's scope (`user-handles-core-rebuilds`).
 

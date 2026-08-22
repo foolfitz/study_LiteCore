@@ -1,0 +1,31 @@
+diff --git a/configure.ac b/configure.ac
+index 59c3deea2a01..f2af7029399a 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -3495,7 +3495,9 @@ if test "$enable_wasm_strip" = "yes"; then
+     test "${with_fonts+set}" = set || with_fonts=yes
+ 
+     dnl AC_DEFINE sets the value to 1 (TRUE) in the C++ header.
+-    AC_DEFINE(ENABLE_WASM_STRIP_ACCESSIBILITY)
++    dnl ENABLE_WASM_STRIP_ACCESSIBILITY is defined further down, after
++    dnl --with-wasm-module has been parsed: the Make variable and the
++    dnl C++ macro must answer to the same input.
+ #    AC_DEFINE(ENABLE_WASM_STRIP_CHART)
+     AC_DEFINE(ENABLE_WASM_STRIP_EXTRA)
+ #    AC_DEFINE(ENABLE_WASM_STRIP_HUNSPELL)
+@@ -4410,6 +4412,15 @@ AC_SUBST(ENABLE_WASM_STRIP)
+ AC_SUBST(ENABLE_WASM_STRIP_WRITER)
+ AC_SUBST(ENABLE_WASM_STRIP_BASIC_DRAW_MATH_IMPRESS)
+ AC_SUBST(ENABLE_WASM_STRIP_CALC)
++
++dnl The C++ macro and the Make variable must answer to the SAME input.
++dnl Before this, the macro was defined at the top of the enable_wasm_strip
++dnl block while the variable was decided here by --with-wasm-module, so a
++dnl build could compile the accessibility objects in and still have every
++dnl call site removed by the macro -- size without capability.
++if test -n "$ENABLE_WASM_STRIP_ACCESSIBILITY"; then
++    AC_DEFINE(ENABLE_WASM_STRIP_ACCESSIBILITY)
++fi
+ AC_SUBST(ENABLE_WASM_STRIP_ACCESSIBILITY)
+ 
+ if test "$enable_emscripten_jspi" = yes; then
