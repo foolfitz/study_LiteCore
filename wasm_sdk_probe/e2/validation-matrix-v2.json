@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "release": "E2-C-paragraph-format-validation-round-two",
   "status": "frozen-before-D0",
-  "frozenDate": null,
+  "frozenDate": "2026-08-22",
   "why": "SPEC E2-C 11.4. The second round's matrix must be frozen BEFORE its own D0, and the first round was bitten by the opposite order: 27 cells used a gesture the product never uses and the matrix had not said anything about it. This file is the draft; it becomes the matrix when the v3 hashes exist and `status` is set to `frozen-before-D0`.",
   "freezeProcedure": {
     "before": "the second round's D0, and after the single relink that mints v3",
@@ -21,13 +21,13 @@
     "editorContractVersion": 2,
     "abiVersion": 3,
     "crossParagraphDisposition": "verify-every-block",
-    "wasmSha256": "d538ce0b91478426985f22207fff416c70ee6e0a5341bb349d09bca09646b6c7",
-    "loaderSha256": "2a1ea5c18c6e707d3fc2bcc4ba2af18207b55da1a0db85ccb8ef5671cfc0a544",
-    "workerSha256": "b546231338abbc17cf12623fbe2448bf52c2fe32b0e4401be5a746754fd4ef0f",
-    "shellBundleSha256": "e48685976e8626c5e8064c9f6e2857662500b0dd3b172f810918a297f7a1868b",
-    "manifestSha256": "a7d2b6ba09a06e6873d2f1ace08db2ece3f4a186978cb7712b8d88bfc68012a5",
+    "wasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+    "loaderSha256": "6ff0f962eded5ebc8f7c9f28df48b47dd149177861e6af052983c573411a57d4",
+    "workerSha256": "a9afbc0101eb9d48b1544ade20c21379267de798568998f93aaa2bceef38a537",
+    "shellBundleSha256": "b25b6c29d1e74012e9d802af07c2d00ef7776cd64289d634d86c6d257aed6f56",
+    "manifestSha256": "ff6834f9301d4ec113fe12c1486958c2b47ac1ec84b503cf1fd21acb57db1561",
     "whyFive": "SPEC E2-C 11.3. The first round bound four. This round changes semantics that live in sdk-manifest.json itself -- abiVersion, limits, gestures, and the gesture mask the engine pushes in at init -- so the manifest's own sha256 is the fifth identity. Finding 045 already recorded that nothing pinned the manifest's bytes.",
-    "shellBundleManifest": "e2/editor-shell-v2-bundle-v12.json"
+    "shellBundleManifest": "e2/editor-shell-v2-bundle-v26.json"
   },
   "browsers": [
     "chrome",
@@ -952,6 +952,57 @@
     "completedAt": null,
     "note": "Draft. Nothing may run against it until it is frozen."
   },
-  "frozenOn": "2026-08-17",
-  "frozenWhy": "Filled from the artifact the SECOND link minted, before any D phase ran. The first link (4dbe9b74) shipped a mechanism that was inert -- accessibility was never switched on in the product build -- so it was replaced rather than validated; that artifact is archived and its measurement is kept in findings/evidence/queue-block-identity/after-link-v3/. A link always costs a shell generation, because the product page PINS the artifact hash: the pin is what makes the page honest about which build it describes, and it necessarily moves when the build does. Zero phases have run against this baseline. RE-FROZEN 2026-08-17, still before any D phase: the shell moved from v12 (98a8dc48b13c7d02...) to v13 (6b4078e9c29bc4cc...) because the product gained the ability to open a document the USER chose rather than only the samples in its own dropdown. That is a shell-only change -- session.open({bytes, name}) was already the single door in, so it needed no link and the four artifact hashes are unchanged. Re-freezing in place is legitimate here and only here: zero phases have run against this baseline, so no evidence is bound to the digest being replaced. Once D0 runs, a shell change costs a new matrix instead. RE-FROZEN AGAIN 2026-08-17, still before any D phase: v13 (6b4078e9c29bc4cc...) to v14 (d1f49e170f0d511b...) for finding 046's residual -- bulleting a blank line no longer demands a rollback, and `recovery` gains a fourth value `review` (SPEC E2-C 2.6b, written in the same generation because a host-facing enum value is contract surface). Shell-only again; the four artifact hashes are unchanged. Same justification and same limit as the v13 re-freeze: no evidence is bound to the digest being replaced because D0 has not run. Once it does, a shell change costs a new matrix. RE-FROZEN 2026-08-17 for shell v15 (d1f49e170f0d511b... -> 89c6706b358e495d...): finding 058 -- the page now draws the caret and the selection, which it had never drawn -- plus finding 045's product half. Shell-only, artifact hashes unchanged, D0 still has not run. NOTE, and it matters more than the re-freeze: driving set-bold for the first time immediately produced finding 059. The engine now rejects the parameterised .uno:Bold and ALL FOUR inline formats fail with LOK_COMMAND_FAILED on this artifact, each press putting the session into recoverable-error. That is engine-side, it BLOCKS the next link, and it means this baseline's D1 phase cannot pass as things stand. RE-FROZEN 2026-08-17 for shell v16 (89c6706b358e495d... -> e48685976e8626c5...): the typing path -- Backspace, Delete, the arrows, Ctrl+Z, Ctrl+S and cut. Shell-only, artifact hashes unchanged, D0 still has not run."
+  "frozenOn": "2026-08-22",
+  "frozenWhy": "Filled from the artifact the SECOND link minted, before any D phase ran. The first link (4dbe9b74) shipped a mechanism that was inert -- accessibility was never switched on in the product build -- so it was replaced rather than validated; that artifact is archived and its measurement is kept in findings/evidence/queue-block-identity/after-link-v3/. A link always costs a shell generation, because the product page PINS the artifact hash: the pin is what makes the page honest about which build it describes, and it necessarily moves when the build does. Zero phases have run against this baseline. RE-FROZEN 2026-08-17, still before any D phase: the shell moved from v12 (98a8dc48b13c7d02...) to v13 (6b4078e9c29bc4cc...) because the product gained the ability to open a document the USER chose rather than only the samples in its own dropdown. That is a shell-only change -- session.open({bytes, name}) was already the single door in, so it needed no link and the four artifact hashes are unchanged. Re-freezing in place is legitimate here and only here: zero phases have run against this baseline, so no evidence is bound to the digest being replaced. Once D0 runs, a shell change costs a new matrix instead. RE-FROZEN AGAIN 2026-08-17, still before any D phase: v13 (6b4078e9c29bc4cc...) to v14 (d1f49e170f0d511b...) for finding 046's residual -- bulleting a blank line no longer demands a rollback, and `recovery` gains a fourth value `review` (SPEC E2-C 2.6b, written in the same generation because a host-facing enum value is contract surface). Shell-only again; the four artifact hashes are unchanged. Same justification and same limit as the v13 re-freeze: no evidence is bound to the digest being replaced because D0 has not run. Once it does, a shell change costs a new matrix. RE-FROZEN 2026-08-17 for shell v15 (d1f49e170f0d511b... -> 89c6706b358e495d...): finding 058 -- the page now draws the caret and the selection, which it had never drawn -- plus finding 045's product half. Shell-only, artifact hashes unchanged, D0 still has not run. NOTE, and it matters more than the re-freeze: driving set-bold for the first time immediately produced finding 059. The engine now rejects the parameterised .uno:Bold and ALL FOUR inline formats fail with LOK_COMMAND_FAILED on this artifact, each press putting the session into recoverable-error. That is engine-side, it BLOCKS the next link, and it means this baseline's D1 phase cannot pass as things stand. RE-FROZEN 2026-08-17 for shell v16 (89c6706b358e495d... -> e48685976e8626c5...): the typing path -- Backspace, Delete, the arrows, Ctrl+Z, Ctrl+S and cut. Shell-only, artifact hashes unchanged, D0 still has not run.",
+  "refreezeLog": [
+    {
+      "date": "2026-08-21",
+      "why": "The matrix had been frozen on 2026-08-17 against artifact d538ce0b and the shell bundle of that day. Two relinks (296f3ea7, then 29ec627b) and 13 shell generations (v12 -> v25) later, three of the five bindings no longer described the tree, and the entry assertion REFUSED to run D0 -- correctly, and that refusal is recorded below as the guard doing its job rather than as an obstacle.",
+      "guardOutputBeforeRefreeze": [
+        "baseline wasmSha256 does not match the artifact on disk (d538ce0b9147… vs 29ec627bf8a5…)",
+        "baseline loaderSha256 does not match the artifact on disk (2a1ea5c18c6e… vs 6ff0f962eded…)",
+        "baseline workerSha256 does not match the artifact on disk (b546231338ab… vs a9afbc0101eb…)"
+      ],
+      "before": {
+        "wasmSha256": "d538ce0b91478426985f22207fff416c70ee6e0a5341bb349d09bca09646b6c7",
+        "loaderSha256": "2a1ea5c18c6e707d3fc2bcc4ba2af18207b55da1a0db85ccb8ef5671cfc0a544",
+        "workerSha256": "b546231338abbc17cf12623fbe2448bf52c2fe32b0e4401be5a746754fd4ef0f",
+        "manifestSha256": "a7d2b6ba09a06e6873d2f1ace08db2ece3f4a186978cb7712b8d88bfc68012a5",
+        "shellBundleSha256": "e48685976e8626c5e8064c9f6e2857662500b0dd3b172f810918a297f7a1868b"
+      },
+      "after": {
+        "wasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+        "loaderSha256": "6ff0f962eded5ebc8f7c9f28df48b47dd149177861e6af052983c573411a57d4",
+        "workerSha256": "a9afbc0101eb9d48b1544ade20c21379267de798568998f93aaa2bceef38a537",
+        "manifestSha256": "ff6834f9301d4ec113fe12c1486958c2b47ac1ec84b503cf1fd21acb57db1561",
+        "shellBundleSha256": "07143f961d82c4b3558d6df2f628fce11ce376c30364d3fee8344bbd77028129"
+      },
+      "shellBundle": "e2/editor-shell-v2-bundle-v25.json",
+      "note": "Re-freezing RE-STATES every hash deliberately; it is not a refresh. manifestSha256 moved because the 2026-08-19 relink changed what is IN the manifest, which is the reason SPEC E2-C 11.3 bound it as the fifth identity in the first place. No shell or profile file was changed by the 2026-08-21 round -- only tools/ and e2/ bookkeeping -- so this re-freeze binds the same artifact the day's measurements were made on."
+    },
+    {
+      "date": "2026-08-22",
+      "why": "Finding 066's fix changed `web/e2-editor-app.js`, the shell bundle's entrypoint, so the bundle digest moved (v25 -> v26) and one of the five bindings stopped describing the tree. The guard caught it immediately -- `validate_e2_c.py` went to E2_STOP_OR_RESCOPE before anything else was touched -- which is the guard doing its job, and it is recorded here as that rather than as an obstacle. THE ARTIFACT DID NOT MOVE: four of the five hashes are unchanged, there was no relink and no engine rebuild.",
+      "guardOutputBeforeRefreeze": [
+        "the shell bundle no longer matches the tree",
+        "baseline shellBundleSha256 is not the bundle on disk (07143f961d82… vs b25b6c29d1e7…)"
+      ],
+      "before": {
+        "wasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+        "loaderSha256": "6ff0f962eded5ebc8f7c9f28df48b47dd149177861e6af052983c573411a57d4",
+        "workerSha256": "a9afbc0101eb9d48b1544ade20c21379267de798568998f93aaa2bceef38a537",
+        "manifestSha256": "ff6834f9301d4ec113fe12c1486958c2b47ac1ec84b503cf1fd21acb57db1561",
+        "shellBundleSha256": "07143f961d82c4b3558d6df2f628fce11ce376c30364d3fee8344bbd77028129"
+      },
+      "after": {
+        "wasmSha256": "29ec627bf8a5588b49c8a090cb93e07c51402ce43b5b1f8558d832281f1ae58b",
+        "loaderSha256": "6ff0f962eded5ebc8f7c9f28df48b47dd149177861e6af052983c573411a57d4",
+        "workerSha256": "a9afbc0101eb9d48b1544ade20c21379267de798568998f93aaa2bceef38a537",
+        "manifestSha256": "ff6834f9301d4ec113fe12c1486958c2b47ac1ec84b503cf1fd21acb57db1561",
+        "shellBundleSha256": "b25b6c29d1e74012e9d802af07c2d00ef7776cd64289d634d86c6d257aed6f56"
+      },
+      "shellBundle": "e2/editor-shell-v2-bundle-v26.json",
+      "note": "ONE binding moved and it is the shell's. The change is a `mousedown` listener on the toolbar that stops a style button taking the keyboard away from the document (finding 066): measured the same day, on a real click delivered through CDP, after an operator reported it. No `sdk/`, `editor-shell*/`, `input/` or profile file was touched, and probe.wasm is byte-identical to 29ec627b. `baseline.shellBundleManifest` is also corrected here: it still said v12, which has been wrong since v13 and which nothing reads -- a pointer no code follows is still a claim a person will believe."
+    }
+  ]
 }

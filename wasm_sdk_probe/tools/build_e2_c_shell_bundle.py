@@ -126,9 +126,15 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v21.json"),
                     Path("e2/editor-shell-v2-bundle-v22.json"),
                     Path("e2/editor-shell-v2-bundle-v23.json"),
-                    Path("e2/editor-shell-v2-bundle-v24.json"))
+                    Path("e2/editor-shell-v2-bundle-v24.json"),
+                    Path("e2/editor-shell-v2-bundle-v25.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
-MANIFEST = Path("e2/editor-shell-v2-bundle-v25.json")
+# v26, 2026-08-22: finding 066's fix.  `web/e2-editor-app.js` gained a
+# `mousedown` listener on the toolbar so a style button no longer takes the
+# keyboard away from the document.  One file changed, and it is the entrypoint,
+# so the bundle digest moves and the generation is a new identity -- which is
+# what the version number is for (E2-B's first structural lesson: 版本是身分).
+MANIFEST = Path("e2/editor-shell-v2-bundle-v26.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

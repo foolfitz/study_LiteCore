@@ -492,6 +492,39 @@ async function saveDocument() {
   toast(`已存出 ${(bytes.byteLength / 1024).toFixed(1)} KB`);
 }
 
+// FINDING 066.  A mouse click on a toolbar button moves the keyboard onto the
+// button -- ordinary <button> behaviour -- and this page never gave it back.
+// `el.sink.focus()` appeared exactly ONCE in this file, inside the canvas
+// pointerdown handler, so the only way a user could type again was to click the
+// canvas -- and that click MOVES THE CARET, which discards the inline format
+// they had just set.  Measured 2026-08-22, both halves: press B and type and
+// nothing reaches the document at all (the keystrokes go to the button); click
+// first and the text arrives without the format.  findings/evidence/066/.
+//
+// Two lines and both are load-bearing:
+//
+//   * `preventDefault` on mousedown stops the button taking the keyboard in the
+//     first place, which is what every editor toolbar does.  `click` still
+//     fires, so nothing about the action changes.
+//   * focusing the sink covers the case the first line cannot: a user whose
+//     FIRST act is pressing B, before ever clicking the document, has focus on
+//     <body> and preventing the button from taking it does not help.
+//
+// Focusing the sink does NOT move the caret -- only a canvas pointerdown does
+// that -- so this cannot itself become the defect it repairs.
+//
+// Buttons only, deliberately: `#fixture` and `#text` live in this toolbar too
+// and a user must still be able to click into them.
+//
+// The keyboard-activated path is NOT covered and that is on purpose: someone who
+// tabs to a button and presses Space keeps focus there, which is what keyboard
+// navigation is supposed to do.
+el.toolbar.addEventListener("mousedown", (event) => {
+  if (!event.target.closest("button")) return;
+  event.preventDefault();
+  if (session) el.sink.focus({ preventScroll: true });
+});
+
 el.toolbar.addEventListener("click", (event) => {
   const action = event.target.closest("button")?.dataset.action;
   if (!action || !session) return;
