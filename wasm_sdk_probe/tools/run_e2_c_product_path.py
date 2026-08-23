@@ -302,6 +302,14 @@ READ_TOAST = "(() => document.querySelector('#toast').textContent)()"
 # page decided to say. The accessibility TREE is measured by
 # `probe_aria_projection.py`; asking the DOM here would be the wrong instrument
 # for that question and the right one for this.
+# What the toolbar says the engine's format cache holds.  Absent when the
+# engine says it does not know, which the page renders by REMOVING the
+# attribute rather than by guessing "off".
+FORMAT_BUTTON_STATE = """(() => {
+const b = document.querySelector('#toolbar button[data-action="ARG_ACTION"]');
+return b ? b.getAttribute('aria-pressed') : null;
+})()"""
+
 READ_A11Y_REGION = """(() => {
 const para = document.querySelector('#a11y-para');
 const doc = document.querySelector('#a11y-doc');
@@ -1824,6 +1832,15 @@ def caret_click_fractions(ink: dict) -> dict:
             "inkLeft": left, "inkRight": right, "canvasWidth": width}
 
 
+# The product's own "turn every inline format off" button.  It is a plain
+# button rather than a `data-action` one, so PRESS cannot reach it.
+CLEAR_FORMAT = """(() => {
+const button = document.querySelector('#clear-format');
+if (!button) return false;
+button.click();
+return true;
+})()"""
+
 CLEAR_LATENCY = """(() => {
 document.querySelector('#s-latency').textContent = '';
 return true;
@@ -2143,11 +2160,16 @@ def note_off_page_ink(scan: dict) -> None:
     if dropped is None:
         return
     OFF_PAGE_INK["scans"] += 1
-    OFF_PAGE_INK["worst"] = max(OFF_PAGE_INK["worst"], int(dropped))
     if dropped:
         OFF_PAGE_INK["scansWithInk"] += 1
-    OFF_PAGE_INK["pageRange"] = scan.get("pageOpaque")
-    OFF_PAGE_INK["pageClipped"] = scan.get("pageClipped")
+    # The range from the WORST scan, not from the last one.  The first version
+    # overwrote it every scan and reported `[0, 724]` -- the whole canvas -- next
+    # to a non-zero drop count, which cannot both be true and reads as a
+    # contradiction in the report rather than as a diagnostic.
+    if int(dropped) >= OFF_PAGE_INK["worst"]:
+        OFF_PAGE_INK["worst"] = int(dropped)
+        OFF_PAGE_INK["pageRange"] = scan.get("pageOpaque")
+        OFF_PAGE_INK["pageClipped"] = scan.get("pageClipped")
 
 
 def stable_bands(session, tries: int = 12) -> tuple[dict, list[dict]]:
@@ -4221,7 +4243,8 @@ def main() -> int:
         formats_record: dict = {"arms": [], "clear": {}}
         inline_ok = True
 
-        def format_arm(action: str, marker: str, turn_on: bool) -> None:
+        def format_arm(action: str, marker: str, turn_on: bool,
+                       normalise: bool = True) -> None:
             """Press one format button, commit a marker under it, AND SAVE.
 
             EACH ARM GETS ITS OWN PARAGRAPH, and that is not tidiness.  The
@@ -4253,6 +4276,17 @@ def main() -> int:
             evaluate(session, CLEAR_TOAST)
             # A fresh, empty paragraph: nothing for the format press to
             # restyle, so it can only set the pending state for what is typed.
+            #
+            # NOT ENOUGH ON ITS OWN, and finding 077 is why.  A new paragraph
+            # INHERITS the caret's formatting, so an arm that only breaks the
+            # line starts from whatever the rest of the run left behind.  The
+            # toolbar is a TOGGLE whose request is derived from the cache
+            # (`enabled: formatStateFor(action) !== true`), so one wrong
+            # starting value makes the press ask for the OPPOSITE of what this
+            # arm wants -- and then leaves the next arm inverted too.  Measured
+            # on v5: the very first arm started at `true`, and every bold arm
+            # after it failed deterministically while italic, underline and
+            # strikethrough passed.  The precondition is established below.
             break_before = revision_of(evaluate(session, READ_STATE))
             evaluate(session, PRESS.replace("ARG_ACTION", "insert-paragraph-break"))
             wait_for(session,
@@ -4264,7 +4298,84 @@ def main() -> int:
                 f"button[data-action=\"{action}\"]'); "
                 "return b ? !b.disabled : null; })()")
             evaluate(session, PRESS.replace("ARG_ACTION", action))
-            time.sleep(1.5)
+            # WAIT ON THE COMPLETION SIGNAL, AND RECORD THE STATE CACHE.
+            #
+            # Two things, and keeping them apart is the whole lesson of this
+            # block. Version one slept 1.5 s and version two waited on
+            # `aria-pressed`; the second looked more principled and took v5
+            # from 30/2/6 to 22/5/11, because eight of thirteen arms sat out a
+            # 20 s timeout and the extra 160 s dragged unrelated checks red.
+            #
+            # But `aria-pressed` was not a bad INSTRUMENT -- it was a bad WAIT.
+            # The v4 control says so: 13 of 13 arms confirmed in ~202 ms, both
+            # directions, none of them trivially. On the accessibility core
+            # ZERO of thirteen observed a transition. That contrast is finding
+            # 077 and it is the only reason this block still reads the
+            # attribute.
+            #
+            # So: wait on `#s-latency`, which the page writes as
+            # "<label> NNN ms" after the operation resolves AND
+            # renderDocument() completes -- the signal
+            # `place_caret_and_settle` already uses. Clear it first, which the
+            # arm at `format-a-paragraph-changes-that-paragraph` does not do
+            # (it clears only #toast); its arms all press different actions so
+            # a stale label has not bitten it, but `format_arm` presses
+            # `set-bold` four times, where it would.
+            #
+            # And read the cache before and after WITHOUT gating on it, so a
+            # cache that stops following is visible in every report instead of
+            # being something one investigation happened to notice.
+            # ESTABLISH THE STARTING STATE. `清除格式` asserts nothing about
+            # what was on -- it asks for every inline format OFF -- which is
+            # exactly the property needed to normalise from.
+            #
+            # NOT FOR EVERY ARM, and the first version of this was wrong about
+            # that: the last four arms ACCUMULATE, because
+            # `clear-format-removes-every-inline-format` needs a document with
+            # all four formats on at once, and clearing an already-clear
+            # document is a no-op any broken button passes. Normalising each of
+            # them took that check from PASS to NOT_ESTABLISHED on v4 -- a
+            # regression my own fix introduced, caught by re-running the core
+            # that was already green.
+            press_label = evaluate(
+                session, BUTTON_LABEL.replace("ARG_ACTION", action))
+            if normalise:
+                evaluate(session, CLEAR_LATENCY)
+                evaluate(session, CLEAR_FORMAT)
+                wait_for(session,
+                         lambda st: "清除格式" in (st.get("latency") or ""), 30)
+                # An OFF arm needs the format ON before the press under test,
+                # and the only way to turn it on is the same toggle -- which
+                # now sends ON, because the cache was just cleared.
+                if not turn_on:
+                    evaluate(session, CLEAR_LATENCY)
+                    evaluate(session, PRESS.replace("ARG_ACTION", action))
+                    wait_for(session,
+                             lambda st, want=press_label: bool(want)
+                             and want in (st.get("latency") or ""), 30)
+            state_before = evaluate(
+                session, FORMAT_BUTTON_STATE.replace("ARG_ACTION", action))
+            # ASSERTED, not assumed: `清除格式` is itself NOT_ESTABLISHED on the
+            # accessibility profile, so an arm that trusted it would report a
+            # product failure that was really its own setup not taking.
+            #
+            # An arm that deliberately inherits asserts nothing -- but it says
+            # so in the record, so "inherited" and "checked" never look alike.
+            precondition_wanted = ("false" if turn_on else "true") if normalise \
+                else None
+            precondition_ok = (state_before == precondition_wanted
+                               if normalise else True)
+            evaluate(session, CLEAR_LATENCY)
+            evaluate(session, PRESS.replace("ARG_ACTION", action))
+            pressed_at = time.monotonic()
+            settled = wait_for(
+                session,
+                lambda st, want=press_label: bool(want)
+                and want in (st.get("latency") or ""), 30)
+            press_waited_ms = round((time.monotonic() - pressed_at) * 1000)
+            press_latency = (settled or {}).get("latency")
+            state_after = evaluate(
+                session, FORMAT_BUTTON_STATE.replace("ARG_ACTION", action))
             before = revision_of(evaluate(session, READ_STATE))
             evaluate(session, SET_TEXT.replace("ARG_TEXT", marker))
             evaluate(session, PRESS.replace("ARG_ACTION", "insert-text"))
@@ -4277,6 +4388,27 @@ def main() -> int:
             prop = INLINE_PROPERTY_OF[action]
             style = inline_styles_of(saved, marker)
             arm = {"action": action, "marker": marker, "wanted": turn_on,
+                   # The completion signal: null latency means the wait
+                   # timed out, which is the case the fixed sleep used to hide.
+                   "formatPressLabel": press_label,
+                   "formatPressLatency": press_latency,
+                   "formatPressWaitedMs": press_waited_ms,
+                   # Finding 077. The toolbar's `aria-pressed` comes only from
+                   # the engine's broadcast format cache, and the page ALSO
+                   # derives the value it dispatches from it
+                   # (`enabled: formatStateFor(action) !== true`). So a cache
+                   # that stops following is both a wrong ARIA state and a
+                   # button that sends the wrong request. Observed, never
+                   # waited on.
+                   "formatCacheBefore": state_before,
+                   "formatCacheAfter": state_after,
+                   "normalised": normalise,
+                   "preconditionWanted": precondition_wanted,
+                   "preconditionEstablished": precondition_ok if normalise
+                                              else None,
+                   "formatCacheFollowed":
+                       state_after == ("true" if turn_on else "false"),
+                   "formatCacheMoved": state_after != state_before,
                    "buttonOffered": offered,
                    "toast": evaluate(session, READ_TOAST) or "",
                    "savedIsOdt": is_an_odt(saved),
@@ -4291,8 +4423,18 @@ def main() -> int:
                    prop: style.get(prop)}
             # A marker that is not in the document has no opinion about
             # formatting, and `False` is not the honest way to say so.
-            arm["ok"] = (None if not arm["savedIsOdt"] or not style.get("found")
+            # An arm that did not start where it meant to has not tested the
+            # product, and `False` is not the honest way to say so.  Same rule
+            # as the missing-marker case below it, and the same reason.
+            arm["ok"] = (None if not precondition_ok
+                         or not arm["savedIsOdt"] or not style.get("found")
                          else style.get(prop) is turn_on)
+            if not precondition_ok:
+                arm["why"] = (
+                    f"the arm needed {action} to start {precondition_wanted} "
+                    f"and the toolbar reported {state_before!r} after 清除格式, "
+                    f"so the press under test asked for the opposite of what "
+                    f"this arm wanted (finding 077)")
             formats_record["arms"].append(arm)
 
         # A collapsed caret: every one of the four is offered for `collapsed`
@@ -4371,10 +4513,18 @@ def main() -> int:
         #
         # Turning all four ON first is the point: clearing an already-clear
         # document is a no-op that any broken button passes.
+        #
+        # Normalised ONCE, here, rather than per arm: the four below have to
+        # accumulate, and they need a known floor to accumulate from.
+        evaluate(session, CLEAR_LATENCY)
+        evaluate(session, CLEAR_FORMAT)
+        wait_for(session,
+                 lambda st: "清除格式" in (st.get("latency") or ""), 30)
         for action in ("set-bold", "set-italic", "set-underline",
                        "set-strikethrough"):
             format_arm(action, "MKALLON" if action == "set-strikethrough"
-                       else f"MKPRE{action[-3:].upper()}", True)
+                       else f"MKPRE{action[-3:].upper()}", True,
+                       normalise=False)
         by_marker = {arm["marker"]: arm for arm in formats_record["arms"]}
         evaluate(session, CLEAR_TOAST)
         cleared_pressed = evaluate(

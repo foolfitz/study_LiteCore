@@ -100,3 +100,33 @@ been fitting the instrument to one core's noise.
   yet. That is a question for the operator, not for another probe.
 * **Whether the product is otherwise sound on this core.** This explains why
   the harness is red. It does not make the product green.
+
+## Repeats, 2026-08-23 — and a positive control that is NOT in them
+
+`capture_canvas_edges.py --after-action set-paragraph-heading`, five rounds per
+core, three states each:
+
+| core | n | at rest | after a caret | after the edit |
+|---|---|---|---|---|
+| `e2-editor-v4` (shipped) | 5 | 9 x4, **10 x1** | 9 x5 | 9 x5 |
+| `e2-editor-v5` (accessibility) | 5 | 9 x5 | 9 x5 | 9 x5 |
+
+The accessibility core is 15/15. The one anomalous count belongs to the SHIPPED
+core, at rest — so the `bands: 10 for 9 lines` seen once in a product-path run
+is a repaint caught in flight, which `stable_bands` can still miss when two
+successive scans agree on a shape that is itself mid-repaint. That is a named
+limit of the instrument, not a property of either core.
+
+**These 30 cells do not demonstrate that the page clip works.** `offPageInk` is
+0 in every one of them: the garbage did not occur during any of these runs, so
+the exclusion was never exercised. What they show is that the band count is
+stable, which is a different claim.
+
+The positive control for the clip is offline, on the canvas that DOES carry the
+garbage (`a11y-gate0-after-caret.png`, 31 dark off-page pixels): replaying the
+classification with the clip on gives 9 bands and with it off gives 7. One
+canvas, one difference, both directions measured.
+
+The garbage is therefore INTERMITTENT as well. Its rate is not established --
+it was present in the two captures taken for this finding and absent in the ten
+taken afterwards, and nobody has looked for what makes the difference.

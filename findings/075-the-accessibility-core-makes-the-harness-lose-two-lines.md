@@ -131,6 +131,54 @@ a11y 那張 **90,538 bytes 對 42,434**。雜訊壓不掉。
 掃描現在會回報 `pageOpaque`、`pageClipped`、`offPageInk`——出貨 core 上 `offPageInk`
 是 0，非 0 就是這個缺陷被看見並被指名。
 
+## 重複量測，以及一個**不在**裡面的正向對照（2026-08-23）
+
+`capture_canvas_edges.py --after-action set-paragraph-heading`，每顆 core 五輪、
+每輪三個狀態：
+
+| core | n | 靜止 | 放游標後 | 動作後 |
+|---|---|---|---|---|
+| `e2-editor-v4`（出貨） | 5 | 9 ×4、**10 ×1** | 9 ×5 | 9 ×5 |
+| `e2-editor-v5`（a11y） | 5 | 9 ×5 | 9 ×5 | 9 ×5 |
+
+a11y core **15/15**，而唯一那個異常的 10 出現在**出貨那顆**的靜止狀態。所以產品路徑
+單跑一次看到的 `bands: 10 對 lines: 9` 是**重繪途中被讀到**——`stable_bands` 等形狀
+重複兩次，但兩次都在重繪中時它一樣會回報。這是儀器的具名極限，不是任一顆 core 的性質。
+
+**這 30 格不能拿來證明裁切有效。**`offPageInk` 在 30 格裡全是 0：雜訊在這些輪次根本
+沒發生，裁切從頭到尾沒被觸發過。它們證明的是**分帶數穩定**，那是另一個宣稱。
+
+裁切有效的正向對照在**離線**那一組：對著確實帶有 31 個雜訊像素的那張畫布
+（`a11y-gate0-after-caret.png`）重放分類——裁切開 **9 條**、關掉 **7 條**。同一張畫布、
+一個差異、兩個方向都量了。
+
+⇒ 順帶得到：**雜訊本身是間歇的**，發生率**沒有量**。這篇的兩張拍到了，之後的十張都
+沒有，而沒有人去找過差別在哪。
+
+## 修法之後剩下的兩條，都不是分帶問題
+
+**（一）格式屏障停住。**`bulleting-a-blank-line-does-not-demand-a-rollback` 在 v5 上
+FAIL。那句 toast 在引擎裡**只有一個產生點**：`failFormatBarrierAtDeadline()`，它同時
+把 `failureShape` 寫成 `stage-deadline:<階段>`。finding 046 的處方**刻意寫窄**，只在
+`dispatched && route == "collapsed" && failureShape == "multi-block-readback"` 時才
+不要求回滾——`stage-deadline` 不是那個形狀，於是掉回「請回到檢查點」。
+
+`FormatBarrierStageDeadlineMs` 是 **5000**，而且**每個階段重新計時**。所以這是某個階段
+**停住**，不是 core 慢。**不要放寬 046 的處方去蓋它**——那是把一個沒人理解的停住變成
+綠燈。要問的是那個階段為什麼停五秒。
+
+`failureShape` 會傳到頁面（`paragraph-editor-client.js` 讀 `error.details.formatBarrier`），
+但產品路徑的報告只留了 toast。**把它記進報告是下一個最便宜的量測。**
+
+**（二）粗體，指向 harness 自己的碼錶。**四臂粗體錯三臂，而斜體、底線、刪除線全過。
+那個形狀不是「粗體壞了」，是**早一臂、然後晚一臂**：`format_arm` 按完格式按鈕之後
+**固定睡 1.5 秒**才打字，慢一點就會在格式還沒到的時候把標記打下去，而那個格式接著
+落在**下一臂**的標記上。
+
+改法是等 `aria-pressed`——頁面**只從引擎廣播的 `editorState.format`** 設定它，引擎說
+不知道時把屬性移掉，所以等的是引擎的確認而不是頁面的樂觀。**這是帶著修法的假說，
+不是結果**；判它的那一輪還在跑，而且改過的檢查必須在原本就綠的那顆 core 上重量。
+
 ## 沒有量的（因此不指認）
 
 - **是不是 accessibility 造成的。**那顆 core 是 `--with-wasm-module writer calc`

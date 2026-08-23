@@ -1057,6 +1057,27 @@
         }
       ],
       "checkNote": "Absent until the page slices a prefix at all. When it does, the diff has to say which route was taken and why the 074 risk is acceptable there."
+    },
+    {
+      "id": "queue-tile-buffer-is-not-zeroed",
+      "title": "the tile pixel buffer is malloc'd, paintTile draws only the page, and putImageData blits the rest -- uninitialised heap, in colour, on a canvas the user can screenshot",
+      "expectation": "present",
+      "blocksRelink": false,
+      "source": "finding 076, found 2026-08-23 while tracing finding 075's root cause; findings/evidence/f075-off-page-garbage/",
+      "note": "MEASURED, not read. `putImageData` is replace semantics INCLUDING alpha, and `layoutCanvas()` scales the whole canvas without cropping, so whatever malloc returned outside the page is displayed. It has always happened and was invisible because a freshly grown WASM heap is zero: the project had already measured the shipped core's unpainted buffer at 88 non-zero of 2,105,340 sampled points (0.0042%) and 0% opaque, which is why the ink test never saw it. On the accessibility core the same off-page columns came back 290 opaque of 26,941 (1.08%) with 184 distinct alpha values against 33 -- 250x as much of the same thing, plausibly because +19.9 MB of code means this buffer lands on REUSED memory rather than a fresh page (that last part is inference, not measured). 31 of those pixels were dark enough to be ink and broke the band scan, which is finding 075 and the cheap half; the expensive half is that fragments of this process's heap were being rendered. FIXED IN SOURCE with `calloc` rather than a later memset, so there is no window and no second statement to forget. Syntax-checked with em++ under BOTH configurations (writer-only and a11y). IT DOES NOT REACH THE PRODUCT UNTIL A LINK -- dist/ still carries malloc. The harness-side page clip from finding 075 stays regardless: it guards the class of defect, not this one instance, and a purely engine-side fix would leave the instrument silently wrong on the next unexpected off-page rendering.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "std::calloc(static_cast<std::size_t>(byteCount), 1)"
+        },
+        {
+          "kind": "absent",
+          "file": "src/probe_engine.cpp",
+          "text": "std::malloc(static_cast<std::size_t>(byteCount))"
+        }
+      ],
+      "checkNote": "Both directions, because adding the calloc without removing the malloc is exactly the shape of a half-applied fix -- and the absent check is what makes a revert visible."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

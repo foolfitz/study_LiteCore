@@ -2858,8 +2858,35 @@ void handlePaintTile(const Command &command) {
     return;
   }
 
+  // ZEROED, and `malloc` here was finding 076.
+  //
+  // `paintTile` draws the PAGE and leaves the rest of the buffer alone, so
+  // whatever `malloc` handed back survives in the margins -- and the client
+  // blits the buffer verbatim with `putImageData`, which writes ALPHA too.
+  // The product was therefore painting uninitialised heap onto the user's
+  // screen, in colour, wherever the document does not cover the tile.
+  //
+  // It was always happening and was always invisible, because a freshly grown
+  // WASM heap is zero: the shipped core's off-page area comes back 0.0042%
+  // non-zero (88 of 2,105,340 sampled points, measured for `tileWasPainted`)
+  // and 0% opaque, so it reads as transparent. On the accessibility core --
+  // +19.9 MB of code and far more allocation churn, so this buffer lands on
+  // REUSED memory rather than a fresh page -- the same region came back 1.08%
+  // opaque (290 of 26,941) with 184 distinct alpha values against 33.
+  // Two hundred and fifty times as much of the same thing.
+  //
+  // Thirty-one of those pixels were dark enough to be ink, they fell in the
+  // gaps between lines, and the harness's band scan merged two lines and threw
+  // the pair away below its density floor. That is finding 075, and it is the
+  // cheap consequence: the expensive one is that a canvas the user can
+  // screenshot was displaying fragments of this process's heap.
+  //
+  // `calloc` rather than a `memset` after the fact so there is no window and
+  // no second statement to forget. On a fresh page the allocator's zeroing is
+  // free; on reused memory it is one pass over 2.7 MB, against a paint that
+  // rasterises the same buffer.
   auto *pixels = static_cast<unsigned char *>(
-      std::malloc(static_cast<std::size_t>(byteCount)));
+      std::calloc(static_cast<std::size_t>(byteCount), 1));
   if (!pixels) {
     emitCommandError(command, "tile", "OUT_OF_MEMORY",
                      "unable to allocate the tile pixel buffer");
