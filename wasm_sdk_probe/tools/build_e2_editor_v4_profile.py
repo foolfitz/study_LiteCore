@@ -203,11 +203,41 @@ def main() -> int:
                              "packaged was built with OXSDK_A11Y_OUTLINE. Off "
                              "by default, so the shipped invocation is "
                              "unchanged")
+    # GRANTING A GESTURE NOBODY HAS MEASURED, on purpose and only here.
+    #
+    # Finding 078: the four inline formats are offered for `collapsed` only,
+    # because range dispatch was characterised for the paragraph actions and not
+    # for these -- so the manifest declines to claim it. That is right, and the
+    # cost of it is that the product cannot embolden text a user has selected.
+    #
+    # The measurement that would justify granting it cannot be taken through a
+    # manifest that withholds it: the engine refuses before dispatch. So this
+    # flag exists to build the profile the CHARACTERISATION runs against, and
+    # for nothing else. What it produces is not a product profile and says so
+    # in its own limits.
+    #
+    # Refused with the product's name below, because a profile that grants an
+    # unmeasured gesture while wearing the shipped identity is the exact shape
+    # of claim this contract is built to prevent.
+    parser.add_argument("--inline-range-gestures",
+                        choices=("none", "range-single", "all"),
+                        default="none",
+                        help="DIAGNOSTIC ONLY. Grant the four inline formats "
+                             "range gestures so the characterisation for "
+                             "finding 078 can be taken. Requires --profile to "
+                             "name something other than the product")
     parser.add_argument("--profile", default=PROFILE,
                         help="profile identity to stamp; defaults to the "
                              "product's. Use another name for any profile "
                              "built against a core that is not the product's")
     args = parser.parse_args()
+
+    if args.inline_range_gestures != "none" and args.profile == PROFILE:
+        raise SystemExit(
+            "refusing to grant unmeasured inline range gestures under the "
+            f"product's own name ({PROFILE}). Pass --profile with a "
+            "diagnostic name: a manifest that claims coverage the evidence "
+            "does not have is the one thing this contract exists to prevent")
 
     problems = v2.refuse_non_product(args.exports)
     if problems:
@@ -229,6 +259,19 @@ def main() -> int:
     contract = manifest["editorContract"]
     contract["abiVersion"] = ABI_VERSION
     contract["actions"] = action_map()
+    if args.inline_range_gestures != "none":
+        extra = ([v2.RANGE_SINGLE] if args.inline_range_gestures == "range-single"
+                 else [v2.RANGE_SINGLE, v2.RANGE_CROSS])
+        for name in ("set-bold", "set-italic", "set-underline",
+                     "set-strikethrough"):
+            action = contract["actions"][name]
+            action["gestures"] = list(action["gestures"]) + list(extra)
+            # The limit travels with the grant.  A reader who finds this
+            # manifest without its provenance must still be told that the
+            # gesture it offers is one nobody has characterised.
+            action["limits"] = list(action["limits"]) + [
+                "range-gesture-granted-for-characterisation-only"]
+        contract["inlineRangeGesturesAreDiagnostic"] = True
     contract["inlineFormatEnabledIsHonoured"] = True
     # The sibling of `undo`, and declared the same way: a document-level SDK
     # operation, not an action, so it has no wire id and no gesture.

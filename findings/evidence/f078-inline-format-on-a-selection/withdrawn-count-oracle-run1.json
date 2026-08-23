@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "release": "inline-range-format-characterisation",
+  "finding": "078",
+  "profile": "e2-inline-range",
+  "question": "does an inline format applied to a SELECTION land on exactly that selection?",
+  "arms": [
+    {
+      "label": "range-single",
+      "action": "set-bold",
+      "drag": {
+        "from": [
+          "0.14",
+          "0.28"
+        ],
+        "to": [
+          "0.30",
+          "0.28"
+        ]
+      },
+      "selection": {
+        "handlerRan": true,
+        "toast": "已複製 U+0031,U+002D,U+004C,U+0043,U+002D,U+004E,U+0055,U+004D,U+0042,U+0045,U+0052,U+002D,U+0054,U+0057 字",
+        "codePoints": 14,
+        "codePointsSeen": [
+          "1",
+          "-",
+          "L",
+          "C",
+          "-",
+          "N",
+          "U",
+          "M",
+          "B",
+          "E",
+          "R",
+          "-",
+          "T",
+          "W"
+        ],
+        "characters": 14
+      },
+      "buttonLabel": "B",
+      "buttonOffered": true,
+      "latency": "B 12 ms",
+      "toast": "",
+      "refused": false,
+      "savedIsOdt": true,
+      "boldRuns": [
+        {
+          "styleName": "T1",
+          "weight": "bold",
+          "text": "1-LC-NUMBER-TW",
+          "length": 14
+        }
+      ],
+      "boldCharacters": 14,
+      "boldParagraphs": [
+        {
+          "styleName": "P1",
+          "weight": "bold",
+          "text": "E1-LC-BULLET-ONE",
+          "length": 16,
+          "styleSource": "<style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"E1LCBullet\"/><style:style style:name=\"P2\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"E1LCNumber\"/><style:style style:name=\"T1\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\" style:font-weight-asian=\"bold\" style:font-weight-complex=\"bold\"/></style:style>"
+        },
+        {
+          "styleName": "P1",
+          "weight": "bold",
+          "text": "E1-LC-BULLET-TWO 中文項目",
+          "length": 21,
+          "styleSource": "<style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"E1LCBullet\"/><style:style style:name=\"P2\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"E1LCNumber\"/><style:style style:name=\"T1\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\" style:font-weight-asian=\"bold\" style:font-weight-complex=\"bold\"/></style:style>"
+        }
+      ],
+      "boldParagraphCharacters": 37,
+      "appliedToExactlyTheSelection": true,
+      "appliedToWholeParagraphs": true,
+      "why": "the engine says 14 characters were selected; the saved document carries 14 bold characters in text spans and 37 in paragraphs whose own style is bold. Equal spans means it landed on the selection and nothing else; bold PARAGRAPHS means it overshot the selection entirely"
+    },
+    {
+      "label": "range-cross",
+      "action": "set-bold",
+      "drag": {
+        "from": [
+          "0.14",
+          "0.28"
+        ],
+        "to": [
+          "0.30",
+          "0.34"
+        ]
+      },
+      "selection": {
+        "handlerRan": true,
+        "toast": "已複製 U+0020,U+0020,U+0020,U+0020,U+0020,U+0031,U+002D,U+004C,U+0043,U+002D,U+004E,U+0055,U+004D,U+0042,U+0045,U+0052,U+002D,U+0054,U+0057,U+004F,U+000A,U+0045,U+0031,U+002D,U+004C,U+0043,U+002D,U+0045,U+004E,U+0044 字",
+        "codePoints": 30,
+        "codePointsSeen": [
+          " ",
+          " ",
+          " ",
+          " ",
+          " ",
+          "1",
+          "-",
+          "L",
+          "C",
+          "-",
+          "N",
+          "U",
+          "M",
+          "B",
+          "E",
+          "R",
+          "-",
+          "T",
+          "W",
+          "O",
+          "\n",
+          "E",
+          "1",
+          "-",
+          "L",
+          "C",
+          "-",
+          "E",
+          "N",
+          "D"
+        ],
+        "characters": 30
+      },
+      "buttonLabel": "B",
+      "buttonOffered": true,
+      "latency": "B 8 ms",
+      "toast": "",
+      "refused": false,
+      "savedIsOdt": true,
+      "boldRuns": [
+        {
+          "styleName": "T1",
+          "weight": "bold",
+          "text": "1-LC-NUMBER-TW",
+          "length": 14
+        },
+        {
+          "styleName": "T1",
+          "weight": "bold",
+          "text": "O",
+          "length": 1
+        }
+      ],
+      "boldCharacters": 15,
+      "boldParagraphs": [
+        {
+          "styleName": "P1",
+          "weight": "bold",
+          "text": "E1-LC-BULLET-ONE",
+          "length": 16,
+          "styleSource": "<style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"E1LCBullet\"/><style:style style:name=\"P2\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"E1LCNumber\"/><style:style style:name=\"P3\" style:family=\"paragraph\" style:parent-style-name=\"Standard\"><style:text-properties fo:font-weight=\"bold\" style:font-weight-asian=\"bold\" style:font-weight-complex=\"bold\"/></style:style>"
+        },
+        {
+          "styleName": "P1",
+          "weight": "bold",
+          "text": "E1-LC-BULLET-TWO 中文項目",
+          "length": 21,
+          "styleSource": "<style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"E1LCBullet\"/><style:style style:name=\"P2\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"E1LCNumber\"/><style:style style:name=\"P3\" style:family=\"paragraph\" style:parent-style-name=\"Standard\"><style:text-properties fo:font-weight=\"bold\" style:font-weight-asian=\"bold\" style:font-weight-complex=\"bold\"/></style:style>"
+        }
+      ],
+      "boldParagraphCharacters": 37,
+      "appliedToExactlyTheSelection": false,
+      "appliedToWholeParagraphs": true,
+      "why": "the engine says 30 characters were selected; the saved document carries 15 bold characters in text spans and 37 in paragraphs whose own style is bold. Equal spans means it landed on the selection and nothing else; bold PARAGRAPHS means it overshot the selection entirely"
+    }
+  ],
+  "mirror": {
+    "root": "/home/jiajun/.cache/litecore-probe-tmp/inline-range-r394pckh/a11y-gate0-root",
+    "profile": "e2-inline-range",
+    "wasmSha256": "f923cfa5aba3074971799f5e6b8baf81c2d2d85e7b2c65ce5039d858fc17ed52",
+    "pinBefore": "f923cfa5aba30749",
+    "pinAfter": "f923cfa5aba30749",
+    "workerUrl": "\"./profiles/e2-inline-range/sdk-worker.js\"",
+    "note": "The product page is MIRRORED, not modified: dist/ is never written and the shipped page still pins the shipped wasm. This run is diagnostic on both counts -- a core that is not the product's, and a page that was edited to reach it."
+  },
+  "clipboardPermission": {
+    "granted": true,
+    "focusEmulated": true
+  },
+  "shimInstalled": "installed",
+  "shims": [
+    "URL.createObjectURL",
+    "HTMLAnchorElement.click"
+  ],
+  "baseline": {
+    "savedIsOdt": true,
+    "boldRuns": [],
+    "boldParagraphs": [],
+    "boldCharacters": 0,
+    "boldParagraphCharacters": 0
+  },
+  "outcome": "SEE_ARMS"
+}
