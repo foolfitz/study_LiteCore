@@ -37,6 +37,11 @@
 #include <com/sun/star/accessibility/XAccessible.hpp>
 #include <com/sun/star/accessibility/XAccessibleContext.hpp>
 #include <com/sun/star/accessibility/XAccessibleText.hpp>
+#include <com/sun/star/accessibility/TextSegment.hpp>
+#include <com/sun/star/accessibility/AccessibleTextType.hpp>
+#include <com/sun/star/beans/PropertyValue.hpp>
+
+#include <editeng/unoprnms.hxx>
 
 #include <rtl/ustrbuf.hxx>
 #include <sal/types.h>
@@ -130,6 +135,18 @@ int walk(std::ostringstream& rOut,
          << ",\"childCount\":" << nChildren;
     appendStates(rOut, nStates);
 
+    // NUMBERING LEVEL AND LIST STATE, asked the way core asks them.
+    //
+    // `getListPrefixSize()` (sfx2/source/view/viewsh.cxx:554) already queries
+    // exactly these two properties off exactly this object, so this is not a
+    // new idea about where the data lives -- it is the same query, reported
+    // instead of consumed.  WCAG 1.3.1 wants a heading's LEVEL and a list's
+    // NESTING, and both are supposed to be here.
+    //
+    // `attrRunEnd` is reported beside them on purpose: it is the value finding
+    // 074 says LOK mistakes for the numbering prefix length, and having all
+    // three side by side is what makes that finding checkable from our side
+    // rather than only by reading core.
     // Text length, never the text: this is a shape probe, and the paragraph's
     // text already has its own named contract field.
     css::uno::Reference<css::accessibility::XAccessibleText> xText(
@@ -142,6 +159,31 @@ int walk(std::ostringstream& rOut,
             rOut << ",\"textLength\":" << aText.getLength() << ",\"textHead\":\"";
             appendEscaped(rOut, aText.copy(0, std::min<sal_Int32>(24, aText.getLength())));
             rOut << '"';
+
+            if (aText.getLength() > 0)
+            {
+                sal_Int16 nLevel = -1;
+                bool bCounted = false;
+                const css::uno::Sequence<OUString> aWanted{
+                    UNO_NAME_NUMBERING_LEVEL, UNO_NAME_NUMBERING};
+                const css::uno::Sequence<css::beans::PropertyValue> aAttrs
+                    = xText->getCharacterAttributes(0, aWanted);
+                for (const auto& rAttr : aAttrs)
+                {
+                    if (rAttr.Name == UNO_NAME_NUMBERING_LEVEL)
+                        rAttr.Value >>= nLevel;
+                    else if (rAttr.Name == UNO_NAME_NUMBERING)
+                        rAttr.Value >>= bCounted;
+                }
+                rOut << ",\"numberingLevel\":" << nLevel
+                     << ",\"isNumbered\":" << (bCounted ? "true" : "false")
+                     << ",\"attrsReturned\":" << aAttrs.getLength();
+
+                const css::accessibility::TextSegment aRun
+                    = xText->getTextAtIndex(
+                        0, css::accessibility::AccessibleTextType::ATTRIBUTE_RUN);
+                rOut << ",\"attrRunEnd\":" << aRun.SegmentEnd;
+            }
         }
         catch (const css::uno::Exception&)
         {

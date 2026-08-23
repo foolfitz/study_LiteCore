@@ -75,17 +75,42 @@ because one tree carries both the structure and the focus.
   `truncatedAt: 300` — the bound that was *not* binding — while staying silent
   about the one that was. **Reporting the wrong limit is worse than reporting
   none.**
-* **Outline LEVEL is not measured.** Heading-versus-paragraph is; heading *1*
-  versus heading *2* is not. `getListPrefixSize()` already queries
-  `UNO_NAME_NUMBERING_LEVEL` off the same object, so the datum is probably
-  there — *probably* is not measured.
-* **Lists are the open gap, and it is now a measured one.** Across both
-  documents every non-heading node reports `PARAGRAPH` — never `LIST_ITEM`,
-  and no `LIST` container appears anywhere. `list-contexts.odt` contains
-  bulleted and numbered lists; the tree does not say so. **1.3.1 wants lists to
-  be lists, and this tree does not carry that.** Whether it is recoverable from
-  `listPrefixLength` plus numbering level, or needs a different query, is not
-  known.
+* ~~**Outline LEVEL is not measured.**~~ **MEASURED, and it is exact.** Asked
+  the way core asks it — `getCharacterAttributes(0, {NumberingLevel,
+  Numbering})`, the same query `getListPrefixSize()` makes off the same object.
+  On `paragraph-content.odt`, seven distinct heading levels **including a gap**:
+
+  | ODT `outline-level` | 2 | 3 | 4 | 5 | 6 | 7 | 10 |
+  |---|---|---|---|---|---|---|---|
+  | tree `numberingLevel` | 1 | 2 | 3 | 4 | 5 | 6 | 9 |
+
+  `numberingLevel = outline-level - 1`. ARIA's `aria-level` is 1-based, so
+  `aria-level = numberingLevel + 1` returns the document's own number.
+  Record: `heading-levels-2026-08-23.json`.
+
+  **A weaker reading was available and would have been wrong**: on the
+  133-paragraph document all 22 headings report level 0, which looks like
+  "level is always 0". That document has one heading style. Reading it as a
+  property of the tree rather than of the document is the same mistake the 64
+  bound nearly produced, one measurement later.
+* ~~**Lists are the open gap**~~ **— RECOVERABLE, measured.** The tree carries
+  no `LIST_ITEM` role and no `LIST` container, which is true and was the wrong
+  thing to look at. List membership is in the same two properties as the level:
+
+  ```
+  HEADING    lvl 0  numbered=True   runEnd 13  len 13  'E1-LC-HEADING'
+  PARAGRAPH  lvl-1  numbered=False  runEnd 15  len 25  'E1-LC-ISOLATED …'
+  PARAGRAPH  lvl 0  numbered=True   runEnd  2  len 18  '• E1-LC-BULLET-ONE'
+  PARAGRAPH  lvl 0  numbered=True   runEnd  3  len 19  '1. E1-LC-NUMBER-ONE'
+  PARAGRAPH  lvl-1  numbered=False  runEnd  9  len  9  'E1-LC-END'
+  ```
+
+  `isNumbered` marks exactly the four list paragraphs in `list-contexts.odt`
+  and nothing else; non-list paragraphs report `-1 / False`. Read `role` first
+  (HEADING vs PARAGRAPH), then `isNumbered` for list membership, then
+  `numberingLevel` for nesting — because a **heading also reports
+  `numbered=True`**, outline numbering being numbering. Record:
+  `levels-and-lists-2026-08-23.json`.
 * **Live update is not measured.** Every snapshot here was taken at rest. What
   the tree does *during* an edit — and whether it is safe to walk then — is
   unknown.
@@ -122,3 +147,48 @@ Recorded because each produced a **false negative that looked like a verdict**:
 Each time the honest-looking conclusion was "this route does not work". The
 rule that saved it each time was the same: **check the instrument against
 something known-present before believing its silence.**
+
+## Finding 074, now confirmed from our side rather than by reading core
+
+The same run measures `attrRunEnd` — the value
+`getListPrefixSize()` returns as the list prefix length — beside the text it is
+supposed to describe:
+
+| paragraph | text | length | `attrRunEnd` | true prefix |
+|---|---|---:|---:|---:|
+| `• E1-LC-BULLET-ONE` | bullet | 18 | **2** | 2 (`"• "`) ✓ |
+| `1. E1-LC-NUMBER-ONE` | numbered | 19 | **3** | 3 (`"1. "`) ✓ |
+| `E1-LC-HEADING` | heading | 13 | **13** | **0** ✗ |
+
+The mechanism is visible in one table. For bullets and numbers the prefix has
+different character formatting, so it is its own attribute run and `SegmentEnd`
+*coincides* with the prefix length. The heading's text contains **no numbering
+label at all** — so the true prefix is 0 — but it carries outline numbering, so
+`bIsCounted` is true, the guard passes, and the attribute run covers the whole
+paragraph.
+
+That is stronger than finding 074 was able to state from source alone: not
+merely "the whole paragraph is claimed as prefix", but **13 returned where the
+correct answer is 0, on a paragraph with no prefix in it**.
+
+Note also `E1-LC-ISOLATED …`: `attrRunEnd` 15 on a 25-character paragraph — an
+attribute-run boundary mid-text, nothing to do with numbering. It is harmless
+only because `isNumbered` is false there and the guard returns 0 first. The
+guard is what saves the ordinary case; the heading is where it stops saving it.
+
+## What the projection can therefore be built on
+
+Everything 1.3.1 asks for, measured and available from one walk:
+
+| what | where |
+|---|---|
+| heading vs paragraph | `AccessibleRole` — an **enum**, not a localised name |
+| heading level | `numberingLevel + 1` |
+| list membership | `isNumbered` (after `role == PARAGRAPH`) |
+| list nesting | `numberingLevel` |
+| reading order | child index at depth 1 |
+| which paragraph has the caret | the single `FOCUSED` node |
+| the text | `XAccessibleText`, and LOK's `paragraphText` agrees with it |
+
+**Still unmeasured**: what the tree does *during* an edit, and whether walking
+it then is safe. Every snapshot here was taken at rest.

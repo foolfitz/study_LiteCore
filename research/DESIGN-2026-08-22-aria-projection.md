@@ -438,3 +438,34 @@ if (m_nListPrefixLength > 0)
 
 但它**不會**讓指紋接合起死回生：重複文字的段落本來就同指紋（實測 r7-compat 語料
 22% 的段落落在碰撞裡），那是與 074 無關的第二個成因。§8 的判定不變。
+
+---
+
+## 10. §9 的三選一收斂了（2026-08-23，全部量過）
+
+§9 列了三個選項並說「沒先量就選不出來」。量完了，而選項 (i) 給的比它被開出來時預期的多。
+
+**一次走訪就拿得到 1.3.1 要的全部：**
+
+| 要什麼 | 從哪裡來 |
+|---|---|
+| 標題 vs 段落 | `AccessibleRole`——**列舉**，不是在地化名稱 |
+| 標題層級 | `numberingLevel + 1`（＝ ODT 的 outline-level） |
+| 是不是清單項 | `isNumbered`（在 `role == PARAGRAPH` 之後看） |
+| 清單巢狀深度 | `numberingLevel` |
+| 閱讀順序 | depth 1 的子節點次序 |
+| 游標在哪一段 | 唯一那個 `FOCUSED` 節點 |
+| 文字 | `XAccessibleText`，且與 LOK 的 `paragraphText` 一致 |
+
+而且 **133 段的文件整份都在**（根回報 `childCount: 133`，實際吐 133 個），
+`MANAGES_DESCENDANTS` 沒有截斷任何東西。
+
+⇒ **(ii) 上游改 payload 仍是終局，但它不再是能不能做的問題，只是要不要一直背著
+內部 API 的問題。(iii) 只做一半那個選項出局**——半套的理由本來是「結構拿不到」，
+而結構拿得到。
+
+證據：[`findings/evidence/aria-projection/TREE-SHAPE.md`](../findings/evidence/aria-projection/TREE-SHAPE.md)。
+
+**唯一還沒量的**：編輯**當下**那棵樹會怎麼變、以及那時候走訪安不安全。這裡每一張
+快照都是靜止時拍的。那一格要在寫投影之前量，因為它決定投影是「事件驅動重建」還是
+「按需走訪」——兩種形狀不一樣。

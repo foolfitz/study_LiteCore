@@ -58,6 +58,31 @@ sal_Int32 getListPrefixSize(const uno::Reference<XAccessibleText>& xAccText)
   等於整段長度。標題最常中——它有大綱編號（所以 `nLevel >= 0`、`bIsCounted` 為真，
   過得了 `:579` 的門），而標題的字元格式通常整段一致。
 
+## 從我們這一側量到的（2026-08-23 追加）
+
+不再只是讀 core 原始碼推斷。`src/a11y_tree_probe.cpp` 在同一個無障礙物件上做**與
+`getListPrefixSize()` 相同的查詢**，並把它回傳的 `SegmentEnd` 跟它要描述的文字並排：
+
+| 段落 | 種類 | 長度 | `attrRunEnd` | 真正的前綴長度 |
+|---|---|---:|---:|---:|
+| `• E1-LC-BULLET-ONE` | 項目符號 | 18 | **2** | 2（`"• "`）✓ |
+| `1. E1-LC-NUMBER-ONE` | 編號 | 19 | **3** | 3（`"1. "`）✓ |
+| `E1-LC-HEADING` | 標題 | 13 | **13** | **0** ✗ |
+
+機制在一張表裡看得完：項目符號與編號的前綴**字元格式不同**，所以它自成一個
+attribute run，`SegmentEnd` 與前綴長度**恰好相等**。而標題的文字裡**根本沒有編號
+標籤**——真正的前綴長度是 **0**——但它帶大綱編號，所以 `bIsCounted` 為真、過得了
+`:579` 的門，而它整段格式一致，attribute run 涵蓋整段。
+
+**這比只讀原始碼能講的更強**：不是「整段被宣告成前綴」，而是**在一個前綴長度為 0
+的段落上回傳 13**。
+
+順帶一個佐證：`E1-LC-ISOLATED 前後都不是清單的段落`（25 字）的 `attrRunEnd` 是 **15**
+——文字中間有個屬性 run 邊界，與編號毫無關係。它沒出事只是因為那一段 `isNumbered`
+是 false，守衛先回 0 了。**守衛救的是一般情形，而標題正是它救不到的地方。**
+
+證據：`findings/evidence/aria-projection/levels-and-lists-2026-08-23.json`。
+
 ## 為什麼這對取用端是靜默的錯
 
 `listPrefixLength` 的合約是「前 N 個字元是編號前綴，不是內文」。取用端據此切掉前綴：
