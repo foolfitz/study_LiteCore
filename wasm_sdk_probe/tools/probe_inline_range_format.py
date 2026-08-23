@@ -161,12 +161,63 @@ def arm(session, label: str, x1, y1, x2, y2, action: str,
     return record
 
 
+# WHAT THE NORMALISATION CAN AND CANNOT HIDE.
+#
+# The oracle squeezes whitespace before comparing, and that is an INSTRUMENT
+# ACCOMMODATION of a quirk nobody has explained: the engine's selection string
+# carries a 5-character list prefix when the selection crosses paragraphs, plus
+# a `\n` separator, and neither is document text.  An accommodation that can
+# mask the defect class it accommodates is how this same oracle produced two
+# wrong conclusions in one afternoon, so it gets a table rather than a promise.
+#
+# The result, run by `--self-test`: squeezing hides ONLY differences that are
+# purely whitespace.  A dropped word, a dropped character and an extra
+# character all still fail.
+#
+# THE NAMED LIMIT: a format that covered two words but not the space between
+# them would be called equal here.  Nothing has measured whether that shape can
+# occur, and this oracle would not see it.
+NORMALISATION_CASES = [
+    ("applied in full", "1-LC-NUMBER-TWOE1-LC-END", True),
+    ("second paragraph dropped", "1-LC-NUMBER-TWO", False),
+    ("first paragraph dropped", "E1-LC-END", False),
+    ("one character dropped", "1-LC-NUMBER-TWE1-LC-END", False),
+    ("one character too many", "1-LC-NUMBER-TWOXE1-LC-END", False),
+    ("differs only in whitespace", "1-LC-NUMBER-TWO E1-LC-END", True),
+]
+NORMALISATION_SELECTION = "     1-LC-NUMBER-TWO\nE1-LC-END"
+
+
+def self_test() -> int:
+    squeeze = lambda v: re.sub(r"\s+", "", v)     # noqa: E731
+    failures = 0
+    print("can the whitespace normalisation hide a real miss?")
+    for label, got, expected in NORMALISATION_CASES:
+        equal = squeeze(got) == squeeze(NORMALISATION_SELECTION)
+        ok = equal == expected
+        failures += 0 if ok else 1
+        print(f"  {'ok  ' if ok else 'FAIL'} {label}: judged "
+              f"{'equal' if equal else 'different'}")
+    print("  NAMED LIMIT: a difference that is only whitespace is invisible "
+          "to this oracle, deliberately, and nothing has measured whether a "
+          "format can miss a space between two words it covered")
+    return failures
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--profile", default="e2-inline-range")
     ap.add_argument("--action", default="set-bold")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--self-test", action="store_true",
+                    help="check what the oracle's whitespace normalisation can "
+                         "and cannot hide, and run nothing else")
     args = ap.parse_args()
+
+    if args.self_test:
+        failures = self_test()
+        print("self-test", "ok" if not failures else "FAILED")
+        return 1 if failures else 0
 
     record: dict = {
         "schemaVersion": 1,

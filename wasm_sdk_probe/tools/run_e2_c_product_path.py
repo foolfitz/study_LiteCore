@@ -1372,16 +1372,41 @@ MUTATIONS = {
     # a format press that does nothing when there is a selection -- which is
     # what the user experienced, and leaves the collapsed-caret arms untouched
     # so the new check is the one that has to notice.
+    # FINDING 078's mutation.  A toolbar that can only turn formats OFF: the
+    # press goes out with `enabled: false`, so nothing the user selects ever
+    # becomes bold.
+    #
+    # THE FIRST VERSION OF THIS MUTATION DID NOTHING, and what it taught is
+    # worth more than it cost.  It returned early when
+    # `lastSelectionShape !== "collapsed"` -- and the early return never fired,
+    # because at press time the page's own shape variable still said
+    # `collapsed` although a drag had just made a range.  That is also why, on
+    # a profile granting one range bit, the BUTTON was enabled while the ENGINE
+    # refused: the page and the engine do not agree about the shape of the
+    # current selection, and the page's answer is the stale one.  A mutation
+    # keyed on that variable tests the variable, not the product.
     "format-ignores-a-selection": {
         "check": "an-inline-format-reaches-a-selection",
         "path": "e2-editor-app.js",
-        "find": "  const options = FORMAT_ACTIONS.has(action)\n",
-        "replace": ("  if (FORMAT_ACTIONS.has(action) && lastSelectionShape !== \"collapsed\")\n"
-                    "    return;\n"
-                    "  const options = FORMAT_ACTIONS.has(action)\n"),
-        "reintroduces": "a product where selected text cannot be emboldened, "
-                        "which is what shipped until e2-editor-v6",
-        "alsoRed": [],
+        "find": "    ? { enabled: formatStateFor(action) !== true }\n",
+        "replace": "    ? { enabled: false }\n",
+        "reintroduces": "a toolbar whose format buttons can only turn a format "
+                        "off, so no selection ever gains one",
+        # MEASURED, not predicted.  The first declaration named the two inline
+        # checks and was wrong twice over: those two came back
+        # NOT_ESTABLISHED rather than FAIL, and two checks nobody expected went
+        # red instead.  A blast radius written from reasoning is a guess with a
+        # list around it.
+        #
+        # AND THE RADIUS IS THIS MUTATION'S NAMED WEAKNESS.  A press that can
+        # only send `enabled: false` breaks everything that turns a format on,
+        # so this proves the new check CAN go red -- not that it is the one
+        # that would notice. A tighter mutation would have to break only the
+        # selection case, and the page cannot express that: its own selection
+        # shape is stale at press time (finding 079), which is exactly how the
+        # first attempt at a tighter mutation failed to fire at all.
+        "alsoRed": ["the-keyboard-reaches-the-document",
+                    "bold-can-be-turned-off-again"],
     },
     "projection-not-wired": {
         "check": "the-document-region-says-why-it-is-empty",

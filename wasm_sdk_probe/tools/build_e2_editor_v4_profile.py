@@ -263,7 +263,18 @@ def main() -> int:
     contract["abiVersion"] = ABI_VERSION
     contract["actions"] = action_map()
     if args.inline_range_gestures != "none":
-        diagnostic = args.inline_range_gestures != "range-single"
+        # WHICH VALUE IS THE EVIDENCE-BACKED ONE INVERTED, and the measurement
+        # is why.  The engine's gate demands BOTH range bits for a selection it
+        # has not classified -- classifying it needs the html read that findings
+        # 037/038 identify as an engine wedge -- so granting one alone admits
+        # NOTHING for a non-collapsed selection. Measured three ways on
+        # 2026-08-23: single-only refused, cross-only refused, both accepted.
+        #
+        # So `all` is the only grant that does anything, and it is the one the
+        # characterisation covers: all four inline formats, both shapes, the
+        # formatted text equal to the selected text. The single-gesture values
+        # remain, as the experiment that established the AND-semantics.
+        diagnostic = args.inline_range_gestures != "all"
         # `range-cross` alone is the discriminator for a question the other
         # three cannot answer: whether the ENGINE calls a selection inside one
         # line `range-single` at all. Measured 2026-08-23 -- the same drag that
@@ -294,21 +305,28 @@ def main() -> int:
                 # builder to read it as an oversight and "fix" it. `range-cross`
                 # is missing here on purpose.
                 action["limits"] = list(action["limits"]) + [
-                    "range-single-characterised-2026-08-23",
-                    "range-cross-withheld-pending-characterisation"]
+                    "range-characterised-2026-08-23-chrome-one-fixture",
+                    "whole-paragraph-selection-writes-paragraph-level-"
+                    "formatting-as-native-does"]
         if diagnostic:
             contract["inlineRangeGesturesAreDiagnostic"] = True
         else:
             # What the grant rests on, in the artifact that makes the claim.
             contract["inlineRangeEvidence"] = (
                 "findings/evidence/f078-inline-format-on-a-selection/ -- all "
-                "four inline formats measured on range-single against the "
+                "four inline formats measured on both range shapes against the "
                 "shipped artifact f923cfa5, the formatted text equal to the "
                 "selected text in every arm, with a baseline save and a "
-                "shipped-profile control. range-cross measured equal too but "
-                "expresses a fully selected paragraph as paragraph-level "
-                "formatting and reports a 5-character list prefix in the "
-                "selection text; neither is explained, so it is not granted")
+                "shipped-profile control. Both bits are granted because the "
+                "engine's gate requires both for an unclassified range; "
+                "granting one alone admits nothing, measured. A fully selected "
+                "paragraph comes back as paragraph-level formatting, which "
+                "native LibreOffice 26.8 does identically (same extent, same "
+                "shape, measured with tools/f078_native_range_format.cpp). "
+                "Chrome only, one fixture, one selection geometry per arm; the "
+                "5-character list prefix the copy path reports on a "
+                "cross-paragraph selection is unexplained and touches no "
+                "formatting outcome")
     contract["inlineFormatEnabledIsHonoured"] = True
     # The sibling of `undo`, and declared the same way: a document-level SDK
     # operation, not an action, so it has no wire id and no gesture.
