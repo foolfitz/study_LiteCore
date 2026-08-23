@@ -235,6 +235,32 @@ things fell out that were not on any plan:
 3. **Five codes are about the SHELL** — toolbar and file input, not the canvas
    — and have never been checked. Separate work item.
 
+## The product path itself stalls, and only on the accessibility profile
+
+Counted over 2026-08-23, same machine, nothing else running, load average under 1:
+
+| profile | runs | stalled |
+|---|---|---|
+| `e2-editor-v4` | 4 | **0** |
+| `e2-editor-v5` | 7 | **3–4** |
+
+A normal run is 11–13 minutes. A stalled one produces **nothing at all** — the
+report is written only at the end, so a timeout leaves a 0-byte log — and sits
+there: 29 min, 50 min, and one still going at 20 min as this is written. The
+browser is alive throughout, the page is loaded, the workers exist, CPU is
+low. It stops rather than slows.
+
+**This may be the same thing as the remaining FAIL.** That check dies on
+`stage-deadline`, which is a barrier stage that stopped advancing past a 5000 ms
+budget that re-arms per stage. Two "stops advancing" symptoms, both only on the
+accessibility core. **That is a hypothesis with a shape, not a finding** — nobody
+has attached to a stalled run and asked where it is. `/json/list` on the
+debugging port is passive and shows the page and workers alive; going further
+means evaluating in the page, which perturbs the run being diagnosed.
+
+The cheap next step is a run with per-step progress output, so a stall names its
+own step instead of being a silence.
+
 ## The two questions only the operator can answer
 
 Run `tools/serve_manual_preview.py --profile e2-editor-v5` (it serves a mirror;
