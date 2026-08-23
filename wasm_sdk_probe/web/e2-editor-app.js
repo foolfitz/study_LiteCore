@@ -59,6 +59,7 @@ const el = {
   pinnedHash: $("#pinned-hash"), expectedHash: $("#expected-hash"),
   actualHash: $("#actual-hash"),
   a11yDoc: $("#a11y-doc"), a11yPara: $("#a11y-para"),
+  a11yStructure: $("#a11y-structure"),
   s: { state: $("#s-state"), revision: $("#s-revision"), pending: $("#s-pending"),
        generation: $("#s-generation"), checkpoint: $("#s-checkpoint"),
        latency: $("#s-latency"), doc: $("#s-doc") },
@@ -176,6 +177,95 @@ function projectFocusedParagraph(snapshot) {
   el.a11yDoc.dataset.offers = session?.offersCaretParagraphText?.() ? "1" : "0";
 }
 
+/* ----------------------------------------- roadmap 3.4: the structure half
+ *
+ * WCAG 2.1 1.3.1 is Level A: information and relationships conveyed through
+ * presentation must be programmatically determinable. A canvas conveys "this
+ * is a heading" by drawing it larger; the DOM has to say it in roles.
+ *
+ * Everything below is driven by data that was MEASURED first
+ * (findings/evidence/aria-projection/TREE-SHAPE.md):
+ *
+ *   role        AccessibleRole -- an enum. NOT the paragraph style name, which
+ *               is a localised UI string (finding 031: `標題 1` under zh-TW),
+ *               so a role derived from it passes in en-US and fails silently
+ *               in the market this is for.
+ *   level       numberingLevel + 1 == the ODT outline-level. Measured across
+ *               seven levels including a gap.
+ *   list item   isNumbered, read AFTER role, because a heading also reports
+ *               numbered (outline numbering is numbering).
+ *   order       child index at depth 1. 133 of 133 on a long document.
+ *
+ * NOT A PRODUCT CONTRACT YET. `a11y.tree` exists only on the diagnostic
+ * profile; the shipped one has no such field and takes the early return below.
+ * The product shape is a one-shot operation on the next link -- designed from
+ * this once it has been measured, not before.
+ */
+const A11Y_ROLE_HEADING = 26;
+const A11Y_ROLE_PARAGRAPH = 41;
+
+function projectStructure(snapshot) {
+  const tree = snapshot?.editorState?.a11y?.tree;
+  const nodes = Array.isArray(tree?.nodes) ? tree.nodes : null;
+  // A TRANSIENT IS NOT AN EMPTINESS, and this is the measured reason for it:
+  // two readings on 2026-08-23 came back with no tree at all, both immediately
+  // after a keystroke, and both recovered on the next one. Blanking here would
+  // announce an empty document in the middle of typing.
+  if (!nodes) {
+    el.a11yStructure.dataset.state = tree ? "transient" : "unavailable";
+    // OUT OF THE TREE ENTIRELY when there is nothing to project.
+    //
+    // Measured: without this the shipped profile's accessibility tree went
+    // 175 -> 176 -- one empty, unroled container. Inert, and still a change to
+    // what a screen reader is handed on a profile this increment is not
+    // supposed to touch. `aria-hidden` is the difference between "the shipped
+    // page is unchanged" being true and being nearly true.
+    //
+    // NOT `hidden` and NOT `display:none`: those would also work here, but the
+    // container has to come BACK when a profile does carry the data, and the
+    // clip pattern above exists precisely because the display properties
+    // remove a node from the tree permanently in ways that are easy to get
+    // wrong. One mechanism for hiding, one for absence.
+    el.a11yStructure.setAttribute("aria-hidden", "true");
+    el.a11yStructure.replaceChildren();
+    return;
+  }
+  el.a11yStructure.removeAttribute("aria-hidden");
+  const paragraphs = nodes.filter((n) => n.depth === 1);
+  const fragment = document.createDocumentFragment();
+  let list = null;
+  for (const node of paragraphs) {
+    const text = node.textHead ?? "";
+    const isList = node.role === A11Y_ROLE_PARAGRAPH && node.isNumbered === true;
+    if (!isList) list = null;
+    let element;
+    if (node.role === A11Y_ROLE_HEADING) {
+      element = document.createElement("div");
+      element.setAttribute("role", "heading");
+      // +1 because ARIA levels are 1-based and NumberingLevel is 0-based;
+      // measured to return the document's own outline-level.
+      element.setAttribute("aria-level",
+                           String((node.numberingLevel ?? 0) + 1));
+    } else if (isList) {
+      if (!list) {
+        list = document.createElement("div");
+        list.setAttribute("role", "list");
+        fragment.appendChild(list);
+      }
+      element = document.createElement("div");
+      element.setAttribute("role", "listitem");
+    } else {
+      element = document.createElement("p");
+    }
+    element.textContent = text;
+    if (node.focused === true) element.dataset.focused = "1";
+    (isList ? list : fragment).appendChild(element);
+  }
+  el.a11yStructure.replaceChildren(fragment);
+  el.a11yStructure.dataset.state = "projected";
+  el.a11yStructure.dataset.paragraphs = String(paragraphs.length);
+}
+
 function updateState(snapshot) {
   el.statePill.dataset.state = snapshot.state;
   el.statePill.textContent = {
@@ -191,6 +281,7 @@ function updateState(snapshot) {
     ? `有（r${snapshot.checkpointRevision ?? "?"}）`
     : snapshot.checkpointError ? "寫入失敗" : "無";
   projectFocusedParagraph(snapshot);
+  projectStructure(snapshot);
   const notice = recoveryNotice(snapshot);
   el.notice.dataset.show = notice.visible ? "1" : "0";
   // The decision, stamped where a reader can see it: hosts may differ in

@@ -1041,6 +1041,22 @@
         }
       ],
       "checkNote": "Absent until editorGetStateV2 is routed through the product projection like the actions and editorGetStateV1 are. That string appearing is the smallest honest signal that the asymmetry was addressed rather than described."
+    },
+    {
+      "id": "queue-list-prefix-read-twice",
+      "title": "a projected list item carries its own bullet in the text, so a screen reader announces it twice -- and the obvious fix builds on the field finding 074 is about",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "2026-08-23, roadmap 3.4's structure increment (findings/evidence/aria-projection/RESULT-structure.md)",
+      "note": "The structure projection gives list paragraphs `role=\"listitem\"` and the text the tree reports, which INCLUDES the prefix: `• E1-LC-BULLET-ONE`, `1. E1-LC-NUMBER-ONE`. An AT announces the bullet from the role, so the marker is read twice. The obvious remedy is to strip `listPrefixLength` characters, and it is deliberately NOT done: that field is exactly what finding 074 describes -- it returns the end of the first ATTRIBUTE RUN, not the prefix length. Measured 2026-08-23 it is correct for the two list shapes in list-contexts (2 and 3) and returns 13 for a heading whose true prefix is 0. Two samples that happened to be right is not a licence to slice text on a field with a known upstream defect. Routes, none measured: strip only when `role == PARAGRAPH && isNumbered` (narrower, still trusts the field); ask for the numbering label separately; or wait for 074 upstream. Cosmetic on its face and it is not -- double announcement is one of the things that makes a screen reader unusable in practice, and it will be judged against the 68 檢測碼 rather than against taste.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "web/e2-editor-app.js",
+          "text": "listPrefixLength"
+        }
+      ],
+      "checkNote": "Absent until the page slices a prefix at all. When it does, the diff has to say which route was taken and why the 074 risk is acceptable there."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

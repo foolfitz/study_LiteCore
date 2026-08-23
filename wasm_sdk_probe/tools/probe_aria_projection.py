@@ -62,12 +62,24 @@ def ax_tree(session) -> list[dict]:
     for node in result.get("nodes", []):
         if node.get("ignored"):
             continue
+        # PROPERTIES, not just name/role.  G3.4-3 term 2 asks for the
+        # heading's LEVEL, and a heading with the right role and the wrong
+        # level is a heading a screen reader files in the wrong place -- the
+        # tree carries it here and reading only name/role cannot see it.
+        # `focused` for the same reason: term 5 is about which node the tree
+        # says has focus, not about what the page's DOM thinks.
+        wanted = {"level", "focused", "focusable"}
+        props = {p.get("name"): (p.get("value") or {}).get("value")
+                 for p in (node.get("properties") or [])
+                 if p.get("name") in wanted}
         nodes.append({
             "nodeId": node.get("nodeId"),
             "role": (node.get("role") or {}).get("value"),
             "name": (node.get("name") or {}).get("value"),
             "description": (node.get("description") or {}).get("value"),
             "value": (node.get("value") or {}).get("value"),
+            "level": props.get("level"),
+            "axFocused": props.get("focused"),
             "childIds": node.get("childIds") or [],
         })
     return nodes

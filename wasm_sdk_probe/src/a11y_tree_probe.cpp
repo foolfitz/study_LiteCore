@@ -69,6 +69,7 @@ constexpr int kMaxDepth = 6;
 // reader can tell the two apart without reading this source.
 constexpr sal_Int64 kMaxChildrenPerNode = 4096;
 constexpr int kMaxNodes = 4096;
+constexpr sal_Int32 kMaxTextHead = 4096;
 
 void appendEscaped(std::ostringstream& rOut, const OUString& rText)
 {
@@ -156,8 +157,16 @@ int walk(std::ostringstream& rOut,
         try
         {
             const OUString aText = xText->getText();
-            rOut << ",\"textLength\":" << aText.getLength() << ",\"textHead\":\"";
-            appendEscaped(rOut, aText.copy(0, std::min<sal_Int32>(24, aText.getLength())));
+            // `textHead` was 24 characters while this was purely a SHAPE
+            // probe.  Roadmap 3.4's projection needs the paragraph to be
+            // readable, so the cap is now 4096 and it travels in the payload
+            // (`textHeadCap`) beside the untruncated `textLength` -- a reader
+            // can always tell a short paragraph from a clipped one without
+            // opening this file.  Same rule the child bound had to learn.
+            rOut << ",\"textLength\":" << aText.getLength()
+                 << ",\"textHeadCap\":" << kMaxTextHead << ",\"textHead\":\"";
+            appendEscaped(rOut, aText.copy(0, std::min<sal_Int32>(kMaxTextHead,
+                                                                 aText.getLength())));
             rOut << '"';
 
             if (aText.getLength() > 0)

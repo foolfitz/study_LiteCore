@@ -138,8 +138,32 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v33.json"),
                     Path("e2/editor-shell-v2-bundle-v34.json"),
                     Path("e2/editor-shell-v2-bundle-v35.json"),
-                    Path("e2/editor-shell-v2-bundle-v36.json"))
+                    Path("e2/editor-shell-v2-bundle-v36.json"),
+                    Path("e2/editor-shell-v2-bundle-v37.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v38, 2026-08-23: roadmap 3.4 -- the screen reader can read the DOCUMENT.
+#
+# v37 projected the focused paragraph. WCAG 2.1 1.3.1 is Level A and wants
+# information and relationships to be programmatically determinable, so one
+# paragraph with no role was below the floor, not a scope boundary.
+#
+# This projects the whole document: one node per paragraph, in order, carrying
+# role (heading with aria-level, listitem inside a list, or paragraph) and the
+# paragraph's text, with focus following the caret. Everything it keys on was
+# measured first (findings/evidence/aria-projection/TREE-SHAPE.md): role is an
+# AccessibleRole ENUM, not the localised style name finding 031 is about;
+# aria-level is numberingLevel + 1, verified across seven outline levels
+# including a gap; list membership is isNumbered read AFTER role, because a
+# heading reports numbered too.
+#
+# Measured after, same instrument as the 171/0 baseline:
+#   shipped e2-editor-v4   175 nodes, no structure roles, no document text
+#   diagnostic a11y-tree   205 nodes, heading/list/listitem, 9 of 9 paragraphs
+#
+# The shipped page is unchanged to the node -- `aria-hidden` takes the empty
+# container out of the tree, which is the difference between that claim being
+# true and being nearly true (it was 176 before).
+#
 # v37, 2026-08-23: roadmap 3.4 -- the screen reader can read the paragraph.
 #
 # A screen reader cannot read a canvas and this whole document is one canvas.
@@ -287,7 +311,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v37.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v38.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
