@@ -139,8 +139,58 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v34.json"),
                     Path("e2/editor-shell-v2-bundle-v35.json"),
                     Path("e2/editor-shell-v2-bundle-v36.json"),
-                    Path("e2/editor-shell-v2-bundle-v37.json"))
+                    Path("e2/editor-shell-v2-bundle-v37.json"),
+                    Path("e2/editor-shell-v2-bundle-v38.json"),
+                    Path("e2/editor-shell-v2-bundle-v39.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v40, 2026-08-23: finding 079 -- the page's selection shape was computed from
+# two fields that are not on the object it read.
+#
+# `pumpDrag` read `result.collapsed` and `result.rectangles`, which is what
+# `editor-shell/editor-client.js` assembles on the V1 path.  The v2 client
+# returns the worker's envelope verbatim and the selection sits at
+# `state.selection`, so both reads were `undefined` and the expression returned
+# `collapsed` for EVERY drag ever made.  Recorded as a stale value; it was never
+# a value.  Measured on the shipped page with the engine's answer in the same
+# arm: 12 code points selected inside one line and 34 across two while the page
+# said `collapsed`, unchanged across an 8-second sampling window; afterwards
+# `range-single` and `range-cross`, 52-55 ms after the pointer went down.
+#
+# TWO files, and the second is the point.  The derivation MOVED out of the page
+# into `selectionShapeOf` in editor-shell-v2, exported and unit-tested, with the
+# recorded envelopes as its fixtures -- one case being this finding, that a
+# v1-shaped object must come back unknown rather than `collapsed`.  The defect's
+# class is "a derivation with no test read a layout some other layer assembles",
+# and a DOM tripwire on one reader does nothing about a second reader looking in
+# a second wrong place.
+#
+# The page also gained two attributes on the toolbar: `data-selection-shape`,
+# which makes its belief legible without inferring it from which buttons went
+# grey (that inference was what `e2-editor-v7` silently disarmed -- finding
+# 080), and `data-selection-unreadable` plus `data-selection-evidence` for a
+# result the accessor cannot read, so not-knowing is reported instead of being
+# spelled as `collapsed`.
+#
+# Shell-only.  No relink, the artifact did not move, and the pin did not move.
+# v39, 2026-08-23: THE SHELL e2-editor-v7 SHIPPED ON -- frozen late, and the
+# lateness is the record's most useful part.
+#
+# Three files have differed from v38 since commit 7fcb143: the v2 client and
+# session gained `offersDocumentOutline()`, and the page swapped the engine's
+# diagnostic `a11y.tree` for the contract's `documentOutline`, then took the
+# e2-editor-v7 cutover. Nine commits and TWO ship commits passed between that
+# drift and this freeze, and for all nine `make test-e2-c-static` was red on
+# `test_the_real_manifest_matches_the_real_tree`. Nobody ran it: the round's
+# own verification recipe named `test-e2-b-static`, which was green.
+#
+# So this generation does NOT record one round. The rounds it swallows --
+# the v5 mint and revert, findings 075/076/077, and 078/v7 -- each ran on a
+# shell that no manifest names, and no later generation can give them one.
+# What it does record, exactly, is the shell at HEAD be8291a: the bytes the
+# operator's real-mouse pass on the four format buttons ran against, and the
+# bytes the shipped page serves today.
+#
+# The dist copies were already in sync, so nothing but the freeze was owed.
 # v38, 2026-08-23: roadmap 3.4 -- the screen reader can read the DOCUMENT.
 #
 # v37 projected the focused paragraph. WCAG 2.1 1.3.1 is Level A and wants
@@ -311,7 +361,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v38.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v40.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

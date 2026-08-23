@@ -27,7 +27,8 @@
 //     get EDITOR_NOT_READY.  The page offers the rollback explicitly.
 
 import { createDocumentEngine } from "./sdk/document-sdk.js";
-import { NarrowEditorV2Session } from "./editor-shell-v2/narrow-editor-v2-session.js";
+import { NarrowEditorV2Session, selectionShapeOf, selectionShapeEvidence }
+  from "./editor-shell-v2/narrow-editor-v2-session.js";
 // Finding 061: this page used to re-derive the recovery notice from
 // `hasCheckpoint` alone, and that two-way branch told a user whose checkpoint
 // SAVE FAILED that there had never been one.  The shell decides this already,
@@ -340,6 +341,16 @@ function updateState(snapshot) {
  * button, not a failure after the fact.
  */
 function updateGestureAffordance() {
+  // THE PAGE'S BELIEF, SAID OUT LOUD.
+  //
+  // `lastSelectionShape` is a module local, so until now the only way to read
+  // it from outside was to infer it from which buttons went grey -- and that
+  // inference broke the moment `e2-editor-v7` offered the four inline formats
+  // for ranges, because `an-aborted-gesture-stops-selecting` used exactly that
+  // proxy ("are the format buttons disabled?") to mean "is a range selected?".
+  // Widening the manifest silently disarmed a check.  A belief a check has to
+  // guess at is a belief that will be guessed at wrongly.
+  el.toolbar.dataset.selectionShape = lastSelectionShape;
   if (!session?.editor) return;
   for (const button of el.toolbar.querySelectorAll("button[data-action]")) {
     const action = button.dataset.action;
@@ -816,9 +827,66 @@ async function pumpDrag() {
   drag.inFlight = true;
   try {
     const result = await session.selectRange(drag.start, end);
-    // What the engine read back, not what we asked for.
-    lastSelectionShape = (result?.rectangles?.length ?? 0) > 1
-      ? "range-cross" : (result?.collapsed === false ? "range-single" : "collapsed");
+    // What the engine read back, not what we asked for -- AND FROM WHERE IT
+    // ACTUALLY IS.
+    //
+    // FINDING 079.  This read `result.collapsed` and `result.rectangles`, which
+    // is the shape `editor-shell/editor-client.js` BUILDS for the v1 path.  The
+    // v2 client does not build anything: `ParagraphEditorClient.selectRange`
+    // returns the worker's envelope verbatim, and its keys are
+    // `method, revision, completion, callbackSequenceBefore,
+    // callbackSequenceAfter, state` -- the selection is one level down, at
+    // `state.selection`.  So both reads were `undefined`, `undefined === false`
+    // is false, `undefined?.length ?? 0` is 0, and this expression returned
+    // "collapsed" for EVERY drag, unconditionally.
+    //
+    // That is why 079 looked like staleness and is not: there was never a value
+    // to go stale.  Nothing needed to arrive late or be reset; the shape was
+    // manufactured from two fields that are not there.
+    //
+    // Measured 2026-08-23 on the shipped e2-editor-v7, both branches, with the
+    // engine's own answer recorded in the same arm
+    // (tools/probe_079_selection_shape.py --capture-result):
+    //   drag inside one line    state.selection.collapsed=false, 1 rectangle,
+    //                           engine copy path returns 12 characters
+    //   drag across two lines   state.selection.collapsed=false, 3 rectangles,
+    //                           engine copy path returns 34 characters
+    // and the page reported `collapsed` for both.
+    // THE DERIVATION LIVES IN ONE PLACE AND HAS ITS OWN TESTS.
+    //
+    // Deriving it here was the defect's shape as much as its content: an
+    // inline read, with nothing under test, of a field layout some other layer
+    // assembles.  A DOM flag catches the NEXT drift in this one reader; it does
+    // nothing about a second reader looking in a second wrong place.
+    // `selectionShapeOf` is in editor-shell-v2 with the recorded envelopes as
+    // its fixtures, and one of its cases IS finding 079 -- a v1-shaped object
+    // must come back unknown rather than `collapsed`.
+    const shape = selectionShapeOf(result);
+    if (shape === null) {
+      // AN UNREADABLE RESULT IS NOT AN EMPTY SELECTION, and saying it is was
+      // the whole of 079.  The previous value is kept rather than replaced by
+      // a guess: guessing `collapsed` is the defect being fixed, and guessing a
+      // range would grey out the two deletes and both breaks after an ordinary
+      // click, which is the worse of the two failures.
+      //
+      // DEGENERATE CASE, stated rather than left to be discovered: if the FIRST
+      // result of a session is unreadable, the value kept is the initial one,
+      // `collapsed` -- so this policy degrades into the option it rejects, and
+      // the only thing separating them is that the flag below is up.  That is
+      // the point of the flag, and it is why the flag rather than the shape is
+      // what the regression check reads.
+      el.toolbar.dataset.selectionUnreadable = "1";
+      // WHAT IT ACTUALLY GOT.  A flag that says only "this happened" sends the
+      // next reader to a browser to find out what the object looked like; the
+      // key names answer it from the report.  Names only -- `state` can carry
+      // the focused paragraph's text on a profile that projects it, and a
+      // public DOM attribute is no place for a user's paragraph.
+      el.toolbar.dataset.selectionEvidence = selectionShapeEvidence(result);
+    } else {
+      delete el.toolbar.dataset.selectionUnreadable;
+      delete el.toolbar.dataset.selectionEvidence;
+      lastSelectionShape = shape;
+    }
     updateGestureAffordance();
   } catch {
     // A refused range must not abort the gesture.

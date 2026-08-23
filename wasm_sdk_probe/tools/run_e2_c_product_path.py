@@ -994,6 +994,51 @@ MUTATIONS = {
         "reintroduces": "an open button that does nothing",
         "alsoRed": [],
     },
+    # FINDING 079, and reintroduced in its SILENT form on purpose.
+    #
+    # The obvious mutation -- `const selection = result` -- would leave
+    # `collapsed` undefined and so trip the fix's own unreadable flag, and a
+    # check that only catches the flagged version is not holding the property
+    # that shipped broken.  079 said `collapsed` quietly and with confidence.
+    #
+    # `result?.collapsed !== false` is the original expression's fallthrough
+    # written as a boolean: on the v2 envelope `result.collapsed` is undefined,
+    # `undefined !== false` is true, and the shape is `collapsed` for every drag
+    # with nothing on the DOM to say why.  Nothing else in the page changes.
+    "selection-shape-from-the-wrong-place": {
+        "check": "the-page-agrees-with-the-engine-about-the-selection",
+        "path": "e2-editor-app.js",
+        "find": "    const shape = selectionShapeOf(result);",
+        "replace": "    const shape = (result?.rectangles?.length ?? 0) > 1"
+                   " ? \"range-cross\""
+                   " : (result?.collapsed === false ? \"range-single\" : \"collapsed\");",
+        "reintroduces": "a page that quietly thinks every selection is collapsed",
+        "alsoRed": [],
+    },
+    # THE OTHER HALF OF THE SAME FIX, and it needs its own mutation because
+    # nothing else can reach it.
+    #
+    # The unreadable branch is the one that fires when the result stops being a
+    # shape this page understands -- the drift the accessor exists to catch.
+    # In a healthy run it never fires, and "never fired" is indistinguishable
+    # from "is not wired" without a mutation that makes it fire.  This tree
+    # walked into that three times on 2026-08-21 and once more on 2026-08-23,
+    # where a mutation that did nothing was the only evidence for finding 079.
+    #
+    # `selectionShapeOf` always answering null puts the page in exactly the
+    # state the policy is written for: the flag goes up, the shape keeps its
+    # previous value, and the check must go red on the flag rather than on the
+    # shape -- which is the distinction the policy turns on, since a first
+    # unreadable result leaves the shape at `collapsed` anyway.
+    "selection-shape-unreadable": {
+        "check": "the-page-agrees-with-the-engine-about-the-selection",
+        "path": "e2-editor-app.js",
+        "find": "    const shape = selectionShapeOf(result);",
+        "replace": "    const shape = null;",
+        "reintroduces": "a result this page cannot read, to prove the page says "
+                        "so instead of guessing",
+        "alsoRed": [],
+    },
     # The three listeners driven for the first time on 2026-08-21.
     "gesture-abort-not-wired": {
         "check": "an-aborted-gesture-stops-selecting",
@@ -1010,14 +1055,49 @@ MUTATIONS = {
         # it abstains it cannot go red for this mutation either.  If it ever IS
         # detected, the run says the declaration is stale, which is precisely
         # the alarm wanted: it would mean the control finally works.
-        "expectedToBeDetected": False,
-        "why": "the check's positive control cannot start an extending drag "
-               "through this harness, so the check reports NOT_ESTABLISHED and "
-               "nothing about aborting one is measured yet. The observable, not "
-               "the gesture, is what is missing: copy and cut DO produce a "
-               "range at their own named line, so the next step is a direct "
-               "selection observable (the copy path reports codePoints) rather "
-               "than reading button.disabled.",
+        # DETECTED SINCE 2026-08-23, and the declaration that said otherwise
+        # was wrong about why.
+        #
+        # It read: "the check's positive control cannot start an extending drag
+        # through this harness".  It can.  Measured the same day with the same
+        # DRAG this arm uses -- 12 code points inside one line, 34 across two,
+        # from the engine's own copy path.  What was missing was the
+        # OBSERVABLE, which that declaration's own last sentence said: the
+        # check asked whether the four format buttons were disabled, and that
+        # was false on every run for two stacked reasons (finding 079, then
+        # e2-editor-v7 offering those buttons for ranges).  Findings 079 and
+        # 080.
+        "expectedToBeDetected": True,
+        # DETECTED FOR THE REASON THE ORACLE GIVES, as of the third rewrite.
+        #
+        # It was not, twice.  The history is kept because each step was bought
+        # with a red run:
+        #
+        #   1. predicate "a range exists after the abort" -- red on a CORRECT
+        #      product, because ABORT_DRAG moves once before aborting;
+        #   2. predicate "a strict prefix of the control" -- green, and the
+        #      green was luck: each arm called stable_bands for itself and they
+        #      aimed at DIFFERENT LINES (control `1-LC-H`, arms `E1-LC-ISOL`).
+        #      The mutation was detected in that state, but on an empty-string
+        #      guard rather than on an over-long selection;
+        #   3. one shared aim, a driven REFERENCE arm, and the aim widened to
+        #      90% of the widest band.
+        #
+        # Measured 2026-08-23 after (3), and the differential is inside a single
+        # run, which is what makes it readable:
+        #
+        #   control (no abort)      E1-LC-ISOLATED 前後都不是清單的
+        #   reference (stops there) E1-LC-ISOLAT
+        #   pointercancel UNWIRED   E1-LC-ISOLATED 前後都不是清單的  <- to the end
+        #   blur, still wired       E1-LC-ISOLAT                     <- correct
+        #
+        # The unwired listener let the selection follow the pointer to the end
+        # and the wired one stopped where it was told, in the same run, on the
+        # same line.  That is the oracle's own sentence.
+        #
+        # STILL OWED: this is ONE run each way, and an intermittent margin
+        # measured once is how this check produced three confident wrong
+        # answers.  queue-abort-margins-are-unexplained holds the rest.
     },
     "resize-does-not-repaint": {
         "check": "the-canvas-follows-a-window-that-changed-size",
@@ -2238,6 +2318,38 @@ def formatted_paragraphs(content: str, action: str) -> list[dict]:
                     "styleSource": sources.get(style)})
     return out
 
+
+
+# FINDING 079.  The page's own belief about the selection shape, read from the
+# DOM instead of inferred from which buttons went grey.
+#
+# The inference is what broke.  `an-aborted-gesture-stops-selecting` asked "are
+# the four format buttons disabled?" and meant "is a range selected?", which
+# held only while those buttons were declared collapsed-only.  `e2-editor-v7`
+# offers them for ranges, so the proxy went permanently false -- a check
+# disarmed by a manifest widening, silently, with NOT_ESTABLISHED as its
+# permanent state.
+#
+# `data-selection-shape` is written by `updateGestureAffordance()` on every
+# update, so it answers whatever the manifest says.
+SELECTION_SHAPE = """(() => {
+const toolbar = document.querySelector('#toolbar');
+return toolbar ? { shape: toolbar.dataset.selectionShape ?? null,
+                   unreadable: toolbar.dataset.selectionUnreadable === '1' } : null;
+})()"""
+
+SELECTION_AGREEMENT_ORACLE = (
+    "after a drag through the page's OWN pointer handlers, the page and the "
+    "engine name the same selection. The engine's side comes from the product's "
+    "copy path, which reports the selected code points from `copySelection()` "
+    "-- a canvas has no DOM selection, so nothing else could answer -- and the "
+    "page's side from `#toolbar[data-selection-shape]`, which is what the "
+    "toolbar gates every button on. Finding 079: the page read `result.collapsed`"
+    " and `result.rectangles` off the v2 client's envelope, where the selection "
+    "is at `result.state.selection`, so both were `undefined` and the shape came "
+    "out `collapsed` for every drag ever made. It was never stale; it was never "
+    "read. NOT_ESTABLISHED when the drag selects nothing, because a page "
+    "agreeing that there is no selection when there is no selection says nothing")
 
 
 SELECTION_FORMAT_ORACLE = (
@@ -5048,14 +5160,59 @@ return { available: true, afterButton };
         # the four inline-format buttons on a range because they are declared
         # collapsed-only.  So "did the drag really stop" can be read from the
         # toolbar without reaching into a module-local variable.
-        def format_buttons_disabled() -> bool | None:
-            state = evaluate(session, READ_STATE) or {}
-            flags = [b.get("disabled") for b in (state.get("buttons") or [])
-                     if b.get("action") in ("set-bold", "set-italic",
-                                            "set-underline", "set-strikethrough")]
-            return all(flags) if flags else None
+        # RE-AIMED 2026-08-23, and the reason is a measurement rather than a
+        # tidy-up.
+        #
+        # This used to ask "are the four inline-format buttons disabled?" and
+        # mean "is a range selected?".  That proxy was never true, on any run,
+        # for TWO independent reasons stacked:
+        #
+        #   * finding 079 -- the page computed its selection shape from
+        #     `result.collapsed` and `result.rectangles`, which the v2 client's
+        #     envelope does not carry, so `lastSelectionShape` was `collapsed`
+        #     after every drag ever made and nothing was ever gated;
+        #   * `e2-editor-v7` -- the four format buttons are now offered for
+        #     ranges too, so even with 079 fixed they never grey out.
+        #
+        # The declaration on `gesture-abort-not-wired` blamed the harness: "the
+        # check's positive control cannot start an extending drag through this
+        # harness".  It can.  Measured 2026-08-23 with the same `DRAG` this arm
+        # uses: 12 code points inside one line, 34 across two, straight from the
+        # engine's copy path (tools/probe_079_selection_shape.py).  The gesture
+        # was never the missing thing; the observable was, and that same
+        # declaration said so in its last sentence.
+        #
+        # `data-selection-shape` is the page's own belief, written by
+        # `updateGestureAffordance()` on every update.  It answers the question
+        # directly and does not turn on what the manifest happens to offer, so a
+        # later widening cannot disarm it the way this one did.
+        def a_range_is_selected() -> bool | None:
+            reading = evaluate(session, SELECTION_SHAPE)
+            shape = (reading or {}).get("shape")
+            if shape is None:
+                return None
+            return shape in ("range-single", "range-cross")
 
-        def abort_arm(kind: str | None) -> dict:
+        # Derived ONCE, before any arm runs.  See the comment inside
+        # abort_arm for what re-deriving it per arm did to this check's
+        # numbers.
+        # THE WIDEST band, not the first one over a floor.
+        #
+        # With the aim shared and the reference arm driven, the thing that
+        # decides whether this check can say anything is how many CHARACTERS lie
+        # between the abort point and the far end.  The first-over-40px rule
+        # picked a band whose control arm selected `E1` -- two characters --
+        # and whose reference arm, at half of that, selected nothing at all, so
+        # the run could only abstain.  Widest maximises the resolution the
+        # document happens to offer.
+        _abort_scan, _abort_bands = stable_bands(session)
+        _abort_band = max((b for b in _abort_bands
+                           if (b["last"] - b["first"]) > 40),
+                          key=lambda b: b["last"] - b["first"], default=None)
+        aim = ({"band": _abort_band, "width": _abort_scan["width"]}
+               if _abort_band is not None and _abort_scan.get("width") else None)
+
+        def abort_arm(kind: str | None, stop_at_abort_point: bool = False) -> dict:
             """Drag across a line, maybe aborting mid-gesture, and see if it selected.
 
             `kind=None` is the POSITIVE CONTROL and it is the whole reason this
@@ -5066,28 +5223,58 @@ return { available: true, afterButton };
             "unreachable rather than untested, and it looks green" (handoff
             section 5), walked into on the same day it was quoted.
             """
-            # Coordinates from stable_bands, the SAME derivation the copy and
-            # cut drags use.  Three shapes derived from LINE_INK and viewport
-            # fractions were tried first and none of them extended the
-            # selection on ANY arm, control included -- so the check could only
-            # abstain.  Reuse of a gesture already proven to select beats a
-            # fourth guess at coordinates.
-            scan_a, bands_a = stable_bands(session)
-            band = next((b for b in bands_a
-                         if (b["last"] - b["first"]) > 40), None)
-            if band is None or not scan_a.get("width"):
+            # ONE AIM FOR ALL THREE ARMS, and this was the whole defect in this
+            # check's numbers.
+            #
+            # Each arm used to call `stable_bands` for itself and take the first
+            # band wider than 40 px.  The band scan is intermittent on this core
+            # (finding 075's repeats: 10 bands at rest for 9 lines in one round
+            # of five), so the arms picked DIFFERENT LINES and the comparison
+            # between them was meaningless.  Measured 2026-08-23, and it is
+            # unmistakable once the text is in the record rather than the count:
+            # the control selected `1-LC-H` from band [83,182] while both abort
+            # arms selected `E1-LC-ISOL`.  Different strings, different lines,
+            # no prefix relation possible.
+            #
+            # That is the single cause of every unexplained number this check
+            # produced: the control's own reach moving 11 -> 6 between runs, the
+            # one-character margin where the coordinates predict five, and the
+            # mutated arm reporting zero.  It also means the run where this
+            # check PASSED passed by luck.
+            #
+            # The arms do not edit the document, so one derivation up front is
+            # not just cheaper, it is the only thing that makes them comparable.
+            if aim is None:
                 return {"kind": kind or "no-abort (control)",
                         "aborted": kind is not None,
-                        "formatButtonsDisabledBefore": None,
-                        "formatButtonsDisabledAfterAbortAndMove": None,
+                        "aRangeIsSelectedBefore": None,
+                        "aRangeIsSelectedAfterAbortAndMove": None,
                         "why": "no text band wide enough to drag across"}
-            width = scan_a["width"]
+            band, width = aim["band"], aim["width"]
+            # ACROSS THE LINE, not to its middle.
+            #
+            # `x2` was the band's centre, which put the abort point at a
+            # QUARTER of the line and left the reference arm with too few
+            # characters to be distinguishable from nothing.  Ending at 90% of
+            # the ink keeps the drag inside the line -- the last of it is where
+            # a wrapped line would hand over -- while putting the abort point
+            # near the middle, which is where the resolution is.
+            span = band["last"] - band["first"]
             x1 = f"{max(0.0, (band['first'] + 2) / width):.5f}"
-            x2 = f"{((band['first'] + band['last']) / 2) / width:.5f}"
+            x2 = f"{(band['first'] + span * 0.90) / width:.5f}"
+            # THE REFERENCE ARM.  `ABORT_DRAG` moves to the midpoint of x1..x2
+            # and only then aborts, so an abort that works leaves the selection
+            # exactly where a drag that STOPPED at that midpoint would.  Driving
+            # that drag is how the expected answer becomes a measurement instead
+            # of a model: the alternative is predicting characters from pixels,
+            # and this text is proportionally spaced, so pixels are not
+            # characters and the prediction would be the weakest link.
+            if stop_at_abort_point:
+                x2 = f"{(float(x1) + float(x2)) / 2:.5f}"
             y = f"{band['centreFraction']:.5f}"
             place_caret_and_settle(session, POINT_AT, x1, y)
             time.sleep(0.8)
-            before = format_buttons_disabled()
+            before = a_range_is_selected()
             evaluate(session, ABORT_DRAG
                      .replace("ARG_X1", x1).replace("ARG_X2", x2)
                      .replace("ARG_Y", y)
@@ -5095,39 +5282,153 @@ return { available: true, afterButton };
             # Poll, do not sleep: selectRange queues behind the placeCaret that
             # pointerdown itself starts.
             deadline = time.monotonic() + 20
-            after = format_buttons_disabled()
+            after = a_range_is_selected()
             while after is not True and time.monotonic() < deadline:
                 time.sleep(0.5)
-                after = format_buttons_disabled()
-            return {"kind": kind or "no-abort (control)",
+                after = a_range_is_selected()
+            # HOW FAR IT REACHED, not whether it reached anywhere.
+            #
+            # The boolean above cannot answer this check's own question, and its
+            # first run after being re-aimed proved it: all three arms reported
+            # a range and the check went red.  That red was the predicate, not
+            # the product.  ABORT_DRAG moves ONCE before it aborts, so a range
+            # from the start to that midpoint is CORRECT on every arm -- the
+            # abort is supposed to stop the NEXT move, not undo the last one.
+            # "A range exists" is therefore true whether the wiring works or
+            # not, and those two are what this check exists to separate.
+            #
+            # The extent separates them: the control ends at x2, an arm that
+            # aborted ends at the midpoint between x1 and x2.  Text, not a
+            # count, for the reason finding 078 wrote down -- the engine's
+            # selection string carries a list prefix and a paragraph separator
+            # that are not document text.
+            evaluate(session, CLEAR_TOAST)
+            evaluate(session, COPY)
+            time.sleep(1.5)
+            reach = evaluate(session, READ_TOAST) or ""
+            text = "".join(chr(int(point, 16)) for point
+                           in re.findall(r"U\+([0-9A-Fa-f]{4,6})", reach))
+            return {"kind": ("no-abort, stopping at the abort point (reference)"
+                             if stop_at_abort_point
+                             else kind or "no-abort (control)"),
                     "aborted": kind is not None,
-                    "formatButtonsDisabledBefore": before,
-                    "formatButtonsDisabledAfterAbortAndMove": after}
+                    "aRangeIsSelectedBefore": before,
+                    "aRangeIsSelectedAfterAbortAndMove": after,
+                    "copyToast": reach,
+                    "selectedText": text,
+                    "selectedCodePoints": len(text),
+                    # THE GEOMETRY, in the record.  The first run of the extent
+                    # predicate passed on a margin of ONE character where the
+                    # coordinates predict about five, and a margin nobody can
+                    # explain is a pass for an unknown reason.  Putting the aim
+                    # beside the result is what lets the next reader check the
+                    # derivation instead of trusting it.
+                    "aim": {"x1": x1, "x2": x2, "y": y,
+                            "abortAtFraction": (float(x1) + float(x2)) / 2,
+                            "band": [band["first"], band["last"]],
+                            "scanWidth": width}}
 
         control = abort_arm(None)
+        reference = abort_arm(None, stop_at_abort_point=True)
         aborts = [abort_arm("pointercancel"), abort_arm("blur")]
-        # The control must show a drag EXTENDING the selection, or nothing
-        # below is evidence about aborting one.
-        drag_reaches = control["formatButtonsDisabledAfterAbortAndMove"] is True
+        # THE EXPECTED ANSWER IS DRIVEN, NOT PREDICTED.
+        #
+        # The reference arm makes the same moves as the abort arms and stops at
+        # the point where they abort, with no abort.  So an abort that works
+        # must leave EXACTLY what the reference left, and the check is an
+        # equality rather than an inequality.
+        #
+        # The earlier version asked only for a strict prefix of the control.
+        # That is the weakest thing derivable here and it was compatible with
+        # the defect: a selection that kept extending after the abort and
+        # stopped one character short of the control would have passed.  It did
+        # pass, on numbers that turned out to be two arms reading two different
+        # LINES -- see the aim comment above.  With one aim shared by every arm
+        # the strong form is available, so the weak one has no excuse.
+        #
+        # THREE PRECONDITIONS, all about whether this document can answer at
+        # all, none of them about the product:
+        #   * the control must extend the selection;
+        #   * so must the reference, or there is no "stopped here" to compare
+        #     against;
+        #   * and the two must DIFFER, or "stopped at the abort point" and "ran
+        #     to the end" are the same string and no arm is judgeable.
+        drag_reaches = control["aRangeIsSelectedAfterAbortAndMove"] is True
+        control_text = control.get("selectedText") or ""
+        reference_text = reference.get("selectedText") or ""
+        reference_reaches = reference["aRangeIsSelectedAfterAbortAndMove"] is True
+        resolvable = bool(reference_text) and reference_text != control_text
+        establishable = drag_reaches and reference_reaches and resolvable
+        stopped_short = all(
+            a["aRangeIsSelectedBefore"] is False
+            and (a.get("selectedText") or "") == reference_text
+            for a in aborts)
         check("an-aborted-gesture-stops-selecting",
-              bool(drag_reaches
-                   and all(a["formatButtonsDisabledBefore"] is False
-                           and a["formatButtonsDisabledAfterAbortAndMove"] is False
-                           for a in aborts)),
-              outcome=None if drag_reaches else "NOT_ESTABLISHED",
-              observed={"control": control, "arms": aborts},
-              oracle="a drag is started, then aborted by pointercancel (and "
-                     "separately by window blur), then the pointer keeps "
-                     "moving. The selection must NOT extend -- read through the "
-                     "product's own affordance, since the four inline-format "
-                     "buttons are collapsed-only and go disabled the moment a "
-                     "range exists. Both listeners call endDrag(null) and "
-                     "neither had ever been driven",
-              notEstablished="the control arm -- a drag with NO abort -- did "
-                             "not extend the selection, so this harness cannot "
-                             "start a drag here and an abort that stops one "
-                             "proves nothing. Without this clause the check "
-                             "passed even with pointercancel unwired entirely")
+              bool(establishable and stopped_short),
+              outcome=None if establishable else "NOT_ESTABLISHED",
+              observed={"control": control, "reference": reference,
+                        "arms": aborts,
+                        "controlText": control_text,
+                        "referenceText": reference_text,
+                        "armText": [a.get("selectedText") for a in aborts],
+                        "controlReach": len(control_text),
+                        "referenceReach": len(reference_text),
+                        "abortReach": [len(a.get("selectedText") or "")
+                                       for a in aborts],
+                        # SAID OUT LOUD.  A one-character margin and a
+                        # five-character margin are the same PASS and are not
+                        # the same evidence.
+                        "marginCodePoints": [len(control_text)
+                                             - len(a.get("selectedText") or "")
+                                             for a in aborts],
+                        "controlExtended": drag_reaches,
+                        "reachIsResolvable": resolvable,
+                        # THE WEAKNESS TRAVELS WITH THE GREEN.
+                        #
+                        # A limit written in a comment beside the check is read
+                        # by whoever edits the check; a limit in the PASS record
+                        # is read by whoever quotes the result, which is a
+                        # different and larger set of people.  This check's
+                        # green does not establish the abort wiring, and the
+                        # green is where that has to be said.
+                        "establishes": "the selection ends where the abort "
+                                       "landed: byte for byte what a drag that "
+                                       "STOPPED there produced, driven in the "
+                                       "same run on the same line",
+                        "doesNotEstablish": "that this holds REPEATABLY. One "
+                                            "run each way, and this check has "
+                                            "produced three confident wrong "
+                                            "answers on single runs already. "
+                                            "Nor anything about aborts arriving "
+                                            "at other moments: one move happens "
+                                            "before the abort here, so an abort "
+                                            "during the FIRST move, or after "
+                                            "several, is not covered. "
+                                            "queue-abort-margins-are-unexplained"},
+              oracle="a drag is started, moved once, then aborted by "
+                     "pointercancel (and separately by window blur), then the "
+                     "pointer keeps moving. The selection must end EXACTLY "
+                     "where the abort landed -- equal, as text, to a REFERENCE "
+                     "arm that made the same moves and stopped at that point "
+                     "with no abort. The expected answer is driven rather than "
+                     "predicted, because the text is proportionally spaced and "
+                     "a pixel-to-character model would be the weakest link. "
+                     "Existence cannot be the observable: the move BEFORE the "
+                     "abort selects legitimately on every arm, so `a range "
+                     "exists` is true whether the wiring works or not. All four "
+                     "arms share ONE aim, derived once -- deriving it per arm "
+                     "had them reading different lines. The text comes from the "
+                     "engine through the copy path; "
+                     "`#toolbar[data-selection-shape]` supplies the "
+                     "preconditions. Both listeners call endDrag(null)",
+              notEstablished="one of the two unaborted arms did not extend "
+                             "the selection, or they extended it to the SAME "
+                             "text -- in which case `stopped at the abort "
+                             "point` and `ran to the end` are the same string "
+                             "and no arm is judgeable. Without the first clause "
+                             "the check passed with pointercancel unwired "
+                             "entirely; without the second it would report a "
+                             "short line as a product failure")
 
         # MOVED HERE, LATE, AND THE REASON IS THE FIRST RUNS.
         #
@@ -5663,6 +5964,73 @@ return { available: true, afterButton };
                                and squeeze(selected) in squeeze(after_text)),
                           observed=selection_format,
                           oracle=SELECTION_FORMAT_ORACLE)
+
+        # FINDING 079.  DOES THE PAGE KNOW WHAT THE ENGINE KNOWS?
+        #
+        # Separate from the check above and deliberately so.  That one asks
+        # whether a format REACHES a selection, and on `e2-editor-v7` it passes
+        # whatever the page believes -- all three gestures are offered, so the
+        # format buttons are never gated and the page's belief is invisible to
+        # it.  A profile that grants everything cannot notice a page that
+        # understands nothing.
+        #
+        # This asks the page directly.  Both sides in one arm, which is the rule
+        # this tree keeps paying to relearn: the engine's answer through the
+        # copy path, the page's answer out of the toolbar's own dataset.
+        agreement = {}
+        scan_s, bands_s = stable_bands(session)
+        wide_s = [b for b in bands_s if (b["last"] - b["first"]) > 60]
+        agreement["bandsAvailable"] = len(wide_s)
+        if not wide_s:
+            check("the-page-agrees-with-the-engine-about-the-selection", False,
+                  outcome="NOT_ESTABLISHED", observed=agreement,
+                  why="no band wide enough to drag inside of",
+                  oracle=SELECTION_AGREEMENT_ORACLE)
+        else:
+            band_s = wide_s[len(wide_s) // 2]
+            left_s = band_s["first"] / scan_s["width"]
+            right_s = band_s["last"] / scan_s["width"]
+            ys = f"{band_s['centreFraction']:.5f}"
+            xs1 = f"{left_s + (right_s - left_s) * 0.15:.5f}"
+            xs2 = f"{left_s + (right_s - left_s) * 0.70:.5f}"
+            agreement["drag"] = {"x1": xs1, "x2": xs2, "y": ys}
+            # THE PAGE'S BELIEF BEFORE THE DRAG, so "it was already a range" is
+            # not mistaken for "the drag was understood".  The arms of this run
+            # share one page and the previous one left a selection behind.
+            agreement["pageBefore"] = evaluate(session, SELECTION_SHAPE)
+            evaluate(session, DRAG.replace("ARG_X1", xs1).replace("ARG_Y1", ys)
+                     .replace("ARG_X2", xs2).replace("ARG_Y2", ys))
+            # Measured 2026-08-23: the toolbar catches up 52-55 ms after the
+            # pointer goes down.  Polling to two seconds is generous by a factor
+            # of forty and still distinguishes "late" from "never", which is the
+            # distinction the finding turned on.
+            deadline_s = time.monotonic() + 2.0
+            page_after = evaluate(session, SELECTION_SHAPE) or {}
+            while (page_after.get("shape") in (None, "collapsed")
+                   and time.monotonic() < deadline_s):
+                time.sleep(0.1)
+                page_after = evaluate(session, SELECTION_SHAPE) or {}
+            agreement["pageAfter"] = page_after
+            evaluate(session, CLEAR_TOAST)
+            evaluate(session, COPY)
+            time.sleep(1.5)
+            copied_s = evaluate(session, READ_TOAST) or ""
+            agreement["copyToast"] = copied_s
+            agreement["engineCodePoints"] = len(
+                re.findall(r"U\+([0-9A-Fa-f]{4,6})", copied_s))
+            engine_has_range = agreement["engineCodePoints"] > 0
+            agreement["engineHasARange"] = engine_has_range
+            agreement["pageSaysARange"] = page_after.get("shape") in (
+                "range-single", "range-cross")
+            check("the-page-agrees-with-the-engine-about-the-selection",
+                  bool(engine_has_range and agreement["pageSaysARange"]
+                       and not page_after.get("unreadable")),
+                  outcome=None if engine_has_range else "NOT_ESTABLISHED",
+                  observed=agreement,
+                  oracle=SELECTION_AGREEMENT_ORACLE,
+                  notEstablished="the drag selected nothing, so the engine has "
+                                 "no range for the page to be right or wrong "
+                                 "about. The drag, not the page, is what failed")
 
         resized = evaluate(session, RESIZE_DESK) or {}
         time.sleep(2.0)

@@ -1085,7 +1085,7 @@
       "expectation": "present",
       "blocksRelink": false,
       "source": "finding 078, found 2026-08-23 by the operator pressing bold on a selection in the v5 preview and getting EDITOR_FORMAT_GESTURE_UNSUPPORTED",
-      "note": "RESOLVED IN e2-editor-v7, NOT SHIPPED. The characterisation is done -- all four inline formats, both range shapes, formatted text equal to selected text, on the minted identity itself, with a native-LibreOffice comparison showing the paragraph-level shape on a fully selected paragraph is what native writes too. BOTH range bits are granted because the engine requires both for an unclassified range; granting one alone admits nothing, measured three ways (single-only refused, cross-only refused, both accepted). That AND-semantics limit is recorded in e2/expected-gesture-offers.json. The regression net now has `an-inline-format-reaches-a-selection` with a mutation that turns it red. What is left is not engineering: the operator's real-mouse pass, which this project treats as the closure of an issue like this rather than the harness going green, and then the decision to point the product page at v7.",
+      "note": "RESOLVED AND SHIPPED as e2-editor-v7 (2026-08-23, commit be8291a). The characterisation is done -- all four inline formats, both range shapes, formatted text equal to selected text, on the minted identity itself, with a native-LibreOffice comparison showing the paragraph-level shape on a fully selected paragraph is what native writes too. BOTH range bits are granted because the engine requires both for an unclassified range; granting one alone admits nothing, measured three ways (single-only refused, cross-only refused, both accepted). That AND-semantics limit is recorded in e2/expected-gesture-offers.json. The regression net now has `an-inline-format-reaches-a-selection` with a mutation that turns it red. The operator's real-mouse pass on all four buttons passed, which is what this project treats as closure, and the product page was pointed at v7 the same day.",
       "checks": [
         {
           "kind": "contains",
@@ -1102,19 +1102,55 @@
     },
     {
       "id": "queue-toolbar-availability-uses-a-stale-selection-shape",
-      "title": "the toolbar computes button availability from `lastSelectionShape`, which still reads `collapsed` at press time after a drag -- so a button can look enabled and be refused",
-      "expectation": "absent",
+      "title": "the toolbar computes button availability from `lastSelectionShape`, which reads `collapsed` after EVERY drag because it is computed from two fields the v2 client's result does not carry",
+      "expectation": "present",
       "blocksRelink": false,
       "source": "finding 079, found 2026-08-23 by a mutation that never fired",
-      "note": "Found because a mutation gated on `lastSelectionShape !== \"collapsed\"` never triggered, on two runs -- the condition was never true when the button was pressed, although a drag had just made a range. It explains a thing that had been a puzzle: on a profile granting one range bit the BUTTON was enabled while the ENGINE refused, because the page's shape was stale and `collapsed` was offered. That is the second layer of what the operator hit; finding 078's manifest was the first. NOT FIXED and no prescription yet -- the smallest candidate is to stop caching the shape and ask the engine at press time. Its urgency drops once v7 ships (all three gestures granted, so format buttons stop depending on the shape) but does not vanish: `delete-selection` is offered for ranges only, so a stale `collapsed` would show it DISABLED when it is available. That direction is derived from the gesture table and has not been measured.",
+      "note": "FIXED 2026-08-23 AND THE DIAGNOSIS CHANGED. It was recorded as a STALE value; it is not stale, there was never a value. `pumpDrag` read `result.collapsed` and `result.rectangles`, which is the shape `editor-shell/editor-client.js` builds on the V1 path. The v2 client returns the worker's envelope verbatim and the selection sits at `result.state.selection`, so both reads were `undefined`, `undefined === false` is false, `undefined?.length ?? 0` is 0, and the expression returned `collapsed` for every drag ever made. Measured on the shipped e2-editor-v7 with the engine's answer in the same arm (tools/probe_079_selection_shape.py): 12 code points selected inside one line and 34 across two while the page said `collapsed`, unchanged across an 8-second sampling window; after the fix, `range-single` and `range-cross`, both 52-55 ms after the pointer went down. A positive control that starts the variable at `range-single` proves the toolbar read can show a range at all. THE PREDICTED CONSEQUENCE WAS WRONG: `delete-selection` has no toolbar button and its only dispatch site asks the manifest, not the shape, so the cost lands on the six caret-only buttons instead, which stayed ENABLED while a range was selected. Shell-only; no link. The regression net gained `the-page-agrees-with-the-engine-about-the-selection` with the mutation `selection-shape-from-the-wrong-place`, which reintroduces the SILENT form. See also finding 080: this defect had been disarming `an-aborted-gesture-stops-selecting` since 2026-08-21. The derivation now lives in `selectionShapeOf` (editor-shell-v2/narrow-editor-v2-session.js) with unit tests whose fixtures are the RECORDED envelopes, one case of which is this finding: a v1-shaped object must come back unknown, never `collapsed`. Moved there on the external adjudicator's point that a DOM tripwire catches the next drift in one reader and does nothing about a second reader looking in a second wrong place.",
+      "checks": [
+        {
+          "kind": "line-equals",
+          "file": "editor-shell-v2/narrow-editor-v2-session.js",
+          "text": "  const selection = result?.state?.selection;"
+        },
+        {
+          "kind": "line-equals",
+          "file": "web/e2-editor-app.js",
+          "text": "    const shape = selectionShapeOf(result);"
+        },
+        {
+          "kind": "absent",
+          "file": "web/e2-editor-app.js",
+          "text": "(result?.rectangles?.length ?? 0) > 1"
+        }
+      ],
+      "checkNote": "Three, and the first two are pinned as WHOLE lines so an `if (false && ...)` wrapped round either cannot satisfy a substring match -- this tree's own lesson. The accessor is pinned as well as the call site because the derivation was MOVED into editor-shell-v2 with its own tests, and pinning only the caller would let the read drift back to the wrong field one layer down. The third pins the defect's own expression as absent, so restoring it fails here even if the fixed lines are left beside it. The first version of these checks pinned a line that this same session then moved, and this check is what caught that -- which is the whole argument for pinning lines rather than trusting a note."
+    },
+    {
+      "id": "queue-abort-margins-are-unexplained",
+      "title": "`an-aborted-gesture-stops-selecting` compared arms that had each aimed at a different line, so every margin it ever produced was noise",
+      "expectation": "present",
+      "blocksRelink": false,
+      "source": "finding 080's re-aim, 2026-08-23; raised by the external adjudicator, not by the run",
+      "note": "EXPLAINED AND FIXED 2026-08-23. Raised as three unexplained numbers -- a control whose reach moved 11 -> 6 between runs, a one-character margin where the coordinates predicted five, and a mutated arm that selected nothing rather than running to the end. ONE CAUSE: each arm called `stable_bands` for itself and took the first band wider than 40 px, and that scan is intermittent on this core (finding 075). The arms aimed at DIFFERENT LINES. Visible only once the selected TEXT was in the record beside the count: the control selected `1-LC-H` from band [83,182] while both abort arms selected `E1-LC-ISOL`. Different strings, no prefix relation possible, and the earlier run where this check PASSED passed by luck. FIXED in three steps, each of which the previous one made possible: (1) the aim is derived ONCE and shared by every arm, which is what makes them comparable at all; (2) with the comparison valid the weak strict-prefix predicate had no excuse, so a fourth REFERENCE arm now makes the same moves and stops where the others abort -- the expected answer is driven rather than predicted from pixels, which matters because the text is proportionally spaced; (3) the aim spans 90% of the widest band instead of half of the first band over 40 px, because the first run of the shared aim could not resolve (control selected `E1`, two characters, and the reference at half of that selected nothing) and abstained. MEASURED after all three, on the shipped page: control `E1-LC-ISOLATED 前後都不是清單`, reference `E1-LC-ISO`, and BOTH abort arms `E1-LC-ISO` -- byte-exact agreement with the reference, on a 14-vs-9 character margin. AND THE MUTATION IS NOW DETECTED FOR THE ORACLE'S OWN REASON, which it was not before: under `gesture-abort-not-wired` the control read `E1-LC-ISOLATED 前後都不是清單的`, the reference `E1-LC-ISOLAT`, the UNWIRED pointercancel arm the full `E1-LC-ISOLATED 前後都不是清單的` -- it followed the pointer to the end -- and the still-wired blur arm `E1-LC-ISOLAT`. One listener gone and one intact, differentiated inside a single run on a single line. Previously the detection came via an empty-string guard, which is a different property. WHAT IS STILL OWED, and it is why this item stays open: this is ONE run each way. An intermittent margin measured once gives a confident and wrong answer, and that is the whole history of this check. It wants N consecutive rounds before `the pointercancel and blur wiring is verified` is a sentence anyone may write. Also still unexamined: the reads are still synchronised on wall-clock sleeps rather than on the `revision` / `callbackSequence` fields the selectRange envelope already carries.",
       "checks": [
         {
           "kind": "contains",
-          "file": "web/e2-editor-app.js",
-          "text": "const offered = !Array.isArray(gestures) || gestures.includes(lastSelectionShape);"
+          "file": "tools/run_e2_c_product_path.py",
+          "text": "queue-abort-margins-are-unexplained"
+        },
+        {
+          "kind": "line-equals",
+          "file": "tools/run_e2_c_product_path.py",
+          "text": "            band, width = aim[\"band\"], aim[\"width\"]"
+        },
+        {
+          "kind": "contains",
+          "file": "tools/run_e2_c_product_path.py",
+          "text": "reference = abort_arm(None, stop_at_abort_point=True)"
         }
       ],
-      "checkNote": "Pinned to the line that reads the stale variable. When a fix lands the line moves and this item's expectation flips deliberately, rather than the defect quietly surviving a refactor."
+      "checkNote": "Three. The first pins the queue id inside the check's own `doesNotEstablish` text, so a green that has quietly stopped declaring its limit fails here. The second pins the SHARED aim as a whole line -- re-deriving it per arm is the defect and it would come back as a plausible-looking tidy-up. The third pins the reference arm, without which the predicate silently weakens back to a strict prefix, which passed while the arms were reading different lines."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

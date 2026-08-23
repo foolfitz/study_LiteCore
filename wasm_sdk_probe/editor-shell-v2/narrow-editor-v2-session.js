@@ -57,6 +57,60 @@ const ACTIONS = new Set(EDITOR_V3_ACTIONS);
 // `action()` -- the `.then` below unwraps it and rethrows the original error.
 const DISPATCHED_UNVERIFIED = Symbol("dispatchedUnverified");
 
+/**
+ * The shape of the selection a `selectRange` result describes, or null when the
+ * result does not describe one.
+ *
+ * FINDING 079, AND THIS IS THE SEAM THAT WAS MISSING.  The product page derived
+ * the shape inline from `result.collapsed` and `result.rectangles` -- the shape
+ * `editor-shell/editor-client.js` assembles on the V1 path.  The v2 client
+ * assembles nothing: `ParagraphEditorClient.selectRange` hands back the
+ * worker's envelope, whose keys are `method, revision, completion,
+ * callbackSequenceBefore, callbackSequenceAfter, state`, and the selection sits
+ * at `state.selection`.  Both reads were `undefined`, `undefined === false` is
+ * false, `undefined?.length ?? 0` is 0, and the page computed `collapsed` for
+ * every drag ever made.  Nothing was stale; nothing was ever read.
+ *
+ * It lives here, exported and unit-tested, rather than inline in the page,
+ * because the defect's CLASS is "a derivation with no test read a shape some
+ * other layer assembles".  A DOM flag on the page is a tripwire for the next
+ * drift; it is not a guard against a second reader looking in a second wrong
+ * place.  One accessor with its own tests is.
+ *
+ * Returns null rather than "collapsed" when it cannot tell.  Those are
+ * different claims and conflating them is the whole finding: the caller decides
+ * what to do about not knowing, and cannot do that if not-knowing has been
+ * spelled as an answer.
+ */
+export function selectionShapeOf(result) {
+  const selection = result?.state?.selection;
+  if (typeof selection?.collapsed !== "boolean") return null;
+  if (selection.collapsed) return "collapsed";
+  // `rectangles.length > 1` as the cross-paragraph test is INHERITED, not
+  // established here: a single paragraph that wraps onto two lines also yields
+  // more than one rectangle.  Measured 2026-08-23 on e2-editor-v7 -- a drag
+  // inside one line gave 1 rectangle and one across two paragraphs gave 3 --
+  // which shows the two cases this profile meets are separated, not that the
+  // rule is right in general.  Both range shapes are offered together for every
+  // action that takes a range, so nothing currently turns on the distinction.
+  return (selection.rectangles?.length ?? 0) > 1 ? "range-cross" : "range-single";
+}
+
+/**
+ * What a result that could not be read looks like, for a caller that wants to
+ * report rather than guess.  Keys only: the envelope carries document text in
+ * `state`, and an unreadable-shape report is not a reason to copy a user's
+ * paragraph into a DOM attribute.
+ */
+export function selectionShapeEvidence(result) {
+  if (result === null || result === undefined) return String(result);
+  if (typeof result !== "object") return typeof result;
+  const top = Object.keys(result).join(",");
+  const state = result.state && typeof result.state === "object"
+    ? Object.keys(result.state).join(",") : null;
+  return state === null ? top : `${top}|state:${state}`;
+}
+
 export class NarrowEditorV2Session extends EditorSession {
   constructor(options = {}) {
     super(options);

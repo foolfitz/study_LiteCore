@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "release": "f079-selection-shape",
+  "finding": "079",
+  "question": "after a real drag through the page's own pointer handlers, what shape does the page believe it has, when does it believe it, and does the engine agree?",
+  "positiveControl": true,
+  "arms": [
+    {
+      "label": "positive-control-at-load",
+      "buttons": [
+        {
+          "action": "undo",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "redo",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "move-character-left",
+          "disabled": true,
+          "title": "manifest 沒有為「range-single」宣告這個動作"
+        },
+        {
+          "action": "move-character-right",
+          "disabled": true,
+          "title": "manifest 沒有為「range-single」宣告這個動作"
+        },
+        {
+          "action": "delete-backward",
+          "disabled": true,
+          "title": "manifest 沒有為「range-single」宣告這個動作"
+        },
+        {
+          "action": "delete-forward",
+          "disabled": true,
+          "title": "manifest 沒有為「range-single」宣告這個動作"
+        },
+        {
+          "action": "insert-paragraph-break",
+          "disabled": true,
+          "title": "manifest 沒有為「range-single」宣告這個動作"
+        },
+        {
+          "action": "insert-line-break",
+          "disabled": true,
+          "title": "manifest 沒有為「range-single」宣告這個動作"
+        },
+        {
+          "action": "set-bold",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "set-italic",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "set-underline",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "set-strikethrough",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "set-paragraph-heading",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "set-paragraph-body",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "set-list-unordered",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "set-list-ordered",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "set-list-none",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "insert-text",
+          "disabled": false,
+          "title": ""
+        },
+        {
+          "action": "save",
+          "disabled": false,
+          "title": ""
+        }
+      ],
+      "shape": {
+        "namedInTitles": [
+          "range-single"
+        ],
+        "impliedByCaretOnlyButtons": "a-range",
+        "caretOnlyPresent": [
+          "move-character-left",
+          "move-character-right",
+          "delete-backward",
+          "delete-forward",
+          "insert-paragraph-break",
+          "insert-line-break"
+        ],
+        "caretOnlyEnabled": [],
+        "caretOnlyDisabled": [
+          "move-character-left",
+          "move-character-right",
+          "delete-backward",
+          "delete-forward",
+          "insert-paragraph-break",
+          "insert-line-break"
+        ]
+      },
+      "instrumentCanShowARange": true
+    }
+  ],
+  "titleFormatFoundInPage": true,
+  "profile": "e2-editor-v7",
+  "controlDiagnostic": {
+    "evidenceClass": "diagnostic",
+    "note": "This run did NOT use the shipped page. One line differs: lastSelectionShape starts as range-single. Nothing here is a statement about the product."
+  },
+  "clipboardPermission": {
+    "granted": true
+  },
+  "summary": {
+    "armsWhereTheEngineHadARange": [],
+    "armsWhereThePageStillSaidCollapsed": [],
+    "armsWhereThePageAgreed": []
+  }
+}
