@@ -1078,6 +1078,22 @@
         }
       ],
       "checkNote": "Both directions, because adding the calloc without removing the malloc is exactly the shape of a half-applied fix -- and the absent check is what makes a revert visible."
+    },
+    {
+      "id": "queue-inline-format-is-caret-only",
+      "title": "the four inline formats are offered for `collapsed` only, so selected text cannot be emboldened -- and the regression net is green because it asks the manifest what to test",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "finding 078, found 2026-08-23 by the operator pressing bold on a selection in the v5 preview and getting EDITOR_FORMAT_GESTURE_UNSUPPORTED",
+      "note": "NOT A RELINK ITEM, and it is in this queue anyway because there is nowhere else that gets read on purpose. The binary implements range dispatch; the MASK withholds it, and build_e2_editor_v4_profile.py's docstring says a later profile can grant it WITHOUT ANOTHER RELINK on the strength of a measurement. The restriction is honest -- build_e2_b_profile.py declares caret-only because range dispatch was characterised for the paragraph actions and not for these, and declaring an unmeasured gesture would be the manifest claiming coverage the evidence does not have. What went wrong is downstream of that: `not characterised` became `the user cannot do it` and nothing tracked the cost. The harness then encoded the limitation into its own design -- format_arm drives a collapsed caret BECAUSE that is the only gesture offered -- so no check anywhere asks whether selected text can be emboldened. Work, in order: (1) characterise the four inline formats on range-single and range-cross; (2) grant in the manifest only what was measured; (3) add a check that formats a SELECTION, with a mutation that can turn it red. Expectation stays `absent` until step 2 lands.",
+      "checks": [
+        {
+          "kind": "absent",
+          "file": "tools/build_e2_b_profile.py",
+          "text": "\"gestures\": [COLLAPSED, RANGE_SINGLE], \"limits\": []"
+        }
+      ],
+      "checkNote": "A placeholder that fails the day someone widens the v1 action gestures without also flipping this item's expectation -- which is the direction nobody audits. The real check is step 3's product-path arm; this only makes the queue notice the manifest moving."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",

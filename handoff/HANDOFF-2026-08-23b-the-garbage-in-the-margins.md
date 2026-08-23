@@ -261,21 +261,60 @@ means evaluating in the page, which perturbs the run being diagnosed.
 The cheap next step is a run with per-step progress output, so a stall names its
 own step instead of being a silence.
 
-## The two questions only the operator can answer
+## The operator answered both, and the second one is the biggest thing here
 
-Run `tools/serve_manual_preview.py --profile e2-editor-v5` (it serves a mirror;
-`dist/` is not written) and look at the page. It carries a green banner naming
-the profile and the wasm and worker hashes, because on 2026-08-22 the operator
-tested half a fix and neither of us could tell.
+**1. The noise is visible.** Confirmed against the v5 preview (banner naming the
+profile and both hashes). Finding 076 therefore stops being a harness story: the
+product paints uninitialised heap where a person can see it, and that heap holds
+their document. Attribution is still short — that core is `writer calc` WITH
+accessibility against a writer-only build WITHOUT it, two differences and one
+measurement — so calc is not excluded and accessibility may not be named.
 
-1. **Does bold work when a human presses it?** The harness path and the user's
-   path have disagreed before, and the harness's own stopwatch was wrong here.
-2. **Is there coloured noise around the page?** The garbage is in the canvas, so
-   it should be visible. Nobody has looked. If it is visible this stops being a
-   harness story and becomes a rendering defect on that core — but the core is
-   `writer calc` WITH accessibility against a writer-only build WITHOUT it, so
-   two differences, one measurement. Calc changing the heap layout is not
-   excluded, and accessibility may not be named as the cause on this evidence.
+**2. Bold on a selection is refused by the contract.** Pressing bold with text
+selected gives `EDITOR_FORMAT_GESTURE_UNSUPPORTED`. The manifest:
+
+```
+set-bold  set-italic  set-underline  set-strikethrough  ->  ["collapsed"]
+set-paragraph-heading  set-list-*    ->  ["collapsed", "range-single", "range-cross"]
+```
+
+**You cannot embolden text that is already in the document.** Only "press bold,
+then type". That is finding 078 and it lands directly on the short-term goal.
+
+The restriction is honest and correct at the point it was made —
+`build_e2_b_profile.py` says range dispatch was characterised for the paragraph
+actions and not for these, and "declaring a gesture nobody measured would be the
+manifest claiming coverage the evidence does not have". What failed is what came
+after: **"not characterised" became "the user cannot do it" and nothing tracked
+the cost.**
+
+And the net could not have caught it. `format_arm` drives a collapsed caret
+BECAUSE that is the only gesture offered — the runner says so in its own comment.
+**The harness took the product's declaration as the specification**, so nothing
+anywhere asks whether selected text can be emboldened. A person hit it in thirty
+seconds.
+
+**It needs no relink.** The binary implements range dispatch; the mask withholds
+it, and `build_e2_editor_v4_profile.py` says a later profile can grant it
+WITHOUT ANOTHER RELINK on the strength of a measurement. Work, in order:
+characterise the four formats on `range-single` and `range-cross`; grant only
+what was measured; add a product-path arm that formats a SELECTION, with a
+mutation that can turn it red. Queued as `queue-inline-format-is-caret-only`.
+
+## Where v5 actually stands now
+
+**32 PASS / 1 FAIL / 5 NOT_ESTABLISHED**, from 3 FAIL / 6 NE at the start of the
+day. v4 unchanged at 35 PASS / 3 NE, `ok: true`.
+
+The single FAIL is the format barrier's `stage-deadline`. Everything else that
+was red was the harness.
+
+The runner now prints a `[step]` line to stderr per check, because four stalled
+runs on the accessibility profile produced zero-byte logs and no report. The
+first traced run finished, and immediately named the two most expensive steps:
+`recovery-returns-what-the-product-promised` at 156 s and
+`bulleting-a-blank-line-does-not-demand-a-rollback` at 96 s — both on the barrier
+and recovery paths, which is where a stall would be expected to sit.
 
 ## Commands
 

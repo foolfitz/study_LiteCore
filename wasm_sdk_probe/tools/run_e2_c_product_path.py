@@ -78,6 +78,10 @@ from validate_e1_c import shell_bundle_digest  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
 
+# Wall clock for the [step] trace.  Taken at import so the first line is
+# measured from the same origin as the last one.
+RUN_STARTED = time.monotonic()
+
 # The three texts committed through the composition path.  Distinct, and absent
 # from every fixture, so finding them in the saved ODT is a statement about this
 # run.
@@ -2876,15 +2880,30 @@ def main() -> int:
         teaches its readers to ignore red, and one that reports them as passes
         is worse.  `finish()` counts them as neither.
         """
-        report["checks"].append({
-            "id": cid, "ok": bool(ok),
-            "outcome": outcome or ("PASS" if ok else "FAIL"), **fields})
+        entry = {"id": cid, "ok": bool(ok),
+                 "outcome": outcome or ("PASS" if ok else "FAIL"), **fields}
+        report["checks"].append(entry)
+        # A STALL HAS TO NAME ITS OWN STEP.
+        #
+        # This run writes its report only at the end, so a run that stops
+        # advancing leaves a zero-byte log and no report -- and that happened
+        # four times on the accessibility profile on 2026-08-23 against zero
+        # times on the shipped one, each costing 20-50 minutes and yielding
+        # nothing at all. A silence is not a measurement.
+        #
+        # stderr rather than stdout, because stdout carries the report and a
+        # caller redirecting it to a file must still get a JSON document.
+        print(f"[step] {time.monotonic() - RUN_STARTED:7.1f}s "
+              f"{entry['outcome']:16s} {cid}", file=sys.stderr, flush=True)
 
     port = free_port()
     server = subprocess.Popen(
         [sys.executable, str(PROJECT / "web" / "serve.py"),
          "--port", str(port), "--root", str(root)],
         cwd=PROJECT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    print(f"[step] {time.monotonic() - RUN_STARTED:7.1f}s "
+          f"{'STARTED':16s} profile={args.profile or 'shipped'} port={port}",
+          file=sys.stderr, flush=True)
     session = None
     try:
         base = f"http://127.0.0.1:{port}/e2-editor.html"
