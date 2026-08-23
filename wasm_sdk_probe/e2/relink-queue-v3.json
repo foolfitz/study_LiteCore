@@ -1082,18 +1082,39 @@
     {
       "id": "queue-inline-format-is-caret-only",
       "title": "the four inline formats are offered for `collapsed` only, so selected text cannot be emboldened -- and the regression net is green because it asks the manifest what to test",
-      "expectation": "absent",
+      "expectation": "present",
       "blocksRelink": false,
       "source": "finding 078, found 2026-08-23 by the operator pressing bold on a selection in the v5 preview and getting EDITOR_FORMAT_GESTURE_UNSUPPORTED",
-      "note": "NOT A RELINK ITEM, and it is in this queue anyway because there is nowhere else that gets read on purpose. The binary implements range dispatch; the MASK withholds it, and build_e2_editor_v4_profile.py's docstring says a later profile can grant it WITHOUT ANOTHER RELINK on the strength of a measurement. The restriction is honest -- build_e2_b_profile.py declares caret-only because range dispatch was characterised for the paragraph actions and not for these, and declaring an unmeasured gesture would be the manifest claiming coverage the evidence does not have. What went wrong is downstream of that: `not characterised` became `the user cannot do it` and nothing tracked the cost. The harness then encoded the limitation into its own design -- format_arm drives a collapsed caret BECAUSE that is the only gesture offered -- so no check anywhere asks whether selected text can be emboldened. Work, in order: (1) characterise the four inline formats on range-single and range-cross; (2) grant in the manifest only what was measured; (3) add a check that formats a SELECTION, with a mutation that can turn it red. Expectation stays `absent` until step 2 lands.",
+      "note": "RESOLVED IN e2-editor-v7, NOT SHIPPED. The characterisation is done -- all four inline formats, both range shapes, formatted text equal to selected text, on the minted identity itself, with a native-LibreOffice comparison showing the paragraph-level shape on a fully selected paragraph is what native writes too. BOTH range bits are granted because the engine requires both for an unclassified range; granting one alone admits nothing, measured three ways (single-only refused, cross-only refused, both accepted). That AND-semantics limit is recorded in e2/expected-gesture-offers.json. The regression net now has `an-inline-format-reaches-a-selection` with a mutation that turns it red. What is left is not engineering: the operator's real-mouse pass, which this project treats as the closure of an issue like this rather than the harness going green, and then the decision to point the product page at v7.",
       "checks": [
         {
-          "kind": "absent",
-          "file": "tools/build_e2_b_profile.py",
-          "text": "\"gestures\": [COLLAPSED, RANGE_SINGLE], \"limits\": []"
+          "kind": "contains",
+          "file": "e2/expected-gesture-offers.json",
+          "text": "\"profile\": \"e2-editor-v7\""
+        },
+        {
+          "kind": "contains",
+          "file": "tools/run_e2_c_product_path.py",
+          "text": "an-inline-format-reaches-a-selection"
         }
       ],
-      "checkNote": "A placeholder that fails the day someone widens the v1 action gestures without also flipping this item's expectation -- which is the direction nobody audits. The real check is step 3's product-path arm; this only makes the queue notice the manifest moving."
+      "checkNote": "Both: the expectation table must name the profile the grant lives in, and the net must carry the check. Neither proves the page SHIPS v7 -- that is deliberate, because shipping is the operator's call and a check that asserted it would go red on a decision nobody had made yet."
+    },
+    {
+      "id": "queue-toolbar-availability-uses-a-stale-selection-shape",
+      "title": "the toolbar computes button availability from `lastSelectionShape`, which still reads `collapsed` at press time after a drag -- so a button can look enabled and be refused",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "finding 079, found 2026-08-23 by a mutation that never fired",
+      "note": "Found because a mutation gated on `lastSelectionShape !== \"collapsed\"` never triggered, on two runs -- the condition was never true when the button was pressed, although a drag had just made a range. It explains a thing that had been a puzzle: on a profile granting one range bit the BUTTON was enabled while the ENGINE refused, because the page's shape was stale and `collapsed` was offered. That is the second layer of what the operator hit; finding 078's manifest was the first. NOT FIXED and no prescription yet -- the smallest candidate is to stop caching the shape and ask the engine at press time. Its urgency drops once v7 ships (all three gestures granted, so format buttons stop depending on the shape) but does not vanish: `delete-selection` is offered for ranges only, so a stale `collapsed` would show it DISABLED when it is available. That direction is derived from the gesture table and has not been measured.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "web/e2-editor-app.js",
+          "text": "const offered = !Array.isArray(gestures) || gestures.includes(lastSelectionShape);"
+        }
+      ],
+      "checkNote": "Pinned to the line that reads the stale variable. When a fix lands the line moves and this item's expectation flips deliberately, rather than the defect quietly surviving a refactor."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
