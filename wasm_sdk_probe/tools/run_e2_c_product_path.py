@@ -3178,6 +3178,16 @@ def main() -> int:
         entry = {"id": cid, "ok": bool(ok),
                  "outcome": outcome or ("PASS" if ok else "FAIL"), **fields}
         report["checks"].append(entry)
+        # AND WHAT IT NAMED, ONCE SOMEBODY ATTACHED TO ONE (finding 081):
+        # not a hang. The stalled page reads state=recoverable-error,
+        # checkpoint=none, latency="save failed" and PENDING=0 -- nothing is
+        # waiting on the engine. A save failed, the session refuses everything
+        # after it with EDITOR_NOT_READY, and each remaining arm burns its own
+        # timeout. That is the 20-50 minutes, and the report is written only at
+        # the end, so the run yields nothing.
+        # queue-a11y-path-drives-a-dead-session holds the fix: check the state
+        # between arms and stop driving, naming the arm that killed it.
+        #
         # A STALL HAS TO NAME ITS OWN STEP.
         #
         # This run writes its report only at the end, so a run that stops

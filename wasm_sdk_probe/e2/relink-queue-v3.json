@@ -1156,6 +1156,22 @@
         }
       ],
       "checkNote": "Three. The first pins the queue id inside the check's own `doesNotEstablish` text, so a green that has quietly stopped declaring its limit fails here. The second pins the SHARED aim as a whole line -- re-deriving it per arm is the defect and it would come back as a plausible-looking tidy-up. The third pins the reference arm, without which the predicate silently weakens back to a strict prefix, which passed while the arms were reading different lines."
+    },
+    {
+      "id": "queue-a11y-path-drives-a-dead-session",
+      "title": "on the a11y core the product path keeps driving a session that is already in recoverable-error, so a run costs 20-50 minutes and produces no report at all",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "finding 081, measured 2026-08-24 by attaching to a live stalled run",
+      "note": "THE STALL IS NOT A HANG. Read off the stalled page over CDP: state=recoverable-error, checkpoint=none, latency='save failed', and PENDING=0 -- nothing is waiting on the engine. A save failed during `format-a-paragraph-changes-that-paragraph`, took the session into recoverable-error with no checkpoint, and every arm after that burns its own timeout against a session that refuses everything with EDITOR_NOT_READY. That is the 20-50 minutes. It also reframes HANDOFF-2026-08-23c open item 2, which guessed the stall might BE the format barrier's stage-deadline: both exist, they are not the same thing, and which one caused the FIRST failure is not established. CHEAP FIX, harness side: check the session state between arms and stop driving once it is recoverable-error, reporting NOT_ESTABLISHED and naming the arm that killed it -- today the report is written only at the end, so a dead run yields nothing at all. Same shape as finding 080: a precondition that can never hold again, retried arm after arm.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "tools/run_e2_c_product_path.py",
+          "text": "queue-a11y-path-drives-a-dead-session"
+        }
+      ],
+      "checkNote": "Pinned to the id inside the runner, where the fix belongs. Deliberately NOT pinned to a state string in the product: the defect this item tracks is the harness continuing, not the session dying."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
