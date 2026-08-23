@@ -1281,6 +1281,109 @@ $(E2_V5_BUILD)/probe.js: $(E2_V5_OBJECTS) $(E2_V5_BUILD)/a11y_tree_probe.o \
 $(E2_V5_BUILD) $(E2_V5_DIST):
 	mkdir -p $@
 
+# ------------------------------------------- a11y-calloc, finding 076's proof
+#
+# A DIAGNOSTIC NAME ON PURPOSE. This is not a product candidate and must never
+# be mistaken for one: it carries `e2-editor-v5`'s pre-078 manifest, so the four
+# inline formats are offered for `collapsed` only and selected text cannot be
+# emboldened on it. It exists to answer one question.
+#
+# THE QUESTION: finding 076's fix shipped in `e2-editor-v8` and the product core
+# came back clean -- but that core already read as transparent off-page under
+# `malloc`, so a clean canvas there shows no regression rather than a cure. The
+# noise the operator SAW was on the accessibility core, whose lineage still
+# carries `malloc`. Fixing a defect on a build where its symptom was never
+# visible and calling it fixed is the shape this tree keeps writing down.
+#
+# A SINGLE-VARIABLE EXPERIMENT, and that is measured rather than intended:
+# `what_the_link_ships.py --variant a11y --since 7fcb143` reports exactly one
+# hunk -- `std::malloc` -> `std::calloc` -- and `sdk-worker.js` byte-identical
+# to the one v5 already carries. Same core, same defines, same manifest flags.
+# One line differs from the artifact the operator looked at.
+#
+# Its own build and dist directories for the reason every predecessor got them:
+# `e2-editor-v5` is minted, archived and referenced by the aria-projection
+# evidence, and must stay byte-identical.
+A11Y_CALLOC_BUILD := build/e2/a11y-calloc
+A11Y_CALLOC_DIST := dist/profiles/a11y-calloc
+A11Y_CALLOC_OBJECTS := $(patsubst src/%.cpp,$(A11Y_CALLOC_BUILD)/%.o,$(E2_V5_SOURCES))
+
+$(A11Y_CALLOC_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/format_readback_text.hpp Makefile | $(A11Y_CALLOC_BUILD)
+	$(CXX) $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_A11Y_PARAGRAPH_TEXT -DOXSDK_A11Y_OUTLINE \
+		-c $< -o $@
+
+$(A11Y_CALLOC_BUILD)/a11y_tree_probe.o: src/a11y_tree_probe.cpp Makefile \
+		| $(A11Y_CALLOC_BUILD)
+	$(CXX) $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 -DLIBO_INTERNAL_ONLY \
+		-c $< -o $@
+
+$(A11Y_CALLOC_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(A11Y_CALLOC_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+$(A11Y_CALLOC_BUILD)/probe.js: $(A11Y_CALLOC_OBJECTS) \
+		$(A11Y_CALLOC_BUILD)/a11y_tree_probe.o \
+		$(A11Y_CALLOC_BUILD)/exports.txt \
+		$(E2_V5_CORE)/instdir/program/soffice.js.linkdeps Makefile
+	$(call refuse_unasked_relink,finding 076's proof artifact on the a11y core -- every link mints a new hash and five identities bind to one)
+	$(CXX) $(A11Y_CALLOC_OBJECTS) $(A11Y_CALLOC_BUILD)/a11y_tree_probe.o \
+		-L$(E2_V5_CORE)/instdir/program \
+		$$(cat $(E2_V5_CORE)/instdir/program/soffice.js.linkdeps) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=65536 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(A11Y_CALLOC_BUILD)/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(E2_V5_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+		-o $@
+
+$(A11Y_CALLOC_BUILD)/probe.wasm: $(A11Y_CALLOC_BUILD)/probe.js
+	@test -s $@
+
+# NO `--inline-range-gestures`: v5 predates finding 078 and offers the four
+# inline formats for `collapsed` only.  Matching it is what keeps this a
+# one-variable experiment, and it is also why this profile must never be
+# mistaken for a product candidate.
+$(A11Y_CALLOC_DIST)/sdk-manifest.json: $(A11Y_CALLOC_BUILD)/probe.js \
+		$(A11Y_CALLOC_BUILD)/probe.wasm \
+		$(A11Y_CALLOC_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(A11Y_CALLOC_DIST)
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(A11Y_CALLOC_BUILD)/probe.js \
+		--wasm $(A11Y_CALLOC_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js \
+		--exports $(A11Y_CALLOC_BUILD)/exports.txt \
+		--profile a11y-calloc --paragraph-text --document-outline \
+		--core-data $(E2_V5_CORE) \
+		--output $(A11Y_CALLOC_DIST)
+	@test -s $(A11Y_CALLOC_DIST)/probe.js
+	@test -s $(A11Y_CALLOC_DIST)/probe.wasm
+	@test -s $(A11Y_CALLOC_DIST)/sdk-worker.js
+
+$(A11Y_CALLOC_BUILD) $(A11Y_CALLOC_DIST):
+	mkdir -p $@
+
 # The v2 product profile.  --cross-paragraph selects disposition B' (dispatch
 # and verify every block); without it the same artifact ships disposition A
 # (refuse cross-paragraph before dispatch).  That the choice is a builder flag

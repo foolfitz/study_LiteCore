@@ -63,6 +63,39 @@ PRODUCT_DEFINES = [
 # E2_V4_OBJECTS, which is the sort of thing only an expansion tells you.
 PRODUCT_UNITS = ["sdk_api", "probe_engine", "unoembind_stub", "editor_api"]
 
+# THE a11y LINEAGE, which is a different build of the same sources against a
+# different core.  It gets its own entry rather than a flag on the product's
+# because "same sources" is exactly the assumption that makes a link surprising:
+# the defines differ, the include path points at another core, and one extra
+# translation unit is compiled the way core compiles itself.
+#
+# Kept as data next to the product's so the two cannot drift apart silently --
+# `configurationDrift` asserts both against `make -pn`.
+A11Y_DEFINES = PRODUCT_DEFINES + ["-DOXSDK_A11Y_PARAGRAPH_TEXT",
+                                  "-DOXSDK_A11Y_OUTLINE"]
+VARIANTS = {
+    "product": {
+        "objectsVar": "E2_V4_OBJECTS",
+        "cppflagsVar": "E1_CPPFLAGS",
+        "defines": PRODUCT_DEFINES,
+        "units": PRODUCT_UNITS,
+    },
+    "a11y": {
+        "objectsVar": "E2_V5_OBJECTS",
+        "cppflagsVar": "E2_V5_CPPFLAGS",
+        "defines": A11Y_DEFINES,
+        "units": PRODUCT_UNITS,
+        # `a11y_tree_probe.cpp` is deliberately NOT preprocessed here. It is
+        # compiled `-std=c++20 -DLIBO_INTERNAL_ONLY` against core's INTERNAL
+        # headers -- a different language mode and a different header universe
+        # from every other unit -- so running it through this tool's single
+        # flag set would answer about a configuration nobody builds. It is
+        # named in the report instead, with its git status, which is the honest
+        # thing this tool can say about it.
+        "notPreprocessed": ["a11y_tree_probe"],
+    },
+}
+
 
 def make_var(name: str) -> str:
     out = subprocess.run(["make", "-pn"], cwd=PROJECT, capture_output=True,
@@ -94,29 +127,36 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--since", required=True,
                     help="the commit the SHIPPED artifact was linked from")
+    ap.add_argument("--variant", choices=sorted(VARIANTS), default="product",
+                    help="which build to measure: the product lineage, or the "
+                         "a11y lineage (different core, two more defines, one "
+                         "extra translation unit)")
     ap.add_argument("--shipped-profile", default="dist/profiles/e2-editor-v8",
                     help="the profile directory the product currently ships, "
                          "whose packaged worker is compared against the tree's")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
 
+    variant = VARIANTS[args.variant]
     cxx = make_var("CXX")
-    flags = (make_var("E1_CPPFLAGS").split() + make_var("R5_CXXFLAGS").split()
-             + PRODUCT_DEFINES + ["-Isrc"])
+    flags = (make_var(variant["cppflagsVar"]).split()
+             + make_var("R5_CXXFLAGS").split()
+             + variant["defines"] + ["-Isrc"])
+    units = variant["units"]
 
     # THE PRODUCT'S OWN LISTS, asserted rather than assumed.  If the Makefile
     # stops building these four units, or starts defining a fourth symbol, this
     # tool would go on measuring the old configuration and answer confidently
     # about a build nobody links.
-    objects = make_var("E2_V4_OBJECTS").split()
+    objects = make_var(variant["objectsVar"]).split()
     units_in_make = sorted(Path(o).stem for o in objects)
     drift = []
-    if units_in_make != sorted(PRODUCT_UNITS):
-        drift.append(f"E2_V4_OBJECTS is {units_in_make}, this tool has "
-                     f"{sorted(PRODUCT_UNITS)}")
+    if units_in_make != sorted(units):
+        drift.append(f"{variant['objectsVar']} is {units_in_make}, this tool "
+                     f"has {sorted(units)}")
     recipe = subprocess.run(["make", "-pn"], cwd=PROJECT, capture_output=True,
                             text=True).stdout
-    for define in PRODUCT_DEFINES:
+    for define in variant["defines"]:
         if define not in recipe:
             drift.append(f"{define} no longer appears in any recipe")
 
@@ -124,8 +164,10 @@ def main() -> int:
         "schemaVersion": 1,
         "release": "what-the-link-ships",
         "since": args.since,
-        "units": PRODUCT_UNITS,
-        "defines": PRODUCT_DEFINES,
+        "variant": args.variant,
+        "units": units,
+        "notPreprocessed": variant.get("notPreprocessed", []),
+        "defines": variant["defines"],
         "configurationDrift": drift,
         "changed": {},
         "identical": [],
@@ -136,7 +178,7 @@ def main() -> int:
     try:
         old, new = scratch / "old", scratch / "new"
         old.mkdir(); new.mkdir()
-        for unit in PRODUCT_UNITS:
+        for unit in units:
             if not source_at(args.since, unit, old):
                 report["errors"][unit] = f"absent at {args.since}"
                 continue

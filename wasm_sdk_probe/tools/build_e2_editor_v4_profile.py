@@ -68,6 +68,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -245,6 +246,30 @@ def main() -> int:
                              "grants both, which is what e2-editor-v7 ships "
                              "and v8 inherits. Refused under the frozen "
                              "e2-editor-v4 name")
+    # THE PROFILE CARRIES ITS OWN CORE'S FILESYSTEM IMAGE.
+    #
+    # `artifactFiles` is inherited from the source manifest, which points
+    # `soffice.data` at the SHARED `../resources/base-r5.*` -- the PRODUCT
+    # core's image, plus a CJK resource pack. That is right for every profile
+    # built against the product core and wrong for any profile built against
+    # another one: the wasm would be linked against one core and load a
+    # different core's registry, configuration and resources.
+    #
+    # `e2-editor-v5` carries its own 108 MB `soffice.data`, byte-identical to
+    # `wasm-lite/build-a11y-gate0/instdir/program/soffice.data`, and declares
+    # `./soffice.data` with no resource packs. That was assembled outside this
+    # builder, so the next profile on that core silently got the product's
+    # image instead -- measured 2026-08-24, on the first attempt at
+    # `a11y-calloc`.
+    #
+    # This flag makes it a build step rather than a thing to remember.
+    parser.add_argument("--core-data", type=Path, default=None,
+                        help="copy soffice.data and soffice.data.js.metadata "
+                             "from this core's instdir/program into the "
+                             "profile and declare them locally, instead of "
+                             "inheriting the shared product-core paths. "
+                             "Required for any profile linked against a core "
+                             "that is not the product's")
     parser.add_argument("--profile", default=PROFILE,
                         help="profile identity to stamp; defaults to the "
                              "product's. Use another name for any profile "
@@ -276,6 +301,26 @@ def main() -> int:
     manifest["profile"] = args.profile
     manifest["sdkVersion"] = manifest["sdkVersion"].replace(
         "+e2-editor-v2", "+" + args.profile)
+    if args.core_data is not None:
+        program = args.core_data / "instdir" / "program"
+        missing = [name for name in ("soffice.data", "soffice.data.js.metadata")
+                   if not (program / name).is_file()]
+        if missing:
+            raise SystemExit(
+                f"--core-data {args.core_data} does not carry {missing}. A "
+                f"profile linked against that core cannot be packaged without "
+                f"its filesystem image, and inheriting the product core's "
+                f"would link one core and load another")
+        for name in ("soffice.data", "soffice.data.js.metadata"):
+            shutil.copy2(program / name, args.output / name)
+        manifest["artifactFiles"] = {
+            **manifest["artifactFiles"],
+            "soffice.data": "./soffice.data",
+            "soffice.data.js.metadata": "./soffice.data.js.metadata",
+        }
+        # The packs are the PRODUCT core's too, and a profile that carries its
+        # own image has no use for them.  `e2-editor-v5` declares none.
+        manifest["resourcePacks"] = []
     contract = manifest["editorContract"]
     contract["abiVersion"] = ABI_VERSION
     contract["actions"] = action_map()
