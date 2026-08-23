@@ -1384,6 +1384,56 @@ $(A11Y_CALLOC_DIST)/sdk-manifest.json: $(A11Y_CALLOC_BUILD)/probe.js \
 $(A11Y_CALLOC_BUILD) $(A11Y_CALLOC_DIST):
 	mkdir -p $@
 
+# --------------------------------------------- v9, the a11y product candidate
+#
+# `a11y-calloc` answered finding 076 and is deliberately NOT a product profile:
+# it carries `e2-editor-v5`'s pre-078 manifest, so selected text cannot be
+# emboldened on it.  v9 is the same build packaged as a PRODUCT candidate --
+# the a11y core, finding 076's `calloc`, and the gestures `e2-editor-v8` ships.
+#
+# IT IS PACKAGED FROM THE ARCHIVE, NOT FROM THE BUILD TREE, and that is not
+# fussiness.  `$(A11Y_CALLOC_BUILD)/probe.js` depends on this Makefile, so
+# adding these very lines makes it out of date and `make` would RELINK it --
+# minting a second wasm hash and leaving finding 076's measurement describing an
+# artifact that no longer exists (finding 042: editing the Makefile relinks
+# every artifact that depends on it).  The archive directory is named after the
+# hash it contains, so this dependency says WHICH artifact in a way a build path
+# cannot, and it cannot be rebuilt out from under the evidence.
+#
+# One artifact, two manifests over it -- exactly as `e2-editor-v4` and
+# `e2-editor-v7` are one artifact and two manifests.
+#
+# WHAT IT DOES NOT FIX, said here because a candidate is not a cutover: v5 was
+# reverted for the format barrier's `stage-deadline`, for bold not reaching the
+# document, and for a band scan that saw 7 for 9.  The last of those was finding
+# 075, which `calloc` addresses; the first two are untouched by anything here.
+# Whether this profile is shippable is a MEASUREMENT nobody has taken, and the
+# product path on it is how it gets taken -- not this rule.
+E2_V9_DIST := dist/profiles/e2-editor-v9
+A11Y_CALLOC_ARCHIVE := build/archive/a11y-calloc-b60cc46f-worker-070229cd-manifest-5bb70362
+
+$(E2_V9_DIST)/sdk-manifest.json: $(A11Y_CALLOC_ARCHIVE)/probe.js \
+		$(A11Y_CALLOC_ARCHIVE)/probe.wasm \
+		$(A11Y_CALLOC_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V9_DIST)
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(A11Y_CALLOC_ARCHIVE)/probe.js \
+		--wasm $(A11Y_CALLOC_ARCHIVE)/probe.wasm \
+		--worker sdk/sdk-worker.js \
+		--exports $(A11Y_CALLOC_BUILD)/exports.txt \
+		--profile e2-editor-v9 --paragraph-text --document-outline \
+		--inline-range-gestures all --core-data $(E2_V5_CORE) \
+		--output $(E2_V9_DIST)
+	@test -s $(E2_V9_DIST)/probe.js
+	@test -s $(E2_V9_DIST)/probe.wasm
+	@test -s $(E2_V9_DIST)/sdk-worker.js
+
+$(E2_V9_DIST):
+	mkdir -p $@
+
 # The v2 product profile.  --cross-paragraph selects disposition B' (dispatch
 # and verify every block); without it the same artifact ships disposition A
 # (refuse cross-paragraph before dispatch).  That the choice is a builder flag
