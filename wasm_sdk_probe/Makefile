@@ -75,6 +75,35 @@ E2_V4_DIST := dist/profiles/e2-editor-v4
 E2_V4_SOURCES := $(E2_C_SOURCES)
 E2_V4_OBJECTS := $(patsubst src/%.cpp,$(E2_V4_BUILD)/%.o,$(E2_V4_SOURCES))
 
+# The finding-076 successor.  Its own build and dist directories for the same
+# reason every predecessor got them: v4 must stay byte-identical, because the
+# E2-C verdict and every scrap of round-two evidence bind to it -- and v7 is v4's
+# artifact under a wider manifest, so relinking v4 would unbind the shipped
+# product as well.
+#
+# SAME CORE, SAME SOURCES, SAME DEFINES AS v4.  What differs is the two engine
+# fixes that have accumulated in `src/probe_engine.cpp` since v4 was linked, and
+# that list is a MEASUREMENT rather than a reading of commit messages: the four
+# v4 translation units were preprocessed with v4's own flags at the shipped
+# commit and at HEAD, and the diff is exactly two hunks --
+#
+#   * `std::malloc` -> `std::calloc` for the tile pixel buffer (finding 076:
+#     paintTile draws only the page and putImageData blits the rest, so
+#     uninitialised heap reached a canvas the user can screenshot);
+#   * an early return in `refreshCaretParagraph()` so `a11yParagraphFresh` is
+#     false on a build where no accessibility read can succeed
+#     (queue-fresh-is-true-where-no-read-can-succeed).
+#
+# `editor_api.cpp` preprocesses byte-identically.  Every other engine change
+# since v4 is behind OXSDK_A11Y_*, which this build does not define, and
+# `a11y_tree_probe.o` is not in E2_V4_OBJECTS at all.  Reading the #ifdefs would
+# have missed the second hunk: it is gated on a RUNTIME flag, deliberately, so
+# it reaches the product build.
+E2_V8_BUILD := build/e2/editor-v8
+E2_V8_DIST := dist/profiles/e2-editor-v8
+E2_V8_SOURCES := $(E2_C_SOURCES)
+E2_V8_OBJECTS := $(patsubst src/%.cpp,$(E2_V8_BUILD)/%.o,$(E2_V8_SOURCES))
+
 # The a11y successor, roadmap 3.4.  Its own build and dist directories for the
 # same reason every predecessor got them: v4 must stay byte-identical, because
 # the E2-C verdict and every scrap of round-two evidence bind to it.
@@ -1122,6 +1151,70 @@ $(E2_V4_DIST)/sdk-manifest.json: $(E2_V4_BUILD)/probe.js \
 	@test -s $(E2_V4_DIST)/sdk-worker.js
 
 $(E2_V4_BUILD) $(E2_V4_DIST):
+	mkdir -p $@
+
+# ------------------------------------------------- v8, finding 076's link
+#
+# A copy of the v4 rules with one directory changed, and NOT a refactor of them
+# into a shared template.  v4's recipes are what the shipped artifact was linked
+# by; a template that both share is a thing that can be edited once and change
+# two artifacts, and one of them is bound to a verdict.  Duplication is the
+# cheaper risk here, and it is the same call v3 -> v4 made.
+$(E2_V8_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/format_readback_text.hpp Makefile | $(E2_V8_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+$(E2_V8_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V8_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# Guarded from the FIRST link, same as every predecessor: no v8 artifact ever
+# appears by accident, including the one that later gets bound to.
+$(E2_V8_BUILD)/probe.js: $(E2_V8_OBJECTS) $(EXTRA_OBJECTS) $(E2_V8_BUILD)/exports.txt \
+		$(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,finding 076's successor product artifact -- every link mints a new hash and five identities bind to one)
+	$(call link_r5_product,$(E2_V8_OBJECTS) $(EXTRA_OBJECTS),$(E2_V8_BUILD)/exports.txt,$@)
+
+$(E2_V8_BUILD)/probe.wasm: $(E2_V8_BUILD)/probe.js
+	@test -s $@
+
+# The v8 product profile.
+#
+# `--inline-range-gestures all` is NOT a widening taken at link time: it is what
+# `e2-editor-v7` already ships, characterised and confirmed by the operator with
+# a real mouse (finding 078).  Omitting it here would NARROW the product on the
+# day of a link that has nothing to do with gestures, which is 078 reintroduced
+# -- and `check_gesture_offers.py` compares against an expectation kept outside
+# the manifest, so it would fail rather than pass quietly.
+$(E2_V8_DIST)/sdk-manifest.json: $(E2_V8_BUILD)/probe.js \
+		$(E2_V8_BUILD)/probe.wasm \
+		$(E2_V8_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V8_DIST)
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_V8_BUILD)/probe.js --wasm $(E2_V8_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --exports $(E2_V8_BUILD)/exports.txt \
+		--profile e2-editor-v8 --inline-range-gestures all \
+		--output $(E2_V8_DIST)
+	@test -s $(E2_V8_DIST)/probe.js
+	@test -s $(E2_V8_DIST)/probe.wasm
+	@test -s $(E2_V8_DIST)/sdk-worker.js
+
+$(E2_V8_BUILD) $(E2_V8_DIST):
 	mkdir -p $@
 
 # ---------------------------------------------------------------- v5, a11y
@@ -2273,6 +2366,12 @@ test-e2-b-static:
 	python3 -m py_compile tools/run_e2b_gate.py tools/analyze_e2b_gate.py \
 		tools/analyze_e2b_crossparagraph.py tools/analyze_e2b_identity_gate.py \
 		tools/create_e2b_fixtures.py tools/build_e2_b_profile.py
+	# The link-contents tool.  Not RUN here -- it preprocesses four translation
+	# units twice and takes about a minute, and its `--since` is a commit that
+	# changes at every link, so a gate pinning one would go stale rather than
+	# fail.  Compiled here so it cannot rot between links, which is exactly the
+	# interval over which nobody looks at it.
+	python3 -m py_compile tools/what_the_link_ships.py
 	python3 -m unittest tests/test_e2_b_profile.py
 	# SPEC E2-B 7.1: every validator that produces a verdict flips its own
 	# criteria and asserts they go red.  An analyzer written after a prediction

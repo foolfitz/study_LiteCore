@@ -203,31 +203,48 @@ def main() -> int:
                              "packaged was built with OXSDK_A11Y_OUTLINE. Off "
                              "by default, so the shipped invocation is "
                              "unchanged")
-    # GRANTING A GESTURE NOBODY HAS MEASURED, on purpose and only here.
+    # GRANTING A RANGE GESTURE.  The text below was written when nobody had
+    # measured one; `all` HAS SHIPPED since, and saying otherwise here would
+    # leave the builder describing the product as a diagnostic.
     #
-    # Finding 078: the four inline formats are offered for `collapsed` only,
-    # because range dispatch was characterised for the paragraph actions and not
-    # for these -- so the manifest declines to claim it. That is right, and the
-    # cost of it is that the product cannot embolden text a user has selected.
+    # Finding 078: the four inline formats were offered for `collapsed` only,
+    # because range dispatch had been characterised for the paragraph actions
+    # and not for these -- so the manifest declined to claim it. That was right,
+    # and the cost of it was that the product could not embolden text a user had
+    # selected. The measurement that would justify granting it cannot be taken
+    # through a manifest that withholds it (the engine refuses before dispatch),
+    # so this flag first existed to build the profile the CHARACTERISATION ran
+    # against.
     #
-    # The measurement that would justify granting it cannot be taken through a
-    # manifest that withholds it: the engine refuses before dispatch. So this
-    # flag exists to build the profile the CHARACTERISATION runs against, and
-    # for nothing else. What it produces is not a product profile and says so
-    # in its own limits.
+    # It is now also what the product ships. `all` was measured on the minted
+    # identity itself -- four formats x two selection shapes, formatted text
+    # equal to selected text, native LibreOffice writing the same shapes -- and
+    # the operator confirmed all four buttons with a real mouse. `e2-editor-v7`
+    # ships it, and `e2-editor-v8` inherits it: NOT re-granting it at link time
+    # would narrow the product on the day of a link that has nothing to do with
+    # gestures, which is 078 reintroduced.
     #
-    # Refused with the product's name below, because a profile that grants an
-    # unmeasured gesture while wearing the shipped identity is the exact shape
-    # of claim this contract is built to prevent.
+    # BOTH range bits or neither, and that is the engine's rule rather than a
+    # preference: for a selection it has not classified it requires both, so
+    # granting one alone admits nothing. Measured three ways, and it cost three
+    # minted profiles to find (e2/expected-gesture-offers.json).
+    #
+    # The refusal below stays, and it now means something narrower than it did:
+    # `e2-editor-v4` is a FROZEN identity whose manifest is the narrow one, and
+    # re-minting it wider would make two artifacts answer to one name. Any new
+    # product profile passes its own --profile, so the guard never stands in the
+    # way of shipping what has been measured.
     parser.add_argument("--inline-range-gestures",
                         choices=("none", "range-single", "range-cross", "all"),
                         default="none",
                         help="`range-single` grants what finding 078's "
-                             "characterisation measured, on all four inline "
-                             "formats, and records range-cross as withheld. "
-                             "`all` also grants range-cross, which nobody has "
-                             "characterised -- DIAGNOSTIC ONLY, and refused "
-                             "under the product's own name")
+                             "characterisation first measured and records "
+                             "range-cross as withheld -- a shape the engine "
+                             "cannot actually honour, kept because it is what "
+                             "the dead e2-editor-v6 was minted with. `all` "
+                             "grants both, which is what e2-editor-v7 ships "
+                             "and v8 inherits. Refused under the frozen "
+                             "e2-editor-v4 name")
     parser.add_argument("--profile", default=PROFILE,
                         help="profile identity to stamp; defaults to the "
                              "product's. Use another name for any profile "

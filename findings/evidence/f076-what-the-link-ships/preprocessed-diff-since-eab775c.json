@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "release": "what-the-link-ships",
+  "since": "eab775c",
+  "units": [
+    "sdk_api",
+    "probe_engine",
+    "unoembind_stub",
+    "editor_api"
+  ],
+  "defines": [
+    "-DOXSDK_EDITOR_DISCOVERY",
+    "-DOXSDK_FINDING_016_SELECTION_BARRIER",
+    "-DOXSDK_E2_FORMAT_BARRIER"
+  ],
+  "configurationDrift": [],
+  "changed": {
+    "probe_engine": [
+      "--- probe_engine@eab775c",
+      "+++ probe_engine@tree",
+      "@@ -15882,3 +15882,3 @@",
+      "-\n}\n\nextern \"C\" {\ntypedef void (*LibreOfficeKitCallback)(int nType, const char* pPayload, void* pData)",
+      "+\n}\nextern \"C\" {\ntypedef void (*LibreOfficeKitCallback)(int nType, const char* pPayload, void* pData)",
+      "@@ -34372,3 +34372,9 @@",
+      "-\n  if (!readEditorSemanticSnapshot(snapshot)) {\n    gEditorState.a11yParagraphFresh = false",
+      "+\n  if (!gEditorAccessibilityEnabled) {\n    gEditorState.a11yParagraphFresh = false",
+      "+\n    gEditorState.a11yContentLength = -1",
+      "+\n    gEditorState.a11yPosition = -1",
+      "+\n    gEditorState.a11yContentHash = 0",
+      "+\n    gEditorState.a11yListPrefixLength = 0",
+      "+\n    return false",
+      "+\n  }\n  if (!readEditorSemanticSnapshot(snapshot)) {\n    gEditorState.a11yParagraphFresh = false",
+      "@@ -34730,3 +34736,3 @@",
+      "-\n  }\n  auto *pixels = static_cast<unsigned char *>(\n      std::malloc(static_cast<std::size_t>(byteCount)))",
+      "+\n  }\n  auto *pixels = static_cast<unsigned char *>(\n      std::calloc(static_cast<std::size_t>(byteCount), 1))"
+    ]
+  },
+  "identical": [
+    "sdk_api",
+    "unoembind_stub",
+    "editor_api"
+  ],
+  "errors": {},
+  "worker": {
+    "shippedProfile": "dist/profiles/e2-editor-v7",
+    "shipped": "e6ee92ca290b7966",
+    "tree": "070229cd10bda4a0",
+    "identical": false,
+    "addedLines": 93,
+    "removedLines": 0,
+    "addedCodeLines": [
+      "text: typeof value.a11y.paragraphText === \"string\"",
+      "? value.a11y.paragraphText : null,",
+      "documentOutline: (value.a11y && value.a11y.outline",
+      "&& Array.isArray(value.a11y.outline.paragraphs))",
+      "? {",
+      "paragraphCount: value.a11y.outline.paragraphCount ?? null,",
+      "cap: value.a11y.outline.cap ?? null,",
+      "textCap: value.a11y.outline.textCap ?? null,",
+      "paragraphs: value.a11y.outline.paragraphs.map((p) => ({",
+      "role: p.role,",
+      "level: typeof p.level === \"number\" ? p.level : null,",
+      "focused: p.focused === true,",
+      "textLength: typeof p.textLength === \"number\" ? p.textLength : null,",
+      "text: typeof p.text === \"string\" ? p.text : \"\",",
+      "})),",
+      "}",
+      ": null,",
+      "caretParagraph: productEditorState(event).caretParagraph,",
+      "documentOutline: productEditorState(event).documentOutline,",
+      "caretParagraph: productEditorState(event).caretParagraph,",
+      "documentOutline: productEditorState(event).documentOutline,"
+    ],
+    "removedCodeLines": []
+  },
+  "ok": true
+}
