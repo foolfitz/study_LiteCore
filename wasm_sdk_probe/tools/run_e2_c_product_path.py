@@ -1595,6 +1595,37 @@ def build_mirror(source: Path, target: Path, overrides: dict[str, bytes]) -> Non
 SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v27.json"
 
 
+PRODUCT_PROFILE_IN_PAGE = re.compile(
+    r"\./profiles/([A-Za-z0-9._-]+)/sdk-worker\.js")
+
+
+def product_profile(root: Path) -> str:
+    """Which profile the SERVED PAGE loads, read from the page itself.
+
+    Introduced 2026-08-23 for the v5 cutover, and the reason is the failure it
+    prevents rather than tidiness.  Three places here rewrote
+    `profiles/e2-editor-v4/sdk-manifest.json` by name to build their diagnostic
+    mirrors.  Moving the product to v5 would not have broken them -- it would
+    have left them mirroring a manifest **no longer loaded**, so
+    `--range-delete-diagnostic` and `--cut-via-replace-selection` would report
+    a widened or narrowed gesture while the page ran the shipped one. A silent
+    mis-target is worse than a crash, and it is exactly the shape of finding
+    044 one layer out.
+
+    Raises rather than guessing: a page whose profile cannot be read is a page
+    this runner does not know how to mirror, and picking a default there would
+    reintroduce the same silence.
+    """
+    page = root / "e2-editor-app.js"
+    match = PRODUCT_PROFILE_IN_PAGE.search(page.read_text(encoding="utf-8"))
+    if not match:
+        raise SystemExit(
+            f"cannot tell which profile {page} loads -- the mirror would have "
+            f"to guess, and a diagnostic aimed at the wrong manifest reports "
+            f"about an artifact the page is not running")
+    return match.group(1)
+
+
 def offered_actions(root: Path, names) -> dict:
     """Which of these actions the SERVED manifest offers.
 
@@ -2462,6 +2493,21 @@ def main() -> int:
                              "stamps the report diagnostic")
     parser.add_argument("--refusal-action", default="delete-selection",
                         help="which action --refusal-diagnostic withholds")
+    # RUN THE WHOLE NET AGAINST A PROFILE THAT IS NOT THE SHIPPED ONE.
+    #
+    # Added 2026-08-23 to tell two hypotheses apart without editing the product
+    # page and risking leaving it edited. `a11y-projection` and `e2-editor-v5`
+    # share a CORE and differ by one compile flag, so pointing this net at each
+    # is the cheapest discriminator between "the a11y core changed behaviour"
+    # and "walking the outline on every state read did".
+    #
+    # Mirrored, never written: the page's worker URL and its pinned wasm hash
+    # move TOGETHER, because a page given one without the other runs an engine
+    # its own guard is supposed to reject.
+    parser.add_argument("--profile", default=None,
+                        help="serve the product page against this profile "
+                             "instead of the one it ships pointing at; stamps "
+                             "the report diagnostic")
     parser.add_argument("--no-caret-exclusion", action="store_true",
                         help="leave the drawn caret in the ink scan. Finding "
                              "072: the caret bridges the gap between two "
@@ -2568,7 +2614,7 @@ def main() -> int:
         # the stack trace in the first run of this diagnostic said so
         # (profiles/e2-editor-v4/sdk-worker.js). Mirroring the wrong one
         # changes nothing and looks like the gate moved.
-        worker_rel = "profiles/e2-editor-v4/sdk-worker.js"
+        worker_rel = f"profiles/{product_profile(root)}/sdk-worker.js"
         worker_text = (root / worker_rel).read_text(encoding="utf-8")
         alloc = ('  const pointer = Number(ccall("oxsdk_buffer_alloc", '
                  '"number", ["number"], [length]));')
@@ -2609,7 +2655,7 @@ def main() -> int:
                           "PREDICTION-replace-selection.md",
         }
     if args.range_delete_diagnostic:
-        relative = "profiles/e2-editor-v4/sdk-manifest.json"
+        relative = f"profiles/{product_profile(root)}/sdk-manifest.json"
         manifest = json.loads((root / relative).read_text(encoding="utf-8"))
         contract = manifest["editorContract"]
         widened_action = args.range_delete_action
@@ -2652,7 +2698,7 @@ def main() -> int:
                 "rewrite the same manifest in opposite directions; running "
                 "them together would produce a report whose gesture list is "
                 "whichever one happened to be applied second")
-        relative = "profiles/e2-editor-v4/sdk-manifest.json"
+        relative = f"profiles/{product_profile(root)}/sdk-manifest.json"
         manifest = json.loads((root / relative).read_text(encoding="utf-8"))
         contract = manifest["editorContract"]
         withheld_action = args.refusal_action
@@ -2697,6 +2743,40 @@ def main() -> int:
                 "range a cut necessarily has -- the v3 path verbatim",
             "restores": "queue-cut-refusal-lost-its-inducer",
         }
+    if args.profile:
+        page_rel = "e2-editor-app.js"
+        source = (root / page_rel).read_text(encoding="utf-8")
+        manifest_path = root / "profiles" / args.profile / "sdk-manifest.json"
+        if not manifest_path.is_file():
+            raise SystemExit(f"--profile {args.profile!r} has no manifest at "
+                             f"{manifest_path}")
+        wasm = json.loads(manifest_path.read_text(
+            encoding="utf-8"))["editorContract"]["wasmSha256"]
+        worker_matches = re.findall(
+            r'"\./profiles/[A-Za-z0-9._-]+/sdk-worker\.js"', source)
+        pin_match = re.search(r'const PINNED_WASM_SHA256 = "([0-9a-f]+)";',
+                              source)
+        if len(worker_matches) != 1 or not pin_match:
+            raise SystemExit(
+                "the page does not carry exactly one worker URL and one pinned "
+                "hash, so this mirror cannot rewrite it without guessing")
+        page = source.replace(worker_matches[0],
+                              f'"./profiles/{args.profile}/sdk-worker.js"', 1)
+        page = page.replace(pin_match.group(0),
+                            f'const PINNED_WASM_SHA256 = "{wasm[:16]}";', 1)
+        mirror = scratch / "profile-root"
+        build_mirror(root, mirror, {page_rel: page.encode("utf-8")})
+        root = mirror
+        report["profileDiagnostic"] = {
+            "evidenceClass": "diagnostic",
+            "note": "This run did NOT use the shipped page. It was mirrored to "
+                    "load a different profile, so every result here is about "
+                    "that profile and must not be quoted as the product's.",
+            "profile": args.profile,
+            "pinBefore": pin_match.group(1),
+            "pinAfter": wasm[:16],
+        }
+
     # Written AFTER the mirror is built, so it describes what was served rather
     # than what was intended.
     report["servedShell"] = served_shell_identity(root)

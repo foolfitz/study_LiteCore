@@ -35,6 +35,11 @@
 // is separate.
 extern "C" char *oxsdk_a11y_tree_snapshot();
 #endif
+#ifdef OXSDK_A11Y_OUTLINE
+// The PRODUCT half of the same file.  Guarded separately from the probe: the
+// diagnostic dump must never ship, and this must, so they cannot share a flag.
+extern "C" char *oxsdk_a11y_document_outline();
+#endif
 
 #include <LibreOfficeKit/LibreOfficeKit.h>
 #include <LibreOfficeKit/LibreOfficeKitEnums.h>
@@ -1142,6 +1147,25 @@ void appendEditorState(std::ostringstream &json) {
        << ",\"paragraphFingerprint\":\"" << std::hex
        << gEditorState.a11yContentHash << std::dec << "\""
        << ",\"listPrefixLength\":" << gEditorState.a11yListPrefixLength
+#ifdef OXSDK_A11Y_OUTLINE
+       // ROADMAP 3.4, the product field.  WCAG 2.1 1.3.1 is Level A and asks
+       // for information and relationships to be programmatically
+       // determinable; a canvas says "heading" by drawing it bigger, so this
+       // is where the document says it in words.
+       //
+       // Emitted on every state read rather than only when the structure
+       // moved, and that is a MEASURED choice rather than a lazy one: the
+       // diagnostic build has been emitting the whole tree on every read since
+       // 2026-08-23 and a 133-paragraph document showed no trouble.  A
+       // change-sequence optimisation is a later change WITH a measurement
+       // behind it; guessing at one now would be optimising ahead of evidence.
+       << ",\"outline\":" << [] {
+              char *raw = oxsdk_a11y_document_outline();
+              const std::string owned = raw ? raw : "{\"unavailable\":\"null\"}";
+              std::free(raw);
+              return owned;
+          }()
+#endif
 #ifdef OXSDK_A11Y_TREE_PROBE
        // DIAGNOSTIC ONLY.  `src/a11y_tree_probe.cpp` is the one translation
        // unit compiled with -DLIBO_INTERNAL_ONLY; this is the only place that

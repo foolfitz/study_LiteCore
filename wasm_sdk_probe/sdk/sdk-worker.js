@@ -353,6 +353,34 @@ function productEditorState(value = {}) {
       text: typeof value.a11y.paragraphText === "string"
         ? value.a11y.paragraphText : null,
     } : null,
+    // ROADMAP 3.4's structure half.  A NAMED PROJECTION, not the engine's
+    // diagnostic tree: the engine also emits `a11y.tree` on a diagnostic build
+    // and that one carries depths, child counts and state bits, which is
+    // exactly what E1-B forbids promoting.  Only the product shape is
+    // forwarded, and only the fields a projection needs.
+    //
+    // `null` when absent rather than `[]`, for the same reason `text` is null
+    // rather than "": a host must be able to tell "this profile does not carry
+    // an outline" from "this document has no paragraphs". The manifest's
+    // `documentOutline` says which before a host looks.
+    documentOutline: (value.a11y && value.a11y.outline
+                      && Array.isArray(value.a11y.outline.paragraphs))
+      ? {
+          paragraphCount: value.a11y.outline.paragraphCount ?? null,
+          // The caps travel with the data. A projection that cannot tell a
+          // short document from a truncated one is the 64-child bound all
+          // over again, one layer up.
+          cap: value.a11y.outline.cap ?? null,
+          textCap: value.a11y.outline.textCap ?? null,
+          paragraphs: value.a11y.outline.paragraphs.map((p) => ({
+            role: p.role,
+            level: typeof p.level === "number" ? p.level : null,
+            focused: p.focused === true,
+            textLength: typeof p.textLength === "number" ? p.textLength : null,
+            text: typeof p.text === "string" ? p.text : "",
+          })),
+        }
+      : null,
   };
 }
 
@@ -859,8 +887,10 @@ function handleCEvent(rawEvent) {
           // motivated carrying the name at all.
           //
           // Same function as the actions use, for the same reason: two copies
-          // of a projection rule drift.
+          // of a projection rule drift.  Both projected fields -- see the
+          // announcement's copy of this comment for what leaving one out cost.
           caretParagraph: productEditorState(event).caretParagraph,
+          documentOutline: productEditorState(event).documentOutline,
           // Defaults to "unknown", never "none": an engine that predates the
           // selection-type readback emits no field, and treating that as
           // "nothing is selected" would let a caret precondition pass while a
@@ -941,7 +971,15 @@ function handleCEvent(rawEvent) {
           //
           // Derived from the SAME function the actions use, never a second
           // copy of the rule: two copies of a projection drift.
+          //
+          // BOTH projected fields, and the second one is here because leaving
+          // it out is the mistake this comment already describes: roadmap
+          // 3.4's structure reached the worker and stopped, because only
+          // `caretParagraph` had been added to the raw branches. The page
+          // reads the raw shape, so a projected field that is not listed here
+          // does not exist as far as the product is concerned.
           caretParagraph: productEditorState(event).caretParagraph,
+          documentOutline: productEditorState(event).documentOutline,
           format: event.format,
           schedulerProbe: event.schedulerProbe,
         });

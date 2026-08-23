@@ -135,6 +135,7 @@ export class NarrowEditorV2Session extends EditorSession {
         // line `caretParagraph` is absent from the page's state essentially
         // always -- see the worker's comment at the postEvent that sends it.
         caretParagraph: event.caretParagraph,
+        documentOutline: event.documentOutline,
         format: event.format,
         schedulerProbe: event.schedulerProbe,
       },
@@ -232,6 +233,10 @@ export class NarrowEditorV2Session extends EditorSession {
 
   offersCaretParagraphText() {
     return this.editor?.offersCaretParagraphText() ?? false;
+  }
+
+  offersDocumentOutline() {
+    return this.editor?.offersDocumentOutline() ?? false;
   }
 
   /**

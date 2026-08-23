@@ -207,6 +207,15 @@ export class NarrowEditorV2Client {
     return contract.caretParagraphText === "focused-paragraph-text";
   }
 
+  /** Whether this profile carries the document's structure. Same shape, same
+   * reason: an empty structure region and an absent one are different claims,
+   * and only one of them is safe to announce. */
+  offersDocumentOutline() {
+    const contract = this.document._engine.manifest?.editorContract;
+    if (!contract) return false;
+    return contract.documentOutline === "accessible-document-outline";
+  }
+
   limitsFor(action) {
     const spec = this.document._engine.manifest?.editorContract?.actions?.[action];
     return Array.isArray(spec?.limits) ? spec.limits : [];

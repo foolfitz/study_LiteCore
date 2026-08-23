@@ -106,6 +106,14 @@ void appendStates(std::ostringstream& rOut, sal_Int64 nStates)
          << ",\"selected\":" << (((nStates & State::SELECTED) != 0) ? "true" : "false");
 }
 
+char* duplicate(const std::string& rText)
+{
+    char* pCopy = static_cast<char*>(std::malloc(rText.size() + 1));
+    if (pCopy)
+        std::memcpy(pCopy, rText.c_str(), rText.size() + 1);
+    return pCopy;
+}
+
 int walk(std::ostringstream& rOut,
          const css::uno::Reference<css::accessibility::XAccessibleContext>& xContext,
          int nDepth, int nEmitted, bool& rFirst)
@@ -222,6 +230,119 @@ int walk(std::ostringstream& rOut,
     return nEmitted;
 }
 } // namespace
+
+// THE PRODUCT SHAPE, beside the diagnostic one on purpose.
+//
+// `oxsdk_a11y_tree_snapshot()` below dumps what the tree IS -- depths, child
+// counts, state bits, attribute-run ends. That is a probe's output and it must
+// not become a product surface: E1-B's ban is on promoting diagnostic
+// internals, and every one of those fields is exactly that.
+//
+// This emits what a projection NEEDS and nothing else: role as a product word,
+// level, list membership, focus, text. The vocabulary is the product's
+// ("heading"/"listItem"/"paragraph"), not AccessibleRole integers, so a host
+// never has to know that 26 means heading.
+//
+// Everything it reads was measured before it was written
+// (findings/evidence/aria-projection/TREE-SHAPE.md): role is an enum rather
+// than the localised style name finding 031 is about, level is
+// NumberingLevel + 1 across seven outline levels including a gap, and list
+// membership is `isNumbered` read AFTER role because a heading reports
+// numbered too.
+extern "C" char* oxsdk_a11y_document_outline()
+{
+    std::ostringstream aOut;
+    try
+    {
+        SfxViewShell* pShell = SfxViewShell::Current();
+        vcl::Window* pWindow = pShell ? pShell->GetWindow() : nullptr;
+        rtl::Reference<comphelper::OAccessible> xAcc
+            = pWindow ? pWindow->GetAccessible() : nullptr;
+        if (!xAcc.is())
+        {
+            // Absent, not empty.  A host that cannot tell "no accessibility
+            // here" from "a document with no paragraphs" would announce a
+            // blank document, which is the failure the region above it exists
+            // to prevent.
+            return duplicate("{\"unavailable\":\"no-accessible\"}");
+        }
+
+        css::uno::Reference<css::accessibility::XAccessibleContext> xRoot
+            = xAcc->getAccessibleContext();
+        const sal_Int64 nChildren = xRoot->getAccessibleChildCount();
+        const sal_Int64 nLimit = std::min<sal_Int64>(nChildren, kMaxChildrenPerNode);
+
+        aOut << "{\"paragraphCount\":" << nChildren
+             << ",\"cap\":" << kMaxChildrenPerNode
+             << ",\"textCap\":" << kMaxTextHead
+             << ",\"paragraphs\":[";
+        bool bFirst = true;
+        for (sal_Int64 i = 0; i < nLimit; ++i)
+        {
+            css::uno::Reference<css::accessibility::XAccessible> xChild
+                = xRoot->getAccessibleChild(i);
+            if (!xChild.is())
+                continue;
+            css::uno::Reference<css::accessibility::XAccessibleContext> xCtx
+                = xChild->getAccessibleContext();
+            if (!xCtx.is())
+                continue;
+
+            const sal_Int16 nRole = xCtx->getAccessibleRole();
+            const sal_Int64 nStates = xCtx->getAccessibleStateSet();
+            const bool bFocused
+                = (nStates & css::accessibility::AccessibleStateType::FOCUSED) != 0;
+
+            OUString aText;
+            sal_Int16 nLevel = -1;
+            bool bCounted = false;
+            css::uno::Reference<css::accessibility::XAccessibleText> xText(
+                xCtx, css::uno::UNO_QUERY);
+            if (xText.is())
+            {
+                aText = xText->getText();
+                if (aText.getLength() > 0)
+                {
+                    const css::uno::Sequence<OUString> aWanted{
+                        UNO_NAME_NUMBERING_LEVEL, UNO_NAME_NUMBERING};
+                    for (const auto& rAttr : xText->getCharacterAttributes(0, aWanted))
+                    {
+                        if (rAttr.Name == UNO_NAME_NUMBERING_LEVEL)
+                            rAttr.Value >>= nLevel;
+                        else if (rAttr.Name == UNO_NAME_NUMBERING)
+                            rAttr.Value >>= bCounted;
+                    }
+                }
+            }
+
+            const bool bHeading
+                = nRole == css::accessibility::AccessibleRole::HEADING;
+            // Order matters and it is measured: a heading also reports
+            // `numbered`, outline numbering being numbering, so role is asked
+            // first and list membership only of what is left.
+            const bool bListItem = !bHeading && bCounted;
+
+            if (!bFirst)
+                aOut << ',';
+            bFirst = false;
+            aOut << "{\"role\":\""
+                 << (bHeading ? "heading" : bListItem ? "listItem" : "paragraph")
+                 << "\",\"level\":" << (nLevel + 1)
+                 << ",\"focused\":" << (bFocused ? "true" : "false")
+                 << ",\"textLength\":" << aText.getLength()
+                 << ",\"text\":\"";
+            appendEscaped(aOut, aText.copy(0, std::min<sal_Int32>(
+                                    kMaxTextHead, aText.getLength())));
+            aOut << "\"}";
+        }
+        aOut << "]}";
+    }
+    catch (const css::uno::Exception&)
+    {
+        return duplicate("{\"unavailable\":\"uno-exception\"}");
+    }
+    return duplicate(aOut.str());
+}
 
 extern "C" char* oxsdk_a11y_tree_snapshot()
 {

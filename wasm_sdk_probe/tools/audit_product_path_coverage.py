@@ -39,10 +39,22 @@ from run_e2_c_d0 import artifact_hashes  # noqa: E402
 
 # Which profile a pinned reason is judged against.  The product page is served
 # from this profile, so "the shipped artifact" in a registry reason means this.
-BINDING_PROFILE = "e2-editor-v4"
+def binding_profile(project: Path) -> str:
+    """The profile the audited page actually loads.
+
+    Was a constant naming `e2-editor-v4`. A pinned reason compares hashes
+    against THIS profile, so a constant left behind by a product cutover would
+    compare against an artifact the page no longer runs -- and the expiry rule
+    exists precisely because a reason that outlived its artifact is invisible.
+    Reading it from the page keeps the rule pointed at what shipped.
+    """
+    page = project / "web" / "e2-editor-app.js"
+    match = re.search(r"\./profiles/([A-Za-z0-9._-]+)/sdk-worker\.js",
+                      page.read_text(encoding="utf-8"))
+    return match.group(1) if match else "e2-editor-v4"
 
 
-def live_bindings(profile: str = BINDING_PROFILE) -> dict[str, str]:
+def live_bindings(profile: str | None = None) -> dict[str, str]:
     """The hashes a reason may be pinned to, each COMPUTED from its file.
 
     Deliberately not read from the profile's own sdk-manifest.json: a manifest
@@ -53,6 +65,7 @@ def live_bindings(profile: str = BINDING_PROFILE) -> dict[str, str]:
     function D0 freezes the matrix with, so a reason and the matrix cannot drift
     apart by being hashed two different ways.
     """
+    profile = profile or binding_profile(PROJECT)
     directory = PROJECT / "dist" / "profiles" / profile
     if not directory.is_dir():
         return {}
@@ -300,7 +313,7 @@ def self_test(project: Path) -> int:
     # The expiry rule, each direction.  Built from whatever is uncovered right
     # now for the same reason the overlap mutation is: a named path goes stale.
     check("the profile on disk yields bindings to pin against", bool(bindings),
-          "no dist/profiles/%s -- the expiry rule cannot run" % BINDING_PROFILE)
+          "no dist/profiles/%s -- the expiry rule cannot run" % binding_profile(project))
     if bindings and registry.get("uncovered"):
         target = registry["uncovered"][0]["path"]
         wrong = {"wasmSha256": "0" * 64}

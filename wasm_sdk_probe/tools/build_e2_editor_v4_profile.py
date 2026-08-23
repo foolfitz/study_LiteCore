@@ -198,6 +198,11 @@ def main() -> int:
                              "packaged was built with "
                              "OXSDK_A11Y_PARAGRAPH_TEXT. Off by default, so "
                              "the shipped invocation is unchanged")
+    parser.add_argument("--document-outline", action="store_true",
+                        help="declare documentOutline: the engine being "
+                             "packaged was built with OXSDK_A11Y_OUTLINE. Off "
+                             "by default, so the shipped invocation is "
+                             "unchanged")
     parser.add_argument("--profile", default=PROFILE,
                         help="profile identity to stamp; defaults to the "
                              "product's. Use another name for any profile "
@@ -215,6 +220,7 @@ def main() -> int:
         exports=args.exports, cross_paragraph=True)
 
     paragraph_text = args.paragraph_text
+    document_outline = args.document_outline
     manifest_path = args.output / "sdk-manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["profile"] = args.profile
@@ -239,6 +245,12 @@ def main() -> int:
     # artifact it is packaging; it does not guess.
     if paragraph_text:
         contract["caretParagraphText"] = "focused-paragraph-text"
+    # ROADMAP 3.4's structure half, declared the same way and for the same
+    # reason: a host has to tell "this profile carries no outline" from "this
+    # document has no paragraphs" BEFORE it reads the field, because the second
+    # would make it announce a blank document.
+    if document_outline:
+        contract["documentOutline"] = "accessible-document-outline"
     manifest["editorContract"] = contract
     write_json(manifest_path, manifest)
 

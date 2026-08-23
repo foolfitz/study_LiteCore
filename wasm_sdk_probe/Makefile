@@ -75,6 +75,30 @@ E2_V4_DIST := dist/profiles/e2-editor-v4
 E2_V4_SOURCES := $(E2_C_SOURCES)
 E2_V4_OBJECTS := $(patsubst src/%.cpp,$(E2_V4_BUILD)/%.o,$(E2_V4_SOURCES))
 
+# The a11y successor, roadmap 3.4.  Its own build and dist directories for the
+# same reason every predecessor got them: v4 must stay byte-identical, because
+# the E2-C verdict and every scrap of round-two evidence bind to it.
+#
+# THREE THINGS MAKE IT A DIFFERENT ARTIFACT, and all three are deliberate:
+#
+#  * a different CORE -- `wasm-lite/build-a11y-gate0`, built `writer calc` with
+#    the configure patch so accessibility is compiled in. The product core has
+#    it stripped, so on v4 the whole feature is dead by construction.
+#  * OXSDK_A11Y_PARAGRAPH_TEXT and OXSDK_A11Y_OUTLINE, the two contract fields
+#    roadmap 3.4 needs.
+#  * a11y_tree_probe.o, the one object built against core's INTERNAL headers.
+#    It is a BRIDGE: LOK's focused-paragraph payload has five fields and none
+#    of them is a role or a level, so there is no public way to ask. When
+#    upstream adds them, this object and this line go away together.
+#
+# ABI is UNCHANGED at 4: no new exports. What changed is what the state
+# carries, which is the contract's business, not the ABI's.
+E2_V5_BUILD := build/e2/editor-v5
+E2_V5_DIST := dist/profiles/e2-editor-v5
+E2_V5_CORE := ../wasm-lite/build-a11y-gate0
+E2_V5_SOURCES := $(E2_C_SOURCES)
+E2_V5_OBJECTS := $(patsubst src/%.cpp,$(E2_V5_BUILD)/%.o,$(E2_V5_SOURCES))
+
 # finding 022 verification build: same flags as e1-editor-v1, separate output.
 # The frozen e1-editor-v1 must not be rebuilt (SPEC E2-A section 3), so the fix
 # is verified on its own artifact and the frozen one keeps carrying the bug
@@ -1098,6 +1122,70 @@ $(E2_V4_DIST)/sdk-manifest.json: $(E2_V4_BUILD)/probe.js \
 	@test -s $(E2_V4_DIST)/sdk-worker.js
 
 $(E2_V4_BUILD) $(E2_V4_DIST):
+	mkdir -p $@
+
+# ---------------------------------------------------------------- v5, a11y
+#
+# Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The
+# two cores differ in what they PROVIDE, not just in their bytes, and a rule
+# that silently followed whatever LOBUILD happened to be would build an
+# artifact whose accessibility is dead without saying so.  Same reason
+# check_core_build_provides.py exists.
+E2_V5_CPPFLAGS := -DLOK_USE_UNSTABLE_API -I$(LOSRC)/include \
+	-I$(E2_V5_CORE)/config_host \
+	-I$(E2_V5_CORE)/workdir/UnoApiHeadersTarget/udkapi/comprehensive \
+	-I$(E2_V5_CORE)/workdir/UnoApiHeadersTarget/offapi/comprehensive \
+	-I$(E2_V5_CORE)/workdir/UnpackedTarball/boost
+
+$(E2_V5_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/format_readback_text.hpp Makefile | $(E2_V5_BUILD)
+	$(CXX) $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_A11Y_PARAGRAPH_TEXT -DOXSDK_A11Y_OUTLINE \
+		-c $< -o $@
+
+# The bridge object.  `-std=c++20 -DLIBO_INTERNAL_ONLY` is how core compiles
+# itself; every other object here is a LOK client seeing core through the
+# public headers, so this gets its own rule and nothing else does.
+$(E2_V5_BUILD)/a11y_tree_probe.o: src/a11y_tree_probe.cpp Makefile | $(E2_V5_BUILD)
+	$(CXX) $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 -DLIBO_INTERNAL_ONLY \
+		-c $< -o $@
+
+$(E2_V5_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V5_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+$(E2_V5_BUILD)/probe.js: $(E2_V5_OBJECTS) $(E2_V5_BUILD)/a11y_tree_probe.o \
+		$(E2_V5_BUILD)/exports.txt \
+		$(E2_V5_CORE)/instdir/program/soffice.js.linkdeps Makefile
+	$(call refuse_unasked_relink,the a11y successor -- every link mints a new hash and five identities bind to one)
+	$(CXX) $(E2_V5_OBJECTS) $(E2_V5_BUILD)/a11y_tree_probe.o \
+		-L$(E2_V5_CORE)/instdir/program \
+		$$(cat $(E2_V5_CORE)/instdir/program/soffice.js.linkdeps) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=65536 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(E2_V5_BUILD)/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(E2_V5_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+		-o $@
+
+$(E2_V5_BUILD) $(E2_V5_DIST):
 	mkdir -p $@
 
 # The v2 product profile.  --cross-paragraph selects disposition B' (dispatch

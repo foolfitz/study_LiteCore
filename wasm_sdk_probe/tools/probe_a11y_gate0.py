@@ -142,13 +142,21 @@ def gate_mirror(scratch: Path, profile: str) -> dict:
     page_relative = "e2-editor-app.js"
     source = (PROJECT / "dist" / page_relative).read_text(encoding="utf-8")
 
-    worker_before = '"./profiles/e2-editor-v4/sdk-worker.js"'
-    worker_after = f'"./profiles/{profile}/sdk-worker.js"'
-    if source.count(worker_before) != 1:
+    # WHICHEVER profile the page currently loads, not a hardcoded one.
+    #
+    # This named `e2-editor-v4` until the v5 cutover, which would have made the
+    # count-1 assertion below fire -- loudly, which is the good failure. The
+    # generic match keeps the assertion (still exactly one) while surviving a
+    # product that moves, because the thing this probe cares about is that
+    # there is ONE worker URL to rewrite, not which one it is.
+    matches = re.findall(r'"\./profiles/[A-Za-z0-9._-]+/sdk-worker\.js"', source)
+    if len(matches) != 1:
         raise SystemExit(
-            f"expected exactly one {worker_before} in dist/{page_relative}; "
-            f"the page moved under this probe and the mirror would be silent "
-            f"about it")
+            f"expected exactly one profile worker URL in dist/{page_relative}, "
+            f"found {len(matches)}; the page moved under this probe and the "
+            f"mirror would be silent about it")
+    worker_before = matches[0]
+    worker_after = f'"./profiles/{profile}/sdk-worker.js"'
     page = source.replace(worker_before, worker_after, 1)
 
     manifest = json.loads(

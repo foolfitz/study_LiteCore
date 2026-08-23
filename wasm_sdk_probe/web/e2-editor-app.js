@@ -196,23 +196,34 @@ function projectFocusedParagraph(snapshot) {
  *               numbered (outline numbering is numbering).
  *   order       child index at depth 1. 133 of 133 on a long document.
  *
- * NOT A PRODUCT CONTRACT YET. `a11y.tree` exists only on the diagnostic
- * profile; the shipped one has no such field and takes the early return below.
- * The product shape is a one-shot operation on the next link -- designed from
- * this once it has been measured, not before.
+ * IT IS A CONTRACT FIELD NOW. It was `a11y.tree` -- the engine's diagnostic
+ * dump -- while the shape was being measured, and `documentOutline` since
+ * e2-editor-v5: the worker's named projection of the same walk, carrying role,
+ * level, focus and text and none of the depths, child counts or state bits
+ * E1-B forbids promoting. The manifest declares it, so a page can tell an
+ * absent outline from an empty document before reading one.
+ *
+ * Designed from a measurement rather than ahead of one: the shape came from
+ * TREE-SHAPE.md, and "emit it on every state read" is what the diagnostic
+ * build had already been doing without trouble on a 133-paragraph document.
  */
-const A11Y_ROLE_HEADING = 26;
-const A11Y_ROLE_PARAGRAPH = 41;
-
 function projectStructure(snapshot) {
-  const tree = snapshot?.editorState?.a11y?.tree;
-  const nodes = Array.isArray(tree?.nodes) ? tree.nodes : null;
+  // THE CONTRACT FIELD, not the diagnostic tree.
+  //
+  // This read `a11y.tree` while the outline was being measured, and that field
+  // carries depths, child counts and state bits -- diagnostic internals E1-B
+  // forbids promoting. `documentOutline` is the worker's named projection of
+  // the same walk: role as a product word, level, focus, text, and nothing
+  // else. The manifest declares it, so the page can tell an absent outline
+  // from an empty document before it reads one.
+  const outline = snapshot?.editorState?.documentOutline;
+  const nodes = Array.isArray(outline?.paragraphs) ? outline.paragraphs : null;
   // A TRANSIENT IS NOT AN EMPTINESS, and this is the measured reason for it:
   // two readings on 2026-08-23 came back with no tree at all, both immediately
   // after a keystroke, and both recovered on the next one. Blanking here would
   // announce an empty document in the middle of typing.
   if (!nodes) {
-    el.a11yStructure.dataset.state = tree ? "transient" : "unavailable";
+    el.a11yStructure.dataset.state = outline ? "transient" : "unavailable";
     // OUT OF THE TREE ENTIRELY when there is nothing to project.
     //
     // Measured: without this the shipped profile's accessibility tree went
@@ -231,21 +242,23 @@ function projectStructure(snapshot) {
     return;
   }
   el.a11yStructure.removeAttribute("aria-hidden");
-  const paragraphs = nodes.filter((n) => n.depth === 1);
+  const paragraphs = nodes;
   const fragment = document.createDocumentFragment();
   let list = null;
   for (const node of paragraphs) {
-    const text = node.textHead ?? "";
-    const isList = node.role === A11Y_ROLE_PARAGRAPH && node.isNumbered === true;
+    const text = node.text ?? "";
+    const isList = node.role === "listItem";
     if (!isList) list = null;
     let element;
-    if (node.role === A11Y_ROLE_HEADING) {
+    if (node.role === "heading") {
       element = document.createElement("div");
       element.setAttribute("role", "heading");
-      // +1 because ARIA levels are 1-based and NumberingLevel is 0-based;
-      // measured to return the document's own outline-level.
-      element.setAttribute("aria-level",
-                           String((node.numberingLevel ?? 0) + 1));
+      // The engine already returns a 1-based level (NumberingLevel + 1),
+      // measured to equal the document's own ODT outline-level across seven
+      // levels including a gap. ARIA levels are 1-based too, so it passes
+      // straight through -- no arithmetic here, which is the point: the
+      // conversion lives once, next to the measurement that justified it.
+      element.setAttribute("aria-level", String(node.level ?? 1));
     } else if (isList) {
       if (!list) {
         list = document.createElement("div");
@@ -264,6 +277,12 @@ function projectStructure(snapshot) {
   el.a11yStructure.replaceChildren(fragment);
   el.a11yStructure.dataset.state = "projected";
   el.a11yStructure.dataset.paragraphs = String(paragraphs.length);
+  // The cap travels to the DOM too. A projection that silently stops at the
+  // engine's limit would look like a short document; `truncated` is how a run
+  // tells those apart without reading the engine's source.
+  const count = outline?.paragraphCount;
+  el.a11yStructure.dataset.truncated =
+    (typeof count === "number" && count > paragraphs.length) ? "1" : "0";
 }
 
 function updateState(snapshot) {
@@ -1125,6 +1144,25 @@ globalThis.addEventListener("resize", () => {
 
 /* ------------------------------------------------------------------- boot */
 
+// REVERTED TO e2-editor-v4 ON 2026-08-23, hours after the cutover, because the
+// product path went RED on v5: the format barrier stopped advancing on a
+// bulleted blank line, bold did not reach the document, and the band scan saw
+// 7 bands for 9 lines. The accessibility tree was perfect on v5 -- 205 nodes,
+// nine paragraphs with roles -- and that is not worth a product that cannot
+// apply bold. See findings/evidence/aria-projection/ and the v5 finding.
+//
+// The v5 identity is minted and archived; it is not shipped. The two lines
+// below move together on purpose: the worker URL says which profile, the pinned hash says
+// which build of it, and a page that got one without the other would run an
+// engine its evidence does not describe.
+//
+// What changed with it: the core now has accessibility compiled in (writer
+// calc plus the configure patch), which costs +19.9 MB on probe.wasm and is
+// the operator's decision of 2026-08-23; the contract gained
+// caretParagraphText and documentOutline, without which roadmap 3.4's
+// projection has no input; and the engine's `paragraphFresh` no longer claims
+// a successful read on a build where none can succeed.
+//
 // SPEC E2-C section 11: round two's product is the v3 artifact.
 //
 // Hard-coded, not a query parameter.  A product page that takes its engine from
