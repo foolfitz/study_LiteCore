@@ -1151,10 +1151,28 @@ globalThis.addEventListener("resize", () => {
 // nine paragraphs with roles -- and that is not worth a product that cannot
 // apply bold. See findings/evidence/aria-projection/ and the v5 finding.
 //
-// The v5 identity is minted and archived; it is not shipped. The two lines
-// below move together on purpose: the worker URL says which profile, the pinned hash says
-// which build of it, and a page that got one without the other would run an
-// engine its evidence does not describe.
+// CUT OVER TO e2-editor-v7 ON 2026-08-23, and this is the first cutover where
+// the pin does NOT move with the worker URL -- because the artifact did not
+// move. v7 is v4's loader, wasm and worker byte for byte (`f923cfa5...` /
+// `e6ee92ca...`) with one difference in the manifest: the four inline formats
+// are offered for range selections as well as for a caret. No relink. That is
+// what "a later profile can grant on the strength of a measurement" means, and
+// this is the first time it has been used.
+//
+// Why: finding 078. Selected text could not be emboldened -- the manifest
+// offered the inline formats for `collapsed` only, honestly, because range
+// dispatch had never been characterised for them. The characterisation is now
+// done: all four formats, both range shapes, the formatted text equal to the
+// selected text, on this identity itself, with native LibreOffice writing the
+// same shapes; and the operator confirmed it with a real mouse. Both range bits
+// are granted because the engine requires both for a range it has not
+// classified (granting one alone admits nothing -- measured three ways).
+//
+// The v5 identity is minted and archived; it is not shipped. v6 is minted and
+// inert; see its SUPERSEDED.md. The two lines below still move together
+// WHENEVER THE ARTIFACT MOVES: the worker URL says which profile, the pinned
+// hash says which build of it, and a page that got one without the other would
+// run an engine its evidence does not describe.
 //
 // What changed with it: the core now has accessibility compiled in (writer
 // calc plus the configure patch), which costs +19.9 MB on probe.wasm and is
@@ -1171,7 +1189,7 @@ globalThis.addEventListener("resize", () => {
 // The harness pages (`e2-c-d*-app.js`) do take `?profile=`; they are harnesses.
 function engineFactory() {
   return createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v4/sdk-worker.js",
+    workerUrl: "./profiles/e2-editor-v7/sdk-worker.js",
     timeoutMs: 30000,
   });
 }
