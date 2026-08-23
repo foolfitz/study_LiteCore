@@ -44,6 +44,32 @@ import run_e2_c_product_path as pp  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
 
+# The page-border detection, replayed so its inputs are visible.  `INK_ROWS`
+# calls a column a border when it is inked down more than 20% of the canvas
+# height, then clips everything outside the outermost pair.  If that fails, the
+# renderer's off-page strips come in and both merge lines and inflate every
+# band's horizontal extent -- which is what collapses density.
+BORDER_SCAN = """(() => {
+const canvas = document.querySelector('#canvas');
+const w = canvas.width, h = canvas.height;
+const data = canvas.getContext('2d').getImageData(0, 0, w, h).data;
+const columnTotals = new Int32Array(w);
+for (let y = 0; y < h; y += 1)
+  for (let x = 0; x < w; x += 1) {
+    const i = (y * w + x) * 4;
+    if (data[i+3] > 128 && data[i] < 100 && data[i+1] < 100 && data[i+2] < 100)
+      columnTotals[x] += 1;
+  }
+const border = [];
+for (let x = 0; x < w; x += 1) if (columnTotals[x] > h * 0.20) border.push(x);
+const top = [...columnTotals].map((c, x) => ({ x, rows: c, frac: +(c / h).toFixed(3) }))
+  .sort((a, b) => b.rows - a.rows).slice(0, 8);
+return { w, h, borderColumns: border.length,
+         borderRange: border.length ? [border[0], border[border.length - 1]] : null,
+         wouldClip: border.length ? (border[border.length - 1] - border[0] > w * 0.5) : false,
+         topColumns: top };
+})()"""
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -154,6 +180,27 @@ def main() -> int:
             "rawGaps": sorted(runs[i + 1]["top"] - runs[i]["bottom"]
                               for i in range(len(runs) - 1))[:12],
             "candidates": cands}
+
+        # THE ROW PROFILE where the merge happens, so the extra ink can be
+        # described rather than guessed at.  A thin run spanning few columns is
+        # a caret-shaped artifact; one spanning the text width is an underline
+        # or a highlight; several scattered ones are something else again.
+        # `counts` is inked pixels in the row, `first`/`last` its horizontal
+        # extent -- together they say the SHAPE without anyone squinting at a
+        # screenshot.
+        lo, hi = 78, 138
+        record["rowProfile"] = [
+            {"y": y, "count": counts[y],
+             "first": raw["firsts"][y], "last": raw["lasts"][y]}
+            for y in range(lo, min(hi, len(counts)))]
+        record["caretReportedByScan"] = raw.get("caret")
+        # THE DATUM THAT WAS THERE ALL ALONG.  `INK_ROWS` reports whether it
+        # found the page border and clipped to it; the off-page strips it warns
+        # about in its own comment are exactly what we measured leaking in. Not
+        # recording this earlier meant inferring from densities what the scan
+        # was willing to state outright.
+        record["clipped"] = raw.get("clipped")
+        record["borderScan"] = evaluate(session, BORDER_SCAN)
 
         record["recovery"] = []
         for wait in (4, 8, 16):

@@ -392,14 +392,48 @@ const w = canvas.width, h = canvas.height;
 const data = canvas.getContext('2d').getImageData(0, 0, w, h).data;
 const dark = new Uint8Array(w * h);
 const columnTotals = new Int32Array(w);
+const opaqueTotals = new Int32Array(w);
 for (let y = 0; y < h; y += 1) {
   for (let x = 0; x < w; x += 1) {
     const i = (y * w + x) * 4;
+    if (data[i+3] > 128) opaqueTotals[x] += 1;
     if (data[i+3] > 128 && data[i] < 100 && data[i+1] < 100 && data[i+2] < 100) {
       dark[y * w + x] = 1; columnTotals[x] += 1;
     }
   }
 }
+// THE PAGE IS OPAQUE AND EVERYTHING AROUND IT IS NOT.
+//
+// Finding 075, and it is the border test below that this replaces in practice.
+// That test looks for a column inked DARK down a fifth of the canvas, and on
+// this fixture it finds ONE column and never clips -- measured offline on four
+// captured canvases, both cores, at rest and after a caret. It protected
+// nothing; the shipped core was safe only because its off-page area is
+// TRANSPARENT, so `data[i+3] > 128` already excluded it.
+//
+// The accessibility core stops being transparent there. After a caret
+// placement it leaves uninitialised memory in the margins: 184 distinct alpha
+// values where the shipped core has 33, 290 opaque pixels where the shipped
+// core has 0, and 31 of them dark enough to count as ink. Thirty-one pixels,
+// scattered one to three per row in the gaps BETWEEN lines, merged two lines
+// into one band and inflated its extent from 157 to 634 -- which collapsed the
+// density to 0.133, a hair under the 0.15 floor, and the band was discarded
+// with two paragraphs inside it that the user can see perfectly well.
+//
+// Opacity is the discriminator because it is a property this rendering
+// actually HAS in both states: the page is drawn opaque, the surround is not.
+// Measured on the same four canvases -- page columns are >= 96.9% opaque,
+// off-page columns at most 7.6% even with the garbage in them, and all four
+// agree on the same page range (15..709). The threshold is the same 0.20 the
+// border test uses, and the daylight around it is 13x in the worst case.
+//
+// It cannot change the shipped core's readings: there it drops 0 pixels, on
+// every canvas measured. That is not a hope, it is what "the surround is
+// transparent" means.
+let pageLeft = -1, pageRight = w;
+for (let x = 0; x < w; x += 1)
+  if (opaqueTotals[x] > h * 0.20) { if (pageLeft < 0) pageLeft = x; pageRight = x; }
+const pageClipped = pageLeft >= 0 && pageRight - pageLeft > w * 0.5;
 // A column inked down a large fraction of the page is the page border, not a
 // glyph.  0.20 rather than 0.50: a two-page document's border runs down 41% of
 // the canvas, and at 0.50 neither edge was found.  Measured 2026-08-19 --
@@ -522,17 +556,22 @@ if (sink && canvasRect.width > 0 && canvasRect.height > 0) {
   }
 }
 const counts = [], firsts = [], lasts = [];
+// Reported rather than silently dropped: on the shipped core this stays 0, so
+// a non-zero value is the accessibility core's garbage being seen and named.
+let offPageInk = 0;
 for (let y = 0; y < h; y += 1) {
   let count = 0, first = -1, last = -1;
   for (let x = 0; x < w; x += 1) {
     if (!dark[y * w + x] || border[x]) continue;
     if (clipped && (x < inside || x > outside)) continue;
+    if (pageClipped && (x < pageLeft || x > pageRight)) { offPageInk += 1; continue; }
     count += 1; if (first < 0) first = x; last = x;
   }
   counts.push(count); firsts.push(first); lasts.push(last);
 }
 return { width: w, height: h, counts, firsts, lasts, clipped,
          page: [inside, outside],
+         pageOpaque: [pageLeft, pageRight], pageClipped, offPageInk,
          caret, caretWhy, caretRemoved,
          borderColumns: border.reduce((n, v) => n + (v ? 1 : 0), 0) };
 })()"""
@@ -2033,8 +2072,10 @@ EXCLUDE_CARET = True
 def text_bands(scan: dict, floor: int = 0) -> list[dict]:
     """The canvas's lines of text, as row bands.
 
-    The floor is 0, not 2, and that is the point: the scan already excludes the
-    page-border columns, so a row between two lines carries EXACTLY no ink,
+    The floor is 0, not 2, and that is the point: the scan excludes everything
+    outside the opaque page (finding 075; the page-border test it used to rely
+    on finds one column on this fixture and never fires), so a row between two
+    lines carries EXACTLY no ink,
     while a thin row inside a tall glyph carries one or two pixels.  A floor of
     2 threw those away and split a 16pt heading into two bands -- intermittently,
     which is worse than always.  Ink inside the printable area is ink.
@@ -2086,6 +2127,29 @@ def text_bands(scan: dict, floor: int = 0) -> list[dict]:
     return out
 
 
+# What the page clip actually threw away, across every scan in a run.
+#
+# The comment in `INK_ROWS` says the count is "reported rather than silently
+# dropped", and when this was first written that was FALSE: the scan returned
+# it and nothing carried it into the report, so the sentence described an
+# intention. A diagnostic nobody can read is not a diagnostic -- the same rule
+# that killed two findings on 2026-08-21.
+OFF_PAGE_INK = {"worst": 0, "scans": 0, "scansWithInk": 0, "pageRange": None,
+                "pageClipped": None}
+
+
+def note_off_page_ink(scan: dict) -> None:
+    dropped = scan.get("offPageInk")
+    if dropped is None:
+        return
+    OFF_PAGE_INK["scans"] += 1
+    OFF_PAGE_INK["worst"] = max(OFF_PAGE_INK["worst"], int(dropped))
+    if dropped:
+        OFF_PAGE_INK["scansWithInk"] += 1
+    OFF_PAGE_INK["pageRange"] = scan.get("pageOpaque")
+    OFF_PAGE_INK["pageClipped"] = scan.get("pageClipped")
+
+
 def stable_bands(session, tries: int = 12) -> tuple[dict, list[dict]]:
     """A scan the page has stopped changing under.
 
@@ -2102,6 +2166,7 @@ def stable_bands(session, tries: int = 12) -> tuple[dict, list[dict]]:
                 "counts": [], "firsts": [], "lasts": [], "height": 1,
                 "width": 1, "caret": None,
                 "caretWhy": "the scan itself returned nothing"}
+        note_off_page_ink(scan)
         bands = text_bands(scan)
         shape = [(b["top"], b["bottom"]) for b in bands]
         if previous is not None and shape == previous:
@@ -5090,20 +5155,47 @@ return { available: true, afterButton };
         # `core-built-without-accessibility` rather than `enabled: true`, and
         # this is the same rule at the top of the stack.
         projection = evaluate(session, READ_A11Y_REGION) or {}
+        # REWRITTEN 2026-08-23, and the reason is worth keeping: the first
+        # version asserted `offers == "0"` and `reason == "profile"` -- it was
+        # written when NO profile could project a paragraph, so "the region
+        # explains its emptiness" and "the region says the engine cannot do
+        # this" were the same sentence. e2-editor-v5 declares
+        # `caretParagraphText`, and the check went red on a profile that had
+        # just started doing the very thing the region is for. It was pinned to
+        # a remedy, not to a property.
+        #
+        # The property is that the region is NEVER SILENTLY EMPTY: a screen
+        # reader reads an empty document region as a blank document, and the
+        # user cannot tell that apart from a file that lost its contents. That
+        # holds on every profile; only the sentence changes.
+        #
+        # Whether the projected TEXT is the right paragraph is not asked here
+        # and deliberately so -- the only comparison available at this point in
+        # the run is the page against itself, and the document has been edited
+        # since it was opened. That property lives in G3.4-3
+        # (`probe_aria_projection.py`), which compares against the fixture's own
+        # XML on a pristine document.
+        reason = projection.get("reason")
+        offers = projection.get("offers")
+        text = (projection.get("text") or "").strip()
+        known = {"paragraph", "profile", "noDocument", "noParagraph",
+                 "disabled", "stale", "noText"}
+        consistent = (
+            (reason in ("profile", "noDocument")) if offers == "0"
+            else (reason != "profile") if offers == "1"
+            else False)
         check("the-document-region-says-why-it-is-empty",
-              bool(projection.get("present")
-                   and projection.get("offers") == "0"
-                   and projection.get("reason") == "profile"
-                   and (projection.get("text") or "").strip()),
+              bool(projection.get("present") and text
+                   and reason in known and consistent),
               observed=projection,
-              oracle="on a profile whose contract does not declare "
-                     "`caretParagraphText`, the accessibility region carries a "
-                     "sentence saying so. Empty is the failure: a screen "
-                     "reader reads an empty document region as a blank "
-                     "document, and the user has no way to tell that apart "
-                     "from a file that lost its contents. `offers` and "
-                     "`reason` are both required so that a region which "
-                     "happens to hold stale text cannot pass")
+              oracle="the accessibility region always carries something to "
+                     "read: the focused paragraph on a profile that offers "
+                     "one, and a sentence naming the cause on a profile that "
+                     "does not. Empty is the failure. `reason` must be a code "
+                     "this page can produce and must agree with `offers`, so "
+                     "that a region holding stale text, or one claiming the "
+                     "engine cannot do what its contract says it can, cannot "
+                     "pass")
 
         resized = evaluate(session, RESIZE_DESK) or {}
         time.sleep(2.0)
@@ -6070,6 +6162,10 @@ def finish(report: dict, args) -> int:
     unestablished = [c["id"] for c in checks
                      if c.get("outcome") == "NOT_ESTABLISHED"]
     report["notEstablishedChecks"] = unestablished
+    # Finding 075. On the shipped core `worst` is 0 on every scan; a non-zero
+    # value is the accessibility core's uninitialised off-page memory being
+    # seen and named instead of quietly merging two lines into one band.
+    report["offPageInk"] = dict(OFF_PAGE_INK)
     judged = [c for c in checks if c.get("outcome") != "NOT_ESTABLISHED"]
     # A declared known-red check that PASSES means the defect is fixed and the
     # declaration is now hiding a real signal.  Reported either way.
