@@ -94,7 +94,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--since", required=True,
                     help="the commit the SHIPPED artifact was linked from")
-    ap.add_argument("--shipped-profile", default="dist/profiles/e2-editor-v7",
+    ap.add_argument("--shipped-profile", default="dist/profiles/e2-editor-v8",
                     help="the profile directory the product currently ships, "
                          "whose packaged worker is compared against the tree's")
     ap.add_argument("--json", action="store_true")

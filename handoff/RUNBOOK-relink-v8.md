@@ -171,13 +171,24 @@ make ALLOW_FROZEN_RELINK=1 dist/profiles/e2-editor-v8/sdk-manifest.json
 is a syntax-checked source change and nothing more; the two `-fsyntax-only`
 passes recorded in the finding prove it compiles, not that the canvas is clean.
 
-The measurement to take first, because it is the one the user can see:
-the off-page region of the canvas. Finding 075's evidence
-(`findings/evidence/f075-off-page-garbage/`) has the before numbers — on the
-shipped core 0.0042% of sampled points non-zero and **0% opaque**, on the a11y
-core 1.08% opaque with 184 distinct alpha values. **After `calloc` the off-page
-region must be uniformly zero**, which is a stronger statement than either and
-is falsifiable in one read.
+The measurement to take first, because it is the one the user can see: the
+off-page region of the canvas, with `tools/capture_canvas_edges.py` — the same
+instrument that produced finding 075's table, so the numbers are comparable.
+
+**An earlier draft of this section said "after `calloc` the off-page region must
+be uniformly zero". That criterion is wrong and would have misread the result.**
+075's own table shows the shipped v4 core at **21,563 of 26,941** off-page pixels
+with `alpha == 0` and **33–47 distinct alpha values** — while `alpha > 128` and
+the ink count are both **0**. So the shipped core was never uniformly zero
+off-page, and whatever produces those non-zero-but-transparent values is not the
+`malloc`'d buffer (the likeliest candidate is edge interpolation from
+`layoutCanvas`'s proportional scaling, which is not measured here and is not
+claimed). A criterion of "uniformly zero" would have gone red on a correct
+build.
+
+The honest criterion is the comparison: on v8, off-page `alpha > 128` and the
+ink count must both stay **0**, and nothing may be worse than the archived v4
+row.
 
 Note the asymmetry before quoting it: the visible symptom was measured on the
 **a11y** core, and v8 is the **product** core, where the same region already read

@@ -75,6 +75,7 @@ from r7_support import evaluate, wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, FirefoxSession, free_port  # noqa: E402
 from run_e2_c_page_smoke import READ_STATE, navigate  # noqa: E402
 from validate_e1_c import shell_bundle_digest  # noqa: E402
+import build_e2_c_shell_bundle as _shell_bundle  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
 
@@ -1763,7 +1764,25 @@ def build_mirror(source: Path, target: Path, overrides: dict[str, bytes]) -> Non
 # product page itself is one of them), so the digest moves on its own and no
 # separate honesty flag is needed.  Same digest function as the bundle manifest,
 # imported rather than reimplemented: two copies of a hash rule drift.
-SHELL_BUNDLE_V2 = PROJECT / "e2" / "editor-shell-v2-bundle-v27.json"
+# RESOLVED FROM THE BUILDER, NOT PINNED HERE.
+#
+# This was `…-bundle-v27.json`, hard-coded, and by 2026-08-24 the tree was on
+# v41 -- fourteen generations later. The file LIST happened not to have changed,
+# so `servedSha256` was still computed over the right twelve files and no run
+# ever measured the wrong thing. What was wrong was the label: every report said
+# `bundle: v27` and `declaredSha256: 55a91f83…` beside a served digest that had
+# not matched it since, so a reader comparing the two would read fourteen
+# generations of ordinary progress as shell drift.
+#
+# That is finding 044's shape in the field this very comment block was written
+# to prevent it in -- a record that outlived its subject while looking precise.
+# The list not having changed is luck, not safety: a generation that ADDED a
+# module would have left this hashing a subset and reporting a digest for less
+# than the whole shell.
+#
+# `build_e2_c_shell_bundle.MANIFEST` is the current generation by construction,
+# so this follows every freeze without anyone remembering to move it.
+SHELL_BUNDLE_V2 = PROJECT / _shell_bundle.MANIFEST
 
 
 PRODUCT_PROFILE_IN_PAGE = re.compile(

@@ -1088,9 +1088,14 @@
       "note": "RESOLVED AND SHIPPED as e2-editor-v7 (2026-08-23, commit be8291a). The characterisation is done -- all four inline formats, both range shapes, formatted text equal to selected text, on the minted identity itself, with a native-LibreOffice comparison showing the paragraph-level shape on a fully selected paragraph is what native writes too. BOTH range bits are granted because the engine requires both for an unclassified range; granting one alone admits nothing, measured three ways (single-only refused, cross-only refused, both accepted). That AND-semantics limit is recorded in e2/expected-gesture-offers.json. The regression net now has `an-inline-format-reaches-a-selection` with a mutation that turns it red. The operator's real-mouse pass on all four buttons passed, which is what this project treats as closure, and the product page was pointed at v7 the same day.",
       "checks": [
         {
-          "kind": "contains",
+          "kind": "line-equals",
           "file": "e2/expected-gesture-offers.json",
-          "text": "\"profile\": \"e2-editor-v7\""
+          "text": "    \"set-bold\": ["
+        },
+        {
+          "kind": "line-equals",
+          "file": "e2/expected-gesture-offers.json",
+          "text": "      \"range-cross\""
         },
         {
           "kind": "contains",
@@ -1098,7 +1103,7 @@
           "text": "an-inline-format-reaches-a-selection"
         }
       ],
-      "checkNote": "Both: the expectation table must name the profile the grant lives in, and the net must carry the check. Neither proves the page SHIPS v7 -- that is deliberate, because shipping is the operator's call and a check that asserted it would go red on a decision nobody had made yet."
+      "checkNote": "RE-PINNED 2026-08-24, and the reason is worth more than the fix. The first check pinned `\"profile\": \"e2-editor-v7\"` in the expectation file -- the profile NAME, which is exactly the field a cutover moves. Finding 076's link moved it to v8 and this item went DRIFTED while nothing about finding 078 had changed at all: the pin was on the paperwork rather than on the property. It is now on the property -- `set-bold` present in the expectation with `range-cross` among the gestures -- so a narrowing fails here and a rename does not. A pin that goes red at every routine link is a pin people learn to clear without reading."
     },
     {
       "id": "queue-toolbar-availability-uses-a-stale-selection-shape",

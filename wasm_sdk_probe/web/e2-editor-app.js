@@ -46,7 +46,7 @@ import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js"
 // move together or the page pins one artifact and loads another -- and the
 // expiry screen exists to make exactly that mismatch loud, so a half-move
 // would look like a broken build rather than a mistake.
-const PINNED_WASM_SHA256 = "f923cfa5aba30749";
+const PINNED_WASM_SHA256 = "4a2710bba1ef07d9";
 
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -1242,12 +1242,40 @@ globalThis.addEventListener("resize", () => {
 // hash says which build of it, and a page that got one without the other would
 // run an engine its evidence does not describe.
 //
-// What changed with it: the core now has accessibility compiled in (writer
-// calc plus the configure patch), which costs +19.9 MB on probe.wasm and is
-// the operator's decision of 2026-08-23; the contract gained
-// caretParagraphText and documentOutline, without which roadmap 3.4's
-// projection has no input; and the engine's `paragraphFresh` no longer claims
-// a successful read on a build where none can succeed.
+// THAT PARAGRAPH WAS ABOUT v5 AND SAT UNDER v7'S HEADING. It read "the core
+// now has accessibility compiled in ... the contract gained caretParagraphText
+// and documentOutline ... paragraphFresh no longer claims a successful read".
+// None of it was true of v7: v7 is v4's wasm byte for byte, so no core, no
+// contract field and no engine fix arrived with it. Left in place it would have
+// told the next reader that this page was running an accessibility core.
+// Corrected 2026-08-24 while cutting over to v8, which is where two of those
+// three actually arrive.
+//
+// CUT OVER TO e2-editor-v8 ON 2026-08-24, and this time BOTH LINES MOVE,
+// because the artifact does. `4a2710bba1ef07d9` / worker `070229cd10bda4a0`,
+// from `f923cfa5aba30749` / `e6ee92ca290b7966`. The loader is unchanged
+// (`c382b834aa768b91`), which is exactly why a page must not identify its
+// engine by the loader.
+//
+// Why: finding 076. `paintTile` draws only the page and `putImageData` blits
+// the whole buffer, so the tile's `malloc`'d remainder -- this process's heap,
+// and this process's heap holds the user's document -- was being drawn onto a
+// canvas the user can screenshot. The operator confirmed seeing it. The buffer
+// is `calloc`'d now.
+//
+// What this link ships was MEASURED before it was taken, by preprocessing the
+// product's own translation units with the product's own defines at the shipped
+// commit and at the tree (`tools/what_the_link_ships.py`). Three things, not
+// one, and reading the `#ifdef`s would have found only the first:
+//
+//   1. finding 076's `calloc`;
+//   2. `refreshCaretParagraph()` returning early so `a11yParagraphFresh` is
+//      false on a build where no accessibility read can succeed -- gated on a
+//      RUNTIME flag, deliberately, so it is behind no `OXSDK_A11Y_*`;
+//   3. 21 code lines in the worker forwarding `a11y.paragraphText` and
+//      `a11y.outline`. Additive and presence-guarded, and inert here: this core
+//      emits neither field and v8's manifest declares neither
+//      `caretParagraphText` nor `documentOutline`, so nothing below reads them.
 //
 // SPEC E2-C section 11: round two's product is the v3 artifact.
 //
@@ -1257,7 +1285,7 @@ globalThis.addEventListener("resize", () => {
 // The harness pages (`e2-c-d*-app.js`) do take `?profile=`; they are harnesses.
 function engineFactory() {
   return createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v7/sdk-worker.js",
+    workerUrl: "./profiles/e2-editor-v8/sdk-worker.js",
     timeoutMs: 30000,
   });
 }

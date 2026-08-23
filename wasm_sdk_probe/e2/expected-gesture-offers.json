@@ -4,7 +4,7 @@
   "why": "The regression net derives what it drives FROM THE MANIFEST. `format_arm` uses a collapsed caret because that is the only gesture set-bold was offered for, and the runner says so in its own comment. So an action that is UNDER-offered is invisible to every check at once: the manifest narrows, the harness narrows with it, and the two agree forever. Finding 078 is what that costs -- the operator selected text, pressed bold, and got a refusal, while 38 checks were green. This file is the expectation kept OUTSIDE the manifest, so the two can disagree.",
   "howToUse": "check_gesture_offers.py compares the shipped profile's action map against `expected`. A narrowing is a FAILURE here even when every other check is green, and a widening is a failure too -- an action offered for a gesture nobody characterised is the defect this project's contract exists to prevent, in the other direction.",
   "changing": "Never edit `expected` to make this pass. Either the manifest is wrong, or a measurement has been taken and BOTH move together, with the evidence named in `rationale`.",
-  "profile": "e2-editor-v7",
+  "profile": "e2-editor-v8",
   "expected": {
     "set-bold": [
       "collapsed",
@@ -95,5 +95,6 @@
     "select-all": "shipped dark: present in the manifest with an EMPTY gesture list, which is what withholding means here. Omitting it would ship it wide open, because the engine initialises every action to all-permitted and intersects from there.",
     "delete-selection": "range only by nature; a collapsed caret has nothing to delete."
   },
-  "andSemantics": "A NAMED LIMIT OF THIS SCHEMA. For a non-collapsed selection the engine requires BOTH range bits, because at that gate the selection has not been classified and classifying it needs a read that can wedge the engine. So `range-single` and `range-cross` are not independently grantable for actions that go through that gate: any expectation naming one without the other describes a profile that offers nothing. Recorded here so the next builder does not re-derive it by minting three profiles, which is how it was found."
+  "andSemantics": "A NAMED LIMIT OF THIS SCHEMA. For a non-collapsed selection the engine requires BOTH range bits, because at that gate the selection has not been classified and classifying it needs a read that can wedge the engine. So `range-single` and `range-cross` are not independently grantable for actions that go through that gate: any expectation naming one without the other describes a profile that offers nothing. Recorded here so the next builder does not re-derive it by minting three profiles, which is how it was found.",
+  "profileNote": "Moved v7 -> v8 on 2026-08-24 with finding 076's link. ONLY THIS FIELD MOVED: `expected` is byte-identical, and that is the point of it living outside the manifest -- a link is exactly the moment a product quietly narrows, and the v8 recipe passes --inline-range-gestures all so it does not. Verified before the link by dry-packaging a v8 manifest from v7's bytes and diffing the gesture map: identical."
 }

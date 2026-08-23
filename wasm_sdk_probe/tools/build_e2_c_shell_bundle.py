@@ -141,8 +141,31 @@ FROZEN_MANIFESTS = (Path("e2/editor-shell-v2-bundle-v1.json"),
                     Path("e2/editor-shell-v2-bundle-v36.json"),
                     Path("e2/editor-shell-v2-bundle-v37.json"),
                     Path("e2/editor-shell-v2-bundle-v38.json"),
-                    Path("e2/editor-shell-v2-bundle-v39.json"))
+                    Path("e2/editor-shell-v2-bundle-v39.json"),
+                    Path("e2/editor-shell-v2-bundle-v40.json"))
 FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
+# v41, 2026-08-24: the page runs `e2-editor-v8` -- finding 076's link.
+#
+# One file, and BOTH pinned lines move this time, because the artifact does:
+# `workerUrl` to v8 and `PINNED_WASM_SHA256` to `4a2710bba1ef07d9`, from
+# `f923cfa5aba30749`. The v7 cutover moved only the first, because v7 was v4's
+# artifact under a wider manifest; this is a link.
+#
+# The LOADER did not move (`c382b834aa768b91`, the same bytes v4 and v7 carry),
+# which is the argument for pinning the wasm rather than the loader: a page that
+# identified its engine by the loader would see no change at all here.
+#
+# What the link ships was measured before it was taken, by preprocessing the
+# product's own translation units with the product's own defines at the shipped
+# commit and at the tree: finding 076's `calloc` for the tile buffer,
+# `refreshCaretParagraph()`'s early return, and 21 code lines of additive a11y
+# forwarding in the worker. Reading the `#ifdef`s would have found only the
+# first -- the second is gated on a runtime flag on purpose.
+#
+# Also corrected in the same file: a paragraph under the v7 cutover heading that
+# described v5's core, contract fields and engine fix. None of it was true of
+# v7, which was v4's wasm byte for byte, and left alone it would have told the
+# next reader that this page was running an accessibility core.
 # v40, 2026-08-23: finding 079 -- the page's selection shape was computed from
 # two fields that are not on the object it read.
 #
@@ -361,7 +384,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v40.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v41.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
