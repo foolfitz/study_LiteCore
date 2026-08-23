@@ -1368,6 +1368,21 @@ MUTATIONS = {
     # removing it leaves the region in the page and empty, which is precisely
     # the failure mode the check exists for -- a screen reader reads an empty
     # document region as a blank document.
+    # FINDING 078's mutation.  It re-creates the defect at the PAGE layer --
+    # a format press that does nothing when there is a selection -- which is
+    # what the user experienced, and leaves the collapsed-caret arms untouched
+    # so the new check is the one that has to notice.
+    "format-ignores-a-selection": {
+        "check": "an-inline-format-reaches-a-selection",
+        "path": "e2-editor-app.js",
+        "find": "  const options = FORMAT_ACTIONS.has(action)\n",
+        "replace": ("  if (FORMAT_ACTIONS.has(action) && lastSelectionShape !== \"collapsed\")\n"
+                    "    return;\n"
+                    "  const options = FORMAT_ACTIONS.has(action)\n"),
+        "reintroduces": "a product where selected text cannot be emboldened, "
+                        "which is what shipped until e2-editor-v6",
+        "alsoRed": [],
+    },
     "projection-not-wired": {
         "check": "the-document-region-says-why-it-is-empty",
         "path": "e2-editor-app.js",
@@ -2088,6 +2103,130 @@ BAND_MERGE_GAP = 8
 # what joined those two lines" stays a claim someone can re-measure in one
 # command instead of a claim they have to take from this comment.
 EXCLUDE_CARET = True
+
+
+BOLD_WEIGHTS = ("bold", "600", "700", "800", "900")
+
+# WHICH ODF ATTRIBUTE EACH ACTION IS SUPPOSED TO WRITE.
+#
+# Keyed by action rather than hard-coded to bold, and that is not tidiness: the
+# first version of this file looked only at `fo:font-weight`, so pointing it at
+# `set-italic` would have reported "no formatting reached the document" for
+# every arm -- a false negative of exactly the kind this file's own docstring
+# is about, three parsers in a row.
+#
+# The underline and strike properties are compared against "none" rather than
+# for a specific value, because the absence of the format is spelled out
+# explicitly in ODF while its presence has several spellings.
+FORMAT_PROPERTY = {
+    "set-bold": ("fo:font-weight", lambda v: v in BOLD_WEIGHTS),
+    "set-italic": ("fo:font-style", lambda v: v in ("italic", "oblique")),
+    "set-underline": ("style:text-underline-style", lambda v: v != "none"),
+    "set-strikethrough": ("style:text-line-through-style", lambda v: v != "none"),
+}
+
+
+def _styles_carrying(content: str, family: str, action: str) -> tuple[dict, dict]:
+    """`style:name` -> the value of this ACTION's property, for one style family.
+
+    SELF-CLOSING STYLES ARE THE WHOLE REASON THIS IS A FUNCTION, and the first
+    version of it produced a false defect within the hour. `<style:style
+    ... style:family="paragraph" .../>` has no `</style:style>`, so a pattern
+    that scans for the closing tag runs PAST it, through the next styles, and
+    attributes THEIR `fo:font-weight` to it. Measured 2026-08-23: two list
+    paragraphs whose style is `<... style:list-style-name="E1LCBullet"/>` -- no
+    text properties at all -- were reported bold, because the scan reached a
+    later text style that was.
+
+    That read as "applying bold to a selection also emboldens two unrelated
+    paragraphs", which is a serious defect, and it was not happening. What
+    caught it was putting the style's own markup into the record beside the
+    verdict; what did NOT catch it was the unit test, because the synthetic
+    document I wrote for it contained no self-closing style.
+
+    So: match each element in BOTH forms, and never let one style's body be read
+    as another's.
+    """
+    attribute, holds = FORMAT_PROPERTY[action]
+    values: dict[str, str] = {}
+    sources: dict[str, str] = {}
+    for match in re.finditer(
+            r"<style:style\b([^>]*?)(?:/>|>(.*?)</style:style>)",
+            content, re.S):
+        attrs, body = match.group(1), match.group(2) or ""
+        if f'style:family="{family}"' not in attrs:
+            continue
+        name = re.search(r'style:name="([^"]+)"', attrs)
+        if not name:
+            continue
+        found = re.search(rf'{re.escape(attribute)}="([^"]+)"', body)
+        if found and holds(found.group(1)):
+            values[name.group(1)] = found.group(1)
+            sources[name.group(1)] = match.group(0)[:600]
+    return values, sources
+
+
+def formatted_runs(content: str, action: str) -> list[dict]:
+    """Every text:span in the document whose style is bold, with its text.
+
+    Read from the document, not from a marker lookup: the style name is
+    resolved through the automatic styles the save itself wrote, so a run is
+    called bold because its own style says so.
+
+    Deliberately NOT `inline_styles_of()`, which is what lied in findings 064
+    and 065 -- a question about a document is answered from the document.
+    """
+    values, sources = _styles_carrying(content, "text", action)
+    runs = []
+    for match in re.finditer(
+            r'<text:span[^>]*text:style-name="([^"]+)"[^>]*>(.*?)</text:span>',
+            content, re.S):
+        style, inner = match.group(1), match.group(2)
+        if style not in values:
+            continue
+        text = re.sub(r"<[^>]+>", "", inner)
+        runs.append({"styleName": style, "value": values.get(style),
+                     "text": text, "length": len(text),
+                     "styleSource": sources.get(style)})
+    return runs
+
+
+def formatted_paragraphs(content: str, action: str) -> list[dict]:
+    """Paragraphs whose OWN style is bold, with their text.
+
+    THE FALSE NEGATIVE THIS EXISTS TO PREVENT: if the engine applies the format
+    to the whole PARAGRAPH instead of to the selection, no text:span carries
+    the format, `formatted_runs` returns [], and the reading is "not applied" -- when what
+    happened is worse than not applied. Finding 065's shape exactly.
+    """
+    values, sources = _styles_carrying(content, "paragraph", action)
+    out = []
+    for match in re.finditer(
+            r'<text:p[^>]*text:style-name="([^"]+)"[^>]*>(.*?)</text:p>',
+            content, re.S):
+        style, inner = match.group(1), match.group(2)
+        if style not in values:
+            continue
+        text = re.sub(r"<[^>]+>", "", inner)
+        out.append({"styleName": style, "value": values.get(style),
+                    "text": text, "length": len(text),
+                    "styleSource": sources.get(style)})
+    return out
+
+
+
+SELECTION_FORMAT_ORACLE = (
+    "with text selected, pressing the format button puts that format on that "
+    "text. Measured as a DELTA -- the selected text is not bold in a save taken "
+    "immediately before and is bold in a save taken immediately after -- "
+    "because by this point in the run twenty other checks have put bold in the "
+    "document and a whole-document read would count theirs as this one's. "
+    "Compared as STRINGS, not counts: the engine's selection string carries a "
+    "list prefix and a paragraph separator that are not document text, and a "
+    "count cannot tell them apart (finding 078). Whether the format lands on "
+    "EXACTLY the selection and nothing else is measured on a clean document by "
+    "tools/probe_inline_range_format.py; this check is the regression net's "
+    "hold on the property, not its characterisation")
 
 
 def text_bands(scan: dict, floor: int = 0) -> list[dict]:
@@ -4456,8 +4595,9 @@ def main() -> int:
                     f"this arm wanted (finding 077)")
             formats_record["arms"].append(arm)
 
-        # A collapsed caret: every one of the four is offered for `collapsed`
-        # and for nothing else, so this is the only gesture that can drive them.
+        # A collapsed caret drives the arms below.  It used to be the ONLY
+        # gesture that could -- see `an-inline-format-reaches-a-selection`, which
+        # is the check that should have existed while that sentence was true.
         inline_clicks = caret_click_fractions(
             evaluate(session, LINE_INK.replace("ARG_Y", "0.24")) or {})
         place_caret_and_settle(session, POINT_AT, inline_clicks["near"], "0.24")
@@ -5365,6 +5505,139 @@ return { available: true, afterButton };
                      "that a region holding stale text, or one claiming the "
                      "engine cannot do what its contract says it can, cannot "
                      "pass")
+
+        # FINDING 078.  The operator selected text, pressed bold, and got
+        # `EDITOR_FORMAT_GESTURE_UNSUPPORTED` -- and the 38-check net was green,
+        # because every check drove a COLLAPSED caret, and it drove a collapsed
+        # caret because that was the only gesture the manifest offered.  The
+        # harness had taken the product's own declaration as the specification,
+        # so an under-offer was invisible to the whole net by construction.
+        #
+        # This check asks the user's question instead of the manifest's: with
+        # text selected, does pressing the format button put that format on
+        # exactly that text?
+        #
+        # NOT_ESTABLISHED rather than FAIL where the profile does not offer the
+        # gesture, because on `e2-editor-v4` a refusal is CORRECT behaviour and
+        # calling it a failure would teach a reader to ignore this check.  The
+        # gesture table is read from the manifest the page is actually running.
+        selection_format = {"action": "set-bold"}
+        # Read from the manifest THE SERVED PAGE loads, via the same helper the
+        # diagnostic mirrors use.  Naming a profile here would make this check
+        # answer about a manifest the page is not running -- the silent
+        # mis-target `product_profile()` exists to prevent.
+        selection_format["profile"] = product_profile(root)
+        manifest_for_check = json.loads(
+            (root / "profiles" / selection_format["profile"]
+             / "sdk-manifest.json").read_text(encoding="utf-8"))
+        offered_for = ((manifest_for_check.get("editorContract") or {})
+                       .get("actions", {}).get("set-bold", {}).get("gestures"))
+        selection_format["offeredFor"] = offered_for
+        if not (isinstance(offered_for, list) and "range-single" in offered_for):
+            check("an-inline-format-reaches-a-selection", False,
+                  outcome="NOT_ESTABLISHED", observed=selection_format,
+                  why="this profile does not offer set-bold for a "
+                      "range-single selection, so the engine refuses before "
+                      "dispatch and there is nothing to measure. That is the "
+                      "shipped contract as of finding 078, not a product "
+                      "failure",
+                  oracle=SELECTION_FORMAT_ORACLE)
+        else:
+            # WITHIN ONE LINE, aimed from the ink rather than from a constant.
+            #
+            # The first version dragged between two fixed fractions and, by the
+            # time this check runs, the document has been edited by twenty
+            # other checks -- so the same coordinates spanned two paragraphs,
+            # the shape was `range-cross`, and v6 refused it CORRECTLY. The
+            # check reported FAIL. That is finding 077's shape again: an arm
+            # that inherits its preconditions instead of establishing them.
+            _scan, wide = stable_bands(session)
+            wide = [b for b in wide if (b["last"] - b["first"]) > 60]
+            selection_format["bandsAvailable"] = len(wide)
+            if not wide:
+                check("an-inline-format-reaches-a-selection", False,
+                      outcome="NOT_ESTABLISHED", observed=selection_format,
+                      why="no band wide enough to drag inside of",
+                      oracle=SELECTION_FORMAT_ORACLE)
+            else:
+                band = wide[len(wide) // 2]
+                y = f"{band['centreFraction']:.5f}"
+                left = band["first"] / _scan["width"]
+                right = band["last"] / _scan["width"]
+                x1 = f"{left + (right - left) * 0.15:.5f}"
+                x2 = f"{left + (right - left) * 0.70:.5f}"
+                selection_format["drag"] = {"x1": x1, "x2": x2, "y": y}
+                evaluate(session, DRAG.replace("ARG_X1", x1)
+                         .replace("ARG_Y1", y).replace("ARG_X2", x2)
+                         .replace("ARG_Y2", y))
+                time.sleep(1.5)
+                # THE PRODUCT SAYS WHAT SHAPE IT THINKS IT HAS, through the
+                # button it disables and the title it writes. Asking it is how
+                # "the drag produced the wrong shape" stops looking like "the
+                # product refused a gesture it offers".
+                shape = evaluate(
+                    session,
+                    "(() => { const b = document.querySelector('#toolbar "
+                    "button[data-action=\"set-bold\"]'); return b ? "
+                    "{ disabled: b.disabled, title: b.title } : null; })()") or {}
+                selection_format["buttonAfterDrag"] = shape
+                if shape.get("disabled"):
+                    check("an-inline-format-reaches-a-selection", False,
+                          outcome="NOT_ESTABLISHED",
+                          observed=selection_format,
+                          why="the drag did not produce a selection shape this "
+                              "profile offers set-bold for; the page's own "
+                              "title says which shape it got. Nothing about "
+                              "the product is established by this",
+                          oracle=SELECTION_FORMAT_ORACLE)
+                else:
+                    evaluate(session, CLEAR_TOAST)
+                    evaluate(session, COPY)
+                    time.sleep(1.5)
+                    copied = evaluate(session, READ_TOAST) or ""
+                    selected = "".join(
+                        chr(int(point, 16))
+                        for point in re.findall(r"U\+([0-9A-Fa-f]{4,6})", copied))
+                    selection_format["selectedText"] = selected
+                    # BEFORE, because twenty checks have already put bold in
+                    # this document and a whole-document read would count
+                    # theirs as this check's.
+                    before_saved = capture_save(
+                        session, evaluate(session, SAVE_COUNT) or 0)
+                    before_text = "".join(
+                        r["text"] for r in formatted_runs(
+                            before_saved.get("content") or "", "set-bold")) + "".join(
+                        r["text"] for r in formatted_paragraphs(
+                            before_saved.get("content") or "", "set-bold"))
+                    label = evaluate(session,
+                                     BUTTON_LABEL.replace("ARG_ACTION", "set-bold"))
+                    evaluate(session, CLEAR_TOAST)
+                    evaluate(session, CLEAR_LATENCY)
+                    evaluate(session, PRESS.replace("ARG_ACTION", "set-bold"))
+                    settled = wait_for(session,
+                                       lambda st, want=label: bool(want)
+                                       and want in (st.get("latency") or ""), 30)
+                    selection_format["latency"] = (settled or {}).get("latency")
+                    selection_format["toast"] = evaluate(session, READ_TOAST) or ""
+                    after_saved = capture_save(
+                        session, evaluate(session, SAVE_COUNT) or 0)
+                    selection_format["savedIsOdt"] = is_an_odt(after_saved)
+                    after_text = "".join(
+                        r["text"] for r in formatted_runs(
+                            after_saved.get("content") or "", "set-bold")) + "".join(
+                        r["text"] for r in formatted_paragraphs(
+                            after_saved.get("content") or "", "set-bold"))
+                    squeeze = lambda v: re.sub(r"\s+", "", v)   # noqa: E731
+                    selection_format["boldBefore"] = before_text
+                    selection_format["boldAfter"] = after_text
+                    selection_format["wasBoldBefore"] = bool(
+                        selected and squeeze(selected) in squeeze(before_text))
+                    check("an-inline-format-reaches-a-selection",
+                          bool(selection_format["savedIsOdt"] and selected
+                               and squeeze(selected) not in squeeze(before_text)
+                               and squeeze(selected) in squeeze(after_text)),
+                          observed=selection_format,
+                          oracle=SELECTION_FORMAT_ORACLE)
 
         resized = evaluate(session, RESIZE_DESK) or {}
         time.sleep(2.0)

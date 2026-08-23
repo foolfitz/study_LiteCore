@@ -2388,6 +2388,16 @@ test-e2-c-static:
 	# expectation being flipped fails too.
 	python3 tools/check_relink_queue.py > /dev/null
 	python3 tools/check_relink_queue.py --self-test > /dev/null
+	# The gesture table, compared against an expectation kept OUTSIDE the
+	# manifest.  Finding 078: the regression net drives what the manifest
+	# offers, so an action that is UNDER-offered is invisible to every check at
+	# once -- the manifest narrows, the harness narrows with it, and they agree
+	# forever while the product loses an operation.  A person found that in
+	# thirty seconds and 38 green checks could not.  Both directions fail here:
+	# narrower is 078, wider is a claim nobody measured.
+	python3 -m json.tool e2/expected-gesture-offers.json > /dev/null
+	python3 tools/check_gesture_offers.py > /dev/null
+	python3 tools/check_gesture_offers.py --self-test > /dev/null
 
 # Separate target: this one shells out to em++ and takes about a minute, and a
 # check that people skip because it is slow is a check that is not run.  The

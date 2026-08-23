@@ -47,98 +47,13 @@ from run_browser_probe import ChromeSession, free_port  # noqa: E402
 from run_e2_c_page_smoke import navigate  # noqa: E402
 from probe_a11y_gate0 import gate_mirror, wait_until  # noqa: E402
 import run_e2_c_product_path as pp  # noqa: E402
+# ONE parser, in the runner, because a second copy is a second
+# thing to be wrong on its own -- and on 2026-08-23 this one was
+# wrong three times before it was right.
+from run_e2_c_product_path import (  # noqa: E402
+    FORMAT_PROPERTY, formatted_paragraphs, formatted_runs)
 
 PROJECT = Path(__file__).resolve().parent.parent
-
-BOLD_WEIGHTS = ("bold", "600", "700", "800", "900")
-
-
-def _weights_by_style(content: str, family: str) -> tuple[dict, dict]:
-    """`style:name` -> `fo:font-weight`, for one style family.
-
-    SELF-CLOSING STYLES ARE THE WHOLE REASON THIS IS A FUNCTION, and the first
-    version of it produced a false defect within the hour. `<style:style
-    ... style:family="paragraph" .../>` has no `</style:style>`, so a pattern
-    that scans for the closing tag runs PAST it, through the next styles, and
-    attributes THEIR `fo:font-weight` to it. Measured 2026-08-23: two list
-    paragraphs whose style is `<... style:list-style-name="E1LCBullet"/>` -- no
-    text properties at all -- were reported bold, because the scan reached a
-    later text style that was.
-
-    That read as "applying bold to a selection also emboldens two unrelated
-    paragraphs", which is a serious defect, and it was not happening. What
-    caught it was putting the style's own markup into the record beside the
-    verdict; what did NOT catch it was the unit test, because the synthetic
-    document I wrote for it contained no self-closing style.
-
-    So: match each element in BOTH forms, and never let one style's body be read
-    as another's.
-    """
-    weights: dict[str, str] = {}
-    sources: dict[str, str] = {}
-    for match in re.finditer(
-            r"<style:style\b([^>]*?)(?:/>|>(.*?)</style:style>)",
-            content, re.S):
-        attrs, body = match.group(1), match.group(2) or ""
-        if f'style:family="{family}"' not in attrs:
-            continue
-        name = re.search(r'style:name="([^"]+)"', attrs)
-        if not name:
-            continue
-        weight = re.search(r'fo:font-weight="([^"]+)"', body)
-        if weight:
-            weights[name.group(1)] = weight.group(1)
-            sources[name.group(1)] = match.group(0)[:600]
-    return weights, sources
-
-
-def bold_runs(content: str) -> list[dict]:
-    """Every text:span in the document whose style is bold, with its text.
-
-    Read from the document, not from a marker lookup: the style name is
-    resolved through the automatic styles the save itself wrote, so a run is
-    called bold because its own style says so.
-
-    Deliberately NOT `inline_styles_of()`, which is what lied in findings 064
-    and 065 -- a question about a document is answered from the document.
-    """
-    weights, sources = _weights_by_style(content, "text")
-    runs = []
-    for match in re.finditer(
-            r'<text:span[^>]*text:style-name="([^"]+)"[^>]*>(.*?)</text:span>',
-            content, re.S):
-        style, inner = match.group(1), match.group(2)
-        if weights.get(style) not in BOLD_WEIGHTS:
-            continue
-        text = re.sub(r"<[^>]+>", "", inner)
-        runs.append({"styleName": style, "weight": weights.get(style),
-                     "text": text, "length": len(text),
-                     "styleSource": sources.get(style)})
-    return runs
-
-
-def bold_paragraphs(content: str) -> list[dict]:
-    """Paragraphs whose OWN style is bold, with their text.
-
-    THE FALSE NEGATIVE THIS EXISTS TO PREVENT: if the engine applies the format
-    to the whole PARAGRAPH instead of to the selection, no text:span carries
-    bold, `bold_runs` returns [], and the reading is "not applied" -- when what
-    happened is worse than not applied. Finding 065's shape exactly.
-    """
-    weights, sources = _weights_by_style(content, "paragraph")
-    out = []
-    for match in re.finditer(
-            r'<text:p[^>]*text:style-name="([^"]+)"[^>]*>(.*?)</text:p>',
-            content, re.S):
-        style, inner = match.group(1), match.group(2)
-        if weights.get(style) not in BOLD_WEIGHTS:
-            continue
-        text = re.sub(r"<[^>]+>", "", inner)
-        out.append({"styleName": style, "weight": weights.get(style),
-                    "text": text, "length": len(text),
-                    "styleSource": sources.get(style)})
-    return out
-
 
 def selected_count(session) -> dict:
     """How many characters the ENGINE says are selected.
@@ -202,13 +117,13 @@ def arm(session, label: str, x1, y1, x2, y2, action: str,
     saved = pp.capture_save(session, save_index)
     record["savedIsOdt"] = pp.is_an_odt(saved)
     content = saved.get("content") or ""
-    record["boldRuns"] = bold_runs(content)
-    record["boldCharacters"] = sum(r["length"] for r in record["boldRuns"])
+    record["formattedRuns"] = formatted_runs(content, action)
+    record["formattedCharacters"] = sum(r["length"] for r in record["formattedRuns"])
     # Both, always. "No bold span" and "the whole paragraph went bold" are
     # different answers and only one of them is "not applied".
-    record["boldParagraphs"] = bold_paragraphs(content)
-    record["boldParagraphCharacters"] = sum(
-        r["length"] for r in record["boldParagraphs"])
+    record["formattedParagraphs"] = formatted_paragraphs(content, action)
+    record["formattedParagraphCharacters"] = sum(
+        r["length"] for r in record["formattedParagraphs"])
     # COMPARE THE TEXT, NOT THE COUNT.
     #
     # Counting was wrong twice in one hour. The engine's selection text carries
@@ -225,17 +140,17 @@ def arm(session, label: str, x1, y1, x2, y2, action: str,
     # The bold TEXT compared to the selected TEXT cannot be fooled that way:
     # both are strings, and the separators are named rather than counted.
     selected = "".join(record["selection"].get("codePointsSeen") or [])
-    bold_text = "".join(r["text"] for r in record["boldRuns"]) + "".join(
-        r["text"] for r in record["boldParagraphs"])
+    bold_text = "".join(r["text"] for r in record["formattedRuns"]) + "".join(
+        r["text"] for r in record["formattedParagraphs"])
     def squeeze(value: str) -> str:
         return re.sub(r"\s+", "", value)
     record["selectedText"] = selected
-    record["boldText"] = bold_text
+    record["formattedText"] = bold_text
     record["appliedToExactlyTheSelection"] = bool(
         bold_text and squeeze(bold_text) == squeeze(selected))
     record["boldTextIsInsideTheSelection"] = bool(
         bold_text and squeeze(bold_text) in squeeze(selected))
-    record["appliedToWholeParagraphs"] = bool(record["boldParagraphs"])
+    record["appliedToWholeParagraphs"] = bool(record["formattedParagraphs"])
     record["why"] = (
         "the bold TEXT is compared to the selected TEXT, whitespace squeezed, "
         "because the engine's selection string carries a list prefix and a "
@@ -323,13 +238,13 @@ def main() -> int:
         baseline = pp.capture_save(session, 0)
         record["baseline"] = {
             "savedIsOdt": pp.is_an_odt(baseline),
-            "boldRuns": bold_runs(baseline.get("content") or ""),
-            "boldParagraphs": bold_paragraphs(baseline.get("content") or ""),
+            "formattedRuns": formatted_runs(baseline.get("content") or "", args.action),
+            "formattedParagraphs": formatted_paragraphs(baseline.get("content") or "", args.action),
         }
-        record["baseline"]["boldCharacters"] = sum(
-            r["length"] for r in record["baseline"]["boldRuns"])
-        record["baseline"]["boldParagraphCharacters"] = sum(
-            r["length"] for r in record["baseline"]["boldParagraphs"])
+        record["baseline"]["formattedCharacters"] = sum(
+            r["length"] for r in record["baseline"]["formattedRuns"])
+        record["baseline"]["formattedParagraphCharacters"] = sum(
+            r["length"] for r in record["baseline"]["formattedParagraphs"])
 
         # RANGE-SINGLE: inside one line.
         record["arms"].append(arm(session, "range-single",

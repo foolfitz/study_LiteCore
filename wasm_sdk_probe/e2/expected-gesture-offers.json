@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "writtenOn": "2026-08-23",
+  "why": "The regression net derives what it drives FROM THE MANIFEST. `format_arm` uses a collapsed caret because that is the only gesture set-bold was offered for, and the runner says so in its own comment. So an action that is UNDER-offered is invisible to every check at once: the manifest narrows, the harness narrows with it, and the two agree forever. Finding 078 is what that costs -- the operator selected text, pressed bold, and got a refusal, while 38 checks were green. This file is the expectation kept OUTSIDE the manifest, so the two can disagree.",
+  "howToUse": "check_gesture_offers.py compares the shipped profile's action map against `expected`. A narrowing is a FAILURE here even when every other check is green, and a widening is a failure too -- an action offered for a gesture nobody characterised is the defect this project's contract exists to prevent, in the other direction.",
+  "changing": "Never edit `expected` to make this pass. Either the manifest is wrong, or a measurement has been taken and BOTH move together, with the evidence named in `rationale`.",
+  "profile": "e2-editor-v6",
+  "expected": {
+    "set-bold": ["collapsed", "range-single"],
+    "set-italic": ["collapsed", "range-single"],
+    "set-underline": ["collapsed", "range-single"],
+    "set-strikethrough": ["collapsed", "range-single"],
+    "set-paragraph-heading": ["collapsed", "range-single", "range-cross"],
+    "set-paragraph-body": ["collapsed", "range-single", "range-cross"],
+    "set-list-none": ["collapsed", "range-single", "range-cross"],
+    "set-list-unordered": ["collapsed", "range-single", "range-cross"],
+    "set-list-ordered": ["collapsed", "range-single", "range-cross"],
+    "delete-selection": ["range-single", "range-cross"],
+    "select-all": [],
+    "move-character-left": ["collapsed"],
+    "move-character-right": ["collapsed"],
+    "move-line-up": ["collapsed"],
+    "move-line-down": ["collapsed"],
+    "move-line-home": ["collapsed"],
+    "move-line-end": ["collapsed"],
+    "delete-backward": ["collapsed"],
+    "delete-forward": ["collapsed"],
+    "insert-paragraph-break": ["collapsed"],
+    "insert-line-break": ["collapsed"]
+  },
+  "rationale": {
+    "set-bold": "range-single characterised 2026-08-23, all four inline formats, findings/evidence/f078-inline-format-on-a-selection/. range-cross measured equal too but expresses a fully selected paragraph as paragraph-level formatting and reports a 5-character list prefix in the selection text; neither is explained, so it stays withheld.",
+    "set-italic": "same measurement as set-bold",
+    "set-underline": "same measurement as set-bold",
+    "set-strikethrough": "same measurement as set-bold",
+    "select-all": "shipped dark: present in the manifest with an EMPTY gesture list, which is what withholding means here. Omitting it would ship it wide open, because the engine initialises every action to all-permitted and intersects from there.",
+    "delete-selection": "range only by nature; a collapsed caret has nothing to delete."
+  }
+}

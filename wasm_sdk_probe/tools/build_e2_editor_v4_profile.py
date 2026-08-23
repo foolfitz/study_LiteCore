@@ -220,19 +220,22 @@ def main() -> int:
     # unmeasured gesture while wearing the shipped identity is the exact shape
     # of claim this contract is built to prevent.
     parser.add_argument("--inline-range-gestures",
-                        choices=("none", "range-single", "all"),
+                        choices=("none", "range-single", "range-cross", "all"),
                         default="none",
-                        help="DIAGNOSTIC ONLY. Grant the four inline formats "
-                             "range gestures so the characterisation for "
-                             "finding 078 can be taken. Requires --profile to "
-                             "name something other than the product")
+                        help="`range-single` grants what finding 078's "
+                             "characterisation measured, on all four inline "
+                             "formats, and records range-cross as withheld. "
+                             "`all` also grants range-cross, which nobody has "
+                             "characterised -- DIAGNOSTIC ONLY, and refused "
+                             "under the product's own name")
     parser.add_argument("--profile", default=PROFILE,
                         help="profile identity to stamp; defaults to the "
                              "product's. Use another name for any profile "
                              "built against a core that is not the product's")
     args = parser.parse_args()
 
-    if args.inline_range_gestures != "none" and args.profile == PROFILE:
+    if args.inline_range_gestures not in ("none", "range-single") \
+            and args.profile == PROFILE:
         raise SystemExit(
             "refusing to grant unmeasured inline range gestures under the "
             f"product's own name ({PROFILE}). Pass --profile with a "
@@ -260,18 +263,52 @@ def main() -> int:
     contract["abiVersion"] = ABI_VERSION
     contract["actions"] = action_map()
     if args.inline_range_gestures != "none":
-        extra = ([v2.RANGE_SINGLE] if args.inline_range_gestures == "range-single"
-                 else [v2.RANGE_SINGLE, v2.RANGE_CROSS])
+        diagnostic = args.inline_range_gestures != "range-single"
+        # `range-cross` alone is the discriminator for a question the other
+        # three cannot answer: whether the ENGINE calls a selection inside one
+        # line `range-single` at all. Measured 2026-08-23 -- the same drag that
+        # succeeds where both are granted is REFUSED where only range-single
+        # is, so the engine is classifying it as something else, and a profile
+        # that grants only cross says which.
+        extra = {"range-single": [v2.RANGE_SINGLE],
+                 "range-cross": [v2.RANGE_CROSS],
+                 "all": [v2.RANGE_SINGLE, v2.RANGE_CROSS]}[
+                     args.inline_range_gestures]
         for name in ("set-bold", "set-italic", "set-underline",
                      "set-strikethrough"):
             action = contract["actions"][name]
             action["gestures"] = list(action["gestures"]) + list(extra)
-            # The limit travels with the grant.  A reader who finds this
-            # manifest without its provenance must still be told that the
-            # gesture it offers is one nobody has characterised.
-            action["limits"] = list(action["limits"]) + [
-                "range-gesture-granted-for-characterisation-only"]
-        contract["inlineRangeGesturesAreDiagnostic"] = True
+            if diagnostic:
+                # Nobody has characterised `range-cross`, and a manifest that
+                # offers it must say so in its own limits rather than rely on
+                # whoever reads it knowing where it came from.
+                action["limits"] = list(action["limits"]) + [
+                    "range-gesture-granted-for-characterisation-only"]
+            else:
+                # THE WITHHOLDING IS WRITTEN DOWN, not left as an absence.
+                #
+                # This project has already paid for the difference: the engine
+                # initialises every action to ALL-PERMITTED and intersects from
+                # there, so "omitted" and "withheld" are opposite instructions,
+                # and an absence with no recorded reason invites the next
+                # builder to read it as an oversight and "fix" it. `range-cross`
+                # is missing here on purpose.
+                action["limits"] = list(action["limits"]) + [
+                    "range-single-characterised-2026-08-23",
+                    "range-cross-withheld-pending-characterisation"]
+        if diagnostic:
+            contract["inlineRangeGesturesAreDiagnostic"] = True
+        else:
+            # What the grant rests on, in the artifact that makes the claim.
+            contract["inlineRangeEvidence"] = (
+                "findings/evidence/f078-inline-format-on-a-selection/ -- all "
+                "four inline formats measured on range-single against the "
+                "shipped artifact f923cfa5, the formatted text equal to the "
+                "selected text in every arm, with a baseline save and a "
+                "shipped-profile control. range-cross measured equal too but "
+                "expresses a fully selected paragraph as paragraph-level "
+                "formatting and reports a 5-character list prefix in the "
+                "selection text; neither is explained, so it is not granted")
     contract["inlineFormatEnabledIsHonoured"] = True
     # The sibling of `undo`, and declared the same way: a document-level SDK
     # operation, not an action, so it has no wire id and no gesture.

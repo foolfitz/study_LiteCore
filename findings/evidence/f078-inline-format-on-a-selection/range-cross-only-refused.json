@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "release": "inline-range-format-characterisation",
+  "finding": "078",
+  "profile": "e2-cross-only",
+  "question": "does an inline format applied to a SELECTION land on exactly that selection?",
+  "arms": [
+    {
+      "label": "range-single",
+      "action": "set-bold",
+      "drag": {
+        "from": [
+          "0.14",
+          "0.28"
+        ],
+        "to": [
+          "0.30",
+          "0.28"
+        ]
+      },
+      "selection": {
+        "handlerRan": true,
+        "toast": "已複製 U+0031,U+002D,U+004C,U+0043,U+002D,U+004E,U+0055,U+004D,U+0042,U+0045,U+0052,U+002D,U+0054,U+0057 字",
+        "codePoints": 14,
+        "codePointsSeen": [
+          "1",
+          "-",
+          "L",
+          "C",
+          "-",
+          "N",
+          "U",
+          "M",
+          "B",
+          "E",
+          "R",
+          "-",
+          "T",
+          "W"
+        ],
+        "characters": 14
+      },
+      "buttonLabel": "B",
+      "buttonOffered": true,
+      "latency": "B 失敗",
+      "toast": "B：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged",
+      "refused": true,
+      "savedIsOdt": true,
+      "formattedRuns": [],
+      "formattedCharacters": 0,
+      "formattedParagraphs": [],
+      "formattedParagraphCharacters": 0,
+      "selectedText": "1-LC-NUMBER-TW",
+      "formattedText": "",
+      "appliedToExactlyTheSelection": false,
+      "boldTextIsInsideTheSelection": false,
+      "appliedToWholeParagraphs": false,
+      "why": "the bold TEXT is compared to the selected TEXT, whitespace squeezed, because the engine's selection string carries a list prefix and a paragraph separator that are not document text and a count cannot tell them from characters that are. A fully selected paragraph comes back as paragraph-level bold rather than a span, which is why both are concatenated"
+    },
+    {
+      "label": "range-cross",
+      "action": "set-bold",
+      "drag": {
+        "from": [
+          "0.14",
+          "0.28"
+        ],
+        "to": [
+          "0.30",
+          "0.34"
+        ]
+      },
+      "selection": {
+        "handlerRan": true,
+        "toast": "已複製 U+0020,U+0020,U+0020,U+0020,U+0020,U+0031,U+002D,U+004C,U+0043,U+002D,U+004E,U+0055,U+004D,U+0042,U+0045,U+0052,U+002D,U+0054,U+0057,U+004F,U+000A,U+0045,U+0031,U+002D,U+004C,U+0043,U+002D,U+0045,U+004E,U+0044 字",
+        "codePoints": 30,
+        "codePointsSeen": [
+          " ",
+          " ",
+          " ",
+          " ",
+          " ",
+          "1",
+          "-",
+          "L",
+          "C",
+          "-",
+          "N",
+          "U",
+          "M",
+          "B",
+          "E",
+          "R",
+          "-",
+          "T",
+          "W",
+          "O",
+          "\n",
+          "E",
+          "1",
+          "-",
+          "L",
+          "C",
+          "-",
+          "E",
+          "N",
+          "D"
+        ],
+        "characters": 30
+      },
+      "buttonLabel": "B",
+      "buttonOffered": true,
+      "latency": "B 失敗",
+      "toast": "B：EDITOR_FORMAT_GESTURE_UNSUPPORTED：this action is not offered for this kind of selection in this profile, so nothing was dispatched and the document is unchanged",
+      "refused": true,
+      "savedIsOdt": true,
+      "formattedRuns": [],
+      "formattedCharacters": 0,
+      "formattedParagraphs": [],
+      "formattedParagraphCharacters": 0,
+      "selectedText": "     1-LC-NUMBER-TWO\nE1-LC-END",
+      "formattedText": "",
+      "appliedToExactlyTheSelection": false,
+      "boldTextIsInsideTheSelection": false,
+      "appliedToWholeParagraphs": false,
+      "why": "the bold TEXT is compared to the selected TEXT, whitespace squeezed, because the engine's selection string carries a list prefix and a paragraph separator that are not document text and a count cannot tell them from characters that are. A fully selected paragraph comes back as paragraph-level bold rather than a span, which is why both are concatenated"
+    }
+  ],
+  "mirror": {
+    "root": "/home/jiajun/.cache/litecore-probe-tmp/inline-range-5ee7wlac/a11y-gate0-root",
+    "profile": "e2-cross-only",
+    "wasmSha256": "f923cfa5aba3074971799f5e6b8baf81c2d2d85e7b2c65ce5039d858fc17ed52",
+    "pinBefore": "f923cfa5aba30749",
+    "pinAfter": "f923cfa5aba30749",
+    "workerUrl": "\"./profiles/e2-cross-only/sdk-worker.js\"",
+    "note": "The product page is MIRRORED, not modified: dist/ is never written and the shipped page still pins the shipped wasm. This run is diagnostic on both counts -- a core that is not the product's, and a page that was edited to reach it."
+  },
+  "clipboardPermission": {
+    "granted": true,
+    "focusEmulated": true
+  },
+  "shimInstalled": "installed",
+  "shims": [
+    "URL.createObjectURL",
+    "HTMLAnchorElement.click"
+  ],
+  "baseline": {
+    "savedIsOdt": true,
+    "formattedRuns": [],
+    "formattedParagraphs": [],
+    "formattedCharacters": 0,
+    "formattedParagraphCharacters": 0
+  },
+  "outcome": "SEE_ARMS"
+}

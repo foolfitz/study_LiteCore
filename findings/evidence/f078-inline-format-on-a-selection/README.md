@@ -75,3 +75,45 @@ be fooled the way counts were.
 | `range-granted-run1.json`, `-run2.json` | the measurement that stands |
 | `shipped-profile-control.json` | the same probe on the shipped profile: both refused |
 | `withdrawn-count-oracle-run1.json` | the run that produced both wrong conclusions |
+
+## The grant cannot be partial — measured 2026-08-23, after the adjudication
+
+All four inline formats were then measured on the diagnostic profile, one run
+each (`granted-set-*.json`). Every arm, both gestures: the formatted text in the
+saved ODT equals the selected text, with a clean baseline. The characterisation
+covers what a grant would name.
+
+A profile granting **`range-single` only** (`e2-editor-v6`) was minted from the
+shipped artifact and probed on a clean document: **both arms refused**
+(`range-single-only-refused.json`). A profile granting **`range-cross` only**
+was minted and probed: **both arms refused** too
+(`range-cross-only-refused.json`). The same drags succeed where both are
+granted.
+
+The engine says why, at the gate, in its own comment:
+
+> An unclassified range must satisfy BOTH range bits, because
+> `editorGesturePermitted()` accepts on any intersection: passing the OR of the
+> two would let a profile that allows only range-single admit a range this build
+> never classified, which may be a cross-paragraph one. Telling them apart needs
+> the html read, and that read is the wedge risk findings 037/038 describe -- so
+> the check is conservative instead.
+
+At that point the selection has NOT been classified. Classifying it needs an
+HTML read, and that read is a known engine-wedge risk. So the gate demands both
+bits.
+
+**Therefore "grant range-single and withhold range-cross" is inexpressible for
+these actions.** A profile granting only one admits nothing at all for a
+non-collapsed selection. `e2-editor-v6` exists and is kept as the artifact that
+demonstrates this; it is not a candidate for shipping.
+
+The two range-cross artifacts look weaker in this light, though neither is
+resolved:
+
+* the paragraph-level expression happened on a paragraph that was **fully
+  selected**, where hoisting direct formatting to the paragraph may be exactly
+  what LibreOffice's own export does. Unverified against native.
+* the 5-character list prefix appears in the **selection text reported by the
+  copy path**, not in the formatting, and no formatting outcome depended on it
+  once the oracle compared strings instead of counts.
