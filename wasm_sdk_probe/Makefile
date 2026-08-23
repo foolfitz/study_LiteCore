@@ -1028,6 +1028,27 @@ $(E2_C_BUILD) $(E2_C_DIST):
 # shipped v4 recipe is unchanged.
 EXTRA_DEFINES ?=
 
+# EXTRA_OBJECTS is empty by default too.  Same reason as EXTRA_DEFINES: a
+# variant artifact names what it adds on the command line instead of a second
+# copy of the link rule drifting away from this one.
+EXTRA_OBJECTS ?=
+
+# THE ONE TRANSLATION UNIT BUILT AGAINST CORE'S INTERNAL HEADERS.
+#
+# `-std=c++20 -DLIBO_INTERNAL_ONLY` is how core compiles ITSELF.  Every other
+# object here is a LOK client that sees core through the public headers, and
+# flipping that define changes what those headers present -- so it gets its own
+# rule rather than joining the pattern rule above.  Roadmap 3.4's probe lives
+# there and nothing else does; when upstream adds role and outline level to
+# LOK's focused-paragraph payload this rule and its file are deleted together.
+#
+# Measured before it was written (findings/evidence/aria-projection/
+# REACHABILITY.md): the three symbols it needs are already defined in
+# libsfxlo.a, libvcllo.a and libcomphelper.a, all of them on linkdeps.
+$(E2_V4_BUILD)/a11y_tree_probe.o: src/a11y_tree_probe.cpp Makefile | $(E2_V4_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 -DLIBO_INTERNAL_ONLY \
+		-DOXSDK_A11Y_TREE_PROBE -c $< -o $@
+
 $(E2_V4_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
 		src/format_readback_text.hpp Makefile | $(E2_V4_BUILD)
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
@@ -1050,10 +1071,10 @@ $(E2_V4_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
 
 # Guarded from the FIRST link, same as v2 and v3 were: no v4 artifact ever
 # appears by accident, including the one that later gets bound to.
-$(E2_V4_BUILD)/probe.js: $(E2_V4_OBJECTS) $(E2_V4_BUILD)/exports.txt \
+$(E2_V4_BUILD)/probe.js: $(E2_V4_OBJECTS) $(EXTRA_OBJECTS) $(E2_V4_BUILD)/exports.txt \
 		$(LINKDEPS) $(FS_PRE_JS) Makefile
 	$(call refuse_unasked_relink,the ABI 4 successor product artifact -- every link mints a new hash and five identities bind to one)
-	$(call link_r5_product,$(E2_V4_OBJECTS),$(E2_V4_BUILD)/exports.txt,$@)
+	$(call link_r5_product,$(E2_V4_OBJECTS) $(EXTRA_OBJECTS),$(E2_V4_BUILD)/exports.txt,$@)
 
 $(E2_V4_BUILD)/probe.wasm: $(E2_V4_BUILD)/probe.js
 	@test -s $@

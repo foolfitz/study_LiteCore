@@ -38,7 +38,7 @@ from r7_support import evaluate, wait_page  # noqa: E402
 from run_browser_probe import ChromeSession, FirefoxSession, free_port  # noqa: E402
 from run_e2_c_page_smoke import READ_STATE, navigate  # noqa: E402
 from run_e2_c_product_path import (  # noqa: E402
-    LINE_INK, POINT_AT, build_mirror, caret_click_fractions,
+    LINE_INK, OPEN_FILE, POINT_AT, build_mirror, caret_click_fractions,
     place_caret_and_settle, stable_bands,
 )
 
@@ -189,6 +189,12 @@ def main() -> int:
                              "NOT the product's: the gate needs the artifact "
                              "linked against the core whose accessibility call "
                              "sites are compiled in")
+    parser.add_argument("--open-url", default=None,
+                        help="before measuring, open this URL through the "
+                             "page's own file input instead of the fixture it "
+                             "boots with. Off by default, so the gate path is "
+                             "unchanged. Used to ask the tree-shape question "
+                             "of a document that does not fit on one screen")
     parser.add_argument("--core-build",
                         default="../wasm-lite/build-a11y-gate0",
                         help="the core build G0-1 is judged against")
@@ -248,6 +254,24 @@ def main() -> int:
             record["outcome"] = "NOT_ESTABLISHED"
             record["why"] = "the page never reached ready"
             return finish(record, args)
+
+        if args.open_url:
+            # MANAGES_DESCENDANTS is set on the document root, and an
+            # implementation carrying that state is entitled to materialise
+            # only the children it is currently rendering. Nine paragraphs on
+            # one screen proves nothing about a document that scrolls, so this
+            # opens a longer one through the product's own file input.
+            record["openedUrl"] = args.open_url
+            record["openDispatched"] = evaluate(
+                session, OPEN_FILE.replace("ARG_URL", args.open_url)
+                                  .replace("ARG_NAME", "a11y-long.odt"))
+            state = wait_until(session, lambda s: s.get("state") == "ready", 180)
+            record["stateAfterOpen"] = state.get("state")
+            if state.get("state") != "ready":
+                record["outcome"] = "NOT_ESTABLISHED"
+                record["why"] = "the page never returned to ready after opening"
+                return finish(record, args)
+            time.sleep(2.0)
 
         # THREE paragraphs, and three is the point (PREDICTION G0-2).  One
         # reading cannot tell "a focused paragraph" from "an event that fires":

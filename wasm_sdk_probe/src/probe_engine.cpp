@@ -28,6 +28,14 @@
  */
 #include <config_wasm_strip.h>
 
+#ifdef OXSDK_A11Y_TREE_PROBE
+// Defined in src/a11y_tree_probe.cpp, the ONLY translation unit built with
+// -DLIBO_INTERNAL_ONLY.  Declared rather than included so this file keeps
+// seeing core through the PUBLIC headers, which is the whole reason that file
+// is separate.
+extern "C" char *oxsdk_a11y_tree_snapshot();
+#endif
+
 #include <LibreOfficeKit/LibreOfficeKit.h>
 #include <LibreOfficeKit/LibreOfficeKitEnums.h>
 #ifdef OXSDK_EDITOR_DISCOVERY
@@ -1134,6 +1142,19 @@ void appendEditorState(std::ostringstream &json) {
        << ",\"paragraphFingerprint\":\"" << std::hex
        << gEditorState.a11yContentHash << std::dec << "\""
        << ",\"listPrefixLength\":" << gEditorState.a11yListPrefixLength
+#ifdef OXSDK_A11Y_TREE_PROBE
+       // DIAGNOSTIC ONLY.  `src/a11y_tree_probe.cpp` is the one translation
+       // unit compiled with -DLIBO_INTERNAL_ONLY; this is the only place that
+       // calls it, and neither exists in a product build.  It rides the a11y
+       // block because the worker's raw branch forwards that wholesale -- no
+       // worker change for a thing that is going to be deleted.
+       << ",\"tree\":" << [] {
+              char *raw = oxsdk_a11y_tree_snapshot();
+              const std::string owned = raw ? raw : "{\"unavailable\":\"null\"}";
+              std::free(raw);
+              return owned;
+          }()
+#endif
 #ifdef OXSDK_A11Y_PARAGRAPH_TEXT
        // Uncapped, like `selectionText` beside it. Capping one text field and
        // not the other would be an inconsistency a host cannot see, and a
