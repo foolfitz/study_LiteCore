@@ -5,9 +5,14 @@ Written 2026-08-26, continuing
 
 ## State
 
-`e2-editor-v8` still ships and **nothing about the shipped product changed
-today**: no shell generation, no change to `dist/profiles/e2-editor-v8`, and the
-engine change below is inert on a build without accessibility.
+`e2-editor-v8` still ships, and its **artifact** is untouched: no relink, no
+change to `dist/profiles/e2-editor-v8`.
+
+**Shell generation v42** was frozen — `paragraph-editor-client.js` and
+`web/e2-editor-app.js` both changed for finding 083 — and the shipped
+`e2-editor-v8` was re-measured against it: **38 PASS / 2 NOT_ESTABLISHED,
+`ok: true`**, its best. The engine change below is inert on a build without
+accessibility.
 
 **One link was taken, on the accessibility lineage and under a new name**:
 `e2-editor-v10`, carrying finding 082's fix. It relinks nothing — `make -n` on
@@ -24,7 +29,9 @@ its attribution. Runbook and the prediction written before the measurement:
 | `queue-abort-margins-are-unexplained` | present, with two debts | **both paid** — eleven rounds, and the two fields it asked for turned out not to exist for it |
 | `queue-canvas-grew-arm-abstains-intermittently` | — | **new, absent** |
 | `queue-a11y-prefix-swallows-the-paragraph` | absent, since 2026-08-22 | **present** — the decision it was waiting for, forced by 082 |
-| `queue-a11y-caret-does-not-move-on-the-first-commit` | — | **new, absent** — 1 run in 3, and only visible because 082 was fixed |
+| `queue-a11y-caret-does-not-move-on-the-first-commit` | — | **new, absent** — 2 runs in 6, and only visible because 082 was fixed |
+| `queue-a11y-stage-deadline-awaiting-selection` | — | **new, present** — finding 083, filed and fixed the same day |
+| `p1-3b-empty-readback` | withdrawn 2026-08-16 | still `absent`, but its stated reason is now known to be **true of one core and not the other** |
 
 **Finding 082 filed AND FIXED, same day.** On the accessibility core an ordinary
 paragraph format was refused by the barrier as "a different paragraph" — 4 runs
@@ -243,6 +250,84 @@ while the session was dying at check 17.
 every other consumer of `listPrefixLength` is still exposed), and the fingerprint
 as an identity in general (22% of the r7-compat corpus collides on text alone).
 
+## 3c. Finding 083, also fixed: an empty selection is an answer, not a stall
+
+With 082 gone, `stage-deadline:awaiting-selection` was the only consistent red
+left on the a11y lineage — `bulleting-a-blank-line-does-not-demand-a-rollback`,
+3 rounds of 3. Same recipe and same cell on both cores, and the payloads say the
+whole thing:
+
+| | `e2-editor-v8` | `e2-editor-v10` |
+|---|---|---|
+| `stage` | `awaiting-restore` | **`awaiting-selection`** |
+| `selectionType` | 1 (`LOK_SELTYPE_TEXT`) | **-1** |
+| `readback.blockCount` / `bytes` | 2 / 592 | **0 / 0** |
+| `selectionResultSeen` | true | **true** |
+| what the user gets | **review** | **rollback** |
+
+`.uno:SelectText` on the blank paragraph selects **two paragraphs** on the
+product core — finding 046's overshoot — and **nothing at all** on the
+accessibility one. `maybeAdvanceFormatBarrierSelection()` needs the select
+command's result *and* non-empty rectangles, so the barrier waits out 5000 ms
+and calls an answer a stall. The action itself is identical on both cores.
+
+**Why the cores differ is NOT established** and no layer is named: two build
+differences, one measurement. It is not even obvious which behaviour is right —
+not overshooting into the neighbour is arguably the better one.
+
+**Our side's defect is independent of that**, and it needed no engine change and
+no link: the disposition already lives in JavaScript.
+
+* the **worker** forwards `selectionResultSeen` — the engine always sent it, the
+  allowlist dropped it, and without it nobody can tell "the engine never
+  answered" from "it answered and nothing was selected";
+* the **client** adds a branch narrowed on four conditions (dispatched,
+  collapsed route, that shape, and the select command having come back). Three
+  mutations of the narrowing each turn the test red. A stall nobody can
+  attribute keeps its rollback — the same reasoning finding 059's branch uses;
+* the **page** gets its own sentence, because `review` with the multi-block
+  explanation would tell the user the check "covered more than one paragraph"
+  about a paragraph where nothing was selected. That is finding 061's shape and
+  this tree has filed it once already.
+
+**Shell generation v42, frozen once.** The first freeze was premature — the page
+half was still to come — and was **withdrawn rather than forced over**, which is
+the tree's own lesson from v28.
+
+**The acceptance condition moved with the prescription, deliberately.**
+`bulleting-a-blank-line-does-not-demand-a-rollback` pinned the multi-block
+sentence and would have gone red on a product that had just been fixed. It now
+takes either sentence, still pins the promise they share, still refuses
+`請回到檢查點` — and **records which sentence it saw**, so the two cores' routes
+to `review` stay visible instead of being flattened.
+
+### `e2-editor-v11`: the first clean product path the a11y lineage has produced
+
+v10's artifact repackaged — same wasm, same loader, only `workerSha256` moves
+(`070229cd` → `03f5b69a`), **no link**. All four points of the prediction held:
+
+| round | verdict | `bulleting-…` | caret check |
+|---|---|---|---|
+| 1 | **37 PASS / 3 NE, `ok: true`** | PASS, `empty-selection` | PASS |
+| 2 | 36 PASS / 1 FAIL / 3 NE | PASS, `empty-selection` | FAIL |
+| 3 | **37 PASS / 3 NE, `ok: true`** | PASS, `empty-selection` | PASS |
+
+**Two of three are clean runs with no FAIL at all** — the first the accessibility
+lineage has ever produced. The one red is the intermittent caret defect, which is
+not this finding's and which nobody could see before 082 was fixed.
+
+**And the shipped product, with the same shell served to it**: `e2-editor-v8`,
+no profile flag, **38 PASS / 2 NOT_ESTABLISHED, `ok: true`** — its best. Its
+`bulleting-…` still records `unverifiedSentence: "multi-block"`, so the two
+cores keep reaching `review` by different routes and the harness keeps saying
+which. `servedShell` matches the declared v42 digest, so that is the new shell
+and not a stale copy.
+
+**Declared cost, and `finish()` caught it in the same run**:
+`notice-action-recovers-the-session` goes back to NOT_ESTABLISHED on the a11y
+lineage, because the cell no longer blocks the queue. Same trade as 2026-08-17
+on the product core; `recoveryPairing.held: true`.
+
 ## 4. The refusal pair: a route built four days ago and never driven
 
 `queue-cut-refusal-lost-its-inducer` said, in its own words, "ROUTE BUILT
@@ -374,16 +459,12 @@ against a real run.
 
 ## Open work, in the order I would take it
 
-1. **The `stage-deadline:awaiting-selection` barrier failure**, which is now the
-   only consistent red on the accessibility lineage
-   (`bulleting-a-blank-line-does-not-demand-a-rollback`, 3 rounds of 3). It was
-   first recorded on 2026-08-23 and now has its sub-stage: the barrier stopped
-   while awaiting its own `.uno:SelectText` selection, with
-   `paragraphIdentity.readbackKnown: false` — the gate never ran, so this is a
-   different mechanism from 082 and none of 082's fix touches it. The widened
-   payload (`--barrier-details-diagnostic`) is the instrument; the question is
-   why that stage stops for five seconds on this core and only on the cell
-   finding 046 was measured on.
+1. **`queue-a11y-caret-does-not-move-on-the-first-commit`** — now the only red
+   left anywhere, and 2 runs in 6. The two failing runs are **byte-identical to
+   each other** (163 → 163, then 163 → 393, then 393 → 509), so it is a
+   deterministic event firing intermittently rather than noise in the
+   measurement — which is a better lead than a rate. Bound it, then compare
+   against `e2-editor-v8`, where the same check passes.
 
 2. **Consider one revival on death, rather than stopping.** Worth less than it
    was this morning — 082's fix removed the death that made it urgent — but the
@@ -474,6 +555,23 @@ python3 tools/run_e2_c_product_path.py --browser chrome --refusal-diagnostic \
 ## The push
 
 Nothing was pushed. `github/main` is where the previous handoff left it.
+
+## The profiles that exist now
+
+| profile | wasm | worker | what it is |
+|---|---|---|---|
+| `e2-editor-v8` | unchanged | unchanged | **ships**; re-measured against shell v42, 38/2, `ok: true` |
+| `e2-editor-v9` | `b60cc46f` | `070229cd` | the a11y candidate before 082; dies at check 17 |
+| `e2-editor-v10` | `4ec1e389` | `070229cd` | + finding 082's engine fix; 40 checks, one consistent red |
+| `e2-editor-v11` | `4ec1e389` | `03f5b69a` | + finding 083's worker; **first clean a11y run** |
+
+v11 is v10's artifact with one manifest field moved — no link, the same
+relationship v7 has to v4's artifact.
+
+**`e2-editor-v8` does NOT carry finding 083's worker.** The shell half reaches
+it (served from `dist/`), the worker half does not, and it does not need it:
+that core never produces the shape. If it ever should, the repackaging is a
+manifest rebuild, not a link.
 
 ## The link that WAS taken
 

@@ -116,6 +116,51 @@ test("failure disposition turns on whether anything was dispatched", () => {
                "unknown-rollback");
 });
 
+test("a select command that came back empty is an answer, not a stall",
+     async () => {
+       // FINDING 083. On the accessibility core `.uno:SelectText` on a blank
+       // paragraph selects nothing, so the barrier never gets its rectangles
+       // and dies on the stage deadline -- and the disposition attached to a
+       // stall is `rollback`, over a bullet that had applied. Measured
+       // 2026-08-26; the same cell on the product core selects two paragraphs
+       // and gets `review`.
+       const barrier = {
+         dispatched: true, route: "collapsed",
+         failureShape: "stage-deadline:awaiting-selection",
+         selectionResultSeen: true,
+       };
+       assert.equal(
+         formatFailureDisposition({ code: "MUTATION_OUTCOME_UNKNOWN",
+                                    details: { formatBarrier: barrier } }),
+         "dispatched-unverified");
+
+       // NARROW, and each of these four is what makes it narrow. A stall
+       // nobody can attribute keeps its rollback.
+       for (const [name, over] of [
+         ["the select command never came back",
+          { selectionResultSeen: false }],
+         ["an engine that does not send the field at all",
+          { selectionResultSeen: null }],
+         ["a different stage", { failureShape: "stage-deadline:read-queued" }],
+         ["the cross route", { route: "range-cross" }],
+       ]) {
+         assert.equal(
+           formatFailureDisposition({ code: "MUTATION_OUTCOME_UNKNOWN",
+                                      details: { formatBarrier:
+                                                 { ...barrier, ...over } } }),
+           "dispatched-rollback", name);
+       }
+
+       // And the shape it is modelled on still classifies the same way, so
+       // this branch did not swallow the other core's case.
+       assert.equal(
+         formatFailureDisposition({ code: "MUTATION_OUTCOME_UNKNOWN",
+                                    details: { formatBarrier: {
+                                      dispatched: true, route: "collapsed",
+                                      failureShape: "multi-block-readback" } } }),
+         "dispatched-unverified");
+     });
+
 test("a failure that never reached the engine does not roll the document back",
      async () => {
        // SPEC E2-C 2.5.  Fail-closed is for "we do not know whether it was

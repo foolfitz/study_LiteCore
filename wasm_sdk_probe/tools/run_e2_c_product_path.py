@@ -4138,12 +4138,38 @@ def main() -> int:
                 # correct and unchanged -- but the DISPOSITION is now "review": the
                 # queue stays open, so undo is reachable, which is the only thing
                 # that makes the advice honest.
+                # TWO SENTENCES NOW, AND THE CONDITION HAD TO CHANGE WITH THE
+                # PRESCRIPTION (finding 083).
+                #
+                # The predicate pinned `無法單獨核對` -- "your paragraph cannot
+                # be verified SEPARATELY" -- which is the multi-block sentence,
+                # and until 2026-08-26 it was the only way this cell reached
+                # `review`.  On the accessibility core the same cell reaches it
+                # for a different reason: `.uno:SelectText` selects NOTHING, so
+                # the barrier's read has no content at all.  Telling that user
+                # the check "covered more than one paragraph" is literally false
+                # about their document, so the page gained its own sentence and
+                # this predicate would have gone red on a product that had just
+                # been fixed.
+                #
+                # Still pinned to WORDS rather than loosened to "any toast": a
+                # check that accepts anything is not a check.  Both sentences
+                # end in the same promise -- look at it, press undo if it is
+                # wrong -- so `不是你要的就按「復原」` is what they share and
+                # what the disposition is actually about.
+                unverified_said = ("無法單獨核對" in empty_cell_toast
+                                   or "取不到任何內容" in empty_cell_toast)
                 check("bulleting-a-blank-line-does-not-demand-a-rollback",
                       empty_cell_state.get("state") == "ready"
-                      and "無法單獨核對" in empty_cell_toast
+                      and unverified_said
+                      and "不是你要的就按「復原」" in empty_cell_toast
                       and "請回到檢查點" not in empty_cell_toast,
                       observed={"state": empty_cell_state.get("state"),
                                 "toast": empty_cell_toast,
+                                "unverifiedSentence":
+                                    "multi-block" if "無法單獨核對" in empty_cell_toast
+                                    else "empty-selection" if "取不到任何內容"
+                                    in empty_cell_toast else None,
                                 "queueStillOpen":
                                     empty_cell_state.get("state") == "ready"},
                       oracle="the product's own buttons, on the cell finding 046 was "

@@ -1391,6 +1391,56 @@ $(A11Y_CALLOC_DIST)/sdk-manifest.json: $(A11Y_CALLOC_BUILD)/probe.js \
 $(A11Y_CALLOC_BUILD) $(A11Y_CALLOC_DIST):
 	mkdir -p $@
 
+# --------------------- v11, v10's artifact repackaged with finding 083's worker
+#
+# NO LINK. One artifact, two manifests -- the same relationship `e2-editor-v7`
+# has to v4's and `e2-editor-v9` has to `a11y-calloc`'s. v10's wasm and loader
+# are carried through byte-identical; what moves is `sdk-worker.js`.
+#
+# WHY A NEW NAME RATHER THAN REPACKAGING v10: three rounds of product-path
+# evidence are bound to v10's manifest digest (finding 082's measurement).
+# Repackaging in place would leave them describing a manifest that no longer
+# exists at that path -- finding 027's shape. A name is cheap; a re-measurement
+# is not.
+#
+# WHAT THE WORKER CARRIES: `productFormatBarrier` forwards `selectionResultSeen`.
+# The engine has always sent it; the worker's allowlist dropped it, and without
+# it no host can tell `stage-deadline:awaiting-selection` meaning "the engine
+# never answered" from the same shape meaning "it answered and nothing was
+# selected". Finding 083. The disposition that reads it is in the SHELL
+# (`paragraph-editor-client.js`, generation v42), which is served from dist/ and
+# therefore reaches every profile without repackaging -- so this rule exists for
+# the worker half alone.
+#
+# PACKAGED FROM THE ARCHIVE, not the build tree: `$(E2_V10_BUILD)/probe.js`
+# depends on this Makefile, so adding these lines makes it out of date and
+# `make` would relink it (finding 042), minting a second hash and leaving
+# finding 082's measurement describing an artifact that no longer exists.
+E2_V11_DIST := dist/profiles/e2-editor-v11
+E2_V10_ARCHIVE := build/archive/e2-editor-v10-4ec1e389-worker-070229cd-manifest-d57de339
+
+$(E2_V11_DIST)/sdk-manifest.json: $(E2_V10_ARCHIVE)/probe.js \
+		$(E2_V10_ARCHIVE)/probe.wasm \
+		$(E2_V10_ARCHIVE)/exports.txt sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V11_DIST)
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_V10_ARCHIVE)/probe.js \
+		--wasm $(E2_V10_ARCHIVE)/probe.wasm \
+		--worker sdk/sdk-worker.js \
+		--exports $(E2_V10_ARCHIVE)/exports.txt \
+		--profile e2-editor-v11 --paragraph-text --document-outline \
+		--inline-range-gestures all --core-data $(E2_V5_CORE) \
+		--output $(E2_V11_DIST)
+	@test -s $(E2_V11_DIST)/probe.js
+	@test -s $(E2_V11_DIST)/probe.wasm
+	@test -s $(E2_V11_DIST)/sdk-worker.js
+
+$(E2_V11_DIST):
+	mkdir -p $@
+
 # ------------------------------- v10, the a11y product candidate WITH 082's fix
 #
 # ONE VARIABLE AGAINST v9, and it is measured rather than intended:

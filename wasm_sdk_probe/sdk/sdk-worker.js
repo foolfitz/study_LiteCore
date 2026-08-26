@@ -251,6 +251,24 @@ function productFormatBarrier(value = {}) {
     // indistinguishable from a parsed read of nothing without this field.
     readbackParsed: value.readback?.parsed ?? null,
     readbackBlockCount: value.readback?.blockCount ?? null,
+    // DID THE BARRIER'S OWN SELECT COMMAND COME BACK?
+    //
+    // Finding 083.  `stage-deadline:awaiting-selection` has two causes and the
+    // shape alone cannot separate them: the engine never answered, or it
+    // answered and the answer was "nothing is selected".
+    // `maybeAdvanceFormatBarrierSelection` needs the select command's own
+    // result AND non-empty rectangles, so a blank paragraph on a core that
+    // does not overshoot into its neighbour leaves the first true and the
+    // second empty -- and the barrier waits out five seconds and calls an
+    // answer a stall.  Measured 2026-08-26 on `e2-editor-v10` against
+    // `e2-editor-v8`: same recipe, same cell, `selectionType: -1` on one and
+    // `1` with a two-paragraph readback on the other.
+    //
+    // Forwarded because the DISPOSITION turns on it: an engine that answered
+    // was not wedged, which is the same reasoning finding 059's branch uses on
+    // LOK_COMMAND_FAILED.  Absent on an engine that does not send it, which is
+    // the honest answer for a build that cannot say.
+    selectionResultSeen: value.selectionResultSeen ?? null,
     // Does the selection the postcondition read describe cover the caret the
     // action was dispatched from?  The engine has checked this since finding
     // 034 and fails on it (`selection-does-not-contain-restore-point`), but

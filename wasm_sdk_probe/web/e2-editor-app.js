@@ -650,6 +650,18 @@ async function run(label, operation) {
                 // Finding 059.
                 ? "（動作已送出，引擎收到了核心的回覆但無法據以判定成敗，"
                   + "所以這裡不敢說它成功了。請看一下結果，不是你要的就按「復原」）"
+                // FINDING 083.  Its own sentence, and it needs one: this shape
+                // reaches `review` because NOTHING was selected, so telling the
+                // user the check "covered more than one paragraph" would be
+                // literally false about their document.  Finding 061 is the
+                // precedent -- a sentence that is true of a different case is
+                // misleading attribution, and this tree has filed that as a
+                // defect once already.
+                : error?.details?.formatBarrier?.failureShape
+                    === "stage-deadline:awaiting-selection"
+                ? "（動作已送出，但這一段是空的，檢查要用的選取取不到任何內容，"
+                  + "所以無法核對。請看一下結果，不是你要的就按「復原」。"
+                  + "這是檢查的極限，不是文件壞了）"
                 : "（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。"
                   + "請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）")
            : ""), true);

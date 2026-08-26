@@ -255,6 +255,32 @@ export function formatFailureDisposition(error) {
       && barrier.route === "collapsed"
       && barrier.failureShape === "multi-block-readback")
     return "dispatched-unverified";
+  // FINDING 083, and it is the same argument as the branch above on the other
+  // core.
+  //
+  // On the accessibility core `.uno:SelectText` on a blank paragraph selects
+  // NOTHING rather than overshooting into the neighbour, so the barrier never
+  // gets its rectangles and dies on the stage deadline. Measured 2026-08-26,
+  // same recipe and same cell on both cores: `selectionType: -1` and a readback
+  // of zero blocks here, `selectionType: 1` and a two-paragraph readback there.
+  // So the user pressing the bullet button on a blank line was told to discard
+  // every edit since the last checkpoint -- on a session that may have no
+  // checkpoint -- over a bullet that had applied.
+  //
+  // `selectionResultSeen` is what makes this narrow rather than "any stage
+  // deadline": the barrier's own select command CAME BACK, so the engine
+  // answered and is not wedged, and the answer was that nothing is selected.
+  // Same reasoning as the LOK_COMMAND_FAILED branch below -- a stall nobody can
+  // attribute keeps its rollback.
+  //
+  // This does NOT claim the action succeeded. It claims what "review" means:
+  // something was dispatched, this build cannot verify it, and the queue stays
+  // open so undo is reachable.
+  if (barrier && barrier.dispatched === true
+      && barrier.route === "collapsed"
+      && barrier.failureShape === "stage-deadline:awaiting-selection"
+      && barrier.selectionResultSeen === true)
+    return "dispatched-unverified";
   if (barrier && barrier.dispatched === true)
     return "dispatched-rollback";
   // Finding 059, measured on both sides 2026-08-18.
