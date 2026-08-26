@@ -36,6 +36,27 @@ def _specs() -> dict:
             if isinstance(spec, dict) and "find" in spec}
 
 
+class DiagnosticMirrorsStillApply(unittest.TestCase):
+    """The same claim, for the mirrors that are not mutations.
+
+    `--barrier-details-diagnostic` (2026-08-26) patches one anchor in the
+    product page so a rejection's TYPED payload survives instead of only the
+    message the user is shown.  The runner refuses to patch when the anchor is
+    gone -- but only for somebody who runs it, which is how
+    `cut-swallows-its-failure` came to be dead for weeks.
+    """
+
+    def test_the_barrier_details_anchor_is_still_in_the_page(self):
+        page = DIST / "e2-editor-app.js"
+        self.assertTrue(page.is_file())
+        hits = page.read_text(encoding="utf-8").count(probe.BARRIER_DETAILS_ANCHOR)
+        self.assertEqual(
+            hits, 1,
+            "--barrier-details-diagnostic patches run()'s catch and found "
+            f"{hits} of it in dist/e2-editor-app.js. The page moved under the "
+            "diagnostic; fix the anchor, not the count.")
+
+
 class MutationsStillApply(unittest.TestCase):
 
     def test_every_mutation_matches_its_target_exactly_once(self):

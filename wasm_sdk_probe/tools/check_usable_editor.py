@@ -156,6 +156,46 @@ def baseline_problems(report: dict) -> list[str]:
     if report.get("mutation") is not None:
         problems.append(f"report is a mutation run ({report['mutation']!r}); a "
                         "mutation run measures the harness, not the product")
+    # A RUN IN PROGRESS IS NOT A RUN.
+    #
+    # Since 2026-08-26 the runner writes `--out` after EVERY check, so a run
+    # that is killed leaves a readable partial report instead of a zero-byte
+    # log (finding 081, `queue-a11y-path-drives-a-dead-session`).  That is a new
+    # KIND of file in this tree, and a new kind of file that nothing rejects is
+    # a new way to cite a measurement nobody finished.  `complete` is written by
+    # `finish()` and by nothing else.
+    #
+    # Missing counts as not complete, deliberately, and the same way a missing
+    # `servedShell` does: a report that cannot say it finished has not said it.
+    if report.get("complete") is not True:
+        problems.append(
+            "report is not a finished run: `complete` is "
+            f"{report.get('complete')!r}. Either the run was killed and this is "
+            "the snapshot it left behind, or the report predates the field")
+    # AND A RUN THAT STOPPED IS NOT A VERDICT ON THE PRODUCT.
+    #
+    # The guard stops driving once the session is refusing everything, so the
+    # checks after that point were never asked.  The report says so; this makes
+    # saying so binding.
+    if report.get("sessionDied"):
+        died = report["sessionDied"]
+        problems.append(
+            f"the run stopped: the session was {died.get('state')} after "
+            f"{died.get('noticedAfter')}, and "
+            f"{len(died.get('neverReached') or [])} checks were never reached")
+    # A RUN AGAINST ANOTHER PROFILE IS ABOUT THAT PROFILE.
+    #
+    # `--profile` mirrors the page so it loads a different engine, and the
+    # runner already stamps `profileDiagnostic` saying in as many words that
+    # the results "must not be quoted as the product's".  Nothing enforced it.
+    # Found 2026-08-26 while closing the same hole for partial reports: the
+    # served-shell identity below cannot catch this one, because the mirror
+    # serves the SAME shell -- only the engine underneath it differs.
+    if report.get("profileDiagnostic"):
+        problems.append(
+            "report is a profile diagnostic against "
+            f"{report['profileDiagnostic'].get('profile')!r}: it measures that "
+            "profile, not the one the product ships pointing at")
     served = report.get("servedShell")
     if not served:
         problems.append("report has no `servedShell`: it predates shell "
@@ -359,6 +399,9 @@ def self_test() -> int:
             "release": "e2-c-product-path",
             "browser": "chrome",
             "mutation": None,
+            # Written out rather than defaulted: the negative controls below
+            # turn this off, and a default would make them test nothing.
+            "complete": True,
             "servedShell": {"bundle": "e2/editor-shell-v2-bundle-v16.json",
                             "declaredSha256": "deadbeef", "servedSha256": "deadbeef",
                             "missing": []},
@@ -402,6 +445,21 @@ def self_test() -> int:
 
     rejects("a mutation run is refused as acceptance evidence",
             lambda r, c: r.update(mutation="caret"))
+    # The two kinds of file the 2026-08-26 liveness work introduced.  Both are
+    # well-formed reports that a reader would otherwise cite without noticing
+    # what they are.
+    rejects("a snapshot of a run still in progress is refused",
+            lambda r, c: r.update(complete=False))
+    rejects("a report that predates the completeness field is refused",
+            lambda r, c: r.pop("complete"))
+    rejects("a run against another profile is refused",
+            lambda r, c: r.update(profileDiagnostic={
+                "evidenceClass": "diagnostic", "profile": "e2-editor-v9"}))
+    rejects("a run that stopped on a dead session is refused",
+            lambda r, c: r.update(sessionDied={
+                "noticedAfter": "format-a-paragraph-changes-that-paragraph",
+                "state": "recoverable-error", "pending": "0",
+                "neverReached": ["cut-removes-the-selected-text"]}))
     rejects("a run against another shell generation is refused",
             lambda r, c: r["servedShell"].update(servedSha256="0" * 64))
     rejects("a run with a bundled module missing is refused",

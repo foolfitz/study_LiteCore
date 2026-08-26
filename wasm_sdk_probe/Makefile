@@ -2563,6 +2563,24 @@ test-e2-c-product-path: e2-c-assets
 	python3 tools/run_e2_c_product_path.py --browser chrome --mutate save
 	python3 tools/run_e2_c_product_path.py --browser chrome --mutate ime
 	python3 tools/run_e2_c_product_path.py --browser chrome --mutate copy
+	# THE REFUSAL PAIR, and it is in the target rather than in a runbook
+	# because a route nobody drives is a route nobody has measured.
+	#
+	# `queue-cut-refusal-lost-its-inducer`: the 2026-08-22 widening of
+	# `delete-selection` made cut work and took away the state finding 063 is
+	# about, so the refusal disposition lost its inducer on the product's own
+	# path. `--refusal-diagnostic` narrows one action to `gestures: []` in a
+	# symlink mirror (dist/ never written, probe.wasm byte-identical) and the
+	# page's cut handler falls back exactly as it did on v3.
+	#
+	# Both ways, because either alone is worth much less: the first says the
+	# refusal is reported, the document untouched, the session alive and the
+	# save still working; the second says that check can go red, on the term
+	# the mutation moves. Route built 2026-08-22, first driven 2026-08-26 --
+	# four days in which it looked like coverage and was not.
+	python3 tools/run_e2_c_product_path.py --browser chrome --refusal-diagnostic
+	python3 tools/run_e2_c_product_path.py --browser chrome --refusal-diagnostic \
+		--mutate cut-swallows-the-refusal
 
 # SPEC E2-C.  No prerequisites, same reason as the two below: E2-C's whole
 # scope is shell, runner and judge, and nothing in it may relink or restage an
@@ -2614,7 +2632,7 @@ test-e2-c-static:
 	python3 -m unittest tests/test_e2_corpus.py tests/test_e2_c_shell_bundle.py \
 		tests/test_e2_c_matrix.py tests/test_caret_from_columns.py \
 		tests/test_inline_styles_of.py tests/test_ink_rows_caret.py \
-		tests/test_product_path_mutations.py
+		tests/test_product_path_mutations.py tests/test_session_liveness.py
 	python3 -m py_compile tools/create_e2_corpus.py tools/run_e2_c_page_smoke.py \
 		tools/build_e2_c_shell_bundle.py tools/run_e2_c_d0.py \
 		tools/analyze_e2_c_d0.py tools/analyze_e2_c_d1.py \

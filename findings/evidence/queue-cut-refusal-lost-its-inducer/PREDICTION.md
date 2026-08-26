@@ -1,6 +1,6 @@
 # Prediction: finding 063's three properties, on a withheld action
 
-STATUS: NOT YET RUN
+STATUS: MEASURED 2026-08-26, both ways — see [`RESULT.md`](RESULT.md). All four criteria held on the shipped `e2-editor-v8`, and the `cut-swallows-the-refusal` mutation turned the check red on the term it moves. Everything below this line is the prediction as written on 2026-08-22 and is unedited.
 
 Written 2026-08-22, **before** the arm was run and before the core rebuild it
 is waiting behind finished. The queue item is

@@ -235,6 +235,31 @@ return "installed";
 
 READ_TOASTS = "(() => (window.__pp ? window.__pp.toasts.slice() : null))()"
 
+# WHAT THE ENGINE SAID, not what the product decided to show.
+#
+# `run()` in the page catches the rejection, writes `<label> 失敗` into the
+# latency field and toasts `describeError(error)` -- the MESSAGE.  The typed
+# payload beside it is thrown away: `error.details.formatBarrier` carries
+# `failureShape` and the two paragraph fingerprints the barrier compared, and
+# HANDOFF-2026-08-23b already recorded that the product-path report keeps only
+# the toast.  So a run can say the barrier refused and cannot say which
+# paragraph it read.
+#
+# Null unless --barrier-details-diagnostic mirrored the page: on an ordinary run
+# nothing collects these and this returns null rather than an empty list, so
+# "the diagnostic was not on" and "the run produced no errors" are different
+# answers.
+# The anchor --barrier-details-diagnostic patches, as a module constant so that
+# a static test can ask whether it still matches the page in dist/.  The runner
+# refuses to patch blindly when it does not -- but only for somebody who runs
+# the diagnostic, and `cut-swallows-its-failure` died exactly that way.
+BARRIER_DETAILS_ANCHOR = ("  } catch (error) {\n"
+                          "    el.s.latency.textContent = `${label} 失敗`;\n")
+
+READ_PAGE_ERRORS = (
+    "(() => (window.__pp && window.__pp.errors "
+    "? window.__pp.errors.slice() : null))()")
+
 CLEAR_TOASTS = """(() => {
 if (window.__pp) window.__pp.toasts.length = 0;
 return true;
@@ -2672,6 +2697,292 @@ def revision_of(state) -> int | None:
     return int(text) if text.isdigit() else None
 
 
+# ------------------------------------------------------- liveness, finding 081
+#
+# `queue-a11y-path-drives-a-dead-session`.  A save failed during
+# `format-a-paragraph-changes-that-paragraph` on the accessibility profile,
+# took the session into `recoverable-error` WITH NO CHECKPOINT, and every arm
+# after it drove a session that refuses everything with EDITOR_NOT_READY.  Read
+# off the stalled page over CDP on 2026-08-24: `pending: 0` -- nothing was
+# waiting on the engine.  That is not a hang.  It is twenty to fifty minutes of
+# arms each burning their own timeout, and because the report was written only
+# at the end the run yielded nothing at all.
+#
+# Three states, and each one earns its place.
+#
+#   recoverable-error   the product offers its notice and refuses the work
+#   restart-required    the same shape one step further on
+#   expired             the page found a wasm hash it does not describe and
+#                       called `showExpired` (web/e2-editor-app.js:1293): the
+#                       paper is hidden, every toolbar button, the fixture
+#                       picker and the file input are disabled, and NOTHING
+#                       recovers from it. Added 2026-08-26 after an adversarial
+#                       review pointed out that `showExpired` writes the pill
+#                       directly, so the guard could not see it -- and a
+#                       re-open mid-run can reach it (openDocument checks the
+#                       pin on every open, and this runner re-opens five times).
+#
+# `stopped` is deliberately NOT here: it is written in exactly one place, the
+# boot IIFE's catch (:1407), so it cannot appear after boot -- and boot has its
+# own gate before the first check is ever recorded.
+DEAD_STATES = ("recoverable-error", "restart-required", "expired")
+
+# The one check a stopped run adds.  A NAME rather than a literal at the call
+# site, deliberately: `declared_check_ids` scans this file for literal check
+# ids to answer "what did this run never reach", and a stopped run listing its
+# own stop as unreached would be the report contradicting itself.
+STOPPED_CHECK = "the-run-stopped-because-the-session-was-dead"
+
+
+def dead_session(state) -> str | None:
+    """The state name when the session refuses everything, else None.
+
+    A pure function on the state the page already publishes, so the guard and
+    the two arms that INDUCE this state on purpose are asking one question
+    rather than two that can drift apart.
+    """
+    name = (state or {}).get("state")
+    return name if name in DEAD_STATES else None
+
+
+class SessionDied(Exception):
+    """Stop driving.
+
+    Carries the arm that was last RECORDED, which is not the same claim as the
+    arm that killed the session -- a check reached after several waits may have
+    been dead for a minute by then.  Named accordingly wherever it is written
+    down: this says where the harness noticed, and `latency`/`toast` from the
+    same read say what the product was doing when it did.
+    """
+
+    def __init__(self, arm: str, where: str, state: dict):
+        super().__init__(f"the session is {dead_session(state)} after {arm}")
+        self.arm = arm
+        self.where = where
+        self.state = state
+
+
+class Liveness:
+    """The dead-session guard, and it is deliberately not a closure over main().
+
+    A guard nobody can drive is a guard nobody has tested, and this one exists
+    because forty checks were driven at a session that was refusing all of
+    them.  It takes a `read_state` callable rather than a browser session, so
+    `tests/test_session_liveness.py` can hold it to its behaviours without
+    starting anything.
+    """
+
+    def __init__(self, read_state, control: bool = False):
+        self.read_state = read_state
+        # `--liveness-control`: the two arms that induce the dead state stop
+        # holding the guard off, so a run must stop inside one of them.
+        self.control = control
+        self.expected: str | None = None
+        # The last check recorded while inside a held-off region, so that
+        # region can name the arm that actually ran rather than its own label.
+        self.recorded_inside: str | None = None
+        self.died: dict | None = None
+        self.probes = 0
+        # Reads that could not be taken, kept apart from reads that were.
+        self.read_failures = 0
+        self.last_state: str | None = None
+        self.probe_error: str | None = None
+
+    def probe(self, arm: str, where: str) -> None:
+        """One state read, and it either continues the run or ends it.
+
+        Cheap on purpose: the same read every `wait_for` already performs,
+        once per check rather than once per poll.
+        """
+        if self.died is not None:
+            return
+        # ONE PLACE implements `--liveness-control`, and it is `__enter__`
+        # below: under the control the region never sets `expected` at all.
+        # A second `and not self.control` here read as belt-and-braces and was
+        # in fact unreachable -- a branch no mutation could turn red, which is
+        # the shape of a check that cannot fail.
+        if self.expected is not None:
+            return
+        try:
+            state = self.read_state() or {}
+        except Exception as error:      # noqa: BLE001 -- reported, not raised
+            # A browser that has gone away is a different failure and not this
+            # guard's to declare.  Recorded, so that "the guard never fired"
+            # cannot quietly mean "the guard never ran".
+            #
+            # COUNTED, and `last_state` cleared: a read that failed at check 10
+            # used to leave `lastState: "ready"` standing in every later report,
+            # where it reads as a statement about the END of the run.
+            self.read_failures += 1
+            self.last_state = None
+            self.probe_error = f"{type(error).__name__}: {error}"
+            return
+        # A PAGE WITH NO STATE PILL IS NOT A LIVE SESSION.
+        #
+        # `READ_STATE` returns `state: null` when `#state-pill` is not in the
+        # DOM -- the page navigated, the document was replaced, the boot failed.
+        # `dead_session(None)` is None, so without this the guard would count
+        # the probe, record `lastState: null`, and carry on satisfied by a page
+        # that is not there.  That is this tree's own rule pointed at the guard:
+        # a check must be able to fail when the thing it checks is switched off.
+        #
+        # Raised as a READ FAILURE rather than as a death, because it is not one
+        # -- it is the guard being unable to ask.
+        if state.get("state") is None:
+            self.read_failures += 1
+            self.last_state = None
+            self.probe_error = ("READ_STATE returned no state: the page has no "
+                                "#state-pill")
+            return
+        self.probes += 1
+        self.last_state = state.get("state")
+        if dead_session(state) is None:
+            return
+        self.died = {
+            "noticedAfter": arm,
+            "where": where,
+            "state": state.get("state"),
+            # THE FIELD THAT MADE THIS A FINDING RATHER THAN A GUESS.  `0` says
+            # nothing is waiting on the engine, so what follows is not a hang
+            # and waiting longer cannot help.
+            "pending": state.get("pending"),
+            "checkpoint": state.get("checkpoint"),
+            "latency": state.get("latency"),
+            "toast": state.get("toast"),
+            "insideAnArmThatExpectedIt": self.expected}
+        raise SessionDied(arm, where, state)
+
+    def under_control(self, arm: str, where: str) -> None:
+        """A probe that exists ONLY for `--liveness-control`, and here is why.
+
+        The guard's own probe runs after a recorded CHECK.  The two arms that
+        induce the dead state recover from it BEFORE they record theirs -- the
+        endnote inducer wedges the engine, presses the product's notice, waits
+        for `ready`, and only then calls `check()`.  So on a normal run there is
+        no moment at which a check-boundary probe could see a dead session, and
+        a control built on the boundaries alone would pass whether the guard
+        worked or not.  Measured, not assumed: the first control run
+        (2026-08-26) went green from end to end for exactly this reason, which
+        is what this method is here to correct.
+
+        So the control probes where the arm has just finished inducing.  Nothing
+        is simulated: it is the real guard, reading the real page, in the state
+        the product's own buttons put it in -- only the MOMENT is chosen, and
+        it is chosen at the one point in the run where the answer is known in
+        advance.
+
+        What it does NOT establish is that the guard fires mid-run and saves
+        twenty to fifty minutes -- only a run that dies of its own accord shows
+        that.  ONE DID, the same day: `--profile e2-editor-v9`, no flag, no
+        mutation, dead after `format-a-paragraph-changes-that-paragraph` with
+        finding 081's page state field for field, 23 arms never driven and
+        322.3 s instead of 20-50 minutes
+        (findings/evidence/queue-a11y-path-drives-a-dead-session/
+        RESULT-the-guard-fired-unprompted.md).  This method stays because that
+        run cannot be summoned: it is a defect, and the shipped profile has no
+        equivalent.
+        """
+        if not self.control:
+            return
+        self.probe(arm, where)
+
+    def expecting(self, arm: str, why: str):
+        """For the arms that drive the session into the dead state on purpose.
+
+        Two of them exist and both then press the product's recovery notice:
+        finding 047's recipe and finding 038's endnote inducer.  The guard is
+        held off INSIDE the region only, and the state is read once more on the
+        way out -- so an arm that fails to recover stops the run naming the
+        check LAST RECORDED INSIDE IT, rather than the innocent one that
+        follows.  Not the region's own label: region 1 is named for the notice
+        check and also encloses the bulleting cell, which is the one that kills
+        the session on the accessibility core.
+        """
+        return _ExpectedDeadState(self, arm, why)
+
+
+class _ExpectedDeadState:
+
+    def __init__(self, liveness: Liveness, arm: str, why: str):
+        self.liveness, self.arm, self.why = liveness, arm, why
+        self.previous = None
+
+    def __enter__(self):
+        self.previous = self.liveness.expected
+        self.liveness.recorded_inside = None
+        if not self.liveness.control:
+            self.liveness.expected = self.why
+        return self
+
+    def __exit__(self, kind, value, traceback):
+        self.liveness.expected = self.previous
+        if kind is None:
+            # THE CHECK THAT WAS ACTUALLY LAST RECORDED IN HERE, not the arm
+            # this region is named for.
+            #
+            # Region 1 is named `notice-action-recovers-the-session` and also
+            # encloses `bulleting-a-blank-line-does-not-demand-a-rollback`,
+            # which is the one that puts the session into the state on the
+            # accessibility core.  Naming the region would have reported the
+            # run as stopping after the notice check when the bulleting cell
+            # was what killed it -- and that profile is where this path is
+            # likeliest to run.  Raised by adversarial review, 2026-08-26.
+            self.liveness.probe(
+                self.liveness.recorded_inside or self.arm,
+                "on leaving the arm that induces it"
+                + ("" if self.liveness.recorded_inside
+                   else " (no check was recorded inside it)"))
+        self.liveness.recorded_inside = None
+        return False
+
+
+def recovery_pairing_holds(bulleting: str | None, notice: str | None) -> bool | None:
+    """Are the two reads of finding 046's cell consistent with each other?
+
+    `bulleting-a-blank-line-does-not-demand-a-rollback` and
+    `notice-action-recovers-the-session` are read from ONE moment -- the cell
+    either blocks the queue or it does not -- so they are anti-correlated by
+    construction:
+
+        it does not block -> bulleting PASSES, and there is no notice to press,
+                             so the recovery check abstains
+        it blocks         -> bulleting FAILS, and the recovery check is JUDGED
+
+    Two implications, and deliberately only two.  `bulleting PASS` beside a
+    recovery check that FAILED is legitimate: that is "047's recipe dispatched
+    nothing", a product failure rather than a pairing one, and a rule that
+    forbade it would turn a real red into a confusing one.
+
+    None when either check was not recorded: there is then no relation to hold
+    them to, which is a different answer from "the relation is broken".
+    """
+    if bulleting is None or notice is None:
+        return None
+    if bulleting == "PASS" and notice == "PASS":
+        return False
+    if bulleting == "FAIL" and notice == "NOT_ESTABLISHED":
+        return False
+    return True
+
+
+def declared_check_ids(source: str) -> list[str]:
+    """Every check id this file can record, in source order.
+
+    Used only to say what a run that stopped early did NOT reach.  A count
+    would not do: the reason the accessibility runs were worthless was that
+    nobody could tell which of the forty questions had been asked.
+
+    Literal ids only -- every `check()` call in this file passes one -- and the
+    caller treats a scan that finds nothing as "not measured" rather than as
+    "nothing left to run".
+    """
+    seen: list[str] = []
+    for cid in re.findall(r'\bcheck\(\s*"([a-z0-9][a-z0-9-]*)"', source):
+        if cid not in seen:
+            seen.append(cid)
+    return seen
+
+
 def wait_saves(session, count, timeout=90):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
@@ -2907,6 +3218,41 @@ def main() -> int:
                              "range bits for an unclassified range "
                              "(probe_engine.cpp:4471), so that grant is an off "
                              "switch rather than a narrowing")
+    # THE POSITIVE CONTROL FOR THE GUARD ABOVE, and it does not fake anything.
+    #
+    # queue-a11y-path-drives-a-dead-session added a guard that stops the run
+    # when the session is dead.  A guard that has never been seen to fire is a
+    # guard nobody has measured -- and the shape it is written against
+    # (finding 081) does not reproduce on the shipped profile, so waiting for it
+    # to happen is waiting for a defect.
+    #
+    # This runner already drives the session into `recoverable-error` twice on
+    # purpose, through the product's own buttons, and recovers from it.  Those
+    # two regions hold the guard off.  This flag stops them holding it off, so a
+    # run with it MUST stop inside one of them and name it -- a real dead
+    # session, read the same way, on the same page.  A run WITHOUT it must not.
+    # THE ENGINE'S OWN ANSWER, on a run that can be shown to have asked for it.
+    #
+    # Finding 081's successor question: the accessibility profile dies on
+    # `format-a-paragraph-changes-that-paragraph` with MUTATION_OUTCOME_UNKNOWN
+    # and `readback-is-a-different-paragraph`, and the barrier's payload says
+    # WHICH paragraphs it compared -- but the product page drops it in `run()`'s
+    # catch, so the report has the sentence and not the fingerprints.
+    #
+    # Mirrored, never written, and the same technique as
+    # --cut-via-replace-selection: one line added to the page's catch, in a
+    # symlink mirror of dist/, with probe.wasm byte-identical.  It is a
+    # DIAGNOSTIC and stamps the report as one.
+    parser.add_argument("--barrier-details-diagnostic", action="store_true",
+                        help="mirror the page so `run()` keeps each rejection's "
+                             "typed payload (code, recovery, details) on "
+                             "window.__pp.errors, and record them in the "
+                             "report; stamps the report diagnostic")
+    parser.add_argument("--liveness-control", action="store_true",
+                        help="do not hold the dead-session guard off inside the "
+                             "arms that induce recoverable-error on purpose, so "
+                             "the guard is exercised against a real dead "
+                             "session; the run is EXPECTED to stop there")
     args = parser.parse_args()
     global EXCLUDE_CARET
     EXCLUDE_CARET = not args.no_caret_exclusion
@@ -3163,9 +3509,92 @@ def main() -> int:
             "pinAfter": wasm[:16],
         }
 
+    # LAST OF THE MIRRORS, and it must stay last: --profile rewrites the same
+    # file, and a mirror built from `root` before that one would be overwritten
+    # by it without a word.
+    if args.barrier_details_diagnostic:
+        page_rel = "e2-editor-app.js"
+        page_text = (root / page_rel).read_text(encoding="utf-8")
+        catch = BARRIER_DETAILS_ANCHOR
+        if page_text.count(catch) != 1:
+            raise SystemExit(
+                "run()'s catch is not where this diagnostic expects it in "
+                + page_rel + "; the tree moved under the diagnostic. Fix the "
+                "pattern rather than patching blindly.")
+        page_text = page_text.replace(
+            catch,
+            catch
+            + '    // --barrier-details-diagnostic (harness mirror, not shipped)\n'
+              '    if (window.__pp) {\n'
+              '      if (!window.__pp.errors) window.__pp.errors = [];\n'
+              '      window.__pp.errors.push({\n'
+              '        label,\n'
+              '        code: error && error.code ? error.code : null,\n'
+              '        recovery: error && error.recovery ? error.recovery : null,\n'
+              '        message: error && error.message ? error.message : null,\n'
+              '        details: error && error.details ? error.details : null,\n'
+              '      });\n'
+              '    }\n', 1)
+        mirror = scratch / "barrier-details-root"
+        build_mirror(root, mirror, {page_rel: page_text.encode("utf-8")})
+        root = mirror
+        report["barrierDetailsDiagnostic"] = {
+            "evidenceClass": "diagnostic",
+            "note": "This run did NOT use the shipped page. One line was added "
+                    "to run()'s catch so the TYPED payload of every rejection "
+                    "is kept instead of only the message the user is shown. "
+                    "Nothing else differs and probe.wasm is byte-identical -- "
+                    "but a report carrying pageErrors is a diagnostic run and "
+                    "must be cited as one.",
+            "what": "window.__pp.errors: {label, code, recovery, message, "
+                    "details} per rejection, in order",
+        }
+
     # Written AFTER the mirror is built, so it describes what was served rather
     # than what was intended.
     report["servedShell"] = served_shell_identity(root)
+
+    # queue-a11y-path-drives-a-dead-session (finding 081).  Armed by default.
+    # The two arms that induce the dead state ON PURPOSE hold the guard off for
+    # exactly as long as they are inside it, and are made to prove they got the
+    # session back out again.
+    #
+    # A callable rather than the session itself: `session` is bound below and
+    # rebound on nothing, and the guard is a module-level class so that its
+    # four behaviours can be driven by a test that starts no browser.
+    liveness = Liveness(lambda: evaluate(session, READ_STATE),
+                        control=args.liveness_control)
+
+    def note_liveness() -> None:
+        """What the guard actually did, in every report it did it in.
+
+        "The guard never fired" and "the guard never ran" produce the same
+        silence otherwise, and this tree has paid for that shape often enough
+        to write the counter down: `probes` is how many times the session was
+        asked, `lastState` what it last said, `probeError` why it could not be
+        asked.
+        """
+        report["liveness"] = {"probes": liveness.probes,
+                              "lastState": liveness.last_state,
+                              "probeError": liveness.probe_error,
+                              "control": args.liveness_control}
+
+    def snapshot() -> None:
+        """The report on disk before the run has ended.
+
+        Finding 081 again: this file was written only by `finish()`, so four
+        stalled accessibility runs on 2026-08-23 left a zero-byte log and no
+        report at all -- twenty to fifty minutes each, yielding nothing that
+        could be read afterwards.  `complete` says which kind of file this is;
+        a reader that cannot find the field is holding a report written before
+        this existed.
+        """
+        if not args.out:
+            return
+        report["complete"] = False
+        Path(args.out).write_text(
+            json.dumps(report, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8")
 
     def check(cid, ok, outcome=None, **fields):
         """One check, with three outcomes rather than two.
@@ -3178,6 +3607,12 @@ def main() -> int:
         entry = {"id": cid, "ok": bool(ok),
                  "outcome": outcome or ("PASS" if ok else "FAIL"), **fields}
         report["checks"].append(entry)
+        # Inside a held-off region this is what the region will name if it
+        # leaves the session dead -- see `_ExpectedDeadState.__exit__`.  Set
+        # here rather than in `probe()` so it is true under the control flag
+        # too, where the region holds nothing off.
+        if liveness.expected is not None or liveness.control:
+            liveness.recorded_inside = cid
         # AND WHAT IT NAMED, ONCE SOMEBODY ATTACHED TO ONE (finding 081):
         # not a hang. The stalled page reads state=recoverable-error,
         # checkpoint=none, latency="save failed" and PENDING=0 -- nothing is
@@ -3200,6 +3635,13 @@ def main() -> int:
         # caller redirecting it to a file must still get a JSON document.
         print(f"[step] {time.monotonic() - RUN_STARTED:7.1f}s "
               f"{entry['outcome']:16s} {cid}", file=sys.stderr, flush=True)
+        # PROBE FIRST, THEN WRITE.  The other order left every mid-run snapshot
+        # on disk reporting one fewer probe than had been taken, which reads as
+        # a guard that skipped a check.  When the probe raises, the handler's
+        # own `check()` call writes the snapshot with this entry already in it.
+        liveness.probe(cid, "after this check was recorded")
+        note_liveness()
+        snapshot()
 
     port = free_port()
     server = subprocess.Popen(
@@ -3553,170 +3995,201 @@ def main() -> int:
         # RECOVERY_ERRORS, so the queue blocks, the state becomes
         # `recoverable-error`, and the product puts the notice up.  100%
         # reproducible on this artifact, both browsers, four controlled arms.
-        evaluate(session, CLEAR_TOAST)
-        evaluate(session, INDUCE_047.replace("ARG_X", "0.30").replace("ARG_Y", "0.34"))
-        blocked = wait_for(
-            session, lambda s: s.get("state") in ("recoverable-error",
-                                                  "restart-required"), 60)
-        attempts = [{"recipe": "finding 047: save, click, format",
-                     "state": (blocked or {}).get("state"),
-                     "latency": (blocked or {}).get("latency")}]
-
-        # Finding 053's own route, tried when 047's does not block.  It rests on
-        # a defect that is current and reproducible (046) rather than on one
-        # whose sequence stopped reproducing, and it is also 053's end-to-end
-        # reproduction: the error whose prescription the product could not carry
-        # out, produced by the product's own buttons.
-        if (blocked or {}).get("state") not in ("recoverable-error",
-                                                "restart-required"):
+        # HELD OFF HERE, AND ONLY HERE (queue-a11y-path-drives-a-dead-session).
+        # This arm drives the session into `recoverable-error` on purpose and
+        # then presses the product's recovery notice, so the guard must not
+        # read that state as the run being over.  The region reads the state
+        # once more on the way out: an arm that induces the state and does not
+        # get back out of it stops the run naming ITSELF.
+        with liveness.expecting(
+                "notice-action-recovers-the-session",
+                "finding 047's recipe induces recoverable-error deliberately, "
+                "and this arm presses the product's recovery notice"):
             evaluate(session, CLEAR_TOAST)
-            evaluate(session, INDUCE_EMPTY_PARAGRAPH
-                     .replace("ARG_X", "0.92").replace("ARG_Y", "0.28"))
-            wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
-            evaluate(session, BREAK_THEN_LIST)
-            wait_for(session, lambda s: "斷行" in (s.get("latency") or "")
-                     or "段落" in (s.get("latency") or ""), 30)
-            evaluate(session, CLEAR_TOAST)
-            evaluate(session, PRESS.replace("ARG_ACTION", "set-list-unordered"))
+            evaluate(session, INDUCE_047.replace("ARG_X", "0.30").replace("ARG_Y", "0.34"))
             blocked = wait_for(
                 session, lambda s: s.get("state") in ("recoverable-error",
                                                       "restart-required"), 60)
-            empty_cell_state = evaluate(session, READ_STATE) or {}
-            empty_cell_toast = evaluate(session, READ_TOAST) or ""
-            attempts.append({
-                "recipe": "finding 053: click past the line end, break the "
-                          "paragraph, list the empty one (finding 046's cell)",
-                "state": (blocked or {}).get("state"),
-                "latency": (blocked or {}).get("latency"),
-                "toast": empty_cell_toast})
+            attempts = [{"recipe": "finding 047: save, click, format",
+                         "state": (blocked or {}).get("state"),
+                         "latency": (blocked or {}).get("latency")}]
+            # The same control probe, in the other inducing arm.  On the shipped
+            # profile 047's recipe has not blocked the queue since 2026-08-17,
+            # so this one is expected to find a LIVE session and continue -- it
+            # is here so that the control does not depend on which of the two
+            # inducers still works.
+            liveness.under_control(
+                "notice-action-recovers-the-session",
+                "inside the arm that induces it, after finding 047's recipe")
 
-            # Finding 046's residual.  Bulleting a blank line is an ordinary
-            # edit; until 2026-08-17 it put the session into recoverable-error
-            # and told the user to discard everything since the checkpoint.
-            # The barrier still declines to verify this shape -- that part is
-            # correct and unchanged -- but the DISPOSITION is now "review": the
-            # queue stays open, so undo is reachable, which is the only thing
-            # that makes the advice honest.
-            check("bulleting-a-blank-line-does-not-demand-a-rollback",
-                  empty_cell_state.get("state") == "ready"
-                  and "無法單獨核對" in empty_cell_toast
-                  and "請回到檢查點" not in empty_cell_toast,
-                  observed={"state": empty_cell_state.get("state"),
-                            "toast": empty_cell_toast,
-                            "queueStillOpen":
-                                empty_cell_state.get("state") == "ready"},
-                  oracle="the product's own buttons, on the cell finding 046 was "
-                         "measured on: the session stays ready (so undo is "
-                         "reachable) and the message says dispatched-but-"
-                         "unverified rather than prescribing a rollback",
-                  notEstablished="that the bullet APPLIED. The barrier could not "
-                                 "verify it and neither can this check -- saying "
-                                 "otherwise is the claim finding 046 was filed "
-                                 "for. What is checked is the disposition")
+            # Finding 053's own route, tried when 047's does not block.  It rests on
+            # a defect that is current and reproducible (046) rather than on one
+            # whose sequence stopped reproducing, and it is also 053's end-to-end
+            # reproduction: the error whose prescription the product could not carry
+            # out, produced by the product's own buttons.
+            if (blocked or {}).get("state") not in ("recoverable-error",
+                                                    "restart-required"):
+                evaluate(session, CLEAR_TOAST)
+                evaluate(session, INDUCE_EMPTY_PARAGRAPH
+                         .replace("ARG_X", "0.92").replace("ARG_Y", "0.28"))
+                wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+                evaluate(session, BREAK_THEN_LIST)
+                wait_for(session, lambda s: "斷行" in (s.get("latency") or "")
+                         or "段落" in (s.get("latency") or ""), 30)
+                evaluate(session, CLEAR_TOAST)
+                evaluate(session, PRESS.replace("ARG_ACTION", "set-list-unordered"))
+                blocked = wait_for(
+                    session, lambda s: s.get("state") in ("recoverable-error",
+                                                          "restart-required"), 60)
+                empty_cell_state = evaluate(session, READ_STATE) or {}
+                empty_cell_toast = evaluate(session, READ_TOAST) or ""
+                attempts.append({
+                    "recipe": "finding 053: click past the line end, break the "
+                              "paragraph, list the empty one (finding 046's cell)",
+                    "state": (blocked or {}).get("state"),
+                    "latency": (blocked or {}).get("latency"),
+                    "toast": empty_cell_toast})
 
-            # DECLARED COST, measured both ways on 2026-08-17: this cell was the
-            # only route this runner had into `recoverable-error`, so keeping the
-            # queue open costs `notice-action-recovers-the-session` its inducer
-            # and it now reports NOT_ESTABLISHED. The `review-disposition`
-            # mutation shows the pair moving together -- sentinel off, this check
-            # red and the recovery check PASS again. The recovery path is not
-            # broken and is not covered; a new inducer is owed (a dispatched
-            # failure whose shape is NOT multi-block-readback, e.g. the
-            # footnote-apparatus shape on the endnote fixture).
-        offered = evaluate(session, READ_NOTICE)
-        report["steps"].append({"step": "induce-dispatched-failure",
-                                "state": blocked, "notice": offered,
-                                "attempts": attempts})
+                # Finding 046's residual.  Bulleting a blank line is an ordinary
+                # edit; until 2026-08-17 it put the session into recoverable-error
+                # and told the user to discard everything since the checkpoint.
+                # The barrier still declines to verify this shape -- that part is
+                # correct and unchanged -- but the DISPOSITION is now "review": the
+                # queue stays open, so undo is reachable, which is the only thing
+                # that makes the advice honest.
+                check("bulleting-a-blank-line-does-not-demand-a-rollback",
+                      empty_cell_state.get("state") == "ready"
+                      and "無法單獨核對" in empty_cell_toast
+                      and "請回到檢查點" not in empty_cell_toast,
+                      observed={"state": empty_cell_state.get("state"),
+                                "toast": empty_cell_toast,
+                                "queueStillOpen":
+                                    empty_cell_state.get("state") == "ready"},
+                      oracle="the product's own buttons, on the cell finding 046 was "
+                             "measured on: the session stays ready (so undo is "
+                             "reachable) and the message says dispatched-but-"
+                             "unverified rather than prescribing a rollback",
+                      notEstablished="that the bullet APPLIED. The barrier could not "
+                                     "verify it and neither can this check -- saying "
+                                     "otherwise is the claim finding 046 was filed "
+                                     "for. What is checked is the disposition")
 
-        pressed_notice = evaluate(session, CLICK_NOTICE)
-        # rollback() is restart(): a fresh Worker reopened from the newest of
-        # the checkpoint and authority bytes.  The document goes away and comes
-        # back, so this waits for `ready` rather than for a revision.
-        restarted = wait_for(session, lambda s: s.get("state") == "ready", 180)
-        notice_toast = evaluate(session, READ_TOAST) or ""
-        # The session is not merely in a good-looking state: it can still do the
-        # thing the user came for.
-        after_rollback = capture_save(session, 5)
-        reached = (blocked or {}).get("state") in ("recoverable-error",
-                                                   "restart-required")
-        # Adversarial review, 2026-08-16: NOT_ESTABLISHED must not become a
-        # place for regressions to hide.  "The recipe did not block the queue"
-        # is the expected outcome today, but it is ALSO what a removed
-        # `set-list-unordered` handler or a broken toolbar would produce.  So
-        # the recipe has to have visibly done something: either it blocked the
-        # queue, or the format action it dispatched completed.
-        latency = (blocked or {}).get("latency") or ""
-        recipe_ran = "項目符號" in latency
-        # The notice verdict used to `return finish()` on both of its
-        # unreachable branches. That was fine while it was the last check; it is
-        # not fine now that checks follow it, and shell v14 made the
-        # NOT_ESTABLISHED branch the NORMAL path -- so returning there silently
-        # stopped running the paste and open-file checks. Measured, not noticed:
-        # the run came back with seven checks instead of nine.
-        notice_judged = False
-        if not reached and not recipe_ran:
-            check("notice-action-recovers-the-session", False,
-                  observed={"stateAfterRecipe": (blocked or {}).get("state"),
-                            "latency": (blocked or {}).get("latency"),
-                            "notice": offered},
-                  oracle="finding 047's recipe must either block the queue or"
-                         " complete the format action it dispatches; neither"
-                         " happened, so the product path itself is broken --"
-                         " this is NOT the 'precondition unreachable' case")
-            notice_judged = True
-        if not reached and not notice_judged:
-            # Finding 047's sequence did not block the queue here.  That is NOT
-            # a verdict on 047: it was measured on 2026-08-15 through a
-            # different harness and a shell generation before finding 048
-            # changed what placeCaret waits for -- and 047's own diagnosis was
-            # that placeCaret's confirmation did not guarantee the next action.
-            # Whether 048's fix closed 047 is a question for its own round, not
-            # something to conclude from a run that was trying to do something
-            # else.  Filed as `queue-047-may-have-closed-under-048`.
-            check("notice-action-recovers-the-session", False,
-                  outcome="NOT_ESTABLISHED",
-                  observed={"stateAfterRecipe": (blocked or {}).get("state"),
-                            "latency": (blocked or {}).get("latency"),
-                            "notice": offered,
-                            "pressedAnyway": evaluate(session, CLICK_NOTICE),
-                            "toastFromPressingItAnyway":
-                                evaluate(session, READ_TOAST)},
-                  why="the product offers this button only in "
-                      "`recoverable-error` or `restart-required`, which is the "
-                      "same set EditorSession.restart() accepts, and finding "
-                      "047's recipe -- the one documented route into that state "
-                      "from the product's own UI -- did not block the queue in "
-                      "this run.  Pressing the hidden button anyway is recorded "
-                      "above and measures nothing about the recovery path.",
-                  oracle="a dispatched failure blocks the queue, the product "
-                         "OFFERS its recovery button, pressing it returns the "
-                         "session to ready, and the product can save afterwards")
-            notice_judged = True
-        if not notice_judged:
-          check("notice-action-recovers-the-session",
-                reached and bool((offered or {}).get("shown"))
-                and (offered or {}).get("disabled") is False
-                and bool(pressed_notice)
-                and (restarted or {}).get("state") == "ready"
-                and is_an_odt(after_rollback),
-                observed={"stateAfterFailure": (blocked or {}).get("state"),
-                          "noticeOffered": offered,
-                          "buttonFound": pressed_notice,
-                          "stateAfterPress": (restarted or {}).get("state"),
-                          "toast": notice_toast,
-                          "savedBytesAfter": after_rollback.get("bytes"),
-                          "savedIsOdt": is_an_odt(after_rollback)},
-                oracle="a dispatched failure blocks the queue, the product OFFERS "
-                       "its recovery button, pressing it returns the session to "
-                       "ready, and the product can save a real ODT afterwards -- "
-                       "undo in its place would return EDITOR_NOT_READY on the "
-                       "queue the failure just blocked, which is why SPEC E2-B "
-                       "5.13 prescribes rollback and not undo",
-                notEstablished="WHICH bytes came back.  A save moves the authority "
-                               "bytes and there is no way to read the document out "
-                               "of the page except by saving, so an edit made after "
-                               "the failure cannot be shown to have been discarded "
-                               "without destroying the thing being measured")
+                # DECLARED COST, measured both ways on 2026-08-17: this cell was the
+                # only route this runner had into `recoverable-error`, so keeping the
+                # queue open costs `notice-action-recovers-the-session` its inducer
+                # and it now reports NOT_ESTABLISHED. The `review-disposition`
+                # mutation shows the pair moving together -- sentinel off, this check
+                # red and the recovery check PASS again. The recovery path is not
+                # broken and is not covered; a new inducer is owed (a dispatched
+                # failure whose shape is NOT multi-block-readback, e.g. the
+                # footnote-apparatus shape on the endnote fixture).
+            offered = evaluate(session, READ_NOTICE)
+            report["steps"].append({"step": "induce-dispatched-failure",
+                                    "state": blocked, "notice": offered,
+                                    "attempts": attempts})
+
+            pressed_notice = evaluate(session, CLICK_NOTICE)
+            # rollback() is restart(): a fresh Worker reopened from the newest of
+            # the checkpoint and authority bytes.  The document goes away and comes
+            # back, so this waits for `ready` rather than for a revision.
+            restarted = wait_for(session, lambda s: s.get("state") == "ready", 180)
+            notice_toast = evaluate(session, READ_TOAST) or ""
+            # The session is not merely in a good-looking state: it can still do the
+            # thing the user came for.
+            after_rollback = capture_save(session, 5)
+            reached = (blocked or {}).get("state") in ("recoverable-error",
+                                                       "restart-required")
+            # Adversarial review, 2026-08-16: NOT_ESTABLISHED must not become a
+            # place for regressions to hide.  "The recipe did not block the queue"
+            # is the expected outcome today, but it is ALSO what a removed
+            # `set-list-unordered` handler or a broken toolbar would produce.  So
+            # the recipe has to have visibly done something: either it blocked the
+            # queue, or the format action it dispatched completed.
+            latency = (blocked or {}).get("latency") or ""
+            recipe_ran = "項目符號" in latency
+            # The notice verdict used to `return finish()` on both of its
+            # unreachable branches. That was fine while it was the last check; it is
+            # not fine now that checks follow it, and shell v14 made the
+            # NOT_ESTABLISHED branch the NORMAL path -- so returning there silently
+            # stopped running the paste and open-file checks. Measured, not noticed:
+            # the run came back with seven checks instead of nine.
+            notice_judged = False
+            if not reached and not recipe_ran:
+                check("notice-action-recovers-the-session", False,
+                      observed={"stateAfterRecipe": (blocked or {}).get("state"),
+                                "latency": (blocked or {}).get("latency"),
+                                "notice": offered},
+                      oracle="finding 047's recipe must either block the queue or"
+                             " complete the format action it dispatches; neither"
+                             " happened, so the product path itself is broken --"
+                             " this is NOT the 'precondition unreachable' case")
+                notice_judged = True
+            if not reached and not notice_judged:
+                # Finding 047's sequence did not block the queue here.  That is NOT
+                # a verdict on 047: it was measured on 2026-08-15 through a
+                # different harness and a shell generation before finding 048
+                # changed what placeCaret waits for -- and 047's own diagnosis was
+                # that placeCaret's confirmation did not guarantee the next action.
+                # Whether 048's fix closed 047 is a question for its own round, not
+                # something to conclude from a run that was trying to do something
+                # else.  Filed as `queue-047-may-have-closed-under-048`.
+                check("notice-action-recovers-the-session", False,
+                      outcome="NOT_ESTABLISHED",
+                      observed={"stateAfterRecipe": (blocked or {}).get("state"),
+                                "latency": (blocked or {}).get("latency"),
+                                "notice": offered,
+                                "pressedAnyway": evaluate(session, CLICK_NOTICE),
+                                "toastFromPressingItAnyway":
+                                    evaluate(session, READ_TOAST)},
+                      why="THIS CHECK AND `bulleting-a-blank-line-does-not-"
+                          "demand-a-rollback` ARE TWO READS OF ONE MOMENT, and "
+                          "they are anti-correlated by construction: `blocked` "
+                          "and `empty_cell_state` are read from the same cell. "
+                          "If 046's cell does NOT block the queue, the bulleting "
+                          "check passes (the disposition is still 'review', "
+                          "which is what makes the product's advice honest) and "
+                          "there is no notice to press, so this one abstains. "
+                          "If it DOES block, the bulleting check fails and this "
+                          "one is judged. So a standing NOT_ESTABLISHED here is "
+                          "the sentinel reading 'finding 046's disposition is "
+                          "still correct' -- it is not a dead check, and it is "
+                          "measured: on e2-editor-v9 (2026-08-26) the cell "
+                          "blocked, bulleting FAILED and this check PASSED. "
+                          "`finish()` holds the pair to that relation on every "
+                          "run. Mechanically: the product offers this button "
+                          "only in `recoverable-error` or `restart-required`, "
+                          "the same set EditorSession.restart() accepts. "
+                          "Pressing the hidden button anyway is recorded above "
+                          "and measures nothing about the recovery path.",
+                      oracle="a dispatched failure blocks the queue, the product "
+                             "OFFERS its recovery button, pressing it returns the "
+                             "session to ready, and the product can save afterwards")
+                notice_judged = True
+            if not notice_judged:
+              check("notice-action-recovers-the-session",
+                    reached and bool((offered or {}).get("shown"))
+                    and (offered or {}).get("disabled") is False
+                    and bool(pressed_notice)
+                    and (restarted or {}).get("state") == "ready"
+                    and is_an_odt(after_rollback),
+                    observed={"stateAfterFailure": (blocked or {}).get("state"),
+                              "noticeOffered": offered,
+                              "buttonFound": pressed_notice,
+                              "stateAfterPress": (restarted or {}).get("state"),
+                              "toast": notice_toast,
+                              "savedBytesAfter": after_rollback.get("bytes"),
+                              "savedIsOdt": is_an_odt(after_rollback)},
+                    oracle="a dispatched failure blocks the queue, the product OFFERS "
+                           "its recovery button, pressing it returns the session to "
+                           "ready, and the product can save a real ODT afterwards -- "
+                           "undo in its place would return EDITOR_NOT_READY on the "
+                           "queue the failure just blocked, which is why SPEC E2-B "
+                           "5.13 prescribes rollback and not undo",
+                    notEstablished="WHICH bytes came back.  A save moves the authority "
+                                   "bytes and there is no way to read the document out "
+                                   "of the page except by saving, so an edit made after "
+                                   "the failure cannot be shown to have been discarded "
+                                   "without destroying the thing being measured")
 
         # --------------------------- the typing path: Backspace and the arrows
         # Not shortcuts. Until 2026-08-17 the product could be typed into and
@@ -5302,8 +5775,34 @@ return { available: true, afterButton };
                 x2 = f"{(float(x1) + float(x2)) / 2:.5f}"
             y = f"{band['centreFraction']:.5f}"
             place_caret_and_settle(session, POINT_AT, x1, y)
-            time.sleep(0.8)
+            # SYNCHRONISED ON THE PAGE'S OWN ANSWER, NOT ON A CLOCK.
+            #
+            # `queue-abort-margins-are-unexplained` left this owed: "the reads
+            # are still synchronised on wall-clock sleeps rather than on the
+            # `revision` / `callbackSequence` fields the selectRange envelope
+            # already carries".  MEASURED, and neither field can serve this arm:
+            #
+            #   * `revision` is the DOCUMENT's, and a selection is not an edit,
+            #     so it does not advance on a selectRange at all.  Waiting for
+            #     it to move would wait forever.
+            #   * `callbackSequenceBefore/After` never leave the page's own
+            #     closure -- `pumpDrag` reads the envelope and publishes only
+            #     `#toolbar[data-selection-shape]` (web/e2-editor-app.js:865).
+            #     Publishing them is a product change and a shell generation,
+            #     for a field only a harness would read.
+            #
+            # What the page DOES publish is the shape, and it is the thing this
+            # read is about: the arm needs the caret placed and NO range
+            # standing before the drag.  So it polls for that with a deadline
+            # instead of hoping 0.8 s was enough, and records how long it took
+            # -- a settle that starts taking seconds is a measurement, where a
+            # sleep long enough to cover it is a silence.
+            settle_started = time.monotonic()
             before = a_range_is_selected()
+            while before is not False and time.monotonic() - settle_started < 10:
+                time.sleep(0.2)
+                before = a_range_is_selected()
+            before_settled_ms = round((time.monotonic() - settle_started) * 1000)
             evaluate(session, ABORT_DRAG
                      .replace("ARG_X1", x1).replace("ARG_X2", x2)
                      .replace("ARG_Y", y)
@@ -5333,8 +5832,18 @@ return { available: true, afterButton };
             # that are not document text.
             evaluate(session, CLEAR_TOAST)
             evaluate(session, COPY)
-            time.sleep(1.5)
+            # THE SAME CHANGE, and here it is the one that mattered.  The copy
+            # path toasts either `已複製 …` or `複製：<error>` -- the toast IS
+            # the answer, so waiting for it to arrive is exact where 1.5 s was
+            # a guess that had to cover the slowest case on every arm.  An arm
+            # whose toast never arrives keeps the empty string it had, and the
+            # check's own preconditions then refuse to judge it.
+            copy_started = time.monotonic()
             reach = evaluate(session, READ_TOAST) or ""
+            while not reach and time.monotonic() - copy_started < 15:
+                time.sleep(0.2)
+                reach = evaluate(session, READ_TOAST) or ""
+            copy_answered_ms = round((time.monotonic() - copy_started) * 1000)
             text = "".join(chr(int(point, 16)) for point
                            in re.findall(r"U\+([0-9A-Fa-f]{4,6})", reach))
             return {"kind": ("no-abort, stopping at the abort point (reference)"
@@ -5343,6 +5852,12 @@ return { available: true, afterButton };
                     "aborted": kind is not None,
                     "aRangeIsSelectedBefore": before,
                     "aRangeIsSelectedAfterAbortAndMove": after,
+                    # BOTH WAITS, IN THE RECORD.  They replaced two fixed
+                    # sleeps, and a reader comparing runs needs to see whether
+                    # this arm is getting slower -- which is the shape the
+                    # margins in this check kept turning out to have.
+                    "beforeSettledMs": before_settled_ms,
+                    "copyAnsweredMs": copy_answered_ms,
                     "copyToast": reach,
                     "selectedText": text,
                     "selectedCodePoints": len(text),
@@ -6405,6 +6920,18 @@ return { available: true, afterButton };
         first_geometry = evaluate(session, GEOMETRY) or {}
         grew["heightWhenOpened"] = first_geometry.get("height")
         scan, bands = stable_bands(session)
+        # WHICH OF THE TWO PRECONDITIONS FAILED, in the record.
+        #
+        # This arm abstained on 2 of 5 runs on 2026-08-26 with an `observed`
+        # that stopped at `heightWhenOpened` -- and from that a reader cannot
+        # tell whether the session was not `ready` or the band scan came back
+        # empty, which are a product question and an instrument question. Both
+        # are written down now, and the scan's own width beside them, because a
+        # scan that found no ink on a two-page document is a measurement about
+        # the scan.
+        grew["bandsBeforeTheEdit"] = len(bands)
+        grew["scanWidth"] = scan.get("width")
+        grew["stateBeforeTheEdit"] = grew["state"]
         if bands and grew["state"] == "ready":
             band = bands[-1]
             evaluate(session, POINT_AT
@@ -6648,189 +7175,223 @@ return { available: true, afterButton };
                              and f is not None and revision_of(s) > f, 25)
             recovery["revisionWithUnsavedWork"] = revision_of(dirty or {})
             established = dirty is not None
-        if established:
-            # The inducer.  Finding 038: a drag that COVERS the endnote
-            # reference mark of a paragraph whose note body holds an as-char
-            # frame.  The selection itself returns; the drain's next read of
-            # the selection never does, and TIMEOUT is in RECOVERY_ERRORS.
-            scan, bands = stable_bands(session)
-            for _ in range(8):
-                if len(bands) >= len(base_lines):
-                    break
-                time.sleep(1.0)
+        # HELD OFF FOR THE SECOND INDUCER (queue-a11y-path-drives-a-dead-session).
+        # Finding 038 wedges the engine on purpose here, the product offers its
+        # notice, and the arm presses it -- so `recoverable-error` inside this
+        # region is the measurement rather than the end of the run.  Read once
+        # more on the way out, so an arm that leaves the session dead stops the
+        # run naming itself.
+        with liveness.expecting(
+                "recovery-returns-what-the-product-promised",
+                "finding 038's endnote inducer wedges the engine deliberately, "
+                "and this arm presses the product's recovery notice"):
+            if established:
+                # The inducer.  Finding 038: a drag that COVERS the endnote
+                # reference mark of a paragraph whose note body holds an as-char
+                # frame.  The selection itself returns; the drain's next read of
+                # the selection never does, and TIMEOUT is in RECOVERY_ERRORS.
                 scan, bands = stable_bands(session)
-            recovery["bandsAtInducer"] = [[b["top"], b["bottom"]] for b in bands]
-            # THE POSITIVE CONTROL for finding 072's remedy, and it belongs
-            # here because this is the band count the remedy exists to get
-            # right.  Without it, "the exclusion silently stopped working" and
-            # "this page happened to have no caret drawn" produce the same
-            # bands and the same report.  `caretAtInducer` non-null says the
-            # sink's position and the pixels agreed and a bar was taken out;
-            # `caretWhyAtInducer` says which of the two disagreed when not.
-            recovery["caretAtInducer"] = scan.get("caret")
-            recovery["caretWhyAtInducer"] = scan.get("caretWhy")
-            # The SAME derived index as the marker used. The first version of
-            # this left a hard-coded 1 here and dragged across the endnote's
-            # own body instead of the reference mark -- the selection was
-            # healthy, nothing wedged, and the check reported "038 no longer
-            # reproduces". A wrong aim reads exactly like a fixed defect.
-            band = (bands[note_index[0]]
-                    if len(bands) >= len(base_lines) else None)
-            if band is None:
-                established = False
+                for _ in range(8):
+                    if len(bands) >= len(base_lines):
+                        break
+                    time.sleep(1.0)
+                    scan, bands = stable_bands(session)
+                recovery["bandsAtInducer"] = [[b["top"], b["bottom"]] for b in bands]
+                # THE POSITIVE CONTROL for finding 072's remedy, and it belongs
+                # here because this is the band count the remedy exists to get
+                # right.  Without it, "the exclusion silently stopped working" and
+                # "this page happened to have no caret drawn" produce the same
+                # bands and the same report.  `caretAtInducer` non-null says the
+                # sink's position and the pixels agreed and a bar was taken out;
+                # `caretWhyAtInducer` says which of the two disagreed when not.
+                recovery["caretAtInducer"] = scan.get("caret")
+                recovery["caretWhyAtInducer"] = scan.get("caretWhy")
+                # The SAME derived index as the marker used. The first version of
+                # this left a hard-coded 1 here and dragged across the endnote's
+                # own body instead of the reference mark -- the selection was
+                # healthy, nothing wedged, and the check reported "038 no longer
+                # reproduces". A wrong aim reads exactly like a fixed defect.
+                band = (bands[note_index[0]]
+                        if len(bands) >= len(base_lines) else None)
+                if band is None:
+                    established = False
+                else:
+                    left = max(0.0, (band["first"] - 6) / scan["width"])
+                    right = min(1.0, (band["last"] + 10) / scan["width"])
+                    recovery["inducer"] = {
+                        "name": "INDUCE_FOOTNOTE_APPARATUS",
+                        "finding": "038",
+                        "recipe": "drag across the endnote reference mark, then one "
+                                  "more operation -- the selection returns healthy "
+                                  "and the NEXT read is what wedges the engine",
+                        "drag": [round(left, 5), round(right, 5),
+                                 round(band["centreFraction"], 5)]}
+                    evaluate(session, DRAG
+                             .replace("ARG_X1", f"{left:.5f}")
+                             .replace("ARG_Y1", f"{band['centreFraction']:.5f}")
+                             .replace("ARG_X2", f"{right:.5f}")
+                             .replace("ARG_Y2", f"{band['centreFraction']:.5f}"))
+                    # The checkpoint is written INSIDE the selection's queue item,
+                    # before the engine is asked to select anything, so it is
+                    # already there while the session is still healthy.  Waiting
+                    # for it is how the recipe proves the gesture ran at all.
+                    after_drag = wait_for(
+                        session, lambda s: (s.get("checkpoint") or "").startswith("有"),
+                        60)
+                    recovery["stateAfterDrag"] = (after_drag or {}).get("state")
+                    recovery["checkpointAfterDrag"] = (after_drag or {}).get("checkpoint")
+                    # ONE MORE OPERATION, and it is not optional.  Finding 038's
+                    # own correction (2026-08-13): the selection returns and the
+                    # engine is still alive -- what kills it is the first READ of
+                    # that selection.  `_drain` short-circuits its getState when
+                    # the operation's result already carries `state`, so the
+                    # selection's own drain never performs that read and the
+                    # session sits `ready` indefinitely.  Measured 2026-08-19: 77
+                    # seconds of health after the drag, then a single click ->
+                    # `busy` -> `recoverable-error` about 30 s later, which is the
+                    # drain's own getState deadline.
+                    #
+                    # A CLICK, not a drag: placeCaret takes no checkpoint, so the
+                    # declaration under test is the one the drag already made.
+                    evaluate(session, POINT_AT.replace("ARG_X", "0.30")
+                             .replace("ARG_Y", f"{band['centreFraction']:.5f}"))
+                    wedged = wait_for(session,
+                                      lambda s: s.get("state") in ("recoverable-error",
+                                                                   "restart-required"),
+                                      150)
+                    recovery["stateAfterNextOperation"] = (wedged or {}).get("state")
+                    # THE CONTROL'S PROBE.  A no-op without --liveness-control.
+                    # This is the one place in the run where the session is
+                    # KNOWN to be dead and has not yet been rescued, so it is
+                    # where the guard can be shown to fire on a real one.
+                    liveness.under_control(
+                        "recovery-returns-what-the-product-promised",
+                        "inside the arm that induces it, after the inducer "
+                        "wedged the engine and before the notice is pressed")
+                    established = (wedged or {}).get("state") in ("recoverable-error",
+                                                                  "restart-required")
+            if established:
+                # The declaration, read at the moment the product offers the
+                # button -- before it is pressed, which is the whole point.
+                declared = (wedged or {}).get("checkpoint") or ""
+                offered = evaluate(session, READ_NOTICE) or {}
+                recovery["declaredCheckpoint"] = declared
+                recovery["notice"] = offered
+                recovery["pressed"] = evaluate(session, CLICK_NOTICE)
+                back = wait_for(session, lambda s: s.get("state") == "ready", 240)
+                recovery["stateAfterPressing"] = (back or {}).get("state")
+                rescued = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+                text = rescued.get("content") or ""
+                saved_back = RESCUE_SAVED in text
+                unsaved_back = RESCUE_UNSAVED in text
+                recovery["savedWorkCameBack"] = saved_back
+                recovery["unsavedWorkCameBack"] = unsaved_back
+                recovery["stillAnOdt"] = is_an_odt(rescued)
+                branch = ("checkpoint" if declared.startswith("有")
+                          else "write-failed" if "寫入失敗" in declared
+                          else "none")
+                recovery["branch"] = branch
+                # 無 is a legitimate answer for a session that has nothing to
+                # rescue -- but not for THIS inducer, which is a selection gesture
+                # on a dirty document, the exact case the checkpoint exists for.
+                capability_held = branch != "none"
+                recovery["capabilityClause"] = {
+                    "requires": "a selection gesture on a dirty document must not "
+                                "leave the product declaring 無",
+                    "held": capability_held}
+                # The product declares its decision in two places -- the status
+                # pill and the notice -- and they must not disagree.  This is what
+                # finding 061 was: the pill said 寫入失敗 and the notice told the
+                # user there had never been a checkpoint.
+                expected_rescue = {"checkpoint": "checkpoint",
+                                   "none": "none",
+                                   "write-failed": "failed"}[branch]
+                recovery["declaredByNotice"] = offered.get("rescue")
+                recovery["surfacesAgree"] = offered.get("rescue") == expected_rescue
+                if branch == "checkpoint":
+                    honoured = saved_back and unsaved_back
+                elif branch == "none":
+                    honoured = saved_back and not unsaved_back
+                else:
+                    # "We tried to protect your work and the save FAILED" is not
+                    # the same thing to say as "there was nothing to protect", and
+                    # the product's notice has only the second sentence -- its
+                    # branch is on `hasCheckpoint` alone.  The shell already decides
+                    # the difference (recovery-notice.js, `checkpointFailed`); the
+                    # product does not render it.
+                    #
+                    # Note what the defect is NOT, because getting this wrong loses
+                    # the argument to the first hostile reader: the sentence is not
+                    # false.  In this state `hasCheckpoint` really is false and the
+                    # bytes really are the same as case (b).  It is literally true
+                    # and causally misleading -- it attributes the loss to there
+                    # having been no protection, when protection was attempted and
+                    # its save failed.
+                    #
+                    # Three requirements, and the second and third were missing
+                    # until an adjudication on 2026-08-19 pointed at them:
+                    #   * the saved work comes back and the unsaved work does not,
+                    #     which is what 寫入失敗 implies and what nothing checked;
+                    #   * the notice is NEITHER of the product's two sentences --
+                    #     asking only that it differ from the no-checkpoint one
+                    #     would pass the strictly worse regression of printing the
+                    #     HAS-checkpoint sentence, which claims a rescue that does
+                    #     not exist;
+                    #   * both sentences come from the served source, so a rewording
+                    #     moves the reference instead of silently disarming this.
+                    honoured = saved_back and not unsaved_back
+                recovery["declarationHonoured"] = honoured
+                # THAT THE BUTTON WAS OFFERED AT ALL, added 2026-08-26 after an
+                # adversarial review pointed out this check did not ask.
+                #
+                # `recovery["pressed"]` cannot stand in for it: CLICK_NOTICE
+                # returns true whenever `#notice-action` is in the DOM, which it
+                # always is -- hidden or not, disabled or not.  So this arm could
+                # have gone green with a notice the user never sees, and
+                # `disabled is False` is finding 054's own regression net (a
+                # recovery button disabled on a snapshot field nothing writes).
+                # Free: `offered` is already read above, before the press.
+                recovery["noticeWasOffered"] = bool((offered or {}).get("shown"))
+                recovery["noticeWasEnabled"] = (offered or {}).get("disabled") is False
+                check("recovery-returns-what-the-product-promised",
+                      bool(honoured and capability_held
+                           and recovery["surfacesAgree"]
+                           and recovery["noticeWasOffered"]
+                           and recovery["noticeWasEnabled"]
+                           and (back or {}).get("state") == "ready"
+                           and is_an_odt(rescued)),
+                      observed=recovery,
+                      oracle="the product OFFERS its recovery button (shown, and "
+                             "not disabled -- finding 054 was a button disabled "
+                             "on a field nobody writes) and declares where it "
+                             "will take the user BEFORE it is pressed -- #s-checkpoint "
+                             "reads 有（rN）, 寫入失敗 or 無 -- and pressing it "
+                             "delivers exactly that: with a checkpoint, both the "
+                             "saved and the unsaved marker come back; without one, "
+                             "the saved marker comes back and the unsaved one does "
+                             "not. Plus a capability clause the branches cannot "
+                             "supply: this inducer IS a selection gesture on a "
+                             "dirty document, so the declaration may not be 無",
+                      notEstablished="whether a checkpoint WRITE FAILURE is "
+                                     "surfaced. The shell decides it "
+                                     "(recovery-notice.js: checkpointFailed) and "
+                                     "the product's notice has a two-way branch on "
+                                     "hasCheckpoint only, so that case reaches the "
+                                     "user as 'there was nothing to rescue'. This "
+                                     "run did not produce it")
             else:
-                left = max(0.0, (band["first"] - 6) / scan["width"])
-                right = min(1.0, (band["last"] + 10) / scan["width"])
-                recovery["inducer"] = {
-                    "name": "INDUCE_FOOTNOTE_APPARATUS",
-                    "finding": "038",
-                    "recipe": "drag across the endnote reference mark, then one "
-                              "more operation -- the selection returns healthy "
-                              "and the NEXT read is what wedges the engine",
-                    "drag": [round(left, 5), round(right, 5),
-                             round(band["centreFraction"], 5)]}
-                evaluate(session, DRAG
-                         .replace("ARG_X1", f"{left:.5f}")
-                         .replace("ARG_Y1", f"{band['centreFraction']:.5f}")
-                         .replace("ARG_X2", f"{right:.5f}")
-                         .replace("ARG_Y2", f"{band['centreFraction']:.5f}"))
-                # The checkpoint is written INSIDE the selection's queue item,
-                # before the engine is asked to select anything, so it is
-                # already there while the session is still healthy.  Waiting
-                # for it is how the recipe proves the gesture ran at all.
-                after_drag = wait_for(
-                    session, lambda s: (s.get("checkpoint") or "").startswith("有"),
-                    60)
-                recovery["stateAfterDrag"] = (after_drag or {}).get("state")
-                recovery["checkpointAfterDrag"] = (after_drag or {}).get("checkpoint")
-                # ONE MORE OPERATION, and it is not optional.  Finding 038's
-                # own correction (2026-08-13): the selection returns and the
-                # engine is still alive -- what kills it is the first READ of
-                # that selection.  `_drain` short-circuits its getState when
-                # the operation's result already carries `state`, so the
-                # selection's own drain never performs that read and the
-                # session sits `ready` indefinitely.  Measured 2026-08-19: 77
-                # seconds of health after the drag, then a single click ->
-                # `busy` -> `recoverable-error` about 30 s later, which is the
-                # drain's own getState deadline.
-                #
-                # A CLICK, not a drag: placeCaret takes no checkpoint, so the
-                # declaration under test is the one the drag already made.
-                evaluate(session, POINT_AT.replace("ARG_X", "0.30")
-                         .replace("ARG_Y", f"{band['centreFraction']:.5f}"))
-                wedged = wait_for(session,
-                                  lambda s: s.get("state") in ("recoverable-error",
-                                                               "restart-required"),
-                                  150)
-                recovery["stateAfterNextOperation"] = (wedged or {}).get("state")
-                established = (wedged or {}).get("state") in ("recoverable-error",
-                                                              "restart-required")
-        if established:
-            # The declaration, read at the moment the product offers the
-            # button -- before it is pressed, which is the whole point.
-            declared = (wedged or {}).get("checkpoint") or ""
-            offered = evaluate(session, READ_NOTICE) or {}
-            recovery["declaredCheckpoint"] = declared
-            recovery["notice"] = offered
-            recovery["pressed"] = evaluate(session, CLICK_NOTICE)
-            back = wait_for(session, lambda s: s.get("state") == "ready", 240)
-            recovery["stateAfterPressing"] = (back or {}).get("state")
-            rescued = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
-            text = rescued.get("content") or ""
-            saved_back = RESCUE_SAVED in text
-            unsaved_back = RESCUE_UNSAVED in text
-            recovery["savedWorkCameBack"] = saved_back
-            recovery["unsavedWorkCameBack"] = unsaved_back
-            recovery["stillAnOdt"] = is_an_odt(rescued)
-            branch = ("checkpoint" if declared.startswith("有")
-                      else "write-failed" if "寫入失敗" in declared
-                      else "none")
-            recovery["branch"] = branch
-            # 無 is a legitimate answer for a session that has nothing to
-            # rescue -- but not for THIS inducer, which is a selection gesture
-            # on a dirty document, the exact case the checkpoint exists for.
-            capability_held = branch != "none"
-            recovery["capabilityClause"] = {
-                "requires": "a selection gesture on a dirty document must not "
-                            "leave the product declaring 無",
-                "held": capability_held}
-            # The product declares its decision in two places -- the status
-            # pill and the notice -- and they must not disagree.  This is what
-            # finding 061 was: the pill said 寫入失敗 and the notice told the
-            # user there had never been a checkpoint.
-            expected_rescue = {"checkpoint": "checkpoint",
-                               "none": "none",
-                               "write-failed": "failed"}[branch]
-            recovery["declaredByNotice"] = offered.get("rescue")
-            recovery["surfacesAgree"] = offered.get("rescue") == expected_rescue
-            if branch == "checkpoint":
-                honoured = saved_back and unsaved_back
-            elif branch == "none":
-                honoured = saved_back and not unsaved_back
-            else:
-                # "We tried to protect your work and the save FAILED" is not
-                # the same thing to say as "there was nothing to protect", and
-                # the product's notice has only the second sentence -- its
-                # branch is on `hasCheckpoint` alone.  The shell already decides
-                # the difference (recovery-notice.js, `checkpointFailed`); the
-                # product does not render it.
-                #
-                # Note what the defect is NOT, because getting this wrong loses
-                # the argument to the first hostile reader: the sentence is not
-                # false.  In this state `hasCheckpoint` really is false and the
-                # bytes really are the same as case (b).  It is literally true
-                # and causally misleading -- it attributes the loss to there
-                # having been no protection, when protection was attempted and
-                # its save failed.
-                #
-                # Three requirements, and the second and third were missing
-                # until an adjudication on 2026-08-19 pointed at them:
-                #   * the saved work comes back and the unsaved work does not,
-                #     which is what 寫入失敗 implies and what nothing checked;
-                #   * the notice is NEITHER of the product's two sentences --
-                #     asking only that it differ from the no-checkpoint one
-                #     would pass the strictly worse regression of printing the
-                #     HAS-checkpoint sentence, which claims a rescue that does
-                #     not exist;
-                #   * both sentences come from the served source, so a rewording
-                #     moves the reference instead of silently disarming this.
-                honoured = saved_back and not unsaved_back
-            recovery["declarationHonoured"] = honoured
-            check("recovery-returns-what-the-product-promised",
-                  bool(honoured and capability_held
-                       and recovery["surfacesAgree"]
-                       and (back or {}).get("state") == "ready"
-                       and is_an_odt(rescued)),
-                  observed=recovery,
-                  oracle="the product declares where its recovery button will "
-                         "take the user BEFORE it is pressed -- #s-checkpoint "
-                         "reads 有（rN）, 寫入失敗 or 無 -- and pressing it "
-                         "delivers exactly that: with a checkpoint, both the "
-                         "saved and the unsaved marker come back; without one, "
-                         "the saved marker comes back and the unsaved one does "
-                         "not. Plus a capability clause the branches cannot "
-                         "supply: this inducer IS a selection gesture on a "
-                         "dirty document, so the declaration may not be 無",
-                  notEstablished="whether a checkpoint WRITE FAILURE is "
-                                 "surfaced. The shell decides it "
-                                 "(recovery-notice.js: checkpointFailed) and "
-                                 "the product's notice has a two-way branch on "
-                                 "hasCheckpoint only, so that case reaches the "
-                                 "user as 'there was nothing to rescue'. This "
-                                 "run did not produce it")
-        else:
-            check("recovery-returns-what-the-product-promised", False,
-                  outcome="NOT_ESTABLISHED",
-                  observed=recovery,
-                  why="the inducer did not put the session into a state where "
-                      "the product OFFERS its recovery button. The recipe is "
-                      "finding 038 -- a drag covering the endnote reference "
-                      "mark of a paragraph whose note body holds an as-char "
-                      "frame -- and this is the loud exit for 038 no longer "
-                      "reproducing, NOT a silent pass. The recovery path is "
-                      "then uncovered again and needs a new inducer",
-                  oracle="see the established branch: the product's own "
-                         "declaration, honoured")
+                check("recovery-returns-what-the-product-promised", False,
+                      outcome="NOT_ESTABLISHED",
+                      observed=recovery,
+                      why="the inducer did not put the session into a state where "
+                          "the product OFFERS its recovery button. The recipe is "
+                          "finding 038 -- a drag covering the endnote reference "
+                          "mark of a paragraph whose note body holds an as-char "
+                          "frame -- and this is the loud exit for 038 no longer "
+                          "reproducing, NOT a silent pass. The recovery path is "
+                          "then uncovered again and needs a new inducer",
+                      oracle="see the established branch: the product's own "
+                             "declaration, honoured")
 
         # ------------------------------------------ P-CUT-4, the cross shape
         #
@@ -6867,6 +7428,14 @@ return { available: true, afterButton };
         # answer the question I thought to ask, and these arms exist precisely
         # because I do not know what the question is yet.
         if args.range_delete_diagnostic:
+            # THE ONE BLOCK WITH NO CHECKS IN IT, so nothing here would ever
+            # have probed (adversarial review, 2026-08-26).  Four arms, each
+            # with a 90 s open and two 90 s saves, in the block whose own
+            # comment records that this shape "ended in recoverable-error" on
+            # 2026-08-21 -- about twenty unguarded minutes in the arm most
+            # likely to produce the state.  Probed per shape below: the shapes
+            # already recorded stay in the report, and the rest are not driven
+            # at a session that is refusing them.
             shapes = [
                 {"name": "two-paragraphs-heading-into-body", "from": 0, "to": 1},
                 {"name": "three-paragraphs-into-a-bullet-list",
@@ -6885,6 +7454,10 @@ return { available: true, afterButton };
                 arm: dict = {"shape": shape["name"], "from": shape["from"],
                              "to": shape["to"], "why": None}
                 arms.append(arm)
+                # The only probe in this block; see the note above `shapes`.
+                liveness.probe(f"range-delete diagnostic, shape {index}: "
+                               f"{shape['name']}",
+                               "before this diagnostic arm was driven")
                 evaluate(session, CLEAR_TOAST)
                 evaluate(session, CLEAR_TOASTS)
                 # Re-opened through the product's own file input before EVERY
@@ -7005,6 +7578,50 @@ return { available: true, afterButton };
                                   "ODT, so what the cut did to the document is "
                                   "NOT measured here -- read `toasts` and "
                                   "`stateAfterCut`")
+        note_liveness()
+        report["pageErrors"] = evaluate(session, READ_PAGE_ERRORS)
+        return finish(report, args)
+    except SessionDied as died:
+        # queue-a11y-path-drives-a-dead-session.  NOT a failure of the arm that
+        # noticed, and not a failure of the product path either: everything
+        # after this point would be putting questions to a session that answers
+        # EDITOR_NOT_READY to all of them, which is not a red measurement, it is
+        # no measurement.  So the run stops, says where it stopped, and says
+        # what it never got to ask.
+        note_liveness()
+        # THE WHOLE RUN'S REJECTIONS, read here because a stopped run does not
+        # reach the other place this is read -- and a run that stopped is
+        # exactly the one whose rejections somebody will want.
+        try:
+            report["pageErrors"] = evaluate(session, READ_PAGE_ERRORS)
+        except Exception as error:      # noqa: BLE001 -- reported, not raised
+            report["pageErrors"] = f"unreadable: {type(error).__name__}: {error}"
+        died_at = dict(liveness.died or {})
+        report["sessionDied"] = died_at
+        report["failedAt"] = f"the session was dead after {died.arm}"
+        try:
+            declared = declared_check_ids(
+                Path(__file__).read_text(encoding="utf-8"))
+        except OSError:
+            declared = []
+        recorded = {entry["id"] for entry in report["checks"]}
+        # ORDER MATTERS AND IT IS SOURCE ORDER: the arms run top to bottom, so
+        # this list is "everything from here on", not an unordered set of names.
+        died_at["neverReached"] = [cid for cid in declared if cid not in recorded]
+        died_at["recorded"] = len(recorded)
+        died_at["declared"] = len(declared) or None
+        check(STOPPED_CHECK, False,
+              outcome="NOT_ESTABLISHED",
+              observed=died_at,
+              why="finding 081: a dead session refuses every action, so each "
+                  "remaining arm would burn its own timeout against it -- "
+                  "twenty to fifty minutes for a report nobody can read. "
+                  "`pending` is the field that separates this from a hang: 0 "
+                  "means nothing is waiting on the engine and waiting longer "
+                  "cannot help",
+              oracle="a run either drives a live session to the end or stops "
+                     "and names the arm after which the session was dead. What "
+                     "it may NOT do is keep driving")
         return finish(report, args)
     finally:
         if session is not None:
@@ -7099,11 +7716,82 @@ def finish(report: dict, args) -> int:
              + (f"; {len(unestablished)} not established" if unestablished else "")
              + (f"; {len(still_red)} known red" if still_red else ""))
             if report["ok"] else "a product path is broken")
+    # THE RECOVERY PAIR, HELD TO ITS RELATION ON EVERY RUN.
+    #
+    # `bulleting-a-blank-line-does-not-demand-a-rollback` and
+    # `notice-action-recovers-the-session` are two reads of ONE moment: finding
+    # 046's empty cell either blocks the queue or it does not.
+    #
+    #   it does not block -> bulleting PASSES (the disposition is still
+    #                        `review`, which is what makes the product's advice
+    #                        honest) and there is no notice to press, so the
+    #                        recovery check abstains
+    #   it blocks         -> bulleting FAILS and the recovery check is JUDGED
+    #
+    # Written down because losing an inducer silently is the exact history here:
+    # `queue-recovery-path-lost-its-inducer` was opened after a fix removed the
+    # state its own regression check needed, and it took a whole mutation round
+    # to notice.  Two implications, both falsifiable, neither violated by the
+    # legitimate red branch (bulleting green and the recovery check FAIL is
+    # "047's recipe dispatched nothing", a product failure, not a pairing one):
+    #
+    #   bulleting PASS -> the recovery check must NOT be PASS
+    #   bulleting FAIL -> the recovery check must NOT be NOT_ESTABLISHED
+    #
+    # Held on all three profiles measured 2026-08-26 (v8 twice: PASS/NE; v9:
+    # FAIL/PASS).  Raised by adversarial review, which is also where the reading
+    # came from -- the pair had been read as one dead check and one live one.
+    outcomes = {c["id"]: c.get("outcome") for c in checks}
+    bulleting = outcomes.get("bulleting-a-blank-line-does-not-demand-a-rollback")
+    notice = outcomes.get("notice-action-recovers-the-session")
+    if bulleting is not None and notice is not None:
+        held = recovery_pairing_holds(bulleting, notice)
+        report["recoveryPairing"] = {
+            "bulleting": bulleting, "noticeAction": notice, "held": held,
+            "requires": "the two are reads of one moment: 046's cell either "
+                        "blocks the queue (bulleting FAIL, recovery judged) or "
+                        "it does not (bulleting PASS, recovery abstains)"}
+        if not held:
+            report["ok"] = False
+            report["verdict"] = (
+                "the recovery pair disagrees: "
+                f"bulleting {bulleting} beside notice-action {notice}. One "
+                "inducer, two reads -- so either the inducer moved or one of "
+                "the two checks stopped reading it")
+    else:
+        report["recoveryPairing"] = {
+            "bulleting": bulleting, "noticeAction": notice, "held": None,
+            "why": "one of the pair was not recorded in this run, so there is "
+                   "no relation to hold them to"}
+
+    # A RUN THAT STOPPED IS NOT A RUN THAT PASSED, whatever the checks that did
+    # run said -- including under `--mutate`, where the mutation branch above
+    # can otherwise conclude "detected" from a run that stopped before the
+    # checks it was confounding.  queue-a11y-path-drives-a-dead-session.
+    if report.get("sessionDied"):
+        died = report["sessionDied"]
+        report["ok"] = False
+        # THE TOAST IS IN THE VERDICT, and it is there because two very
+        # different things arrive at this state (adversarial review,
+        # 2026-08-26).  `TIMEOUT` is in RECOVERY_ERRORS and a loaded machine can
+        # produce one; `EDITOR_BOUNDARY_UNSUPPORTED` takes the session to
+        # `restart-required` over an action the product correctly REFUSED and
+        # that dispatched nothing -- which would be a verdict on the product
+        # path, and the opposite of what this sentence says.  A reader who has
+        # to open the JSON to tell those apart will not.
+        report["verdict"] = (
+            f"the session was {died.get('state')} after "
+            f"{died.get('noticedAfter')} and this run stopped there; "
+            f"{len(died.get('neverReached') or [])} checks were never reached, "
+            "so this is not a verdict on the product path. What the product "
+            f"last said: {died.get('toast') or died.get('latency') or 'nothing'}")
     if healed:
         report["ok"] = False
         report["verdict"] = (f"a check declared KNOWN_RED passed: {healed} -- the "
                              "defect is fixed and the declaration must be removed "
                              "before it hides the next one")
+    # The counterpart of `snapshot()`: the file on disk is a finished report.
+    report["complete"] = True
     text = json.dumps(report, indent=2, ensure_ascii=False)
     if args.out:
         Path(args.out).write_text(text + "\n", encoding="utf-8")
