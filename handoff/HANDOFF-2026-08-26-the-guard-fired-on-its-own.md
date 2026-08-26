@@ -1,7 +1,17 @@
-# Handoff: the dead-session guard, and it fired on a run nobody arranged
+# Handoff: a guard that stopped driving a dead session, and the three defects it uncovered behind it
 
 Written 2026-08-26, continuing
 [`HANDOFF-2026-08-24-the-link-and-the-core-that-showed-it.md`](HANDOFF-2026-08-24-the-link-and-the-core-that-showed-it.md).
+
+**In one line.** The dead-session guard went in and fired on a run nobody
+arranged, which turned a 20–50-minute silence into a report — and that report
+was the first of four. Behind it were finding **082** (the format barrier's
+identity gate comparing the hash of the empty string), finding **083** (an empty
+selection called a stall and answered with a rollback prescription) and finding
+**084** (a caret update dropped and deferred to the next commit). Two are fixed
+and measured; the third is characterised with a number. The accessibility
+lineage went from **dying at check 17 of 40** to **two runs in three with no
+failing check at all**, and the shipped product was re-measured at its best.
 
 ## State
 
