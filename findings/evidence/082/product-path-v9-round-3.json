@@ -1,0 +1,1094 @@
+{
+  "schemaVersion": 1,
+  "release": "e2-c-product-path",
+  "browser": "chrome",
+  "caretExcludedFromInk": true,
+  "fixture": "list-contexts.odt",
+  "isTrusted": false,
+  "notD5": "synthetic events; SPEC E2-C D5 requires trusted input and a human",
+  "shims": [
+    "URL.createObjectURL",
+    "HTMLAnchorElement.prototype.click (download anchors)",
+    "#toast.textContent cleared between steps",
+    "ClipboardEvent.clipboardData (Firefox drops it from the constructor; defined onto the event with types/getData only)",
+    "#toast is observed and every message recorded -- the product's success toast overwrites a repaint failure raised during the same open, and 'the product said nothing' is the subject of a check",
+    "Emulation.setDeviceMetricsOverride (Chrome only) to sweep devicePixelRatio; the wall this measures moves by more than 3x across ordinary displays",
+    "Browser.grantPermissions clipboardReadWrite (Chrome only). WebDriver refuses clipboard writes by default, and the product's cut is copy-then-delete -- so without the permission the delete correctly never runs and whether the text is REMOVED cannot be measured at all. Granting it is how a real user's browser behaves after they allow it"
+  ],
+  "mutation": null,
+  "checks": [
+    {
+      "id": "product-save-button-writes-a-real-odt",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "capturedBytes": 12237,
+        "magic": "504b0304",
+        "head": null,
+        "entries": 9,
+        "hasContentXml": true,
+        "contentXmlParses": true,
+        "mimetype": "application/vnd.oasis.opendocument.text",
+        "zipError": null,
+        "toast": "已存出 12.0 KB",
+        "anchorClicks": 1
+      },
+      "oracle": "the bytes the product hands to the download ARE an ODT -- ZIP magic, clean CRC, an ODT mimetype entry and a content.xml that parses -- and its own toast reports a size rather than NaN"
+    },
+    {
+      "id": "every-ime-commit-reaches-the-document",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "revisionBefore": 0,
+        "revisionAfter": 3,
+        "advancedBy": 3,
+        "committed": [
+          "甲一",
+          "乙二",
+          "丙三"
+        ],
+        "foundInSavedOdt": [
+          "甲一",
+          "乙二",
+          "丙三"
+        ],
+        "perCommitRevision": [
+          {
+            "text": "甲一",
+            "expected": 1,
+            "observed": 1,
+            "ok": true
+          },
+          {
+            "text": "乙二",
+            "expected": 2,
+            "observed": 2,
+            "ok": true
+          },
+          {
+            "text": "丙三",
+            "expected": 3,
+            "observed": 3,
+            "ok": true
+          }
+        ],
+        "savedBytes": 12576
+      },
+      "oracle": "three commits through the product's composition path each advance the revision by exactly one, IN TURN, and all three strings are in the saved ODT"
+    },
+    {
+      "id": "ctrl-c-asks-the-engine",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "handlerRan": true,
+        "toast": "已複製 U+7532,U+4E00,U+4E59,U+4E8C,U+4E19,U+4E09 字",
+        "outcome": "copied"
+      },
+      "oracle": "a copy event on the product page is handled by the product (default prevented) and the ENGINE returns a non-empty selection for it -- proved by which error the clipboard adapter raises, since CLIPBOARD_DENIED on the copy path is reachable only after getSelection has succeeded",
+      "notEstablished": "whether the OS clipboard received the text; WebDriver refuses clipboard access, so that half belongs to D5"
+    },
+    {
+      "id": "product-insert-button-inserts-what-the-field-holds",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "fieldAfterSet": "插入鈕標記",
+        "revisionBefore": 3,
+        "revisionAfter": 4,
+        "markInSavedOdt": true,
+        "witnessesExpected": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "witnessesKept": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "toast": "",
+        "savedBytes": 12813
+      },
+      "oracle": "the text standing in the product's own field, inserted by the product's own button, advances the revision by exactly one and is in the document the product then saves"
+    },
+    {
+      "id": "product-undo-button-reverses-the-last-edit",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "revisionBefore": 4,
+        "revisionAfter": 5,
+        "markWasThereBeforeUndo": true,
+        "markStillInSavedOdt": false,
+        "witnessesExpected": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "witnessesKept": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "toast": "",
+        "savedBytes": 12575
+      },
+      "oracle": "pressing the product's own undo button takes the text the insert button just added back OUT of the document -- read from the saved ODT, not from the revision counter, because D1 covers undo through the shell and this is the button"
+    },
+    {
+      "id": "product-redo-button-restores-what-undo-removed",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "buttonOffered": {
+          "present": true,
+          "hidden": false
+        },
+        "markerGoneBeforeRedo": true,
+        "revisionBefore": 5,
+        "revisionAfter": 6,
+        "markBackInSavedOdt": true,
+        "witnessesExpected": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "witnessesKept": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "toast": "",
+        "savedBytes": 12813
+      },
+      "oracle": "pressing the product's own 重做 button puts back exactly the text undo just removed -- read from the saved ODT, and with the earlier commits as witnesses so a redo that replayed more than one edit is not mistaken for a correct one. NOT_ESTABLISHED rather than FAIL on a profile that does not carry redo: the button is hidden there and pressing it would measure nothing"
+    },
+    {
+      "id": "bulleting-a-blank-line-does-not-demand-a-rollback",
+      "ok": false,
+      "outcome": "FAIL",
+      "observed": {
+        "state": "recoverable-error",
+        "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the format barrier stopped advancing before it could read the paragraph, so what the dispatch did is unknown（可能已經改到文件：請回到檢查點）",
+        "queueStillOpen": false
+      },
+      "oracle": "the product's own buttons, on the cell finding 046 was measured on: the session stays ready (so undo is reachable) and the message says dispatched-but-unverified rather than prescribing a rollback",
+      "notEstablished": "that the bullet APPLIED. The barrier could not verify it and neither can this check -- saying otherwise is the claim finding 046 was filed for. What is checked is the disposition"
+    },
+    {
+      "id": "notice-action-recovers-the-session",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "stateAfterFailure": "recoverable-error",
+        "noticeOffered": {
+          "shown": true,
+          "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。",
+          "label": "重新開啟",
+          "disabled": false,
+          "rescue": "none"
+        },
+        "buttonFound": true,
+        "stateAfterPress": "ready",
+        "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the format barrier stopped advancing before it could read the paragraph, so what the dispatch did is unknown（可能已經改到文件：請回到檢查點）",
+        "savedBytesAfter": 12809,
+        "savedIsOdt": true
+      },
+      "oracle": "a dispatched failure blocks the queue, the product OFFERS its recovery button, pressing it returns the session to ready, and the product can save a real ODT afterwards -- undo in its place would return EDITOR_NOT_READY on the queue the failure just blocked, which is why SPEC E2-B 5.13 prescribes rollback and not undo",
+      "notEstablished": "WHICH bytes came back.  A save moves the authority bytes and there is no way to read the document out of the page except by saving, so an edit made after the failure cannot be shown to have been discarded without destroying the thing being measured"
+    },
+    {
+      "id": "backspace-and-arrows-reach-the-document",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "backspaceHandled": true,
+        "revisionBefore": 0,
+        "revisionAfterBackspace": 1,
+        "arrowHandled": true,
+        "latencyAfterArrow": "◀ 39 ms"
+      },
+      "oracle": "a Backspace reaches the ENGINE (the page cancels the event and the revision advances) and an ArrowLeft dispatches a caret move -- both through the page's own handlers, neither of which existed before",
+      "notEstablished": "which character was removed; that is delete-backward's own contract and D1 covers it through the shell"
+    },
+    {
+      "id": "the-keyboard-reaches-the-document",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "set-bold": {
+          "afterFirst": "true",
+          "afterSecond": "false",
+          "toggled": true
+        },
+        "set-underline": {
+          "afterFirst": "true",
+          "afterSecond": "false",
+          "toggled": true
+        },
+        "markerTyped": true,
+        "ctrlSSaved": true,
+        "markerGoneAfterUndo": true
+      },
+      "oracle": "Ctrl+B and Ctrl+U each turn their format ON and then OFF, read from the engine's own state as the page renders it into aria-pressed; Ctrl+A produces a selection the product recognises as a RANGE (its collapsed-only format buttons go disabled); Ctrl+Z takes a typed marker back out of the SAVED document; and Ctrl+S writes that document without anything pressing the save button",
+      "notEstablished": "Ctrl+I, which goes through exactly the same `editorAction` call as Ctrl+B and Ctrl+U with a different slot, so a third identical arm would re-measure the same wiring; and Ctrl+A, which is not bound at all -- select-all is not one of the fifteen actions and the geometric substitute was measured selecting nothing (queue-no-select-all-action)"
+    },
+    {
+      "id": "ctrl-v-reaches-the-document",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "payloadSurvived": true,
+        "clipboardDataShimmed": false,
+        "eventCanceled": true,
+        "revisionBefore": 7,
+        "revisionAfter": 8,
+        "toast": "",
+        "markOccurrences": 1
+      },
+      "oracle": "a paste event on the product page reaches the DOCUMENT: it advances the revision, and the pasted text appears EXACTLY ONCE in the ODT the product saves afterwards -- the document, not the toast. Exactly once, not merely present: the sink also sees `beforeinput` with insertFromPaste, so a page-level paste handler that fails to cancel the event commits the same text twice, and `in` would call that a pass",
+      "notEstablished": "whether a REAL Ctrl+V carrying the OS clipboard reaches this handler. The payload is synthesised through the ClipboardEvent constructor, and where that constructor drops the payload (Firefox) it is defined onto the event exposing only `types` and `getData`. If even that does not take, the check reports NOT_ESTABLISHED rather than failing the product"
+    },
+    {
+      "id": "the-caret-is-drawn-where-it-was-placed",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "available": true,
+        "inkLeft": 82,
+        "inkRight": 430,
+        "inkSpan": 348,
+        "caretAfterClickNearStart": 122,
+        "caretAfterClickPastEnd": 430,
+        "strokeGained": 12,
+        "strokeLost": 15,
+        "fractionNearStart": 0.11494252873563218,
+        "fractionPastEnd": 1.0,
+        "clickedAt": {
+          "derived": true,
+          "near": "0.170703",
+          "past": "0.621903",
+          "inkLeft": 82,
+          "inkRight": 430,
+          "canvasWidth": 725
+        }
+      },
+      "oracle": "two clicks on the same line move a drawn caret: one column gains ink and another loses it. Anchored to the line's own ink rather than to viewport fractions, so the verdict does not depend on the browser window (060), and the CLICK is derived from that ink too rather than from a viewport fraction. LIMIT: this sees the caret by watching it move, so a caret pinned to a constant column reads the same as one that is never drawn. LIMIT: the caret is 1 px and lands on a character boundary, so it is adjacent to glyph ink by construction and strokeLost can be small -- measured 19 on Firefox and 2 on Chrome at the same derived position. It is a margin, not a cliff, and the robust alternative (differencing a clean root against the `caret` mutation mirror, which is how finding 060 was actually diagnosed) costs a second page load and is not run per round",
+      "notEstablished": "the sampled band carries no text ink, which is a harness problem rather than a product one"
+    },
+    {
+      "id": "the-caret-lands-where-the-click-was",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "available": true,
+        "inkLeft": 82,
+        "inkRight": 430,
+        "inkSpan": 348,
+        "caretAfterClickNearStart": 122,
+        "caretAfterClickPastEnd": 430,
+        "strokeGained": 12,
+        "strokeLost": 15,
+        "fractionNearStart": 0.11494252873563218,
+        "fractionPastEnd": 1.0,
+        "clickedAt": {
+          "derived": true,
+          "near": "0.170703",
+          "past": "0.621903",
+          "inkLeft": 82,
+          "inkRight": 430,
+          "canvasWidth": 725
+        }
+      },
+      "oracle": "a click near the start of a line puts the caret in its first quarter, and a click past the end puts it in the last quarter -- measured against that line's own ink extent. A caret that ignores x, one at a constant offset, and one on the wrong line all fail this",
+      "notEstablished": "no line ink was found to measure against, or a read did not find the caret at all -- a column index that came from a tie-break is not a position, so no fraction is reported for it"
+    },
+    {
+      "id": "bold-can-be-turned-off-again",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "ariaPressedBefore": "false",
+        "ariaPressedAfterFirstPress": "true",
+        "ariaPressedAfterSecondPress": "false",
+        "toastAfterFirstPress": ""
+      },
+      "oracle": "pressing B twice on a collapsed caret leaves the engine reporting NOT bold. Until 2026-08-17 the page sent `enabled: true` unconditionally, so the second press asked for bold again and this would stay \"true\"",
+      "notEstablished": "the engine reported no format state at all (aria-pressed absent), so nothing here is about the page's choice of `enabled`"
+    },
+    {
+      "id": "a-format-that-worked-is-not-reported-as-failed",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "toastAfterFirstPress": ""
+      },
+      "oracle": "pressing B does not report a failure to the user. Core applies the command; the engine's predicate requires success:true and turns core's success:false into LOK_COMMAND_FAILED, so the product reports a failure for an action the saved document shows succeeded"
+    },
+    {
+      "id": "a-failed-format-does-not-block-the-session",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "stateAfterTwoBoldPresses": "ready",
+        "notice": {
+          "shown": false,
+          "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。",
+          "label": "重新開啟",
+          "disabled": false,
+          "rescue": "none"
+        },
+        "toast": ""
+      },
+      "oracle": "after a format action fails, the session is still `ready` and no rollback notice is shown. LOK_COMMAND_FAILED is emitted only from the UNO command RESULT handler, so core answered and the dispatch is established -- the honest disposition is `review` (undo stays reachable), not `rollback` (discard everything since the checkpoint)"
+    },
+    {
+      "id": "format-a-paragraph-changes-that-paragraph",
+      "ok": false,
+      "outcome": "NOT_ESTABLISHED",
+      "observed": {
+        "openedFixture": {
+          "dispatch": "dispatched",
+          "isOdt": true,
+          "lines": 9,
+          "markersUnique": true
+        },
+        "arms": [
+          {
+            "action": "set-paragraph-heading",
+            "marker": "E1-LC-ISOLATED",
+            "from": "body",
+            "to": "heading",
+            "bands": 9,
+            "lines": 9,
+            "lineIndex": 1,
+            "observedBefore": "body",
+            "aim": {
+              "x": 0.12,
+              "y": 0.12648,
+              "band": [
+                111,
+                124
+              ]
+            },
+            "caret": "定位游標 34 ms",
+            "buttonLabel": "標題",
+            "pressed": true,
+            "latency": "標題 31 ms",
+            "toast": "",
+            "observedAfter": "heading",
+            "style": "Heading_20_1",
+            "neighboursSurvived": true,
+            "lineCountKept": true,
+            "textKept": true,
+            "ok": true,
+            "outcome": "PASS"
+          },
+          {
+            "action": "set-paragraph-body",
+            "marker": "E1-LC-HEADING",
+            "from": "heading",
+            "to": "body",
+            "bands": 9,
+            "lines": 9,
+            "lineIndex": 0,
+            "observedBefore": "heading",
+            "aim": {
+              "x": 0.11862,
+              "y": 0.09849,
+              "band": [
+                85,
+                98
+              ]
+            },
+            "caret": "定位游標 32 ms",
+            "buttonLabel": "內文",
+            "pressed": true,
+            "latency": "內文 失敗",
+            "toast": "內文：MUTATION_OUTCOME_UNKNOWN：the postcondition read describes a different paragraph from the one this action was dispatched on, so it says nothing about whether the action took effect（可能已經改到文件：請回到檢查點）",
+            "observedAfter": null,
+            "style": null,
+            "neighboursSurvived": true,
+            "lineCountKept": false,
+            "textKept": false,
+            "ok": false,
+            "outcome": "FAIL"
+          },
+          {
+            "action": "set-list-unordered",
+            "marker": "E1-LC-BETWEEN",
+            "from": "body",
+            "to": "bullet",
+            "bands": 9,
+            "lines": 9,
+            "lineIndex": 5,
+            "observedBefore": "body",
+            "aim": {
+              "x": 0.12,
+              "y": 0.22551,
+              "band": [
+                205,
+                214
+              ]
+            },
+            "caret": "定位游標 失敗",
+            "outcome": "NOT_ESTABLISHED",
+            "why": "the caret could not be placed on the target"
+          },
+          {
+            "action": "set-list-ordered",
+            "marker": "E1-LC-END",
+            "from": "body",
+            "to": "number",
+            "bands": 9,
+            "lines": 9,
+            "lineIndex": 8,
+            "observedBefore": "body",
+            "aim": {
+              "x": 0.12,
+              "y": 0.29656,
+              "band": [
+                271,
+                280
+              ]
+            },
+            "caret": "定位游標 失敗",
+            "outcome": "NOT_ESTABLISHED",
+            "why": "the caret could not be placed on the target"
+          },
+          {
+            "action": "set-list-none",
+            "marker": "E1-LC-BULLET-ONE",
+            "from": "bullet",
+            "to": "body",
+            "bands": 9,
+            "lines": 9,
+            "lineIndex": 3,
+            "observedBefore": "bullet",
+            "aim": {
+              "x": 0.11862,
+              "y": 0.17815,
+              "band": [
+                161,
+                170
+              ]
+            },
+            "caret": "定位游標 失敗",
+            "outcome": "NOT_ESTABLISHED",
+            "why": "the caret could not be placed on the target"
+          },
+          {
+            "arm": "range-cross",
+            "action": "set-list-none",
+            "numberedLines": [
+              6,
+              7
+            ],
+            "lineIndexes": [
+              6,
+              7
+            ],
+            "bands": 9,
+            "lines": 9,
+            "buttonOffered": true,
+            "toast": "移除清單：EDITOR_NOT_READY：editor operation action:set-list-none is unavailable in recoverable-error（可能已經改到文件：請回到檢查點）",
+            "bothChanged": false,
+            "neighboursSurvived": false,
+            "ok": false,
+            "outcome": "FAIL"
+          }
+        ]
+      },
+      "oracle": "each of the five paragraph actions, pressed on the product's own toolbar with the caret clicked onto a paragraph in the OPPOSITE state, leaves THAT paragraph in the target state with its text unchanged and both neighbours untouched -- read from the ODT the product saves, and matched by the paragraph's own text",
+      "notEstablished": "the blank-line cell, which belongs to finding 046's queue item. Range gestures ARE covered now: the sixth arm drags across two paragraphs and requires both to change and their neighbours to survive"
+    },
+    {
+      "id": "the-run-stopped-because-the-session-was-dead",
+      "ok": false,
+      "outcome": "NOT_ESTABLISHED",
+      "observed": {
+        "noticedAfter": "format-a-paragraph-changes-that-paragraph",
+        "where": "after this check was recorded",
+        "state": "recoverable-error",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "儲存 失敗",
+        "toast": "儲存：EDITOR_NOT_READY：editor operation save is unavailable in recoverable-error",
+        "insideAnArmThatExpectedIt": null,
+        "neverReached": [
+          "cut-removes-the-selected-text",
+          "a-refused-action-is-reported-and-changes-nothing",
+          "every-inline-format-reaches-the-document",
+          "clear-format-removes-every-inline-format",
+          "formatting-survives-the-next-paragraph-break",
+          "the-toolbar-gives-the-keyboard-back",
+          "the-edit-buttons-do-what-they-say",
+          "the-open-button-opens-the-file-chooser",
+          "an-aborted-gesture-stops-selecting",
+          "caret-follows-the-text-you-type",
+          "the-vertical-arrows-move-the-caret",
+          "the-composition-you-are-typing-is-visible",
+          "the-document-region-says-why-it-is-empty",
+          "an-inline-format-reaches-a-selection",
+          "the-page-agrees-with-the-engine-about-the-selection",
+          "the-canvas-follows-a-window-that-changed-size",
+          "the-sample-picker-opens-a-second-document",
+          "product-opens-a-document-the-user-chose",
+          "the-enter-key-reaches-the-document",
+          "a-long-document-is-drawn-or-the-product-says-it-is-not",
+          "the-canvas-follows-a-document-that-grew",
+          "editing-a-long-document-stays-responsive",
+          "recovery-returns-what-the-product-promised"
+        ],
+        "recorded": 17,
+        "declared": 40
+      },
+      "why": "finding 081: a dead session refuses every action, so each remaining arm would burn its own timeout against it -- twenty to fifty minutes for a report nobody can read. `pending` is the field that separates this from a hang: 0 means nothing is waiting on the engine and waiting longer cannot help",
+      "oracle": "a run either drives a live session to the end or stops and names the arm after which the session was dead. What it may NOT do is keep driving"
+    }
+  ],
+  "steps": [
+    {
+      "step": "boot",
+      "state": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "—",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "redo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "step": "install-shims",
+      "result": "installed"
+    },
+    {
+      "step": "place-caret",
+      "state": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "定位游標 37 ms",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "redo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "step": "ime-commits",
+      "commits": [
+        {
+          "text": "甲一",
+          "sinkAfter": "",
+          "revision": 1,
+          "toast": ""
+        },
+        {
+          "text": "乙二",
+          "sinkAfter": "",
+          "revision": 2,
+          "toast": ""
+        },
+        {
+          "text": "丙三",
+          "sinkAfter": "",
+          "revision": 3,
+          "toast": ""
+        }
+      ],
+      "revisionBefore": 0,
+      "revisionAfter": 3
+    },
+    {
+      "step": "induce-dispatched-failure",
+      "state": {
+        "state": "recoverable-error",
+        "label": "需要回復",
+        "revision": "8",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "• 項目符號 失敗",
+        "doc": "list-contexts.odt",
+        "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the format barrier stopped advancing before it could read the paragraph, so what the dispatch did is unknown（可能已經改到文件：請回到檢查點）",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "redo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      },
+      "notice": {
+        "shown": true,
+        "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。",
+        "label": "重新開啟",
+        "disabled": false,
+        "rescue": "none"
+      },
+      "attempts": [
+        {
+          "recipe": "finding 047: save, click, format",
+          "state": "ready",
+          "latency": "• 項目符號 459 ms"
+        },
+        {
+          "recipe": "finding 053: click past the line end, break the paragraph, list the empty one (finding 046's cell)",
+          "state": "recoverable-error",
+          "latency": "• 項目符號 失敗",
+          "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the format barrier stopped advancing before it could read the paragraph, so what the dispatch did is unknown（可能已經改到文件：請回到檢查點）"
+        }
+      ]
+    }
+  ],
+  "profileDiagnostic": {
+    "evidenceClass": "diagnostic",
+    "note": "This run did NOT use the shipped page. It was mirrored to load a different profile, so every result here is about that profile and must not be quoted as the product's.",
+    "profile": "e2-editor-v9",
+    "pinBefore": "4a2710bba1ef07d9",
+    "pinAfter": "b60cc46fcc6bf572"
+  },
+  "barrierDetailsDiagnostic": {
+    "evidenceClass": "diagnostic",
+    "note": "This run did NOT use the shipped page. One line was added to run()'s catch so the TYPED payload of every rejection is kept instead of only the message the user is shown. Nothing else differs and probe.wasm is byte-identical -- but a report carrying pageErrors is a diagnostic run and must be cited as one.",
+    "what": "window.__pp.errors: {label, code, recovery, message, details} per rejection, in order"
+  },
+  "servedShell": {
+    "bundle": "e2/editor-shell-v2-bundle-v41.json",
+    "declaredSha256": "cafef1736196f80b76f3be68bbf5e1ba9199d6ed9f3532cf14e57da44b0b7b24",
+    "servedSha256": "9b0d39f1f9264356f37c1d5114cb19c16b6831e81d3ffc88c26dc29baa3cf0a9",
+    "missing": []
+  },
+  "clipboardPermission": {
+    "granted": true,
+    "focusEmulated": true
+  },
+  "liveness": {
+    "probes": 16,
+    "lastState": "recoverable-error",
+    "probeError": null,
+    "control": false
+  },
+  "complete": true,
+  "pageErrors": [
+    {
+      "label": "• 項目符號",
+      "code": "MUTATION_OUTCOME_UNKNOWN",
+      "recovery": "rollback",
+      "message": "the format barrier stopped advancing before it could read the paragraph, so what the dispatch did is unknown",
+      "details": {
+        "operation": "editor-action",
+        "code": "MUTATION_OUTCOME_UNKNOWN",
+        "message": "the format barrier stopped advancing before it could read the paragraph, so what the dispatch did is unknown",
+        "documentHandle": 1,
+        "formatBarrier": {
+          "failureShape": "stage-deadline:awaiting-selection",
+          "dispatched": true,
+          "route": "collapsed",
+          "paragraphIdentity": {
+            "checked": false,
+            "dispatchKnown": true,
+            "readbackKnown": false
+          },
+          "preBlocks": 0,
+          "postBlocks": 0,
+          "preBlocksObserved": false,
+          "postBlocksObserved": false,
+          "readbackParsed": false,
+          "readbackBlockCount": 0,
+          "containment": {
+            "checked": false,
+            "held": false
+          },
+          "itemCount": 0,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false
+        }
+      }
+    },
+    {
+      "label": "內文",
+      "code": "MUTATION_OUTCOME_UNKNOWN",
+      "recovery": "rollback",
+      "message": "the postcondition read describes a different paragraph from the one this action was dispatched on, so it says nothing about whether the action took effect",
+      "details": {
+        "operation": "editor-action",
+        "code": "MUTATION_OUTCOME_UNKNOWN",
+        "message": "the postcondition read describes a different paragraph from the one this action was dispatched on, so it says nothing about whether the action took effect",
+        "documentHandle": 1,
+        "formatBarrier": {
+          "failureShape": "readback-is-a-different-paragraph",
+          "dispatched": true,
+          "route": "collapsed",
+          "paragraphIdentity": {
+            "checked": true,
+            "dispatchKnown": true,
+            "readbackKnown": true
+          },
+          "preBlocks": 0,
+          "postBlocks": 0,
+          "preBlocksObserved": false,
+          "postBlocksObserved": false,
+          "readbackParsed": true,
+          "readbackBlockCount": 1,
+          "containment": {
+            "checked": true,
+            "held": true
+          },
+          "itemCount": 0,
+          "crossIdentityHeld": false,
+          "crossStateHeld": false
+        }
+      }
+    },
+    {
+      "label": "儲存",
+      "code": "EDITOR_NOT_READY",
+      "recovery": null,
+      "message": "editor operation save is unavailable in recoverable-error",
+      "details": null
+    },
+    {
+      "label": "定位游標",
+      "code": "EDITOR_NOT_READY",
+      "recovery": null,
+      "message": "editor operation place-caret is unavailable in recoverable-error",
+      "details": null
+    },
+    {
+      "label": "定位游標",
+      "code": "EDITOR_NOT_READY",
+      "recovery": null,
+      "message": "editor operation place-caret is unavailable in recoverable-error",
+      "details": null
+    },
+    {
+      "label": "定位游標",
+      "code": "EDITOR_NOT_READY",
+      "recovery": null,
+      "message": "editor operation place-caret is unavailable in recoverable-error",
+      "details": null
+    },
+    {
+      "label": "定位游標",
+      "code": "EDITOR_NOT_READY",
+      "recovery": null,
+      "message": "editor operation place-caret is unavailable in recoverable-error",
+      "details": null
+    },
+    {
+      "label": "移除清單",
+      "code": "EDITOR_NOT_READY",
+      "recovery": "rollback",
+      "message": "editor operation action:set-list-none is unavailable in recoverable-error",
+      "details": null
+    },
+    {
+      "label": "儲存",
+      "code": "EDITOR_NOT_READY",
+      "recovery": null,
+      "message": "editor operation save is unavailable in recoverable-error",
+      "details": null
+    }
+  ],
+  "sessionDied": {
+    "noticedAfter": "format-a-paragraph-changes-that-paragraph",
+    "where": "after this check was recorded",
+    "state": "recoverable-error",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "儲存 失敗",
+    "toast": "儲存：EDITOR_NOT_READY：editor operation save is unavailable in recoverable-error",
+    "insideAnArmThatExpectedIt": null,
+    "neverReached": [
+      "cut-removes-the-selected-text",
+      "a-refused-action-is-reported-and-changes-nothing",
+      "every-inline-format-reaches-the-document",
+      "clear-format-removes-every-inline-format",
+      "formatting-survives-the-next-paragraph-break",
+      "the-toolbar-gives-the-keyboard-back",
+      "the-edit-buttons-do-what-they-say",
+      "the-open-button-opens-the-file-chooser",
+      "an-aborted-gesture-stops-selecting",
+      "caret-follows-the-text-you-type",
+      "the-vertical-arrows-move-the-caret",
+      "the-composition-you-are-typing-is-visible",
+      "the-document-region-says-why-it-is-empty",
+      "an-inline-format-reaches-a-selection",
+      "the-page-agrees-with-the-engine-about-the-selection",
+      "the-canvas-follows-a-window-that-changed-size",
+      "the-sample-picker-opens-a-second-document",
+      "product-opens-a-document-the-user-chose",
+      "the-enter-key-reaches-the-document",
+      "a-long-document-is-drawn-or-the-product-says-it-is-not",
+      "the-canvas-follows-a-document-that-grew",
+      "editing-a-long-document-stays-responsive",
+      "recovery-returns-what-the-product-promised"
+    ],
+    "recorded": 17,
+    "declared": 40
+  },
+  "failedAt": "the session was dead after format-a-paragraph-changes-that-paragraph",
+  "notEstablishedChecks": [
+    "format-a-paragraph-changes-that-paragraph",
+    "the-run-stopped-because-the-session-was-dead"
+  ],
+  "offPageInk": {
+    "worst": 0,
+    "scans": 14,
+    "scansWithInk": 0,
+    "pageRange": [
+      15,
+      709
+    ],
+    "pageClipped": true
+  },
+  "knownRed": {},
+  "staleKnownRedDeclarations": [],
+  "ok": false,
+  "verdict": "the session was recoverable-error after format-a-paragraph-changes-that-paragraph and this run stopped there; 23 checks were never reached, so this is not a verdict on the product path. What the product last said: 儲存：EDITOR_NOT_READY：editor operation save is unavailable in recoverable-error",
+  "recoveryPairing": {
+    "bulleting": "FAIL",
+    "noticeAction": "PASS",
+    "held": true,
+    "requires": "the two are reads of one moment: 046's cell either blocks the queue (bulleting FAIL, recovery judged) or it does not (bulleting PASS, recovery abstains)"
+  }
+}

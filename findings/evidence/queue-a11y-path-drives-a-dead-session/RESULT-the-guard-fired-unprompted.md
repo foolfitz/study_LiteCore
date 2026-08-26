@@ -44,11 +44,15 @@ debugging port and evaluate in the page. This one is in the report.
 that were not driven at a session refusing all of them. The run also produced
 a report, which the stalls did not.
 
-Two things this comparison is NOT: `e2-editor-v9` is not byte-identical to the
+One thing this comparison is NOT: `e2-editor-v9` is not byte-identical to the
 builds that stalled on 2026-08-23 (it is the same wasm as `a11y-calloc`,
-`b60cc46f…`, which the 08-23 runs are not), so this is one profile *family*
-rather than one artifact; and one run is one run — the stall was 3–4 runs in 7
-on v5, so a run that does not die says nothing either.
+`b60cc46f…`, which the 08-23 runs are not), so the timing figure is one profile
+*family* rather than one artifact.
+
+**And it is no longer one run.** Three repeats followed, with
+`--barrier-details-diagnostic`: **4 of 4** die after the same check, with
+`recorded: 17/40`, `pending: 0`, `checkpoint: 無` and the same two arms. Filed
+as finding 082; the payloads are in `findings/evidence/082/`.
 
 ## And it answered finding 081's open question
 

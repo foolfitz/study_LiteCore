@@ -3613,23 +3613,19 @@ def main() -> int:
         # too, where the region holds nothing off.
         if liveness.expected is not None or liveness.control:
             liveness.recorded_inside = cid
-        # AND WHAT IT NAMED, ONCE SOMEBODY ATTACHED TO ONE (finding 081):
-        # not a hang. The stalled page reads state=recoverable-error,
-        # checkpoint=none, latency="save failed" and PENDING=0 -- nothing is
-        # waiting on the engine. A save failed, the session refuses everything
-        # after it with EDITOR_NOT_READY, and each remaining arm burns its own
-        # timeout. That is the 20-50 minutes, and the report is written only at
-        # the end, so the run yields nothing.
-        # queue-a11y-path-drives-a-dead-session holds the fix: check the state
-        # between arms and stop driving, naming the arm that killed it.
-        #
         # A STALL HAS TO NAME ITS OWN STEP.
         #
-        # This run writes its report only at the end, so a run that stops
-        # advancing leaves a zero-byte log and no report -- and that happened
-        # four times on the accessibility profile on 2026-08-23 against zero
-        # times on the shipped one, each costing 20-50 minutes and yielding
-        # nothing at all. A silence is not a measurement.
+        # Four runs on the accessibility profile on 2026-08-23 produced a
+        # zero-byte log and no report at all, against zero on the shipped one,
+        # each costing 20-50 minutes.  A silence is not a measurement, and this
+        # trace is what turned one into a step name.
+        #
+        # What the step name then bought (finding 081): somebody attached to a
+        # live stalled run and read state=recoverable-error, checkpoint=none,
+        # latency="save failed" and PENDING=0 -- nothing waiting on the engine,
+        # so not a hang. FIXED 2026-08-26 by the probe below and by `snapshot()`
+        # (queue-a11y-path-drives-a-dead-session); the report is no longer
+        # written only at the end, and a dead session is no longer driven.
         #
         # stderr rather than stdout, because stdout carries the report and a
         # caller redirecting it to a file must still get a JSON document.
@@ -7775,9 +7771,10 @@ def finish(report: dict, args) -> int:
         # different things arrive at this state (adversarial review,
         # 2026-08-26).  `TIMEOUT` is in RECOVERY_ERRORS and a loaded machine can
         # produce one; `EDITOR_BOUNDARY_UNSUPPORTED` takes the session to
-        # `restart-required` over an action the product correctly REFUSED and
-        # that dispatched nothing -- which would be a verdict on the product
-        # path, and the opposite of what this sentence says.  A reader who has
+        # `restart-required` (editor-session.js:319, ahead of RECOVERY_ERRORS)
+        # over a Writer unit the selection barrier correctly declined -- which
+        # WOULD be a verdict on the product path, and the opposite of what this
+        # sentence says.  A reader who has
         # to open the JSON to tell those apart will not.
         report["verdict"] = (
             f"the session was {died.get('state')} after "

@@ -13,14 +13,18 @@ checklist and evidence.
 |---|---|---|
 | `queue-a11y-path-drives-a-dead-session` | absent | **present** — the guard is in, measured four ways |
 | `queue-cut-refusal-lost-its-inducer` | absent | **present** — the route built 2026-08-22 was finally driven, both ways |
-| `queue-abort-margins-are-unexplained` | present, with two debts | one debt paid (the wall-clock sleeps), one measured (N rounds) |
+| `queue-abort-margins-are-unexplained` | present, with two debts | **both paid** — eleven rounds, and the two fields it asked for turned out not to exist for it |
 | `queue-canvas-grew-arm-abstains-intermittently` | — | **new, absent** |
+
+**Finding 082 filed**: on the accessibility core an ordinary paragraph format is
+refused by the barrier as "a different paragraph", and the refusal takes the
+session down with no checkpoint. 4 of 4 runs.
 
 Shipped-profile product path, chrome, `e2-editor-v8`: **38 PASS / 2
 NOT_ESTABLISHED, `ok: true`** on the runs where the long-document arm's
 precondition held, **37 / 3** on the runs where it did not — see the new queue
-item. `tools/check_usable_editor.py` reconciles the whole checklist **green**
-against a real run for the first time.
+item. `tools/check_usable_editor.py` now reconciles the whole checklist **green**
+against a real run. Before today it did not resolve at all — see §7.
 
 ## 1. The guard, and the only run that mattered
 
@@ -97,6 +101,27 @@ body ← heading, through the product's own toolbar button — takes the session
 the user their unsaved work will not come back. That is a user-visible failure on
 the first document the product opens, not a harness artefact.
 
+**Four runs, four times, identical.** Filed as **finding 082**. Every run dies
+after the same check, with `recorded: 17/40`, `pending: 0`, `checkpoint: 無`,
+and the same two arms: `set-paragraph-heading` on line 1 PASSES, and
+`set-paragraph-body` on line 0 fails with `readback-is-a-different-paragraph`.
+
+The typed payload — kept by `--barrier-details-diagnostic` on rounds 2–4 — rules
+out the easy explanations:
+
+```json
+{ "failureShape": "readback-is-a-different-paragraph",
+  "dispatched": true, "route": "collapsed",
+  "paragraphIdentity": { "checked": true, "dispatchKnown": true, "readbackKnown": true },
+  "readbackParsed": true, "readbackBlockCount": 1,
+  "containment": { "checked": true, "held": true } }
+```
+
+Both reads succeeded, the gate ran, the readback is **one** block (so not the
+`multi-block-readback` family), and **containment held** — the selection did
+cover the caret the action was dispatched from. And the fingerprints still
+differ.
+
 Also measured on that run, and both are new:
 
 * `bulleting-a-blank-line-does-not-demand-a-rollback` **FAILS** with the *other*
@@ -106,6 +131,17 @@ Also measured on that run, and both are new:
 * `notice-action-recovers-the-session` **PASSES** on v9. The recovery notice was
   offered, pressed, and the session came back. That check has abstained on the
   shipped profile since 2026-08-17 and it is **not dead** — see §5.
+
+**And this arm had never actually run on the accessibility lineage before.**
+The last stored v5 report (`findings/evidence/075/pp-v5-product.json`) has all
+five of its arms NOT_ESTABLISHED with the same reason: *"the canvas shows 7
+bands for 9 lines, so this arm cannot say WHICH paragraph"* — finding 075, the
+off-page garbage that merged two lines. Today's v9 report reads `bands: 9,
+lines: 9`. So 076's `calloc` fix is what let this arm reach its own dispatch for
+the first time, and the first thing it found was arm 2 refusing. **A fix that
+restores a measurement is how the next defect becomes visible**, and it is worth
+saying out loud that nobody had been looking at this arm — it had been abstaining,
+not passing.
 
 **What is still unmeasured on v9**: the 23 checks after arm 17, including
 `an-inline-format-reaches-a-selection`, which the previous handoff expected to
@@ -132,6 +168,38 @@ a route nobody has measured, and four days is how long that took to notice.
 
 The 2026-08-22 prediction is unedited below its status line:
 `findings/evidence/queue-cut-refusal-lost-its-inducer/`.
+
+## 4b. The abort check: eleven rounds, and the sleeps are gone
+
+`queue-abort-margins-are-unexplained` was left open on 2026-08-23 with its own
+sentence: *"this is ONE run each way. An intermittent margin measured once gives
+a confident and wrong answer, and that is the whole history of this check."*
+
+**Eight consecutive PASS and three consecutive detections**, one machine, one
+sitting. Every one of the eleven rounds aimed at the same line and selected the
+same strings: control `E1-LC-ISOLATED 前後都不是清單的`, reference
+`E1-LC-ISOLAT`, both abort arms 12 code points on every green round. The three
+detections are the oracle's own reason each time — the arm whose `pointercancel`
+listener the mutation removes ran to **23**, byte-identical to the control,
+while the still-wired `blur` arm stopped at 12.
+
+**The two fields the item asked to synchronise on do not exist for it**, and
+that was measured rather than assumed: `revision` is the *document's* and a
+selection is not an edit, so it never advances on a `selectRange`; and
+`callbackSequenceBefore/After` never leave the page's closure — `pumpDrag`
+publishes only `#toolbar[data-selection-shape]`. Publishing them is a product
+change and a shell generation for a field only a harness would read. What the
+page *does* publish is the answer, so both sleeps became polls on it, and both
+waits are now in every arm's record:
+
+| wait | was | measures |
+|---|---|---|
+| caret settles before the drag | `sleep(0.8)` | 0–1 ms |
+| the copy path answers | `sleep(1.5)` | 201–203 ms (200 ms poll granularity) |
+
+A fourth queue check pins `copyAnsweredMs` into the record, because putting the
+sleep back would leave every string in this check identical and every round
+still green — the only thing that would change is a number nobody was keeping.
 
 ## 5. What the adversarial review changed, and it was right about the important one
 
@@ -178,9 +246,10 @@ Also fixed, all from the same review:
   therefore no probes, and the one whose own comment records this shape ending
   in `recoverable-error` — now probes per shape.
 * the stopped-run verdict quotes what the product last said, because `TIMEOUT`
-  (a loaded machine) and `EDITOR_BOUNDARY_UNSUPPORTED` (a refusal that
-  dispatched nothing, and **is** a verdict on the product path) both arrive at
-  this state.
+  (a loaded machine) and `EDITOR_BOUNDARY_UNSUPPORTED` (the selection barrier
+  correctly declining a Writer unit, which **is** a verdict on the product
+  path) both arrive at this state — the second by a different route, see
+  open work 3.
 
 ## 6. Three new kinds of file that nothing would have rejected
 
@@ -210,11 +279,48 @@ against a real run.
 ## Open work, in the order I would take it
 
 1. **Why the a11y barrier says "a different paragraph".** This is the thing
-   standing between the a11y lineage and any product decision. Three v9 repeats
-   with `--barrier-details-diagnostic` are queued (see below); that flag mirrors
-   the page so `run()` keeps each rejection's **typed** payload — `failureShape`
-   and the two fingerprints the barrier compared — instead of only the message
-   the user is shown. Read those before forming a hypothesis.
+   standing between the a11y lineage and any product decision.
+
+   **Three rounds of the typed payload are in `findings/evidence/082/`** and
+   they narrow it a long way: the gate ran, both reads succeeded, the readback
+   is one block, containment held. What they cannot say is **which** paragraphs
+   were compared — the barrier serialises
+   `paragraphIdentity: {checked, dispatchKnown, readbackKnown}`
+   (`src/probe_engine.cpp:1382`) and not the fingerprints themselves.
+
+   Getting the fingerprints is two options, neither taken:
+   * emit them in the barrier payload — an engine change, so a relink; or
+   * read the paragraph the engine thinks the caret is on, before and after,
+     from the page. `a11yContentHash` and (on this lineage)
+     `a11yParagraphText` are in the editor state already, and v9 is the profile
+     that carries `caretParagraphText` — but `READ_STATE` reads the DOM, and
+     what the page publishes is the projection, not the field. See
+     `queue-product-page-holds-the-raw-editor-state`.
+
+   **What reading the engine already rules out.** The fingerprint is FNV-1a
+   over the focused paragraph's a11y `content` **with its list prefix sliced
+   off** (`parseEditorSemanticJson`), and the comment there says why in as many
+   words: without the slice, `.uno:DefaultBullet` would change the string and
+   the gate would fire on every successful list action. So the obvious
+   hypothesis — "a style change changes the fingerprint" — is the one the
+   derivation was built to avoid, and `set-paragraph-body` does not change the
+   paragraph's text at all.
+
+   That leaves the readback genuinely reading **another paragraph** — and the
+   payload agrees, because containment held, so the selection the readback was
+   taken from did cover the caret. Two candidates, neither measured:
+   * the a11y focus moved. `refreshCaretParagraph` asks
+     `getA11yFocusedParagraph()`, which is the focused paragraph, not the
+     caret's — and the comment above it records that the callback is gated on
+     the TEXT changing, so focus and caret are already known to be different
+     questions on this core.
+   * the readback ran while the focus was between paragraphs. Arm 1
+     (`set-paragraph-heading`, line 1) PASSES and arm 2
+     (`set-paragraph-body`, line 0) fails, and arm 1 has just changed the
+     layout above arm 2's target.
+
+   **Neither is measured. Do not repeat either as a cause** — the tree's own
+   rule about 040.
 2. **Consider one revival on death, rather than stopping.** Raised by the
    review and it is a good point: `openDocument()` constructs a **brand-new
    session** on every open, so `recoverable-error` is terminal for a session
@@ -224,12 +330,22 @@ against a real run.
    guard's contract, a revived run's later checks are measured on a session with
    a different history, and it needs its own positive control. Build it with one,
    or not at all.
-3. **A refusal that reaches `restart-required` is a verdict on the product
-   path.** `EDITOR_BOUNDARY_UNSUPPORTED` dispatches nothing and still blocks the
-   queue (`editor-session.js:319`), and the runner presses `delete-backward` at a
-   geometry-aimed caret. Today that would stop the run reporting "not a verdict
-   on the product path", which is exactly backwards. The verdict now quotes the
-   toast; the branch that turns it into a named check failure is not written.
+3. **A refusal that reaches `restart-required` IS a verdict on the product
+   path, and the guard would call it the opposite.**
+   `EDITOR_BOUNDARY_UNSUPPORTED` is the selection barrier declining a Writer
+   unit that will not produce a safe single-line selection
+   (`src/probe_engine.cpp:3246`, `:3280`) — one of its branches reports nothing
+   dispatched — and `editor-session.js:319` blocks the queue with
+   `restart-required` for it specifically, ahead of `RECOVERY_ERRORS`. The
+   runner presses `delete-backward` at a **geometry-aimed** caret, and this file
+   is full of notes about earlier checks reflowing the document under geometric
+   aims. The day that caret lands at a paragraph start, the product refuses
+   **correctly** and the run stops saying "this is not a verdict on the product
+   path" — when it is exactly one, finding 063's shape a level up. The verdict
+   now quotes the toast so a reader can tell; the branch that turns it into a
+   named check failure is **not written**, deliberately, because nobody has
+   seen it happen and an unexercised classifier is the thing this tree distrusts
+   most. Write it with the run that produces it.
 4. **`queue-canvas-grew-arm-abstains-intermittently`** — 2 of 5 runs on one
    machine in one hour, and it is wired into the acceptance checklist, so a run
    passes or fails the gate by coin flip. The arm now records which precondition

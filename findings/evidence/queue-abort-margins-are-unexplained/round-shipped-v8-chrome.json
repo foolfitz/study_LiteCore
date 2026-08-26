@@ -1,0 +1,110 @@
+{
+  "run": "shipped-v8-chrome",
+  "mutation": null,
+  "outcome": "PASS",
+  "ok": true,
+  "observed": {
+    "control": {
+      "kind": "no-abort (control)",
+      "aborted": false,
+      "aRangeIsSelectedBefore": false,
+      "aRangeIsSelectedAfterAbortAndMove": true,
+      "copyToast": "已複製 U+0045,U+0031,U+002D,U+004C,U+0043,U+002D,U+0049,U+0053,U+004F,U+004C,U+0041,U+0054,U+0045,U+0044,U+0020,U+524D,U+5F8C,U+90FD,U+4E0D,U+662F,U+6E05,U+55AE,U+7684 字",
+      "selectedText": "E1-LC-ISOLATED 前後都不是清單的",
+      "selectedCodePoints": 23,
+      "aim": {
+        "x1": "0.11586",
+        "x2": "0.49793",
+        "y": "0.12756",
+        "abortAtFraction": 0.306895,
+        "band": [
+          82,
+          392
+        ],
+        "scanWidth": 725
+      }
+    },
+    "reference": {
+      "kind": "no-abort, stopping at the abort point (reference)",
+      "aborted": false,
+      "aRangeIsSelectedBefore": false,
+      "aRangeIsSelectedAfterAbortAndMove": true,
+      "copyToast": "已複製 U+0045,U+0031,U+002D,U+004C,U+0043,U+002D,U+0049,U+0053,U+004F,U+004C,U+0041,U+0054 字",
+      "selectedText": "E1-LC-ISOLAT",
+      "selectedCodePoints": 12,
+      "aim": {
+        "x1": "0.11586",
+        "x2": "0.30689",
+        "y": "0.12756",
+        "abortAtFraction": 0.211375,
+        "band": [
+          82,
+          392
+        ],
+        "scanWidth": 725
+      }
+    },
+    "arms": [
+      {
+        "kind": "pointercancel",
+        "aborted": true,
+        "aRangeIsSelectedBefore": false,
+        "aRangeIsSelectedAfterAbortAndMove": true,
+        "copyToast": "已複製 U+0045,U+0031,U+002D,U+004C,U+0043,U+002D,U+0049,U+0053,U+004F,U+004C,U+0041,U+0054 字",
+        "selectedText": "E1-LC-ISOLAT",
+        "selectedCodePoints": 12,
+        "aim": {
+          "x1": "0.11586",
+          "x2": "0.49793",
+          "y": "0.12756",
+          "abortAtFraction": 0.306895,
+          "band": [
+            82,
+            392
+          ],
+          "scanWidth": 725
+        }
+      },
+      {
+        "kind": "blur",
+        "aborted": true,
+        "aRangeIsSelectedBefore": false,
+        "aRangeIsSelectedAfterAbortAndMove": true,
+        "copyToast": "已複製 U+0045,U+0031,U+002D,U+004C,U+0043,U+002D,U+0049,U+0053,U+004F,U+004C,U+0041,U+0054 字",
+        "selectedText": "E1-LC-ISOLAT",
+        "selectedCodePoints": 12,
+        "aim": {
+          "x1": "0.11586",
+          "x2": "0.49793",
+          "y": "0.12756",
+          "abortAtFraction": 0.306895,
+          "band": [
+            82,
+            392
+          ],
+          "scanWidth": 725
+        }
+      }
+    ],
+    "controlText": "E1-LC-ISOLATED 前後都不是清單的",
+    "referenceText": "E1-LC-ISOLAT",
+    "armText": [
+      "E1-LC-ISOLAT",
+      "E1-LC-ISOLAT"
+    ],
+    "controlReach": 23,
+    "referenceReach": 12,
+    "abortReach": [
+      12,
+      12
+    ],
+    "marginCodePoints": [
+      11,
+      11
+    ],
+    "controlExtended": true,
+    "reachIsResolvable": true,
+    "establishes": "the selection ends where the abort landed: byte for byte what a drag that STOPPED there produced, driven in the same run on the same line",
+    "doesNotEstablish": "that this holds REPEATABLY. One run each way, and this check has produced three confident wrong answers on single runs already. Nor anything about aborts arriving at other moments: one move happens before the abort here, so an abort during the FIRST move, or after several, is not covered. queue-abort-margins-are-unexplained"
+  }
+}
