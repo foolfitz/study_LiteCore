@@ -93,7 +93,7 @@ either.
 ## 3. What this says about a11y as a product
 
 The handoff asked for "the v9 product path, which is the real question about
-a11y as a product". The answer, on one run and with the guard's own limits:
+a11y as a product". The answer, on four runs:
 
 **`e2-editor-v9` is not shippable as it stands.** An ordinary paragraph format —
 body ← heading, through the product's own toolbar button — takes the session to
@@ -321,8 +321,11 @@ against a real run.
 
    **Neither is measured. Do not repeat either as a cause** — the tree's own
    rule about 040.
-2. **Consider one revival on death, rather than stopping.** Raised by the
-   review and it is a good point: `openDocument()` constructs a **brand-new
+2. **Consider one revival on death, rather than stopping** — and finding 082
+   makes this worth more than it was this morning, because the accessibility
+   lineage now dies at check 17 of 40 **every time**, so 23 checks are
+   structurally unmeasurable until either 082 is fixed or the runner survives
+   it. Raised by the review and it is a good point: `openDocument()` constructs a **brand-new
    session** on every open, so `recoverable-error` is terminal for a session
    object, not for the page — and this runner re-opens five times. A death at
    check 17 currently costs 23 checks, of which the ones behind a later re-open
