@@ -6126,8 +6126,23 @@ return { available: true, afterButton };
         caret_typing["sinkAtLineStart"] = evaluate(session, SINK_POSITION) or {}
         place_caret_and_settle(session, POINT_AT, typing_clicks["past"],
                                caret_typing["line"])
-        time.sleep(0.8)
+        # The control's own predicate, polled: the sink must reach further right
+        # than it was at the line start.  The first read above keeps its sleep
+        # because there is nothing yet to compare it against -- said here rather
+        # than left for the next reader to notice.
+        control_started = time.monotonic()
         caret_typing["sinkAtLineEnd"] = evaluate(session, SINK_POSITION) or {}
+        while (time.monotonic() - control_started) < 8:
+            if ((caret_typing["sinkAtLineEnd"] or {}).get("left") is not None
+                    and (caret_typing["sinkAtLineStart"] or {}).get("left")
+                    is not None
+                    and caret_typing["sinkAtLineEnd"]["left"]
+                    > caret_typing["sinkAtLineStart"]["left"]):
+                break
+            time.sleep(0.1)
+            caret_typing["sinkAtLineEnd"] = evaluate(session, SINK_POSITION) or {}
+        caret_typing["controlSettledAfterMs"] = round(
+            (time.monotonic() - control_started) * 1000)
         start_left = (caret_typing["sinkAtLineStart"] or {}).get("left")
         end_left = (caret_typing["sinkAtLineEnd"] or {}).get("left")
         caret_typing["sinkTracksTheCaret"] = (
@@ -6143,8 +6158,45 @@ return { available: true, afterButton };
             landed = wait_for(session,
                               lambda s, f=floor: revision_of(s) is not None
                               and f is not None and revision_of(s) > f, 25)
-            time.sleep(1.2)
+            # SYNCHRONISED ON THE ANSWER, NOT ON A CLOCK -- and this check's own
+            # comment above says why: the defect it was written for is a RACE
+            # between the page's snapshot and the cursor callback, and a fixed
+            # sleep decides which side of that race the read falls on.
+            #
+            # MEASURED 2026-08-26, and the arithmetic is what forced the change.
+            # Nineteen runs, both cores, all nineteen ending at the same three
+            # positions -- 163, 278, 393, 509 with per-mark deltas 115/115/116.
+            # The two that failed read 163, 163, 393, 509: deltas 0, 230, 116,
+            # and 230 is 115 + 115. So the caret DID move after the first
+            # commit; the reading taken 1.2 s later was one commit stale and
+            # the next one had caught up. The totals are identical either way.
+            # A defect that leaves the end state correct is a stale READ.
+            #
+            # Polled on the check's OWN predicate rather than on "it changed":
+            # a caret that moved backwards and stayed there times out and the
+            # check fails, which is the behaviour a bare change-poll would have
+            # thrown away.  And the wait is RECORDED, so a core that is getting
+            # slower shows up as a number instead of as an intermittent red.
+            #
+            # AND IT CANNOT MASK THE DEFECT IT WAS WRITTEN FOR, which is the
+            # thing to check before replacing any sleep with a poll: nothing is
+            # typed while this waits, so a caret that only catches up when the
+            # NEXT commit arrives runs the deadline out and the check still
+            # fails. What the poll removes is the harness reading too early --
+            # and only that.
+            settle_started = time.monotonic()
             after = evaluate(session, SINK_POSITION) or {}
+            while (time.monotonic() - settle_started) < 8:
+                after_left, after_top = after.get("left"), after.get("top")
+                if (before_left is not None and after_left is not None
+                        and before_top is not None and after_top is not None
+                        and (after_top > before_top
+                             or (after_top == before_top
+                                 and after_left > before_left))):
+                    break
+                time.sleep(0.1)
+                after = evaluate(session, SINK_POSITION) or {}
+            settled_ms = round((time.monotonic() - settle_started) * 1000)
             after_left, after_top = after.get("left"), after.get("top")
             # FORWARD IN READING ORDER, not "further right".
             #
@@ -6166,6 +6218,10 @@ return { available: true, afterButton };
                 "wrapped": (before_top is not None and after_top is not None
                             and after_top > before_top),
                 "revisionAdvanced": revision_of(landed) != floor,
+                # How long the caret took to catch up with the text, after the
+                # revision said the text had landed.  The number the fixed
+                # 1.2 s sleep was hiding.
+                "settledAfterMs": settled_ms,
                 "moved": moved,
             })
 

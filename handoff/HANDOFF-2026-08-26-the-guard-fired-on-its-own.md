@@ -29,9 +29,15 @@ its attribution. Runbook and the prediction written before the measurement:
 | `queue-abort-margins-are-unexplained` | present, with two debts | **both paid** — eleven rounds, and the two fields it asked for turned out not to exist for it |
 | `queue-canvas-grew-arm-abstains-intermittently` | — | **new, absent** |
 | `queue-a11y-prefix-swallows-the-paragraph` | absent, since 2026-08-22 | **present** — the decision it was waiting for, forced by 082 |
-| `queue-a11y-caret-does-not-move-on-the-first-commit` | — | **new, absent** — 2 runs in 6, and only visible because 082 was fixed |
+| `queue-a11y-caret-does-not-move-on-the-first-commit` | — | **new, absent** — finding **084**, characterised and unfixed; only visible because 082 was fixed |
 | `queue-a11y-stage-deadline-awaiting-selection` | — | **new, present** — finding 083, filed and fixed the same day |
 | `p1-3b-empty-readback` | withdrawn 2026-08-16 | still `absent`, but its stated reason is now known to be **true of one core and not the other** |
+
+**Three findings filed today and two of them fixed the same day**: 082 (the
+identity gate comparing the hash of the empty string) and 083 (an empty
+selection called a stall) are fixed and measured; 084 (the caret skipping a
+commit) is characterised and open. Between them the accessibility lineage went
+from **dying at check 17 of 40** to **two runs in three completely clean**.
 
 **Finding 082 filed AND FIXED, same day.** On the accessibility core an ordinary
 paragraph format was refused by the barrier as "a different paragraph" — 4 runs
@@ -328,6 +334,55 @@ and not a stale copy.
 lineage, because the cell no longer blocks the queue. Same trade as 2026-08-17
 on the product core; `recoveryPairing.held: true`.
 
+## 3d. Finding 084: the caret skips a commit, and the instrument change is what proved it
+
+With 083 gone, one red was left anywhere in the tree:
+`caret-follows-the-text-you-type`, 2 runs in 6 on the a11y lineage.
+
+**The geometry pointed one way and it was wrong.** Nineteen runs, both cores,
+every one ending at the same position — 163, 278, 393, 509, per-mark deltas
+115/115/116. The failing ones read 163, **163**, 393, 509: deltas 0, **230**,
+116, and 230 is 115 + 115. Only one reading differs and the totals are
+identical, so the movement was not lost, it was **deferred**. My reading was
+that the harness had read too early: the arm waited for the revision and then
+slept a fixed **1.2 s** — the same wall-clock shape removed from the abort arm
+that morning, and this check's own comment records that the defect it covers was
+originally a race.
+
+**So the sleep became a poll** on the check's own predicate, 8 s deadline, with
+the wait recorded per commit. The property that made this safe is the one to ask
+for before replacing any sleep: **nothing is typed while it waits**, so a caret
+that only catches up on the next commit runs the deadline out and the check
+still fails.
+
+**It still fails, and now it has a number.**
+
+```
+v11 round 4   163->278 (1 ms)    278->393 (1 ms)     393->509 (1 ms)    PASS
+v11 round 5   163->278 (1 ms)    278->278 (8013 ms)  278->509 (1 ms)    FAIL
+v11 round 6   163->278 (1 ms)    278->393 (1 ms)     393->509 (1 ms)    PASS
+v8  (poll)    163->278 (0 ms)    278->393 (0 ms)     393->509 (0 ms)    PASS
+```
+
+**0 or 1 ms when it works, 8013 — the deadline — when it does not, and nothing
+in between.** That is not latency; it is a dropped update, and the caret catches
+up only when the next commit arrives.
+
+| core | commits measured | dropped |
+|---|---|---|
+| product `e2-editor-v8` | **42** | **0** |
+| a11y `e2-editor-v10` / `v11` | **27** | **3** |
+
+**Not established and not to be named**: why only on that core (two build
+differences, one measurement — findings 040 and 048), and which layer drops it.
+The next question is one measurement: record the **engine's** caret state beside
+`#sink` in the same round, which separates "the cursor callback never arrived"
+from "it arrived and the page did not use it".
+
+**What the instrument change was worth** — and it is not "it went green": it
+turned an intermittent red with no number into a red with 8013 ms in the record,
+and it **eliminated the competing explanation** that I had believed.
+
 ## 4. The refusal pair: a route built four days ago and never driven
 
 `queue-cut-refusal-lost-its-inducer` said, in its own words, "ROUTE BUILT
@@ -459,12 +514,11 @@ against a real run.
 
 ## Open work, in the order I would take it
 
-1. **`queue-a11y-caret-does-not-move-on-the-first-commit`** — now the only red
-   left anywhere, and 2 runs in 6. The two failing runs are **byte-identical to
-   each other** (163 → 163, then 163 → 393, then 393 → 509), so it is a
-   deterministic event firing intermittently rather than noise in the
-   measurement — which is a better lead than a rate. Bound it, then compare
-   against `e2-editor-v8`, where the same check passes.
+1. **Finding 084's next measurement**, and it is a single one: record the
+   ENGINE's caret state beside `#sink` in the same round. That separates "the
+   cursor callback never arrived" from "it arrived and the page did not use
+   it", and until it is taken no layer may be named. Everything else about 084
+   is characterised — 3 of 27 against 0 of 42, bimodal at 0 ms / never.
 
 2. **Consider one revival on death, rather than stopping.** Worth less than it
    was this morning — 082's fix removed the death that made it urgent — but the
@@ -526,6 +580,13 @@ against a real run.
 * **A fingerprint equal to `cbf29ce484222325` is not an answer.** It is the
   FNV-1a offset basis — what the hash returns when nothing was fed to it. The
   engine now says so itself (`a11y.fingerprintUsable`).
+* **Before replacing a sleep with a poll, ask whether the poll can mask the
+  defect the check exists for.** Three sleeps went today and each survived that
+  question for a different reason. The one in `caret-follows-the-text-you-type`
+  survived it because nothing is typed while it waits — and it then proved the
+  defect was real, against my own reading.
+* **A number beats a rate.** "2 runs in 6" became "0 ms or 8013 ms, nothing in
+  between", and only the second one says *dropped update* rather than *slow*.
 
 ## Commands
 
@@ -538,10 +599,13 @@ python3 tools/run_e2_c_product_path.py --browser chrome --out <path>
 # the guard's positive control -- EXPECTED to stop inside the endnote inducer
 python3 tools/run_e2_c_product_path.py --browser chrome --liveness-control --out <path>
 
-# the accessibility candidate WITH finding 082's fix, and the barrier's typed
+# the accessibility candidate as it now stands: 082's engine fix and 083's worker
+python3 tools/run_e2_c_product_path.py --browser chrome --profile e2-editor-v11 --out <path>
+
+# the same, with the barrier's typed
 # payload kept -- `engineRaw` carries what the product's allowlist drops
 python3 tools/run_e2_c_product_path.py --browser chrome \
-    --profile e2-editor-v10 --barrier-details-diagnostic --out <path>
+    --profile e2-editor-v11 --barrier-details-diagnostic --out <path>
 
 # what a link would ship, measured rather than read
 python3 tools/what_the_link_ships.py --variant a11y --since c82a642
