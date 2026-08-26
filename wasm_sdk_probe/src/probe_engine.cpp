@@ -6,6 +6,7 @@
 
 #ifdef OXSDK_E2_FORMAT_BARRIER
 #include "format_readback_text.hpp"
+#include "a11y_paragraph_identity.hpp"
 #endif
 #include "sdk_api.h"
 #ifdef OXSDK_EDITOR_DISCOVERY
@@ -308,6 +309,13 @@ struct EditorState {
   // whether a click moved the caret to a different paragraph without receiving
   // any of the document's text.
   std::uint64_t a11yContentHash = 0;
+  // FINDING 082.  Whether `a11yContentHash` may be COMPARED, which is a
+  // different question from `a11yParagraphFresh` (did the last read succeed).
+  // False when the reported list prefix consumed the whole paragraph, because
+  // the hashed body is then empty and the value distinguishes nothing --
+  // finding 074's shape, measured on a heading and on a paragraph holding only
+  // a bullet, which report the same number.
+  bool a11yFingerprintUsable = false;
   int a11yListPrefixLength = 0;
   // Did the LAST synchronous read succeed?  Distinct from `a11yObserved` (a
   // callback fired at some point) and from `enabled` (accessibility was
@@ -830,8 +838,15 @@ struct FormatStateBarrier {
   bool dispatchParagraphKnown = false;
   std::uint64_t readbackParagraphFingerprint = 0;
   bool readbackParagraphKnown = false;
+  // FINDING 082.  Whether each end's fingerprint may be COMPARED at all.
+  // `Known` says the read succeeded; these say the value it produced carries an
+  // identity rather than the constant that means nothing was hashed.
+  bool dispatchParagraphUsable = false;
+  bool readbackParagraphUsable = false;
   // Did the identity comparison actually run?  See the verdict path.
   bool paragraphIdentityChecked = false;
+  // And if it did not, WHICH of the reasons it was.  "" while it ran.
+  const char *paragraphIdentityDeclined = "";
   // What the postcondition demands of the readback.  Empty means "this action
   // makes no claim about that half".
   std::string expectedListTag;   // "ul" / "ol" / "none"
@@ -1146,6 +1161,12 @@ void appendEditorState(std::ostringstream &json) {
        << (gEditorState.a11yParagraphFresh ? "true" : "false")
        << ",\"paragraphFingerprint\":\"" << std::hex
        << gEditorState.a11yContentHash << std::dec << "\""
+       // FINDING 082.  A host that compares fingerprints has to be able to
+       // tell "this one identifies a paragraph" from "this one is the value
+       // that means nothing was hashed", and until this field existed the two
+       // arrived as the same hex string.
+       << ",\"fingerprintUsable\":"
+       << (gEditorState.a11yFingerprintUsable ? "true" : "false")
        << ",\"listPrefixLength\":" << gEditorState.a11yListPrefixLength
 #ifdef OXSDK_A11Y_OUTLINE
        // ROADMAP 3.4, the product field.  WCAG 2.1 1.3.1 is Level A and asks
@@ -1387,6 +1408,16 @@ void appendFormatBarrierDetails(std::ostringstream &json,
        << (barrier.dispatchParagraphKnown ? "true" : "false")
        << ",\"readbackKnown\":"
        << (barrier.readbackParagraphKnown ? "true" : "false")
+       // FINDING 082.  `checked: false` had two causes and now has three, and
+       // one of them is a defect in what the engine was given rather than in
+       // what it could reach.  A reader who cannot tell them apart will read
+       // "accessibility is off" over a build where it is on.
+       << ",\"dispatchUsable\":"
+       << (barrier.dispatchParagraphUsable ? "true" : "false")
+       << ",\"readbackUsable\":"
+       << (barrier.readbackParagraphUsable ? "true" : "false")
+       << ",\"declined\":\""
+       << jsonEscape(barrier.paragraphIdentityDeclined) << "\""
        << "}"
        << ",\"containment\":{\"checked\":"
        << (barrier.containmentChecked ? "true" : "false")
@@ -1668,6 +1699,16 @@ struct EditorSemanticSnapshot {
   // read.  FNV-1a: this is an equality check between two observations made
   // seconds apart in one process, not a security boundary.
   std::uint64_t contentHash = 0;
+  // FINDING 082.  Whether `contentHash` may be used as an IDENTITY, which is a
+  // different question from whether the read succeeded.
+  //
+  // The hash is taken over the content with `listPrefixLength` characters
+  // stripped, and finding 074 makes that length the WHOLE PARAGRAPH for an
+  // outline-numbered heading -- so the slice is empty and the hash is the
+  // offset basis, the value that means nothing was hashed.  Measured
+  // 2026-08-26: `E1-LC-HEADING` (13 of 13) and a paragraph holding only `• `
+  // (2 of 2) report one number.  The rule lives in the header beside the hash.
+  bool fingerprintUsable = false;
 #ifdef OXSDK_A11Y_PARAGRAPH_TEXT
   // ROADMAP 3.4.  The text itself, and it is behind a guard for the reason the
   // format-barrier members two hundred lines up are: adding a field to the
@@ -1689,20 +1730,16 @@ struct EditorSemanticSnapshot {
 #endif
 };
 
-std::uint64_t fingerprintOf(const std::string &content) {
-  // 14695981039346656037, the FNV-1a 64-bit offset basis.  Written here as
-  // 1469598103934665603 until 2026-08-17 -- one digit short, so it was a
-  // perfectly serviceable hash that was not the algorithm the comment named.
-  // It was caught by the first measurement after the link, because every
-  // paragraph reported this constant: the hash of an empty string, which is
-  // what the loop returns when it never runs.
-  std::uint64_t hash = 14695981039346656037ull;
-  for (const unsigned char byte : content) {
-    hash ^= static_cast<std::uint64_t>(byte);
-    hash *= 1099511628211ull;
-  }
-  return hash;
-}
+// MOVED to src/a11y_paragraph_identity.hpp on 2026-08-26, with the rule that
+// reads its output (finding 082).  One implementation, and now one that a host
+// compiler can drive: `tests/a11y_paragraph_identity_test.cpp` reproduces six
+// fingerprints this engine actually reported on the accessibility profile.
+//
+// The comment it carried stays with it: 14695981039346656037 is the FNV-1a
+// 64-bit offset basis, written one digit short until 2026-08-17 -- a perfectly
+// serviceable hash that was not the algorithm the comment named, and caught
+// because every paragraph then reported the constant that means UNFED.
+using probe::fingerprintOf;
 
 // Parses the documented focused-paragraph JSON shape shared by
 // getA11yFocusedParagraph() and the LOK_CALLBACK_A11Y_FOCUS_CHANGED payload:
@@ -1743,6 +1780,11 @@ bool parseEditorSemanticJson(const std::string &json,
     snapshot.contentHash =
         fingerprintOf(std::string(body.getStr(),
                                   static_cast<std::size_t>(body.getLength())));
+    // Decided from the two COUNTS rather than from the hash, so that a
+    // paragraph whose text happens to hash to the basis is not swept up with
+    // the degenerate ones.  Finding 082.
+    snapshot.fingerprintUsable = probe::paragraphFingerprintIsUsable(
+        snapshot.listPrefixLength, snapshot.contentLength);
 #ifdef OXSDK_A11Y_PARAGRAPH_TEXT
     snapshot.content = content;
 #endif
@@ -1812,6 +1854,7 @@ bool refreshCaretParagraph() {
     gEditorState.a11yContentLength = -1;
     gEditorState.a11yPosition = -1;
     gEditorState.a11yContentHash = 0;
+    gEditorState.a11yFingerprintUsable = false;
     gEditorState.a11yListPrefixLength = 0;
 #ifdef OXSDK_A11Y_PARAGRAPH_TEXT
     gEditorState.a11yParagraphText.clear();
@@ -1828,6 +1871,7 @@ bool refreshCaretParagraph() {
     gEditorState.a11yContentLength = -1;
     gEditorState.a11yPosition = -1;
     gEditorState.a11yContentHash = 0;
+    gEditorState.a11yFingerprintUsable = false;
     gEditorState.a11yListPrefixLength = 0;
 #ifdef OXSDK_A11Y_PARAGRAPH_TEXT
     gEditorState.a11yParagraphText.clear();
@@ -1837,6 +1881,7 @@ bool refreshCaretParagraph() {
   gEditorState.a11yContentLength = snapshot.contentLength;
   gEditorState.a11yPosition = snapshot.position;
   gEditorState.a11yContentHash = snapshot.contentHash;
+  gEditorState.a11yFingerprintUsable = snapshot.fingerprintUsable;
   gEditorState.a11yListPrefixLength = snapshot.listPrefixLength;
 #ifdef OXSDK_A11Y_PARAGRAPH_TEXT
   gEditorState.a11yParagraphText = snapshot.content;
@@ -2395,6 +2440,7 @@ void onLokCallback(int type, const char *payload, void *) {
       gEditorState.a11yContentLength = snapshot.contentLength;
       gEditorState.a11yPosition = snapshot.position;
       gEditorState.a11yContentHash = snapshot.contentHash;
+      gEditorState.a11yFingerprintUsable = snapshot.fingerprintUsable;
       gEditorState.a11yListPrefixLength = snapshot.listPrefixLength;
 #ifdef OXSDK_A11Y_PARAGRAPH_TEXT
       gEditorState.a11yParagraphText = snapshot.content;
@@ -4032,6 +4078,7 @@ void readFormatBarrierPostcondition() {
   // it would be measuring the restore, not the read.
   gFormatBarrier.readbackParagraphKnown = refreshCaretParagraph();
   gFormatBarrier.readbackParagraphFingerprint = gEditorState.a11yContentHash;
+  gFormatBarrier.readbackParagraphUsable = gEditorState.a11yFingerprintUsable;
   char *html = gState.document->pClass->getTextSelection(
       gState.document, "text/html", nullptr);
   const std::string markup = html ? std::string(html) : std::string();
@@ -4228,9 +4275,39 @@ void finishFormatBarrierAfterRestore() {
   // format action in the product, which is far worse than the defect.  Made
   // VISIBLE instead -- the payload says whether identity was verified, so
   // evidence can tell the two apart and a round that relied on it can say so.
+  //
+  // FINDING 082, and it is a THIRD condition rather than a wider first one.
+  //
+  // A read can succeed and still produce a fingerprint that identifies nothing:
+  // the hash is taken over the content with `listPrefixLength` characters
+  // stripped, and finding 074 makes that length the whole paragraph for an
+  // outline-numbered heading -- so the slice is empty and the hash is the
+  // offset basis.  Measured 2026-08-26 on `e2-editor-v9`: `E1-LC-HEADING`
+  // (13 of 13) and a paragraph holding only `• ` (2 of 2) report the SAME
+  // number, and a `set-paragraph-body` on that heading was refused as "a
+  // different paragraph" -- with a `rollback` disposition, on a session with no
+  // checkpoint -- while the readback markup shows the action had landed on the
+  // right paragraph and worked.
+  //
+  // So the gate declines the comparison instead of failing it.  That is the
+  // same fail-open this comment already argues for, extended to the case where
+  // the value is present and meaningless rather than absent: the alternative is
+  // a FALSE refusal prescribing a rollback, which is worse than the defect the
+  // gate exists to catch.  Which reason it was is in the payload, because "the
+  // gate did not run" has three causes now and a reader must not have to guess.
   gFormatBarrier.paragraphIdentityChecked =
       gFormatBarrier.dispatchParagraphKnown
-      && gFormatBarrier.readbackParagraphKnown;
+      && gFormatBarrier.readbackParagraphKnown
+      && gFormatBarrier.dispatchParagraphUsable
+      && gFormatBarrier.readbackParagraphUsable;
+  gFormatBarrier.paragraphIdentityDeclined =
+      gFormatBarrier.paragraphIdentityChecked ? ""
+      : (!gFormatBarrier.dispatchParagraphKnown
+         || !gFormatBarrier.readbackParagraphKnown)
+          ? "a paragraph read did not succeed"
+          : "the reported list prefix consumed the whole paragraph, so the "
+            "fingerprint is the empty-string constant and identifies nothing "
+            "(finding 074)";
   if (gFormatBarrier.paragraphIdentityChecked
       && gFormatBarrier.dispatchParagraphFingerprint
              != gFormatBarrier.readbackParagraphFingerprint) {
@@ -4513,6 +4590,7 @@ void startFormatBarrierActionResolved(const Command &command,
   // reached.
   barrier.dispatchParagraphKnown = refreshCaretParagraph();
   barrier.dispatchParagraphFingerprint = gEditorState.a11yContentHash;
+  barrier.dispatchParagraphUsable = gEditorState.a11yFingerprintUsable;
   barrier.stage = FormatBarrierStage::AwaitingResult;
   barrier.serial = gNextFormatBarrierSerial++;
   gFormatBarrier = barrier;

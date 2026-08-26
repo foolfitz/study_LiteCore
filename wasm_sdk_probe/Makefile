@@ -171,6 +171,7 @@ E2_PREGUARD_OBJECTS := $(patsubst src/%.cpp,$(E2_PREGUARD_BUILD)/%.o,$(E1_SOURCE
 # (probe_engine.hpp:69-72).
 E2_COMBO_BUILD := build/e2/combination
 E2_B_TEXT_TEST_BIN := build/e2/format-readback-text-test
+A11Y_IDENTITY_TEST_BIN := build/a11y_paragraph_identity_test
 E2_COMBO_DIST := dist/profiles/e2-combination
 E2_COMBO_SOURCES := src/sdk_api.cpp src/probe_engine.cpp src/unoembind_stub.cpp \
 	src/editor_api.cpp src/editor_discovery_api.cpp
@@ -980,7 +981,8 @@ $(E1_B_BUILD)/probe.wasm: $(E1_B_BUILD)/probe.js
 	@test -s $@
 
 $(E2_B_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
-		src/format_readback_text.hpp Makefile | $(E2_B_BUILD)
+		src/format_readback_text.hpp src/a11y_paragraph_identity.hpp \
+		Makefile | $(E2_B_BUILD)
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
 		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
 		-c $< -o $@
@@ -1016,7 +1018,8 @@ $(E2_B_BUILD)/probe.wasm: $(E2_B_BUILD)/probe.js
 	@test -s $@
 
 $(E2_C_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
-		src/format_readback_text.hpp Makefile | $(E2_C_BUILD)
+		src/format_readback_text.hpp src/a11y_paragraph_identity.hpp \
+		Makefile | $(E2_C_BUILD)
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
 		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
 		-c $< -o $@
@@ -1103,7 +1106,8 @@ $(E2_V4_BUILD)/a11y_tree_probe.o: src/a11y_tree_probe.cpp Makefile | $(E2_V4_BUI
 		-DOXSDK_A11Y_TREE_PROBE -c $< -o $@
 
 $(E2_V4_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
-		src/format_readback_text.hpp Makefile | $(E2_V4_BUILD)
+		src/format_readback_text.hpp src/a11y_paragraph_identity.hpp \
+		Makefile | $(E2_V4_BUILD)
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
 		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
 		$(EXTRA_DEFINES) -c $< -o $@
@@ -1161,7 +1165,8 @@ $(E2_V4_BUILD) $(E2_V4_DIST):
 # two artifacts, and one of them is bound to a verdict.  Duplication is the
 # cheaper risk here, and it is the same call v3 -> v4 made.
 $(E2_V8_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
-		src/format_readback_text.hpp Makefile | $(E2_V8_BUILD)
+		src/format_readback_text.hpp src/a11y_paragraph_identity.hpp \
+		Makefile | $(E2_V8_BUILD)
 	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
 		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
 		$(EXTRA_DEFINES) -c $< -o $@
@@ -1231,7 +1236,8 @@ E2_V5_CPPFLAGS := -DLOK_USE_UNSTABLE_API -I$(LOSRC)/include \
 	-I$(E2_V5_CORE)/workdir/UnpackedTarball/boost
 
 $(E2_V5_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
-		src/format_readback_text.hpp Makefile | $(E2_V5_BUILD)
+		src/format_readback_text.hpp src/a11y_paragraph_identity.hpp \
+		Makefile | $(E2_V5_BUILD)
 	$(CXX) $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
 		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
 		-DOXSDK_A11Y_PARAGRAPH_TEXT -DOXSDK_A11Y_OUTLINE \
@@ -1309,7 +1315,8 @@ A11Y_CALLOC_DIST := dist/profiles/a11y-calloc
 A11Y_CALLOC_OBJECTS := $(patsubst src/%.cpp,$(A11Y_CALLOC_BUILD)/%.o,$(E2_V5_SOURCES))
 
 $(A11Y_CALLOC_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
-		src/format_readback_text.hpp Makefile | $(A11Y_CALLOC_BUILD)
+		src/format_readback_text.hpp src/a11y_paragraph_identity.hpp \
+		Makefile | $(A11Y_CALLOC_BUILD)
 	$(CXX) $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
 		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
 		-DOXSDK_A11Y_PARAGRAPH_TEXT -DOXSDK_A11Y_OUTLINE \
@@ -1382,6 +1389,112 @@ $(A11Y_CALLOC_DIST)/sdk-manifest.json: $(A11Y_CALLOC_BUILD)/probe.js \
 	@test -s $(A11Y_CALLOC_DIST)/sdk-worker.js
 
 $(A11Y_CALLOC_BUILD) $(A11Y_CALLOC_DIST):
+	mkdir -p $@
+
+# ------------------------------- v10, the a11y product candidate WITH 082's fix
+#
+# ONE VARIABLE AGAINST v9, and it is measured rather than intended:
+# `what_the_link_ships.py --variant a11y --since c82a642` -- the commit v9's
+# artifact was linked from -- reports `sdk_api`, `unoembind_stub` and
+# `editor_api` preprocessing IDENTICALLY, `sdk-worker.js` byte-identical
+# (070229cd10bda4a0 both sides), and every hunk in `probe_engine.cpp` belonging
+# to finding 082.  Same core, same defines, same manifest flags, same gestures.
+#
+# WHAT IT CARRIES: the format barrier's identity gate stops comparing a
+# fingerprint that identifies nothing.  On the accessibility core an
+# outline-numbered heading reports its whole text as `listPrefixLength`
+# (finding 074), so the hashed body is empty and the fingerprint is the
+# FNV-1a offset basis -- the same number a paragraph holding only a bullet
+# reports.  v9 refused a correct `set-paragraph-body` on that heading as "a
+# different paragraph", with a `rollback` disposition and no checkpoint, four
+# runs out of four.  That is finding 082, and it is what stops the
+# accessibility lineage being measurable past its seventeenth check.
+#
+# ITS SHIPPABILITY IS A MEASUREMENT NOBODY HAS TAKEN.  This rule mints a
+# candidate; `run_e2_c_product_path.py --profile e2-editor-v10` is how it gets
+# taken, and `handoff/RUNBOOK-relink-v10-a11y-identity.md` says what the answer
+# should look like BEFORE it is run.
+E2_V10_BUILD := build/e2/e2-editor-v10
+E2_V10_DIST := dist/profiles/e2-editor-v10
+E2_V10_OBJECTS := $(patsubst src/%.cpp,$(E2_V10_BUILD)/%.o,$(E2_V5_SOURCES))
+
+$(E2_V10_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/format_readback_text.hpp src/a11y_paragraph_identity.hpp \
+		Makefile | $(E2_V10_BUILD)
+	$(CXX) $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_A11Y_PARAGRAPH_TEXT -DOXSDK_A11Y_OUTLINE \
+		-c $< -o $@
+
+$(E2_V10_BUILD)/a11y_tree_probe.o: src/a11y_tree_probe.cpp Makefile \
+		| $(E2_V10_BUILD)
+	$(CXX) $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 -DLIBO_INTERNAL_ONLY \
+		-c $< -o $@
+
+$(E2_V10_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V10_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+$(E2_V10_BUILD)/probe.js: $(E2_V10_OBJECTS) \
+		$(E2_V10_BUILD)/a11y_tree_probe.o \
+		$(E2_V10_BUILD)/exports.txt \
+		$(E2_V5_CORE)/instdir/program/soffice.js.linkdeps Makefile
+	$(call refuse_unasked_relink,the a11y product candidate carrying finding 082's fix -- every link mints a new hash and five identities bind to one)
+	$(CXX) $(E2_V10_OBJECTS) $(E2_V10_BUILD)/a11y_tree_probe.o \
+		-L$(E2_V5_CORE)/instdir/program \
+		$$(cat $(E2_V5_CORE)/instdir/program/soffice.js.linkdeps) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=65536 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(E2_V10_BUILD)/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(E2_V5_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+		-o $@
+
+$(E2_V10_BUILD)/probe.wasm: $(E2_V10_BUILD)/probe.js
+	@test -s $@
+
+# `--inline-range-gestures all`, like v9 and unlike a11y-calloc: this is a
+# PRODUCT candidate, so it carries the gestures `e2-editor-v8` ships and the
+# comparison against v9 stays one-variable.
+$(E2_V10_DIST)/sdk-manifest.json: $(E2_V10_BUILD)/probe.js \
+		$(E2_V10_BUILD)/probe.wasm \
+		$(E2_V10_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V10_DIST)
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_V10_BUILD)/probe.js \
+		--wasm $(E2_V10_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js \
+		--exports $(E2_V10_BUILD)/exports.txt \
+		--profile e2-editor-v10 --paragraph-text --document-outline \
+		--inline-range-gestures all --core-data $(E2_V5_CORE) \
+		--output $(E2_V10_DIST)
+	@test -s $(E2_V10_DIST)/probe.js
+	@test -s $(E2_V10_DIST)/probe.wasm
+	@test -s $(E2_V10_DIST)/sdk-worker.js
+
+$(E2_V10_BUILD):
+	mkdir -p $@
+
+$(E2_V10_DIST):
 	mkdir -p $@
 
 # --------------------------------------------- v9, the a11y product candidate
@@ -2511,6 +2624,15 @@ test-e1-b-static:
 test-e2-b-static:
 	c++ -std=c++17 -Isrc -o $(E2_B_TEXT_TEST_BIN) tests/format_readback_text_test.cpp
 	$(E2_B_TEXT_TEST_BIN)
+	# Finding 082's rule, beside its sibling for the same reason: the format
+	# barrier's identity gate can only be exercised by a wasm link otherwise,
+	# and a gate nobody can drive is a gate nobody has tested.  Every
+	# fingerprint it asserts is one the accessibility profile really reported
+	# on 2026-08-26, so this is a cross-implementation check on the
+	# slice-and-hash rather than a restatement of it.
+	c++ -std=c++17 -Isrc -o $(A11Y_IDENTITY_TEST_BIN) \
+		tests/a11y_paragraph_identity_test.cpp
+	$(A11Y_IDENTITY_TEST_BIN)
 	c++ -std=c++17 -I../libreoffice-26-8/include -fsyntax-only \
 		tools/f049_native_select_after_format.cpp
 	c++ -std=c++17 -I../libreoffice-26-8/include -fsyntax-only \

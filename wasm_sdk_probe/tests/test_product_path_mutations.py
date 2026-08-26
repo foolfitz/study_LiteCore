@@ -46,6 +46,26 @@ class DiagnosticMirrorsStillApply(unittest.TestCase):
     `cut-swallows-its-failure` came to be dead for weeks.
     """
 
+    def test_the_worker_projection_anchor_is_still_in_every_profile_it_can_aim_at(self):
+        """The worker the PAGE loads is the profile's copy, not `dist/sdk/`.
+
+        `--barrier-details-diagnostic` widens `productFormatBarrier` there so
+        the engine's whole barrier object survives the product's allowlist --
+        which is where finding 082's answer was going. Checked on both profiles
+        this runner can be pointed at today, because `--profile` decides which
+        copy gets patched at run time.
+        """
+        for profile in ("e2-editor-v8", "e2-editor-v9"):
+            with self.subTest(profile=profile):
+                worker = DIST / "profiles" / profile / "sdk-worker.js"
+                self.assertTrue(worker.is_file(), f"{profile} has no worker")
+                hits = worker.read_text(encoding="utf-8").count(
+                    probe.WORKER_BARRIER_ANCHOR)
+                self.assertEqual(
+                    hits, 1,
+                    f"--barrier-details-diagnostic widens productFormatBarrier "
+                    f"and found {hits} of its anchor in {profile}'s worker.")
+
     def test_the_barrier_details_anchor_is_still_in_the_page(self):
         page = DIST / "e2-editor-app.js"
         self.assertTrue(page.is_file())

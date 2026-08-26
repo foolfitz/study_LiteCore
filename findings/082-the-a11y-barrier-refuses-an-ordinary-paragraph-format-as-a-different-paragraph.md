@@ -1,19 +1,23 @@
-# 082 — a11y core 上一個普通的段落格式被 barrier 判成「讀回的是別的段落」，而那個閘門只有 a11y build 走得到
+# 082 — barrier 拿「空字串的雜湊」當段落身分，於是在 a11y core 上拒絕了一個成功的段落格式，並且沒有檢查點就把 session 推進 recoverable-error
 
 | | |
 |---|---|
-| **狀態** | **已特徵化**（四輪四中，2026-08-26）。**成因未確立**——payload 不帶指紋，指認會是猜的 |
+| **狀態** | **成因確立、已修、修法量到生效**（2026-08-26）。修在我們自己的引擎；上游那半是 finding 074，未修 |
 | **發現日** | 2026-08-26，執行 `HANDOFF-2026-08-24` 開放項目 2（「v9 的產品路徑」）時掉出來 |
 | **嚴重度** | **高（對 a11y 產品線）**：使用者按一次工具列的「內文」，session 就進 `recoverable-error` 而且**沒有檢查點**，產品接著告訴他「自上次儲存以來的內容不會回來」 |
 | **可重現** | **4/4**，`e2-editor-v9`（wasm `b60cc46f…`＝a11y core ＋ calloc），chrome，同一台機器 |
 | **出貨那顆 core** | **走不到**。閘門 gate 在 accessibility 上，沒有 accessibility 的 build 一路 fail-open，同一支臂在 `e2-editor-v8` 上是 PASS |
-| **是否上游** | **否**。程式在我們自己的 `src/probe_engine.cpp` |
+| **是否上游** | **一半**。誤報在我們的 `src/probe_engine.cpp`（已修）；讓它誤報的那個數字來自上游 —— finding 074，`sfx2/source/view/viewsh.cxx` |
 
 ## 一句話
 
-在 a11y core 上，把第一段從「標題」改成「內文」會被 format barrier 以
-`readback-is-a-different-paragraph` 拒絕（`MUTATION_OUTCOME_UNKNOWN`，處置 rollback），
+在 a11y core 上，把第一段從「標題」改成「內文」**會成功**，但 format barrier 以
+`readback-is-a-different-paragraph` 拒絕它（`MUTATION_OUTCOME_UNKNOWN`，處置 rollback），
 佇列被擋住、session 進 `recoverable-error`，而且**沒有檢查點**。
+
+**是誤報。**閘門比的兩個指紋裡有一個是「空字串的雜湊」——那顆標題被 LOK 回報
+`listPrefixLength == contentLength`（finding 074），切完什麼都不剩，
+於是它和「只有一個項目符號的空段落」是同一個數字。
 
 ## 量到的
 
@@ -79,20 +83,127 @@ off-page 的垃圾把兩行併成一行。今天的 v9 報告是 `bands: 9, line
 
 **打開 accessibility 等於打開一個從未在產品上執行過的比較。**
 
+## 成因（量到的，不是讀出來的）
+
+`--barrier-details-diagnostic` 把 worker 的 `productFormatBarrier` 白名單在鏡像裡放寬
+——**引擎其實一直有送，是 JavaScript 丟掉的**——於是整包 barrier 物件進了報告：
+
+```json
+{ "stage": "awaiting-restore", "command": ".uno:StyleApply",
+  "expectedStyles": ["Body Text"],
+  "resultSuccess": true, "resultModified": true,
+  "readback": { "parsed": true, "blockCount": 1, "blockTag": "p",
+                "html": "… <p>E1-LC-HEADING</p> …" },
+  "containment": { "checked": true, "held": true,
+                   "selectionTop": 1418, "selectionBottom": 1693,
+                   "restoreCentre": 1625 } }
+```
+
+**讀回的就是那一段，而且它已經是 `<p>` 了。**動作成功了。所以「讀到別的段落」是假的。
+
+再把 `editorState.caretParagraph` 逐次狀態轉換錄下來（66 筆），出現過的每一種讀數：
+
+| n | listPrefixLength | contentLength | fingerprint | text |
+|---:|---:|---:|---|---|
+| 9 | 0 | 20 | `76f09d751bb341f7` | `E1-LC-END甲一乙二丙三插入鈕標記` |
+| 3 | 2 | 22 | `76f09d751bb341f7` | `• E1-LC-END甲一乙二丙三插入鈕標記` |
+| **7** | **13** | **13** | **`cbf29ce484222325`** | **`E1-LC-HEADING`** |
+| **3** | **2** | **2** | **`cbf29ce484222325`** | **`• `** |
+| 3 | 3 | 19 | `d0586a07b98862c6` | `1. E1-LC-NUMBER-ONE` |
+
+兩件事同時成立：
+
+- **切前綴是對的、而且有效**：同一段加不加項目符號是**同一個指紋**
+  （`76f09d751bb341f7`）。這正是切它的理由，不能拿掉。
+- **一顆 13 字的標題和一個只有項目符號的空段落是同一個數字**，而那個數字是
+  `cbf29ce484222325` —— FNV-1a 64 的 offset basis，**「什麼都沒餵進去」的值**。
+  兩者都是 `listPrefixLength == contentLength`，也就是 finding 074：
+  `getListPrefixSize()` 回的是第一個 ATTRIBUTE RUN 的結尾，不是編號前綴的長度。
+
+所以閘門拿一個退化的值去比一個真的值，判「不是同一段」。
+
+## 修法（已做，並且量到生效）
+
+閘門在任一端的指紋退化時**放棄比對**，而不是判它失敗——和它周圍那段註解本來就在論證的
+fail-open 同一件事，只是從「值不在」擴到「值在但沒有意義」。理由是：另一邊是**假的拒絕
+外加一張 rollback 處方**，比這個閘門本來要抓的缺陷更糟。
+
+規則和雜湊放在同一個檔（`src/a11y_paragraph_identity.hpp`），
+`tests/a11y_paragraph_identity_test.cpp` 在**主機上**驅動它們，並且**重現了引擎真的報過的
+六個指紋**——所以那是跨實作核對，不是把規則再抄一遍。四種突變都被它抓到。
+payload 多三個欄位，讓 `checked: false` 的三種成因不必用猜的。
+
+**對出貨那顆 core 是惰性的**：accessibility 關掉時 `refreshCaretParagraph()` 回 false，
+`dispatchParagraphKnown` 本來就是 false、閘門本來就放棄。v8 不需要重新連結。
+
+### 量到的（`e2-editor-v10`，2026-08-26）
+
+`what_the_link_ships.py --variant a11y --since c82a642`（v9 那顆 artifact 連結自的 commit）：
+三個 translation unit 前處理**完全相同**、`sdk-worker.js` **逐位元相同**、
+`probe_engine.cpp` 的每一個 hunk 都屬於這張 finding。對 v9 是**單一變因**。
+
+| | v9 | v10 |
+|---|---|---|
+| wasm | `b60cc46fcc6bf572` | `4ec1e389aaab3b03` |
+| worker | `070229cd10bda4a0` | `070229cd10bda4a0` |
+| 動作／手勢 | 21 個 | 完全相同 |
+
+產品路徑（預測寫在跑之前，見 `handoff/RUNBOOK-relink-v10-a11y-identity.md`）：
+
+| 預測 | 實測 |
+|---|---|
+| 不會停，40 格全跑 | **`sessionDied: null`**，40 格 |
+| `set-paragraph-body` 過 | **過**，而且那一格六支臂全過 |
+| 不再有 `readback-is-a-different-paragraph` | **一次都沒有** |
+| `bulleting-…` 仍紅在 `stage-deadline:awaiting-selection` | **仍紅，同一個 shape** |
+| `notice-action-recovers-the-session` 仍過 | **過**，配對關係 `held: true` |
+
+整輪 **35 PASS / 2 FAIL / 3 NOT_ESTABLISHED**。v9 上這一格四輪四次都撐不過第二支臂。
+
+**三輪三中**：
+
+| 輪 | 判定 | 那一格 | `caret-follows-the-text-you-type` |
+|---|---|---|---|
+| 1 | 35 PASS / 2 FAIL / 3 NE | **PASS**，六支臂 | **FAIL** |
+| 2 | 37 PASS / 1 FAIL / 2 NE | **PASS**，六支臂 | PASS |
+| 3 | 37 PASS / 1 FAIL / 2 NE | **PASS**，六支臂 | PASS |
+
+三輪都沒有提早停、都沒有出現 `readback-is-a-different-paragraph`，
+每一輪僅存的那一筆 page error 都是 bulleting 那格的
+`stage-deadline:awaiting-selection`——另一個缺陷，沒被碰到，和預測一致。
+
+## 這個修法買到的東西（重點在這裡）
+
+**第 17 格之後的 23 格，在這條線上第一次被量到**，而其中一格是紅的：
+`caret-follows-the-text-you-type`——第一輪打字文字進了文件（`revisionAdvanced: true`）
+但游標沒動（163 → 163），第二、三輪正常。**而且它是間歇的：三輪裡紅一輪。**
+那是新的觀察，不屬於這張 finding，已另立
+`queue-a11y-caret-does-not-move-on-the-first-commit`——三輪紅一輪正是這棵樹被騙過的那個形狀，
+所以它是佇列項不是 finding。而在 session 死在第 17 格的時候，它根本不可能被看到。
+
+## 我第一個假說是錯的，而它錯得有用
+
+第一份預測（`findings/evidence/082/PREDICTION-which-paragraph-was-read.md`，
+寫在讀結果之前）押的是**還原點的幾何過期**：barrier 在讀回之前會用**動作發出前**存下的
+文件座標點回去，而 `set-paragraph-body` 讓那一段變矮，所以那個點可能掉到下一段去——
+引擎自己的註解就寫著這個殘留。
+
+**`readback.html` 一句話否證掉它**：讀回的就是 `E1-LC-HEADING`，而且已經是 `<p>`。
+
+有用在兩件事上：它逼我去分辨 `getTextSelection`（barrier 自己選的）和
+`getA11yFocusedParagraph()`（閘門在比的）**是兩個不同的問題**，而 barrier 裡沒有任何東西
+把它們綁在一起；也讓第二份預測（指紋那一半）在寫下來的時候就已經是可否證的。
+
 ## 沒有量的（因此不指認）
 
-- **讀回的到底是哪一段。**payload 帶 `paragraphIdentity.{checked,dispatchKnown,readbackKnown}`
-  但**不帶兩個指紋本身**（`probe_engine.cpp:1382`）。要拿到它們有兩條路，都沒走：
-  在 barrier payload 裡吐出來（引擎改動＝一次連結），或從頁面讀引擎認為游標所在的段落
-  （`a11yContentHash`／`a11yParagraphText` 已經在 editor state 裡，但頁面公開出來的是投影
-  不是欄位——見 `queue-product-page-holds-the-raw-editor-state`）。
-- **為什麼臂 1 過而臂 2 不過。**兩個候選，都沒量：臂 2 打的是**文件的第一段**；
-  以及臂 1 剛把它正下方那一段變成標題，版面因此重排。
-- **指紋算錯的可能性已經被讀掉一半但不是全部。**指紋是 FNV-1a 取在
-  **去掉清單前綴之後**的段落文字（`parseEditorSemanticJson`），註解寫明就是為了讓
-  `.uno:DefaultBullet` 不要觸發這個閘門；而 `set-paragraph-body` 根本不改文字。
-  所以「換樣式就換指紋」這個最直覺的假說**與 derivation 相牴觸**——但沒有量到的是
-  a11y 焦點段落在動作前後是不是同一段。
+- **為什麼臂 1 過而臂 2 不過。**現在知道臂 2 打的是一顆**有大綱編號**的標題（074 的閘門
+  `nLevel >= 0 && bIsCounted` 過得了），而臂 1 用 `.uno:StyleApply` 新做出來的標題
+  在那一輪讀回 `listPrefixLength: 0`——**為什麼新做的標題沒有編號**沒有量。
+- **`declined: ""` 的第三種讀法。**v10 上僅存的那次 barrier 失敗停在 stage deadline，
+  在閘門之前，所以 `paragraphIdentityDeclined` 從沒被指派，`checked: false` 旁邊是空字串。
+  空字串要靠 `checked` 才讀得懂；下一次連結應該讓它自己把話說完。
+- **074 本身。**上游的 `getListPrefixSize()` 一行未動。這個修法只是讓引擎**不再相信**
+  那個數字；數字仍然是錯的，而每一個讀 `listPrefixLength` 的取用端仍然暴露。
 
 ## 同一輪裡的第二種 barrier 失敗（不同缺陷，記在這裡是因為它在同一份報告裡）
 
@@ -107,6 +218,13 @@ readbackKnown: false}`——**那一次閘門沒有跑**，讀回那一側根本
 
 ## 證據
 
+- `findings/evidence/082/RESULT.md` —— 成因、修法與量測，對著兩份預測逐條核。
+- `findings/evidence/082/PREDICTION-which-paragraph-was-read.md`（**被否證**，原樣保留）
+  與 `PREDICTION-2-why-the-two-fingerprints-differ.md`（成立）。
+- `findings/evidence/082/product-path-v9-engine-payload.json` —— 加寬投影之後的整包
+  barrier 物件；`product-path-v9-paragraph-trace.json` —— 66 筆逐次狀態的段落讀數。
+- `findings/evidence/082/product-path-v10-round-1.json` —— 修法之後的產品路徑。
+- `handoff/RUNBOOK-relink-v10-a11y-identity.md` —— 連結清單與**寫在跑之前**的預測。
 - `findings/evidence/queue-a11y-path-drives-a-dead-session/product-path-e2-editor-v9-chrome-guard-stopped-it.json`
   （第一輪）與 `RESULT-the-guard-fired-unprompted.md`
 - `findings/evidence/082/`：四輪的 v9 報告與 step 軌跡。第 1 輪**沒有** payload
@@ -118,3 +236,10 @@ readbackKnown: false}`——**那一次閘門沒有跑**，讀回那一側根本
 
 - 2026-08-26：建檔。四輪四中；barrier 的型別化 payload 首次被收下來，確立這不是
   fail-open、不是讀失敗、不是 multi-block，而且 containment 成立。成因未確立。
+- 2026-08-26（同日，收尾）：**成因確立、已修、修法量到生效。**第一個假說（還原點幾何
+  過期）被 `readback.html` 否證；真正的成因是閘門比到了一個「空字串的雜湊」——
+  finding 074 讓那顆標題的 `listPrefixLength == contentLength`。修法是**指紋退化時閘門
+  放棄比對**，規則與雜湊放在 `src/a11y_paragraph_identity.hpp`、由主機測試驅動並重現
+  引擎報過的六個指紋。連結成 `e2-editor-v10`（對 v9 單一變因），產品路徑 40 格全跑、
+  那一格六支臂全過、`readback-is-a-different-paragraph` 一次都沒有。
+  標題與狀態列同步改寫。

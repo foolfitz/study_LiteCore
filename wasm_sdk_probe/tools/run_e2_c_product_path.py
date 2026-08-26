@@ -256,6 +256,37 @@ READ_TOASTS = "(() => (window.__pp ? window.__pp.toasts.slice() : null))()"
 BARRIER_DETAILS_ANCHOR = ("  } catch (error) {\n"
                           "    el.s.latency.textContent = `${label} 失敗`;\n")
 
+# THE WORKER'S OWN NARROWING, and it is where the answer to finding 082 went.
+#
+# `productFormatBarrier` (sdk-worker.js) is an ALLOWLIST: it projects the
+# engine's barrier object down to the fields a product needs, and its own
+# comments say so -- "this allowlist is where engine fields go to be
+# forgotten".  Three of the fields it drops are the ones 082 needs:
+# `readback.html` (the markup of the paragraph the read actually described),
+# and `containment.selectionTop/selectionBottom/restoreCentre` (where that
+# selection was, against where the restore clicked).
+#
+# So the fingerprints are not needed after all and neither is a relink: the
+# engine already sends enough to say WHICH paragraph was read, and only
+# JavaScript is throwing it away.  This anchor widens that projection in a
+# mirror, under a key of its own, so the product's own shape is untouched.
+WORKER_BARRIER_ANCHOR = ("function productFormatBarrier(value = {}) {\n"
+                         "  return {\n")
+
+# AND THE PARAGRAPH THE ENGINE THINKS THE CARET IS IN, snapshot by snapshot.
+#
+# The barrier compares two `a11yContentHash` values and reports only whether
+# they MATCHED.  The same number reaches the page on every state read as
+# `editorState.caretParagraph.fingerprint`, beside `text`, `length`, `offset`
+# and `listPrefixLength` -- everything needed to say WHY two of them differ.
+# `updateState` gets them all and renders three of them; this keeps the rest.
+PAGE_STATE_ANCHOR = ("function updateState(snapshot) {\n"
+                     "  el.statePill.dataset.state = snapshot.state;\n")
+
+READ_PAGE_PARAGRAPHS = (
+    "(() => (window.__pp && window.__pp.paragraphs "
+    "? window.__pp.paragraphs.slice() : null))()")
+
 READ_PAGE_ERRORS = (
     "(() => (window.__pp && window.__pp.errors "
     "? window.__pp.errors.slice() : null))()")
@@ -3521,6 +3552,37 @@ def main() -> int:
                 "run()'s catch is not where this diagnostic expects it in "
                 + page_rel + "; the tree moved under the diagnostic. Fix the "
                 "pattern rather than patching blindly.")
+        if page_text.count(PAGE_STATE_ANCHOR) != 1:
+            raise SystemExit(
+                "updateState is not where this diagnostic expects it in "
+                + page_rel + "; the tree moved under the diagnostic.")
+        page_text = page_text.replace(
+            PAGE_STATE_ANCHOR,
+            PAGE_STATE_ANCHOR
+            + '  // --barrier-details-diagnostic (harness mirror, not shipped)\n'
+              '  if (window.__pp) {\n'
+              '    if (!window.__pp.paragraphs) window.__pp.paragraphs = [];\n'
+              '    const para = snapshot && snapshot.editorState\n'
+              '      ? snapshot.editorState.caretParagraph : null;\n'
+              '    const row = {\n'
+              '      state: snapshot ? snapshot.state : null,\n'
+              '      revision: snapshot ? snapshot.revision : null,\n'
+              '      latency: document.querySelector("#s-latency")\n'
+              '        ? document.querySelector("#s-latency").textContent : null,\n'
+              '      fingerprint: para ? para.fingerprint : null,\n'
+              '      text: para ? para.text : null,\n'
+              '      length: para ? para.length : null,\n'
+              '      offset: para ? para.offset : null,\n'
+              '      listPrefixLength: para ? para.listPrefixLength : null,\n'
+              '      fresh: para ? para.fresh : null,\n'
+              '    };\n'
+              '    const last = window.__pp.paragraphs[window.__pp.paragraphs.length - 1];\n'
+              '    // Transitions only: updateState runs on every snapshot and\n'
+              '    // the interesting thing is where the answer CHANGES.\n'
+              '    if (!last || last.fingerprint !== row.fingerprint\n'
+              '        || last.text !== row.text || last.latency !== row.latency)\n'
+              '      window.__pp.paragraphs.push(row);\n'
+              '  }\n', 1)
         page_text = page_text.replace(
             catch,
             catch
@@ -3535,8 +3597,26 @@ def main() -> int:
               '        details: error && error.details ? error.details : null,\n'
               '      });\n'
               '    }\n', 1)
+        # AND THE WORKER THE PAGE ACTUALLY LOADS, which is the profile's copy
+        # rather than dist/sdk/ -- the same trap --cut-via-replace-selection
+        # recorded when its first run's stack trace said so.
+        worker_rel = f"profiles/{product_profile(root)}/sdk-worker.js"
+        worker_text = (root / worker_rel).read_text(encoding="utf-8")
+        if worker_text.count(WORKER_BARRIER_ANCHOR) != 1:
+            raise SystemExit(
+                "productFormatBarrier is not where this diagnostic expects it "
+                "in " + worker_rel + "; the tree moved under the diagnostic.")
+        worker_text = worker_text.replace(
+            WORKER_BARRIER_ANCHOR,
+            WORKER_BARRIER_ANCHOR
+            + "    // --barrier-details-diagnostic (harness mirror, not shipped).\n"
+              "    // The whole engine object, beside the product's projection\n"
+              "    // rather than instead of it: the projection is an allowlist\n"
+              "    // and this is the field it forgets.\n"
+              "    engineRaw: value,\n", 1)
         mirror = scratch / "barrier-details-root"
-        build_mirror(root, mirror, {page_rel: page_text.encode("utf-8")})
+        build_mirror(root, mirror, {page_rel: page_text.encode("utf-8"),
+                                    worker_rel: worker_text.encode("utf-8")})
         root = mirror
         report["barrierDetailsDiagnostic"] = {
             "evidenceClass": "diagnostic",
@@ -3547,7 +3627,12 @@ def main() -> int:
                     "but a report carrying pageErrors is a diagnostic run and "
                     "must be cited as one.",
             "what": "window.__pp.errors: {label, code, recovery, message, "
-                    "details} per rejection, in order",
+                    "details} per rejection, in order. The worker's "
+                    "`productFormatBarrier` projection is widened in the same "
+                    "mirror, so `details.formatBarrier.engineRaw` carries the "
+                    "engine's whole barrier object -- including `readback.html`"
+                    " and the containment geometry, which the product's own "
+                    "allowlist drops.",
         }
 
     # Written AFTER the mirror is built, so it describes what was served rather
@@ -7576,6 +7661,7 @@ return { available: true, afterButton };
                                   "`stateAfterCut`")
         note_liveness()
         report["pageErrors"] = evaluate(session, READ_PAGE_ERRORS)
+        report["caretParagraphs"] = evaluate(session, READ_PAGE_PARAGRAPHS)
         return finish(report, args)
     except SessionDied as died:
         # queue-a11y-path-drives-a-dead-session.  NOT a failure of the arm that
@@ -7592,6 +7678,11 @@ return { available: true, afterButton };
             report["pageErrors"] = evaluate(session, READ_PAGE_ERRORS)
         except Exception as error:      # noqa: BLE001 -- reported, not raised
             report["pageErrors"] = f"unreadable: {type(error).__name__}: {error}"
+        try:
+            report["caretParagraphs"] = evaluate(session, READ_PAGE_PARAGRAPHS)
+        except Exception as error:      # noqa: BLE001 -- reported, not raised
+            report["caretParagraphs"] = (
+                f"unreadable: {type(error).__name__}: {error}")
         died_at = dict(liveness.died or {})
         report["sessionDied"] = died_at
         report["failedAt"] = f"the session was dead after {died.arm}"

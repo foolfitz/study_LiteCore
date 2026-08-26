@@ -5,9 +5,17 @@ Written 2026-08-26, continuing
 
 ## State
 
-`e2-editor-v8` still ships and **nothing about the product changed today**. No
-link, no shell generation, no `dist/` write. Everything here is harness, queue,
-checklist and evidence.
+`e2-editor-v8` still ships and **nothing about the shipped product changed
+today**: no shell generation, no change to `dist/profiles/e2-editor-v8`, and the
+engine change below is inert on a build without accessibility.
+
+**One link was taken, on the accessibility lineage and under a new name**:
+`e2-editor-v10`, carrying finding 082's fix. It relinks nothing — `make -n` on
+the target was checked to touch only `build/e2/e2-editor-v10/` and
+`dist/profiles/e2-editor-v10/` — and it is archived at
+`build/archive/e2-editor-v10-4ec1e389-worker-070229cd-manifest-d57de339/` with
+its attribution. Runbook and the prediction written before the measurement:
+`handoff/RUNBOOK-relink-v10-a11y-identity.md`.
 
 | queue item | before | now |
 |---|---|---|
@@ -15,10 +23,20 @@ checklist and evidence.
 | `queue-cut-refusal-lost-its-inducer` | absent | **present** — the route built 2026-08-22 was finally driven, both ways |
 | `queue-abort-margins-are-unexplained` | present, with two debts | **both paid** — eleven rounds, and the two fields it asked for turned out not to exist for it |
 | `queue-canvas-grew-arm-abstains-intermittently` | — | **new, absent** |
+| `queue-a11y-prefix-swallows-the-paragraph` | absent, since 2026-08-22 | **present** — the decision it was waiting for, forced by 082 |
+| `queue-a11y-caret-does-not-move-on-the-first-commit` | — | **new, absent** — 1 run in 3, and only visible because 082 was fixed |
 
-**Finding 082 filed**: on the accessibility core an ordinary paragraph format is
-refused by the barrier as "a different paragraph", and the refusal takes the
-session down with no checkpoint. 4 of 4 runs.
+**Finding 082 filed AND FIXED, same day.** On the accessibility core an ordinary
+paragraph format was refused by the barrier as "a different paragraph" — 4 runs
+of 4 — and the refusal took the session down with no checkpoint. The mutation
+had in fact worked; the gate was comparing a fingerprint that was the hash of the
+**empty string**. Fixed in the engine, linked as **`e2-editor-v10`**, and the
+product path there now runs all 40 checks with that arm passing six of six,
+three rounds of three. See §3 and `findings/evidence/082/RESULT.md`.
+
+**`queue-a11y-prefix-swallows-the-paragraph` closed** with it: it had been
+waiting since 2026-08-22 for "our side to decide what to do about it", and 082
+is what made the decision unavoidable.
 
 Shipped-profile product path, chrome, `e2-editor-v8`: **38 PASS / 2
 NOT_ESTABLISHED, `ok: true`** on the runs where the long-document arm's
@@ -95,11 +113,15 @@ either.
 The handoff asked for "the v9 product path, which is the real question about
 a11y as a product". The answer, on four runs:
 
-**`e2-editor-v9` is not shippable as it stands.** An ordinary paragraph format —
-body ← heading, through the product's own toolbar button — takes the session to
-`recoverable-error` with **no checkpoint**, which is the state whose notice tells
-the user their unsaved work will not come back. That is a user-visible failure on
-the first document the product opens, not a harness artefact.
+**`e2-editor-v9` is not shippable as it stands, and `e2-editor-v10` is the
+answer to why.** An ordinary paragraph format — body ← heading, through the
+product's own toolbar button — took the session to `recoverable-error` with **no
+checkpoint**, the state whose notice tells the user their unsaved work will not
+come back. A user-visible failure on the first document the product opens.
+
+**It was a false refusal**, and the fix is measured: see §3b. On `e2-editor-v10`
+that arm passes six of six, three rounds of three, and the lineage runs to the
+end of the net for the first time.
 
 **Four runs, four times, identical.** Filed as **finding 082**. Every run dies
 after the same check, with `recorded: 17/40`, `pending: 0`, `checkpoint: 無`,
@@ -146,6 +168,80 @@ not passing.
 **What is still unmeasured on v9**: the 23 checks after arm 17, including
 `an-inline-format-reaches-a-selection`, which the previous handoff expected to
 be meaningful there. Nothing has driven them, because the session dies first.
+
+## 3b. Finding 082, fixed: the gate was comparing the hash of the empty string
+
+The prediction that got it wrong is worth reading first
+(`findings/evidence/082/PREDICTION-which-paragraph-was-read.md`, unedited): it
+said the barrier's restore point had gone stale and the readback had landed on
+the next paragraph. **`readback.html` refuted it in one line** — the read
+described `<p>E1-LC-HEADING</p>`, the right paragraph, already restyled. The
+mutation had worked.
+
+**The answer was in the engine's payload all along and JavaScript was throwing
+it away.** `productFormatBarrier` in `sdk-worker.js` is an allowlist whose own
+comment says "this allowlist is where engine fields go to be forgotten"; it drops
+`readback.html` and the containment geometry. `--barrier-details-diagnostic` now
+widens it in a mirror. No engine change was needed to find the cause.
+
+The cause, from a trace of `editorState.caretParagraph` on every state
+transition:
+
+| listPrefixLength | contentLength | fingerprint | text |
+|---:|---:|---|---|
+| 0 | 20 | `76f09d751bb341f7` | `E1-LC-END甲一乙二丙三插入鈕標記` |
+| 2 | 22 | `76f09d751bb341f7` | `• ` + the same text |
+| **13** | **13** | **`cbf29ce484222325`** | **`E1-LC-HEADING`** |
+| **2** | **2** | **`cbf29ce484222325`** | **`• `** |
+
+Both things at once. **The prefix stripping works** — a paragraph and the same
+paragraph with a bullet share one fingerprint, which is exactly why it exists.
+And **a thirteen-character heading and an empty bulleted paragraph are the same
+number**, which is the FNV-1a offset basis: the value that means *nothing was
+hashed*. `listPrefixLength == contentLength` on both, which is finding 074,
+upstream, `getListPrefixSize()` returning the end of the first ATTRIBUTE RUN.
+
+**The fix**: the gate DECLINES the comparison when either end's fingerprint is
+degenerate, instead of failing it — the same fail-open the surrounding comment
+already argued for, extended from "the value is absent" to "the value is present
+and meaningless". The alternative is a false refusal prescribing a rollback,
+which is worse than the defect the gate exists to catch.
+
+* `src/a11y_paragraph_identity.hpp` holds the rule **beside the hash**, so there
+  is one implementation and a host compiler can drive it.
+* `tests/a11y_paragraph_identity_test.cpp` reproduces **six fingerprints the
+  accessibility engine really reported** — a cross-implementation check, not a
+  restatement — and four mutations of the rule are each detected by it. It runs
+  in `make test-e2-b-static`.
+* The editor state gains `a11y.fingerprintUsable`; the barrier payload gains
+  `dispatchUsable`, `readbackUsable` and `declined`, so `checked: false` no
+  longer has three causes and one appearance.
+* **Inert on the product core**: accessibility off ⇒ `dispatchParagraphKnown` was
+  already false ⇒ the gate already declined. `e2-editor-v8` needs no relink.
+
+Measured on `e2-editor-v10`, against the prediction written before the run — all
+five points held, and the run reaches the end of the net:
+
+| round | verdict | the paragraph-format arm | `caret-follows-the-text-you-type` |
+|---|---|---|---|
+| 1 | 35 PASS / 2 FAIL / 3 NE | **PASS**, 6 of 6 | FAIL |
+| 2 | 37 PASS / 1 FAIL / 2 NE | **PASS**, 6 of 6 | PASS |
+| 3 | 37 PASS / 1 FAIL / 2 NE | **PASS**, 6 of 6 | PASS |
+
+No round stopped early; no round produced a `readback-is-a-different-paragraph`;
+the one page error in each is the *other* defect,
+`stage-deadline:awaiting-selection` on the bulleting cell, untouched as
+predicted.
+
+**What it bought, and it is the point of fixing it**: the 23 checks after the
+seventeenth got their first reading on this lineage, and one of them is
+intermittently red — `caret-follows-the-text-you-type`, 1 run in 3, filed as
+`queue-a11y-caret-does-not-move-on-the-first-commit`. Nobody could have seen it
+while the session was dying at check 17.
+
+**What it does NOT fix**: finding 074 upstream (the number is still wrong, and
+every other consumer of `listPrefixLength` is still exposed), and the fingerprint
+as an identity in general (22% of the r7-compat corpus collides on text alone).
 
 ## 4. The refusal pair: a route built four days ago and never driven
 
@@ -278,54 +374,20 @@ against a real run.
 
 ## Open work, in the order I would take it
 
-1. **Why the a11y barrier says "a different paragraph".** This is the thing
-   standing between the a11y lineage and any product decision.
+1. **The `stage-deadline:awaiting-selection` barrier failure**, which is now the
+   only consistent red on the accessibility lineage
+   (`bulleting-a-blank-line-does-not-demand-a-rollback`, 3 rounds of 3). It was
+   first recorded on 2026-08-23 and now has its sub-stage: the barrier stopped
+   while awaiting its own `.uno:SelectText` selection, with
+   `paragraphIdentity.readbackKnown: false` — the gate never ran, so this is a
+   different mechanism from 082 and none of 082's fix touches it. The widened
+   payload (`--barrier-details-diagnostic`) is the instrument; the question is
+   why that stage stops for five seconds on this core and only on the cell
+   finding 046 was measured on.
 
-   **Three rounds of the typed payload are in `findings/evidence/082/`** and
-   they narrow it a long way: the gate ran, both reads succeeded, the readback
-   is one block, containment held. What they cannot say is **which** paragraphs
-   were compared — the barrier serialises
-   `paragraphIdentity: {checked, dispatchKnown, readbackKnown}`
-   (`src/probe_engine.cpp:1382`) and not the fingerprints themselves.
-
-   Getting the fingerprints is two options, neither taken:
-   * emit them in the barrier payload — an engine change, so a relink; or
-   * read the paragraph the engine thinks the caret is on, before and after,
-     from the page. `a11yContentHash` and (on this lineage)
-     `a11yParagraphText` are in the editor state already, and v9 is the profile
-     that carries `caretParagraphText` — but `READ_STATE` reads the DOM, and
-     what the page publishes is the projection, not the field. See
-     `queue-product-page-holds-the-raw-editor-state`.
-
-   **What reading the engine already rules out.** The fingerprint is FNV-1a
-   over the focused paragraph's a11y `content` **with its list prefix sliced
-   off** (`parseEditorSemanticJson`), and the comment there says why in as many
-   words: without the slice, `.uno:DefaultBullet` would change the string and
-   the gate would fire on every successful list action. So the obvious
-   hypothesis — "a style change changes the fingerprint" — is the one the
-   derivation was built to avoid, and `set-paragraph-body` does not change the
-   paragraph's text at all.
-
-   That leaves the readback genuinely reading **another paragraph** — and the
-   payload agrees, because containment held, so the selection the readback was
-   taken from did cover the caret. Two candidates, neither measured:
-   * the a11y focus moved. `refreshCaretParagraph` asks
-     `getA11yFocusedParagraph()`, which is the focused paragraph, not the
-     caret's — and the comment above it records that the callback is gated on
-     the TEXT changing, so focus and caret are already known to be different
-     questions on this core.
-   * the readback ran while the focus was between paragraphs. Arm 1
-     (`set-paragraph-heading`, line 1) PASSES and arm 2
-     (`set-paragraph-body`, line 0) fails, and arm 1 has just changed the
-     layout above arm 2's target.
-
-   **Neither is measured. Do not repeat either as a cause** — the tree's own
-   rule about 040.
-2. **Consider one revival on death, rather than stopping** — and finding 082
-   makes this worth more than it was this morning, because the accessibility
-   lineage now dies at check 17 of 40 **every time**, so 23 checks are
-   structurally unmeasurable until either 082 is fixed or the runner survives
-   it. Raised by the review and it is a good point: `openDocument()` constructs a **brand-new
+2. **Consider one revival on death, rather than stopping.** Worth less than it
+   was this morning — 082's fix removed the death that made it urgent — but the
+   argument stands for the next one. Raised by the review: `openDocument()` constructs a **brand-new
    session** on every open, so `recoverable-error` is terminal for a session
    object, not for the page — and this runner re-opens five times. A death at
    check 17 currently costs 23 checks, of which the ones behind a later re-open
@@ -349,11 +411,19 @@ against a real run.
    named check failure is **not written**, deliberately, because nobody has
    seen it happen and an unexercised classifier is the thing this tree distrusts
    most. Write it with the run that produces it.
-4. **`queue-canvas-grew-arm-abstains-intermittently`** — 2 of 5 runs on one
+4. **`queue-canvas-grew-arm-abstains-intermittently`** — 3 of 8 runs on one
    machine in one hour, and it is wired into the acceptance checklist, so a run
    passes or fails the gate by coin flip. The arm now records which precondition
    failed; nobody has read one yet.
-5. The v9 checks after arm 17, which no one has driven.
+5. **`queue-a11y-caret-does-not-move-on-the-first-commit`** — 1 run in 3 on
+   `e2-editor-v10`, and the first reading that check has ever had on this
+   lineage. Bound it before writing it up: 1 of 3 is a rate nobody has measured,
+   and the same check passes on `e2-editor-v8`.
+6. **Whether `e2-editor-v10` is a cutover.** It is a candidate: three rounds
+   with one consistent red (item 1) and one intermittent (item 5). The shipped
+   `e2-editor-v8` is untouched and needs no relink — 082's change is inert
+   without accessibility — so this is a decision about the a11y product line,
+   not a repair to the current one.
 
 ## Things a new session should not re-derive
 
@@ -367,6 +437,14 @@ against a real run.
 * **`--profile` runs are not acceptance evidence** and are refused as such.
 * **The engine's paragraph-identity gate is a11y-only.** It fails open on a
   build without accessibility, so the shipped product has never exercised it.
+* **The engine sends more than the product keeps.** `productFormatBarrier` in
+  `sdk-worker.js` is an allowlist and drops `readback.html` and the containment
+  geometry. Finding 082's cause was in the payload the whole time.
+  `--barrier-details-diagnostic` widens it in a mirror; no relink is needed to
+  read a barrier.
+* **A fingerprint equal to `cbf29ce484222325` is not an answer.** It is the
+  FNV-1a offset basis — what the hash returns when nothing was fed to it. The
+  engine now says so itself (`a11y.fingerprintUsable`).
 
 ## Commands
 
@@ -379,9 +457,13 @@ python3 tools/run_e2_c_product_path.py --browser chrome --out <path>
 # the guard's positive control -- EXPECTED to stop inside the endnote inducer
 python3 tools/run_e2_c_product_path.py --browser chrome --liveness-control --out <path>
 
-# the accessibility candidate, with the barrier's typed payload kept
+# the accessibility candidate WITH finding 082's fix, and the barrier's typed
+# payload kept -- `engineRaw` carries what the product's allowlist drops
 python3 tools/run_e2_c_product_path.py --browser chrome \
-    --profile e2-editor-v9 --barrier-details-diagnostic --out <path>
+    --profile e2-editor-v10 --barrier-details-diagnostic --out <path>
+
+# what a link would ship, measured rather than read
+python3 tools/what_the_link_ships.py --variant a11y --since c82a642
 
 # the refusal pair, now also in `make test-e2-c-product-path`
 python3 tools/run_e2_c_product_path.py --browser chrome --refusal-diagnostic --out <path>
@@ -392,3 +474,20 @@ python3 tools/run_e2_c_product_path.py --browser chrome --refusal-diagnostic \
 ## The push
 
 Nothing was pushed. `github/main` is where the previous handoff left it.
+
+## The link that WAS taken
+
+`e2-editor-v10`, 2026-08-26 21:02, under a new name. It relinks nothing;
+`make -n` on the target was checked to touch only its own two directories.
+
+| | |
+|---|---|
+| wasm | `4ec1e389aaab3b03` |
+| loader | `96f18d0c1f6b9b11` |
+| worker | `070229cd10bda4a0` (byte-identical to v8's and v9's) |
+| manifest | `d57de339939bfbc9` |
+| archive | `build/archive/e2-editor-v10-4ec1e389-worker-070229cd-manifest-d57de339/` |
+
+Its `soffice.data` is the shared accessibility core image, declared through
+`--core-data` and not copied into the archive — the reason is in that
+directory's `ATTRIBUTION.md`.
