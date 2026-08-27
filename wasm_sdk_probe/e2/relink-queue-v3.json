@@ -1335,6 +1335,31 @@
         }
       ],
       "checkNote": "Four, one per layer the fix crosses, because any one of them alone is inert: the worker field without the client branch changes nothing, the client branch without the field can never fire, and both without the page's sentence give the user `review` with a reason that is false about their document. The fourth pins the HARNESS's record of which sentence it saw -- without it the check would go green on either core and stop being able to show that they reach `review` by different routes."
+    },
+    {
+      "id": "queue-v11-cutover-soak-not-started",
+      "title": "the v11 cutover gate is written down and its soak has not started -- OPEN",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md, written 2026-08-28 after an adjudication",
+      "note": "The reason to wait before pointing the product page at e2-editor-v11 had no exit condition -- 'the defect discovery rate has not levelled off' can only be refuted by more waiting -- so the criteria were fixed in writing BEFORE the runs that would satisfy them. Four conditions, all in the plan: TWELVE clean runs against the CANDIDATE page across at least three calendar days with at least two per day, where clean means ok:true, the checklist reconciling as a candidate-cutover, and a composition of exactly 38 PASS / 2 NE with the NE set being {notice-action-recovers-the-session, a-refused-action-is-reported-and-changes-nothing}; THREE additional diagnostic runs with --caret-rounds 12 requiring 0 dropped commits in 36 and staleWritesRefusedTotal > 0 in at least one; ONE manual round by a human in a real browser; and the BENEFIT measured -- an actual screen reader consuming caretParagraphText and documentOutline on v11's five bound identities, which nothing has yet shown and which is the condition most likely to embarrass us in front of the buyer the schedule was rearranged for. Any FAIL, any additional NE, or any different id in the NE set restarts the count at zero and is written up as a finding first. Already satisfied and not to be re-litigated: the extra callback is characterised (LOK_CALLBACK_A11Y_FOCUS_CHANGED, deterministically one extra, carrying the STALE caret), the 084 guard is proven order-independent over every permutation, the post-fix drop rate is re-measured at 60 commits against a pre-fix 48, and the NE delta is closed. Owed before the flip and NOT yet done: save a document on the candidate and open it on v8, because the saved ODT is the only cross-version artifact (no localStorage, no indexedDB, checkpoint in memory) and a revert is only cheap if that round-trips. The candidate page is c8c71ac530c4815aa431c04e2f2e001c34bd025f9b77744bb8fbe6881240a472 as of 2026-08-28.",
+      "checks": [
+        {
+          "kind": "file-exists",
+          "file": "../handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md"
+        },
+        {
+          "kind": "contains",
+          "file": "tools/run_e2_c_product_path.py",
+          "text": "--candidate-profile"
+        },
+        {
+          "kind": "absent",
+          "file": "web/e2-editor-app.js",
+          "text": "profiles/e2-editor-v11/sdk-worker.js"
+        }
+      ],
+      "checkNote": "Three, and the third is the item itself: while the product page does NOT point at v11, the cutover has not happened and this item is open. The day somebody flips it, this check goes red until the expectation is flipped deliberately -- which is the point, because a cutover that happens quietly is exactly what the plan exists to prevent. The first two pin the gate's existence and the machinery that lets the soak measure a candidate at all; without them the criteria are prose that nothing enforces."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
