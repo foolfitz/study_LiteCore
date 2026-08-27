@@ -335,6 +335,14 @@ window.__ppCaretEngine = (tag) => {
   return row.id;
 };
 
+// WHETHER THE GUARD FIRED, which is a different question from whether the check
+// went green (finding 084). A run where the caret followed every commit AND the
+// guard never fired has not tested the guard -- it has tested a round where the
+// race was not lost. Read before and after each commit so a round can say which
+// it was.
+window.__ppStaleWrites = () => (session && typeof session.staleEditorStateWrites
+                                === "number") ? session.staleEditorStateWrites : null;
+
 """
 
 CARET_APPLIED_JS = """  // --caret-source-diagnostic (harness mirror, not shipped).
@@ -425,8 +433,12 @@ READ_CARET_APPLIED = (
 CARET_LOG_COUNTS = """(() => {
 if (!window.__pp) return null;
 return { believed: (window.__pp.caretBelieved || []).length,
-         applied: (window.__pp.caretApplied || []).length };
+         applied: (window.__pp.caretApplied || []).length,
+         staleWrites: window.__ppStaleWrites ? window.__ppStaleWrites() : null };
 })()"""
+
+READ_STALE_WRITES = (
+    "(() => (window.__ppStaleWrites ? window.__ppStaleWrites() : null))()")
 
 CLEAR_TOASTS = """(() => {
 if (window.__pp) window.__pp.toasts.length = 0;
@@ -6573,6 +6585,14 @@ return { available: true, afterButton };
                 applied = evaluate(session, READ_CARET_APPLIED.replace(
                     "ARG_FROM", str(log_before.get("applied", 0)))) or []
                 caret_typing["rounds"][-1].update({
+                    # Finding 084's fix, counted rather than assumed: how many
+                    # stale editorState writes the guard refused during THIS
+                    # commit. Zero on a green round means the race was not lost,
+                    # which is not the same as the guard having worked.
+                    "staleWritesRefused": (
+                        (evaluate(session, READ_STALE_WRITES) or 0)
+                        - (log_before.get("staleWrites") or 0)
+                        if log_before.get("staleWrites") is not None else None),
                     "engineBefore": engine_before,
                     "engineAfter": engine_after,
                     "engineFirstDifferent": engine_first_different,
@@ -6595,6 +6615,9 @@ return { available: true, afterButton };
         typed_rounds = [r for r in caret_typing["rounds"]
                         if r["revisionAdvanced"]]
         caret_typing["roundsThatReachedTheDocument"] = len(typed_rounds)
+        if caret_source:
+            caret_typing["staleWritesRefusedTotal"] = evaluate(
+                session, READ_STALE_WRITES)
         # `engineProbeTracked` is set in the control phase above, from two
         # probes bracketing a caret the product moved on purpose -- not from the
         # rounds, which in `stalled` mode issue no probe at all unless something

@@ -132,6 +132,75 @@ export class NarrowEditorV2Session extends EditorSession {
         this.clientReplacements += 1;
       },
     });
+    this._guardEditorStateAgainstStaleWrites();
+  }
+
+  /**
+   * Finding 084.  Refuse a state write whose `sourceSequence` goes BACKWARDS.
+   *
+   * THE OTHER HALF OF FINDING 068's GUARD.  `snapshot.editorState` has two
+   * writers: the engine's `editor-state` announcement, handled below, and the
+   * drain's own `editor.getState()` in `EditorSession._drain()`.  068 gave the
+   * ANNOUNCEMENT a guard and its comment says exactly why -- "a slow event
+   * could land after a fresher read and move the caret backwards".  The
+   * symmetric case was left unguarded: a slow READ landing after a fresher
+   * EVENT. That is this defect, and it is the one the product actually hits.
+   *
+   * MEASURED 2026-08-27, `e2-editor-v11`, 48 commits: 10 of them dropped, and
+   * every single one shows the same thing in the page's own state log --
+   *
+   *     seq=294 caret=3458,4904 rev=128
+   *     seq=295 caret=3458,4904 rev=128
+   *     seq=296 caret=5618,4904 rev=128   <- the caret ARRIVES
+   *     seq=294 caret=3458,4904 rev=129   <- the drain writes it BACK
+   *
+   * -- `sourceSequence` going backwards while `revision` goes forwards in the
+   * same row, which identifies the writer because only the drain writes those
+   * two together. The sink was moved to the new caret and then moved back, and
+   * nothing asks again until the next commit, so the caret is a commit behind
+   * for a whole keystroke. The engine was never behind: asked 52-54 ms into
+   * every one of those stalls, it already held the new caret.
+   *
+   * WHY IT WRAPS `update` AND NOT `transition`.  A reopen builds a FRESH engine
+   * whose sequence counter starts near zero, and that is a legitimate move
+   * backwards -- it goes through `transition`, which this does not touch. Every
+   * writer that can be stale goes through `update`.
+   *
+   * WHY THE WHOLE `editorState` IS DROPPED rather than merged field by field.
+   * The stale object is a snapshot of one moment; the fresher one is a snapshot
+   * of a later moment. Everything the page reads out of it -- `caret`,
+   * `selection`, `format`, `caretParagraph`, `documentOutline` -- is carried by
+   * both. Merging would mean deciding which of two consistent snapshots each
+   * field should come from, which is how a state gets assembled that never
+   * existed.
+   *
+   * THE REST OF THE PATCH STILL APPLIES. `revision` and `dirty` ride along with
+   * the drain's write and they are not stale; only `editorState` is.
+   *
+   * AND IT IS IN A SUBCLASS FOR FINDING 068's REASON, not out of taste: the
+   * natural home is `EditorSession._drain()`, and `editor-shell/editor-session.js`
+   * is bound to E1-C's verdict (`check_e1_c_bundle_intact.py`, shell bundle
+   * `187706b2…`). Editing it unbinds a shipped verdict that has nothing to do
+   * with this defect.
+   */
+  _guardEditorStateAgainstStaleWrites() {
+    const machine = this.state;
+    const write = machine.update.bind(machine);
+    // Counted, not just prevented: "the guard never fired" and "the guard is
+    // not installed" produce the same green otherwise, and this tree has paid
+    // for that shape often enough to write the number down.
+    this.staleEditorStateWrites = 0;
+    machine.update = (patch = {}) => {
+      const next = patch?.editorState?.sourceSequence;
+      const current = machine.snapshot.editorState?.sourceSequence;
+      if (Number.isInteger(next) && Number.isInteger(current)
+          && next < current) {
+        this.staleEditorStateWrites += 1;
+        const { editorState, ...rest } = patch;
+        return write(rest);
+      }
+      return write(patch);
+    };
   }
 
   /**

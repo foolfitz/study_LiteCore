@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 
 import { NarrowEditorV2Session } from "../narrow-editor-v2-session.js";
 import { NarrowEditorV2Client } from "../narrow-editor-v2-client.js";
+import { EditorStateMachine } from "../../editor-shell/state-machine.js";
 
 const manifestOf = (profile) => JSON.parse(readFileSync(
   fileURLToPath(new URL(`../../dist/profiles/${profile}/sdk-manifest.json`,
@@ -294,3 +295,126 @@ test("gestures and limits come from the manifest, for showing not for failing",
        assert.deepEqual(session.limitsFor("set-paragraph-heading"),
                         ["heading-level-1-only", "no-precondition-state"]);
      });
+
+// ------------------------------------------------------- finding 084
+
+/**
+ * A session with a state machine and nothing else, so the guard can be driven
+ * without an engine.  It reaches the same `this.state` the product's writers
+ * reach -- the guard wraps the machine, not the drain, and that is the point:
+ * every writer that can be stale goes through `update`.
+ */
+function guarded() {
+  const seen = [];
+  // A factory that is never called: the guard is installed in the constructor
+  // and every writer it covers reaches `this.state` without an engine. Giving
+  // it a real one would make these tests about the engine.
+  const session = new NarrowEditorV2Session({
+    engineFactory: () => { throw new Error("no engine in these tests"); },
+    onState: (s) => seen.push(s),
+  });
+  return { session, seen };
+}
+
+function stateAt(sourceSequence, caretX) {
+  return { sourceSequence, caret: { x: caretX, y: 100, width: 2, height: 20 },
+           selection: { collapsed: true, rectangles: [] } };
+}
+
+test("finding 084: a state write whose sourceSequence went BACKWARDS does not "
+     + "move the caret back", () => {
+  const { session } = guarded();
+  session.state.transition("loading");
+  session.state.transition("ready", { editorState: stateAt(294, 3458) });
+  // The announcement lands with the new caret.
+  session.state.update({ editorState: stateAt(296, 5618) });
+  assert.equal(session.state.snapshot.editorState.caret.x, 5618);
+  // The drain's read -- answered at 294, applied now -- must not undo it.
+  session.state.update({ revision: 129, editorState: stateAt(294, 3458) });
+  assert.equal(session.state.snapshot.editorState.caret.x, 5618,
+               "the caret was moved back to where it was a commit ago");
+  assert.equal(session.state.snapshot.editorState.sourceSequence, 296);
+  assert.equal(session.staleEditorStateWrites, 1);
+});
+
+test("finding 084: the REST of a stale patch still applies", () => {
+  const { session } = guarded();
+  session.state.transition("loading");
+  session.state.transition("ready",
+                           { revision: 128, dirty: false,
+                             editorState: stateAt(294, 3458) });
+  session.state.update({ editorState: stateAt(296, 5618) });
+  session.state.update({ revision: 129, dirty: true,
+                         editorState: stateAt(294, 3458) });
+  // Only editorState is stale. Dropping the revision with it would leave the
+  // page showing a revision the document has moved past.
+  assert.equal(session.state.snapshot.revision, 129);
+  assert.equal(session.state.snapshot.dirty, true);
+  assert.equal(session.state.snapshot.editorState.caret.x, 5618);
+});
+
+test("finding 084: an ADVANCING write still lands, and so does an equal one",
+     () => {
+  const { session } = guarded();
+  session.state.transition("loading");
+  session.state.transition("ready", { editorState: stateAt(294, 3458) });
+  session.state.update({ editorState: stateAt(295, 4000) });
+  assert.equal(session.state.snapshot.editorState.caret.x, 4000);
+  // Equal is not a regression: the drain's read answered at the same sequence
+  // the announcement carried is the SAME moment, and refusing it would be a
+  // guard against nothing.
+  session.state.update({ editorState: stateAt(295, 4200) });
+  assert.equal(session.state.snapshot.editorState.caret.x, 4200);
+  assert.equal(session.staleEditorStateWrites, 0);
+});
+
+test("finding 084: a REOPEN may legitimately move the sequence backwards", () => {
+  const { session } = guarded();
+  session.state.transition("loading");
+  session.state.transition("ready", { editorState: stateAt(296, 5618) });
+  session.state.transition("recoverable-error");
+  session.state.transition("loading");
+  // A fresh engine counts from the start. This goes through `transition`, which
+  // the guard deliberately does not wrap -- a reopen that could not lower the
+  // sequence would leave the new engine's caret unreachable forever.
+  session.state.transition("ready", { editorState: stateAt(2, 163) });
+  assert.equal(session.state.snapshot.editorState.caret.x, 163);
+  assert.equal(session.staleEditorStateWrites, 0);
+});
+
+test("finding 084: a write with no sourceSequence is not second-guessed", () => {
+  const { session } = guarded();
+  session.state.transition("loading");
+  session.state.transition("ready", { editorState: stateAt(296, 5618) });
+  // A host or profile that does not carry the counter must not have its state
+  // silently dropped: not-knowing is not the same claim as going backwards.
+  session.state.update({ editorState: { caret: { x: 9, y: 9 } } });
+  assert.equal(session.state.snapshot.editorState.caret.x, 9);
+  assert.equal(session.staleEditorStateWrites, 0);
+});
+
+test("finding 084: the guard is installed on the machine the writers use", () => {
+  const { session } = guarded();
+  // The drain calls `this.state.update` on the session's own machine. If the
+  // guard were installed on a copy, every test above would still pass and the
+  // product would still drop carets.
+  assert.equal(typeof session.staleEditorStateWrites, "number");
+  assert.notEqual(session.state.update, EditorStateMachine.prototype.update,
+                  "session.state.update is the unwrapped machine method");
+});
+
+test("finding 084: the base class builds the machine ONCE, which is what makes "
+     + "wrapping it in the constructor enough", () => {
+  // The guard wraps `this.state` at construction. If a reopen or a rollback
+  // ever replaced the machine, the wrapper would be silently dropped and every
+  // test above would still pass -- the same shape as the client-assignment
+  // interception above, which is pinned by a counter for the same reason.
+  const source = readFileSync(
+    fileURLToPath(new URL("../../editor-shell/editor-session.js",
+                          import.meta.url)), "utf8");
+  const assignments = source.match(/this\.state\s*=\s*new\s+EditorStateMachine/g);
+  assert.equal(assignments?.length, 1,
+               "editor-shell/editor-session.js assigns this.state more than "
+               + "once, so the guard installed in the constructor no longer "
+               + "covers every writer");
+});

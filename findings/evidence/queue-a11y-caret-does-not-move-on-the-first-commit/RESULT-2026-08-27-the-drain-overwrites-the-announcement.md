@@ -136,6 +136,50 @@ and on this lineage it is a coin toss that comes up wrong about one time in five
 | shipped `e2-editor-v8` | 24 | **0** | **+1** |
 | a11y `e2-editor-v11` | 48 | **10** | **+2** |
 
+## Fixed the same day, and the acceptance condition was written first
+
+**Shell generation v43** (`7e99d3a3…`). No engine change, no link, no profile
+repackage -- one file in `editor-shell-v2` is the whole remedy.
+`NarrowEditorV2Session` wraps its state machine's `update` and refuses the
+`editorState` field of any patch whose `sourceSequence` went backwards, letting
+the rest of the patch through.
+
+**Green was not the condition.** A clean run whose guard never fired has shown
+only that the race was not lost that time, so the guard's refusals are counted
+and read back through `window.__ppStaleWrites`.
+
+| run | profile | commits | dropped | `settledAfterMs` | stale writes refused |
+|---|---|---|---|---|---|
+| before | `e2-editor-v11` | 48 | **10** | 0-1 or **8023-8053** | — |
+| fixed 1 | `e2-editor-v11` | 12 | 0 | 0-1 | 2 (1 inside a round) |
+| fixed 2 | `e2-editor-v11` | 12 | 0 | 0-1 | 10 (5 inside rounds) |
+| fixed 3 | `e2-editor-v11` | 12 | 0 | 0-1 | 7 (6 inside rounds) |
+| fixed | shipped `e2-editor-v8` | 12 | 0 | 0-1 | **0** |
+
+**The race was still being lost twelve times inside a typing round and was
+caught every time.** The 8 s mode is gone entirely. All three accessibility runs
+came back 37 PASS / 3 NOT_ESTABLISHED, `ok: true`; the shipped profile came back
+**38 / 2, `ok: true`** with the guard never firing -- which is what the +1
+sequence predicted, and it means the fix cannot regress a path it never touches.
+
+**And it was never only about typing.** In each accessibility run the guard also
+fired outside the caret arm -- 1, 5 and 1 refusals belonging to other
+operations.
+
+## Four design decisions, each with a test and a mutation
+
+| decision | why | mutation that turns its test red |
+|---|---|---|
+| wraps `update`, not `transition` | a reopen builds a fresh engine whose counter starts near zero -- a **legitimate** move backwards | (covered by the reopen test) |
+| drops the whole `editorState`, no per-field merge | both sides are consistent snapshots of one moment; merging assembles a state that never existed. Every field the page reads is carried by both | `return write({})` -- 1 red |
+| a write with no `sourceSequence` is untouched | not-knowing is a different claim from going backwards | — |
+| an **equal** sequence is allowed | the drain's read answered at the announcement's sequence is the same moment | `next <= current` -- 1 red |
+
+Guard removed entirely: 6 red. Installed but never stripping: 2 red. A fifth
+test pins that `editor-shell/editor-session.js` assigns `this.state` **exactly
+once** -- a base class that ever replaced the machine would silently drop the
+wrapper while every other test stayed green.
+
 ## What this does NOT establish
 
 **Not that the defect is in the accessibility core.** The two writers and the

@@ -384,7 +384,15 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # keyboard away from the document.  One file changed, and it is the entrypoint,
 # so the bundle digest moves and the generation is a new identity -- which is
 # what the version number is for (E2-B's first structural lesson: 版本是身分).
-MANIFEST = Path("e2/editor-shell-v2-bundle-v42.json")
+#
+# v43, 2026-08-27: finding 084's fix.  `editor-shell-v2/narrow-editor-v2-session.js`
+# gained a guard that refuses an `editorState` write whose `sourceSequence` went
+# BACKWARDS -- the other half of finding 068's guard, and the half the product
+# actually hits: the drain's own read, answered before the engine's announcement
+# and applied after it, was putting the caret back a commit.  One file changed,
+# and it is not the entrypoint, but the bundle digest moves either way and that
+# is what makes it a new identity.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v43.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
