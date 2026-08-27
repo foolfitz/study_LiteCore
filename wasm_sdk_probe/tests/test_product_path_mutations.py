@@ -20,8 +20,12 @@ this one would have been an unbounded wait.
 """
 
 import pathlib
+import shutil
+import subprocess
 import sys
+import tempfile
 import unittest
+from pathlib import Path
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -75,6 +79,56 @@ class DiagnosticMirrorsStillApply(unittest.TestCase):
             "--barrier-details-diagnostic patches run()'s catch and found "
             f"{hits} of it in dist/e2-editor-app.js. The page moved under the "
             "diagnostic; fix the anchor, not the count.")
+
+    def test_the_caret_source_anchor_is_still_in_the_page(self):
+        """Finding 084's instrument, asked before a run pays for it.
+
+        The diagnostic patches `moveSinkToCaret` twice from one anchor -- a
+        module-scope probe before it and an applied-log inside it -- so a page
+        that moved under it costs a run to discover otherwise.
+        """
+        page = DIST / "e2-editor-app.js"
+        self.assertTrue(page.is_file())
+        hits = page.read_text(encoding="utf-8").count(probe.CARET_SOURCE_ANCHOR)
+        self.assertEqual(
+            hits, 1,
+            "--caret-source-diagnostic patches moveSinkToCaret and found "
+            f"{hits} of it in dist/e2-editor-app.js. The page moved under the "
+            "diagnostic; fix the anchor, not the count.")
+
+    def test_the_caret_source_patch_produces_a_page_that_parses(self):
+        """The patch, run and handed to a JavaScript parser.
+
+        An anchor that still matches says the patch APPLIED, not that what it
+        produced is a page. A syntax error in the inserted text costs a browser
+        run to find otherwise, and the run is minutes long.
+        """
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("no node to parse the patched page with")
+        page = (DIST / "e2-editor-app.js").read_text(encoding="utf-8")
+        patched = probe.caret_source_page(page)
+        self.assertIn("window.__ppCaretEngine", patched)
+        self.assertIn("caretBelieved", patched)
+        self.assertIn("caretApplied", patched)
+        with tempfile.TemporaryDirectory() as scratch:
+            target = Path(scratch) / "patched-page.mjs"
+            target.write_text(patched, encoding="utf-8")
+            done = subprocess.run([node, "--check", str(target)],
+                                  capture_output=True, text=True)
+        self.assertEqual(done.returncode, 0,
+                         "--caret-source-diagnostic produced a page node "
+                         f"refuses to parse:\n{done.stderr}")
+
+    def test_the_page_state_anchor_is_still_in_the_page(self):
+        """Both diagnostics patch it, and each demands exactly one."""
+        page = DIST / "e2-editor-app.js"
+        hits = page.read_text(encoding="utf-8").count(probe.PAGE_STATE_ANCHOR)
+        self.assertEqual(
+            hits, 1,
+            "--barrier-details-diagnostic and --caret-source-diagnostic both "
+            f"patch updateState and found {hits} of its anchor in "
+            "dist/e2-editor-app.js.")
 
 
 class MutationsStillApply(unittest.TestCase):

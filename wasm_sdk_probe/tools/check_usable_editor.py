@@ -196,6 +196,23 @@ def baseline_problems(report: dict) -> list[str]:
             "report is a profile diagnostic against "
             f"{report['profileDiagnostic'].get('profile')!r}: it measures that "
             "profile, not the one the product ships pointing at")
+    # AND EVERY OTHER MIRROR, by the stamp they all already carry.
+    #
+    # `profileDiagnostic` was refused by name, and three other diagnostics that
+    # serve a PATCHED PAGE were not: --barrier-details-diagnostic,
+    # --cut-via-replace-selection and --caret-source-diagnostic. Each stamps its
+    # own key with `evidenceClass: "diagnostic"` and says in its own note that
+    # the run "did NOT use the shipped page" -- so the stamp is the thing to
+    # read, not the list of names, which would have to be extended by whoever
+    # adds the next mirror and would not be.
+    for key, value in sorted(report.items()):
+        if key == "profileDiagnostic" or not isinstance(value, dict):
+            continue
+        if value.get("evidenceClass") == "diagnostic":
+            problems.append(
+                f"report carries `{key}` stamped evidenceClass=diagnostic: it "
+                "ran against a mirrored page, so it cannot reconcile the "
+                "checklist for the product")
     served = report.get("servedShell")
     if not served:
         problems.append("report has no `servedShell`: it predates shell "
@@ -314,7 +331,10 @@ def load() -> tuple[dict, str, dict]:
 def self_test() -> int:
     failures: list[str] = []
 
+    ran: list[str] = []
+
     def verify(name: str, condition: bool, detail: str = "") -> None:
+        ran.append(name)
         print(f"  {'ok  ' if condition else 'FAIL'}  {name}"
               + (f"  -- {detail}" if detail and not condition else ""))
         if not condition:
@@ -455,6 +475,13 @@ def self_test() -> int:
     rejects("a run against another profile is refused",
             lambda r, c: r.update(profileDiagnostic={
                 "evidenceClass": "diagnostic", "profile": "e2-editor-v9"}))
+    rejects("a run against a mirrored page is refused by its own stamp",
+            lambda r, c: r.update(caretSourceDiagnostic={
+                "evidenceClass": "diagnostic",
+                "note": "finding 084's three-layer caret instrument"}))
+    rejects("so is the barrier-details mirror, which was never refused before",
+            lambda r, c: r.update(barrierDetailsDiagnostic={
+                "evidenceClass": "diagnostic"}))
     rejects("a run that stopped on a dead session is refused",
             lambda r, c: r.update(sessionDied={
                 "noticedAfter": "format-a-paragraph-changes-that-paragraph",
@@ -527,7 +554,11 @@ def self_test() -> int:
             lambda r, c: r["knownRed"].update({
                 "a-check-nobody-lists": "finding 059: orphaned"}))
 
-    total = 24
+    # COUNTED, NOT DECLARED.  This was the literal 24 while thirty checks ran:
+    # every control added since it was written was invisible in the line the
+    # gate sweep reads, and a denominator that does not track what it names is
+    # the shape this tree keeps paying for.
+    total = len(ran)
     print(f"\nself-test: {total - len(failures)}/{total} checks moved the verdict")
     return 1 if failures else 0
 

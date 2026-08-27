@@ -283,6 +283,118 @@ WORKER_BARRIER_ANCHOR = ("function productFormatBarrier(value = {}) {\n"
 PAGE_STATE_ANCHOR = ("function updateState(snapshot) {\n"
                      "  el.statePill.dataset.state = snapshot.state;\n")
 
+# AND WHERE THE CARET CAME FROM, which is finding 084's open question.
+#
+# The sink stays where it was for a whole commit and catches up on the next one,
+# on the accessibility lineage only, at 3 of 27 commits.  The wait is bimodal --
+# 0-1 ms or the 8 s deadline, nothing in between -- so it is not latency; an
+# update is dropped.  Three layers carry the caret and only one of them is a DOM
+# observable, so the other two have to be asked for:
+#
+#   * the ENGINE's own record, `gEditorState.caret`, written by
+#     LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR and readable on demand through
+#     `editor-get-state`;
+#   * what the PAGE BELIEVES, `snapshot.editorState.caret`, refreshed by one
+#     `editor.getState()` per completed queued operation and by nothing else;
+#   * what the PAGE APPLIES, the argument `moveSinkToCaret` is handed -- whose
+#     ABSENCE for a commit means `paint()` skipped it.
+#
+# One anchor, two insertions: the probe has to be module scope to see `session`,
+# and the applied log has to be inside the function.
+CARET_SOURCE_ANCHOR = ("function moveSinkToCaret(caret) {\n"
+                       "  const width = el.canvas.clientWidth;\n")
+
+CARET_ENGINE_PROBE_JS = """// --caret-source-diagnostic (harness mirror, not shipped).
+// The ENGINE's caret, asked for rather than waited for: the same
+// `editor-get-state` the session issues after every queued operation, reachable
+// from outside the module so a harness can ask it at a moment of its choosing.
+//
+// The answer is STORED, not returned.  A promise crosses `evaluate` in Chrome
+// (CDP awaits it) and not in Firefox (WebDriver's sync execute does not), and a
+// 20 s engine timeout inside an evaluate would block the harness for it.
+window.__ppCaretEngine = (tag) => {
+  if (!window.__pp) return -1;
+  if (!window.__pp.caretEngine) window.__pp.caretEngine = [];
+  const row = { id: window.__pp.caretEngine.length, tag: tag,
+                started: performance.now(), done: false };
+  window.__pp.caretEngine.push(row);
+  if (!session || !session.editor) {
+    row.error = "no session"; row.done = true; return row.id;
+  }
+  session.editor.getState({ timeoutMs: 20000 }).then((state) => {
+    row.caret = state && state.caret
+      ? { x: state.caret.x, y: state.caret.y, height: state.caret.height }
+      : null;
+    row.sourceSequence = state ? state.sourceSequence : null;
+    row.documentChangeSequence = state ? state.documentChangeSequence : null;
+    row.visible = state ? state.visible : null;
+    row.collapsed = state && state.selection ? state.selection.collapsed : null;
+  }).catch((error) => {
+    row.error = String((error && error.message) || error);
+  }).then(() => { row.finished = performance.now(); row.done = true; });
+  return row.id;
+};
+
+"""
+
+CARET_APPLIED_JS = """  // --caret-source-diagnostic (harness mirror, not shipped).
+  // WHAT THE PAGE APPLIED.  paint() calls this only when the caret is known AND
+  // the selection is not a range, so the ABSENCE of a row for a commit is
+  // itself the answer.
+  if (window.__pp) {
+    if (!window.__pp.caretApplied) window.__pp.caretApplied = [];
+    window.__pp.caretApplied.push({
+      at: performance.now(),
+      x: caret ? caret.x : null, y: caret ? caret.y : null,
+    });
+  }
+"""
+
+CARET_BELIEVED_JS = """  // --caret-source-diagnostic (harness mirror, not shipped).
+  // WHAT THE PAGE BELIEVES.  This is the only place the caret enters the page,
+  // and `_drain()` refreshes it once per completed queued operation -- so a row
+  // missing here is a caret the page was never told about.
+  if (window.__pp) {
+    if (!window.__pp.caretBelieved) window.__pp.caretBelieved = [];
+    const es = snapshot ? snapshot.editorState : null;
+    window.__pp.caretBelieved.push({
+      at: performance.now(),
+      state: snapshot ? snapshot.state : null,
+      revision: snapshot ? snapshot.revision : null,
+      x: es && es.caret ? es.caret.x : null,
+      y: es && es.caret ? es.caret.y : null,
+      sourceSequence: es ? es.sourceSequence : null,
+      collapsed: es && es.selection ? es.selection.collapsed : null,
+    });
+  }
+"""
+
+
+def caret_source_page(page_text: str) -> str:
+    """The page with finding 084's three-layer caret instrument in it.
+
+    A function rather than four lines inside `main()`, so a static test can run
+    it and hand the result to `node --check` -- the runner discovering a syntax
+    error in its own patch costs a browser run, and this tree has paid that
+    before.
+    """
+    if page_text.count(CARET_SOURCE_ANCHOR) != 1:
+        raise SystemExit(
+            "moveSinkToCaret is not where --caret-source-diagnostic expects it; "
+            "the tree moved under the diagnostic. Fix the pattern rather than "
+            "patching blindly.")
+    if page_text.count(PAGE_STATE_ANCHOR) != 1:
+        raise SystemExit(
+            "updateState is not where --caret-source-diagnostic expects it; "
+            "the tree moved under the diagnostic.")
+    head, _, tail = CARET_SOURCE_ANCHOR.partition("\n")
+    page_text = page_text.replace(
+        CARET_SOURCE_ANCHOR,
+        CARET_ENGINE_PROBE_JS + head + "\n" + CARET_APPLIED_JS + tail, 1)
+    return page_text.replace(PAGE_STATE_ANCHOR,
+                             PAGE_STATE_ANCHOR + CARET_BELIEVED_JS, 1)
+
+
 READ_PAGE_PARAGRAPHS = (
     "(() => (window.__pp && window.__pp.paragraphs "
     "? window.__pp.paragraphs.slice() : null))()")
@@ -290,6 +402,31 @@ READ_PAGE_PARAGRAPHS = (
 READ_PAGE_ERRORS = (
     "(() => (window.__pp && window.__pp.errors "
     "? window.__pp.errors.slice() : null))()")
+
+# --caret-source-diagnostic's three readers.  All three answer `null` when the
+# diagnostic is off, which is the difference between "the layer said nothing"
+# and "nobody asked it" -- the shape READ_PAGE_ERRORS was given for the same
+# reason.
+CARET_ENGINE_PROBE = (
+    "(() => (window.__ppCaretEngine ? window.__ppCaretEngine(ARG_TAG) : -1))()")
+
+READ_CARET_ENGINE = (
+    "(() => (window.__pp && window.__pp.caretEngine "
+    "? window.__pp.caretEngine[ARG_INDEX] || null : null))()")
+
+READ_CARET_BELIEVED = (
+    "(() => (window.__pp && window.__pp.caretBelieved "
+    "? window.__pp.caretBelieved.slice(ARG_FROM) : null))()")
+
+READ_CARET_APPLIED = (
+    "(() => (window.__pp && window.__pp.caretApplied "
+    "? window.__pp.caretApplied.slice(ARG_FROM) : null))()")
+
+CARET_LOG_COUNTS = """(() => {
+if (!window.__pp) return null;
+return { believed: (window.__pp.caretBelieved || []).length,
+         applied: (window.__pp.caretApplied || []).length };
+})()"""
 
 CLEAR_TOASTS = """(() => {
 if (window.__pp) window.__pp.toasts.length = 0;
@@ -2046,6 +2183,52 @@ return true;
 })()"""
 
 
+def engine_caret(session, tag: str, timeout: float = 25) -> dict:
+    """What the ENGINE says the caret is, asked on demand.
+
+    Finding 084.  `#sink` is the only caret the harness could read until now,
+    and it is three layers downstream of the engine -- so a sink that did not
+    move says nothing about WHERE the update was lost.  This asks the engine
+    directly, through the same `editor-get-state` the session itself issues
+    after every queued operation, so it is the product's own call rather than a
+    back door invented for the measurement.
+
+    STORED, NOT RETURNED.  A promise crosses `evaluate` in Chrome (CDP awaits
+    it) and not in Firefox (WebDriver's sync execute does not), so the page
+    posts the answer into `window.__pp.caretEngine` and this polls for it.  The
+    same shape in both browsers, and it never blocks an evaluate for the
+    engine's whole 20 s timeout.
+
+    Returns a row with `caret`, `sourceSequence` and `collapsed`, or one
+    carrying `error` -- including when the diagnostic is not on, which is not
+    the same answer as a caret of null.
+    """
+    index = evaluate(session,
+                     CARET_ENGINE_PROBE.replace("ARG_TAG", json.dumps(tag)))
+    if not isinstance(index, int) or index < 0:
+        return {"tag": tag,
+                "error": "no probe installed -- this run is not a "
+                         "--caret-source-diagnostic run"}
+    started = time.monotonic()
+    while (time.monotonic() - started) < timeout:
+        row = evaluate(session,
+                       READ_CARET_ENGINE.replace("ARG_INDEX", str(index)))
+        if row and row.get("done"):
+            row["askedAfterMs"] = round((time.monotonic() - started) * 1000)
+            return row
+        time.sleep(0.05)
+    return {"tag": tag, "error": f"the engine probe did not answer in {timeout}s"}
+
+
+def caret_point(row) -> tuple | None:
+    """The (x, y) an engine probe reported, or None if it reported nothing."""
+    caret = (row or {}).get("caret")
+    if not caret:
+        return None
+    x, y = caret.get("x"), caret.get("y")
+    return None if x is None or y is None else (x, y)
+
+
 def place_caret_and_settle(session, point_at: str, x: str, y: str,
                            timeout: float = 60) -> dict:
     """Click, and wait for THIS placement rather than for a stale one.
@@ -3279,12 +3462,37 @@ def main() -> int:
                              "typed payload (code, recovery, details) on "
                              "window.__pp.errors, and record them in the "
                              "report; stamps the report diagnostic")
+    # WHERE THE CARET WAS LOST, which #sink alone cannot say (finding 084).
+    #
+    # Mirrors the page to add an on-demand engine probe and two logs -- what the
+    # page BELIEVED and what it APPLIED -- so a commit whose sink did not move
+    # can be attributed to a layer instead of to a build.  Stamps the report
+    # diagnostic; probe.wasm is byte-identical.
+    parser.add_argument("--caret-source-diagnostic", action="store_true",
+                        help="mirror the page so the ENGINE's caret can be "
+                             "asked for on demand and the page's own belief and "
+                             "application of it are logged; records all three "
+                             "beside #sink in every typing round; stamps the "
+                             "report diagnostic")
+    # More commits per run, because the defect is 3 in 27 and a run costs
+    # minutes.  Three is what the checklist's row means by "three times out of
+    # three"; a larger number makes the same check STRICTER, never different,
+    # and the number is written into the check so a reader is never guessing
+    # which one produced a verdict.
+    parser.add_argument("--caret-rounds", type=int, default=3,
+                        help="how many typing rounds `caret-follows-the-text-"
+                             "you-type` drives (default 3, minimum 3)")
     parser.add_argument("--liveness-control", action="store_true",
                         help="do not hold the dead-session guard off inside the "
                              "arms that induce recoverable-error on purpose, so "
                              "the guard is exercised against a real dead "
                              "session; the run is EXPECTED to stop there")
     args = parser.parse_args()
+    if args.caret_rounds < 3:
+        raise SystemExit(
+            "--caret-rounds may not go below 3: the checklist row this check "
+            "answers says three times out of three, and a run with fewer would "
+            "report a weaker check under the same id.")
     global EXCLUDE_CARET
     EXCLUDE_CARET = not args.no_caret_exclusion
 
@@ -3633,6 +3841,38 @@ def main() -> int:
                     "engine's whole barrier object -- including `readback.html`"
                     " and the containment geometry, which the product's own "
                     "allowlist drops.",
+        }
+
+    # AFTER --profile FOR THE SAME REASON as the mirror above, and after that
+    # one too: both patch e2-editor-app.js, and each builds its mirror from the
+    # `root` the previous one left behind.
+    if args.caret_source_diagnostic:
+        page_rel = "e2-editor-app.js"
+        mirror = scratch / "caret-source-root"
+        build_mirror(root, mirror, {page_rel: caret_source_page(
+            (root / page_rel).read_text(encoding="utf-8")).encode("utf-8")})
+        root = mirror
+        report["caretSourceDiagnostic"] = {
+            "evidenceClass": "diagnostic",
+            "note": "This run did NOT use the shipped page. An on-demand engine "
+                    "probe and two logs were added so the caret can be read at "
+                    "three layers instead of one. Nothing else differs and "
+                    "probe.wasm is byte-identical -- but a report carrying "
+                    "caretSource readings is a diagnostic run and must be cited "
+                    "as one.",
+            "what": "window.__ppCaretEngine(tag) issues an `editor-get-state` "
+                    "and stores the answer on window.__pp.caretEngine; "
+                    "window.__pp.caretBelieved gets one row per updateState "
+                    "(the caret the page was handed); window.__pp.caretApplied "
+                    "gets one row per moveSinkToCaret call (the caret the page "
+                    "used), and its ABSENCE for a commit says paint() skipped "
+                    "it.",
+            "limit": "each probe is a real engine command, so it could in "
+                     "principle let the engine's loop deliver a callback that "
+                     "was waiting. The FIRST differing probe's timestamp is "
+                     "recorded for that reason: a callback the probe itself "
+                     "flushed reads as 'stale until the exact moment we asked', "
+                     "not as an early catch-up.",
         }
 
     # Written AFTER the mirror is built, so it describes what was served rather
@@ -6113,7 +6353,10 @@ return { available: true, afterButton };
         # one sequence later, so whether the caret was current depended on which
         # side of that race the read fell. A single round would report green
         # about a fifth of the time.
-        caret_typing = {"rounds": [], "line": "0.28"}
+        caret_source = args.caret_source_diagnostic
+        caret_typing = {"rounds": [], "line": "0.28",
+                        "roundsRequested": args.caret_rounds,
+                        "engineAsked": caret_source}
         typing_clicks = caret_click_fractions(
             evaluate(session, LINE_INK.replace("ARG_Y", caret_typing["line"]))
             or {})
@@ -6149,10 +6392,17 @@ return { available: true, afterButton };
             start_left is not None and end_left is not None
             and end_left > start_left)
 
-        for index in range(3):
+        for index in range(args.caret_rounds):
             mark = f"CARETFOLLOW{index}"
             before = evaluate(session, SINK_POSITION) or {}
             before_left, before_top = before.get("left"), before.get("top")
+            # THE OTHER TWO LAYERS, when this run is asking for them (084).
+            # Read before the commit so each has a value to differ FROM: a
+            # probe that cannot print two different numbers is not a probe.
+            log_before = (evaluate(session, CARET_LOG_COUNTS) or {}
+                          ) if caret_source else {}
+            engine_before = (engine_caret(session, f"{mark}-before")
+                             if caret_source else None)
             floor = revision_of(evaluate(session, READ_STATE))
             evaluate(session, COMPOSE.replace("ARG_TEXT", mark))
             landed = wait_for(session,
@@ -6186,6 +6436,8 @@ return { available: true, afterButton };
             # and only that.
             settle_started = time.monotonic()
             after = evaluate(session, SINK_POSITION) or {}
+            engine_first_different = None
+            engine_probes = 0
             while (time.monotonic() - settle_started) < 8:
                 after_left, after_top = after.get("left"), after.get("top")
                 if (before_left is not None and after_left is not None
@@ -6194,9 +6446,25 @@ return { available: true, afterButton };
                              or (after_top == before_top
                                  and after_left > before_left))):
                     break
+                # ASK THE ENGINE WHILE THE SINK IS STILL WHERE IT WAS, which is
+                # the whole point of the diagnostic (084): a sink that has not
+                # moved and an engine that already has the new caret put the
+                # loss above the engine, and only reading both in the same
+                # moment can say so.  Stops asking once the answer has changed
+                # -- the first change is the measurement, the rest is noise.
+                if caret_source and engine_first_different is None:
+                    row = engine_caret(session, f"{mark}-poll{engine_probes}")
+                    engine_probes += 1
+                    if (caret_point(row) is not None
+                            and caret_point(row) != caret_point(engine_before)):
+                        engine_first_different = dict(
+                            row, afterMs=round(
+                                (time.monotonic() - settle_started) * 1000))
                 time.sleep(0.1)
                 after = evaluate(session, SINK_POSITION) or {}
             settled_ms = round((time.monotonic() - settle_started) * 1000)
+            engine_after = (engine_caret(session, f"{mark}-after")
+                            if caret_source else None)
             after_left, after_top = after.get("left"), after.get("top")
             # FORWARD IN READING ORDER, not "further right".
             #
@@ -6224,28 +6492,61 @@ return { available: true, afterButton };
                 "settledAfterMs": settled_ms,
                 "moved": moved,
             })
+            if caret_source:
+                # THE THREE LAYERS, in the round they belong to.  Sliced from
+                # the counts taken before the commit rather than read whole at
+                # the end: a log correlated by timestamp after the fact is one
+                # more thing that can be correlated wrongly.
+                believed = evaluate(session, READ_CARET_BELIEVED.replace(
+                    "ARG_FROM", str(log_before.get("believed", 0)))) or []
+                applied = evaluate(session, READ_CARET_APPLIED.replace(
+                    "ARG_FROM", str(log_before.get("applied", 0)))) or []
+                caret_typing["rounds"][-1].update({
+                    "engineBefore": engine_before,
+                    "engineAfter": engine_after,
+                    "engineFirstDifferent": engine_first_different,
+                    "engineProbes": engine_probes,
+                    # The instrument's own control, per round: an engine probe
+                    # that reports the same caret before and after a commit the
+                    # sink DID follow is not reading the engine at all.
+                    "engineMoved": (caret_point(engine_after) is not None
+                                    and caret_point(engine_after)
+                                    != caret_point(engine_before)),
+                    "believed": believed,
+                    "applied": applied,
+                })
 
         typed_rounds = [r for r in caret_typing["rounds"]
                         if r["revisionAdvanced"]]
         caret_typing["roundsThatReachedTheDocument"] = len(typed_rounds)
+        # The instrument control, run-wide: if no round's engine reading ever
+        # CHANGED, the engine columns in this report say nothing and must not
+        # be read as "the engine was stale".
+        if caret_source:
+            caret_typing["engineProbeTracked"] = any(
+                r.get("engineMoved") for r in caret_typing["rounds"])
         check("caret-follows-the-text-you-type",
               bool(typed_rounds) and all(r["moved"] for r in typed_rounds),
               outcome=None if (caret_typing["sinkTracksTheCaret"]
-                               and len(typed_rounds) == 3)
+                               and len(typed_rounds) == args.caret_rounds)
               else "NOT_ESTABLISHED",
               observed=caret_typing,
               oracle="typing moves the caret FORWARD IN READING ORDER -- "
                      "further right on the same line, or onto a lower one if "
-                     "the text wrapped -- three times out of three. Read from "
+                     "the text wrapped -- in every round asked for. Read from "
                      "`#sink`'s offset, "
                      "which finding 069 pinned to the caret, so this is the "
                      "position the page draws from. LIMIT: it is not the "
                      "pixels -- a page that computed the right position and "
                      "painted nothing would pass here and fail "
-                     "`the-caret-is-drawn-where-it-was-placed`",
+                     "`the-caret-is-drawn-where-it-was-placed`. The round "
+                     f"count is {args.caret_rounds}; --caret-rounds may raise "
+                     "it, never lower it, so a larger number is the same check "
+                     "asked more times",
               notEstablished="either the sink does not track the caret at all "
                              "(so 'it did not move' says nothing about typing) "
-                             "or fewer than three rounds reached the document. "
+                             "or fewer rounds reached the document than were "
+                             "asked for. "
                              "Three is not thoroughness: before the fix this "
                              "defect was intermittent at 2/7, and a single "
                              "round would report green about a fifth of the "
