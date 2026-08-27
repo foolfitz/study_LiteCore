@@ -91,7 +91,18 @@ on each of those days.**
     a-refused-action-is-reported-and-changes-nothing}`.
 
 **Any FAIL, any additional NE, or any different id in the NE set restarts the
-clock at zero** and is written up as a finding before the count resumes. A
+clock at zero** and is written up as a finding before the count resumes.
+
+**Soak run 1 of 12 is done** (2026-08-28): 38 PASS / 2 NE, `ok: true`, the
+checklist reconciling as a candidate-cutover with `problems: []`.
+`soak-run-01-candidate.json` in the evidence directory.
+
+Known already to be capable of restarting it: `clear-format-removes-every-inline-format`
+abstained once on a shipped-profile run and once on the post-cutover rehearsal
+run — one occurrence on each side, so it is an intermittent that predates this
+work and belongs to neither profile. When it lands inside the soak the clock
+restarts anyway. That is the criterion working, not a reason to carve an
+exception. A
 NOT_ESTABLISHED that is *not* one of those two is the shape this whole exercise
 exists to stop hiding.
 
@@ -172,11 +183,28 @@ page**: the page as it will ship, carrying its own pin and its own worker URL,
 with its sha256 written into every report. The cutover is then a flip to bytes
 already measured.
 
+**The cutover is four steps, not two lines** — step 3 was missing from the first
+draft of this plan and the revert rehearsal is what found it. The product page
+is the shell bundle's own **entrypoint** and is in its `included` list, so
+rewriting two of its lines moves the bundle digest; a run after the cutover
+carries no `candidateCutover` stamp and is therefore **refused by
+`check_usable_editor`** — measured, not reasoned.
+
 ```
-python3 tools/build_cutover_page.py --profile e2-editor-v11        # prints the sha256
+# 1  write the page
 python3 tools/build_cutover_page.py --profile e2-editor-v11 --write \
         --expect-sha256 <the sha256 every soak report carries>
+# 2  stage it where the product is served from
+cp web/e2-editor-app.js dist/e2-editor-app.js
+# 3  FREEZE THE NEW GENERATION, and point MANIFEST at it
+python3 tools/build_e2_c_shell_bundle.py \
+        --manifest e2/editor-shell-v2-bundle-v44.json \
+        --frozen-date <the day> --write
+#    then edit MANIFEST in tools/build_e2_c_shell_bundle.py
 ```
+
+A revert undoes **all three**, or the tree ships v8 while declaring a generation
+whose entrypoint points at v11.
 
 As of this writing that page is
 `c8c71ac530c4815aa431c04e2f2e001c34bd025f9b77744bb8fbe6881240a472`. The tool
@@ -214,6 +242,14 @@ honest answer is to measure again.
    **Condition satisfied.**
 3. **Rehearse it.** Perform the revert once against the staged setup and run the
    net on the reverted page. A revert that has never been executed is a hope.
+   **Done 2026-08-28**: the cutover was performed for real, the net run against
+   the real page, the revert performed with the same tool, and the net run
+   again — 38 PASS / 2 NE both before and after, the page byte-identical to its
+   baseline `28e03e5bc9fcb8c4`, `git status` clean, and the post-revert run
+   reconciling `ok: true`. The revert was wired to a `trap … EXIT` so a run
+   dying in the middle could not strand the tree. **The rehearsal is what found
+   step 3 above**, and step 3 has not itself been rehearsed.
+   See `findings/evidence/queue-v11-cutover-soak-not-started/RESULT-2026-08-28-the-revert-rehearsal.md`.
 4. **A pre-written trigger, decided now.** The revert is forced by any of: a new
    FAIL class on the net; a caret drop at the counter (`staleWritesRefusedTotal`
    rising while `moved` goes false); any user-visible regression reported by a
