@@ -167,8 +167,13 @@ honest answer is to measure again.
    revert expensive has to be *measured*, not assumed: does anything v11 writes
    fail to be read by v8? Grepped 2026-08-28: the shell uses no `localStorage`,
    `sessionStorage` or `indexedDB`, and the checkpoint is in-memory, so the only
-   cross-version artifact is the **saved ODT**. Owed: save a document on the
-   candidate, open it on v8, and check it round-trips. **Not yet done.**
+   cross-version artifact is the **saved ODT**. **Measured 2026-08-28 and it
+   round-trips both ways**: a document saved on the candidate opens on v8, and
+   one saved on v8 opens on the candidate; in both directions the sentinel text
+   survives, the structure is intact and a re-save from the other core is a
+   valid ODT. See
+   `findings/evidence/queue-v11-cutover-soak-not-started/RESULT-2026-08-28-the-saved-odt-crosses-both-ways.md`.
+   **Condition satisfied.**
 3. **Rehearse it.** Perform the revert once against the staged setup and run the
    net on the reverted page. A revert that has never been executed is a hope.
 4. **A pre-written trigger, decided now.** The revert is forced by any of: a new
