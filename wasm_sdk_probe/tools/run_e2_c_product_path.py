@@ -55,6 +55,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import io
 import json
 import os
@@ -304,6 +305,18 @@ PAGE_STATE_ANCHOR = ("function updateState(snapshot) {\n"
 CARET_SOURCE_ANCHOR = ("function moveSinkToCaret(caret) {\n"
                        "  const width = el.canvas.clientWidth;\n")
 
+# AND THE ANNOUNCEMENT ITSELF, BEFORE ANY LAYER HAS NARROWED IT.
+#
+# The page's `onEvent` is handed EVERY engine event -- `_handleEngineEvent`
+# forwards to it first and adopts the state afterwards -- so this is where the
+# raw `editor-state` announcement can be read, including the `source` field
+# naming the LOK callback that caused it. That field is dropped by the session's
+# adoption (`narrow-editor-v2-session.js` copies twelve fields and `source` is
+# not one), which is why "which callback is the extra one on the a11y core" was
+# not answerable from `caretBelieved` alone.
+CARET_ANNOUNCE_ANCHOR = ("    onEvent(event) {\n"
+                         "      if (event.event === \"document-invalidated\")\n")
+
 CARET_ENGINE_PROBE_JS = """// --caret-source-diagnostic (harness mirror, not shipped).
 // The ENGINE's caret, asked for rather than waited for: the same
 // `editor-get-state` the session issues after every queued operation, reachable
@@ -378,6 +391,54 @@ CARET_BELIEVED_JS = """  // --caret-source-diagnostic (harness mirror, not shipp
 """
 
 
+CARET_ANNOUNCE_JS = """      // --caret-source-diagnostic (harness mirror, not shipped).
+      // EVERY announcement, with the callback that caused it. Recorded here
+      // rather than in updateState because `source` does not survive the
+      // session's adoption, and "which callback is the extra one" is a question
+      // about the engine's schedule, not about the page's state.
+      if (window.__pp && event && event.event === "editor-state") {
+        if (!window.__pp.announcements) window.__pp.announcements = [];
+        window.__pp.announcements.push({
+          at: performance.now(),
+          source: event.source,
+          sourceSequence: event.sourceSequence,
+          documentChangeSequence: event.documentChangeSequence,
+          revision: event.revision,
+          x: event.caret ? event.caret.x : null,
+          y: event.caret ? event.caret.y : null,
+        });
+      }
+"""
+
+
+def repointed_page(source: str, profile: str,
+                   manifest_path: Path) -> tuple[str, str, str]:
+    """The product page, pointed at another profile.
+
+    ONE function for two callers on purpose. `--profile` uses it to mirror a
+    page for a diagnostic; `--candidate-profile` uses it to produce the page a
+    cutover would ship, and `tools/build_cutover_page.py` uses it to PERFORM
+    that cutover. If those were three transformations, "the bytes we measured"
+    and "the bytes we shipped" would be a claim instead of a sha256.
+
+    Returns (page, pin before, wasm sha256).
+    """
+    wasm = json.loads(manifest_path.read_text(
+        encoding="utf-8"))["editorContract"]["wasmSha256"]
+    worker_matches = re.findall(
+        r'"\./profiles/[A-Za-z0-9._-]+/sdk-worker\.js"', source)
+    pin_match = re.search(r'const PINNED_WASM_SHA256 = "([0-9a-f]+)";', source)
+    if len(worker_matches) != 1 or not pin_match:
+        raise SystemExit(
+            "the page does not carry exactly one worker URL and one pinned "
+            "hash, so it cannot be repointed without guessing")
+    page = source.replace(worker_matches[0],
+                          f'"./profiles/{profile}/sdk-worker.js"', 1)
+    page = page.replace(pin_match.group(0),
+                        f'const PINNED_WASM_SHA256 = "{wasm[:16]}";', 1)
+    return page, pin_match.group(1), wasm
+
+
 def caret_source_page(page_text: str) -> str:
     """The page with finding 084's three-layer caret instrument in it.
 
@@ -399,6 +460,14 @@ def caret_source_page(page_text: str) -> str:
     page_text = page_text.replace(
         CARET_SOURCE_ANCHOR,
         CARET_ENGINE_PROBE_JS + head + "\n" + CARET_APPLIED_JS + tail, 1)
+    if page_text.count(CARET_ANNOUNCE_ANCHOR) != 1:
+        raise SystemExit(
+            "the page's onEvent is not where --caret-source-diagnostic expects "
+            "it; the tree moved under the diagnostic.")
+    page_text = page_text.replace(
+        CARET_ANNOUNCE_ANCHOR,
+        CARET_ANNOUNCE_ANCHOR.split("\n")[0] + "\n" + CARET_ANNOUNCE_JS
+        + CARET_ANNOUNCE_ANCHOR.split("\n")[1] + "\n", 1)
     return page_text.replace(PAGE_STATE_ANCHOR,
                              PAGE_STATE_ANCHOR + CARET_BELIEVED_JS, 1)
 
@@ -430,10 +499,15 @@ READ_CARET_APPLIED = (
     "(() => (window.__pp && window.__pp.caretApplied "
     "? window.__pp.caretApplied.slice(ARG_FROM) : null))()")
 
+READ_CARET_ANNOUNCEMENTS = (
+    "(() => (window.__pp && window.__pp.announcements "
+    "? window.__pp.announcements.slice(ARG_FROM) : null))()")
+
 CARET_LOG_COUNTS = """(() => {
 if (!window.__pp) return null;
 return { believed: (window.__pp.caretBelieved || []).length,
          applied: (window.__pp.caretApplied || []).length,
+         announcements: (window.__pp.announcements || []).length,
          staleWrites: window.__ppStaleWrites ? window.__ppStaleWrites() : null };
 })()"""
 
@@ -3504,6 +3578,23 @@ def main() -> int:
     # page BELIEVED and what it APPLIED -- so a commit whose sink did not move
     # can be attributed to a layer instead of to a build.  Stamps the report
     # diagnostic; probe.wasm is byte-identical.
+    # THE STAGED CUTOVER, and it exists because the alternative was a gate that
+    # could never open.
+    #
+    # Every measurement of a non-shipped profile is reached through `--profile`,
+    # which stamps the report diagnostic, which the acceptance tool refuses --
+    # correctly, because the page measured is not the page that ships. But the
+    # only way to make it the page that ships is to perform the cutover, so
+    # "non-diagnostic evidence before the cutover" was unsatisfiable by
+    # construction. Adjudicated 2026-08-27: the objection is about identity
+    # binding, not about which URL is live. A candidate page carrying its OWN
+    # pin, measured, with its sha256 written into the report, and a cutover
+    # proven to produce those exact bytes, satisfies the objection's spirit.
+    parser.add_argument("--candidate-profile",
+                        help="measure the CANDIDATE page for a cutover to this "
+                             "profile -- the page as it will ship, with its own "
+                             "pin, recorded by sha256. Not a diagnostic, and "
+                             "not a verdict on the shipped profile either")
     parser.add_argument("--caret-source-diagnostic", action="store_true",
                         help="mirror the page so the ENGINE's caret can be "
                              "asked for on demand and the page's own belief and "
@@ -3546,6 +3637,10 @@ def main() -> int:
                              "the guard is exercised against a real dead "
                              "session; the run is EXPECTED to stop there")
     args = parser.parse_args()
+    if args.profile and args.candidate_profile:
+        raise SystemExit(
+            "--profile and --candidate-profile point the page at a profile the "
+            "same way and mean different things about the run; pick one.")
     if args.caret_rounds < 3:
         raise SystemExit(
             "--caret-rounds may not go below 3: the checklist row this check "
@@ -3772,37 +3867,53 @@ def main() -> int:
                 "range a cut necessarily has -- the v3 path verbatim",
             "restores": "queue-cut-refusal-lost-its-inducer",
         }
-    if args.profile:
+    if args.profile or args.candidate_profile:
+        wanted = args.profile or args.candidate_profile
         page_rel = "e2-editor-app.js"
         source = (root / page_rel).read_text(encoding="utf-8")
-        manifest_path = root / "profiles" / args.profile / "sdk-manifest.json"
+        manifest_path = root / "profiles" / wanted / "sdk-manifest.json"
         if not manifest_path.is_file():
-            raise SystemExit(f"--profile {args.profile!r} has no manifest at "
+            raise SystemExit(f"profile {wanted!r} has no manifest at "
                              f"{manifest_path}")
-        wasm = json.loads(manifest_path.read_text(
-            encoding="utf-8"))["editorContract"]["wasmSha256"]
-        worker_matches = re.findall(
-            r'"\./profiles/[A-Za-z0-9._-]+/sdk-worker\.js"', source)
-        pin_match = re.search(r'const PINNED_WASM_SHA256 = "([0-9a-f]+)";',
-                              source)
-        if len(worker_matches) != 1 or not pin_match:
-            raise SystemExit(
-                "the page does not carry exactly one worker URL and one pinned "
-                "hash, so this mirror cannot rewrite it without guessing")
-        page = source.replace(worker_matches[0],
-                              f'"./profiles/{args.profile}/sdk-worker.js"', 1)
-        page = page.replace(pin_match.group(0),
-                            f'const PINNED_WASM_SHA256 = "{wasm[:16]}";', 1)
+        page, pin_before, wasm = repointed_page(source, wanted, manifest_path)
         mirror = scratch / "profile-root"
         build_mirror(root, mirror, {page_rel: page.encode("utf-8")})
         root = mirror
+    if args.candidate_profile:
+        # A CANDIDATE IS NOT A DIAGNOSTIC, and the difference is a commitment
+        # rather than a transformation.
+        #
+        # `--profile` and this produce the same bytes. What the acceptance tool
+        # objects to in a `--profile` run is not the mirroring, it is that the
+        # page measured is not the page that ships. A candidate run answers that
+        # by NAMING the bytes: the sha256 below is what the cutover must produce,
+        # `tools/build_cutover_page.py` produces it from the same function, and
+        # the cutover is then a pointer flip to content already measured.
+        #
+        # So the acceptance tool accepts this and says WHICH candidate it
+        # reconciled -- it may never be read as a verdict on the shipped page.
+        report["candidateCutover"] = {
+            "profile": args.candidate_profile,
+            "pageSha256": hashlib.sha256(page.encode("utf-8")).hexdigest(),
+            "pinBefore": pin_before,
+            "pinAfter": wasm[:16],
+            "note": "This run measured the CANDIDATE page for a cutover to "
+                    f"{args.candidate_profile} -- the page as it will ship, "
+                    "with its own pinned hash and its own worker URL, not a "
+                    "--profile override. `tools/build_cutover_page.py "
+                    f"--profile {args.candidate_profile}` produces these exact "
+                    "bytes; the cutover is proven by that sha256 matching. It "
+                    "is NOT a verdict on the profile the product ships pointing "
+                    "at today.",
+        }
+    elif args.profile:
         report["profileDiagnostic"] = {
             "evidenceClass": "diagnostic",
             "note": "This run did NOT use the shipped page. It was mirrored to "
                     "load a different profile, so every result here is about "
                     "that profile and must not be quoted as the product's.",
             "profile": args.profile,
-            "pinBefore": pin_match.group(1),
+            "pinBefore": pin_before,
             "pinAfter": wasm[:16],
         }
 
@@ -6634,6 +6745,14 @@ return { available: true, afterButton };
                                     else None),
                     "believed": believed,
                     "applied": applied,
+                    # The engine's own announcements for this commit, with the
+                    # LOK callback that caused each. This is what says whether
+                    # the extra one on the a11y core is deterministically one
+                    # extra, and which callback it is.
+                    "announcements": evaluate(
+                        session, READ_CARET_ANNOUNCEMENTS.replace(
+                            "ARG_FROM",
+                            str(log_before.get("announcements", 0)))) or [],
                 })
 
         typed_rounds = [r for r in caret_typing["rounds"]

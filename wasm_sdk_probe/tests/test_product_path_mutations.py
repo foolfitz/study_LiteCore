@@ -109,6 +109,7 @@ class DiagnosticMirrorsStillApply(unittest.TestCase):
         page = (DIST / "e2-editor-app.js").read_text(encoding="utf-8")
         patched = probe.caret_source_page(page)
         self.assertIn("window.__ppCaretEngine", patched)
+        self.assertIn("window.__pp.announcements", patched)
         self.assertIn("caretBelieved", patched)
         self.assertIn("caretApplied", patched)
         with tempfile.TemporaryDirectory() as scratch:
@@ -119,6 +120,15 @@ class DiagnosticMirrorsStillApply(unittest.TestCase):
         self.assertEqual(done.returncode, 0,
                          "--caret-source-diagnostic produced a page node "
                          f"refuses to parse:\n{done.stderr}")
+
+    def test_the_announcement_anchor_is_still_in_the_page(self):
+        """The page's onEvent, which is where `source` is still readable."""
+        page = (DIST / "e2-editor-app.js").read_text(encoding="utf-8")
+        hits = page.count(probe.CARET_ANNOUNCE_ANCHOR)
+        self.assertEqual(
+            hits, 1,
+            "--caret-source-diagnostic records every engine announcement from "
+            f"the page's onEvent and found {hits} of its anchor.")
 
     def test_the_page_state_anchor_is_still_in_the_page(self):
         """Both diagnostics patch it, and each demands exactly one."""

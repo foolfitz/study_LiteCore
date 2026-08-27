@@ -418,3 +418,105 @@ test("finding 084: the base class builds the machine ONCE, which is what makes "
                + "once, so the guard installed in the constructor no longer "
                + "covers every writer");
 });
+
+// --------------------- finding 084: order independence, not "currently winning"
+//
+// The tests above show the guard refuses the ONE interleaving that was measured
+// in the product. That is not the same claim as "the newest state always wins",
+// and the difference matters for a cutover: the accessibility core emits an
+// extra state-changing callback per commit, so the arrival order this guard
+// meets there is not the order it was written against.
+//
+// The invariant these prove is the strong one: after ANY interleaving of writes,
+// the snapshot holds the HIGHEST sourceSequence that was written, and the caret
+// that came with it. Proven over every permutation rather than over the one that
+// was seen.
+
+function drive(session, sequences) {
+  for (const n of sequences) session.state.update({ editorState: stateAt(n, n * 10) });
+  return session.state.snapshot.editorState;
+}
+
+function permutations(items) {
+  if (items.length <= 1) return [items];
+  const out = [];
+  for (let i = 0; i < items.length; i += 1) {
+    const rest = [...items.slice(0, i), ...items.slice(i + 1)];
+    for (const tail of permutations(rest)) out.push([items[i], ...tail]);
+  }
+  return out;
+}
+
+test("finding 084: after ANY order of arrivals the newest state is the one held",
+     () => {
+  const arrivals = [294, 295, 296, 297];
+  let checked = 0;
+  for (const order of permutations(arrivals)) {
+    const { session } = guarded();
+    session.state.transition("loading");
+    session.state.transition("ready", { editorState: stateAt(293, 2930) });
+    const held = drive(session, order);
+    assert.equal(held.sourceSequence, 297,
+                 `order ${order.join(",")} left the snapshot at `
+                 + `${held.sourceSequence}`);
+    assert.equal(held.caret.x, 2970,
+                 `order ${order.join(",")} left the caret at ${held.caret.x}`);
+    checked += 1;
+  }
+  assert.equal(checked, 24, "not every permutation was driven");
+});
+
+test("finding 084: a DUPLICATED announcement is idempotent, in any position",
+     () => {
+  for (const order of [[296, 296, 294], [294, 296, 296], [296, 294, 296]]) {
+    const { session } = guarded();
+    session.state.transition("loading");
+    session.state.transition("ready", { editorState: stateAt(293, 2930) });
+    const held = drive(session, order);
+    assert.equal(held.sourceSequence, 296, `order ${order.join(",")}`);
+    assert.equal(held.caret.x, 2960, `order ${order.join(",")}`);
+  }
+});
+
+test("finding 084: the sequence the snapshot holds NEVER decreases, whatever "
+     + "arrives", () => {
+  const { session, seen } = guarded();
+  session.state.transition("loading");
+  session.state.transition("ready", { editorState: stateAt(293, 2930) });
+  // A deliberately hostile stream: forwards, backwards, repeats, a big jump.
+  drive(session, [295, 294, 296, 294, 295, 300, 297, 300, 299]);
+  const sequences = seen
+    .map((s) => s.editorState?.sourceSequence)
+    .filter((n) => Number.isInteger(n));
+  for (let i = 1; i < sequences.length; i += 1)
+    assert.ok(sequences[i] >= sequences[i - 1],
+              `the snapshot went ${sequences[i - 1]} -> ${sequences[i]}`);
+  assert.equal(session.state.snapshot.editorState.sourceSequence, 300);
+  // Every backwards arrival was refused, and the counter says how many.
+  assert.equal(session.staleEditorStateWrites, 5);
+});
+
+test("finding 084: TWO announcements per commit -- the a11y core's shape -- "
+     + "still ends on the caret-bearing one", () => {
+  // What the accessibility core actually does, from the measured logs: a commit
+  // produces two state-changing callbacks, and the caret rides the SECOND. The
+  // drain's read, answered before both, is applied between them. The order the
+  // product met is the middle one; the other two are the same three writes in
+  // the orders a different schedule could deliver them.
+  for (const order of [["a1", "a2", "drain"], ["a1", "drain", "a2"],
+                       ["drain", "a1", "a2"]]) {
+    const { session } = guarded();
+    session.state.transition("loading");
+    session.state.transition("ready", { editorState: stateAt(294, 2940) });
+    for (const step of order) {
+      if (step === "a1") session.state.update({ editorState: stateAt(295, 2940) });
+      if (step === "a2") session.state.update({ editorState: stateAt(296, 5618) });
+      if (step === "drain")
+        session.state.update({ revision: 129, editorState: stateAt(294, 2940) });
+    }
+    assert.equal(session.state.snapshot.editorState.caret.x, 5618,
+                 `order ${order.join(",")} lost the caret`);
+    assert.equal(session.state.snapshot.revision, 129,
+                 `order ${order.join(",")} lost the revision`);
+  }
+});

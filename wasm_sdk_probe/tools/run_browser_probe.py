@@ -243,14 +243,27 @@ class ChromeSession:
         self.call("Network.setCacheDisabled", {"cacheDisabled": cache_mode == "cold"})
 
     def call(self, method: str, params: dict[str, Any] | None = None,
-             timeout: float = 180) -> dict[str, Any]:
+             timeout: float = 180,
+             session_id: str | None = None) -> dict[str, Any]:
+        """One CDP call, optionally addressed to an ATTACHED target.
+
+        `session_id` is what makes a worker reachable.  A dedicated worker is
+        its own CDP target; without addressing it, `Runtime.evaluate` runs in
+        the page and cannot touch the worker's global at all.  Added 2026-08-27
+        so the recovery path could be driven by a REAL worker failure instead of
+        by an unfixed upstream defect (`queue-recovery-inducer-depends-on-an-
+        unfixed-defect`).
+        """
         self.next_id += 1
         message_id = self.next_id
-        self.websocket.send(json.dumps({
+        message = {
             "id": message_id,
             "method": method,
             "params": params or {},
-        }))
+        }
+        if session_id is not None:
+            message["sessionId"] = session_id
+        self.websocket.send(json.dumps(message))
         while True:
             response = json.loads(self.websocket.recv(timeout=timeout))
             if response.get("id") != message_id:

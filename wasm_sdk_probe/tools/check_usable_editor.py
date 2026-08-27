@@ -475,6 +475,18 @@ def self_test() -> int:
     rejects("a run against another profile is refused",
             lambda r, c: r.update(profileDiagnostic={
                 "evidenceClass": "diagnostic", "profile": "e2-editor-v9"}))
+    # NOT a rejection: a candidate run is the one mirrored page that IS
+    # acceptance evidence -- for the candidate. The control is that it is
+    # ACCEPTED and LABELLED, because the failure mode here is the opposite one:
+    # a candidate verdict quoted as if it were the shipped page's.
+    accepted = json.loads(json.dumps(baseline))
+    accepted["candidateCutover"] = {"profile": "e2-editor-v11",
+                                    "pageSha256": "0" * 64}
+    verify("a candidate-cutover run is ACCEPTED, not refused",
+           not reconcile(json.loads(json.dumps(checklist)), accepted))
+    verify("...and it carries no `evidenceClass: diagnostic` stamp to refuse it",
+           accepted["candidateCutover"].get("evidenceClass") is None)
+
     rejects("a run against a mirrored page is refused by its own stamp",
             lambda r, c: r.update(caretSourceDiagnostic={
                 "evidenceClass": "diagnostic",
@@ -577,6 +589,28 @@ def main() -> int:
     run = (json.loads(args.report.read_text(encoding="utf-8"))
            if args.report else None)
     report = resolve(checklist, runner_text, queue, FINDINGS, run)
+    # A CANDIDATE RECONCILIATION SAYS SO, IN THE VERDICT.
+    #
+    # A `--candidate-profile` run is deliberately NOT refused: its page carries
+    # its own pin and its sha256 is in the report, so it measures the bytes a
+    # cutover would ship (adjudicated 2026-08-27). What it must never do is read
+    # as a verdict on the profile the product ships pointing at TODAY -- so the
+    # verdict carries the candidate's name and page hash, and a reader who
+    # quotes `ok: true` without them is quoting a different claim.
+    candidate = (run or {}).get("candidateCutover")
+    if candidate:
+        report["reconciledFor"] = {
+            "kind": "candidate-cutover",
+            "profile": candidate.get("profile"),
+            "pageSha256": candidate.get("pageSha256"),
+            "note": "This verdict is about the CANDIDATE page for a cutover to "
+                    f"{candidate.get('profile')}, not about the shipped one. "
+                    "The cutover is proven by `tools/build_cutover_page.py "
+                    f"--profile {candidate.get('profile')} --write "
+                    "--expect-sha256 <pageSha256>` producing these bytes.",
+        }
+    elif run is not None:
+        report["reconciledFor"] = {"kind": "shipped-page"}
     text = json.dumps(report, indent=2, ensure_ascii=False)
     if args.output:
         args.output.write_text(text + "\n", encoding="utf-8")
