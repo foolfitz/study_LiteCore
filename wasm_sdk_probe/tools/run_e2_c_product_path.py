@@ -2728,11 +2728,31 @@ def stable_bands(session, tries: int = 12) -> tuple[dict, list[dict]]:
     Measured 2026-08-19: read straight after a save, the same page reported 11
     bands once and 9 a moment later -- a repaint caught in flight.  A fixed
     sleep would have hidden that; this waits for the shape to repeat.
+
+    EMPTY IS NOT STABLE (2026-08-27, queue-canvas-grew-arm-abstains-
+    intermittently).  Two empty scans agree with each other, so a canvas that
+    had not painted yet satisfied the repeat test after ONE sleep and this
+    returned zero bands in half a second -- and "the page has settled with no
+    ink on it" and "nothing has been drawn yet" are the same answer to that
+    test.  Measured: `the-canvas-follows-a-document-that-grew` abstained with
+    `bandsBeforeTheEdit: 0` on a two-page document the session already called
+    `ready`, three times in eight runs on 2026-08-26 and twice more on
+    2026-08-27.
+
+    So an empty shape no longer ends the wait; it uses the whole budget. Arms
+    that EXPECT a blank canvas -- the above-the-wall pair -- still get their
+    answer, they just take the full six seconds to get it, and a blank canvas
+    that stayed blank for six seconds is a stronger statement than one that was
+    blank for one.
+
+    `stableAfterTries` and `stableBecause` ride on the scan so a reader can tell
+    the two apart afterwards: `repeated` is the shape settling, `exhausted` is
+    the budget running out with the canvas still empty.
     """
     scan: dict = {}
     bands: list[dict] = []
     previous = None
-    for _ in range(tries):
+    for attempt in range(1, tries + 1):
         scan = evaluate(session, INK_ROWS.replace(
             "ARG_EXCLUDE_CARET", "true" if EXCLUDE_CARET else "false")) or {
                 "counts": [], "firsts": [], "lasts": [], "height": 1,
@@ -2741,10 +2761,14 @@ def stable_bands(session, tries: int = 12) -> tuple[dict, list[dict]]:
         note_off_page_ink(scan)
         bands = text_bands(scan)
         shape = [(b["top"], b["bottom"]) for b in bands]
-        if previous is not None and shape == previous:
+        if shape and previous is not None and shape == previous:
+            scan["stableAfterTries"] = attempt
+            scan["stableBecause"] = "repeated"
             return scan, bands
         previous = shape
         time.sleep(0.5)
+    scan["stableAfterTries"] = tries
+    scan["stableBecause"] = "exhausted" if not bands else "repeated-at-the-end"
     return scan, bands
 
 
@@ -7493,6 +7517,10 @@ return { available: true, afterButton };
         grew["bandsBeforeTheEdit"] = len(bands)
         grew["scanWidth"] = scan.get("width")
         grew["stateBeforeTheEdit"] = grew["state"]
+        # How the scan decided it was done, which is the difference between
+        # "settled empty" and "gave up empty" -- see stable_bands.
+        grew["scanSettledAfterTries"] = scan.get("stableAfterTries")
+        grew["scanSettledBecause"] = scan.get("stableBecause")
         if bands and grew["state"] == "ready":
             band = bands[-1]
             evaluate(session, POINT_AT
