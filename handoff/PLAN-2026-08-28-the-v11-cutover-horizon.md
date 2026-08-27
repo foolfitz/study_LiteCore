@@ -128,13 +128,41 @@ recorded. This is the condition most likely to embarrass us in front of the
 institutional buyer the schedule was rearranged for, and it needs the user or a
 machine with a screen reader.
 
-## The size decision is already made — confirm it, do not reopen it
+## The size decision was made on a smaller number than the real one
 
 The 2026-08-20 ruling that brought accessibility forward accepted the
-writer+calc core at **+19.9 MB** as the product core. Measured today: v8's
-`probe.wasm` is **110.0 MB**, v11's is **129.0 MB**. Cite the ruling in the
-cutover record and get one explicit confirmation from the user — as a
-confirmation, not a reopened decision.
+writer+calc core at **+19.9 MB**. That figure is the **wasm alone**, and the
+wasm is not what an institution downloads.
+
+Counted 2026-08-28 from every file each manifest actually references:
+
+| | `e2-editor-v8` | `e2-editor-v11` | delta |
+|---|---|---|---|
+| `probe.js` + `probe.wasm` | 110.1 MB | 129.1 MB | +19.0 |
+| `soffice.data` (core filesystem image) | **32.6 MB** | **103.5 MB** | **+70.9** |
+| `cjk-r5` pack | 18.6 MB, at startup | — folded in | |
+| `fallback-fonts-r5` pack | 46.8 MB, **on demand** | — folded in | |
+| total bytes | 208.3 MB | 232.8 MB | +24.5 |
+| **required before the editor is usable** | **161.4 MB** | **232.8 MB** | **+71.4 MB, +44%** |
+
+Two structural differences, not one:
+
+1. v11's core filesystem image is **three times** v8's — that is the
+   writer+calc core the ruling accepted, and the ruling's number did not include
+   it.
+2. **v8 defers a 46.8 MB font pack to on demand; v11 has no resource packs at
+   all.** Everything is in the startup blob, so the lazy loading v8 has is gone.
+
+Neither of these is an argument against the cutover on its own — the second may
+even be a packaging choice that can be undone. **But the user's confirmation
+must be against +71.4 MB at startup, not against +19.9 MB**, and if the 08-20
+ruling was made on the wasm figure then it was made on an incomplete one. That
+is for the user to judge; recording it is not.
+
+**Owed, and cheap**: ask whether v11 can carry resource packs the way v8 does.
+If it can, most of the second difference goes away and the comparison becomes
++70.9 MB of core image against a 32.6 MB one, which is the honest subject of the
+decision.
 
 ## The cutover itself, and the revert that must be armed first
 
@@ -161,7 +189,17 @@ honest answer is to measure again.
 1. **v8's five identities archived with checksums and an `ATTRIBUTION.md`** that
    names what each file is — a profile is five bound identities, not one
    artifact, and an archive named after the wrong hash has already cost this
-   tree once.
+   tree once. **Checked 2026-08-28**:
+   `build/archive/e2-editor-v8-4a2710bb-worker-070229cd-manifest-d70481cb/`
+   exists, its `SHA256SUMS` verifies OK for all four files it holds, and all
+   four are byte-identical to the live `dist/profiles/e2-editor-v8/`.
+   **But it holds four, not five.** The fifth identity — the core data — is not
+   in it: v8's `soffice.data` and its two resource packs live in the SHARED
+   `dist/profiles/resources/`, which twelve other profiles also reference. A
+   cutover does not endanger them (v11 references none of them), so the revert
+   is still a flip — but the archive **cannot restore v8 on its own**, and its
+   ATTRIBUTION says "the five identities" while listing four. Owed: say so in
+   that file, or archive the core data beside it.
 2. **No forward-incompatible state.** ABI 4 on both sides, the same 21 actions,
    and the two new manifest fields are additive — but the question that makes a
    revert expensive has to be *measured*, not assumed: does anything v11 writes
