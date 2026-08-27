@@ -2154,11 +2154,31 @@ def served_shell_identity(root: Path) -> dict:
     for path in paths:
         served = root / served_in_dist(path)
         hashes[path] = sha256_file(served) if served.is_file() else None
+    # AND WHAT DIFFERS, not only THAT something does.
+    #
+    # The product page is the bundle's own entrypoint and is IN its included
+    # list, so a cutover -- which rewrites two lines of that page -- necessarily
+    # moves the bundle digest. Reported as a bare mismatch that reads as "the
+    # shell drifted", which for a candidate run is the wrong sentence: nothing
+    # drifted, one file is deliberately the page that will ship.
+    #
+    # So the identity now says which paths differ. A candidate run is legitimate
+    # when the ONLY difference is the entrypoint and its hash is exactly the
+    # bytes the cutover will write; anything else is drift and still fails.
+    declared = {entry["path"]: entry["sha256"]
+                for entry in manifest.get("included") or []}
+    differing = sorted(path for path, digest in hashes.items()
+                       if digest is not None and declared.get(path) != digest)
+    entrypoint = manifest.get("entrypoint")
     return {
         "bundle": SHELL_BUNDLE_V2.relative_to(PROJECT).as_posix(),
         "declaredSha256": manifest.get("bundleSha256"),
         "servedSha256": shell_bundle_digest(hashes),
         "missing": sorted(p for p, h in hashes.items() if h is None),
+        "entrypoint": entrypoint,
+        "entrypointSha256": hashes.get(entrypoint),
+        "differingPaths": differing,
+        "differsOnlyInTheEntrypoint": differing == [entrypoint],
     }
 
 

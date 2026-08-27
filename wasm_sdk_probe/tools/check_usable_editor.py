@@ -221,13 +221,40 @@ def baseline_problems(report: dict) -> list[str]:
     if served.get("missing"):
         problems.append(f"the served root was missing bundled modules: "
                         f"{served['missing']}")
+    candidate = report.get("candidateCutover")
     if served.get("servedSha256") != served.get("declaredSha256"):
-        problems.append(
-            f"the shell that ran is not the declared generation "
-            f"({served.get('bundle')}): served "
-            f"{str(served.get('servedSha256'))[:16]}, declared "
-            f"{str(served.get('declaredSha256'))[:16]} -- a mirror, a shim or an "
-            "older run")
+        # A CANDIDATE IS ALLOWED TO DIFFER IN EXACTLY ONE FILE.
+        #
+        # The product page is the bundle's own entrypoint, so a cutover -- two
+        # rewritten lines in that page -- necessarily moves the bundle digest.
+        # Refusing that outright made the soak criterion in
+        # `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` unsatisfiable by
+        # construction: a candidate run could never reconcile, so "twelve clean
+        # runs against the candidate page" could never be reached. Found
+        # 2026-08-28 while rehearsing the revert, which is what a rehearsal is
+        # for.
+        #
+        # What is NOT relaxed: every other module must still be the frozen
+        # generation, and the entrypoint must be EXACTLY the bytes
+        # `build_cutover_page.py` will write -- the sha256 the run recorded
+        # before it started. One file differing for a stated reason with its
+        # hash pinned is not the same as a shell that drifted.
+        if (candidate
+                and served.get("differsOnlyInTheEntrypoint")
+                and served.get("entrypointSha256")
+                and served.get("entrypointSha256") == candidate.get("pageSha256")):
+            pass
+        else:
+            problems.append(
+                f"the shell that ran is not the declared generation "
+                f"({served.get('bundle')}): served "
+                f"{str(served.get('servedSha256'))[:16]}, declared "
+                f"{str(served.get('declaredSha256'))[:16]}"
+                + (f" -- differing paths {served.get('differingPaths')}"
+                   if served.get("differingPaths") else "")
+                + (" -- and this candidate run's entrypoint is not the page its "
+                   "own report says the cutover will write"
+                   if candidate else " -- a mirror, a shim or an older run"))
     return problems
 
 
@@ -484,6 +511,30 @@ def self_test() -> int:
                                     "pageSha256": "0" * 64}
     verify("a candidate-cutover run is ACCEPTED, not refused",
            not reconcile(json.loads(json.dumps(checklist)), accepted))
+
+    # THE ENTRYPOINT EXEMPTION, and both ways it must fail.
+    def candidate_shell(page_sha, differs_only, entry_sha):
+        broken = json.loads(json.dumps(baseline))
+        broken["candidateCutover"] = {"profile": "e2-editor-v11",
+                                      "pageSha256": page_sha}
+        broken["servedShell"].update(servedSha256="9" * 64,
+                                     entrypoint="web/e2-editor-app.js",
+                                     entrypointSha256=entry_sha,
+                                     differingPaths=["web/e2-editor-app.js"],
+                                     differsOnlyInTheEntrypoint=differs_only)
+        return broken
+
+    verify("a candidate whose ONLY difference is the entrypoint, at the hash it "
+           "declared, is accepted",
+           not reconcile(json.loads(json.dumps(checklist)),
+                         candidate_shell("a" * 64, True, "a" * 64)))
+    verify("a candidate whose entrypoint is NOT the page it says will ship is "
+           "refused",
+           bool(reconcile(json.loads(json.dumps(checklist)),
+                          candidate_shell("a" * 64, True, "b" * 64))))
+    verify("a candidate that also differs somewhere ELSE in the shell is refused",
+           bool(reconcile(json.loads(json.dumps(checklist)),
+                          candidate_shell("a" * 64, False, "a" * 64))))
     verify("...and it carries no `evidenceClass: diagnostic` stamp to refuse it",
            accepted["candidateCutover"].get("evidenceClass") is None)
 
