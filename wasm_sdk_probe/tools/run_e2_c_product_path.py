@@ -2269,6 +2269,112 @@ return true;
 })()"""
 
 
+def induce_worker_failure(session, settle: float = 4.0) -> dict:
+    """Kill the engine with a REAL worker error, depending on no defect at all.
+
+    `queue-recovery-inducer-depends-on-an-unfixed-defect`: the only route into
+    `recoverable-error` was finding 038 staying broken, and on the accessibility
+    core it stopped reproducing -- so the product's safety net for unsaved work
+    was covered by nothing on the profile a cutover would ship.
+
+    An uncaught error inside the document worker is the failure class
+    `DocumentSdk._handleCrash` listens for (`worker.addEventListener("error")`,
+    document-sdk.js:126). It is induced from OUTSIDE the product: no page
+    change, no test-only affordance, no upstream bug. What is synthetic is the
+    trigger; the failure and everything after it are the product's own.
+
+    THE WORKER CANNOT BE FOUND BY ASKING FOR IT.  `Target.getTargets` reports
+    eight `worker` targets with EMPTY urls -- the verified loader builds the
+    worker from a blob and the wasm's pthreads each occupy a target -- and
+    `Target.attachToTarget` on any of them returns a real sessionId to which
+    NOTHING is ever answered, `Runtime.enable` included. Measured 2026-08-27,
+    from the page connection and from a second one to the browser endpoint.
+
+    `Target.setAutoAttach` is the route that works. It delivers exactly one
+    session, for the page's own dedicated worker, and the url is in the EVENT
+    even though `getTargets` reports it empty. Measured: it reaches a worker
+    that already exists, so this can run mid-arm rather than before the page
+    loads -- which is why it is a helper here and not a change to the session
+    class every runner shares.
+
+    Returns what it did, including why it could not, because "the inducer did
+    not fire" and "the product survived a worker crash" must not read alike.
+    """
+    call = getattr(session, "call", None)
+    if call is None:
+        return {"name": "INDUCE_WORKER_FAILURE", "fired": False,
+                "why": "no CDP; a worker cannot be reached over WebDriver"}
+    websocket = getattr(session, "websocket", None)
+    if websocket is None:
+        return {"name": "INDUCE_WORKER_FAILURE", "fired": False,
+                "why": "this session has no raw websocket to read events from"}
+    # SENT BY HAND, because `call` would throw away the answer.
+    #
+    # Chrome emits `Target.attachedToTarget` for the existing targets BEFORE it
+    # answers `setAutoAttach`, and `ChromeSession.call` discards every message
+    # whose id does not match while it waits for its own. So calling it the
+    # normal way loses exactly the events this needs, every time, and reports
+    # "auto-attach delivered no session" -- measured 2026-08-27, on a run where
+    # every attachment had happened.
+    #
+    # This is the third time in one day that a thing arriving as an EVENT was
+    # dropped by a reader written for request/response. It is worth the eight
+    # lines to read the socket directly here.
+    attached = []
+    session.next_id += 1
+    message_id = session.next_id
+    try:
+        websocket.send(json.dumps(
+            {"id": message_id, "method": "Target.setAutoAttach",
+             "params": {"autoAttach": True, "flatten": True,
+                        "waitForDebuggerOnStart": False}}))
+    except Exception as error:                        # noqa: BLE001 -- reported
+        return {"name": "INDUCE_WORKER_FAILURE", "fired": False,
+                "why": f"setAutoAttach: {type(error).__name__}: {error}"}
+    answered = False
+    deadline = time.monotonic() + settle
+    while time.monotonic() < deadline:
+        try:
+            message = json.loads(websocket.recv(timeout=0.5))
+        except Exception:                             # noqa: BLE001 -- a quiet
+            continue                                  # socket is not an error
+        if message.get("method") == "Target.attachedToTarget":
+            attached.append(message["params"])
+        elif message.get("id") == message_id:
+            answered = True
+            if "error" in message:
+                return {"name": "INDUCE_WORKER_FAILURE", "fired": False,
+                        "why": f"setAutoAttach: {message['error']}"}
+    if not answered and not attached:
+        return {"name": "INDUCE_WORKER_FAILURE", "fired": False,
+                "why": "setAutoAttach was neither answered nor followed by any "
+                       "attachment within the settle window"}
+    workers = [a for a in attached
+               if a["targetInfo"].get("type") == "worker"
+               and a["targetInfo"].get("url", "").endswith("sdk-worker.js")]
+    if not workers:
+        return {"name": "INDUCE_WORKER_FAILURE", "fired": False,
+                "why": "auto-attach delivered no session for a document worker",
+                "attachedTypes": sorted({a["targetInfo"].get("type")
+                                         for a in attached})}
+    target = workers[-1]
+    try:
+        call("Runtime.evaluate",
+             {"expression": "setTimeout(() => { throw new Error("
+                            "'induced worker failure'); }, 0); true",
+              "returnByValue": True},
+             session_id=target["sessionId"])
+    except Exception as error:                        # noqa: BLE001 -- reported
+        return {"name": "INDUCE_WORKER_FAILURE", "fired": False,
+                "why": f"evaluate in the worker: {type(error).__name__}: {error}"}
+    return {"name": "INDUCE_WORKER_FAILURE", "fired": True,
+            "workerUrl": target["targetInfo"]["url"].rsplit("/", 2)[-2:],
+            "recipe": "an uncaught error inside the document worker, which the "
+                      "SDK reports as `worker-crashed` -- the failure class the "
+                      "recovery path exists for, and no product change",
+            "dependsOnADefect": False}
+
+
 def engine_caret(session, tag: str, timeout: float = 25) -> dict:
     """What the ENGINE says the caret is, asked on demand.
 
@@ -7968,6 +8074,43 @@ return { available: true, afterButton };
                                                                    "restart-required"),
                                       150)
                     recovery["stateAfterNextOperation"] = (wedged or {}).get("state")
+                    recovery["finding038Reproduced"] = (
+                        (wedged or {}).get("state") in ("recoverable-error",
+                                                        "restart-required"))
+                    # THE SECOND INDUCER, and the acceptance condition this arm
+                    # is written for has changed with it -- deliberately, with
+                    # the reason here rather than in a commit message.
+                    #
+                    # WHAT IT USED TO MEAN.  NOT_ESTABLISHED here was the loud
+                    # exit for finding 038 no longer reproducing, and it was the
+                    # right answer while there was no other way in. On
+                    # `e2-editor-v11` that exit fired in 5 runs of 5 -- so on the
+                    # profile a cutover would ship, the recovery path was
+                    # covered by nothing, and a reader of "37 PASS / 3 NE,
+                    # ok: true" could not see it. An adjudication called that a
+                    # finding wearing an NE costume.
+                    #
+                    # WHAT IT MEANS NOW.  038 not reproducing is still RECORDED
+                    # -- `finding038Reproduced` is a fact about that core and
+                    # nothing here hides it -- but it no longer costs the
+                    # coverage. The checkpoint is already written by the drag
+                    # above (measured on v11: `有（r2）` even when the engine
+                    # survives), so only the killing step is replaced and the
+                    # branch under test is the same one.
+                    #
+                    # NOT_ESTABLISHED is now reserved for what it should always
+                    # have meant: no inducer could reach the state at all.
+                    if not recovery["finding038Reproduced"]:
+                        recovery["fallbackInducer"] = induce_worker_failure(
+                            session)
+                        if recovery["fallbackInducer"].get("fired"):
+                            wedged = wait_for(
+                                session,
+                                lambda s: s.get("state") in ("recoverable-error",
+                                                             "restart-required"),
+                                90)
+                            recovery["stateAfterFallback"] = (
+                                wedged or {}).get("state")
                     # THE CONTROL'S PROBE.  A no-op without --liveness-control.
                     # This is the one place in the run where the session is
                     # KNOWN to be dead and has not yet been rescued, so it is
@@ -8091,13 +8234,20 @@ return { available: true, afterButton };
                 check("recovery-returns-what-the-product-promised", False,
                       outcome="NOT_ESTABLISHED",
                       observed=recovery,
-                      why="the inducer did not put the session into a state where "
-                          "the product OFFERS its recovery button. The recipe is "
-                          "finding 038 -- a drag covering the endnote reference "
-                          "mark of a paragraph whose note body holds an as-char "
-                          "frame -- and this is the loud exit for 038 no longer "
-                          "reproducing, NOT a silent pass. The recovery path is "
-                          "then uncovered again and needs a new inducer",
+                      why="NEITHER inducer put the session into a state where "
+                          "the product offers its recovery button, which since "
+                          "2026-08-27 is the only thing this outcome means. The "
+                          "first is finding 038 -- a drag covering the endnote "
+                          "reference mark of a paragraph whose note body holds "
+                          "an as-char frame -- and `finding038Reproduced` "
+                          "records whether it still wedges this core, because "
+                          "that is a fact about the core and not a reason to "
+                          "lose the coverage. The second is an uncaught error "
+                          "inside the document worker, which depends on no "
+                          "defect at all; `fallbackInducer.why` says why it "
+                          "could not fire. Both silent means the recovery path "
+                          "could not be reached, which is a stronger statement "
+                          "than it used to be",
                       oracle="see the established branch: the product's own "
                              "declaration, honoured")
 
