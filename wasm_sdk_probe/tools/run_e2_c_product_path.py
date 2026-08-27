@@ -3482,6 +3482,28 @@ def main() -> int:
     parser.add_argument("--caret-rounds", type=int, default=3,
                         help="how many typing rounds `caret-follows-the-text-"
                              "you-type` drives (default 3, minimum 3)")
+    # WHEN TO ASK THE ENGINE, and the default is the answer to a confound
+    # this instrument created on its first day.
+    #
+    # `every-round` brackets each commit with a probe before and after. That is
+    # the reading with the most structure -- and each probe is a real engine
+    # command issued immediately before typing, which could change the order in
+    # which the engine's loop delivers a cursor callback. Measured: 24 of 24
+    # commits followed the caret under it, against a historical 3 of 27 dropped
+    # with no probe at all.
+    #
+    # `stalled` issues NOTHING on a commit the sink followed, so a passing round
+    # is byte-for-byte the traffic of an unprobed run. It asks only once the
+    # sink has already failed, and it compares the engine against WHAT THE PAGE
+    # BELIEVES rather than against an earlier engine reading -- which is the
+    # comparison the finding actually needs and needs no "before" at all.
+    parser.add_argument("--caret-engine-probe", choices=("stalled",
+                                                         "every-round"),
+                        default="stalled",
+                        help="when --caret-source-diagnostic asks the engine "
+                             "for its caret: only once the sink has failed to "
+                             "follow (default, no traffic on a passing commit), "
+                             "or before and after every commit")
     parser.add_argument("--liveness-control", action="store_true",
                         help="do not hold the dead-session guard off inside the "
                              "arms that induce recoverable-error on purpose, so "
@@ -3854,6 +3876,7 @@ def main() -> int:
         root = mirror
         report["caretSourceDiagnostic"] = {
             "evidenceClass": "diagnostic",
+            "engineProbeMode": args.caret_engine_probe,
             "note": "This run did NOT use the shipped page. An on-demand engine "
                     "probe and two logs were added so the caret can be read at "
                     "three layers instead of one. Nothing else differs and "
@@ -3872,7 +3895,12 @@ def main() -> int:
                      "was waiting. The FIRST differing probe's timestamp is "
                      "recorded for that reason: a callback the probe itself "
                      "flushed reads as 'stale until the exact moment we asked', "
-                     "not as an early catch-up.",
+                     "not as an early catch-up. `engineProbeMode: stalled` -- "
+                     "the default -- sends NOTHING on a commit the sink "
+                     "followed, so the rate a run measures is the product's "
+                     "and not the instrument's; `every-round` brackets each "
+                     "commit and is the richer reading of a defect that has "
+                     "already been reproduced under `stalled`.",
         }
 
     # Written AFTER the mirror is built, so it describes what was served rather
@@ -6354,9 +6382,13 @@ return { available: true, afterButton };
         # side of that race the read fell. A single round would report green
         # about a fifth of the time.
         caret_source = args.caret_source_diagnostic
+        caret_probe_every_round = (caret_source
+                                   and args.caret_engine_probe == "every-round")
         caret_typing = {"rounds": [], "line": "0.28",
                         "roundsRequested": args.caret_rounds,
-                        "engineAsked": caret_source}
+                        "engineAsked": caret_source,
+                        "engineProbeMode": (args.caret_engine_probe
+                                            if caret_source else None)}
         typing_clicks = caret_click_fractions(
             evaluate(session, LINE_INK.replace("ARG_Y", caret_typing["line"]))
             or {})
@@ -6367,6 +6399,16 @@ return { available: true, afterButton };
                                caret_typing["line"])
         time.sleep(0.8)
         caret_typing["sinkAtLineStart"] = evaluate(session, SINK_POSITION) or {}
+        # THE ENGINE PROBE'S OWN CONTROL, TAKEN OFF THE COMMIT PATH.
+        #
+        # A probe that cannot print two different values is not a probe, and in
+        # `stalled` mode no round issues one unless something has already gone
+        # wrong -- so the proof that it reads the engine at all cannot come from
+        # the rounds. It comes from here: two probes bracketing a caret the
+        # product moved on purpose, before any typing, where an extra engine
+        # command cannot perturb the thing being measured.
+        caret_typing["engineAtLineStart"] = (
+            engine_caret(session, "control-line-start") if caret_source else None)
         place_caret_and_settle(session, POINT_AT, typing_clicks["past"],
                                caret_typing["line"])
         # The control's own predicate, polled: the sink must reach further right
@@ -6386,6 +6428,13 @@ return { available: true, afterButton };
             caret_typing["sinkAtLineEnd"] = evaluate(session, SINK_POSITION) or {}
         caret_typing["controlSettledAfterMs"] = round(
             (time.monotonic() - control_started) * 1000)
+        caret_typing["engineAtLineEnd"] = (
+            engine_caret(session, "control-line-end") if caret_source else None)
+        if caret_source:
+            caret_typing["engineProbeTracked"] = (
+                caret_point(caret_typing["engineAtLineEnd"]) is not None
+                and caret_point(caret_typing["engineAtLineEnd"])
+                != caret_point(caret_typing["engineAtLineStart"]))
         start_left = (caret_typing["sinkAtLineStart"] or {}).get("left")
         end_left = (caret_typing["sinkAtLineEnd"] or {}).get("left")
         caret_typing["sinkTracksTheCaret"] = (
@@ -6401,8 +6450,11 @@ return { available: true, afterButton };
             # probe that cannot print two different numbers is not a probe.
             log_before = (evaluate(session, CARET_LOG_COUNTS) or {}
                           ) if caret_source else {}
+            # NOTHING IS SENT TO THE ENGINE HERE IN `stalled` MODE -- see the
+            # flag's own comment. A passing commit must carry the traffic of an
+            # unprobed run or the rate this measures is the instrument's.
             engine_before = (engine_caret(session, f"{mark}-before")
-                             if caret_source else None)
+                             if caret_probe_every_round else None)
             floor = revision_of(evaluate(session, READ_STATE))
             evaluate(session, COMPOSE.replace("ARG_TEXT", mark))
             landed = wait_for(session,
@@ -6453,18 +6505,37 @@ return { available: true, afterButton };
                 # moment can say so.  Stops asking once the answer has changed
                 # -- the first change is the measurement, the rest is noise.
                 if caret_source and engine_first_different is None:
+                    # WHAT THE ENGINE HAS, AGAINST WHAT THE PAGE BELIEVES, read
+                    # in the same moment.  In `stalled` mode there is no earlier
+                    # engine reading to compare with and none is needed: the
+                    # question is whether the engine is AHEAD of the page, and
+                    # the page's own last belief answers it without an extra
+                    # command before the commit.
                     row = engine_caret(session, f"{mark}-poll{engine_probes}")
+                    believed_tail = evaluate(session, READ_CARET_BELIEVED.replace(
+                        "ARG_FROM", str(max(0, (log_before.get("believed", 0)))))) or []
+                    believed_now = believed_tail[-1] if believed_tail else None
                     engine_probes += 1
+                    reference = (caret_point(engine_before)
+                                 if caret_probe_every_round
+                                 else ((believed_now or {}).get("x"),
+                                       (believed_now or {}).get("y")))
                     if (caret_point(row) is not None
-                            and caret_point(row) != caret_point(engine_before)):
+                            and caret_point(row) != reference):
                         engine_first_different = dict(
                             row, afterMs=round(
-                                (time.monotonic() - settle_started) * 1000))
+                                (time.monotonic() - settle_started) * 1000),
+                            comparedWith=("engineBefore"
+                                          if caret_probe_every_round
+                                          else "pageBelief"),
+                            pageBelievedThen=believed_now)
                 time.sleep(0.1)
                 after = evaluate(session, SINK_POSITION) or {}
             settled_ms = round((time.monotonic() - settle_started) * 1000)
-            engine_after = (engine_caret(session, f"{mark}-after")
-                            if caret_source else None)
+            engine_after = (
+                engine_caret(session, f"{mark}-after")
+                if (caret_probe_every_round
+                    or (caret_source and engine_probes)) else None)
             after_left, after_top = after.get("left"), after.get("top")
             # FORWARD IN READING ORDER, not "further right".
             #
@@ -6509,9 +6580,14 @@ return { available: true, afterButton };
                     # The instrument's own control, per round: an engine probe
                     # that reports the same caret before and after a commit the
                     # sink DID follow is not reading the engine at all.
-                    "engineMoved": (caret_point(engine_after) is not None
-                                    and caret_point(engine_after)
-                                    != caret_point(engine_before)),
+                    # Only when both brackets exist -- in `stalled` mode a
+                    # passing round has neither, and `None` says "not asked"
+                    # rather than "did not move".
+                    "engineMoved": ((caret_point(engine_after) is not None
+                                     and caret_point(engine_after)
+                                     != caret_point(engine_before))
+                                    if (engine_before and engine_after)
+                                    else None),
                     "believed": believed,
                     "applied": applied,
                 })
@@ -6519,12 +6595,10 @@ return { available: true, afterButton };
         typed_rounds = [r for r in caret_typing["rounds"]
                         if r["revisionAdvanced"]]
         caret_typing["roundsThatReachedTheDocument"] = len(typed_rounds)
-        # The instrument control, run-wide: if no round's engine reading ever
-        # CHANGED, the engine columns in this report say nothing and must not
-        # be read as "the engine was stale".
-        if caret_source:
-            caret_typing["engineProbeTracked"] = any(
-                r.get("engineMoved") for r in caret_typing["rounds"])
+        # `engineProbeTracked` is set in the control phase above, from two
+        # probes bracketing a caret the product moved on purpose -- not from the
+        # rounds, which in `stalled` mode issue no probe at all unless something
+        # has already gone wrong.
         check("caret-follows-the-text-you-type",
               bool(typed_rounds) and all(r["moved"] for r in typed_rounds),
               outcome=None if (caret_typing["sinkTracksTheCaret"]
