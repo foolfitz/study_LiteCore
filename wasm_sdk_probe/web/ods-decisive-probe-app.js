@@ -174,7 +174,26 @@ async function runCase(spec) {
 }
 
 (async () => {
-  const specs = JSON.parse(params.get("cases") || "[]");
+  // THE CASE LIST COMES FROM A FILE, not the query string. A sweep over three
+  // hundred fixtures does not fit in a URL, and a list silently truncated by a
+  // URL limit would report a clean sweep over whatever survived -- a census
+  // that measured a prefix and said nothing.
+  let specs = [];
+  try {
+    const inline = params.get("cases");
+    if (inline) {
+      specs = JSON.parse(inline);
+    } else {
+      const response = await fetch("./ods-cases.json");
+      if (!response.ok) throw new Error(`cases.json: ${response.status}`);
+      specs = await response.json();
+    }
+  } catch (error) {
+    report.fatal = errorValue(error);
+    report.done = true;
+    return;
+  }
+  report.caseCount = specs.length;
   for (const spec of specs) {
     try { await runCase(spec); }
     catch (error) { report.cases.push({ name: spec.name, fatal: errorValue(error) }); }

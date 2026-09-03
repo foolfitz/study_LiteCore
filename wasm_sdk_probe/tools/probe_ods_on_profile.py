@@ -89,10 +89,27 @@ def main() -> int:
     parser.add_argument("--truncated", type=Path, default=None,
                         help="a corrupt ODS: without it, 'did not open' and "
                              "'the worker died' look the same")
+    parser.add_argument("--corpus", type=Path, default=None,
+                        help="a manifest.json from tools/create_ods_corpus.py; "
+                             "every entry is staged, in manifest order")
+    parser.add_argument("--only", default=None,
+                        help="with --corpus, keep only entries whose path "
+                             "starts with this prefix (e.g. 'ladder/')")
     parser.add_argument("--timeout", type=float, default=600)
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
 
+    if args.corpus is not None:
+        manifest = json.loads(args.corpus.read_text(encoding="utf-8"))
+        base = args.corpus.parent
+        picked = [e for e in manifest["entries"]
+                  if args.only is None or e["path"].startswith(args.only)]
+        if not picked:
+            raise SystemExit(
+                f"--corpus selected nothing (--only {args.only!r}). A sweep "
+                f"that searched zero files must be RED, not a clean report.")
+        args.fixture = [base / e["path"] for e in picked]
+        print(f"corpus: {len(args.fixture)} of {len(manifest['entries'])} entries")
     if not args.fixture:
         raise SystemExit("--fixture is required: a probe with nothing to open "
                          "would report cleanly and measure nothing")
@@ -108,8 +125,12 @@ def main() -> int:
     }
     cases = []
 
+    staged: list[dict] = []
+
     def stage(path: Path, kind: str, paint: bool = True) -> None:
         rel = f"ods-cases/{path.name}"
+        staged.append({"case": path.name, "path": str(path),
+                       "sha256": sha256_of(path), "kind": kind})
         overrides[rel] = path.read_bytes()
         spec = {"name": path.name, "file": "./" + rel, "kind": kind}
         if paint is not None:
@@ -127,6 +148,8 @@ def main() -> int:
     if args.truncated:
         stage(args.truncated, "control-truncated-ods", False)
 
+    overrides["ods-cases.json"] = json.dumps(
+        cases, ensure_ascii=False).encode("utf-8")
     build_mirror(PROJECT / "dist", root, overrides)
     # `build_mirror` materialises an override only when it MEETS that path while
     # walking the source, so an override for a file `dist/` does not have is
@@ -151,21 +174,18 @@ def main() -> int:
         "profile": args.profile,
         "nameSpoofed": True,
         "evidenceClass": "diagnostic",
-        "inputs": [{"case": c["name"], "path": str(p),
-                    "sha256": sha256_of(p)}
-                   for c, p in zip(cases,
-                                   ([args.control] if args.control else [])
-                                   + ([args.empty] if args.empty else [])
-                                   + list(args.fixture)
-                                   + ([args.truncated] if args.truncated else []))],
+        # Keyed by case NAME rather than by position: the first version zipped
+        # `cases` against a rebuilt list of the same paths, which is a second
+        # implementation of the ordering and would mislabel every input the day
+        # the two drifted.
+        "inputs": staged,
     }
     session = None
     server = None
     try:
         port, server = serve(root)
         session = ChromeSession("cold")
-        query = ("?profile=" + args.profile + "&cases="
-                 + json.dumps(cases, separators=(",", ":")))
+        query = "?profile=" + args.profile
         navigate(session, f"http://127.0.0.1:{port}/ods-decisive-probe.html"
                           + query)
         deadline = time.monotonic() + args.timeout
