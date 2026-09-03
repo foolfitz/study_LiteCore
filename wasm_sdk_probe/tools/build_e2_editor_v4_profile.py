@@ -75,6 +75,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_e2_b_profile as v2  # noqa: E402
 import build_e2_c_profile as v3  # noqa: E402
+import build_r5_profiles as r5  # noqa: E402
 from e1_support import write_json  # noqa: E402
 
 ABI_VERSION = 4
@@ -176,6 +177,26 @@ def action_map() -> dict:
     return actions
 
 
+def local_resource(pack: dict, *, startup: bool, purpose: str) -> dict:
+    """A resourcePack entry whose files live in the profile, not in `resources/`.
+
+    `build_r5_profiles.relative_resource()` writes `../resources/...` because
+    the R5 profiles share one product-core pack set.  A profile built against
+    another core must not point there -- that is the "link one core, load
+    another" mistake `--core-data` exists to prevent -- so its packs are its own
+    files under its own directory.
+    """
+    return {
+        "id": pack["id"],
+        "data": f"./{pack['data']}",
+        "metadata": f"./{pack['metadata']}",
+        "bytes": pack["bytes"],
+        "sha256": pack["sha256"],
+        "loadAtStartup": startup,
+        "purpose": purpose,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-manifest", type=Path, required=True)
@@ -270,6 +291,24 @@ def main() -> int:
                              "inheriting the shared product-core paths. "
                              "Required for any profile linked against a core "
                              "that is not the product's")
+    # SPLITTING THE PROFILE'S OWN IMAGE, not inheriting anybody's packs.
+    #
+    # `PLAN-2026-08-28-the-v11-cutover-horizon.md` addendum part 2 (B-2): the
+    # 46.8 MiB fallback-font slice is 65% of what a cutover to the a11y core
+    # costs at startup, and it is a packaging choice rather than a property of
+    # the core.  The comment below explains why the PRODUCT core's packs may
+    # not be inherited; that reasoning does not forbid a profile having packs
+    # cut from its OWN image, which is what this does.
+    #
+    # Read finding 085 before assuming what `loadAtStartup: false` buys: there
+    # is no on-demand load path in this SDK, so a non-startup pack is declared
+    # and never fetched.  Splitting therefore matches the shipped product's
+    # font coverage; it does not defer the fonts to a later fetch.
+    parser.add_argument("--split-core-data", action="store_true",
+                        help="slice --core-data's image into base + cjk + "
+                             "fallback packs written INTO this profile, and "
+                             "declare them locally, instead of carrying one "
+                             "unsplit soffice.data. Requires --core-data")
     parser.add_argument("--profile", default=PROFILE,
                         help="profile identity to stamp; defaults to the "
                              "product's. Use another name for any profile "
@@ -283,6 +322,13 @@ def main() -> int:
             f"product's own name ({PROFILE}). Pass --profile with a "
             "diagnostic name: a manifest that claims coverage the evidence "
             "does not have is the one thing this contract exists to prevent")
+
+    if args.split_core_data and args.core_data is None:
+        raise SystemExit(
+            "--split-core-data needs --core-data: there is nothing to slice. "
+            "Splitting the PRODUCT core's shared image is not what this flag "
+            "does and would put a second copy of those packs in a profile "
+            "directory")
 
     problems = v2.refuse_non_product(args.exports)
     if problems:
@@ -311,16 +357,48 @@ def main() -> int:
                 f"profile linked against that core cannot be packaged without "
                 f"its filesystem image, and inheriting the product core's "
                 f"would link one core and load another")
-        for name in ("soffice.data", "soffice.data.js.metadata"):
-            shutil.copy2(program / name, args.output / name)
-        manifest["artifactFiles"] = {
-            **manifest["artifactFiles"],
-            "soffice.data": "./soffice.data",
-            "soffice.data.js.metadata": "./soffice.data.js.metadata",
-        }
-        # The packs are the PRODUCT core's too, and a profile that carries its
-        # own image has no use for them.  `e2-editor-v5` declares none.
-        manifest["resourcePacks"] = []
+        if args.split_core_data:
+            # The three groups are `build_r5_profiles.classify()`'s, unchanged:
+            # it groups by path prefix and font basename, which is a property of
+            # the file list rather than of the core that produced it.  It raises
+            # on non-contiguous or duplicated metadata, so reaching the slice is
+            # itself a check on the image.
+            metadata = json.loads(
+                (program / "soffice.data.js.metadata").read_text(encoding="utf-8"))
+            groups = r5.classify(metadata["files"])
+            packs = {
+                name: r5.create_pack(program / "soffice.data", entries,
+                                     args.output, f"{name}-{args.profile}")
+                for name, entries in groups.items()
+            }
+            manifest["artifactFiles"] = {
+                **manifest["artifactFiles"],
+                "soffice.data": f"./{packs['base']['data']}",
+                "soffice.data.js.metadata": f"./{packs['base']['metadata']}",
+            }
+            # `loadAtStartup` mirrors the product core's split exactly: CJK at
+            # startup, fallback not.  Deliberately NOT a new policy -- the
+            # question this profile exists to answer is what the same packaging
+            # costs on this core, and changing two variables would answer
+            # neither.
+            manifest["resourcePacks"] = [
+                local_resource(packs["cjk"], startup=True,
+                               purpose="CJK corpus"),
+                local_resource(packs["fallback-fonts"], startup=False,
+                               purpose="optional complex-script and fidelity "
+                                       "fallback"),
+            ]
+        else:
+            for name in ("soffice.data", "soffice.data.js.metadata"):
+                shutil.copy2(program / name, args.output / name)
+            manifest["artifactFiles"] = {
+                **manifest["artifactFiles"],
+                "soffice.data": "./soffice.data",
+                "soffice.data.js.metadata": "./soffice.data.js.metadata",
+            }
+            # The packs are the PRODUCT core's too, and a profile that carries
+            # its own image has no use for them.  `e2-editor-v5` declares none.
+            manifest["resourcePacks"] = []
     contract = manifest["editorContract"]
     contract["abiVersion"] = ABI_VERSION
     contract["actions"] = action_map()
