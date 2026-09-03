@@ -1384,6 +1384,47 @@
         }
       ],
       "checkNote": "The first two together ARE the defect: the tuple's last entry is v40 and v43 exists on disk. When the item is closed by catching the tuple up, the first check stops being the last entry and this pair must be rewritten to state whatever the fix makes true -- with the reason, per the rule that an acceptance condition may be changed but never silently."
+    },
+    {
+      "id": "queue-calc-view-has-no-accessibility-broadcaster",
+      "title": "the accessibility projection this core exists for does not extend to Calc views: `no accessibility broadcaster?` on every spreadsheet open -- OPEN",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "measured 2026-09-03 by the ODS milestone's decisive measurement (findings/evidence/m4-ods/RESULT-W2-the-decisive-measurement.md)",
+      "note": "Every spreadsheet opened on e2-editor-v12 logs, three times, immediately after `open.query-metadata` -- which is where refreshEditorAccessibility() calls setAccessibilityState(view, true):\n\n  warn:legacy.osl:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?\n\nNo ODT case logs it. The document still opens, the view initialises and the tile paints, so this does NOT wedge -- that half was the registered unknown and it is now answered.\n\nTHE OTHER HALF IS THE POINT. A Calc view in this build has no accessibility broadcaster, so the document projection that justifies this core -- the thing gate condition 4a measures and the whole v12 cutover is being paid for -- DOES NOT EXTEND TO SPREADSHEETS as it stands. An ODS viewer built on this core would be as inaccessible as the product is today.\n\nNot a reason to stop the ODS milestone: the owner asked for READING ODS and route B is a read-only viewer. It is a reason that milestone may never be described as 'accessible spreadsheet reading' anywhere, and a reason to size the work before anyone assumes it rides along with the Writer projection.\n\nNothing measured yet about WHY: whether the broadcaster is absent because ScTabViewShell does not create one under --disable-gui, or because the accessibility factory is stripped for Calc, or because the call arrives before the view is ready. That question is the first work item if this is ever taken up, and guessing between the three is what this note exists to prevent.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "refreshEditorAccessibility"
+        },
+        {
+          "kind": "file-exists",
+          "file": "../findings/evidence/m4-ods/RESULT-W2-the-decisive-measurement.md"
+        }
+      ],
+      "checkNote": "The first check pins the call site the warning comes from, so a rename or removal reddens this item rather than silently orphaning it. It does NOT assert the defect is present -- that is what the banked measurement is for; a check that tried to assert it would need a browser run per queue pass."
+    },
+    {
+      "id": "queue-d4-runner-blames-the-product-for-a-namespace-mismatch",
+      "title": "run_e2_c_d4.py polls one namespace and the heap page publishes to another, so a page that finished in 9 s is reported as a 40-minute product failure -- OPEN",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "measured 2026-09-03 while taking the ODS milestone's memory baseline (findings/evidence/m4-ods/RESULT-W1-v12-boot-baseline.md)",
+      "note": "tools/run_e2_c_d4.py polls `globalThis.<namespace>` with --namespace defaulting to `__e2c_d4`. web/e2-c-d4-heap-app.js publishes to `globalThis.__e2c_d4_heap` (and to `__probe_metrics`). Run the heap page without the flag and the runner waits out its full 2400 s timeout and writes:\n\n  \"complete\": false, \"cycles\": 0, \"samples\": 0,\n  \"error\": {\"code\": \"RUNNER_TIMEOUT\", \"message\": \"page never completed\"}\n\nwhile the page's OWN log, written beside it in the same directory, says `{\"complete\":true,\"cycles\":3}` with the last cycle ending at 8,830 ms.\n\nThis is the worst class of instrument error this tree files: it does not merely fail to measure, it REPORTS A PRODUCT FAILURE THAT DID NOT HAPPEN, and it does so with a timeout long enough to look like a real investigation. A reader taking RUNNER_TIMEOUT at face value would open a memory investigation into a core that boots in two seconds.\n\nThe fix is not to pass the flag. It is for the runner to say WHICH namespace it polled and what else it found -- `__probe_metrics` is right there and would have named the mismatch immediately. ACCEPTANCE CONDITION, fixed now: a run that times out must report the namespace it polled, and must state whether any sibling metrics object exists on the page; a timeout that cannot distinguish 'the page never finished' from 'I was looking in the wrong place' is not a measurement.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "tools/run_e2_c_d4.py",
+          "text": "globalThis.{args.namespace}"
+        },
+        {
+          "kind": "contains",
+          "file": "web/e2-c-d4-heap-app.js",
+          "text": "__e2c_d4_heap"
+        }
+      ],
+      "checkNote": "The two together ARE the defect: the runner interpolates a namespace and the heap page publishes under a different one. When the item is closed the pair must be rewritten to state what the fix made true, with the reason."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
