@@ -273,3 +273,281 @@ to this file saying which criterion caught it. That sentence is the record of
 whether this gate was worth setting — and if three consecutive soaks are broken
 by findings, the honest conclusion is not "wait longer" but that the lineage
 needs a different kind of attention, which is a decision for the user.
+
+---
+
+# Addendum, 2026-08-28 — adjudicated amendments
+
+**Append-only.** Nothing above this line is edited. Where this addendum
+supersedes text above, it says so and the original stands. Filed here rather
+than in a new document because gate criteria split across files invite the
+question of which one binds.
+
+Source: an adjudication of four decisions returned 2026-08-28, on a ticket that
+asked for rulings rather than advice. Its reasoning is not reproduced; its
+rulings and their acceptance criteria are.
+
+## The rule this addendum obeys
+
+Criteria may be **added** to a running gate — the prohibition is on **moving**
+one after runs exist against it — but only under all four of:
+
+1. **Fixed before satisfaction.** Written before any run that would count
+   toward it.
+2. **Forced, and named.** The addendum names the measurement or defect that
+   forced it. "It occurred to me" does not qualify.
+3. **Form-tested.** Each criterion must be a predicate a named run either
+   satisfies or does not. Anything resting on a future judgement call, or on a
+   hand-maintained enumeration, does not enter the gate; it goes to *Work
+   items* below.
+4. **A cutoff.** *No criterion may be added after the twelfth clean run banks.
+   The gate opens on the criteria in force at that moment; later concerns become
+   findings or post-cutover work.*
+
+**Count semantics.** The twelve runs measure the **clean-run predicate** — the
+three bullets under "Clean means all of". Additions that leave those three
+bullets untouched do not restart the count. Any change to those three bullets
+restarts it at zero.
+
+## Amendments to gate conditions
+
+### A-1 — Condition 4 is superseded by 4a and 4b
+
+**Forcing facts.** (i) Condition 4 as written names no pass criterion: it says
+to record what was announced, so the verdict falls to whoever is in the room.
+(ii) The owner states they cannot supply a screen-reader session. (iii) All
+existing §3.4 accessibility-tree evidence predates this profile and was taken
+through `gate_mirror()` in `tools/probe_aria_projection.py` — a **fourth**
+page-construction path, separate from the `repointed_page()` consolidation that
+exists precisely so the page measured is the page that ships.
+
+**Ruling.** The benefit has two links: engine → page → accessibility tree, and
+tree → one AT's announcements. This tree has already ruled on the split
+(`findings/evidence/aria-projection/RESULT.md`, Scope): *"'a11y needs a human'
+is wrong; 'one AT's reading behaviour needs a human' is right, and it is a much
+smaller claim."* Link one is machine-measurable and blocking. Link two is
+recorded, not gating.
+
+#### 4a — blocking, machine-checkable
+
+**Precondition.** `tools/probe_aria_projection.py` must build its page as the
+**fourth caller of `repointed_page()`**, not as a fourth implementation.
+Keeping `gate_mirror()` for this measurement violates the consolidation it
+would be relying on.
+
+A 4a run passes iff **all** of:
+
+1. **Identity** — built via `repointed_page()` with
+   `--candidate-profile e2-editor-v11`; the report carries a `pageSha256` equal
+   to the one the banked soak reports carry; profile and five bound identities
+   named in the report.
+2. **Text** — all 9 paragraphs of `list-contexts.odt` appear in
+   `Accessibility.getFullAXTree`, compared **in code** against the fixture's
+   `content.xml`.
+3. **Structure** — the heading carries AX `level: 1` matching the ODT
+   `outline-level`; 4 `listitem` nodes inside 2 `list` containers.
+4. **Focus follows the caret** — three placements, three distinct readings,
+   each matching the paragraph targeted, compared in code.
+5. **Repetition** — three runs, identical on terms 2–4.
+6. **The instrument can fail here** — one mutation run on the candidate path
+   reddens exactly the projection term(s) and nothing else; the page is
+   restored; the mutation run is stamped and never banked.
+7. **The delta is measured, not inherited** — one run of the same instrument on
+   the shipped v8 page shows `documentTextInTree: false` and the region
+   carrying its reason sentence. Node counts recorded, not thresholded.
+
+**If 4a is never run, the gate stays closed.** It is the only measurement of
+what the size cost buys. Any term unmet: fix and re-run; the criterion does not
+move.
+
+*Clean-run predicate unchanged — the count does not restart. 4a is a separate
+condition, satisfied by its own runs.*
+
+#### 4b — folded into condition 3's manual round
+
+During the human manual round: Orca on, arrow through the open document
+(including one heading and one list item), Orca off, **with speech captured to
+a log**. The record is the log, not memory.
+
+* **Mechanical half — gating.** The log contains the words of the focused
+  paragraphs as focus reaches them, and the heading announced as a heading with
+  its level. If focus lands on a paragraph and its text never reaches the log,
+  the cutover blocks until root-caused.
+* **Judgement half — recording only.** Announcement order, verbosity,
+  double-spoken list bullets (`queue-list-prefix-read-twice` predicts exactly
+  one annoyance here — the log confirms or refutes it), browse-mode behaviour.
+  **This is a criterion satisfied by human judgement, and it is created
+  knowingly**: the residue is assigned to human observation by this tree's own
+  scope ruling, it is non-blocking by construction, and its output is an
+  observation record rather than a verdict.
+* **The escape, named.** If the owner cannot or will not operate Orca at the
+  manual round, that is recorded and 4b converts to a deferred obligation: one
+  Orca session on the live page **before the institutional-buyer
+  demonstration** — owner-run, or agent-driven with the owner's explicit
+  consent to an agent driving their desktop session, since the log-based
+  mechanical checks are equally valid however the keystrokes were produced.
+* **If 4b never happens at all**, the cutover proceeds on 4a alone, with the
+  deferral written into the record, and the existing revert trigger ("any
+  user-visible regression reported by a human") carries the residual risk.
+
+**Deferred residue, named rather than discovered later**: announcement order,
+verbosity, and browse-mode behaviour of one AT; plus
+`queue-list-prefix-read-twice` and the 4096-character `textHead` cap.
+
+*Note on why the residue does not block*: the alternative to shipping v11 is
+shipping v8, whose accessibility tree carries **zero** characters of document
+text (`RESULT.md` baseline: 171 nodes, zero document text). Against a baseline
+of nothing, a verified-correct tree is the benefit even before one AT's
+rendering is assessed.
+
+### A-2 — Revert-condition 1 is superseded
+
+**Forcing fact.** Measured 2026-08-28: the fifth identity — v8's core data —
+lives in `dist/profiles/resources/`, shared by **twelve** profiles, and the
+cutover touches none of it.
+
+**Superseded**: "v8's five identities archived with checksums" becomes **"five
+identities pinned: four held as bytes, the fifth verified in place."**
+
+Copying ~98 MB into the archive is rejected: it buys self-sufficiency against a
+hazard the cutover cannot create, and the hazard it would insure against
+(damage to the shared directory) breaks twelve profiles at once, for which a
+per-profile archive is the wrong instrument.
+
+But wording alone is insufficient. "A profile is five bound identities" is a
+rule about **binding by hash**; the round this tree lost was lost to an archive
+whose name claimed bytes it did not hold. An archive that merely *describes*
+the fifth identity cannot verify at revert time that the shared bytes are still
+the bytes v8 was measured on — the same failure mode in a new costume.
+
+Acceptance criteria:
+
+1. The archive gains `SHA256SUMS.shared` listing `soffice.data` and both
+   resource packs with sha256 and live paths under `dist/profiles/resources/`.
+2. `sha256sum -c` of that file against the live tree passes; the run is
+   recorded in the archive directory.
+3. `ATTRIBUTION.md` names all five identities, marks four held-as-bytes and one
+   pinned-by-reference, states the fifth is shared by twelve profiles and
+   untouched by the cutover, and says plainly: *this archive alone cannot
+   restore v8 — restoring requires `dist/profiles/resources/` intact, verified
+   against `SHA256SUMS.shared`.*
+
+*Clean-run predicate unchanged — the count does not restart.*
+
+### A-3 — The size figures above are corrected
+
+**This is a factual correction, not a criterion.** The section "The size
+decision was made on a smaller number than the real one" says v11's core
+filesystem image is three times v8's and attributes that to the writer+calc
+core. Measured 2026-08-28 by comparing file manifests
+(`dist/profiles/e2-editor-v11/soffice.data.js.metadata`, 1,606 entries, against
+`dist/profiles/resources/full-qa-r5.72dd2755c8cd8880.metadata`, 1,358):
+
+* v11's image is a **strict superset** — 0 files present in the product image
+  and absent from v11's.
+* The 248 extra files are **Calc UI configuration**
+  (`/instdir/share/config/soffice.cfg/modules/scalc/…`), **5,741,041 bytes ≈
+  5.5 MiB**. Two common files differ in size, net +21,536 bytes.
+* v11's image holds **130 font files, 73,153,982 bytes ≈ 69.8 MiB** — the same
+  fonts v8 splits into `cjk-r5` (18.6 MiB, startup) and `fallback-fonts-r5`
+  (46.8 MiB, **on demand**).
+* `base-r5 + cjk-r5 + fallback-fonts-r5` = 102,765,226 bytes, which is
+  `full-qa-r5` to the byte. v11's image is 108,527,803.
+
+So the +71.4 MiB decomposes as **+19.0 loader/wasm, +5.5 Calc configuration,
++46.8 fallback fonts no longer deferred**. The writer+calc core costs 5.5 MiB
+in the data image, not +70.9. **About 65% of the cost the owner is being asked
+to approve is a packaging choice, not the accessibility core.**
+
+`tools/build_r5_profiles.py:create_pack()` slices a pack out of an existing
+`soffice.data` by byte ranges from its `.js.metadata` — post-processing, no core
+rebuild, no relink. v11 carries both inputs. `resourcePacks: []` is hardcoded in
+`tools/build_e2_editor_v4_profile.py` whenever `--core-data` is passed, and its
+reason is sound (the existing packs are the *product* core's, and inheriting
+them would link one core and load another) — but it does not forbid v11 having
+packs sliced from its **own** image. Split that way, v11's
+required-before-usable goes from 232.8 to about 186.0 MiB: **+24.6 MiB (+15%)**
+against v8's 161.4, not +71.4 (+44%).
+
+**Not verified**: the split has not been performed, no profile has booted from
+packs, and the a11y core's font-resolution path has not been shown to match
+v8's. The owner's confirmation is owed against the corrected decomposition
+either way.
+
+## Work items — not gate criteria
+
+Each was form-tested. None enters the gate; the reason is given.
+
+**W-1 — Close `notice-action-recovers-the-session`, at count zero only.**
+Wiring `induce_worker_failure()` as that arm's fallback. **Not a criterion**:
+the capability already has a live driver in every plain run, inside
+`recovery-returns-what-the-product-promised`, which PASSES on both profiles.
+The standing NE is the documented sentinel of finding 046's disposition —
+`recoveryPairing.held: true` in every banked report — not an unmeasured
+capability. Sequencing is mechanical: a successful close makes the composition
+39 PASS / 1 NE, which changes the clean-run predicate and restarts the count.
+**So it lands only when the count is at zero**, and the criterion re-freezes at
+the new composition before the first counted run.
+
+**W-2 — `a-refused-action-is-reported-and-changes-nothing` is diagnostic-only
+by construction.** `refusal_induced = bool(args.refusal_diagnostic)`; the check
+keys measurability off the flag, not off an observed refusal. No shipped
+manifest withholds an action, so `withheldAction: null` is the manifest telling
+the truth; and a manifest that did withhold one would surface in plain runs as
+`cut-removes-the-selected-text` FAILing, never as this check being judged.
+Mirrored diagnostic runs are excluded from the twelve by the identity rule.
+**Not a criterion, and nothing to fix** — the obligation is on the record (see
+below).
+
+**W-3 — Four inline-format checks carry no mutation.** Census run 2026-08-28
+over the 40 net checks against the 43 entries of `MUTATIONS`: 34 have a
+dedicated mutation, 1 (`bold-can-be-turned-off-again`) is reddened only as
+collateral, and **5 have none**:
+`a-format-that-worked-is-not-reported-as-failed`,
+`every-inline-format-reaches-the-document`,
+`clear-format-removes-every-inline-format`,
+`formatting-survives-the-next-paragraph-break`,
+`caret-follows-the-text-you-type`. The last is not a gap — it went red in the
+field, 10 of 48, before finding 084's fix, which is stronger evidence than a
+synthetic mutation. The other four are all in one family.
+**Form test**: a checker asserting every id in `report["checks"]` appears as a
+`MUTATIONS` entry's `check` is *tool-closed* — adding a 41st check turns it red
+— so this **could** be a gate criterion. **It is not made one**, because it
+measures whether the net is honest, not whether v11 may ship; that question is
+equally open for v8 and predates this gate. **The coupling is left explicit**:
+if any of the four mutations turns out unwriteable because the check cannot
+fail, that is a finding, and a finding restarts the soak under the rule already
+in force.
+
+**W-4 — A soak aggregator.** No tool reads the twelve reports;
+`check_usable_editor.py` reconciles one at a time, so "the gate is open" would
+rest on the drafting party's narration. A tool over the evidence directory
+reporting count, calendar-day spread, runs per day, NE set per run, and whether
+every `candidateCutover.pageSha256` is the same value makes the gate's opening
+checkable by someone who was not here. **Not a criterion** — it changes who can
+verify the gate, not what the gate demands.
+
+**W-5 — Rehearse step 3.** Freezing a generation and repointing `MANIFEST`, and
+un-freezing on revert, was discovered by the revert rehearsal and has not
+itself been rehearsed.
+
+## What the cutover record must contain
+
+Beyond what "What must be said out loud in the cutover record" already
+requires:
+
+* **R1** For `notice-action-recovers-the-session`: that the NE is the sentinel
+  of finding 046's disposition (citing the runner's own text), and that the
+  capability is measured in plain runs by
+  `recovery-returns-what-the-product-promised` — citing one banked report per
+  profile in which it PASSES.
+* **R2** For `a-refused-action-is-reported-and-changes-nothing`: that no
+  shipped configuration withholds an action; that the check is judgeable only
+  under `--refusal-diagnostic`, which is mirrored, diagnostic-stamped and
+  excluded from the twelve; and the date and path of the most recent diagnostic
+  run in which it PASSED, **per profile — or the explicit sentence that none
+  exists.** Plus: *owed at the next manifest that withholds any action.*
+* **R3** The deferred accessibility residue of 4b, in the words used above.
+* **R4** The corrected size decomposition of A-3, and whether the owner's
+  confirmation was taken against it.
+
