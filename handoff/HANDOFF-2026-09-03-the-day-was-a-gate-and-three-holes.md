@@ -200,18 +200,42 @@ as a side effect of the accessibility work. `wasm-lite/build-a11y-gate0/
 autogen.input` line 3 is `--with-wasm-module=writer calc`, and the candidate's
 binary carries Calc while the incumbent's does not:
 
-| symbol, `grep -a -c -o` over `probe.wasm` | `e2-editor-v12` | `e2-editor-v8` |
+| literal string, `grep -a -o -F … \| wc -l` over `probe.wasm` | `e2-editor-v12` | `e2-editor-v8` |
 |---|---|---|
-| `com.sun.star.sheet` | **582** | 21 |
+| `com.sun.star.sheet` | **398** | 16 |
 | `ScDocument` | **53** | 1 |
 | `ScDocShell` | **18** | 0 |
+| `SdDrawDocument` | **0** | 0 |
+
+**Corrected 2026-09-03, same day, by the adjudication that reviewed it.** The
+first version of this table said `com.sun.star.sheet` 582 / 21 and named
+`grep -a -c -o` as the command. That command reproduces 582 — and it is
+measuring the wrong thing: the dots are regex wildcards, so `com_sun_star_sheet`
+and every other one-character variant is counted too. `-F` gives the literal
+count, 398 / 16. The direction is unchanged and the conclusion does not move,
+but a number published with the command that produced it should survive being
+re-run by a reader, and this one only survived re-running the mistake.
+
+`SdDrawDocument` is in the table because of what it rules out: the core is
+`writer calc`, **not** the `calc impress writer` M4 as written asks for
+(`config_host.mk` has `ENABLE_WASM_STRIP_BASIC_DRAW_MATH_IMPRESS=TRUE`). So gate
+0 is paid for **for ODS only**; ODP and ODG still need an owner rebuild, and
+`configure.ac` offers no `draw` value — ODG cannot be had without Impress and
+Basic.
 
 So the expensive half of that gate — a core rebuild, which is the owner's job —
 is already paid for by an artifact that has 8 clean runs on it. The risk moves
-to roadmap §6.2 (memory: fixed non-growable 1 GB, a single Writer document
-already at `sbrk` 290.8 MB, and no one has measured a spreadsheet) and to
-§6.3 (finding 013: the public `open()` rejects by extension before content
-detection).
+to roadmap §6.2 (memory) and to §6.3 (finding 013: the public `open()` rejects
+by extension before content detection, verified still true today).
+
+**The memory framing in the roadmap is misleading and was corrected the same
+day.** "A single Writer document is `sbrk` 290.8 MB" reads as though the
+document costs that. The D4 stage events say `open.begin` is **287,248,384** and
+`open.documentLoad-returned` is 290,983,936: **boot costs 287.2 MB and the
+document costs 3.7 MB.** It was also measured on `e2-editor-v2`, a writer-only
+core; **v12's boot `sbrk` has never been recorded** — no `sbrk` appears in any
+v12 evidence. That unrecorded number, not the document size, is what the
+headroom calculation actually depends on.
 
 A plan for it was commissioned the same day and is not in this document.
 
