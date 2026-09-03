@@ -40,6 +40,11 @@ rather than counted -- and LISTED in the verdict, because a file this tool
 silently skipped would be indistinguishable from one it never saw.  Condition 2
 is judged by `check_caret_diagnostics.py`, not here.
 
+A judge's own output banked beside the evidence (`VERDICT-*.json`) is a third
+class again: not a run, not condition 2's evidence, and never counted -- a
+verdict counted as a run would inflate the number this tool exists to state.
+It is listed rather than skipped, for the same reason the diagnostics are.
+
 Reports banked in place OUTSIDE the directory (run 1 is the split probe's
 criterion-2 run, cited rather than copied, because evidence in this tree is not
 moved) are passed with `--also`.  Omitting one can only UNDERCOUNT, which makes
@@ -112,6 +117,13 @@ NON_RUNS = {
 # verdict under `conditionTwoFiles` so a reader sees that they exist and that
 # this tool did not judge them.
 DIAGNOSTIC_PREFIX = "diagnostic-"
+
+# A judge's own output, banked beside the evidence it judged.  It is neither a
+# run nor condition 2's evidence -- it is a VERDICT, and a verdict counted as a
+# run would inflate the very number this tool exists to state.  Named, because
+# the alternative that presented itself was widening the glob, and a bank whose
+# tool skips what it does not recognise has stopped being a census.
+VERDICT_PREFIX = "VERDICT-"
 
 
 def rel(path: Path) -> str:
@@ -238,9 +250,12 @@ def judge(bank: Path, also: list[Path], expect_sha: str, expect_profile: str,
 
     diagnostics = [p.name for p in present
                    if p.name.startswith(DIAGNOSTIC_PREFIX)]
+    verdicts = [p.name for p in present
+                if p.name.startswith(VERDICT_PREFIX)]
     unclassified = [p.name for p in present
                     if not p.name.startswith("soak-run-")
                     and not p.name.startswith(DIAGNOSTIC_PREFIX)
+                    and not p.name.startswith(VERDICT_PREFIX)
                     and p.name not in NON_RUNS]
     declared_missing = [name for name in NON_RUNS
                         if not (bank / name).is_file()]
@@ -293,6 +308,7 @@ def judge(bank: Path, also: list[Path], expect_sha: str, expect_profile: str,
         "totalRuns": len(runs),
         "unclassifiedFiles": unclassified,
         "conditionTwoFiles_NOT_JUDGED_HERE": sorted(diagnostics),
+        "verdictFiles_NOT_EVIDENCE": sorted(verdicts),
         "declaredNonRunsMissing": declared_missing,
         "distinctPageSha256": shas,
         "runs": runs,
