@@ -1064,3 +1064,82 @@ on **2026-09-05**.
 midnight satisfy the clause as written. A minimum-span clause would be form 1
 and addable under the four conditions, but nothing measured forces it; it is
 left to the owner. If never added, the clause as written stands.
+
+---
+
+# D-1 discharged, 2026-09-03 — the record sentences R1 and R2
+
+Append-only. The two sentences the cutover record owes for the standing
+NOT_ESTABLISHED pair, drafted here so they are auditable before the record
+exists. Census run 2026-09-03 over **151** reports carrying
+`release == "e2-c-product-path"` in `findings/evidence/`, classified by the
+report's own fields — `candidateCutover.profile` for a candidate run,
+`profileDiagnostic.profile` for a `--profile` mirror, neither for the shipped
+page. That discrimination matters and the first pass of this census got it
+wrong: a mirror run carries no `candidateCutover`, so filtering on its absence
+silently files every `--profile e2-editor-v11` run under the shipped page.
+
+## R1 — `notice-action-recovers-the-session`
+
+**The NE is a designed sentinel, not an unmeasured capability.** It is the
+sentinel of finding 046's disposition: the runner pairs it with the bulleting
+cell and reports `recoveryPairing.held`, which is `true` in **6 of 6** complete
+reports in the v12 bank. The two are reads of one moment — 046's cell either
+blocks the queue (bulleting FAILs, recovery is judged) or it does not
+(bulleting PASSes, recovery abstains) — so the abstention is the pairing
+holding, and a run in which it did *not* abstain would be the finding.
+
+**The capability itself is driven in plain runs**, by
+`recovery-returns-what-the-product-promised`:
+
+| | outcome |
+|---|---|
+| candidate `e2-editor-v12`, plain candidate runs | **PASS 7 of 7** (e.g. `queue-v12-cutover-soak/soak-run-07-candidate.json`) |
+| the shipped page, three most recent plain runs | **PASS 3 of 3** (e.g. `queue-v11-cutover-soak-not-started/rehearsal-after-revert.json`, added 2026-08-28) |
+
+**Stated with its bound, because the plan's W-1 overstates it.** W-1 says the
+capability "already has a live driver in every plain run … which PASSES on both
+profiles". Over the whole corpus the shipped page carries **14 plain runs in
+which it is NOT_ESTABLISHED**. All fourteen entered the tree on 2026-08-22 or
+2026-08-23 — before the second, defect-independent inducer landed on
+2026-08-28 — and one of them (`075/pp-v5-product.json`) was taken while the
+product page pointed at a different profile entirely. So W-1's sentence is true
+of every run since the second inducer and is **not** the timeless universal its
+grammar claims. The record must carry the bound, not the grammar.
+
+*Method note.* The fourteen were ordered by the date git first recorded each
+file, not by mtime: fifty-odd reports across unrelated directories share an
+mtime of `2026-08-24 00:04`, which is a batch file operation and not when any
+run happened. That is the same defect the 2026-09-03 amendment above removes
+for soak reports, met again in the corpus that predates it.
+
+## R2 — `a-refused-action-is-reported-and-changes-nothing`
+
+**No shipped configuration withholds an action**, so `withheldAction: null` is
+the manifest telling the truth rather than a gap. A manifest that did withhold
+one would surface in plain runs as `cut-removes-the-selected-text` FAILing, and
+never as this check being judged.
+
+**The check is judgeable only under `--refusal-diagnostic`** — literally:
+`refusal_induced = bool(args.refusal_diagnostic)`
+(`tools/run_e2_c_product_path.py:5599`), so it keys measurability off the flag
+rather than off an observed refusal. Such runs are mirrored, diagnostic-stamped
+and excluded from the twelve by the identity rule.
+
+**The most recent diagnostic run in which it PASSED, per profile:**
+
+* **The shipped page** — `findings/evidence/queue-cut-refusal-lost-its-inducer/`
+  `product-path-refusal-diagnostic.json`, entered the tree 2026-08-26. It is
+  the **only** PASS of this check in all 151 reports: `induced: true`,
+  `withheldAction: "delete-selection"`, `refusalReported: true`,
+  `documentUnchanged: true`. Its deliberately mutated companion
+  `product-path-refusal-diagnostic-mutated.json` (`mutation:
+  cut-swallows-the-refusal`) **FAILs**, so the PASS is not the check being
+  unable to fail.
+* **The candidate `e2-editor-v12`** — **none exists.** The check is
+  NOT_ESTABLISHED in all 8 v12 reports (7 plain, 1 mutated). Written as the
+  explicit sentence this record demands rather than left to be inferred from a
+  blank cell.
+
+**Owed at the next manifest that withholds any action**: a `--refusal-diagnostic`
+run on that profile, and this sentence replaced by its result.
