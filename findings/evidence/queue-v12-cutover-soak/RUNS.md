@@ -45,3 +45,10 @@ the `soak-run-*` namespace**, kept rather than deleted. A file called
 `soak-run-02-…` that is not run 2 is exactly what a later glob miscounts, and
 the fix is a name that does not lie rather than a deletion that hides that the
 interruption happened. Nothing about the product was measured by it.
+
+**Superseded 2026-09-03** by the plan's amendment of that date: a run's day is
+the UTC date of the report's own `completedAt`; reports without the field
+(runs 1–6) count toward twelve and contribute no day. The dates in the table
+above are the drafting party's assertion, corroborated only by mtime read before
+any clone; the criterion does not consume them. The instrument now writes the
+field, so runs 7–12 carry their own day.

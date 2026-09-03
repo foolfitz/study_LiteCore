@@ -973,3 +973,94 @@ Consequences, all pre-fixed by C-3 and now settled rather than defaulted:
 
 3′-iii is discharged as a measurement, not as an assumption, and the decision
 it fed is recorded with the measurement rather than beside it.
+
+---
+
+# Amendment, 2026-09-03 — the calendar-day clause requires an in-band witness
+
+Append-only. Nothing above is edited. Adjudicated 2026-09-03 on a ticket asking
+for the disposition of criterion 1's calendar-day clause; the drafting party's
+own leaning was overruled in part.
+
+**Forcing facts.** (i) No banked soak report carries a wall-clock timestamp of
+any kind — verified 2026-09-03 across every report in
+`findings/evidence/queue-v12-cutover-soak/` and the criterion-2 run;
+`tools/run_e2_c_product_path.py` recorded only `performance.now()`, which is
+relative to the page. The day of a run was therefore knowable only from
+filesystem mtime (not evidence; a clone replaces it with the checkout time) or
+from the drafting party's narration in `RUNS.md` — the termination-by-narration
+that `AGENTS.md` §8 forbids. It was found while implementing W-4, whose own text
+presumed the reports carried dates. (ii) `RUNS.md` names no time zone, and the
+four runs banked before this date fall on 2026-08-29 in CST and 2026-08-28 in
+UTC — the clause's motivating case, a run crossing midnight, flips zone to zone.
+(iii) That motivating case is itself uncorroborated: `RUNS.md` says the voided
+v11 lineage's run 3 "finished at 00:01"; its mtime is 2026-08-29 00:06:23 CST.
+Five minutes out, or the final write came later — either way the example that
+justified the rule is narration the evidence does not confirm. That is the
+ruling's point rather than an objection to it.
+
+**What this supersedes.** `RUNS.md`'s sentence *"Which calendar day a run
+belongs to: the day of the report's completion timestamp"*, and, in the
+2026-08-29 amendment, *"The ≥3-calendar-day and ≥2-per-day arithmetic runs from
+its date"* together with the parenthetical date assigned to run 1. Both
+originals stand as written; this text binds.
+
+**Disposition.** The clause is neither withdrawn (§4 does not apply: its premise
+is true and merely unrecorded — the distinguishing test is that the new field
+can never *change* whether a run happened on day D, only reveal it) nor propped
+up from out-of-band sources. It is made verifiable from the evidence:
+
+1. **Rule (per-instance).** A run's calendar day is the **UTC date** of the
+   `completedAt` field in its own report. A report without that field
+   **contributes no calendar day**. The ≥3-days / ≥2-runs-per-day clause is
+   evaluated over in-band-dated runs only.
+2. **Instrument.** `run_e2_c_product_path.py` writes `startedAt` in the report
+   header and `completedAt` immediately before `complete: true` in `finish()`;
+   `snapshot()` writes neither, so a partial from an interrupted run is dayless
+   by construction rather than carrying the moment it was interrupted as if that
+   were a completion. Both are ISO-8601 with an explicit numeric offset (the
+   machine's local offset, so a reader can reconcile against `ls`); the day is
+   derived in UTC, never from the offset's local date. UTC is the only zone that
+   is not itself a fact about the machine that would need registering, and this
+   machine's runs sit within an hour of the local midnight while being far from
+   the UTC one. `schemaVersion` is **not** bumped: this tree's convention,
+   written out on `complete` in `snapshot()`, is that an absent field identifies
+   a report produced before the field existed. A **naive timestamp (no offset)
+   is RED**, not dayless — ambiguity is the defect this amendment removes, so a
+   report reintroducing it is a defect rather than one the clause politely skips.
+3. **The banked runs.** Every report banked before the field landed remains a
+   clean run and **counts toward twelve**, and is **dayless**. As of this
+   writing that is runs 1–4 (2026-08-29 CST by mtime) and runs 5–6
+   (2026-09-03 CST, launched under the pre-field runner). Their day is
+   registered under `AGENTS.md` §3 as *asserted by the drafting party,
+   corroborated only by mtime read 2026-09-03 before any clone, bounded above by
+   commit `9d73a4e`* — a named limit, not a source. No evidence is moved,
+   renamed or voided; the reports identify themselves by the absence of the
+   field.
+4. **Count semantics.** The three clean-run bullets are untouched, so the count
+   does **not** restart. This is an addition under the four conditions of "The
+   rule this addendum obeys": fixed before any run carries the field; forced by
+   (i)–(iii) above and named; form 1 (per-instance — an injected run with or
+   without the field turns nothing false); cutoff at the twelfth clean run,
+   unchanged. It is strictly stronger than the original clause — a day spread
+   satisfied by an in-band subset is satisfied by the whole — so it is an
+   addition, not a move.
+5. **Aggregator obligation (W-4).** `tools/check_soak_bank.py` judges the day
+   clause from `completedAt` alone. It lists dayless runs by name. It prints
+   mtime only under a label the judgement never reads. Landed with red cases on:
+   all in-band runs on one UTC day; a naive timestamp; the count reached with
+   the spread supplied only by dayless runs — plus a **green control** of six
+   dated runs across three UTC days, which is what caught that the first
+   self-test was reading a bank a soak run was still writing into.
+6. **Default if the instrument is never changed.** The clause would then have
+   zero in-band witnesses and the gate **does not close**. The default is closed.
+
+**Arithmetic.** Six more clean runs are owed (runs 7–12) and they alone must
+span ≥3 UTC days with ≥2 each. The UTC day rolls at **08:00 CST**, so runs at
+07:xx and 09:xx local are on different UTC days. Earliest close: after 08:00 CST
+on **2026-09-05**.
+
+**Noted, not ruled.** Two in-band runs twelve minutes apart across a UTC
+midnight satisfy the clause as written. A minimum-span clause would be form 1
+and addable under the four conditions, but nothing measured forces it; it is
+left to the owner. If never added, the clause as written stands.

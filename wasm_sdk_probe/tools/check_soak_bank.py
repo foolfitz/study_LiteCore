@@ -40,20 +40,25 @@ moved) are passed with `--also`.  Omitting one can only UNDERCOUNT, which makes
 the gate harder to open and never easier; adding a bogus one is resolved and
 goes red.  That asymmetry is the reason this shape is acceptable.
 
-## Calendar-day attribution is deliberately NOT judged here
+## Calendar-day attribution, per the amendment of 2026-09-03
 
-Criterion 1 also requires >=3 calendar days with >=2 runs each, and RUNS.md
-attributes a run to "the day of the report's completion timestamp".  **The
-reports carry no wall-clock timestamp** -- verified 2026-09-03 across every
-banked report, and `run_e2_c_product_path.py` records only `performance.now()`.
-So the day is knowable only from filesystem mtime, which is not evidence and
-does not survive a clone.
+Criterion 1 also requires >=3 calendar days with >=2 runs each.  Until
+2026-09-03 no report carried a wall-clock timestamp at all, so the day was
+knowable only from filesystem mtime (not evidence; a clone replaces it) or from
+the drafting party's narration.  Adjudicated: the runner now writes
+`completedAt`, and
 
-This tool therefore REPORTS the day clause as `NOT_ESTABLISHED` with its reason,
-and reports mtimes explicitly labelled as an out-of-band source.  It does not
-decide the disposition; that is under adjudication.  Judging the clause from
-mtime and calling it green would be the instrument answering confidently about
-something it never looked at, which is the failure this gate was built after.
+  * a run's day is the **UTC date** of its own `completedAt`;
+  * a report WITHOUT the field contributes NO day, and still counts toward
+    twelve -- reports banked before the field existed are dayless by
+    construction;
+  * a NAIVE `completedAt` (no UTC offset) is **RED**, not dayless.  Ambiguity
+    is the defect the amendment removes, so a report that reintroduces it is a
+    defect rather than a report the clause politely skips.
+
+`mtime` is still printed, under a label that says it is out of band, and the
+JUDGEMENT NEVER READS IT.  It is an AGENTS.md §3 registration of what the
+pre-field runs assert, not a source the criterion consumes.
 
 Usage:
   check_soak_bank.py                                   # the v12 bank
@@ -141,6 +146,30 @@ def compose(report: dict) -> dict:
             "notEstablished": sorted(ne_ids)}
 
 
+def day_of(report: dict) -> dict:
+    """The run's UTC day, from its OWN `completedAt` and nothing else.
+
+    Three outcomes, and they are not the same thing:
+      * dated   -- an aware ISO-8601 stamp; the day is its UTC date.
+      * dayless -- no field at all: a report written before the field existed.
+                   It counts toward twelve and contributes no day.
+      * naive   -- a stamp with no offset. RED. The amendment exists to remove
+                   the ambiguity of an unzoned day, so a report that puts it
+                   back is a defect, not a report to skip politely.
+    """
+    raw = report.get("completedAt")
+    if raw is None:
+        return {"utcDay": None, "dayless": True, "naive": False}
+    try:
+        stamp = datetime.fromisoformat(raw)
+    except (TypeError, ValueError):
+        return {"utcDay": None, "dayless": False, "naive": True}
+    if stamp.tzinfo is None or stamp.tzinfo.utcoffset(stamp) is None:
+        return {"utcDay": None, "dayless": False, "naive": True}
+    return {"utcDay": stamp.astimezone(timezone.utc).date().isoformat(),
+            "dayless": False, "naive": False}
+
+
 def judge_run(path: Path, expect_sha: str, expect_profile: str) -> dict:
     report = json.loads(path.read_text(encoding="utf-8"))
     candidate = report.get("candidateCutover") or {}
@@ -162,6 +191,7 @@ def judge_run(path: Path, expect_sha: str, expect_profile: str) -> dict:
         "page-sha": candidate.get("pageSha256") == expect_sha,
     }
     stat = path.stat()
+    day = day_of(report)
     return {
         "report": rel(path),
         "clean": all(clauses.values()),
@@ -169,14 +199,18 @@ def judge_run(path: Path, expect_sha: str, expect_profile: str) -> dict:
         "composition": composition,
         "profile": candidate.get("profile"),
         "pageSha256": candidate.get("pageSha256"),
-        # OUT-OF-BAND. Not evidence; see the module docstring.
+        "completedAt": report.get("completedAt"),
+        "utcDay": day["utcDay"],
+        "dayless": day["dayless"],
+        "naiveTimestamp": day["naive"],
+        # OUT-OF-BAND. Registration, not a source; the judgement never reads it.
         "mtimeUtc_OUT_OF_BAND": datetime.fromtimestamp(
             stat.st_mtime, tz=timezone.utc).isoformat(),
     }
 
 
 def judge(bank: Path, also: list[Path], expect_sha: str, expect_profile: str,
-          expect_runs: int) -> dict:
+          expect_runs: int, expect_days: int = 3) -> dict:
     if not bank.is_dir():
         return {"ok": False, "error": f"bank directory does not exist: {bank}"}
 
@@ -206,18 +240,35 @@ def judge(bank: Path, also: list[Path], expect_sha: str, expect_profile: str,
     clean = [r for r in runs if r["clean"]]
     shas = sorted({r.get("pageSha256") for r in runs})
 
+    # THE DAY CLAUSE, over in-band-dated CLEAN runs only.
+    dated: dict[str, list[str]] = {}
+    dayless = []
+    naive = []
+    for run in clean:
+        if run.get("naiveTimestamp"):
+            naive.append(run["report"])
+        elif run.get("dayless"):
+            dayless.append(run["report"])
+        else:
+            dated.setdefault(run["utcDay"], []).append(run["report"])
+    qualifying = sorted(day for day, members in dated.items()
+                        if len(members) >= 2)
+
     clauses = {
         "no-unclassified-file": not unclassified,
         "declared-non-runs-present": not declared_missing,
         "every-run-clean": len(clean) == len(runs) and bool(runs),
         "count-reached": len(clean) >= expect_runs,
         "one-page-sha": len(shas) == 1 and shas[0] == expect_sha,
+        "no-naive-timestamp": not naive,
+        "day-spread": len(qualifying) >= expect_days,
     }
 
     return {
         "criterion": "soak criterion 1 -- counting clauses only",
         "bank": rel(bank),
-        "expected": {"runs": expect_runs, "profile": expect_profile,
+        "expected": {"runs": expect_runs, "days": expect_days,
+                     "profile": expect_profile,
                      "pageSha256": expect_sha,
                      "passCount": EXPECTED_PASS,
                      "notEstablished": sorted(EXPECTED_NE)},
@@ -230,16 +281,17 @@ def judge(bank: Path, also: list[Path], expect_sha: str, expect_profile: str,
         "clauses": clauses,
         "ok": all(clauses.values()),
         "calendarDayClause": {
-            "status": "NOT_ESTABLISHED",
-            "requires": ">=3 calendar days, >=2 runs on each",
-            "reason": "The reports carry no wall-clock timestamp; "
-                      "`run_e2_c_product_path.py` records only "
-                      "performance.now(). The day is knowable only from "
-                      "filesystem mtime, which is not part of the evidence and "
-                      "does not survive a clone. Verified 2026-09-03. "
-                      "Disposition under adjudication; this tool reports the "
-                      "clause rather than judging it.",
-            "outOfBandMtimeDays": sorted({
+            "rule": "a run's day is the UTC date of its own `completedAt`; "
+                    "a report without the field counts toward the twelve and "
+                    "contributes no day; a naive stamp is RED "
+                    "(plan amendment 2026-09-03)",
+            "requires": f">={expect_days} UTC days with >=2 clean runs on each",
+            "qualifyingDays": qualifying,
+            "runsPerUtcDay": {day: sorted(members)
+                              for day, members in sorted(dated.items())},
+            "daylessRuns": sorted(dayless),
+            "naiveTimestampRuns": sorted(naive),
+            "outOfBandMtimeDays_NOT_JUDGED": sorted({
                 r["mtimeUtc_OUT_OF_BAND"][:10] for r in runs
                 if "mtimeUtc_OUT_OF_BAND" in r}),
         },
@@ -254,6 +306,7 @@ def main() -> int:
     parser.add_argument("--expect-page-sha256", default=DEFAULT_SHA)
     parser.add_argument("--expect-profile", default=DEFAULT_PROFILE)
     parser.add_argument("--expect-runs", type=int, default=12)
+    parser.add_argument("--expect-days", type=int, default=3)
     parser.add_argument("--out", type=Path, default=None)
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
@@ -263,7 +316,8 @@ def main() -> int:
 
     also = DEFAULT_ALSO if args.also is None else list(args.also)
     verdict = judge(args.bank, also, args.expect_page_sha256,
-                    args.expect_profile, args.expect_runs)
+                    args.expect_profile, args.expect_runs,
+                    args.expect_days)
     text = json.dumps(verdict, ensure_ascii=False, indent=2)
     if args.out:
         args.out.write_text(text + "\n", encoding="utf-8")
@@ -324,15 +378,89 @@ def self_test() -> int:
                       judge(real, DEFAULT_ALSO, DEFAULT_SHA, DEFAULT_PROFILE,
                             10_000)))
 
+        # ---- the day clause. Three red cases named by the 2026-09-03
+        # adjudication, because a day rule that has only ever been evaluated
+        # over dayless reports has not been evaluated.
+
+        def stamped(dest: Path, stamps: list[str | None]) -> Path:
+            """A synthetic bank: the real COMPLETE reports, restamped.
+
+            `complete: true` is not decoration here.  The first version globbed
+            the live bank, and a soak run was writing into it -- so a partial
+            report became a source, the green control went red, and three
+            red cases above had been red for a reason nobody had checked.  A
+            self-test that reads a directory being written to is not a test.
+            """
+            dest.mkdir()
+            sources = [q for q in sorted(real.glob("soak-run-*.json"))
+                       if json.loads(q.read_text(encoding="utf-8"))
+                       .get("complete") is True]
+            if not sources:
+                raise SystemExit(
+                    "self-test has no complete report to build from: it would "
+                    "otherwise pass by measuring nothing")
+            for name in NON_RUNS:
+                shutil.copy2(real / name, dest / name)
+            for index, stamp in enumerate(stamps):
+                src = sources[index % len(sources)]
+                body = json.loads(src.read_text(encoding="utf-8"))
+                if stamp is None:
+                    body.pop("completedAt", None)
+                else:
+                    body["completedAt"] = stamp
+                (dest / f"soak-run-{index + 20:02d}-candidate.json").write_text(
+                    json.dumps(body), encoding="utf-8")
+            return dest
+
+        # RED 8: every dated run on ONE UTC day. The count can be reached and
+        # the spread still absent.
+        one_day = stamped(root / "one-day",
+                          [f"2026-09-03T{hour:02d}:30:00+08:00"
+                           for hour in (9, 11, 13, 15, 17, 19)])
+        cases.append(("all dated runs on one UTC day",
+                      judge(one_day, [], DEFAULT_SHA, DEFAULT_PROFILE, 6, 3)))
+
+        # RED 9: a naive stamp -- no offset. This is the ambiguity the
+        # amendment removes, so it must be RED rather than quietly dayless.
+        naive = stamped(root / "naive",
+                        ["2026-09-03T09:30:00", "2026-09-03T11:30:00",
+                         "2026-09-04T09:30:00", "2026-09-04T11:30:00",
+                         "2026-09-05T09:30:00", "2026-09-05T11:30:00"])
+        cases.append(("naive timestamp, no offset",
+                      judge(naive, [], DEFAULT_SHA, DEFAULT_PROFILE, 6, 3)))
+
+        # RED 10: the count is reached, but every run is dayless -- the spread
+        # is supplied by reports that carry no day at all.
+        blank = stamped(root / "dayless", [None] * 6)
+        cases.append(("count reached, every run dayless",
+                      judge(blank, [], DEFAULT_SHA, DEFAULT_PROFILE, 6, 3)))
+
+        # GREEN control. Without one, the three cases above would also be red
+        # if `stamped()` were simply producing broken reports -- and a red case
+        # that is red for the wrong reason proves nothing.
+        good = stamped(root / "spread",
+                       ["2026-09-03T09:30:00+08:00", "2026-09-03T11:30:00+08:00",
+                        "2026-09-04T09:30:00+08:00", "2026-09-04T11:30:00+08:00",
+                        "2026-09-05T09:30:00+08:00", "2026-09-05T11:30:00+08:00"])
+        control = judge(good, [], DEFAULT_SHA, DEFAULT_PROFILE, 6, 3)
+
     failures = [name for name, verdict in cases if verdict.get("ok")]
     for name, verdict in cases:
         mark = "RED (correct)" if not verdict.get("ok") else "GREEN (WRONG)"
         print(f"  {mark:14s} {name}")
-    if failures:
-        print(f"\nself-test FAILED: {len(failures)} case(s) returned green: "
-              f"{failures}")
+    mark = "GREEN (correct)" if control.get("ok") else "RED (WRONG)"
+    print(f"  {mark:14s} control: 6 dated runs spanning 3 UTC days")
+    if not control.get("ok"):
+        bad = [k for k, ok in control["clauses"].items() if not ok]
+        print(f"    control failed on: {bad}")
+        print(f"    days: {control['calendarDayClause']['qualifyingDays']}")
+    if failures or not control.get("ok"):
+        print(f"\nself-test FAILED: {len(failures)} case(s) returned green"
+              f"{'; the control did not go green' if not control.get('ok') else ''}"
+              f"{': ' + str(failures) if failures else ''}")
         return 1
-    print(f"\nself-test passed: {len(cases)} red cases, all red")
+    print(f"\nself-test passed: {len(cases)} red cases all red, "
+          f"and the green control is green")
     return 0
 
 

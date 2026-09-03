@@ -66,6 +66,7 @@ import sys
 import tempfile
 import time
 import zipfile
+from datetime import datetime
 from pathlib import Path
 from xml.etree import ElementTree
 
@@ -3779,6 +3780,31 @@ def main() -> int:
         "schemaVersion": 1,
         "release": "e2-c-product-path",
         "browser": args.browser,
+        # WHEN THIS RUN HAPPENED, IN BAND.  Adjudicated 2026-09-03.
+        #
+        # Soak criterion 1 requires runs across at least three calendar days,
+        # and until this field existed NO report carried a wall-clock time at
+        # all -- only `performance.now()`, which is relative to the page.  The
+        # day of a run was therefore knowable only from filesystem mtime (not
+        # evidence: a clone replaces it with the checkout time) or from the
+        # drafting party's narration, which `AGENTS.md` §8 forbids for a
+        # termination condition.  The property was true and merely unrecorded,
+        # so the instrument was changed rather than the criterion withdrawn.
+        #
+        # ISO-8601 with an EXPLICIT numeric offset, so a reader can reconcile
+        # it against `ls`.  The DAY is derived in UTC and never from the
+        # offset's local date: UTC is the only zone that is not itself a fact
+        # about the machine that would need registering, and on this machine
+        # the runs sit within an hour of the LOCAL midnight while being far
+        # from the UTC one.  A NAIVE timestamp (no offset) is a defect, not a
+        # dayless report -- ambiguity is precisely what this removes.
+        #
+        # `schemaVersion` is deliberately NOT bumped.  This tree's convention,
+        # written out on `complete` in `snapshot()` below, is that an ABSENT
+        # field identifies a report produced before the field existed.  Reports
+        # banked before this landed are dayless by construction, which is what
+        # the amendment relies on.
+        "startedAt": datetime.now().astimezone().isoformat(timespec="seconds"),
         # Finding 072.  Recorded on every run because it changes what every
         # band-aimed check aims AT, and a report that does not say which scan
         # produced it cannot be compared with one taken the other way.
@@ -8676,6 +8702,13 @@ def finish(report: dict, args) -> int:
                              "defect is fixed and the declaration must be removed "
                              "before it hides the next one")
     # The counterpart of `snapshot()`: the file on disk is a finished report.
+    # THE RUN'S DAY, and the only place it is written.  `snapshot()` must
+    # never write it: a partial from an interrupted run is then dayless by
+    # construction rather than carrying the moment it was interrupted as if
+    # that were a completion.  See the header field for why UTC and why the
+    # offset is explicit.
+    report["completedAt"] = datetime.now().astimezone().isoformat(
+        timespec="seconds")
     report["complete"] = True
     text = json.dumps(report, indent=2, ensure_ascii=False)
     if args.out:
