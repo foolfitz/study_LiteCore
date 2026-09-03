@@ -1360,6 +1360,30 @@
         }
       ],
       "checkNote": "Three, and the third is the item itself: while the product page does NOT point at v11, the cutover has not happened and this item is open. The day somebody flips it, this check goes red until the expectation is flipped deliberately -- which is the point, because a cutover that happens quietly is exactly what the plan exists to prevent. The first two pin the gate's existence and the machinery that lets the soak measure a candidate at all; without them the criteria are prose that nothing enforces."
+    },
+    {
+      "id": "queue-shell-generation-inherits-a-stale-ancestor",
+      "title": "a new shell generation inherits its exclusions from the newest LISTED manifest, not the newest EXISTING one, and nothing goes red when those differ -- OPEN",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "found 2026-09-03 by the revert rehearsal that included step 3 (findings/evidence/queue-v12-cutover-revert/RESULT-2026-09-03-step-3-rehearsed.md); the freeze of v44 reported exclusionsInheritedFrom = v40",
+      "note": "`FROZEN_MANIFESTS` in tools/build_e2_c_shell_bundle.py ends at v40 while v41, v42 and v43 exist in e2/. Adding a generation to that tuple is a MANUAL step and it has lagged three generations. When a freeze passes no --exclude the builder walks that tuple in reverse for exclusions to inherit, so it inherits from the newest LISTED manifest rather than the newest EXISTING one.\n\nMEASURED 2026-09-03: no difference for this cutover. v40, v41, v42 and v43 carry the same three exclusions item for item (sdk/sdk-worker.js, reader-shell/reader-session.js, reader-shell/state-machine.js), so v44 came out identical either way. That is luck rather than mechanism: had any of the three changed an exclusion, v44 would have silently inherited v40's and NOTHING WOULD HAVE GONE RED. The builder reports `exclusionsInheritedFrom` honestly and no check reads it.\n\nThe builder's own comment anticipated the manual step being missed -- \"Adding it to FROZEN_MANIFESTS is a manual step, so 'not yet listed there' cannot be what protects it\" -- and the guard it then wrote protects against OVERWRITING a generation, not against INHERITING from a stale one. A guard written for one half of a hazard is a reminder that the other half was considered and not covered.\n\nNOT FIXED MID-GATE, deliberately: changing the builder while the cutover gate is running is an instrument change the gate cannot absorb, and the measured outcome for this cutover is unaffected. Two candidate fixes, both post-cutover: catch FROZEN_MANIFESTS up to v43 (mechanical, preserves the tuple's meaning as the record of what has been frozen), or make the inheritance walk use the newest EXISTING generation file (structural, and removes the manual step from the hazard path). Either way the acceptance condition is fixed now: a freeze whose ancestor is not the immediately preceding generation must be REFUSED or reported as a problem, not merely recorded in a field nobody reads.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "tools/build_e2_c_shell_bundle.py",
+          "text": "editor-shell-v2-bundle-v40.json"
+        },
+        {
+          "kind": "file-exists",
+          "file": "e2/editor-shell-v2-bundle-v43.json"
+        },
+        {
+          "kind": "file-exists",
+          "file": "../findings/evidence/queue-v12-cutover-revert/RESULT-2026-09-03-step-3-rehearsed.md"
+        }
+      ],
+      "checkNote": "The first two together ARE the defect: the tuple's last entry is v40 and v43 exists on disk. When the item is closed by catching the tuple up, the first check stops being the last entry and this pair must be rewritten to state whatever the fix makes true -- with the reason, per the rule that an acceptance condition may be changed but never silently."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
