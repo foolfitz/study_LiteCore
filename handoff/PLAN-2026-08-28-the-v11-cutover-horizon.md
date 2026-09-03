@@ -883,3 +883,62 @@ the same as today; enabling it later is one manifest field plus its own gate*
 functional value of the fallback font set is unmeasured; the option is
 preserved."*
 
+---
+
+# Correction, 2026-08-29 — "twelve profiles" is 34, and D-2 is done
+
+Append-only. Two items.
+
+## The number
+
+This file says the shared `dist/profiles/resources/` is referenced by **twelve**
+other profiles — at lines 226, 406, 414 and 430, and the handoff repeats it.
+
+Counted 2026-08-29 by reading every `dist/profiles/*/sdk-manifest.json`:
+
+* **34** profiles reference all three of `e2-editor-v8`'s data files
+  (`base-r5.ba15a988a7fec468`, `cjk-r5.b76b0433203017ca`,
+  `fallback-fonts-r5.33856e2a082148dd`) — identically for the `.metadata`
+  siblings.
+* **35** reference `../resources/` at all.
+
+Rerunnable:
+
+```bash
+cd wasm_sdk_probe
+grep -l '\.\./resources/' dist/profiles/*/sdk-manifest.json | wc -l
+```
+
+**The correction strengthens the D-2 reasoning rather than changing it**: a
+hazard that breaks 34 profiles at once is even more clearly not something a
+per-profile archive insures against. The disposition (pin by reference, do not
+copy ~98 MiB) stands.
+
+## D-2 is discharged
+
+All three acceptance criteria met, 2026-08-29:
+
+1. **`SHA256SUMS.shared`** exists in
+   `build/archive/e2-editor-v8-4a2710bb-worker-070229cd-manifest-d70481cb/`,
+   listing the six shared files (`soffice.data` as `base-r5`, plus both packs,
+   plus all three `.metadata` siblings) with their sha256 and their live paths.
+   Written with the **same path base** as the existing `SHA256SUMS`, so both are
+   checked the same way from `wasm_sdk_probe/` — two checksum files in one
+   directory needing two different working directories is a trap, and the first
+   draft of this one had it.
+2. **Verified**: `sha256sum -c` passes for both files, all ten entries OK.
+   Recorded in `VERIFIED-2026-08-29.txt` in the archive directory.
+3. **`ATTRIBUTION.md`** carries an appended correction naming what is held as
+   bytes (four files) and what is pinned by reference (six), stating the core
+   data is shared by 34 profiles and untouched by a cutover to v11 or v12
+   (both carry their own images and reference none of `resources/`), and
+   containing the sentence: *"This archive alone cannot restore
+   `e2-editor-v8`. Restoring requires `dist/profiles/resources/` intact,
+   verified against `SHA256SUMS.shared`."*
+
+Also recorded there, per finding 085: of the six pinned files, the two
+`fallback-fonts-r5` ones are **never fetched by any client**.
+
+Revert-condition 1 as superseded by part 2 §A-2 — "five identities pinned, four
+held as bytes, the fifth verified in place" — is satisfied.
+
