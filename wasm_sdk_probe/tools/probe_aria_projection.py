@@ -23,6 +23,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
@@ -36,6 +37,7 @@ from run_browser_probe import ChromeSession, free_port  # noqa: E402
 from run_e2_c_page_smoke import READ_STATE, navigate  # noqa: E402
 from probe_a11y_gate0 import gate_mirror, wait_until  # noqa: E402
 from run_e2_c_product_path import (  # noqa: E402
+    build_mirror, repointed_page,
     LINE_INK, POINT_AT, caret_click_fractions, place_caret_and_settle,
     stable_bands,
 )
@@ -85,21 +87,75 @@ def ax_tree(session) -> list[dict]:
     return nodes
 
 
+
+def candidate_mirror(scratch: Path, profile: str) -> dict:
+    """The page as it will SHIP for `profile`, mirrored and nothing else.
+
+    B-2/D-4's precondition: this probe must be the fourth CALLER of
+    `repointed_page()`, not a fourth implementation.  The 2026-08-27
+    consolidation exists so the page measured is the page that ships, and
+    `check_usable_editor.py` refuses mirror-built runs for the product net for
+    the same reason.
+
+    Unlike `gate_mirror()` this appends NOTHING to the page.  That probe needs
+    its injected reader; this one does not -- `Accessibility.getFullAXTree` is a
+    CDP domain and `#a11y-para`/`#a11y-doc` are ordinary DOM -- so a candidate
+    run here carries no shim at all, and its `pageSha256` is comparable with the
+    soak reports' `candidateCutover.pageSha256`.
+    """
+    manifest_path = PROJECT / "dist" / "profiles" / profile / "sdk-manifest.json"
+    if not manifest_path.is_file():
+        raise SystemExit(f"profile {profile!r} has no manifest at {manifest_path}")
+    source = (PROJECT / "web" / "e2-editor-app.js").read_text(encoding="utf-8")
+    page, pin_before, wasm = repointed_page(source, profile, manifest_path)
+    digest = hashlib.sha256(page.encode("utf-8")).hexdigest()
+    root = scratch / "candidate-root"
+    build_mirror(PROJECT / "dist", root, {"e2-editor-app.js": page.encode("utf-8")})
+    return {
+        "root": str(root),
+        "profile": profile,
+        "pageSha256": digest,
+        "pinBefore": pin_before,
+        "pinAfter": wasm[:16],
+        "shim": None,
+        "note": "The CANDIDATE page -- built by `repointed_page()`, the same "
+                "function `tools/build_cutover_page.py` writes with, and with "
+                "nothing appended. `pageSha256` must equal the "
+                "`candidateCutover.pageSha256` the soak reports carry.",
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--browser", choices=("chrome",), default="chrome",
                         help="chrome only: Firefox's WebDriver session has no "
                              "CDP here, and the AX tree is a CDP domain")
-    parser.add_argument("--profile", default="a11y-gate0")
+    parser.add_argument("--profile", default=None,
+                        help="DIAGNOSTIC: mirror the page onto this profile "
+                             "with `gate_mirror()`, which also appends a "
+                             "reader. Kept so the 2026-08-23 evidence stays "
+                             "reproducible")
+    parser.add_argument("--candidate-profile", default=None,
+                        help="measure the page as it will SHIP for this "
+                             "profile, built by `repointed_page()` with "
+                             "nothing appended. This is what gate condition 4a "
+                             "requires")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
+
+    if args.profile and args.candidate_profile:
+        raise SystemExit("--profile and --candidate-profile are two different "
+                         "pages; pass one")
+    if not args.profile and not args.candidate_profile:
+        args.profile = "a11y-gate0"
 
     record: dict = {
         "schemaVersion": 1,
         "release": "aria-projection-baseline",
         "question": "what does a screen reader get from the editor page today?",
         "design": "research/DESIGN-2026-08-22-aria-projection.md",
-        "profile": args.profile,
+        "profile": args.profile or args.candidate_profile,
+        "kind": "candidate" if args.candidate_profile else "diagnostic-mirror",
         "judges": None,
         "why": "Reported, not scored. G3.4-1 has no threshold yet and writing "
                "one from this output would make the highest-uncertainty "
@@ -108,7 +164,9 @@ def main() -> int:
     }
 
     scratch = Path(tempfile.mkdtemp(prefix="aria-baseline-"))
-    record["mirror"] = gate_mirror(scratch, args.profile)
+    record["mirror"] = (candidate_mirror(scratch, args.candidate_profile)
+                        if args.candidate_profile
+                        else gate_mirror(scratch, args.profile))
     port = free_port()
     server = subprocess.Popen(
         [sys.executable, str(PROJECT / "web" / "serve.py"),
