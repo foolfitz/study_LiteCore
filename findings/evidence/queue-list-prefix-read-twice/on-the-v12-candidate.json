@@ -1,0 +1,160 @@
+{
+  "question": "on the profile a cutover would ship, does a list item still carry its own marker inside the text an AT reads, so the marker is announced twice?",
+  "method": "read from the ALREADY BANKED gate-4a AX trees -- no new run: the question is answerable from evidence taken on the candidate page itself. Each `listitem` is resolved to its OWN descendant text through `childIds`, NOT by matching a bullet-looking prefix: the first attempt did the latter and counted 6, because the toolbar's own buttons are labelled `• 項目符號` and `1. 編號`. A pattern that cannot tell a document from a toolbar was measuring the page's furniture.",
+  "sources": [
+    {
+      "report": "findings/evidence/gate-4a/candidate-v12-run1.json",
+      "profile": "e2-editor-v12",
+      "pageSha256": "3dfdcfef4abfe6b723b573f35e8ec8f885dcc42a8ed4d8338ad2381eb386f50f"
+    },
+    {
+      "report": "findings/evidence/gate-4a/candidate-v12-run2.json",
+      "profile": "e2-editor-v12",
+      "pageSha256": "3dfdcfef4abfe6b723b573f35e8ec8f885dcc42a8ed4d8338ad2381eb386f50f"
+    },
+    {
+      "report": "findings/evidence/gate-4a/candidate-v12-run3.json",
+      "profile": "e2-editor-v12",
+      "pageSha256": "3dfdcfef4abfe6b723b573f35e8ec8f885dcc42a8ed4d8338ad2381eb386f50f"
+    }
+  ],
+  "runs": {
+    "run1": {
+      "listitems": 4,
+      "carryingTheirOwnMarker": 4,
+      "items": [
+        {
+          "nodeId": "133",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "• E1-LC-BULLET-ONE"
+          ],
+          "startsWithItsOwnMarker": true
+        },
+        {
+          "nodeId": "134",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "• E1-LC-BULLET-TWO 中文項目"
+          ],
+          "startsWithItsOwnMarker": true
+        },
+        {
+          "nodeId": "137",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "1. E1-LC-NUMBER-ONE"
+          ],
+          "startsWithItsOwnMarker": true
+        },
+        {
+          "nodeId": "138",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "2. E1-LC-NUMBER-TWO"
+          ],
+          "startsWithItsOwnMarker": true
+        }
+      ]
+    },
+    "run2": {
+      "listitems": 4,
+      "carryingTheirOwnMarker": 4,
+      "items": [
+        {
+          "nodeId": "133",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "• E1-LC-BULLET-ONE"
+          ],
+          "startsWithItsOwnMarker": true
+        },
+        {
+          "nodeId": "134",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "• E1-LC-BULLET-TWO 中文項目"
+          ],
+          "startsWithItsOwnMarker": true
+        },
+        {
+          "nodeId": "137",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "1. E1-LC-NUMBER-ONE"
+          ],
+          "startsWithItsOwnMarker": true
+        },
+        {
+          "nodeId": "138",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "2. E1-LC-NUMBER-TWO"
+          ],
+          "startsWithItsOwnMarker": true
+        }
+      ]
+    },
+    "run3": {
+      "listitems": 4,
+      "carryingTheirOwnMarker": 4,
+      "items": [
+        {
+          "nodeId": "137",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "• E1-LC-BULLET-ONE"
+          ],
+          "startsWithItsOwnMarker": true
+        },
+        {
+          "nodeId": "138",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "• E1-LC-BULLET-TWO 中文項目"
+          ],
+          "startsWithItsOwnMarker": true
+        },
+        {
+          "nodeId": "141",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "1. E1-LC-NUMBER-ONE"
+          ],
+          "startsWithItsOwnMarker": true
+        },
+        {
+          "nodeId": "142",
+          "level": 1,
+          "listitemName": "",
+          "textAnATWouldRead": [
+            "2. E1-LC-NUMBER-TWO"
+          ],
+          "startsWithItsOwnMarker": true
+        }
+      ]
+    }
+  },
+  "shippedControl": {
+    "profile": "e2-editor-v8",
+    "documentTextInTree": false,
+    "listitems": 0,
+    "note": "the shipped profile puts no document text in the tree at all, so it has no double announcement -- and no announcement"
+  },
+  "reproducible": {
+    "threeRunsAgree": true,
+    "comparedOn": "level, listitem name, the text an AT would read, and the flag -- NOT nodeId. The first version compared nodeId too and reported the three runs as disagreeing: AX node ids are per-session and say nothing about the product. An instrument that reports a difference the product does not have is the same defect as one that hides a difference it does."
+  },
+  "verdict": "PRESENT on the candidate: 4 of 4 list items are `listitem` (from which an AT speaks the marker) AND begin with that same marker in their own text, so the marker is spoken twice. Three runs agree."
+}
