@@ -276,3 +276,52 @@ instrument; G1–G10 as templates.
   before any shell work.
 * G3's oracle degrades: `SelectAll` + text covers Impress **outline** text, not
   shapes.
+
+---
+
+# Amendment, 2026-09-03 — document width is recorded, not compared
+
+Append-only; nothing above is edited. Written **before** the corpus sweep, not
+after it, because a disposition chosen once the results are visible is a
+disposition chosen to fit them.
+
+**The forcing measurement.** W2 cross-checked the candidate against the native
+oracle on three fixtures
+(`findings/evidence/m4-ods/RESULT-W2-the-decisive-measurement.md`). Part counts
+and document heights agreed everywhere. **Document widths differ by 182 twips
+(0.7%) on the two fixtures that carry cell content, and agree on the one that
+does not.**
+
+**Disposition: `documentWidth` is RECORDED in every sweep report and COMPARED by
+no criterion.**
+
+The reason is not that the difference is small. It is that **no criterion in §3
+asks for it**, and adding one now would be inventing a cross-engine geometry
+comparison that nothing in the milestone needs:
+
+* **G3** compares the *text* a sheet yields. Column geometry does not enter it.
+* **G4** compares tiles against controls painted **by the same engine in the
+  same run** — `empty-one-sheet` and `one-cell-a1` are corpus entries for
+  exactly that reason. It never compares a tile against anything native.
+* **G5** compares parts against each other, again within one engine.
+* The native oracle's role is to supply **sheet counts, names and text** for the
+  upstream fixtures. It was never the geometry oracle, and promoting it to one
+  because a number happened to be handy is how an oracle acquires authority it
+  was not measured for.
+
+**Recording is not a formality.** The shape of the difference — present only
+where cells carry text, absent on an empty sheet — points at column width
+derived from font metrics, and this core ships a reduced font set. That is a
+**hypothesis, untested**. If a later fidelity question needs it, the sweep's
+records are what it will be answered from, and the alternative to recording is
+re-running three hundred fixtures to ask a question that was in front of us.
+
+**What would change this.** If any future criterion compares a rendered
+spreadsheet against a native rendering — pixel comparison, layout, print — then
+width stops being incidental and this amendment is superseded by whatever that
+criterion needs. It is not superseded by someone finding the difference
+interesting.
+
+**If this is never revisited, the default conclusion is:** the candidate's
+document width differs from the native engine's by under 1% on documents with
+content, cause unmeasured, and no criterion of this milestone depended on it.
