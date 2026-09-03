@@ -551,3 +551,111 @@ requires:
 * **R4** The corrected size decomposition of A-3, and whether the owner's
   confirmation was taken against it.
 
+---
+
+# Addendum part 2, 2026-08-28 — the cost correction, adjudicated
+
+Labelled **B-n** to avoid collision with part 1's A-n, which are different
+items. Same append-only rule; part 1 is not edited.
+
+Part 1's **A-3** recorded the corrected size decomposition. That correction was
+independently re-derived by the adjudicator from the same two metadata files
+before these rulings were issued, reproducing every figure. It then forced a
+decision part 1 did not face.
+
+## B-1 — The correction's required form
+
+The plan's sentence *"v11's core filesystem image is three times v8's — that is
+the writer+calc core the ruling accepted"* is **measured false**. Part 1 §A-3
+carries the correction; it must also carry, and now does:
+
+* both metadata paths — `dist/profiles/e2-editor-v11/soffice.data.js.metadata`
+  (1,606 entries) and `dist/profiles/resources/full-qa-r5.72dd2755c8cd8880.metadata`
+  (1,358);
+* the reconciling arithmetic — `base-r5 + cjk-r5 + fallback-fonts-r5` =
+  102,765,226 bytes = `full-qa-r5` **to the byte**;
+* the sentence: **about 65% of the previously quoted cost is a packaging
+  choice, not the accessibility core.**
+
+| component of the +71.4 MiB | MiB | nature |
+|---|---|---|
+| loader + wasm | +19.0 | the a11y+calc core's code — irreducible without a relink |
+| Calc configuration in the data image | +5.5 | content of the chosen core; removal would be an image edit, **not ordered**, recorded only |
+| fallback-font pack no longer deferred | +46.8 | **packaging choice**, reversible by `create_pack` post-processing |
+
+Factual correction, not a criterion change: the clean-run predicate is
+untouched and the count does not restart on its account.
+
+## B-2 — Which candidate the gate measures: a bounded split probe
+
+The correction creates a decision: ship unsplit v11 at +71.4 MiB, or split its
+image the way v8's is split and ship at ≈+24.6 MiB. Asking the owner to approve
++71.4 while +24.6 may be two days away invites exactly the re-litigation this
+gate exists to prevent — the 2026-08-20 ruling accepted +19.9, and +24.6 is
+near it while +71.4 is 3.6× it.
+
+**Ruling.** Attempt the split **now, in parallel with the soak**, under a hard
+bound of **2 calendar days from 2026-08-28**. The soak on unsplit v11 keeps
+banking runs meanwhile. At the probe's verdict or the bound, whichever comes
+first:
+
+* **Verified** → the split profile (fresh five identities; its packs are its
+  own files, referenced only by its own manifest, never placed where the
+  product core could inherit them) becomes the gate's candidate by appended
+  amendment. **The soak count restarts at zero** — forced by this tree's
+  version-is-identity rule, not by judgement. Identity-bound evidence to
+  re-earn, enumerated now: the twelve clean runs, the three diagnostic runs,
+  the revert rehearsal (new hashes), the ODT round-trip both ways, the
+  NE-composition confirmation, and 4a. The human manual round (condition 3)
+  runs **once, on the final candidate only**. With ≤3 runs banked at the bound,
+  a restart costs no more calendar than the ≥3-day spread the soak needs
+  anyway.
+* **Not verified by the bound** → unsplit v11 is the candidate, **frozen**: no
+  split work may touch the candidate until after the cutover. A candidate that
+  keeps improving under the gate never finishes soaking. The split becomes the
+  first post-cutover profile, with its own gate.
+
+**Probe pass criteria, fixed before the probe — all four:**
+
+1. **Reconciliation** — `create_pack` splits v11's image into base plus packs
+   whose file sets and bytes reunite to v11's image exactly, verified from the
+   metadata.
+2. **The net** — the split profile boots and one product-path run reconciles
+   clean: 38 PASS / 2 NE, the same NE set.
+3. **The lazy path, both directions** — startup does **not** fetch the deferred
+   pack (observed in network requests; deferral is the point), and opening a
+   document that requires a fallback font triggers the pack fetch and renders
+   it, with no font regression on the CJK fixture. This is the named unverified
+   item and it is the probe's reason to exist.
+4. **The figure** — required-before-usable recomputed from every file the split
+   manifest references, by the plan's own counting method.
+
+Any criterion unmet, or the bound expiring, is **not verified**. No partial
+credit, no extension. **If the probe is never run at all, the gate proceeds on
+unsplit v11 at +71.4 MiB.**
+
+## B-3 — What condition 4 weighs against, and the owner's confirmation
+
+**4a and 4b are unchanged** — criteria, blocking status, escapes, all of it.
+The benefit measurement does not get lighter because the cost got smaller:
+even at +24.6 MiB, and independently of cost, the plan's own reason for
+condition 4 stands.
+
+What changes:
+
+* The cutover record's cost sentence weighs the benefit against the cost of
+  **the candidate that actually ships** — ≈+24.6 MiB (+15%) if the split
+  profile ships, +71.4 MiB (+44%) if unsplit v11 ships — with B-1's
+  decomposition table shown in either case.
+* The owner's confirmation obligation is restated: **the confirmation is
+  against the shipping candidate's measured figure, never against +19.9, and
+  never against +71.4 if +71.4 is not what ships.** If unsplit v11 ships, the
+  confirmation must be accompanied by the sentence that ~65% of the figure is a
+  packaging choice with a named, already-probed or probe-expired follow-up — so
+  the owner approves the number knowing which part of it is removable, and
+  when.
+
+Acceptance criterion: the record quotes one of the two figures, names that
+candidate's five identities beside it, and carries the decomposition table; a
+reader can recompute the figure from the shipped manifest's referenced files.
+
