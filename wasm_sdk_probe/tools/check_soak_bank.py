@@ -34,6 +34,12 @@ already records why: a file called `soak-run-02-...` that is not run 2 is
 exactly what a later glob miscounts.  So the glob is the enumeration, and the
 tool refuses to answer when it meets a file it cannot account for.
 
+Gate condition 2's diagnostic runs (`diagnostic-*.json`) share the directory.
+They are excluded from the twelve by the identity rule, so they are classified
+rather than counted -- and LISTED in the verdict, because a file this tool
+silently skipped would be indistinguishable from one it never saw.  Condition 2
+is judged by `check_caret_diagnostics.py`, not here.
+
 Reports banked in place OUTSIDE the directory (run 1 is the split probe's
 criterion-2 run, cited rather than copied, because evidence in this tree is not
 moved) are passed with `--also`.  Omitting one can only UNDERCOUNT, which makes
@@ -89,15 +95,23 @@ EXPECTED_NE = {"notice-action-recovers-the-session",
                "a-refused-action-is-reported-and-changes-nothing"}
 EXPECTED_PASS = 38
 
-# Files in the bank directory that are deliberately NOT runs.  Each needs a
-# reason, because "ignore what does not parse" is how a bank quietly loses a
-# member.  RUNS.md carries the same dispositions in prose.
+# Files in the bank directory that are deliberately NOT counted runs.  Each
+# needs a reason, because "ignore what does not parse" is how a bank quietly
+# loses a member.  RUNS.md carries the same dispositions in prose.
 NON_RUNS = {
     "interrupted-2026-08-29-0050-partial.json":
         "partial snapshot of an interrupted run: complete=false, no ok, "
         "6 checks. Renamed out of the soak-run-* namespace rather than "
         "deleted, so the interruption stays visible.",
 }
+
+# Condition 2's evidence lives in the same directory and is NOT condition 1's.
+# `--caret-source-diagnostic` mirrors the page and adds an engine probe, so the
+# identity rule excludes these from the twelve -- but excluded is not the same
+# as invisible, and a file this tool cannot name is red.  They are listed in the
+# verdict under `conditionTwoFiles` so a reader sees that they exist and that
+# this tool did not judge them.
+DIAGNOSTIC_PREFIX = "diagnostic-"
 
 
 def rel(path: Path) -> str:
@@ -222,8 +236,11 @@ def judge(bank: Path, also: list[Path], expect_sha: str, expect_profile: str,
         return {"ok": False,
                 "error": f"bank directory holds no *.json at all: {bank}"}
 
+    diagnostics = [p.name for p in present
+                   if p.name.startswith(DIAGNOSTIC_PREFIX)]
     unclassified = [p.name for p in present
                     if not p.name.startswith("soak-run-")
+                    and not p.name.startswith(DIAGNOSTIC_PREFIX)
                     and p.name not in NON_RUNS]
     declared_missing = [name for name in NON_RUNS
                         if not (bank / name).is_file()]
@@ -275,6 +292,7 @@ def judge(bank: Path, also: list[Path], expect_sha: str, expect_profile: str,
         "cleanRuns": len(clean),
         "totalRuns": len(runs),
         "unclassifiedFiles": unclassified,
+        "conditionTwoFiles_NOT_JUDGED_HERE": sorted(diagnostics),
         "declaredNonRunsMissing": declared_missing,
         "distinctPageSha256": shas,
         "runs": runs,
