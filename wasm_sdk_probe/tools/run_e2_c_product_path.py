@@ -4296,8 +4296,21 @@ def main() -> int:
         [sys.executable, str(PROJECT / "web" / "serve.py"),
          "--port", str(port), "--root", str(root)],
         cwd=PROJECT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # WHICH PAGE IS IN FRONT OF YOU, said in the first line of the trace.
+    # This read `args.profile or "shipped"`, so every `--candidate-profile` run
+    # -- the entire cutover soak -- announced itself as "shipped" while
+    # measuring the candidate. Nothing parses this line and no verdict moved,
+    # but "which document is in front of you" and "are you ready" being
+    # different sentences is the 2026-08-28 lesson, and an operator watching a
+    # six-minute run should not have to take the label on faith.
+    if args.candidate_profile:
+        which = f"candidate:{args.candidate_profile}"
+    elif args.profile:
+        which = f"mirror:{args.profile}"
+    else:
+        which = "shipped"
     print(f"[step] {time.monotonic() - RUN_STARTED:7.1f}s "
-          f"{'STARTED':16s} profile={args.profile or 'shipped'} port={port}",
+          f"{'STARTED':16s} page={which} port={port}",
           file=sys.stderr, flush=True)
     session = None
     try:
