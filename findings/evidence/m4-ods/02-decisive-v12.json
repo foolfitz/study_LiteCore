@@ -1,0 +1,1032 @@
+{
+  "schemaVersion": 1,
+  "release": "m4-ods-decisive-runner",
+  "profile": "e2-editor-v12",
+  "nameSpoofed": true,
+  "evidenceClass": "diagnostic",
+  "inputs": [
+    {
+      "case": "d1-anchors.odt",
+      "path": "dist/e2-fixtures/d1-anchors.odt",
+      "sha256": "f89f1e63dcf7c8956f3986257dd79a7ed02bb7825c844a63f73abc4a5c68d241"
+    },
+    {
+      "case": "empty-one-sheet.ods",
+      "path": "test-docs/ods/ladder/empty-one-sheet.ods",
+      "sha256": "27c90c9863e758cd81d38a53914391697aa75ccf1d1f82ca4550c67c52b26857"
+    },
+    {
+      "case": "three-sheets-distinct.ods",
+      "path": "test-docs/ods/ladder/three-sheets-distinct.ods",
+      "sha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750"
+    },
+    {
+      "case": "one-cell-a1.ods",
+      "path": "test-docs/ods/ladder/one-cell-a1.ods",
+      "sha256": "bb6142d5b93e58f4a282569956ec5f482e2a41be28f0548c3cee4c5dfa64cb1d"
+    },
+    {
+      "case": "truncated.ods",
+      "path": "/tmp/claude-1000/-home-jiajun-LibreOffice-study-LiteCore/d1e9dbdf-25ab-4bf2-842e-67215fb9cfe8/scratchpad/truncated.ods",
+      "sha256": "ae83fa82bd9aff1d00a4922d916370981059a999906dbc1ecbd38f62cd73c7b7"
+    }
+  ],
+  "page": {
+    "schemaVersion": 1,
+    "release": "m4-ods-decisive",
+    "profile": "e2-editor-v12",
+    "nameSpoofed": true,
+    "evidenceClass": "diagnostic",
+    "why": "finding 013: the public open() rejects by extension before content detection, so an ODS cannot be handed to the product path at all. This bypasses the check by name only; the bytes are unmodified and content detection reads the zip mimetype.",
+    "cases": [
+      {
+        "name": "d1-anchors.odt",
+        "file": "./ods-cases/d1-anchors.odt",
+        "kind": "control-odt",
+        "handedOverAs": "./ods-cases/d1-anchors.odt",
+        "stages": [
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:desktop.app:42:3:desktop/source/app/app.cxx:2080: Could not disable AutoRecovery. com.sun.star.uno.DeploymentException message: \"component context fails to supply singleton com.sun.star.frame.theAutoRecovery of type com.sun.star.frame.XDispatch\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.begin",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.documentLoad",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:editeng:42:1:editeng/source/misc/acorrcfg.cxx:107: Unable to iterate directory 'file:///instdir/program/../share/autocorr' com.sun.star.ucb.InteractiveAugmentedIOException message: \"an error occurred during file opening (12/2)\" context: N10fileaccess11BaseContentE Code: 22"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:lok:42:1:sfx2/source/view/lokhelper.cxx:1118: no explicit viewshell set"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.documentLoad-returned",
+              "heapBytes": 1073741824,
+              "sbrk": 293605376
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.initializeForRendering",
+              "heapBytes": 1073741824,
+              "sbrk": 293605376
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.registerCallback",
+              "heapBytes": 1073741824,
+              "sbrk": 293605376
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.query-metadata",
+              "heapBytes": 1073741824,
+              "sbrk": 293605376
+            }
+          }
+        ],
+        "opened": {
+          "atMs": 1580,
+          "parts": 1,
+          "tileMode": 0,
+          "partsFromHandle": 1,
+          "widthTwips": 12808,
+          "heightTwips": 16408
+        },
+        "viewReady": {
+          "atMs": 1580
+        },
+        "error": null,
+        "inputBytes": 1716,
+        "inputSha256": "f89f1e63dcf7c8956f3986257dd79a7ed02bb7825c844a63f73abc4a5c68d241",
+        "tile": {
+          "ok": true,
+          "bytes": 4194304,
+          "nonPaperPixels": 254690,
+          "sha256": "bc13b2ef93266a6118e4bc44e74fcc5510d5cfc619cd815c39644c86aa55ebc3",
+          "documentWidthTwips": 12808,
+          "documentHeightTwips": 16408
+        },
+        "elapsedMs": 1723
+      },
+      {
+        "name": "empty-one-sheet.ods",
+        "file": "./ods-cases/empty-one-sheet.ods",
+        "kind": "control-empty-ods",
+        "handedOverAs": "./ods-cases/empty-one-sheet.odt",
+        "stages": [
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.begin",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.documentLoad",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:sc:42:1:sc/source/filter/orcus/orcusfiltersimpl.cxx:111: Unable to load styles from xml file! filesystem error: in file_size: No such file or directory [\"/instdir/program/../share/calc/styles.xml\"]"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.documentLoad-returned",
+              "heapBytes": 1073741824,
+              "sbrk": 295370752
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.initializeForRendering",
+              "heapBytes": 1073741824,
+              "sbrk": 295370752
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.registerCallback",
+              "heapBytes": 1073741824,
+              "sbrk": 295370752
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.query-metadata",
+              "heapBytes": 1073741824,
+              "sbrk": 295370752
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?"
+          }
+        ],
+        "opened": {
+          "atMs": 1221,
+          "parts": 1,
+          "tileMode": 0,
+          "partsFromHandle": 1,
+          "widthTwips": 26593,
+          "heightTwips": 13005
+        },
+        "viewReady": {
+          "atMs": 1221
+        },
+        "error": null,
+        "inputBytes": 6546,
+        "inputSha256": "27c90c9863e758cd81d38a53914391697aa75ccf1d1f82ca4550c67c52b26857",
+        "tile": {
+          "ok": true,
+          "bytes": 4194304,
+          "nonPaperPixels": 72936,
+          "sha256": "d2087eecba27bfc4e5356fa4c70b26da8ed6a80eefbcea29913d1893e84514da",
+          "documentWidthTwips": 26775,
+          "documentHeightTwips": 13005
+        },
+        "elapsedMs": 1242
+      },
+      {
+        "name": "three-sheets-distinct.ods",
+        "file": "./ods-cases/three-sheets-distinct.ods",
+        "kind": "spreadsheet",
+        "handedOverAs": "./ods-cases/three-sheets-distinct.odt",
+        "stages": [
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:desktop.app:42:3:desktop/source/app/app.cxx:2080: Could not disable AutoRecovery. com.sun.star.uno.DeploymentException message: \"component context fails to supply singleton com.sun.star.frame.theAutoRecovery of type com.sun.star.frame.XDispatch\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.begin",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.documentLoad",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:sc:42:1:sc/source/filter/orcus/orcusfiltersimpl.cxx:111: Unable to load styles from xml file! filesystem error: in file_size: No such file or directory [\"/instdir/program/../share/calc/styles.xml\"]"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.documentLoad-returned",
+              "heapBytes": 1073741824,
+              "sbrk": 295378944
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.initializeForRendering",
+              "heapBytes": 1073741824,
+              "sbrk": 295378944
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.registerCallback",
+              "heapBytes": 1073741824,
+              "sbrk": 295378944
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.query-metadata",
+              "heapBytes": 1073741824,
+              "sbrk": 295378944
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?"
+          }
+        ],
+        "opened": {
+          "atMs": 1269,
+          "parts": 3,
+          "tileMode": 0,
+          "partsFromHandle": 3,
+          "widthTwips": 26593,
+          "heightTwips": 13005
+        },
+        "viewReady": {
+          "atMs": 1269
+        },
+        "error": null,
+        "inputBytes": 7537,
+        "inputSha256": "0402e52724cb5bbd3046461a5fb1c40b9431b33f20834136a835a68f3123e750",
+        "tile": {
+          "ok": true,
+          "bytes": 4194304,
+          "nonPaperPixels": 73208,
+          "sha256": "1b932354af41ca3087eab130a0bd084279c9e2dd3eb27013c22b74c18b0759c9",
+          "documentWidthTwips": 26775,
+          "documentHeightTwips": 13005
+        },
+        "elapsedMs": 1293
+      },
+      {
+        "name": "one-cell-a1.ods",
+        "file": "./ods-cases/one-cell-a1.ods",
+        "kind": "spreadsheet",
+        "handedOverAs": "./ods-cases/one-cell-a1.odt",
+        "stages": [
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:desktop.app:42:3:desktop/source/app/app.cxx:2080: Could not disable AutoRecovery. com.sun.star.uno.DeploymentException message: \"component context fails to supply singleton com.sun.star.frame.theAutoRecovery of type com.sun.star.frame.XDispatch\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.begin",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.documentLoad",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:sc:42:1:sc/source/filter/orcus/orcusfiltersimpl.cxx:111: Unable to load styles from xml file! filesystem error: in file_size: No such file or directory [\"/instdir/program/../share/calc/styles.xml\"]"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:sfx.doc:42:1:sfx2/source/doc/objserv.cxx:2002: Failed to get document signature information com.sun.star.uno.DeploymentException message: \"component context fails to supply service com.sun.star.security.DocumentDigitalSignatures of type com.sun.star.security.XDocumentDigitalSignatures\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.documentLoad-returned",
+              "heapBytes": 1073741824,
+              "sbrk": 295370752
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.initializeForRendering",
+              "heapBytes": 1073741824,
+              "sbrk": 295370752
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.registerCallback",
+              "heapBytes": 1073741824,
+              "sbrk": 295370752
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.query-metadata",
+              "heapBytes": 1073741824,
+              "sbrk": 295370752
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:legacy.osl:42:1:sc/source/ui/view/tabvwshh.cxx:237: no accessibility broadcaster?"
+          }
+        ],
+        "opened": {
+          "atMs": 1029,
+          "parts": 1,
+          "tileMode": 0,
+          "partsFromHandle": 1,
+          "widthTwips": 26593,
+          "heightTwips": 13005
+        },
+        "viewReady": {
+          "atMs": 1029
+        },
+        "error": null,
+        "inputBytes": 7465,
+        "inputSha256": "bb6142d5b93e58f4a282569956ec5f482e2a41be28f0548c3cee4c5dfa64cb1d",
+        "tile": {
+          "ok": true,
+          "bytes": 4194304,
+          "nonPaperPixels": 73190,
+          "sha256": "366471486cd13db4770fe1ecc51c3dbe3555bfb29bfc439c7676614ba3203c4f",
+          "documentWidthTwips": 26775,
+          "documentHeightTwips": 13005
+        },
+        "elapsedMs": 1050
+      },
+      {
+        "name": "truncated.ods",
+        "file": "./ods-cases/truncated.ods",
+        "kind": "control-truncated-ods",
+        "handedOverAs": "./ods-cases/truncated.odt",
+        "stages": [
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:desktop.app:42:3:desktop/source/app/app.cxx:2080: Could not disable AutoRecovery. com.sun.star.uno.DeploymentException message: \"component context fails to supply singleton com.sun.star.frame.theAutoRecovery of type com.sun.star.frame.XDispatch\" context: N4cppu12_GLOBAL__N_116ComponentContextE"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.begin",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.documentLoad",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stderr",
+            "message": "warn:editeng:42:1:editeng/source/misc/acorrcfg.cxx:107: Unable to iterate directory 'file:///instdir/program/../share/autocorr' com.sun.star.ucb.InteractiveAugmentedIOException message: \"an error occurred during file opening (12/2)\" context: N10fileaccess11BaseContentE Code: 22"
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.documentLoad-returned",
+              "heapBytes": 1073741824,
+              "sbrk": 291508224
+            }
+          }
+        ],
+        "opened": null,
+        "viewReady": null,
+        "error": {
+          "name": "DocumentSdkError",
+          "code": "LOK_ERROR",
+          "message": "loadComponentFromURL returned an empty reference"
+        },
+        "inputBytes": 3000,
+        "inputSha256": "ae83fa82bd9aff1d00a4922d916370981059a999906dbc1ecbd38f62cd73c7b7",
+        "elapsedMs": 903
+      }
+    ],
+    "done": true,
+    "manifest": {
+      "abiVersion": 65537,
+      "abiVersionText": "1.1",
+      "artifactFiles": {
+        "probe.js": "./probe.js",
+        "probe.wasm": "./probe.wasm",
+        "soffice.data": "./base-e2-editor-v12.9901e9be29c9ded2.data",
+        "soffice.data.js.metadata": "./base-e2-editor-v12.b1e48f2b7ac50b60.metadata"
+      },
+      "capabilities": [
+        "open-odt",
+        "rgba-tile",
+        "insert-text",
+        "save-odt",
+        "cancel-queued",
+        "search",
+        "selection-text",
+        "replace-selection",
+        "undo",
+        "comments",
+        "tracked-changes",
+        "provider-contract-1.0",
+        "provider-worker",
+        "validated-provider-operation",
+        "narrow-editor-v2",
+        "verified-selection-delete"
+      ],
+      "coreCommit": "671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb",
+      "expectedCapabilityBits": 2047,
+      "profile": "e2-editor-v12",
+      "protocolVersion": 1,
+      "providerContractVersion": "1.0",
+      "resourcePacks": [
+        {
+          "id": "cjk-e2-editor-v12",
+          "data": "./cjk-e2-editor-v12.b76b0433203017ca.data",
+          "metadata": "./cjk-e2-editor-v12.fafab99558ab6f8b.metadata",
+          "bytes": 19484784,
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+          "loadAtStartup": true,
+          "purpose": "CJK corpus"
+        },
+        {
+          "id": "fallback-fonts-e2-editor-v12",
+          "data": "./fallback-fonts-e2-editor-v12.33856e2a082148dd.data",
+          "metadata": "./fallback-fonts-e2-editor-v12.924fb0ed8b459946.metadata",
+          "bytes": 49102042,
+          "sha256": "33856e2a082148ddbb753652861a5dd05af911e0d3587a3e8c75948a345de3a9",
+          "loadAtStartup": false,
+          "purpose": "optional complex-script and fidelity fallback"
+        }
+      ],
+      "sdkVersion": "0.6.0-r6-worker+e2-editor-v12",
+      "editorContract": {
+        "version": 2,
+        "abiVersion": 4,
+        "actions": {
+          "move-character-left": {
+            "id": 1,
+            "gestures": [
+              "collapsed"
+            ],
+            "limits": []
+          },
+          "move-character-right": {
+            "id": 2,
+            "gestures": [
+              "collapsed"
+            ],
+            "limits": []
+          },
+          "delete-backward": {
+            "id": 3,
+            "gestures": [
+              "collapsed"
+            ],
+            "limits": []
+          },
+          "delete-forward": {
+            "id": 4,
+            "gestures": [
+              "collapsed"
+            ],
+            "limits": []
+          },
+          "insert-paragraph-break": {
+            "id": 5,
+            "gestures": [
+              "collapsed"
+            ],
+            "limits": []
+          },
+          "insert-line-break": {
+            "id": 6,
+            "gestures": [
+              "collapsed"
+            ],
+            "limits": []
+          },
+          "set-bold": {
+            "id": 7,
+            "gestures": [
+              "collapsed",
+              "range-single",
+              "range-cross"
+            ],
+            "limits": [
+              "range-characterised-2026-08-23-chrome-one-fixture",
+              "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+            ]
+          },
+          "set-italic": {
+            "id": 8,
+            "gestures": [
+              "collapsed",
+              "range-single",
+              "range-cross"
+            ],
+            "limits": [
+              "range-characterised-2026-08-23-chrome-one-fixture",
+              "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+            ]
+          },
+          "set-underline": {
+            "id": 9,
+            "gestures": [
+              "collapsed",
+              "range-single",
+              "range-cross"
+            ],
+            "limits": [
+              "range-characterised-2026-08-23-chrome-one-fixture",
+              "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+            ]
+          },
+          "set-strikethrough": {
+            "id": 10,
+            "gestures": [
+              "collapsed",
+              "range-single",
+              "range-cross"
+            ],
+            "limits": [
+              "range-characterised-2026-08-23-chrome-one-fixture",
+              "whole-paragraph-selection-writes-paragraph-level-formatting-as-native-does"
+            ]
+          },
+          "set-list-none": {
+            "id": 11,
+            "gestures": [
+              "collapsed",
+              "range-single",
+              "range-cross"
+            ],
+            "limits": [
+              "no-note-paragraphs"
+            ]
+          },
+          "set-list-unordered": {
+            "id": 12,
+            "gestures": [
+              "collapsed",
+              "range-single",
+              "range-cross"
+            ],
+            "limits": [
+              "no-note-paragraphs"
+            ]
+          },
+          "set-list-ordered": {
+            "id": 13,
+            "gestures": [
+              "collapsed",
+              "range-single",
+              "range-cross"
+            ],
+            "limits": [
+              "no-note-paragraphs"
+            ]
+          },
+          "set-paragraph-heading": {
+            "id": 14,
+            "gestures": [
+              "collapsed",
+              "range-single",
+              "range-cross"
+            ],
+            "limits": [
+              "heading-level-1-only",
+              "no-precondition-state",
+              "no-note-paragraphs"
+            ]
+          },
+          "set-paragraph-body": {
+            "id": 15,
+            "gestures": [
+              "collapsed",
+              "range-single",
+              "range-cross"
+            ],
+            "limits": [
+              "no-precondition-state",
+              "no-note-paragraphs"
+            ]
+          },
+          "move-line-up": {
+            "id": 16,
+            "gestures": [
+              "collapsed"
+            ],
+            "limits": [
+              "no-extend-selection"
+            ]
+          },
+          "move-line-down": {
+            "id": 17,
+            "gestures": [
+              "collapsed"
+            ],
+            "limits": [
+              "no-extend-selection"
+            ]
+          },
+          "move-line-home": {
+            "id": 18,
+            "gestures": [
+              "collapsed"
+            ],
+            "limits": [
+              "no-extend-selection"
+            ]
+          },
+          "move-line-end": {
+            "id": 19,
+            "gestures": [
+              "collapsed"
+            ],
+            "limits": [
+              "no-extend-selection"
+            ]
+          },
+          "delete-selection": {
+            "id": 20,
+            "gestures": [
+              "range-single",
+              "range-cross"
+            ],
+            "limits": [
+              "not-characterised-in-tables-or-note-apparatus"
+            ]
+          },
+          "select-all": {
+            "id": 21,
+            "gestures": [],
+            "limits": [
+              "withheld-pending-characterisation"
+            ]
+          }
+        },
+        "gestureBits": {
+          "collapsed": 1,
+          "range-single": 2,
+          "range-cross": 4
+        },
+        "textCommit": "document-sdk-insert-text",
+        "undo": "document-sdk-undo",
+        "state": "typed-editor-state-v1",
+        "selectionBarrier": "verified-single-writer-unit-v1",
+        "formatBarrier": "verified-format-readback-v2",
+        "postDispatchFailureDisposition": "rollback-to-checkpoint",
+        "crossParagraphDisposition": "verify-every-block",
+        "boundaryRejectionRequiresFreshWorker": true,
+        "automaticRetry": false,
+        "rawCallbackExposed": false,
+        "arbitraryKeyCodeAccepted": false,
+        "arbitraryUnoCommandAccepted": false,
+        "diagnosticOperationsExposed": false,
+        "loaderSha256": "96f18d0c1f6b9b11c7d212bc0e176759ce5d4422e272f59e435c93e0e031364b",
+        "wasmSha256": "4ec1e389aaab3b0335875d06044639e33e94de777d04f15bb133d0d9e34ef452",
+        "workerSha256": "03f5b69a002895a9ae2b2c98aee75f00ea5acc8620fcfe4183d59d7a27db7a43",
+        "inlineRangeEvidence": "findings/evidence/f078-inline-format-on-a-selection/ -- all four inline formats measured on both range shapes against the shipped artifact f923cfa5, the formatted text equal to the selected text in every arm, with a baseline save and a shipped-profile control. Both bits are granted because the engine's gate requires both for an unclassified range; granting one alone admits nothing, measured. A fully selected paragraph comes back as paragraph-level formatting, which native LibreOffice 26.8 does identically (same extent, same shape, measured with tools/f078_native_range_format.cpp). Chrome only, one fixture, one selection geometry per arm; the 5-character list prefix the copy path reports on a cross-paragraph selection is unexplained and touches no formatting outcome",
+        "inlineFormatEnabledIsHonoured": true,
+        "redo": "document-sdk-redo",
+        "caretParagraphText": "focused-paragraph-text",
+        "documentOutline": "accessible-document-outline"
+      },
+      "capabilityBits": 2047
+    }
+  },
+  "timedOut": false,
+  "verdict": {
+    "controlOdtOpened": true,
+    "spreadsheetsOpened": [
+      {
+        "name": "three-sheets-distinct.ods",
+        "opened": true,
+        "parts": 3,
+        "viewReady": true,
+        "workerCrashed": false,
+        "error": null
+      },
+      {
+        "name": "one-cell-a1.ods",
+        "opened": true,
+        "parts": 1,
+        "viewReady": true,
+        "workerCrashed": false,
+        "error": null
+      }
+    ],
+    "note": "If the ODT control did not open, NOTHING here is about Calc: the instrument is the first suspect and the spreadsheet rows must not be read."
+  }
+}
