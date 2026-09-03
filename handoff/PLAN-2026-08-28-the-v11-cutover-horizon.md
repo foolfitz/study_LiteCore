@@ -942,3 +942,34 @@ Also recorded there, per finding 085: of the six pinned files, the two
 Revert-condition 1 as superseded by part 2 §A-2 — "five identities pinned, four
 held as bytes, the fifth verified in place" — is satisfied.
 
+---
+
+# Owner's decision, 2026-08-29 — Arabic is out of scope
+
+The product-scope call that adjudication C-3 assigned to the owner, and the
+only half of it nobody else could make.
+
+**Measured first** (`findings/evidence/gate-3prime-iii/`, criterion 3′-iii):
+Arabic renders as missing-glyph boxes on `e2-editor-v8` — the product as it
+ships today — and identically so on `e2-editor-v12`; the two profiles draw the
+fixture to **byte-identical pixels**. Unsplit `e2-editor-v11` renders it
+correctly. Hebrew renders on all three; the loss is Arabic alone, not "complex
+scripts".
+
+**The owner's decision, taken on that measurement**: *Arabic is not in scope.*
+
+Consequences, all pre-fixed by C-3 and now settled rather than defaulted:
+
+* `e2-editor-v12` stays the candidate. The fallback pack stays
+  `loadAtStartup: false`.
+* The confirmation figure is **+24.5 MiB (+15.2%)**.
+* The record's font sentence is no longer the "unmeasured, option preserved"
+  fallback. It is: *v12 matches v8's font coverage exactly — measured to
+  byte-identical pixels on a fixture requiring fallback-only fonts. Arabic
+  renders as boxes on both, as it does on the product today; the owner has
+  ruled Arabic out of scope. Unsplit v11 would render it, for +46.8 MiB at
+  startup; enabling it later is one manifest field plus its own gate, and the
+  pack is already banked as a byte-identical artifact.*
+
+3′-iii is discharged as a measurement, not as an assumption, and the decision
+it fed is recorded with the measurement rather than beside it.
