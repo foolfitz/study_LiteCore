@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "release": "fingerprint-across-a-format",
+  "profile": "e2-editor-v12",
+  "shippingPageSha256": "3dfdcfef4abfe6b723b573f35e8ec8f885dcc42a8ed4d8338ad2381eb386f50f",
+  "evidenceClass": "diagnostic",
+  "why": "an accessor for the engine's editorState is appended to the mirrored page, so these bytes are NOT the page a cutover would ship. It reads and changes nothing, but the stamp is not optional.",
+  "document": "/home/jiajun/Documents/SLAT/e20-專訪瓦特老師.odt",
+  "documentSha256": "63bf89cb5d7eb8913fd2e691f5d93b0d42d8715ca9ef8c61cd331048831c53d5",
+  "anchor": "在那之前",
+  "hypothesis": "the fingerprint is hash(content[listPrefixLength:]) and set-paragraph-heading changes listPrefixLength, so the same paragraph fingerprints differently before and after",
+  "reads": [
+    {
+      "label": "before-the-press",
+      "paragraphFingerprint": "41a04cddfa7f9bdd",
+      "fingerprintUsable": true,
+      "listPrefixLength": 0,
+      "contentLength": 120,
+      "paragraphFresh": true,
+      "position": 6,
+      "caretParagraphFingerprint": "41a04cddfa7f9bdd",
+      "caretParagraphLength": 120,
+      "paragraphText": "在那之前，我的資訊能力相當於白痴等級。大學住處的房東是成大理工科，組裝電腦、燒光碟都丟給他們處理。比較有優勢的是大學打工做平面設計，自學了 Illustrato"
+    },
+    {
+      "label": "after-the-press-same-caret",
+      "paragraphFingerprint": "e5c877e76e05a302",
+      "fingerprintUsable": true,
+      "listPrefixLength": 26,
+      "contentLength": 120,
+      "paragraphFresh": true,
+      "position": 120,
+      "caretParagraphFingerprint": "e5c877e76e05a302",
+      "caretParagraphLength": 120,
+      "paragraphText": "在那之前，我的資訊能力相當於白痴等級。大學住處的房東是成大理工科，組裝電腦、燒光碟都丟給他們處理。比較有優勢的是大學打工做平面設計，自學了 Illustrato"
+    }
+  ],
+  "opened": {
+    "doc": "e20-專訪瓦特老師.odt",
+    "state": "ready"
+  },
+  "accessor": {
+    "present": "object",
+    "error": null,
+    "keys": "[\"documentHandle\",\"revision\",\"sourceSequence\",\"documentChangeSequence\",\"visible\",\"caret\",\"selection\",\"a11y\",\"caretParagraph\",\"documentOutline\",\"selectionType\",\"selectionTextMissing\",\"selectionText\",\"format\",\"schedulerProbe\"]",
+    "appendedMarker": true
+  },
+  "scan": [
+    {
+      "y": "0.040",
+      "para": ""
+    },
+    {
+      "y": "0.060",
+      "para": ""
+    },
+    {
+      "y": "0.080",
+      "para": ""
+    },
+    {
+      "y": "0.100",
+      "para": "OSSACC（教育部校園自由軟體數位資源推廣服務中心）是過去教育部委辦、軟體自由"
+    },
+    {
+      "y": "0.120",
+      "para": "OSSACC（教育部校園自由軟體數位資源推廣服務中心）是過去教育部委辦、軟體自由"
+    },
+    {
+      "y": "0.140",
+      "para": ""
+    },
+    {
+      "y": "0.160",
+      "para": "我的求學過程是：屏中美術班、師院美教系，研究所讀藝術與造型設計，純美術出身，跟資"
+    },
+    {
+      "y": "0.180",
+      "para": "在那之前，我的資訊能力相當於白痴等級。大學住處的房東是成大理工科，組裝電腦、燒光"
+    }
+  ],
+  "targetFraction": "0.180",
+  "afterPress": {
+    "state": "recoverable-error",
+    "revision": "0",
+    "latency": "標題 失敗",
+    "toast": "標題：MUTATION_OUTCOME_UNKNOWN：the postcondition read describes a different paragraph from the one this action was dispatched on, so it says nothing about whether the action took effect（可能已經改到文件：請回到檢查點）"
+  },
+  "verdict": {
+    "fingerprintChanged": true,
+    "listPrefixLengthChanged": true,
+    "sameParagraphText": true
+  }
+}
