@@ -1746,6 +1746,57 @@ MUTATIONS = {
     # refused: the page and the engine do not agree about the shape of the
     # current selection, and the page's answer is the stale one.  A mutation
     # keyed on that variable tests the variable, not the product.
+    # W-3, 2026-09-03.  The census of 2026-08-28 found four inline-format
+    # checks with no mutation at all; these are the two of the four whose
+    # failure mode the MUTATION SURFACE can express.  The other two are named
+    # as limits below, with the structural reason.
+    #
+    # `alsoRed`/`alsoNotEstablished` are left EMPTY until measured, per the
+    # note on `format-ignores-a-selection`: a blast radius written from
+    # reasoning is a guess with a list around it.
+    "clear-format-leaves-one-format-on": {
+        "check": "clear-format-removes-every-inline-format",
+        "path": "e2-editor-app.js",
+        "find": '  for (const action of ["set-bold", "set-italic", '
+                '"set-underline",\n                        '
+                '"set-strikethrough"]) {\n'
+                '    await run("清除格式", () => session.action(action, '
+                '{ enabled: false }));\n',
+        # CONDITIONED ON STATE, NOT ON A COUNT, and the first version taught
+        # that the hard way.
+        #
+        # `clearInlineFormatting` is pressed by `#clear-format` -- which is
+        # both the button under test AND the normaliser `format_arm` uses
+        # before every one of its eight arms.  A version that simply dropped
+        # `set-strikethrough` from the loop therefore inverted the strikethrough
+        # arms' toggle polarity (finding 077's shape), so MKALLON came back with
+        # strikethrough OFF, `everyFormatWasOn` was false, and the check
+        # ABSTAINED instead of failing: measured 2026-09-03, NOT_ESTABLISHED,
+        # `THE MUTATION WAS NOT DETECTED`.
+        #
+        # So the skip fires only when all four are ALREADY on.  That is the
+        # state the press under test happens in and never the state a
+        # normalising press happens in -- an OFF arm's setup turns at most one
+        # format on.  Conditioning on the count of calls would work today and
+        # break silently the moment an arm is added, which is the same defect
+        # one layer up.
+        "replace": '  const __skip = ["set-bold", "set-italic", '
+                   '"set-underline", "set-strikethrough"]\n'
+                   '    .every((a) => formatStateFor(a) === true) '
+                   '? "set-strikethrough" : null;\n'
+                   '  for (const action of ["set-bold", "set-italic", '
+                   '"set-underline",\n                        '
+                   '"set-strikethrough"]) {\n'
+                   '    if (action === __skip) continue;\n'
+                   '    await run("清除格式", () => session.action(action, '
+                   '{ enabled: false }));\n',
+        "reintroduces": "a clear-format button that leaves one of the four "
+                        "inline formats on, in exactly the case the user "
+                        "presses it for -- everything on at once",
+        # MEASURED, not predicted.
+        "alsoRed": [],
+        "alsoNotEstablished": [],
+    },
     "format-ignores-a-selection": {
         "check": "an-inline-format-reaches-a-selection",
         "path": "e2-editor-app.js",

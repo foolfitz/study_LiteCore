@@ -1,0 +1,101 @@
+{
+  "question": "has each of the four checks the 2026-08-28 census reported as carrying no mutation ever gone RED, and under what",
+  "corpus": "every report with release == e2-c-product-path under findings/evidence/",
+  "checks": {
+    "every-inline-format-reaches-the-document": {
+      "PASS": 109,
+      "FAIL": 3,
+      "NOT_ESTABLISHED": 3,
+      "failsUnmutated": [
+        {
+          "report": "findings/evidence/075/pp-gate0.json",
+          "gitAdded": "2026-08-23",
+          "mutation": null
+        },
+        {
+          "report": "findings/evidence/075/pp-noOutline.json",
+          "gitAdded": "2026-08-23",
+          "mutation": null
+        },
+        {
+          "report": "findings/evidence/075/pp-v5-product.json",
+          "gitAdded": "2026-08-23",
+          "mutation": null
+        }
+      ],
+      "failsUnderMutation": []
+    },
+    "formatting-survives-the-next-paragraph-break": {
+      "PASS": 109,
+      "FAIL": 4,
+      "NOT_ESTABLISHED": 2,
+      "failsUnmutated": [
+        {
+          "report": "findings/evidence/065-retracted/shipped-runner-chrome.json",
+          "gitAdded": "2026-08-22",
+          "mutation": null
+        },
+        {
+          "report": "findings/evidence/065-retracted/shipped-runner-firefox.json",
+          "gitAdded": "2026-08-22",
+          "mutation": null
+        }
+      ],
+      "failsUnderMutation": [
+        {
+          "report": "findings/evidence/mutation-net-already-red/mine-copy.json",
+          "gitAdded": "2026-08-22",
+          "mutation": "copy"
+        },
+        {
+          "report": "findings/evidence/mutation-net-already-red/mine-ime.json",
+          "gitAdded": "2026-08-22",
+          "mutation": "ime"
+        }
+      ]
+    },
+    "a-format-that-worked-is-not-reported-as-failed": {
+      "PASS": 125,
+      "FAIL": 4,
+      "NOT_ESTABLISHED": 0,
+      "failsUnmutated": [
+        {
+          "report": "findings/evidence/059/disposition-v17/product-path-baseline-v17.json",
+          "gitAdded": "2026-08-18",
+          "mutation": null
+        },
+        {
+          "report": "findings/evidence/060/anchored-oracle-baseline.json",
+          "gitAdded": "2026-08-18",
+          "mutation": null
+        }
+      ],
+      "failsUnderMutation": [
+        {
+          "report": "findings/evidence/059/disposition-v17/product-path-mutation-inline-format-rollback.json",
+          "gitAdded": "2026-08-18",
+          "mutation": "inline-format-rollback"
+        },
+        {
+          "report": "findings/evidence/060/anchored-oracle-mutation-caret-ignores-x.json",
+          "gitAdded": "2026-08-18",
+          "mutation": "caret-ignores-x"
+        }
+      ]
+    },
+    "clear-format-removes-every-inline-format": {
+      "PASS": 104,
+      "FAIL": 1,
+      "NOT_ESTABLISHED": 10,
+      "failsUnmutated": [],
+      "failsUnderMutation": [
+        {
+          "report": "findings/evidence/w3-inline-format-mutations/mutation-clear-format-leaves-one-format-on-DETECTED.json",
+          "gitAdded": "untracked",
+          "mutation": "clear-format-leaves-one-format-on"
+        }
+      ]
+    }
+  },
+  "reportsScanned": 160
+}
