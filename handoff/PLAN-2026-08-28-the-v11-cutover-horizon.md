@@ -768,3 +768,118 @@ Criterion 1 stays banked. Criteria 2 and 4 stand as fixed. The **2026-08-30**
 bound stands. B-2's verdict rule operates exactly as written, with 3′-i and
 3′-ii in place of 3.
 
+---
+
+# Amendment, 2026-08-29 — the candidate is `e2-editor-v12`
+
+Per adjudication C-3, after the split probe verified under criteria fixed
+2026-08-28 and 2026-08-29. Append-only; nothing above is edited.
+
+**Forcing facts.** The cost decomposition corrected earlier in this file; the
+split probe verified (`findings/evidence/queue-v11-split-probe/`); and the
+identity rule.
+
+**What v12 is.** `e2-editor-v11`'s artifact with byte-identical loader and wasm,
+its data image split into base + cjk + fallback packs cut from its **own**
+image and declared under its **own** manifest, with `loadAtStartup` mirroring
+the product core's split — cjk at startup, fallback not. Not a new policy: the
+question the profile answers is what the *same* packaging costs on *this* core.
+
+### The five bound identities
+
+| identity | value |
+|---|---|
+| page | `3dfdcfef4abfe6b723b573f35e8ec8f885dcc42a8ed4d8338ad2381eb386f50f` |
+| loader `probe.js` | `96f18d0c1f6b9b11…` |
+| wasm `probe.wasm` | `4ec1e389aaab3b03…` (identical to v11's) |
+| worker `sdk-worker.js` | `03f5b69a002895a9…` |
+| manifest `sdk-manifest.json` | `2734229351dac1da…` |
+| data — base | `9901e9be29c9ded2…` |
+| data — cjk (startup) | `b76b0433203017ca…` (byte-identical to v8's `cjk-r5`) |
+| data — fallback (never fetched) | `33856e2a082148dd…` (byte-identical to v8's `fallback-fonts-r5`) |
+
+The data identity is three files here rather than one; the archive discipline
+of A-2 applies to all three.
+
+### Build provenance
+
+Built by **direct invocation**, from `wasm_sdk_probe/`:
+
+```
+ARCH=build/archive/e2-editor-v10-4ec1e389-worker-070229cd-manifest-d57de339
+python3 tools/build_e2_editor_v4_profile.py \
+    --source-manifest sdk/r6-writer-review-manifest.json \
+    --loader $ARCH/probe.js --wasm $ARCH/probe.wasm \
+    --worker sdk/sdk-worker.js --exports $ARCH/exports.txt \
+    --profile e2-editor-v12 --paragraph-text --document-outline \
+    --inline-range-gestures all \
+    --core-data ../wasm-lite/build-a11y-gate0 --split-core-data \
+    --output dist/profiles/e2-editor-v12
+```
+
+Input hashes: `$ARCH/probe.js` `96f18d0c1f6b9b11…`, `$ARCH/probe.wasm`
+`4ec1e389aaab3b03…`, `$ARCH/exports.txt` `d6c22670a9468f65…`,
+`sdk/sdk-worker.js` `03f5b69a002895a9…`, core image
+`../wasm-lite/build-a11y-gate0/instdir/program/soffice.data`
+`15237566b8267e70…`.
+
+**The Makefile is deliberately untouched mid-gate** (finding 042: editing it
+relinks every dependent and mints new hashes, which is an identity disturbance
+the gate cannot absorb). Reproducibility lives in this record: the invocation
+above rebuilds v12 without Make. A Makefile rule is **post-cutover work**, and
+its acceptance criterion is fixed now — its output is byte-identical to these
+artifacts, verified by hash, or the difference is written up before the rule
+lands.
+
+### The soak count restarts at zero
+
+The five clean runs banked on unsplit v11 (2026-08-28 ×2, 2026-08-29 ×3) are
+**void for the count** and **retained as incumbent-lineage evidence**, in place
+and untouched, in `findings/evidence/queue-v11-cutover-soak-not-started/`.
+Evidence in this tree is not moved or rewritten to reflect a later verdict;
+this sentence is the disposition.
+
+The clean-run predicate is unchanged except that the profile is
+`e2-editor-v12` and the page sha is `3dfdcfef…`. The NE-set criterion is
+unchanged. **Every v12 soak report must carry `3dfdcfef…`; drift is the
+criterion catching something, not noise.**
+
+**Run 1 of 12 is the probe's criterion-2 run** (2026-08-29,
+`findings/evidence/queue-v11-split-probe/criterion-2-net-v12.json`): it
+satisfies every clean clause on the real candidate page. The ≥3-calendar-day
+and ≥2-per-day arithmetic runs from its date.
+
+### Identity-bound evidence to re-earn on v12, in full — nothing drops
+
+Byte-identical loader and wasm buy expected *speed* of the re-runs, not
+exemption: dropping an item would need an equivalence argument, and a
+termination decision resting on the drafting party's equivalence argument is
+the thing this file's addition conditions forbid.
+
+1. Eleven more clean runs (run 1 banked above), ≥3 calendar days, ≥2 per day.
+2. Three diagnostic runs at `--caret-rounds 12`, same required outcomes,
+   including `staleWritesRefusedTotal > 0` in at least one.
+3. The revert rehearsal with v12's hashes — **this time including step 3**, the
+   freeze-and-repoint, which closes the un-rehearsed-step item.
+4. The ODT round-trip, both directions.
+5. **4a**, against page `3dfdcfef…`.
+6. The human manual round (condition 3), with 4b folded in — **once, on v12
+   only**.
+
+The NE-composition confirmation is **discharged rather than dropped**: it is
+criterion 2's banked run, and every soak run re-confirms it.
+
+### Standing
+
+Unsplit v11 is **no longer a candidate**. No build or manifest change may touch
+v12 until after the cutover; a finding forcing one restarts everything on its
+own force.
+
+**The owner's confirmation is against +24.5 MiB (+15.2%)** — not +19.9, not
++71.4 — with the decomposition table, and with the font-coverage sentence:
+*v12 matches v8's font coverage exactly; the fallback set ships to no client,
+the same as today; enabling it later is one manifest field plus its own gate*
+— followed by 3′-iii's result, or, if 3′-iii is never produced, *"the
+functional value of the fallback font set is unmeasured; the option is
+preserved."*
+

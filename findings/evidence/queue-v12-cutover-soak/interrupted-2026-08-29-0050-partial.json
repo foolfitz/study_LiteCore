@@ -1,0 +1,418 @@
+{
+  "schemaVersion": 1,
+  "release": "e2-c-product-path",
+  "browser": "chrome",
+  "caretExcludedFromInk": true,
+  "fixture": "list-contexts.odt",
+  "isTrusted": false,
+  "notD5": "synthetic events; SPEC E2-C D5 requires trusted input and a human",
+  "shims": [
+    "URL.createObjectURL",
+    "HTMLAnchorElement.prototype.click (download anchors)",
+    "#toast.textContent cleared between steps",
+    "ClipboardEvent.clipboardData (Firefox drops it from the constructor; defined onto the event with types/getData only)",
+    "#toast is observed and every message recorded -- the product's success toast overwrites a repaint failure raised during the same open, and 'the product said nothing' is the subject of a check",
+    "Emulation.setDeviceMetricsOverride (Chrome only) to sweep devicePixelRatio; the wall this measures moves by more than 3x across ordinary displays",
+    "Browser.grantPermissions clipboardReadWrite (Chrome only). WebDriver refuses clipboard writes by default, and the product's cut is copy-then-delete -- so without the permission the delete correctly never runs and whether the text is REMOVED cannot be measured at all. Granting it is how a real user's browser behaves after they allow it"
+  ],
+  "mutation": null,
+  "checks": [
+    {
+      "id": "product-save-button-writes-a-real-odt",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "capturedBytes": 12226,
+        "magic": "504b0304",
+        "head": null,
+        "entries": 9,
+        "hasContentXml": true,
+        "contentXmlParses": true,
+        "mimetype": "application/vnd.oasis.opendocument.text",
+        "zipError": null,
+        "toast": "已存出 11.9 KB",
+        "anchorClicks": 1
+      },
+      "oracle": "the bytes the product hands to the download ARE an ODT -- ZIP magic, clean CRC, an ODT mimetype entry and a content.xml that parses -- and its own toast reports a size rather than NaN"
+    },
+    {
+      "id": "every-ime-commit-reaches-the-document",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "revisionBefore": 0,
+        "revisionAfter": 3,
+        "advancedBy": 3,
+        "committed": [
+          "甲一",
+          "乙二",
+          "丙三"
+        ],
+        "foundInSavedOdt": [
+          "甲一",
+          "乙二",
+          "丙三"
+        ],
+        "perCommitRevision": [
+          {
+            "text": "甲一",
+            "expected": 1,
+            "observed": 1,
+            "ok": true
+          },
+          {
+            "text": "乙二",
+            "expected": 2,
+            "observed": 2,
+            "ok": true
+          },
+          {
+            "text": "丙三",
+            "expected": 3,
+            "observed": 3,
+            "ok": true
+          }
+        ],
+        "savedBytes": 12512
+      },
+      "oracle": "three commits through the product's composition path each advance the revision by exactly one, IN TURN, and all three strings are in the saved ODT"
+    },
+    {
+      "id": "ctrl-c-asks-the-engine",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "handlerRan": true,
+        "toast": "已複製 U+0055,U+004D,U+0042,U+0045,U+0052,U+002D,U+0054,U+0057,U+004F,U+7532,U+4E00,U+4E59,U+4E8C,U+4E19,U+4E09 字",
+        "outcome": "copied"
+      },
+      "oracle": "a copy event on the product page is handled by the product (default prevented) and the ENGINE returns a non-empty selection for it -- proved by which error the clipboard adapter raises, since CLIPBOARD_DENIED on the copy path is reachable only after getSelection has succeeded",
+      "notEstablished": "whether the OS clipboard received the text; WebDriver refuses clipboard access, so that half belongs to D5"
+    },
+    {
+      "id": "product-insert-button-inserts-what-the-field-holds",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "fieldAfterSet": "插入鈕標記",
+        "revisionBefore": 3,
+        "revisionAfter": 4,
+        "markInSavedOdt": true,
+        "witnessesExpected": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "witnessesKept": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "toast": "",
+        "savedBytes": 12751
+      },
+      "oracle": "the text standing in the product's own field, inserted by the product's own button, advances the revision by exactly one and is in the document the product then saves"
+    },
+    {
+      "id": "product-undo-button-reverses-the-last-edit",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "revisionBefore": 4,
+        "revisionAfter": 5,
+        "markWasThereBeforeUndo": true,
+        "markStillInSavedOdt": false,
+        "witnessesExpected": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "witnessesKept": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "toast": "",
+        "savedBytes": 12506
+      },
+      "oracle": "pressing the product's own undo button takes the text the insert button just added back OUT of the document -- read from the saved ODT, not from the revision counter, because D1 covers undo through the shell and this is the button"
+    },
+    {
+      "id": "product-redo-button-restores-what-undo-removed",
+      "ok": true,
+      "outcome": "PASS",
+      "observed": {
+        "buttonOffered": {
+          "present": true,
+          "hidden": false
+        },
+        "markerGoneBeforeRedo": true,
+        "revisionBefore": 5,
+        "revisionAfter": 6,
+        "markBackInSavedOdt": true,
+        "witnessesExpected": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "witnessesKept": [
+          "甲一",
+          "乙二",
+          "丙三",
+          "E1-LC-END"
+        ],
+        "toast": "",
+        "savedBytes": 12752
+      },
+      "oracle": "pressing the product's own 重做 button puts back exactly the text undo just removed -- read from the saved ODT, and with the earlier commits as witnesses so a redo that replayed more than one edit is not mistaken for a correct one. NOT_ESTABLISHED rather than FAIL on a profile that does not carry redo: the button is hidden there and pressing it would measure nothing"
+    }
+  ],
+  "steps": [
+    {
+      "step": "boot",
+      "state": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "—",
+        "doc": "list-contexts.odt",
+        "toast": "",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "redo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "step": "install-shims",
+      "result": "installed"
+    },
+    {
+      "step": "place-caret",
+      "state": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "定位游標 80 ms",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "redo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "step": "ime-commits",
+      "commits": [
+        {
+          "text": "甲一",
+          "sinkAfter": "",
+          "revision": 1,
+          "toast": ""
+        },
+        {
+          "text": "乙二",
+          "sinkAfter": "",
+          "revision": 2,
+          "toast": ""
+        },
+        {
+          "text": "丙三",
+          "sinkAfter": "",
+          "revision": 3,
+          "toast": ""
+        }
+      ],
+      "revisionBefore": 0,
+      "revisionAfter": 3
+    }
+  ],
+  "candidateCutover": {
+    "profile": "e2-editor-v12",
+    "pageSha256": "3dfdcfef4abfe6b723b573f35e8ec8f885dcc42a8ed4d8338ad2381eb386f50f",
+    "pinBefore": "4a2710bba1ef07d9",
+    "pinAfter": "4ec1e389aaab3b03",
+    "note": "This run measured the CANDIDATE page for a cutover to e2-editor-v12 -- the page as it will ship, with its own pinned hash and its own worker URL, not a --profile override. `tools/build_cutover_page.py --profile e2-editor-v12` produces these exact bytes; the cutover is proven by that sha256 matching. It is NOT a verdict on the profile the product ships pointing at today."
+  },
+  "servedShell": {
+    "bundle": "e2/editor-shell-v2-bundle-v43.json",
+    "declaredSha256": "7e99d3a3b8ba789b1fd36a9b0cb2a3c191d0ced44d4f0ce8f17dcb56a1a56cb3",
+    "servedSha256": "14bf3c391c001efb2f96a613e4be5081de49e55406e229a88183a54abffd2d36",
+    "missing": [],
+    "entrypoint": "web/e2-editor-app.js",
+    "entrypointSha256": "3dfdcfef4abfe6b723b573f35e8ec8f885dcc42a8ed4d8338ad2381eb386f50f",
+    "differingPaths": [
+      "web/e2-editor-app.js"
+    ],
+    "differsOnlyInTheEntrypoint": true
+  },
+  "clipboardPermission": {
+    "granted": true,
+    "focusEmulated": true
+  },
+  "liveness": {
+    "probes": 6,
+    "lastState": "ready",
+    "probeError": null,
+    "control": false
+  },
+  "complete": false
+}
