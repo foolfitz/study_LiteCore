@@ -659,3 +659,112 @@ Acceptance criterion: the record quotes one of the two figures, names that
 candidate's five identities beside it, and carries the decomposition table; a
 reader can recompute the figure from the shipped manifest's referenced files.
 
+---
+
+# Addendum part 3, 2026-08-29 — the on-demand path that never existed
+
+Labelled **C-n**. Same append-only rule.
+
+**Forcing fact**, filed as **finding 085**: there is no on-demand
+resource-pack load path in this SDK and there never has been.
+`loadResourcePack()` (`sdk/sdk-worker.js:557`) has exactly one caller,
+`loadStartupResourcePacks()` (`:617–620`), guarded on
+`loadAtStartup === true`, itself called once from `handleInit` (`:1085`).
+Census over 26 workers, live and archived back to `e2-editor-v2` — including
+v8's own — all with exactly two occurrences; 0 callers outside the worker
+across 100 files; the two other references in the tree are manifest *reads*
+(`web/r5-reader-app.js:129`, `web/r8-delivery-app.js:209`). Rerunnable:
+`findings/evidence/queue-v11-split-probe/probe_no_on_demand_pack_path.py`.
+
+**So `loadAtStartup: false` means never loaded.** v8's `fallback-fonts-r5`
+(46.8 MiB) has never been fetched by the editor.
+
+## C-1 — Corrections to text above, per finding 085
+
+Append-only; the originals stand.
+
+* The size table's "`fallback-fonts-r5` pack | 46.8 MB, **on demand**" — there
+  is no demand. The bytes are never fetched.
+* Part 1 §A-3's "the fallback-font pack **no longer deferred**" and part 2
+  §B-1's table row using the same word — it was never deferred; it was absent
+  from the client.
+* `HANDOFF-2026-08-28…` §5's "v11 has no resource packs at all, so the lazy
+  loading v8 has is gone" — v8 has no lazy loading to lose.
+
+**The arithmetic is unaffected.** v8's required-before-usable of 161.4 MiB is
+correct *because* the pack is not fetched at startup; it never depended on a
+later fetch. A split v11 at ≈186.0 MiB is likewise unaffected.
+
+Note for whoever next quotes it: v8's "total bytes 208.3 MB" row includes
+46.8 MiB **no client has ever downloaded**. Say what the column means.
+
+## C-2 — Criterion 3 is struck; 3′ replaces it
+
+Criterion 3's second half tested a property **no profile has ever had**, so it
+was not a bar the split fails and the incumbent clears. A criterion the
+incumbent cannot satisfy is not measuring the candidate.
+
+Fixed now, before any run:
+
+* **3′-i — gates the probe.** Startup fetch pattern, from network requests
+  during one net run on the split profile: the cjk pack **is** fetched at
+  startup, the fallback pack is **not** fetched, and no other pack fetch occurs
+  at any point in the run. Near-tautological given the code, kept anyway
+  because it checks the *manifest data* composed with the loader, not the code
+  alone.
+* **3′-ii — gates the probe.** Font parity, read from the running worker's
+  mounted filesystem: the split profile's font inventory (names + sizes) equals
+  v8's, and unsplit v11's equals that set plus exactly the fallback slice's
+  files. Criterion 1's banked byte-identity makes this expected; this row also
+  catches the two size-differing common files if either is a font.
+* **3′-iii — does NOT gate the probe; gates the owner record.** One recorded
+  measurement of the functional consequence: a fixture requiring a font present
+  only in the fallback pack (family chosen from the pack's own metadata),
+  opened on v8, split v11 and unsplit v11, with what each renders recorded.
+  This discharges "the functional consequence is unmeasured" as a measurement
+  rather than an assumption.
+
+Timing: 3′-i and 3′-ii inside the 2026-08-30 bound; **3′-iii before the owner's
+confirmation**, not before the probe verdict. If 3′-iii is never produced, the
+confirmation may still proceed and must then carry, verbatim: *"the functional
+value of the fallback font set is unmeasured; the option is preserved."*
+
+## C-3 — The font difference does not change B-2's disposition
+
+The split remains the preferred candidate if the probe verifies. The trade is
+real, but it is not "capability destroyed for bytes" — it is "capability
+deferred to its own measured decision, option preserved":
+
+1. **No user is worse off than with the shipping product.** v8's clients have
+   never received those fonts. A split v11 matches v8's coverage exactly
+   (3′-ii checks it). The gate's frame is "no worse than v8, plus a measured
+   benefit"; the split passes that frame on this axis by construction.
+2. **Paying +46.8 MiB for the fonts now would repeat the mistake this gate
+   exists to prevent** — cost accepted against an unmeasured benefit. The a11y
+   benefit at least has 4a/4b; the font benefit has nothing yet. It does not
+   ride in uncounted in either direction.
+3. **Splitting forecloses nothing.** The packs are banked, byte-identical
+   artifacts; shipping the fonts later is `loadAtStartup: true` on the fallback
+   pack — one manifest field, an identity change, its own re-gate, decided
+   against 3′-iii. Byte-wise, split-with-fallback-at-startup lands exactly at
+   unsplit v11's figure.
+
+**The measurement that could flip this, named**: 3′-iii showing fallback-only
+scripts rendering as missing glyphs on v8 and split v11 while rendering
+correctly on unsplit v11, **combined with** the owner judging those scripts
+inside the product's scope for the institutional buyer. That second half is the
+owner's product-scope call. **If the owner never makes it, the default stands:
+split, fallback off — matching the coverage the product ships today.**
+
+**Record obligation, extending part 1 §A-3 and part 2 §B-3**: whichever
+candidate ships, the confirmation names the font difference — *"unsplit v11
+carries complex-script/fidelity fallback fonts that v8's clients have never
+received; measured consequence: ⟨3′-iii's result, or 'unmeasured, option
+preserved'⟩; shipping them later is one manifest field plus its own gate."*
+
+## C-4 — What is unchanged
+
+Criterion 1 stays banked. Criteria 2 and 4 stand as fixed. The **2026-08-30**
+bound stands. B-2's verdict rule operates exactly as written, with 3′-i and
+3′-ii in place of 3.
+
