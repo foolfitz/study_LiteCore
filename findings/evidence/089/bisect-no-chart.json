@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "release": "m4-ods-decisive-runner",
+  "profile": "e2-editor-v12",
+  "nameSpoofed": true,
+  "evidenceClass": "diagnostic",
+  "inputs": [
+    {
+      "case": "tdf149752-no-chart.ods",
+      "path": "/tmp/claude-1000/-home-jiajun-LibreOffice-study-LiteCore/d1e9dbdf-25ab-4bf2-842e-67215fb9cfe8/scratchpad/tdf149752-no-chart.ods",
+      "sha256": "b2e4eb493fabe270a02c1ee3c181e4eeb6cfb86d50f0a5bb50647164b764e6da",
+      "kind": "spreadsheet"
+    }
+  ],
+  "timedOut": false,
+  "progress": {
+    "done": true,
+    "caseCount": 1,
+    "seen": 1,
+    "fatal": null
+  },
+  "page": {
+    "done": true,
+    "caseCount": 1,
+    "cases": [
+      {
+        "name": "tdf149752-no-chart.ods",
+        "file": "./ods-cases/tdf149752-no-chart.ods",
+        "kind": "spreadsheet",
+        "handedOverAs": "./ods-cases/tdf149752-no-chart.odt",
+        "stages": [
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.begin",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          },
+          {
+            "protocolVersion": 1,
+            "kind": "event",
+            "event": "diagnostic",
+            "level": "stage",
+            "detail": {
+              "type": "stage",
+              "name": "open.documentLoad",
+              "heapBytes": 1073741824,
+              "sbrk": 290066432
+            }
+          }
+        ],
+        "opened": null,
+        "viewReady": null,
+        "error": {
+          "name": "SdkTimeoutError",
+          "code": "TIMEOUT",
+          "message": "open timed out after 180000 ms"
+        },
+        "warnings": [
+          {
+            "message": "warn:desktop.app:42:3:desktop/source/app/app.cxx:2080: Could not disable AutoRecovery. com.sun.star.uno.DeploymentException message: \"component context fails to supply singleton com.sun.star.frame.the",
+            "count": 1
+          },
+          {
+            "message": "warn:sc:42:1:sc/source/filter/orcus/orcusfiltersimpl.cxx:111: Unable to load styles from xml file! filesystem error: in file_size: No such file or directory [\"/instdir/program/../share/calc/styles.xml",
+            "count": 1
+          },
+          {
+            "message": "warn:sal.osl.mutex:42:1:sal/osl/unx/mutex.cxx:133: pthread_mutex_unlock failed: EPERM",
+            "count": 1
+          }
+        ],
+        "inputBytes": 13351,
+        "inputSha256": "b2e4eb493fabe270a02c1ee3c181e4eeb6cfb86d50f0a5bb50647164b764e6da",
+        "elapsedMs": 181561
+      }
+    ]
+  },
+  "verdict": {
+    "controlOdtOpened": false,
+    "spreadsheetsOpened": [
+      {
+        "name": "tdf149752-no-chart.ods",
+        "opened": false,
+        "parts": null,
+        "viewReady": false,
+        "workerCrashed": false,
+        "error": {
+          "name": "SdkTimeoutError",
+          "code": "TIMEOUT",
+          "message": "open timed out after 180000 ms"
+        }
+      }
+    ],
+    "note": "If the ODT control did not open, NOTHING here is about Calc: the instrument is the first suspect and the spreadsheet rows must not be read."
+  }
+}

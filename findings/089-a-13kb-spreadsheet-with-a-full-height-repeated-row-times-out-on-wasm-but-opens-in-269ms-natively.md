@@ -90,3 +90,72 @@ d1-anchors.odt（對照組）     opened=True   parts=1      elapsed=1,837 ms
 PLAN-2026-09-03-ods-reading.md` 的 G2）已經替這種情況寫好位置：一筆 entry 可以宣告
 `expect: "refused"`，但**這一筆不是拒絕、是掛住**，而 G2 要求的是「型別化的拒絕」。
 所以在根因查清之前，這個檔案會讓 G2 紅——**那是判準在做它該做的事**。
+
+## Bisected, 2026-09-05 — and the bisect's own premise was wrong
+
+Nine probe runs on `e2-editor-v12`, each a single-variable strip of the original
+(`tools/probe_ods_on_profile.py --profile e2-editor-v12 --timeout 300`). The
+last five carried an ODT control, which opened in every one of them.
+
+| variant | opened | elapsed |
+| --- | --- | --- |
+| original (`tdf149752.ods`) | no | TIMEOUT 181,026 ms |
+| row `number-rows-repeated` capped | no | TIMEOUT 180,994 ms |
+| chart removed | no | TIMEOUT 181,561 ms |
+| `office:forms` removed | no | TIMEOUT 181,129 ms |
+| `table:database-ranges` removed | no | TIMEOUT 181,181 ms |
+| **`table:named-expressions` removed** | **yes** | **1,622 ms** |
+| all four removed | yes | 1,418 ms |
+| the three named ranges restored onto the stripped file | no | TIMEOUT 180,975 ms |
+| only `Farben` restored | yes | 1,501 ms |
+| only `Index` restored | yes | 1,461 ms |
+| only `Index2` restored | yes | 1,478 ms |
+
+The block is **433 bytes**. Removing it turns a 180-second hang into a 1.6-second
+open, and putting it back onto the stripped file brings the hang back — so the
+strip and the restore agree, in both directions, on a file that is otherwise
+byte-identical.
+
+### The reading that a bisect alone would have got wrong
+
+"Three named ranges are individually harmless and jointly fatal" is what the
+table says and is not what is happening. The document holds **99 cells** each
+carrying
+
+    of:=IF(COUNTIF(Index2;Index);"";Index)
+
+with `Index` = `$Liste.$A$2:.$A$100` and `Index2` = `$Auswertung.$A$2:.$A$100`,
+99 cells each. `COUNTIF` with a **range as its criterion** evaluates as an
+array: 99 criteria against 99 cells, in each of 99 cells. Remove either name and
+the formula cannot resolve it, so **the expensive evaluation never runs** —
+the variant opens quickly because the work was disabled, not because the removed
+name was innocent. `Farben` is referenced once, in a string, and is a passenger.
+
+So the single-variable strips were not single-variable with respect to the thing
+that costs: they were switching the computation on and off. The named ranges are
+the switch. **The cost is formula evaluation at load.**
+
+None of those 99 cells carries a cached result — they hold `<text:p/>` and no
+`office:value`, and the document has no `table:calculation-settings` — so Calc
+has nothing to trust and must compute. Native does the same work in **269 ms**
+for the whole open. The gap is not "WASM is slower"; ~180 s against ~0.27 s is
+three orders of magnitude, and a document with a second array-formula family
+(99 cells of `SMALL([.$A$2:.$A$100];ROW())`, direct addresses, no names
+involved) evaluates that family fine in every variant that opens.
+
+### What is measured and what is not
+
+* **Measured**: the trigger, in both directions, with a control; that the
+  trigger is a formula-evaluation switch rather than a parse cost; that a second
+  array-formula family in the same document is cheap.
+* **Not measured**: where the time goes inside the evaluation, and whether the
+  gap is a general Calc-on-WASM formula cliff or specific to `COUNTIF` with a
+  range criterion. Two fixtures are built and unrun
+  (`tdf149752-rows20.ods`, `tdf149752-rows50.ods`: the two named ranges
+  shortened to A2:A20 and A2:A50, nothing else touched), which is the scaling
+  measurement that would tell those apart. Do not attribute a cause before it
+  runs — finding 040's precedent.
+* **Not measured**: whether the SDK forces a hard recalculation on load that
+  the native path skips. That is the product-side question, and it is the one
+  worth answering first, because it is the only candidate here that is ours to
+  fix.
