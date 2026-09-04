@@ -118,10 +118,68 @@ def focused_and_active_descendant(session) -> dict:
                             "role": role,
                             "name": (candidate.get("name") or {}).get("value"),
                             "level": levels.get("level"),
+                            # The join into the full tree.  Without it the
+                            # reading below can only be reconstructed by
+                            # guessing which leaf `a11y-node-N` is, which is a
+                            # replay's licence and not an instrument's.
+                            "axNodeId": candidate.get("nodeId"),
                         }
                         break
         break
     return out
+
+
+def subtree_text(nodes: list[dict], ax_node_id) -> str:
+    """The text an AT would speak for a node: its StaticText descendants.
+
+    Over the FLATTENED record, not a live tree, so the red-case replays in
+    `findings/evidence/gate-4a-reading-rule/` judge the same function the probe
+    runs rather than a second implementation of it (`AGENTS.md` §7).
+    """
+    index = {n.get("nodeId"): n for n in nodes}
+    seen: set = set()
+
+    def walk(nid) -> str:
+        if nid in seen or nid not in index:
+            return ""
+        seen.add(nid)
+        node = index[nid]
+        parts = []
+        if node.get("role") == "StaticText" and node.get("name"):
+            parts.append(node["name"])
+        for child in node.get("childIds") or []:
+            parts.append(walk(child))
+        return "".join(parts)
+
+    return walk(ax_node_id)
+
+
+def reading_for_placement(nodes: list[dict], caret_side: dict,
+                          carried: list[dict]) -> str | None:
+    """`axReading`, per the gate amendment of 2026-09-05, Ruling 1.
+
+    The text under the node the AX tree marks as the ACTIVE DESCENDANT of the
+    focused node -- its name, else its descendants' text concatenated, because
+    a `paragraph`-role node has no accessible name and a name-only rule reads
+    the empty string on two placements in three.  If the tree carries no such
+    relation, the reading falls back to the live region's text, which is what
+    the rule was from 2026-08-23 until this amendment.
+
+    The old rule -- the name of the FIRST tree-order node carrying the fixture
+    marker -- measured DOM order: moving `#a11y-structure` in front of
+    `#a11y-para`, a change to nothing term 4 names, turned term 4 red on every
+    held record.  The fallback is kept rather than replaced because a
+    pointer-only rule turns `3dfdcfef`'s term 8 GREEN, erasing finding 087's
+    natural red case; that form was refused by the ruling.
+    """
+    target = (caret_side or {}).get("target") or {}
+    ax_node_id = target.get("axNodeId")
+    if ax_node_id is None:
+        return carried[0].get("name") if carried else None
+    name = target.get("name")
+    if name:
+        return name
+    return subtree_text(nodes, ax_node_id)
 
 
 def ax_tree(session) -> list[dict]:
@@ -302,10 +360,18 @@ def main() -> int:
             caret_side = focused_and_active_descendant(session)
             record["placements"].append({
                 "index": index,
+                # WHICH band, not just which placement.  Terms 4 and 8 compare
+                # against fixture paragraph i for placement i (Ruling 2), and
+                # that mapping is only sound while the placements are the first
+                # bands in order.  `targets` filters bands by height, so the
+                # judge is given the band index and refuses when it disagrees
+                # with the placement index rather than comparing against a
+                # paragraph nobody aimed at.
+                "bandIndex": bands.index(band),
                 "yFraction": round(band["centreFraction"], 5),
                 "region": evaluate(session, READ_REGION),
                 "axNodesCarryingText": carried,
-                "axReading": (carried[0].get("name") if carried else None),
+                "axReading": reading_for_placement(placed, caret_side, carried),
                 # THE AX SIDE, read through `getPartialAXTree` because the
                 # full tree omits both `focused` and `activedescendant`.
                 "axCaretNode": caret_side,

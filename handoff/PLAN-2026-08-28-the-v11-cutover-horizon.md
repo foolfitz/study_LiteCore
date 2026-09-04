@@ -1268,3 +1268,89 @@ user, was refuted by this measurement.
 
 Measure with Orca before trusting either, and pin term 8's wording before the
 run that satisfies it.
+
+# Amendment, 2026-09-05 — term 4's "reading" is defined, and terms 4 and 8 get an expectation that neither channel can supply
+
+Append-only. Nothing above is edited. This supersedes two things and no
+criterion text: (a) the selection rule `tools/probe_aria_projection.py` has used
+for `axReading` since 2026-08-23 — the name of the first AX node in full-tree
+order carrying the fixture marker; (b) the characterisation in the ruling of
+2026-09-04, fact (iv), that "term 4 reads `#a11y-para`". Term 4's and term 8's
+wording stand.
+
+**Forcing facts** (replayed over the held 4a records, 2026-09-05; script and
+outputs in `findings/evidence/gate-4a-reading-rule/`). (i) Placing
+`#a11y-structure` before `#a11y-para` — a change to nothing the criterion names
+— turns term 4 red on every held record: the rule measured DOM order, not
+focus. (ii) With the live region emptied and the pointer walking
+`a11y-node-0/1/2` correctly
+(`findings/evidence/088/4a-with-live-region-silenced-TERM4-AND-8-RED.json`), the
+rule read `E1-LC-HEADING` three times, and term 8 — whose expectation is taken
+from term 4's reading — went red on a pointer that was right. (iii) Redirecting
+placement 1's pointer at the heading reddens nothing in term 8 once the reading
+comes from the pointer.
+
+**Ruling 1 — the reading.** For each placement, `axReading` is the text under
+the node the AX tree marks as the active descendant of the focused node (its
+name, else its descendants' text concatenated — a `paragraph`-role node has no
+accessible name); if the tree carries no such relation, the reading is the live
+region's text as before. This changes no verdict on any held record. The
+pointer-only form is refused: it turns `3dfdcfef`'s term 4 red and its term 8
+green, erasing finding 087's natural red case.
+
+**Ruling 2 — the paragraph targeted.** Terms 4 and 8 compare against fixture
+paragraph *i* for placement *i*, paragraphs read from `content.xml`; the
+record's `bandsFound` must equal their count (9), else the term is
+NOT_ESTABLISHED, never guessed. This replaces "matches any fixture paragraph"
+(term 4 as implemented) and "matches the paragraph the reading names" (term 8 as
+implemented), both of which fact (iii) shows a wrong pointer satisfies. Addition
+under the four conditions: fixed before any run that satisfies it; forced by
+(iii); form 2; at 0 of 12 banked on the current page.
+
+**Red cases owed before the judge changes**: the name-only reading red on a
+green record; the reorder replay red under the old rule and green under the new;
+the mispoint replay red in both terms; silenced-and-detached red in both.
+Stamped, never banked.
+
+**Count semantics.** 4a-only; the clean-run predicate is untouched and the soak
+count does not restart *for this reason*. The 4a runs on the current page are
+re-taken with the corrected instrument (three runs, one mutation, one control)
+before they count as "4a on the new sha". No page change is implied;
+`pageSha256` does not move.
+
+**Term 8's wording is unchanged.** "Focused, or the active descendant of the
+focused node" already names the right node; what it lacked was a stated source
+for its expectation, which Ruling 2 supplies.
+
+## The candidate page moved, and what that voids
+
+Recorded 2026-09-05, applying identity terms that were already written rather
+than adding any.
+
+The human round of 2026-09-04 forced two product-page fixes (findings 087 and
+088). `web/e2-editor-app.js` is one of the shell bundle's thirteen `included`
+paths, so the candidate page's sha moved twice and now stands at
+**`20f09cc9da19f07d65b8c844a753aa880782e404fb6ea75e1f121c1f2d090d95`**,
+recomputed from source through `repointed_page()` — the same function a cutover
+would use — against `dist/profiles/e2-editor-v12/sdk-manifest.json`
+(`wasmSha256` `4ec1e389aaab3b03…`, pin before repointing `4a2710bba1ef07d9`).
+
+* **Soak condition 1: 8 banked runs are void, and the count is 0 of 12.**
+  `check_soak_bank.py`'s `page-sha` clause pins every counted run to one sha.
+  Runs 2–8 move to `findings/evidence/queue-v12-cutover-soak-void-3dfdcfef/`
+  retained and untouched, as the v11 lineage was; run 1 stays where it was
+  banked in place and is dropped from the "also" list. Earliest close from a
+  2026-09-05 start is **2026-09-07 UTC**.
+* **Condition 2's three diagnostic runs are void by the same reading.**
+  `check_caret_diagnostics.py`'s identity term (`pageShaMatches`) pins them to
+  the same sha. They are not condition 1's, and voiding them is not this
+  amendment's choice — it is what the term already says. They stay in the bank
+  directory as `diagnostic-*` files, which `check_soak_bank.py` reports under
+  `conditionTwoFiles_NOT_JUDGED_HERE`, and condition 2 must be re-run.
+* **Not void:** `interrupted-2026-08-29-0050-partial.json`, which is a declared
+  non-run and makes no sha claim; the void v11 lineage, already void.
+
+**This is the criterion working, not damage.** A human round that moves the
+product page is exactly the event the sha binding exists to catch, and the cost
+of catching it is the eight runs. The alternative — counting runs taken on bytes
+nobody will ship — is the failure the binding was written against.

@@ -64,6 +64,34 @@ def fixture_paragraphs() -> list[dict]:
     return out
 
 
+def establishable(record: dict, paragraphs: list[dict]) -> tuple[bool, str | None]:
+    """Whether placement i may be compared against fixture paragraph i.
+
+    Ruling 2 of the 2026-09-05 amendment.  Two conditions, both about the
+    mapping rather than about the product:
+
+      * the run found as many bands as the fixture has paragraphs, so the
+        bands ARE the paragraphs;
+      * where the record says which band each placement came from, that band
+        is the placement's own index -- the probe takes the first three bands
+        over 40px, and a fixture whose first three tall bands were not its
+        first three paragraphs would make the mapping quietly wrong.
+
+    Records taken before `bandIndex` existed satisfy the second vacuously and
+    are judged on the first, which is what they were banked under.
+    """
+    bands = record.get("bandsFound")
+    if bands != len(paragraphs):
+        return False, (f"bandsFound {bands!r} != {len(paragraphs)} fixture "
+                       f"paragraphs: placement i is not paragraph i")
+    for placement in record.get("placements") or []:
+        band_index = placement.get("bandIndex")
+        if band_index is not None and band_index != placement.get("index"):
+            return False, (f"placement {placement.get('index')} came from band "
+                           f"{band_index}: the mapping does not hold")
+    return True, None
+
+
 def names(record: dict) -> list[str]:
     values = []
     for node in record.get("nodes") or []:
@@ -128,22 +156,44 @@ def judge(candidates: list[dict], control: dict, expect_sha: str | None) -> dict
                             "runs": structure_rows}
 
     # ---- term 4
+    #
+    # AMENDED 2026-09-05 (Ruling 2).  Until then this asked whether the reading
+    # matched ANY fixture paragraph, which a pointer aimed at the wrong
+    # paragraph satisfies -- and the replay showed one does.  It now compares
+    # placement i against fixture paragraph i, which is sound only while the
+    # placements are the first bands in document order; `bandIndex` is checked
+    # against the placement index for exactly that reason, and a record whose
+    # band count does not match the fixture's paragraph count is
+    # NOT_ESTABLISHED rather than compared against a paragraph nobody aimed at.
     focus_rows = []
     for record in candidates:
         readings = [r for r in (record.get("axReadings") or []) if r]
         placements = record.get("placements") or []
+        established, why = establishable(record, paragraphs)
         matched = 0
+        aimed = []
         for placement in placements:
+            index = placement.get("index")
             reading = placement.get("axReading")
-            if reading and any(p["text"] in reading or reading in p["text"]
-                               for p in paragraphs):
-                matched += 1
+            expected = (paragraphs[index]["text"]
+                        if isinstance(index, int) and index < len(paragraphs)
+                        else None)
+            hit = bool(established and reading and expected
+                       and (expected in reading or reading in expected))
+            matched += 1 if hit else 0
+            aimed.append({"index": index, "expected": expected,
+                          "reading": reading, "ok": hit})
         focus_rows.append({"placements": len(placements),
                            "readings": len(readings),
                            "distinct": len(set(readings)),
-                           "matchedAFixtureParagraph": matched})
+                           "established": established,
+                           "notEstablishedBecause": why,
+                           "matchedTheParagraphAimedAt": matched,
+                           "aimed": aimed})
     ok4 = all(row["placements"] == 3 and row["distinct"] == 3
-              and row["matchedAFixtureParagraph"] == 3 for row in focus_rows) \
+              and row["established"]
+              and row["matchedTheParagraphAimedAt"] == 3
+              for row in focus_rows) \
         and bool(focus_rows)
     terms["4-focus"] = {"ok": ok4, "runs": focus_rows}
 
@@ -168,16 +218,23 @@ def judge(candidates: list[dict], control: dict, expect_sha: str | None) -> dict
     # The DOM reading is recorded beside it and judged by nothing.
     structure = []
     for record in candidates:
+        established8, why8 = establishable(record, paragraphs)
         for placement in record.get("placements") or []:
             reading = placement.get("axReading")
+            # AMENDED 2026-09-05 (Ruling 2).  The expectation used to be taken
+            # from the reading, so once the reading comes from the pointer the
+            # term compared the pointer with ITSELF: redirecting placement 1's
+            # pointer at the heading reddened nothing.  It now comes from the
+            # fixture, keyed by the placement index like term 4's.
+            index = placement.get("index")
             expected_role, expected_level = None, None
-            for para in paragraphs:
-                if para["text"] and para["text"] == reading:
-                    if para["tag"] == "h":
-                        expected_role = "heading"
-                        expected_level = (int(para["outlineLevel"])
-                                          if para["outlineLevel"] else 1)
-                    break
+            para = (paragraphs[index]
+                    if established8 and isinstance(index, int)
+                    and index < len(paragraphs) else None)
+            if para is not None and para["tag"] == "h":
+                expected_role = "heading"
+                expected_level = (int(para["outlineLevel"])
+                                  if para["outlineLevel"] else 1)
             # FOCUSED **OR ACTIVE DESCENDANT OF FOCUSED** -- the ruling's own
             # wording, and the half that matters: Chrome keeps `focused` on the
             # textbox and expresses the pointer as a relation, visible only
@@ -190,11 +247,15 @@ def judge(candidates: list[dict], control: dict, expect_sha: str | None) -> dict
             got_level = target.get("level")
             structure.append({
                 "reading": reading,
+                "aimedAt": (para or {}).get("text"),
+                "established": established8,
+                "notEstablishedBecause": why8,
                 "expectedRole": expected_role, "expectedLevel": expected_level,
                 "focusedRole": got_role, "focusedLevel": got_level,
                 "axFocused": caret.get("focused"),
                 "activeDescendantRef": caret.get("activeDescendantRef"),
-                "ok": (got_role == expected_role
+                "ok": (established8
+                       and got_role == expected_role
                        and (expected_role != "heading"
                             or got_level == expected_level)),
                 "domActiveDescendant": placement.get("domActiveDescendant"),

@@ -1,0 +1,14 @@
+  as expected    CONTROL: the held green record, reread under Ruling 1
+                 ok=True red=none readings=['E1-LC-HEADING', 'E1-LC-ISOLATED 前後都不是清單的段落', 'E1-LC-SPACER']
+  as expected    RED 1: name-only reading (no subtree fallback)
+                 ok=False red=['4-focus'] readings=['E1-LC-HEADING', '', '']
+  as expected    RED 2a: structure before the live region, OLD rule
+                 ok=False red=['4-focus'] readings=['E1-LC-HEADING', 'E1-LC-HEADING', 'E1-LC-HEADING']
+  as expected    GREEN 2b: the same reorder, Ruling 1's rule
+                 ok=True red=none readings=['E1-LC-HEADING', 'E1-LC-ISOLATED 前後都不是清單的段落', 'E1-LC-SPACER']
+  as expected    RED 3: placement 1's pointer redirected at the heading
+                 ok=False red=['4-focus', '8-structure-on-the-caret-path'] readings=['E1-LC-HEADING', 'E1-LC-HEADING', 'E1-LC-SPACER']
+  as expected    RED 4: live region silenced AND the pointer detached
+                 ok=False red=['4-focus', '8-structure-on-the-caret-path'] readings=['E1-LC-HEADING', 'E1-LC-HEADING', 'E1-LC-HEADING']
+
+all six cases behaved as the amendment says: the two rulings each have a mutation that catches them, and the reorder that reddened the old rule leaves the new one green
