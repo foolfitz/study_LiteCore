@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><title>087 mechanism probe</title>
+<style>
+  body { font: 16px system-ui; margin: 2rem; }
+  #sink { border: 2px solid #333; padding: .5rem; min-height: 2rem; }
+  .a11y-only { position: absolute; width: 1px; height: 1px; overflow: hidden;
+               clip: rect(0 0 0 0); white-space: nowrap; }
+  #status { margin-top: 1rem; font-family: monospace; }
+</style>
+</head>
+<body>
+<h1>087 修法候選機制的量測</h1>
+<p>這個頁面**不是產品**。它複製產品的形狀——一個可聚焦的 sink，加上一個視覺隱藏的
+無障礙投影——好回答一個問題：<b>把角色放上去，Orca 到底會不會唸出來。</b></p>
+
+<!-- 產品的形狀：可聚焦的編輯區 -->
+<div id="sink" tabindex="0" role="textbox" aria-label="編輯區"></div>
+
+<!-- ARM A（對照組）＝ 產品今天的樣子：即時區域只有文字 -->
+<div class="a11y-only" role="group" aria-label="文件內容 A">
+  <p id="live-a" aria-live="polite" aria-atomic="true"></p>
+</div>
+
+<!-- ARM B ＝ 把角色放在即時區域自己的節點上 -->
+<div class="a11y-only" role="group" aria-label="文件內容 B">
+  <div id="live-b" aria-live="polite" aria-atomic="true"></div>
+</div>
+
+<!-- ARM C ＝ aria-activedescendant 從 sink 指進結構區域 -->
+<div class="a11y-only" role="group" aria-label="文件內容 C">
+  <div id="struct-c">
+    <div id="c-heading" role="heading" aria-level="1">C 標題節點</div>
+    <div id="c-para">C 普通段落節點</div>
+    <!-- listitem MUST sit inside a list. The first version of this probe put it
+         under a plain div, which is invalid ARIA, and Orca announced the text
+         with no role -- a result about the FIXTURE, not about the mechanism. -->
+    <div role="list">
+      <div id="c-listitem" role="listitem">C 清單項目節點</div>
+      <div id="c-listitem2" role="listitem">C 第二個清單項目節點</div>
+    </div>
+  </div>
+</div>
+
+<div id="status">ready</div>
+<script>
+const sink = document.getElementById("sink");
+const status = document.getElementById("status");
+window.__probe = { arms: [] };
+
+function note(arm, what) {
+  window.__probe.arms.push({ arm, what, at: Date.now() });
+  status.textContent = `${arm}: ${what}`;
+}
+
+// ARM A: text only, exactly as projectFocusedParagraph() does today.
+window.armA = (text) => {
+  const el = document.getElementById("live-a");
+  el.removeAttribute("role"); el.removeAttribute("aria-level");
+  el.textContent = text;
+  note("A", `live region text only -> ${text}`);
+};
+
+// ARM B: the SAME live region, but the node carries the role and the level.
+window.armB = (text, level) => {
+  const el = document.getElementById("live-b");
+  el.setAttribute("role", "heading");
+  el.setAttribute("aria-level", String(level));
+  el.textContent = text;
+  note("B", `live region role=heading aria-level=${level} -> ${text}`);
+};
+
+// ARM B2: the live region as a list item.
+window.armB2 = (text) => {
+  const el = document.getElementById("live-b");
+  el.setAttribute("role", "listitem");
+  el.removeAttribute("aria-level");
+  el.textContent = text;
+  note("B2", `live region role=listitem -> ${text}`);
+};
+
+// ARM C: aria-activedescendant from the focused sink into a roled node.
+window.armC = (which) => {
+  sink.setAttribute("aria-owns", "struct-c");
+  sink.setAttribute("aria-activedescendant", which);
+  note("C", `aria-activedescendant -> ${which}`);
+};
+
+window.focusSink = () => { sink.focus(); note("-", "sink focused"); };
+</script>
+</body>
+</html>
