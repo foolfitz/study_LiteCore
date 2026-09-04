@@ -208,6 +208,16 @@ function projectFocusedParagraph(snapshot) {
  * TREE-SHAPE.md, and "emit it on every state read" is what the diagnostic
  * build had already been doing without trouble on a 133-paragraph document.
  */
+// FINDING 088. What the projection looked like last time, so an unchanged
+// document is not rebuilt under a screen reader's feet.
+//
+// The FOCUS FLAG IS DELIBERATELY NOT IN THE SIGNATURE. It changes on every
+// caret move, which is exactly when the rebuild must NOT happen -- putting it
+// in would leave the guard technically present and permanently useless, which
+// is worse than no guard because it looks like one.
+let lastStructureSignature = null;
+let lastFocusedElement = null;
+
 function projectStructure(snapshot) {
   // THE CONTRACT FIELD, not the diagnostic tree.
   //
@@ -243,10 +253,26 @@ function projectStructure(snapshot) {
     // The projection is absent or empty; the sink must not keep pointing into
     // a structure that is no longer there.
     el.sink.removeAttribute("aria-activedescendant");
+    lastStructureSignature = null;
+    lastFocusedElement = null;
     return;
   }
   el.a11yStructure.removeAttribute("aria-hidden");
   const paragraphs = nodes;
+  // FINDING 088. `replaceChildren` on every snapshot destroyed and recreated
+  // the list containers and the very node `aria-activedescendant` points at,
+  // so Orca announced "leaving list", "List with 2 items" and the item again
+  // -- measured 2026-09-05: each paragraph spoken 2-6 times, `leaving list`
+  // nine times and `List with 2 items` ten times, for a document with two
+  // lists. The owner heard it before any instrument reported it.
+  //
+  // The live region has carried this guard since it was written
+  // (`projectFocusedParagraph`, "reassigning the same string would be a repeat
+  // announcement of a paragraph the user is still sitting in"). This is that
+  // reasoning applied to the half that did not have it.
+  const signature = JSON.stringify(
+    paragraphs.map((node) => [node.role ?? null, node.level ?? null,
+                              node.text ?? ""]));
   const fragment = document.createDocumentFragment();
   let list = null;
   let focusedId = null;
@@ -288,7 +314,18 @@ function projectStructure(snapshot) {
     }
     (isList ? list : fragment).appendChild(element);
   }
-  el.a11yStructure.replaceChildren(fragment);
+  if (signature === lastStructureSignature) {
+    // Same document, same shape: move the focus marker and the pointer, and
+    // leave every node where the accessibility tree already has it.
+    if (lastFocusedElement) delete lastFocusedElement.dataset.focused;
+    const kept = focusedId ? document.getElementById(focusedId) : null;
+    if (kept) kept.dataset.focused = "1";
+    lastFocusedElement = kept;
+  } else {
+    el.a11yStructure.replaceChildren(fragment);
+    lastStructureSignature = signature;
+    lastFocusedElement = focusedId ? document.getElementById(focusedId) : null;
+  }
   // FINDING 087, and the reason it is HERE rather than on the live region.
   //
   // The live region announces text; it does not announce the role on its own
