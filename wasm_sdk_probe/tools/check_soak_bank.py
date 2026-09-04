@@ -91,10 +91,13 @@ WORKSPACE = PROJECT.parent
 CHECKER = PROJECT / "tools" / "check_usable_editor.py"
 
 DEFAULT_BANK = (WORKSPACE / "findings" / "evidence" / "queue-v12-cutover-soak")
-DEFAULT_ALSO = [WORKSPACE / "findings" / "evidence" / "queue-v11-split-probe"
-                / "criterion-2-net-v12.json"]
-DEFAULT_SHA = ("3dfdcfef4abfe6b723b573f35e8ec8f885dcc42a8ed4d8338ad2381eb386"
-               "f50f")
+# Empty since 2026-09-05.  It held the split probe's criterion-2 run, banked in
+# place as soak run 1 -- taken on page sha `3dfdcfef...`, which the human round
+# of 2026-09-04 moved.  The file stays where it is because it is that probe's
+# evidence too; it is dropped from here because it is no longer this count's.
+DEFAULT_ALSO: list[Path] = []
+DEFAULT_SHA = ("20f09cc9da19f07d65b8c844a753aa880782e404fb6ea75e1f121c1f2d09"
+               "0d95")
 DEFAULT_PROFILE = "e2-editor-v12"
 EXPECTED_NE = {"notice-action-recovers-the-session",
                "a-refused-action-is-reported-and-changes-nothing"}

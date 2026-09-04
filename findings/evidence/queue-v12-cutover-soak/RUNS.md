@@ -52,3 +52,41 @@ the UTC date of the report's own `completedAt`; reports without the field
 above are the drafting party's assertion, corroborated only by mtime read before
 any clone; the criterion does not consume them. The instrument now writes the
 field, so runs 7–12 carry their own day.
+
+## Voided 2026-09-05 — the candidate page moved, and the count is 0 of 12
+
+The human round of 2026-09-04 forced two fixes into
+`wasm_sdk_probe/web/e2-editor-app.js`, one of the shell bundle's thirteen
+`included` paths. The candidate page's sha therefore moved from
+`3dfdcfef…` to
+**`20f09cc9da19f07d65b8c844a753aa880782e404fb6ea75e1f121c1f2d090d95`**,
+recomputed from source through `repointed_page()` against
+`dist/profiles/e2-editor-v12/sdk-manifest.json`.
+
+Every run banked above was taken on `3dfdcfef…` and is **void for this count**:
+
+* Runs 2–8 moved, untouched, to `../queue-v12-cutover-soak-void-3dfdcfef/`,
+  with `WHY-THESE-ARE-VOID.md` alongside them.
+* Run 1 — the split probe's criterion-2 run, banked in place at
+  `../queue-v11-split-probe/criterion-2-net-v12.json` — stays where it is,
+  because it is that probe's evidence as well, and is dropped from this
+  checker's `--also` list.
+* `interrupted-2026-08-29-0050-partial.json` stays. It is a declared non-run and
+  makes no sha claim; nothing about the page voids it.
+* `diagnostic-01..03` stay in this directory and are **also void**, by
+  `check_caret_diagnostics.py`'s own identity term (`pageShaMatches`), which
+  pins them to the same sha. That is condition 2's business, not condition 1's;
+  `check_soak_bank.py` continues to list them under
+  `conditionTwoFiles_NOT_JUDGED_HERE` without judging them.
+
+`check_soak_bank.py`'s `--expect-page-sha256` default is updated to the new sha
+in the same change. **Until run 1 on the new page is banked, `--self-test`
+aborts** with "self-test has no complete report to build from: it would
+otherwise pass by measuring nothing" — the refusal that was written for exactly
+this state, not a broken tool. It returns to normal with the first banked run.
+
+Counting: **0 of 12**, no dayless runs, no carry-over. The 2026-09-03 amendment
+(a run's day is the UTC date of its own `completedAt`) applies from run 1, and
+every run from here carries the field, so the ≥3 UTC days clause is judged
+entirely in-band for the first time. Earliest possible close from a 2026-09-05
+start: **2026-09-07 UTC**.
