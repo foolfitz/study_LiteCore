@@ -56,6 +56,74 @@ return el ? { text: el.textContent, reason: el.dataset.reason,
 PROJECT = Path(__file__).resolve().parent.parent
 
 
+READ_ACTIVE_DESCENDANT = """(() => {
+  const sink = document.querySelector('#sink');
+  const id = sink ? sink.getAttribute('aria-activedescendant') : null;
+  if (!id) return { attribute: null, target: null };
+  const el = document.getElementById(id);
+  return {
+    attribute: id,
+    ariaOwns: sink.getAttribute('aria-owns'),
+    target: el ? { role: el.getAttribute('role'),
+                   level: el.getAttribute('aria-level'),
+                   text: (el.textContent || '').slice(0, 80),
+                   parentRole: el.parentElement
+                     ? el.parentElement.getAttribute('role') : null }
+               : 'DANGLING',
+  };
+})()"""
+
+
+def focused_and_active_descendant(session) -> dict:
+    """What the AX tree says has focus, and what it points at — per node.
+
+    `Accessibility.getFullAXTree` OMITS both `focused` and `activedescendant`;
+    `getPartialAXTree` on the element carries them. Measured 2026-09-05, after
+    the full tree's silence was briefly read as "the mechanism does not reach
+    the AX tree" — it reaches it, and the call was asking the wrong surface.
+    The criterion (4a term 8) was satisfiable all along; the instrument was the
+    limit.
+    """
+    session.call("DOM.enable")
+    document = session.call("DOM.getDocument", {"depth": -1}) or {}
+    root = (document.get("root") or {}).get("nodeId")
+    sink = session.call("DOM.querySelector",
+                        {"nodeId": root, "selector": "#sink"}) or {}
+    node_id = sink.get("nodeId")
+    if not node_id:
+        return {"error": "no #sink in the DOM"}
+    partial = session.call("Accessibility.getPartialAXTree",
+                           {"nodeId": node_id, "fetchRelatives": True}) or {}
+    out = {"focused": False, "activeDescendantRef": None, "target": None}
+    for node in partial.get("nodes", []):
+        props = {q.get("name"): q.get("value") for q in (node.get("properties") or [])}
+        if "focused" not in props and "activedescendant" not in props:
+            continue
+        out["focused"] = bool((props.get("focused") or {}).get("value"))
+        related = ((props.get("activedescendant") or {}).get("relatedNodes")
+                   or [])
+        if related:
+            out["activeDescendantRef"] = related[0].get("idref")
+            backend = related[0].get("backendDOMNodeId")
+            if backend is not None:
+                target = session.call(
+                    "Accessibility.getPartialAXTree",
+                    {"backendNodeId": backend}) or {}
+                for candidate in target.get("nodes", []):
+                    role = (candidate.get("role") or {}).get("value")
+                    if role in ("heading", "listitem", "list", "paragraph"):
+                        levels = {q.get("name"): (q.get("value") or {}).get("value")
+                                  for q in (candidate.get("properties") or [])}
+                        out["target"] = {
+                            "role": role,
+                            "name": (candidate.get("name") or {}).get("value"),
+                            "level": levels.get("level"),
+                        }
+                        break
+        break
+    return out
+
+
 def ax_tree(session) -> list[dict]:
     """The tree the browser hands to assistive technology, flattened."""
     session.call("Accessibility.enable")
@@ -70,7 +138,15 @@ def ax_tree(session) -> list[dict]:
         # tree carries it here and reading only name/role cannot see it.
         # `focused` for the same reason: term 5 is about which node the tree
         # says has focus, not about what the page's DOM thinks.
-        wanted = {"level", "focused", "focusable"}
+        # `activedescendant` joins the set for 4a term 8, added 2026-09-04.
+        # The ruling's wording is "the node the AX tree reports as focused, OR
+        # AS THE ACTIVE DESCENDANT OF THE FOCUSED NODE" -- and the second half
+        # is the one that matters here, because Chrome does NOT move `focused`
+        # onto the descendant. Measured 2026-09-05: with the fix in place the
+        # textbox keeps `focused` and carries an `activedescendant` relation,
+        # while Orca announces the descendant's role. A term that read only
+        # `focused` would call a working mechanism broken.
+        wanted = {"level", "focused", "focusable", "activedescendant"}
         props = {p.get("name"): (p.get("value") or {}).get("value")
                  for p in (node.get("properties") or [])
                  if p.get("name") in wanted}
@@ -209,12 +285,31 @@ def main() -> int:
             carried = [n for n in placed
                        if "E1-LC" in str(n.get("name") or "")
                        or "E1-LC" in str(n.get("value") or "")]
+            # 4a TERM 8, added by the ruling of 2026-09-04. The question is
+            # not "does the tree carry structure" (term 3 answers that) but
+            # "does the node the AT is handed WHEN THE CARET MOVES carry it".
+            # Two readings, because they can disagree and the disagreement is
+            # the defect:
+            #
+            #   * the AX side -- the node the tree marks focused. With
+            #     `aria-activedescendant` Chrome marks the DESCENDANT, which is
+            #     what an AT announces; that is what finding 087's mechanism
+            #     measurement observed Orca doing.
+            #   * the DOM side -- what `#sink`'s `aria-activedescendant` points
+            #     at, recorded for diagnosis only. A term that judged the DOM
+            #     would be judging the page's intent rather than what the AT
+            #     receives.
+            caret_side = focused_and_active_descendant(session)
             record["placements"].append({
                 "index": index,
                 "yFraction": round(band["centreFraction"], 5),
                 "region": evaluate(session, READ_REGION),
                 "axNodesCarryingText": carried,
                 "axReading": (carried[0].get("name") if carried else None),
+                # THE AX SIDE, read through `getPartialAXTree` because the
+                # full tree omits both `focused` and `activedescendant`.
+                "axCaretNode": caret_side,
+                "domActiveDescendant": evaluate(session, READ_ACTIVE_DESCENDANT),
             })
         readings = [p["axReading"] for p in record["placements"]]
         record["distinctAxReadings"] = len(set(r for r in readings if r))

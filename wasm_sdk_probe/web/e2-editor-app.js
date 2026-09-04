@@ -240,13 +240,19 @@ function projectStructure(snapshot) {
     // wrong. One mechanism for hiding, one for absence.
     el.a11yStructure.setAttribute("aria-hidden", "true");
     el.a11yStructure.replaceChildren();
+    // The projection is absent or empty; the sink must not keep pointing into
+    // a structure that is no longer there.
+    el.sink.removeAttribute("aria-activedescendant");
     return;
   }
   el.a11yStructure.removeAttribute("aria-hidden");
   const paragraphs = nodes;
   const fragment = document.createDocumentFragment();
   let list = null;
+  let focusedId = null;
+  let index = -1;
   for (const node of paragraphs) {
+    index += 1;
     const text = node.text ?? "";
     const isList = node.role === "listItem";
     if (!isList) list = null;
@@ -272,10 +278,46 @@ function projectStructure(snapshot) {
       element = document.createElement("p");
     }
     element.textContent = text;
-    if (node.focused === true) element.dataset.focused = "1";
+    // FINDING 087. Every projected node gets a stable id so the sink can point
+    // at one of them; without an id there is nothing for
+    // `aria-activedescendant` to name.
+    element.id = `a11y-node-${index}`;
+    if (node.focused === true) {
+      element.dataset.focused = "1";
+      focusedId = element.id;
+    }
     (isList ? list : fragment).appendChild(element);
   }
   el.a11yStructure.replaceChildren(fragment);
+  // FINDING 087, and the reason it is HERE rather than on the live region.
+  //
+  // The live region announces text; it does not announce the role on its own
+  // node. MEASURED with Orca 2026-09-03
+  // (findings/evidence/087/RESULT-mechanisms.md): `role="heading"` plus
+  // `aria-level` placed on the live region produced speech carrying the text
+  // and no role, twice, for two different roles. The obvious one-attribute fix
+  // does not work, and its silence is not evidence of anything -- the
+  // `paragraph` role already sitting there is one Orca never speaks either.
+  //
+  // What DOES work, measured in the same session: pointing the focused
+  // textbox at a node that carries the role. Orca then announced "heading 1"
+  // on the heading and "List with 2 items" on entering the list, announcing
+  // the container once rather than on every item.
+  //
+  // `aria-owns` is required: `aria-activedescendant` may only name a
+  // descendant of the element carrying it, or of something it owns, and the
+  // projection is not inside the textarea.
+  if (focusedId) {
+    if (el.sink.getAttribute("aria-owns") !== el.a11yStructure.id)
+      el.sink.setAttribute("aria-owns", el.a11yStructure.id);
+    if (el.sink.getAttribute("aria-activedescendant") !== focusedId)
+      el.sink.setAttribute("aria-activedescendant", focusedId);
+  } else {
+    // No focused paragraph in this projection: point at nothing rather than at
+    // a stale node. A DANGLING activedescendant is worse than none -- it names
+    // a node that no longer exists and an AT may announce the wrong paragraph.
+    el.sink.removeAttribute("aria-activedescendant");
+  }
   el.a11yStructure.dataset.state = "projected";
   el.a11yStructure.dataset.paragraphs = String(paragraphs.length);
   // The cap travels to the DOM too. A projection that silently stops at the

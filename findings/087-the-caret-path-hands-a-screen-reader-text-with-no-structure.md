@@ -102,3 +102,56 @@ Orca session。
 Orca     由代理人驅動，擁有者明確同意（evidence/manual-round-v12/CONSENT.md）
 瀏覽器   有頭的 Chrome，--force-renderer-accessibility，開在擁有者的桌面 session
 ```
+
+---
+
+## 修法（2026-09-05）
+
+`projectStructure()` 給每個投影節點一個 id，記住哪一個是焦點，然後在 `#sink`
+（那個 `<textarea>`）上設 `aria-owns="a11y-structure"` 與
+`aria-activedescendant="<焦點節點的 id>"`。沒有焦點段落時**移除**那個屬性——
+懸空的 activedescendant 比沒有更糟，它指向一個不存在的節點，AT 可能報出錯的段落。
+
+**不是**在即時區域上加 `role`。那是最直覺的一行修法，而 2026-09-03 的量測
+（`evidence/087/RESULT-mechanisms.md`）顯示 Orca 只唸文字、角色完全不出來，兩個不同
+的角色都一樣。
+
+### 驗收
+
+`check_4a.py` 加了裁決指定的第 8 條，**而且是在修法之前先讓它在舊頁面上紅**：
+
+```
+修法前（頁面 3dfdcfef…）  8-structure-on-the-caret-path  False   ← 天然紅案
+                          其餘七條                        True
+修法後（頁面 88adb453…）  八條                            True
+```
+
+紅案不是造出來的——**它就是這張 finding 描述的缺陷本身**，焦點節點是
+`textbox 輸入`、`aria-activedescendant` 根本不存在。
+
+### 走到這裡先撞到一次儀器的界限
+
+第一版的第 8 條從 `Accessibility.getFullAXTree` 讀焦點與 activedescendant，
+**讀到的是空的**——於是修好的機制被判成沒生效。差一點就得出「連 AX tree 都拿不到，
+判準寫的東西量不到」的結論，而那會變成一次「判準的前提不成立」的裁決請求。
+
+實際上是**呼叫錯了介面**：`getFullAXTree` 省略 `focused` 與 `activedescendant`，
+`getPartialAXTree`（逐節點）兩個都給——
+
+```
+focused: true
+activedescendant: idref 'a11y-node-0', backendDOMNodeId 170
+```
+
+**判準寫的東西一直都量得到，是儀器的限制不是判準的。**在宣稱一條釘死的判準不可滿足
+之前，要先確定用對了介面。
+
+### 代價（已發生）
+
+頁面 sha 從 `3dfdcfef…` 變成 `88adb453…`。`check_soak_bank.py` 對新 sha 判：
+**cleanRuns 0、one-page-sha false**——已押的八筆對新頁面全部作廢，正如判準所寫。
+殼層 bundle 也移動了（`946fe672…` 對 v43 宣告的 `7e99d3a3…`），cutover 時要凍新
+generation。
+
+**還沒重賺的**：12 筆乾淨 run（跨 ≥3 個 UTC 日）、3 筆 diagnostic、revert 演練含
+step 3、ODT 雙向、人工輪含 4b（**方向鍵、焦點全程不離開**）。

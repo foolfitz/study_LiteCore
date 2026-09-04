@@ -158,6 +158,55 @@ def judge(candidates: list[dict], control: dict, expect_sha: str | None) -> dict
     terms["5-repetition"] = {"ok": ok5, "runs": len(candidates),
                              "distinctSignatures": len(set(signatures))}
 
+    # ---- term 8
+    #
+    # Judged on the AX side, not the DOM side. `aria-activedescendant` is only
+    # a promise until the tree carries it: with the attribute set, Chrome marks
+    # the DESCENDANT focused, and that is the node an AT announces -- measured
+    # with Orca on 2026-09-03 (`findings/evidence/087/RESULT-mechanisms.md`),
+    # where the same arrangement produced "heading 1" and "List with 2 items".
+    # The DOM reading is recorded beside it and judged by nothing.
+    structure = []
+    for record in candidates:
+        for placement in record.get("placements") or []:
+            reading = placement.get("axReading")
+            expected_role, expected_level = None, None
+            for para in paragraphs:
+                if para["text"] and para["text"] == reading:
+                    if para["tag"] == "h":
+                        expected_role = "heading"
+                        expected_level = (int(para["outlineLevel"])
+                                          if para["outlineLevel"] else 1)
+                    break
+            # FOCUSED **OR ACTIVE DESCENDANT OF FOCUSED** -- the ruling's own
+            # wording, and the half that matters: Chrome keeps `focused` on the
+            # textbox and expresses the pointer as a relation, visible only
+            # through `getPartialAXTree`.
+            caret = placement.get("axCaretNode") or {}
+            target = caret.get("target") or {}
+            got_role = (target.get("role")
+                        if target.get("role") in ("heading", "listitem")
+                        else None)
+            got_level = target.get("level")
+            structure.append({
+                "reading": reading,
+                "expectedRole": expected_role, "expectedLevel": expected_level,
+                "focusedRole": got_role, "focusedLevel": got_level,
+                "axFocused": caret.get("focused"),
+                "activeDescendantRef": caret.get("activeDescendantRef"),
+                "ok": (got_role == expected_role
+                       and (expected_role != "heading"
+                            or got_level == expected_level)),
+                "domActiveDescendant": placement.get("domActiveDescendant"),
+            })
+    ok8 = bool(structure) and all(row["ok"] for row in structure)
+    terms["8-structure-on-the-caret-path"] = {
+        "ok": ok8, "placements": structure,
+        "note": "the node the AX tree marks focused after each placement must "
+                "carry the fixture's own role and level; a live region "
+                "carrying the role as text does not satisfy this",
+    }
+
     # ---- term 7
     region = (control or {}).get("regionAtLoad") or {}
     ok7 = (control.get("documentTextInTree") is False
