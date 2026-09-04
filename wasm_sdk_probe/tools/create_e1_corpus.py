@@ -242,6 +242,73 @@ FIXTURES = {
         ],
         "minimum": {"paragraphs": 8, "headings": 1, "lists": 2, "tables": 0},
     },
+    # Added 2026-09-03 for gate condition 4b, because the round the operator ran
+    # was unintelligible to them and that was THIS FILE'S fault, not theirs.
+    #
+    # `list-contexts` marks its paragraphs `E1-LC-HEADING`, `E1-LC-BULLET-ONE`
+    # and so on. A zh-TW voice reads those letter by letter -- "E one L C hyphen
+    # H E A D I N G" -- which is ideal for a program comparing strings and
+    # useless for a person judging what they heard. The operator said so:
+    # 「因為他的非常機械語音，我不是聽得很懂」.
+    #
+    # THREE PROPERTIES, each load-bearing:
+    #
+    #   * No symbols in the TYPED text. The bullet and the number come from the
+    #     list structure, which is the thing under test; nothing else should
+    #     make a noise. (`•` and `1.` still turn up in what is ANNOUNCED -- that
+    #     is the finding, not the fixture.)
+    #   * Every line different, AND DIFFERING EARLY. A voice at a screen reader
+    #     user's speed is identified by its first syllables; lines sharing a
+    #     prefix are lines a listener cannot tell apart.
+    #   * Every line SAYS WHAT IT SHOULD BE ANNOUNCED AS. 「這一行應該被唸成第一
+    #     層標題」 is heard as right or heard as wrong, with no notes, no separate
+    #     expectation sheet and no memory. A MISMATCH BECOMES AUDIBLE RATHER
+    #     THAN INFERABLE -- the fixture carries its own oracle, spoken in the
+    #     same breath as the thing under test.
+    #
+    # Two heading levels on purpose: 4b's mechanical half asks for the heading
+    # announced as a heading WITH ITS LEVEL, and one level cannot show a level
+    # was carried.
+    "a11y-audible": {
+        "extra_styles": (
+            '  <style:style style:name="Heading_20_2" style:display-name='
+            '"Heading 2" style:family="paragraph" '
+            'style:default-outline-level="2">'
+            '<style:text-properties fo:font-size="15pt" fo:font-weight="bold"/>'
+            "</style:style>\n"
+            '  <text:list-style style:name="AudBullet">'
+            '<text:list-level-style-bullet text:level="1" '
+            'text:bullet-char="\u2022"/>'
+            "</text:list-style>\n"
+            '  <text:list-style style:name="AudNumber">'
+            '<text:list-level-style-number text:level="1" style:num-format="1"'
+            ' style:num-suffix="."/>'
+            "</text:list-style>\n"
+        ),
+        "body": """
+ <text:h text:outline-level="1" text:style-name="Heading_20_1">這一行應該被唸成第一層標題</text:h>
+ <text:p>這一行是普通內文</text:p>
+ <text:h text:outline-level="2" text:style-name="Heading_20_2">這一行應該被唸成第二層標題</text:h>
+ <text:p>那一行也是內文 不過和上面每一行都不一樣</text:p>
+ <text:list text:style-name="AudBullet"><text:list-item><text:p>清單開始了 這裡應該被唸成項目清單的第一項</text:p></text:list-item><text:list-item><text:p>接下來這一項應該被唸成項目清單的第二項</text:p></text:list-item></text:list>
+ <text:p>夾在中間的這一行不是清單 只是普通內文</text:p>
+ <text:list text:style-name="AudNumber"><text:list-item><text:p>編號的部分開始 這裡應該被唸成編號清單的第一項</text:p></text:list-item><text:list-item><text:p>再來這一項應該被唸成編號清單的第二項</text:p></text:list-item></text:list>
+ <text:p>最後一行到了 整份文件到這裡結束</text:p>
+""",
+        "anchors": [
+            "這一行應該被唸成第一層標題",
+            "這一行是普通內文",
+            "這一行應該被唸成第二層標題",
+            "那一行也是內文 不過和上面每一行都不一樣",
+            "清單開始了 這裡應該被唸成項目清單的第一項",
+            "接下來這一項應該被唸成項目清單的第二項",
+            "夾在中間的這一行不是清單 只是普通內文",
+            "編號的部分開始 這裡應該被唸成編號清單的第一項",
+            "再來這一項應該被唸成編號清單的第二項",
+            "最後一行到了 整份文件到這裡結束",
+        ],
+        "minimum": {"paragraphs": 10, "headings": 2, "lists": 2, "tables": 0},
+    },
     # Added 2026-08-11 for the format-barrier deadline work.  An empty paragraph
     # is not an exotic shape -- "press the list button on a blank line" is one of
     # the commonest editing gestures -- and .uno:EndOfParaSel has nothing to
