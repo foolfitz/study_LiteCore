@@ -55,6 +55,16 @@ PAGE_HTML = PROJECT / "web" / "ods-decisive-probe.html"
 PAGE_JS = PROJECT / "web" / "ods-decisive-probe-app.js"
 NS = "__odsProbe"
 
+HEAD_EXPR = """(() => {
+  const r = window.NS;
+  if (!r) return null;
+  return { done: r.done, caseCount: r.caseCount ?? null,
+           seen: (r.cases || []).length, fatal: r.fatal || null };
+})()"""
+
+CHUNK_EXPR = 'JSON.stringify((window.NS.cases || []).slice(START, END))'
+
+
 
 def sha256_of(path: Path) -> str:
     digest = hashlib.sha256()
@@ -188,15 +198,44 @@ def main() -> int:
         query = "?profile=" + args.profile
         navigate(session, f"http://127.0.0.1:{port}/ods-decisive-probe.html"
                           + query)
+        # POLL A SUMMARY, FETCH THE BODY IN SLICES.
+        #
+        # CDP's websocket refuses a frame over 1 MiB, and the first attempt at
+        # a 306-fixture sweep pulled the whole accumulated report in one
+        # `Runtime.evaluate` -- the connection closed with 1009 and the run
+        # died AFTER every measurement had been taken. Nothing about the
+        # product was wrong and nothing about it was learned.
         deadline = time.monotonic() + args.timeout
-        page = {}
+        head = {}
         while time.monotonic() < deadline:
-            page = evaluate(session, f"window.{NS} || null") or {}
-            if page.get("done"):
+            # Built by substitution, not by an f-string: brace escaping
+            # applies only to the f-string PART of an implicit concatenation,
+            # so `}}` in a plain continuation survives as two braces and Chrome
+            # answers `SyntaxError: Unexpected token '}'`. Measured 2026-09-03.
+            head = evaluate(session, HEAD_EXPR.replace("NS", NS)) or {}
+            if head.get("done"):
                 break
-            time.sleep(1.0)
-        record["page"] = page
-        record["timedOut"] = not page.get("done")
+            time.sleep(2.0)
+        record["timedOut"] = not head.get("done")
+        record["progress"] = head
+
+        cases = []
+        total = int(head.get("seen") or 0)
+        step = 5
+        for start in range(0, total, step):
+            chunk = evaluate(
+                session,
+                CHUNK_EXPR.replace("NS", NS)
+                .replace("START", str(start)).replace("END", str(start + step)))
+            cases.extend(json.loads(chunk) if chunk else [])
+        # NON-EMPTINESS: a sweep that retrieved nothing must not read as a
+        # sweep that found nothing wrong.
+        if total and len(cases) != total:
+            raise SystemExit(f"retrieved {len(cases)} of {total} cases; a "
+                             f"partial sweep must not be banked as a sweep")
+        record["page"] = {"done": head.get("done"),
+                          "caseCount": head.get("caseCount"),
+                          "cases": cases}
     finally:
         if session is not None:
             try:

@@ -126,12 +126,29 @@ async function runCase(spec) {
       debug: true, timeoutMs: 60000,
     });
     report.manifest ||= engine.manifest;
+    // EVERY stage line is kept whole -- they carry `sbrk`, and the milestone's
+    // memory question is read from them; a summary here is a number nobody can
+    // re-derive. The engine's stderr is DE-DUPLICATED instead: a sweep of three
+    // hundred fixtures repeating the same four warnings blew past CDP's 1 MiB
+    // message limit and killed the run at the retrieval step (measured
+    // 2026-09-03). The distinct set is what every reading of these warnings has
+    // actually used, and the repetition count is kept so "three times" stays
+    // sayable.
+    const seenWarnings = new Map();
+    entry.warnings = [];
     engine.onEvent((event) => {
-      // EVERY stage line, not a summary: they carry `sbrk`, and the whole
-      // memory question of the milestone is read from them. A summary here is
-      // a number nobody can re-derive.
-      if (event?.event === "diagnostic" || event?.stage)
+      if (event?.event === "diagnostic" && event?.level === "stage") {
         entry.stages.push(event);
+      } else if (event?.event === "diagnostic" && event?.message) {
+        const key = String(event.message).slice(0, 200);
+        if (seenWarnings.has(key)) {
+          seenWarnings.get(key).count += 1;
+        } else {
+          const row = { message: key, count: 1 };
+          seenWarnings.set(key, row);
+          entry.warnings.push(row);
+        }
+      }
       if (String(event?.event || "").includes("view-ready"))
         entry.viewReady = { atMs: Math.round(performance.now() - started) };
       if (String(event?.event || "") === "worker-crashed")
