@@ -1143,3 +1143,128 @@ and excluded from the twelve by the identity rule.
 
 **Owed at the next manifest that withholds any action**: a `--refusal-diagnostic`
 run on that profile, and this sentence replaced by its result.
+
+---
+
+# Ruling, 2026-09-04 — 4b's heading term failed; the block is written down and made machine-checkable
+
+Append-only. Nothing above is edited. This adds the consequence that addendum
+part 1 §A-1's "4b — Mechanical half — gating" states for its first requirement
+(text) but omits for its second (the heading announced as a heading with its
+level), and adds one term to 4a. It supersedes no text; it supersedes the
+drafting party's reading that the second requirement carries no consequence.
+
+**Forcing facts** (committed
+`findings/evidence/manual-round-v12/orca-speech-3-agent.log`, 15,216,073 bytes,
+agent-driven under `CONSENT.md`, page `3dfdcfef…`, 2026-09-03):
+
+(i) `E1-LC-HEADING` was spoken twice (18:15:41.151, 18:16:45.450), both times as
+bare text; no `SPEECH OUTPUT` line in the log carries a heading role or level.
+(ii) The AT-SPI tree Orca received **does** carry the heading —
+`role='heading'`, `level:1`, `xml-roles:heading`, the `#a11y-structure` child —
+at 18:15:41.184, corroborating 4a term 3.
+(iii) The node that changes on caret movement is `#a11y-para`: `tag:p`,
+`role='paragraph'`, `live:polite`, `atomic:true`, no role;
+`projectFocusedParagraph()` assigns `textContent` only.
+(iv) `check_4a.py` term 3 reads `#a11y-structure` and term 4 reads
+`#a11y-para`; **no 4a term asserts that the node changed by caret movement
+carries a role.** 4a did not disagree with 4b; it did not measure this.
+
+**Ruling 1 — the second requirement gates.** The bullet is titled gating; its
+two requirements are one sentence; the deferred-residue list written beside it
+omits heading-role announcement. Both escapes cover 4b *not happening*, and it
+happened. The rule of 2026-08-28 applies: the finding gets a number
+(**finding 087**), and the count restarts on the day the page changes. The
+banked runs on page `3dfdcfef…` remain valid for that page and for no other.
+
+**Ruling 2 — 4a gains term 8**, under the four addition conditions (fixed
+before any run that would satisfy it; forced by fact (i); per-instance form;
+added at 8 of 12 banked):
+
+8. **Structure on the caret path** — after each of term 4's three placements,
+   the node the AX tree reports as focused, or as the active descendant of the
+   focused node, carries `role: heading` with `level` equal to the fixture's
+   `outline-level` when the placement is on the heading; `role: listitem`
+   inside a `list` when it is on a list item; and neither when it is on a plain
+   paragraph — compared in code against `content.xml`. One mutation that
+   detaches the routing must redden exactly this term (term 6's form).
+   **A fix that writes the role as words into the live region's text does not
+   satisfy this term, by design**: the product's own source
+   (`e2-editor-app.js`, roadmap 3.4) promises programmatic structure, not
+   spoken text.
+
+*Count semantics: term 8 is a 4a term, satisfied by 4a runs; adding it does not
+restart the soak. The fix that satisfies it moves `pageSha256`, and that
+restarts everything identity-bound, per "Identity-bound evidence to re-earn —
+nothing drops".*
+
+**Ruling 3 — term 1 (text) is not failed and not discharged.** 8 of 9 spoken.
+The ninth reached Orca with its text (18:17:17.373, `#a11y-para`,
+`text='2. E1-LC-NUMBER-TWO'`) and was discarded by **Orca's own policy** because
+the active window was the terminal (18:17:17.387–.391, `Active script is:
+konsole`, `Not processing … due to lack of reason`,
+`live-regions/present-from-inactive-tab = False`). Registered as one cell
+invalidated by the instrument's window switching — the second kind of
+registration, nothing to guard. Discharge of the mechanical half requires a walk
+**by arrow keys, window focus held throughout**, 9 of 9 in `SPEECH OUTPUT`.
+
+The clicked walk stands as the measurement that found finding 087 — the heading
+was spoken bare at 18:16:45 with Chrome active, so the failure is not a focus
+artifact — and does **not** stand as a discharge: a screen-reader user cannot
+click ink they cannot see, and the plan says arrow.
+
+**What lifts the block.** A page fix; 4a passing all eight terms on the new page
+sha; 4b's mechanical half discharged as above on the new page; and the full
+identity-bound list re-earned on the new sha. No engine change, relink or
+profile repackaging is implied; `e2-editor-v12`'s five identities are untouched.
+If the fix touches `e2-editor.html`, which is outside the shell bundle's 13
+included paths, that file's absence from every bound identity is its own
+finding.
+
+**The only other exit** is the owner's override of a failed gating criterion.
+If taken, the cutover record must say, verbatim: *"4b's gating half failed on
+its second requirement (finding 087); the owner proceeds with that failure
+unfixed."* It may **not** be recorded as a deferral.
+
+## R5 — what the owner's confirmation record must now say
+
+Extends "What the cutover record must contain". Beside the figure and the
+decomposition table:
+
+> *Of the two fields the +24.5 MiB (+15.2%) pays for: `caretParagraphText`
+> reaches a screen reader's speech on the caret path — 8 of 8 paragraphs while
+> the browser was the active window (Orca, 2026-09-03,
+> `orca-speech-3-agent.log`); `documentOutline` reaches the screen reader's tree
+> with the heading's role and level (same log, 18:15:41.184; 4a term 3) but is
+> **not announced on the caret path** — a user arrowing through the document
+> hears the heading as bare text (finding 087). Whether browse-mode navigation
+> reaches the structure region is unmeasured.*
+
+followed by exactly one of:
+
+> *Fixed before cutover: `<mechanism>`, measured `<log>`; all identity-bound
+> evidence re-earned on page `<sha>`.*
+
+or
+
+> *Not fixed: the owner proceeds with finding 087 unfixed, overriding 4b's
+> failed gating requirement; the page-only fix is queued for after the cutover.*
+
+**A-1's note — "a verified-correct tree is the benefit even before one AT's
+rendering is assessed" — may no longer be quoted as the justification without
+the sentence above.** Its unstated premise, that the tree's roles reach the
+user, was refuted by this measurement.
+
+## Named as unmeasured, before anyone builds on it
+
+`AGENTS.md` §4's self-check applies to the fix. Two mechanisms are available and
+**neither has been measured**:
+
+* putting a role on the live region's own node — Orca's live-region presenter
+  block in the log carries only text, and **whether Orca would speak a role
+  placed there is unknown**. The `paragraph` role present there today is one
+  Orca never speaks, so its silence proves nothing.
+* `aria-activedescendant` from `#sink` into `#a11y-structure`.
+
+Measure with Orca before trusting either, and pin term 8's wording before the
+run that satisfies it.
