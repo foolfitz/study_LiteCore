@@ -6,7 +6,7 @@
 | **Bugzilla** | **未確認**——可能是上游，也可能是我方的 wasm 組態；沒查到根因前不要送 |
 | **發現日** | 2026-09-05 |
 | **嚴重度** | 嚴重（該檔完全開不起來） |
-| **可重現** | **2/2** |
+| **可重現** | **2/2**（另有兩個變體測試，見「分析」） |
 | **是否上游** | **未確認** |
 
 ## 現象
@@ -60,9 +60,29 @@ build 上走到一條會實體化或二次方展開的路徑，而原生沒有�
 開得起來。**在量到之前不得寫進上游報告**——上游會問「你怎麼知道是這個屬性」，而
 目前的答案是「它是唯一顯眼的差異」，那不是根因。
 
-**下一步（便宜、確定性）**：把該檔的 `number-rows-repeated` 改成小數字另存一份，
-在同一顆 profile 上開。開得起來就把假說變成量測；仍然逾時就排除它，往
-`database-range`／`named-range`／chart 逐一切。
+### 假說一：**已否證**（2026-09-05）
+
+做了那個單一變因的測試——只把 `number-rows-repeated` 與
+`number-columns-repeated` 的上限壓到 64，**其餘每一個位元組原樣搬過去**，所以行為若有
+差異，歸因不到別的東西上。
+
+```
+tdf149752-rows-capped.ods   opened=False  err=TIMEOUT  elapsed=180,994 ms
+d1-anchors.odt（對照組）     opened=True   parts=1      elapsed=1,837 ms
+```
+
+**仍然逾時。`number-rows-repeated` 不是成因。**
+
+這正是把它標成假說而不是寫成事實的理由：它是那份檔案裡唯一顯眼的差異，而「唯一顯眼」
+不等於「就是它」。若當時寫進上游報告，會浪費 triager 的時間去追一個已經被否證的方向。
+
+證據：`evidence/089/hypothesis-1-repeat-counts-REFUTED.json`
+
+### 下一步
+
+剩下的候選：`table:database-range` ×4、`table:named-range` ×3、chart ×1、
+`office:forms` ×2。作法是**先一次全部拿掉**——開得起來就二分，仍然逾時就表示成因不在
+`content.xml` 的這些特徵裡，要往 `styles.xml`／`settings.xml` 或那 129 列的內容本身找。
 
 ## 對里程碑的意涵
 
