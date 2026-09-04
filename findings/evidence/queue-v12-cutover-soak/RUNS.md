@@ -90,3 +90,24 @@ Counting: **0 of 12**, no dayless runs, no carry-over. The 2026-09-03 amendment
 every run from here carries the field, so the ≥3 UTC days clause is judged
 entirely in-band for the first time. Earliest possible close from a 2026-09-05
 start: **2026-09-07 UTC**.
+
+### Run 1 on `20f09cc9…` — 2026-09-05 01:31–01:37 CST (UTC day **2026-09-04**)
+
+`soak-run-01-candidate.json`. 40 checks, `ok: true`, the two standing
+NOT_ESTABLISHED sentinels and nothing else.
+
+**Correction to the paragraph above.** It said "earliest possible close from a
+2026-09-05 start: 2026-09-07 UTC", reading the local date. The criterion counts
+**UTC** days, and this run's `completedAt` is `2026-09-05T01:37:10+08:00`, which
+is UTC **2026-09-04**. With ≥2 runs on each of 09-04, 09-05 and 09-06 the
+earliest close is **2026-09-06 UTC**. The earlier sentence is left in place per
+the append-only rule; this is what supersedes it.
+
+**Read this before the next run.** Run 1 was taken twice. The first attempt was
+clean, `ok: true`, and measured the **wrong page**: `run_e2_c_product_path.py`
+builds its mirror from `dist/`, and `dist/e2-editor-app.js` was still the
+2026-09-03 copy, carrying neither the 087 nor the 088 fix. It self-reported
+`pageSha256: 3dfdcfef…` and this bank's `page-sha` clause would have refused it.
+`make dist/e2-editor-app.js` fixes it; finding 090 records the gap and that
+nothing compares the two sources. **A run taken without that copy being current
+is a run on the incumbent page wearing the candidate's name.**
