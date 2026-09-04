@@ -111,3 +111,13 @@ builds its mirror from `dist/`, and `dist/e2-editor-app.js` was still the
 `make dist/e2-editor-app.js` fixes it; finding 090 records the gap and that
 nothing compares the two sources. **A run taken without that copy being current
 is a run on the incumbent page wearing the candidate's name.**
+
+### Run 2 on `20f09cc9…` — 2026-09-05 01:53–01:59 CST (UTC day **2026-09-04**)
+
+`soak-run-02-candidate.json`. 40 checks, `ok: true`, the two standing
+NOT_ESTABLISHED sentinels and nothing else. `dist/e2-editor-app.js` was checked
+against `web/` before the run and was already the same bytes
+(`5aeae0e1…`), per finding 090.
+
+UTC day 2026-09-04 now carries **2 runs** and satisfies the ≥2 clause. Two UTC
+days remain to be earned, and ten runs.
