@@ -3,7 +3,7 @@
 Agent-driven under the owner's consent recorded in `CONSENT.md`, 2026-09-03, on
 the candidate page `3dfdcfef…` served from a headed Chrome on the owner's own
 desktop session with `--force-renderer-accessibility`. Orca's speech captured to
-`orca-speech-3-agent.log` (10 MB). The walk that produced it is
+`orca-speech-3-agent.log` (15,216,073 bytes). The walk that produced it is
 `4b-agent-walk.json`: nine paragraphs, each reached by clicking its own ink,
 each verified in the page's own projection before moving on.
 
@@ -83,3 +83,29 @@ The judgement half — announcement order, verbosity, browse-mode behaviour —
 remains the owner's and is not recorded here beyond their two remarks during the
 round: 「他一直在念文件標題」 (the window title, repeatedly, whenever focus
 returned to Chrome) and 「有啦有念到內文了」.
+
+---
+
+## Correction, same day: two numbers in this file were wrong, and why
+
+**The log is 15,216,073 bytes, not 10 MB.** Quoted from memory of a `ls` rather
+than re-read.
+
+**The transcript first handed to the owner had 283 speech lines; the analysed
+log has 174.** The transcript was generated from the working-tree file *after*
+it had been committed — and Orca was still running, still appending, still
+reading the terminal aloud. The file grew by 42 MB between the analysis and the
+transcript.
+
+So the transcript described a longer session than the one every conclusion in
+this file rests on. Both transcripts have been regenerated from the **committed**
+bytes; the post-walk growth is kept, unedited, as
+`orca-speech-3-continued-after-the-walk.log`.
+
+**The lesson is not "check file sizes".** It is that **evidence keeps growing
+while the process that writes it is alive**, and banking it does not stop that.
+Every number in this file was re-derived from the committed bytes after the
+correction: `E1-LC-HEADING` spoken twice, `E1-LC-NUMBER-TWO` zero times, and
+exactly two `SPEECH OUTPUT` lines matching `heading|標題|level|層級` — both of
+them the bare-text heading lines. The conclusions are unchanged; the numbers
+that describe the corpus they came from were not.
