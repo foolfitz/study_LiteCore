@@ -189,3 +189,45 @@ term 4 的文字是「三次落點、三個不同的讀值、每個都對上瞄�
 是**擴大**它量的範圍還是**移動**判準，不是起草方能自己決定的。
 
 證據：`evidence/088/4a-with-live-region-silenced-TERM4-AND-8-RED.json`
+
+---
+
+## 兩個紅都是儀器（2026-09-06 重播）
+
+上面那段把處置留給裁決：「改探針去讀 activedescendant 是**擴大**它量的範圍還是
+**移動**判準，不是起草方能自己決定的。」裁決做了（2026-09-05 的 Ruling 1 與
+Ruling 2，記在 `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md`），儀器照裁決
+改了，紅案先於改動被做出來。所以這條 finding 留下的問題現在可以問了。
+
+把**同一份被扣住的紀錄**（`evidence/088/4a-with-live-region-silenced-TERM4-AND-8-RED.json`）
+交給今天的判讀工具：
+
+| 紀錄 | 判定 | 紅的條 | 三次落點的讀值 |
+| --- | --- | --- | --- |
+| 原樣（舊儀器算出來的讀值） | `ok: false` | `4-focus` | 標題、標題、標題 |
+| 補上 `axNodeId` 並依 Ruling 1 重算 | **`ok: true`** | **無** | 標題、孤立段、SPACER |
+
+**被回退的那個修法，在修正過的儀器下 4a 八條全過。** 當初讓它回退的兩個紅——
+term 8 早在 Ruling 2 落地時就轉綠（記在 `evidence/gate-4a-reading-rule/README.md`），
+term 4 在 Ruling 1 落地後也轉綠——**兩個都是儀器，不是產品**。
+
+重播腳本與輸出：`evidence/088/replay_the_reverted_fix.py` 與
+`replay-the-reverted-fix-2026-09-06.txt`。腳本自己檢查非空洞性：兩列若給出相同
+判定就拒絕，因為那表示它對這次修正沒有鑑別力。
+
+### 這是重播，不是重跑，而且現在不能重跑
+
+被扣住的紀錄早於 Ruling 1，沒有 `target.axNodeId`，所以 `hydrate()` 從
+`activeDescendantRef` 反推——那是重播對既有紀錄的特許，不是量測。真正的重跑要改
+產品頁面，而**改產品頁面會移動 `pageSha256`，那會作廢已押的十筆 soak**。所以：
+
+**這個修法在閘門關上之前不落地。** 登錄為閘門後的工作，理由寫在這裡，免得下一個
+人看到「全過」就順手把它接上去。
+
+### 還沒量的那一格仍然沒量
+
+arm D（`aria-live="off"` 但保留文字）**要 Orca 和一個在聽的人**——087 的機制量測是
+在擁有者的桌面 session 上做的，同意書在 `evidence/manual-round-v12/CONSENT.md`。
+我做不到這一格，它跟 4b 一樣要排進人工輪。**若這一格永遠沒做**，預設結論是：
+`aria-activedescendant` 的路徑已經量過而且有效（087 的 arm C），即時區域要不要
+完全靜音仍然是未量測的偏好，不是已知的改善。
