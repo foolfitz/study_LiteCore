@@ -163,3 +163,19 @@ committed before the work it governs.
    (English), committed, plus `## SUMMARY` ≤ 30 lines. No desktop use, no runs.
 
 ### T1b, T2, T3 — briefs written after T0 and T1a land.
+
+---
+
+## Decisions recorded (2026-09-07, append-only)
+
+- **D1 = A**, by the owner, verbatim 「D1: A」. The pursuit of v46 is bounded:
+  two sonnet sessions or 2026-09-08, whichever first; then freeze on whatever
+  is established.
+- **D2 = after the cutover**, decided by the fable main session under the
+  owner's delegation (「D2 D3 你幫我決定」). Finding 086 is not a regression,
+  the revert trigger does not fire on it, and its fix lives in the shell's
+  barrier and therefore moves the page. It is not batched into this freeze.
+- **D3 = codex stays off.** The second model line for T1a's protocol is the
+  fable main session's own pre-read (fable ≠ opus); a second opus seat would be
+  the same line as the author. The protocol must carry its own red case
+  (`AGENTS.md` §6); a wrong protocol costs at most D1's budget.
