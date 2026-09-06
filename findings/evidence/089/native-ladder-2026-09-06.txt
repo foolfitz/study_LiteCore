@@ -1,0 +1,44 @@
+# Finding 089 -- the SAME row ladder, run NATIVELY.  2026-09-06
+#
+# Oracle: wasm_sdk_probe/tools/ods_native_oracle.cpp, compiled -O2 against
+#   libreoffice-26-8/include and run on build-native-26-8/instdir/program.
+# Core commit of the tree the install is built from:
+671c848b1bb81e5b1a90d97675db9a0f3ae2a9cb
+#
+# ONE FILE PER PROCESS, each under `timeout 300`.  The oracle has no
+# timeout of its own and would hang forever on a file that never loads, so
+# a hang would have taken the whole batch with it.
+
+file                         loaded   loadAndReadMs
+tdf149752-rows20.ods         True     1407.42
+tdf149752-rows25.ods         True     1401.94
+tdf149752-rows30.ods         True     1407.18
+tdf149752-rows34.ods         True     1406.75
+tdf149752-rows35.ods         True     1410.22
+tdf149752-rows36.ods         True     1404.32
+tdf149752-rows37.ods         True     1405.07
+tdf149752-rows38.ods         True     1404.87
+tdf149752-rows39.ods         True     1405.47
+tdf149752-rows40.ods         True     1402.08
+tdf149752-rows50.ods         True     1416.87
+tdf149752.ods                True     1399.59
+
+min 1399.59  max 1416.87  spread 17.28 ms over 12 files
+
+## The read forces evaluation -- shown, not assumed
+
+Auswertung column A holds the 99 `IF(COUNTIF(Index2;Index);"";Index)` cells.
+The oracle's text read of that column:
+
+  tdf149752.ods                    first 12: ['', '', '', '', '', '', '', '', '200', '', '', '']
+  tdf149752-no-namedexpr.ods       first 12: ['#NAME?', '#NAME?', '#NAME?', '#NAME?', '#NAME?', '#NAME?', '#NAME?', '#NAME?', '200', '#NAME?', '#NAME?', '#NAME?']
+
+With the named ranges present the formulas evaluate to the empty string
+(and to 200 where the name is not found in Index2).  With them removed the
+same cells read #NAME?.  So the oracle's number covers the evaluation; it
+is not a load that skipped the formulas.
+
+## Cached results in the source document -- corrected count
+  cells with that formula: 99
+  carrying office:value:   13
+  carrying none:           86  (bare <text:p/>, no office:value-type)

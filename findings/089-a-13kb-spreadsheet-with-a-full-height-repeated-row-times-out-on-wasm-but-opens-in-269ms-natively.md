@@ -261,3 +261,61 @@ unreachable. Whatever switches at 36 rows, it is not that.
   sites inside `<table:named-expressions>` and leaves the 99
   `SMALL([.$A$2:.$A$100];ROW())` references alone — a blanket replace on this
   document hits 200 sites, which this tree has already done once.
+
+## The same ladder natively: flat. The cliff is WASM-side (2026-09-06)
+
+Evidence: `findings/evidence/089/native-ladder-2026-09-06.txt` and
+`native-ladder-2026-09-06.jsonl`. `ods_native_oracle.cpp` compiled `-O2` and run
+on `build-native-26-8/instdir/program`, core commit `671c848b…` — the tree the
+candidate is built from. One file per process, each under `timeout 300`, because
+the oracle has no timeout of its own and a hang would have taken the batch.
+
+| range | native `loadAndReadMs` | WASM |
+| --- | --- | --- |
+| `A2:A20` | 1,407 | 1,423 ms |
+| `A2:A25` | 1,402 | 1,459 ms |
+| `A2:A30` | 1,407 | 1,208 ms |
+| `A2:A34` | 1,407 | 1,501 ms |
+| `A2:A35` | 1,410 | 1,245 ms |
+| **`A2:A36`** | **1,404** | **TIMEOUT ≥180 s** |
+| `A2:A37` | 1,405 | unrun |
+| `A2:A38` | 1,405 | unrun |
+| `A2:A39` | 1,405 | unrun |
+| `A2:A40` | 1,402 | TIMEOUT ≥180 s |
+| `A2:A50` | 1,417 | TIMEOUT ≥180 s |
+| `A2:A100` (original) | 1,400 | TIMEOUT ≥180 s |
+
+**Native is flat: 1,399.59 to 1,416.87 ms, a 17 ms spread over twelve files.**
+The same documents, the same core commit, and no threshold anywhere in the
+range. **The 35→36 cliff does not exist natively.**
+
+That is the licence the previous section said it did not have. It is now
+measured, and this finding may be read as WASM-side.
+
+### The oracle's number covers the evaluation — shown, not assumed
+
+A native load that skipped the formulas would be flat for an uninteresting
+reason. It did not skip them: with the named ranges present, the 99
+`IF(COUNTIF(Index2;Index);"";Index)` cells read back as the empty string (and
+`200` at the one row whose index is not in `Index2`); with the ranges removed,
+the same cells read `#NAME?`. The read is sensitive to whether the formulas
+evaluated, and on every rung of the ladder they did.
+
+### Correction to an earlier claim in this finding
+
+The section "Bisected, 2026-09-05" says *"None of those 99 cells carries a
+cached result — they hold `<text:p/>` and no `office:value`"*. **13 of the 99 do
+carry one** (`office:value-type="float" office:value="200"`); the other 86 are
+bare `<text:p/>` with no value and no value-type. The claim that Calc has
+nothing to trust and must compute holds for 86 of 99, not for all 99. Counted
+here rather than eyeballed:
+`native-ladder-2026-09-06.txt`, section "Cached results in the source document".
+
+### Still not measured
+
+Whether `rows36` on WASM finishes *eventually*. The 180 s is the SDK's own
+`open` timeout hard-coded at `web/ods-decisive-probe-app.js:165`; nothing here
+shows the load is non-terminating rather than merely slower than that. Native
+takes 1.4 s, so if WASM is on the same algorithm the constant would have to be
+worse by more than 128x for the same document — which is itself the observation
+that makes "same algorithm, slower machine" hard to believe.
