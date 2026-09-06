@@ -243,6 +243,15 @@ def main() -> int:
         record["page"] = {"done": head.get("done"),
                           "caseCount": head.get("caseCount"),
                           "cases": cases}
+        # THE OPEN TIMEOUT, CARRIED OUT OF THE PAGE.  The page puts it in its
+        # own report object, but this tool does not copy that object -- it
+        # projects a few named fields -- so adding it there alone left every
+        # saved report without it.  Read from the page, not from `args`: what
+        # matters is the value the `open()` call actually used.
+        record["openTimeoutMs"] = evaluate(
+            session,
+            ('window["NS"] ? window["NS"].openTimeoutMs : null'
+             .replace("NS", NS)))
     finally:
         if session is not None:
             try:
