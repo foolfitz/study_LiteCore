@@ -1897,12 +1897,11 @@ MUTATIONS = {
         "reintroduces": "a caret path where the live region has deferred to a "
                         "structure channel that names nothing, so a screen "
                         "reader is handed silence on both channels",
-        # NOT YET MEASURED.  T5b's run establishes the radius; if anything else
-        # reddens, this list is corrected from that run and not from reasoning
-        # -- the correction `format-ignores-a-selection` records above.  The
-        # expectation being tested is that it reddens THIS check and nothing
-        # else: no other check in this runner reads `aria-activedescendant` or
-        # `#a11y-structure`.
+        # MEASURED, not predicted (T5b, 2026-09-07): 40 checks,
+        # 37 PASS / 2 NOT_ESTABLISHED (the usual pair) / 1 FAIL, and the FAIL
+        # is exactly `the-document-region-says-why-it-is-empty` -- nothing
+        # else reddened, confirming no other check in this runner reads
+        # `aria-activedescendant` or `#a11y-structure`.
         "alsoRed": [],
     },
     "the-region-defers-with-a-reason-it-owed-the-user": {
@@ -1925,7 +1924,10 @@ MUTATIONS = {
         "reintroduces": "a page that defers to the structure channel while its "
                         "own reason says it had something else to say, so the "
                         "sentence naming the cause is never spoken",
-        # NOT YET MEASURED -- same rule as above.
+        # MEASURED, not predicted (T5b, 2026-09-07): 40 checks,
+        # 37 PASS / 2 NOT_ESTABLISHED (the usual pair) / 1 FAIL, and the FAIL
+        # is exactly `the-document-region-says-why-it-is-empty` -- nothing else
+        # reddened.
         "alsoRed": [],
     },
     "cut-swallows-the-refusal": {
