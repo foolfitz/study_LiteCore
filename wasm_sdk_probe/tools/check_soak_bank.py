@@ -489,22 +489,38 @@ def self_test() -> int:
         # adjudication, because a day rule that has only ever been evaluated
         # over dayless reports has not been evaluated.
 
-        def stamped(dest: Path, stamps: list[str | None]) -> Path:
-            """A synthetic bank: the real COMPLETE reports, restamped.
+        def clean_sources() -> list[Path]:
+            """Real bank reports the JUDGE calls clean -- `judge_run`'s own
+            `clean` field, not a second, hand-written definition of clean.
 
-            `complete: true` is not decoration here.  The first version globbed
-            the live bank, and a soak run was writing into it -- so a partial
-            report became a source, the green control went red, and three
-            red cases above had been red for a reason nobody had checked.  A
-            self-test that reads a directory being written to is not a test.
+            2026-09-07: the bank now legitimately holds banked FAIL reports
+            as evidence (`soak-run-01/02-candidate.json`, FAIL under the old
+            wording of `the-document-region-says-why-it-is-empty`).  Both are
+            `complete: true`, so the old filter let them round-robin into the
+            GREEN control and the "clean run plus one injected defect" RED
+            fixtures.  `clean` subsumes `complete` (it is one of the clauses)
+            and narrows the sample instead of loosening any verdict.
+            """
+            return [q for q in sorted(real.glob("soak-run-*.json"))
+                    if judge_run(q, DEFAULT_SHA, DEFAULT_PROFILE,
+                                 DEFAULT_SERVED_SHELL)["clean"]]
+
+        def stamped(dest: Path, stamps: list[str | None]) -> Path:
+            """A synthetic bank: the real CLEAN reports, restamped.
+
+            The first version globbed the live bank, and a soak run was
+            writing into it -- so a partial report became a source, the green
+            control went red, and three red cases above had been red for a
+            reason nobody had checked.  A self-test that reads a directory
+            being written to is not a test.  (That guard was `complete:
+            true`; `clean_sources()` above is the same guard plus the fix of
+            2026-09-07 -- see its docstring.)
             """
             dest.mkdir()
-            sources = [q for q in sorted(real.glob("soak-run-*.json"))
-                       if json.loads(q.read_text(encoding="utf-8"))
-                       .get("complete") is True]
+            sources = clean_sources()
             if not sources:
                 raise SystemExit(
-                    "self-test has no complete report to build from: it would "
+                    "self-test has no clean report to build from: it would "
                     "otherwise pass by measuring nothing")
             for name in NON_RUNS:
                 shutil.copy2(real / name, dest / name)
@@ -548,14 +564,28 @@ def self_test() -> int:
         # merely a consistent one.
 
         def with_served(dest: Path, mutate) -> Path:
-            """The real bank, with ONE report's `servedShell` rewritten."""
+            """The real bank, with ONE CLEAN report's `servedShell` rewritten.
+
+            2026-09-07: the target used to be "the last file in glob order",
+            which was only the clean run by the accident of today's numbering
+            (run 03 sorts last). It is now picked by the same `clean_sources()`
+            predicate `stamped()` uses, so a FAIL report banked after the
+            clean one cannot silently become "a clean run plus one injected
+            defect".
+            """
             dest.mkdir()
             for name in NON_RUNS:
                 shutil.copy2(real / name, dest / name)
             sources = sorted(real.glob("soak-run-*.json"))
-            for i, src in enumerate(sources):
+            clean = clean_sources()
+            if not clean:
+                raise SystemExit(
+                    "self-test has no clean report to build from: it would "
+                    "otherwise pass by measuring nothing")
+            target = clean[-1].name
+            for src in sources:
                 body = json.loads(src.read_text(encoding="utf-8"))
-                if i == len(sources) - 1:
+                if src.name == target:
                     mutate(body.setdefault("servedShell", {}))
                 (dest / src.name).write_text(
                     json.dumps(body, ensure_ascii=False), encoding="utf-8")
