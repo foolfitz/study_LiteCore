@@ -229,11 +229,23 @@ def day_of(report: dict) -> dict:
 # fully substitutes the worker/pin lines with the target profile's own
 # values rather than transforming whatever is already there -- measured
 # from the `e2-editor-v8` shell or from the (wrongly) already-cut-over one,
-# `--profile e2-editor-v12` produces the same bytes either way. Verified two
-# ways again: read from `e2/editor-shell-v2-bundle-v48.json` and recomputed
-# with `shell_bundle_digest` over the served files.
-DEFAULT_SERVED_SHELL = ("ecfb6866117673c21a7c21995f7ea76fe60beb9f94a73c222"
-                        "053a18cc573a6ef")
+# `--profile e2-editor-v12` produces the same bytes either way.
+#
+# R-2 CORRECTION, 2026-09-07 (T2, `handoff/PLAN-2026-09-06-after-the-page-
+# moved-twice.md`): v48's digest was wrong here, and so was v45's before it --
+# both pinned the shell AS THE TREE SERVES IT (the shipping generation), not
+# the shell AS A CANDIDATE RUN SERVES IT.  A `--candidate-profile e2-editor-v12`
+# run repoints the entrypoint to the candidate's own worker/pin before
+# computing `servedSha256` (ruling E-4's own words: "the digest the cutover
+# generation WILL DECLARE"), so a candidate run's served digest is, by
+# construction, the digest of the CUT-OVER shell -- and v47, frozen by mistake
+# in `000a57e2`, is exactly that cutover generation.  The pin is therefore
+# v47's `bundleSha256`, not v48's.  Verified two ways: read from
+# `e2/editor-shell-v2-bundle-v47.json`, and read `servedShell.servedSha256`
+# from both banked `soak-run-01-candidate.json` and `soak-run-02-candidate.json`
+# in `findings/evidence/queue-v12-cutover-soak/` -- both equal this value.
+DEFAULT_SERVED_SHELL = ("cf7f923391a059943366b46bde8f25c7a618da57752e592ffa"
+                        "a13398e78161e4")
 
 
 def judge_run(path: Path, expect_sha: str, expect_profile: str,

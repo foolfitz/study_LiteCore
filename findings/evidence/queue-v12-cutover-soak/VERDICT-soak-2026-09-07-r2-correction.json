@@ -1,0 +1,133 @@
+{
+  "criterion": "soak criterion 1 -- counting clauses only",
+  "bank": "findings/evidence/queue-v12-cutover-soak",
+  "expected": {
+    "runs": 12,
+    "days": 3,
+    "profile": "e2-editor-v12",
+    "pageSha256": "9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c",
+    "servedShellSha256": "cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4",
+    "passCount": 38,
+    "notEstablished": [
+      "a-refused-action-is-reported-and-changes-nothing",
+      "notice-action-recovers-the-session"
+    ]
+  },
+  "cleanRuns": 0,
+  "totalRuns": 2,
+  "unclassifiedFiles": [],
+  "conditionTwoFiles_NOT_JUDGED_HERE": [
+    "diagnostic-01-caret12.json",
+    "diagnostic-02-caret12.json",
+    "diagnostic-03-caret12.json"
+  ],
+  "verdictFiles_NOT_EVIDENCE": [
+    "VERDICT-condition-2.json",
+    "VERDICT-soak-2026-09-07.json"
+  ],
+  "declaredNonRunsMissing": [],
+  "distinctPageSha256": [
+    "9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c"
+  ],
+  "distinctServedShellSha256": [
+    "cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4"
+  ],
+  "servedShellBundlesSeen": [
+    "e2/editor-shell-v2-bundle-v48.json"
+  ],
+  "runs": [
+    {
+      "report": "findings/evidence/queue-v12-cutover-soak/soak-run-01-candidate.json",
+      "clean": false,
+      "clauses": {
+        "run-ok": false,
+        "run-complete": true,
+        "reconciled-ok": true,
+        "reconciled-as-candidate": true,
+        "reconciled-profile": true,
+        "pass-count": false,
+        "ne-set-exact": true,
+        "page-sha": true,
+        "one-served-shell": true
+      },
+      "composition": {
+        "total": 40,
+        "outcomes": {
+          "PASS": 37,
+          "NOT_ESTABLISHED": 2,
+          "FAIL": 1
+        },
+        "notEstablished": [
+          "a-refused-action-is-reported-and-changes-nothing",
+          "notice-action-recovers-the-session"
+        ]
+      },
+      "profile": "e2-editor-v12",
+      "pageSha256": "9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c",
+      "servedShellSha256": "cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4",
+      "servedShellBundle": "e2/editor-shell-v2-bundle-v48.json",
+      "completedAt": "2026-09-07T01:48:32+08:00",
+      "utcDay": "2026-09-06",
+      "dayless": false,
+      "naiveTimestamp": false,
+      "mtimeUtc_OUT_OF_BAND": "2026-09-06T17:48:32.787374+00:00"
+    },
+    {
+      "report": "findings/evidence/queue-v12-cutover-soak/soak-run-02-candidate.json",
+      "clean": false,
+      "clauses": {
+        "run-ok": false,
+        "run-complete": true,
+        "reconciled-ok": true,
+        "reconciled-as-candidate": true,
+        "reconciled-profile": true,
+        "pass-count": false,
+        "ne-set-exact": true,
+        "page-sha": true,
+        "one-served-shell": true
+      },
+      "composition": {
+        "total": 40,
+        "outcomes": {
+          "PASS": 37,
+          "NOT_ESTABLISHED": 2,
+          "FAIL": 1
+        },
+        "notEstablished": [
+          "a-refused-action-is-reported-and-changes-nothing",
+          "notice-action-recovers-the-session"
+        ]
+      },
+      "profile": "e2-editor-v12",
+      "pageSha256": "9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c",
+      "servedShellSha256": "cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4",
+      "servedShellBundle": "e2/editor-shell-v2-bundle-v48.json",
+      "completedAt": "2026-09-07T01:55:35+08:00",
+      "utcDay": "2026-09-06",
+      "dayless": false,
+      "naiveTimestamp": false,
+      "mtimeUtc_OUT_OF_BAND": "2026-09-06T17:55:35.625743+00:00"
+    }
+  ],
+  "clauses": {
+    "no-unclassified-file": true,
+    "declared-non-runs-present": true,
+    "every-run-clean": false,
+    "count-reached": false,
+    "one-page-sha": true,
+    "no-naive-timestamp": true,
+    "day-spread": false
+  },
+  "ok": false,
+  "calendarDayClause": {
+    "rule": "a run's day is the UTC date of its own `completedAt`; a report without the field counts toward the twelve and contributes no day; a naive stamp is RED (plan amendment 2026-09-03)",
+    "requires": ">=3 UTC days with >=2 clean runs on each",
+    "qualifyingDays": [],
+    "runsPerUtcDay": {},
+    "daylessRuns": [],
+    "naiveTimestampRuns": [],
+    "outOfBandMtimeDays_NOT_JUDGED": [
+      "2026-09-06"
+    ]
+  }
+}

@@ -368,3 +368,42 @@ now has two runs on it, neither clean, so it contributes no qualifying day —
 the day-spread clause still needs three UTC days each with two *clean* runs,
 not merely two attempted ones. `python3 -m unittest tests.test_e2_c_shell_bundle`
 ran 12/12 green immediately before each run, per finding 090's manual rule.
+
+## R-2 corrected: `DEFAULT_SERVED_SHELL` moves to v47's digest (2026-09-07)
+
+Item A of the T2 follow-up
+(`handoff/PLAN-2026-09-06-after-the-page-moved-twice.md`, "T2 came back red;
+the schedule is stopped", R-2). Both runs above show `one-served-shell: false`
+even though `servedShell.servedSha256` is identical and stable on both
+(`cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4`): the
+judge's `DEFAULT_SERVED_SHELL` in `tools/check_soak_bank.py` pinned v48's
+`bundleSha256` (`ecfb6866…`, the shell as the tree serves it) instead of the
+digest a `--candidate-profile e2-editor-v12` run actually serves, which is by
+construction the digest of the cut-over shell — v47, the generation frozen by
+mistake in `000a57e2` and corrected (not deleted) by v48. T0's original pin
+(v45's `a46c8518…`) was wrong the same way and was never exercised before this.
+
+`DEFAULT_SERVED_SHELL` now reads v47's `bundleSha256`,
+`cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4`. Verified
+two ways: read directly from `wasm_sdk_probe/e2/editor-shell-v2-bundle-v47.json`,
+and read `servedShell.servedSha256` from both banked
+`soak-run-01-candidate.json` and `soak-run-02-candidate.json` — both equal it
+(shown above and unchanged by this correction, since only the judge's constant
+moved).
+
+Re-run after the fix (full record in `VERDICT-soak-2026-09-07-r2-correction.json`,
+banked beside the earlier `VERDICT-soak-2026-09-07.json` rather than overwriting
+it): `one-served-shell: true` on both banked runs.
+`every-run-clean` is still `false` (R-1, the product-path FAIL, untouched by
+this item) and `count-reached` is still `false`. Counting: **0 of 12**,
+unchanged — this correction removes one judge-side false negative, it does not
+manufacture a clean run. `check_soak_bank.py --self-test` still declines,
+verbatim: `RED 11's run must fail on one-served-shell and NOTHING else; other
+false clauses: ['run-ok', 'pass-count']` — the same message the self-test gave
+*before* this fix (checked by re-running it against the unmodified file), because
+the self-test's RED 11 case exercises the real bank directory, and the real
+bank's two banked runs already carry `run-ok: false` / `pass-count: false`
+from R-1, not from anything this item touched. The self-test's own synthetic
+fixtures (RED 1–10, 12) are unaffected and were not re-inspected line by line
+here; the decline is attributed to R-1's contamination of the one case that
+reads the live bank, not to a defect this correction introduced.
