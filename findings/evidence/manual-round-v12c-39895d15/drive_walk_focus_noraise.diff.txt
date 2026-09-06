@@ -1,0 +1,22 @@
+--- /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/manual-round-v12c-39895d15/drive_walk_focus.py	2026-09-06 23:39:38.748111395 +0800
++++ /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/manual-round-v12c-39895d15/drive_walk_focus_noraise.py	2026-09-07 00:27:00.665867000 +0800
+@@ -1,3 +1,10 @@
++# ARM A0, SETTING Y. Exactly one change from drive_walk_focus.py (sha256
++# 414f1245c8fd02056e52906d420c6e58bbe2046897749aa273282f7371f29813): the call
++# to raise_window() at the foot of that file's line 57 is commented out below.
++# The function definition is left in place so the diff is one line. This file
++# exists to remove a confound named in
++# handoff/tasks/TASK-2026-09-06-4b-instrument-reproduction.md section 3.1 --
++# it is a control, not new machinery, and no other line differs.
+ """4b by arrow keys, take two.
+ 
+ Take one failed for two procedural reasons, both mine and both recorded:
+@@ -54,7 +61,7 @@
+     except Exception:
+         pass
+ 
+-raise_window()
++# raise_window()  # ARM A0 SETTING Y: this call is the single difference from drive_walk_focus.py.
+ ev(P.INSTALL)
+ P.wait_for(s, lambda st: st.get("state") == "ready", 300)
+ ev("""(() => { const el = document.querySelector('#fixture');

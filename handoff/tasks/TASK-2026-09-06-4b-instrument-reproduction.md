@@ -878,3 +878,41 @@ the comparison is void — report that rather than the difference.
 ---
 
 ## Execution record
+
+### 2026-09-07 — T1b run, zero walks, blocked before Walk 1
+
+Executor: sonnet, task T1b. Full account:
+`findings/evidence/manual-round-v12c-39895d15/RESULT-4b-instrument-reproduction.md`.
+
+Consent obtained per the plan's ruling (「現在可以」, 2026-09-07), recorded in
+`findings/evidence/manual-round-v12c-39895d15/CONSENT.md` without asking again.
+The identity gate of §1.3 passed (all four checks, both before the session and
+re-checked after it), and stayed unchanged throughout. `drive_walk_focus.py`
+was copied verbatim (sha256 `414f1245c8fd02056e52906d420c6e58bbe2046897749aa273282f7371f29813`,
+matching the banked file) and `drive_walk_focus_noraise.py` was prepared for
+arm A0 setting Y (one line commented out, diff and both sha256s recorded).
+
+No walk was executed. §4.1 item 3 / §7.4's precondition -- exactly one Chrome
+process on the desktop, the walk's own -- was not satisfiable during the
+session: two pre-existing Chrome process families were present from the first
+check onward, one an apparently orphaned headless instance from an unrelated
+earlier task (`/tmp/wasm-sdk-probe-chrome-cearp5rb`, running since
+2026-09-06 20:21:55) and one consistent with the owner's own browser (bare
+`/opt/google/chrome/chrome`, default profile, no automation flags), which grew
+by two renderer processes over the session, indicating active use rather than
+an idle desktop. Per §7.4 ("wait or ask -- do not kill another agent's
+browser"), neither was killed. A single bounded wait (310 s, polling
+`pgrep -x chrome`/`pgrep -x google-chrome`) was run to its deadline
+(`exit=124`) rather than waited on indefinitely, consistent with `AGENTS.md`'s
+rule against a criterion quantified on "wait until it looks quiet." The
+executor has no synchronous channel to the owner, so it stopped and reported
+rather than proceeding against a known-failing precondition or taking an
+unauthorised action to clear it.
+
+This is not any of the six outcomes of §5 (all are defined over attempted
+walks; here none were attempted) and is not O-F (which requires five actually
+voided walks). The budget (20 walks) and calendar (2026-09-08 23:59 CST) are
+untouched. The instrument files are staged in
+`findings/evidence/manual-round-v12c-39895d15/` for the next attempt. Whether
+to close the owner's browser, and whether the orphaned headless instance is
+safe to stop, are left to the plan's main session -- not decided here.
