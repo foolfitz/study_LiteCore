@@ -916,3 +916,48 @@ untouched. The instrument files are staged in
 `findings/evidence/manual-round-v12c-39895d15/` for the next attempt. Whether
 to close the owner's browser, and whether the orphaned headless instance is
 safe to stop, are left to the plan's main session -- not decided here.
+
+### 2026-09-07 — T1b resumed, STOP-SUCCESS on the first pair (outcome O-A)
+
+Executor: sonnet, task T1b, same session, resumed on the coordinator's
+message reporting that the orphaned headless instance and a stale port-8801
+server pair (PIDs 923743/923744) had been terminated by the main session, and
+that the owner was being asked to close their own browser. Full account:
+`findings/evidence/manual-round-v12c-39895d15/RESULT-4b-instrument-reproduction.md`
+(rewritten; the prior entry above is preserved as the session's first,
+blocked attempt and was not edited).
+
+On the next check, `pgrep -x chrome` and `pgrep -x google-chrome` both
+returned empty -- the owner's browser was gone. The identity gate (§1.3) was
+re-run and matched on all four checks. Arm A0 setting X (the banked
+`drive_walk_focus.py`, unmodified) was run twice, `a0-raise-1` and
+`a0-raise-2`, each preceded by a check that exactly one top-level Chrome
+process (filtering `--type=` children) existed before launch. Both walks:
+10 rows in order (`a11y-node-0`..`a11y-node-9`), `focusHeldEveryStop: true`,
+`announced == 10`, `attachUtterances == 2`, no foreign speech line in either
+bounded slice -- both VALID, neither a V5. **The criterion of §2.2 is met at
+n = 10.** STOP-SUCCESS fired per §6: no other setting or arm was run --
+`drive_walk_focus_noraise.py` (staged for A0 setting Y) was never executed,
+and arms A1-A3 were never attempted.
+
+Per-paragraph counts in both walks show `這一行是普通內文` at 2 while every
+other paragraph is at 1 -- the heading-boundary residue named in §8.3,
+reproducing on the candidate page. **Outcome: O-A.** Settled configuration:
+arm A0, setting X, instrument sha256
+`414f1245c8fd02056e52906d420c6e58bbe2046897749aa273282f7371f29813`, Orca
+started before Chrome, a fresh Orca and a fresh Chrome process (fresh
+`--user-data-dir`) per walk, one tab, no reuse. Environment voids this
+resumption: 0. **T1c (§8) was not run** -- per the task brief, that decision
+belongs to the main session.
+
+Cleanup: this executor's own per-walk `/tmp` directories and candidate-page
+server mirror were removed after use, along with the (by-then-already-gone)
+`/tmp/wasm-sdk-probe-chrome-cearp5rb`. Three `/tmp/candidate-round-*`
+directories dated 2026-09-06 evening, predating this task's dispatch, were
+left untouched: this executor could not verify which one (if any) was the
+port-8801 server's root named in the coordinator's message -- the owning
+process had already exited, no trace in `/tmp` ties any of the three to that
+port, and one of them mirrors the reverted v46 page (matching
+`orca-v46-9b29e39b.log` in the banked v12b evidence), which this executor was
+not willing to guess-delete. Reported rather than resolved, per the
+instruction to touch nothing else in `/tmp`.
