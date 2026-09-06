@@ -86,3 +86,111 @@ same held record passes all eight terms
 **Landing it moves `web/e2-editor-app.js`, so `pageSha256` moves, and the ten
 banked soak runs are void.** That is the whole of the cost and it is not the
 drafting party's to weigh.
+
+---
+
+# The fix, the owner's second finding, and one attempt that is NOT established
+
+## The fix works: 18 utterances became 10
+
+Landed as v45 (`94edc4d9`, page `39895d15…`), re-walked, counted per paragraph:
+
+| paragraph | before | after |
+|---|---:|---:|
+| 第一層標題 | 1 | 1 |
+| 這一行是普通內文 | **2** | **1** |
+| 第二層標題 | 1 | 1 |
+| 那一行也是內文… | **2** | **1** |
+| • 清單第一項 | **2** | **1** |
+| • 清單第二項 | **2** | **1** |
+| 夾在中間的… | **2** | **1** |
+| 1. 編號第一項 | **2** | **1** |
+| 2. 編號第二項 | **2** | **1** |
+| 最後一行 | **2** | **1** |
+| **total** | **18** | **10** |
+
+`heading 1` and `heading 2` still announced; `List with 2 items` on entering
+each list and `leaving list` on leaving, once per list. **The owner confirmed by
+ear: 「內文重複部份正常了」.** Evidence: `orca-AFTER-THE-FIX.log`,
+`4b-walk-after-fix.json`.
+
+## The owner's second finding was the instrument, and the instrument said so
+
+> 「兩種清單，第一項還沒唸完好像就開始第二項了？」
+
+The log gave the answer without another product change. Gaps between
+announcements were a constant **5.80–5.82 s** — `drive_arrow_walk.py`'s
+`time.sleep(5)`. And a list is the only place where **two** utterances are
+queued in the same instant:
+
+```
+23:06:46.782  List with 2 items
+23:06:46.782  • 清單開始了 這裡應該被唸成項目清單的第一項.
+23:06:52.583  • 接下來這一項應該被唸成項目清單的第二項.
+```
+
+The container announcement plus ~20 Chinese characters does not fit in 5.8 s;
+everywhere else only one utterance shares the window. **Re-walked at an
+11-second dwell** (`drive_walk_slow.py`, the one-line variant): gaps 11.8 s, both
+lists' first items complete, and the owner confirmed 「感覺正常了」.
+`orca-AFTER-THE-FIX-slow-dwell.log`.
+
+So the truncation was **the harness's pacing, not the product** — this tree's
+own recurring lesson, this time with the harness making the product sound worse
+than it is.
+
+## One residual, found in the slow log
+
+At the **second heading** the live region still held the *previous* paragraph's
+text and Orca spoke it:
+
+```
+23:10:32  這一行應該被唸成第二層標題
+23:10:32  heading 2
+23:10:32  這一行是普通內文        <- the paragraph before it
+```
+
+Counted over the slow walk: 8 of 10 paragraphs exactly once,
+`這一行是普通內文` **twice**. The walk records the cause: `a11y-node-2` is the
+only stop in the whole walk where `#a11y-para` is non-empty. The two channels
+are fed by different engine fields (`caretParagraph`, `documentOutline`) and do
+not advance together across a heading boundary; v45 silences the live region
+only when the two **agree**, so a one-snapshot disagreement is let out loud, and
+what it says is the older of the two.
+
+## The attempt to fix it, and why it is NOT established
+
+Tried: silence the live region whenever the structure channel has a focused node
+at all, rather than when the texts match. Built as v46 (`df5f3b6c`, page
+`9b29e39b…`). The walk on it produced **no document speech at all** — 12
+utterances after Orca attached, none of them a paragraph.
+
+The page itself was in the intended state, read live over CDP:
+`liveText: ""`, `deferredToStructure: "1"`, `activedescendant: a11y-node-9`,
+`activeElement: sink`, structure projected with 10 paragraphs. So the code did
+what it was written to do.
+
+**v46 was reverted, uncommitted; nothing shipped.** But the reason it was
+reverted is weaker than it looked, and saying so is the point of this section:
+
+**The control does not establish it.** After reverting, the same walk on v45
+announced 4 paragraphs — 第一層標題, 這一行是普通內文, 第二層標題 + `heading 2`,
+那一行也是內文 — each exactly once, and then at 23:21:58 Orca announced
+`study_LiteCore : claude — Konsole`: **window focus moved to the terminal
+driving the walk**, and the remaining six paragraphs were driven into a window
+that no longer had it. That is the exact confound `CONSENT.md` records from the
+owner's own hand-driven attempts.
+
+So of the two runs being compared, one is silent and the other is cut off at
+paragraph 4 — **and both sessions lost focus to the terminal.** "v46 makes the
+product silent for a screen reader" is a hypothesis with one run behind it and a
+control that did not survive long enough to refute it.
+
+**What is registered, then:**
+
+* v45 is the shipping state, and it is the state the owner confirmed by ear.
+* The heading-boundary residual is **open**, with its mechanism measured
+  (`a11y-node-2` is the only non-empty live region across three walks).
+* Whether v46's rule causes silence is **NOT ESTABLISHED**. Settling it needs a
+  walk in which the browser keeps focus for all ten paragraphs — which no run
+  tonight achieved on either version.
