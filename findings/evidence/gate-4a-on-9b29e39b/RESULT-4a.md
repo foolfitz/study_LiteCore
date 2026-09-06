@@ -92,3 +92,72 @@ Not re-derived here, per the 2026-09-06 take's own note: the corrected judge's
 red cases were exhibited before it landed, over held records, in
 `../gate-4a-reading-rule/`. This directory is what the seven terms say about
 this page.
+
+## Term 6 re-anchored, and measured on `9b29e39b…` for the first time (2026-09-07)
+
+Item B of the T2 follow-up (`handoff/PLAN-2026-09-06-after-the-page-moved-twice.md`,
+"T2 came back red; the schedule is stopped", R-3). The mutation's `find`
+pattern in `tools/run_e2_c_product_path.py`'s `MUTATIONS["projection-not-wired"]`
+was re-anchored from the pre-v46 call site
+(`  projectFocusedParagraph(snapshot);\n`, 0 occurrences in the current
+`dist/e2-editor-app.js`) to the current one
+(`  projectFocusedParagraph(snapshot, structureSpeaks);\n`, exactly one
+occurrence) — the v45 hunk (`78f1cb3a`, finding 088's residue fix) gave the
+function a second parameter and changed the call site to pass it; the v46 hunk
+(`000a57e2`/`2d319677`) did not touch this line again. Same "check" and
+"reintroduces" fields: deleting the call still un-wires the live-region
+projection entirely, which is the same semantic mutation the pre-088 pattern
+expressed.
+
+Static proof first: `python3 -m unittest tests.test_product_path_mutations`
+(10 tests, including `test_every_mutation_matches_its_target_exactly_once`)
+passes on the re-anchored table.
+
+Then the red case, run for real on the candidate path:
+
+```
+python3 tools/run_e2_c_product_path.py --browser chrome \
+    --candidate-profile e2-editor-v12 --mutate projection-not-wired \
+    --out term-6-mutation-projection-not-wired.json
+```
+
+`complete: true`, `ok: true` (the run-level flag; it does not mean every check
+passed — see below), 40 checks. Composition: **37 PASS / 2 NOT_ESTABLISHED
+(`notice-action-recovers-the-session`, `a-refused-action-is-reported-and-changes-nothing`,
+the same two the soak bank already expects) / 1 FAIL**, and the FAIL is
+exactly `the-document-region-says-why-it-is-empty` — `mustGoRed` in
+`mutationDetail` — and nothing else. This mutation reddens exactly the
+projection term and no other term, on the first run against this page.
+
+**Restoration verified by sha256, not assumed**: `web/e2-editor-app.js` and
+`dist/e2-editor-app.js` are both `df5f3b6c7dde0b2eb463733975763ba70a5000f8f1345442d59109b153f85143`
+after the run — unchanged from before it — because `apply_mutation` builds the
+mutated copy in a scratch mirror and never writes `dist/` itself. This
+mutation record is stamped (`term-6-mutation-projection-not-wired.json`,
+labelled by its own `mutation` field) and is **not** banked into
+`queue-v12-cutover-soak/`: it is evidence that the check can go red, not a
+counted run.
+
+**Re-run of `check_4a.py` for the full eight terms**, existing three candidate
+runs (`candidate-v12-run{1,2,3}.json`) and the existing control
+(`control-v8.json`) unchanged, output
+`verdict-4a-2026-09-07-r3-recheck.json`: terms 1, 2, 3, 4, 5, 7, 8 all
+`"ok": true`, identical to the verdict above — this re-anchor touched no
+product file, so nothing about those seven terms could move. **Term 6 is
+measured on `9b29e39b…` for the first time tonight** (it could not be applied
+at all in the take above) and is now MET: the mutation reddens the check it
+targets and nothing else.
+
+`make test-e2-c-static` (run from `wasm_sdk_probe/`): **exit 0**. This is the
+same target that exited 2 on the committed tree before this fix
+(`AssertionError: 0 != 1 : projection-not-wired expects one occurrence of its
+pattern in dist/e2-editor-app.js and found 0`, recorded in
+`../queue-v12-cutover-revert-rehearsal/RESULT-2026-09-07-revert-condition-3-discharged-on-9b29e39b.md`).
+
+**Not resolved by this item, and not this item's role to resolve**: the
+mutation's target check, `the-document-region-says-why-it-is-empty`, is the
+same check that FAILed unmutated on soak runs 1 and 2 (R-1, recorded above and
+in `../queue-v12-cutover-soak/RUNS.md`). This item only re-earns the
+mutation's ability to prove the check CAN go red; it says nothing about
+whether the check's oracle is the right one to hold open the gate on an
+unmutated run. See finding 092.

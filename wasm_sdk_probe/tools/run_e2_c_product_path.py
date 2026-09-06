@@ -1823,7 +1823,18 @@ MUTATIONS = {
     "projection-not-wired": {
         "check": "the-document-region-says-why-it-is-empty",
         "path": "e2-editor-app.js",
-        "find": "  projectFocusedParagraph(snapshot);\n",
+        # RE-ANCHORED 2026-09-07 (R-3, T2 follow-up).  The v45 hunk (78f1cb3a,
+        # finding 088's residue fix) gave `projectFocusedParagraph` a second
+        # parameter and made the call site read what `projectStructure` just
+        # decided, so the pre-088 single-argument call this pattern matched
+        # (`projectFocusedParagraph(snapshot);`) stopped existing -- 0
+        # occurrences in `dist/e2-editor-app.js`, `gate-4a-on-9b29e39b/
+        # RESULT-4a.md` term 6. Same semantic mutation, same "check" and
+        # "reintroduces": deleting this line un-wires the live-region
+        # projection entirely (it is still called with the up-to-date
+        # `structureSpeaks`, so removing the call, not editing its argument,
+        # is what reproduces "wired" vs "not wired").
+        "find": "  projectFocusedParagraph(snapshot, structureSpeaks);\n",
         "replace": "",
         "reintroduces": "a document region that is silently empty instead of "
                         "saying why it has nothing",
