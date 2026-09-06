@@ -179,3 +179,50 @@ committed before the work it governs.
   fable main session's own pre-read (fable ≠ opus); a second opus seat would be
   the same line as the author. The protocol must carry its own red case
   (`AGENTS.md` §6); a wrong protocol costs at most D1's budget.
+
+---
+
+## T1a landed, and what it corrected (2026-09-07, append-only)
+
+`handoff/tasks/TASK-2026-09-06-4b-instrument-reproduction.md` (commit
+`ad1c3501`) passed the fable pre-read (D3's second model line). Two statements
+above are corrected by it, and the corrections are recorded here rather than
+edited in:
+
+- "Raising the window before every press makes it worse" (the handoff, and the
+  T1a brief above) overstates the banked numbers: raise-every-press and
+  raise-once both announced 1; the separation is **raise at all (1, 1) vs no
+  raise at all (10, 10)**, and the two 10-count walks were driven by a different
+  script. The protocol adds arm A0 for that confound, under `AGENTS.md` §9's
+  four conditions.
+- "Nothing compares `web/` with `dist/`" (Parked, finding 090) is too broad:
+  `problems()` in `build_e2_c_shell_bundle.py` compares source and dist hashes
+  for every bound path and `tests/test_e2_c_shell_bundle.py` runs it. What 090
+  still owes is the guard **with the runner**. The protocol uses the existing
+  test as its shell gate and builds nothing.
+
+### Consent for the T1b walks, ruled by the main session
+
+The owner was asked (2026-09-07, by the main session) for a window in which the
+desktop is not in use, with the purpose stated: the sonnet executor runs the
+protocol on the desktop, Orca narrates, keys are sent to the browser window,
+and anything the owner types voids the walk. The owner's reply, verbatim:
+「現在可以」. The main session rules that this is the consent §1.4 of the
+protocol asks for — given for this page (`39895d15…`, the protocol's only
+object) and this purpose (instrument-reproduction walks; not condition 3, not
+4b's judgement half) — and the executor records it verbatim in
+`manual-round-v12c-39895d15/CONSENT.md` instead of asking again.
+
+### T1b — run the protocol (sonnet, main tree, desktop)
+
+1. Execute `TASK-2026-09-06-4b-instrument-reproduction.md` as written; the
+   structure rule and role in its header bind you.
+2. Consent: write `CONSENT.md` from the paragraph above; do not ask again.
+3. Stop rules are the protocol's; STOP-SUCCESS ends the run at the first pair
+   meeting §2.2 at n ≥ 2. Do **not** run T1c (§8) — the main session decides.
+4. One commit at the end (evidence directory + the appended Execution record),
+   zh-TW subject, `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`,
+   no session line.
+5. Report `## SUMMARY` ≤ 30 lines: identity gate before/after, one row per
+   walk (arm, setting, `focusHeldEveryStop`, `announced`, `文件內容` count,
+   valid/void), the outcome letter of §5, the settled configuration if any.
