@@ -48,3 +48,23 @@ It matters here. In the shipped → candidate direction the toast is
 hint has already replaced the open notice by the time the probe reads it. A
 check written against the toast would have been ambiguous. `doc:
 "from-shipped.odt"` is unambiguous, and it is what the report is judged on.
+
+---
+
+## Correction: the take this supersedes is 2026-09-03 on v12, not 2026-08-28 on v11
+
+The opening paragraph says this condition was last satisfied "on the unsplit
+`e2-editor-v11`" and points at
+`../queue-v11-cutover-soak-not-started/RESULT-2026-08-28-…`. There is a nearer
+one: `../queue-v12-cutover-revert/RESULT-2026-09-03-the-saved-odt-crosses-both-ways-on-v12.md`,
+with `odt-round-trip-v12.json` beside it, which took this on `e2-editor-v12` and
+page `3dfdcfef4abfe6b7…`.
+
+The re-take itself stands unchanged: `3dfdcfef…` is the page the human round of
+2026-09-04 moved, so the condition still had to be re-earned on `20f09cc9…`, and
+the 2026-08-28 take is still the origin of the criterion's shape. What was wrong
+is only the citation — I named the take two removes back as though it were the
+one immediately before.
+
+Found by the adjudication of finding 091 (ruling E-6). Both v11 and v12 prior
+takes are left where they are, unedited.

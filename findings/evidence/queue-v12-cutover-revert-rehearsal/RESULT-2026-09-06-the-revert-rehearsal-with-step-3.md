@@ -98,3 +98,33 @@ the revert has a declared state to land in — and whether doing that mid-count
 disturbs anything the soak is judged on. That is a change to the tree's declared
 identity while a gate is counting against it, and it is **not the drafting
 party's call**. Registered in finding 091 and in the plan; not done.
+
+---
+
+## Correction, same day: step 3 had already been rehearsed, and something did guard the mismatch
+
+Both errors were found by the adjudication of finding 091 (ruling E-6) and
+verified against the tree before being recorded here.
+
+**Step 3 was rehearsed on 2026-09-03, not for the first time here.**
+`../queue-v12-cutover-revert/RESULT-2026-09-03-step-3-rehearsed.md` performed
+the full cutover and revert on `e2-editor-v12`, with and without step 3, and its
+post-revert run reconciled `true` on page `28e03e5b…`. The quotation from W-5 at
+the top of this file — *"has not itself been rehearsed"* — was already stale
+when this take was made; it was copied from the plan without checking whether
+the tree had answered it. What this take adds is the same procedure on the page
+the ten banked soak runs measure (`20f09cc9…`), which the page move of
+2026-09-04 required, **plus the failure the 2026-09-03 take could not have
+produced**: on 2026-09-03 `dist/` still held `28e03e5b…` and matched v43, so its
+revert landed in a declared state.
+
+**"The first plain shipped-page run since the 087/088 fixes landed" is true and
+misleading.** `tests/test_e2_c_shell_bundle.py::test_the_real_manifest_matches_the_real_tree`
+guards exactly this and had been red since 087's fix; it was never run. So the
+section "Why nothing caught it until now" names the right blind spot for the
+*runs* and the wrong one for the *tree*: something guarded it, and nobody ran
+the guard. Ruling E-3 makes running it part of the acceptance, which is the
+prescription that follows from the corrected reading and not from the original
+one.
+
+Both corrections are recorded in `findings/091-*.md` with the measurements.
