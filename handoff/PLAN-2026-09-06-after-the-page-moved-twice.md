@@ -392,3 +392,53 @@ reading. A red is reported with its payload, not fixed.
    E-3; the rehearsal must leave the tree exactly as it found it.
 7. Commits: one per item, zh-TW subjects. Report `## SUMMARY` ≤ 30 lines with
    each judge's verdict line verbatim.
+
+---
+
+## T3 — the soak, scheduled to run unattended (2026-09-07 01:50 CST, append-only)
+
+The owner is asleep and asked the main session to continue on its own
+(「這輪任務完成之後，你可以繼續自主執行下去嗎」). The soak's calendar
+clause needs >= 12 clean runs across >= 3 UTC days with >= 2 on each; T2 banks
+runs 1–2 on UTC 2026-09-06 (which ends 08:00 CST 2026-09-07). The rest are
+scheduled as one-shot wake-ups of this session (they die with the session, so
+the terminal stays open and the machine must not suspend):
+
+| wake (CST) | UTC day | runs | target bank |
+|---|---|---|---|
+| 2026-09-07 08:17 | 09-07 | 3 | 5 |
+| 2026-09-07 15:47 | 09-07 | 2 | 7 |
+| 2026-09-08 08:17 | 09-08 | 3 | 10 |
+| 2026-09-08 15:47 | 09-08 | 2 | 12 |
+
+Two sessions per UTC day rather than one, because the three-day spread exists
+for defects that depend on machine state and elapsed time.
+
+Each wake: the main session checks T2's report and the bank
+(`check_soak_bank.py`), dispatches **one sonnet agent** for that session's
+runs (shell bundle test before every run; the runner with
+`--candidate-profile e2-editor-v12`; `check_usable_editor.py`; banked per
+`RUNS.md`; committed), reads its `## SUMMARY`, and appends the bank's verdict
+line here.
+
+**FAIL policy, decided now.** Any FAIL, extra NE, or different NE id is banked
+and restarts the count — the criterion, not an exception. A sonnet agent
+drafts the finding from the run's payload. Then:
+
+- if the failing id is the **known intermittent** the gate document already
+  names (`clear-format-removes-every-inline-format` abstaining), the count
+  resumes at the next scheduled session and the schedule is extended by the
+  runs lost;
+- **anything else stops the schedule.** The main session writes a handoff for
+  the owner and does not decide a fix, because a fix moves the page.
+
+A red from T2 on 4a, condition 2, the round trip or revert condition 3 also
+stops the schedule: no soak run is taken on a page whose other conditions are
+red, since the fix would void it.
+
+**What the main session will not do unattended:** T4 (the owner's six cells
+and 4b's judgement half) and the cutover itself. When the bank reaches 12
+clean across >= 3 UTC days, it writes
+`handoff/HANDOFF-<date>-soak-closed-only-T4-remains.md` and stops.
+
+### T3 ledger (append one line per session)
