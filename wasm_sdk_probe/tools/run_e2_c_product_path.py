@@ -1867,6 +1867,67 @@ MUTATIONS = {
                         "saying why it has nothing",
         "alsoRed": [],
     },
+    # THE TWO RED CASES THE 2026-09-07 AMENDMENT OWES, written before the
+    # predicate they test was widened (`handoff/
+    # PLAN-2026-08-28-the-v11-cutover-horizon.md`, "the region check verifies
+    # the claim, not the node").  The check now accepts a SECOND source for
+    # "there is something to read" -- the structure channel's active descendant
+    # -- and a widening nobody can make fail is indistinguishable from a check
+    # that was switched off (§6).
+    #
+    # BOTH NEED THE STRUCTURE CHANNEL TO BE SPEAKING when the check runs, which
+    # is the state finding 092 measured on 6 of 6 candidate runs and 0 of 6 on
+    # the shipped profile.  `requiresFlag` says so rather than leaving a runner
+    # on the shipped page to report "the product survived it", which is what a
+    # DEAD mutation reports.
+    "structure-names-nothing-while-the-region-defers": {
+        "check": "the-document-region-says-why-it-is-empty",
+        "path": "e2-editor-app.js",
+        "requiresFlag": "--candidate-profile",
+        # The projection is still built, the focused node still gets its id and
+        # its text, and `projectStructure` still RETURNS that text -- so the
+        # live region still defers and stays empty (`doubled` is unchanged).
+        # What is removed is the only thing that names the node to an AT.  Both
+        # channels are then silent: the region because it deferred, the
+        # structure because nothing points at it.
+        "find": '    if (el.sink.getAttribute("aria-activedescendant") !== focusedId)\n'
+                '      el.sink.setAttribute("aria-activedescendant", focusedId);\n',
+        "replace": '    if (el.sink.getAttribute("aria-activedescendant") !== focusedId)\n'
+                   '      el.sink.removeAttribute("aria-activedescendant");\n',
+        "reintroduces": "a caret path where the live region has deferred to a "
+                        "structure channel that names nothing, so a screen "
+                        "reader is handed silence on both channels",
+        # NOT YET MEASURED.  T5b's run establishes the radius; if anything else
+        # reddens, this list is corrected from that run and not from reasoning
+        # -- the correction `format-ignores-a-selection` records above.  The
+        # expectation being tested is that it reddens THIS check and nothing
+        # else: no other check in this runner reads `aria-activedescendant` or
+        # `#a11y-structure`.
+        "alsoRed": [],
+    },
+    "the-region-defers-with-a-reason-it-owed-the-user": {
+        "check": "the-document-region-says-why-it-is-empty",
+        "path": "e2-editor-app.js",
+        "requiresFlag": "--candidate-profile",
+        # Deferral while the page's OWN reading of the caret paragraph is
+        # stale: the region falls silent and reports `stale`, a code it can
+        # produce and one that is consistent with `offers == "1"`, while the
+        # structure text is non-empty.  Every other clause is satisfied -- the
+        # disjunction included -- so only the legitimacy implication can catch
+        # this, which is what makes it that clause's red case rather than a
+        # second copy of `projection-not-wired`.
+        #
+        # The user-visible defect reintroduced: 「尚未讀到游標所在的段落。」 is a
+        # sentence the user needed, and the page lets the other channel's
+        # silence stand in for it.
+        "find": "  el.a11yPara.dataset.reason = reason;\n",
+        "replace": '  el.a11yPara.dataset.reason = doubled ? "stale" : reason;\n',
+        "reintroduces": "a page that defers to the structure channel while its "
+                        "own reason says it had something else to say, so the "
+                        "sentence naming the cause is never spoken",
+        # NOT YET MEASURED -- same rule as above.
+        "alsoRed": [],
+    },
     "cut-swallows-the-refusal": {
         "check": "a-refused-action-is-reported-and-changes-nothing",
         "path": "e2-editor-app.js",
