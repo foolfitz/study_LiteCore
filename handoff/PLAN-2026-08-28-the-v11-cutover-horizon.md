@@ -1632,3 +1632,36 @@ confirmation against the +24.5 MiB.**
 
 *Count semantics: revert conditions are not the clean-run predicate. The soak
 count is untouched.*
+
+## The owner's confirmation against +24.5 MiB is given (2026-09-06)
+
+**The owner's words, verbatim: 「+24.5 MiB => 同意」.** Given against the figure
+and the decomposition table at lines 148-156 — `+24.5 MiB (+15.2%)` of total
+bytes, and the separate, larger `+71.4 MB (+44%)` of *bytes required before the
+editor is usable*, which finding 085 established is the number that describes
+this SDK because nothing is loaded on demand.
+
+**R5's paragraph needs correcting before it is quoted into the cutover record,
+and the correction is in the owner's favour.** R5 was written on 2026-09-03 and
+says `documentOutline` *"is **not announced on the caret path** — a user
+arrowing through the document hears the heading as bare text (finding 087)"*.
+**Finding 087 was fixed on 2026-09-05** (`681a22b0`: `aria-activedescendant`
+from the sink into the roled structure region), and 4a term 8 — added by the
+2026-09-05 amendment for exactly this — passes on the current page, with the
+heading placement's focused node carrying `role: heading` and the fixture's
+level. So what the +24.5 MiB buys is now more than R5 describes.
+
+**What is still blank.** R5 requires the record to end with one of two
+sentences. The applicable one is *"Fixed before cutover: `<mechanism>`, measured
+`<log>`; all identity-bound evidence re-earned on page `<sha>`"*, and its
+`<log>` must be a screen-reader log **on page `20f09cc9…`**. Every Orca log this
+tree holds was taken on `3dfdcfef…` or earlier, which the human round of
+2026-09-04 moved. The manual round now beginning produces that log; until it
+does, the confirmation is given and the record is incomplete, and those are two
+different states.
+
+**Re-earn list**: the owner's confirmation is given. **Still owed: the human
+manual round with 4b** — which is also what completes this record.
+
+*Count semantics: the clean-run predicate is untouched; the soak count does not
+restart.*
