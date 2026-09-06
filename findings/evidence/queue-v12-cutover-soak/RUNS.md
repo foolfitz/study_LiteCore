@@ -286,3 +286,85 @@ v48's `bundleSha256` above.
 diagnostics before this correction (the 2026-09-06 void above) and holds zero
 after it — there was nothing on the mistaken v47 shell to void. Counting: **0
 of 12**, unchanged.
+
+## Re-taken on `9b29e39b…` / v48 — runs 1 and 2, both banked, both FAIL (2026-09-07)
+
+Task T2 of `handoff/PLAN-2026-09-06-after-the-page-moved-twice.md`. Same
+command as "The soak — the gate itself" above, `--candidate-profile
+e2-editor-v12`, `--out` into this directory:
+
+```
+python3 tools/run_e2_c_product_path.py --browser chrome \
+    --candidate-profile e2-editor-v12 --out soak-run-01-candidate.json
+python3 tools/check_usable_editor.py --report soak-run-01-candidate.json
+```
+
+(and the same for run 2). Both banked exactly as measured — the rule this file
+already states: *"A FAIL … is a result: bank it, record it, do not re-run to
+'get a clean one'."*
+
+| run | completedAt (local) | UTC day | composition | run `ok` |
+|---|---|---|---|---|
+| `soak-run-01-candidate.json` | 2026-09-07T01:48:32+08:00 | 2026-09-06 | 37 PASS / 2 NE / 1 FAIL | **false** |
+| `soak-run-02-candidate.json` | 2026-09-07T01:55:35+08:00 | 2026-09-06 | 37 PASS / 2 NE / 1 FAIL | **false** |
+
+`check_usable_editor.py --report` still reconciles `ok: true`,
+`reconciledFor.kind == "candidate-cutover"` on both — the failing check below is
+not one of its sixteen tracked capabilities, so its reconciliation alone would
+have looked clean. The bank's own clean-run predicate (raw `ok`, `complete`,
+composition, `one-served-shell`) is what catches it.
+
+**Two independent red signals, identical on both runs — recorded, not fixed
+(this task's role is gate operation, not repair):**
+
+1. **A real product check FAILed, same id both times:**
+   `the-document-region-says-why-it-is-empty`, payload identical on both runs:
+   ```
+   "observed": {"present": true, "text": "", "reason": "paragraph", "offers": "1"}
+   ```
+   The oracle: *"the accessibility region always carries something to read: the
+   focused paragraph on a profile that offers one … Empty is the failure."*
+   `offers: "1"` means this profile claims to supply paragraph text;
+   `reason: "paragraph"` names the cause as paragraph text, yet the region held
+   none. This is the exact check that gate condition 4a's term-6 mutation
+   (`--mutate projection-not-wired`) is designed to redden — here it reddened
+   on an **unmutated** run, 2 of 2. Not filed as a numbered finding by this
+   task; recorded for whoever picks up the queue next.
+
+2. **`one-served-shell` is false on both runs, and it is structural, not a
+   flake.** `check_soak_bank.py`'s `DEFAULT_SERVED_SHELL` is v48's declared
+   `bundleSha256` (`ecfb6866117673c21a7c21995f7ea76fe60beb9f94a73c222053a18cc573a6ef`).
+   A `--candidate-profile e2-editor-v12` run's `servedShell.servedSha256` is
+   computed over the tree's current bound files with the entrypoint replaced by
+   the candidate's own repointed page — and v47 and v48 (the T1d correction)
+   differ from each other in **only** that entrypoint file. So a
+   candidate-cutover run's served digest is, by construction, v47's
+   `bundleSha256` — measured on both runs as exactly
+   `cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4`
+   (`distinctServedShellSha256` confirms one value, matching v47's frozen
+   record). This will reproduce on every future candidate-cutover run against
+   the current tree; it is not run-to-run variance. Whether `DEFAULT_SERVED_SHELL`
+   should instead pin v47's value for candidate runs, or the clause needs a
+   different read for `candidateCutover` reports, is a judgement call this
+   role does not make.
+
+`check_soak_bank.py`'s verdict, verbatim (run-list omitted, shown in the table
+above; full record in `VERDICT-soak-2026-09-07.json`):
+
+```json
+"cleanRuns": 0, "totalRuns": 2,
+"distinctPageSha256": ["9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c"],
+"distinctServedShellSha256": ["cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4"],
+"servedShellBundlesSeen": ["e2/editor-shell-v2-bundle-v48.json"],
+"clauses": {"no-unclassified-file": true, "declared-non-runs-present": true,
+            "every-run-clean": false, "count-reached": false,
+            "one-page-sha": true, "no-naive-timestamp": true,
+            "day-spread": false},
+"ok": false
+```
+
+Counting: **0 of 12**, unchanged (it was already 0 of 12). UTC day 2026-09-06
+now has two runs on it, neither clean, so it contributes no qualifying day —
+the day-spread clause still needs three UTC days each with two *clean* runs,
+not merely two attempted ones. `python3 -m unittest tests.test_e2_c_shell_bundle`
+ran 12/12 green immediately before each run, per finding 090's manual rule.
