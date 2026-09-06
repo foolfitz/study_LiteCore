@@ -31,12 +31,21 @@ import { createDocumentEngine } from "./sdk/document-sdk.js";
 
 const params = new URLSearchParams(location.search);
 const profile = params.get("profile") || "e2-editor-v12";
+// The SDK's own `open` timeout, overridable so that "did not finish in 180 s"
+// can be told apart from "does not finish".  Default unchanged, so every
+// existing report and every re-run of one means exactly what it meant before.
+const OPEN_TIMEOUT_MS = Number.parseInt(
+  params.get("openTimeoutMs") || "180000", 10);
 const NS = "__odsProbe";
 
 const report = {
   schemaVersion: 1,
   release: "m4-ods-decisive",
   profile,
+  // IN THE REPORT, because a TIMEOUT row means nothing without it: a reader
+  // cannot otherwise tell "did not finish in 180 s" from "did not finish in
+  // 1800 s", and those are different claims about the same file.
+  openTimeoutMs: OPEN_TIMEOUT_MS,
   nameSpoofed: true,
   evidenceClass: "diagnostic",
   why: "finding 013: the public open() rejects by extension before content "
@@ -162,7 +171,7 @@ async function runCase(spec) {
     entry.inputSha256 = await sha256Hex(new Uint8Array(bytes));
 
     handle = await engine.open(bytes.slice(0), {
-      name: entry.handedOverAs, transfer: true, timeoutMs: 180000,
+      name: entry.handedOverAs, transfer: true, timeoutMs: OPEN_TIMEOUT_MS,
     });
     entry.opened = {
       atMs: Math.round(performance.now() - started),

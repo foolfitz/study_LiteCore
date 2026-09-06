@@ -106,6 +106,12 @@ def main() -> int:
                         help="with --corpus, keep only entries whose path "
                              "starts with this prefix (e.g. 'ladder/')")
     parser.add_argument("--timeout", type=float, default=600)
+    parser.add_argument("--open-timeout-ms", type=int, default=180000,
+                        help="the SDK's own `open` timeout, which is what a "
+                             "TIMEOUT row reports. Raise it to tell 'did not "
+                             "finish in 180 s' apart from 'does not finish'. "
+                             "--timeout must exceed it or the run is cut off "
+                             "before the open is")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
 
@@ -195,7 +201,8 @@ def main() -> int:
     try:
         port, server = serve(root)
         session = ChromeSession("cold")
-        query = "?profile=" + args.profile
+        query = ("?profile=" + args.profile
+                 + "&openTimeoutMs=" + str(args.open_timeout_ms))
         navigate(session, f"http://127.0.0.1:{port}/ods-decisive-probe.html"
                           + query)
         # POLL A SUMMARY, FETCH THE BODY IN SLICES.
