@@ -121,3 +121,33 @@ against `web/` before the run and was already the same bytes
 
 UTC day 2026-09-04 now carries **2 runs** and satisfies the ≥2 clause. Two UTC
 days remain to be earned, and ten runs.
+
+### Runs 3–10 on `20f09cc9…` — 2026-09-06 18:27–19:16 CST (UTC day **2026-09-06**)
+
+`soak-run-03-candidate.json` … `soak-run-10-candidate.json`, eight runs taken
+back to back by one script, each ~6m07s. Every one: 40 checks, `ok: true`,
+`complete: true`, `pageSha256: 20f09cc9…`, and the two standing NOT_ESTABLISHED
+sentinels with nothing else in the set. `dist/e2-editor-app.js` was compared
+against `web/e2-editor-app.js` before the batch and was the same bytes
+(`5aeae0e1…`), per finding 090.
+
+Bank state after these: **10 clean of 12**, one page sha, no dayless run, no
+naive stamp. Qualifying UTC days: `2026-09-04` (2 runs) and `2026-09-06`
+(8 runs). `count-reached` and `day-spread` are the only false clauses.
+
+**Correction, and it costs a day.** The note under run 1 said the earliest close
+is **2026-09-06 UTC**, on the assumption of ≥2 runs on each of 09-04, 09-05 and
+09-06. **UTC 2026-09-05 passed with zero runs.** Nothing was measured on it and
+nothing can be added to it; a UTC day that ends is not re-openable. So the
+earliest close is **2026-09-07 UTC**, and it needs ≥2 clean runs on that day.
+The 2026-09-06 sentence stands where it is per the append-only rule; this is
+what supersedes it.
+
+What that day cost is exactly one thing — the calendar — and nothing else. No
+criterion moved, no run was voided, and the count did not restart. The gap is
+recorded here rather than left to be inferred from a hole in `runsPerUtcDay`,
+because a reader who found that hole later could not tell an unmeasured day from
+a day whose runs were dropped.
+
+**Remaining: two clean runs on UTC 2026-09-07** (Taipei 2026-09-07 08:00 →
+2026-09-08 08:00), which closes both `count-reached` and `day-spread` together.
