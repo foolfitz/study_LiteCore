@@ -407,3 +407,87 @@ from R-1, not from anything this item touched. The self-test's own synthetic
 fixtures (RED 1–10, 12) are unaffected and were not re-inspected line by line
 here; the decline is attributed to R-1's contamination of the one case that
 reads the live bank, not to a defect this correction introduced.
+
+## Run 3 — the first run under the amended region check, banked CLEAN (2026-09-07)
+
+Task T5b of `handoff/PLAN-2026-09-06-after-the-page-moved-twice.md`, item 2, run
+against the tree as landed by `02b0a7d4`/`7dbbcc70` (the 2026-09-07 amendment,
+"the region check verifies the claim, not the node" —
+`handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md`). Per that amendment's count
+semantics, runs 1–2 stay banked FAIL under the old wording and are not
+re-judged; this is the first report whose fields (`deferredToStructure`,
+`activeDescendant`, `structureText`) exist at all, so it is the first run that
+can count.
+
+```
+python3 tools/run_e2_c_product_path.py --browser chrome \
+    --candidate-profile e2-editor-v12 --out soak-run-03-candidate.json
+python3 tools/check_usable_editor.py --report soak-run-03-candidate.json
+```
+
+| run | completedAt (local) | completedAt (UTC) | UTC day | composition | run `ok` |
+|---|---|---|---|---|---|
+| `soak-run-03-candidate.json` | 2026-09-07T07:19:35+08:00 | 2026-09-06T23:19:35Z | 2026-09-06 | 38 PASS / 2 NE | **true** |
+
+Composition **38 PASS / 2 NOT_ESTABLISHED**, NE set exactly
+`{a-refused-action-is-reported-and-changes-nothing, notice-action-recovers-the-session}`
+— the fixed pair — and **no FAIL**. `the-document-region-says-why-it-is-empty`
+is in the PASS set for the first time on this page: `observed.deferredToStructure
+== "1"`, `observed.structureText` non-empty, `reason == "paragraph"`,
+`offers == "1"` — the deferral clause the amendment added, satisfied by the
+page's own real behaviour rather than by widening around it (the red cases in
+`findings/evidence/gate-4a-on-9b29e39b/` prove the same predicate still fails
+when that is not true). `candidateCutover.pageSha256` and
+`servedShell.servedSha256` match the bank's pinned values (shown in
+`VERDICT-soak-2026-09-07-run03.json`, saved beside this file).
+
+`check_usable_editor.py --report soak-run-03-candidate.json`: `"ok": true`,
+`reconciledFor.kind == "candidate-cutover"`, `profile == "e2-editor-v12"`,
+`problems: []` (full output saved as `check-usable-editor-run03.json`).
+
+**Banked as the first run that can count.** `check_soak_bank.py` verdict
+(full record `VERDICT-soak-2026-09-07-run03.json`):
+
+```json
+"cleanRuns": 1, "totalRuns": 3,
+"clauses": {"one-served-shell": true, "every-run-clean": false,
+            "count-reached": false, "day-spread": false, ...}
+```
+
+Matches the expectation exactly: `cleanRuns: 1`, `totalRuns: 3`,
+`one-served-shell: true` on run 3. `every-run-clean`, `count-reached` and
+`day-spread` are still false — one clean run out of twelve, on one UTC day —
+which is the correct state for 1 of 12, not a new defect.
+
+**`check_soak_bank.py --self-test`, run for the first time against a bank that
+holds a clean report** (full record `SELFTEST-2026-09-07-run03.txt`). It no
+longer declines by crashing: RED 11 (`with_served`, which mutates the
+*last* sorted `soak-run-*.json`'s `servedShell` and demands that run fail on
+`one-served-shell` and nothing else) now builds against `soak-run-03…`, which
+is otherwise clean, so RED 11 passes for the first time — the isolation the
+2026-09-07 R-2 note said could not happen until a clean run existed. All
+twelve of the other declared RED cases (1–10, 12) print `RED (correct)`.
+
+**But the self-test still exits 1**, on its GREEN control, verbatim:
+
+```
+RED (WRONG)    control: 6 dated runs spanning 3 UTC days
+  control failed on: ['every-run-clean', 'count-reached', 'day-spread']
+  days: []
+```
+
+Read, not fixed (this task's role is gate operation, not repair): the
+control's `stamped()` helper builds six synthetic dated reports by cycling
+`sources[index % len(sources)]` over **every** `complete: true` report in the
+real bank — now three (`soak-run-01`, `02`, `03`) — round-robin, not filtered
+to clean ones. Four of the six synthetic copies are therefore restamped
+copies of the two FAIL reports (01, 02), so `every-run-clean` is false by
+construction and no UTC day accumulates two clean stamps. This is a property
+of `stamped()`'s sampling, not of run 3: it would reproduce identically the
+day this bank's real FAIL count is anything other than zero, independent of
+which reports are FAIL. Not this role's file to edit; recorded verbatim per
+this task's instruction, for whoever owns `check_soak_bank.py` next.
+
+Counting: **1 of 12**, first clean run banked. `python3 -m unittest
+tests.test_e2_c_shell_bundle` and `make test-e2-c-static` both ran green
+immediately before this run, per finding 090's manual rule.
