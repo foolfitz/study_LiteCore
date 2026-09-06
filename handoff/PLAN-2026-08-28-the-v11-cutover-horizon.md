@@ -1422,3 +1422,28 @@ including step 3, the ODT round trip, and the owner's confirmation against the
 
 *Count semantics: condition 2 is not the clean-run predicate. The soak count is
 untouched by this.*
+
+## The ODT round-trip is re-taken on `20f09cc9…` (2026-09-06)
+
+Evidence: `findings/evidence/queue-v12-cutover-roundtrip/`. Revert condition 2,
+measured on `e2-editor-v12` and page `20f09cc9…` — the sha the banked soak runs
+carry — rather than carried forward from the 2026-08-28 take on unsplit v11.
+
+`ok: true` in both directions: a document saved on the candidate opens on the
+shipped profile and one saved on the shipped profile opens on the candidate; in
+both the sentinel survives, the re-opened file is a valid ODT, and all six
+fixture lines are intact.
+
+The 2026-08-28 round's lesson held: in the shipped → candidate direction the
+toast has already been replaced by the caret hint, so only `doc:
+"from-shipped.odt"` distinguishes the handed-over document from the boot
+fixture. The probe judges on that field, which is why this round is a
+measurement rather than a repeat of that round's false negative.
+
+**Re-earn list, updated.** Discharged on the new sha: the soak (10 of 12
+banked), condition 4a, condition 2's diagnostics, and this. Still owed: the
+human manual round with 4b, the revert rehearsal including step 3, and the
+owner's confirmation against the +24.5 MiB.
+
+*Count semantics: a revert condition is not the clean-run predicate. The soak
+count is untouched.*
