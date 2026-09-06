@@ -595,12 +595,39 @@ const b = document.querySelector('#toolbar button[data-action="ARG_ACTION"]');
 return b ? b.getAttribute('aria-pressed') : null;
 })()"""
 
+# FINDING 092, and the amendment of 2026-09-07 ("the region check verifies the
+# claim, not the node", `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md`).
+#
+# This read three values -- the region's text, its reason, and the profile's
+# offer -- and so measured ONE DOM node while the check above it claims
+# something about the PAGE: that a screen reader is never handed a document
+# region that is silently empty.  Finding 088's fix gave the page a second
+# channel and made the live region deliberately silent whenever the structure
+# projection is already naming the focused paragraph, marking the silence
+# `data-deferred-to-structure="1"` for exactly this instrument -- which never
+# read it.  6 of 6 candidate runs then failed on a page that was speaking.
+#
+# ONE EVALUATION, not two.  The live region and the structure pointer are fed
+# by two engine fields that do not advance together; reading them in separate
+# round trips would let one clause be satisfied against a snapshot the other
+# never saw, which is finding 084's shape and is not being paid for twice.
+#
+# `activeDescendant` travels in the payload rather than being folded into
+# `structureText`, because "no structure text" has two causes -- no pointer at
+# all, and a pointer at a node that is gone -- and a summary that loses that
+# distinction is the 2026-08-29 lesson about errors carrying their payload.
 READ_A11Y_REGION = """(() => {
 const para = document.querySelector('#a11y-para');
 const doc = document.querySelector('#a11y-doc');
 if (!para || !doc) return { present: false };
+const sink = document.querySelector('#sink');
+const active = sink ? sink.getAttribute('aria-activedescendant') : null;
+const node = active ? document.getElementById(active) : null;
 return { present: true, text: para.textContent,
-         reason: para.dataset.reason, offers: doc.dataset.offers };
+         reason: para.dataset.reason, offers: doc.dataset.offers,
+         deferredToStructure: para.dataset.deferredToStructure ?? null,
+         activeDescendant: active,
+         structureText: node ? (node.textContent || '').trim() : null };
 })()"""
 
 # Hand the product a file through its own <input type=file>, the way a chooser
@@ -7285,27 +7312,68 @@ return { available: true, afterButton };
         # since it was opened. That property lives in G3.4-3
         # (`probe_aria_projection.py`), which compares against the fixture's own
         # XML on a pristine document.
+        #
+        # REWRITTEN AGAIN 2026-09-07, and for the same reason as the first
+        # time: it was pinned to one remedy rather than to the property.
+        # Finding 092. The page acquired a SECOND channel (087's
+        # `aria-activedescendant` from the sink into the roled structure
+        # region, 088's "one paragraph, one voice"), and the live region now
+        # falls silent ON PURPOSE whenever that channel is already naming the
+        # focused paragraph -- saying so in the DOM as
+        # `data-deferred-to-structure="1"`, an attribute added for this
+        # instrument. The old predicate read the region's text and nothing
+        # else, so it failed 6 of 6 candidate runs on a page that was speaking,
+        # and 0 of 6 on the shipped profile, which has no structure channel.
+        #
+        # The CLAIM is unchanged: a screen reader is never handed a document
+        # region that is silently empty, because "document, blank" is a
+        # confident wrong answer about the user's own file. What changed is
+        # that the claim is no longer measured through one node. Two clauses
+        # keep the widening from becoming a blind spot: silence on BOTH
+        # channels still fails, and a deferral is only legitimate when the page
+        # had a paragraph to defer (`reason == "paragraph"`, `offers == "1"`)
+        # -- otherwise a page could hide a sentence the user needed behind the
+        # other channel's silence.
+        #
+        # Amendment of 2026-09-07 in
+        # `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` carries the
+        # predicate, the four §9 conditions, the count semantics and the red
+        # cases; it was written before this code.
         reason = projection.get("reason")
         offers = projection.get("offers")
         text = (projection.get("text") or "").strip()
+        deferred = projection.get("deferredToStructure")
+        structure_text = (projection.get("structureText") or "").strip()
         known = {"paragraph", "profile", "noDocument", "noParagraph",
                  "disabled", "stale", "noText"}
         consistent = (
             (reason in ("profile", "noDocument")) if offers == "0"
             else (reason != "profile") if offers == "1"
             else False)
+        something_to_read = bool(text) or (deferred == "1"
+                                           and bool(structure_text))
+        deferral_legitimate = (deferred != "1"
+                               or (reason == "paragraph" and offers == "1"))
         check("the-document-region-says-why-it-is-empty",
-              bool(projection.get("present") and text
-                   and reason in known and consistent),
+              bool(projection.get("present") and reason in known and consistent
+                   and something_to_read and deferral_legitimate),
               observed=projection,
-              oracle="the accessibility region always carries something to "
-                     "read: the focused paragraph on a profile that offers "
-                     "one, and a sentence naming the cause on a profile that "
-                     "does not. Empty is the failure. `reason` must be a code "
-                     "this page can produce and must agree with `offers`, so "
-                     "that a region holding stale text, or one claiming the "
-                     "engine cannot do what its contract says it can, cannot "
-                     "pass")
+              # VERBATIM the amendment's sentence, em dashes and all, so the
+              # two cannot drift apart by paraphrase.
+              oracle="the page always offers something to read for the caret: "
+                     "the focused paragraph's text in the live region, or — "
+                     "when the live region says it has deferred to the "
+                     "structure channel (`data-deferred-to-structure=\"1\"`) — "
+                     "the text under the structure channel's active "
+                     "descendant; on a profile that offers no paragraph text, "
+                     "a sentence naming the cause. Silence on both channels is "
+                     "the failure. `reason` must be a code this page can "
+                     "produce and must agree with `offers`, so that a region "
+                     "holding stale text, or one claiming the engine cannot do "
+                     "what its contract says it can, cannot pass; and a "
+                     "deferral is legitimate only with `reason == \"paragraph\"` "
+                     "and `offers == \"1\"`, so a page cannot hide behind the "
+                     "other channel a sentence the user needed to hear.")
 
         # FINDING 078.  The operator selected text, pressed bold, and got
         # `EDITOR_FORMAT_GESTURE_UNSUPPORTED` -- and the 38-check net was green,
