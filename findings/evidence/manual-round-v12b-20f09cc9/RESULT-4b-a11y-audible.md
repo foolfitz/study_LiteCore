@@ -194,3 +194,72 @@ control that did not survive long enough to refute it.
 * Whether v46's rule causes silence is **NOT ESTABLISHED**. Settling it needs a
   walk in which the browser keeps focus for all ten paragraphs — which no run
   tonight achieved on either version.
+
+---
+
+# v46 could not be settled, because the instrument stopped being reproducible
+
+Asked to finish v46, I built the missing instrument first and it disqualified
+the comparison — including the runs I had been about to compare.
+
+## The instrument: `document.hasFocus()` at every stop
+
+`drive_walk_focus.py` records `hasFocus` per stop and reports
+`focusHeldEveryStop` / `stopsWithoutFocus`. It exists because two walks were
+compared earlier tonight and **both had lost window focus**, one silently at
+paragraph 4; nothing in either record said so, and it had to be read out of Orca
+announcing the terminal's window title.
+
+It earned itself immediately. Its first run: `focusHeldEveryStop: false`, and
+the Orca log contains 「請輸入統一編號或是公司名稱」 and 「查詢結果清單」 —
+**a company-registry page in a different window**. The keystrokes reached the
+right tab, because CDP does not need OS focus; a screen reader follows the
+focused *window*, so that log was about another application entirely. Any walk
+without this field is a walk that cannot say which window it measured.
+
+## Six walks tonight, on identical v45 code
+
+| walk | `focusHeldEveryStop` | paragraphs announced |
+|---|---|---|
+| 5 s dwell, the fix landing | not recorded | **10** |
+| 11 s dwell | not recorded | **10** |
+| control after reverting v46 | not recorded | 4, then focus lost |
+| `hasFocus` instrumented | **false** | 0 — Orca was on another window |
+| window raised before every press | **true** | **1** |
+| window raised once at the start | **true** | **1** |
+
+**The same page bytes produced 10 announcements and then 1, with focus held by
+the page's own reading in the 1 case.** Raising the window before every press
+was tried and is worse, not better — the repeated activation is itself an event
+and it suppressed what it was added to protect; that was reverted to a single
+raise, which changed nothing.
+
+## What this means for v46
+
+**v46's verdict stays NOT_ESTABLISHED, and now for a stronger reason.** The
+earlier reason was one silent run against a control that died at paragraph 4.
+The reason now is that **the measurement does not reproduce on unchanged code**:
+a method that gives 10 and then 1 on the same bytes cannot distinguish v45 from
+v46, and a difference measured with it would be indistinguishable from this
+variance.
+
+v46 is reverted and was never committed. v45 is what ships, and v45 is what the
+owner confirmed by ear — 「內文重複部份正常了」 — in the two runs that announced
+all ten paragraphs.
+
+## What the next session needs, named
+
+1. **A walk that reproduces.** Until the same bytes give the same count twice in
+   a row, no 4b comparison means anything. The variables not yet separated:
+   whether Orca must be started before Chrome; whether repeated `orca --replace`
+   cycles degrade its AT-SPI attachment; whether a tab that has already been
+   walked projects differently on the second pass.
+2. **Then** v45 against v46, both with `focusHeldEveryStop: true` and a
+   reproducible count.
+3. The heading-boundary residual stays open either way: `a11y-node-2` is the
+   only stop with a non-empty live region in every walk that reached it.
+
+Stopped rather than continuing to tune a method whose failures I was still
+discovering. The four things established tonight — the fix works, the list
+truncation was the harness, the residual exists, the instrument is unreliable —
+are worth more than a sixth attempt at 23:40.
