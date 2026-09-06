@@ -1,0 +1,127 @@
+{
+  "criterion": "gate condition 2 -- the caret diagnostic runs",
+  "expected": {
+    "runs": 3,
+    "roundsPerRun": 12,
+    "profile": "e2-editor-v12",
+    "pageSha256": "9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c",
+    "engineProbeMode": "stalled"
+  },
+  "runs": [
+    {
+      "report": "findings/evidence/queue-v12-cutover-soak/diagnostic-01-caret12.json",
+      "isDiagnostic": true,
+      "engineProbeMode": "stalled",
+      "profile": "e2-editor-v12",
+      "pageSha256": "9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c",
+      "complete": true,
+      "caretOutcome": "PASS",
+      "roundsThatReachedTheDocument": 12,
+      "committedRounds": 12,
+      "droppedRoundIndexes": [],
+      "staleWritesRefusedTotal": 3,
+      "sinkTracksTheCaret": true,
+      "identityOk": true
+    },
+    {
+      "report": "findings/evidence/queue-v12-cutover-soak/diagnostic-02-caret12.json",
+      "isDiagnostic": true,
+      "engineProbeMode": "stalled",
+      "profile": "e2-editor-v12",
+      "pageSha256": "9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c",
+      "complete": true,
+      "caretOutcome": "PASS",
+      "roundsThatReachedTheDocument": 12,
+      "committedRounds": 12,
+      "droppedRoundIndexes": [],
+      "staleWritesRefusedTotal": 1,
+      "sinkTracksTheCaret": true,
+      "identityOk": true
+    },
+    {
+      "report": "findings/evidence/queue-v12-cutover-soak/diagnostic-03-caret12.json",
+      "isDiagnostic": true,
+      "engineProbeMode": "stalled",
+      "profile": "e2-editor-v12",
+      "pageSha256": "9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c",
+      "complete": true,
+      "caretOutcome": "PASS",
+      "roundsThatReachedTheDocument": 12,
+      "committedRounds": 12,
+      "droppedRoundIndexes": [],
+      "staleWritesRefusedTotal": 3,
+      "sinkTracksTheCaret": true,
+      "identityOk": true
+    }
+  ],
+  "terms": {
+    "1-identity": {
+      "ok": true,
+      "detail": [
+        {
+          "report": "findings/evidence/queue-v12-cutover-soak/diagnostic-01-caret12.json",
+          "isDiagnostic": true,
+          "engineProbeMode": "stalled",
+          "profile": "e2-editor-v12",
+          "pageShaMatches": true
+        },
+        {
+          "report": "findings/evidence/queue-v12-cutover-soak/diagnostic-02-caret12.json",
+          "isDiagnostic": true,
+          "engineProbeMode": "stalled",
+          "profile": "e2-editor-v12",
+          "pageShaMatches": true
+        },
+        {
+          "report": "findings/evidence/queue-v12-cutover-soak/diagnostic-03-caret12.json",
+          "isDiagnostic": true,
+          "engineProbeMode": "stalled",
+          "profile": "e2-editor-v12",
+          "pageShaMatches": true
+        }
+      ]
+    },
+    "2-count": {
+      "ok": true,
+      "completeRuns": 3,
+      "given": 3,
+      "required": 3
+    },
+    "3-rounds": {
+      "ok": true,
+      "committedRounds": 36,
+      "requiredRounds": 36,
+      "droppedCommits": 0,
+      "perRun": [
+        {
+          "report": "findings/evidence/queue-v12-cutover-soak/diagnostic-01-caret12.json",
+          "reached": 12,
+          "dropped": [],
+          "outcome": "PASS"
+        },
+        {
+          "report": "findings/evidence/queue-v12-cutover-soak/diagnostic-02-caret12.json",
+          "reached": 12,
+          "dropped": [],
+          "outcome": "PASS"
+        },
+        {
+          "report": "findings/evidence/queue-v12-cutover-soak/diagnostic-03-caret12.json",
+          "reached": 12,
+          "dropped": [],
+          "outcome": "PASS"
+        }
+      ]
+    },
+    "4-guard-fired": {
+      "ok": true,
+      "perRun": {
+        "findings/evidence/queue-v12-cutover-soak/diagnostic-01-caret12.json": 3,
+        "findings/evidence/queue-v12-cutover-soak/diagnostic-02-caret12.json": 1,
+        "findings/evidence/queue-v12-cutover-soak/diagnostic-03-caret12.json": 3
+      },
+      "max": 3
+    }
+  },
+  "ok": true
+}

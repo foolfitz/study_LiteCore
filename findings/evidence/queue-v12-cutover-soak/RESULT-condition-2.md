@@ -155,3 +155,52 @@ Condition 2 must be re-earned on `39895d15…`, under task T2 of
 it is, per the same disposition its `20f09cc9…` section already gave it: the
 readable record of a discharged condition belongs beside the bank it describes,
 not inside the void directory of the page that discharge no longer counts for.
+
+---
+
+# Re-taken on page `9b29e39b…` (shell generation v48) — DISCHARGED again (2026-09-07)
+
+`39895d15…` itself moved twice more (finding 088's second fix, then the T1d
+mistake and its v48 correction — see
+`handoff/PLAN-2026-09-06-after-the-page-moved-twice.md`, "The page is final").
+This is the current take, on the final page for this gate, task T2.
+
+Same command, same profile, same flags:
+
+```
+python3 tools/run_e2_c_product_path.py --candidate-profile e2-editor-v12 \
+    --caret-source-diagnostic --caret-rounds 12 --caret-engine-probe stalled
+```
+
+## Result — all four terms pass
+
+| term | result |
+|---|---|
+| 1 identity | all three carry `caretSourceDiagnostic`, `engineProbeMode: stalled`, profile `e2-editor-v12`, page sha `9b29e39b…` |
+| 2 count | **3 of 3** complete runs |
+| 3 rounds | **36 committed rounds, 0 dropped**; each run reached 12 of 12 and `caret-follows-the-text-you-type` PASSes |
+| 4 guard fired | `staleWritesRefusedTotal` = **3, 1, 3** — the guard refused a stale write in every run |
+
+| run | completedAt | reached | dropped | staleWritesRefused |
+|---|---|---|---|---|
+| `diagnostic-01-caret12.json` | 2026-09-07T02:33:38+08:00 | 12 | 0 | 3 |
+| `diagnostic-02-caret12.json` | 2026-09-07T02:49:52+08:00 | 12 | 0 | 1 |
+| `diagnostic-03-caret12.json` | 2026-09-07T03:00:10+08:00 | 12 | 0 | 3 |
+
+`check_caret_diagnostics.py`'s verdict: `"ok": true` over all four terms.
+Banked as `VERDICT-condition-2.json` (this take overwrites the previous
+`20f09cc9…` take's verdict file of the same name — that older verdict is
+preserved unedited in `../queue-v12-cutover-soak-void-20f09cc9/` per its own
+void disposition above).
+
+## The raw runs are NOT clean soak runs, and that is a separate, already-recorded fact
+
+All three diagnostic reports carry `ok: false` at the top level and a
+composition of 37 PASS / 2 NE / 1 FAIL, the same `the-document-region-says-why-it-is-empty`
+FAIL recorded in `RUNS.md`'s "Re-taken on `9b29e39b…` / v48" section and in
+`../gate-4a-on-9b29e39b/RESULT-4a.md`. None of condition 2's four terms reads
+the raw `ok` field or the full composition — they read `caretSourceDiagnostic`,
+`caretOutcome` (the one caret-specific check) and per-round fields — so this
+does not touch condition 2's discharge. It is not re-derived here; recorded so
+a reader comparing this table against the raw files does not mistake the
+absence of `ok: true` for a discrepancy in this judge's work.
