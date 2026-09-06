@@ -1,0 +1,371 @@
+{
+  "schemaVersion": 1,
+  "release": "usable-editor-acceptance",
+  "capabilities": [
+    {
+      "id": "open-my-own-file",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "product-opens-a-document-the-user-chose",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "save-it-back",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "product-save-button-writes-a-real-odt",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "type-chinese",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "every-ime-commit-reaches-the-document",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "050",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "copy-and-paste",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "ctrl-c-asks-the-engine",
+          "resolves": true
+        },
+        {
+          "kind": "check",
+          "name": "ctrl-v-reaches-the-document",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "see-where-the-caret-is",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "the-caret-is-drawn-where-it-was-placed",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "058",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "060",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "put-the-caret-where-i-clicked",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "the-caret-lands-where-the-click-was",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "048",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "052",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "060",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "correct-a-typo-from-the-keyboard",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "backspace-and-arrows-reach-the-document",
+          "resolves": true
+        },
+        {
+          "kind": "queue",
+          "name": "queue-typing-path-has-no-delete-or-arrows",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "turn-formatting-off",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "bold-can-be-turned-off-again",
+          "resolves": true
+        },
+        {
+          "kind": "check",
+          "name": "a-format-that-worked-is-not-reported-as-failed",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "059",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "045",
+          "resolves": true
+        },
+        {
+          "kind": "check",
+          "name": "every-inline-format-reaches-the-document",
+          "resolves": true
+        },
+        {
+          "kind": "check",
+          "name": "formatting-survives-the-next-paragraph-break",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "undo-a-mistake",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "product-undo-button-reverses-the-last-edit",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "redo",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "product-redo-button-restores-what-undo-removed",
+          "resolves": true
+        },
+        {
+          "kind": "queue",
+          "name": "queue-redo-and-line-movement-need-wire-ids",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "move-by-line",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "the-vertical-arrows-move-the-caret",
+          "resolves": true
+        },
+        {
+          "kind": "queue",
+          "name": "queue-redo-and-line-movement-need-wire-ids",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "keyboard-shortcuts",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "the-keyboard-reaches-the-document",
+          "resolves": true
+        },
+        {
+          "kind": "check",
+          "name": "backspace-and-arrows-reach-the-document",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "059",
+          "resolves": true
+        },
+        {
+          "kind": "queue",
+          "name": "queue-no-select-all-action",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "cut",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "cut-removes-the-selected-text",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "063",
+          "resolves": true
+        },
+        {
+          "kind": "queue",
+          "name": "queue-cut-cannot-remove-text",
+          "resolves": true
+        },
+        {
+          "kind": "queue",
+          "name": "queue-cut-refusal-lost-its-inducer",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "format-a-paragraph",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "format-a-paragraph-changes-that-paragraph",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "046",
+          "resolves": true
+        },
+        {
+          "kind": "queue",
+          "name": "queue-quantifier-check-for-multi-block-readback",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "recover-from-an-error",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "recovery-returns-what-the-product-promised",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "038",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "061",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "054",
+          "resolves": true
+        },
+        {
+          "kind": "queue",
+          "name": "queue-recovery-inducer-depends-on-an-unfixed-defect",
+          "resolves": true
+        }
+      ]
+    },
+    {
+      "id": "edit-a-real-length-document",
+      "status": "done",
+      "evidence": [
+        {
+          "kind": "check",
+          "name": "editing-a-long-document-stays-responsive",
+          "resolves": true
+        },
+        {
+          "kind": "check",
+          "name": "a-long-document-is-drawn-or-the-product-says-it-is-not",
+          "resolves": true
+        },
+        {
+          "kind": "check",
+          "name": "the-canvas-follows-a-document-that-grew",
+          "resolves": true
+        },
+        {
+          "kind": "finding",
+          "name": "062",
+          "resolves": true
+        },
+        {
+          "kind": "queue",
+          "name": "queue-engine-reports-success-for-an-unpainted-tile",
+          "resolves": true
+        }
+      ]
+    }
+  ],
+  "byStatus": {
+    "done": [
+      "open-my-own-file",
+      "save-it-back",
+      "type-chinese",
+      "copy-and-paste",
+      "see-where-the-caret-is",
+      "put-the-caret-where-i-clicked",
+      "correct-a-typo-from-the-keyboard",
+      "turn-formatting-off",
+      "undo-a-mistake",
+      "redo",
+      "move-by-line",
+      "keyboard-shortcuts",
+      "cut",
+      "format-a-paragraph",
+      "recover-from-an-error",
+      "edit-a-real-length-document"
+    ],
+    "unverified": [],
+    "missing": [],
+    "blocked": [],
+    "partial": []
+  },
+  "reconciledAgainstReport": {
+    "browser": "chrome",
+    "servedShell": "cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4",
+    "problems": []
+  },
+  "problems": [],
+  "ok": true,
+  "reconciledFor": {
+    "kind": "shipped-page"
+  }
+}

@@ -1,0 +1,50 @@
+=== BASELINE ===
+df5f3b6c7dde0b2eb463733975763ba70a5000f8f1345442d59109b153f85143  web/e2-editor-app.js
+df5f3b6c7dde0b2eb463733975763ba70a5000f8f1345442d59109b153f85143  dist/e2-editor-app.js
+448:MANIFEST = Path("e2/editor-shell-v2-bundle-v48.json")
+(clean above if empty)
+
+=== STEP 1: write the page ===
+profile        e2-editor-v12
+pin            4a2710bba1ef07d9 -> 4ec1e389aaab3b03
+pageSha256     9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c
+unchanged      False
+written        /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/web/e2-editor-app.js
+9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c  web/e2-editor-app.js
+
+=== STEP 2: stage it where the product is served from ===
+9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c  dist/e2-editor-app.js
+
+=== STEP 3: freeze the new generation, then point MANIFEST at it ===
+freeze exit=0  (what matters is the next line)
+written: True  bundleSha256: cf7f923391a05994
+problems after write: []
+MANIFEST repointed v48 -> v49
+448:MANIFEST = Path("e2/editor-shell-v2-bundle-v49.json")
+
+=== RUN THE NET ON THE CUTOVER PAGE (no --candidate-profile) ===
+runner exit=1
+reconciler exit=0
+
+=== THE REVERT ===
+=== RESTORE: undoing all three ===
+df5f3b6c7dde0b2eb463733975763ba70a5000f8f1345442d59109b153f85143  web/e2-editor-app.js
+df5f3b6c7dde0b2eb463733975763ba70a5000f8f1345442d59109b153f85143  dist/e2-editor-app.js
+448:MANIFEST = Path("e2/editor-shell-v2-bundle-v48.json")
+git status (empty = clean):
+
+=== RUN THE NET ON THE REVERTED PAGE ===
+runner exit=0
+reconciler exit=0
+
+=== FINAL VERIFY ===
+df5f3b6c7dde0b2eb463733975763ba70a5000f8f1345442d59109b153f85143  web/e2-editor-app.js
+df5f3b6c7dde0b2eb463733975763ba70a5000f8f1345442d59109b153f85143  dist/e2-editor-app.js
+expected both: df5f3b6c7dde0b2eb463733975763ba70a5000f8f1345442d59109b153f85143
+(clean above if empty)
+REHEARSAL SCRIPT DONE
+=== RESTORE: undoing all three ===
+df5f3b6c7dde0b2eb463733975763ba70a5000f8f1345442d59109b153f85143  web/e2-editor-app.js
+df5f3b6c7dde0b2eb463733975763ba70a5000f8f1345442d59109b153f85143  dist/e2-editor-app.js
+448:MANIFEST = Path("e2/editor-shell-v2-bundle-v48.json")
+git status (empty = clean):
