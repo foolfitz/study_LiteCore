@@ -442,3 +442,53 @@ clean across >= 3 UTC days, it writes
 `handoff/HANDOFF-<date>-soak-closed-only-T4-remains.md` and stops.
 
 ### T3 ledger (append one line per session)
+
+---
+
+## T2 came back red; the schedule is stopped (2026-09-07 ~04:00 CST, append-only)
+
+Commits `f4e16c63` (soak 1–2), `37b6def7` (4a), `25670d0e` (condition 2),
+`d450f6ff` (ODT round trip), `dbabc3c9` (revert condition 3). Condition 2,
+the round trip and revert condition 3 are **discharged on `9b29e39b…`/v48**
+(judges' `ok: true`). Three reds, each with its mechanism read by the main
+session:
+
+**R-1 (product path, blocks the count).** Soak runs 1 and 2 both FAIL on
+`the-document-region-says-why-it-is-empty`, payload `{"present": true,
+"text": "", "reason": "paragraph", "offers": "1"}`; reproduced 6/6 on every
+v12-pinned page in items 1, 3 and 5 and 0 times on the v8 control. The
+check's oracle (`run_e2_c_product_path.py` ~7286): *the accessibility region
+always carries something to read … empty is the failure*, read from
+`#a11y-para`'s text. Finding 088's fix (from v45 on, not v46) is *one
+paragraph, one voice*: that region says nothing when the structure channel
+already names the paragraph, and it marks `data-deferred-to-structure="1"`
+so a probe can tell that silence from "nothing to say". The check never
+learned the attribute. The ten runs on `20f09cc9…` predate 088's fix; no
+soak run was ever taken on v45. **So this is not a v46 regression: the 088
+fix family and this check's oracle contradict by design, measured tonight
+for the first time.** Not the known intermittent → the schedule stops (four
+wake-ups deleted). Disposition is the owner's, because it changes what
+"clean" means (§9's count semantics); the main session's recommendation is
+recorded in finding 092 as a recommendation, not a ruling.
+
+**R-2 (judge pin, corrected now).** `one-served-shell: false` because
+`DEFAULT_SERVED_SHELL` pinned v48 (`ecfb6866…`), the shell as the tree
+serves it, while a candidate run's `servedSha256` is computed over the
+mirror **as served**, entrypoint repointed — by construction the digest of
+the cut-over shell, which is v47 (`cf7f9233…`). Ruling E-4's own words are
+"the digest the cutover generation will declare"; the runner's comment at
+`served_shell_identity` says the same. T0's value (v45's `a46c8518…`, from
+the handoff's Task 0) was wrong in the same way and never exercised. **The
+pin moves to v47's digest.** v47, frozen by mistake, is exactly the cutover
+generation.
+
+**R-3 (instrument, corrected now as a test change).** 4a's term-6 mutation
+`projection-not-wired` finds 0 occurrences of its anchor after the v46 hunk;
+seven of eight terms pass. `make test-e2-c-static` exits 2 on the committed
+tree for the same reason — a red test on the tree, the E-6 shape. The
+pattern is re-anchored on the v46 source with its red case re-proven (the
+mutation reddens the projection term(s) and nothing else; page restored by
+sha). No product change.
+
+Unattended work tonight: R-2, R-3, finding 092, and a handoff for the owner.
+Nothing that moves the page; nothing that changes a criterion.
