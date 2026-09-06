@@ -315,3 +315,33 @@ show whether that holds on v47; the executor reports a red, never edits the
 judge.
 
 After the landing the page is **final for this gate**. T2 opens.
+
+---
+
+## T1d overshot into the cutover; corrected by v48 (2026-09-07, append-only)
+
+Commit `000a57e2` landed the v46 hunk and froze v47 — and also performed the
+cutover: the executor used `build_cutover_page.py --write`, which rewrote
+`web/e2-editor-app.js` (and thence `dist/`) to `PINNED_WASM_SHA256
+4ec1e389aaab3b03` and `workerUrl …/e2-editor-v12/…`. `f7f20317` carried
+`4a2710bba1ef07d9` and `e2-editor-v8` (sha `94edc4d9…`, the handoff's "shell"
+row). The executor's report said v45's source "similarly carries its cutover
+repoint"; it does not. v47 is therefore a generation frozen on cut-over bytes
+before the gate passed.
+
+**Disposition:** no history rewrite. One further commit restores the two
+shipping lines (v8 profile, v8 pin), keeps the v46 hunk, brings `dist/` back
+to identity, freezes **v48** on that shell and points `MANIFEST` at it; v47
+stays in the tree as the record of the mistake. The candidate page sha is
+expected to remain `9b29e39b…` — the repoint of the v8 shell with the v46
+hunk is by construction the page T1c measured — and is re-measured without
+`--write`. The judges' served-shell pin moves to v48.
+
+**What the main session takes from it:** the brief said "build the candidate
+page … and hash it" and the tool has a write mode. A measurement build must be
+named as one — "never `--write`; the page is a measurement, not a landing" —
+because "build" was read as the tool's default landing path. The rule joins
+the delegation notes.
+
+The conditional ruling above (v12d walks = 4b's mechanical half if the built
+page is `9b29e39b…`) is decided on the v48 measurement, not on `000a57e2`'s.
