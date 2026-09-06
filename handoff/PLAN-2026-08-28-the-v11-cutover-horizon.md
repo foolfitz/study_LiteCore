@@ -1354,3 +1354,34 @@ would use — against `dist/profiles/e2-editor-v12/sdk-manifest.json`
 product page is exactly the event the sha binding exists to catch, and the cost
 of catching it is the eight runs. The alternative — counting runs taken on bytes
 nobody will ship — is the failure the binding was written against.
+
+## Condition 4a is re-taken on `20f09cc9…` and passes all eight terms (2026-09-06)
+
+Evidence: `findings/evidence/gate-4a-on-20f09cc9/` (three candidate runs, one
+control, one mutation run, the judge's output, and `RESULT-4a.md`).
+
+This discharges the re-take the 2026-09-05 amendment required — *"The 4a runs on
+the current page are re-taken with the corrected instrument (three runs, one
+mutation, one control) before they count as '4a on the new sha'"* — and it does
+so on the page the ten banked soak runs measured, not on a page it resembles.
+Term 1 carries `20f09cc9da19f07d65b8c844a753aa880782e404fb6ea75e1f121c1f2d090d95`
+on all three runs; that is the same string in `candidateCutover.pageSha256` in
+every banked soak report.
+
+Term 8 — the term the amendment added, and the one 4b's Orca session forced —
+passes on its first take against this page: the heading placement's focused node
+carries `role: heading` where the fixture says `heading`, and the two role-less
+paragraphs carry none where the fixture says none. It is not passing vacuously:
+its expectation is read from the fixture keyed by placement index, so a caret
+that lands on the wrong paragraph reddens it, which is what red case 3 in
+`findings/evidence/gate-4a-reading-rule/` demonstrates.
+
+**What is now discharged, and what is not.** 4a is a condition, not a count; it
+does not advance the soak and the soak does not advance it. Of the things the
+page move voided, this is the second to be re-earned (the first being the soak
+runs themselves, ten of twelve at the time of writing). **Condition 2's three
+diagnostic runs are still void and still owed** — `check_caret_diagnostics.py`
+pins the page sha in its own identity term, exactly as term 1 does here.
+
+*Count semantics: 4a-only. The clean-run predicate is untouched and the soak
+count does not restart on this account.*
