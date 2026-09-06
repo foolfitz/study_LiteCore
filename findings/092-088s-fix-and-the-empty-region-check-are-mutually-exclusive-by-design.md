@@ -159,3 +159,33 @@ profile 開了結構投影，`e2-editor-v8` 沒有），修法就會讓這條檢
 出貨頁面 e2-editor-v8（同一份 soak/condition-2/revert-rehearsal 報告裡的控制組），此檢查 0/0 紅
 瀏覽器   headless Chrome，run_e2_c_product_path.py / check_caret_diagnostics.py 的自動化路徑
 ```
+
+## 處置：A，由擁有者裁定（2026-09-07 追記）
+
+擁有者的回覆逐字是「A」——改檢查去驗**宣稱**（「有東西可讀」）而不是驗**代理**
+（某一個 DOM 節點的文字）。裁定與 T5a 的工單記在
+`handoff/PLAN-2026-09-06-after-the-page-moved-twice.md` 的「R-1 = A, by the
+owner」一節。
+
+判準本身寫在閘門文件裡，**先於程式碼**：
+`handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md`，
+`# Amendment, 2026-09-07 — the region check verifies the claim, not the node`
+（append-only）。那一段帶著改寫後的 oracle 逐字句、一條式的通過式、五個值各自的
+DOM 來源、`AGENTS.md` §9 的四個條件、計數語意（**改變了 clean 的定義所以計數
+歸零**——現在本來就是 0；run 1、2 以舊措辭銀行為 FAIL 且不重判，本修正 commit
+之前的任何一次執行都不能計入），以及本修正欠的紅案。
+
+實作在 `wasm_sdk_probe/tools/run_e2_c_product_path.py`（commit `7dbbcc70`）：
+`READ_A11Y_REGION` 在同一次求值裡多讀 `deferredToStructure`、`activeDescendant`
+與 `structureText`；通過式加上「兩條通道都沉默才是失敗」與「deferral 只在
+`reason == "paragraph"` 且 `offers == "1"` 時合法」。突變表加了兩個紅案
+（commit `dbf0a820`）。**沒有動任何產品檔**——本次修法是測試變更，
+`web/`、`dist/`、profile 一律未動，頁面 sha 與殼層 generation 都沒有移動。
+
+**紅案還欠著，由 T5b 跑。** 在有人拿這條檢查的綠燈當證據之前，預設結論照
+`AGENTS.md` §6：**這條檢查在這個頁面上是 NOT_ESTABLISHED，不是通過**；4a 第 6
+項一併維持 NOT_ESTABLISHED（4a 為 7/8），soak 也不能開始計數。
+
+「殘餘風險」那一段不因處置 A 而消解：只讀即時區域、不跟 `aria-activedescendant`
+的 AT，在 `e2-editor-v12` 上仍然是**已知但未量測**的可用性缺口。修正把這句話
+一併抄進閘門文件，因為那之後閘門裡不會有別的地方講它。
