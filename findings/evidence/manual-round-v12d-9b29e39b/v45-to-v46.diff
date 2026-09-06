@@ -1,0 +1,27 @@
+--- /tmp/candidate-round-8cya42pb/root/e2-editor-app.js	2026-09-07 00:54:26.244965383 +0800
++++ /home/jiajun/LibreOffice/study_LiteCore/findings/evidence/manual-round-v12d-9b29e39b/v46-e2-editor-app.js	2026-09-06 23:15:21.371598362 +0800
+@@ -182,7 +182,23 @@
+   // `aria-activedescendant`, this region says nothing. It is NOT removed: on a
+   // profile with no structure projection it is the only home the reason
+   // sentences (「尚未開啟文件。」) have, and `structureSpeaks` is null there.
+-  const doubled = typeof text === "string" && structureSpeaks === text;
++  // WHOEVER HAS THE FOCUSED NODE OWNS THE CARET PATH -- and comparing the two
++  // texts was not enough.  Measured 2026-09-06 at an 11-second dwell, with the
++  // owner listening: at the SECOND heading the live region still held the
++  // previous paragraph's text and Orca spoke it, one utterance after the
++  // heading.  The two channels are fed by two different engine fields
++  // (`caretParagraph` and `documentOutline`) and they do not advance together
++  // across a heading boundary, so for one snapshot they disagree -- and a rule
++  // that only silenced them when they AGREED let the disagreement out loud,
++  // saying the older of the two.
++  //
++  // So the test is not "do they say the same thing" but "does the structure
++  // channel have a focused node at all".  A one-snapshot lag then costs one
++  // voice arriving late instead of two voices contradicting each other.
++  // `structureSpeaks` is null -- not "" -- exactly when there is no focused
++  // node, which is every profile with no structure projection, where the live
++  // region is still the only home the reason sentences have.
++  const doubled = structureSpeaks !== null;
+   const next = doubled ? "" : (text ?? A11Y_REASONS[reason]);
+   // Compared before assigning, because an aria-live region announces when its
+   // text CHANGES. updateState runs on every snapshot, and reassigning the same

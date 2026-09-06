@@ -961,3 +961,49 @@ port, and one of them mirrors the reverted v46 page (matching
 `orca-v46-9b29e39b.log` in the banked v12b evidence), which this executor was
 not willing to guess-delete. Reported rather than resolved, per the
 instruction to touch nothing else in `/tmp`.
+
+### 2026-09-07 — T1c: v45 against v46 (§8), opened by the main session
+
+Executor: sonnet, task T1c, opened on the settled configuration from T1b's
+O-A result. Ruling: `handoff/PLAN-2026-09-06-after-the-page-moved-twice.md`,
+"T1c: go, with v46 taken from the previous session's artifact" (commit
+`69e5d9bc`). Full account:
+`findings/evidence/manual-round-v12d-9b29e39b/RESULT-4b-v45-vs-v46.md`.
+
+§8.1 was satisfied without reconstruction:
+`/tmp/candidate-round-tx3ue8b9/root/e2-editor-app.js` verified sha256
+`9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c` (matching
+the banked `orca-v46-9b29e39b.log`), preserved into
+`manual-round-v12d-9b29e39b/v46-e2-editor-app.js` before anything else, and
+its diff against a fresh v45 mirror (`v45-to-v46.diff`) confirmed to be
+exactly one hunk -- the comment block plus
+`const doubled = structureSpeaks !== null;` replacing `structureSpeaks ===
+text` -- with no other hunk. `CONSENT.md` in the new directory quotes the
+three utterances the plan's ruling names (「D1: A」「現在可以」「Chrome 關了」)
+and was not re-asked.
+
+v46 was served by substituting only `e2-editor-app.js` into a second, fresh
+v45 mirror and running `web/serve.py` on it directly on port 8766, while the
+original v45 mirror kept serving unmodified on port 8765 throughout; nothing
+under `web/`, `dist/`, or any profile was edited, and no generation was
+frozen. §8.4's eight-walk budget was not needed in full: all six walks (a v45
+pair in `manual-round-v12c-39895d15/`, a v46 pair in
+`manual-round-v12d-9b29e39b/`, a v45 return pair back in
+`manual-round-v12c-39895d15/`) were VALID on the first attempt --
+`focusHeldEveryStop: true`, `announced: 10`, no foreign speech line, no V5 --
+so neither of the two spare walks was used.
+
+Results: `這一行是普通內文` was spoken twice in both v45 walks (pre and
+return) and once in both v46 walks; every other paragraph was spoken once in
+all six. **§8.3's three clauses are all MET** (announced==10 on both v46
+walks; every v46 per-paragraph count is 1; the v45 return pair still shows
+2), and **the v45 return pair reproduces the first v45 pair's values exactly
+-- no drift (§8.4)**. Environment voids this session: 0. **Verdict: v46
+measures better than v45 on this protocol.** This executor does not
+recommend landing; D1 is the owner's decision via the main session.
+
+Cleanup: both of this executor's own mirrors (`/tmp/candidate-round-8cya42pb`
+for v45, `/tmp/candidate-round-zpdrqv3o` for the v46 substitution) and all
+per-walk `/tmp/wasm-sdk-probe-chrome-*` directories were removed; both HTTP
+servers (ports 8765, 8766) were stopped.
+`/tmp/candidate-round-tx3ue8b9` was left in place, as instructed.
