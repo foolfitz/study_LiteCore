@@ -163,3 +163,17 @@ judged by `check_soak_bank.py`.
    like) — both identity-bound to `9b29e39b…`/v48, both still owed.
 3. **The cutover itself**, once the soak closes.
 4. **Pushing the 581 unpushed commits.**
+
+---
+
+## Correction appended by the main session (2026-09-07 ~05:00 CST)
+
+Where this document says condition 4a is discharged on all eight terms: it
+is **seven of eight**. Term 6's mutation run reddens exactly the check it
+targets — but that check is red on this page **without** the mutation (R-1),
+so the run cannot show that the mutation was caught; its composition equals
+the baseline's. Term 6 is NOT_ESTABLISHED pending R-1's disposition and a
+green baseline run, then re-taken. The re-anchored pattern, the static
+mutation tests and `make test-e2-c-static` (exit 0) stand. Ruling and
+reasoning: `PLAN-2026-09-06-after-the-page-moved-twice.md`, section "The
+follow-up landed, with one downgrade".

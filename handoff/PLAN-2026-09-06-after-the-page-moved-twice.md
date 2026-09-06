@@ -492,3 +492,32 @@ sha). No product change.
 
 Unattended work tonight: R-2, R-3, finding 092, and a handoff for the owner.
 Nothing that moves the page; nothing that changes a criterion.
+
+---
+
+## The follow-up landed, with one downgrade (2026-09-07 ~05:00 CST, append-only)
+
+Commits `53961163` (R-2: served-shell pin → v47, both banked runs now
+`one-served-shell: true`), `c668b812` (R-3: mutation re-anchored on
+`projectFocusedParagraph(snapshot, structureSpeaks);`, static mutation tests
+green, `make test-e2-c-static` exit 0), `17b7740b` (finding 092),
+`c0769105` (handoff). The soak judge's `--self-test` still declines: it
+builds its fixtures from the real bank, and the bank holds only R-1 runs, so
+RED 11 cannot be isolated until a clean run exists — recorded, not a defect.
+
+**Downgrade, ruled by the main session.** `RESULT-4a.md` and the handoff
+record 4a term 6 as MET because the mutation run reddens exactly
+`the-document-region-says-why-it-is-empty` and nothing else. On this page
+that check is red **unmutated** (R-1), so the mutation run's composition
+(37/2/1) is identical to the baseline's: a mutation that changed nothing
+would score the same. The set comparison passed; the causal claim — *the
+instrument can fail here* — is unsupported (`AGENTS.md` §6: a red that was
+red before the change proves nothing; §7: verify the claim, not the proxy).
+**Term 6 is NOT_ESTABLISHED on `9b29e39b…` pending R-1; 4a stands at 7 of 8.**
+What R-3 did earn is narrower and real: the pattern matches once, the
+harness applies it, the tree's static test is green again. When R-1's
+disposition lands and a baseline candidate run is green, term 6 is re-taken
+against that baseline in the same session.
+
+Where the handoff of 2026-09-07 says 4a is discharged in full, this
+paragraph supersedes it; the handoff carries the same correction appended.
