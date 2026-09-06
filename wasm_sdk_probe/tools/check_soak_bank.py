@@ -105,8 +105,8 @@ DEFAULT_BANK = (WORKSPACE / "findings" / "evidence" / "queue-v12-cutover-soak")
 # of 2026-09-04 moved.  The file stays where it is because it is that probe's
 # evidence too; it is dropped from here because it is no longer this count's.
 DEFAULT_ALSO: list[Path] = []
-DEFAULT_SHA = ("20f09cc9da19f07d65b8c844a753aa880782e404fb6ea75e1f121c1f2d09"
-               "0d95")
+DEFAULT_SHA = ("39895d1530c2e30f7ddcb45cb0ada8d704412f5bcb3dd330134167739c5"
+               "dad0e")
 DEFAULT_PROFILE = "e2-editor-v12"
 EXPECTED_NE = {"notice-action-recovers-the-session",
                "a-refused-action-is-reported-and-changes-nothing"}
@@ -214,8 +214,8 @@ def day_of(report: dict) -> dict:
 # digest says the twelve ran on one shell.  It is the digest the cutover
 # generation (v45) will declare, so the clause is the sentence "the twelve ran
 # on the bytes the cutover declares", made checkable rather than narrated.
-DEFAULT_SERVED_SHELL = ("78c2368403e16af1d19c955fe8f43868b1b6604"
-                        "44c87499ce392ee68476646da")
+DEFAULT_SERVED_SHELL = ("a46c8518a7ebfb12a65b5d0a14d0e82263956ed4fbe34f49"
+                        "b1a1efdb43fdb578")
 
 
 def judge_run(path: Path, expect_sha: str, expect_profile: str,

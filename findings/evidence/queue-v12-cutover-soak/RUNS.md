@@ -151,3 +151,52 @@ a day whose runs were dropped.
 
 **Remaining: two clean runs on UTC 2026-09-07** (Taipei 2026-09-07 08:00 →
 2026-09-08 08:00), which closes both `count-reached` and `day-spread` together.
+
+## Voided again 2026-09-06 — the page moved a second time, and the count is 0 of 12
+
+The shipping shell was changed twice on 2026-09-06. The fix for finding 088
+(the doubled-paragraph residue — every non-heading paragraph spoken twice,
+~117 ms apart) landed in `wasm_sdk_probe/web/e2-editor-app.js`, one of the
+shell bundle's thirteen `included` paths, so the candidate page's sha moved
+again, from `20f09cc9…` to
+**`39895d1530c2e30f7ddcb45cb0ada8d704412f5bcb3dd330134167739c5dad0e`**. The
+frozen shell generation moved to **v45**
+(`bundleSha256 a46c8518a7ebfb12a65b5d0a14d0e82263956ed4fbe34f49b1a1efdb43fdb578`)
+in the same change. Full account:
+`handoff/HANDOFF-2026-09-06-the-page-moved-twice-and-the-4b-instrument-broke.md`
+and `handoff/PLAN-2026-09-06-after-the-page-moved-twice.md` (task T0).
+
+Ruling 1 of `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` (2026-08-28)
+applies again: **the count restarts on the day the page changes.** Everything
+banked above this line is void for this count and none of it is deleted:
+
+* All ten soak runs (`soak-run-01-candidate.json` …
+  `soak-run-10-candidate.json`) — carried `pageSha256: 20f09cc9…` — moved to
+  `../queue-v12-cutover-soak-void-20f09cc9/`.
+* Condition 2's three diagnostic runs (`diagnostic-01-caret12.json`,
+  `diagnostic-02-caret12.json`, `diagnostic-03-caret12.json`) — carried
+  `pageSha256: 20f09cc9…` — moved to the same directory. Unlike the
+  `3dfdcfef…` void of 2026-09-05, this time the diagnostics move with the runs
+  rather than staying behind, so nothing left in this directory still claims
+  `20f09cc9…`.
+* The judge's own verdict on those three diagnostics, `VERDICT-condition-2.json`
+  (every entry's `pageSha256` was `20f09cc9…`) — moved and renamed to
+  `VERDICT-condition-2-on-20f09cc9.json`, matching the naming its
+  `3dfdcfef…` predecessor already carries.
+* `interrupted-2026-08-29-0050-partial.json` stays. It carries
+  `pageSha256: 3dfdcfef…`, a different and older page; today's move does not
+  touch it.
+* `RESULT-condition-2.md` stays, with a further appended section recording
+  this second void and where the diagnostics and verdict it described have
+  gone.
+
+Full disposition and per-file page shas:
+`../queue-v12-cutover-soak-void-20f09cc9/WHY-THESE-ARE-VOID.md`.
+
+`check_soak_bank.py`'s `DEFAULT_SHA` and `DEFAULT_SERVED_SHELL`, and
+`check_caret_diagnostics.py`'s `DEFAULT_SHA`, are updated to `39895d15…` and
+v45's `a46c8518…` in the same change (this commit). Counting: **0 of 12**, no
+carry-over, restart complete. Everything in condition 2, condition 4a's eight
+terms, the ODT round trip and revert condition 3 that was taken on
+`20f09cc9…` is void along with it — see the handoff cited above for the full
+list.

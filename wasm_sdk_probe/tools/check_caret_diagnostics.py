@@ -47,8 +47,8 @@ PROJECT = Path(__file__).resolve().parent.parent
 WORKSPACE = PROJECT.parent
 DEFAULT_DIR = WORKSPACE / "findings" / "evidence" / "queue-v12-cutover-soak"
 DEFAULT_GLOB = "diagnostic-*.json"
-DEFAULT_SHA = ("20f09cc9da19f07d65b8c844a753aa880782e404fb6ea75e1f121c1f2d09"
-               "0d95")
+DEFAULT_SHA = ("39895d1530c2e30f7ddcb45cb0ada8d704412f5bcb3dd330134167739c5"
+               "dad0e")
 DEFAULT_PROFILE = "e2-editor-v12"
 CARET_CHECK = "caret-follows-the-text-you-type"
 

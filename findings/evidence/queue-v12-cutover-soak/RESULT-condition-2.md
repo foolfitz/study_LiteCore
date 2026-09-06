@@ -129,3 +129,29 @@ have been worse than the red.
 The selector is not vacuous on this bank — it rejects `diagnostic-01`
 (`staleWritesRefusedTotal: 0`) and accepts `diagnostic-02` (9) and
 `diagnostic-03` (4). After the fix: 8 red cases all red, green control green.
+
+---
+
+# Voided again 2026-09-06 — the page moved a second time
+
+Everything in the section above describes the take on page `20f09cc9…`. The
+shipping shell changed twice on 2026-09-06 (finding 088's fix, shell
+generation v45); the candidate page's sha moved to `39895d15…`. Per ruling 1
+of `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md`, the count restarts on
+the day the page changes, the same rule that voided the `3dfdcfef…` take
+above.
+
+`diagnostic-01-caret12.json`, `diagnostic-02-caret12.json`,
+`diagnostic-03-caret12.json`, and the judge's verdict of that day (renamed
+`VERDICT-condition-2-on-20f09cc9.json`) are now in
+`../queue-v12-cutover-soak-void-20f09cc9/`; nothing in them was edited. Unlike
+the `3dfdcfef…` void, this time the diagnostics moved with the verdict rather
+than staying behind — see
+`../queue-v12-cutover-soak-void-20f09cc9/WHY-THESE-ARE-VOID.md` for the
+per-file page shas and the full account.
+
+Condition 2 must be re-earned on `39895d15…`, under task T2 of
+`handoff/PLAN-2026-09-06-after-the-page-moved-twice.md`. This file stays where
+it is, per the same disposition its `20f09cc9…` section already gave it: the
+readable record of a discharged condition belongs beside the bank it describes,
+not inside the void directory of the page that discharge no longer counts for.
