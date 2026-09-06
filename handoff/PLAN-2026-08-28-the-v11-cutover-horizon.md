@@ -1665,3 +1665,234 @@ manual round with 4b** — which is also what completes this record.
 
 *Count semantics: the clean-run predicate is untouched; the soak count does not
 restart.*
+
+---
+
+# Amendment, 2026-09-07 — the region check verifies the claim, not the node
+
+Append-only; nothing above is edited. This rewrites the oracle and the pass
+predicate of one product-path check, `the-document-region-says-why-it-is-empty`.
+The clean-run predicate of criterion 1 contains that check by reference — a run
+is clean only at 38 PASS / 2 NE with the NE set fixed — so this **changes what
+*clean* means**, and §9's count semantics are stated below rather than left to
+be inferred.
+
+Disposition **A** of finding 092, ruled by the owner, verbatim 「A」; recorded in
+`handoff/PLAN-2026-09-06-after-the-page-moved-twice.md`, section "R-1 = A, by
+the owner". Options B (make the live region speak again) and C (leave the check
+alone) are refused there and not re-litigated here.
+
+## Forcing facts (finding 092, `findings/092-*.md`)
+
+**(i) One payload, six times, and it is the same six characters every time.**
+On the candidate page `9b29e39b…` / shell v48, `e2-editor-v12`:
+
+```json
+"observed": {"present": true, "text": "", "reason": "paragraph", "offers": "1"}
+```
+
+verbatim in `soak-run-01-candidate.json`, `soak-run-02-candidate.json`, the
+three condition-2 diagnostics (`diagnostic-01/02/03-caret12.json`) and the
+revert rehearsal's post-cutover run (`rerun49-after-cutover.json`) — **6 of 6**
+v12-pinned runs, and **0** on the `e2-editor-v8` control in the same reports.
+`reason` and `offers` are individually legal and mutually consistent; the sole
+reason for the FAIL is that `#a11y-para`'s text is the empty string.
+
+**(ii) The emptiness is finding 088's fix doing what the owner accepted by
+ear.** `78f1cb3a` (shell v45), *one paragraph, one voice*: when the structure
+channel is already naming the focused paragraph through
+`aria-activedescendant`, `projectFocusedParagraph` writes the live region empty
+**on purpose**, and stamps
+
+```js
+el.a11yPara.dataset.deferredToStructure = doubled ? "1" : "0";
+```
+
+with the comment *"said out loud in the DOM, so a probe can tell 'silent
+because the structure has it' from 'silent because there is nothing to say'"*.
+The check's reader, `READ_A11Y_REGION`, reads three values — `#a11y-para`'s
+`textContent` and `dataset.reason`, `#a11y-doc`'s `dataset.offers` — and has
+never read the attribute the fix added **for it**.
+
+**(iii) This was never measured before 2026-09-07.** The ten runs banked on
+`20f09cc9…` all predate the 088 fix family, and no soak run was ever taken on
+v45. The fix and this oracle met for the first time on the night of
+2026-09-07. **It is not a v46 regression**: it is two independently correct
+pieces of one file sharing a frame for the first time.
+
+**(iv) The instrument's own red case is dead while this stands.** 4a term 6 is
+NOT_ESTABLISHED on `9b29e39b…` because `projection-not-wired`'s mutation run
+scores 37/2/1 — identical to the unmutated baseline, since the check is red
+without any mutation. A mutation that reddens what was already red proves
+nothing (§6). Term 6 is re-taken against the first green baseline this
+amendment makes possible.
+
+## The rewritten oracle
+
+The check's `oracle` string is, verbatim, what the implementation must carry:
+
+> the page always offers something to read for the caret: the focused
+> paragraph's text in the live region, or — when the live region says it has
+> deferred to the structure channel (`data-deferred-to-structure="1"`) — the
+> text under the structure channel's active descendant; on a profile that
+> offers no paragraph text, a sentence naming the cause. Silence on both
+> channels is the failure. `reason` must be a code this page can produce and
+> must agree with `offers`, so that a region holding stale text, or one
+> claiming the engine cannot do what its contract says it can, cannot pass;
+> and a deferral is legitimate only with `reason == "paragraph"` and
+> `offers == "1"`, so a page cannot hide behind the other channel a sentence
+> the user needed to hear.
+
+What changed and what did not: the *claim* is unchanged — a screen reader must
+never be handed a document region that is silently empty, because "document,
+blank" is a confident wrong answer about the user's own file. What changed is
+that the claim is no longer measured through one DOM node. 087 and 088 gave
+this page a second channel; a criterion whose premise was "the live region is
+this profile's only channel" was falsified by the product it measures, and §4
+says to withdraw the premise rather than build machinery to keep it true.
+
+## The pass predicate, in one formula
+
+```
+PASS ⇔ present
+     ∧ reason ∈ {paragraph, profile, noDocument, noParagraph, disabled, stale, noText}
+     ∧ consistent(reason, offers)
+     ∧ ( text ≠ ""  ∨  ( deferredToStructure == "1" ∧ structureText ≠ "" ) )
+     ∧ ( deferredToStructure == "1" → reason == "paragraph" ∧ offers == "1" )
+```
+
+`consistent` is unchanged: `offers == "0"` requires `reason ∈ {profile,
+noDocument}`; `offers == "1"` requires `reason != "profile"`; any other value of
+`offers` is inconsistent by construction.
+
+The five values and where each comes from:
+
+| value | DOM source |
+| --- | --- |
+| `present` | `#a11y-para` and `#a11y-doc` both exist |
+| `text` | `#a11y-para`.textContent, trimmed |
+| `reason` | `#a11y-para`'s `data-reason` |
+| `offers` | `#a11y-doc`'s `data-offers` |
+| `deferredToStructure` | `#a11y-para`'s `data-deferred-to-structure` ("0" / "1" / null when absent) |
+| `structureText` | the trimmed text of the element `#sink`'s `aria-activedescendant` names; null when the attribute is absent **and** null when it names a node that is gone |
+
+All of them are read in **one** evaluation in the page, so no clause can be
+satisfied against a different snapshot than another — two reads of a moving
+projection is the 084 shape and it is not paid for twice.
+
+`observed` carries the whole projection: `present`, `text`, `reason`, `offers`,
+`deferredToStructure`, `activeDescendant`, `structureText`. `activeDescendant`
+is in the payload and not merely summarised, because "no structure text" has
+two causes — no pointer at all, and a pointer to a node that no longer exists —
+and a reader of a failed run must be able to tell them apart from the report
+(§7: error messages carry the payload, not a summary of it).
+
+## §9's four conditions, stated
+
+1. **Prior to satisfaction.** This text is committed before the implementation
+   and before any run judged by it. The count is **0**; no run under the new
+   wording exists anywhere, banked or unbanked.
+2. **Forced and named.** Finding 092 and the owner's 「A」. The measurement that
+   forced it is fact (i): 6 of 6 against 0 of 6, one payload. "I thought of it"
+   would not qualify and is not what happened.
+3. **Form.** Per-instance property (§1 form 1) over runs: *every run counted
+   toward criterion 1 satisfies the predicate above.* It is automatically true
+   of runs that do not exist yet; adding a run cannot leave it true by
+   omission. The mutation half is form 2: `tests/test_product_path_mutations.py`
+   enumerates `MUTATIONS` from the runner itself, so a red case that stops
+   applying to the tree turns the static test red on the commit that causes it.
+4. **Deadline.** Closes when the twelfth clean run banks, with criterion 1.
+   After that, anything further about this check is a finding or post-cutover
+   work, not a gate term.
+
+## Count semantics
+
+**This changes the definition of *clean*, so the count restarts at 0.** It is
+already 0 — the ten runs on `20f09cc9…` were voided when the page moved, and
+runs 1–2 on `9b29e39b…` are banked FAIL. There is therefore no cost to the
+restart and no run is displaced by it.
+
+* **Runs 1–2 (`soak-run-01-candidate.json`, `soak-run-02-candidate.json`) stay
+  banked as FAIL under the old wording and are not re-judged.** Re-scoring a
+  banked run under a predicate written after it is the retroactive move §9
+  exists to forbid — and it is not even mechanically possible: their reports do
+  not carry `deferredToStructure` or `structureText`, so a re-judgement would
+  have to invent the values it reads.
+* **No run taken before this amendment's implementation commit can count.** The
+  first countable run is one whose report carries the new fields.
+* The three clean-run bullets of criterion 1 are otherwise untouched; the
+  identity clauses (`pageSha256`, `servedShell.servedSha256`, E-4) are
+  untouched; nothing here moves the page or the shell.
+
+## Red cases, owed before the check is trusted
+
+§6: a checker that only ever returns green proves that it returns green. Each
+case below is a `--mutate` run on the candidate page (mirror-mutated; `dist/`
+is never written), and each must **FAIL exactly
+`the-document-region-says-why-it-is-empty` and nothing else on an otherwise
+clean run**. Both new mutations require the structure channel to be naming a
+node at the moment the check runs — the state fact (i) measured 6 of 6 — so
+both declare `requiresFlag: --candidate-profile`; on the shipped profile, which
+has no structure projection, they are inert by construction and that is
+recorded rather than discovered.
+
+**(i) Both channels silent** — mutation `structure-names-nothing-while-the-region-defers`.
+`projectStructure` still builds the projection and still returns the focused
+node's text, so the live region still defers and is still empty, but the sink is
+never pointed at the node: `el.sink.setAttribute("aria-activedescendant",
+focusedId)` becomes `removeAttribute`. Nothing on the page then names the
+focused paragraph on either channel. **This is the case the amendment exists to
+keep red**: if it came back green, the change would have traded a false red for
+a blind spot, which is the outcome §4 warns about when a criterion is widened.
+
+**(ii) A deferral that is not legitimate** — mutation
+`the-region-defers-with-a-reason-it-owed-the-user`.
+`el.a11yPara.dataset.reason = reason;` becomes `= doubled ? "stale" : reason;`:
+the region defers and falls silent while its own reading of the caret paragraph
+is *stale*, i.e. the page had a sentence the user needed (「尚未讀到游標所在的
+段落。」) and let the other channel's silence stand in for it. `stale` is a
+producible code and is consistent with `offers == "1"`, and the structure text
+is non-empty, so **the implication clause is the only clause that can catch
+this** — which is what makes it this clause's red case rather than a second
+copy of case (iii).
+
+The other shape (ii) names — *region text empty while the attribute does not say
+it deferred*, the pre-existing R-1 shape — is produced by case (iii) and needs
+no third mutation: with the projection un-wired the text, the reason and the
+attribute are all left unwritten.
+
+**(iii) `projection-not-wired`** (re-anchored 2026-09-07 on
+`projectFocusedParagraph(snapshot, structureSpeaks);`) stays red, and now fails
+three clauses at once: the region is empty, `reason` is absent so it is not in
+the known set, and `deferredToStructure` is absent so the disjunction has no
+second arm. Its red case must be re-proven against a **green** baseline, which
+is the same run that re-takes 4a term 6.
+
+**(iv) The existing inconsistency cases stay red.** `reason` outside the known
+set, and `reason == "profile"` while `offers == "1"`, are unchanged clauses of
+the predicate. Nothing in this amendment relaxes them; a region holding stale
+text on a profile that claims to supply paragraphs still cannot pass.
+
+## Default if the red cases are never taken
+
+**The amendment is then text with no red case, and the check is
+NOT_ESTABLISHED as an instrument on this page — not passed.** A run that goes
+green under a widened predicate that was never shown to be capable of failing
+is indistinguishable from a run judged by a disabled check, and this tree has
+already paid once this week for the difference (4a term 6, fact (iv)).
+Consequences of that default, so nobody has to derive them: no run counts
+toward criterion 1; 4a term 6 stays NOT_ESTABLISHED and 4a stays at 7 of 8; the
+gate does not close.
+
+## Named as unmeasured, so it is not mistaken for cleared
+
+A screen reader that reads live regions but does **not** implement
+`aria-activedescendant` gets, on `e2-editor-v12`, an entirely silent caret
+path — the live region defers and the pointer it defers to is one such an AT
+never follows. Orca implements it and was measured; no other AT was. This
+amendment makes the *check* accept the second channel, and that acceptance is
+exactly as good as the assumption that the reader follows it. **Default
+conclusion if this is never measured: a live-region-only AT is a known,
+unmeasured usability gap on this profile** — not "checked and fine". It is not
+a gate term and it does not block the count; it is written here because after
+this amendment nothing else in the gate would say it.
