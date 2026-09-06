@@ -392,7 +392,25 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # and applied after it, was putting the caret back a commit.  One file changed,
 # and it is not the entrypoint, but the bundle digest moves either way and that
 # is what makes it a new identity.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v43.json")
+# v44, 2026-09-06: THE SHELL THAT WAS ALREADY SHIPPING, declared late.
+# No file changed to make this generation -- it records bytes `dist/` has served
+# since finding 090's `make` (2026-09-05 ~01:3x CST, between `f7d8cdd0` and
+# `8d5da45a`, immediately before soak run 1): the product as a real user loads
+# it today, and the state every revert returns to.  v43 declared the entrypoint
+# as `28e03e5b...`; findings 087 and 088 moved the source and finding 090's
+# `make` moved the served copy, and none of the three froze a generation.  The
+# tree's own `test_the_real_manifest_matches_the_real_tree` had been red since
+# 087's fix and nobody ran it; the revert rehearsal of 2026-09-06 found it from
+# the other side, when the post-revert run could not be reconciled.
+#
+# The intermediate shell between `681a22b0` and `3d3d0323` (087 without 088) is
+# deliberately NOT reconstructed: no run was ever reconciled against it, and a
+# generation with no measurement bound to it is a declaration without a subject.
+#
+# Adjudicated 2026-09-06 (finding 091, ruling E-1 in
+# `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md`).  Consequence: the
+# cutover's step-3 generation is **v45**, not v44.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v44.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
