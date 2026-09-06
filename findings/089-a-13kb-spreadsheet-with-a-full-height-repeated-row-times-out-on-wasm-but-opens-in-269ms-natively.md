@@ -319,3 +319,40 @@ shows the load is non-terminating rather than merely slower than that. Native
 takes 1.4 s, so if WASM is on the same algorithm the constant would have to be
 worse by more than 128x for the same document — which is itself the observation
 that makes "same algorithm, slower machine" hard to believe.
+
+## `rows36` does not open in thirty minutes (2026-09-06)
+
+Evidence: `findings/evidence/089/rows36-open-timeout-1800s.json`. The SDK's
+`open` timeout was raised to 1,800,000 ms for this run — see
+`findings/evidence/089/openTimeout-knob.md` for the knob and its red case.
+
+| case | opened | elapsed |
+| --- | --- | --- |
+| `d1-anchors.odt` (control) | yes | 1,874 ms |
+| `tdf149752-rows35.ods` (in-band control) | yes | 1,600 ms |
+| `tdf149752-rows36.ods` | **no** | **1,800,901 ms — `open timed out after 1800000 ms`** |
+
+`rows35` opened normally in the same session immediately before it, so the
+engine was healthy when `rows36` was handed over.
+
+**Against native's 1,404 ms for the same file, that is a factor of at least
+1,282, and it had still not finished.** The earlier section said "if WASM is on
+the same algorithm the constant would have to be worse by more than 128x — which
+is itself the observation that makes 'same algorithm, slower machine' hard to
+believe." The factor is now an order of magnitude past that and remains a lower
+bound.
+
+### What this still does not establish
+
+**It is not proof of non-termination.** Thirty minutes is a longer bound, not an
+unbounded one. What can be said is bounded and worth saying exactly: on this
+profile the open does not complete within 1,800 s, while the same document on
+the same core commit completes natively in 1.4 s.
+
+Nothing here identifies where the time goes. Two candidates from the source
+reading are already excluded — a forced hard recalculation on load (the default
+is `RECALC_NEVER` and is shared with native) and the sorted-range cache
+(compiled out entirely, tdf#151958) — and neither exclusion points at a
+replacement. **Do not attribute a cause on this evidence**; finding 040's
+precedent is that a confident wrong attribution here costs more than the
+open question.
