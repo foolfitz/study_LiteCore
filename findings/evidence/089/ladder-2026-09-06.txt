@@ -1,0 +1,39 @@
+# Finding 089 — the row ladder, 2026-09-06
+# profile e2-editor-v12, every run carried the ODT control d1-anchors.odt,
+# and the control opened in every one of them.
+
+rows       opened   elapsedMs    report
+d1-anchors.odt               True     1818         ladder-rows20-rows50.json  
+tdf149752-rows20.ods         True     1423         ladder-rows20-rows50.json  
+tdf149752-rows50.ods         False    180930       ladder-rows20-rows50.json  TIMEOUT
+d1-anchors.odt               True     1742         ladder-rows25-rows40.json  
+tdf149752-rows25.ods         True     1459         ladder-rows25-rows40.json  
+tdf149752-rows30.ods         True     1208         ladder-rows25-rows40.json  
+tdf149752-rows35.ods         True     1260         ladder-rows25-rows40.json  
+tdf149752-rows40.ods         False    180953       ladder-rows25-rows40.json  TIMEOUT
+d1-anchors.odt               True     1870         ladder-rows36-first-timeout.json  
+tdf149752-rows36.ods         False    180991       ladder-rows36-first-timeout.json  TIMEOUT
+tdf149752-rows37.ods         False    None         ladder-rows36-first-timeout.json  
+d1-anchors.odt               True     1881         ladder-rows34-35-36-confirm.json  
+tdf149752-rows34.ods         True     1501         ladder-rows34-35-36-confirm.json  
+tdf149752-rows35.ods         True     1245         ladder-rows34-35-36-confirm.json  
+tdf149752-rows36.ods         False    180919       ladder-rows34-35-36-confirm.json  TIMEOUT
+
+## Reading these rows
+
+* `elapsedMs` around 1,200-1,500 is a file that opened; the ODT control in the
+  same run sits at 1,742-1,881, so an opening spreadsheet is indistinguishable
+  from the control.
+* `TIMEOUT` at ~180,9xx ms is the SDK's own `open` timeout
+  (`web/ods-decisive-probe-app.js:165`, `timeoutMs: 180000`), NOT the probe's
+  `--timeout`. It says the open did not finish within 180 s; it does not say
+  the open would never finish.
+* **`rows37` in `ladder-rows36-first-timeout.json` was NOT measured.** It shows
+  `opened=False elapsedMs=None err=None` because the run was given four
+  fixtures (36, 37, 38, 39) and stopped after the first timeout consumed the
+  budget; `rows38` and `rows39` do not appear in that report at all. Those three
+  fixtures are built and unrun. A `False` with no elapsed time and no error is
+  an absent measurement, not a failure.
+* `rows36` timed out in TWO independent invocations, and in the second one
+  `rows34` and `rows35` opened normally in the same browser session immediately
+  before it.

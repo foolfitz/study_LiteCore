@@ -199,3 +199,65 @@ cells carry no cached result, so both platforms must interpret them. One
 candidate for the ~670x gap is removed; the cause is still unnamed, and the
 scaling fixtures (`tdf149752-rows20.ods`, `tdf149752-rows50.ods`) are still
 built and unrun.
+
+## The scaling fixtures ran, and it is a cliff, not a curve (2026-09-06)
+
+Evidence: `findings/evidence/089/ladder-2026-09-06.txt` and the four probe
+reports beside it. Profile `e2-editor-v12`; every run carried the ODT control,
+and the control opened in every one.
+
+| `Index`/`Index2` range | opened | elapsed |
+| --- | --- | --- |
+| `A2:A20` | yes | 1,423 ms |
+| `A2:A25` | yes | 1,459 ms |
+| `A2:A30` | yes | 1,208 ms |
+| `A2:A34` | yes | 1,501 ms |
+| `A2:A35` | yes | 1,245 ms |
+| **`A2:A36`** | **no** | **TIMEOUT 180,919 / 180,991 ms** |
+| `A2:A40` | no | TIMEOUT 180,953 ms |
+| `A2:A50` | no | TIMEOUT 180,930 ms |
+| `A2:A100` (the original) | no | TIMEOUT 181,026 ms |
+
+**One row moves it from 1.2 s to more than 180 s.** That is the measurement the
+earlier section said would tell a general formula cliff apart from a scaling
+cost, and it answers against scaling: no polynomial does this. `36³/35³` is
+1.09; the observed ratio is at least 145. Something switches between a range of
+34 rows and a range of 35.
+
+`rows36` timed out in two independent invocations, and in the second one
+`rows34` and `rows35` opened normally in the same browser session immediately
+before it, so this is not one bad run or a poisoned session.
+
+### One candidate mechanism excluded, cheaply
+
+`ScQueryCellIteratorSortedCache` — the sorted-range cache COUNTIF would switch
+into for a large enough range — is **compiled out entirely** in this tree.
+`CanBeUsedForSorterCache` (`sc/source/core/data/queryiter.cxx:1598`) begins with
+`#if 1 / return false`, with a comment naming tdf#151958 and disabling it for
+releases. The whole eligibility test below it, thresholds included, is
+unreachable. Whatever switches at 36 rows, it is not that.
+
+### What is measured, and what is still not
+
+* **Measured**: that the cost is a threshold in the named range's length, at
+  35→36 rows, reproduced twice, with a control in-band.
+* **Not measured**: whether `rows36` finishes *eventually*. The 180 s is the
+  SDK's own `open` timeout, hard-coded at
+  `web/ods-decisive-probe-app.js:165`, not the probe's `--timeout`; a run that
+  hits it has not been shown to be non-terminating. Raising it needs an
+  instrument change and has not been made.
+* **Not measured**: the same ladder natively. The native oracle opened the
+  unmodified original in 269 ms, so the threshold may exist on both sides at
+  different constants, or on one side only. **Nothing here licenses saying it is
+  WASM-specific**, and the earlier "~670x gap" framing should be read as an
+  observation about the original file, not as a rate.
+* **Not measured**: `rows37`, `rows38`, `rows39` — built, and unrun because the
+  first timeout consumed the run's budget.
+* **The fixtures now have provenance.** They were built ad hoc in a scratchpad
+  that no longer exists. `findings/evidence/089/build_row_ladder.py` rebuilds
+  them, and `--verify` re-derives `rows20` and `rows50` and compares:
+  `content.xml` is byte-identical for both (the whole zip is not, because zip
+  metadata is not reproduced). It also asserts the shrink hits exactly the 2
+  sites inside `<table:named-expressions>` and leaves the 99
+  `SMALL([.$A$2:.$A$100];ROW())` references alone — a blanket replace on this
+  document hits 200 sites, which this tree has already done once.
