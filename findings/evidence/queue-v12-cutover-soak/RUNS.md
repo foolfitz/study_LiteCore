@@ -243,3 +243,46 @@ at zero; this move does not restart it a second time — it re-points an empty
 bank's identity constants). Finding 088 is recorded as fixed by this change in
 `findings/088-*.md`, measured in
 `findings/evidence/manual-round-v12d-9b29e39b/RESULT-4b-v45-vs-v46.md`.
+
+## Corrected 2026-09-07 — generation v47 was frozen by mistake on a cut-over shell
+
+Generation v47 was frozen by mistake on a cut-over shell (commit `000a57e2`);
+the shell is restored to shipping v8 with the v46 hunk and frozen as v48;
+candidate page sha unchanged; zero runs voided; count stays 0 of 12.
+
+The mistake: the landing that produced `000a57e2` ran `build_cutover_page.py
+--profile e2-editor-v12 --write`, which repointed `web/e2-editor-app.js`'s
+`workerUrl` and `PINNED_WASM_SHA256` from `e2-editor-v8` to `e2-editor-v12` in
+addition to applying the v46 hunk, and froze that shell as v47. The gate (the
+twelve soak runs counted in this bank, condition 4a, condition 2, and the
+owner's manual round) has not passed, so the served shell must not point at
+the candidate profile yet — only the v46 fix was meant to land there.
+
+The correction: `web/e2-editor-app.js` has its `workerUrl` and
+`PINNED_WASM_SHA256` restored to exactly their `f7f20317` values
+(`e2-editor-v8` / `4a2710bba1ef07d9`); `git diff f7f20317 --
+wasm_sdk_probe/web/e2-editor-app.js` is exactly one hunk, the v46 one.
+`dist/e2-editor-app.js` copied from the same bytes; all thirteen bound paths
+verified byte-identical between `web/` and `dist/`. Frozen as **generation
+v48** (`bundleSha256
+ecfb6866117673c21a7c21995f7ea76fe60beb9f94a73c222053a18cc573a6ef`, verified
+two ways as before). **v47's JSON is left in place, unedited** — generations
+are never overwritten — as a record of the mistaken bytes; `MANIFEST` in
+`build_e2_c_shell_bundle.py` now points at v48.
+
+**The candidate page sha is unchanged.** `build_cutover_page.py --profile
+e2-editor-v12` (no `--write`, nothing touched in the tree) measured from the
+restored v8 shell still gives
+`9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c` — the same
+value T1c measured and the same value this bank's `DEFAULT_SHA` already held,
+because `build_cutover_page.py`'s repoint fully substitutes the two lines with
+the target profile's own values rather than transforming whatever bytes are
+already there; the resulting digest does not depend on whether the source it
+started from was itself already cut over. `DEFAULT_SHA` in both judges is
+therefore **unchanged**. `check_soak_bank.py`'s `DEFAULT_SERVED_SHELL` moves to
+v48's `bundleSha256` above.
+
+**Zero runs voided.** The bank held zero soak runs and zero condition-2
+diagnostics before this correction (the 2026-09-06 void above) and holds zero
+after it — there was nothing on the mistaken v47 shell to void. Counting: **0
+of 12**, unchanged.

@@ -430,7 +430,22 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # twice.md` ("T1c: v46 measures better; D1 = A lands it"). v46 was never
 # frozen (the attempt was reverted before a generation existed for it); this is
 # the first frozen generation carrying the fix, hence v47, not v46.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v47.json")
+#
+# CORRECTION, 2026-09-07 (commit after `000a57e2`): v47 above is wrong about
+# what it froze. The v47 paragraph says "this is also the cutover itself" --
+# it was not supposed to be. The brief for that landing asked only for the
+# v46 hunk and a frozen generation of the shell AS SHIPPED; `build_cutover_
+# page.py --write` was run and it also repointed `workerUrl` and
+# `PINNED_WASM_SHA256` from `e2-editor-v8` to `e2-editor-v12` -- the actual
+# cutover -- which nothing in the gate (12 soak runs, 4a, condition 2, the
+# owner's manual round) had passed yet. v47 is left frozen as a record of
+# those (premature) bytes; generations are never overwritten.
+#
+# v48, 2026-09-07: the correction. Same v46 hunk, entrypoint restored to
+# `f7f20317`'s `e2-editor-v8` / `4a2710bba1ef07d9` -- `git diff f7f20317 --
+# web/e2-editor-app.js` is exactly the one v46 hunk, nothing else. This is
+# the shell as shipped, with the fix, not yet cut over.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v48.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

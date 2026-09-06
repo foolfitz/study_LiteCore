@@ -220,8 +220,20 @@ def day_of(report: dict) -> dict:
 # Verified two ways: read from `e2/editor-shell-v2-bundle-v47.json` and
 # recomputed with `shell_bundle_digest` over the served files -- both give
 # this value.
-DEFAULT_SERVED_SHELL = ("cf7f923391a059943366b46bde8f25c7a618da57752e592ff"
-                        "aa13398e78161e4")
+#
+# CORRECTION, 2026-09-07 (commit after `000a57e2`): v47's bytes also carried a
+# cutover to `e2-editor-v12` that the gate had not passed yet -- see the
+# correction recorded beside `MANIFEST` in `build_e2_c_shell_bundle.py`. v48
+# restores the shipping entrypoint (`e2-editor-v8`); `DEFAULT_SHA` above is
+# unaffected by this correction because `build_cutover_page.py`'s repoint
+# fully substitutes the worker/pin lines with the target profile's own
+# values rather than transforming whatever is already there -- measured
+# from the `e2-editor-v8` shell or from the (wrongly) already-cut-over one,
+# `--profile e2-editor-v12` produces the same bytes either way. Verified two
+# ways again: read from `e2/editor-shell-v2-bundle-v48.json` and recomputed
+# with `shell_bundle_digest` over the served files.
+DEFAULT_SERVED_SHELL = ("ecfb6866117673c21a7c21995f7ea76fe60beb9f94a73c222"
+                        "053a18cc573a6ef")
 
 
 def judge_run(path: Path, expect_sha: str, expect_profile: str,

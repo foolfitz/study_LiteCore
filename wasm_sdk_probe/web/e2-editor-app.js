@@ -46,7 +46,7 @@ import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js"
 // move together or the page pins one artifact and loads another -- and the
 // expiry screen exists to make exactly that mismatch loud, so a half-move
 // would look like a broken build rather than a mistake.
-const PINNED_WASM_SHA256 = "4ec1e389aaab3b03";
+const PINNED_WASM_SHA256 = "4a2710bba1ef07d9";
 
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -1422,7 +1422,7 @@ globalThis.addEventListener("resize", () => {
 // The harness pages (`e2-c-d*-app.js`) do take `?profile=`; they are harnesses.
 function engineFactory() {
   return createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v12/sdk-worker.js",
+    workerUrl: "./profiles/e2-editor-v8/sdk-worker.js",
     timeoutMs: 30000,
   });
 }
