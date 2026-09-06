@@ -356,3 +356,51 @@ is `RECALC_NEVER` and is shared with native) and the sorted-range cache
 replacement. **Do not attribute a cause on this evidence**; finding 040's
 precedent is that a confident wrong attribution here costs more than the
 open question.
+
+## Correction: the ladder measured a diagonal, and the frontier has two axes
+
+Evidence: `findings/evidence/089/grid-2026-09-06.txt` and the five `grid-*.json`
+reports beside it.
+
+The section "The scaling fixtures ran, and it is a cliff, not a curve" says
+*"Something switches between a range of 34 rows and a range of 35."* That
+sentence is about **one** range, and the ladder does not measure one range: it
+shortens `Index` and `Index2` **together**. Everything it establishes is about
+the diagonal of a two-variable space, and I wrote it as though the space had one
+axis. The cliff on the diagonal is real and reproduced; the attribution to "a
+range" was not measured.
+
+Varying them independently — `build_row_ladder.py --split INDEX INDEX2`, whose
+`(35,35)` output is byte-identical in `content.xml` to the ladder's `rows35`:
+
+| `Index` | `Index2` | opened |
+| ---: | ---: | --- |
+| 100 | 35 | yes, 1,486 ms |
+| 36 | 35 | yes, 1,589 ms |
+| 35 | 35 | yes, 1,245 ms |
+| 20 / 25 / 30 / 33 / 34 | 36 | yes, 1,223–1,496 ms |
+| **35** | **36** | **no — timeout, twice** |
+| **36** | **36** | **no — timeout, twice** |
+
+**It takes both.** `Index2 ≥ 36` is necessary and not sufficient: at `Index2 =
+36` it still opens with `Index` anywhere from 20 to 34. `Index ≥ 35` is
+necessary and not sufficient: at `Index2 = 35` it opens with `Index` at 100.
+
+This kills the reading that one range is "the switch" and the other is inert,
+which is where a one-axis ladder was pointing. It also rules out a simple size
+product: `(35,36)` and `(36,35)` differ by one cell in each direction and by one
+in the product, and one of them takes 1.6 s while the other does not finish.
+
+`Index` is `$Liste.$A$2:.$A$n` — plain data on another sheet, the COUNTIF
+criterion. `Index2` is `$Auswertung.$A$2:.$A$n` — the same column as the 99
+`IF(COUNTIF(Index2;Index);"";Index)` cells that resolve through it, so the
+search range overlaps the cells being computed. **Naming that as the mechanism
+would be exactly the attribution this finding has twice refused to make**; it is
+recorded as the structural difference between the two axes, not as a cause.
+
+### What the earlier sections still say correctly
+
+The diagonal cliff (rows35 opens, rows36 does not), the native ladder being flat
+across the whole diagonal, and `rows36` not opening in 1,800 s are unaffected —
+those are all measurements of specific files, and every one of those files still
+behaves as recorded.

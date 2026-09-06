@@ -1,0 +1,35 @@
+# Finding 089 -- the two named ranges, varied INDEPENDENTLY.  2026-09-06
+#
+# The 2026-09-06 ladder moved Index and Index2 together, so everything it
+# measured is the DIAGONAL of a two-variable space.  These runs separate
+# them.  Fixtures built by build_row_ladder.py --split INDEX INDEX2, whose
+# (35,35) output is byte-identical in content.xml to the ladder's rows35.
+#
+#   Index  = $Liste.$A$2:.$A$<n>       plain data, another sheet
+#   Index2 = $Auswertung.$A$2:.$A$<n>  the SAME column as the 99 array
+#                                        formulas that resolve through it
+#
+# Every run carried the ODT control and it opened in every one.
+
+Index    Index2   opened    elapsedMs    report
+20       36       True      1228         grid-index100-35-and-index20-36.json
+25       36       True      1484         grid-index25-30-33-with-index2-36.json
+30       36       True      1223         grid-index25-30-33-with-index2-36.json
+33       36       True      1274         grid-index25-30-33-with-index2-36.json
+34       34       True      1501         ladder-rows34-35-36-confirm.json
+34       36       True      1496         grid-index34-and-35-with-index2-36.json
+35       35       True      1245         ladder-rows34-35-36-confirm.json
+35       36       False     180969       grid-index34-and-35-with-index2-36.json
+35       36       False     181017       grid-index35-index2-36.json
+36       35       True      1589         grid-index36-index2-35.json
+36       36       False     180919       ladder-rows34-35-36-confirm.json
+100      35       True      1486         grid-index100-35-and-index20-36.json
+
+## The frontier
+
+It opens unless BOTH of these hold, and neither alone is enough:
+    Index  >= 35   AND   Index2 >= 36
+
+Index2 = 35 opens with Index at 35, 36 and 100.
+Index2 = 36 opens with Index at 20, 25, 30, 33 and 34, and does NOT open
+at 35 (measured twice) or 36 (measured twice, as the ladder's rows36).

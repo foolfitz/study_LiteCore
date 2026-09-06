@@ -35,6 +35,44 @@ CLOSE_TAG = "</table:named-expressions>"
 FULL = "$A$2:.$A$100"
 
 
+def rewrite_split(content: str, index_rows: int, index2_rows: int) -> str:
+    """Set `Index` and `Index2` to different lengths, to find out WHICH range
+    the threshold belongs to.
+
+    `Index` lives on `Liste` and holds plain data.  `Index2` lives on
+    `Auswertung`, the same column as the 99 array formulas, so it overlaps the
+    cells that resolve through it.  The ladder moved both together and cannot
+    tell them apart; this can.
+    """
+    start = content.index(OPEN_TAG)
+    end = content.index(CLOSE_TAG) + len(CLOSE_TAG)
+    block = content[start:end]
+    assert block.count(FULL) == 2, f"expected 2 sites, got {block.count(FULL)}"
+    # Rewrite each named range by name, so neither is set by position.
+    out_block = block
+    rewritten = 0
+    for name, rows in (("Index", index_rows), ("Index2", index2_rows)):
+        marker = f'table:name="{name}"'
+        i = out_block.index(marker)
+        j = out_block.index("/>", i) + 2
+        entry = out_block[i:j]
+        assert entry.count(FULL) == 1, f"{name}: {entry}"
+        out_block = (out_block[:i]
+                     + entry.replace(FULL, f"$A$2:.$A${rows}")
+                     + out_block[j:])
+        rewritten += 1
+    # COUNT THE REWRITES, not the survivors.  `rows == 100` writes the string
+    # it replaces, so "no FULL left in the block" is false for the identity
+    # case while every site has in fact been visited -- an assertion that
+    # rejects a legitimate fixture is a broken assertion, not a caught bug.
+    assert rewritten == 2
+    result = content[:start] + out_block + content[end:]
+    # The 99 `SMALL([.$A$2:.$A$100];ROW())` references outside the block are
+    # untouched either way: the block is the only region rewritten.
+    assert result[:start] == content[:start] and result[end - (len(block) - len(out_block)):] == content[end:]
+    return result
+
+
 def rewrite(content: str, rows: int) -> str:
     """Shorten A2:A100 to A2:A<rows>, INSIDE the named-expressions block only.
 
@@ -54,11 +92,12 @@ def rewrite(content: str, rows: int) -> str:
     return out
 
 
-def build(rows: int, dest: Path) -> Path:
+def build(rows, dest: Path, split=None) -> Path:
     with zipfile.ZipFile(SOURCE) as src:
         names = src.namelist()
         content = src.read("content.xml").decode("utf-8")
-        new_content = rewrite(content, rows).encode("utf-8")
+        new_content = (rewrite_split(content, *split) if split
+                       else rewrite(content, rows)).encode("utf-8")
         with zipfile.ZipFile(dest, "w") as out:
             for info in src.infolist():
                 data = new_content if info.filename == "content.xml" else src.read(info.filename)
@@ -80,6 +119,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--rows", type=int, nargs="*", default=[])
     ap.add_argument("--verify", action="store_true")
+    ap.add_argument("--split", type=int, nargs=2, action="append", default=[],
+                    metavar=("INDEX_ROWS", "INDEX2_ROWS"),
+                    help="set the two named ranges to different lengths; "
+                         "repeatable")
     args = ap.parse_args()
 
     rc = 0
@@ -107,6 +150,11 @@ def main() -> int:
     for rows in args.rows:
         dest = OUT_DIR / f"tdf149752-rows{rows}.ods"
         build(rows, dest)
+        print(f"  wrote {dest.name}  {dest.stat().st_size} bytes  sha256={sha(dest)[:16]}")
+
+    for a, b in args.split:
+        dest = OUT_DIR / f"tdf149752-index{a}-index2{b}.ods"
+        build(None, dest, split=(a, b))
         print(f"  wrote {dest.name}  {dest.stat().st_size} bytes  sha256={sha(dest)[:16]}")
     return rc
 
