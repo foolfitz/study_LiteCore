@@ -156,7 +156,7 @@ const A11Y_REASONS = {
   noText: "尚未讀到游標所在的段落。",
 };
 
-function projectFocusedParagraph(snapshot) {
+function projectFocusedParagraph(snapshot, structureSpeaks) {
   const para = snapshot?.editorState?.caretParagraph;
   let reason = "paragraph";
   let text = null;
@@ -168,13 +168,31 @@ function projectFocusedParagraph(snapshot) {
   else if (typeof para.text !== "string") reason = "noText";
   else text = para.text;
 
-  const next = text ?? A11Y_REASONS[reason];
+  // ONE PARAGRAPH, ONE VOICE (finding 088's residue).
+  //
+  // Measured 2026-09-06 on the candidate page, with the owner listening: every
+  // non-heading paragraph was spoken TWICE, ~117 ms apart, as two separate
+  // utterances. The two headings were spoken once -- and the walk's own record
+  // says why: `#a11y-para` was empty on the first heading and stale on the
+  // second, while it carried the focused node's exact text on all eight of the
+  // others. Ten stops, no exception: two channels carrying the same text ->
+  // spoken twice; one channel -> once.
+  //
+  // So when the structure projection is already naming this paragraph through
+  // `aria-activedescendant`, this region says nothing. It is NOT removed: on a
+  // profile with no structure projection it is the only home the reason
+  // sentences (「尚未開啟文件。」) have, and `structureSpeaks` is null there.
+  const doubled = typeof text === "string" && structureSpeaks === text;
+  const next = doubled ? "" : (text ?? A11Y_REASONS[reason]);
   // Compared before assigning, because an aria-live region announces when its
   // text CHANGES. updateState runs on every snapshot, and reassigning the same
   // string would be a repeat announcement of a paragraph the user is still
   // sitting in -- the projection would be talking over them.
   if (el.a11yPara.textContent !== next) el.a11yPara.textContent = next;
   el.a11yPara.dataset.reason = reason;
+  // Said out loud in the DOM, so a probe can tell "silent because the structure
+  // has it" from "silent because there is nothing to say".
+  el.a11yPara.dataset.deferredToStructure = doubled ? "1" : "0";
   el.a11yDoc.dataset.offers = session?.offersCaretParagraphText?.() ? "1" : "0";
 }
 
@@ -255,7 +273,8 @@ function projectStructure(snapshot) {
     el.sink.removeAttribute("aria-activedescendant");
     lastStructureSignature = null;
     lastFocusedElement = null;
-    return;
+    // Explicit: this channel speaks nothing, so the live region must speak.
+    return null;
   }
   el.a11yStructure.removeAttribute("aria-hidden");
   const paragraphs = nodes;
@@ -276,6 +295,7 @@ function projectStructure(snapshot) {
   const fragment = document.createDocumentFragment();
   let list = null;
   let focusedId = null;
+  let focusedText = null;
   let index = -1;
   for (const node of paragraphs) {
     index += 1;
@@ -311,6 +331,11 @@ function projectStructure(snapshot) {
     if (node.focused === true) {
       element.dataset.focused = "1";
       focusedId = element.id;
+      // What this channel will speak, returned so the live region can stay
+      // quiet rather than say it again. The TEXT, not the id: the live region
+      // has no id to compare against, and what a screen reader repeats is the
+      // words.
+      focusedText = text;
     }
     (isList ? list : fragment).appendChild(element);
   }
@@ -363,6 +388,7 @@ function projectStructure(snapshot) {
   const count = outline?.paragraphCount;
   el.a11yStructure.dataset.truncated =
     (typeof count === "number" && count > paragraphs.length) ? "1" : "0";
+  return focusedId ? focusedText : null;
 }
 
 function updateState(snapshot) {
@@ -379,8 +405,12 @@ function updateState(snapshot) {
   el.s.checkpoint.textContent = snapshot.hasCheckpoint
     ? `有（r${snapshot.checkpointRevision ?? "?"}）`
     : snapshot.checkpointError ? "寫入失敗" : "無";
-  projectFocusedParagraph(snapshot);
-  projectStructure(snapshot);
+  // ORDER IS LOAD-BEARING NOW: the structure projection decides what it will
+  // name, and the live region needs that answer to know whether to stay quiet.
+  // Reading the DOM attribute instead would read the PREVIOUS snapshot's value,
+  // which is the shape of bug this file has paid for twice.
+  const structureSpeaks = projectStructure(snapshot);
+  projectFocusedParagraph(snapshot, structureSpeaks);
   const notice = recoveryNotice(snapshot);
   el.notice.dataset.show = notice.visible ? "1" : "0";
   // The decision, stamped where a reader can see it: hosts may differ in

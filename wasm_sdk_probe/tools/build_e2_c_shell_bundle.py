@@ -410,7 +410,13 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # Adjudicated 2026-09-06 (finding 091, ruling E-1 in
 # `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md`).  Consequence: the
 # cutover's step-3 generation is **v45**, not v44.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v44.json")
+# v45, 2026-09-06: finding 088's residue fixed -- one paragraph, one voice.
+# `projectFocusedParagraph` now stays silent when the structure projection is
+# already naming the same paragraph through `aria-activedescendant`, and
+# `projectStructure` runs first and returns the text it will speak.  Frozen in
+# the SAME COMMIT as the change, which is the step 087, 088 and 090 each
+# skipped and which finding 091 is the record of.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v45.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
