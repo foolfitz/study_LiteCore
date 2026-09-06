@@ -1499,3 +1499,102 @@ undeclared state is a revert that cannot be reconciled.
 *Count semantics: the clean-run predicate is untouched and the soak count does
 not restart. Finding 091 is about the shipped-page path, which no banked run
 takes.*
+
+# Ruling, 2026-09-06 — finding 091: the shipped shell is frozen now, and the count pins the served shell
+
+Append-only. Nothing above is edited. Adjudicated on a ticket asking for the disposition of finding 091. The drafting party's leaning — **B**, leave the shipped shell undeclared until the cutover and freeze both generations then — is **overruled**. Everything below was re-measured on the tree at `ab37a8e5`, `git status` clean; nothing in the tree was modified.
+
+## Forcing facts
+
+(i) **The tree's own guard is red today and was not run.** `tests/test_e2_c_shell_bundle.py::test_the_real_manifest_matches_the_real_tree` fails with exactly finding 091's message — `manifest is out of date: added=[] removed=[] changed=['web/e2-editor-app.js']` (12 tests, 1 failure). It runs under `make test-e2-c-static` (Makefile:2804); `make test-e2-c-reachability` additionally runs `tools/build_e2_c_shell_bundle.py` read-only (Makefile:2894), which exits 1 today. Both targets are in the aggregate at Makefile:240-244. So option B's cost is not "a gap visible only at revert time": it is two repository test targets that stay red for the remaining life of the gate, and the gate has already restarted twice — "until the cutover" is not a bound.
+
+(ii) **Every banked run already ran on the bytes the cutover declares.** All ten reports in `queue-v12-cutover-soak/` carry `servedShell.servedSha256 = 78c2368403e16af1…`, which is the `bundleSha256` the rehearsal froze as v44 (`freeze-v44.json`). The twelve are measured on, byte for byte, the post-cutover shell. The ticket does not state this; it is the strongest fact in the case and it is what makes a freeze mid-count safe.
+
+(iii) **The reconciler is report-local; the bank judge never reads the shell.** `check_usable_editor.py` reads `servedShell.*` from the report and never opens the tree's `MANIFEST` (the only `e2/editor-shell` string in that file is a self-test fixture at line 452). `check_soak_bank.py` contains no `servedShell` read at all. Repointing `MANIFEST` therefore cannot change any banked verdict; `check_soak_bank.py` run before and after the freeze must print the same ten clean runs.
+
+(iv) **A generation has already been frozen and `MANIFEST` repointed mid-count** — transiently, by the rehearsal, 21:12-21:25 CST on 2026-09-06, after run 10 (completed 19:16:05 CST) and before run 11. Nobody held that the count was disturbed. A durable freeze differs from that transient one only in what `servedShell.bundle` says in runs 11-12.
+
+(v) **The hole the drafting party's fear points at is open today, not opened by the freeze.** A scratch copy of `soak-run-10-candidate.json` with `servedShell.bundle` set to `v99`, `declaredSha256` to `a`x64 and `servedSha256` to `b`x64 — a candidate run on a *different* twelve-file shell reconciled against a *later* generation — reconciles `ok: true, candidate-cutover, problems: []`, and a bank holding it judges **11 of 11 clean, `ok: true`**. Only the page sha pins the counted runs, and the page is one of thirteen bound files. (Scratch demonstration; nothing written into the tree.)
+
+(vi) **The rule that was skipped is the freezer's own.** Its refusal text: *"A changed shell needs a NEW generation."* On 2026-09-03 the same rehearsal's revert landed in a declared state (`findings/evidence/queue-v12-cutover-revert/RESULT-2026-09-03-step-3-rehearsed.md`: after the revert, page `28e03e5b…`, reconciled `true`). What changed between that take and this one is 087, 088 and 090's `make`, none of which froze a generation. Option B proposes to keep not following the rule for as long as the gate runs.
+
+(vii) **The 2026-08-22 lesson does not bind here.** It is about the temptation to *overwrite* a generation frozen before its round's changes were done; the freezer refuses overwrites (`--force` only), the only planned change to the shipped shell is the cutover flip, and any other served-byte change moves `pageSha256` or the served digest, restarts the count, and needs its own generation regardless. The lesson's own text says numbers are cheap.
+
+## E-1 — Disposition: variant A, executed now, with no soak run in flight
+
+Freeze one generation describing the shell the tree serves today and repoint `MANIFEST` at it. Precisely:
+
+1. **Precondition, measured**: `sha256sum web/e2-editor-app.js dist/e2-editor-app.js` both `5aeae0e1dbfe492d…`; `git status` clean; `python3 tools/build_e2_c_shell_bundle.py --manifest e2/editor-shell-v2-bundle-v43.json` reports `bundleSha256 f89d7bb9d1438ef2…` and exactly `changed=['web/e2-editor-app.js']`.
+2. `python3 tools/build_e2_c_shell_bundle.py --manifest e2/editor-shell-v2-bundle-v44.json --frozen-date <the day> --write`. Judge on `written: true` and `problems: []` after the write, not on the exit code (W-5's note). The written file must carry `bundleSha256 f89d7bb9d1438ef2b3db81d4703c8b06db034165b59e2d97e5e420f12ee58fc9`, `web/e2-editor-app.js` = `5aeae0e1…`, the other twelve `included` entries identical to v43's, and `excluded` identical to v43's item for item (the dry run inherits from v40 and produces the same three, so `queue-shell-generation-inherits-a-stale-ancestor` costs nothing here — measured, not assumed).
+3. Repoint the `MANIFEST` line in `tools/build_e2_c_shell_bundle.py` v43 -> v44 with the replacement asserted to match exactly once (`repoint_manifest.py` from the rehearsal does this).
+4. `FROZEN_MANIFESTS` is **not** touched; that queue item deferred the tuple to post-cutover and pre-fixed its acceptance. This ruling does not reopen it.
+5. Commit 2-3 together. `e2/editor-shell-v2-bundle-v43.json` untouched: `git diff --stat` on it empty, digest still `7e99d3a3…`.
+6. **Numbering consequence**: the cutover's step-3 generation becomes **v45**, and its digest will be `78c23684…` (fact ii) unless a served byte moves first. The 2026-08-28 addendum's code block and `rehearse_revert.sh`'s `NEWGEN=…v44` must be read as v45; the freezer's refusal to rewrite an existing v44 is the guard if they are not.
+
+**What v44 records** (say so in the record beside the manifest): the shell `dist/` has served since finding 090's `make` (2026-09-05 ~01:3x CST, between commits `f7d8cdd0` and `8d5da45a`, immediately before soak run 1) — the product as a real user loads it today, and the state every revert returns to. The intermediate shell between `681a22b0` and `3d3d0323` (087 without 088) is **not** reconstructed: no run was ever reconciled against it, and a generation with no measurement bound to it is a declaration without a subject.
+
+**Why not the file-only variant** (write v44, leave `MANIFEST` at v43 until the cutover): `served_shell_identity()` reads `_shell_bundle.MANIFEST`, so a revert to v43 still fails; and a newer generation on disk than `MANIFEST` names is 2026-08-17's hazard reintroduced.
+
+**Sequencing**: E-1 and E-3 are performed with no soak run in flight and **before run 11**, so that runs 11-12 bank under E-4 with the clause already in force (§9 condition 1). This is not load-bearing for the count — a run 11 taken before the freeze would still be clean — it is load-bearing for E-4's form.
+
+## E-2 — Freezing mid-count does not disturb the count; the sentence to append
+
+**Count semantics.** The three clean-run bullets are untouched. `servedShell.bundle` and `servedShell.declaredSha256` are the **label of the generation a run was reconciled against**, not a measurement of what ran. A bank whose runs carry two labels (v43 on runs 1-10, v44 on runs 11-12) is a bank in which the tree's declaration changed, not one in which the served bytes did; what the count binds is `candidateCutover.pageSha256` (already) and `servedShell.servedSha256` (E-4). **The count does not restart on this account.**
+
+**What restarts or voids**, restated so the boundary is checkable:
+
+* any change to the bytes of `web/e2-editor-app.js` -> `pageSha256` moves -> runs on the other sha are void (the 2026-09-05 rule, unchanged);
+* any change to any of the other twelve included paths as served from `dist/` -> `servedShell.servedSha256` leaves `78c23684…` -> the run is not clean under E-4, and runs on the other digest are void for the same reason the page move voided runs: they measured bytes the cutover will not ship;
+* either of those is also, by the freezer's rule, a new generation, landed in the same commit as the change — the step 087/088 skipped. A shell change mid-count restarts the count anyway, so this adds no cost.
+
+**What does not**: writing a generation file; editing the `MANIFEST` line; editing `FROZEN_MANIFESTS`; the `frozenDate` value; `declaredSha256` differing between counted runs; re-running `check_soak_bank.py`, whose verdict on runs 1-10 must be identical before and after the freeze (fact iii).
+
+## E-3 — Acceptance criterion for E-1: per-instance, with its default
+
+**This adds no gate criterion.** It applies the discharge sentence revert condition 3 already had on 2026-08-28 — *"the post-revert run reconciling `ok: true`"* — which the 2026-09-06 take did not meet. Whatever "W-5 is discharged" above says about step 3, **revert condition 3 on `20f09cc9…` is open**, and the re-earn list is corrected: still owed on the new sha — the human manual round with 4b, **revert condition 3 (post-revert reconciliation)**, the owner's confirmation.
+
+**Criterion (form 1).** After the freeze is committed, **every plain shipped-page run** (`run_e2_c_product_path.py` with no `--candidate-profile` and no diagnostic stamp) taken against that tree reconciles under `check_usable_editor.py --report` with `ok: true`, `reconciledFor.kind == "shipped-page"`, `servedShell.bundle == "e2/editor-shell-v2-bundle-v44.json"`, `servedShell.declaredSha256 == servedShell.servedSha256 == f89d7bb9d1438ef2…`, `servedShell.differingPaths == []`. In particular the **re-run of the revert rehearsal** — `rehearse_revert.sh` with `NEWGEN` = v45 and nothing else changed, `trap` intact — must produce a `reconcile-after-revert.json` with exactly those values. `restore()` uses `git checkout -- tools/build_e2_c_shell_bundle.py`, so the post-revert run declares v44 only if the freeze was committed; that is the point, not a nuisance.
+
+Also required, so the freeze declares and does not rewrite: `python3 tools/build_e2_c_shell_bundle.py` (default manifest) exits 0; `python3 -m unittest tests.test_e2_c_shell_bundle` 12 of 12; `make test-e2-c-static` and `make test-e2-c-reachability` green; and `python3 tools/build_e2_c_shell_bundle.py --manifest e2/editor-shell-v2-bundle-v43.json` **still** reports the mismatch.
+
+Evidence banked in `findings/evidence/queue-v12-cutover-revert-rehearsal/` **beside** the 2026-09-06 take, never replacing it: transcript, both post-run reports, both reconciliations.
+
+**Red cases (§6)** — one real, one anti-rewrite: the banked `reconcile-after-revert.json` (`ok: false`, `differingPaths ["web/e2-editor-app.js"]`) is the pre-freeze red, and it stays red when re-reconciled after the freeze because the reconciler is report-local — which is why the criterion is over *new* runs. And the `--manifest …v43.json` refusal after the freeze is the proof that v43 was declared past, not rewritten.
+
+**Default if never done.** Revert condition 3 stays open and the gate does not close — "all four, not some." A cutover performed without it has a revert the reconciler refuses, and the pre-written revert trigger ("any new FAIL class on the net") would be judged on a run nobody can reconcile: the trigger would be unexecutable. The default is closed.
+
+## E-4 — Addition to criterion 1's counting: the served shell is one value
+
+Forced by facts (ii) and (v), and by E-1 itself, after which the label no longer identifies the shell and only `servedSha256` says the twelve ran on one — which §8 forbids leaving to narration.
+
+**Clause (form 1, per-instance).** Every counted run carries `servedShell.servedSha256 == 78c2368403e16af1d19c955fe8f43868b1b660444c87499ce392ee68476646da`. `check_soak_bank.py` gains `--expect-served-shell-sha256` with that default, a clause `one-served-shell` in the clean predicate, and `distinctServedShellSha256` in the verdict. The value is the digest the cutover generation (v45) will declare, so the clause is also the sentence "the twelve ran on the bytes the cutover declares", made checkable.
+
+The four conditions, item by item:
+
+1. **Fixed before satisfaction** — written before runs 11-12. Runs 1-10 already satisfy it (fact ii) and are neither re-judged differently nor moved; strictly stronger than the current predicate and satisfied by every banked run, so an addition, not a move — the 2026-09-03 shape.
+2. **Forced and named** — fact (v): a mutation nothing turns red; and E-1, which makes `declaredSha256` non-uniform across the twelve.
+3. **Form** — per-instance. Inject a run with a different digest: this clause and only this clause turns red. Inject one with the same digest: nothing changes.
+4. **Cutoff** — closes when the twelfth clean run banks, unchanged.
+
+**Count semantics**: the three clean-run bullets are untouched; the count does not restart.
+
+**Red cases owed before the clause is trusted**, as `--self-test` cases, stamped and never banked:
+
+* **RED 11** — the real bank plus fact (v)'s report (`servedSha256` = `b`x64, everything else intact, reconciles green): `one-served-shell` false **and every other clause true** — that is the demonstration that the hole existed.
+* **RED 12** — the real bank with one report's `servedSha256` set to `f89d7bb9…`, the *shipped* shell's digest, rest intact: red. This shows the pinned value is the cutover digest and not merely "any consistent one".
+* **Green control** — the six-run stamped bank, unchanged, still green.
+
+**Record obligation (R6)**: the cutover record quotes v45's `bundleSha256` and E-4's pinned value side by side, equal. If they are not equal, a served byte moved after the twelfth run and the cutover does not proceed on this bank.
+
+## E-5 — What a reader who was not here runs
+
+`python3 tools/check_soak_bank.py --self-test` — 12 red cases red, control green. `python3 tools/check_soak_bank.py` on the real bank after the freeze — the same ten clean runs as before it, `one-served-shell: true`, `distinctServedShellSha256 == ["78c23684…"]`. `python3 tools/check_usable_editor.py --report <the re-run's reconcile-after-revert>` — E-3's values. `make test-e2-c-static test-e2-c-reachability` — green.
+
+## E-6 — Facts in the ticket, checked
+
+* **"The page moved three times since v43 was frozen"** — imprecise. The *source* (`web/`) moved twice: `681a22b0` (2026-09-05 00:29 CST) and `3d3d0323` (00:55 CST). The *served* copy (`dist/`, gitignored at `.gitignore:34`) moved once, at finding 090's `make` (~01:3x CST, before soak run 1). The declared-vs-served mismatch on the shipped path dates from that `make`; before it, `dist/` still matched v43 while carrying neither fix — which is finding 090, and why the 2026-09-03 rehearsal's revert reconciled. Finding 091's title ("since the 087/088 fixes") is true of the source and one step early for the product.
+* **"Nothing caught it"** — false in one respect: `test_the_real_manifest_matches_the_real_tree` catches exactly this and has been red since the `make`; it was not run (fact i). Under §3 that is the first kind of registration — something guards it — and E-3 makes running the guard part of the acceptance.
+* **"W-5 is discharged"** — the step-3 half is. Revert condition 3's re-earn on `20f09cc9…` is not (E-3).
+* **Unstated and decisive**: every banked run's `servedSha256` equals the rehearsal's v44 digest (fact ii).
+* **Numbering**: the 2026-08-28 addendum's step 3 names `v44`; after E-1 that number is taken and the cutover freezes **v45**.
+* All other stated facts check: 10 of 12 banked, UTC days 2026-09-04 (2) and 2026-09-06 (8), earliest close on UTC 2026-09-07; one page sha `20f09cc9…` across the bank; `--self-test` 10 red, control green; v43 declares the entrypoint `28e03e5b…`, the tree serves `5aeae0e1…`, the other twelve match; the exemption at `check_usable_editor.py:224-257` is narrow as described; the revert is byte-clean; conditions 4a, 2 and the ODT round-trip are discharged on this page.
