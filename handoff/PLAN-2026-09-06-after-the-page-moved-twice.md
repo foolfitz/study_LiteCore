@@ -226,3 +226,55 @@ object) and this purpose (instrument-reproduction walks; not condition 3, not
 5. Report `## SUMMARY` ≤ 30 lines: identity gate before/after, one row per
    walk (arm, setting, `focusHeldEveryStop`, `announced`, `文件內容` count,
    valid/void), the outcome letter of §5, the settled configuration if any.
+
+---
+
+## T1b: outcome O-A, and T1c is opened (2026-09-07, append-only)
+
+`findings/evidence/manual-round-v12c-39895d15/` (commits `09e59653`,
+`9da0bd8f`). First attempt: zero walks, because the desktop held two Chrome
+processes (an orphaned headless probe from 2026-09-06 20:21 and the owner's own
+browser); the protocol's one-Chrome precondition held and nothing was killed by
+the executor. The main session terminated the orphan and a stale page server
+after checking parent and driver; the owner quit their browser. Second
+attempt: **arm A0 setting X, the banked `drive_walk_focus.py` unmodified
+(sha256 `414f1245…`), two consecutive walks, `focusHeldEveryStop: true`,
+`announced` 10 and 10, `文件內容` 2 and 2, no foreign speech line — §2.2 met at
+n = 10 on the first pair, STOP-SUCCESS.** Settled configuration: Orca before
+Chrome, fresh Orca and fresh Chrome process per walk, one tab, raise once.
+
+What this says about the handoff's headline: **the instrument never stopped
+reproducing; the desktop stopped being quiet.** The six banked walks that
+disagreed were taken with a second Chrome (another agent's ODS probe) and the
+owner's own windows present, and the discriminator that separates the two
+populations perfectly is whether Orca ever spoke `文件內容`, the document
+group's label. The variables the handoff listed as "not yet separated" (Orca
+start order, `--replace` cycling, tab reuse) were never reached because the
+first arm settled it.
+
+The residue reproduced in both walks: `這一行是普通內文` at 2, every other
+paragraph at 1 — the exact shape §8.3 names. That is what makes T1c worth
+running.
+
+### T1c: go, with v46 taken from the previous session's artifact
+
+§8.1 forbids reconstructing v46 from a sentence. It does not have to be:
+`/tmp/candidate-round-tx3ue8b9/root/e2-editor-app.js` (mirror of 2026-09-06
+23:15) has sha256 `9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c`,
+matching the banked `orca-v46-9b29e39b.log`, and its diff against the v45
+candidate page is exactly one hunk: `const doubled = structureSpeaks !== null;`
+in place of `structureSpeaks === text`, plus the comment above it. The
+executor preserves those bytes and the diff into the v46 evidence directory
+before anything else, builds the v46 page by placing that one file into a
+fresh v45 mirror (no edit to the tree; no generation is frozen for a
+measurement), and pins V1 to `9b29e39b…` for the v46 walks.
+
+**Consent, ruled by the main session:** the owner chose D1 = A knowing it
+includes "v46 measures better on the same protocol", said 「現在可以」 for the
+desktop and 「Chrome 關了」 when asked to clear it. That consent covers the
+T1c walks on both pages; the executor records those three utterances verbatim
+in `manual-round-v12d-9b29e39b/CONSENT.md` and does not ask again.
+
+Budget: §8.4's eight walks. Verdict form: §8.3's three clauses, written before
+the run; the main session reads the result and decides D1's landing. The
+executor does not land v46.
