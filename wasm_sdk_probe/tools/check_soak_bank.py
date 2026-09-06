@@ -24,7 +24,16 @@ and the two would disagree on the day nobody was checking.
   * composition is 38 PASS / 2 NOT_ESTABLISHED, NE set exactly
     {notice-action-recovers-the-session,
      a-refused-action-is-reported-and-changes-nothing};
-  * `candidateCutover.pageSha256` equals the expected page sha.
+  * `candidateCutover.pageSha256` equals the expected page sha;
+  * `servedShell.servedSha256` equals the digest the cutover generation
+    declares (`one-served-shell`, ruling E-4 of 2026-09-06).  The page is one
+    of THIRTEEN bound files, and until this clause a run on a different
+    twelve-file shell, reconciled against a later generation, counted clean --
+    RED 11 of `--self-test` is that run.  `servedShell.bundle` and
+    `declaredSha256` are deliberately NOT pinned: they are the label of the
+    generation a run was reconciled against, and the E-1 freeze of 2026-09-06
+    makes the label differ between runs 1-10 (v43) and 11-12 (v44) without any
+    served byte moving.
 
 ## The membership rule, and why it is not a hand-kept list
 
@@ -199,9 +208,21 @@ def day_of(report: dict) -> dict:
             "dayless": False, "naive": False}
 
 
-def judge_run(path: Path, expect_sha: str, expect_profile: str) -> dict:
+# THE SERVED SHELL, PINNED (ruling E-4, 2026-09-06).  `servedShell.bundle` and
+# `declaredSha256` are the LABEL of the generation a run was reconciled against;
+# after the E-1 freeze the label is not uniform across the twelve and only this
+# digest says the twelve ran on one shell.  It is the digest the cutover
+# generation (v45) will declare, so the clause is the sentence "the twelve ran
+# on the bytes the cutover declares", made checkable rather than narrated.
+DEFAULT_SERVED_SHELL = ("78c2368403e16af1d19c955fe8f43868b1b6604"
+                        "44c87499ce392ee68476646da")
+
+
+def judge_run(path: Path, expect_sha: str, expect_profile: str,
+              expect_served: str = DEFAULT_SERVED_SHELL) -> dict:
     report = json.loads(path.read_text(encoding="utf-8"))
     candidate = report.get("candidateCutover") or {}
+    served = report.get("servedShell") or {}
     composition = compose(report)
     verdict = reconcile(path)
     reconciled_for = (verdict or {}).get("reconciledFor") or {}
@@ -218,6 +239,10 @@ def judge_run(path: Path, expect_sha: str, expect_profile: str) -> dict:
         "pass-count": composition["outcomes"].get("PASS") == EXPECTED_PASS,
         "ne-set-exact": set(composition["notEstablished"]) == EXPECTED_NE,
         "page-sha": candidate.get("pageSha256") == expect_sha,
+        # The page is ONE of thirteen bound files.  Before this clause a run on
+        # a different twelve-file shell, reconciled against a later generation,
+        # was counted clean -- measured, not supposed (RED 11).
+        "one-served-shell": served.get("servedSha256") == expect_served,
     }
     stat = path.stat()
     day = day_of(report)
@@ -228,6 +253,8 @@ def judge_run(path: Path, expect_sha: str, expect_profile: str) -> dict:
         "composition": composition,
         "profile": candidate.get("profile"),
         "pageSha256": candidate.get("pageSha256"),
+        "servedShellSha256": served.get("servedSha256"),
+        "servedShellBundle": served.get("bundle"),
         "completedAt": report.get("completedAt"),
         "utcDay": day["utcDay"],
         "dayless": day["dayless"],
@@ -239,7 +266,8 @@ def judge_run(path: Path, expect_sha: str, expect_profile: str) -> dict:
 
 
 def judge(bank: Path, also: list[Path], expect_sha: str, expect_profile: str,
-          expect_runs: int, expect_days: int = 3) -> dict:
+          expect_runs: int, expect_days: int = 3,
+          expect_served: str = DEFAULT_SERVED_SHELL) -> dict:
     if not bank.is_dir():
         return {"ok": False, "error": f"bank directory does not exist: {bank}"}
 
@@ -263,14 +291,15 @@ def judge(bank: Path, also: list[Path], expect_sha: str, expect_profile: str,
     declared_missing = [name for name in NON_RUNS
                         if not (bank / name).is_file()]
 
-    runs = [judge_run(p, expect_sha, expect_profile)
+    runs = [judge_run(p, expect_sha, expect_profile, expect_served)
             for p in present if p.name.startswith("soak-run-")]
     for extra in also:
         if not extra.is_file():
             runs.append({"report": rel(extra), "clean": False,
                          "clauses": {"exists": False}})
         else:
-            runs.append(judge_run(extra, expect_sha, expect_profile))
+            runs.append(judge_run(extra, expect_sha, expect_profile,
+                                  expect_served))
 
     clean = [r for r in runs if r["clean"]]
     shas = sorted({r.get("pageSha256") for r in runs})
@@ -305,6 +334,7 @@ def judge(bank: Path, also: list[Path], expect_sha: str, expect_profile: str,
         "expected": {"runs": expect_runs, "days": expect_days,
                      "profile": expect_profile,
                      "pageSha256": expect_sha,
+                     "servedShellSha256": expect_served,
                      "passCount": EXPECTED_PASS,
                      "notEstablished": sorted(EXPECTED_NE)},
         "cleanRuns": len(clean),
@@ -314,6 +344,10 @@ def judge(bank: Path, also: list[Path], expect_sha: str, expect_profile: str,
         "verdictFiles_NOT_EVIDENCE": sorted(verdicts),
         "declaredNonRunsMissing": declared_missing,
         "distinctPageSha256": shas,
+        "distinctServedShellSha256": sorted(
+            {r.get("servedShellSha256") for r in runs}),
+        "servedShellBundlesSeen": sorted(
+            {r.get("servedShellBundle") for r in runs if r.get("servedShellBundle")}),
         "runs": runs,
         "clauses": clauses,
         "ok": all(clauses.values()),
@@ -341,6 +375,12 @@ def main() -> int:
     parser.add_argument("--also", type=Path, nargs="*", default=None,
                         help="reports banked in place outside the directory")
     parser.add_argument("--expect-page-sha256", default=DEFAULT_SHA)
+    parser.add_argument("--expect-served-shell-sha256",
+                        default=DEFAULT_SERVED_SHELL,
+                        help="the bundle digest every counted run must have "
+                             "SERVED. The page is one of thirteen bound files; "
+                             "without this a run on a different shell counted "
+                             "clean (ruling E-4, 2026-09-06)")
     parser.add_argument("--expect-profile", default=DEFAULT_PROFILE)
     parser.add_argument("--expect-runs", type=int, default=12)
     parser.add_argument("--expect-days", type=int, default=3)
@@ -354,7 +394,7 @@ def main() -> int:
     also = DEFAULT_ALSO if args.also is None else list(args.also)
     verdict = judge(args.bank, also, args.expect_page_sha256,
                     args.expect_profile, args.expect_runs,
-                    args.expect_days)
+                    args.expect_days, args.expect_served_shell_sha256)
     text = json.dumps(verdict, ensure_ascii=False, indent=2)
     if args.out:
         args.out.write_text(text + "\n", encoding="utf-8")
@@ -471,6 +511,65 @@ def self_test() -> int:
         blank = stamped(root / "dayless", [None] * 6)
         cases.append(("count reached, every run dayless",
                       judge(blank, [], DEFAULT_SHA, DEFAULT_PROFILE, 6, 3)))
+
+        # ---- the served-shell clause (ruling E-4, 2026-09-06).  Two reds,
+        # because the clause has two things to prove: that the hole it closes
+        # was open, and that the value it pins is the CUTOVER digest and not
+        # merely a consistent one.
+
+        def with_served(dest: Path, mutate) -> Path:
+            """The real bank, with ONE report's `servedShell` rewritten."""
+            dest.mkdir()
+            for name in NON_RUNS:
+                shutil.copy2(real / name, dest / name)
+            sources = sorted(real.glob("soak-run-*.json"))
+            for i, src in enumerate(sources):
+                body = json.loads(src.read_text(encoding="utf-8"))
+                if i == len(sources) - 1:
+                    mutate(body.setdefault("servedShell", {}))
+                (dest / src.name).write_text(
+                    json.dumps(body, ensure_ascii=False), encoding="utf-8")
+            return dest
+
+        # RED 11: a candidate run on a DIFFERENT twelve-file shell, reconciled
+        # against a LATER generation.  Before this clause it reconciled green
+        # and the bank counted it clean -- measured on 2026-09-06, not supposed.
+        # The demonstration is that `one-served-shell` is the ONLY false clause.
+        def foreign(shell: dict) -> None:
+            shell["bundle"] = "e2/editor-shell-v2-bundle-v99.json"
+            shell["declaredSha256"] = "a" * 64
+            shell["servedSha256"] = "b" * 64
+        alien = with_served(root / "alien", foreign)
+        v11 = judge(alien, [], DEFAULT_SHA, DEFAULT_PROFILE,
+                    len(list(alien.glob("soak-run-*.json"))))
+        # The demonstration is at the RUN level: that one run's every other
+        # clause is true, so before this clause it was counted clean.  The bank
+        # clauses `every-run-clean`, `count-reached` and `day-spread` follow
+        # from it and are not evidence of anything on their own.
+        mutated = [r for r in v11["runs"]
+                   if r.get("servedShellSha256") == "b" * 64]
+        if len(mutated) != 1:
+            raise SystemExit(
+                f"RED 11 built {len(mutated)} mutated runs, expected 1")
+        others = [k for k, ok in mutated[0]["clauses"].items()
+                  if not ok and k != "one-served-shell"]
+        if mutated[0]["clauses"].get("one-served-shell") or others:
+            raise SystemExit(
+                "RED 11's run must fail on one-served-shell and NOTHING else; "
+                f"other false clauses: {others}")
+        cases.append(("a run on a different shell, reconciled green", v11))
+
+        # RED 12: the SHIPPED shell's digest -- self-consistent, and not the
+        # bytes the cutover declares.  Pinning "any consistent value" would let
+        # this through.
+        shipped = with_served(
+            root / "shipped",
+            lambda shell: shell.__setitem__(
+                "servedSha256",
+                "f89d7bb9d1438ef2b3db81d4703c8b06db034165b59e2d97e5e420f12ee58fc9"))
+        cases.append(("the shipped shell's digest, not the cutover's",
+                      judge(shipped, [], DEFAULT_SHA, DEFAULT_PROFILE,
+                            len(list(shipped.glob("soak-run-*.json"))))))
 
         # GREEN control. Without one, the three cases above would also be red
         # if `stamped()` were simply producing broken reports -- and a red case
