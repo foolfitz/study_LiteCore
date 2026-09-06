@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "release": "e2-c-product-path",
   "browser": "chrome",
-  "startedAt": "2026-09-06T19:28:08+08:00",
+  "startedAt": "2026-09-03T12:52:18+08:00",
   "caretExcludedFromInk": true,
   "fixture": "list-contexts.odt",
   "isTrusted": false,
@@ -23,7 +23,7 @@
       "ok": true,
       "outcome": "PASS",
       "observed": {
-        "capturedBytes": 12227,
+        "capturedBytes": 12238,
         "magic": "504b0304",
         "head": null,
         "entries": 9,
@@ -31,7 +31,7 @@
         "contentXmlParses": true,
         "mimetype": "application/vnd.oasis.opendocument.text",
         "zipError": null,
-        "toast": "已存出 11.9 KB",
+        "toast": "已存出 12.0 KB",
         "anchorClicks": 1
       },
       "oracle": "the bytes the product hands to the download ARE an ODT -- ZIP magic, clean CRC, an ODT mimetype entry and a content.xml that parses -- and its own toast reports a size rather than NaN"
@@ -74,7 +74,7 @@
             "ok": true
           }
         ],
-        "savedBytes": 12512
+        "savedBytes": 12508
       },
       "oracle": "three commits through the product's composition path each advance the revision by exactly one, IN TURN, and all three strings are in the saved ODT"
     },
@@ -112,7 +112,7 @@
           "E1-LC-END"
         ],
         "toast": "",
-        "savedBytes": 12754
+        "savedBytes": 12753
       },
       "oracle": "the text standing in the product's own field, inserted by the product's own button, advances the revision by exactly one and is in the document the product then saves"
     },
@@ -138,7 +138,7 @@
           "E1-LC-END"
         ],
         "toast": "",
-        "savedBytes": 12504
+        "savedBytes": 12505
       },
       "oracle": "pressing the product's own undo button takes the text the insert button just added back OUT of the document -- read from the saved ODT, not from the revision counter, because D1 covers undo through the shell and this is the button"
     },
@@ -168,7 +168,7 @@
           "E1-LC-END"
         ],
         "toast": "",
-        "savedBytes": 12753
+        "savedBytes": 12752
       },
       "oracle": "pressing the product's own 重做 button puts back exactly the text undo just removed -- read from the saved ODT, and with the earlier commits as witnesses so a redo that replayed more than one edit is not mistaken for a correct one. NOT_ESTABLISHED rather than FAIL on a profile that does not carry redo: the button is hidden there and pressing it would measure nothing"
     },
@@ -214,7 +214,7 @@
         "revisionBefore": 8,
         "revisionAfterBackspace": 9,
         "arrowHandled": true,
-        "latencyAfterArrow": "◀ 36 ms"
+        "latencyAfterArrow": "◀ 38 ms"
       },
       "oracle": "a Backspace reaches the ENGINE (the page cancels the event and the revision advances) and an ArrowLeft dispatches a caret move -- both through the page's own handlers, neither of which existed before",
       "notEstablished": "which character was removed; that is delete-backward's own contract and D1 covers it through the shell"
@@ -379,10 +379,10 @@
                 127
               ]
             },
-            "caret": "定位游標 33 ms",
+            "caret": "定位游標 32 ms",
             "buttonLabel": "標題",
             "pressed": true,
-            "latency": "標題 40 ms",
+            "latency": "標題 33 ms",
             "toast": "",
             "observedAfter": "heading",
             "style": "Heading_20_1",
@@ -412,7 +412,7 @@
             "caret": "定位游標 31 ms",
             "buttonLabel": "內文",
             "pressed": true,
-            "latency": "內文 31 ms",
+            "latency": "內文 29 ms",
             "toast": "",
             "observedAfter": "body",
             "style": "Text_20_body",
@@ -442,7 +442,7 @@
             "caret": "定位游標 32 ms",
             "buttonLabel": "• 項目符號",
             "pressed": true,
-            "latency": "• 項目符號 32 ms",
+            "latency": "• 項目符號 29 ms",
             "toast": "",
             "observedAfter": "bullet",
             "style": "E1LCBullet",
@@ -469,7 +469,7 @@
                 284
               ]
             },
-            "caret": "定位游標 33 ms",
+            "caret": "定位游標 35 ms",
             "buttonLabel": "1. 編號",
             "pressed": true,
             "latency": "1. 編號 29 ms",
@@ -499,10 +499,10 @@
                 170
               ]
             },
-            "caret": "定位游標 32 ms",
+            "caret": "定位游標 31 ms",
             "buttonLabel": "移除清單",
             "pressed": true,
-            "latency": "移除清單 30 ms",
+            "latency": "移除清單 29 ms",
             "toast": "",
             "observedAfter": "body",
             "style": "Standard",
@@ -603,8 +603,8 @@
             "marker": "MKBOLDON",
             "wanted": true,
             "formatPressLabel": "B",
-            "formatPressLatency": "B 5 ms",
-            "formatPressWaitedMs": 402,
+            "formatPressLatency": "B 8 ms",
+            "formatPressWaitedMs": 403,
             "formatCacheBefore": "false",
             "formatCacheAfter": "true",
             "normalised": true,
@@ -632,7 +632,7 @@
             "marker": "MKBOLDOFF",
             "wanted": false,
             "formatPressLabel": "B",
-            "formatPressLatency": "B 4 ms",
+            "formatPressLatency": "B 10 ms",
             "formatPressWaitedMs": 402,
             "formatCacheBefore": "true",
             "formatCacheAfter": "false",
@@ -690,7 +690,7 @@
             "marker": "MKITALOFF",
             "wanted": false,
             "formatPressLabel": "I",
-            "formatPressLatency": "I 5 ms",
+            "formatPressLatency": "I 8 ms",
             "formatPressWaitedMs": 402,
             "formatCacheBefore": "true",
             "formatCacheAfter": "false",
@@ -719,7 +719,7 @@
             "marker": "MKUNDON",
             "wanted": true,
             "formatPressLabel": "U",
-            "formatPressLatency": "U 6 ms",
+            "formatPressLatency": "U 8 ms",
             "formatPressWaitedMs": 402,
             "formatCacheBefore": "false",
             "formatCacheAfter": "true",
@@ -748,8 +748,8 @@
             "marker": "MKUNDOFF",
             "wanted": false,
             "formatPressLabel": "U",
-            "formatPressLatency": "U 7 ms",
-            "formatPressWaitedMs": 401,
+            "formatPressLatency": "U 10 ms",
+            "formatPressWaitedMs": 404,
             "formatCacheBefore": "true",
             "formatCacheAfter": "false",
             "normalised": true,
@@ -777,7 +777,7 @@
             "marker": "MKSTRON",
             "wanted": true,
             "formatPressLabel": "S",
-            "formatPressLatency": "S 9 ms",
+            "formatPressLatency": "S 11 ms",
             "formatPressWaitedMs": 402,
             "formatCacheBefore": "false",
             "formatCacheAfter": "true",
@@ -787,7 +787,7 @@
             "formatCacheFollowed": true,
             "formatCacheMoved": true,
             "buttonOffered": true,
-            "toast": "已存出 13.7 KB",
+            "toast": "已存出 13.6 KB",
             "savedIsOdt": true,
             "found": true,
             "styleName": "T1",
@@ -806,8 +806,8 @@
             "marker": "MKSTROFF",
             "wanted": false,
             "formatPressLabel": "S",
-            "formatPressLatency": "S 9 ms",
-            "formatPressWaitedMs": 401,
+            "formatPressLatency": "S 11 ms",
+            "formatPressWaitedMs": 403,
             "formatCacheBefore": "true",
             "formatCacheAfter": "false",
             "normalised": true,
@@ -835,7 +835,7 @@
             "marker": "MKPREOLD",
             "wanted": true,
             "formatPressLabel": "B",
-            "formatPressLatency": "B 16 ms",
+            "formatPressLatency": "B 17 ms",
             "formatPressWaitedMs": 402,
             "formatCacheBefore": "false",
             "formatCacheAfter": "true",
@@ -864,8 +864,8 @@
             "marker": "MKPRELIC",
             "wanted": true,
             "formatPressLabel": "I",
-            "formatPressLatency": "I 15 ms",
-            "formatPressWaitedMs": 401,
+            "formatPressLatency": "I 16 ms",
+            "formatPressWaitedMs": 402,
             "formatCacheBefore": "false",
             "formatCacheAfter": "true",
             "normalised": false,
@@ -894,7 +894,7 @@
             "wanted": true,
             "formatPressLabel": "U",
             "formatPressLatency": "U 15 ms",
-            "formatPressWaitedMs": 401,
+            "formatPressWaitedMs": 402,
             "formatCacheBefore": "false",
             "formatCacheAfter": "true",
             "normalised": false,
@@ -923,7 +923,7 @@
             "wanted": true,
             "formatPressLabel": "S",
             "formatPressLatency": "S 16 ms",
-            "formatPressWaitedMs": 401,
+            "formatPressWaitedMs": 402,
             "formatCacheBefore": "false",
             "formatCacheAfter": "true",
             "normalised": false,
@@ -951,8 +951,8 @@
             "marker": "MKSURVIVE",
             "wanted": true,
             "formatPressLabel": "B",
-            "formatPressLatency": "B 5 ms",
-            "formatPressWaitedMs": 402,
+            "formatPressLatency": "B 13 ms",
+            "formatPressWaitedMs": 403,
             "formatCacheBefore": "false",
             "formatCacheAfter": "true",
             "normalised": true,
@@ -1251,7 +1251,7 @@
           "aRangeIsSelectedBefore": false,
           "aRangeIsSelectedAfterAbortAndMove": true,
           "beforeSettledMs": 1,
-          "copyAnsweredMs": 201,
+          "copyAnsweredMs": 203,
           "copyToast": "已複製 U+0045,U+0031,U+002D,U+004C,U+0043,U+002D,U+0049,U+0053,U+004F,U+004C,U+0041,U+0054,U+0045,U+0044,U+0020,U+524D,U+5F8C,U+90FD,U+4E0D,U+662F,U+6E05,U+55AE,U+7684 字",
           "selectedText": "E1-LC-ISOLATED 前後都不是清單的",
           "selectedCodePoints": 23,
@@ -1318,7 +1318,7 @@
             "aRangeIsSelectedBefore": false,
             "aRangeIsSelectedAfterAbortAndMove": true,
             "beforeSettledMs": 1,
-            "copyAnsweredMs": 206,
+            "copyAnsweredMs": 202,
             "copyToast": "已複製 U+0045,U+0031,U+002D,U+004C,U+0043,U+002D,U+0049,U+0053,U+004F,U+004C,U+0041,U+0054 字",
             "selectedText": "E1-LC-ISOLAT",
             "selectedCodePoints": 12,
@@ -1384,125 +1384,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 278652.36500000954,
+                "at": 278052.73000000045,
                 "state": "ready",
                 "revision": 118,
                 "x": 2871,
                 "y": 4419,
-                "sourceSequence": 272,
+                "sourceSequence": 274,
                 "collapsed": true
               },
               {
-                "at": 278653.5350000113,
+                "at": 278053.2599999998,
                 "state": "busy",
                 "revision": 118,
                 "x": 2871,
                 "y": 4419,
-                "sourceSequence": 272,
+                "sourceSequence": 274,
                 "collapsed": true
               },
               {
-                "at": 278654.24500000477,
+                "at": 278053.71499999985,
                 "state": "busy",
                 "revision": 118,
                 "x": 2871,
                 "y": 4419,
-                "sourceSequence": 272,
+                "sourceSequence": 274,
                 "collapsed": true
               },
               {
-                "at": 278666.7150000036,
+                "at": 278058.91500000097,
+                "state": "busy",
+                "revision": 118,
+                "x": 2871,
+                "y": 4419,
+                "sourceSequence": 275,
+                "collapsed": true
+              },
+              {
+                "at": 278059.6899999995,
+                "state": "busy",
+                "revision": 118,
+                "x": 4911,
+                "y": 4419,
+                "sourceSequence": 276,
+                "collapsed": true
+              },
+              {
+                "at": 278063.0150000006,
                 "state": "busy",
                 "revision": 119,
-                "x": 2871,
+                "x": 4911,
                 "y": 4419,
-                "sourceSequence": 272,
+                "sourceSequence": 276,
                 "collapsed": true
               },
               {
-                "at": 278669.29000000656,
-                "state": "ready",
-                "revision": 119,
-                "x": 2871,
-                "y": 4419,
-                "sourceSequence": 272,
-                "collapsed": true
-              },
-              {
-                "at": 278678.3149999976,
-                "state": "ready",
-                "revision": 119,
-                "x": 2871,
-                "y": 4419,
-                "sourceSequence": 273,
-                "collapsed": true
-              },
-              {
-                "at": 278679.63000001013,
+                "at": 278063.72000000067,
                 "state": "ready",
                 "revision": 119,
                 "x": 4911,
                 "y": 4419,
-                "sourceSequence": 274,
+                "sourceSequence": 276,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 278653.07000000775,
+                "at": 278052.9749999996,
                 "x": 2871,
                 "y": 4419
               },
               {
-                "at": 278654.0200000107,
+                "at": 278053.48000000045,
                 "x": 2871,
                 "y": 4419
               },
               {
-                "at": 278654.7150000036,
+                "at": 278053.89499999955,
                 "x": 2871,
                 "y": 4419
               },
               {
-                "at": 278668.68000000715,
+                "at": 278059.2400000002,
                 "x": 2871,
                 "y": 4419
               },
               {
-                "at": 278670.76000000536,
-                "x": 2871,
-                "y": 4419
-              },
-              {
-                "at": 278678.7800000012,
-                "x": 2871,
-                "y": 4419
-              },
-              {
-                "at": 278680.00500001013,
+                "at": 278059.8849999998,
                 "x": 4911,
                 "y": 4419
               },
               {
-                "at": 278698.3100000024,
+                "at": 278063.3350000009,
+                "x": 4911,
+                "y": 4419
+              },
+              {
+                "at": 278063.9550000001,
+                "x": 4911,
+                "y": 4419
+              },
+              {
+                "at": 278067.7599999998,
                 "x": 4911,
                 "y": 4419
               }
             ],
             "announcements": [
               {
-                "at": 278678.29000000656,
+                "at": 278058.9000000004,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 273,
+                "sourceSequence": 275,
                 "documentChangeSequence": 0,
                 "revision": 119,
                 "x": 2871,
                 "y": 4419
               },
               {
-                "at": 278679.61500000954,
+                "at": 278059.6850000005,
                 "source": "visible-cursor",
-                "sourceSequence": 274,
+                "sourceSequence": 276,
                 "documentChangeSequence": 0,
                 "revision": 119,
                 "x": 4911,
@@ -1519,9 +1519,9 @@
             "topAfter": 250,
             "wrapped": false,
             "revisionAdvanced": true,
-            "settledAfterMs": 3,
+            "settledAfterMs": 1,
             "moved": true,
-            "staleWritesRefused": 0,
+            "staleWritesRefused": 1,
             "engineBefore": null,
             "engineAfter": null,
             "engineFirstDifferent": null,
@@ -1529,125 +1529,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 279072.6550000012,
+                "at": 278461.74500000104,
                 "state": "ready",
                 "revision": 119,
                 "x": 4911,
                 "y": 4419,
-                "sourceSequence": 274,
+                "sourceSequence": 276,
                 "collapsed": true
               },
               {
-                "at": 279073.4350000024,
+                "at": 278462.2650000006,
                 "state": "busy",
                 "revision": 119,
                 "x": 4911,
-                "y": 4419,
-                "sourceSequence": 274,
-                "collapsed": true
-              },
-              {
-                "at": 279074.02500000596,
-                "state": "busy",
-                "revision": 119,
-                "x": 4911,
-                "y": 4419,
-                "sourceSequence": 274,
-                "collapsed": true
-              },
-              {
-                "at": 279088.38000001013,
-                "state": "busy",
-                "revision": 119,
-                "x": 4911,
-                "y": 4419,
-                "sourceSequence": 275,
-                "collapsed": true
-              },
-              {
-                "at": 279095.57000000775,
-                "state": "busy",
-                "revision": 119,
-                "x": 6951,
                 "y": 4419,
                 "sourceSequence": 276,
                 "collapsed": true
               },
               {
-                "at": 279099.72500000894,
+                "at": 278462.64499999955,
+                "state": "busy",
+                "revision": 119,
+                "x": 4911,
+                "y": 4419,
+                "sourceSequence": 276,
+                "collapsed": true
+              },
+              {
+                "at": 278468.1550000012,
+                "state": "busy",
+                "revision": 119,
+                "x": 4911,
+                "y": 4419,
+                "sourceSequence": 277,
+                "collapsed": true
+              },
+              {
+                "at": 278469.6799999997,
+                "state": "busy",
+                "revision": 119,
+                "x": 6951,
+                "y": 4419,
+                "sourceSequence": 278,
+                "collapsed": true
+              },
+              {
+                "at": 278470.1300000008,
                 "state": "busy",
                 "revision": 120,
                 "x": 6951,
                 "y": 4419,
-                "sourceSequence": 276,
+                "sourceSequence": 278,
                 "collapsed": true
               },
               {
-                "at": 279101.29000000656,
+                "at": 278470.5750000011,
                 "state": "ready",
                 "revision": 120,
                 "x": 6951,
                 "y": 4419,
-                "sourceSequence": 276,
+                "sourceSequence": 278,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 279073.07000000775,
+                "at": 278461.98500000127,
                 "x": 4911,
                 "y": 4419
               },
               {
-                "at": 279073.8100000024,
+                "at": 278462.4550000001,
                 "x": 4911,
                 "y": 4419
               },
               {
-                "at": 279074.35000000894,
+                "at": 278462.8250000011,
                 "x": 4911,
                 "y": 4419
               },
               {
-                "at": 279088.9399999976,
+                "at": 278468.51999999955,
                 "x": 4911,
                 "y": 4419
               },
               {
-                "at": 279096.0300000012,
+                "at": 278469.8800000008,
                 "x": 6951,
                 "y": 4419
               },
               {
-                "at": 279100.1600000113,
+                "at": 278470.3100000005,
                 "x": 6951,
                 "y": 4419
               },
               {
-                "at": 279102.68000000715,
+                "at": 278470.75,
                 "x": 6951,
                 "y": 4419
               },
               {
-                "at": 279116.4100000113,
+                "at": 278475.98000000045,
                 "x": 6951,
                 "y": 4419
               }
             ],
             "announcements": [
               {
-                "at": 279088.3550000042,
+                "at": 278468.1400000006,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 275,
+                "sourceSequence": 277,
                 "documentChangeSequence": 0,
-                "revision": 119,
+                "revision": 120,
                 "x": 4911,
                 "y": 4419
               },
               {
-                "at": 279095.5500000119,
+                "at": 278469.6699999999,
                 "source": "visible-cursor",
-                "sourceSequence": 276,
+                "sourceSequence": 278,
                 "documentChangeSequence": 0,
                 "revision": 120,
                 "x": 6951,
@@ -1674,125 +1674,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 279495.50500001013,
+                "at": 278869.91000000015,
                 "state": "ready",
                 "revision": 120,
                 "x": 6951,
                 "y": 4419,
-                "sourceSequence": 276,
+                "sourceSequence": 278,
                 "collapsed": true
               },
               {
-                "at": 279496.2700000107,
+                "at": 278870.4500000011,
                 "state": "busy",
                 "revision": 120,
                 "x": 6951,
-                "y": 4419,
-                "sourceSequence": 276,
-                "collapsed": true
-              },
-              {
-                "at": 279496.85000000894,
-                "state": "busy",
-                "revision": 120,
-                "x": 6951,
-                "y": 4419,
-                "sourceSequence": 276,
-                "collapsed": true
-              },
-              {
-                "at": 279508.9699999988,
-                "state": "busy",
-                "revision": 120,
-                "x": 6951,
-                "y": 4419,
-                "sourceSequence": 277,
-                "collapsed": true
-              },
-              {
-                "at": 279513.11500000954,
-                "state": "busy",
-                "revision": 120,
-                "x": 8992,
                 "y": 4419,
                 "sourceSequence": 278,
                 "collapsed": true
               },
               {
-                "at": 279517.1850000024,
+                "at": 278870.8100000005,
+                "state": "busy",
+                "revision": 120,
+                "x": 6951,
+                "y": 4419,
+                "sourceSequence": 278,
+                "collapsed": true
+              },
+              {
+                "at": 278874.47000000067,
                 "state": "busy",
                 "revision": 121,
-                "x": 8992,
+                "x": 6951,
                 "y": 4419,
                 "sourceSequence": 278,
                 "collapsed": true
               },
               {
-                "at": 279519.1450000107,
+                "at": 278875.0850000009,
+                "state": "ready",
+                "revision": 121,
+                "x": 6951,
+                "y": 4419,
+                "sourceSequence": 278,
+                "collapsed": true
+              },
+              {
+                "at": 278876.26999999955,
+                "state": "ready",
+                "revision": 121,
+                "x": 6951,
+                "y": 4419,
+                "sourceSequence": 279,
+                "collapsed": true
+              },
+              {
+                "at": 278877.85500000045,
                 "state": "ready",
                 "revision": 121,
                 "x": 8992,
                 "y": 4419,
-                "sourceSequence": 278,
+                "sourceSequence": 280,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 279495.88000001013,
+                "at": 278870.14499999955,
                 "x": 6951,
                 "y": 4419
               },
               {
-                "at": 279496.65000000596,
+                "at": 278870.625,
                 "x": 6951,
                 "y": 4419
               },
               {
-                "at": 279497.18000000715,
+                "at": 278870.98000000045,
                 "x": 6951,
                 "y": 4419
               },
               {
-                "at": 279510.5649999976,
+                "at": 278874.73500000127,
                 "x": 6951,
                 "y": 4419
               },
               {
-                "at": 279514.58500000834,
+                "at": 278875.26999999955,
+                "x": 6951,
+                "y": 4419
+              },
+              {
+                "at": 278876.46499999985,
+                "x": 6951,
+                "y": 4419
+              },
+              {
+                "at": 278878.11000000127,
                 "x": 8992,
                 "y": 4419
               },
               {
-                "at": 279518.46000000834,
-                "x": 8992,
-                "y": 4419
-              },
-              {
-                "at": 279519.63500000536,
-                "x": 8992,
-                "y": 4419
-              },
-              {
-                "at": 279528.0350000113,
+                "at": 278882,
                 "x": 8992,
                 "y": 4419
               }
             ],
             "announcements": [
               {
-                "at": 279508.94500000775,
+                "at": 278876.2599999998,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 277,
+                "sourceSequence": 279,
                 "documentChangeSequence": 0,
                 "revision": 121,
                 "x": 6951,
                 "y": 4419
               },
               {
-                "at": 279513.0949999988,
+                "at": 278877.84500000067,
                 "source": "visible-cursor",
-                "sourceSequence": 278,
+                "sourceSequence": 280,
                 "documentChangeSequence": 0,
                 "revision": 121,
                 "x": 8992,
@@ -1819,125 +1819,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 279912.05500000715,
+                "at": 279278.7550000008,
                 "state": "ready",
                 "revision": 121,
                 "x": 8992,
                 "y": 4419,
-                "sourceSequence": 278,
+                "sourceSequence": 280,
                 "collapsed": true
               },
               {
-                "at": 279912.7349999994,
+                "at": 279279.26999999955,
                 "state": "busy",
                 "revision": 121,
                 "x": 8992,
-                "y": 4419,
-                "sourceSequence": 278,
-                "collapsed": true
-              },
-              {
-                "at": 279913.2850000113,
-                "state": "busy",
-                "revision": 121,
-                "x": 8992,
-                "y": 4419,
-                "sourceSequence": 278,
-                "collapsed": true
-              },
-              {
-                "at": 279923.62000000477,
-                "state": "busy",
-                "revision": 121,
-                "x": 8992,
-                "y": 4419,
-                "sourceSequence": 279,
-                "collapsed": true
-              },
-              {
-                "at": 279927.29000000656,
-                "state": "busy",
-                "revision": 121,
-                "x": 11032,
                 "y": 4419,
                 "sourceSequence": 280,
                 "collapsed": true
               },
               {
-                "at": 279931.2049999982,
+                "at": 279279.66000000015,
+                "state": "busy",
+                "revision": 121,
+                "x": 8992,
+                "y": 4419,
+                "sourceSequence": 280,
+                "collapsed": true
+              },
+              {
+                "at": 279283.5250000004,
                 "state": "busy",
                 "revision": 122,
-                "x": 11032,
+                "x": 8992,
                 "y": 4419,
                 "sourceSequence": 280,
                 "collapsed": true
               },
               {
-                "at": 279932.0350000113,
+                "at": 279284.125,
+                "state": "ready",
+                "revision": 122,
+                "x": 8992,
+                "y": 4419,
+                "sourceSequence": 280,
+                "collapsed": true
+              },
+              {
+                "at": 279285.8650000002,
+                "state": "ready",
+                "revision": 122,
+                "x": 8992,
+                "y": 4419,
+                "sourceSequence": 281,
+                "collapsed": true
+              },
+              {
+                "at": 279287.0050000008,
                 "state": "ready",
                 "revision": 122,
                 "x": 11032,
                 "y": 4419,
-                "sourceSequence": 280,
+                "sourceSequence": 282,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 279912.4200000018,
+                "at": 279278.98500000127,
                 "x": 8992,
                 "y": 4419
               },
               {
-                "at": 279913.075000003,
+                "at": 279279.4600000009,
                 "x": 8992,
                 "y": 4419
               },
               {
-                "at": 279913.8000000119,
+                "at": 279279.8250000011,
                 "x": 8992,
                 "y": 4419
               },
               {
-                "at": 279924.1400000006,
+                "at": 279283.7949999999,
                 "x": 8992,
                 "y": 4419
               },
               {
-                "at": 279928.7199999988,
+                "at": 279284.3250000011,
+                "x": 8992,
+                "y": 4419
+              },
+              {
+                "at": 279286.0750000011,
+                "x": 8992,
+                "y": 4419
+              },
+              {
+                "at": 279287.2100000009,
                 "x": 11032,
                 "y": 4419
               },
               {
-                "at": 279931.6400000006,
-                "x": 11032,
-                "y": 4419
-              },
-              {
-                "at": 279932.375,
-                "x": 11032,
-                "y": 4419
-              },
-              {
-                "at": 279946.10000000894,
+                "at": 279291.2949999999,
                 "x": 11032,
                 "y": 4419
               }
             ],
             "announcements": [
               {
-                "at": 279923.60000000894,
+                "at": 279285.85500000045,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 279,
+                "sourceSequence": 281,
                 "documentChangeSequence": 0,
                 "revision": 122,
                 "x": 8992,
                 "y": 4419
               },
               {
-                "at": 279927.27500000596,
+                "at": 279287,
                 "source": "visible-cursor",
-                "sourceSequence": 280,
+                "sourceSequence": 282,
                 "documentChangeSequence": 0,
                 "revision": 122,
                 "x": 11032,
@@ -1964,125 +1964,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 280330.75,
+                "at": 279686.8900000006,
                 "state": "ready",
                 "revision": 122,
                 "x": 11032,
                 "y": 4419,
-                "sourceSequence": 280,
-                "collapsed": true
-              },
-              {
-                "at": 280331.55500000715,
-                "state": "busy",
-                "revision": 122,
-                "x": 11032,
-                "y": 4419,
-                "sourceSequence": 280,
-                "collapsed": true
-              },
-              {
-                "at": 280332.1099999994,
-                "state": "busy",
-                "revision": 122,
-                "x": 11032,
-                "y": 4419,
-                "sourceSequence": 280,
-                "collapsed": true
-              },
-              {
-                "at": 280346.35000000894,
-                "state": "busy",
-                "revision": 122,
-                "x": 11032,
-                "y": 4419,
-                "sourceSequence": 281,
-                "collapsed": true
-              },
-              {
-                "at": 280350.8400000036,
-                "state": "busy",
-                "revision": 122,
-                "x": 3111,
-                "y": 4695,
                 "sourceSequence": 282,
                 "collapsed": true
               },
               {
-                "at": 280360.72500000894,
+                "at": 279687.4350000005,
+                "state": "busy",
+                "revision": 122,
+                "x": 11032,
+                "y": 4419,
+                "sourceSequence": 282,
+                "collapsed": true
+              },
+              {
+                "at": 279687.8300000001,
+                "state": "busy",
+                "revision": 122,
+                "x": 11032,
+                "y": 4419,
+                "sourceSequence": 282,
+                "collapsed": true
+              },
+              {
+                "at": 279692.3250000011,
                 "state": "busy",
                 "revision": 123,
-                "x": 3111,
-                "y": 4695,
+                "x": 11032,
+                "y": 4419,
                 "sourceSequence": 282,
                 "collapsed": true
               },
               {
-                "at": 280362.5900000036,
+                "at": 279693.1349999998,
+                "state": "ready",
+                "revision": 123,
+                "x": 11032,
+                "y": 4419,
+                "sourceSequence": 282,
+                "collapsed": true
+              },
+              {
+                "at": 279694.5750000011,
+                "state": "ready",
+                "revision": 123,
+                "x": 11032,
+                "y": 4419,
+                "sourceSequence": 283,
+                "collapsed": true
+              },
+              {
+                "at": 279696.2100000009,
                 "state": "ready",
                 "revision": 123,
                 "x": 3111,
                 "y": 4695,
-                "sourceSequence": 282,
+                "sourceSequence": 284,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 280331.1550000012,
+                "at": 279687.1400000006,
                 "x": 11032,
                 "y": 4419
               },
               {
-                "at": 280331.9050000012,
+                "at": 279687.6150000002,
                 "x": 11032,
                 "y": 4419
               },
               {
-                "at": 280332.47500000894,
+                "at": 279687.99500000104,
                 "x": 11032,
                 "y": 4419
               },
               {
-                "at": 280346.96000000834,
+                "at": 279692.6300000008,
                 "x": 11032,
                 "y": 4419
               },
               {
-                "at": 280351.30500000715,
+                "at": 279693.3900000006,
+                "x": 11032,
+                "y": 4419
+              },
+              {
+                "at": 279694.85500000045,
+                "x": 11032,
+                "y": 4419
+              },
+              {
+                "at": 279696.4399999995,
                 "x": 3111,
                 "y": 4695
               },
               {
-                "at": 280361.21000000834,
-                "x": 3111,
-                "y": 4695
-              },
-              {
-                "at": 280363.07000000775,
-                "x": 3111,
-                "y": 4695
-              },
-              {
-                "at": 280376.6550000012,
+                "at": 279701.5,
                 "x": 3111,
                 "y": 4695
               }
             ],
             "announcements": [
               {
-                "at": 280346.325000003,
+                "at": 279694.5600000005,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 281,
+                "sourceSequence": 283,
                 "documentChangeSequence": 0,
-                "revision": 122,
+                "revision": 123,
                 "x": 11032,
                 "y": 4419
               },
               {
-                "at": 280350.8100000024,
+                "at": 279696.2000000011,
                 "source": "visible-cursor",
-                "sourceSequence": 282,
+                "sourceSequence": 284,
                 "documentChangeSequence": 0,
                 "revision": 123,
                 "x": 3111,
@@ -2109,125 +2109,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 280755.625,
+                "at": 280095.64499999955,
                 "state": "ready",
                 "revision": 123,
                 "x": 3111,
                 "y": 4695,
-                "sourceSequence": 282,
+                "sourceSequence": 284,
                 "collapsed": true
               },
               {
-                "at": 280756.40000000596,
+                "at": 280096.21499999985,
                 "state": "busy",
                 "revision": 123,
                 "x": 3111,
-                "y": 4695,
-                "sourceSequence": 282,
-                "collapsed": true
-              },
-              {
-                "at": 280757.9549999982,
-                "state": "busy",
-                "revision": 123,
-                "x": 3111,
-                "y": 4695,
-                "sourceSequence": 282,
-                "collapsed": true
-              },
-              {
-                "at": 280766.85000000894,
-                "state": "busy",
-                "revision": 123,
-                "x": 3111,
-                "y": 4695,
-                "sourceSequence": 283,
-                "collapsed": true
-              },
-              {
-                "at": 280772.4800000042,
-                "state": "busy",
-                "revision": 123,
-                "x": 5151,
                 "y": 4695,
                 "sourceSequence": 284,
                 "collapsed": true
               },
               {
-                "at": 280776.2650000006,
+                "at": 280096.625,
+                "state": "busy",
+                "revision": 123,
+                "x": 3111,
+                "y": 4695,
+                "sourceSequence": 284,
+                "collapsed": true
+              },
+              {
+                "at": 280101.6300000008,
                 "state": "busy",
                 "revision": 124,
-                "x": 5151,
+                "x": 3111,
                 "y": 4695,
                 "sourceSequence": 284,
                 "collapsed": true
               },
               {
-                "at": 280777.16500000656,
+                "at": 280102.3800000008,
+                "state": "ready",
+                "revision": 124,
+                "x": 3111,
+                "y": 4695,
+                "sourceSequence": 284,
+                "collapsed": true
+              },
+              {
+                "at": 280104.41500000097,
+                "state": "ready",
+                "revision": 124,
+                "x": 3111,
+                "y": 4695,
+                "sourceSequence": 285,
+                "collapsed": true
+              },
+              {
+                "at": 280105.59500000067,
                 "state": "ready",
                 "revision": 124,
                 "x": 5151,
                 "y": 4695,
-                "sourceSequence": 284,
+                "sourceSequence": 286,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 280756.0300000012,
+                "at": 280095.9000000004,
                 "x": 3111,
                 "y": 4695
               },
               {
-                "at": 280756.7700000107,
+                "at": 280096.39499999955,
                 "x": 3111,
                 "y": 4695
               },
               {
-                "at": 280758.33500000834,
+                "at": 280096.79000000097,
                 "x": 3111,
                 "y": 4695
               },
               {
-                "at": 280767.38000001013,
+                "at": 280101.9199999999,
                 "x": 3111,
                 "y": 4695
               },
               {
-                "at": 280773.38500000536,
+                "at": 280102.625,
+                "x": 3111,
+                "y": 4695
+              },
+              {
+                "at": 280104.5999999996,
+                "x": 3111,
+                "y": 4695
+              },
+              {
+                "at": 280105.7800000012,
                 "x": 5151,
                 "y": 4695
               },
               {
-                "at": 280776.7150000036,
-                "x": 5151,
-                "y": 4695
-              },
-              {
-                "at": 280779.5799999982,
-                "x": 5151,
-                "y": 4695
-              },
-              {
-                "at": 280789.0949999988,
+                "at": 280111.4500000011,
                 "x": 5151,
                 "y": 4695
               }
             ],
             "announcements": [
               {
-                "at": 280766.825000003,
+                "at": 280104.41000000015,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 283,
+                "sourceSequence": 285,
                 "documentChangeSequence": 0,
                 "revision": 124,
                 "x": 3111,
                 "y": 4695
               },
               {
-                "at": 280772.46000000834,
+                "at": 280105.59500000067,
                 "source": "visible-cursor",
-                "sourceSequence": 284,
+                "sourceSequence": 286,
                 "documentChangeSequence": 0,
                 "revision": 124,
                 "x": 5151,
@@ -2254,125 +2254,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 281171.0200000107,
+                "at": 280504.2249999996,
                 "state": "ready",
                 "revision": 124,
                 "x": 5151,
                 "y": 4695,
-                "sourceSequence": 284,
+                "sourceSequence": 286,
                 "collapsed": true
               },
               {
-                "at": 281172.1600000113,
+                "at": 280504.89499999955,
                 "state": "busy",
                 "revision": 124,
                 "x": 5151,
-                "y": 4695,
-                "sourceSequence": 284,
-                "collapsed": true
-              },
-              {
-                "at": 281172.7650000006,
-                "state": "busy",
-                "revision": 124,
-                "x": 5151,
-                "y": 4695,
-                "sourceSequence": 284,
-                "collapsed": true
-              },
-              {
-                "at": 281183.6700000018,
-                "state": "busy",
-                "revision": 124,
-                "x": 5151,
-                "y": 4695,
-                "sourceSequence": 285,
-                "collapsed": true
-              },
-              {
-                "at": 281191.36500000954,
-                "state": "busy",
-                "revision": 124,
-                "x": 7192,
                 "y": 4695,
                 "sourceSequence": 286,
                 "collapsed": true
               },
               {
-                "at": 281195.22500000894,
+                "at": 280505.34500000067,
+                "state": "busy",
+                "revision": 124,
+                "x": 5151,
+                "y": 4695,
+                "sourceSequence": 286,
+                "collapsed": true
+              },
+              {
+                "at": 280509.5300000012,
                 "state": "busy",
                 "revision": 125,
-                "x": 7192,
+                "x": 5151,
                 "y": 4695,
                 "sourceSequence": 286,
                 "collapsed": true
               },
               {
-                "at": 281197.66500000656,
+                "at": 280510.3049999997,
+                "state": "ready",
+                "revision": 125,
+                "x": 5151,
+                "y": 4695,
+                "sourceSequence": 286,
+                "collapsed": true
+              },
+              {
+                "at": 280512.86000000127,
+                "state": "ready",
+                "revision": 125,
+                "x": 5151,
+                "y": 4695,
+                "sourceSequence": 287,
+                "collapsed": true
+              },
+              {
+                "at": 280514.1300000008,
                 "state": "ready",
                 "revision": 125,
                 "x": 7192,
                 "y": 4695,
-                "sourceSequence": 286,
+                "sourceSequence": 288,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 281171.4100000113,
+                "at": 280504.5050000008,
                 "x": 5151,
                 "y": 4695
               },
               {
-                "at": 281172.55500000715,
+                "at": 280505.0999999996,
                 "x": 5151,
                 "y": 4695
               },
               {
-                "at": 281173.0900000036,
+                "at": 280505.5549999997,
                 "x": 5151,
                 "y": 4695
               },
               {
-                "at": 281184.1750000119,
+                "at": 280509.86000000127,
                 "x": 5151,
                 "y": 4695
               },
               {
-                "at": 281191.8400000036,
+                "at": 280510.59500000067,
+                "x": 5151,
+                "y": 4695
+              },
+              {
+                "at": 280513.1300000008,
+                "x": 5151,
+                "y": 4695
+              },
+              {
+                "at": 280514.39499999955,
                 "x": 7192,
                 "y": 4695
               },
               {
-                "at": 281196.00500001013,
-                "x": 7192,
-                "y": 4695
-              },
-              {
-                "at": 281198.8299999982,
-                "x": 7192,
-                "y": 4695
-              },
-              {
-                "at": 281210.88000001013,
+                "at": 280518.5850000009,
                 "x": 7192,
                 "y": 4695
               }
             ],
             "announcements": [
               {
-                "at": 281183.6550000012,
+                "at": 280512.83999999985,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 285,
+                "sourceSequence": 287,
                 "documentChangeSequence": 0,
-                "revision": 124,
+                "revision": 125,
                 "x": 5151,
                 "y": 4695
               },
               {
-                "at": 281191.3400000036,
+                "at": 280514.125,
                 "source": "visible-cursor",
-                "sourceSequence": 286,
+                "sourceSequence": 288,
                 "documentChangeSequence": 0,
                 "revision": 125,
                 "x": 7192,
@@ -2391,7 +2391,7 @@
             "revisionAdvanced": true,
             "settledAfterMs": 1,
             "moved": true,
-            "staleWritesRefused": 0,
+            "staleWritesRefused": 1,
             "engineBefore": null,
             "engineAfter": null,
             "engineFirstDifferent": null,
@@ -2399,125 +2399,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 281588.1050000042,
+                "at": 280913.30000000075,
                 "state": "ready",
                 "revision": 125,
                 "x": 7192,
                 "y": 4695,
-                "sourceSequence": 286,
+                "sourceSequence": 288,
                 "collapsed": true
               },
               {
-                "at": 281588.8550000042,
+                "at": 280913.8650000002,
                 "state": "busy",
                 "revision": 125,
                 "x": 7192,
-                "y": 4695,
-                "sourceSequence": 286,
-                "collapsed": true
-              },
-              {
-                "at": 281589.3449999988,
-                "state": "busy",
-                "revision": 125,
-                "x": 7192,
-                "y": 4695,
-                "sourceSequence": 286,
-                "collapsed": true
-              },
-              {
-                "at": 281601.1099999994,
-                "state": "busy",
-                "revision": 125,
-                "x": 7192,
-                "y": 4695,
-                "sourceSequence": 287,
-                "collapsed": true
-              },
-              {
-                "at": 281608.68000000715,
-                "state": "busy",
-                "revision": 125,
-                "x": 9232,
                 "y": 4695,
                 "sourceSequence": 288,
                 "collapsed": true
               },
               {
-                "at": 281613.0300000012,
+                "at": 280914.2650000006,
+                "state": "busy",
+                "revision": 125,
+                "x": 7192,
+                "y": 4695,
+                "sourceSequence": 288,
+                "collapsed": true
+              },
+              {
+                "at": 280918.74500000104,
+                "state": "busy",
+                "revision": 125,
+                "x": 7192,
+                "y": 4695,
+                "sourceSequence": 289,
+                "collapsed": true
+              },
+              {
+                "at": 280920.22000000067,
+                "state": "busy",
+                "revision": 125,
+                "x": 9232,
+                "y": 4695,
+                "sourceSequence": 290,
+                "collapsed": true
+              },
+              {
+                "at": 280922.14499999955,
                 "state": "busy",
                 "revision": 126,
                 "x": 9232,
                 "y": 4695,
-                "sourceSequence": 288,
+                "sourceSequence": 290,
                 "collapsed": true
               },
               {
-                "at": 281614.4800000042,
+                "at": 280922.79000000097,
                 "state": "ready",
                 "revision": 126,
                 "x": 9232,
                 "y": 4695,
-                "sourceSequence": 288,
+                "sourceSequence": 290,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 281588.51000000536,
+                "at": 280913.5449999999,
                 "x": 7192,
                 "y": 4695
               },
               {
-                "at": 281589.1750000119,
+                "at": 280914.05000000075,
                 "x": 7192,
                 "y": 4695
               },
               {
-                "at": 281590.04000000656,
+                "at": 280914.4600000009,
                 "x": 7192,
                 "y": 4695
               },
               {
-                "at": 281601.66500000656,
+                "at": 280919.0999999996,
                 "x": 7192,
                 "y": 4695
               },
               {
-                "at": 281609.1550000012,
+                "at": 280920.5600000005,
                 "x": 9232,
                 "y": 4695
               },
               {
-                "at": 281613.4849999994,
+                "at": 280922.3900000006,
                 "x": 9232,
                 "y": 4695
               },
               {
-                "at": 281615.9350000024,
+                "at": 280923.0099999998,
                 "x": 9232,
                 "y": 4695
               },
               {
-                "at": 281625.7199999988,
+                "at": 280927.08999999985,
                 "x": 9232,
                 "y": 4695
               }
             ],
             "announcements": [
               {
-                "at": 281601.0900000036,
+                "at": 280918.73000000045,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 287,
+                "sourceSequence": 289,
                 "documentChangeSequence": 0,
-                "revision": 125,
+                "revision": 126,
                 "x": 7192,
                 "y": 4695
               },
               {
-                "at": 281608.6550000012,
+                "at": 280920.2100000009,
                 "source": "visible-cursor",
-                "sourceSequence": 288,
+                "sourceSequence": 290,
                 "documentChangeSequence": 0,
                 "revision": 126,
                 "x": 9232,
@@ -2536,7 +2536,7 @@
             "revisionAdvanced": true,
             "settledAfterMs": 1,
             "moved": true,
-            "staleWritesRefused": 0,
+            "staleWritesRefused": 1,
             "engineBefore": null,
             "engineAfter": null,
             "engineFirstDifferent": null,
@@ -2544,125 +2544,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 282007.08500000834,
+                "at": 281322.83999999985,
                 "state": "ready",
                 "revision": 126,
                 "x": 9232,
                 "y": 4695,
-                "sourceSequence": 288,
+                "sourceSequence": 290,
                 "collapsed": true
               },
               {
-                "at": 282008.26000000536,
+                "at": 281323.4500000011,
                 "state": "busy",
                 "revision": 126,
                 "x": 9232,
-                "y": 4695,
-                "sourceSequence": 288,
-                "collapsed": true
-              },
-              {
-                "at": 282008.8900000006,
-                "state": "busy",
-                "revision": 126,
-                "x": 9232,
-                "y": 4695,
-                "sourceSequence": 288,
-                "collapsed": true
-              },
-              {
-                "at": 282021.88500000536,
-                "state": "busy",
-                "revision": 126,
-                "x": 9232,
-                "y": 4695,
-                "sourceSequence": 289,
-                "collapsed": true
-              },
-              {
-                "at": 282027.9399999976,
-                "state": "busy",
-                "revision": 126,
-                "x": 11272,
                 "y": 4695,
                 "sourceSequence": 290,
                 "collapsed": true
               },
               {
-                "at": 282032.6550000012,
+                "at": 281323.8650000002,
+                "state": "busy",
+                "revision": 126,
+                "x": 9232,
+                "y": 4695,
+                "sourceSequence": 290,
+                "collapsed": true
+              },
+              {
+                "at": 281328.3300000001,
+                "state": "busy",
+                "revision": 126,
+                "x": 9232,
+                "y": 4695,
+                "sourceSequence": 291,
+                "collapsed": true
+              },
+              {
+                "at": 281329.9350000005,
+                "state": "busy",
+                "revision": 126,
+                "x": 11272,
+                "y": 4695,
+                "sourceSequence": 292,
+                "collapsed": true
+              },
+              {
+                "at": 281331.2050000001,
                 "state": "busy",
                 "revision": 127,
                 "x": 11272,
                 "y": 4695,
-                "sourceSequence": 290,
+                "sourceSequence": 292,
                 "collapsed": true
               },
               {
-                "at": 282033.5900000036,
+                "at": 281331.8800000008,
                 "state": "ready",
                 "revision": 127,
                 "x": 11272,
                 "y": 4695,
-                "sourceSequence": 290,
+                "sourceSequence": 292,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 282007.49000000954,
+                "at": 281323.1150000002,
                 "x": 9232,
                 "y": 4695
               },
               {
-                "at": 282008.66500000656,
+                "at": 281323.6500000004,
                 "x": 9232,
                 "y": 4695
               },
               {
-                "at": 282009.2349999994,
+                "at": 281324.0300000012,
                 "x": 9232,
                 "y": 4695
               },
               {
-                "at": 282022.4250000119,
+                "at": 281328.67500000075,
                 "x": 9232,
                 "y": 4695
               },
               {
-                "at": 282028.38500000536,
+                "at": 281330.28500000015,
                 "x": 11272,
                 "y": 4695
               },
               {
-                "at": 282033.0900000036,
+                "at": 281331.5449999999,
                 "x": 11272,
                 "y": 4695
               },
               {
-                "at": 282033.9849999994,
+                "at": 281332.125,
                 "x": 11272,
                 "y": 4695
               },
               {
-                "at": 282049.9200000018,
+                "at": 281335.7050000001,
                 "x": 11272,
                 "y": 4695
               }
             ],
             "announcements": [
               {
-                "at": 282021.8599999994,
+                "at": 281328.3100000005,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 289,
+                "sourceSequence": 291,
                 "documentChangeSequence": 0,
                 "revision": 127,
                 "x": 9232,
                 "y": 4695
               },
               {
-                "at": 282027.91500000656,
+                "at": 281329.9199999999,
                 "source": "visible-cursor",
-                "sourceSequence": 290,
+                "sourceSequence": 292,
                 "documentChangeSequence": 0,
                 "revision": 127,
                 "x": 11272,
@@ -2679,7 +2679,7 @@
             "topAfter": 281,
             "wrapped": true,
             "revisionAdvanced": true,
-            "settledAfterMs": 2,
+            "settledAfterMs": 1,
             "moved": true,
             "staleWritesRefused": 0,
             "engineBefore": null,
@@ -2689,125 +2689,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 282425.71000000834,
+                "at": 281731.61000000127,
                 "state": "ready",
                 "revision": 127,
                 "x": 11272,
                 "y": 4695,
-                "sourceSequence": 290,
+                "sourceSequence": 292,
                 "collapsed": true
               },
               {
-                "at": 282426.5300000012,
+                "at": 281732.14499999955,
                 "state": "busy",
                 "revision": 127,
                 "x": 11272,
                 "y": 4695,
-                "sourceSequence": 290,
+                "sourceSequence": 292,
                 "collapsed": true
               },
               {
-                "at": 282427.15000000596,
+                "at": 281732.5449999999,
                 "state": "busy",
                 "revision": 127,
                 "x": 11272,
                 "y": 4695,
-                "sourceSequence": 290,
+                "sourceSequence": 292,
                 "collapsed": true
               },
               {
-                "at": 282437.75,
+                "at": 281736.92500000075,
                 "state": "busy",
                 "revision": 128,
                 "x": 11272,
                 "y": 4695,
-                "sourceSequence": 290,
+                "sourceSequence": 292,
                 "collapsed": true
               },
               {
-                "at": 282438.9100000113,
+                "at": 281737.7050000001,
                 "state": "ready",
                 "revision": 128,
                 "x": 11272,
                 "y": 4695,
-                "sourceSequence": 290,
+                "sourceSequence": 292,
                 "collapsed": true
               },
               {
-                "at": 282443.8900000006,
+                "at": 281739.4050000012,
                 "state": "ready",
                 "revision": 128,
                 "x": 11272,
                 "y": 4695,
-                "sourceSequence": 291,
+                "sourceSequence": 293,
                 "collapsed": true
               },
               {
-                "at": 282447.2950000018,
+                "at": 281740.59500000067,
                 "state": "ready",
                 "revision": 128,
                 "x": 3458,
                 "y": 4971,
-                "sourceSequence": 292,
+                "sourceSequence": 294,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 282426.13500000536,
+                "at": 281731.8499999996,
                 "x": 11272,
                 "y": 4695
               },
               {
-                "at": 282426.93000000715,
+                "at": 281732.3350000009,
                 "x": 11272,
                 "y": 4695
               },
               {
-                "at": 282427.5200000107,
+                "at": 281732.71499999985,
                 "x": 11272,
                 "y": 4695
               },
               {
-                "at": 282438.2700000107,
+                "at": 281737.26999999955,
                 "x": 11272,
                 "y": 4695
               },
               {
-                "at": 282439.3400000036,
+                "at": 281737.9350000005,
                 "x": 11272,
                 "y": 4695
               },
               {
-                "at": 282444.3449999988,
+                "at": 281739.625,
                 "x": 11272,
                 "y": 4695
               },
               {
-                "at": 282447.7349999994,
+                "at": 281740.84500000067,
                 "x": 3458,
                 "y": 4971
               },
               {
-                "at": 282458.4650000036,
+                "at": 281745.8900000006,
                 "x": 3458,
                 "y": 4971
               }
             ],
             "announcements": [
               {
-                "at": 282443.86500000954,
+                "at": 281739.39499999955,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 291,
+                "sourceSequence": 293,
                 "documentChangeSequence": 0,
                 "revision": 128,
                 "x": 11272,
                 "y": 4695
               },
               {
-                "at": 282447.2700000107,
+                "at": 281740.5850000009,
                 "source": "visible-cursor",
-                "sourceSequence": 292,
+                "sourceSequence": 294,
                 "documentChangeSequence": 0,
                 "revision": 128,
                 "x": 3458,
@@ -2834,125 +2834,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 282845.5450000018,
+                "at": 282139.85500000045,
                 "state": "ready",
                 "revision": 128,
                 "x": 3458,
                 "y": 4971,
-                "sourceSequence": 292,
+                "sourceSequence": 294,
                 "collapsed": true
               },
               {
-                "at": 282846.24500000477,
+                "at": 282140.47000000067,
                 "state": "busy",
                 "revision": 128,
                 "x": 3458,
-                "y": 4971,
-                "sourceSequence": 292,
-                "collapsed": true
-              },
-              {
-                "at": 282846.75500001013,
-                "state": "busy",
-                "revision": 128,
-                "x": 3458,
-                "y": 4971,
-                "sourceSequence": 292,
-                "collapsed": true
-              },
-              {
-                "at": 282853.8449999988,
-                "state": "busy",
-                "revision": 128,
-                "x": 3458,
-                "y": 4971,
-                "sourceSequence": 293,
-                "collapsed": true
-              },
-              {
-                "at": 282858.8000000119,
-                "state": "busy",
-                "revision": 128,
-                "x": 5618,
                 "y": 4971,
                 "sourceSequence": 294,
                 "collapsed": true
               },
               {
-                "at": 282864.07000000775,
+                "at": 282140.9299999997,
+                "state": "busy",
+                "revision": 128,
+                "x": 3458,
+                "y": 4971,
+                "sourceSequence": 294,
+                "collapsed": true
+              },
+              {
+                "at": 282145.0700000003,
                 "state": "busy",
                 "revision": 129,
-                "x": 5618,
+                "x": 3458,
                 "y": 4971,
                 "sourceSequence": 294,
                 "collapsed": true
               },
               {
-                "at": 282865.0150000006,
+                "at": 282145.8300000001,
+                "state": "ready",
+                "revision": 129,
+                "x": 3458,
+                "y": 4971,
+                "sourceSequence": 294,
+                "collapsed": true
+              },
+              {
+                "at": 282147.4350000005,
+                "state": "ready",
+                "revision": 129,
+                "x": 3458,
+                "y": 4971,
+                "sourceSequence": 295,
+                "collapsed": true
+              },
+              {
+                "at": 282148.9350000005,
                 "state": "ready",
                 "revision": 129,
                 "x": 5618,
                 "y": 4971,
-                "sourceSequence": 294,
+                "sourceSequence": 296,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 282845.93000000715,
+                "at": 282140.12000000104,
                 "x": 3458,
                 "y": 4971
               },
               {
-                "at": 282846.575000003,
+                "at": 282140.6899999995,
                 "x": 3458,
                 "y": 4971
               },
               {
-                "at": 282847.125,
+                "at": 282141.1300000008,
                 "x": 3458,
                 "y": 4971
               },
               {
-                "at": 282854.3449999988,
+                "at": 282145.39499999955,
                 "x": 3458,
                 "y": 4971
               },
               {
-                "at": 282859.27500000596,
+                "at": 282146.0800000001,
+                "x": 3458,
+                "y": 4971
+              },
+              {
+                "at": 282147.73000000045,
+                "x": 3458,
+                "y": 4971
+              },
+              {
+                "at": 282149.1550000012,
                 "x": 5618,
                 "y": 4971
               },
               {
-                "at": 282864.54000000656,
-                "x": 5618,
-                "y": 4971
-              },
-              {
-                "at": 282865.3950000107,
-                "x": 5618,
-                "y": 4971
-              },
-              {
-                "at": 282872.9050000012,
+                "at": 282153.85500000045,
                 "x": 5618,
                 "y": 4971
               }
             ],
             "announcements": [
               {
-                "at": 282853.825000003,
+                "at": 282147.42500000075,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 293,
+                "sourceSequence": 295,
                 "documentChangeSequence": 0,
                 "revision": 129,
                 "x": 3458,
                 "y": 4971
               },
               {
-                "at": 282858.7800000012,
+                "at": 282148.92500000075,
                 "source": "visible-cursor",
-                "sourceSequence": 294,
+                "sourceSequence": 296,
                 "documentChangeSequence": 0,
                 "revision": 129,
                 "x": 5618,
@@ -2979,125 +2979,125 @@
             "engineMoved": null,
             "believed": [
               {
-                "at": 283259.9399999976,
+                "at": 282548.28500000015,
                 "state": "ready",
                 "revision": 129,
                 "x": 5618,
                 "y": 4971,
-                "sourceSequence": 294,
+                "sourceSequence": 296,
                 "collapsed": true
               },
               {
-                "at": 283260.68000000715,
+                "at": 282548.8849999998,
                 "state": "busy",
                 "revision": 129,
                 "x": 5618,
-                "y": 4971,
-                "sourceSequence": 294,
-                "collapsed": true
-              },
-              {
-                "at": 283261.26000000536,
-                "state": "busy",
-                "revision": 129,
-                "x": 5618,
-                "y": 4971,
-                "sourceSequence": 294,
-                "collapsed": true
-              },
-              {
-                "at": 283273.7349999994,
-                "state": "busy",
-                "revision": 129,
-                "x": 5618,
-                "y": 4971,
-                "sourceSequence": 295,
-                "collapsed": true
-              },
-              {
-                "at": 283280.82000000775,
-                "state": "busy",
-                "revision": 129,
-                "x": 7778,
                 "y": 4971,
                 "sourceSequence": 296,
                 "collapsed": true
               },
               {
-                "at": 283290.88500000536,
+                "at": 282549.2800000012,
+                "state": "busy",
+                "revision": 129,
+                "x": 5618,
+                "y": 4971,
+                "sourceSequence": 296,
+                "collapsed": true
+              },
+              {
+                "at": 282553.74500000104,
                 "state": "busy",
                 "revision": 130,
-                "x": 7778,
+                "x": 5618,
                 "y": 4971,
                 "sourceSequence": 296,
                 "collapsed": true
               },
               {
-                "at": 283291.7049999982,
+                "at": 282554.7800000012,
+                "state": "ready",
+                "revision": 130,
+                "x": 5618,
+                "y": 4971,
+                "sourceSequence": 296,
+                "collapsed": true
+              },
+              {
+                "at": 282555.98500000127,
+                "state": "ready",
+                "revision": 130,
+                "x": 5618,
+                "y": 4971,
+                "sourceSequence": 297,
+                "collapsed": true
+              },
+              {
+                "at": 282557.3900000006,
                 "state": "ready",
                 "revision": 130,
                 "x": 7778,
                 "y": 4971,
-                "sourceSequence": 296,
+                "sourceSequence": 298,
                 "collapsed": true
               }
             ],
             "applied": [
               {
-                "at": 283260.3149999976,
+                "at": 282548.55000000075,
                 "x": 5618,
                 "y": 4971
               },
               {
-                "at": 283261.0500000119,
+                "at": 282549.0800000001,
                 "x": 5618,
                 "y": 4971
               },
               {
-                "at": 283261.96000000834,
+                "at": 282549.4550000001,
                 "x": 5618,
                 "y": 4971
               },
               {
-                "at": 283274.8550000042,
+                "at": 282554.1799999997,
                 "x": 5618,
                 "y": 4971
               },
               {
-                "at": 283281.3449999988,
+                "at": 282555.05000000075,
+                "x": 5618,
+                "y": 4971
+              },
+              {
+                "at": 282556.2249999996,
+                "x": 5618,
+                "y": 4971
+              },
+              {
+                "at": 282557.59500000067,
                 "x": 7778,
                 "y": 4971
               },
               {
-                "at": 283291.37000000477,
-                "x": 7778,
-                "y": 4971
-              },
-              {
-                "at": 283292.04000000656,
-                "x": 7778,
-                "y": 4971
-              },
-              {
-                "at": 283297.11500000954,
+                "at": 282561.5300000012,
                 "x": 7778,
                 "y": 4971
               }
             ],
             "announcements": [
               {
-                "at": 283273.7150000036,
+                "at": 282555.9749999996,
                 "source": "a11y-paragraph-changed",
-                "sourceSequence": 295,
+                "sourceSequence": 297,
                 "documentChangeSequence": 0,
                 "revision": 130,
                 "x": 5618,
                 "y": 4971
               },
               {
-                "at": 283280.8000000119,
+                "at": 282557.3849999998,
                 "source": "visible-cursor",
-                "sourceSequence": 296,
+                "sourceSequence": 298,
                 "documentChangeSequence": 0,
                 "revision": 130,
                 "x": 7778,
@@ -3118,18 +3118,18 @@
         "engineAtLineStart": {
           "id": 0,
           "tag": "control-line-start",
-          "started": 278127.46000000834,
+          "started": 277538.7800000012,
           "done": true,
           "caret": {
             "x": 1644,
             "y": 4419,
             "height": 276
           },
-          "sourceSequence": 271,
+          "sourceSequence": 273,
           "documentChangeSequence": 0,
           "visible": true,
           "collapsed": true,
-          "finished": 278132.25,
+          "finished": 277540.8800000008,
           "askedAfterMs": 52
         },
         "sinkAtLineEnd": {
@@ -3141,24 +3141,24 @@
         "engineAtLineEnd": {
           "id": 1,
           "tag": "control-line-end",
-          "started": 278595.97500000894,
+          "started": 277997.7650000006,
           "done": true,
           "caret": {
             "x": 2871,
             "y": 4419,
             "height": 276
           },
-          "sourceSequence": 272,
+          "sourceSequence": 274,
           "documentChangeSequence": 0,
           "visible": true,
           "collapsed": true,
-          "finished": 278600.0600000024,
+          "finished": 277999.98000000045,
           "askedAfterMs": 52
         },
         "engineProbeTracked": true,
         "sinkTracksTheCaret": true,
         "roundsThatReachedTheDocument": 12,
-        "staleWritesRefusedTotal": 0
+        "staleWritesRefusedTotal": 6
       },
       "oracle": "typing moves the caret FORWARD IN READING ORDER -- further right on the same line, or onto a lower one if the text wrapped -- in every round asked for. Read from `#sink`'s offset, which finding 069 pinned to the caret, so this is the position the page draws from. LIMIT: it is not the pixels -- a page that computed the right position and painted nothing would pass here and fail `the-caret-is-drawn-where-it-was-placed`. The round count is 12; --caret-rounds may raise it, never lower it, so a larger number is the same check asked more times",
       "notEstablished": "either the sink does not track the caret at all (so 'it did not move' says nothing about typing) or fewer rounds reached the document than were asked for. Three is not thoroughness: before the fix this defect was intermittent at 2/7, and a single round would report green about a fifth of the time"
@@ -3306,7 +3306,7 @@
           "title": ""
         },
         "selectedText": "KITAL",
-        "latency": "B 70 ms",
+        "latency": "B 72 ms",
         "toast": "",
         "savedIsOdt": true,
         "boldBefore": "MKBOLDONCARETFOLLOW0CARETFOLLOW1CARETFOLLOW2CARETFOLLOW3CARETFOLLOW4CARETFOLLOW5CARETFOLLOW6CARETFOLLOW7CARETFOLLOW8CARETFOLLOW9CARETFOLLOW10CARETFOLLOW11EDITBTNABCXDMKPREOLDMKPRELICMKPREINEMKSURVIVE",
@@ -3363,7 +3363,7 @@
         "available": true,
         "from": "",
         "to": "plain-grapheme",
-        "options": 16,
+        "options": 15,
         "docAfter": "plain-grapheme.odt",
         "stateAfter": "ready",
         "inkBands": 6
@@ -3470,7 +3470,7 @@
             "drawnAfterSeconds": 0.0,
             "drawn": true,
             "latency": {
-              "seconds": 0.059,
+              "seconds": 0.061,
               "inkBefore": 13561,
               "inkAfter": 14127,
               "requiredDelta": 200
@@ -3504,7 +3504,7 @@
               "height": 4992,
               "width": 725
             },
-            "drawnAfterSeconds": 0.51,
+            "drawnAfterSeconds": 0.0,
             "drawn": true,
             "latency": {
               "seconds": 0.065,
@@ -3544,7 +3544,7 @@
             "drawnAfterSeconds": 0.0,
             "drawn": true,
             "latency": {
-              "seconds": 0.187,
+              "seconds": 0.193,
               "inkBefore": 13561,
               "inkAfter": 14127,
               "requiredDelta": 200
@@ -3578,7 +3578,7 @@
               "height": 34847,
               "width": 725
             },
-            "drawnAfterSeconds": 0.56,
+            "drawnAfterSeconds": 0.51,
             "drawn": true,
             "toasts": [
               "已開啟 long-35p-dpr1.odt"
@@ -3608,7 +3608,7 @@
               "height": 39839,
               "width": 1450
             },
-            "drawnAfterSeconds": 0.54,
+            "drawnAfterSeconds": 0.6,
             "drawn": true,
             "toasts": [
               "已開啟 long-20p-dpr2.odt"
@@ -3678,11 +3678,11 @@
       "outcome": "PASS",
       "observed": {
         "thresholdMs": 1000,
-        "worstSeconds": 0.187,
+        "worstSeconds": 0.193,
         "perArm": [
           {
             "pages": 1,
-            "seconds": 0.059,
+            "seconds": 0.061,
             "revisionAdvanced": true
           },
           {
@@ -3692,7 +3692,7 @@
           },
           {
             "pages": 20,
-            "seconds": 0.187,
+            "seconds": 0.193,
             "revisionAdvanced": true
           }
         ]
@@ -3732,7 +3732,7 @@
         "noteLineIndex": [
           1
         ],
-        "caret": "定位游標 29 ms",
+        "caret": "定位游標 30 ms",
         "markerLandedOnTheNoteParagraph": true,
         "markerLandedIn": [
           "E救回標記已存N-NOTE paragraph whose endnote holds a fr"
@@ -3778,19 +3778,8 @@
         },
         "stateAfterDrag": "busy",
         "checkpointAfterDrag": "有（r2）",
-        "stateAfterNextOperation": "ready",
-        "finding038Reproduced": false,
-        "fallbackInducer": {
-          "name": "INDUCE_WORKER_FAILURE",
-          "fired": true,
-          "workerUrl": [
-            "e2-editor-v12",
-            "sdk-worker.js"
-          ],
-          "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
-          "dependsOnADefect": false
-        },
-        "stateAfterFallback": "recoverable-error",
+        "stateAfterNextOperation": "recoverable-error",
+        "finding038Reproduced": true,
         "declaredCheckpoint": "有（r2）",
         "notice": {
           "shown": true,
@@ -3830,7 +3819,7 @@
         "checkpoint": "無",
         "latency": "—",
         "doc": "list-contexts.odt",
-        "toast": "",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
         "buttons": [
           {
             "action": "undo",
@@ -3923,7 +3912,7 @@
         "revision": "0",
         "pending": "0",
         "checkpoint": "無",
-        "latency": "定位游標 140 ms",
+        "latency": "定位游標 76 ms",
         "doc": "list-contexts.odt",
         "toast": "點一下放游標，或拖曳選一段，再按動作",
         "buttons": [
@@ -4132,7 +4121,7 @@
         {
           "recipe": "finding 047: save, click, format",
           "state": "ready",
-          "latency": "• 項目符號 487 ms"
+          "latency": "• 項目符號 454 ms"
         },
         {
           "recipe": "finding 053: click past the line end, break the paragraph, list the empty one (finding 046's cell)",
@@ -4145,7 +4134,7 @@
   ],
   "candidateCutover": {
     "profile": "e2-editor-v12",
-    "pageSha256": "20f09cc9da19f07d65b8c844a753aa880782e404fb6ea75e1f121c1f2d090d95",
+    "pageSha256": "3dfdcfef4abfe6b723b573f35e8ec8f885dcc42a8ed4d8338ad2381eb386f50f",
     "pinBefore": "4a2710bba1ef07d9",
     "pinAfter": "4ec1e389aaab3b03",
     "note": "This run measured the CANDIDATE page for a cutover to e2-editor-v12 -- the page as it will ship, with its own pinned hash and its own worker URL, not a --profile override. `tools/build_cutover_page.py --profile e2-editor-v12` produces these exact bytes; the cutover is proven by that sha256 matching. It is NOT a verdict on the profile the product ships pointing at today."
@@ -4160,10 +4149,10 @@
   "servedShell": {
     "bundle": "e2/editor-shell-v2-bundle-v43.json",
     "declaredSha256": "7e99d3a3b8ba789b1fd36a9b0cb2a3c191d0ced44d4f0ce8f17dcb56a1a56cb3",
-    "servedSha256": "6e1645f45bfb83f5239d0d907d27888d30cb9782b50a4ce5bc698b37d9585bf7",
+    "servedSha256": "9c06199bf962ad04c0939507a38cb00028a9951d3cb753026daf04f0bb1f691c",
     "missing": [],
     "entrypoint": "web/e2-editor-app.js",
-    "entrypointSha256": "4d31abcb4f75aba3a811cc6969fec8686b8b8e2d3aa5fabd6e76832f241c53a0",
+    "entrypointSha256": "8efb687c03d7a61b11bcc773a3d9c3ac15e208f9b98fddb13b43795242edc43c",
     "differingPaths": [
       "web/e2-editor-app.js"
     ],
@@ -4206,5 +4195,5 @@
     "held": true,
     "requires": "the two are reads of one moment: 046's cell either blocks the queue (bulleting FAIL, recovery judged) or it does not (bulleting PASS, recovery abstains)"
   },
-  "completedAt": "2026-09-06T19:36:25+08:00"
+  "completedAt": "2026-09-03T12:58:29+08:00"
 }

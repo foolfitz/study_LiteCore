@@ -201,7 +201,30 @@ def self_test() -> int:
         print("self-test has no COMPLETE diagnostic report to build from; "
               "it would otherwise pass by measuring nothing")
         return 1
-    base = json.loads(sources[0].read_text(encoding="utf-8"))
+    # THE BASE IS CHOSEN, NOT TAKEN.  The green control is three copies of one
+    # real report, so that report must be able to satisfy every term the
+    # control asserts -- including term 4, which needs the guard to have fired.
+    # Taking `sources[0]` worked only while every banked run happened to have
+    # refused a stale write; the 2026-09-06 take has a run with 0, and the
+    # control went red on a fixture the judge was right about.  A control that
+    # is red for a reason outside the judge teaches nothing, so this refuses
+    # instead of reporting it.
+    def guard_fired(path: Path) -> bool:
+        body = json.loads(path.read_text(encoding="utf-8"))
+        for entry in body.get("checks") or []:
+            if entry.get("id") == CARET_CHECK:
+                total = (entry.get("observed") or {}).get(
+                    "staleWritesRefusedTotal")
+                return isinstance(total, int) and total > 0
+        return False
+
+    usable = [p for p in sources if guard_fired(p)]
+    if not usable:
+        print("self-test has no COMPLETE diagnostic report whose guard fired; "
+              "the green control would be red on term 4 for a reason that is "
+              "about the fixture and not about the judge")
+        return 1
+    base = json.loads(usable[0].read_text(encoding="utf-8"))
 
     def write(root: Path, name: str, mutate) -> Path:
         body = json.loads(json.dumps(base))

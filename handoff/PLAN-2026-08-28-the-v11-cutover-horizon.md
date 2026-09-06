@@ -1385,3 +1385,40 @@ pins the page sha in its own identity term, exactly as term 1 does here.
 
 *Count semantics: 4a-only. The clean-run predicate is untouched and the soak
 count does not restart on this account.*
+
+## Condition 2 is re-taken on `20f09cc9…` and discharged again (2026-09-06)
+
+Evidence: `findings/evidence/queue-v12-cutover-soak/RESULT-condition-2.md`,
+section "Re-taken on page `20f09cc9…`", with the three runs and
+`VERDICT-condition-2.json` beside it. The 2026-09-03 take and its verdict moved
+to `findings/evidence/queue-v12-cutover-soak-void-3dfdcfef/` unedited — the
+judge globs `diagnostic-*.json` out of the bank directory, so leaving void runs
+there would have kept the re-take permanently red.
+
+All four terms pass: identity on `20f09cc9…`, 3 of 3 complete, 36 committed
+rounds with 0 dropped, and the guard refusing stale writes 0, 9 and 4 times.
+
+Two things worth carrying forward from this take.
+
+**A diagnostic run where the guard never fired is not a defect.** Run 01 refused
+zero stale writes and still committed 12 of 12 with the caret following every
+time; every run of the 2026-09-03 take had fired. The criterion says "in at
+least one" precisely so that a run with no contention is a clean run rather than
+a missing measurement.
+
+**The self-test's green control went red, at itself.** It builds the control
+from `sources[0]`, which is now a run whose guard never fired, so it asserted
+term 4 against a fixture that cannot satisfy it — while the judge's verdict on
+the real bank was `ok: true` throughout. The base is now chosen rather than
+taken: the first complete report whose guard fired, and a refusal if none
+qualifies. This is a change to a test's fixture selection, not to any criterion
+and not to the product.
+
+**Re-earn list.** Of what the page move voided: the soak runs (10 of 12 banked),
+condition 4a (discharged 2026-09-06) and condition 2 (discharged here). Still
+owed on the new sha: the human manual round with 4b, the revert rehearsal
+including step 3, the ODT round trip, and the owner's confirmation against the
++24.5 MiB.
+
+*Count semantics: condition 2 is not the clean-run predicate. The soak count is
+untouched by this.*
