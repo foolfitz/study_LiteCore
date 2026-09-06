@@ -521,3 +521,38 @@ against that baseline in the same session.
 
 Where the handoff of 2026-09-07 says 4a is discharged in full, this
 paragraph supersedes it; the handoff carries the same correction appended.
+
+---
+
+## R-1 = A, by the owner (2026-09-07, append-only)
+
+The owner's reply, verbatim: 「A」. The check
+`the-document-region-says-why-it-is-empty` is amended to verify the claim
+("there is something to read") rather than the proxy (one DOM node's text):
+the source may be the live region **or** the structure channel's focused
+node, and the region's own attribute `data-deferred-to-structure="1"` is the
+signal that names which. This changes the clean-run predicate, so the count
+restarts — it is at 0; runs 1–2 stay banked FAIL under the old wording and
+are not re-judged. The criterion lands before any run that could satisfy it.
+
+### T5a — amend the criterion and implement it (opus, main tree)
+
+1. Append to `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` an
+   amendment dated 2026-09-07: the rewritten oracle; `AGENTS.md` §9's four
+   conditions stated (prior to satisfaction — count 0; forced by finding 092;
+   form — per-instance; deadline — closes with the 12th clean run); count
+   semantics; and the red cases named before the code exists: (i) both
+   channels silent; (ii) region deferred while the structure's focused node
+   has no text; (iii) the existing inconsistency cases; (iv)
+   `projection-not-wired`. Each must FAIL exactly this check.
+2. Implement in `run_e2_c_product_path.py`: the region reader also returns
+   `deferredToStructure` and the text under the structure channel's active
+   descendant; the check passes iff present ∧ reason known ∧ consistent ∧
+   (text ≠ "" ∨ (deferred = "1" ∧ structureText ≠ "")); when deferred = "1",
+   reason must be `paragraph` and offers `1`. Observed payload carries the
+   new fields. Oracle string rewritten to match the amendment.
+3. Add mutations (i) and (ii) to the mutation table with exact-once patterns;
+   `make test-e2-c-static` green. No product file changes.
+4. Append the disposition to finding 092. Commit per item; report. The runs
+   are T5b's (sonnet): four red cases, one baseline candidate run banked as
+   the next soak run if clean, 4a term 6 re-taken against it.
