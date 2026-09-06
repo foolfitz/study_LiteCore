@@ -1447,3 +1447,55 @@ owner's confirmation against the +24.5 MiB.
 
 *Count semantics: a revert condition is not the clean-run predicate. The soak
 count is untouched.*
+
+## W-5 is rehearsed: step 3 works, and the revert's destination does not (2026-09-06)
+
+Evidence: `findings/evidence/queue-v12-cutover-revert-rehearsal/`, with the
+full transcript and the script that ran it (wired to a `trap … EXIT` that undoes
+all three steps whether it finishes, fails or is killed).
+
+**Step 3 is sufficient, measured.** The cutover was performed for real on
+`e2-editor-v12` and page `20f09cc9…`: page written, staged into `dist/`,
+generation `e2/editor-shell-v2-bundle-v44.json` frozen (`78c23684…`,
+`problems: []` after the write) and `MANIFEST` repointed. The net then ran on the
+cutover page with **no** `--candidate-profile` and came back 38 PASS / 2 NE with
+`servedShell.differingPaths: []` and `check_usable_editor` reconciling
+`ok: true, reconciledFor.kind = "shipped-page"`. On 2026-08-28 the same shape
+without step 3 was refused. **W-5 is discharged.**
+
+Two implementation facts the runbook needs: the bundle tool exits 1 whenever any
+problem remains after the write, and this bundle carries inherited exclusions, so
+the write must be judged on `written: true` rather than on the exit code (the
+re-checked `problems` after the write is `[]`). And the `MANIFEST` string
+replacement must assert it matched — 2026-08-17's silent non-match is what made
+that expensive.
+
+**The revert is byte-clean and lands somewhere undeclared.** Both files returned
+to `5aeae0e1…`, `MANIFEST` to v43, the v44 manifest deleted, `git status` empty.
+The post-revert run then came back 38 PASS / 2 NE with the runner `ok: true` and
+**`check_usable_editor` `ok: false`**: v43 declares the entrypoint as
+`28e03e5b…` and the tree serves `5aeae0e1…`.
+
+Measured with the tree fully restored and clean, so it is not the rehearsal's
+doing: the page moved with finding 087's fix, finding 088's fix and finding
+090's `make`, and no generation was frozen for any of it. **Filed as finding
+091.** Nothing else in the bundle differs.
+
+**Why the gate did not see this.** Every banked run is a *candidate* run, and
+the served-shell check exempts those deliberately and narrowly. This rehearsal's
+second half is the first plain shipped-page run since those fixes landed. The
+banked evidence is unaffected — the exemption is what those runs were judged
+under and it still holds.
+
+**New blocking item, and it is not the drafting party's to resolve.** The
+cutover produces a declared state; the state it reverts *to* is not one. The
+obvious prescription — freeze a generation for the current shell now — changes
+the tree's declared identity while the gate is counting against it
+(`servedShell` is recorded in every report), and this tree has already paid for
+freezing a generation too early (2026-08-22, three in one day). Registered, not
+done. It needs a decision before the cutover, because a revert that lands in an
+undeclared state is a revert that cannot be reconciled.
+
+*Count semantics: the clean-run predicate is untouched and the soak count does
+not restart. Finding 091 is about the shipped-page path, which no banked run
+takes.*
