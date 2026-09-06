@@ -641,3 +641,10 @@ is the only FAIL that resumes the count without the owner; anything else
 stops the schedule and is handed off.
 
 ### T3 ledger (append one line per session)
+
+- 2026-09-07 07:30 CST — self-test fixture fix landed (`4ae5340e`): the GREEN
+  control and the "clean run plus one defect" RED cases are now built from
+  reports the judge itself classifies clean (`judge_run(...)["clean"]`), not
+  from any `complete: true` report. `--self-test` exit 0: 12 RED cases red,
+  GREEN control green. Real-run output byte-identical before and after
+  (`cleanRuns: 1, totalRuns: 3`). Schedule unchanged; session A2 fires 08:47.
