@@ -278,3 +278,40 @@ in `manual-round-v12d-9b29e39b/CONSENT.md` and does not ask again.
 Budget: §8.4's eight walks. Verdict form: §8.3's three clauses, written before
 the run; the main session reads the result and decides D1's landing. The
 executor does not land v46.
+
+---
+
+## T1c: v46 measures better; D1 = A lands it (2026-09-07, append-only)
+
+`findings/evidence/manual-round-v12d-9b29e39b/RESULT-4b-v45-vs-v46.md`
+(commit `de0299a3`). Six walks, all VALID, no spare used, zero environment
+voids, settled configuration throughout. v45 pair: announced 10/10,
+`這一行是普通內文` 2/2. v46 pair: announced 10/10, every paragraph at 1. v45
+return pair: 10/10, 2/2 — no drift. §8.3's three clauses all MET. The v46
+bytes were the previous session's own artifact (sha `9b29e39b…`), preserved
+into the evidence directory with the one-hunk diff before any walk.
+
+**Decision (D1 = A, second branch): land v46.** The rule of ruling E-1
+applies — the changed shell and its new frozen generation (**v47**) land in the
+**same commit**, together with `dist/` brought to byte identity with `web/`
+and the three judge constants re-pointed. The soak bank is empty, so nothing
+is voided by this move; `RUNS.md` records the move with zero runs voided.
+
+**Conditional ruling, written before the landing:** if the candidate page
+built from the landed tree has sha256 exactly
+`9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c`, then the
+two v46 walks in `manual-round-v12d-9b29e39b/` were taken on the final page
+and constitute **4b's mechanical half on it** (agent-driven under the consent
+on file: ten paragraphs reaching the log, headings announced with level, the
+residue absent), leaving 4b's judgement half to the owner's ear at T4. If the
+sha differs, the walks are not on the final page and 4b is re-taken on it;
+the landing still stands, because the measured difference is the one hunk.
+
+The earlier worry that 4a's probe reads the live region (the 2026-09-06
+revert's reason) is already discharged: the amendment of 2026-09-05 made
+term 4's reading the text under the active descendant of the focused node,
+with the live region only as a fallback when no such relation exists. T2 will
+show whether that holds on v47; the executor reports a red, never edits the
+judge.
+
+After the landing the page is **final for this gate**. T2 opens.
