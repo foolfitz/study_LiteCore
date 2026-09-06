@@ -345,3 +345,50 @@ the delegation notes.
 
 The conditional ruling above (v12d walks = 4b's mechanical half if the built
 page is `9b29e39b…`) is decided on the v48 measurement, not on `000a57e2`'s.
+
+---
+
+## The page is final: `9b29e39b…` on shell generation v48 (2026-09-07, append-only)
+
+Commit `2d319677`. Checked by the main session against the tree: the diff
+from `f7f20317` in `web/e2-editor-app.js` is one hunk (the v46 change); the
+shell ships `e2-editor-v8` with pin `4a2710bba1ef07d9`; `web/` and `dist/`
+are byte-identical; `MANIFEST` is v48 (`bundleSha256 ecfb6866…`); both judges
+pin page `9b29e39b…`, the soak judge pins served shell `ecfb6866…`. The
+candidate page built without `--write` is `9b29e39b…`, the page T1c measured.
+
+**Ruling (the conditional one above, now decided):** the two v46 walks in
+`findings/evidence/manual-round-v12d-9b29e39b/` were taken on the final page
+and are **4b's mechanical half on it**, agent-driven under the consent on
+file — ten paragraphs reach the log, headings are announced with level, the
+second-heading residue is absent, and the same session's v45 return control
+still shows it. 4b's judgement half (order, verbosity, what it sounded like)
+remains the owner's at T4, together with condition 3's six cells.
+
+Five bound identities for this gate, for the record: profile `e2-editor-v12`
+(pins `4a2710bba1ef07d9` → `4ec1e389aaab3b03`), candidate page `9b29e39b…`,
+shell generation v48 `ecfb6866…`, E1-C binding intact.
+
+### T2 — re-earn the identity-bound evidence on `9b29e39b…` (sonnet, main tree, headless)
+
+Order chosen for the calendar: the soak's first two runs go first so that
+UTC day 2026-09-06 (which ends 08:00 CST 2026-09-07) can be banked; then 4a,
+condition 2, the ODT round trip, revert condition 3. Each item re-executes
+the procedure its 2026-09-06 predecessor recorded, into a directory named for
+this page; each is judged by the existing judge, never by the executor's
+reading. A red is reported with its payload, not fixed.
+
+1. Before every run: the shell bundle test (or `sha256sum` of `web/` vs
+   `dist/` over the 13 bound paths) — finding 090's manual rule.
+2. Soak runs 1 and 2: `run_e2_c_product_path.py --browser chrome
+   --candidate-profile e2-editor-v12`, banked per `RUNS.md`'s conventions,
+   judged by `check_usable_editor.py` and `check_soak_bank.py`.
+3. 4a: `gate-4a-on-9b29e39b/`, per `gate-4a-on-20f09cc9/` and the 2026-09-05
+   amendment (three runs, one mutation stamped never banked, one control on
+   the shipped page), judged by `check_4a.py`, all eight terms.
+4. Condition 2: three diagnostic runs, judged by `check_caret_diagnostics.py`.
+5. ODT round trip, per `queue-v12-cutover-roundtrip/`.
+6. Revert condition 3, per `queue-v12-cutover-revert-rehearsal/` and ruling
+   E-3; the rehearsal must leave the tree exactly as it found it.
+7. Commits: one per item, zh-TW subjects. Report `## SUMMARY` ≤ 30 lines with
+   each judge's verdict line verbatim.
