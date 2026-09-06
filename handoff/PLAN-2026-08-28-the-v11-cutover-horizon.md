@@ -1598,3 +1598,37 @@ The four conditions, item by item:
 * **Unstated and decisive**: every banked run's `servedSha256` equals the rehearsal's v44 digest (fact ii).
 * **Numbering**: the 2026-08-28 addendum's step 3 names `v44`; after E-1 that number is taken and the cutover freezes **v45**.
 * All other stated facts check: 10 of 12 banked, UTC days 2026-09-04 (2) and 2026-09-06 (8), earliest close on UTC 2026-09-07; one page sha `20f09cc9…` across the bank; `--self-test` 10 red, control green; v43 declares the entrypoint `28e03e5b…`, the tree serves `5aeae0e1…`, the other twelve match; the exemption at `check_usable_editor.py:224-257` is narrow as described; the revert is byte-clean; conditions 4a, 2 and the ODT round-trip are discharged on this page.
+
+## Ruling E-3 is discharged: revert condition 3 holds on `20f09cc9…` (2026-09-06)
+
+Evidence: `findings/evidence/queue-v12-cutover-revert-rehearsal/RESULT-2026-09-06b-revert-condition-3-discharged.md`,
+with `rerun-*.json` and the transcript beside the earlier take, which is left
+unedited.
+
+The rehearsal was re-run with `NEWGEN` = v45 and nothing else changed. The
+post-revert run reconciles `ok: true`, `reconciledFor.kind: shipped-page`,
+`servedShell.bundle: e2/editor-shell-v2-bundle-v44.json`,
+`declaredSha256 == servedSha256 == f89d7bb9d1438ef2…`, `differingPaths: []` —
+E-3's five terms, all of them. `restore()` restores that file from git, so the
+post-revert run could only declare v44 because the E-1 freeze was committed:
+this measures the freeze, not the script.
+
+**E-4 has its positive control.** The post-cutover run declares generation v45
+with `bundleSha256 78c2368403e16af1…` — exactly the digest E-4 pins as
+`one-served-shell` and exactly what all ten banked runs served. Obligation R6 is
+satisfiable and satisfied.
+
+**Registered, not new**: the post-revert run was 37 PASS / 3 NE, the third being
+`clear-format-removes-every-inline-format`, which lines 100-107 already record as
+an intermittent belonging to neither profile. Tally is now 2 shipped-side / 1
+post-cutover-side, and 0 in ten banked candidate runs. Not a counted run, so the
+count is untouched; if it ever lands inside the soak it restarts the clock under
+the rule already in force.
+
+**Re-earn list on the new sha.** Discharged: the soak (10 of 12), condition 4a,
+condition 2's diagnostics, the ODT round trip, W-5's step 3, and revert
+condition 3. **Still owed: the human manual round with 4b, and the owner's
+confirmation against the +24.5 MiB.**
+
+*Count semantics: revert conditions are not the clean-run predicate. The soak
+count is untouched.*
