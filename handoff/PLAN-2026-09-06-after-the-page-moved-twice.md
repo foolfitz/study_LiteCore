@@ -556,3 +556,43 @@ are not re-judged. The criterion lands before any run that could satisfy it.
 4. Append the disposition to finding 092. Commit per item; report. The runs
    are T5b's (sonnet): four red cases, one baseline candidate run banked as
    the next soak run if clean, 4a term 6 re-taken against it.
+
+---
+
+## T5a landed and passed the pre-read; T5b opens (2026-09-07, append-only)
+
+Commits `02b0a7d4` (amendment, text first), `7dbbcc70` (runner: the reader
+returns `deferredToStructure`, `activeDescendant`, `structureText` from one
+evaluation; the check's predicate is the amendment's formula; oracle
+character-identical), `dbf0a820` (mutations
+`structure-names-nothing-while-the-region-defers`,
+`the-region-defers-with-a-reason-it-owed-the-user`), `7ac0b3ea` (finding 092).
+`make test-e2-c-static` exit 0, 108 tests. The main session read the
+amendment (forcing facts, oracle, formula, §9's four conditions, count
+semantics, red cases (i)–(iv), the default) and the predicate hunk; they
+agree clause by clause. One correction to the T5a brief, made by the author
+and accepted: red case (ii) as the brief phrased it would *pass* the new
+predicate on the candidate (the structure channel really does have text), so
+(ii) is instead a deferral with an illegitimate `reason`, which isolates the
+implication clause. Both mutations' `alsoRed` are declared unmeasured until
+T5b runs them.
+
+### T5b — red cases, the first run under the amendment, term 6 (sonnet, main tree, headless)
+
+1. Before every run: `make test-e2-c-static` (or the shell bundle test).
+2. Four red-case runs on the candidate path, one per mutation ((i), (ii),
+   `projection-not-wired`, and one existing inconsistency case if the harness
+   has one; else record (iv) as covered by static tests): each must FAIL
+   `the-document-region-says-why-it-is-empty`; record what else reddened and
+   correct the `alsoRed` lists to what was measured (a table edit in the
+   mutation module, nothing else). Page restored by sha after each; runs
+   stamped, never banked.
+3. One baseline candidate run under the amended predicate. If 38 PASS / 2 NE
+   with the fixed NE set: bank as `soak-run-03-candidate.json` — the first
+   run that can count — and run `check_soak_bank.py` (expect 1 of 12,
+   `one-served-shell: true`) and its `--self-test` (now buildable). If not
+   clean: bank it, report the payload, stop.
+4. 4a term 6 re-taken against that green baseline (`projection-not-wired`
+   run reddens exactly the check, baseline green), `check_4a.py` for all
+   eight terms; append to `RESULT-4a.md`.
+5. Commit per item; `## SUMMARY` ≤ 30 lines with every judge line verbatim.
