@@ -596,3 +596,48 @@ T5b runs them.
    run reddens exactly the check, baseline green), `check_4a.py` for all
    eight terms; append to `RESULT-4a.md`.
 5. Commit per item; `## SUMMARY` ≤ 30 lines with every judge line verbatim.
+
+---
+
+## T5b: the amended check has its red cases, the count is 1 of 12, 4a is 8 of 8 (2026-09-07 ~07:50 CST, append-only)
+
+Commits `f2326488` (three red cases: each mutation reddens exactly
+`the-document-region-says-why-it-is-empty`, composition 37/2/1, page restored
+to `df5f3b6c…` after each; `alsoRed: []` measured), `feb11292`
+(`soak-run-03-candidate.json`, the first run under the amendment: 38 PASS /
+2 NE, NE set fixed, `ok: true`, `reconciledFor.kind: candidate-cutover`;
+`check_soak_bank.py`: `cleanRuns: 1, totalRuns: 3`, `one-served-shell:
+true`), `0cf9a6c3` (4a term 6 MET against that green baseline; **4a 8 of 8
+on `9b29e39b…`/v48**). Red case (iv) has no mutation because those clauses
+live in the harness's Python, not in the page; recorded as covered by the
+unchanged predicate clauses and static tests, per the amendment.
+
+**Judge self-test, a fixture artifact:** RED 11 now isolates (first time a
+clean run existed to mutate); the GREEN control fails
+(`control failed on: ['every-run-clean', 'count-reached', 'day-spread']`,
+`days: []`) because `stamped()` round-robins over every `complete: true`
+report in the bank, including the two banked FAIL runs. This is the
+self-test's sampling, not the judge's verdict; it is fixed as a test change
+(the GREEN fixture must be built from a clean report) before the next
+session, with the self-test passing as its own proof.
+
+**Calendar.** Run 03 started 2026-09-06T23:13Z. Criterion 1 reads "twelve
+clean runs, across at least three calendar days, at least two runs on each
+of those days": UTC 09-06 holds one run and is not one of the three; the
+three are 09-07, 09-08, 09-09. Earliest close: the morning of 2026-09-09 CST.
+
+### T3 schedule, re-issued (one-shot wake-ups of this session)
+
+| wake (CST) | UTC day | runs | target bank |
+|---|---|---|---|
+| 2026-09-07 08:47 | 09-07 | 3 | 4 |
+| 2026-09-07 15:47 | 09-07 | 2 | 6 |
+| 2026-09-08 08:17 | 09-08 | 2 | 8 |
+| 2026-09-08 15:47 | 09-08 | 2 | 10 |
+| 2026-09-09 08:17 | 09-09 | 2 | 12 |
+
+The FAIL policy of the T3 section above is unchanged. The known intermittent
+is the only FAIL that resumes the count without the owner; anything else
+stops the schedule and is handed off.
+
+### T3 ledger (append one line per session)
