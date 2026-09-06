@@ -1,0 +1,105 @@
+# Does the SDK force a hard recalculation on ODS load that native skips?
+# Measured 2026-09-06 on profile e2-editor-v12.  Source tree:
+#   /home/jiajun/LibreOffice/study_LiteCore/libreoffice-26-8
+
+## 1. The branch that decides it (sc/source/ui/docshell/docsh.cxx, ScDocShell::LoadXML)
+
+    ScRecalcOptions nRecalcMode =
+        static_cast<ScRecalcOptions>(officecfg::Office::Calc::Formula::Load::ODFRecalcMode::get());
+
+    bool bHardRecalc = false;
+    if (nRecalcMode == RECALC_ASK)
+    {
+        OUString sProductName(utl::ConfigManager::getProductName());
+        if (m_pDocument->IsUserInteractionEnabled() && xDocProps->getGenerator().indexOf(sProductName) == -1)
+        {
+            // Generator is not LibreOffice.  Ask if the user wants to perform
+            // full re-calculation.
+            MessageWithCheck aQueryBox(GetActiveDialogParent(),
+                    u"modules/scalc/ui/recalcquerydialog.ui"_ustr, u"RecalcQueryDialog"_ustr);
+            aQueryBox.set_primary_text(ScResId(STR_QUERY_FORMULA_RECALC_ONLOAD_ODS));
+            aQueryBox.set_default_response(RET_YES);
+
+            if ( officecfg::Office::Calc::Formula::Load::OOXMLRecalcMode::isReadOnly() )
+                aQueryBox.hide_ask();
+
+            bHardRecalc = aQueryBox.run() == RET_YES;
+
+            if (aQueryBox.get_active())
+            {
+                // Always perform selected action in the future.
+                std::shared_ptr<comphelper::ConfigurationChanges> batch(comphelper::ConfigurationChanges::create());
+                officecfg::Office::Calc::Formula::Load::ODFRecalcMode::set(sal_Int32(0), batch);
+                ScModule* mod = ScModule::get();
+                ScFormulaOptions aOpt = mod->GetFormulaOptions();
+                aOpt.SetODFRecalcOptions(bHardRecalc ? RECALC_ALWAYS : RECALC_NEVER);
+                /* XXX  is this really supposed to set the ScModule options?
+                 *      Not the ScDocShell options? */
+                mod->SetFormulaOptions(aOpt);
+
+                batch->commit();
+            }
+        }
+    }
+    else if (nRecalcMode == RECALC_ALWAYS)
+        bHardRecalc = true;
+
+    if (bHardRecalc)
+        DoHardRecalc();
+    else
+
+## 2. The enum (sc/inc/calcconfig.hxx)
+25:    RECALC_ALWAYS = 0,
+26:    RECALC_NEVER,
+27:    RECALC_ASK,
+
+## 3. The schema default, in the SOURCE tree
+$ grep -A2 'oor:name="ODFRecalcMode"' ... Calc.xcs  -> tail of that prop
+1:        <prop oor:name="ODFRecalcMode" oor:type="xs:int" oor:nillable="false">
+23:          <value>1</value>
+25:        <prop oor:name="RecalcOptimalRowHeightMode" oor:type="xs:int" oor:nillable="false">
+
+## 4. The schema default, in the SHIPPED PACKAGE (not a proxy for it)
+$ grep -a -o -b 'ODFRecalcMode[^<]\{0,120\}' $DATA
+36325005:ODFRecalcMode" oor:type="xs:int" oor:nillable="false">
+$ dd skip=<that offset> count=900 | split on '><'  -> first values that follow
+3:<value>1</value>
+5:<prop oor:name="RecalcOptimalRowHeightMode" oor:type="xs:int" oor:nillable="false">
+7:<value>0</value>
+15:<prop oor:name="Change" oor:type="xs:int" oor:nillable="false">
+
+## 5. No user-profile override ships with the profile
+$ grep -a -c registrymodifications <the package metadata>
+0
+$ find dist -name '*.xcu' -o -name 'registrymodifications*'   (loose files)
+(no output above = none)
+
+## 6. LOK sets no recalc mode
+$ grep -n 'RecalcMode|DoHardRecalc|IsUserInteractionEnabled' desktop/source/lib/init.cxx
+(no output above = none)
+
+## 7. The fixture's generator, which the RECALC_ASK branch also tests
+tdf149752-no-namedexpr.ods  <meta:generator>LibreOffice/6.0.2.1$Linux_X86_64 LibreOffice_project/f7f06a8f319e4b62f9bc5095aa112a65d2f3ac89
+tdf149752-only-namedexpr.ods  <meta:generator>LibreOffice/6.0.2.1$Linux_X86_64 LibreOffice_project/f7f06a8f319e4b62f9bc5095aa112a65d2f3ac89
+tdf149752-rows20.ods  <meta:generator>LibreOffice/6.0.2.1$Linux_X86_64 LibreOffice_project/f7f06a8f319e4b62f9bc5095aa112a65d2f3ac89
+tdf149752-rows50.ods  <meta:generator>LibreOffice/6.0.2.1$Linux_X86_64 LibreOffice_project/f7f06a8f319e4b62f9bc5095aa112a65d2f3ac89
+
+## 8. Why section 4 is not vacuous
+
+The same dd/split method prints `<value>0</value>` for the neighbouring prop
+`RecalcOptimalRowHeightMode` in the same package (section 4, line 7).  So the
+reader can see the method distinguishes 0 from 1 in this file; a method that
+could only ever print `1` would be worth nothing here.
+
+## What this establishes, and what it does not
+
+ESTABLISHED: the ODS load path does not call `DoHardRecalc()`.  `bHardRecalc`
+is false on this profile, and would be false natively too, for the same reason
+(the default is shared).  The product-side hypothesis is DISCONFIRMED: the SDK
+does not force a recalculation that native skips.
+
+NOT ESTABLISHED: that no computation happens at load.  The `else` branch still
+runs `Broadcast(ScHint(SfxHintId::ScDataChanged, BCA_BRDCST_ALWAYS))`, and the
+99 cells carry no cached result, so they are dirty and must be interpreted on
+either platform.  This measurement removes one candidate for the 670x gap; it
+does not name the cause, and nothing here should be read as naming one.

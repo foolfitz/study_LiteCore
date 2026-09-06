@@ -159,3 +159,43 @@ involved) evaluates that family fine in every variant that opens.
   the native path skips. That is the product-side question, and it is the one
   worth answering first, because it is the only candidate here that is ours to
   fix.
+
+## The product-side question is answered, and the answer is no (2026-09-06)
+
+The section above named one candidate as "the one worth answering first, because
+it is the only candidate here that is ours to fix": whether the SDK forces a
+hard recalculation on load that the native path skips. It does not. Evidence:
+`findings/evidence/089/recalc-on-load-2026-09-06.txt`.
+
+`ScDocShell::LoadXML` (`sc/source/ui/docshell/docsh.cxx`) computes one boolean,
+`bHardRecalc`, and calls `DoHardRecalc()` only if it is true. It is false here,
+at four independent points, any one of which is sufficient:
+
+* `officecfg::Office::Calc::Formula::Load::ODFRecalcMode` defaults to **1 =
+  `RECALC_NEVER`**, and the code takes `DoHardRecalc()` only for `RECALC_ALWAYS`
+  (0) or for an affirmative answer under `RECALC_ASK` (2).
+* That default is **1 in the shipped package too**, not only in the source
+  tree — read out of `base-e2-editor-v12.9901e9be29c9ded2.data` directly rather
+  than inferred from the tree that built it.
+* No override ships with the profile: no `registrymodifications` in the package
+  metadata, and no loose `.xcu` under `dist/`.
+* `desktop/source/lib/init.cxx` names none of `RecalcMode`, `DoHardRecalc` or
+  `IsUserInteractionEnabled` — LOK sets no recalc mode of its own.
+
+Even had the mode been `RECALC_ASK`, the branch tests the generator against the
+product name, and every fixture here reports
+`LibreOffice/6.0.2.1$Linux_X86_64` — the branch is written for documents some
+other producer wrote.
+
+**The default is shared, so native takes the same branch.** This is not a
+difference between the two platforms that was found and then measured to be
+small; it is a difference that does not exist.
+
+### What this does not say
+
+It does not say no computation happens at load. The `else` branch still
+broadcasts `ScHint(SfxHintId::ScDataChanged, BCA_BRDCST_ALWAYS)`, and the 99
+cells carry no cached result, so both platforms must interpret them. One
+candidate for the ~670x gap is removed; the cause is still unnamed, and the
+scaling fixtures (`tdf149752-rows20.ods`, `tdf149752-rows50.ods`) are still
+built and unrun.
