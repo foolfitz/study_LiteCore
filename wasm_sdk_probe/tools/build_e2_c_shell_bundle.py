@@ -416,7 +416,21 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # `projectStructure` runs first and returns the text it will speak.  Frozen in
 # the SAME COMMIT as the change, which is the step 087, 088 and 090 each
 # skipped and which finding 091 is the record of.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v45.json")
+#
+# v47, 2026-09-07: 088's residue was still not gone -- v45 only silenced the
+# live region when the two channels AGREED, and at the second heading they
+# disagreed for one snapshot (`caretParagraph` and `documentOutline` do not
+# advance together across a heading boundary), so the older text was spoken
+# once more.  `doubled` is now `structureSpeaks !== null`: silence whenever the
+# structure channel has a focused node at all, not only when it says the same
+# thing.  T1c's six walks (`findings/evidence/manual-round-v12d-9b29e39b/`)
+# measured this on the built candidate page before it landed.  This is also
+# the cutover itself: the entrypoint's worker/pin lines move from `e2-editor-v8`
+# to `e2-editor-v12`, decided in `handoff/PLAN-2026-09-06-after-the-page-moved-
+# twice.md` ("T1c: v46 measures better; D1 = A lands it"). v46 was never
+# frozen (the attempt was reverted before a generation existed for it); this is
+# the first frozen generation carrying the fix, hence v47, not v46.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v47.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

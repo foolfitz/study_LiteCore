@@ -200,3 +200,46 @@ carry-over, restart complete. Everything in condition 2, condition 4a's eight
 terms, the ODT round trip and revert condition 3 that was taken on
 `20f09cc9…` is void along with it — see the handoff cited above for the full
 list.
+
+## Re-pointed 2026-09-07 — the 088 residue's second fix landed, page moved a third time, and the bank was already empty
+
+Finding 088's residue was not fully gone at `39895d15…`: the live region was
+only silenced when the two channels (`caretParagraph` and `documentOutline`)
+agreed, and at the second heading in a walk they disagreed for one snapshot,
+so the older paragraph's text was spoken once more. The fix in
+`wasm_sdk_probe/web/e2-editor-app.js` changes the test from "do the two texts
+match" to "does the structure channel have a focused node at all"
+(`doubled = structureSpeaks !== null`), one of the shell bundle's thirteen
+`included` paths, so the candidate page's sha moved again, from
+`39895d1530c2e30f7ddcb45cb0ada8d704412f5bcb3dd330134167739c5dad0e` to
+**`9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c`**. This is
+also the cutover itself: the entrypoint's worker URL and pin move from
+`e2-editor-v8` to `e2-editor-v12` in the same bytes. The frozen shell
+generation moves to **v47** (`bundleSha256
+cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4`, verified
+two ways — read from `e2/editor-shell-v2-bundle-v47.json` and recomputed with
+`shell_bundle_digest` over the served files, both equal) in the same commit as
+the source change, per ruling E-1. No v46 generation was ever frozen: the
+attempt that produced these bytes was measured and reverted before a
+generation existed for it, so this is the first frozen generation carrying the
+fix. Full account: `handoff/PLAN-2026-09-06-after-the-page-moved-twice.md`,
+section "T1c: v46 measures better; D1 = A lands it", and
+`handoff/HANDOFF-2026-09-06-the-page-moved-twice-and-the-4b-instrument-broke.md`.
+
+**Nothing is voided by this move.** The 2026-09-06 void above left this bank
+holding **zero** soak runs and zero condition-2 diagnostics — `cleanRuns: 0`,
+`totalRuns: 0` on `check_soak_bank.py` before this change, unchanged after it.
+There is nothing on `39895d15…` to move to a `-void-` directory.
+
+`check_soak_bank.py`'s `DEFAULT_SHA` and `DEFAULT_SERVED_SHELL`, and
+`check_caret_diagnostics.py`'s `DEFAULT_SHA`, are updated to `9b29e39b…` and
+v47's `cf7f9233…` in the same change (this commit). Both judges' `--self-test`
+still decline with "self-test has no complete report to build from" /
+"self-test has no COMPLETE diagnostic report to build from" — the same
+refusal recorded for the previous empty-bank state, not a new defect.
+
+Counting: **0 of 12**, no carry-over, restart complete (the count was already
+at zero; this move does not restart it a second time — it re-points an empty
+bank's identity constants). Finding 088 is recorded as fixed by this change in
+`findings/088-*.md`, measured in
+`findings/evidence/manual-round-v12d-9b29e39b/RESULT-4b-v45-vs-v46.md`.

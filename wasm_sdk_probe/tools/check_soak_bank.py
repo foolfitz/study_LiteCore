@@ -105,8 +105,8 @@ DEFAULT_BANK = (WORKSPACE / "findings" / "evidence" / "queue-v12-cutover-soak")
 # of 2026-09-04 moved.  The file stays where it is because it is that probe's
 # evidence too; it is dropped from here because it is no longer this count's.
 DEFAULT_ALSO: list[Path] = []
-DEFAULT_SHA = ("39895d1530c2e30f7ddcb45cb0ada8d704412f5bcb3dd330134167739c5"
-               "dad0e")
+DEFAULT_SHA = ("9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dd"
+               "df361c")
 DEFAULT_PROFILE = "e2-editor-v12"
 EXPECTED_NE = {"notice-action-recovers-the-session",
                "a-refused-action-is-reported-and-changes-nothing"}
@@ -214,8 +214,14 @@ def day_of(report: dict) -> dict:
 # digest says the twelve ran on one shell.  It is the digest the cutover
 # generation (v45) will declare, so the clause is the sentence "the twelve ran
 # on the bytes the cutover declares", made checkable rather than narrated.
-DEFAULT_SERVED_SHELL = ("a46c8518a7ebfb12a65b5d0a14d0e82263956ed4fbe34f49"
-                        "b1a1efdb43fdb578")
+#
+# v47, 2026-09-07: 088's residue fix moved the page again (T1c, finding 088's
+# second fix); the bank is still empty, so this is a re-point, not a void.
+# Verified two ways: read from `e2/editor-shell-v2-bundle-v47.json` and
+# recomputed with `shell_bundle_digest` over the served files -- both give
+# this value.
+DEFAULT_SERVED_SHELL = ("cf7f923391a059943366b46bde8f25c7a618da57752e592ff"
+                        "aa13398e78161e4")
 
 
 def judge_run(path: Path, expect_sha: str, expect_profile: str,

@@ -46,7 +46,7 @@ import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js"
 // move together or the page pins one artifact and loads another -- and the
 // expiry screen exists to make exactly that mismatch loud, so a half-move
 // would look like a broken build rather than a mistake.
-const PINNED_WASM_SHA256 = "4a2710bba1ef07d9";
+const PINNED_WASM_SHA256 = "4ec1e389aaab3b03";
 
 const $ = (selector) => document.querySelector(selector);
 const el = {
@@ -182,7 +182,23 @@ function projectFocusedParagraph(snapshot, structureSpeaks) {
   // `aria-activedescendant`, this region says nothing. It is NOT removed: on a
   // profile with no structure projection it is the only home the reason
   // sentences (「尚未開啟文件。」) have, and `structureSpeaks` is null there.
-  const doubled = typeof text === "string" && structureSpeaks === text;
+  // WHOEVER HAS THE FOCUSED NODE OWNS THE CARET PATH -- and comparing the two
+  // texts was not enough.  Measured 2026-09-06 at an 11-second dwell, with the
+  // owner listening: at the SECOND heading the live region still held the
+  // previous paragraph's text and Orca spoke it, one utterance after the
+  // heading.  The two channels are fed by two different engine fields
+  // (`caretParagraph` and `documentOutline`) and they do not advance together
+  // across a heading boundary, so for one snapshot they disagree -- and a rule
+  // that only silenced them when they AGREED let the disagreement out loud,
+  // saying the older of the two.
+  //
+  // So the test is not "do they say the same thing" but "does the structure
+  // channel have a focused node at all".  A one-snapshot lag then costs one
+  // voice arriving late instead of two voices contradicting each other.
+  // `structureSpeaks` is null -- not "" -- exactly when there is no focused
+  // node, which is every profile with no structure projection, where the live
+  // region is still the only home the reason sentences have.
+  const doubled = structureSpeaks !== null;
   const next = doubled ? "" : (text ?? A11Y_REASONS[reason]);
   // Compared before assigning, because an aria-live region announces when its
   // text CHANGES. updateState runs on every snapshot, and reassigning the same
@@ -1406,7 +1422,7 @@ globalThis.addEventListener("resize", () => {
 // The harness pages (`e2-c-d*-app.js`) do take `?profile=`; they are harnesses.
 function engineFactory() {
   return createDocumentEngine({
-    workerUrl: "./profiles/e2-editor-v8/sdk-worker.js",
+    workerUrl: "./profiles/e2-editor-v12/sdk-worker.js",
     timeoutMs: 30000,
   });
 }
