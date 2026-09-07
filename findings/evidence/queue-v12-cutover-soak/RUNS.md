@@ -624,3 +624,32 @@ notice-action-recovers-the-session}`, no FAIL.
 `reconciledFor.kind == "candidate-cutover"`, `profile == "e2-editor-v12"`,
 `problems: []`. Saved to
 `../queue-v12-cutover-soak-checklists/check-usable-editor-run07.json`.
+
+## Run 08 — clean (2026-09-07)
+
+Soak session B2's second and last run, same command as runs 03–07.
+
+```
+python3 tools/run_e2_c_product_path.py --browser chrome \
+    --candidate-profile e2-editor-v12 --out soak-run-08-candidate.json
+python3 tools/check_usable_editor.py --report soak-run-08-candidate.json \
+    --output ../queue-v12-cutover-soak-checklists/check-usable-editor-run08.json
+```
+
+`make test-e2-c-static` exit 0 immediately before this run, per finding 090's
+manual rule.
+
+| run | completedAt (local) | completedAt (UTC) | UTC day | composition | run `ok` |
+|---|---|---|---|---|---|
+| `soak-run-08-candidate.json` | 2026-09-07T16:02:18+08:00 | 2026-09-07T08:02:18Z | 2026-09-07 | 38 PASS / 2 NE | **true** |
+
+`startedAt` 2026-09-07T15:56:11+08:00 (2026-09-07T07:56:11Z). `complete: true`.
+NE set exactly `{a-refused-action-is-reported-and-changes-nothing,
+notice-action-recovers-the-session}`, no FAIL.
+`candidateCutover.pageSha256` = `9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c`;
+`servedShell.servedSha256` = `cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4`.
+
+`check_usable_editor.py --report soak-run-08-candidate.json`: `"ok": true`,
+`reconciledFor.kind == "candidate-cutover"`, `profile == "e2-editor-v12"`,
+`problems: []`. Saved to
+`../queue-v12-cutover-soak-checklists/check-usable-editor-run08.json`.
