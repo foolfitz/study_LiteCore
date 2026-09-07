@@ -405,3 +405,95 @@ profile 名、`probe.wasm`／`wasmSha256`、`sdk-manifest.json` 的摘要、
 
 **仍然待辦**：步驟 2（補 archive `e2-editor-v12`）、步驟 3（落地改動，先做紅案）。
 步驟 4 的連結仍然是你的。
+
+---
+
+# 追記（2026-09-08）：步驟 3 做完了，而**步驟 4 的那行指令現在跑不起來**
+
+**這一段是 append，上面一個字都沒有改。**它更正的是 §5 步驟 4，並補上兩件在
+落地過程中量到、而原文沒有的事。
+
+貨載：commit `c2a7abad`（引擎＋worker＋builder）、`18eefcce`（頁面＋殼層
+generation v49）、`72f8de7f`（第 41 道檢查＋兩筆突變）、`f17a5de5`（閘門 amendment
+與證據）。證據在 `findings/evidence/093/step3-source-landing/`。
+**沒有連結、沒有產出 wasm、`dist/profiles/**` 一個位元組都沒動。**
+
+## 更正一：`make … e2-editor-v13/sdk-manifest.json` **沒有這條規則**
+
+實測：
+
+```
+$ make -n dist/profiles/e2-editor-v13/sdk-manifest.json
+make: *** No rule to make target 'dist/profiles/e2-editor-v13/sdk-manifest.json'.  Stop.
+```
+
+原因是 **v11 與 v12 都不是連結出來的**。`E2_V11_DIST` 那條規則是拿
+`build/archive/e2-editor-v10-4ec1e389-…/` **重新打包**，而 v12 連 Makefile 規則
+都沒有（它是直接跑 `build_e2_editor_v4_profile.py` 打包的）。核對過：
+`dist/profiles/e2-editor-v12/probe.wasm` 的雜湊是 `4ec1e389…`，**就是 v10 那顆**。
+
+所以 B 需要的是一組**新的建置＋連結規則**（比照 `E2_V10_*` 那三條：`%.o`、
+`a11y_tree_probe.o`、`probe.js`），因為引擎真的改了、必須重編重連。那要**動
+Makefile**，而 §4(c) 已經寫了它的代價（finding 042：每個 profile 的 `.o` 全部過期）
+——所以改完之後**只 build 新目標，不要跑任何裸 `make`**；`refuse_unasked_relink`
+仍然坐在每一條連結配方裡，會擋下沒有 `ALLOW_FROZEN_RELINK=1` 的連結。
+
+這條規則**沒有由這一輪寫**：工單的改動面是四個檔案並且明說「盡量不要動 Makefile」，
+而寫它的人應該是要按下連結那一鍵的人。
+
+## 更正二：打包旗標**少了一個**，而少了它這趟連結會白做
+
+§5 步驟 4 的旗標清單要再加一個：
+
+```
+--profile e2-editor-v13 --paragraph-text --document-outline \
+--document-outline-geometry \
+--inline-range-gestures all --core-data ../wasm-lite/build-a11y-gate0 \
+--split-core-data
+```
+
+`--document-outline-geometry` 是這一輪新加的旗標，**預設關**。它跟
+`--document-outline` 分開，是因為 2026-09-08 之前連結的每一顆 profile 都是
+「有 outline、沒有幾何」，由前者推後者會讓 v10／v11／v12 的 manifest 宣告它們的
+位元組沒有的東西。
+
+**漏掉它的後果是靜默的**：引擎會吐幾何，manifest 不宣告，頁面讀不到宣告就走
+「誠實降級」那條路（`data-geometry="absent"`），投影還是全部疊在紙張頂端，而
+產品路徑那道新檢查**會過**——因為那條路正是它要保護的合法狀態。你會得到一顆
+新身分、五個 pin 全倒、而行為跟連結前一模一樣。這就是 v8 手冊為
+`--inline-range-gestures all` 專門寫過的那件事，同一個形狀。
+
+## 補充：步驟 5 之前先看兩個 DOM 屬性
+
+連結完、repoint 完之後，最快的「這趟連結有沒有生效」是讀
+`#a11y-structure` 的 `data-geometry`：
+
+- `present` ＝ 宣告了而且酬載有幾何，**這是要看到的**；
+- `absent` ＝ manifest 沒宣告（多半是更正二漏了旗標）；
+- `declared-but-missing` ＝ 宣告了但一個都沒到（引擎沒吐，或 worker 的 allowlist
+  沒搬）——產品路徑的新檢查會**紅**在這一格。
+
+驗收仍然是 `tools/probe_093_fix_shape_oracle.py` 對
+`findings/evidence/093/ORACLE-fix-shape.md`，目標 133 段的長文件兩臂 3/3。
+**連結之前量不到 3/3**：今天用同一支儀器對落地後的頁面跑 `--shape S0
+--fixture a11y-long`，兩臂都 0/3，重疊 0px、捲動比例 0.0000。
+
+## 更正三：§1.2(d)「呼叫端不會產生任何一個新的外部符號」是錯的
+
+實測 43 個未定義符號變 47 個，多的四個是 `vcl::Window::GetOutDev`、`MapMode` 的
+建構與解構、`OutputDevice::PixelToLogic`。原本的論證涵蓋了 `UNO_QUERY`（header-only）
+與純虛擬的 `getBounds()`，兩者都成立，**但沒有涵蓋換算本身**——而換算正是 B 真正
+加上去的東西。四個都在 `libvcllo.a` 裡是 `T`，`-lvcllo` 在連結線上，所以 §1 的
+**結論**（不用重編 core、連得起來）不受影響，被更正的是它的論證。
+細節與重跑方式在 `findings/evidence/093/step3-source-landing/new-undefined-symbols.txt`。
+
+## 更正四：§6.3 那個陷阱有第二層
+
+§6.3 說作廢的 run 必須實體離開計數目錄，否則 `every-run-clean` 永遠 false。對，
+但 `check_soak_bank.py --self-test` 的 `clean_sources()` 讀的是**活的** bank，
+把它清空會讓那支判官再也證明不了自己會說不（`SystemExit`）。所以那次搬移要排在
+**第一趟連結後的乾淨執行入庫之後**，不是之前。同一段還記著：D-c 的歸零從來沒有
+像 R-1 那次一樣套進 glob，2026-09-07 那六趟今天仍然被判官算成乾淨。三個常數
+（`EXPECTED_PASS` 38→39、`DEFAULT_SHA`、`DEFAULT_SERVED_SHELL`）要在步驟 4 之後
+一起動。理由寫在 `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` 2026-09-08
+的 amendment。
