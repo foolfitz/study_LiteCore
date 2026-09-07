@@ -491,3 +491,14 @@ this task's instruction, for whoever owns `check_soak_bank.py` next.
 Counting: **1 of 12**, first clean run banked. `python3 -m unittest
 tests.test_e2_c_shell_bundle` and `make test-e2-c-static` both ran green
 immediately before this run, per finding 090's manual rule.
+
+## 2026-09-07 08:50 CST — the checklist output moved out of the bank
+
+`check-usable-editor-run03.json` (the `check_usable_editor.py` reconciliation
+of run 03, referenced above) was written into this directory and
+`check_soak_bank.py` refused it as an unclassified file — the membership rule
+doing its job. It is moved, unchanged, to
+`../queue-v12-cutover-soak-checklists/check-usable-editor-run03.json`.
+Convention from here on: reconciliation outputs go in that sibling directory,
+never in the bank; the bank holds runs, condition-2 diagnostics and the
+judge's own `VERDICT-*.json` only.
