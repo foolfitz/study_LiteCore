@@ -30,15 +30,24 @@
 
 #include <sfx2/viewsh.hxx>
 #include <vcl/window.hxx>
+#include <vcl/outdev.hxx>
+#include <vcl/mapmod.hxx>
+// `MapUnit` is only FORWARD-DECLARED by the headers above; without this the
+// enumerators are invisible and every `MapUnit::MapTwip` is a compile error.
+// Same include, same reason, as `tools/f093_native_a11y_geometry_bridge.cpp`.
+#include <tools/mapunit.hxx>
+#include <tools/gen.hxx>
 #include <comphelper/OAccessible.hxx>
 
 #include <com/sun/star/accessibility/AccessibleRole.hpp>
 #include <com/sun/star/accessibility/AccessibleStateType.hpp>
 #include <com/sun/star/accessibility/XAccessible.hpp>
+#include <com/sun/star/accessibility/XAccessibleComponent.hpp>
 #include <com/sun/star/accessibility/XAccessibleContext.hpp>
 #include <com/sun/star/accessibility/XAccessibleText.hpp>
 #include <com/sun/star/accessibility/TextSegment.hpp>
 #include <com/sun/star/accessibility/AccessibleTextType.hpp>
+#include <com/sun/star/awt/Rectangle.hpp>
 #include <com/sun/star/beans/PropertyValue.hpp>
 
 #include <editeng/unoprnms.hxx>
@@ -229,6 +238,95 @@ int walk(std::ostringstream& rOut,
     }
     return nEmitted;
 }
+
+// FINDING 093, option B.  Where the paragraph IS, in the space the caret
+// already travels in.
+//
+// WHY THIS EXISTS AT ALL.  The projection built from `documentOutline` was
+// sitting at the bottom of the paper, because nothing ever told it where a
+// paragraph is; a screen reader bringing a projected node into view therefore
+// dragged the desk off the end of the document on every arrow key.  The owner
+// found it by eye.  Four candidate fixes were measured against the oracle
+// registered in `findings/evidence/093/ORACLE-fix-shape.md`, and on a
+// 133-paragraph document only the one that puts each node at ITS OWN
+// paragraph's position passes both arms.  This is the engine half of that.
+//
+// THE CONVERSION, and why it is not a constant.
+//
+// `XAccessibleComponent::getBounds()` on a Writer paragraph returns OUTPUT
+// DEVICE PIXELS -- `SwAccessibleContext::getBoundsImpl` ends in
+// `GetMap()->CoreToPixel()`, which is `pWin->LogicToPixel(rect, aMapMode)`
+// (`sw/source/core/access/accmap.cxx:2896-2909`).  It is NOT twips and it is
+// NOT the 1/100 mm a general UNO convention would suggest; measured on native
+// 2026-09-08, the 1/100 mm reading is out by a factor of 26.5
+// (`findings/evidence/093/step1-native-geometry/RESULT.md`).
+//
+// So it has to be converted, and it is converted by asking THE SAME
+// OutputDevice to invert its own transform -- never by dividing by a DPI.  The
+// native calibration read 96 DPI on the headless svp device of one machine;
+// carrying that number across to a wasm artifact is exactly what finding 036
+// forbids, and a hard-coded 96 would be right on the native build and silently
+// wrong here with nothing downstream able to tell.  `PixelToLogic(rect,
+// MapMode(MapUnit::MapTwip))` has no DPI in it: whatever the device's
+// resolution is, this is its own inverse of the multiplication that produced
+// the pixels.
+//
+// That form was checked against the exact inverse of `CoreToPixel`
+// (`PixelToLogic(rect, dev->GetMapMode())`, the window's own MapMode, origin
+// and scale included) on all 114 paragraphs of the native fixture: identical
+// on every one, because that device's MapMode is MapTwip at origin (0,0) with
+// scale 1.  Both were emitted rather than one, because "they are the same" is
+// a measurement and "they must be the same" would have been an assumption.
+// The fresh MapMode is the one used here: it depends on no property of the
+// device except its resolution, which is the property being inverted.
+//
+// THE ORIGIN IS DOCUMENT-ABSOLUTE, and that is what makes this usable at all.
+// `getBoundsImpl(true)` subtracts the parent's offset only when the parent is
+// not the root frame; the accessible tree here is flat -- root plus paragraphs
+// at depth 1 -- so that branch is not taken.  Measured, not argued: all 114
+// paragraphs reported the walk root as their accessible parent by UNO object
+// identity, and the converted `y` ran to 96,240 twips against a 7,440-twip
+// window, 12.9 window-heights past the bottom of it.
+//
+// WHAT IS EMITTED WHEN IT CANNOT BE READ: nothing.  A paragraph whose bounds
+// throw, or a view with no OutputDevice, emits no geometry fields rather than
+// zeros -- a rectangle at (0,0) is a place, and a projection that believes it
+// would put that paragraph at the top of the page and look right while being
+// wrong.  Absence is readable; a plausible wrong number is not.
+//
+// UNMEASURED, AND NAMED HERE RATHER THAN LEFT TO BE DISCOVERED: the outline is
+// rebuilt on EVERY state read (`probe_engine.cpp:1177-1182` records that as a
+// measured choice), so this adds one `getBounds()` per paragraph per read --
+// 133 on the long fixture.  What that costs has never been measured, on either
+// build.  Step 1 measured coordinates, not time.
+void appendParagraphGeometry(
+    std::ostringstream& rOut,
+    const css::uno::Reference<css::accessibility::XAccessibleContext>& xCtx,
+    const OutputDevice* pDev)
+{
+    if (!pDev)
+        return;
+    try
+    {
+        css::uno::Reference<css::accessibility::XAccessibleComponent> xComp(
+            xCtx, css::uno::UNO_QUERY);
+        if (!xComp.is())
+            return;
+        const css::awt::Rectangle aBounds = xComp->getBounds();
+        const tools::Rectangle aTwips = pDev->PixelToLogic(
+            tools::Rectangle(Point(aBounds.X, aBounds.Y),
+                             Size(aBounds.Width, aBounds.Height)),
+            MapMode(MapUnit::MapTwip));
+        rOut << ",\"x\":" << aTwips.Left() << ",\"y\":" << aTwips.Top()
+             << ",\"width\":" << aTwips.GetWidth()
+             << ",\"height\":" << aTwips.GetHeight();
+    }
+    catch (const css::uno::Exception&)
+    {
+        // Data, not a reason to abandon the paragraph: the row still carries
+        // its role, level and text, and the projection can still speak it.
+    }
+}
 } // namespace
 
 // THE PRODUCT SHAPE, beside the diagnostic one on purpose.
@@ -256,6 +354,13 @@ extern "C" char* oxsdk_a11y_document_outline()
     {
         SfxViewShell* pShell = SfxViewShell::Current();
         vcl::Window* pWindow = pShell ? pShell->GetWindow() : nullptr;
+        // FINDING 093.  The device the bounds have to be inverted on, taken
+        // from the SAME window the accessible tree is taken from -- asking a
+        // different OutputDevice to undo this one's transform is how a
+        // conversion becomes plausible and wrong.  `nullptr` is tolerated:
+        // `appendParagraphGeometry` then emits no geometry, and the page has a
+        // declared state for that.
+        const OutputDevice* pDev = pWindow ? pWindow->GetOutDev() : nullptr;
         rtl::Reference<comphelper::OAccessible> xAcc
             = pWindow ? pWindow->GetAccessible() : nullptr;
         if (!xAcc.is())
@@ -329,8 +434,13 @@ extern "C" char* oxsdk_a11y_document_outline()
                  << (bHeading ? "heading" : bListItem ? "listItem" : "paragraph")
                  << "\",\"level\":" << (nLevel + 1)
                  << ",\"focused\":" << (bFocused ? "true" : "false")
-                 << ",\"textLength\":" << aText.getLength()
-                 << ",\"text\":\"";
+                 << ",\"textLength\":" << aText.getLength();
+            // FINDING 093, and it is deliberately here rather than beside the
+            // diagnostic tree below: this is the PRODUCT shape, and a
+            // projection that knows what a paragraph says but not where it is
+            // is the defect this fixes.
+            appendParagraphGeometry(aOut, xCtx, pDev);
+            aOut << ",\"text\":\"";
             appendEscaped(aOut, aText.copy(0, std::min<sal_Int32>(
                                     kMaxTextHead, aText.getLength())));
             aOut << "\"}";

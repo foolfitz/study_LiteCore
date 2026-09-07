@@ -225,6 +225,18 @@ def main() -> int:
                              "packaged was built with OXSDK_A11Y_OUTLINE. Off "
                              "by default, so the shipped invocation is "
                              "unchanged")
+    # FINDING 093.  A SEPARATE FLAG from --document-outline, not a widening of
+    # it, because the two are separate facts about the artifact being packaged:
+    # every profile linked before 2026-09-08 carries the outline WITHOUT
+    # geometry, and a builder that inferred one from the other would have
+    # declared geometry on e2-editor-v10, v11 and v12 -- three artifacts whose
+    # bytes do not have it.
+    parser.add_argument("--document-outline-geometry", action="store_true",
+                        help="declare documentOutlineGeometry: the engine "
+                             "being packaged emits each paragraph's rectangle "
+                             "in the outline (finding 093, option B). Off by "
+                             "default, so every existing invocation is "
+                             "unchanged")
     # GRANTING A RANGE GESTURE.  The text below was written when nobody had
     # measured one; `all` HAS SHIPPED since, and saying otherwise here would
     # leave the builder describing the product as a diagnostic.
@@ -342,6 +354,7 @@ def main() -> int:
 
     paragraph_text = args.paragraph_text
     document_outline = args.document_outline
+    document_outline_geometry = args.document_outline_geometry
     manifest_path = args.output / "sdk-manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["profile"] = args.profile
@@ -489,6 +502,23 @@ def main() -> int:
     # would make it announce a blank document.
     if document_outline:
         contract["documentOutline"] = "accessible-document-outline"
+    # FINDING 093, declared the same way and gated the same way. A projection
+    # that knows what a paragraph SAYS but not where it IS sits at the bottom
+    # of the paper and drags the viewport off the end of the document on every
+    # arrow key; that was measured on the shipped profile and on the candidate,
+    # pixel for pixel the same.
+    #
+    # GATED, and the file's own history is the argument. The comment above
+    # records what unconditional declaration cost on 2026-08-22: a manifest
+    # that "describes but does not constrain" tells a host a field is there
+    # when the artifact does not emit it, and the host then cannot tell that
+    # from a document with nothing to report. Here the two states are
+    # ACTIONABLE and opposite -- an undeclared profile degrades honestly, a
+    # profile that declares geometry and delivers none is a defect the product
+    # path is now written to fail on -- so declaring this by default would
+    # convert every existing artifact into a reported defect.
+    if document_outline_geometry:
+        contract["documentOutlineGeometry"] = "accessible-paragraph-geometry"
     manifest["editorContract"] = contract
     write_json(manifest_path, manifest)
 

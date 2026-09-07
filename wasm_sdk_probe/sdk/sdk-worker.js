@@ -396,6 +396,29 @@ function productEditorState(value = {}) {
             focused: p.focused === true,
             textLength: typeof p.textLength === "number" ? p.textLength : null,
             text: typeof p.text === "string" ? p.text : "",
+            // FINDING 093.  WHERE the paragraph is, twips in document space --
+            // the same space `caret` and `selection.rectangles` above already
+            // travel in, so the page needs no second scale and no second
+            // origin.  The engine converts on the OutputDevice the bounds came
+            // from (`src/a11y_tree_probe.cpp`), so no DPI crosses this wire.
+            //
+            // THIS IS THE ALLOWLIST, and the note twenty lines up is not
+            // decoration: a field nothing names here never reaches the
+            // product, which is how `itemCount` came to be measured natively
+            // and reported nowhere. Landing the engine half without these four
+            // lines would have repeated it, and the symptom would have been a
+            // projection that still sits at the top of the paper with an
+            // engine that knows better.
+            //
+            // `null` when the engine did not report it, never 0: a rectangle
+            // at the origin is a PLACE, and a page that believed it would put
+            // that paragraph at the top of the document and look right while
+            // being wrong. Absence has to stay readable as absence -- the same
+            // reason `text` above is null rather than "".
+            x: typeof p.x === "number" ? p.x : null,
+            y: typeof p.y === "number" ? p.y : null,
+            width: typeof p.width === "number" ? p.width : null,
+            height: typeof p.height === "number" ? p.height : null,
           })),
         }
       : null,
