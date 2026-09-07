@@ -708,3 +708,97 @@ scripts of 2026-08-29: a sweep that found zero files must fail, not report zero.
 ---
 
 ## Execution record
+
+Executed 2026-09-07, 17:08-19:29 CST, by the sonnet executor seat, at
+`findings/evidence/089/cpu-or-wait-2026-09-07/` (identity check at git HEAD
+`c08323d3230996745ee42b61dd383a8e01c390cb`; the tree advanced by one
+unrelated commit after this task's own drafting commit `e7a71edd`, touching
+none of the 14 hashed paths). Full detail, tables and raw numbers are in that
+directory's `RESULT.md`; this section is the pointer and the headline, not a
+duplicate.
+
+**Outcome: Waiting.** Both measurement runs agree: no thread of the `GEN(5)`
+process tree accumulates meaningful CPU across a ~160 s window inside the
+hang (`H`), while the identical tids accumulate ~1 s of CPU during their own
+10 s boot window (`B(5)`) in the same run — which is what excludes "the
+instrument never attached" by construction. This licenses exactly one
+sentence: the engine is blocked, not computing, during the `rows36` hang. It
+says nothing about what it is blocked in; no cause is named anywhere in the
+evidence directory or here, per this task's own charter and `AGENTS.md` §7.
+
+**Order actually followed.** Section 1.5's identity check ran first (all 14
+hashes matched, no mismatch). `R-D` (needs no browser) ran before any
+measurement. Run 1 then ran, after which `R-A`, `R-B`, `R-C` were run against
+run 1's own banked stream (they are specified in section 7 as re-derivations
+over run 1's stream, so they could not precede it; they did precede run 2 and
+every subsequent judgement of run 1's own verdict). Run 2, then the idle
+control (run 3), then this write-up. Run 4 (the profiler) was correctly
+skipped: it is gated on a CPU-bound-or-mixed reading from runs 1-2, and both
+read Waiting.
+
+**Budget: 3 of 8 runs** (run 1, run 2, idle control). Reserve runs 5-8 not
+used. Stop rule satisfied: runs 1 and 2 both produced non-void, agreeing
+verdicts; the idle control passed (`quietBarHeld: true`, `noiseBarHeld:
+true`); all four section 7 red cases were recorded.
+
+**Controls.** Controls-behave in both runs via (a)-3 (in-band `B(5)`, 0.98 s
+/ 1.02 s CPU, required and held) and (a)-2 (cases 2 and 3, 2.22/1.94 s and
+2.12/1.94 s CPU, well above the 0.15 s bar). Control (a)-1 (case 4, the
+30,688 ms-banked "heavy and finite" open) produced no figure in either run:
+case 4 opened in ~1.05-1.09 s this session, not ~30.7 s, so the 2 s-cadence
+phase-stamp window this protocol builds `case4`'s open-window from collapsed
+to zero length before any rate could be computed — `controls.
+case4HeavyFinite: null` in both verdict files. This is recorded, not
+interpreted, and is a different situation from the pre-registered
+"a slow case 4 shows no CPU" concern in section 3.4a, which did not occur.
+The known-idle control (idle control, run 3) held over its full 180 s window.
+
+**Red cases.** `R-A` and `R-D` matched their required records exactly.
+`R-B` and `R-C`, run exactly as specified
+(`--force-thread comm=CrBrowserMain` / `comm=CrRendererMain`), were found
+**unsatisfiable as written on this machine**: an exhaustive scan of run 1's
+entire sample stream shows every process's main thread -- browser, every
+renderer, the zygote, every utility process -- carries the comm `chrome`,
+never `CrBrowserMain` or `CrRendererMain`, on Google Chrome 151.0.7922.169
+here. Per this task's role (an unsatisfiable-as-written criterion is
+reported, not repaired), no substitute thread-selection rule was invented;
+`analyse.py --force-thread` reported the honest "no such thread" void instead
+of the pre-registered wording. Consequence stated plainly: the busy control's
+ability to *reject* a genuinely near-idle, mis-pointed thread was not
+demonstrated this session (its ability to *accept* genuinely busy threads
+was, live, by every controls-behave check above). Full detail in
+`redcase-R-B.json` / `redcase-R-C.json`.
+
+**Instrument fixes made mid-session, before the affected verdict was
+finalised** (exact sha256 values in `identity.json`'s `notes`): (1)
+`analyse.py`'s CPU-bound test originally checked only the `SUSTAINED`
+fraction, not section 4.1's separate `BUSY_BAR`-mean-over-`H` clause -- fixed
+before any real data was analysed with the looser version; (2) a data-shape
+mismatch (`run_one.py` nested CDP phase stamps under `meta["cdp"]
+["phaseStamps"]`, `analyse.py` read only the top-level key) that would have
+voided every run for a wiring reason -- fixed on both sides, and run 1's
+verdict was regenerated over its own already-banked stream, no browser
+re-run; (3) `wchan`/`syscall` were sampled but discarded during reshaping --
+both runs' verdicts regenerated over their banked streams once found
+missing, again with no browser re-run; (4) `idle_control.py`'s scratch root
+needed a fifth, read-only symlink (`sdk -> wasm_sdk_probe/dist/sdk`) beyond
+the protocol's literally-named four, because `ods-decisive-probe-app.js`
+imports `./sdk/document-sdk.js` relative to itself and the real measurement
+runs get that path for free from `build_mirror()`'s fallback symlinking.
+None of these changed a threshold, a window definition, or an outcome
+category.
+
+**What remains unmeasured**, named rather than left implicit: what the
+blocked threads are blocked in (needs a debug build or debugger attach, a
+separate task with its own attribution discipline); the busy control's
+untested negative-discriminating power (the R-B/R-C gap); whether case 4's
+now-fast opens are stable, notable, or an artefact of this environment (no
+cause offered, out of scope for this protocol's one question); and that two
+agreeing runs are agreement on one machine on one day, not a claim about
+every environment or every day.
+
+Deliverables: `findings/evidence/089/cpu-or-wait-2026-09-07/` (identity.json,
+build-verify.txt, the four scripts, run-1/run-2 probe/samples/meta/verdict,
+idle-1 samples/meta/verdict, four redcase-*.json, RESULT.md) and this
+section. `git status --porcelain` showed only this task's own new directory
+throughout; no file outside it was created, edited, moved, or deleted.

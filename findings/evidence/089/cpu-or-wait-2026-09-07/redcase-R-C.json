@@ -1,0 +1,15 @@
+{
+  "case": "R-C",
+  "description": "analyse.py --force-thread comm=CrRendererMain over run 1's banked sample stream (no browser launched)",
+  "requiredRecord": {
+    "status": "void",
+    "reason": "controls did not behave on the selected thread"
+  },
+  "actual": {
+    "status": "void",
+    "reason": "no thread with comm='CrRendererMain' in any sample",
+    "forceThreadComm": "CrRendererMain"
+  },
+  "pass": null,
+  "note": "Same finding as R-B, for the renderer's main thread: the comm recorded for it is 'chrome', not 'CrRendererMain', on this Chrome build/machine. See redcase-R-B.json for the full explanation (one exhaustive scan covered both). The protocol's own text pre-registers that R-C might not be caught even if the thread were found ('it may not be, because the renderer main thread does real work...'); what actually happened is a step earlier than that: the named thread was never found by comm at all, so the busy predicate was never reached for either R-B or R-C. No threshold was tightened or loosened in response; no substitute thread-selection mechanism (e.g. tid==pid) was added."
+}

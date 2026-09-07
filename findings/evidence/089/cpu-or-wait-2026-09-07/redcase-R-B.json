@@ -1,0 +1,15 @@
+{
+  "case": "R-B",
+  "description": "analyse.py --force-thread comm=CrBrowserMain over run 1's banked sample stream (no browser launched)",
+  "requiredRecord": {
+    "status": "void",
+    "reason": "controls did not behave on the selected thread"
+  },
+  "actual": {
+    "status": "void",
+    "reason": "no thread with comm='CrBrowserMain' in any sample",
+    "forceThreadComm": "CrBrowserMain"
+  },
+  "pass": null,
+  "note": "DOES NOT match the pre-registered required record verbatim, and this is reported plainly rather than reconciled. Run 1's sample stream was scanned exhaustively (every comm string recorded for every thread of every process, across all 383 ticks): the browser's main thread's comm is literally 'chrome', not 'CrBrowserMain'. Google Chrome 151.0.7922.169 on this machine does not rename process main threads via prctl(PR_SET_NAME) the way the protocol's premise assumed -- 'chrome' is the comm for the main thread of the browser process, every renderer process, the zygote, and every utility process alike, so the name is also not unique to one process even if it were force-matched. analyse.py's --force-thread finds no thread with that comm and correctly reports a void with a distinct, honest reason ('no thread with comm=... in any sample'), rather than fabricating a match or silently degrading to the pre-registered wording. This is not a rewrite of R-B's criterion and no substitute identification (e.g. matching a process's main thread by tid==pid) was attempted: per the executor's role, an unsatisfiable-as-written criterion is reported, not repaired. The deeper claim R-B was built to demonstrate -- that the busy-control predicate, not analyst judgement, is what would catch a mis-pointed instrument -- is UNTESTED by this run, not confirmed and not refuted."
+}
