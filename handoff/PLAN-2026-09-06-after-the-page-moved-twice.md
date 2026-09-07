@@ -705,3 +705,84 @@ is the second of those days.
 
 Then, and only then: T4 (the owner's six manual cells and 4b's judgement
 half), the cutover's four steps, and the push. All three are the owner's.
+
+---
+
+## Two decisions by the owner, 2026-09-07 evening (append-only)
+
+Taken after the main session re-derived the bank's state by running
+`check_soak_bank.py` instead of reading the handoff's narration of it, and
+found one clause the narration does not account for.
+
+### P-0 — the bank cannot report `ok: true` while runs 01 and 02 sit in it
+
+`check_soak_bank.py` computes `ok` as `all(clauses.values())`, and one clause
+is
+
+    "every-run-clean": len(clean) == len(runs) and bool(runs)
+
+taken over the glob `soak-run-*.json` in the bank directory. Runs 01 and 02
+are the two FAILs measured before the R-1 amendment. The R-1 section above
+rules that they "stay banked FAIL under the old wording and are not
+re-judged", and that the count restarts at 0. Measured this evening:
+`cleanRuns: 6, totalRuns: 8, every-run-clean: false`. Six more clean runs
+would give `cleanRuns: 12, totalRuns: 14, every-run-clean: false` — the gate
+standing on the finish line with a red judge.
+
+Those two sentences are consistent only if a restart moves the superseded
+lineage out of the counting glob. That is what this tree already does, twice:
+`queue-v12-cutover-soak-void-3dfdcfef/` and `-void-20f09cc9/`, each with a
+`WHY-THESE-ARE-VOID.md`, files moved and never deleted.
+
+**Owner's decision: A.** Runs 01 and 02 move to
+`findings/evidence/queue-v12-cutover-soak-void-pre-r1/` with a
+`WHY-THESE-ARE-VOID.md`. Nothing is deleted, nothing is re-judged, the judge
+is not modified, and no criterion text is relaxed. The restart itself was
+already ruled by the R-1 section; this only applies it to the directory the
+way the tree applies every other restart.
+
+**Default if this is never done**: condition 1 could only be reported by the
+drafting party narrating a count — the exact failure W-4 exists to remove
+(AGENTS.md §8).
+
+### P-1 — T4 moves ahead of the remaining six soak runs
+
+Gate document, line 31: *"When they produce a finding, the clock restarts from
+zero and the finding gets a number."* T4 is the round built to find what the
+automation cannot, and the last human round (2026-09-04) forced two fixes and
+moved the page twice. Ordering T4 after the twelfth run risks voiding twelve
+runs; ordering it before risks voiding six — and it costs no calendar, because
+the soak needs two further UTC days either way.
+
+Finding 086 is excluded from this: it is already numbered, the T4 runbook
+records that triggering it in cell 3 is a valid record for that cell rather
+than an operational failure, and D2 defers its fix to after the cutover.
+
+**Owner's decision: A — no further soak runs until T4 is done.** The soak
+resumes on the owner's word.
+
+### Calendar, restated
+
+UTC 2026-09-06 holds one clean run (03) and can never qualify. UTC 2026-09-07
+holds five (04–08) and qualifies. Two further UTC days with ≥2 clean runs each
+are needed, and six more clean runs in total. Earliest close is UTC 2026-09-09
+whether the remaining six are taken 3+3 or 2+2+2, so nothing is lost by
+holding them for T4.
+
+### Task briefs
+
+**T6 (opus, main tree) — apply the R-1 restart to the bank.** Move runs 01 and
+02 into `queue-v12-cutover-soak-void-pre-r1/` with a `WHY-THESE-ARE-VOID.md`
+modelled on the two existing ones; append a RUNS.md section recording the move
+and its authority; append the gate document with what forced this and its
+default; do not renumber the surviving runs, do not touch
+`check_soak_bank.py`, do not re-run anything. Re-run the judge and
+`--self-test` before and after, and record both outputs.
+
+**T7 (opus, worktree) — pre-register the 089 off-diagonal re-measurement.**
+The fixtures and the 2026-09-06 figures already exist in
+`findings/evidence/089/`. Write a protocol under `handoff/tasks/` with the
+criteria registered before the runs: which grid points, how many repeats,
+what counts as reproducing the banked figure, what result would retire the
+`Index ≥ 35 ∧ Index2 ≥ 36` claim and what would restore it, and the red cases.
+No measurement in this task.
