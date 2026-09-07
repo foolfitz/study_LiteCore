@@ -502,3 +502,33 @@ doing its job. It is moved, unchanged, to
 Convention from here on: reconciliation outputs go in that sibling directory,
 never in the bank; the bank holds runs, condition-2 diagnostics and the
 judge's own `VERDICT-*.json` only.
+
+## Run 04 — clean (2026-09-07)
+
+Gate operation session (soak A2), same command as run 03, one after another.
+
+```
+python3 tools/run_e2_c_product_path.py --browser chrome \
+    --candidate-profile e2-editor-v12 --out soak-run-04-candidate.json
+python3 tools/check_usable_editor.py --report soak-run-04-candidate.json \
+    --output ../queue-v12-cutover-soak-checklists/check-usable-editor-run04.json
+```
+
+`make test-e2-c-static` exit 0 immediately before this run, per finding 090's
+manual rule.
+
+| run | completedAt (local) | completedAt (UTC) | UTC day | composition | run `ok` |
+|---|---|---|---|---|---|
+| `soak-run-04-candidate.json` | 2026-09-07T08:55:57+08:00 | 2026-09-07T00:55:57Z | 2026-09-07 | 38 PASS / 2 NE | **true** |
+
+`complete: true`. NE set exactly `{a-refused-action-is-reported-and-changes-nothing,
+notice-action-recovers-the-session}`, no FAIL.
+`candidateCutover.pageSha256` = `9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c`;
+`servedShell.servedSha256` = `cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4`
+(v47's `bundleSha256`, matching runs 01–03).
+
+`check_usable_editor.py --report soak-run-04-candidate.json`: `"ok": true`,
+`reconciledFor.kind == "candidate-cutover"`, `profile == "e2-editor-v12"`,
+`problems: []`. Saved to
+`../queue-v12-cutover-soak-checklists/check-usable-editor-run04.json`, never
+into this directory (the judge refuses unclassified files here).
