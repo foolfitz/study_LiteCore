@@ -648,3 +648,17 @@ stops the schedule and is handed off.
   from any `complete: true` report. `--self-test` exit 0: 12 RED cases red,
   GREEN control green. Real-run output byte-identical before and after
   (`cleanRuns: 1, totalRuns: 3`). Schedule unchanged; session A2 fires 08:47.
+
+- 2026-09-07 — **session A2: runs 04, 05, 06, all clean; bank 4 of 12.**
+  Composition 38 PASS / 2 NE with the fixed NE set on each; page
+  `9b29e39b…`, served shell `cf7f9233…` (v47) on all three;
+  `check_soak_bank.py`: `cleanRuns: 4, totalRuns: 6`, `no-unclassified-file:
+  true`, `ok: false` (count not reached), `day-spread: false` (UTC 09-06 holds
+  only run 03; UTC 09-07 now holds runs 04–06). Commits `5925a03d` (04),
+  `cf8a037d` (05), `fdc38d21` (06). Two incidents, both recorded in `RUNS.md`
+  rather than smoothed over: the judge refused `check-usable-editor-run03.json`
+  as an unclassified file in the bank (moved to the sibling
+  `-checklists/` directory, `94cf4be0`, and the convention written down), and
+  the session's executor was stopped by the owner after run 05's report was
+  complete but before it was banked — the run was banked as measured, not
+  re-run, and the two page servers it left behind were terminated by PID.
