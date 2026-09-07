@@ -1,0 +1,515 @@
+{
+  "schemaVersion": 1,
+  "finding": "093",
+  "step": "option-B-step-3-red-cases",
+  "evidenceClass": "diagnostic",
+  "check": "the-projection-is-placed-where-the-document-is",
+  "predicateFrom": "tools/run_e2_c_product_path.py (projection_placement_verdict), imported not copied",
+  "profile": "e2-editor-v12",
+  "pagePinBefore": "4a2710bba1ef07d9",
+  "wasmSha256": "4ec1e389aaab3b03",
+  "mutation": "symlink mirrors of dist/ only; nothing under dist/ or web/ is written by this probe",
+  "limitation": "clause C3 needs an engine that emits per-paragraph geometry and none exists yet, so no arm below exercises it. Every arm reports clausesExercised.",
+  "arms": [
+    {
+      "arm": "control-shipped",
+      "note": "the page exactly as it ships, pointing at the profile it ships pointing at. Expect PASS with geometry 'noProjection'.",
+      "filesMaterialised": [],
+      "pageState": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "—",
+        "doc": "list-contexts.odt",
+        "toast": "",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "redo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      },
+      "reading": {
+        "present": true,
+        "geometry": "noProjection",
+        "carried": null,
+        "placed": null,
+        "structureState": "unavailable",
+        "nodes": 0,
+        "docOffsetTop": 0,
+        "docOffsetLeft": 0,
+        "docHeight": 929,
+        "canvasHeight": 929,
+        "sinkTop": 80,
+        "sinkHeight": 23,
+        "focusedId": null,
+        "focusedTop": null,
+        "focusedHeight": null
+      },
+      "verdict": {
+        "ok": true,
+        "C1": true,
+        "C2": true,
+        "C3": true,
+        "geometry": "noProjection",
+        "clausesExercised": [
+          "C1",
+          "C2"
+        ]
+      },
+      "outcome": "MEASURED"
+    },
+    {
+      "arm": "control-candidate",
+      "note": "the page repointed at e2-editor-v12, otherwise as landed. Expect PASS with geometry 'absent' -- the honest degradation of a profile linked before the geometry existed.",
+      "filesMaterialised": [
+        "e2-editor-app.js"
+      ],
+      "pageState": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "—",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "redo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      },
+      "reading": {
+        "present": true,
+        "geometry": "absent",
+        "carried": "0",
+        "placed": "0",
+        "structureState": "projected",
+        "nodes": 9,
+        "docOffsetTop": 0,
+        "docOffsetLeft": 0,
+        "docHeight": 929,
+        "canvasHeight": 929,
+        "sinkTop": 80,
+        "sinkHeight": 23,
+        "focusedId": "a11y-node-0",
+        "focusedTop": 0,
+        "focusedHeight": 1
+      },
+      "verdict": {
+        "ok": true,
+        "C1": true,
+        "C2": true,
+        "C3": true,
+        "geometry": "absent",
+        "clausesExercised": [
+          "C1",
+          "C2"
+        ]
+      },
+      "outcome": "MEASURED"
+    },
+    {
+      "arm": "a11y-projection-at-its-static-position",
+      "note": "C2 -- finding 093 itself: the container returns to the static position after the canvas, at the bottom of the paper. Reintroduces: finding 093 -- the accessibility projection lying at the bottom of the paper, so a screen reader browsing it takes the viewport off the end of the document. Expect FAIL.",
+      "filesMaterialised": [
+        "e2-editor-app.js",
+        "e2-editor.html"
+      ],
+      "pageState": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "—",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "redo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      },
+      "reading": {
+        "present": true,
+        "geometry": "absent",
+        "carried": "0",
+        "placed": "0",
+        "structureState": "projected",
+        "nodes": 9,
+        "docOffsetTop": 929,
+        "docOffsetLeft": 0,
+        "docHeight": 1,
+        "canvasHeight": 929,
+        "sinkTop": 80,
+        "sinkHeight": 23,
+        "focusedId": "a11y-node-0",
+        "focusedTop": 0,
+        "focusedHeight": 1
+      },
+      "verdict": {
+        "ok": false,
+        "C1": true,
+        "C2": false,
+        "C3": true,
+        "geometry": "absent",
+        "clausesExercised": [
+          "C1",
+          "C2"
+        ]
+      },
+      "outcome": "MEASURED"
+    },
+    {
+      "arm": "geometry-declared-but-not-delivered",
+      "note": "C1 -- the contract promises each paragraph's rectangle and the payload carries none, which is an engine that stopped emitting or a worker allowlist that dropped the fields. Reintroduces: a profile whose contract promises each paragraph's rectangle while the payload carries none -- an engine that stopped emitting them, or a worker allowlist that dropped them. Expect FAIL.",
+      "filesMaterialised": [
+        "e2-editor-app.js"
+      ],
+      "pageState": {
+        "state": "ready",
+        "label": "就緒",
+        "revision": "0",
+        "pending": "0",
+        "checkpoint": "無",
+        "latency": "—",
+        "doc": "list-contexts.odt",
+        "toast": "點一下放游標，或拖曳選一段，再按動作",
+        "buttons": [
+          {
+            "action": "undo",
+            "disabled": false
+          },
+          {
+            "action": "redo",
+            "disabled": false
+          },
+          {
+            "action": "move-character-left",
+            "disabled": false
+          },
+          {
+            "action": "move-character-right",
+            "disabled": false
+          },
+          {
+            "action": "delete-backward",
+            "disabled": false
+          },
+          {
+            "action": "delete-forward",
+            "disabled": false
+          },
+          {
+            "action": "insert-paragraph-break",
+            "disabled": false
+          },
+          {
+            "action": "insert-line-break",
+            "disabled": false
+          },
+          {
+            "action": "set-bold",
+            "disabled": false
+          },
+          {
+            "action": "set-italic",
+            "disabled": false
+          },
+          {
+            "action": "set-underline",
+            "disabled": false
+          },
+          {
+            "action": "set-strikethrough",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-heading",
+            "disabled": false
+          },
+          {
+            "action": "set-paragraph-body",
+            "disabled": false
+          },
+          {
+            "action": "set-list-unordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-ordered",
+            "disabled": false
+          },
+          {
+            "action": "set-list-none",
+            "disabled": false
+          },
+          {
+            "action": "insert-text",
+            "disabled": false
+          },
+          {
+            "action": "save",
+            "disabled": false
+          }
+        ]
+      },
+      "reading": {
+        "present": true,
+        "geometry": "declared-but-missing",
+        "carried": "0",
+        "placed": "0",
+        "structureState": "projected",
+        "nodes": 9,
+        "docOffsetTop": 0,
+        "docOffsetLeft": 0,
+        "docHeight": 929,
+        "canvasHeight": 929,
+        "sinkTop": 80,
+        "sinkHeight": 23,
+        "focusedId": "a11y-node-0",
+        "focusedTop": 0,
+        "focusedHeight": 1
+      },
+      "verdict": {
+        "ok": false,
+        "C1": false,
+        "C2": true,
+        "C3": true,
+        "geometry": "declared-but-missing",
+        "clausesExercised": [
+          "C1",
+          "C2"
+        ]
+      },
+      "outcome": "MEASURED"
+    }
+  ],
+  "controlsGreen": true,
+  "redCasesRed": true,
+  "allArmsMeasured": true,
+  "ok": true,
+  "verdict": "the predicate passes on the page as landed and fails on both of the defects it is written for"
+}

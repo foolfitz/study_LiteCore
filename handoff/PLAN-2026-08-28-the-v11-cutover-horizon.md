@@ -1970,3 +1970,145 @@ that number said `ok: false`. That is the exact failure W-4 exists to remove
 (§8: a termination declaration must not rest on the drafting party's
 judgement), and it would have surfaced at the worst possible moment: on the day
 the twelfth clean run landed.
+
+---
+
+# Amendment, 2026-09-08 — a forty-first check: `the-projection-is-placed-where-the-document-is`
+
+**Append-only. Nothing above is edited.** This section adds one check to the
+net the clean-run predicate counts, and it therefore changes that predicate.
+It is written **before** any run that could satisfy the new composition, and
+before the check could be exercised on a profile that would make its last
+clause do anything.
+
+The net is **40 checks** today — 38 PASS / 2 NE, read from
+`findings/evidence/queue-v12-cutover-soak/soak-run-08-candidate.json` rather
+than recalled — so this is the **forty-first**, and W-3's form test above is
+worded for exactly that ("adding a 41st check turns it red").
+
+## What it asserts
+
+> The structure projection is placed in the document's own coordinate space,
+> never left at the static position the flow gives it — which for this
+> container is after the canvas, and the canvas is the whole document's height,
+> so a screen reader bringing a projected node into view takes the viewport off
+> the end of the document. Its container starts at the top of the paper; the
+> geometry state it reports is one the page can produce; a profile that
+> DECLARES per-paragraph geometry and delivers none is the failure, because
+> that is an engine that stopped emitting or an allowlist that dropped the
+> fields; and where geometry is present, the node for the paragraph the caret
+> is in overlaps the band the caret is in.
+
+Implemented as `projection_placement_verdict()` in
+`tools/run_e2_c_product_path.py`, three clauses (C1 state, C2 container
+placement, C3 per-paragraph placement), each reported separately along with
+`clausesExercised`.
+
+## AGENTS.md §9's four conditions
+
+1. **Prior to satisfaction.** The count is at **zero** by the owner's D-c
+   ruling on finding 093 (`ed1ea02a`, 2026-09-08). No run counted under the new
+   composition exists, and none can be taken before the check exists. This is
+   the window W-1 above already named for exactly this shape: *"a successful
+   close makes the composition 39 PASS / 1 NE, which changes the clean-run
+   predicate and restarts the count. So it lands only when the count is at
+   zero, and the criterion re-freezes at the new composition before the first
+   counted run."* Same rule, different check.
+2. **Forced and named.** Finding 093 (the owner found by eye, with Orca, that
+   the projection sits at the bottom of the paper), finding 069 (the identical
+   defect on `#sink`, fixed four months earlier on ONE element), and the census
+   of 2026-09-08 recorded in finding 093: `READ_A11Y_REGION` — the only check
+   in this runner that touches this DOM — returns text, reason, offers,
+   deferral and the active descendant, and **no field of geometry**. `grep
+   probe_093` over `Makefile`, the runner and `tests/` was empty: the phase-2
+   and phase-3 instruments are measurements, not standing gates. Without this,
+   069's story runs a third time — a second element fixed, the shape still
+   unguarded.
+3. **Form test.** §1 form **two**, tool-closed: `report["checks"]` is generated
+   by the runner, and `tests/test_product_path_mutations.py` asserts every
+   mutation's pattern still matches its target exactly once. Adding a check
+   does not require editing any hand-kept list of checks; W-3 above already
+   records that "every id in `report["checks"]` appears as a `MUTATIONS`
+   entry's `check`" is tool-closed. This is the condition that blocked W-3's
+   own candidate criterion and finding 094's bundle list; it does not block
+   this one.
+4. **Deadline.** Closed at the **twelfth clean run**. After that, anything
+   this check turns up is a finding or post-cutover work, not a further
+   amendment.
+
+## Count semantics — stated, not implied
+
+* Adding this check moves the clean composition from **38 PASS / 2 NE** to
+  **39 PASS / 2 NE**, the NE set unchanged
+  (`notice-action-recovers-the-session`,
+  `a-refused-action-is-reported-and-changes-nothing`). The new check is a
+  **PASS**, not an NE, on every profile in the tree today: C1 and C2 are real
+  measurements of the defect that was reported, and they hold on the shipped
+  profile (`geometry: "noProjection"`) and on the candidate
+  (`geometry: "absent"`) alike. Measured, not predicted — see the red cases
+  below.
+* That is by itself a restart of the count. It costs nothing here **only**
+  because the count is already zero; past this window it would cost twelve
+  runs.
+* **C3 is inert until the relink and must not be read as covered.** No linked
+  artifact emits per-paragraph geometry, so the clause option B is being paid
+  for is vacuous on every run until `e2-editor-v13` exists. The check reports
+  `clausesExercised: ["C1", "C2"]` in that state, so a green run cannot be
+  quoted for a clause that never ran. **Default conclusion if the relink never
+  happens:** the projection degrades honestly and is guarded against returning
+  to the bottom of the paper; whether a screen reader can see the paragraph it
+  is reading on a document taller than the viewport remains **unfixed and
+  measured as unfixed** (`findings/evidence/093/ORACLE-fix-shape.md`, 0/3).
+
+## Red cases, run before this section was landed
+
+`tools/probe_093_placement_red_cases.py` (imports the predicate from the
+runner rather than restating it), 2026-09-08, four arms:
+
+| arm | verdict | `geometry` | why |
+| --- | --- | --- | --- |
+| the page as it ships, shipped profile | **PASS** | `noProjection` | control |
+| the page repointed at `e2-editor-v12` | **PASS** | `absent` | control |
+| `a11y-projection-at-its-static-position` | **FAIL (C2)** | `absent` | finding 093 itself: `#a11y-doc.offsetTop` 929 against a 929px canvas |
+| `geometry-declared-but-not-delivered` | **FAIL (C1)** | `declared-but-missing` | the contract promises rectangles, the payload carries none |
+
+Both red arms are also `MUTATIONS` entries, so `run_e2_c_product_path.py
+--mutate <name>` drives them through the whole net; the second carries
+`requiresFlag: "--candidate-profile"` for the reason the two 092 red cases do
+— the shipped profile has no outline, so the mutation would be dead on it.
+
+## The re-freeze this obliges, and its ORDER
+
+`tools/check_soak_bank.py` is **not modified by this amendment**. Three of its
+constants describe the candidate, and the candidate does not exist yet: moving
+one of them now would leave the judge describing no artifact at all and would
+break its own `--self-test`, which needs at least one clean report in the live
+bank to build fixtures from. All three move **together**, once, after the
+owner's step 4:
+
+* `EXPECTED_PASS` 38 → **39** (this amendment);
+* `DEFAULT_SHA` → the new candidate page sha256 (the page moved twice: once for
+  finding 093's fix, once again when step 5.3 repoints it);
+* `DEFAULT_SERVED_SHELL` → the digest of the generation frozen at step 5.4.
+
+**A mechanical trap, recorded because the runbook does not have it.** Finding
+093's D-c ruling zeroed the count by adjudication on 2026-09-08, but the six
+runs of the 2026-09-07 bank are still in the counting directory and the judge
+still calls them clean — the zeroing was never applied to the glob the way the
+R-1 restart above was. They are now void twice over (the page sha moved, and
+the composition moved), and per §6.3 of
+`handoff/RUNBOOK-operator-093-engine-geometry.md` they must physically leave
+the directory or `every-run-clean` is false forever. But `--self-test`'s
+`clean_sources()` reads the LIVE bank, so a move that empties it makes the
+judge's own self-test exit non-zero — a tool that can no longer prove it can
+say no. **So the void move must come after the first post-relink clean run is
+banked, not before it**, and the three constants must be updated before that
+run is judged.
+
+## What this amendment does not do
+
+It does not decide finding 094's binding (the product HTML is hashed by
+nothing, so `a11y-projection-at-its-static-position` mutates a file no digest
+covers — the mutation is still detected, because the check reads the DOM, but
+the run's own honesty flag will not show it). That remains where finding 094
+left it.

@@ -1,0 +1,39 @@
+# Finding 093, option B, step 3 -- the external symbols the engine change adds.
+#
+# `diff` of `llvm-nm --undefined-only` over `src/a11y_tree_probe.cpp` compiled
+# with the E2_V10/E2_V12 lineage's own flags, before and after the change:
+#
+#   em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include \
+#        -I../wasm-lite/build-a11y-gate0/config_host \
+#        -I.../UnoApiHeadersTarget/udkapi/comprehensive \
+#        -I.../UnoApiHeadersTarget/offapi/comprehensive \
+#        -I.../UnpackedTarball/boost \
+#        -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm \
+#        -std=c++20 -DLIBO_INTERNAL_ONLY -c src/a11y_tree_probe.cpp
+#
+# 43 undefined symbols before, 47 after. The four new ones:
+
+> _ZN3vcl6Window9GetOutDevEv
+> _ZN7MapModeC1E7MapUnit
+> _ZN7MapModeD1Ev
+> _ZNK12OutputDevice12PixelToLogicERKN5tools9RectangleERK7MapMode
+
+# CORRECTS the runbook's section 1.2(d) ("the call side produces no new
+# external symbol at all"). That reasoning covered `UNO_QUERY` (a header-only
+# `cppu::UnoType<>` path already used for `XAccessibleText`) and `getBounds()`
+# (a pure virtual call through the vtable, which needs no symbol) -- both hold.
+# It did not cover the CONVERSION, which is the part option B actually adds.
+#
+# All four are DEFINED in `libvcllo.a`:
+#
+#   $ llvm-nm --defined-only wasm-lite/build-a11y-gate0/instdir/program/libvcllo.a
+#     00006c17 T _ZN3vcl6Window9GetOutDevEv
+#     00000278 T _ZN7MapModeC1E7MapUnit
+#     00001148 T _ZN7MapModeD1Ev
+#     00004457 T _ZNK12OutputDevice12PixelToLogicERKN5tools9RectangleERK7MapMode
+#
+# and `-lvcllo` is on the link line (`soffice.js.linkdeps`, 312 `-l` entries,
+# 174 distinct). So the conclusion the runbook drew -- no core rebuild, the
+# link resolves -- survives; the argument it drew it from did not, and the
+# difference matters because the next change of this shape will be argued the
+# same way.

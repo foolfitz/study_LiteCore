@@ -604,3 +604,80 @@ D-c 是在「有一個修法可以做」的前提下選的。**量測說：便�
 - **空段落、表格、frame、多欄版面都沒碰到。**fixture 是六頁 A4 的 114 個純段落
   與標題；`getBoundsImpl` 裡「空的預覽頁」與「parent 不是 root」那兩個分支
   一次都沒走到。點名在這裡，免得日後被當成新發現。
+
+---
+
+# 步驟 3：原始碼落地了，而綠燈要等擁有者連結（2026-09-08，append-only）
+
+證據：`findings/evidence/093/step3-source-landing/`（`RESULT.md`、
+`red-cases.json`、`oracle-S0-a11y-long.json`、`new-undefined-symbols.txt`）。
+判準沿用先釘死的 `ORACLE-fix-shape.md`（`8edd7cf8`），儀器沿用
+`tools/probe_093_fix_shape_oracle.py`。**沒有連結、沒有產出任何 wasm artifact、
+`dist/profiles/**` 一個位元組都沒動。**
+
+## 改了四處
+
+| 檔案 | 改了什麼 |
+| --- | --- |
+| `src/a11y_tree_probe.cpp` | outline 走訪多問 `XAccessibleComponent::getBounds()`，**在同一顆 OutputDevice 上**用 `PixelToLogic(rect, MapMode(MapTwip))` 換成 twips，每段多四個數字 |
+| `sdk/sdk-worker.js` | allowlist 多搬 `x／y／width／height`，讀不到時是 `null` 不是 0 |
+| `tools/build_e2_editor_v4_profile.py` | 新旗標 `--document-outline-geometry`，預設關，宣告 `documentOutlineGeometry` |
+| `web/e2-editor.html` ＋ `web/e2-editor-app.js` | `#a11y-doc` 自己一條規則（`top:0;left:0;height:100%`、不再裁切、`pointer-events:none`），投影節點各自坐在自己那一段的 twips 上；裁切改由子節點各自帶 |
+
+**沒有除以 96，沒有任何 pixels-per-twip 常數。**那個 96 是步驟 1 在**原生 svp
+裝置**上量到的，wasm 那一側從來沒有人量過；常數在原生 build 上會是對的、在 wasm
+上會靜默地錯，而下游沒有任何東西分得出來。`PixelToLogic` 是同一顆裝置把自己的
+變換反過來算，DPI 這個未知數整個不參與。
+
+**幾何沒有進 088 的 `signature`。**signature 仍然是 `[role, level, text]`，定位是
+**另一趟**、在保留／重建分支之後跑，所以兩條路都會定位，而視窗改大小不會把整棵樹
+在螢幕閱讀器腳下重建。
+
+**修在 `#a11y-doc` 不是修在 `.a11y-only`。**普查說 `web/` 底下另外 28 條絕對定位
+規則沒有一條是這個形狀，改類別等於為了修一個而動 28 個。類別的註解現在寫明它有
+兩個使用者、以及第三個會繼承同一個陷阱。
+
+## 紅案（先做，才做綠燈）
+
+**紅案（b）——宣告了卻沒送到**：`tools/probe_093_placement_red_cases.py`
+（判準是 import 自 runner，不是重寫一份）。四臂：出貨頁面＋出貨 profile **PASS**
+（`noProjection`）、頁面重指 v12 **PASS**（`absent`）、把 `#a11y-doc` 的規則拆掉
+**FAIL**（C2，`offsetTop` 929 對 929px 的 canvas——就是 phase 2 量到的那個數字）、
+契約宣告幾何而酬載沒有 **FAIL**（C1，`declared-but-missing`）。
+
+**紅案（a）——引擎不吐幾何，也就是今天的狀態**：拿釘死的儀器對釘死的判準跑
+`--shape S0 --fixture a11y-long`（S0 ＝「頁面現在的樣子」，也就是落地後的頁面），
+**兩臂都 0/3**，三個目標的重疊都是 0px、門檻 11px、**捲動比例 0.0000**。
+
+那正是 phase 3 存在的理由那一列的簽名：**代理滿分、產品全壞**。落地的頁面把「永遠
+捲到底」換成「永遠捲到頂」（`a11yDocOffsetTop` 從 27,197 變成 0），而 O-FIX 分不出
+這兩種錯——**只有連結能讓它變 3/3**。
+
+兩個紅案在 DOM 上分得開，不用讀原始碼：(a) 是 `data-geometry="absent"` 而產品路徑
+的檢查**過**；(b) 是 `declared-but-missing` 而檢查**紅**。
+
+## 同時落地的那道檢查
+
+`the-projection-is-placed-where-the-document-is`，兩筆 `MUTATIONS`。它的入閘資格
+照 AGENTS.md §9 的四個條件寫在
+`handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md`（2026-09-08 的 amendment，
+append-only，寫在程式碼之前），連同計數語意：乾淨判準從 **38 PASS / 2 NE** 變成
+**39 PASS / 2 NE**，而窗口只在計數為 0 時開著。
+
+**C3 那條（第 N 段的節點坐在第 N 段畫的地方）在連結之前是空的**，檢查自己會回報
+`clausesExercised`，所以一次綠燈不能被拿去當那條的證據。
+
+## 順帶更正手冊 §1.2(d)
+
+手冊寫「呼叫端不會產生任何一個新的外部符號」。實測：**改動前 43 個未定義符號、
+改動後 47 個**，多的四個是 `Window::GetOutDev`、`MapMode` 的建構／解構、
+`OutputDevice::PixelToLogic`。原本的論證涵蓋了 `UNO_QUERY`（header-only）與
+`getBounds()`（純虛擬呼叫），兩者都成立，但**沒有涵蓋換算本身**，而換算正是 B 真正
+加上去的東西。四個都在 `libvcllo.a` 裡是 `T`（已定義），`-lvcllo` 在連結線上，所以
+手冊的**結論**（不用重編 core、連得起來）不受影響，被更正的是它的論證。
+
+## 仍然量不到的（不要被上面的紅案蓋過去）
+
+O-FIX 的 3/3；wasm 那一側的裝置換算是不是真的對得上 caret；每次 state read 多 133
+次 `getBounds()` 的成本；空段落／表格／frame／多欄；以及「螢幕閱讀器是不是實務上
+驅動捲動的那一個」——這一條 phase 2 就欠著，這裡也沒有付。
