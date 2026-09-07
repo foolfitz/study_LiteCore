@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "finding": "093",
+  "phase": "phase-3-side",
+  "evidenceClass": "diagnostic",
+  "profile": "e2-editor-v12",
+  "question": "does S2 place a hit-testable element over the canvas at the caret, the way #sink would without its pointer-events: none?",
+  "shapes": {
+    "S0": {
+      "outcome": "MEASURED",
+      "placementLatency": "定位游標 38 ms",
+      "placementOk": true,
+      "hitTest": {
+        "sinkOffsetTop": 100,
+        "sinkOffsetLeft": 167,
+        "docOffsetTop": 1152,
+        "docOffsetLeft": -1,
+        "docRidesTheCaret": false,
+        "probedAt": {
+          "x": 670,
+          "y": 319
+        },
+        "hit": "canvas",
+        "stack": [
+          "canvas",
+          "paper",
+          "desk",
+          "body",
+          "html"
+        ],
+        "docPointerEvents": "auto",
+        "sinkPointerEvents": "none",
+        "docClipPath": "inset(50%)"
+      }
+    },
+    "S2": {
+      "outcome": "MEASURED",
+      "placementLatency": "定位游標 41 ms",
+      "placementOk": true,
+      "hitTest": {
+        "sinkOffsetTop": 100,
+        "sinkOffsetLeft": 167,
+        "docOffsetTop": 99,
+        "docOffsetLeft": 166,
+        "docRidesTheCaret": true,
+        "probedAt": {
+          "x": 670,
+          "y": 319
+        },
+        "hit": "canvas",
+        "stack": [
+          "canvas",
+          "paper",
+          "desk",
+          "body",
+          "html"
+        ],
+        "docPointerEvents": "auto",
+        "sinkPointerEvents": "none",
+        "docClipPath": "inset(50%)"
+      }
+    }
+  }
+}
