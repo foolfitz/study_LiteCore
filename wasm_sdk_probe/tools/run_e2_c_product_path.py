@@ -630,6 +630,106 @@ return { present: true, text: para.textContent,
          structureText: node ? (node.textContent || '').trim() : null };
 })()"""
 
+# FINDING 093, and it is a SEPARATE read from the one above on purpose: that
+# one asks what the projection SAYS, this one asks where it IS. The defect the
+# owner found by eye had the first answer completely right and the second
+# completely wrong -- Orca read the document in order while the viewport sat
+# pinned to the bottom of the paper -- so a payload that folded the two
+# together could not have told them apart.
+#
+# Everything here is read in ONE evaluate for the reason the phase-3 probe
+# records: a repaint landing between two round trips leaves the anchor and the
+# viewport describing two different layouts.
+READ_A11Y_GEOMETRY = """(() => {
+const doc = document.querySelector('#a11y-doc');
+const structure = document.querySelector('#a11y-structure');
+const canvas = document.querySelector('#canvas');
+const sink = document.querySelector('#sink');
+if (!doc || !structure || !canvas || !sink) return { present: false };
+const focused = structure.querySelector('[data-focused="1"]');
+return {
+  present: true,
+  geometry: structure.dataset.geometry ?? null,
+  carried: structure.dataset.geometryCarried ?? null,
+  placed: structure.dataset.geometryPlaced ?? null,
+  structureState: structure.dataset.state ?? null,
+  nodes: document.querySelectorAll('[id^="a11y-node-"]').length,
+  docOffsetTop: doc.offsetTop, docOffsetLeft: doc.offsetLeft,
+  docHeight: doc.offsetHeight,
+  canvasHeight: canvas.offsetHeight,
+  sinkTop: sink.offsetTop, sinkHeight: sink.offsetHeight,
+  focusedId: focused ? focused.id : null,
+  focusedTop: focused ? focused.offsetTop : null,
+  focusedHeight: focused ? focused.offsetHeight : null,
+};
+})()"""
+
+
+# The predicate of `the-projection-is-placed-where-the-document-is`, as a
+# function rather than inline, for ONE reason: the red cases that prove it can
+# fail are driven by `tools/probe_093_fix_shape_red_cases.py`, which imports
+# THIS function. Two implementations of one predicate drift, and the day they
+# disagree is the day nobody is checking (`check_soak_bank.py` says the same
+# thing about `check_usable_editor.py` and does the same thing about it).
+def projection_placement_verdict(reading: dict) -> dict:
+    """Is the structure projection placed in the document's coordinate space?
+
+    Three clauses, and which ones do the work depends on what the profile
+    carries -- so the verdict reports that rather than hiding it.
+
+    C1  the geometry state is one the page can produce, and it is not
+        `declared-but-missing`. That state means the manifest promised each
+        paragraph's rectangle and none arrived: the engine stopped emitting
+        them, or the worker's allowlist dropped them on the way through
+        (`sdk/sdk-worker.js` -- a field nothing names there never reaches the
+        product, which has happened here before and was invisible for weeks).
+
+    C2  the projection's own container starts at the top of the paper. This is
+        finding 093 measured directly: `#a11y-doc` had `position: absolute` and
+        no `top`/`left`, so it sat at its STATIC position -- after the canvas,
+        and the canvas is the whole document's height. Measured 2026-09-08 at
+        `offsetTop` 928 against a 929px canvas, and 27,197 against 27,198 on a
+        133-paragraph document, IDENTICALLY on the shipped profile and on the
+        candidate.
+
+        Why `== 0` and not a tolerance: the defect's own value is one pixel
+        short of the canvas height, so any threshold loose enough to be a
+        "tolerance" admits it. The claim is that the container is placed by the
+        page rather than left where the flow put it, and "placed" here means
+        the top-left of the paper.
+
+    C3  when geometry is present AND a paragraph is focused, the caret's band
+        and that paragraph's projected band overlap -- the node for the
+        paragraph the caret is in is drawn where that paragraph is. This is the
+        clause that carries option B's whole point, and on every profile linked
+        before 2026-09-08 it is VACUOUS, because none of them emit geometry.
+        Registered here, reported as `clausesExercised`, and deliberately not
+        turned into a NOT_ESTABLISHED for the whole check: C1 and C2 are real
+        measurements of the defect that was reported, and the degradation they
+        hold is what a profile without geometry owes the user.
+    """
+    if not reading.get("present"):
+        return {"ok": False, "why": "no projection container on the page",
+                "clausesExercised": []}
+    state = reading.get("geometry")
+    known = {"noProjection", "absent", "present"}
+    c1 = state in known
+    c2 = reading.get("docOffsetTop") == 0 and reading.get("docOffsetLeft") == 0
+    exercised = ["C1", "C2"]
+    c3 = True
+    if state == "present" and reading.get("focusedId"):
+        exercised.append("C3")
+        top = reading.get("focusedTop")
+        height = reading.get("focusedHeight")
+        sink_top = reading.get("sinkTop")
+        sink_height = reading.get("sinkHeight")
+        c3 = (isinstance(top, (int, float)) and isinstance(height, (int, float))
+              and isinstance(sink_top, (int, float))
+              and isinstance(sink_height, (int, float))
+              and top < sink_top + sink_height and sink_top < top + height)
+    return {"ok": bool(c1 and c2 and c3), "C1": c1, "C2": c2, "C3": c3,
+            "geometry": state, "clausesExercised": exercised}
+
 # Hand the product a file through its own <input type=file>, the way a chooser
 # would.  The File is synthesised because neither driver can operate a native
 # file dialog -- so this exercises the page's change handler and NOT the picker,
@@ -1928,6 +2028,65 @@ MUTATIONS = {
         # 37 PASS / 2 NOT_ESTABLISHED (the usual pair) / 1 FAIL, and the FAIL
         # is exactly `the-document-region-says-why-it-is-empty` -- nothing else
         # reddened.
+        "alsoRed": [],
+    },
+    # FINDING 093's OWN RED CASE, and it is the defect itself rather than a
+    # hypothetical: this is exactly what `#a11y-doc` was until 2026-09-08.
+    # Removing `top`/`left`/`height` from its rule returns it to its static
+    # position, which is after the canvas -- the bottom of the paper -- and
+    # takes the whole projection with it.
+    #
+    # `e2-editor.html` and not the page script, because that is where the
+    # defect lived. Note what that means and it is finding 094: the HTML is
+    # hashed by NOTHING, so this mutation does not move `servedSha256` the way
+    # a script mutation does. The mutation is still detected -- the check reads
+    # the DOM, not a digest -- but the run's own honesty flag will not show it,
+    # and that is 094 rather than a property of this entry.
+    "a11y-projection-at-its-static-position": {
+        "check": "the-projection-is-placed-where-the-document-is",
+        "path": "e2-editor.html",
+        "find": "  #a11y-doc {\n"
+                "    top: 0; left: 0; width: 1px; height: 100%;\n",
+        "replace": "  #a11y-doc {\n"
+                   "    width: 1px;\n",
+        "reintroduces": "finding 093 -- the accessibility projection lying at "
+                        "the bottom of the paper, so a screen reader browsing "
+                        "it takes the viewport off the end of the document",
+        "alsoRed": [],
+    },
+    # THE SECOND RED CASE, and the one that needs saying carefully.
+    #
+    # The defect it stands for is "the engine emits geometry and the worker's
+    # allowlist drops it" -- the shape that made `itemCount` measurable
+    # natively and invisible in the product. That defect CANNOT be built today:
+    # no linked artifact emits geometry, so there is nothing for an allowlist
+    # to drop, and manufacturing one would mean a link.
+    #
+    # What this mutation reproduces is that defect AS THE PAGE SEES IT, which
+    # is the only vantage point the check has: the contract says geometry is
+    # there and the payload carries none. `geometryDeclared()` is made to
+    # return true for any profile with a contract, while the outline arrives
+    # exactly as it does today -- role, level, focus, text and no rectangles.
+    # The page must then report `declared-but-missing` and the check must fail.
+    # Written down rather than glossed: this is a faithful reproduction of the
+    # page-observable state, and it is NOT a reproduction of the allowlist
+    # itself.
+    #
+    # `--candidate-profile`, for the same reason the two 092 red cases need it:
+    # the shipped profile has no outline at all, so the page never reaches
+    # `positionProjection` and the mutation would be DEAD -- a run reporting
+    # "the product survived it" having never executed the line.
+    "geometry-declared-but-not-delivered": {
+        "check": "the-projection-is-placed-where-the-document-is",
+        "path": "e2-editor-app.js",
+        "requiresFlag": "--candidate-profile",
+        "find": '  return contract?.documentOutlineGeometry === '
+                '"accessible-paragraph-geometry";',
+        "replace": "  return Boolean(contract);",
+        "reintroduces": "a profile whose contract promises each paragraph's "
+                        "rectangle while the payload carries none -- an engine "
+                        "that stopped emitting them, or a worker allowlist "
+                        "that dropped them",
         "alsoRed": [],
     },
     "cut-swallows-the-refusal": {
@@ -7437,6 +7596,56 @@ return { available: true, afterButton };
                      "deferral is legitimate only with `reason == \"paragraph\"` "
                      "and `offers == \"1\"`, so a page cannot hide behind the "
                      "other channel a sentence the user needed to hear.")
+
+        # ------------------------------------ roadmap 3.4, the geometry half
+        #
+        # FINDING 093, AND IT EXISTS BECAUSE 069 ALREADY HAPPENED TWICE.
+        #
+        # 069 was `#sink` lying at the bottom of the paper, so every IME
+        # composition dragged the whole desk down. It was fixed on `#sink` and
+        # a check was written that reads `#sink`
+        # (`sink-does-not-drag-the-page`). Four months later the same defect
+        # was found on `#a11y-doc` -- the same class, the same file, about a
+        # hundred and forty lines from the comment explaining why it is fatal
+        # -- and nothing in this runner could see it: the census of 2026-09-08
+        # found that `READ_A11Y_REGION` above returns text, reason, offers,
+        # deferral and the active descendant, and NOT ONE FIELD OF GEOMETRY.
+        # 069 fixed an element; the net guarded that element.
+        #
+        # So this check reads the SHAPE and not a second element. Landed with
+        # the fix rather than after it, deliberately: the census's own
+        # conclusion was that fixing a second element while adding nothing that
+        # watches the shape is how the story runs a third time.
+        #
+        # ITS ADMISSION TO THE GATE is registered in
+        # `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` (amendment of
+        # 2026-09-08) against AGENTS.md §9's four conditions, including what it
+        # does to the counting composition. Written before this code.
+        #
+        # WHAT IT CANNOT MEASURE YET, said here rather than left implied: no
+        # profile in this tree emits per-paragraph geometry, so clause C3 --
+        # the one option B is being paid for -- is vacuous on every run until
+        # the relink. The check reports which clauses it exercised, so a green
+        # run cannot be read as evidence for a clause that never ran.
+        placement = evaluate(session, READ_A11Y_GEOMETRY) or {}
+        verdict = projection_placement_verdict(placement)
+        check("the-projection-is-placed-where-the-document-is",
+              verdict["ok"],
+              observed={**placement, "verdict": verdict},
+              oracle="the structure projection is placed in the document's "
+                     "own coordinate space, never left at the static position "
+                     "the flow gives it -- which for this container is after "
+                     "the canvas, and the canvas is the whole document's "
+                     "height, so a screen reader bringing a projected node "
+                     "into view takes the viewport off the end of the "
+                     "document. Its container starts at the top of the paper; "
+                     "the geometry state it reports is one the page can "
+                     "produce; a profile that DECLARES per-paragraph geometry "
+                     "and delivers none is the failure, because that is an "
+                     "engine that stopped emitting or an allowlist that "
+                     "dropped the fields; and where geometry is present, the "
+                     "node for the paragraph the caret is in overlaps the "
+                     "band the caret is in.")
 
         # FINDING 078.  The operator selected text, pressed bold, and got
         # `EDITOR_FORMAT_GESTURE_UNSUPPORTED` -- and the 38-check net was green,
