@@ -199,7 +199,28 @@ def measure(session, base, fixture, timeout) -> dict:
         record["outcome"] = "NOT_ESTABLISHED"
         record["why"] = "the page did not return to ready after the fixture"
         return record
-    time.sleep(1.5)
+    # A SETTLE TRACE, NOT A WAIT-UNTIL-GREEN.  The first run of this probe read
+    # `projected` from v12 at Chrome's default viewport and `unavailable` at
+    # 1920x1080, on the same bytes -- so a single reading of measurement 3 is a
+    # coin toss, not a profile fact.  `projectStructure` itself documents the
+    # transient (`e2-editor-app.js:267-270`: two readings on 2026-08-23 came
+    # back with no tree at all).
+    #
+    # The sampling is a FIXED COUNT with no early exit, and that is deliberate:
+    # a loop that stopped as soon as it saw `projected` would give v12 as long
+    # as it needed and v8 the full wait every time, and the difference between
+    # the two profiles is exactly what this measurement is for. Both arms get
+    # the same 16 samples over the same 8 seconds.
+    trace = []
+    for _ in range(16):
+        time.sleep(0.5)
+        sample = evaluate(session, READ_GEOMETRY) or {}
+        trace.append({"structureState": sample.get("structureState"),
+                      "structureChildren": sample.get("structureChildren"),
+                      "browsableStops": sample.get("browsableStops"),
+                      "a11yDocOffsetTop": sample.get("a11yDocOffsetTop")})
+    record["settleTrace"] = trace
+    record["settleStates"] = sorted({str(s["structureState"]) for s in trace})
 
     geometry = evaluate(session, READ_GEOMETRY)
     record["geometry"] = geometry
@@ -247,6 +268,14 @@ def main() -> int:
     parser.add_argument("--profile", action="append",
                         default=None, help="repeatable; default v8 then v12")
     parser.add_argument("--fixture", default="a11y-audible")
+    # THE FRACTION MUST NOT BE A FUNCTION OF THE WINDOW, and this is how that
+    # gets checked rather than asserted.  Headless Chrome's default leaves the
+    # desk 139px tall -- the same figure finding 069's record carries, so the
+    # numbers are comparable to it, but a viewport that small is nobody's
+    # window.  Re-running at a real size is what separates "the region is at
+    # the bottom of the document" from "the desk was too short to show it".
+    parser.add_argument("--viewport", default=None,
+                        help="WxH, e.g. 1920x1080; default is Chrome's own")
     parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--out", help="write the report here")
     args = parser.parse_args()
@@ -263,6 +292,7 @@ def main() -> int:
                            "the-bottom-of-the-paper-because-it-never-got-069s-"
                            "fix.md, section 'Phase 2 的預先登錄'",
         "fixture": args.fixture,
+        "viewport": args.viewport or "chrome-default",
         "note": "Geometry and scroll only. This probe does NOT run a screen "
                 "reader and makes no claim about what Orca does; it measures "
                 "where the region sits and what scrolling its contents into "
@@ -296,6 +326,11 @@ def main() -> int:
             base = f"http://127.0.0.1:{port}/e2-editor.html"
             wait_page(base)
             session = ChromeSession("cold")
+            if args.viewport:
+                width, _, height = args.viewport.partition("x")
+                session.call("Emulation.setDeviceMetricsOverride",
+                             {"width": int(width), "height": int(height),
+                              "deviceScaleFactor": 1, "mobile": False})
             entry = measure(session, base, args.fixture, args.timeout)
         finally:
             if session is not None:
