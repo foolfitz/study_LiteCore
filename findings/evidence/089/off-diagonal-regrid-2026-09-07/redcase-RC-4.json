@@ -1,0 +1,24 @@
+{
+  "redCase": "RC-4",
+  "spec": "Same copy, with one inputs[].sha256 altered by a single hex digit.",
+  "requiredRecord": "{\"status\": \"void\", \"reason\": \"...\", \"mismatches\": [\"<path>\"]} naming the path",
+  "inputFile": "findings/evidence/089/grid-index25-30-33-with-index2-36.json, with tdf149752-index30-index236.ods's inputs[].sha256 altered by one hex digit (7a93... -> fa93...)",
+  "actualExitCode": 1,
+  "actualOutput": {
+    "status": "void",
+    "reason": "sha256 mismatch for case 'tdf149752-index30-index236.ods': report has 'fa9350f4f981a7118038fe7377c1fa87ba1315bb3ad858d4e2a3b47faf4d18de', identity.json has '7a9350f4f981a7118038fe7377c1fa87ba1315bb3ad858d4e2a3b47faf4d18de'; RC-1 failed: bothOutcomesSeen=false (spreadsheet cases in this invocation: [('tdf149752-index25-index236.ods', True), ('tdf149752-index30-index236.ods', True), ('tdf149752-index33-index236.ods', True)])",
+    "mismatches": [
+      "../findings/evidence/089/tdf149752-index30-index236.ods"
+    ],
+    "voidedReports": [
+      {
+        "path": "/tmp/claude-1000/-home-jiajun-LibreOffice-study-LiteCore/5553bcc0-16b3-4240-9ee3-0570a4c16e23/scratchpad/rc4-mutated/A-1-report.json",
+        "reasons": [
+          "sha256 mismatch for case 'tdf149752-index30-index236.ods': report has 'fa9350f4f981a7118038fe7377c1fa87ba1315bb3ad858d4e2a3b47faf4d18de', identity.json has '7a9350f4f981a7118038fe7377c1fa87ba1315bb3ad858d4e2a3b47faf4d18de'",
+          "RC-1 failed: bothOutcomesSeen=false (spreadsheet cases in this invocation: [('tdf149752-index25-index236.ods', True), ('tdf149752-index30-index236.ods', True), ('tdf149752-index33-index236.ods', True)])"
+        ]
+      }
+    ]
+  },
+  "verdict": "MATCHES the required record: status is void, mismatches names the exact altered path ('../findings/evidence/089/tdf149752-index30-index236.ods'). The reason string also names an independent RC-1 failure this same unmutated file already carries (see RC-3's note); this is additional true information, not a wrong answer."
+}
