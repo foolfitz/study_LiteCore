@@ -565,3 +565,33 @@ notice-action-recovers-the-session}`, no FAIL.
 Two `serve_candidate_page.py` server pairs (ports 8765) were left running by the
 stopped session and were terminated by PID by the main session; no browser was
 left behind.
+
+## Run 06 — clean (2026-09-07)
+
+Soak session A2's remaining run, resumed by a fresh gate-operation session after
+run 05 was banked by the main session. Same command as runs 03–05.
+
+```
+python3 tools/run_e2_c_product_path.py --browser chrome \
+    --candidate-profile e2-editor-v12 --out soak-run-06-candidate.json
+python3 tools/check_usable_editor.py --report soak-run-06-candidate.json \
+    --output ../queue-v12-cutover-soak-checklists/check-usable-editor-run06.json
+```
+
+`make test-e2-c-static` exit 0 immediately before this run, per finding 090's
+manual rule.
+
+| run | completedAt (local) | completedAt (UTC) | UTC day | composition | run `ok` |
+|---|---|---|---|---|---|
+| `soak-run-06-candidate.json` | 2026-09-07T15:04:45+08:00 | 2026-09-07T07:04:45Z | 2026-09-07 | 38 PASS / 2 NE | **true** |
+
+`startedAt` 2026-09-07T14:58:38+08:00 (2026-09-07T06:58:38Z). `complete: true`.
+NE set exactly `{a-refused-action-is-reported-and-changes-nothing,
+notice-action-recovers-the-session}`, no FAIL.
+`candidateCutover.pageSha256` = `9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c`;
+`servedShell.servedSha256` = `cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4`.
+
+`check_usable_editor.py --report soak-run-06-candidate.json`: `"ok": true`,
+`reconciledFor.kind == "candidate-cutover"`, `profile == "e2-editor-v12"`,
+`problems: []`. Saved to
+`../queue-v12-cutover-soak-checklists/check-usable-editor-run06.json`.
