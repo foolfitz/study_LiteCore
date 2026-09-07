@@ -368,3 +368,40 @@ profile 名、`probe.wasm`／`wasmSha256`、`sdk-manifest.json` 的摘要、
 另外兩件仍然獨立、仍然未裁定，**不要因為 093 有處置就順手一起處理**：
 頂端邊界的焦點逃逸（`leaving panel`），以及 finding 095（最後一行按 ArrowDown
 之後點畫布放不了游標）。
+
+---
+
+# 追記（2026-09-08）：步驟 1 做完了，§2 的三題全部量到
+
+**這一段是 append，上面一個字都沒有改。**它更正的是 §7 第 1 點——「§2 全部是讀
+原始碼推的，不是量到的」——那句話從現在起只適用於 wasm 那一側。
+
+證據：`findings/evidence/093/step1-native-geometry/`（`RESULT.md`、
+`VERDICT.json`、`run/`）。判準先釘死在 `ACCEPTANCE.md`（commit `bcb7caf4`，
+寫在探針存在之前）。儀器 commit `ca78f998`。
+
+**只跑 native（`build-native-26-8`）。wasm 那一側一個位元組都沒有動。**
+
+| 題 | 答案 | 數字 |
+| --- | --- | --- |
+| 單位（§2.1） | **輸出裝置像素**，如手冊所讀 | raw/twips ＝ 0.0666764 對 `dpi/1440` ＝ 0.0666667，差 0.015% |
+| DPI（§2.1 說「沒有人量過」） | **這顆 native svp 裝置是 96**，三種讀法互相同意 | 96 / 96 / `LogicToPixel(1440 twips)` ＝ 96 |
+| 原點（§2.2） | **文件絕對座標**，推論成立 | 114 段的 parent 都是走訪 root；y 走到 96,240 而視窗只有 7,440 |
+| 對應（§2.3） | **20/20 對得上** | `dTop` −14..0 twips，一個像素是 15，判準是 552 |
+
+**停止規則沒有觸發**，所以 §5 步驟 1 的「對不上就停手」不適用。
+
+順帶結清兩件本來要在步驟 3 猜的事：
+
+1. §2.3 建議的 `PixelToLogic(rect, MapMode(MapUnit::MapTwip))` 與
+   `CoreToPixel` 的精確反運算（用裝置自己的 MapMode）在 114 段上**每一段都
+   同值**——那顆裝置的 MapMode 就是 MapTwip、原點 (0,0)、縮放 1。
+2. §5 步驟 1 提到的備案「改用 `getLocationOnScreen()` 相減」**不需要**：
+   它與 `getBounds()` 的差是單一常數 (0, 64) px，資訊量為零，只是每段多一次
+   UNO 呼叫。
+
+**§7 的另外兩點原封不動**：連結的 wall-clock 仍然未知；每段一次 `getBounds()`
+的成本仍然沒有量過（這次量的是座標，不是時間）。
+
+**仍然待辦**：步驟 2（補 archive `e2-editor-v12`）、步驟 3（落地改動，先做紅案）。
+步驟 4 的連結仍然是你的。
