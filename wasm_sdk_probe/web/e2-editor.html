@@ -61,7 +61,14 @@
      updateGestureAffordance; the attribute is removed when the state is null. */
   button[aria-pressed="true"] { background: #dbe7f3; border-color: var(--accent); }
   /* 看不見，但**留在 accessibility tree 上**。display:none 與
-     visibility:hidden 會把節點拿掉，1px clip 不會。 */
+     visibility:hidden 會把節點拿掉，1px clip 不會。
+
+     TWO ELEMENTS USE THIS CLASS AND BOTH HAVE NEEDED THEIR OWN `top`/`left`:
+     `#sink` (finding 069, 2026-08-22) and `#a11y-doc` (finding 093,
+     2026-09-08). This rule deliberately still supplies neither -- see
+     `#a11y-doc`'s own rule below for why widening the class is not the repair
+     -- so a THIRD user of it inherits the same trap. If you are adding one,
+     that is what you are inheriting. */
   .a11y-only {
     position: absolute; width: 1px; height: 1px;
     margin: -1px; padding: 0; border: 0;
@@ -100,6 +107,64 @@
     padding: 0; margin: 0; outline: none;
     pointer-events: none;
     resize: none; overflow: hidden; white-space: pre; line-height: 1;
+  }
+
+  /*
+   * FINDING 093, AND IT IS THE COMMENT DIRECTLY ABOVE, ON THE ELEMENT BESIDE
+   * THE ONE IT WAS WRITTEN FOR.
+   *
+   * `#a11y-doc` also uses `.a11y-only`, also had `position: absolute` and no
+   * `top`/`left`, and so also sat at its STATIC position at the bottom of the
+   * paper -- for four months, about a hundred and forty lines below the
+   * paragraph explaining why that is fatal.  Every time a screen reader
+   * brought a projected node into view, the browser took the whole desk to the
+   * end of the document.  Reported by the owner walking the page with Orca,
+   * 2026-09-08, and measured the same day: `offsetTop` 928 against a 929px
+   * canvas on the shipped profile AND on the candidate, 27,197 against 27,198
+   * on a 133-paragraph document.
+   *
+   * FIXED HERE AND NOT ON `.a11y-only`, which is the OTHER half of 069's
+   * lesson.  069 fixed one element and left the class producing the same
+   * defect for the next element that used it -- but widening the class rule is
+   * not the repair, it is the same mistake pointed the other way: a census of
+   * all 62 stylesheets and pages under `web/` on 2026-09-08 found 28 other
+   * rules that position absolutely, and NONE of them in this shape.  Changing
+   * the class would move 28 elements to fix one.  One element, one fix, and
+   * the class comment above now names both of its instances.
+   *
+   * WHY IT SPANS THE PAPER AND STOPS CLIPPING.  A clipping ancestor makes
+   * `scrollIntoView` on a child meaningless -- the child has nowhere to be --
+   * and the projection's whole job is now to put each paragraph's node where
+   * that paragraph is drawn.  So the container becomes the coordinate space
+   * (`height: 100%` of `.paper`, which is the canvas's height) and every
+   * DESCENDANT carries the clip instead: `#a11y-para` below, and each
+   * projected node inline from `projectStructure()`.  Nothing inside is
+   * visible; everything inside is still in the accessibility tree, which is
+   * the property `.a11y-only` exists for and the reason it clips rather than
+   * using `display: none`.
+   *
+   * `pointer-events: none` for exactly the reason `#sink` has it, and it
+   * matters MORE here: this box now covers the whole drawing surface, and the
+   * canvas's own pointerdown is what places the caret.  Measured on the
+   * candidate shapes 2026-09-08 that `clip-path: inset(50%)` alone already
+   * kept `elementFromPoint` returning the canvas
+   * (`findings/evidence/093/phase3-s2-hit-test.json`); this is the same
+   * property asserted rather than relied upon.
+   */
+  #a11y-doc {
+    top: 0; left: 0; width: 1px; height: 100%;
+    margin: 0; overflow: visible;
+    clip: auto; clip-path: none;
+    pointer-events: none;
+  }
+  /* The clip `#a11y-doc` gave up, on the child that still needs it: the live
+     region holds the focused paragraph's TEXT, and an unclipped copy of it
+     would be painted across the document. */
+  #a11y-para {
+    position: absolute; top: 0; left: 0;
+    width: 1px; height: 1px; margin: 0; padding: 0;
+    overflow: hidden; white-space: nowrap;
+    clip: rect(0 0 0 0); clip-path: inset(50%);
   }
 
   /*

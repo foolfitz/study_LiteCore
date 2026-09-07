@@ -445,7 +445,25 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # `f7f20317`'s `e2-editor-v8` / `4a2710bba1ef07d9` -- `git diff f7f20317 --
 # web/e2-editor-app.js` is exactly the one v46 hunk, nothing else. This is
 # the shell as shipped, with the fix, not yet cut over.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v48.json")
+# v49, 2026-09-08: finding 093's page half -- the accessibility projection is
+# placed in the document's coordinate space instead of at the static position
+# after the canvas, and each projected node carries its own paragraph's
+# rectangle when the engine supplies one.  Frozen in the SAME COMMIT as the
+# change, which is the step 087, 088 and 090 each skipped and which finding 091
+# is the record of.
+#
+# THE ENTRYPOINT STILL PINS `e2-editor-v8`.  This is not the cutover and it is
+# not option B's relink either: no artifact emits per-paragraph geometry yet,
+# so the page ships the honest degradation (`data-geometry="absent"`) and the
+# clause that uses the geometry is inert.  The relink is the owner's step 4 in
+# `handoff/RUNBOOK-operator-093-engine-geometry.md`, and it will move
+# `workerUrl` and `PINNED_WASM_SHA256` again -- so a FURTHER generation is owed
+# after it (step 5.4 of that runbook already says so).  Freezing here anyway,
+# rather than waiting for that, because the alternative is leaving the tree's
+# own `test_the_real_manifest_matches_the_real_tree` red between the two, and
+# a red static gate is exactly where the next real drift hides -- which is
+# what v41..v45's correction above is the record of.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v49.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

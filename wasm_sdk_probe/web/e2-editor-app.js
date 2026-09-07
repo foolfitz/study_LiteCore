@@ -251,6 +251,126 @@ function projectFocusedParagraph(snapshot, structureSpeaks) {
 // is worse than no guard because it looks like one.
 let lastStructureSignature = null;
 let lastFocusedElement = null;
+// FINDING 093. The paragraphs the last projection was built from, kept so a
+// window resize can re-place the nodes without waiting for the next state
+// read. The twips do not move when the window does; the scale from twips to
+// CSS pixels does -- the same reason `layoutCanvas()` is followed by a repaint
+// that calls `moveSinkToCaret`.
+let lastProjectedParagraphs = null;
+
+/**
+ * FINDING 093. Whether THE PROFILE says it carries each paragraph's rectangle.
+ *
+ * Read from the MANIFEST and never from the payload, and the distinction is
+ * the whole of this function's value: it separates "this engine was linked
+ * before the geometry existed" from "this engine promised geometry and did not
+ * deliver it". The first degrades honestly and is what every artifact linked
+ * before 2026-09-08 does; the second is a defect -- an engine that stopped
+ * emitting, or a worker allowlist that dropped the fields on the way through
+ * (`sdk/sdk-worker.js`), which is a thing that has happened in this tree and
+ * was invisible for weeks when it did.
+ *
+ * Declared exactly like `caretParagraphText` and `documentOutline`, for the
+ * reason those two are: a host must be able to tell an absent capability from
+ * an empty answer BEFORE it reads the field.
+ */
+function geometryDeclared() {
+  const contract = session?.engine?.manifest?.editorContract;
+  return contract?.documentOutlineGeometry === "accessible-paragraph-geometry";
+}
+
+/**
+ * FINDING 093. Put each projected node where its own paragraph is drawn.
+ *
+ * This is 069's fix, applied to the class of element rather than to one more
+ * instance of it: `#sink` rides the caret so an IME's candidate window and the
+ * browser's scroll-into-view land where the user is looking; a projected node
+ * has to ride ITS PARAGRAPH, because a screen reader's browse cursor moves
+ * through the projection WITHOUT moving the caret. Measured 2026-09-08 on a
+ * 133-paragraph document: riding the caret passes the arrow-key arm 3/3 and
+ * the browse arm 1/3, and only per-paragraph placement passes both
+ * (`findings/evidence/093/RESULT-phase3-fix-shapes.md`).
+ *
+ * THE SCALE IS `moveSinkToCaret`'s, deliberately not `paint()`'s: `box()` in
+ * `paint()` works in BACKING pixels, which differ from CSS pixels by
+ * devicePixelRatio, and positioning a DOM element with those puts it at
+ * roughly twice the offset on a HiDPI screen. Same trap, same two lines, and
+ * the comment in `paint()` is where it was first paid for.
+ *
+ * NOTHING HERE MAY REACH `signature` (finding 088). The signature decides
+ * whether the whole projection is torn down and rebuilt, and geometry changes
+ * on every scroll of a re-laid-out window -- putting it in would rebuild the
+ * tree under a screen reader's feet on every resize, which is 088 exactly.
+ * Positions are written onto the nodes in place, in both branches of the
+ * keep-or-rebuild decision, which is why this is a separate pass.
+ */
+function positionProjection(paragraphs) {
+  const declared = geometryDeclared();
+  const width = el.canvas.clientWidth;
+  const height = el.canvas.clientHeight;
+  const scalable = Boolean(width && height && session?.document);
+  const scaleX = scalable ? width / session.document.widthTwips : 0;
+  const scaleY = scalable ? height / session.document.heightTwips : 0;
+  // `carried` counts the PAYLOAD and not the placement, so a page that has not
+  // been laid out yet cannot be mistaken for an engine that sent nothing.
+  let carried = 0;
+  let placed = 0;
+  paragraphs.forEach((node, index) => {
+    const element = document.getElementById(`a11y-node-${index}`);
+    if (!element) return;
+    const has = typeof node.y === "number" && typeof node.height === "number";
+    if (has) carried += 1;
+    const usable = declared && has && scalable;
+    // Absolute in every case, including the degraded one. The container no
+    // longer clips, so a node left in normal flow would paint its text across
+    // the document; and a node with no position of its own is exactly finding
+    // 093 -- it sits wherever the flow leaves it.
+    element.style.position = "absolute";
+    element.style.left = usable
+      ? `${Math.round((typeof node.x === "number" ? node.x : 0) * scaleX)}px`
+      : "0px";
+    element.style.top = usable ? `${Math.round(node.y * scaleY)}px` : "0px";
+    element.style.width = "1px";
+    // The paragraph's own height, for the reason `moveSinkToCaret` gives the
+    // sink the caret's: `scrollIntoView({block: "nearest"})` stops as soon as
+    // the target's bottom edge reaches the viewport's, so a 1px target puts
+    // the line being read entirely below the fold. Measured 2026-09-08: band
+    // top exactly 864 in an 864px viewport, overlap 0, three times out of
+    // three.
+    element.style.height = usable
+      ? `${Math.max(1, Math.round(node.height * scaleY))}px`
+      : "1px";
+    element.style.overflow = "hidden";
+    element.style.whiteSpace = "nowrap";
+    // The clip `#a11y-doc` gave up so that these nodes could have somewhere to
+    // be. Invisible, still in the accessibility tree, and measured not to add
+    // a hit-test target over the canvas.
+    element.style.clipPath = "inset(50%)";
+    if (usable) placed += 1;
+  });
+  // SAID OUT LOUD IN THE DOM, because "the projection is not placed" has three
+  // causes that look identical from outside and only one of them is a defect.
+  //
+  //   absent               the profile does not declare geometry. Every
+  //                        artifact linked before 2026-09-08. Honest.
+  //   present              declared, and the payload carries it.
+  //   declared-but-missing declared, and NOTHING came through. The engine
+  //                        stopped emitting, or the worker allowlist dropped
+  //                        the fields. A DEFECT, and the product path fails on
+  //                        it.
+  //
+  // Per-paragraph misses are reported (`geometryCarried` against the node
+  // count) and deliberately NOT judged: `getBounds()` has branches this tree
+  // has never reached -- empty preview pages, a paragraph whose accessible
+  // parent is not the root -- and a threshold on a distribution nobody has
+  // measured would be a number invented ahead of the evidence.
+  el.a11yStructure.dataset.geometry =
+    !declared ? "absent"
+      : (paragraphs.length > 0 && carried === 0) ? "declared-but-missing"
+        : "present";
+  el.a11yStructure.dataset.geometryCarried = String(carried);
+  el.a11yStructure.dataset.geometryPlaced = String(placed);
+}
 
 function projectStructure(snapshot) {
   // THE CONTRACT FIELD, not the diagnostic tree.
@@ -289,6 +409,12 @@ function projectStructure(snapshot) {
     el.sink.removeAttribute("aria-activedescendant");
     lastStructureSignature = null;
     lastFocusedElement = null;
+    lastProjectedParagraphs = null;
+    // FINDING 093. A fourth state, named rather than left as an absent
+    // attribute: there is no projection at all, so there is nothing to place
+    // and the geometry question does not arise. This is the shipped profile's
+    // state, and it must not read as "declared and missing".
+    el.a11yStructure.dataset.geometry = "noProjection";
     // Explicit: this channel speaks nothing, so the live region must speak.
     return null;
   }
@@ -367,6 +493,13 @@ function projectStructure(snapshot) {
     lastStructureSignature = signature;
     lastFocusedElement = focusedId ? document.getElementById(focusedId) : null;
   }
+  // FINDING 093, and it is AFTER the branch above rather than inside it,
+  // which is the whole reason it is a separate pass. Geometry is not in the
+  // signature (it must not be -- see 088 above and `positionProjection`), so
+  // the kept branch would otherwise leave every node at the position it had
+  // before the document was edited.
+  lastProjectedParagraphs = paragraphs;
+  positionProjection(paragraphs);
   // FINDING 087, and the reason it is HERE rather than on the live region.
   //
   // The live region announces text; it does not announce the role on its own
@@ -536,6 +669,12 @@ function layoutCanvas() {
   // Setting width/height clears the canvas AND invalidates the cached tile,
   // which is sized in device pixels for the old dimensions.
   lastTiles = [];
+  // FINDING 093. The projection's nodes are placed in CSS pixels derived from
+  // twips, so the scale that produced them has just changed and every node is
+  // now pointing at the wrong line. This is the one place the scale moves, so
+  // it is the one place that has to say so -- `projectStructure` runs on state
+  // reads, and a resize is not one.
+  if (lastProjectedParagraphs) positionProjection(lastProjectedParagraphs);
 }
 
 async function renderDocument(retriesLeft = 6) {
