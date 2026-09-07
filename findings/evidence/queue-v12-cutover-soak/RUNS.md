@@ -532,3 +532,36 @@ notice-action-recovers-the-session}`, no FAIL.
 `problems: []`. Saved to
 `../queue-v12-cutover-soak-checklists/check-usable-editor-run04.json`, never
 into this directory (the judge refuses unclassified files here).
+
+## Run 05 — clean (2026-09-07), banked by the main session after its executor was stopped
+
+Soak session A2's second run. The report was already written and complete when
+the session's executor was stopped mid-session by the owner; the run itself was
+finished (`complete: true`, `completedAt` present), so it is banked exactly as
+measured rather than discarded — nothing about it was re-run, and the
+reconciliation below was produced by the main session from the untouched
+report.
+
+```
+python3 tools/run_e2_c_product_path.py --browser chrome \
+    --candidate-profile e2-editor-v12 --out soak-run-05-candidate.json
+python3 tools/check_usable_editor.py --report soak-run-05-candidate.json
+```
+
+| run | completedAt (local) | completedAt (UTC) | UTC day | composition | run `ok` |
+|---|---|---|---|---|---|
+| `soak-run-05-candidate.json` | 2026-09-07T09:03:43+08:00 | 2026-09-07T01:03:43Z | 2026-09-07 | 38 PASS / 2 NE | **true** |
+
+`startedAt` 2026-09-07T08:57:37+08:00 (2026-09-07T00:57:37Z). `complete: true`.
+NE set exactly `{a-refused-action-is-reported-and-changes-nothing,
+notice-action-recovers-the-session}`, no FAIL.
+`candidateCutover.pageSha256` = `9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c`;
+`servedShell.servedSha256` = `cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4`.
+
+`check_usable_editor.py --report soak-run-05-candidate.json`: `"ok": true`,
+`reconciledFor.kind == "candidate-cutover"`, `problems: []`. Saved to
+`../queue-v12-cutover-soak-checklists/check-usable-editor-run05.json`.
+
+Two `serve_candidate_page.py` server pairs (ports 8765) were left running by the
+stopped session and were terminated by PID by the main session; no browser was
+left behind.
