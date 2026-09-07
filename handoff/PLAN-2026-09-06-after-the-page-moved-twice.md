@@ -669,3 +669,39 @@ stops the schedule and is handed off.
   `4f0c276f` (07), `e7571664` (08). `check_soak_bank.py`: `cleanRuns: 6,
   totalRuns: 8`, `qualifyingDays: ["2026-09-07"]`, `day-spread: false`,
   `ok: false` (count not reached). Nothing left running.
+
+---
+
+## The schedule is handed back to the owner (2026-09-07 17:10 CST, append-only)
+
+The owner said they will start tomorrow's session themselves
+(「明早的任務我晚點會再開，你不用一直掛念它」). The three remaining
+one-shot wake-ups (C2, D2, E2) are **deleted**, because a session-only
+schedule plus an owner-started session is two agents on one tree. Nothing
+about the count changes: the bank is **6 of 12**, all six clean, and a soak
+run is only ever taken by an executor that checks its preconditions first.
+
+**To resume, in a fresh session, no context needed.** Read this plan's T3
+section (the FAIL policy) and `findings/evidence/queue-v12-cutover-soak/RUNS.md`
+(runs 04–08 record the exact commands and the ledger shape), then dispatch one
+sonnet executor per session with this instruction:
+
+> N soak runs, sequentially, on candidate profile `e2-editor-v12`, page
+> `9b29e39b…`, served-shell pin v47 `cf7f9233…`. Before each:
+> `cd wasm_sdk_probe && make test-e2-c-static` (exit 0). Then
+> `python3 tools/run_e2_c_product_path.py --browser chrome --candidate-profile
+> e2-editor-v12 --out findings/evidence/queue-v12-cutover-soak/soak-run-NN-candidate.json`,
+> `python3 tools/check_usable_editor.py --report <it>` saved to
+> `findings/evidence/queue-v12-cutover-soak-checklists/check-usable-editor-runNN.json`
+> (never into the bank), a RUNS.md section per run, one commit per run.
+> A FAIL is banked as measured and never re-run. Then `check_soak_bank.py`.
+
+**What is still owed, and the arithmetic.** 6 clean, all on UTC 2026-09-07;
+criterion 1 needs 12 across ≥3 UTC days with ≥2 on each. UTC 09-06 holds one
+run (03) and does not qualify. So: **six more clean runs, at least two on each
+of two further UTC days.** A UTC day begins at 08:00 CST. Two sessions of
+three, or three of two, on two different UTC days closes it — earliest close
+is the second of those days.
+
+Then, and only then: T4 (the owner's six manual cells and 4b's judgement
+half), the cutover's four steps, and the push. All three are the owner's.
