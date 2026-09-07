@@ -1896,3 +1896,77 @@ conclusion if this is never measured: a live-region-only AT is a known,
 unmeasured usability gap on this profile** — not "checked and fine". It is not
 a gate term and it does not block the count; it is written here because after
 this amendment nothing else in the gate would say it.
+
+## The R-1 restart is applied to the bank directory (2026-09-07, append-only)
+
+The amendment above restarted the count. This section records that the restart
+has now been carried out **in the directory the judge counts**, and by what
+authority. No criterion text is relaxed by it, and `tools/check_soak_bank.py`
+is unmodified, `DEFAULT_*` constants included.
+
+**What forced it.** The judge enumerates by glob, and its clean clause is a
+statement about the *whole* directory, not about the runs someone chose to
+count:
+
+    "every-run-clean": len(clean) == len(runs) and bool(runs),
+
+taken over every `soak-run-*.json` in
+`findings/evidence/queue-v12-cutover-soak/`. Against that, the R-1 ruling of
+`handoff/PLAN-2026-09-06-after-the-page-moved-twice.md`, section "R-1 = A, by
+the owner":
+
+> This changes the clean-run predicate, so the count restarts — it is at 0;
+> runs 1–2 stay banked FAIL under the old wording and are not re-judged.
+
+Those two sentences are consistent only if the superseded lineage leaves the
+counting glob. Left in place, the twelfth clean run would have produced
+`cleanRuns: 12, totalRuns: 14, every-run-clean: false` — the gate on the finish
+line with a red judge, and condition 1 reportable only by narrating a count
+around the judge's own verdict. Measured on the evening of 2026-09-07 before
+anything moved: `cleanRuns: 6, totalRuns: 8, every-run-clean: false`.
+
+**Authority.** The owner's decision **A** on P-0, recorded in the same
+document, section "Two decisions by the owner, 2026-09-07 evening": runs 01 and
+02 move to `findings/evidence/queue-v12-cutover-soak-void-pre-r1/` with a
+`WHY-THESE-ARE-VOID.md`; nothing deleted, nothing re-judged, the judge not
+modified, no criterion text relaxed.
+
+**The mechanism is the tree's existing void-directory convention, not new
+machinery** (§4's self-check: writing a new mechanism to keep a claim alive is
+the move to stop and report). This is the fourth application of the same
+convention — `queue-v11-cutover-soak-not-started/`,
+`queue-v12-cutover-soak-void-3dfdcfef/`,
+`queue-v12-cutover-soak-void-20f09cc9/`, and now `-void-pre-r1/` — each a
+`git mv` of untouched reports plus a `WHY-THESE-ARE-VOID.md`. The one thing new
+about this instance is the reason: the first three were voided by the candidate
+page moving; these two carry the current page `9b29e39b…` and were voided by the
+predicate moving. The surviving runs are **not** renumbered — the bank runs
+03–08 with no 01/02, and the gap is the record — because renumbering would
+rewrite evidence that RUNS.md, the checklist directory and three `VERDICT-*`
+files all cite by name.
+
+**Judge, after the move** (full output beside the moved runs, in
+`JUDGE-OUTPUT-before-the-move.txt` and `JUDGE-OUTPUT-after-the-move.txt`;
+RUNS.md carries the same two blocks):
+
+```json
+"cleanRuns": 6, "totalRuns": 6,
+"distinctPageSha256": ["9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c"],
+"clauses": {"no-unclassified-file": true, "declared-non-runs-present": true,
+            "every-run-clean": true, "count-reached": false,
+            "one-page-sha": true, "no-naive-timestamp": true,
+            "day-spread": false},
+"ok": false
+```
+
+`--self-test` exits 0 before and after: 12 red cases red, green control green.
+Counting is **6 of 12**, unchanged — the move removes two runs the restart had
+already excluded and manufactures no clean run. `make test-e2-c-static` exit 0.
+
+**Default if this had never been done.** Condition 1 could only be reported by
+the drafting party narrating a count — "twelve of the fourteen are clean, and
+the other two do not count, trust me" — while the judge that exists to state
+that number said `ok: false`. That is the exact failure W-4 exists to remove
+(§8: a termination declaration must not rest on the drafting party's
+judgement), and it would have surfaced at the worst possible moment: on the day
+the twelfth clean run landed.

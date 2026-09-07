@@ -653,3 +653,79 @@ notice-action-recovers-the-session}`, no FAIL.
 `reconciledFor.kind == "candidate-cutover"`, `profile == "e2-editor-v12"`,
 `problems: []`. Saved to
 `../queue-v12-cutover-soak-checklists/check-usable-editor-run08.json`.
+
+## The R-1 restart applied to this directory — runs 01 and 02 moved out (2026-09-07)
+
+Task T6 of `handoff/PLAN-2026-09-06-after-the-page-moved-twice.md`, section
+"Two decisions by the owner, 2026-09-07 evening", sub-section **P-0**, owner's
+decision **A**. The two banked FAIL runs recorded above under "Re-taken on
+`9b29e39b…` / v48" have been moved, with `git mv` and unchanged, to
+
+    ../queue-v12-cutover-soak-void-pre-r1/soak-run-01-candidate.json
+    ../queue-v12-cutover-soak-void-pre-r1/soak-run-02-candidate.json
+
+with a `WHY-THESE-ARE-VOID.md` beside them, modelled on
+`../queue-v12-cutover-soak-void-3dfdcfef/` and
+`../queue-v12-cutover-soak-void-20f09cc9/`.
+
+**Authority.** The plan's section "R-1 = A, by the owner" (2026-09-07) already
+ruled the restart: *"This changes the clean-run predicate, so the count
+restarts — it is at 0; runs 1–2 stay banked FAIL under the old wording and are
+not re-judged."* P-0 applies that ruling to this directory, because
+`check_soak_bank.py` enumerates by glob (`soak-run-*.json`) and its clause
+`"every-run-clean": len(clean) == len(runs) and bool(runs)` is taken over that
+glob — so "not re-judged" and "the count is at 0" are consistent only if the
+superseded lineage leaves the counting directory. Left in place, the twelfth
+clean run would have produced `cleanRuns: 12, totalRuns: 14,
+every-run-clean: false`.
+
+Not voided by a page move: both carry `candidateCutover.pageSha256`
+`9b29e39b…`, the same page every surviving run carries. What was superseded is
+the clean-run predicate, not the bytes.
+
+**Nothing else changed.** `tools/check_soak_bank.py` is untouched, including its
+`DEFAULT_*` constants; no criterion text is relaxed; the surviving runs are
+**not** renumbered (the bank now runs 03–08 with no 01/02, and the gap is the
+record of the restart); no run was re-executed. Runs 01 and 02 had no
+`check_usable_editor.py` output file — that convention started with run 03 —
+and the three `VERDICT-soak-2026-09-07*.json` files stay here; the reasoning
+for both is in the WHY file.
+
+**The judge, before the move** (`cd wasm_sdk_probe && python3
+tools/check_soak_bank.py`; full output in
+`../queue-v12-cutover-soak-void-pre-r1/JUDGE-OUTPUT-before-the-move.txt`):
+
+```json
+"cleanRuns": 6, "totalRuns": 8,
+"clauses": {"no-unclassified-file": true, "declared-non-runs-present": true,
+            "every-run-clean": false, "count-reached": false,
+            "one-page-sha": true, "no-naive-timestamp": true,
+            "day-spread": false},
+"ok": false
+```
+
+`--self-test` before the move: `self-test passed: 12 red cases all red, and the
+green control is green` (exit 0).
+
+**The judge, after the move** (full output in
+`../queue-v12-cutover-soak-void-pre-r1/JUDGE-OUTPUT-after-the-move.txt`):
+
+```json
+"cleanRuns": 6, "totalRuns": 6,
+"distinctPageSha256": ["9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c"],
+"distinctServedShellSha256": ["cf7f923391a059943366b46bde8f25c7a618da57752e592ffaa13398e78161e4"],
+"clauses": {"no-unclassified-file": true, "declared-non-runs-present": true,
+            "every-run-clean": true, "count-reached": false,
+            "one-page-sha": true, "no-naive-timestamp": true,
+            "day-spread": false},
+"ok": false
+```
+
+`--self-test` after the move: same 12 red / green control, exit 0.
+
+Counting: **6 of 12**, unchanged by this move — it removes two runs that the
+restart had already excluded from the count, and manufactures no clean run.
+`ok` stays `false` on `count-reached` and `day-spread`; six more clean runs are
+owed, at least two on each of two further UTC days. Per P-1 of the same
+section, no further soak run is taken until T4 (the owner's manual round) is
+done.
