@@ -786,3 +786,107 @@ criteria registered before the runs: which grid points, how many repeats,
 what counts as reproducing the banked figure, what result would retire the
 `Index ≥ 35 ∧ Index2 ≥ 36` claim and what would restore it, and the red cases.
 No measurement in this task.
+
+---
+
+## T4 happened, and it moved the gate (2026-09-08, append-only)
+
+The owner ran T4 by hand between 23:20 CST on 09-07 and 01:00 CST on 09-08.
+Record: `findings/evidence/manual-round-v12e-9b29e39b/`.
+
+### Condition 3 — six cells, discharged
+
+Five clean. Cell 3.3 fired **finding 086** exactly as the runbook predicted, with
+the candidate-side wording and a checkpoint offered — recorded as the cell's
+valid result, not as an operational failure. Two positive records worth keeping:
+the redo button was present and worked (the runbook warned it may not appear on
+some profiles), and the save/reopen cell round-tripped intact *after* 086 had
+fired.
+
+### Condition 4b judgement half — term 1 good, term 3 is the round's product
+
+Term 1 (order) good, corroborated by the speech log. Terms 2 and 4 unanswered —
+the walk was consumed by term 3. Term 3, the owner verbatim:
+
+> 好像只要用鍵盤方向鍵就會捲到頁面底部，沒辦法使用。
+
+Asked whether the editor is still visible when the page sits at the bottom, the
+owner answered **「捲過頭」** — overshoot, the editor is still on screen.
+
+### What that produced: findings 093 and 094
+
+**093** — `#a11y-doc`, the container holding the whole structure projection, uses
+`.a11y-only`, which is `position:absolute` with **no `top`/`left`**
+(`web/e2-editor.html:65-70`), and sits after `#canvas` (`:228`, the full document
+height) inside `.paper`. Its static position is therefore the bottom of the
+paper. Four CSS rules above it sits the comment that explains exactly this,
+written for **finding 069**, and `#sink` has the fix at `:98`. `#a11y-doc` never
+got it. 069's regression net does not cover this path: it reads `#sink` only and
+drives an IME commit; `arrow-keys-match-the-profile` never measures scroll.
+**069 fixed an element, not a class.**
+
+The HTML is one shared file — candidate and shipping differ by two lines and one
+byte in `e2-editor-app.js` — so the mechanism is in shared bytes and only the
+candidate's per-paragraph structure nodes make it reachable during ordinary use.
+That is a third disposition shape, neither "086-shaped" nor "candidate
+regression".
+
+**094** — `web/e2-editor.html` is hashed by **nothing**. No bundle generation
+v1..v48 includes an HTML path; `served_shell_identity()`
+(`run_e2_c_product_path.py:2303`) walks only `manifest["included"]`;
+`candidateCutover.pageSha256` covers `app.js`; no `check_*.py` reads `.html`.
+Both directions matter: twelve clean runs would assert an identity excluding the
+file that carries every CSS rule, and conversely a behaviour-changing edit to it
+turns nothing red.
+
+### The owner's ruling: D-c — and the count goes to zero
+
+Pre-registered menu, written before any number existed (finding 093, section
+「Phase 2 的預先登錄」): D-a defer like 086, D-b treat as a candidate regression,
+D-c fix regardless of classification because it is an accessibility blocker on an
+accessibility product. The owner chose **D-c**, whose written cost is D-b's:
+**the soak count restarts at zero.**
+
+Recorded explicitly in the finding: **the restart is not mechanically forced.**
+094 means the six banked runs would survive the edit untouched. The count goes
+to zero because the adjudication says the change counts — not because a guard
+saw it. That was the form the pre-registration demanded.
+
+**Not covered by D-c, and left undecided rather than swept in**: the focus escape
+at the top boundary (`leaving panel` three times, no focus containment anywhere
+in the page).
+
+### The window D-c opens, for the owner to decide
+
+094's disposition was "register only; bind the HTML after the cutover", because
+binding it changes `servedSha256`'s definition — a criterion change — and the
+gate was running with six runs banked, failing AGENTS.md §9's "prior to
+satisfaction". **D-c removes that obstacle**: at count 0, §9's first condition is
+satisfiable, and the second (forced and named) and fourth (deadline: the twelfth
+clean run) already are. What still blocks it is the third — the form test: the
+bundle's `included` list is a hand enumeration, and adding a path to it stays one.
+
+So it is a **work item to decide, not a criterion that stands**, and the decision
+is not the drafting party's. It is recorded here because the window is open only
+while the count is zero.
+
+### The order of work from here, and what must not be done early
+
+1. **Phase 2's measurement** (running): `#a11y-doc.offsetTop` and the scroll
+   fraction on both profiles, v8's stop count, and the `top:0;left:0` positive
+   control. Four outcomes pre-registered.
+2. **Determine the SHAPE of the fix by measurement, not by taste.** 069's fix had
+   two halves — `top:0;left:0` *and* `paint()` riding the caret. Applying only
+   the first converts "pinned at the bottom" into "pinned at the top": the
+   viewport still does not follow what is being read. This tree has already paid
+   for shipping half a fix once (CLAUDE.md, 2026-08-22). Candidate shapes are to
+   be measured side by side and handed to the owner as numbers.
+3. **Then** the fix lands, a new shell generation is frozen, and every
+   identity-bound artefact is re-earned: 4a's eight terms, condition 2's caret
+   diagnostics, the ODT round trip, the revert rehearsal, and T4 itself — T4 is
+   bound to page `9b29e39b…` and does not survive the move.
+4. **Only then** does the soak restart, needing twelve clean runs across ≥3 UTC
+   days again.
+
+**Must not be done early**: no soak run while the page is about to move; no
+binding of the HTML without the owner's ruling; no fix landed on taste.
