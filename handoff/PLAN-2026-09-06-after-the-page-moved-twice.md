@@ -662,3 +662,10 @@ stops the schedule and is handed off.
   the session's executor was stopped by the owner after run 05's report was
   complete but before it was banked — the run was banked as measured, not
   re-run, and the two page servers it left behind were terminated by PID.
+
+- 2026-09-07 — **session B2: runs 07 and 08, both clean; bank 6 of 12.**
+  38 PASS / 2 NE with the fixed NE set on each, page `9b29e39b…`, served
+  shell `cf7f9233…`; `make test-e2-c-static` exit 0 before each run. Commits
+  `4f0c276f` (07), `e7571664` (08). `check_soak_bank.py`: `cleanRuns: 6,
+  totalRuns: 8`, `qualifyingDays: ["2026-09-07"]`, `day-spread: false`,
+  `ok: false` (count not reached). Nothing left running.
