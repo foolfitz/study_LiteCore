@@ -1,0 +1,86 @@
+# Finding 093 option B, step 4 -- does the changed TU's link resolve?
+#
+# Method: compile src/a11y_tree_probe.cpp to an object IN SCRATCH, before the
+# change and at HEAD, with the exact flags the new E2_V13 rule uses:
+#
+#   em++ -DLOK_USE_UNSTABLE_API -I../libreoffice-26-8/include \
+#        -I../wasm-lite/build-a11y-gate0/config_host \
+#        -I.../UnoApiHeadersTarget/udkapi/comprehensive \
+#        -I.../UnoApiHeadersTarget/offapi/comprehensive \
+#        -I.../UnpackedTarball/boost \
+#        -Oz -pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm \
+#        -std=c++20 -DLIBO_INTERNAL_ONLY -c src/a11y_tree_probe.cpp
+#
+# then set-difference each object's undefined symbols against the defined
+# symbols of EVERY archive the link line resolves to. The archive set is built
+# by resolving each -l entry in
+# wasm-lite/build-a11y-gate0/instdir/program/soffice.js.linkdeps against
+# instdir/program plus every -L path on that line: 172 distinct -l entries,
+# 170 resolved to a file, 2 unresolved (`dl`, `m`, emscripten builtins).
+# 474,188 distinct defined symbols indexed.
+#
+# NO LINK WAS RUN.
+
+## Counts
+
+  before c2a7abad : undefined 72   unresolved-against-link-line 44
+  at HEAD         : undefined 76   unresolved-against-link-line 44
+
+  The unresolved sets are IDENTICAL (diff is empty). That is the control:
+  those same symbols were unresolved for the TU that DID link into
+  e2-editor-v10, so they come from the emscripten sysroot and the change
+  adds nothing the link cannot resolve.
+
+## The four symbols the change adds, and where each is defined
+
+  _ZN3vcl6Window9GetOutDevEv                                             libvcllo.a
+  _ZN7MapModeC1E7MapUnit                                                 libvcllo.a
+  _ZN7MapModeD1Ev                                                        libvcllo.a
+  _ZNK12OutputDevice12PixelToLogicERKN5tools9RectangleERK7MapMode        libvcllo.a
+
+## The 44 unresolved symbols (identical before and after)
+
+  _Unwind_CallPersonality
+  _ZNKSt3__26locale9use_facetERNS0_2idE
+  _ZNKSt3__28ios_base6getlocEv
+  _ZNSt3__212basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE6__initEPKcm
+  _ZNSt3__212basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE6__initEmc
+  _ZNSt3__212basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE6resizeEmc
+  _ZNSt3__212basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEED2Ev
+  _ZNSt3__213basic_ostreamIcNS_11char_traitsIcEEE6sentryC1ERS3_
+  _ZNSt3__213basic_ostreamIcNS_11char_traitsIcEEE6sentryD1Ev
+  _ZNSt3__213basic_ostreamIcNS_11char_traitsIcEEED2Ev
+  _ZNSt3__213basic_ostreamIcNS_11char_traitsIcEEElsEi
+  _ZNSt3__213basic_ostreamIcNS_11char_traitsIcEEElsEl
+  _ZNSt3__213basic_ostreamIcNS_11char_traitsIcEEElsEs
+  _ZNSt3__213basic_ostreamIcNS_11char_traitsIcEEElsEx
+  _ZNSt3__215basic_streambufIcNS_11char_traitsIcEEEC2Ev
+  _ZNSt3__215basic_streambufIcNS_11char_traitsIcEEED2Ev
+  _ZNSt3__25ctypeIcE2idE
+  _ZNSt3__26localeD1Ev
+  _ZNSt3__28ios_base33__set_badbit_and_consider_rethrowEv
+  _ZNSt3__28ios_base4initEPv
+  _ZNSt3__28ios_base5clearEj
+  _ZNSt3__29basic_iosIcNS_11char_traitsIcEEED2Ev
+  _ZNSt9bad_allocC1Ev
+  _ZNSt9bad_allocD1Ev
+  _ZSt9terminatev
+  _ZTISt9bad_alloc
+  _ZTTNSt3__219basic_ostringstreamIcNS_11char_traitsIcEENS_9allocatorIcEEEE
+  _ZTVN10__cxxabiv117__class_type_infoE
+  _ZTVNSt3__215basic_stringbufIcNS_11char_traitsIcEENS_9allocatorIcEEEE
+  _ZTVNSt3__219basic_ostringstreamIcNS_11char_traitsIcEENS_9allocatorIcEEEE
+  _ZdlPvm
+  __assert_fail
+  __cxa_allocate_exception
+  __cxa_begin_catch
+  __cxa_end_catch
+  __cxa_guard_abort
+  __cxa_guard_acquire
+  __cxa_guard_release
+  __cxa_throw
+  __indirect_function_table
+  __stack_pointer
+  __wasm_lpad_context
+  malloc
+  strlen

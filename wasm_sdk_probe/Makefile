@@ -1547,6 +1547,213 @@ $(E2_V10_BUILD):
 $(E2_V10_DIST):
 	mkdir -p $@
 
+# ----------- v13, finding 093 option B: the outline carries every rectangle
+#
+# THE FIRST REAL COMPILE AND LINK ON THIS LINEAGE SINCE v10, and that sentence
+# is why this block had to be written rather than copied.  v9, v11 and v12 are
+# all REPACKAGINGS: `E2_V9_DIST` consumes `$(A11Y_CALLOC_ARCHIVE)`,
+# `E2_V11_DIST` consumes `$(E2_V10_ARCHIVE)`, and v12 never had a rule at all --
+# it was packaged by invoking the builder by hand.  That is why
+# `dist/profiles/e2-editor-v12/probe.wasm` hashes to `4ec1e389...`: they are
+# v10's bytes.  Option B changed `src/a11y_tree_probe.cpp`, so this time the
+# bytes have to be MADE, and until this block existed
+# `make dist/profiles/e2-editor-v13/sdk-manifest.json` had no rule -- the
+# runbook's step 4 named a target that did not exist.
+#
+# NO CORE REBUILD IS NEEDED, and that is measured rather than reasoned:
+#
+#  * the changed TU compiles clean with the flags below and goes from 72 to 76
+#    undefined symbols.  The four new ones -- `vcl::Window::GetOutDev`,
+#    `MapMode`'s ctor and dtor, `OutputDevice::PixelToLogic` -- are each `T` in
+#    `libvcllo.a`, and `-lvcllo` is on `soffice.js.linkdeps`.
+#  * set-differenced against the defined symbols of all 170 archives that link
+#    line names, the UNRESOLVED remainder is IDENTICAL before and after the
+#    change: 44 symbols, every one libc / libc++ / emscripten runtime, supplied
+#    by the sysroot.  The control is the whole point -- those same 44 were
+#    unresolved for the TU that DID link into v10, so the change adds nothing
+#    the link cannot resolve.
+#
+# ONE VARIABLE AGAINST v12, measured with the tree's own instrument:
+# `what_the_link_ships.py --variant a11y --since e18429eb` reports the four
+# product units preprocessing IDENTICALLY and `sdk-worker.js` differing by
+# exactly the four allowlist fields option B added.  READ THE GAP IN THAT
+# SENTENCE: that instrument deliberately does not preprocess `a11y_tree_probe`
+# (`notPreprocessed`, its own word), and that TU is precisely what option B
+# changes -- so the only unit that moved is the one nothing measures.
+#
+# ITS OWN BUILD AND DIST DIRECTORIES, for the reason every predecessor got
+# them: v10's objects must not be rebuilt, because relinking v10 mints a second
+# artifact under a name three rounds of product-path evidence bind to
+# (findings 036, 042).
+#
+# Evidence for every number above:
+# `findings/evidence/093/step4-build-and-link-rule/`.
+E2_V13_BUILD := build/e2/e2-editor-v13
+E2_V13_DIST := dist/profiles/e2-editor-v13
+E2_V13_OBJECTS := $(patsubst src/%.cpp,$(E2_V13_BUILD)/%.o,$(E2_V5_SOURCES))
+
+# WHAT e2-editor-v13's MANIFEST MUST DECLARE.  Checked on the manifest that
+# came OUT, never on the flags that went IN, so this is not a mirror of the
+# packaging line: every entry names a declaration, and the census that shows
+# each one goes red when its flag is dropped -- one flag at a time, on the real
+# builder, nine cases -- is in
+# `findings/evidence/093/step4-build-and-link-rule/FLAG-CENSUS.md`.
+#
+# THE HAZARD THIS EXISTS FOR.  Dropping `--document-outline-geometry` fails
+# SILENTLY: the engine still emits the rectangles, the manifest does not
+# declare them, the page reads no declaration and takes its honest-degradation
+# path (`data-geometry="absent"`), the projection stays piled at the top of the
+# paper, and the product path's new check PASSES -- because that path is the
+# legal state it was written to protect.  You would have paid for a new
+# identity, dropped five pins, and changed nothing.  Same shape as
+# `--inline-range-gestures all` in the v8 runbook.
+#
+# `"range-cross"` IS NOT USABLE AS THE GESTURE TEST and that was measured, not
+# guessed: the paragraph actions carry it unconditionally and `gestureBits`
+# names it, so it is present even with the flag dropped -- zero discriminating
+# power.  `"inlineRangeEvidence"` is emitted for `all` alone; it separates `all`
+# from both `none` and the narrower `range-single`.
+#
+# The bare `9901e9be29c9ded2` says WHICH core image was sliced, which the pack
+# NAMES cannot: packaging against the product core still produces
+# `./base-e2-editor-v13.<something>.data` and would sail past every other line
+# here (measured: it comes out `ba15a988a7fec468`).
+define V13_MANIFEST_MUST_DECLARE
+import sys
+text = open(sys.argv[1], encoding="utf-8").read()
+required = [
+    ('"profile": "e2-editor-v13"', "--profile e2-editor-v13"),
+    ('"caretParagraphText"', "--paragraph-text"),
+    ('"documentOutline"', "--document-outline"),
+    ('"documentOutlineGeometry"', "--document-outline-geometry"),
+    ('"inlineRangeEvidence"', "--inline-range-gestures all"),
+    ('"./base-e2-editor-v13.', "--core-data together with --split-core-data"),
+    ('"cjk-e2-editor-v13"', "--split-core-data"),
+    ('"fallback-fonts-e2-editor-v13"', "--split-core-data"),
+    ('9901e9be29c9ded2', "--core-data ../wasm-lite/build-a11y-gate0 -- the base pack hash says WHICH core image was sliced and this one is not it"),
+]
+missing = [(lit, why) for lit, why in required if lit not in text]
+if missing:
+    out = sys.stderr
+    out.write("\n" + sys.argv[1] + " does not declare what e2-editor-v13 must declare:\n")
+    for lit, why in missing:
+        out.write("  absent from the manifest: " + lit + "\n")
+        out.write("      the packaging line lost: " + why + "\n")
+    out.write("\nThis is a SILENT narrowing if it is not caught here: the engine still\n")
+    out.write("emits, the manifest does not declare, the page takes its honest\n")
+    out.write("degradation path and the product path PASSES. Fix the flags and re-run\n")
+    out.write("THIS target only -- repackaging never mints a second wasm.\n\n")
+    raise SystemExit(1)
+endef
+export V13_MANIFEST_MUST_DECLARE
+
+$(E2_V13_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/format_readback_text.hpp src/a11y_paragraph_identity.hpp \
+		Makefile | $(E2_V13_BUILD)
+	$(CXX) $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_A11Y_PARAGRAPH_TEXT -DOXSDK_A11Y_OUTLINE \
+		-c $< -o $@
+
+# The one object built against core's INTERNAL headers, and the only source
+# file option B changed.  Same flags as v10's: `-DLIBO_INTERNAL_ONLY` and
+# c++20 were already what this TU needs, and the geometry call adds no compile
+# flag -- `vcl/window.hxx` and `vcl/outdev.hxx` are under `$(LOSRC)/include`,
+# which `E2_V5_CPPFLAGS` already carries.  Measured by compiling it, not read
+# off the includes.
+$(E2_V13_BUILD)/a11y_tree_probe.o: src/a11y_tree_probe.cpp Makefile \
+		| $(E2_V13_BUILD)
+	$(CXX) $(E2_V5_CPPFLAGS) $(R5_CXXFLAGS) -std=c++20 -DLIBO_INTERNAL_ONLY \
+		-c $< -o $@
+
+$(E2_V13_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V13_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# The guard sits here for the same reason it sits in every other link recipe:
+# it is not a description of what you are doing, it is the price of the door.
+# The FIRST link of v13 is not relinking anything frozen and the guard will
+# still refuse without `ALLOW_FROZEN_RELINK=1` -- that is deliberate, because
+# the second one would be, and a guard you can forget is not a guard.
+$(E2_V13_BUILD)/probe.js: $(E2_V13_OBJECTS) \
+		$(E2_V13_BUILD)/a11y_tree_probe.o \
+		$(E2_V13_BUILD)/exports.txt \
+		$(E2_V5_CORE)/instdir/program/soffice.js.linkdeps Makefile
+	$(call refuse_unasked_relink,finding 093 option B's geometry candidate -- every link mints a new hash and nine identities bind to one)
+	$(CXX) $(E2_V13_OBJECTS) $(E2_V13_BUILD)/a11y_tree_probe.o \
+		-L$(E2_V5_CORE)/instdir/program \
+		$$(cat $(E2_V5_CORE)/instdir/program/soffice.js.linkdeps) \
+		-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm --no-entry -Oz \
+		-sMODULARIZE -sEXPORT_NAME=createProbeModule \
+		-sTOTAL_MEMORY=1GB -sPTHREAD_POOL_SIZE=7 -sPTHREAD_POOL_SIZE_STRICT=0 \
+		-sSTACK_SIZE=131072 -sDEFAULT_PTHREAD_STACK_SIZE=65536 \
+		-sFORCE_FILESYSTEM=1 -sWASM_BIGINT=1 -sERROR_ON_UNDEFINED_SYMBOLS=1 -sFETCH=1 \
+		-sASSERTIONS=0 -sEXIT_RUNTIME=0 \
+		-sEXPORTED_RUNTIME_METHODS=ccall,FS,HEAPU8 \
+		-sEXPORTED_FUNCTIONS=@$(E2_V13_BUILD)/exports.txt \
+		-Wl,--wrap=_Z18initJsUnoScriptingv \
+		--pre-js $(LOSRC)/static/emscripten/environment.js \
+		--pre-js $(E2_V5_CORE)/workdir/CustomTarget/static/emscripten_fs_image/soffice.data.js.link \
+		-o $@
+
+$(E2_V13_BUILD)/probe.wasm: $(E2_V13_BUILD)/probe.js
+	@test -s $@
+
+# THE PACKAGING LINE.  Every flag on it is asserted below, on the manifest that
+# comes out -- see the comment on V13_MANIFEST_MUST_DECLARE for why a dropped
+# flag here is silent and expensive rather than loud and cheap.
+#
+# The two flags the assertions do NOT have to carry are the two the builder
+# refuses by itself, and that is measured: omitting `--profile` makes it refuse
+# to grant range gestures under `e2-editor-v4`'s frozen name, and omitting
+# `--core-data` while keeping `--split-core-data` makes it refuse because there
+# is nothing to slice.
+$(E2_V13_DIST)/sdk-manifest.json: $(E2_V13_BUILD)/probe.js \
+		$(E2_V13_BUILD)/probe.wasm \
+		$(E2_V13_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V13_DIST)
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_V13_BUILD)/probe.js \
+		--wasm $(E2_V13_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js \
+		--exports $(E2_V13_BUILD)/exports.txt \
+		--profile e2-editor-v13 --paragraph-text --document-outline \
+		--document-outline-geometry \
+		--inline-range-gestures all --core-data $(E2_V5_CORE) \
+		--split-core-data \
+		--output $(E2_V13_DIST)
+	@test -s $(E2_V13_DIST)/probe.js
+	@test -s $(E2_V13_DIST)/probe.wasm
+	@test -s $(E2_V13_DIST)/sdk-worker.js
+	# THE MANIFEST IS REMOVED IF IT FAILS, and that `rm` is load-bearing rather
+	# than tidy.  This Makefile does not set `.DELETE_ON_ERROR`, so make leaves
+	# a target that a recipe wrote and then failed on.  A narrowed manifest left
+	# on disk is NEWER than its prerequisites, so the next `make` would say
+	# "nothing to be done" and hand you the narrowed profile in silence -- the
+	# very failure this check exists to catch, one level up.  Deleting it makes
+	# the retry real, and the retry is cheap: it repackages, it never relinks.
+	@python3 -c "$$V13_MANIFEST_MUST_DECLARE" $(E2_V13_DIST)/sdk-manifest.json \
+		|| { rm -f $(E2_V13_DIST)/sdk-manifest.json; exit 1; }
+
+$(E2_V13_BUILD):
+	mkdir -p $@
+
+$(E2_V13_DIST):
+	mkdir -p $@
+
 # --------------------------------------------- v9, the a11y product candidate
 #
 # `a11y-calloc` answered finding 076 and is deliberately NOT a product profile:

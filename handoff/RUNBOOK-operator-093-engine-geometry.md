@@ -497,3 +497,105 @@ Makefile**，而 §4(c) 已經寫了它的代價（finding 042：每個 profile 
 （`EXPECTED_PASS` 38→39、`DEFAULT_SHA`、`DEFAULT_SERVED_SHELL`）要在步驟 4 之後
 一起動。理由寫在 `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` 2026-09-08
 的 amendment。
+
+---
+
+# 追記（2026-09-08）：步驟 4 的規則寫好了，那一行指令現在跑得起來
+
+**這一段是 append，上面一個字都沒有改。**它結清的是上一則追記的「更正一」
+（那行指令沒有規則可跑）與「更正二」（旗標少一個），並補上三件連結前後要看的事。
+
+規則在 `wasm_sdk_probe/Makefile` 的 `E2_V13_*` 區塊。證據在
+`findings/evidence/093/step4-build-and-link-rule/`。
+**這一輪沒有連結、沒有產出任何 wasm、`dist/profiles/` 底下一個位元組都沒動**——
+量過：`dist/profiles` 與 `build/e2` 底下 316 個檔的 sha256 在改 Makefile 前後完全相同。
+
+## 你要跑的那一行——跟原文 §5 步驟 4 寫的完全一樣
+
+```bash
+cd /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe
+make ALLOW_FROZEN_RELINK=1 dist/profiles/e2-editor-v13/sdk-manifest.json
+```
+
+新規則刻意沿用原文那個目標名，所以**指令沒有變，變的是它現在真的有規則**。
+`ALLOW_FROZEN_RELINK=1` 仍然要帶：守衛無條件坐在每一條連結配方裡，v13 第一次連結
+也不例外（實測：不帶就 exit 1 並印出拒絕訊息）。
+
+## 旗標不用你記了，而且漏掉會被擋下來
+
+原文與上一則追記列的旗標**已經寫進規則裡**：
+
+```
+--profile e2-editor-v13 --paragraph-text --document-outline \
+--document-outline-geometry \
+--inline-range-gestures all --core-data ../wasm-lite/build-a11y-gate0 \
+--split-core-data
+```
+
+規則在打包完之後**讀產出的 manifest**，缺任何一項就 fail，並印出**是哪一個旗標掉了**。
+七個旗標一個一個拿掉實測過（`FLAG-CENSUS.md`，九個案例）：五個各自撞到一條宣告，
+另外兩個（`--profile`、`--core-data`）builder 自己就會拒絕。連「旗標都對但 `--core-data`
+指到產品那顆 core」也擋得住——資料包的**名字**是用 profile 名組的，擋不住換錯 core，
+所以判準裡另外釘了那顆 a11y core 映像的雜湊。
+
+**判準失敗只花一次重新打包，不會再連結一次**：`probe.js`／`probe.wasm` 是另一個目標，
+跟打包旗標無關。而且失敗時規則會把那份 manifest **刪掉**——不刪的話下一次 `make` 會說
+「已經是最新的」，把縮限的那一份靜靜交給你。這個陷阱是實測出來的，不是想像的。
+
+## 連結之前，三件事
+
+1. **先跑 `make -n` 而且真的讀它。**finding 042 的教訓逐字是「它印了，我沒有讀」。
+
+   ```bash
+   make -n dist/profiles/e2-editor-v13/sdk-manifest.json | grep -c 'em++'
+   ```
+
+   **要看到 6**：四個產品 TU ＋ `a11y_tree_probe` 共五次編譯，加一次連結。而且那六行的
+   `-o` 全部要落在 `build/e2/e2-editor-v13/` 底下（已量：6 行，0 行在別處）。
+   任何一行寫到別的 profile 的 build 目錄就**停手**，那是 042 又咬了一次。
+
+2. `python3 tools/check_relink_queue.py` 要看到 `P1 complete: True`。
+   （2026-09-08 已量：True，blocking 是空的。）
+
+3. **先記下三顆現有 artifact 的雜湊**，連結完再比一次：
+
+   ```bash
+   sha256sum dist/profiles/e2-editor-v8/probe.wasm \
+             dist/profiles/e2-editor-v10/probe.wasm \
+             dist/profiles/e2-editor-v12/probe.wasm
+   ```
+
+   應該是 `4a2710bb…`、`4ec1e389…`、`4ec1e389…`。**後兩顆同一份不是筆誤**——v12 從來
+   沒有被連結過，它是 v10 的位元組換一份 worker 與 manifest 重新打包的。
+
+**不要跑任何裸 `make`。**這棵樹現在每一個 `.o` 都已經是過期的（`Makefile` 是它們的相依，
+而它被改過很多次），裸 `make` 會開始重編。守衛擋得住**連結**，擋不住**重編**。
+
+## 連結之後、量任何東西之前
+
+原文 §5 步驟 5 那四件事照舊（記五個雜湊、立刻 archive、repoint 兩行一起改、凍新的
+shell generation），再加兩件：
+
+- **重跑上面第 3 點的 `sha256sum`，三顆要一模一樣。**任何一顆變了就**停手**：那表示這趟
+  連結順手重鑄了一顆別人綁著的 artifact。
+- v13 的目錄裡除了四個檔，還要有**六個資料包檔**（base／cjk／fallback 各一個 `.data`
+  ＋一個 `.metadata`）。規則會先擋下來，但眼睛看一下更快。
+
+`#a11y-structure` 的 `data-geometry` 要看到 `present`，判讀照上一則追記那三格。
+
+## 這一輪量到的、與仍然沒有驗證的
+
+**不用重編 core 這件事重新量過，而且這次有對照。**改動前後，「連結線上 170 個 archive
+都沒有定義」的符號集合**完全相同**（44 個，全是 libc／libc++／emscripten runtime）。
+那 44 個在 v10 那次**成功**的連結上本來就沒解，所以這次改動沒有加進任何連結解不掉的
+東西。多出來的四個符號（`Window::GetOutDev`、`MapMode` 建構／解構、
+`OutputDevice::PixelToLogic`）都在 `libvcllo.a` 裡是 `T`，而 `-lvcllo` 在連結線上。
+
+仍然沒有驗證的：
+
+- **連結本身沒有跑過。**符號解不解得掉是用「archive 索引的集合相減」量的，不是
+  `wasm-ld` 說的。archive 成員挑選、`--wrap`、重複定義、連結順序，這個量法都看不到。
+- **連結要多久仍然未知。**原文 §4(a) 說樹裡沒有紀錄、不編一個數字給你；這一輪也沒有加。
+- **每段一次 `getBounds()` 的成本仍然沒有量過**（原文 §7 第 3 點）。
+- **v13 的四個產品 `.o` 從來沒有被建過。**這一輪只編過 `a11y_tree_probe.cpp`，而且只編到
+  scratch。那四個用的是 v10 逐字相同的旗標、原始碼也預處理成同一份，但那是論證，不是編譯。
