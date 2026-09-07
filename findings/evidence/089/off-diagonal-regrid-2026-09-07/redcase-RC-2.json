@@ -1,0 +1,19 @@
+{
+  "redCase": "RC-2",
+  "spec": "a third value in the 'did not open' column. One extra invocation (Shape B plus --truncated), where the truncated control is a copy of tdf149752-index20-index236.ods cut to its first 4,096 bytes, written into the scratchpad, never into findings/evidence/089/.",
+  "requiredRecord": "that case has opened falsy with an error whose code != 'TIMEOUT', proving 'did not open' is not a constant that only ever means the 180 s ceiling.",
+  "truncatedFileOrigin": "head -c 4096 of findings/evidence/089/tdf149752-index20-index236.ods, written to the scratchpad only (never into findings/evidence/089/)",
+  "truncatedFileSha256": "68da3248e02dcfc385236e59857d6c85c4389ab4dfbeab65f97d8016cd2fe41b",
+  "invocationReportFile": "redcase-RC-2-invocation.json",
+  "chargedToReserveBudgetAsInvocation": 7,
+  "truncatedCaseResult": {
+    "opened": false,
+    "elapsedMs": 926,
+    "error": {
+      "name": "DocumentSdkError",
+      "code": "LOK_ERROR",
+      "message": "loadComponentFromURL returned an empty reference"
+    }
+  },
+  "verdict": "MATCHES the required record: opened is falsy, error.code == 'LOK_ERROR' (not 'TIMEOUT'), error.message == 'loadComponentFromURL returned an empty reference'. This is a third value in the did-not-open column, distinct from the two banked TIMEOUT rows (A6, K2) and distinct from every REPRODUCES row. RC-2 was pre-registered as possibly needing 'not attempted' if reserve ran out; it did not: both reserve invocations were still free after the six required invocations (1-6) all completed clean with no voids."
+}

@@ -862,3 +862,43 @@ confident wrong attribution costs more than the open question.
 ## Execution record
 
 *(appended by the executor after the runs; nothing above this line is edited)*
+
+**Executed 2026-09-07 (UTC), sonnet seat.** Evidence:
+`findings/evidence/089/off-diagonal-regrid-2026-09-07/`, full detail in that
+directory's `RESULT.md`.
+
+- No-browser red cases (RC-3, RC-4, RC-5) ran first, before any browser
+  invocation, exactly as instructed. All three produced their required
+  records. RC-3's literal "R -> C" wording could not be produced from a
+  single banked A-row file (no such file passes section 4.5's own RC-1 gate
+  alone); the observed transition was void -> C (C1, point A3 named), which
+  is reported as a discrepancy against the literal text in `RESULT.md`,
+  not resolved by substitution.
+- Chrome process count before the first browser invocation: **0**. No soak
+  run was observed in flight at any point. `df /tmp`: 16G tmpfs, 1.6G used,
+  10%, unchanged across the whole run.
+- 6 required invocations (Shape A repeats 1-3, Shape B repeats 1-3, repeat 3
+  of each reversed per section 3.4) all completed clean: every section 4.5
+  gate passed, no invocation void, `git status --porcelain` showed no delta
+  beyond this task's own new directory before and after every invocation.
+- RC-2 (the browser red case) was charged to reserve invocation 7, since both
+  reserves were free. It produced a third "did not open" value
+  (`error.code == "LOK_ERROR"`), distinct from `TIMEOUT`. Reserve invocation
+  8 was not spent -- the stop rule was met with no voided invocation and no
+  split requiring a tie-break.
+- **Outcome: R.** All ten named points (A1-A6, B1, B2, K1, K2) REPRODUCED
+  their banked category unanimously across all three repeats; the ODT
+  control opened in every invocation; both anchors behaved as they did on
+  2026-09-07; no invocation was void; every section 4.5 gate passed. No E1,
+  E2, E3, C, or S trigger fired. Section 1.2's outcome-R sentence is quoted
+  in full, with today's date and point list, in `RESULT.md`.
+- A textual inconsistency in section 1.2 was found and named rather than
+  silently resolved: the phrase "the six owed points" (used in the E2/C
+  trigger text) undercounts against sections 5.1/5.3's own sub-case
+  definitions (C2 names B1/B2 as owed points too). `reduce.py` followed the
+  substantive eight-point reading; it did not change the outcome fired in
+  this run.
+- Whether the "both axes" sentence may now be repeated, and what this result
+  means for any milestone, is not decided here -- per this task's own
+  "Role" section, the executor carries no judgement and makes no terminating
+  declaration.
