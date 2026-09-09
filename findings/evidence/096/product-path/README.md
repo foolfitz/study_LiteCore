@@ -41,3 +41,28 @@ in the finding: with the mutation, the arm used to leave the session dead, so
 the liveness guard stopped the run and the round reported a STOPPED run instead
 of one red check. Pressing the notice in both worlds fixed that and made the
 arm's correctness independent of being last in the file.
+
+---
+
+# Append (2026-09-09, after the owner's link): the same check on `e2-editor-v14`
+
+`plain-e2-editor-v14.json` — `tools/run_e2_c_product_path.py --profile
+e2-editor-v14`, no mutation, shell generation **v51**
+(`differingPaths: ["web/e2-editor-app.js"]`, `differsOnlyInTheEntrypoint: true`
+— the repointed page and nothing else).
+
+**42 checks: 40 PASS / 2 NE / 0 FAIL, `ok: true`.** The NE pair is unchanged.
+The composition is the one the amendment registered.
+
+`a-boundary-arrow-press-does-not-cost-the-work` **PASS**, and for the first time
+`clausesExercised` contains **B2**: `["B1", "B3", "B2"]`. The press was answered
+(`theEngineAnsweredThePress: true`, `stateAfterPress: ready`), the page took the
+key (`takenByThePage: [true]`), the revision stood at 1 before and after it, and
+`#s-checkpoint` went `無` → `有（r1）`.
+
+**B4 is not exercised on this profile.** The session never dies, so the recovery
+notice is never pressed and "what comes back contains what was typed" is not
+measured here. On the shipping profile the check runs B1/B3/B4; on v14 it runs
+B1/B3/B2. No single run covers all four.
+
+Full reading: `findings/evidence/096/RESULT-after-the-link.md`.

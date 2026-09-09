@@ -118,3 +118,27 @@ attempt therefore also carries, raw:
   separate.
 - **A physical keyboard.** These keys are injected at the renderer. See
   `RESULT.md` for what that leaves open.
+
+---
+
+# Append (2026-09-09, after the owner's link)
+
+New files, all measured against predictions registered **before**
+`dist/profiles/e2-editor-v14/` existed. No build, no link, no product byte moved.
+
+| file | what it is |
+| --- | --- |
+| `RESULT-after-the-link.md` | the reading, prediction by prediction. Start here. |
+| `boundary-arrow-e2-editor-v14.json` | half A on the new engine: `NOT_REPRODUCED` 10/10, both directions |
+| `boundary-arrow-control-e2-editor-v13.json` | the candidate as a control, same session: died 10/10 |
+| `boundary-arrow-control-e2-editor-v8.json` | the shipping bytes as a control, same session: died 10/10 |
+| `checkpoint-before-the-gesture-e2-editor-v14.json` | half C on the new engine: `ENGINE_ANSWERED` 3/3 in both arms |
+| `checkpoint-before-the-gesture-post-link-v8.json` | half C on the shipping page, probe unmodified: `WORK_LOST` 3/3 / `RECOVERED` 3/3, as before the link |
+| `run_c_on_v14.py` | the driver that points the C probe at another profile. The probe has no `--profile` and mirrors `dist/`, whose page pins `e2-editor-v8`; the probe itself is byte-identical and every judgement in that run is its own. |
+
+**Two labels moved for reasons that are not in the engine**, and a reader
+diffing outcome strings against `RESULT.md` should know before doing it: the two
+controls now report `DIED_WITH_CHECKPOINT` rather than `REPRODUCED` (the served
+shell carries half C, so `data-rescue` is `checkpoint`, not `none` — the deaths
+are unchanged), and `boundaryPressAnsweredSeconds` is the probe's own 4 s
+movement-watch window, so only its null-ness carries information.

@@ -508,3 +508,106 @@ the-caret`）。少了它，**頁面根本沒接走的按鍵**會讓 session 停
 ## 這一段仍然不改上面任何一句
 
 **A 的效果還是量不到**：兩趟裡那一按都沒有被回答，`clausesExercised` 都沒有 B2。
+
+---
+
+# 連結之後的量測（2026-09-09，append-only）：那一按被回答了，而對照組照樣死
+
+**這一段是 append，上面一個字都沒有改。**擁有者已經跑完那一次連結，
+`dist/profiles/e2-editor-v14/` 存在，`probe.wasm` 是 `5847a1407d3af58f…`。
+
+**判準是連結之前寫的**（`handoff/HANDOFF-2026-09-09-096-is-landed-in-source-and-
+waits-on-the-same-link.md` 的「After the link, in this order」），本輪逐條讀回，
+不另立驗收。證據：`findings/evidence/096/RESULT-after-the-link.md` 與五份新的 JSON。
+**沒有建置、沒有連結、沒有動任何產品位元組**（`git status` 只有新檔）。
+
+## 四條預測，逐條
+
+| # | 預測 | 結果 |
+| --- | --- | :---: |
+| 1 | A：那一按被回答，session 留在 `ready`，探針報 `NOT_REPRODUCED` | **成立 10/10** |
+| 2 | 對照組 v13 與出貨的 v8 照樣死，上下各 5/5 | **成立 20/20** |
+| 3 | C 的 `with` 臂報 `ENGINE_ANSWERED` 而不是 `RECOVERED` | **成立，但要先把頁面指過去** |
+| 4 | 產品路徑 40 PASS / 2 NE，第 42 道檢查第一次跑到 B2 | **成立，B2 真的被驅動** |
+
+## 1 —— 那一按的數字（產品自己的 `#s-latency`）
+
+| 按 | 次數 | 範圍 | 中位數 |
+| --- | ---: | --- | ---: |
+| 邊界前那一按（會動的） | 10 | 47–51 ms | 48 |
+| **第一次的邊界按** | 10 | **623–958 ms** | **666** |
+| 同一場後續的邊界按 | 50 | 259–263 ms | 261 |
+
+261 是 250 ms 期限加上約 11 ms。判定之後（探針等滿 90 秒）的畫面是
+`ready`、`revision 0`、`pending 0`、沒有提示、`#s-checkpoint 有（r0）`。
+`firstNonMovingPress` 全部是 2，跟連結之前同一個位置。
+
+## 2 —— 對照組：死法沒變，標籤變了，而變的原因量得到
+
+v13 與 v8 各 10/10 進 `recoverable-error`。**但探針記的是
+`DIED_WITH_CHECKPOINT` 不是 `REPRODUCED`**，因為 `REPRODUCED` 要求
+`data-rescue: "none"`。兩臂的頁面位元組與連結前那兩趟**逐位元相同**
+（`31787584…`、`1ec7baf9…`），引擎也相同，所以只差一件事：`dist/` 的殼層
+現在帶著 C。
+
+| | 連結前 | 本輪 |
+| --- | --- | --- |
+| outcome | `REPRODUCED` | `DIED_WITH_CHECKPOINT` |
+| `data-rescue` | `none` | `checkpoint` |
+| 按鍵後 `#s-checkpoint` | `無` | `有（r0）` |
+
+**死沒有變，丟工作變了。**這是本輪順帶量到的：C 在兩顆凍結的引擎上，頁面固定不動，
+效果分得開。順帶再確認一次那句提示仍然指名錯的手勢（「回到**選取手勢**前的檢查點」）
+——**登錄，仍然不修**。
+
+## 3 —— C：探針沒有 `--profile`，所以照字面重跑量的是 v8
+
+`probe_096_checkpoint_before_the_gesture.py` 是拿 `dist/` 直接做鏡像的，而那裡的頁面
+釘的是 `e2-editor-v8`。**照字面重跑量的是出貨的引擎**，於是「重跑報 `RECOVERED`
+就代表期限不在 artifact 裡」這條推論對它不成立。兩趟都跑了：
+
+- **C on v14**（探針一個位元組沒改，鏡像的 `e2-editor-app.js` 用
+  `repointed_page()` 換掉，驅動程式 `run_c_on_v14.py` 一起存進證據）：
+  **兩臂都是 `ENGINE_ANSWERED` 3/3**，`boundaryPressAnsweredSeconds` 六次都非 null
+  （連結前六次都是 null）。**但那個數字是探針自己的 4 秒觀察窗，不是回答時間**——
+  它只說「session 沒死」。`with` 臂照樣存下 `有（r1）`，`without` 停在 `無`。
+- **C on 出貨頁面（探針不改）**：`without` **WORK_LOST 3/3**、`with`
+  **RECOVERED 3/3**、`armsDisagree: true`——與連結前逐格相同。C 在出貨位元組上仍然成立。
+
+**C 在 v14 上還走得到嗎？這個手勢走不到了。**兩臂都被回答，兩臂都不丟工作，
+`armsDisagree` 是 false，紅案在這顆引擎上不再有鑑別力。C 只在沒有移動期限的引擎上
+還可證偽。
+
+## 4 —— 第 42 道檢查：B2 第一次真的被驅動
+
+`tools/run_e2_c_product_path.py --profile e2-editor-v14`，無突變：
+**42 格 40 PASS / 2 NE / 0 FAIL**，`ok: true`，NE 那一對沒變，
+`servedShell` 是 bundle v51、`differsOnlyInTheEntrypoint: true`。
+
+`clausesExercised` 從連結前的 `["B1","B3","B4"]` 變成 **`["B1","B3","B2"]`**。
+不是宣告，是量到的：`takenByThePage: [true]`（`defaultPrevented` 對照組有燒過）、
+`theEngineAnsweredThePress: true`、`stateAfterPress: ready`、
+打字把 revision 推到 1 而那一按沒有再動它、`#s-checkpoint` `無` → `有（r1）`。
+
+## 預測沒有預期到的六件事
+
+1. **第一次的邊界按是 623–958 ms，不是 261 ms。**10/10、兩個方向都這樣，同一場裡
+   後續每一按都回到 259–263。那一按仍然被回答、session 仍然可用，所以沒有任何判準
+   因此不成立；但「250 ms 回答」不是第一按在做的事。**本輪不指認成因。**
+2. **`boundaryPressAnsweredSeconds` 量的不是回答。**它是 `presses[-1]["seconds"]`，
+   而邊界的游標永遠不動，所以那個觀察窗一定跑滿。只有它是不是 null 有意義。
+3. **A 探針的對照組不再說 `REPRODUCED`。**死法沒變，但拿 outcome 字串去對
+   `RESULT.md` 的 40/40 會看到二十格變了，而原因在殼層不在引擎。
+4. **B4 在 v14 上不再被執行。**session 不死，就沒有提示可按，也就沒有人問「回來的
+   文件含不含打進去的字」。出貨 profile 上這一格跑 B1/B3/B4，v14 上跑 B1/B3/B2——
+   **沒有任何單一一趟同時蓋到四條**，而且安靜掉的正好是 C 存在的理由那一條。
+5. **後續步驟 3 照字面跑不出它要的答案**（見上）。
+6. **`build/archive/` 裡沒有 v14。**手冊的步驟 1（記五個雜湊、立刻 archive）還沒做，
+   那是擁有者的步驟，本輪沒有代做。
+
+## 仍未量
+
+第一按為什麼與其餘不同；**這條路在負載下的表現**（本輪刻意一次只跑一顆瀏覽器）；
+Home／End 與兩個字元移動；250 ms 在長文件上夠不夠、落到讀回的發生率；任何 v1 profile
+（`editor-shell/editor-client.js` 仍然會拒絕 `verified-move-readback`，本輪沒有動過
+也沒有量過任何 v1 artifact）。
