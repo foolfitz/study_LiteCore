@@ -890,3 +890,47 @@ while the count is zero.
 
 **Must not be done early**: no soak run while the page is about to move; no
 binding of the HTML without the owner's ruling; no fix landed on taste.
+
+---
+
+## The soak is held at 6 of 12 pending finding 096 (2026-09-09, append-only)
+
+**Do not take another soak run until this section is superseded.** The owner's
+word, verbatim: 「同意soak 先按住不跑」.
+
+### Why
+
+The owner's second T4 manual round, today, produced **finding 096**: on the
+candidate profile, arrowing to a document boundary and pressing again kills the
+session with the **no-checkpoint** notice — 「引擎需要重新開啟。沒有檢查點，
+所以自上次儲存以來的內容不會回來。」 That is data loss.
+
+The gate document, line 31: *"When they produce a finding, the clock restarts
+from zero and the finding gets a number."* T4 is condition 3's round. So the
+count may be about to go to zero, and any run taken now would be spent on an
+identity that a fix would move anyway.
+
+**This is a hold, not a restart.** Nobody has declared the count zero. The
+declaration is the owner's and it is not owed until 096's discrimination lands.
+
+### What unblocks it
+
+The three-arm measurement now running: does `e2-editor-v13` reproduce it, and
+do `e2-editor-v12` and the shipping `e2-editor-v8`? Three arms rather than two
+because v13 is the first genuinely linked engine since the a11y build *and* the
+page changed, so three arms separate "the new engine did it" from "the page
+change did it" from "it was always there".
+
+* All three reproduce → 086-shaped: present on shipping, not a candidate
+  regression, and the count's disposition is a separate ruling.
+* v13 only → the candidate introduced a data-loss defect and it must be handled
+  before any cutover.
+* v12 and v13 but not v8 → the page change, not the engine.
+
+### State at the moment of the hold
+
+Soak **6 of 12**, all on UTC 2026-09-09, `every-run-clean: true`, page
+`31787584…`, profile `e2-editor-v13`, clean predicate **39 PASS / 2 NE**.
+Conditions 2, 3, 4a, 4b (both halves), the ODT round trip and revert
+condition 3 are **all discharged on this identity** — condition 1 is the only
+one outstanding. Everything except the count is done.
