@@ -59,6 +59,17 @@ DEFAULT_GLOB = "diagnostic-*.json"
 # (`handoff/RUNBOOK-operator-093-engine-geometry.md` §6.2), not a defect in
 # them; they stay banked and unmodified, and condition 2 has to be re-earned.
 #
+# MEASURED THE SAME DAY, and recorded because it looks like a broken tool:
+# `--self-test` now exits 1 with `control failed on: ['1-identity']`.  Its GREEN
+# control is built from the LIVE `diagnostic-*.json`, and those are exactly the
+# reports the moved sha now disqualifies -- so the control is red for the reason
+# the criterion says it should be, not because a red case stopped working.  All
+# of the declared RED cases are still red.  Verified that nothing else moved:
+# `check_caret_diagnostics.py --expect-page-sha256 9b29e39b...` returns
+# `ok: true` on the same three files, so the identity term is the only clause
+# that changed.  Condition 2's re-take on `e2-editor-v13` is what restores the
+# control; until then this tool cannot demonstrate it can say yes.
+#
 # `DEFAULT_PROFILE` BELOW IS DELIBERATELY NOT MOVED, and the pair is therefore
 # inconsistent on purpose: the task that moved the sha scoped itself to the
 # sha.  A re-take of condition 2 on `e2-editor-v13` must either pass
