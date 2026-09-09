@@ -990,3 +990,85 @@ discharged on the current identity and will die with it too — but they are che
 to re-earn and mostly agent work. **T4 is the exception: it is the owner's, it
 takes their evening, and it is the round that produced 093 and 096.** Whoever
 plans the next identity should budget for it rather than discovering it late.
+
+---
+
+## B4's coverage gap: the owner rules A — a second inducer (2026-09-10, append-only)
+
+The 2026-09-10 handoff left one thing undecided: on `e2-editor-v14` the 42nd
+check (`a-boundary-arrow-press-does-not-cost-the-work`) exercises
+`[B1, B3, B2]` and on the shipping `e2-editor-v8` it exercises `[B1, B3, B4]`,
+so **B4 — "what comes back contains what was typed" — is watched by nothing on
+the profile that carries half C.** The two options on the table were (a) a
+second inducer so B4 is reachable on a fixed profile, or (b) writing down that
+B4 is meaningful only on the shipping side.
+
+**The owner chose (a)** on 2026-09-10. The precedent is
+`recovery-returns-what-the-product-promised`, which lost its 038 inducer on the
+a11y core and was given `induce_worker_failure`
+(`tools/run_e2_c_product_path.py:2640`, wired at `:8810`): a real uncaught
+error in the document worker, induced from outside the product, no test-only
+affordance, no upstream defect. The same helper is the second inducer here.
+
+**Registered under AGENTS.md §3 as a designed sentinel, not a hole**: on v14 the
+gesture cannot kill the session (that is what A does), so B4 is reached by
+killing it another way after the gesture has banked its checkpoint. The
+property under test is unchanged — the checkpoint half C took *before this
+arrow key* brings the typed text back — only the killing step is substituted,
+exactly as in the precedent.
+
+**Not new machinery** in the §4 sense: no product byte changes, no engine change,
+no link. It is a change to the reach of one existing check.
+
+**Count semantics**: the soak is at 0 of 12 and deferred behind development,
+so no banked run is voided by this. Write that sentence into the gate amendment
+anyway, so the next reader does not have to derive it.
+
+### Task briefs
+
+**T8a (opus, main tree) — give B4 a second inducer on the fixed profile.**
+
+1. Protocol first, in `handoff/tasks/TASK-2026-09-10-096-b4-second-inducer.md`
+   (English), committed before any runner edit: the criteria below, the red
+   cases named before the code exists, and the default conclusion if the task
+   is never finished ("B4 is unwatched on every profile carrying A").
+2. Append an amendment to `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md`
+   (append-only, dated 2026-09-10): what forced it (the v14 `clausesExercised`
+   measured in `findings/evidence/096/product-path/plain-e2-editor-v14.json`),
+   §9's four conditions, and the count semantics above.
+3. In `boundary_rescue`, in the branch where the press was answered: after B2
+   is measured, call `induce_worker_failure(session)`; wait for
+   `recoverable-error`/`restart-required`; read the notice **before** pressing
+   and require that its declared checkpoint names `r{revisionAfterTyping}` —
+   otherwise B4 would be measuring a checkpoint some other gesture banked;
+   press; wait `ready`; save through the product's own control; B4 = the
+   saved ODT contains `BOUNDARY_MARK`. Record `b4Inducer` as
+   `"boundary-press"` or `"worker-failure"` and the inducer's own payload.
+4. The dying branch is **not edited**: on v8 the result must stay cell-for-cell
+   `[B1, B3, B4]` with the same values. T8b measures that as the control.
+5. "The inducer did not fire" and "the work came back" must not read alike:
+   if `fired` is false, B4 stays `None`, `clausesExercised` omits it, and the
+   check's `why` says which — that is a visible gap, not a green.
+6. Red cases (§6) named in the protocol and registered in `MUTATIONS` with
+   exact-once patterns, each turning *this* check red and nothing else:
+   (i) `boundary-move-takes-no-checkpoint` on v14 must now also red B4, not
+   only B3; (ii) a mutation under which the notice offers reopen instead of
+   the checkpoint on the second inducer; (iii) a mutation under which the
+   inducer is skipped, which must render as B4 unexercised in the summary, not
+   as PASS. `make test-e2-c-static` green; `check_usable_editor.py` resolves.
+7. Append the disposition to finding 096 (zh-TW), and to
+   `findings/evidence/096/product-path/README.md` (English).
+8. Forbidden: `build_cutover_page.py --write`, any `make` other than
+   `test-e2-c-static`, any byte under `src/`, `sdk/`, `web/`, `editor-shell*/`,
+   `dist/`. Commit per item, own files only. Report with `## SUMMARY` ≤30
+   lines.
+
+**T8b (sonnet, main tree, headless Chrome) — run it.** After T8a lands: the
+three red cases on v14, each once; then three plain runs on
+`--profile e2-editor-v14` and one on v8. Acceptance, written here before the
+runs: v14 shows `clausesExercised` containing all of B1, B2, B3, B4 with
+`b4Inducer: "worker-failure"` 3/3 and all four clauses true; v8 stays
+`[B1, B3, B4]` with the values banked in `plain-e2-editor-v8.json`. If the
+worker-failure inducer does not fire on v14, that is a result to bank, not a
+task failure. Bank under `findings/evidence/096/product-path/`, append
+`RESULT-b4-second-inducer.md`. Nothing else is run; no soak run is banked.
