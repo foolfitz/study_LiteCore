@@ -2112,3 +2112,108 @@ nothing, so `a11y-projection-at-its-static-position` mutates a file no digest
 covers — the mutation is still detected, because the check reads the DOM, but
 the run's own honesty flag will not show it). That remains where finding 094
 left it.
+
+# Re-earned on `31787584…` / `e2-editor-v13`, 2026-09-09 — 4a is 8 of 8, the ODT round trip crosses, revert condition 3 is PARTIAL
+
+**Append-only. Nothing above is edited. This adds no criterion and moves
+none.** It records three identity-bound conditions re-taken after finding 093
+option B was linked and the candidate became `e2-editor-v13` with page
+`31787584290e42bdca41f95949887dedbc39ba51386439cd8c4d2914d056a79a`. Everything
+bound to `9b29e39b…` is void by the identity terms already written, and this
+section is the re-earn.
+
+The shipping page was **not** repointed at any moment of this pass: `web/` and
+`dist/e2-editor-app.js` are `1ec7baf9…`, still `e2-editor-v8`, before and
+after. `build_cutover_page.py --write` was not run.
+
+## Condition 4a — **8 of 8**
+
+Evidence: `findings/evidence/gate-4a-on-31787584/` (three candidate runs, one
+control, one mutation run, one verdict, `RESULT-4a.md`). Commands unchanged
+from `gate-4a-on-9b29e39b/`. `verdict-4a.json` `"ok": true` over terms 1, 2, 3,
+4, 5, 7, 8: identity `31787584…` × 3 with `shim: null`; 9 of 9 fixture
+paragraphs, `missing: []`; heading `level: 1` matching the ODT outline level, 2
+`list` containers and 4 `listitem` nodes; 3 placements / 3 distinct readings /
+`matchedTheParagraphAimedAt: 3` with `bandsFound: 9`; `distinctSignatures: 1`
+over 3 runs; control `e2-editor-v8` `documentTextInTree: false` with the
+`reason: "profile"` sentence; and role/level on the focused node on all nine
+rows.
+
+**Term 6 was taken against a baseline verified green FIRST**, which is the
+2026-09-07 trap stated in this document's own record: soak runs 09, 10 and 11
+(`findings/evidence/queue-v12-cutover-soak/`), all on page `31787584…`, are
+39 PASS / 2 NE / **0 FAIL** with
+`the-document-region-says-why-it-is-empty` **PASS** on each — green 3 of 3.
+The mutation run is then 38 PASS / 2 NE / **1 FAIL**, FAIL set exactly
+`{the-document-region-says-why-it-is-empty}` = `mustGoRed`, with
+`alsoRed: []`. One check moves, nothing else moves. Restoration verified by
+sha256 on both `web/` and `dist/` (`1ec7baf9…` before and after).
+
+**No ninth term was added** for the forty-first check. §9 condition 1 (prior to
+satisfaction) closed for this gate when the count left zero with soak run 09 on
+2026-09-09. A 4a term about the projection's placement is registered as a
+**work item**, not landed.
+
+## The ODT round trip — `ok: true`, both directions
+
+Evidence: `findings/evidence/queue-v12-cutover-roundtrip/odt-roundtrip-v13-31787584.json`
+and `RESULT-the-saved-odt-crosses-both-ways-on-31787584.md`.
+`tools/probe_odt_roundtrip.py --candidate e2-editor-v13`: both legs `ready`,
+`reopenedIsOdt: true`, `markSurvived: true`, all six fixture lines present
+including `E1-LC-BULLET-TWO 中文項目`. **Revert condition 2 is satisfied on the
+current page.** Candidate-side save is 13,026 bytes here against 13,024 on the
+two previous takes — a different linked artifact, recorded so the difference is
+not later read as instrument drift.
+
+## Revert condition 3 — **PARTIAL, and it stays open**
+
+Evidence: `findings/evidence/queue-v12-cutover-revert-rehearsal/RESULT-2026-09-09-revert-condition-3-on-31787584-PARTIAL.md`.
+
+E-3's **universal clause** (form 1, every plain shipped-page run) is met by the
+one plain run taken: `check_usable_editor` `ok: true`,
+`reconciledFor.kind: "shipped-page"`, `servedShell.bundle
+e2/editor-shell-v2-bundle-v49.json`, `declaredSha256 == servedSha256 ==
+4f8494b6b25736c6314d9cfb8772670009057313d5b0e6753c12b75771e3b9cd`,
+`differingPaths: []`, `problems: []`. The run is 39 PASS / 2 NE, no FAIL,
+`candidateCutover: null`. Supporting requirements all met: default-manifest
+build exit 0 with `problems: []`; `tests.test_e2_c_shell_bundle` 12 of 12;
+`make test-e2-c-static` and `make test-e2-c-reachability` exit 0; and
+`--manifest e2/editor-shell-v2-bundle-v48.json` still refuses to rewrite. All
+thirteen bound paths byte-identical before and after, source and `dist/` alike.
+
+E-3's **named instance** — *"the re-run of the revert rehearsal … must produce
+a `reconcile-after-revert.json` with exactly those values"* — was **not
+taken**. Its four steps write `web/`, write `dist/`, freeze a generation on
+cutover bytes and repoint `MANIFEST`; the commissioning constraints for this
+pass forbid all four, and the 2026-09-09 correction appended to
+`handoff/RUNBOOK-operator-093-engine-geometry.md` forbids the last two on their
+own merits. **So revert condition 3 is NOT discharged on `31787584…`.** What
+holds on this identity is that the revert's *destination* is a declared state
+that reconciles — finding 091's defect, which is what opened the condition.
+What does not hold on this identity is a measurement that the revert
+*procedure* returns the tree to it; that was measured on `9b29e39b…` with the
+same `restore()` implementation, and carrying it forward is an argument from an
+unchanged mechanism, recorded as an argument.
+
+**Default, unchanged from E-3's own:** the condition stays open and the gate
+does not close. Two dispositions are available and this pass takes neither —
+authorise the drill and re-take the named instance, or amend E-3 to say the
+universal clause subsumes it. The second is an amendment and is not a drafting
+party's to declare (§8).
+
+## Count semantics
+
+**Nothing here restarts the count and nothing here counts toward it.** 4a's
+records, the round trip and the plain shipped-page run are none of them
+candidate soak runs; `run_e2_c_product_path.py`'s check list was not touched
+and the clean predicate stands at 39 PASS / 2 NE. The soak count remains **3 of
+12**, all three on UTC day 2026-09-09.
+
+## Work items registered, not landed
+
+1. A 4a term for the projection's placement — blocked by §9 condition 1, which
+   closed this morning.
+2. `tools/probe_aria_projection.py` writes **no `startedAt` / `completedAt`**.
+   The 2026-09-03 wall-clock ruling reached `run_e2_c_product_path.py` and not
+   this probe, so a 4a record cannot be placed in time from its own contents.
+   4a has no calendar-day clause, so this blocks nothing today.
