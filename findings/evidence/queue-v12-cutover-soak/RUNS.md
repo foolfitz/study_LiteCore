@@ -729,3 +729,116 @@ restart had already excluded from the count, and manufactures no clean run.
 owed, at least two on each of two further UTC days. Per P-1 of the same
 section, no further soak run is taken until T4 (the owner's manual round) is
 done.
+
+## The candidate moved to `e2-editor-v13`, and the judge's constants moved with it (2026-09-09)
+
+The owner ran step 4 of `handoff/RUNBOOK-operator-093-engine-geometry.md` and
+the relink minted `e2-editor-v13` (finding 093, section 「步驟 5」). Four
+constants in `tools/check_soak_bank.py` moved together, in the commit before
+run 09 and therefore before any run that could satisfy them — the order the
+2026-09-08 amendment of
+`handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` ("The re-freeze this
+obliges, and its ORDER") requires:
+
+| constant | before | after |
+|---|---|---|
+| `EXPECTED_PASS` | 38 | **39** |
+| `DEFAULT_PROFILE` | `e2-editor-v12` | **`e2-editor-v13`** |
+| `DEFAULT_SHA` | `9b29e39b…` | **`31787584…`** |
+| `DEFAULT_SERVED_SHELL` | `cf7f9233…` (generation v47) | **`ea69984c…`** (measured) |
+
+`tools/check_caret_diagnostics.py`'s `DEFAULT_SHA` moved to the same page;
+its `DEFAULT_PROFILE` was deliberately left at `e2-editor-v12` and the
+inconsistency is recorded in that file rather than silently repaired.
+
+**The served-shell pin is a measured value, not a generation's digest.** Ruling
+E-4 words the clause as *"the digest the cutover generation will declare"*. For
+v12 that could be satisfied by reading a file only because generation v47 had
+been frozen on the cut-over bytes by mistake (`000a57e2`). **No frozen
+generation declares `ea69984c…`** — v49 is the shipping shell, entrypoint still
+`e2-editor-v8`, declaring `4f8494b6…` — and freezing one on cutover bytes to
+manufacture a file to read would repeat exactly what v48 was frozen to undo.
+**The shipping page was not repointed**; `build_cutover_page.py --write` was not
+run. §5 step 5.3 of the runbook, which instructs that repoint, is the cutover;
+a correction saying so is appended to that runbook.
+
+Both halves of the identity were recomputed from committed bytes before the
+constants were edited, neither of them by reading the run being judged:
+
+* `python3 tools/build_cutover_page.py --profile e2-editor-v13` (no `--write`)
+  printed `pageSha256` `31787584…`;
+* generation v49's `included` list with the entrypoint's hash replaced by that
+  page sha, through `shell_bundle_digest` (`tools/validate_e1_c.py:134`),
+  gives `ea69984c…`.
+
+**Measured consequence, recorded because it looks like breakage and is not.**
+With the constants moved and no post-relink run yet banked,
+`check_soak_bank.py --self-test` exited 1 with `self-test has no clean report
+to build from: it would otherwise pass by measuring nothing` — its fixtures are
+built from live-bank reports the judge itself calls clean, and none of the six
+2026-09-07 runs is clean under the new predicate. Run 09 restored it. This is
+the mechanical trap the amendment named, and it is why the void move of those
+six runs comes **after** this run, not before.
+
+## Run 09 — clean, the first run on `e2-editor-v13` (2026-09-09)
+
+First run under the amended predicate (**39 PASS / 2 NE**, the forty-first check
+`the-projection-is-placed-where-the-document-is` having landed while the count
+was zero) and the first on the new candidate page. Same recipe as runs 04–08.
+
+```
+make test-e2-c-static                       # exit 0, immediately before
+python3 tools/run_e2_c_product_path.py --browser chrome \
+    --candidate-profile e2-editor-v13 --out soak-run-09-candidate.json
+python3 tools/check_usable_editor.py --report soak-run-09-candidate.json \
+    --output ../queue-v12-cutover-soak-checklists/check-usable-editor-run09.json
+```
+
+`make test-e2-c-static` exit 0 immediately before this run, per finding 090's
+manual rule.
+
+| run | completedAt (local) | completedAt (UTC) | UTC day | composition | run `ok` |
+|---|---|---|---|---|---|
+| `soak-run-09-candidate.json` | 2026-09-09T13:06:41+08:00 | 2026-09-09T05:06:41Z | 2026-09-09 | 39 PASS / 2 NE | **true** |
+
+`startedAt` 2026-09-09T13:00:34+08:00 (2026-09-09T05:00:34Z). `complete: true`.
+NE set exactly `{a-refused-action-is-reported-and-changes-nothing,
+notice-action-recovers-the-session}`, no FAIL. `knownRed: {}`,
+`staleKnownRedDeclarations: []`, `pageErrors: null`, `offPageInk.worst: 0`,
+`recoveryPairing.held: true`.
+`candidateCutover.pageSha256` = `31787584290e42bdca41f95949887dedbc39ba51386439cd8c4d2914d056a79a`,
+`pinBefore` `4a2710bba1ef07d9` → `pinAfter` `0fe25650bec1bac5`;
+`servedShell.servedSha256` = `ea69984c8ad25c4048de0313a49f3db9e7c4ab3fc6ded0f4cebc84a1a5b0fe52`
+on `e2/editor-shell-v2-bundle-v49.json` (declared `4f8494b6…`), `missing: []`,
+`differingPaths: ["web/e2-editor-app.js"]`, `differsOnlyInTheEntrypoint: true`.
+
+The forty-first check reports `clausesExercised: ["C1", "C2", "C3"]` —
+`geometry: "present"`, 24 paragraphs carried and 24 placed, `docOffsetTop: 0`
+against a 929px canvas, focused node `a11y-node-7` band 259..279 overlapping the
+caret band 250..266. C3 is exercised on a counted run for the first time; before
+the relink it was inert on every profile and the amendment forbade quoting a
+green run for it.
+
+`check_usable_editor.py --report soak-run-09-candidate.json`: `"ok": true`,
+`reconciledFor.kind == "candidate-cutover"`, `profile == "e2-editor-v13"`,
+`problems: []`. Saved to
+`../queue-v12-cutover-soak-checklists/check-usable-editor-run09.json`, never
+into this directory.
+
+Desktop: one Chrome instance before and after (the owner's, browser main
+211853, crashpad handler 211863), no headless Chrome and no
+`serve_candidate_page.py` left behind. Nothing was killed.
+
+Counting: **1 of 12**. The judge immediately after this run, with the six
+superseded runs still in the directory:
+
+```json
+"cleanRuns": 1, "totalRuns": 7,
+"clauses": {"every-run-clean": false, "one-page-sha": false,
+            "count-reached": false, "day-spread": false, ...}
+```
+
+Each of the six fails on exactly the four clauses the move predicts —
+`reconciled-profile`, `pass-count`, `page-sha`, `one-served-shell` — which is
+the criterion doing its work, not a new defect. They are moved out in the next
+section.
