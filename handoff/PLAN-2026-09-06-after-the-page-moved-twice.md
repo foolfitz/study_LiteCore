@@ -934,3 +934,59 @@ Soak **6 of 12**, all on UTC 2026-09-09, `every-run-clean: true`, page
 Conditions 2, 3, 4a, 4b (both halves), the ODT round trip and revert
 condition 3 are **all discharged on this identity** — condition 1 is the only
 one outstanding. Everything except the count is done.
+
+---
+
+## The soak moves to the end, behind development (2026-09-09, append-only)
+
+Supersedes the hold recorded above ("The soak is held at 6 of 12 pending
+finding 096"), which was a pause. This is a **reordering**.
+
+The owner's words: 「soak無所謂，花時間而已（甚至可以考慮更延後一點，進一步
+開發再一起做？）」
+
+### Why this is right, and it is not "we are behind"
+
+The soak's whole content is *twelve clean runs on a frozen identity*. Every
+identity change voids it, and this week alone the count went to zero four times
+for that reason. Finding 096's fix is about to move the identity again — the
+engine layer, the only one that makes the boundary press actually answer,
+requires a relink — and more development is expected after it.
+
+Running the soak while the identity is still moving is not slow; it is
+**structurally wasted**: what it measures stops existing at the moment it
+finishes measuring it. The soak belongs *after* development settles, on the
+bytes that will actually ship.
+
+### Two conditions, so that "deferred" does not quietly become "skipped"
+
+1. **The soak is run in full, on the final identity, before any cutover.**
+   Twelve clean runs, ≥3 UTC days, ≥2 per day, the predicate unchanged. Nothing
+   about the criterion is relaxed by this reordering, and this section is not
+   authority to shorten it.
+2. **It has a floor of three calendar days.** The day-spread clause cannot be
+   compressed by running more per day, so the soak must *start* at least three
+   days before any intended cutover date. That is a planning fact, not a
+   preference: whoever schedules a cutover has to count backwards from it.
+
+### What happens to the six runs banked today
+
+They are expected to die with 096's fix, and that is accepted rather than
+regretted. The owner's ruling of today stands unchanged — the count did not
+restart *on account of the finding* — but a fix that moves bytes is a different
+matter, and it was priced before it was chosen
+(`handoff/DECISION-2026-09-09-which-layer-can-carry-096s-fix-and-what-each-costs.md`).
+
+When they die they are voided the way every other batch was: `git mv` to a
+sibling `-void-<reason>/` with a `WHY-THESE-ARE-VOID.md`, nothing deleted,
+nothing re-judged, and **after** the first clean run on the new identity, because
+an empty bank breaks `check_soak_bank.py --self-test` — measured on 2026-09-09,
+not predicted.
+
+### What is NOT deferred
+
+Conditions 2, 3, 4a, 4b and the ODT round trip and revert condition 3 are all
+discharged on the current identity and will die with it too — but they are cheap
+to re-earn and mostly agent work. **T4 is the exception: it is the owner's, it
+takes their evening, and it is the round that produced 093 and 096.** Whoever
+plans the next identity should budget for it rather than discovering it late.
