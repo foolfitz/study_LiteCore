@@ -277,3 +277,40 @@ Shakedown outcomes, reported because §6 says every attempt is reported:
 `v13 down` REPRODUCED, `v13 up` REPRODUCED. **None of these four counts toward
 the matrix**; the matrix was run afterwards, from zero, with the instrument
 above.
+
+### 2026-09-09 — the matrix, and arm D
+
+Run to completion. **40 attempts, 40 REPRODUCED**, no other outcome and no void
+attempt. Full result: `findings/evidence/096/RESULT.md`; raw per-attempt
+evidence in the four `findings/evidence/096/boundary-arrow-*.json`.
+
+| arm | up | down |
+| --- | --- | --- |
+| A — `e2-editor-v13` | 5/5 | 5/5 |
+| B — `e2-editor-v12` | 5/5 | 5/5 |
+| C — `e2-editor-v8` (shipped bytes) | 5/5 | 5/5 |
+| D — pre-`18eefcce` page on `e2-editor-v8` | 5/5 | 5/5 |
+
+**The verdict cell is §2's `R(A) ∧ R(B) ∧ R(C)`**, read back rather than
+composed: like finding 086, present on shipping too, **not a candidate
+regression**. §2 also required arm D in this cell, because the page change is in
+all three arms; arm D was run on the shipping engine with the page as it stood
+before 093's page half, and it reproduces 10/10 — so **the page change is not
+necessary either**.
+
+The engine-side payload is the same in all four arms: `ready → busy` on the
+boundary press, then `recoverable-error` **30002–30003 ms later**, with
+`TIMEOUT：editorActionV2 timed out after 30000 ms` from the SDK's own error
+object; no crash, no exception anywhere, an empty worker console at the moment
+of the press, and the worker's JS thread answering a CDP evaluate in 0.0 s
+afterwards. **No cause is named**, per this protocol's second paragraph.
+
+**§6's non-reproduction clause did not apply**: the harness reproduced the
+owner's sentence character for character (`noticeMatchesOwnerQuote: true` in
+every attempt), so the three named gaps between this harness and the owner's
+hand were not load-bearing here. Gap (c) — that the owner's session had a
+history and these have none — turned out to be unnecessary rather than
+untested: the defect fires on a document with `revision: 0`.
+
+**One arm was added that §1.2 had registered as conditional, and nothing else
+moved.** No criterion in §4 was edited; §6's attempt count was met exactly.

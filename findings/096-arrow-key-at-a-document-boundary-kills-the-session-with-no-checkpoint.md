@@ -64,3 +64,82 @@ and the finding gets a number.」**T4 是閘門條件 3 的那一輪。soak 目�
 - v8／v12／v13 的區辨。
 - 問**引擎**那一側崩在哪裡；`#s-latency`／toast 是頁面的觀測，不是引擎的狀態。
 - 「畫面沒有跟著」與「session 掛掉」是不是同一個成因——**沒有理由假設是**。
+
+---
+
+# 追記（2026-09-09，agent 帶儀器）：三支臂全中，出貨的 v8 也一樣
+
+**狀態改判**：**已重現、已區辨。成因仍不明，且本輪不指認成因。**
+
+證據：`findings/evidence/096/`（`RESULT.md`、四份 `boundary-arrow-*.json`、
+`probe_096_boundary_arrow.py`）。量測協定
+`handoff/tasks/TASK-2026-09-09-096-which-profiles-kill-the-session.md`
+（commit `a0f098b5`）**寫在任何一次計數的嘗試之前**，每個結果准許什麼也寫在那裡。
+
+## 結果
+
+| 臂 | 頁面 sha256 | probe.wasm | 上 | 下 |
+| --- | --- | --- | --- | --- |
+| A — `e2-editor-v13`（候選） | `31787584290e42bd…` | `0fe25650bec1bac5` | **5/5** | **5/5** |
+| B — `e2-editor-v12` | `db2ed393f3433e2e…` | `4ec1e389aaab3b03` | **5/5** | **5/5** |
+| C — `e2-editor-v8`（**出貨的位元組**） | `1ec7baf9fb53c808…` | `4a2710bba1ef07d9` | **5/5** | **5/5** |
+| D — 093 之前的頁面＋出貨引擎 | `df5f3b6c7dde0b2e…` | `4a2710bba1ef07d9` | **5/5** | **5/5** |
+
+**40 次嘗試、40 次重現、0 次沒重現、0 次 VOID。**沒有間歇性，沒有哪一次不一樣，
+也沒有哪一次被略過不報。用的是擁有者自己那份文件
+（`~/Documents/SLAT/e20-專訪瓦特老師.odt`，sha256 `63bf89cb…`），真的方向鍵
+（CDP `Input.dispatchKeyEvent`），游標用畫布 pointerdown 放。
+
+## 本張最上面那一題（「出貨的 v8 會不會也這樣」）的答案
+
+**會。**照這張自己寫的判準，這是**與 086 同類：兩邊都有、非退步**。
+**它不是候選帶進來的，也不是 v13 那次連結造成的。**
+
+臂 D 再補一刀：**頁面改動也不是必要條件**——093 頁面那一半（`18eefcce`）
+還沒進去之前的頁面，配出貨引擎，一樣 10/10 死。
+
+## 引擎那一側說了什麼（原文，不是摘要）
+
+`#s-latency`、狀態球、toast 都是**頁面的**觀測。以下不是。
+
+SDK 自己那顆 error 物件（`run()` 印成 `${code}：${message}`）：
+
+```
+上移一行：TIMEOUT：editorActionV2 timed out after 30000 ms（可能已經改到文件：請回到檢查點）
+```
+
+狀態轉移的時間戳（頁面裡的 MutationObserver 記的）：`ready → busy` 發生在邊界
+那一按，然後 v8 隔 **30002 ms**、v12 隔 **30003 ms**、v13 隔 **30003 ms** 轉進
+`recoverable-error`。**它不是失敗，是把 SDK 那個 30 秒的期限一毫秒不差地等完。**
+後續每按一次，`pending` 就往上加一（1→6）——佇列塞在一個永遠不回來的操作後面。
+`revision` 全程 `0`：沒有東西被寫進文件。
+
+**沒有任何東西崩潰。**四十次裡沒有 `Inspector.targetCrashed`、沒有
+`Target.targetCrashed`、頁面與 worker 都沒有 `Runtime.exceptionThrown`，頁面自己的
+`window.onerror`／`unhandledrejection` 是空的。worker 的 console 只有開機那兩行
+（`Thread name: "configmgrWriter"`／`"lo_startmain"`），邊界那一按的當下**一個字都沒有**。
+
+**worker 的 JavaScript 執行緒活著。**判定之後對活著的那個 worker 自己的 CDP session
+送一次 `Runtime.evaluate`，四十次全部在 **0.0 秒**回答
+`{"now":37420,"post":"function","onmsg":"object"}`。所以「worker 的 JS 執行緒卡住」
+被排除；沒有回答的是它後面那一層。
+
+**到此為止。本輪不指認成因**（協定明文禁止，040 的前例）。特別是：
+`boundaryRejectionRequiresFreshWorker` 三個 manifest 都宣告 `true`——那是一句**宣告**，
+不是一次量測，不得拿來當結論。
+
+## 這一輪順帶量到、但**不得合併**的
+
+- 觸發成本是零：文件 `revision: 0`，沒存過、沒改過，**一個方向鍵就夠**。
+  提示是沒有檢查點那一種（`data-rescue: "none"`、`#s-checkpoint` 是「無」、
+  按鈕寫「重新開啟」而不是「回到檢查點」）。使用者打了一小時再按一次上，就是一小時。
+- 使用者體感的 30 秒：按下去、「處理中」三十秒、然後 session 沒了。
+- 下臂的原始數字裡，游標在 `sinkTop` 3142 而 `#desk` 的 `scrollTop` 是 0
+  （可視高 864）。形狀像擁有者那句「畫面沒有跟著」，但**本探針從沒要求頁面跟過去**，
+  所以這個數字對任何解釋都不構成支持。**只登錄，不合併**（093 已經更正過一次同型的錯）。
+
+## 仍未做
+
+- **成因。**沒有量，因此沒有寫。
+- **從什麼時候開始有的。**四顆 artifact 不是二分搜尋；本輪最早只測到 `e2-editor-v8`。
+- **這張是否讓 soak 計數歸零**——由裁定的人決定，起草方不宣告（AGENTS.md §8）。

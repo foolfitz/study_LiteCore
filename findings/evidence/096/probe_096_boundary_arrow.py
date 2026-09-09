@@ -663,12 +663,21 @@ def main() -> int:
     parser.add_argument("--viewport", default="1920x1080")
     parser.add_argument("--out")
     parser.add_argument("--label", default="run")
+    # CONDITIONAL ARM D, registered in the protocol's §1.2 before any run: the
+    # page as it was BEFORE commit 18eefcce (093's page half), so that "the page
+    # change is in all three arms" stops being an unexcluded explanation.  A
+    # page that never shipped, and labelled one.
+    parser.add_argument("--page-from", default=None,
+                        help="read the page source from this file instead of "
+                             "web/e2-editor-app.js")
     args = parser.parse_args()
     directions = args.direction or ["up", "down"]
 
     root = PROJECT / "dist"
     manifest = root / "profiles" / args.profile / "sdk-manifest.json"
-    source = (PROJECT / "web" / "e2-editor-app.js").read_text(encoding="utf-8")
+    page_source_path = (Path(args.page_from) if args.page_from
+                        else PROJECT / "web" / "e2-editor-app.js")
+    source = page_source_path.read_text(encoding="utf-8")
     page, pin_before, wasm = repointed_page(source, args.profile, manifest)
     import hashlib
     page_sha = hashlib.sha256(page.encode("utf-8")).hexdigest()
@@ -684,6 +693,8 @@ def main() -> int:
                     "was written",
         "mayNotNameACause": True,
         "profile": args.profile,
+        "pageSource": str(page_source_path),
+        "pageIsTheShippingSource": args.page_from is None,
         "pageSha256": page_sha,
         "pagePinBefore": pin_before,
         "wasmSha256": wasm,
