@@ -649,3 +649,111 @@ must already exist.
 
 Items 1, 2 and 5 of step 5 stand unchanged: record the five hashes, archive
 immediately, then the oracle acceptance.
+
+---
+
+# 更正（2026-09-09 晚）：步驟 4 的目標改成 `e2-editor-v14`，v13 那一行**不要再跑**
+
+上面步驟 4 與它的 2026-09-08 追記給的指令是
+
+```
+make ALLOW_FROZEN_RELINK=1 dist/profiles/e2-editor-v13/sdk-manifest.json
+```
+
+**那一行今天已經不能跑了。**不是因為它壞掉，是因為 v13 已經連結完、而且今天下午
+finding 096 的引擎修法進了 `src/probe_engine.cpp`。實測（在寫任何東西之前）：
+
+```
+make -n dist/profiles/e2-editor-v13/sdk-manifest.json   →  2 行 em++
+```
+
+那兩行是「重編 `probe_engine.o`」加「重新連結」。也就是說再跑一次那個目標，會把
+**新的位元組原地寫進 `dist/profiles/e2-editor-v13/`**——目錄還叫 v13，裡面已經不是
+v13。而六趟 soak、4a 驗收、ODT 兩個方向、revert 演練、T4 第二輪人工輪，全部綁在
+「v13」這個名字上。archive 救得回來，但救不回「同一個名字底下有兩份位元組」那種
+混淆，而 `build/archive/` 的命名規矩存在就是為了不要有那種東西。
+
+## 要跑的是這一行
+
+```bash
+cd /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe
+make ALLOW_FROZEN_RELINK=1 dist/profiles/e2-editor-v14/sdk-manifest.json
+```
+
+`Makefile` 已經有 `E2_V14_*` 規則（自己的 `build/e2/e2-editor-v14/` 與
+`dist/profiles/e2-editor-v14/`，v13 不是它任何一個相依）。**這一次連結同時帶兩個
+修法**：093 選項 B 的逐段幾何（原封不動從 v13 帶過來）與 096 的移動路徑期限。
+
+旗標一樣不用你記，七個都寫在規則裡，缺任何一個規則會擋下來並印出是哪一個掉了。
+`ALLOW_FROZEN_RELINK=1` 仍然要帶：守衛無條件坐在每一條連結配方裡，v14 第一次連結
+也不例外（實測：不帶就 exit 1，v14／v13／出貨的 v8／v10 四個目標都試過）。
+
+## 連結之前，三件事（數字換了）
+
+1. **先跑 `make -n` 而且真的讀它。**
+
+   ```bash
+   make -n dist/profiles/e2-editor-v14/sdk-manifest.json | grep -c 'em++'
+   ```
+
+   **要看到 6**（四個產品 TU ＋ `a11y_tree_probe` 共五次編譯，加一次連結），而且那六行
+   的 `-o` 全部要落在 `build/e2/e2-editor-v14/` 底下。已量：6 行，0 行在別處。
+   **任何一行寫到 `build/e2/e2-editor-v13/` 就停手**——那表示你跑錯目標了。
+
+2. `python3 tools/check_relink_queue.py` 要看到 `P1 complete: True`。
+   （2026-09-09 晚已量：True，blocking 是空的。）
+
+3. **先記下四顆現有 artifact 的雜湊**，連結完再比一次。比上一則多一顆——多的是 v13：
+
+   ```bash
+   sha256sum dist/profiles/e2-editor-v8/probe.wasm \
+             dist/profiles/e2-editor-v10/probe.wasm \
+             dist/profiles/e2-editor-v12/probe.wasm \
+             dist/profiles/e2-editor-v13/probe.wasm
+   ```
+
+   應該是 `4a2710bb…`、`4ec1e389…`、`4ec1e389…`、`0fe25650…`。前面說過 v10 與 v12
+   同一份不是筆誤。**v13 那一顆是這一輪最要盯的**：它就是這次改用 v14 想避免被覆寫的
+   那一份。
+
+**不要跑任何裸 `make`。**這棵樹每一個 `.o` 都是過期的（`Makefile` 是它們的相依，而它
+一直在被改），裸 `make` 會開始重編。守衛擋得住**連結**，擋不住**重編**。這一則追記
+本身也把 `Makefile` 的 mtime 往前推了一次，所以現在連 v13 的四個產品 `.o` 都算過期。
+
+## 連結之後、量任何東西之前
+
+原文 §5 的步驟 1、2、5 照舊（記五個雜湊、立刻 archive、然後才是 oracle 驗收）；
+步驟 3 與 4 **不要做**，理由見上一則更正（那是 cutover，不是收尾）。再加三件：
+
+- **重跑上面第 3 點的 `sha256sum`，四顆要一模一樣。**任何一顆變了就**停手**。
+- `dist/profiles/e2-editor-v14/` 裡除了四個檔，還要有**六個資料包檔**（base／cjk／
+  fallback 各一個 `.data` ＋一個 `.metadata`）。規則會先擋下來，眼睛看一下更快。
+- 這一次規則多了一道檢查，會在打包完之後自己跑：它到 `probe.wasm` 裡找 096 的完成
+  字串 `verified-move-readback`。**綠燈才表示引擎那一半真的進到位元組裡**——096 不改
+  ABI、不加 export、不加 manifest 欄位，所以除了這一條之外，沒有任何東西分得出
+  「v14」與「用 v13 的 wasm 換個名字重打包」。它印出來的訊息會說是「位元組太舊」還是
+  「檢查本身壞了」，兩者不同色。
+
+`#a11y-structure` 的 `data-geometry` 仍然要看到 `present`，判讀照 2026-09-08 那則追記
+的三格。096 那一半的驗收是另外兩支探針，寫在
+`handoff/HANDOFF-2026-09-09-096-is-landed-in-source-and-waits-on-the-same-link.md`
+的「After the link」，那裡連預測都先寫好了。
+
+## 這一輪量到的、與仍然沒有驗證的
+
+**不用重編 core 這件事又量了一次，而且這次的對照比上次強。**上一輪的對照要回頭比到
+v10；這一輪不用——把 `probe_engine.cpp` 在 `ec3402bf`（v13 連結時的那個 commit）與
+現在的樹各編一次到 scratch，**未定義符號集合完全相同，各 151 個，零增零減**。而
+`ec3402bf` 那顆 `.o` 就是今天中午真的連進 v13 的那一顆。同一組符號、同一條連結線、
+今天才剛解過一次。
+
+仍然沒有驗證的：
+
+- **連結本身沒有跑過**，`E2_V14_*` 的配方一次都沒有執行過。`make -n` 說相依圖對，
+  不代表指令會成功。
+- **那道新的 wasm 字串檢查沒有在真的 v14 上跑過**（還不存在）。它在四顆真的 wasm 上
+  紅過、在兩顆真的 `.o` 上一紅一綠、指到非 wasm 檔會由對照組先紅。綠的那一格是推論。
+- **連結要多久仍然未知。**這一輪也沒有加。
+- **每段一次 `getBounds()` 的成本仍然沒有量過。**
+- **v14 的五個 `.o` 從來沒有被建過。**這一輪只編過 `probe_engine.cpp`，而且只編到
+  scratch。

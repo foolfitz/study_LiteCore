@@ -154,3 +154,67 @@ lines all writing into `build/e2/e2-editor-v13/`.
    `B2` for the first time.
 5. `EXPECTED_PASS 39 → 40` in `check_soak_bank.py` moves with the rest of the
    re-freeze, after the first clean run on the new identity — not before.
+
+---
+
+# Correction (2026-09-09, later): the target is `e2-editor-v14`, not v13
+
+**"The one thing the owner does" above names the wrong target.** The command it
+gives —
+
+```
+make ALLOW_FROZEN_RELINK=1 dist/profiles/e2-editor-v13/sdk-manifest.json
+```
+
+— would not have failed. It would have **recompiled and relinked into
+`dist/profiles/e2-editor-v13/` in place**, because `src/probe_engine.cpp` went
+in at 20:21 and v13's objects are from 12:10. Measured before anything was
+written: that target already printed **two** `em++` lines. The result would be a
+profile *named* v13 whose bytes are not v13's, while six soak runs, the 4a
+acceptance, the ODT round, the revert rehearsal and the T4 manual round all bind
+to that name (findings 027, 036, 042). The archive makes it recoverable, not
+unconfusing — and unconfusing is what `build/archive/`'s naming convention is
+for.
+
+**Replaced by:**
+
+```bash
+cd /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe
+make ALLOW_FROZEN_RELINK=1 dist/profiles/e2-editor-v14/sdk-manifest.json
+```
+
+The `E2_V14_*` block now exists in `wasm_sdk_probe/Makefile`, with its own
+`build/e2/e2-editor-v14/` and `dist/profiles/e2-editor-v14/`; v13 is not a
+prerequisite of any of it. **One link still carries both fixes** — option B's
+geometry rides across unchanged (`src/a11y_tree_probe.cpp` untouched since
+`c2a7abad`), and 096's deadline is the single variable
+(`what_the_link_ships.py --variant a11y --since ec3402bf`: three units identical,
+`probe_engine` CHANGED; `sdk/sdk-worker.js` byte-identical to v13's packaged
+copy).
+
+**The pre-link check in this handoff changes with it**: `make -n` must show
+**6** `em++` lines all writing into `build/e2/e2-editor-v14/`. A line writing
+into `build/e2/e2-editor-v13/` means the wrong target is being built — stop.
+The hash list to record before the link now has **four** entries, v13 included
+(`0fe25650…`), because v13 is the artifact this correction exists to protect.
+
+**"After the link, in this order" stands unchanged** except that `<new>` is
+`e2-editor-v14`. The two predictions written before the link are unaffected by
+which name the artifact carries.
+
+**One assertion was added that the v13 rule does not have, and the reason is a
+gap rather than a preference.** Finding 096 adds no export, no ABI bump and no
+manifest field, so all nine manifest declarations would pass on a v14 packaged
+from v13's — or v10's, or the shipped v8's — wasm. The rule therefore greps the
+packaged `probe.wasm` for `verified-move-readback`, with `verified-caret-readback`
+as a positive control that runs first. Measured before it was written: the 096
+literal is **absent** from all four of v8, v10, v12 and v13's shipped wasm and
+the control is **present** in all four. There is no equivalent literal for
+option B's geometry — that code emits only `,"x":`-shaped fragments — so
+geometry stays covered by the manifest declaration and the product path's 41st
+check, and **not** by these bytes.
+
+Rule, measurements and what is still unvalidated:
+`findings/evidence/096/step-build-and-link-rule/RESULT.md`. Operator manual:
+`handoff/RUNBOOK-operator-093-engine-geometry.md`, whose own 2026-09-09 (later)
+correction carries the same change.

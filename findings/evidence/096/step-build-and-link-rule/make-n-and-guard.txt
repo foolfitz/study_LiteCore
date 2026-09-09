@@ -1,0 +1,90 @@
+# make -n over 18 existing targets, before and after the E2_V14_* block
+
+The first column is the baseline (Makefile at its 2026-09-08 mtime); the
+second is with the v14 block added.  Only e2-editor-v13 moves, and the
+CONTROL below says the v14 block is not why.
+
+target                                            before   after
+build/e2/a11y-calloc/probe.js                          6       6
+build/e2/combination/probe.js                          6       6
+build/e2/e2-editor-v10/probe.js                        6       6
+build/e2/e2-editor-v13/probe.js                        2       6
+build/e2/editor-v4/probe.js                            5       5
+build/e2/editor-v5/probe.js                            6       6
+build/e2/editor-v8/probe.js                            5       5
+build/e2/format-discovery/probe.js                     5       5
+dist/profiles/a11y-calloc/sdk-manifest.json            6       6
+dist/profiles/e2-combination/sdk-manifest.json         6       6
+dist/profiles/e2-editor-v10/sdk-manifest.json          6       6
+dist/profiles/e2-editor-v13/sdk-manifest.json          2       6
+dist/profiles/e2-editor-v2/sdk-manifest.json           5       5
+dist/profiles/e2-editor-v4/sdk-manifest.json           5       5
+dist/profiles/e2-editor-v8/sdk-manifest.json           5       5
+(targets absent from the table print no em++ at all: e2-editor-v5 is
+ up to date, e2-editor-v9 and e2-editor-v11 are repackagings)
+
+== THE CONTROL ==
+
+'make -n over 18 targets is byte-identical before and after' does NOT hold
+this round, and pretending otherwise would be the wrong claim.  Makefile is
+a prerequisite of build/r5/writer-review/exports.txt and of every %.o rule,
+and the owner's 2026-09-09 v13 link regenerated exports.txt at 12:10:37 --
+NEWER than the Makefile's 2026-09-08 07:49 mtime.  So any edit at all, or a
+bare touch, makes those text files stale again.  The v13 round got
+byte-identity because that file was already older than the Makefile.
+
+The property that does hold is the one that matters, and it is measured by
+replacing the edit with a touch:
+
+  cp Makefile.before Makefile   # original CONTENT, fresh mtime
+  make -n over the 18 targets   -> sha256 c054bc1c4b6c9278124621740e2e2a6bdbb39c2ecee73c260755435dd6fa3cf3
+  cp Makefile.after Makefile    # the v14 block
+  make -n over the 18 targets   -> sha256 c054bc1c4b6c9278124621740e2e2a6bdbb39c2ecee73c260755435dd6fa3cf3
+
+BYTE-IDENTICAL.  The v14 block adds exactly zero work to any existing
+target; the whole delta against the baseline is the mtime.
+
+Baseline for reference: sha256 cfef4b019b41228ecd3ff8528661372a0c8ede6406b970bda409cfe823bbd8d6
+
+== WHAT THE DELTA IS MADE OF ==
+
+       22 continuation line of the above
+        8 em++ compile or link
+      388 exports.txt regeneration (text files)
+
+The four extra em++ on e2-editor-v13 are its remaining product .o files;
+its target was ALREADY at 2 em++ in the baseline, because
+src/probe_engine.cpp went in at 20:21 on 2026-09-09 and v13's objects are
+from 12:10.  That is the overwrite hazard the v14 block exists to remove,
+and it predates this edit.
+
+== NOTHING MOVED ==
+
+All 334 files under dist/profiles/ and build/e2/ are byte-identical before
+the edit, after the edit, and after the red cases below were executed.
+Listing: artifacts-unchanged.sha256.
+
+== THE GUARD, EXECUTED ==
+
+The guard line was extracted from 'make -n <link target>' and really run,
+after checking the extracted text contains zero em++ lines.
+
+profile                  ALLOW_FROZEN_RELINK exit
+e2-editor-v14            unset          1
+e2-editor-v14            1              0
+e2-editor-v13            unset          1
+e2-editor-v13            1              0
+editor-v8                unset          1
+editor-v8                1              0
+e2-editor-v10            unset          1
+e2-editor-v10            1              0
+
+e2-editor-v13's refusal, verbatim -- this is the one that matters, because
+it is the profile every piece of 2026-09-09's evidence binds to:
+
+  
+  refusing to relink a frozen profile: build/e2/e2-editor-v13/probe.js
+  it carries: finding 093 option B's geometry candidate -- every link mints a new hash and nine identities bind to one
+  a new link mints a new artifact and unbinds that (findings 027, 036).
+  if that is really what you want:  make ALLOW_FROZEN_RELINK=1 build/e2/e2-editor-v13/probe.js
+  
