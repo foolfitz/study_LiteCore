@@ -1027,3 +1027,63 @@ every-run-clean: true`, one UTC day (2026-09-09) holding all three, so it
 qualifies (≥2 runs) but the day-spread clause still needs ≥3 distinct
 qualifying UTC days. `count-reached: false`, `ok: false`, as expected — twelve
 runs are not banked yet and the schedule continues on later UTC days.
+
+## Run 12 — clean, `e2-editor-v13` (2026-09-09)
+
+Same recipe as runs 09–11.
+
+```
+make test-e2-c-static                       # exit 0, immediately before
+python3 tools/run_e2_c_product_path.py --browser chrome \
+    --candidate-profile e2-editor-v13 --out soak-run-12-candidate.json
+python3 tools/check_usable_editor.py --report soak-run-12-candidate.json \
+    --output ../queue-v12-cutover-soak-checklists/check-usable-editor-run12.json
+```
+
+`make test-e2-c-static` exit 0 immediately before this run, per finding 090's
+manual rule.
+
+| run | completedAt (local) | completedAt (UTC) | UTC day | composition | run `ok` |
+|---|---|---|---|---|---|
+| `soak-run-12-candidate.json` | 2026-09-09T14:30:50+08:00 | 2026-09-09T06:30:50Z | 2026-09-09 | 39 PASS / 2 NE | **true** |
+
+`startedAt` 2026-09-09T14:24:42+08:00 (2026-09-09T06:24:42Z). `complete: true`.
+NE set exactly `{a-refused-action-is-reported-and-changes-nothing,
+notice-action-recovers-the-session}`, no FAIL. `knownRed: {}`,
+`staleKnownRedDeclarations: []`, `pageErrors: null`, `offPageInk.worst: 0`,
+`recoveryPairing.held: true`.
+`candidateCutover.pageSha256` = `31787584290e42bdca41f95949887dedbc39ba51386439cd8c4d2914d056a79a`,
+`pinBefore` `4a2710bba1ef07d9` → `pinAfter` `0fe25650bec1bac5`;
+`servedShell.servedSha256` = `ea69984c8ad25c4048de0313a49f3db9e7c4ab3fc6ded0f4cebc84a1a5b0fe52`
+on `e2/editor-shell-v2-bundle-v49.json` (declared `4f8494b6…`), `missing: []`,
+`differingPaths: ["web/e2-editor-app.js"]`, `differsOnlyInTheEntrypoint: true`.
+
+The forty-first check reports `clausesExercised: ["C1", "C2", "C3"]` —
+`geometry: "present"`, 24 paragraphs carried and 24 placed, `docOffsetTop: 0`
+against a 929px canvas, focused node `a11y-node-7` band 259..279 overlapping
+the caret band 250..266 — identical shape to run 09.
+
+`check_usable_editor.py --report soak-run-12-candidate.json`: `"ok": true`,
+`reconciledFor.kind == "candidate-cutover"`, `profile == "e2-editor-v13"`,
+`problems: []`. Saved to
+`../queue-v12-cutover-soak-checklists/check-usable-editor-run12.json`, never
+into this directory.
+
+Desktop: one Chrome instance before and after (the owner's, browser main
+211853, crashpad handler 211863 — unchanged since run 09), no headless Chrome
+and no `serve_candidate_page.py` left behind. Nothing was killed.
+
+Counting: **4 of 12**, one UTC day (2026-09-09) with four runs on it. Per
+`tools/check_soak_bank.py`, immediately after this run:
+
+```json
+"cleanRuns": 4, "totalRuns": 4,
+"clauses": {"no-unclassified-file": true, "declared-non-runs-present": true,
+            "every-run-clean": true, "count-reached": false,
+            "one-page-sha": true, "no-naive-timestamp": true,
+            "day-spread": false},
+"ok": false
+```
+
+Still `count-reached: false` and `day-spread: false` as expected — one
+qualifying UTC day (2026-09-09), two more still needed.
