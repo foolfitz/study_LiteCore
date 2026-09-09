@@ -327,12 +327,30 @@ class TheGuardIsWiredIn(unittest.TestCase):
         self.assertIn('liveness.probe(cid, "after this check was recorded")',
                       source)
 
-    def test_both_inducing_arms_hold_the_guard_off(self):
+    def test_the_inducing_arms_hold_the_guard_off(self):
+        """THREE since 2026-09-09, and the third one is a new claim made on
+        purpose rather than a count that drifted.
+
+        The first two are finding 047's recipe and finding 038's endnote
+        inducer.  The third is finding 096's boundary arrow key: on every
+        artifact in this tree a movement key pressed where there is nothing to
+        move to is never answered, so the SDK's 30 s deadline expires and the
+        session enters `recoverable-error` -- deliberately, because what that
+        check measures is whether the work is still reachable afterwards.  Like
+        the other two, it presses the product's own recovery notice inside the
+        region, so the guard's exit probe holds it to leaving a live session.
+
+        The number stays asserted rather than being loosened to "at least two":
+        an arm that induces the dead state and does NOT recover from it would
+        stop the run on the check that follows it, and a count is the cheapest
+        thing that notices a fourth one arriving without that argument being
+        made.
+        """
         source = RUNNER.read_text(encoding="utf-8")
-        self.assertEqual(source.count("with liveness.expecting("), 2,
-                         "two arms induce the dead state on purpose; a third "
-                         "would be a new claim and a missing one would stop "
-                         "the run on a recovery it was measuring")
+        self.assertEqual(source.count("with liveness.expecting("), 3,
+                         "three arms induce the dead state on purpose; a "
+                         "fourth would be a new claim and a missing one would "
+                         "stop the run on a recovery it was measuring")
 
     def test_a_stopped_run_cannot_report_ok(self):
         source = RUNNER.read_text(encoding="utf-8")

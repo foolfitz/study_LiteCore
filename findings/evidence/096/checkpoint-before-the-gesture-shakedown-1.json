@@ -1,0 +1,179 @@
+{
+ "schemaVersion": 1,
+ "finding": "096",
+ "half": "C -- the checkpoint before the gesture",
+ "evidenceClass": "red-case",
+ "profile": "e2-editor-v8 (the shipping bytes, as the page pins them)",
+ "fixture": "./e1-fixtures/list-contexts.odt",
+ "sentinel": "F096RESCUEMARK",
+ "mayNotNameACause": true,
+ "engineHalfIsUnmeasurable": "no artifact in this tree carries the move-path deadline, so the boundary press is expected to wedge in BOTH arms",
+ "startedAt": "2026-09-09T12:33:27.796283+00:00",
+ "arms": [
+  {
+   "arm": "without",
+   "servedSessionSha256": "955fd57f59587f4c2e64332d6cd987b4fdd70cc01adcd1a45ae8005deb13cb2c",
+   "servedCarriesTheFix": false,
+   "servedFrom": "/tmp/f096-c-without-4kamqyca/root",
+   "attempts": [
+    {
+     "arm": "without",
+     "attempt": 1,
+     "startedAt": "2026-09-09T12:33:28.215327+00:00",
+     "boot": "ready",
+     "opened": "ready",
+     "bands": 9,
+     "click": {
+      "x": "0.138889",
+      "y": "0.09887"
+     },
+     "placed": "定位游標 28 ms",
+     "revisionBeforeTyping": "0",
+     "revisionAfterTyping": "1",
+     "checkpointBeforeTheKey": "無",
+     "presses": [
+      {
+       "press": 1,
+       "moved": true,
+       "seconds": 0.16,
+       "sinkBefore": {
+        "top": 100,
+        "left": 365
+       },
+       "sinkAfter": {
+        "top": 100,
+        "left": 100
+       }
+      },
+      {
+       "press": 2,
+       "moved": false,
+       "seconds": 4.11,
+       "sinkBefore": {
+        "top": 100,
+        "left": 100
+       },
+       "sinkAfter": {
+        "top": 100,
+        "left": 100
+       }
+      }
+     ],
+     "boundaryPress": 2,
+     "checkpointAfterTheKey": "無",
+     "stateAfterPress": "recoverable-error",
+     "boundaryPressAnsweredSeconds": null,
+     "notice": {
+      "show": "1",
+      "rescue": "none",
+      "text": "引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來。",
+      "action": "重新開啟",
+      "disabled": false,
+      "state": "recoverable-error",
+      "checkpoint": "無",
+      "revision": "1",
+      "pending": "0",
+      "latency": "上移一行 失敗"
+     },
+     "noticeMatchesOwnerQuote": true,
+     "pressedTheButton": true,
+     "stateAfterRecovery": "ready",
+     "savedBytes": 12227,
+     "savedIsOdt": true,
+     "workCameBack": false,
+     "outcome": "WORK_LOST",
+     "completedAt": "2026-09-09T12:34:04.014055+00:00"
+    }
+   ],
+   "port": 35667
+  },
+  {
+   "arm": "with",
+   "servedSessionSha256": "ce738e6167346971673aa40949dc0a2880c08827628233f2507959d42c28bcf4",
+   "servedCarriesTheFix": true,
+   "servedFrom": "/tmp/f096-c-with-q2dnpilz/root",
+   "attempts": [
+    {
+     "arm": "with",
+     "attempt": 1,
+     "startedAt": "2026-09-09T12:34:04.537931+00:00",
+     "boot": "ready",
+     "opened": "ready",
+     "bands": 9,
+     "click": {
+      "x": "0.138889",
+      "y": "0.09887"
+     },
+     "placed": "定位游標 34 ms",
+     "revisionBeforeTyping": "0",
+     "revisionAfterTyping": "1",
+     "checkpointBeforeTheKey": "無",
+     "presses": [
+      {
+       "press": 1,
+       "moved": true,
+       "seconds": 0.61,
+       "sinkBefore": {
+        "top": 100,
+        "left": 365
+       },
+       "sinkAfter": {
+        "top": 100,
+        "left": 100
+       }
+      },
+      {
+       "press": 2,
+       "moved": false,
+       "seconds": 4.11,
+       "sinkBefore": {
+        "top": 100,
+        "left": 100
+       },
+       "sinkAfter": {
+        "top": 100,
+        "left": 100
+       }
+      }
+     ],
+     "boundaryPress": 2,
+     "checkpointAfterTheKey": "有（r1）",
+     "stateAfterPress": "recoverable-error",
+     "boundaryPressAnsweredSeconds": null,
+     "notice": {
+      "show": "1",
+      "rescue": "checkpoint",
+      "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+      "action": "回到檢查點",
+      "disabled": false,
+      "state": "recoverable-error",
+      "checkpoint": "有（r1）",
+      "revision": "1",
+      "pending": "0",
+      "latency": "上移一行 失敗"
+     },
+     "noticeMatchesOwnerQuote": false,
+     "pressedTheButton": true,
+     "stateAfterRecovery": "ready",
+     "savedBytes": 13091,
+     "savedIsOdt": true,
+     "workCameBack": true,
+     "outcome": "RECOVERED",
+     "completedAt": "2026-09-09T12:34:40.791534+00:00"
+    }
+   ],
+   "port": 45521
+  }
+ ],
+ "browser": "Chrome/151.0.7922.169",
+ "completedAt": "2026-09-09T12:34:40.880356+00:00",
+ "counts": {
+  "without:WORK_LOST": 1,
+  "with:RECOVERED": 1
+ },
+ "verdict": {
+  "withRecoveredEvery": true,
+  "withoutLostEvery": true,
+  "armsDisagree": true
+ }
+}

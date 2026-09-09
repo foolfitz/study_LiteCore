@@ -345,3 +345,166 @@ LOK 的 trampoline 加計數，也就是改引擎、連結、付決策文件 row
 **C 單獨是半個修法**（動作照樣掛 30 秒），A 是唯一讓那一下被回答的。兩個一起
 落地、一起量。這棵樹 2026-08-22 為「交出半個修法」付過一次錢，那一次的兩半
 一半在 `dist/` 一半在凍結的 profile 裡，使用者測到的行為完全沒變。
+
+---
+
+# 修法落地（2026-09-09，append-only）：A 與 C 的原始碼都在了，只等擁有者跑那一次連結
+
+**狀態**：**A 與 C 兩半都已落地在原始碼**。**C 已在出貨的位元組上量過並且分得開；
+A 在連結之前量不到，這裡不假裝量得到。**
+
+**沒有連結、沒有產出 wasm、`dist/profiles/**` 一個位元組都沒動**——實測：
+`dist/profiles` 與 `build/e2` 底下 334 個檔的 sha256 在整輪改動前後完全相同。
+
+貨載：`761fc80d`（引擎＋殼層＋單元測試＋殼層 generation）、`bf894bba`（generation
+改名 v50→v51）、`85c8710b`（閘門 amendment，寫在檢查存在之前）、以及本輪最後一個
+commit（第 42 道檢查、突變、liveness 宣稱、證據）。
+
+## A —— 引擎：那條路現在 arm 期限，而且**回答**而不是報錯
+
+`handleEditorAction` 的按鍵路徑 arm `readbackDeadlineArmed`，到期由新的
+`completePendingEditorActionByReadback()` 從讀回回答，completion 是
+`verified-move-readback`，`changed: false`、revision 不動。
+
+**回答不是錯誤，而這是先查過才選的。**`narrow-editor-v2-client.js` 要求移動的
+completion 以 `documented-callback-` 開頭，而 `EDITOR_RESULT_INVALID` 在
+`editor-session.js` 的 `RECOVERY_ERRORS` 裡——所以若引擎改了而客戶端沒有一起改，
+邊界那一按會在 250 ms 被回答、被判無效、session 照樣死，只是**早 29.75 秒**。
+兩半一起落地，就是為了這個。
+
+**期限的數字**：250，來自 `EditorSelectReadbackDeadlineMs`；而它在這裡有自己的
+理由——這條路要蓋住的東西是**在這條路上量的**：邊界前一按 37–39 ms，20/20，兩顆
+引擎（`RESULT-engine-side.md` §2）。250 是那個帶上緣的 **6.4 倍**，不是姊妹路徑對
+finding 048 的 22–28 ms 的約 10 倍。**這個比值寫在程式碼裡沒有被四捨五入掉**，
+以及它的代價：比 250 ms 慢的一按由讀回回答，而讀回報告游標**實際在哪裡**，從不
+宣稱移動發生過；晚到的 callback 這時 `gEditorPending` 已清空，仍會更新
+`gEditorState`，頁面的游標由一般的 editor-state 公告追上。
+
+**`mainLoopDrainCommands` 刻意不動**：`EditorPendingOperation` 自己的註解早就寫著
+「診斷 profile 保留純 callback 語意」，而 018 的歸因正是靠那個差別。出貨與候選都
+沒有 `OXSDK_MAINLOOP_ENGINE`。**預設結論（若這件事永遠沒有再議）**：將來重連的
+attribution profile 在邊界仍然會楔住，而那是刻意的。
+
+**具名代價**：v1 客戶端（`editor-shell/editor-client.js`）被 E1-C 綁著不能改，
+它會把 `verified-move-readback` 判成 `EDITOR_RESULT_INVALID`。將來若有 v1 profile
+重連，邊界 ArrowLeft 會早 30 秒死、代碼比較不準。**本次沒有任何 v1 artifact 移動。**
+
+## C —— 殼層：手勢之前先存檢查點，而且**有人從裡面回復過**
+
+`NarrowEditorV2Session.action()` 在六個按鍵路徑動作之前呼叫
+`_checkpointBeforeBoundaryMove()`，重用基底類別的 `_checkpointBeforeSelection`
+（E1-C 綁定，不能改但可以叫）。revision 守衛擋掉「按住方向鍵每按一次存一次」——
+因為 `action()` 把十五個動作全都用 `mutation: true` 入列，基底類別自己的 stamp
+守衛在這裡擋不住。
+
+### 量了什麼（出貨的 `e2-editor-v8` 位元組，兩臂只差那兩行）
+
+`findings/evidence/096/checkpoint-before-the-gesture.json`（判準寫在探針裡、
+探針寫在跑之前；`checkpoint-before-the-gesture-shakedown-1.json` 是先跑的一趟
+`--attempts 1`，**沒有逼出任何改動**）。
+
+| 臂 | 判定 | `data-rescue` | `#s-checkpoint` | 打進去的字回來了 |
+| --- | --- | --- | --- | --- |
+| `without`（今天早上的產品） | **WORK_LOST** 3/3 | `none` | `無` | **沒有** |
+| `with`（現在這棵樹） | **RECOVERED** 3/3 | `checkpoint` | `有（r1）` | **有** |
+
+`without` 那一臂**逐字重現擁有者的句子**（`noticeMatchesOwnerQuote: true` 3/3）。
+判定讀的是**產品自己的存檔鍵**在**產品自己的回復鍵**之後吐出來的 `content.xml`——
+不是 `hasCheckpoint`、不是狀態球、不是提示文字。**沒有人從裡面回復過的檢查點不是
+檢查點。**探針在突變比對不到東西時會拒絕執行：比對不到就等於兩臂服務同一份修好的
+產品，然後回報「兩個一模一樣的鏡像意見一致」。
+
+**這一輪量到而 A 沒有動的**：`boundaryPressAnsweredSeconds` 在 6 次裡**都是 null**。
+兩臂的那一按都照樣楔住、照樣等完 30 秒。**C 拿掉的是資料遺失那一半，不是掛住那一半。**
+
+## 回歸網：第 42 道檢查
+
+`a-boundary-arrow-press-does-not-cost-the-work`，四條子句分開回報，
+突變 `boundary-move-takes-no-checkpoint`（就是那兩行）。入閘資格與計數語意
+（39 PASS / 2 NE → **40 / 2**）寫在
+`handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` 的 2026-09-09 amendment 裡，
+**寫在檢查的程式碼之前**。
+
+**B2 是逐實例的**（AGENTS.md §1 形式一）：那一按**如果**被回答了，session 要留在
+ready、revision 不動。今天沒有任何 artifact 會回答，所以它對空集合成立，
+`clausesExercised` 會說它沒被執行過——一次綠燈不能拿去當它的證據。**連結之後它
+自己開始咬，沒有東西要改。**
+
+## 連結之前量不到的（不得被上面的綠燈蓋過去）
+
+1. **A 的效果。**這棵樹沒有任何 artifact 帶著移動路徑的期限。邊界那一按在**每一次
+   量測裡**都照樣楔住。
+2. **250 ms 夠不夠。**37–39 ms 是在**沒有負載**的情況下、用這支儀器、在這份文件上
+   量的。長文件、其他工作在跑的時候會不會超過 250 ms，**沒有量過**。超過的後果已經
+   寫在上面（由讀回回答，不會謊報移動），但**發生率是未知的**。
+3. **Home／End 與兩個字元移動。**期限 arm 在整條按鍵路徑上，但 096 量的是上／下、
+   018 量的是 End，Home 與字元移動**兩個方向都沒量過**。
+4. **`verified-move-readback` 有沒有真的被產生過。**沒有。連結之前它是一個沒有
+   任何引擎會吐的字串。
+
+## 順帶量到、**不修、送裁定**：提示的句子現在指名了錯的手勢
+
+C 讓邊界那一按走到 `canRescue` 那一格，而那一格的句子是
+「這一步可能已經改到文件，而且無法驗證。**回到選取手勢前的檢查點**。」
+——**沒有選取手勢**，使用者按的是方向鍵。
+
+這正是 **finding 061 的形狀**（對另一個情況為真的句子＝誤導性歸因，這棵樹已經
+把它當缺陷立過一次）。**沒有改**，理由有兩個，都寫下來：
+
+- 它住在 `web/e2-editor-app.js`，也就是殼層 bundle 的 entrypoint。改它會移動
+  `candidateCutover.pageSha256`，代價是決策文件 row D 的價碼——而 096 的修法
+  **不屬於**頁面那一層。「修法要落在它該在的地方，不是落在最好打字的地方。」
+- 一句話同時服務兩個手勢（範圍選取的刪除與方向鍵）。要對兩者都精確，要嘛把句子
+  改鬆（會削弱刪除那一格真正需要的警告），要嘛依失敗的手勢分支——那是**新機制**，
+  而 AGENTS.md §4 說寫到新機制就該停手回報。
+
+**最小的誠實修法看起來是刪掉「選取」兩個字**（「回到**這個手勢**前的檢查點」），
+但那是產品文案的決定，起草方不做（AGENTS.md §8）。**預設結論（若永遠不處理）**：
+使用者在邊界按方向鍵、拿回工作，而過程中被告知一個沒發生過的手勢。
+
+---
+
+# 追記（2026-09-09）：第 42 道檢查跑過了，紅案也紅過了
+
+**這一段是 append，上面一個字都沒有改。**
+
+證據：`findings/evidence/096/product-path/`（兩份報告＋README）。兩趟都跑在**出貨的**
+`e2-editor-v8` 與殼層 generation **v51** 上（`servedSha256 == declaredSha256 ==
+2ffbec81…`，plain 那趟 `differingPaths: []`）。
+
+| 趟 | 組成 |
+| --- | --- |
+| 無突變 | **40 PASS / 2 NE**，`ok: true` |
+| `--mutate boundary-move-takes-no-checkpoint` | **39 PASS / 1 FAIL / 2 NE** |
+
+紅的只有 `a-boundary-arrow-press-does-not-cost-the-work` 一格，NE 那一對沒有變。
+組成從 39/2 走到 **40/2**，跟 amendment 寫的完全一樣。
+
+- **無突變**：按鍵前 `#s-checkpoint` 是「無」、按鍵後是「有（r1）」；那一按**沒有
+  被回答**（`stateAfterPress: recoverable-error`）；提示給 `rescue: "checkpoint"`；
+  按下產品自己的按鈕之後 session 回到 ready，產品自己的存檔吐出的 ODT **含有**
+  打進去的標記。`clausesExercised: ["B1","B3","B4"]`——**B2 不在裡面**，因為這棵樹
+  沒有任何 artifact 會回答那一按。
+- **有突變**：同樣七步，只差那兩行。按鍵前後都是「無」、`rescue: "none"`、提示
+  逐字重現擁有者的句子、按下「重新開啟」之後回來的文件**沒有**那個標記。
+  `servedShell.differingPaths` 指名被改的那個檔，所以那趟自己的誠實旗標看得到殼層動了。
+
+## 這一輪的檢查自己逼出一次修改，記下來
+
+第一版的檢查在 B1 失敗時**直接返回**，把 session 留在死狀態。`liveness.expecting`
+的離場探測因此開火，突變那一趟報成 **STOPPED run** 而不是一格紅——雖然
+`0 checks were never reached`（它是最後一格），但那讓這一格的正確性**取決於它排在
+最後**。改成**兩個世界都按下產品提供的那顆按鈕**：`回到檢查點` 從檢查點重開、
+`重新開啟` 從 authority bytes 重開，兩邊都回到可用的 session。
+
+順帶把 B4 的**反面**變成量測而不是推論：沒有檢查點的產品上，回來的文件不含打進去的
+字，報告直接這樣寫（`workCameBack: false`），不用讀的人自己推。
+
+另外補了一個控制組：那一按必須 `defaultPrevented`（抄 `the-vertical-arrows-move-
+the-caret`）。少了它，**頁面根本沒接走的按鍵**會讓 session 停在 `ready`，而這一格
+會把它讀成「引擎回答了那一按」——正好是這棵樹今天沒有任何 artifact 能滿足的那一格
+的假綠燈。
+
+## 這一段仍然不改上面任何一句
+
+**A 的效果還是量不到**：兩趟裡那一按都沒有被回答，`clausesExercised` 都沒有 B2。

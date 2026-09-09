@@ -157,6 +157,12 @@ INSERT_MARK = "插入鈕標記"
 # Non-ASCII on purpose: a paste path that mangles UTF-8 passes an ASCII marker.
 PASTE_MARK = "貼上標記PASTEMARK"
 
+# FINDING 096.  The work the boundary arrow key must not cost.  Distinct from
+# every marker above and absent from every fixture, so finding it in the bytes
+# the product saved AFTER its own recovery button is a statement about that
+# recovery and not about the fixture.
+BOUNDARY_MARK = "邊界救回標記F096"
+
 # The fixture's own text, used as a witness that a check did not destroy the
 # document around what it was measuring.  It is only ever REQUIRED if a previous
 # capture in the same run showed it present, so a run on a document that does
@@ -2089,6 +2095,36 @@ MUTATIONS = {
                         "that dropped them",
         "alsoRed": [],
     },
+    # FINDING 096's OWN RED CASE, and like 093's first one it is the defect
+    # itself rather than a hypothetical: these two lines are the whole of half
+    # C, and without them this is exactly the product the owner met on
+    # 2026-09-09 -- one arrow key, `revision: 0`, and 「沒有檢查點，所以自上次
+    # 儲存以來的內容不會回來。」
+    #
+    # The engine half cannot be given a mutation and that is worth stating
+    # rather than leaving as an absence: no artifact in this tree answers a
+    # boundary press, so there is no completion for a mutation to reject and
+    # manufacturing one in the shell would reproduce a state no engine can
+    # reach.  What guards the engine half is B2's per-instance form, which
+    # needs no mutation because it needs no member.
+    #
+    # Run outside the runner as well, on two mirrors differing in exactly this
+    # hunk and judged on `content.xml` of what the product's own save button
+    # produced after its own recovery button was pressed:
+    # `findings/evidence/096/checkpoint-before-the-gesture.json` -- 3 of 3
+    # WORK_LOST without, 3 of 3 RECOVERED with.
+    "boundary-move-takes-no-checkpoint": {
+        "check": "a-boundary-arrow-press-does-not-cost-the-work",
+        "path": "editor-shell-v2/narrow-editor-v2-session.js",
+        "find": "        if (BOUNDARY_CAPABLE_MOVES.has(action))\n"
+                "          await this._checkpointBeforeBoundaryMove(document);\n",
+        "replace": "",
+        "reintroduces": "finding 096's loss half -- an arrow key at a document "
+                        "boundary kills the session and the product says there "
+                        "is no checkpoint, so everything typed since the last "
+                        "save is gone",
+        "alsoRed": [],
+    },
     "cut-swallows-the-refusal": {
         "check": "a-refused-action-is-reported-and-changes-nothing",
         "path": "e2-editor-app.js",
@@ -3870,6 +3906,215 @@ def zip_report(raw: bytes) -> dict:
             out["contentXmlParses"] = False
             out["xmlError"] = str(error)
     return out
+
+
+BOUNDARY_SINK = """(() => {
+const sink = document.querySelector('#sink');
+return sink ? { top: sink.offsetTop, left: sink.offsetLeft } : null;
+})()"""
+
+
+def boundary_rescue(session, boundary: dict) -> dict:
+    """FINDING 096: does an arrow key with nowhere to go still cost the work?
+
+    Everything here goes through the product's own controls -- its file input,
+    its canvas, its insert field, a real key at the renderer, its recovery
+    button and its save button -- because the defect was found by a person
+    using them and the harness's own path is not the user's (2026-08-22).
+
+    Fills `boundary` as it goes so a NOT_ESTABLISHED or a FAIL carries what was
+    seen, and returns the verdict with its clauses separated.
+    """
+    def state():
+        return evaluate(session, READ_STATE) or {}
+
+    def bail(why, outcome="NOT_ESTABLISHED"):
+        return {"ok": False, "outcome": outcome, "why": why,
+                "clausesExercised": []}
+
+    name = "boundary-rescue.odt"
+    boundary["openedAs"] = name
+    boundary["reopened"] = evaluate(
+        session, OPEN_FILE.replace("ARG_URL", "./e1-fixtures/list-contexts.odt")
+        .replace("ARG_NAME", name))
+    opened = wait_for(session, lambda s: (s.get("doc") or "") == name
+                      and s.get("state") == "ready", 120)
+    boundary["stateAfterOpen"] = (opened or {}).get("state")
+    if boundary["stateAfterOpen"] != "ready":
+        return bail("the fixture did not re-open into a ready session, so "
+                    "nothing here was measured")
+
+    # THE FIRST LINE, from the ink rather than from a fraction: ArrowUp is only
+    # a boundary press if the caret is on the top line of the document, and a
+    # click one line lower measures an ordinary move that answers in 40 ms.
+    scan, bands = stable_bands(session)
+    boundary["bands"] = len(bands)
+    if not bands:
+        return bail("no text bands were drawn, so there is no first line to "
+                    "click and no boundary to press against")
+    y = f"{bands[0]['centreFraction']:.5f}"
+    fractions = caret_click_fractions(
+        evaluate(session, LINE_INK.replace("ARG_Y", y)) or {})
+    boundary["click"] = {"x": fractions["near"], "y": y}
+    evaluate(session, POINT_AT.replace("ARG_X", fractions["near"])
+             .replace("ARG_Y", y))
+    placed = wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 90)
+    boundary["placed"] = (placed or {}).get("latency")
+    if "定位游標" not in (boundary["placed"] or "") \
+            or "失敗" in (boundary["placed"] or ""):
+        return bail("the caret could not be placed on the first line")
+
+    # WORK WORTH LOSING.  Through the product's insert control, so the document
+    # is genuinely dirty and the revision genuinely moved -- a check that
+    # pressed the key on a clean document would pass by having nothing at
+    # stake, which is the whole shape of a vacuous green.
+    before = state()
+    evaluate(session, SET_TEXT.replace("ARG_TEXT", BOUNDARY_MARK))
+    evaluate(session, PRESS.replace("ARG_ACTION", "insert-text"))
+    typed = wait_for(session, lambda s: (s.get("revision") or "")
+                     != (before.get("revision") or ""), 120)
+    boundary["revisionBeforeTyping"] = before.get("revision")
+    boundary["revisionAfterTyping"] = (typed or {}).get("revision")
+    if boundary["revisionBeforeTyping"] == boundary["revisionAfterTyping"]:
+        return bail("the insert never reached the document, so this press had "
+                    "nothing at stake and proves nothing")
+    # THE CONTROL ON B3.  Without it, a checkpoint some earlier gesture left
+    # behind reads as one this arrow key banked.
+    boundary["checkpointBeforeTheKey"] = (typed or {}).get("checkpoint")
+
+    presses = []
+    for step in range(1, 5):
+        was = evaluate(session, BOUNDARY_SINK) or {}
+        evaluate(session, INSTALL_KEY_TAKEN)
+        started = time.monotonic()
+        for kind in ("rawKeyDown", "keyUp"):
+            session.call("Input.dispatchKeyEvent",
+                         {"type": kind, "key": "ArrowUp", "code": "ArrowUp",
+                          "windowsVirtualKeyCode": 38, "nativeVirtualKeyCode": 38})
+        moved = False
+        now = was
+        watch = time.monotonic() + 4.0
+        while time.monotonic() < watch:
+            time.sleep(0.15)
+            if dead_session(state()):
+                break
+            now = evaluate(session, BOUNDARY_SINK) or now
+            if now != was:
+                moved = True
+                break
+        presses.append({"press": step, "moved": moved,
+                        "seconds": round(time.monotonic() - started, 2),
+                        # THE INSTRUMENT'S OWN CONTROL, copied from
+                        # `the-vertical-arrows-move-the-caret` because the
+                        # failure it prevents is worse here: a key the page
+                        # NEVER TOOK leaves the session `ready`, which this arm
+                        # would otherwise read as "the engine answered the
+                        # press" -- a green for the clause that cannot be
+                        # satisfied by any artifact in this tree.
+                        "takenByThePage": [k.get("defaultPrevented")
+                                           for k in
+                                           (evaluate(session, READ_KEY_TAKEN) or [])
+                                           if k.get("key") == "ArrowUp"],
+                        "sinkBefore": was, "sinkAfter": now})
+        if not moved:
+            break
+    boundary["presses"] = presses
+    taken = presses[-1]["takenByThePage"]
+    if not (taken and all(taken)):
+        return bail("the page never took the boundary key -- `defaultPrevented` "
+                    f"was {taken!r} -- so nothing was dispatched and neither "
+                    "'the engine answered' nor 'the work survived' is measured "
+                    "by anything that happened here")
+
+    boundary["checkpointAfterTheKey"] = state().get("checkpoint")
+    settled = wait_for(session, lambda s: dead_session(s)
+                       or s.get("state") == "ready", 75)
+    boundary["stateAfterPress"] = (settled or {}).get("state")
+    died = dead_session(settled)
+    boundary["theEngineAnsweredThePress"] = not died
+
+    # B3: the checkpoint is THIS gesture's -- absent before the key, present
+    # after it, naming the revision the typing produced.
+    exercised = ["B1", "B3"]
+    banked = (boundary["checkpointAfterTheKey"] or "")
+    b3 = (boundary["checkpointBeforeTheKey"] == "無"
+          and banked.startswith("有")
+          and f"r{boundary['revisionAfterTyping']}" in banked)
+
+    # B2 is a PER-INSTANCE property over the presses that get ANSWERED, and it
+    # is vacuously true while none of them is -- AGENTS.md §1 form one. No
+    # artifact in this tree carries the engine's move-path deadline, so today
+    # this is the empty set on every run; it starts biting by itself the day
+    # one does, with nothing here to edit.
+    b2 = True
+    if not died:
+        exercised.append("B2")
+        usable = (settled or {}).get("state") == "ready"
+        b2 = (usable
+              and (settled or {}).get("revision")
+              == boundary["revisionAfterTyping"]
+              and "失敗" not in ((settled or {}).get("latency") or ""))
+        # B1 in this branch is `usable`, not True: a press that neither
+        # answered nor killed the session -- still `busy` when the wait ran out
+        # -- has left the work unreachable just as surely, and labelling that
+        # B1 True would put a green beside a red verdict.
+        return {"ok": bool(usable and b2 and b3), "outcome": None,
+                "B1": usable, "B2": b2, "B3": b3, "B4": None,
+                "clausesExercised": exercised,
+                "why": None if (usable and b2 and b3) else
+                       "the press was answered but the answer did not leave a "
+                       "usable session at the revision it started from, or the "
+                       "checkpoint was not this gesture's"}
+
+    # The session died.  B1 is then the question the owner's finding is about:
+    # is there a way back, or does the product say there is none?
+    notice = evaluate(session, READ_NOTICE) or {}
+    boundary["notice"] = notice
+    b1 = notice.get("shown") is True and notice.get("rescue") == "checkpoint"
+
+    # THE BUTTON IS PRESSED EITHER WAY, and that is not politeness towards a
+    # red verdict -- it is this region's contract.  `liveness.expecting` holds
+    # the dead-session guard off INSIDE the arm and probes again on the way
+    # out, so an arm that leaves the session dead stops the whole run.  Ending
+    # early on a failed B1 made the mutation round report a STOPPED run instead
+    # of one red check, and made this arm's correctness depend on being the
+    # last one in the file.  Pressing whatever the product offers restores a
+    # usable session in both worlds: `回到檢查點` reopens from the checkpoint,
+    # `重新開啟` from the authority bytes.
+    #
+    # It also buys the negative half of B4 as a MEASUREMENT rather than an
+    # assumption: on a product with no checkpoint, what comes back is a
+    # document without the typed text, and the run says so instead of leaving
+    # the reader to infer it.
+    exercised.append("B4")
+    boundary["pressedTheNotice"] = evaluate(session, CLICK_NOTICE)
+    recovered = wait_for(session, lambda s: s.get("state") == "ready", 240)
+    boundary["stateAfterRecovery"] = (recovered or {}).get("state")
+    if boundary["stateAfterRecovery"] != "ready":
+        return {"ok": False, "outcome": None, "B1": b1, "B2": b2, "B3": b3,
+                "B4": False, "clausesExercised": exercised,
+                "why": "the product's own recovery button did not bring a "
+                       "usable session back"}
+    evaluate(session, CLEAR_TOAST)
+    saved = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+    boundary["savedBytes"] = saved.get("bytes")
+    boundary["savedIsOdt"] = is_an_odt(saved)
+    boundary["workCameBack"] = bool(saved) and is_an_odt(saved) \
+        and BOUNDARY_MARK in (saved.get("content") or "")
+    b4 = b1 and boundary["workCameBack"]
+    return {"ok": bool(b1 and b2 and b3 and b4), "outcome": None,
+            "B1": b1, "B2": b2, "B3": b3, "B4": b4,
+            "clausesExercised": exercised,
+            "why": None if (b1 and b2 and b3 and b4) else
+                   ("the session died and the product offered no way back to "
+                    f"the work: rescue={notice.get('rescue')!r}, and what came "
+                    f"back after pressing 「{notice.get('label')}」 "
+                    f"{'does' if boundary['workCameBack'] else 'does not'} "
+                    "contain what was typed. That is finding 096 as the owner "
+                    "met it" if not b1 else
+                    "the notice offered the checkpoint but what came back after "
+                    "pressing it does not contain what was typed, or the "
+                    "checkpoint was not this gesture's")}
 
 
 def is_an_odt(report: dict) -> bool:
@@ -8897,6 +9142,72 @@ return { available: true, afterButton };
                                   "ODT, so what the cut did to the document is "
                                   "NOT measured here -- read `toasts` and "
                                   "`stateAfterCut`")
+        # ----------------------------- the arrow key that used to cost the work
+        #
+        # FINDING 096, AND IT IS LAST FOR A REASON THAT IS NOT TIDINESS: on
+        # every artifact in this tree the boundary press still wedges, so this
+        # arm spends the SDK's thirty seconds and then takes the session
+        # through the product's own recovery.  Nothing after it should have to
+        # inherit a fresh Worker generation.
+        #
+        # WHAT IT GUARDS.  096 is two halves. The engine's -- the press is
+        # never answered -- is source-only until the owner relinks, and this
+        # check cannot measure it; B2 below is written so that it starts biting
+        # by itself on the day it can. The shell's half is the one that ships
+        # today: `_checkpointBeforeSelection` ran only ahead of a RANGE
+        # SELECTION, so no caret movement had ever taken a checkpoint, and one
+        # arrow key on a document at `revision: 0` killed the session with
+        # `data-rescue: "none"`. The owner found that by hand; nothing in this
+        # runner could see it, because nothing here had ever asked what the
+        # product does with a key that has nowhere to go.
+        #
+        # ITS ADMISSION TO THE GATE is registered against AGENTS.md §9's four
+        # conditions in `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md`
+        # (amendment of 2026-09-09), including what it does to the counting
+        # composition (39 PASS / 2 NE -> 40 / 2). Written before this code.
+        boundary: dict = {"sentinel": BOUNDARY_MARK}
+        boundary_cdp = getattr(session, "call", None)
+        boundary["offered"] = offered_actions(root, ["move-line-up"])
+        if boundary_cdp is None or boundary["offered"].get("move-line-up") is not True:
+            check("a-boundary-arrow-press-does-not-cost-the-work", False,
+                  outcome="NOT_ESTABLISHED", observed=boundary,
+                  why="no CDP (so a real arrow key cannot be delivered), or "
+                      "this profile does not offer `move-line-up`. On a "
+                      "profile without it the page leaves the key to the "
+                      "browser and there is no gesture to protect",
+                  oracle="see the established branch")
+        else:
+            # The session is taken into `recoverable-error` ON PURPOSE and the
+            # arm presses the product's notice, so the guard is held off inside
+            # the region and read once more on the way out.
+            with liveness.expecting(
+                    "a-boundary-arrow-press-does-not-cost-the-work",
+                    "finding 096: the boundary press wedges the engine on every "
+                    "artifact in this tree, and this arm presses the product's "
+                    "recovery notice afterwards"):
+                boundary_verdict = boundary_rescue(session, boundary)
+                check("a-boundary-arrow-press-does-not-cost-the-work",
+                      boundary_verdict["ok"],
+                      outcome=boundary_verdict.get("outcome"),
+                      observed={**boundary, "verdict": boundary_verdict},
+                      why=boundary_verdict.get("why"),
+                      oracle="an arrow key pressed where there is nothing to "
+                             "move to, on a document with unsaved work in it, "
+                             "leaves that work REACHABLE: either the press is "
+                             "answered and the session stays usable, or the "
+                             "session dies and the notice offers the "
+                             "checkpoint. What may not happen is the third "
+                             "case -- it dies saying there is nothing to go "
+                             "back to. The checkpoint must be THIS gesture's "
+                             "(none before the key, one naming the typed "
+                             "revision after it), and where the notice is "
+                             "pressed, what comes back must contain what was "
+                             "typed: a checkpoint nobody restored from is not "
+                             "a checkpoint. LIMIT: B2 -- that an ANSWERED "
+                             "press leaves the session usable -- is vacuous "
+                             "until an artifact carries the engine's move-path "
+                             "deadline, and `clausesExercised` says so rather "
+                             "than letting a green run be quoted for it")
         note_liveness()
         report["pageErrors"] = evaluate(session, READ_PAGE_ERRORS)
         report["caretParagraphs"] = evaluate(session, READ_PAGE_PARAGRAPHS)
