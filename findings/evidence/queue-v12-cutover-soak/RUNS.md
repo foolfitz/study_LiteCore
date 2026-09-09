@@ -924,3 +924,48 @@ Counting: **1 of 12**, one UTC day (2026-09-09) with one run on it — no
 qualifying day yet, since the clause wants ≥2 per day on ≥3 days. Earliest
 close is UTC 2026-09-11, and only if the remaining eleven land 2+ on each of
 two further UTC days.
+
+## Run 10 — clean, `e2-editor-v13` (2026-09-09)
+
+Same recipe as run 09.
+
+```
+make test-e2-c-static                       # exit 0, immediately before
+python3 tools/run_e2_c_product_path.py --browser chrome \
+    --candidate-profile e2-editor-v13 --out soak-run-10-candidate.json
+python3 tools/check_usable_editor.py --report soak-run-10-candidate.json \
+    --output ../queue-v12-cutover-soak-checklists/check-usable-editor-run10.json
+```
+
+`make test-e2-c-static` exit 0 immediately before this run, per finding 090's
+manual rule.
+
+| run | completedAt (local) | completedAt (UTC) | UTC day | composition | run `ok` |
+|---|---|---|---|---|---|
+| `soak-run-10-candidate.json` | 2026-09-09T13:23:41+08:00 | 2026-09-09T05:23:41Z | 2026-09-09 | 39 PASS / 2 NE | **true** |
+
+`startedAt` 2026-09-09T13:17:35+08:00 (2026-09-09T05:17:35Z). `complete: true`.
+NE set exactly `{a-refused-action-is-reported-and-changes-nothing,
+notice-action-recovers-the-session}`, no FAIL. `knownRed: {}`,
+`staleKnownRedDeclarations: []`, `pageErrors: null`, `offPageInk.worst: 0`,
+`recoveryPairing.held: true`.
+`candidateCutover.pageSha256` = `31787584290e42bdca41f95949887dedbc39ba51386439cd8c4d2914d056a79a`,
+`pinBefore` `4a2710bba1ef07d9` → `pinAfter` `0fe25650bec1bac5`;
+`servedShell.servedSha256` = `ea69984c8ad25c4048de0313a49f3db9e7c4ab3fc6ded0f4cebc84a1a5b0fe52`
+on `e2/editor-shell-v2-bundle-v49.json` (declared `4f8494b6…`), `missing: []`,
+`differingPaths: ["web/e2-editor-app.js"]`, `differsOnlyInTheEntrypoint: true`.
+
+`check_usable_editor.py --report soak-run-10-candidate.json`: `"ok": true`,
+`reconciledFor.kind == "candidate-cutover"`, `profile == "e2-editor-v13"`,
+`problems: []`. Saved to
+`../queue-v12-cutover-soak-checklists/check-usable-editor-run10.json`, never
+into this directory.
+
+Desktop: one Chrome instance before and after (the owner's, browser main
+211853, crashpad handler 211863 — the same pids run 09 recorded, i.e. nothing
+new was spawned), no headless Chrome and no `serve_candidate_page.py` left
+behind. Nothing was killed.
+
+Counting: **2 of 12**, one UTC day (2026-09-09) with two runs on it — the
+first day now qualifies (≥2 runs), with two more qualifying UTC days still
+needed.
