@@ -70,15 +70,22 @@ DEFAULT_GLOB = "diagnostic-*.json"
 # that changed.  Condition 2's re-take on `e2-editor-v13` is what restores the
 # control; until then this tool cannot demonstrate it can say yes.
 #
-# `DEFAULT_PROFILE` BELOW IS DELIBERATELY NOT MOVED, and the pair is therefore
-# inconsistent on purpose: the task that moved the sha scoped itself to the
-# sha.  A re-take of condition 2 on `e2-editor-v13` must either pass
-# `--expect-profile e2-editor-v13` explicitly or move this constant as its own
-# decision.  Written down because a stale default that nobody can see is how a
-# judge silently accepts the wrong thing.
+# DECIDED, 2026-09-09: DEFAULT_PROFILE MOVED TO e2-editor-v13.  The comment
+# above (2026-09-09, earlier the same day) left this open on purpose --
+# `--self-test` calls `judge(trio, DEFAULT_SHA, DEFAULT_PROFILE)` directly on
+# the module constants, with no CLI override, so re-earning condition 2 on
+# `e2-editor-v13` (three fresh `diagnostic-*.json`, profile
+# `"e2-editor-v13"`) would leave `--self-test`'s control red on `1-identity`
+# forever unless this constant moves with it.  This is that decision, made
+# as its own act rather than incidentally: `--expect-profile e2-editor-v13`
+# would have sufficed for a one-off `main()` invocation but not for
+# `--self-test`, which is the whole reason the control went red in the first
+# place. The old diagnostics (profile `e2-editor-v12`, page `9b29e39b...`)
+# are void and moved to
+# `../../findings/evidence/queue-v12-cutover-soak-void-9b29e39b/`.
 DEFAULT_SHA = ("31787584290e42bdca41f95949887dedbc39ba51386439cd8c4d2914d0"
                "56a79a")
-DEFAULT_PROFILE = "e2-editor-v12"
+DEFAULT_PROFILE = "e2-editor-v13"
 CARET_CHECK = "caret-follows-the-text-you-type"
 
 REQUIRED_RUNS = 3

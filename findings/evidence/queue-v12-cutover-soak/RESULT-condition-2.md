@@ -204,3 +204,104 @@ the raw `ok` field or the full composition — they read `caretSourceDiagnostic`
 does not touch condition 2's discharge. It is not re-derived here; recorded so
 a reader comparing this table against the raw files does not mistake the
 absence of `ok: true` for a discrepancy in this judge's work.
+
+---
+
+# Re-taken on page `e2-editor-v13` — DISCHARGED again (2026-09-09)
+
+`9b29e39b…` moved when finding 093 option B's relink minted `e2-editor-v13`
+(`probe.wasm` `0fe25650bec1bac5…`, a real link, not a repackage). Per
+`handoff/RUNBOOK-operator-093-engine-geometry.md` §6.2, condition 2 died with
+the page and had to be re-earned; `check_caret_diagnostics.py`'s own
+`--self-test` registered the interim state (commit `b5c119d4`): its green
+control, built from the live `diagnostic-*.json`, went red on `1-identity`
+because those three reports were exactly the ones the moved sha disqualified.
+
+Same command as every prior take, profile updated:
+
+```
+python3 tools/run_e2_c_product_path.py --candidate-profile e2-editor-v13 \
+    --caret-source-diagnostic --caret-rounds 12 --caret-engine-probe stalled
+```
+
+## Result — all four terms pass
+
+| term | result |
+|---|---|
+| 1 identity | all three carry `caretSourceDiagnostic`, `engineProbeMode: stalled`, profile `e2-editor-v13`, page sha `31787584…` |
+| 2 count | **3 of 3** complete runs |
+| 3 rounds | **36 committed rounds, 0 dropped**; each run reached 12 of 12 and `caret-follows-the-text-you-type` PASSes |
+| 4 guard fired | `staleWritesRefusedTotal` = **5, 5, 4** — the guard refused a stale write in every run |
+
+| run | completedAt | reached | dropped | staleWritesRefused |
+|---|---|---|---|---|
+| `diagnostic-01-caret12.json` | 2026-09-09T13:40:19+08:00 | 12 | 0 | 5 |
+| `diagnostic-02-caret12.json` | 2026-09-09T13:46:49+08:00 | 12 | 0 | 5 |
+| `diagnostic-03-caret12.json` | 2026-09-09T13:53:16+08:00 | 12 | 0 | 4 |
+
+`check_caret_diagnostics.py`'s verdict: `"ok": true` over all four terms.
+Banked as `VERDICT-condition-2.json` (overwrites nothing live — the previous
+`9b29e39b…` take's `VERDICT-condition-2.json` moved out under the disposition
+below before this one was written).
+
+Unlike the `9b29e39b…` take, all three raw reports here carry `ok: true` at
+the top level with a full 39 PASS / 2 NE composition — the
+`the-document-region-says-why-it-is-empty` FAIL that take recorded is gone on
+`e2-editor-v13`, consistent with the same page and shell measuring clean in
+soak runs 09–11 the same session. Not re-derived by this judge (it still
+reads only `caretSourceDiagnostic`, `caretOutcome` and per-round fields), but
+worth stating since the prior section flagged the opposite.
+
+## `DEFAULT_PROFILE` moved, and why that was necessary rather than cosmetic
+
+The 2026-09-09 comment left in `check_caret_diagnostics.py` when `DEFAULT_SHA`
+moved said a re-take on `e2-editor-v13` "must either pass `--expect-profile
+e2-editor-v13` explicitly or move this constant as its own decision." The
+second option was taken, not the first, because `--self-test` calls
+`judge(trio, DEFAULT_SHA, DEFAULT_PROFILE)` directly on the module constants
+with no CLI override at all — a one-off `--expect-profile` flag on `main()`
+would have produced a correct verdict for this run but left `--self-test`
+red forever, since its fixtures are built from `e2-editor-v13` reports
+compared against a `DEFAULT_PROFILE` still reading `"e2-editor-v12"`.
+`DEFAULT_PROFILE` is now `"e2-editor-v13"`, and both the default invocation
+(no flags) and `--self-test` were re-run after the change to confirm: the
+default judge above and the self-test below.
+
+## The old diagnostics: moved, joining the six soak runs already void on that page
+
+The three `diagnostic-*.json` taken on `9b29e39b…` (profile `e2-editor-v12`)
+and their `VERDICT-condition-2.json` are void by the same page-identity rule
+every prior take used (`-void-3dfdcfef`, `-void-20f09cc9`), and they are
+**moved**, not left in place: `../queue-v12-cutover-soak-void-9b29e39b/`
+already held the six soak runs voided from the same page earlier the same
+day, and that directory's `WHY-THESE-ARE-VOID.md` had explicitly deferred the
+diagnostics' move to this re-take (see its 2026-09-09 correction section) —
+moving them earlier, before a replacement existed, would have left
+`--self-test`'s control with nothing to build from, the same trap
+`check_soak_bank.py --self-test` hit before soak run 09 was banked. With the
+replacement now banked, they join the same void lineage under their original
+names, and the verdict is renamed `VERDICT-condition-2-on-9b29e39b.json` on
+the move, matching the `-on-<sha>` convention its `3dfdcfef…` and `20f09cc9…`
+predecessors already established. Nothing in the moved files was edited.
+
+## Self-test, re-run after the take
+
+```
+$ python3 tools/check_caret_diagnostics.py --self-test
+  RED (correct)   nothing given at all
+  RED (correct)   two runs where three are required
+  RED (correct)   one dropped commit in 36
+  RED (correct)   clean but the guard never fired
+  RED (correct)   a plain run offered as a diagnostic
+  RED (correct)   engine probed every round -- the confound
+  RED (correct)   wrong expected page sha
+  RED (correct)   no commits at all -- drops nothing, proves nothing
+  GREEN (correct) control: three unmodified diagnostic runs
+
+self-test passed: 8 red cases all red, and the green control is green
+```
+
+Exit 0. The control (built from the first complete report whose guard fired —
+`diagnostic-01-caret12.json`, `staleWritesRefusedTotal: 5`) is green again,
+for the reason the judge says it should be: three fresh, matching-identity
+reports on `e2-editor-v13`.

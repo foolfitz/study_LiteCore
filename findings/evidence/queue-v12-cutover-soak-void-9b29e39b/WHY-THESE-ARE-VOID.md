@@ -190,3 +190,47 @@ replaced, and the net they were measured against has one more check in it.
   move), §6.2 (the evidence that dies), §6.3 (why a voided run must physically
   leave the directory), and the 2026-09-09 correction appended to it (§5 step
   5.3's repoint is the cutover and must not be performed).
+
+## Correction, 2026-09-09: the three `diagnostic-*.json` and `VERDICT-condition-2.json` have now moved too
+
+The section above ("What did NOT move, and why each one stayed") said the
+three `diagnostic-*.json` and `VERDICT-condition-2.json` stay in the live bank
+directory, because at that point condition 2 had not yet been re-taken on
+`e2-editor-v13` and moving them without a replacement would have left
+`check_caret_diagnostics.py --self-test` with nothing to build its control
+from — the same trap `check_soak_bank.py --self-test` hit before run 09 was
+banked.
+
+Condition 2 has now been re-earned on `e2-editor-v13` (three fresh
+`diagnostic-*.json`, `VERDICT-condition-2.json` re-derived, both banked in
+`../queue-v12-cutover-soak/`; see `RESULT-condition-2.md`'s
+"Re-taken on page `e2-editor-v13`" section for the four terms and the
+per-run numbers). With a replacement in place, the reason to leave the old
+ones behind is gone, and the reason to move them is the one every prior
+page-transition in this file's own precedent list already acted on
+(`-void-3dfdcfef`, `-void-20f09cc9`): evidence bound to a page identity that
+no longer exists belongs beside the rest of that page's evidence, not mixed
+into the live bank where a reader has to check `candidateCutover.pageSha256`
+file by file to tell which generation they are looking at.
+
+So, moved into this directory alongside the six soak runs above, unedited:
+
+    diagnostic-01-caret12.json
+    diagnostic-02-caret12.json
+    diagnostic-03-caret12.json
+    VERDICT-condition-2-on-9b29e39b.json   (was `VERDICT-condition-2.json`)
+
+The verdict file is renamed on the move, the same way its `3dfdcfef…` and
+`20f09cc9…` predecessors were: a bare `VERDICT-condition-2.json` sitting
+among files named `*-on-<sha>.json` would be the one file here that does not
+say which page it judged, and `check_caret_diagnostics.py` globs
+`VERDICT-*.json` out of nothing (it reads reports, not verdicts), so nothing
+downstream depends on the old name.
+
+All three diagnostic reports carry `candidateCutover.pageSha256 ==
+9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dddf361c` and
+`candidateCutover.profile == "e2-editor-v12"`, the same identity the six
+soak runs above carry — so they join the same void lineage, not a new one.
+Nothing about them was wrong: `staleWritesRefusedTotal` = 3, 1, 3 across the
+three, 36 committed rounds, 0 dropped, all four of condition 2's terms passed
+on that page (`VERDICT-condition-2-on-9b29e39b.json`, `"ok": true`).
