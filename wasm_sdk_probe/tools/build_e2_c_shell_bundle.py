@@ -463,7 +463,22 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # own `test_the_real_manifest_matches_the_real_tree` red between the two, and
 # a red static gate is exactly where the next real drift hides -- which is
 # what v41..v45's correction above is the record of.
-# v50, 2026-09-09: finding 096's shell half.  Two files, one defect.
+# v50 IS SPENT AND THE FILE NEVER EXISTED IN THE TREE.  The revert rehearsal of
+# 2026-09-09 froze a generation under that name on the CUTOVER bytes
+# (`bundleSha256 ea69984c…`, the digest the six banked soak runs served),
+# measured the revert, and deleted the file -- `handoff/PLAN-2026-08-28-the-v11-
+# cutover-horizon.md`, "Generation v50 does not remain", which says the number
+# "stays unclaimed for the next real cutover".
+#
+# CORRECTION TO THAT SENTENCE, and it is why this is v51: the number is NOT
+# unclaimed.  `findings/evidence/queue-v12-cutover-revert-rehearsal/freeze-v50
+# .json` names generation v50 with a specific digest, and evidence is never
+# rewritten here.  Reusing the name for different bytes would leave two things
+# called v50 in one tree -- which is the ambiguity `build/archive/`'s
+# `ATTRIBUTION.md` exists because of.  Numbers are cheap; a colliding name is
+# not.  v46 is absent from `e2/` for the same kind of reason.
+#
+# v51, 2026-09-09: finding 096's shell half.  Two files, one defect.
 #
 #   * `narrow-editor-v2-session.js` takes a checkpoint before any of the six
 #     key-path moves when the document is dirty.  Before this, `_checkpoint
@@ -487,7 +502,7 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # until the owner links.  `web/e2-editor-app.js` is byte-identical to v49's.
 # The engine's deadline cannot be measured on any artifact in this tree, and
 # nothing here pretends otherwise.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v50.json")
+MANIFEST = Path("e2/editor-shell-v2-bundle-v51.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
