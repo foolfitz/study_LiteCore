@@ -681,3 +681,130 @@ append-only，寫在程式碼之前），連同計數語意：乾淨判準從 **
 O-FIX 的 3/3；wasm 那一側的裝置換算是不是真的對得上 caret；每次 state read 多 133
 次 `getBounds()` 的成本；空段落／表格／frame／多欄；以及「螢幕閱讀器是不是實務上
 驅動捲動的那一個」——這一條 phase 2 就欠著，這裡也沒有付。
+
+---
+
+# 步驟 5：連結跑完了，O-FIX 3/3 兩臂都過，而 C3 第一次真的執行（2026-09-09，append-only）
+
+擁有者跑了步驟 4 的那一行。這一節記的是**對著先釘死的判準**量出來的結果——判準是
+`findings/evidence/093/ORACLE-fix-shape.md`（commit `8edd7cf8`，**寫在讀它的探針
+存在之前**），儀器是 `tools/probe_093_fix_shape_oracle.py`（commit `e08eca41`）。
+兩份在工作區都沒有被改過（`git status` 乾淨，只有本節的三個新證據檔）。
+**判準沒有新寫、沒有放寬、沒有搬動。**
+
+證據：`findings/evidence/093/RESULT-post-link-oracle.md`（英文）、
+`post-link-oracle-v13-v12.json`、`post-link-product-path-v13.json`。
+
+**這一輪什麼都沒有落地**：每一次量測都跑在 `dist/` 的 scratch 鏡像上，
+`web/`／`dist/`／`src/`／`sdk/` 一個位元組都沒動，沒有移動任何 pin、沒有凍新的
+shell generation、沒有跑 `build_cutover_page.py --write`、**沒有動 soak 的銀行、
+也沒有跑 soak**。開跑前後各數一次 Chrome：都是擁有者那一顆（browser main 171724），
+沒有殺掉任何東西。
+
+## 連結的產物，以及三顆基線沒有動
+
+`dist/profiles/e2-editor-v13/` 十個檔（四個＋六個資料包）。
+`probe.wasm` ＝ `0fe25650bec1bac5…`、`probe.js` ＝ `6bdb3a78295be93e…`、
+`sdk-worker.js` ＝ `6e75829a2911c1df…`、`sdk-manifest.json` ＝ `76b895761d10fc7b…`。
+manifest 宣告 `documentOutlineGeometry: accessible-paragraph-geometry`。
+
+三顆基線**逐位元不動**：v8 `4a2710bba1ef07d9`、v10／v12 都是 `4ec1e389aaab3b03`。
+v13 的 wasm 與 `4ec1e389…` 不同，所以這是真的連結，不是重新打包。
+
+## 結果（1920×1080，`--shape S0`＝今天 `web/` 裡那份頁面，兩個 profile 同一次呼叫）
+
+| profile | fixture | browse | focus | 重疊／門檻 | 捲動比例 |
+| --- | --- | :---: | :---: | --- | --- |
+| **e2-editor-v13** | **a11y-long（133 段）** | **3/3** | **3/3** | **22px／11.0px（整行）** | 0.0517–0.0924 |
+| e2-editor-v13 | a11y-audible（10 段） | 3/3 | 3/3 | 24px／12.0px | 0.0000 |
+| **e2-editor-v12（對照）** | **a11y-long** | **0/3** | **0/3** | **0px／11.0px** | 0.0000 |
+| e2-editor-v12（對照） | a11y-audible | **3/3** | **3/3** | 24px／12.0px | 0.0000 |
+
+長文件的三個目標是段 11／14／16，**跟步驟 3 的紅案量的是同三段**，可以逐格對照。
+v13 六格全部是 22px 重疊——**整行看得見**，不是門檻要求的半行。
+v12 六格的帶狀區域落在視窗座標 2192／2818／3140（視窗高 864），重疊 0px，
+**與步驟 3 那份紅案逐像素相同**。
+
+**真正扛結果的是 browse 那一臂。**段 14、16 的 `caretIsAtTarget` 是 **false**——
+游標留在段 11（比例 0.0517），而桌面移到了 0.0802、0.0924。**視窗跟的是被瀏覽的
+節點，不是游標**。S2b 當初就是在這一格掉的（browse 1/3，只有游標所在那一段會過）。
+B 不是「S2b 多做幾步」。
+
+## 對照組在短 fixture 上**過了**——這是這一輪的意外，不要抹平
+
+`a11y-audible` 上 **v12 也是 3/3**，而 phase 3 前一天量的 S0／v12／audible 是 1/3。
+
+成因已知，而且**不是連結**：步驟 3 已經把 B 的頁面那半落地（`#a11y-doc { top:0;
+left:0 }`），所以 v12 上的頁面現在的行為就是 phase 3 的 **S1**——釘在紙張頂端；
+而 `a11y-audible` 十段、紙張 y 100..415，整份文件塞得進 864px 的視窗，S1 在 phase 3
+的這一格本來就是 3/3。**一份放得下一屏的文件分不出「節點坐在它那一段」和「節點坐在
+紙張頂端」。**
+
+**要帶走的結論：`a11y-audible` 對這個判準已經不再是有鑑別力的對照組。**它在
+2026-09-08 還是（那時 S0 ＝ 未修頁面 ＝ 節點在紙張底部，1/3），頁面那半一落地它就
+不是了。這一對裡真正在做事的對照是 133 段那份。以後只報 audible 那一格的人，
+報的是 fixture 的性質。
+
+預先登錄的停止條件（「S0 若處處都過，代表判準錯了，停手」）**沒有觸發**：v12 在
+`a11y-long` 上 0/3。這句寫在這裡是因為它的前件現在有一半是真的，所以要明著查一次
+而不是默認它沒事。
+
+## C3 第一次真的跑了
+
+產品路徑對 `--candidate-profile e2-editor-v13`（fixture `list-contexts.odt`）：
+
+```
+"geometry": "present", "carried": "24", "placed": "24", "nodes": 24,
+"docOffsetTop": 0, "sinkTop": 250, "sinkHeight": 16,
+"focusedId": "a11y-node-7", "focusedTop": 259, "focusedHeight": 20,
+"verdict": { "ok": true, "C1": true, "C2": true, "C3": true,
+             "clausesExercised": ["C1", "C2", "C3"] }
+```
+
+**`clausesExercised` 第一次含 C3。**連結之前它在每一個 profile 上都是
+`["C1","C2"]`，而 2026-09-08 的 amendment 就是明著寫「一次綠燈不能被拿去當那條的
+證據」。它現在跑了，而且是真的：段 7 的節點（帶 259..279）與游標的帶（250..266）
+重疊 7px。幾何 24 段送到 24 段、放好 24 段，這份 fixture 上零漏。
+
+照實記下：**C3 自己的判準是「有重疊」，不是 O-FIX 的「半行」**。這一格的餘裕是
+16px 游標帶裡的 7px，而且投影節點的帶（20px）跟游標的帶（16px）本來就是兩個矩形，
+它們一致的是「在哪一行」。半行那條由 O-FIX 在上面單獨滿足。
+
+## 產品路徑的組成：**39 PASS / 2 NE**，正好是釘死的那個數字
+
+41 道檢查、**39 PASS／2 NE／0 FAIL**，`ok: true`、`complete: true`。
+NE 那兩格沒有變（`notice-action-recovers-the-session`、
+`a-refused-action-is-reported-and-changes-nothing`）。
+`knownRed: {}`、`staleKnownRedDeclarations: []`、`pageErrors: null`、
+`offPageInk.worst: 0`（37 次掃描）、`recoveryPairing.held: true`。
+`startedAt` 2026-09-09T12:23:06+08:00、`completedAt` 12:29:13+08:00。
+
+`candidateCutover.pageSha256` ＝ `31787584290e42bd…`，`pinAfter` ＝
+`0fe25650bec1bac5`；`servedShell` ＝ `editor-shell-v2-bundle-v49.json`、
+`differsOnlyInTheEntrypoint: true`。
+
+**這一趟不是 soak run，不得被算成 soak 的一趟。**它是為了回答 C3 與組成這兩題跑的；
+pin 還沒動，所以它服務的頁面還不是產品服務的那一份。
+
+## 仍然沒有付的（上面的 3/3 不得蓋過去）
+
+- **沒有跑螢幕閱讀器。**每一格判定都建立在「AT 的瀏覽游標會造成
+  `scrollIntoView({block:"nearest"})`」這個連結上，而這條 phase 2 就欠著、
+  phase 3 欠著、這裡也沒有付。**整串結果掛在這個關節上，它仍然是最弱的一節。**
+- 133 段裡只判了 3 段（11／14／16），只在一個視窗尺寸下。
+- **每次 state read 多 133 次 `getBounds()` 的成本仍然沒有量。**
+- 空段落／表格／frame／多欄仍然沒有走到。
+- wasm 那顆裝置的 twip 換算**沒有**像步驟 1 對原生那樣逐格比對（20/20、次像素）。
+  O-FIX 以 22/22px 過是很強的間接證據，但比半行還小的系統性偏差會無聲地通過。
+
+## 這一輪之後還欠的（步驟 5 的其餘項，本輪刻意沒做）
+
+1. **v13 還沒 archive。**照慣例的目錄名是
+   `build/archive/e2-editor-v13-0fe25650-worker-6e75829a-manifest-76b89576/`。
+   wasm 雜湊不是原始碼的函數（finding 036），在這個目錄存在之前，護著那顆 artifact
+   的只有 `refuse_unasked_relink`。
+2. 頁面**還沒 repoint**（`workerUrl` 與 `PINNED_WASM_SHA256` 兩行要一起改，
+   `web/` 與 `dist/` 都要），新的 shell generation 也還沒凍。
+3. `check_soak_bank.py` 的三個常數（`EXPECTED_PASS` 38 → 39、`DEFAULT_SHA`、
+   `DEFAULT_SERVED_SHELL`）還沒移，2026-09-07 那六趟也還沒作廢——照交接文件，
+   那個搬動要**跟在第一趟連結後的乾淨執行之後**，不是之前。
