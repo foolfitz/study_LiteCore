@@ -51,6 +51,22 @@ const PARAGRAPH = new Set(EDITOR_V2_PARAGRAPH_ACTIONS);
 // was wrong was having a second copy that could lag, not having the check.
 const ACTIONS = new Set(EDITOR_V3_ACTIONS);
 
+// FINDING 096.  The six actions that reach the engine as a POSTED KEY, and
+// therefore the six that can be pressed where there is nothing to move to.
+//
+// This is the path, not a list of the keys somebody has measured.  096
+// measured Up and Down at a document boundary (40 attempts, 40 wedges, four
+// artifacts including the shipping bytes); finding 018 measured End; Home and
+// the two character moves are unmeasured in both directions.  What they share
+// is `handleEditorAction`'s key branch: a key is posted, nothing changes, core
+// broadcasts nothing, and the operation waits for a broadcast that is never
+// coming.  Listing only the measured ones would be choosing the smaller
+// protection by taste, and the cost of the larger one is bounded below.
+const BOUNDARY_CAPABLE_MOVES = new Set([
+  "move-character-left", "move-character-right",
+  "move-line-up", "move-line-down", "move-line-home", "move-line-end",
+]);
+
 // A Symbol, not a string key: this rides through the base class's resolve path
 // on an object the base class treats as an opaque result, and a string key
 // could collide with a field a future engine payload adds.  It never leaves
@@ -132,6 +148,13 @@ export class NarrowEditorV2Session extends EditorSession {
         this.clientReplacements += 1;
       },
     });
+    // FINDING 096.  Counted, not merely done -- the same reason the stale-write
+    // guard below keeps a number: "the checkpoint was taken" and "the branch
+    // that takes it is unreachable" produce the same green from outside, and a
+    // check that reads only `hasCheckpoint` cannot tell a checkpoint this
+    // gesture banked from one some earlier selection left behind.
+    this.boundaryCheckpointsTaken = 0;
+    this.boundaryCheckpointsSkipped = 0;
     this._guardEditorStateAgainstStaleWrites();
   }
 
@@ -266,6 +289,58 @@ export class NarrowEditorV2Session extends EditorSession {
   }
 
   /**
+   * FINDING 096, half C.  Bank the work before a key that can wedge.
+   *
+   * THE DEFECT THIS HALF REMOVES, and it is not the hang.  096 has two halves
+   * and they are separable: the press is never answered (the engine's, fixed
+   * by arming a deadline on that path), and when the session then dies there
+   * is nothing to go back to.  The second half is this one, and it does not
+   * depend on the first being right.  `_checkpointBeforeSelection` runs only
+   * ahead of a range selection and only when the document is dirty, so before
+   * today no caret movement ever took one -- which is why the notice the owner
+   * saw read 「沒有檢查點，所以自上次儲存以來的內容不會回來。」 after ONE arrow
+   * key.  The product's protection was attached to the wrong gesture; it was
+   * not missing.
+   *
+   * IT REUSES THE BASE CLASS'S CHECKPOINT rather than writing a second one.
+   * `editor-shell/editor-session.js` is hash-registered by E1-C and cannot be
+   * edited, but calling into it costs nothing -- and a second copy of the
+   * checkpoint logic is a second thing that can be subtly wrong in the part of
+   * the product where being subtly wrong costs the user's unsaved work (this
+   * file's own header says so about the queue).
+   *
+   * THE REVISION GUARD IS THE PRICE CONTROL, and it is here rather than in the
+   * base class because the base class's own guard does not fit this gesture.
+   * `_checkpointBeforeSelection` skips when the content stamp has not moved
+   * since the last checkpoint -- but `action()` enqueues every one of the
+   * fifteen with `mutation: true`, so the drain bumps that stamp after a MOVE
+   * as well, and a user holding an arrow key down on a dirty document would
+   * pay a full ODT save per keypress.  Revision is the honest stand-in for
+   * content here: every path that changes the document advances it
+   * (`advanceRevision` is called on every mutation completion and on every UNO
+   * command result, undo and redo included), so equal revision means equal
+   * bytes.  The guard can only ever cause an EXTRA save, never a missed one.
+   *
+   * WHAT IT DOES NOT DO.  It does not make the press answer, and it must not
+   * be read as doing so: with a pre-fix engine the user still waits out the
+   * SDK's 30 seconds.  What changes is that the notice then says 「回到檢查點」
+   * and the button behind it actually returns the work.
+   */
+  async _checkpointBeforeBoundaryMove(document) {
+    // Nothing typed since the last save: there is nothing to lose, and a save
+    // here would be a cost with no beneficiary.  The base class asks the same
+    // question first, and asking it here too keeps the cheap answer cheap.
+    if (!this.state.snapshot.dirty) return;
+    if (this.state.snapshot.hasCheckpoint
+        && this._checkpointRevision === document.revision) {
+      this.boundaryCheckpointsSkipped += 1;
+      return;
+    }
+    this.boundaryCheckpointsTaken += 1;
+    await this._checkpointBeforeSelection(document);
+  }
+
+  /**
    * Any of the fifteen, through the same queue as everything else.
    *
    * The queue is the point.  A paragraph action that ran outside it could
@@ -280,7 +355,9 @@ export class NarrowEditorV2Session extends EditorSession {
     }
     return this._enqueue(
       `action:${action}`,
-      async ({ editor }) => {
+      async ({ document, editor }) => {
+        if (BOUNDARY_CAPABLE_MOVES.has(action))
+          await this._checkpointBeforeBoundaryMove(document);
         try {
           return await editor.action(action, options);
         } catch (error) {

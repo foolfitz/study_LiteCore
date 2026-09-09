@@ -172,6 +172,15 @@ enum class CommandType {
   ListChanges,
 #ifdef OXSDK_EDITOR_DISCOVERY
   EditorAction,
+  // FINDING 096.  The key path's own deadline step, and it is a THIRD kind
+  // rather than a reuse of EditorSelectReadback: that one completes an
+  // operation whose answer is a selection, and a move's answer is neither a
+  // selection nor a click.  Sharing the enumerator would have meant sharing
+  // completePendingEditorSelectByReadback's guard, which refuses anything that
+  // is not `selection || caret` -- so the step would have fired, answered
+  // nothing, and been re-synthesised for ever because the deadline stays in
+  // the past.  A busy loop instead of a wedge is not an improvement.
+  EditorActionReadback,
   EditorSelect,
   EditorSelectReadback,
   EditorPlaceCaret,
@@ -414,6 +423,33 @@ constexpr int EditorSelectReadbackDeadlineMs = 250;
 // the point the caret already occupies, where core emits nothing because
 // nothing changed.
 constexpr int EditorPlaceCaretDeadlineMs = 250;
+
+// FINDING 096, and the third path that needed what the two above already had.
+//
+// THE NUMBER IS THE SIBLINGS' NUMBER, and it is here for its own reason rather
+// than because it is nearby -- the same sentence EditorPlaceCaretDeadlineMs was
+// given, and it is owed the same arithmetic.
+//
+//   * 250 comes from EditorSelectReadbackDeadlineMs, which is an order of
+//     magnitude above the 22-28 ms a click takes to take effect (finding 048,
+//     both browsers).
+//   * What THIS one bounds was measured on this exact path and not borrowed:
+//     the press one BEFORE the boundary produces LOK_CALLBACK_INVALIDATE_
+//     VISIBLE_CURSOR and completes in 37-39 ms, 20 of 20 attempts, on two
+//     different engines (findings/evidence/096/RESULT-engine-side.md section
+//     2).  250 is 6.4x the top of that band, not the siblings' ~10x, and that
+//     ratio is written down rather than rounded away: a press slower than
+//     250 ms is answered from the readback instead of from the callback, which
+//     reports where the caret ACTUALLY is at the deadline and never claims a
+//     move happened.  The late callback then arrives with gEditorPending
+//     cleared and still updates gEditorState, so the caret the host draws
+//     catches up through the ordinary editor-state announcement.
+//
+// What it costs to have no deadline here is measured too: 40 of 40 attempts,
+// four artifacts including the shipping bytes, the press wedges the engine for
+// the life of the worker, every later action answers BUSY, and 30 s later the
+// SDK gives up and the page shows the no-checkpoint notice.
+constexpr int EditorMoveReadbackDeadlineMs = 250;
 
 struct SelectionReadback {
   int type = LOK_SELTYPE_NONE;
@@ -2159,6 +2195,72 @@ void completePendingEditorSelectByReadback() {
        << (pending.caret ? "verified-caret-readback"
                          : "verified-selection-readback")
        << "\""
+       << ",\"callbackSequenceBefore\":" << pending.beforeSequence
+       << ",\"callbackSequenceAfter\":" << gEditorState.sourceSequence
+       << ",\"state\":{";
+  appendEditorState(json);
+  json << "}}";
+  emitJson(json.str());
+  finishAsynchronous(pending.requestId);
+}
+
+// FINDING 096 bounded completion, and the same discipline as the two above.
+//
+// WHAT IT IS FOR.  A movement key pressed at a document boundary moves nothing,
+// so core broadcasts nothing, so the callback this operation is waiting for
+// never arrives.  That was not deduced: three explanations were pre-registered
+// and two were excluded by measurement -- the engine thread was answering
+// commands after the verdict (20/20) and no LOK_CALLBACK_INVALIDATE_VISIBLE_
+// CURSOR and no LOK_CALLBACK_TEXT_SELECTION reached the window in any attempt,
+// while the press one earlier produced one and completed in 37-39 ms
+// (findings/evidence/096/RESULT-engine-side.md).
+//
+// CORE MAY BE ENTIRELY RIGHT.  At a boundary there is genuinely nothing to
+// broadcast.  The defect this answers is the engine's, and it is exactly the
+// one E1-D's comment names 250 lines above: treating "nothing moved" as "still
+// waiting".
+//
+// THIS DOES NOT TURN A TIMEOUT INTO A SUCCESS, and the shape says so twice.
+// `changed` is false and the revision is the one the operation started from --
+// both are claims about the DOCUMENT, and both are true whether or not the
+// caret moved.  The completion carries its own name, so a caller can tell a
+// readback from a broadcast; what it must NOT be is an error, because the
+// host's disposition for an editor error is to block the queue and offer a
+// rollback, and a boundary press is not a failure the user should be asked to
+// recover from.
+//
+// WHY IT IS NOT REACHED FROM `mainLoopDrainCommands`.  That loop synthesises
+// deadline steps for the two barriers and for neither readback deadline, so
+// the OXSDK_MAINLOOP_ENGINE profiles keep the pure callback semantics -- which
+// is the rule the select path already states in EditorPendingOperation's own
+// comment ("the diagnostic profiles keep the pure callback semantics the
+// findings were measured against"), and finding 018's attribution turns on
+// exactly that difference.  The shipped and candidate profiles are built
+// WITHOUT that define, so the product reaches this through engineLoop.
+// DEFAULT CONCLUSION IF THIS IS NEVER REVISITED: an attribution profile
+// relinked in the future still wedges at a boundary, on purpose, and anyone
+// measuring 096 there is measuring the unbounded path deliberately.
+void completePendingEditorActionByReadback() {
+  if (gEditorPending.requestId == 0 || gEditorPending.selection ||
+      gEditorPending.caret || !gEditorPending.readbackDeadlineArmed) {
+    return;
+  }
+  const EditorPendingOperation pending = gEditorPending;
+  gEditorPending = EditorPendingOperation{};
+  // Asked for, not waited for -- the same reason handleEditorGetState gives:
+  // the a11y callback is gated on the paragraph's TEXT changing, so a state
+  // serialised without this would describe the last paragraph that differed
+  // rather than the one the caret is in.
+  refreshCaretParagraph();
+  std::ostringstream json;
+  json << "{\"schemaVersion\":" << ProtocolSchemaVersion
+       << ",\"type\":\"editor-action-completed\",\"requestId\":"
+       << pending.requestId << ",\"documentHandle\":" << pending.documentHandle
+       << ",\"beforeRevision\":" << pending.beforeRevision
+       << ",\"revision\":" << gState.revision << ",\"action\":\""
+       << jsonEscape(pending.name.c_str()) << "\",\"option\":"
+       << (pending.option ? "true" : "false")
+       << ",\"changed\":false,\"completion\":\"verified-move-readback\""
        << ",\"callbackSequenceBefore\":" << pending.beforeSequence
        << ",\"callbackSequenceAfter\":" << gEditorState.sourceSequence
        << ",\"state\":{";
@@ -4882,6 +4984,32 @@ void handleEditorAction(const Command &command) {
   gEditorPending.selection = false;
   gEditorPending.option = command.values[2] != 0;
   gEditorPending.name = name;
+  // FINDING 096.  ALWAYS armed, like the place-caret path and unlike the
+  // select path where it is a parameter -- and for the place-caret path's
+  // reason rather than by analogy: the case it covers is not an edge here, it
+  // is the one a user reaches by holding an arrow key until the document runs
+  // out.  Measured 40/40 on four artifacts, including the shipping bytes.
+  //
+  // It is armed for EVERY key-path action rather than only for the two the
+  // finding measured.  Up and Down are what 096 measured and End is what 018
+  // measured; Home and the two character moves are unmeasured in both
+  // directions, and the property that makes the wedge possible -- a posted key
+  // that changes nothing, so core broadcasts nothing -- belongs to the path,
+  // not to a subset of the keys on it.  Arming only the measured ones would be
+  // choosing the smaller fix by taste.
+  //
+  // COST, NAMED: `editor-shell/editor-client.js` validates the two character
+  // moves with `completion` starting `documented-callback-` and it is
+  // hash-registered by E1-C, so it cannot be widened.  A v1 host whose profile
+  // is relinked after this change would see a boundary ArrowLeft answered with
+  // `verified-move-readback`, reject it as EDITOR_RESULT_INVALID and enter
+  // recovery -- the same death it reaches today, 30 seconds earlier and with a
+  // less accurate code.  No v1 artifact moves for this change; the e1 profiles
+  // are frozen and none is relinked here.
+  gEditorPending.readbackDeadlineArmed = true;
+  gEditorPending.readbackDeadline =
+      std::chrono::steady_clock::now() +
+      std::chrono::milliseconds(EditorMoveReadbackDeadlineMs);
   markAsynchronous(command.requestId);
   gState.document->pClass->postKeyEvent(gState.document,
                                         LOK_KEYEVENT_KEYINPUT, 0, keyCode);
@@ -5317,6 +5445,16 @@ void dispatch(const Command &command) {
       completePendingEditorSelectByReadback();
     }
     break;
+  // FINDING 096.  Same correlation guard as the two above, and it is not
+  // decoration: the deadline is synthesised from whatever is pending NOW, so a
+  // step that arrived after the slot was already cleared and refilled would
+  // otherwise complete the wrong request.
+  case CommandType::EditorActionReadback:
+    if (command.requestId == gEditorPending.requestId &&
+        command.documentHandle == gEditorPending.documentHandle) {
+      completePendingEditorActionByReadback();
+    }
+    break;
   case CommandType::EditorPlaceCaret:
     handleEditorPlaceCaret(command);
     break;
@@ -5382,6 +5520,10 @@ void engineLoop(Command initialReady) {
         // SPEC E1-D.  A product range-select that changed nothing gets no
         // callback; wake at its deadline and complete it from the readback
         // instead of waiting for a broadcast that is never coming.
+        //
+        // FINDING 096 added the third arm below.  The three kinds are told
+        // apart by the flags the pending operation already carries, so there
+        // is no fourth place that has to agree about which kind this is.
         if (gEditorPending.requestId != 0 &&
             gEditorPending.readbackDeadlineArmed) {
           const auto deadline = gEditorPending.readbackDeadline;
@@ -5393,7 +5535,9 @@ void engineLoop(Command initialReady) {
               std::chrono::steady_clock::now() >= deadline) {
             command = Command{gEditorPending.caret
                                   ? CommandType::EditorPlaceCaretReadback
-                                  : CommandType::EditorSelectReadback};
+                              : gEditorPending.selection
+                                  ? CommandType::EditorSelectReadback
+                                  : CommandType::EditorActionReadback};
             command.requestId = gEditorPending.requestId;
             command.documentHandle = gEditorPending.documentHandle;
             syntheticSelectionDeadline = true;

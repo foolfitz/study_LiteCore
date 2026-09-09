@@ -463,7 +463,31 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # own `test_the_real_manifest_matches_the_real_tree` red between the two, and
 # a red static gate is exactly where the next real drift hides -- which is
 # what v41..v45's correction above is the record of.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v49.json")
+# v50, 2026-09-09: finding 096's shell half.  Two files, one defect.
+#
+#   * `narrow-editor-v2-session.js` takes a checkpoint before any of the six
+#     key-path moves when the document is dirty.  Before this, `_checkpoint
+#     BeforeSelection` ran only ahead of a range selection, so an arrow key at
+#     a document boundary killed the session with `data-rescue: "none"` and
+#     the owner's own sentence: 「沒有檢查點，所以自上次儲存以來的內容不會回
+#     來。」 The trigger cost is zero -- `revision: 0`, one keypress.
+#   * `narrow-editor-v2-client.js` accepts `verified-move-readback` as a
+#     movement completion.  That is the ENGINE half's answer, and without this
+#     line the engine fix makes things worse rather than better: the boundary
+#     press would be answered in 250 ms, rejected here as
+#     EDITOR_RESULT_INVALID, and the session would die 29.75 seconds earlier
+#     than it does today.  The two halves are one change and land together --
+#     this tree paid for shipping half a fix on 2026-08-22.
+#
+# Frozen in the SAME COMMIT as the change (findings 087/088/090 each skipped
+# that step; finding 091 is the record).
+#
+# THE ENTRYPOINT STILL PINS `e2-editor-v8`, unchanged from v49 and for the same
+# reason: this is not the cutover, and the ENGINE half of 096 is source only
+# until the owner links.  `web/e2-editor-app.js` is byte-identical to v49's.
+# The engine's deadline cannot be measured on any artifact in this tree, and
+# nothing here pretends otherwise.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v50.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

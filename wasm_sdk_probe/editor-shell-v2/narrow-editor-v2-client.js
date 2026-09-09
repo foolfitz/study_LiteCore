@@ -93,6 +93,36 @@ const MOVE_ACTIONS = new Set(["move-character-left", "move-character-right"]);
 const LINE_MOVE_ACTIONS = new Set([
   "move-line-up", "move-line-down", "move-line-home", "move-line-end",
 ]);
+// FINDING 096.  The two completions a movement is allowed to come back with,
+// and the SECOND one is why this is a function rather than a prefix test.
+//
+// `documented-callback-*` says core broadcast the cursor callback and the
+// engine correlated it.  `verified-move-readback` says the engine's own
+// deadline fired and it answered from a readback of where the caret actually
+// is -- which is what a movement at a document boundary produces, because
+// there is nothing to move to, so core broadcasts nothing and the callback
+// never comes (findings/evidence/096/RESULT-engine-side.md: zero id-1 and
+// zero id-2 in the window, 20 of 20, on two engines, while the press one
+// earlier produced one in 37-39 ms).
+//
+// WHY THIS HAD TO WIDEN AT ALL, said plainly: with the prefix test unchanged,
+// the engine's fix would have made things WORSE rather than better.  The
+// boundary press would be answered in 250 ms, this postcondition would reject
+// the answer as EDITOR_RESULT_INVALID, and that code is in the base session's
+// RECOVERY_ERRORS -- so the session would die exactly as it does today, just
+// 29.75 seconds sooner.  A fix in one layer that the next layer converts back
+// into the same failure is the 2026-08-22 shape, and it is the reason the
+// decision document required this to be settled WITH the engine change and
+// not after it.
+//
+// WHAT IS NOT RELAXED.  Both the other clauses stand: the revision must be the
+// one the caller started from and `changed` must be false.  Those are the
+// claims about the DOCUMENT, and the readback path makes them no weaker -- it
+// reports where the caret is, and it never reports that a move happened.
+const MOVE_COMPLETIONS = (completion) =>
+  String(completion || "").startsWith("documented-callback-")
+  || completion === "verified-move-readback";
+
 const DELETE_ACTIONS = new Set(["delete-backward", "delete-forward"]);
 const FORMAT_ACTIONS = new Set(["set-bold", "set-italic", "set-underline",
   "set-strikethrough"]);
@@ -238,7 +268,7 @@ export class NarrowEditorV2Client {
     }
     if (MOVE_ACTIONS.has(action) || LINE_MOVE_ACTIONS.has(action)) {
       if (result.revision !== expectedRevision || result.changed !== false
-          || !String(result.completion || "").startsWith("documented-callback-")) {
+          || !MOVE_COMPLETIONS(result.completion)) {
         throw invalidResult(
           "character movement did not satisfy its typed postcondition",
           { result });

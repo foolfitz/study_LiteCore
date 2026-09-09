@@ -21,7 +21,14 @@ const V2_MANIFEST = manifestOf("e2-editor-v2");
 
 const PARAGRAPH = new Set(["set-list-none", "set-list-unordered",
   "set-list-ordered", "set-paragraph-heading", "set-paragraph-body"]);
-const MOVE = new Set(["move-character-left", "move-character-right"]);
+// All six key-path moves, not the two the fixture used to carry.  The four
+// line moves take the same route through the engine as the two character
+// moves -- a posted key, `mutation = false`, no revision advance -- and a
+// fixture that answered `uno-command-result` for them was modelling an engine
+// that does not exist.  Nothing before finding 096 drove them through here, so
+// the gap cost nothing until it did.
+const MOVE = new Set(["move-character-left", "move-character-right",
+  "move-line-up", "move-line-down", "move-line-home", "move-line-end"]);
 const DELETE = new Set(["delete-backward", "delete-forward"]);
 
 function editorState(revision) {
@@ -520,3 +527,87 @@ test("finding 084: TWO announcements per commit -- the a11y core's shape -- "
                  `order ${order.join(",")} lost the revision`);
   }
 });
+
+// -------------------------------------------------- finding 096, the C half
+
+test("finding 096: a move on a DIRTY document banks a checkpoint first",
+     async () => {
+       const { session, saves } = await opened();
+       // Something worth losing.  `set-bold` advances the revision through the
+       // engine, which is what a user typing does.
+       await session.action("set-bold", { enabled: true });
+       assert.equal(session.state.snapshot.dirty, true);
+       assert.equal(saves.length, 0, "nothing should have saved yet");
+       await session.action("move-line-up");
+       assert.equal(saves.length, 1, "the arrow key did not bank the work");
+       assert.equal(session.state.snapshot.hasCheckpoint, true);
+       assert.equal(session.state.snapshot.checkpointRevision,
+                    session.document.revision);
+       assert.equal(session.boundaryCheckpointsTaken, 1);
+     });
+
+test("finding 096: all six key-path moves bank it, and nothing else does",
+     async () => {
+       const moves = ["move-character-left", "move-character-right",
+                      "move-line-up", "move-line-down", "move-line-home",
+                      "move-line-end"];
+       for (const action of moves) {
+         const { session, saves } = await opened();
+         await session.action("set-bold", { enabled: true });
+         await session.action(action);
+         assert.equal(saves.length, 1, `${action} banked nothing`);
+       }
+       // The other nine reach the engine as UNO commands or through the
+       // barrier; none of them posts a key, so none of them can wedge on a
+       // broadcast that never comes.  A checkpoint there would be a cost with
+       // no defect behind it.
+       for (const action of ["delete-backward", "insert-line-break",
+                             "set-italic", "set-list-ordered"]) {
+         const { session, saves } = await opened();
+         await session.action("set-bold", { enabled: true });
+         const options = action === "set-italic" ? { enabled: true } : {};
+         await session.action(action, options);
+         assert.equal(saves.length, 0, `${action} banked a checkpoint it does not need`);
+       }
+     });
+
+test("finding 096: a CLEAN document pays nothing", async () => {
+  const { session, saves } = await opened();
+  await session.action("move-line-up");
+  assert.equal(saves.length, 0, "there was nothing to lose and it saved anyway");
+  assert.equal(session.boundaryCheckpointsTaken, 0);
+});
+
+test("finding 096: holding the key down does not save per keypress",
+     async () => {
+       // THE PRICE CONTROL, and it is a test because the base class's own guard
+       // does not hold here: `action()` enqueues every one of the fifteen with
+       // `mutation: true`, so the drain bumps the content stamp after a MOVE as
+       // well and `_checkpointBeforeSelection` alone would save every time.
+       const { session, saves } = await opened();
+       await session.action("set-bold", { enabled: true });
+       for (let i = 0; i < 10; i += 1) await session.action("move-line-up");
+       assert.equal(saves.length, 1, "one save per keypress");
+       assert.equal(session.boundaryCheckpointsTaken, 1);
+       assert.equal(session.boundaryCheckpointsSkipped, 9);
+       // And a NEW edit re-arms it: the checkpoint describes a revision that no
+       // longer holds, so the next move has something else to bank.
+       await session.action("set-bold", { enabled: true });
+       await session.action("move-line-up");
+       assert.equal(saves.length, 2);
+     });
+
+test("finding 096: a checkpoint that cannot be written does not eat the key",
+     async () => {
+       const f = await opened();
+       f.document.save = async () => { throw new Error("disk is gone"); };
+       await f.session.action("set-bold", { enabled: true });
+       const result = await f.session.action("move-line-up");
+       // The move still happened.  A background rescue must never turn a
+       // user's arrow key into a failure -- and the failed rescue must not be
+       // silent either, which is finding 061's rule and the base class's job.
+       assert.equal(result.action, "move-line-up");
+       assert.equal(f.session.state.snapshot.hasCheckpoint, false);
+       assert.equal(f.session.state.snapshot.checkpointError.code,
+                    "CHECKPOINT_FAILED");
+     });

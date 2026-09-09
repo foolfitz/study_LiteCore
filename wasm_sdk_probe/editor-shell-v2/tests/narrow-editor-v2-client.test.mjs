@@ -69,6 +69,10 @@ const REPLY_MUTATIONS = [
    (reply) => ({ ...reply, completion: "verified-format-readback" })],
   ["completion documented-state-noop",
    (reply) => ({ ...reply, completion: "documented-state-noop" })],
+  // FINDING 096.  The one reply on which the two clients are REQUIRED to
+  // disagree -- see DECLARED_DIVERGENCE below.
+  ["completion verified-move-readback",
+   (reply) => ({ ...reply, completion: "verified-move-readback" })],
   ["completion missing", (reply) => ({ ...reply, completion: undefined })],
   ["empty reply", () => ({})],
   // The asynchronous failure paths.  Testing only resolved replies leaves the
@@ -146,9 +150,32 @@ async function verdict(Client, manifest, action, options, mutate) {
   }
 }
 
+// THE ONE PLACE THE TWO CLIENTS ARE ALLOWED TO DIFFER, and it is REQUIRED to
+// differ rather than merely permitted.  Finding 096: the engine now answers a
+// movement that moved nothing from a readback, under its own completion name,
+// because at a document boundary core broadcasts nothing and the callback this
+// path waits for never comes.  The v2 client accepts that answer; the v1
+// client cannot be taught to, because `editor-shell/editor-client.js` is
+// hash-registered by E1-C's shell bundle and editing it unbinds a shipped
+// verdict.
+//
+// Written as an assertion on the difference and not as an exemption: an
+// exemption would go on passing the day somebody removes the widening, which
+// is the failure this whole matrix exists to prevent.
+const DECLARED_DIVERGENCE = {
+  "completion verified-move-readback": {
+    appliesTo: (action) => MOVE.has(action),
+    v1: "EDITOR_RESULT_INVALID",
+    v2: "ok",
+    why: "finding 096: the boundary readback completion is accepted by the v2 "
+       + "client and rejected by the frozen v1 client",
+  },
+};
+
 test("the ten inherited actions decide identically in both clients", async () => {
   let compared = 0;
   let accepted = 0;
+  let diverged = 0;
   for (const action of EDITOR_V2_INHERITED_ACTIONS) {
     for (const [optionLabel, options] of OPTION_CASES) {
       for (const [replyLabel, mutate] of REPLY_MUTATIONS) {
@@ -156,6 +183,17 @@ test("the ten inherited actions decide identically in both clients", async () =>
                                  options, mutate);
         const v2 = await verdict(NarrowEditorV2Client, V2_MANIFEST, action,
                                  options, mutate);
+        const declared = DECLARED_DIVERGENCE[replyLabel];
+        // The option cases that make the CALL invalid never reach a
+        // postcondition, so both clients refuse them for the same reason and
+        // the divergence does not apply there.
+        if (declared && declared.appliesTo(action) && v1.outcome === declared.v1) {
+          assert.equal(v2.outcome, declared.v2,
+                       `${action} / ${optionLabel} / ${replyLabel}: ${declared.why}`);
+          diverged += 1;
+          compared += 1;
+          continue;
+        }
         assert.deepEqual(v2, v1,
                          `${action} / ${optionLabel} / ${replyLabel}`);
         compared += 1;
@@ -163,6 +201,10 @@ test("the ten inherited actions decide identically in both clients", async () =>
       }
     }
   }
+  // The declared divergence has to have HAPPENED.  Zero here means the reply
+  // never reached a postcondition on any move action -- the matrix would then
+  // be reporting agreement it never tested.
+  assert.ok(diverged > 0, "the declared divergence was never exercised");
   // Without this the whole comparison could be two clients refusing everything.
   assert.ok(accepted > 0, "no case was accepted; the matrix proves nothing");
   assert.equal(compared, EDITOR_V2_INHERITED_ACTIONS.length
