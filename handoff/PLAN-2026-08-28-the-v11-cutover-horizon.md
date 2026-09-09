@@ -2217,3 +2217,94 @@ and the clean predicate stands at 39 PASS / 2 NE. The soak count remains **3 of
    The 2026-09-03 wall-clock ruling reached `run_e2_c_product_path.py` and not
    this probe, so a 4a record cannot be placed in time from its own contents.
    4a has no calendar-day clause, so this blocks nothing today.
+
+---
+
+# Revert condition 3 is DISCHARGED on `31787584…`, 2026-09-09 (second pass)
+
+This section **supersedes the "Revert condition 3 — PARTIAL, and it stays open"
+section above**, which was written earlier the same day and is left unedited.
+It does not supersede anything else in that block: 4a's 8 of 8 and the ODT round
+trip stand as recorded there.
+
+Disposition **A** of the two the PARTIAL section offered — *authorise the drill
+and re-take the named instance* — was taken by the owner on 2026-09-09. E-3 was
+not amended; nothing about the criterion moved. What changed is that the pass
+which could not execute the rehearsal was followed by one that was permitted to.
+
+Evidence:
+`findings/evidence/queue-v12-cutover-revert-rehearsal/RESULT-2026-09-09b-revert-condition-3-discharged-on-31787584.md`,
+with `rehearse_revert_v50.sh`, `rehearsal-2026-09-09.log`, both run reports and
+both reconciliations beside it.
+
+## E-3's named instance, term by term
+
+The rehearsal was re-run with `NEWGEN` = **v50** and nothing else changed but the
+identity constants, `trap` intact. It performed all four cutover steps for real —
+wrote `web/e2-editor-app.js` to the candidate page `31787584…`, staged it to
+`dist/e2-editor-app.js`, froze `e2/editor-shell-v2-bundle-v50.json` on those
+bytes, repointed `MANIFEST` v49 → v50 — ran the net, reverted, and ran the net
+again.
+
+The post-revert run: `check_usable_editor` **`ok: true`**,
+`reconciledFor.kind: shipped-page`, `servedShell.bundle
+e2/editor-shell-v2-bundle-v49.json`, `declaredSha256 == servedSha256 ==
+4f8494b6b25736c6314d9cfb8772670009057313d5b0e6753c12b75771e3b9cd`,
+`differingPaths: []`, `problems: []` — **all five terms**. The run is 39 PASS /
+2 NE, no FAIL, `candidateCutover: null`. `restore()` restores the bundle tool
+from git, so the post-revert run could declare v49 only because that freeze is
+committed (`18eefcce`): this measures the freeze, not the script.
+
+All supporting requirements met after the revert: default-manifest build exit 0
+with `bundleSha256 4f8494b6…` and `problems: []`; `tests.test_e2_c_shell_bundle`
+12 of 12; `make test-e2-c-static` and `make test-e2-c-reachability` exit 0;
+`--manifest e2/editor-shell-v2-bundle-v48.json` still refuses to rewrite.
+
+**Thirteen bound paths, source and `dist/` mirror alike — twenty-six comparisons,
+zero differing.** The bound list is derived from the live manifest's `included`
+array rather than hand-typed. The revert restores every byte; that is now a
+measurement on this identity and no longer an argument from an unchanged
+mechanism.
+
+## E-4's positive control now exists on a genuine cutover
+
+The post-cutover run declares generation **v50** with `bundleSha256
+ea69984c8ad25c4048de0313a49f3db9e7c4ab3fc6ded0f4cebc84a1a5b0fe52` — exactly the
+value E-4 pins as `one-served-shell` and exactly what all six banked runs served.
+Obligation **R6** is satisfiable and satisfied on this identity. Until now that
+digest had only ever appeared as what a `--candidate-profile e2-editor-v13` run
+*serves*, recomputable but never declared; it is now the declared digest of a
+generation frozen on the cutover bytes.
+
+## Registered, not new: the post-cutover run has no FAIL
+
+The 2026-09-07 take's post-cutover run carried
+`the-document-region-says-why-it-is-empty` FAIL, its fourth reproduction. Here
+the post-cutover run is 39 PASS / 2 NE / 0 FAIL. The R-1 disposition and finding
+093 option B's link both landed between the two takes, so this is not one
+variable and no attribution is made. Recorded as an observation.
+
+## Generation v50 does not remain
+
+`restore()` ends with `rm -f "$NEWGEN"`, as in the v45 and v49 takes, so
+`e2/editor-shell-v2-bundle-v50.json` is absent and the number stays unclaimed for
+the next real cutover. Leaving it would have made the post-revert tree differ
+from its pre-rehearsal state, and "the revert restores every byte" is the
+property being measured — the removal is part of the measurement, not tidying.
+The full write report including the `included` list is banked as
+`freeze-v50.json`, so v50 is reconstructible byte-for-byte.
+
+## The re-earn list after this section
+
+Owed on `31787584…`: the human manual round with 4b, and the owner's
+confirmation. **Revert conditions 2 and 3, 4a (8 of 8) and the ODT round trip
+are all discharged on this page.** The count is unaffected by anything in this
+section and stands at **6 of 12**, all six on UTC day 2026-09-09; three more UTC
+days' worth of spread is still owed under the calendar-day clause.
+
+## Count semantics
+
+**Nothing here counts toward the soak and nothing here restarts it.** Both runs
+are plain shipped-page runs, banked in the rehearsal directory and not in
+`findings/evidence/queue-v12-cutover-soak/`; `run_e2_c_product_path.py` was not
+modified and the clean predicate stands at 39 PASS / 2 NE.
