@@ -16,12 +16,15 @@ invoked as a subprocess per report and its reconciliation is read.  A second
 implementation of "is this run clean" would drift from the first one silently,
 and the two would disagree on the day nobody was checking.
 
-## The clean-run predicate, as amended for candidate `e2-editor-v12`
+## The clean-run predicate, as amended for candidate `e2-editor-v13`
+
+(Candidate `e2-editor-v12` until 2026-09-09; see "THE RE-FREEZE OF 2026-09-09"
+beside `DEFAULT_SERVED_SHELL` below for the four constants that moved and why.)
 
   * `ok: true` and `complete: true` in the run's own report;
   * `check_usable_editor.py --report` reconciles `ok: true`, with
     `reconciledFor.kind == "candidate-cutover"` and the profile named;
-  * composition is 38 PASS / 2 NOT_ESTABLISHED, NE set exactly
+  * composition is 39 PASS / 2 NOT_ESTABLISHED, NE set exactly
     {notice-action-recovers-the-session,
      a-refused-action-is-reported-and-changes-nothing};
   * `candidateCutover.pageSha256` equals the expected page sha;
@@ -105,12 +108,12 @@ DEFAULT_BANK = (WORKSPACE / "findings" / "evidence" / "queue-v12-cutover-soak")
 # of 2026-09-04 moved.  The file stays where it is because it is that probe's
 # evidence too; it is dropped from here because it is no longer this count's.
 DEFAULT_ALSO: list[Path] = []
-DEFAULT_SHA = ("9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dd"
-               "df361c")
-DEFAULT_PROFILE = "e2-editor-v12"
+DEFAULT_SHA = ("31787584290e42bdca41f95949887dedbc39ba51386439cd8c4d2914d0"
+               "56a79a")
+DEFAULT_PROFILE = "e2-editor-v13"
 EXPECTED_NE = {"notice-action-recovers-the-session",
                "a-refused-action-is-reported-and-changes-nothing"}
-EXPECTED_PASS = 38
+EXPECTED_PASS = 39
 
 # Files in the bank directory that are deliberately NOT counted runs.  Each
 # needs a reason, because "ignore what does not parse" is how a bank quietly
@@ -244,8 +247,61 @@ def day_of(report: dict) -> dict:
 # `e2/editor-shell-v2-bundle-v47.json`, and read `servedShell.servedSha256`
 # from both banked `soak-run-01-candidate.json` and `soak-run-02-candidate.json`
 # in `findings/evidence/queue-v12-cutover-soak/` -- both equal this value.
-DEFAULT_SERVED_SHELL = ("cf7f923391a059943366b46bde8f25c7a618da57752e592ffa"
-                        "a13398e78161e4")
+#
+# THE RE-FREEZE OF 2026-09-09 -- the candidate is `e2-editor-v13`, and FOUR
+# constants moved together.  Obliged by the 2026-09-08 amendment of
+# `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` ("The re-freeze this
+# obliges, and its ORDER"), after the owner's step 4 relink minted
+# `e2-editor-v13` (finding 093, section 「步驟 5」, 2026-09-09):
+#
+#   EXPECTED_PASS         38 -> 39   the forty-first check
+#                                    `the-projection-is-placed-where-the-
+#                                    document-is` landed while the count was
+#                                    zero; the NE set is unchanged.
+#   DEFAULT_PROFILE       e2-editor-v12 -> e2-editor-v13
+#   DEFAULT_SHA           9b29e39b... -> 31787584...
+#   DEFAULT_SERVED_SHELL  cf7f9233... (v47) -> ea69984c... (below)
+#
+# WHY THE SERVED PIN IS A MEASURED VALUE AND NOT A GENERATION'S DIGEST.
+# Ruling E-4 words this clause as "the digest the cutover generation will
+# declare".  For v12 that phrase could be satisfied by reading a file, because
+# generation v47 had been frozen ON THE CUT-OVER BYTES by mistake (`000a57e2`)
+# and was therefore literally that generation.  **No frozen generation declares
+# `ea69984c...`**: v49 is the shipping shell (entrypoint still pointing at
+# `e2-editor-v8`, digest `4f8494b6...`), and freezing a generation on cutover
+# bytes to manufacture one would repeat the premature cutover v48 was frozen to
+# undo.  So the pin is the digest a `--candidate-profile e2-editor-v13` run
+# SERVES, which is what E-4's sentence denotes; the label it will carry when a
+# cutover generation is eventually frozen is not needed to state it.
+#
+# RECOMPUTABLE BY ANYONE, WITHOUT RUNNING THE PRODUCT PATH.  Both halves of the
+# candidate identity derive from committed bytes plus one command that writes
+# nothing:
+#
+#   1. the page: `python3 tools/build_cutover_page.py --profile e2-editor-v13`
+#      prints `pageSha256` = DEFAULT_SHA and writes nothing without `--write`;
+#   2. the shell: take generation v49's `included` list, substitute that page
+#      sha for the entrypoint's (`web/e2-editor-app.js` -- the only differing
+#      path, `differsOnlyInTheEntrypoint: true`), and apply
+#      `shell_bundle_digest` (`tools/validate_e1_c.py:134`):
+#
+#        python3 - <<'EOF'
+#        import json, hashlib
+#        m = json.load(open("e2/editor-shell-v2-bundle-v49.json"))
+#        h = {e["path"]: e["sha256"] for e in m["included"]}
+#        h[m["entrypoint"]] = ("31787584290e42bdca41f95949887dedbc39ba513"
+#                              "86439cd8c4d2914d056a79a")
+#        print(hashlib.sha256("".join(f"{p}\0{h[p]}\n"
+#                                     for p in sorted(h)).encode()).hexdigest())
+#        EOF
+#
+# Both were run on 2026-09-09 before this edit and both reproduce the values
+# below; the same two numbers are also read back from the clean candidate run
+# `findings/evidence/093/post-link-product-path-v13.json`
+# (`candidateCutover.pageSha256`, `servedShell.servedSha256`).  Three sources,
+# not one, and none of them is this file narrating itself.
+DEFAULT_SERVED_SHELL = ("ea69984c8ad25c4048de0313a49f3db9e7c4ab3fc6ded0f4ce"
+                        "bc84a1a5b0fe52")
 
 
 def judge_run(path: Path, expect_sha: str, expect_profile: str,

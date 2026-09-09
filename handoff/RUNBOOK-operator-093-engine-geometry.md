@@ -599,3 +599,53 @@ shell generation），再加兩件：
 - **每段一次 `getBounds()` 的成本仍然沒有量過**（原文 §7 第 3 點）。
 - **v13 的四個產品 `.o` 從來沒有被建過。**這一輪只編過 `a11y_tree_probe.cpp`，而且只編到
   scratch。那四個用的是 v10 逐字相同的旗標、原始碼也預處理成同一份，但那是論證，不是編譯。
+
+---
+
+# Correction (2026-09-09): step 5.3 is the cutover — do not follow it
+
+**§5 step 5 item 3 says to repoint `web/e2-editor-app.js` (`workerUrl` and
+`PINNED_WASM_SHA256`, in `web/` and `dist/`) right after the link. That
+instruction is wrong and must not be followed at that point.** It is written as
+one of five mechanical follow-ups, which reads as bookkeeping; it is not. That
+edit *is* the cutover.
+
+**Why it is the cutover and not a follow-up.** The product page is the shell
+bundle's own entrypoint (`served_shell_identity()`,
+`tools/run_e2_c_product_path.py:2462-2494`, reads `manifest["included"]`, and
+`web/e2-editor-app.js` is in that list). Rewriting those two lines makes the
+shipping page point at `e2-editor-v13`, which is precisely what
+`tools/build_cutover_page.py --write` does and what the gate exists to gate. A
+candidate run does **not** need it: the runner builds the candidate page in a
+mirror and reports it as `candidateCutover.pageSha256` with
+`servedShell.differsOnlyInTheEntrypoint: true`, which is how every soak run
+since 2026-08-28 has measured the page that will ship without shipping it.
+
+**This tree has already paid for this exact mistake once.** Generation v47 was
+frozen on a shell whose entrypoint had already been cut over to
+`e2-editor-v12` before the gate passed (`000a57e2`); v48 exists only to undo it
+(`2d319677`, and the correction recorded beside `MANIFEST` in
+`build_e2_c_shell_bundle.py`). Step 5.3 as written walks straight back into
+that, one generation later.
+
+**What replaces it.** Nothing, until the gate passes. The shipping page keeps
+pointing at `e2-editor-v8`; the candidate identity is established by measurement
+instead:
+
+* `python3 tools/build_cutover_page.py --profile e2-editor-v13` (no `--write`)
+  prints the candidate `pageSha256` and writes nothing;
+* a `--candidate-profile e2-editor-v13` run reports that sha plus the served
+  shell digest the cutover will declare;
+* `tools/check_soak_bank.py`'s constants pin those two measured values —
+  see "THE RE-FREEZE OF 2026-09-09" in that file for the numbers and two
+  independent ways to recompute each.
+
+Item 4 ("freeze a new shell generation") falls with item 3 for the same reason:
+a generation frozen on cutover bytes before the gate passes is v47 again. **No
+generation declares the candidate's served digest, and none should be frozen to
+manufacture one.** The pin is the measured value; ruling E-4's phrase "the
+digest the cutover generation will declare" denotes the bytes, not a file that
+must already exist.
+
+Items 1, 2 and 5 of step 5 stand unchanged: record the five hashes, archive
+immediately, then the oracle acceptance.

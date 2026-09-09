@@ -47,8 +47,26 @@ PROJECT = Path(__file__).resolve().parent.parent
 WORKSPACE = PROJECT.parent
 DEFAULT_DIR = WORKSPACE / "findings" / "evidence" / "queue-v12-cutover-soak"
 DEFAULT_GLOB = "diagnostic-*.json"
-DEFAULT_SHA = ("9b29e39bb09e5b948937a7552bfad6045bdb4e25bb993ee1270ebe70dd"
-               "df361c")
+# 2026-09-09: the page moved to the `e2-editor-v13` candidate (finding 093's
+# option B, the owner's step-4 relink).  Recomputable without running anything
+# that writes: `python3 tools/build_cutover_page.py --profile e2-editor-v13`
+# prints this as `pageSha256`; it is also `candidateCutover.pageSha256` in
+# `findings/evidence/093/post-link-product-path-v13.json`.
+#
+# CONSEQUENCE, REGISTERED RATHER THAN QUIETLY FIXED: the three
+# `diagnostic-*.json` in the bank were taken on page `9b29e39b...` and now fail
+# the identity clause.  That is condition 2 being void because the page moved
+# (`handoff/RUNBOOK-operator-093-engine-geometry.md` §6.2), not a defect in
+# them; they stay banked and unmodified, and condition 2 has to be re-earned.
+#
+# `DEFAULT_PROFILE` BELOW IS DELIBERATELY NOT MOVED, and the pair is therefore
+# inconsistent on purpose: the task that moved the sha scoped itself to the
+# sha.  A re-take of condition 2 on `e2-editor-v13` must either pass
+# `--expect-profile e2-editor-v13` explicitly or move this constant as its own
+# decision.  Written down because a stale default that nobody can see is how a
+# judge silently accepts the wrong thing.
+DEFAULT_SHA = ("31787584290e42bdca41f95949887dedbc39ba51386439cd8c4d2914d0"
+               "56a79a")
 DEFAULT_PROFILE = "e2-editor-v12"
 CARET_CHECK = "caret-follows-the-text-you-type"
 
