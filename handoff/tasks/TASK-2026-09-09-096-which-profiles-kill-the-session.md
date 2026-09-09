@@ -234,3 +234,46 @@ this protocol.
 ---
 
 ## Execution record
+
+### 2026-09-09 — shakedown, and three changes it forced (before any counted attempt)
+
+Four shakedown attempts were run on `e2-editor-v13` under `--label shakedown…`
+**before any attempt that counts**, and are reported separately from the matrix.
+They forced three changes to what §3.2 registered. Each is named with the
+measurement that forced it, per AGENTS.md §9; none of them moves a **verdict**
+criterion (§4 is untouched).
+
+1. **The ink-row floor.** §3.2 said "rows where dark pixels span more than half
+   the canvas width are the page frame". That is necessary and **not
+   sufficient**: the paper's left and right borders put a handful of dark
+   pixels in *every* row inside the page, so "has any ink" is true of blank
+   line spacing too. Shakedown 1 reported the first text row 628 px down a
+   3727 px canvas, with a "contiguous run" of 1218 rows, and the up-arm walked
+   12 presses without reaching the top. A lower floor of **20 dark pixels** is
+   now applied as well (a glyph row measured 162–225; two borders carry a
+   handful). Recorded in every attempt as `inkRow.floor`.
+2. **The press budget, 12 → 40.** Forced by the same measurement: a budget set
+   for "click on the first line" is not a budget for "click near the first
+   line". `after_still` stays at 6, and 6 presses at the boundary is still the
+   registered minimum.
+3. **The worker console was attached to the wrong worker.** Opening a document
+   **replaces** the document worker (`Target.detachedFromTarget` at t=9.5 s,
+   a new `Target.attachedToTarget` right after), so the session
+   `Target.setAutoAttach` delivered at boot is detached by the time the gesture
+   runs — shakedown 3's liveness probe came back `Session with given id not
+   found`. The attach/detach events are now tracked and the console is enabled
+   again after the open. **Without this, §5.2 would have banked the console of
+   a worker nobody was using.**
+
+**One instrument was added**, and it is an observation rather than a criterion:
+after the wait, one `Runtime.evaluate` is addressed to the live worker's own CDP
+session. "The worker's JS thread is blocked" and "the worker is idle and
+something behind it never answered" are indistinguishable at the page, and this
+tree's standing lesson is that a screen showing nothing has several
+indistinguishable causes. Banked as `workerLiveness`; it names no cause.
+
+Shakedown outcomes, reported because §6 says every attempt is reported:
+`v13 up` NOT_REPRODUCED (instrument defect 1, void), `v13 up` REPRODUCED,
+`v13 down` REPRODUCED, `v13 up` REPRODUCED. **None of these four counts toward
+the matrix**; the matrix was run afterwards, from zero, with the instrument
+above.

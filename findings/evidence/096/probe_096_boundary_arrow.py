@@ -98,6 +98,18 @@ class BufferingSession(ChromeSession):
         method = message.get("method")
         if not method or method in NOISE:
             return
+        # BOOKKEEPING ONLY -- no socket i/o, because this runs inside `call`'s
+        # receive loop.  Opening a document REPLACES the document worker: the
+        # first shakedown's liveness probe was addressed to a session that had
+        # been detached at the open, and Chrome answered "Session with given id
+        # not found".  A map that is not maintained is a map that measures the
+        # worker nobody is using.
+        if method == "Target.attachedToTarget":
+            params = message.get("params") or {}
+            self.worker_sessions[params["sessionId"]] = params["targetInfo"]
+        elif method == "Target.detachedFromTarget":
+            self.worker_sessions.pop(
+                (message.get("params") or {}).get("sessionId"), None)
         if len(self.events) >= EVENT_CAP:
             self.dropped += 1
             return
@@ -177,12 +189,40 @@ class BufferingSession(ChromeSession):
                     enabled.append({"sessionId": sid, "domain": domain,
                                     "url": info.get("url"),
                                     "error": f"{type(error).__name__}: {error}"})
+        self._enabled = {e["sessionId"] for e in enabled if "error" not in e}
         return {"answered": answered,
                 "attached": [{"sessionId": a["sessionId"],
                               "type": a["targetInfo"].get("type"),
                               "url": a["targetInfo"].get("url")}
                              for a in attached],
                 "enabled": enabled}
+
+    def sync_workers(self) -> list[dict]:
+        """Enable the console on any worker that has appeared since the last call.
+
+        `setAutoAttach` stays on, so a worker created later arrives as an EVENT
+        and `_keep` records it -- but nothing has turned its console on yet.
+        Called after the document is opened, because that is exactly when the
+        engine's worker is replaced.
+        """
+        self.pump(0.5)
+        added = []
+        for sid, info in list(self.worker_sessions.items()):
+            if sid in getattr(self, "_enabled", set()):
+                continue
+            if info.get("type") != "worker":
+                continue
+            for domain in ("Runtime.enable", "Log.enable"):
+                try:
+                    self.call(domain, {}, session_id=sid, timeout=15)
+                    added.append({"sessionId": sid, "domain": domain,
+                                  "url": info.get("url")})
+                except Exception as error:          # noqa: BLE001 -- reported
+                    added.append({"sessionId": sid, "domain": domain,
+                                  "url": info.get("url"),
+                                  "error": f"{type(error).__name__}: {error}"})
+            self._enabled = getattr(self, "_enabled", set()) | {sid}
+        return added
 
 
 # ------------------------------------------------------------------- the page
@@ -416,6 +456,8 @@ def attempt(session, base: str, direction: str, index: int,
         record["why"] = f"the document did not open: state {(opened or {}).get('state')!r}"
         return finish(session, record)
     time.sleep(4.0)
+    # The open replaced the worker; turn its console on before the gesture.
+    record["workersAfterOpen"] = session.sync_workers()
 
     frame = evaluate(session, READ_FRAME) or {}
     record["frameAfterOpen"] = frame
