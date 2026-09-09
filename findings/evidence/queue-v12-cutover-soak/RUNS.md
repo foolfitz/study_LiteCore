@@ -842,3 +842,85 @@ Each of the six fails on exactly the four clauses the move predicts —
 `reconciled-profile`, `pass-count`, `page-sha`, `one-served-shell` — which is
 the criterion doing its work, not a new defect. They are moved out in the next
 section.
+
+## Runs 03–08 moved out — the candidate is `e2-editor-v13` and the predicate is 39 PASS (2026-09-09)
+
+The six clean runs recorded above under "Run 3" through "Run 08" have been
+moved, with `git mv` and unchanged, to
+
+    ../queue-v12-cutover-soak-void-9b29e39b/soak-run-03-candidate.json
+    ../queue-v12-cutover-soak-void-9b29e39b/soak-run-04-candidate.json
+    ../queue-v12-cutover-soak-void-9b29e39b/soak-run-05-candidate.json
+    ../queue-v12-cutover-soak-void-9b29e39b/soak-run-06-candidate.json
+    ../queue-v12-cutover-soak-void-9b29e39b/soak-run-07-candidate.json
+    ../queue-v12-cutover-soak-void-9b29e39b/soak-run-08-candidate.json
+
+with a `WHY-THESE-ARE-VOID.md` beside them, modelled on
+`../queue-v12-cutover-soak-void-pre-r1/`. The directory is named for the page
+they were taken on, following `-void-3dfdcfef` and `-void-20f09cc9`.
+
+**Authority.** The owner's **D-c** ruling on finding 093 (`ed1ea02a`,
+2026-09-08) restarted the count at zero by adjudication — and finding 093
+records that the restart was *not* mechanically forced. Two mechanisms have
+since made the same answer checkable: the relink minted `e2-editor-v13` and
+moved the page to `31787584…` and the served shell to `ea69984c…`; and the
+2026-09-08 amendment's forty-first check moved the clean composition to 39 PASS
+/ 2 NE. Each of the six fails on exactly `reconciled-profile`, `pass-count`,
+`page-sha` and `one-served-shell` — and on nothing else. §6.3 of
+`handoff/RUNBOOK-operator-093-engine-geometry.md` requires that a voided run
+physically leave the counting directory, because the judge enumerates by glob.
+
+**Order, and why it is this way round.** The move follows run 09 rather than
+preceding it. `check_soak_bank.py --self-test` builds its fixtures from live
+bank reports the judge itself calls clean and refuses to run when there are
+none; with the constants moved and nothing new banked it exited 1
+(`self-test has no clean report to build from`), and run 09 restored it. An
+empty bank would have left the tree holding a judge that could not prove it can
+say no.
+
+**Nothing else changed.** `tools/check_soak_bank.py` is untouched by this move
+(its constants moved in the earlier commit, before run 09, which is the order
+the amendment requires); no criterion text is relaxed; the surviving run is
+**not** renumbered to 01, and the next run is 10; no run was re-executed. The
+six `check_usable_editor.py` reconciliations for runs 03–08 stay in
+`../queue-v12-cutover-soak-checklists/` (nothing globs that directory and the
+RUNS.md sections above cite them in place); the three `diagnostic-*.json` and
+the four `VERDICT-*.json` stay here. The reasoning for each is in the WHY file.
+
+**The judge, before the move** (`cd wasm_sdk_probe && python3
+tools/check_soak_bank.py`; full output in
+`../queue-v12-cutover-soak-void-9b29e39b/JUDGE-OUTPUT-before-the-move.txt`):
+
+```json
+"cleanRuns": 1, "totalRuns": 7,
+"clauses": {"no-unclassified-file": true, "declared-non-runs-present": true,
+            "every-run-clean": false, "count-reached": false,
+            "one-page-sha": false, "no-naive-timestamp": true,
+            "day-spread": false},
+"ok": false
+```
+
+**The judge, after the move** (full output in
+`../queue-v12-cutover-soak-void-9b29e39b/JUDGE-OUTPUT-after-the-move.txt`):
+
+```json
+"cleanRuns": 1, "totalRuns": 1,
+"clauses": {"no-unclassified-file": true, "declared-non-runs-present": true,
+            "every-run-clean": true, "count-reached": false,
+            "one-page-sha": true, "no-naive-timestamp": true,
+            "day-spread": false},
+"ok": false
+```
+
+`distinctPageSha256` is now the single value `31787584…` and
+`distinctServedShellSha256` the single value `ea69984c…`;
+`unclassifiedFiles: []`; the three `diagnostic-*.json` are listed under
+`conditionTwoFiles_NOT_JUDGED_HERE` and the four `VERDICT-*.json` under
+`verdictFiles_NOT_EVIDENCE`, judged by neither clause.
+`check_soak_bank.py --self-test` exits 0 both before and after the move: twelve
+red cases red, the green control green.
+
+Counting: **1 of 12**, one UTC day (2026-09-09) with one run on it — no
+qualifying day yet, since the clause wants ≥2 per day on ≥3 days. Earliest
+close is UTC 2026-09-11, and only if the remaining eleven land 2+ on each of
+two further UTC days.
