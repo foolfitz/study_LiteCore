@@ -231,3 +231,55 @@ answers cleanly, and the report gives the distribution, not the mode.
 ## Execution record
 
 *(appended after the run; nothing above this line is edited)*
+### 2026-09-09 — shakedown 1, and the three changes it forced (before any counted attempt)
+
+One shakedown attempt was run on `e2-editor-v8`, `--direction up`,
+`--label shakedown-1`, **before any attempt that counts**. It reproduced 096
+(`REPRODUCED`, notice matching the owner's quote) and answered §2.1's first row
+cleanly — control `UNKNOWN_OPERATION`, `editorGetStateV2` answered,
+`editorActionV2` answered `BUSY`. It also forced three changes. Each is named
+with the measurement that forced it (AGENTS.md §9); none of them moves §2.1,
+and the second one **narrows** §2.2 rather than widening it.
+
+1. **§2.2's window ended in the wrong place, and the first shakedown was a
+   false `B` because of it.** The implementation took every emission from the
+   boundary-press mark to the end of the buffer. That buffer ends with the
+   replies to **this probe's own injections** — an `editor-state-result` at
+   ms 31747 and the `BUSY` `error` at ms 32049, against a verdict at ms 31743.
+   The attempt was classified `B` by two events the instrument itself caused.
+   **The window is now `[press-N … after-verdict]`**, both ends read from marks
+   the probe places in the worker's realm.
+
+2. **The discriminator is `lok`, not "any engine emission".** §2.2 said
+   "emissions", which admits `tile`, `clicked` and `editor-state-result` —
+   answers to commands, not core broadcasts. The (a)/(b) question is about what
+   **core** invoked, so the count is now of `{"type":"lok"}` lines only.
+
+3. **§2.3's limit was wrong, and it is corrected here rather than edited above
+   (AGENTS.md §10).** §2.3 said "zero emissions" cannot separate *core broadcast
+   nothing* from *core broadcast a callback type this build does not watch*, and
+   that closing that gap needs a counter in the LOK callback trampoline, i.e. an
+   engine edit, a relink, and the decision doc's row A cost.
+
+   **That counter already ships.** `onLokCallback`
+   (`src/probe_engine.cpp:2372-2381`) is the function `registerCallback` hands to
+   LOK (`:2801`), and its first act — unconditional, before the type switch,
+   outside every `#ifdef` — is
+   `emitJson("{\"type\":\"lok\",\"id\":<type>,\"payload\":\"<verbatim>\"}")`.
+   Every LOK callback of every type therefore already produces one line, and the
+   §1 wrapper on `globalThis.__probe_on_event` reads them. **The separation is
+   complete at the LOK boundary and needs no engine change.** This supersedes
+   §2.3's first two paragraphs and its route (1); route (2), the native LOK
+   harness, is unaffected and still answers a different question (what the
+   reference implementation does).
+
+   **The limit that actually remains**, stated in place of the one that was
+   wrong: a `lok` count of zero says core did not invoke the registered callback
+   in the window. It does **not** say why core did not, and it does not exclude
+   a callback delivered after the window closes. Neither is required to
+   separate (a) from (b).
+
+**Shakedown 1 is reported because §3 says every attempt is reported.** It counts
+toward nothing: it was run with the pre-change classifier, and its stored cell
+(`B`) is the instrument defect above, not a result. Its raw capture is banked
+with the counted runs.
