@@ -283,3 +283,53 @@ and the second one **narrows** §2.2 rather than widening it.
 toward nothing: it was run with the pre-change classifier, and its stored cell
 (`B`) is the instrument defect above, not a result. Its raw capture is banked
 with the counted runs.
+
+### 2026-09-09 — the counted matrix
+
+Run to completion. **20 counted attempts, 20 REPRODUCED**, no other outcome and
+no void attempt. Full result: `findings/evidence/096/RESULT-engine-side.md`; raw
+per-attempt evidence in `findings/evidence/096/engine-side-e2-editor-v8.json`
+and `…-v13.json`.
+
+| arm | up | down | §2.1 | §2.2 |
+| --- | --- | --- | --- | --- |
+| C — `e2-editor-v8` (shipping bytes) | 5/5 | 5/5 | `C_EXCLUDED` ×10 | `A` ×5 (up), `B` ×5 (down) |
+| A — `e2-editor-v13` (candidate) | 5/5 | 5/5 | `C_EXCLUDED` ×10 | `A` ×5 (up), `B` ×5 (down) |
+
+§3's attempt count was met exactly; both arms were run; no criterion in §2 was
+edited.
+
+**§2.1's first row, 20/20**: the control answered `UNKNOWN_OPERATION`,
+`editorGetStateV2` answered with a full state, and `editorActionV2` answered
+`BUSY` — **the positive control held in every attempt**, so no attempt is void
+by §2.1's rule and **(c) is excluded**.
+
+**§2.2, and the finer reading that the registered cells do not carry.** The
+registered rows key on "did the engine emit in the window", and by that key the
+down arm is `B`. The ids say more, and they are what the fix depends on:
+`gEditorPending.requiredCallback` here accepts only LOK id **1**
+(`INVALIDATE_VISIBLE_CURSOR`) or id **2** (`TEXT_SELECTION`), and **zero of
+either arrived in any of the 20 attempts**. The down arm's window carries three
+id **8** (`STATE_CHANGED`) whose payloads are `.uno:LanguageStatus`,
+`.uno:CharFontName`, `.uno:FontHeight` — a type `completePendingEditorOperation`
+is never even reached for. `sourceSequence` is identical before the boundary
+press and after the verdict in all 20.
+
+**A gap in this protocol's own registration, named rather than smoothed over.**
+§2.2 was written in terms of "emissions", not "emissions of a completing type".
+Splitting by id is a *finer* reading than the registered rows and it is reported
+as a measurement beside them, not as a re-classification: the cells above are
+what the registered table produced.
+
+**What the run could not separate**, and it is in RESULT §5: whether the down
+arm's three `STATE_CHANGED` answer the boundary press or trail the press before
+it. Measured latencies — 302–306 ms after the previous press's id 1, against
+that same attempt's click→burst reference of 293–299 ms, agreeing to ~7 ms 10/10
+on two engines — look like a tail, but this probe does not correlate a callback
+to a command. Named remedies: an engine-side correlation (relink), or the native
+LOK harness (`tools/f059_native_*.cpp` against `native-lok-26-8/`, no relink).
+
+**Process hygiene.** Chrome count before: one browser main (pid 320605, crashpad
+320612) plus the owner's `serve.py --port 8765` (pid 209888) and
+`serve_candidate_page.py` (pid 314373). After: identical — one browser main,
+both owner servers still up, no headless Chrome, no probe server, nothing killed.

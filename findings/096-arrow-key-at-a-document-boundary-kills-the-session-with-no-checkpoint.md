@@ -179,3 +179,115 @@ SDK 自己那顆 error 物件（`run()` 印成 `${code}：${message}`）：
 所以下一步**不是落地修法**，是先查清楚：這個修法非得住在哪一層（引擎／worker／
 殼層／頁面），因而會移動哪些身分、作廢哪些證據。**在那個答案出來之前不動任何
 原始碼**——`wasm build 不可重建`，而已經押了六趟。
+
+---
+
+# 追記（2026-09-09，agent）：三個解釋剩一個——引擎活著，而核心從沒廣播那一則
+
+**狀態改判**：**已重現、已區辨、三個解釋收斂到一個。成因的下一層仍未指認。**
+
+證據：`findings/evidence/096/RESULT-engine-side.md`、`README-engine-side.md`、
+`engine-side-e2-editor-{v8,v13}.json`、`probe_096_engine_side.py`、
+`summarise_engine_side.py`。量測協定
+`handoff/tasks/TASK-2026-09-09-096-does-the-engine-thread-still-answer.md`
+（commit `ed7568dd`）**寫在探針存在之前**，每個觀測准許什麼也寫在那裡。
+**沒有建置、沒有連結、沒有移動任何產品位元組。**
+
+這是 `handoff/DECISION-2026-09-09-which-layer-can-carry-096s-fix-and-what-each-costs.md`
+§2.3 指名的那一次量測。它問的是上一輪明文不問的那一題：**判定之後，引擎執行緒
+還答不答；而那一按前後，核心到底廣播了什麼。**
+
+## 做法：注入到活著的 worker 自己的 realm
+
+頁面、殼層、SDK 這三層，上一輪的證據已經證明是塞住的——問它們是問錯邊。所以三件
+事都在 worker 自己的 JavaScript realm 裡做：包 `globalThis.__probe_on_event`
+（`emitJson` 唯一的 JS 出口，而且是呼叫時才查名字）、包 `self.postMessage`、
+用 `dispatchEvent` 把三個請求送進 `handleRequest`。
+
+三個注入，順序固定：
+
+- **C** `f096ControlNoSuchOperation`——**注入路徑的對照組**，由 worker 自己的
+  switch default 答 `UNKNOWN_OPERATION`，**完全不碰引擎**。沒有它，「引擎沒答」
+  和「我的注入根本沒到」是同一種沉默。
+- **G** `editorGetStateV2`——走引擎的命令佇列，由 `handleEditorGetState` 同步回答，
+  **不碰 `gEditorPending`**。
+- **P** `editorActionV2`（同一個方向的動作）——**正向對照**，必須答 `BUSY`。
+
+`documentHandle` 與 `expectedRevision` 是從 **worker 自己的 `pending` map** 讀的
+（那筆卡住的 `editorActionV2` 的 payload），不是從頁面拿的。
+
+## 結果：20 次計數嘗試，20 次重現，0 VOID
+
+| 臂 | probe.wasm | 上 | 下 | §2.1 | §2.2 |
+| --- | --- | --- | --- | --- | --- |
+| C — `e2-editor-v8`（**出貨的位元組**） | `4a2710bba1ef07d9` | 5/5 | 5/5 | `C_EXCLUDED` ×10 | `A` ×5／`B` ×5 |
+| A — `e2-editor-v13`（候選） | `0fe25650bec1bac5` | 5/5 | 5/5 | `C_EXCLUDED` ×10 | `A` ×5／`B` ×5 |
+
+**兩顆引擎逐格一致。**
+
+### (c) 出局：引擎執行緒在跑，而且在執行命令
+
+20 次全部，判定之後：C 答 `UNKNOWN_OPERATION`（0.0 秒）、G 答出完整的 state
+（0.0–0.3 秒）、**P 答 `BUSY`：「another callback-correlated editor operation is
+in flight」**（0.0 秒）。`getStateDispatchReturned` 20/20 為真，所以連「呼叫進
+wasm 沒回來」那一格都沒觸發。
+
+**正向對照 20/20 成立**，所以本輪不 VOID，而且引擎的狀態就是靜態追蹤預測的那個：
+`gEditorPending.requestId != 0`，一個 cancel 清不掉的格子。
+
+### (b) 在它承重的那個形式上出局：沒有任何一則「能完成它」的 callback 到過
+
+這條路上 `requiredCallback` 是 `EditorCaretOrSelectionCallback`（`= -2`），
+`completePendingEditorOperation` 只接受 LOK id **1**
+（`INVALIDATE_VISIBLE_CURSOR`）或 id **2**（`TEXT_SELECTION`）。
+
+**20 次裡，邊界那一按到判定之間，id 1 與 id 2 各出現 0 次。**視窗裡的 id 是：
+上臂**一則都沒有**（10/10），下臂三則 id **8**（`STATE_CHANGED`，10/10），酬載逐字是
+`.uno:LanguageStatus=English (USA);en-US`、`.uno:CharFontName=Liberation Serif`、
+`.uno:FontHeight=12`——`completePendingEditorOperation` 對這個型別**根本不會被呼叫到**
+（它只在 `if (editorStateChanged)` 裡面）。`sourceSequence` 在邊界那一按之前與
+判定之後**完全相同**（20/20）。
+
+**探針自己的正向對照就在同一份擷取裡**：前一按（會動的那一按）產生
+`lok id=1` → `editor-state source=visible-cursor` → `editor-action-completed`
+`completion: "documented-callback-visible-cursor"`，**37–39 毫秒**完成，20/20。
+同一支包裝、同一個 session、同一顆按鍵，前一按有，後一按沒有。
+
+### 剩下的是 (a)：那一則廣播從來沒發生
+
+依決策文件 §2.3 的表，這一格准許的是「修法必須提供 callback 給不了的完成，
+那是**引擎**的修法或撤回能力」。**那是一張准許證，不是一個決定**——選哪一列屬於
+裁定的人（AGENTS.md §8），本輪不選。
+
+## 順帶更正一件我自己寫錯的事
+
+協定 §2.3 原本說：要把 (a) 和「核心廣播了一個這顆 build 不看的型別」分開，得在
+LOK 的 trampoline 加計數，也就是改引擎、連結、付決策文件 row A 的價。
+
+**那個計數已經在出貨的引擎裡。**`onLokCallback`（`src/probe_engine.cpp:2372-2381`，
+`registerCallback` 交給 LOK 的就是它，`:2801`）第一件事就是**無條件、在型別 switch
+之前、在所有 `#ifdef` 之外**，把每一則 callback 原樣吐成
+`{"type":"lok","id":…,"payload":…}`。所以這條界線上分得乾淨，**不需要動引擎**。
+更正寫在協定的執行紀錄裡（append-only）。
+
+## 這一輪分不開的，指名寫下來
+
+1. **下臂那三則 `STATE_CHANGED` 到底是回答邊界那一按，還是前一按的尾巴。**量到的
+   延遲：它落在前一按 id 1 之後 **302–306 ms**，而同一次嘗試裡「點擊 → STATE_CHANGED
+   爆發」的參照是 **293–299 ms**，兩者差約 7 ms，10/10、跨兩顆引擎；落在邊界那一按
+   之後則是 184–186 ms，對不上任何參照。**形狀像尾巴**——但本探針是用 mark 索引歸屬的，
+   **它不把 callback 對應到造成它的命令**，所以登錄的格子仍然照登錄的算（`B`），
+   這段是量測、不是改判。能分開它的：引擎那一側做 callback↔命令的對應（要連結），
+   或決策文件已經指名的 native LOK harness（`tools/f059_native_*.cpp` 對
+   `native-lok-26-8/`，**不用連結**）。
+2. **核心為什麼沒廣播。**計數為零只說核心沒有呼叫註冊的 callback，不說核心裡是誰
+   決定的。
+3. **Home／End。**018 量的是 `End`，096 與本輪量的是 Up／Down。四個是不是同一回事，
+   **兩個方向都沒量過**。
+4. **判定之後才送達的 callback。**視窗在判定收尾。
+
+## 也登錄、但**不得合併**
+
+**上臂整場沒有出現過任何 `LOK_CALLBACK_STATE_CHANGED`**，而下臂在點擊之後與
+前一按之後都有爆發。兩臂點的是擁有者那份文件裡不同的段落，所以這只是一份檔案裡
+兩個位置的差別，本輪沒有任何東西說它代表什麼。**登錄，不解釋。**
