@@ -221,3 +221,42 @@ revisionAfterWatch == "0"`. Every S8-pinned field in §2 is met on this one
 attempt; the counted matrix (S8, S14, L8, three attempts each) is run and
 judged in the following commits.
 
+### 2026-09-10 — the matrix, all nine attempts
+
+Run to completion, one browser at a time, Chrome process count checked
+before and after each of the three runs (0 leftover in every case). Full
+result: `findings/evidence/095/RESULT.md`; raw per-attempt evidence in
+`s8-e2-editor-v8.json`, `s14-e2-editor-v14.json`,
+`l8-e2-editor-v8-long.json`.
+
+| arm | attempts | outcome | caret moved | click placed | dead seconds |
+| --- | --- | --- | --- | --- | --- |
+| S8 (`e2-editor-v8`, `a11y-audible.odt`) | 3/3 | `REPRODUCED_NO_CHECKPOINT` | false | false | 30.001 / 30.001 / 30.0 |
+| S14 (`e2-editor-v14`, `a11y-audible.odt`) | 3/3 | `NOT_REPRODUCED` | false | true | null / null / null |
+| L8 (`e2-editor-v8`, `a11y-long.odt`, 133 paragraphs) | 3/3 | `NOT_REPRODUCED` | true | true | null / null / null |
+
+**§2's pinned cells are met on all nine attempts** (RESULT.md has the
+per-field reading). **§3's positive-control rule is met**: S8 died 3/3,
+S14 did not die 3/3, in this same task session. **§5's green-S8-and-S14
+conclusion is in force**: 095 is re-attributed as 096's pre-death window
+on profiles without half A. L8's green licenses only "not a boundary
+press", per §5's own wording — nothing about why the core does not
+broadcast at a boundary, and nothing about the long document's true
+paragraph count past the last painted ink band (682 bands found on a
+27,198 px canvas that is not height-capped; the click landed on the last
+one, with the scan itself confirming no band lies below it, and the
+single measured press still moved the caret in under 200 ms on all three
+attempts — so whatever exists past that band, LOK found somewhere to go).
+
+Two things observed that no cell in §2 predicted, recorded in full in
+`RESULT.md` and not explained here either: S14's press did not move the
+caret either (`caretMovedAfterPress == false`, same as S8 — the two arms
+are told apart only by whether the session then wedges), and the
+boundary-press latency clusters by arm rather than by attempt (S14
+255–256 ms, L8 74–78 ms), both well above 096's own pre-boundary baseline
+of 37–39 ms.
+
+No file under `findings/096-*.md` or `findings/evidence/096/` was edited;
+no `build_cutover_page.py --write`, no `make`, no edit under `src/ sdk/
+web/ editor-shell*/ dist/ tools/`.
+
