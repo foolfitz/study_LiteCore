@@ -1,0 +1,6153 @@
+{
+ "schemaVersion": 1,
+ "finding": "096",
+ "evidenceClass": "diagnostic",
+ "label": "shakedown-1",
+ "protocol": "handoff/tasks/TASK-2026-09-10-096-why-the-core-is-silent-at-a-boundary.md, Supersession 2, registered before this probe was written",
+ "instrument": "the raw lok stream inside the live document worker's own realm (probe_096_engine_side.py); NOT sourceSequence",
+ "mayNotWidenTheArmsOrVerdict": true,
+ "arm": "P",
+ "armDescription": "P' -- plain line, same-position Home (M2 isolation)",
+ "armParagraphText": "夾在中間的這一行不是清單 只是普通內文",
+ "profile": "e2-editor-v8",
+ "pageSha256": "1ec7baf9fb53c808cf127476346d69d56cf93a802f6c72680fa84416f7599ecc",
+ "pagePinBefore": "4a2710bba1ef07d9",
+ "wasmSha256": "4a2710bba1ef07d9364f02bd07905f0e95e92f805d97eab37dfb262e2a28b47f",
+ "fixture": "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/test-docs/e1/a11y-audible.odt",
+ "fixtureSha256": "76ad12c1f0f28d429ee25315e6d8e954c8d9167305bf436f354c69e27117765f",
+ "fixtureContentXmlTail": "ng_20_1\">這一行應該被唸成第一層標題</text:h>\n <text:p>這一行是普通內文</text:p>\n <text:h text:outline-level=\"2\" text:style-name=\"Heading_20_2\">這一行應該被唸成第二層標題</text:h>\n <text:p>那一行也是內文 不過和上面每一行都不一樣</text:p>\n <text:list text:style-name=\"AudBullet\"><text:list-item><text:p>清單開始了 這裡應該被唸成項目清單的第一項</text:p></text:list-item><text:list-item><text:p>接下來這一項應該被唸成項目清單的第二項</text:p></text:list-item></text:list>\n <text:p>夾在中間的這一行不是清單 只是普通內文</text:p>\n <text:list text:style-name=\"AudNumber\"><text:list-item><text:p>編號的部分開始 這裡應該被唸成編號清單的第一項</text:p></text:list-item><text:list-item><text:p>再來這一項應該被唸成編號清單的第二項</text:p></text:list-item></text:list>\n <text:p>最後一行到了 整份文件到這裡結束</text:p>\n</office:text></office:body>\n</office:document-content>\n",
+ "viewport": "1920x1080",
+ "attempts": 1,
+ "startedAt": "2026-09-10T03:00:24.290065+00:00",
+ "runs": [
+  {
+   "attempt": 1,
+   "arm": "P",
+   "armDescription": "P' -- plain line, same-position Home (M2 isolation)",
+   "startedAt": "2026-09-10T03:00:24.721504+00:00",
+   "workers": {
+    "answered": true,
+    "attached": [
+     {
+      "sessionId": "FC49A19AB3ACAB9B28A4AB6F901E055D",
+      "type": "worker",
+      "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js"
+     }
+    ],
+    "enabled": [
+     {
+      "sessionId": "FC49A19AB3ACAB9B28A4AB6F901E055D",
+      "domain": "Runtime.enable",
+      "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js"
+     },
+     {
+      "sessionId": "FC49A19AB3ACAB9B28A4AB6F901E055D",
+      "domain": "Log.enable",
+      "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js"
+     }
+    ]
+   },
+   "boot": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "—",
+    "doc": "list-contexts.odt",
+    "toast": "點一下放游標，或拖曳選一段，再按動作",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "opened": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "—",
+    "doc": "a11y-audible.odt",
+    "toast": "已開啟 a11y-audible.odt",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "workersAfterOpen": [
+    {
+     "sessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+     "domain": "Runtime.enable",
+     "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js"
+    },
+    {
+     "sessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+     "domain": "Log.enable",
+     "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js"
+    }
+   ],
+   "fixtureContentXmlTail": "ng_20_1\">這一行應該被唸成第一層標題</text:h>\n <text:p>這一行是普通內文</text:p>\n <text:h text:outline-level=\"2\" text:style-name=\"Heading_20_2\">這一行應該被唸成第二層標題</text:h>\n <text:p>那一行也是內文 不過和上面每一行都不一樣</text:p>\n <text:list text:style-name=\"AudBullet\"><text:list-item><text:p>清單開始了 這裡應該被唸成項目清單的第一項</text:p></text:list-item><text:list-item><text:p>接下來這一項應該被唸成項目清單的第二項</text:p></text:list-item></text:list>\n <text:p>夾在中間的這一行不是清單 只是普通內文</text:p>\n <text:list text:style-name=\"AudNumber\"><text:list-item><text:p>編號的部分開始 這裡應該被唸成編號清單的第一項</text:p></text:list-item><text:list-item><text:p>再來這一項應該被唸成編號清單的第二項</text:p></text:list-item></text:list>\n <text:p>最後一行到了 整份文件到這裡結束</text:p>\n</office:text></office:body>\n</office:document-content>\n",
+   "workerIdentity": {
+    "sessions": [
+     {
+      "sessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+      "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js",
+      "answered": true,
+      "value": {
+       "probeOnEvent": "function",
+       "instrumented": false,
+       "pendingSize": 0,
+       "pendingError": null,
+       "location": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js",
+       "now": 5681
+      },
+      "error": null,
+      "seconds": 0.0
+     }
+    ],
+    "chosen": "D4A8D21437B099F75A20DF98F8C9EDCA"
+   },
+   "workerSessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+   "install": {
+    "returned": true,
+    "seconds": 0.0,
+    "raw": "{\"installed\":\"yes\",\"hadEventHandler\":\"function\",\"hadPostMessage\":\"function\"}",
+    "value": {
+     "installed": "yes",
+     "hadEventHandler": "function",
+     "hadPostMessage": "function"
+    }
+   },
+   "lastLineEvidence": {
+    "found": true,
+    "bandIndex": 9,
+    "bandCount": 10,
+    "y": 404,
+    "fraction": 0.35039028620988727,
+    "rows": 15,
+    "scanCoveredFullCanvas": true,
+    "rowsBelowCount": 0,
+    "floor": 20,
+    "borderLimit": 450.0,
+    "canvasHeight": 1153,
+    "canvasWidth": 900
+   },
+   "bandScan": {
+    "bandCount": 10,
+    "fractions": [
+     0.097138,
+     0.125759,
+     0.153513,
+     0.181266,
+     0.209887,
+     0.237641,
+     0.266262,
+     0.294016,
+     0.321769,
+     0.35039
+    ]
+   },
+   "targetBand": {
+    "index": 6,
+    "localStart": 300,
+    "localEnd": 315,
+    "y": 307,
+    "fraction": 0.2662619254119688,
+    "rows": 16
+   },
+   "lineInk": {
+    "available": true,
+    "inkLeft": 102,
+    "inkRight": 486,
+    "width": 900,
+    "columns": [
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     4,
+     4,
+     5,
+     5,
+     5,
+     3,
+     10,
+     10,
+     5,
+     5,
+     6,
+     6,
+     4,
+     4,
+     2,
+     1,
+     1,
+     3,
+     3,
+     13,
+     5,
+     4,
+     7,
+     4,
+     4,
+     4,
+     12,
+     3,
+     3,
+     3,
+     6,
+     1,
+     1,
+     1,
+     11,
+     2,
+     2,
+     2,
+     2,
+     5,
+     18,
+     3,
+     3,
+     3,
+     2,
+     2,
+     8,
+     1,
+     1,
+     4,
+     1,
+     17,
+     3,
+     3,
+     4,
+     14,
+     10,
+     4,
+     4,
+     10,
+     10,
+     4,
+     4,
+     6,
+     16,
+     1,
+     2,
+     2,
+     14,
+     5,
+     7,
+     3,
+     12,
+     3,
+     3,
+     4,
+     9,
+     4,
+     3,
+     3,
+     9,
+     5,
+     0,
+     2,
+     5,
+     6,
+     7,
+     7,
+     3,
+     3,
+     12,
+     7,
+     6,
+     8,
+     6,
+     6,
+     6,
+     12,
+     4,
+     2,
+     2,
+     3,
+     4,
+     1,
+     1,
+     4,
+     3,
+     3,
+     3,
+     3,
+     4,
+     1,
+     1,
+     1,
+     1,
+     3,
+     0,
+     1,
+     4,
+     4,
+     13,
+     3,
+     3,
+     2,
+     2,
+     3,
+     3,
+     3,
+     3,
+     12,
+     2,
+     2,
+     1,
+     0,
+     0,
+     4,
+     4,
+     2,
+     3,
+     3,
+     3,
+     14,
+     15,
+     4,
+     4,
+     4,
+     3,
+     3,
+     3,
+     0,
+     0,
+     0,
+     3,
+     11,
+     7,
+     6,
+     5,
+     8,
+     7,
+     12,
+     7,
+     9,
+     7,
+     10,
+     12,
+     2,
+     1,
+     0,
+     1,
+     6,
+     7,
+     3,
+     2,
+     7,
+     10,
+     10,
+     7,
+     11,
+     8,
+     8,
+     8,
+     13,
+     4,
+     0,
+     1,
+     2,
+     2,
+     13,
+     7,
+     7,
+     7,
+     8,
+     12,
+     5,
+     7,
+     9,
+     7,
+     7,
+     12,
+     2,
+     0,
+     0,
+     0,
+     1,
+     1,
+     0,
+     2,
+     10,
+     4,
+     4,
+     4,
+     5,
+     3,
+     3,
+     3,
+     4,
+     4,
+     4,
+     10,
+     3,
+     1,
+     1,
+     4,
+     3,
+     11,
+     8,
+     6,
+     6,
+     8,
+     12,
+     7,
+     7,
+     6,
+     6,
+     9,
+     3,
+     2,
+     1,
+     1,
+     2,
+     3,
+     4,
+     11,
+     8,
+     10,
+     10,
+     6,
+     7,
+     11,
+     7,
+     6,
+     12,
+     2,
+     2,
+     2,
+     0,
+     4,
+     6,
+     9,
+     7,
+     2,
+     12,
+     6,
+     7,
+     7,
+     12,
+     7,
+     6,
+     7,
+     8,
+     2,
+     1,
+     1,
+     1,
+     13,
+     1,
+     2,
+     4,
+     4,
+     9,
+     7,
+     6,
+     4,
+     4,
+     3,
+     2,
+     13,
+     1,
+     2,
+     0,
+     3,
+     3,
+     4,
+     5,
+     6,
+     8,
+     6,
+     7,
+     5,
+     5,
+     6,
+     3,
+     2,
+     2,
+     5,
+     2,
+     2,
+     2,
+     2,
+     0,
+     0,
+     3,
+     2,
+     2,
+     2,
+     2,
+     3,
+     0,
+     0,
+     0,
+     1,
+     1,
+     3,
+     1,
+     1,
+     1,
+     0,
+     0,
+     3,
+     1,
+     1,
+     1,
+     1,
+     1,
+     0,
+     0,
+     0,
+     1,
+     2,
+     1,
+     2,
+     1,
+     1,
+     1,
+     1,
+     2,
+     1,
+     2,
+     1,
+     1,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     1,
+     1,
+     2,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     3,
+     1,
+     1,
+     1,
+     1,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46,
+     46
+    ]
+   },
+   "clickFractions": {
+    "derived": true,
+    "mid": "0.292533",
+    "inkLeft": 102,
+    "inkRight": 486,
+    "canvasWidth": 900,
+    "y": "0.266262",
+    "kind": "mid"
+   },
+   "placement": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "定位游標 28 ms",
+    "doc": "a11y-audible.odt",
+    "toast": "已開啟 a11y-audible.odt",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "a11yAfterPlacement": {
+    "text": "這一版引擎沒有提供段落文字，所以無法朗讀文件內容。",
+    "reason": "profile",
+    "deferredToStructure": "0",
+    "offers": "0"
+   },
+   "pressesPlanned": 2,
+   "pressesDispatched": 2,
+   "frameAfterTailWait": {
+    "sinkTop": 294,
+    "sinkLeft": 100,
+    "sinkHeight": 24,
+    "activeDescendant": null,
+    "deskScrollTop": 0,
+    "deskScrollHeight": 1193,
+    "deskClientHeight": 815,
+    "canvasHeight": 1153,
+    "canvasWidth": 900,
+    "state": "recoverable-error",
+    "stateLabel": "需要回復",
+    "noticeShow": "1",
+    "noticeRescue": "checkpoint",
+    "noticeText": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+    "noticeAction": "回到檢查點",
+    "noticeDisabled": false,
+    "latency": "移到行首 失敗",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "有（r0）",
+    "activeElement": ""
+   },
+   "tailWaitedSeconds": 0.0,
+   "workerLiveness": [
+    {
+     "sessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+     "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js",
+     "answered": true,
+     "result": "{\"now\":37595,\"post\":\"function\",\"onmsg\":\"object\"}",
+     "seconds": 0.0
+    }
+   ],
+   "worker": {
+    "returned": true,
+    "seconds": 0.0,
+    "raw": "{\"present\":true,\"engine\":[{\"ms\":18,\"len\":830,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-state-result\\\",\\\"requestId\\\":5,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"selectionType\\\":\\\"none\\\",\\\"selectionTextMissing\\\":false,\\\"selectionText\\\":\\\"\\\",\\\"sourceSequence\\\":9,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":1418,\\\"y\\\":1418,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":true,\\\"paragraphStyle\\\":\\\"Heading 1\\\",\\\"stateChangedTotal\\\":182,\\\"stateChangedUnrecognised\\\":175,\\\"formatStale\\\":false}}\"},{\"ms\":19,\"len\":82,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"clicked\\\",\\\"requestId\\\":6,\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":19,\"len\":830,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-state-result\\\",\\\"requestId\\\":7,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"selectionType\\\":\\\"none\\\",\\\"selectionTextMissing\\\":false,\\\"selectionText\\\":\\\"\\\",\\\"sourceSequence\\\":9,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":1418,\\\"y\\\":1418,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":true,\\\"paragraphStyle\\\":\\\"Heading 1\\\",\\\"stateChangedTotal\\\":182,\\\"stateChangedUnrecognised\\\":175,\\\"formatStale\\\":false}}\"},{\"ms\":25,\"len\":830,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-state-result\\\",\\\"requestId\\\":8,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"selectionType\\\":\\\"none\\\",\\\"selectionTextMissing\\\":false,\\\"selectionText\\\":\\\"\\\",\\\"sourceSequence\\\":9,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":1418,\\\"y\\\":1418,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":true,\\\"paragraphStyle\\\":\\\"Heading 1\\\",\\\"stateChangedTotal\\\":182,\\\"stateChangedUnrecognised\\\":175,\\\"formatStale\\\":false}}\"},{\"ms\":31,\"len\":830,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-state-result\\\",\\\"requestId\\\":9,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"selectionType\\\":\\\"none\\\",\\\"selectionTextMissing\\\":false,\\\"selectionText\\\":\\\"\\\",\\\"sourceSequence\\\":9,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":1418,\\\"y\\\":1418,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":true,\\\"paragraphStyle\\\":\\\"Heading 1\\\",\\\"stateChangedTotal\\\":182,\\\"stateChangedUnrecognised\\\":175,\\\"formatStale\\\":false}}\"},{\"ms\":36,\"len\":831,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-state-result\\\",\\\"requestId\\\":10,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"selectionType\\\":\\\"none\\\",\\\"selectionTextMissing\\\":false,\\\"selectionText\\\":\\\"\\\",\\\"sourceSequence\\\":9,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":1418,\\\"y\\\":1418,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":true,\\\"paragraphStyle\\\":\\\"Heading 1\\\",\\\"stateChangedTotal\\\":182,\\\"stateChangedUnrecognised\\\":175,\\\"formatStale\\\":false}}\"},{\"ms\":42,\"len\":71,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"lok\\\",\\\"id\\\":18,\\\"payload\\\":\\\"text\\\",\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":42,\"len\":84,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"lok\\\",\\\"id\\\":1,\\\"payload\\\":\\\"3818, 4184, 0, 348\\\",\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":42,\"len\":778,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-state\\\",\\\"requestId\\\":0,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"source\\\":\\\"visible-cursor\\\",\\\"sourceSequence\\\":10,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":3818,\\\"y\\\":4184,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":true,\\\"paragraphStyle\\\":\\\"Heading 1\\\",\\\"stateChangedTotal\\\":182,\\\"stateChangedUnrecognised\\\":175,\\\"formatStale\\\":true}}\"},{\"ms\":42,\"len\":831,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-state-result\\\",\\\"requestId\\\":11,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"selectionType\\\":\\\"none\\\",\\\"selectionTextMissing\\\":false,\\\"selectionText\\\":\\\"\\\",\\\"sourceSequence\\\":10,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":3818,\\\"y\\\":4184,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":true,\\\"paragraphStyle\\\":\\\"Heading 1\\\",\\\"stateChangedTotal\\\":182,\\\"stateChangedUnrecognised\\\":175,\\\"formatStale\\\":true}}\"},{\"ms\":47,\"len\":211,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"tile\\\",\\\"ptr\\\":297388104,\\\"size\\\":4150800,\\\"w\\\":900,\\\"h\\\":1153,\\\"documentWidthTwips\\\":12808,\\\"documentHeightTwips\\\":16408,\\\"documentSizeChanged\\\":false,\\\"schemaVersion\\\":1,\\\"requestId\\\":12,\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":53,\"len\":211,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"tile\\\",\\\"ptr\\\":297388104,\\\"size\\\":4150800,\\\"w\\\":900,\\\"h\\\":1153,\\\"documentWidthTwips\\\":12808,\\\"documentHeightTwips\\\":16408,\\\"documentSizeChanged\\\":false,\\\"schemaVersion\\\":1,\\\"requestId\\\":13,\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":339,\"len\":94,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"lok\\\",\\\"id\\\":8,\\\"payload\\\":\\\".uno:DecrementIndent=enabled\\\",\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":339,\"len\":93,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"lok\\\",\\\"id\\\":8,\\\"payload\\\":\\\".uno:DefaultNumbering=false\\\",\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":339,\"len\":778,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-state\\\",\\\"requestId\\\":0,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"source\\\":\\\"format-state\\\",\\\"sourceSequence\\\":11,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":3818,\\\"y\\\":4184,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":false,\\\"paragraphStyle\\\":\\\"Heading 1\\\",\\\"stateChangedTotal\\\":184,\\\"stateChangedUnrecognised\\\":176,\\\"formatStale\\\":false}}\"},{\"ms\":339,\"len\":105,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"lok\\\",\\\"id\\\":8,\\\"payload\\\":\\\".uno:StyleApply=Default Paragraph Style\\\",\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":339,\"len\":792,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-state\\\",\\\"requestId\\\":0,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"source\\\":\\\"format-state\\\",\\\"sourceSequence\\\":12,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":3818,\\\"y\\\":4184,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":false,\\\"paragraphStyle\\\":\\\"Default Paragraph Style\\\",\\\"stateChangedTotal\\\":185,\\\"stateChangedUnrecognised\\\":176,\\\"formatStale\\\":false}}\"},{\"ms\":367,\"len\":86,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"lok\\\",\\\"id\\\":8,\\\"payload\\\":\\\".uno:StateTableCell=\\\",\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":1361,\"len\":84,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"lok\\\",\\\"id\\\":1,\\\"payload\\\":\\\"1418, 4184, 0, 348\\\",\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":1361,\"len\":793,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-state\\\",\\\"requestId\\\":0,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"source\\\":\\\"visible-cursor\\\",\\\"sourceSequence\\\":13,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":1418,\\\"y\\\":4184,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":false,\\\"paragraphStyle\\\":\\\"Default Paragraph Style\\\",\\\"stateChangedTotal\\\":186,\\\"stateChangedUnrecognised\\\":177,\\\"formatStale\\\":true}}\"},{\"ms\":1362,\"len\":970,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-action-completed\\\",\\\"requestId\\\":14,\\\"documentHandle\\\":1,\\\"beforeRevision\\\":0,\\\"revision\\\":0,\\\"action\\\":\\\"move-line-home\\\",\\\"option\\\":false,\\\"changed\\\":false,\\\"completion\\\":\\\"documented-callback-visible-cursor\\\",\\\"callbackSequenceBefore\\\":12,\\\"callbackSequenceAfter\\\":13,\\\"state\\\":{\\\"sourceSequence\\\":13,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":1418,\\\"y\\\":4184,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":false,\\\"paragraphStyle\\\":\\\"Default Paragraph Style\\\",\\\"stateChangedTotal\\\":186,\\\"stateChangedUnrecognised\\\":177,\\\"formatStale\\\":true}}}\"},{\"ms\":1365,\"len\":211,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"tile\\\",\\\"ptr\\\":297388104,\\\"size\\\":4150800,\\\"w\\\":900,\\\"h\\\":1153,\\\"documentWidthTwips\\\":12808,\\\"documentHeightTwips\\\":16408,\\\"documentSizeChanged\\\":false,\\\"schemaVersion\\\":1,\\\"requestId\\\":15,\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":1370,\"len\":211,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"tile\\\",\\\"ptr\\\":297388104,\\\"size\\\":4150800,\\\"w\\\":900,\\\"h\\\":1153,\\\"documentWidthTwips\\\":12808,\\\"documentHeightTwips\\\":16408,\\\"documentSizeChanged\\\":false,\\\"schemaVersion\\\":1,\\\"requestId\\\":16,\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":1789,\"len\":125,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"saved\\\",\\\"requestId\\\":17,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"format\\\":\\\"odt\\\",\\\"ptr\\\":290030552,\\\"size\\\":15782}\"},{\"ms\":2076,\"len\":70,\"truncated\":false,\"raw\":\"{\\\"type\\\":\\\"lok\\\",\\\"id\\\":5,\\\"payload\\\":\\\"true\\\",\\\"documentHandle\\\":1,\\\"revision\\\":0}\"},{\"ms\":2076,\"len\":793,\"truncated\":false,\"raw\":\"{\\\"schemaVersion\\\":1,\\\"type\\\":\\\"editor-state\\\",\\\"requestId\\\":0,\\\"documentHandle\\\":1,\\\"revision\\\":0,\\\"source\\\":\\\"cursor-visible\\\",\\\"sourceSequence\\\":14,\\\"documentChangeSequence\\\":0,\\\"visible\\\":true,\\\"caret\\\":{\\\"x\\\":1418,\\\"y\\\":4184,\\\"width\\\":0,\\\"height\\\":348},\\\"selection\\\":{\\\"observed\\\":true,\\\"collapsed\\\":true,\\\"start\\\":null,\\\"end\\\":null,\\\"rectangles\\\":[]},\\\"a11y\\\":{\\\"observed\\\":false,\\\"changeCount\\\":0,\\\"unparsedCount\\\":0,\\\"lastSequence\\\":0,\\\"contentLength\\\":-1,\\\"position\\\":-1,\\\"enabled\\\":false,\\\"unavailable\\\":\\\"core-built-without-accessibility\\\",\\\"paragraphFresh\\\":false,\\\"paragraphFingerprint\\\":\\\"0\\\",\\\"listPrefixLength\\\":0},\\\"format\\\":{\\\"bold\\\":false,\\\"italic\\\":false,\\\"underline\\\":false,\\\"strikethrough\\\":false,\\\"listBullet\\\":false,\\\"listNumber\\\":false,\\\"paragraphStyle\\\":\\\"Default Paragraph Style\\\",\\\"stateChangedTotal\\\":186,\\\"stateChangedUnrecognised\\\":177,\\\"formatStale\\\":true}}\"}],\"engineDropped\":0,\"posted\":[{\"ms\":18,\"kind\":\"response\",\"requestId\":5,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":19,\"kind\":\"response\",\"requestId\":6,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":19,\"kind\":\"response\",\"requestId\":7,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":25,\"kind\":\"response\",\"requestId\":8,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":31,\"kind\":\"response\",\"requestId\":9,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":37,\"kind\":\"response\",\"requestId\":10,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":42,\"kind\":\"event\",\"event\":\"document-invalidated\",\"mine\":false,\"body\":null},{\"ms\":42,\"kind\":\"event\",\"event\":\"editor-state\",\"mine\":false,\"body\":null},{\"ms\":42,\"kind\":\"response\",\"requestId\":11,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":49,\"kind\":\"response\",\"requestId\":12,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":55,\"kind\":\"response\",\"requestId\":13,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":339,\"kind\":\"event\",\"event\":\"editor-state\",\"mine\":false,\"body\":null},{\"ms\":339,\"kind\":\"event\",\"event\":\"editor-state\",\"mine\":false,\"body\":null},{\"ms\":1361,\"kind\":\"event\",\"event\":\"document-invalidated\",\"mine\":false,\"body\":null},{\"ms\":1361,\"kind\":\"event\",\"event\":\"editor-state\",\"mine\":false,\"body\":null},{\"ms\":1362,\"kind\":\"response\",\"requestId\":14,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":1367,\"kind\":\"response\",\"requestId\":15,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":1373,\"kind\":\"response\",\"requestId\":16,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":1789,\"kind\":\"response\",\"requestId\":17,\"ok\":true,\"mine\":false,\"body\":null},{\"ms\":2076,\"kind\":\"event\",\"event\":\"editor-state\",\"mine\":false,\"body\":null},{\"ms\":31791,\"kind\":\"event\",\"event\":\"cancel-result\",\"requestId\":18,\"mine\":false,\"body\":null}],\"postedDropped\":0,\"marks\":[{\"label\":\"before-caret-click\",\"engineIndex\":0,\"postedIndex\":0,\"ms\":15},{\"label\":\"after-caret-click\",\"engineIndex\":12,\"postedIndex\":11,\"ms\":320},{\"label\":\"press-1-before\",\"engineIndex\":18,\"postedIndex\":13,\"ms\":1324},{\"label\":\"press-1-after\",\"engineIndex\":23,\"postedIndex\":18,\"ms\":1529},{\"label\":\"press-2-before\",\"engineIndex\":23,\"postedIndex\":18,\"ms\":1530},{\"label\":\"press-2-after\",\"engineIndex\":26,\"postedIndex\":21,\"ms\":31912}],\"sent\":[]}",
+    "value": {
+     "present": true,
+     "engine": [
+      {
+       "ms": 18,
+       "len": 830,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state-result\",\"requestId\":5,\"documentHandle\":1,\"revision\":0,\"selectionType\":\"none\",\"selectionTextMissing\":false,\"selectionText\":\"\",\"sourceSequence\":9,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":1418,\"y\":1418,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":true,\"paragraphStyle\":\"Heading 1\",\"stateChangedTotal\":182,\"stateChangedUnrecognised\":175,\"formatStale\":false}}"
+      },
+      {
+       "ms": 19,
+       "len": 82,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"clicked\",\"requestId\":6,\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 19,
+       "len": 830,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state-result\",\"requestId\":7,\"documentHandle\":1,\"revision\":0,\"selectionType\":\"none\",\"selectionTextMissing\":false,\"selectionText\":\"\",\"sourceSequence\":9,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":1418,\"y\":1418,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":true,\"paragraphStyle\":\"Heading 1\",\"stateChangedTotal\":182,\"stateChangedUnrecognised\":175,\"formatStale\":false}}"
+      },
+      {
+       "ms": 25,
+       "len": 830,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state-result\",\"requestId\":8,\"documentHandle\":1,\"revision\":0,\"selectionType\":\"none\",\"selectionTextMissing\":false,\"selectionText\":\"\",\"sourceSequence\":9,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":1418,\"y\":1418,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":true,\"paragraphStyle\":\"Heading 1\",\"stateChangedTotal\":182,\"stateChangedUnrecognised\":175,\"formatStale\":false}}"
+      },
+      {
+       "ms": 31,
+       "len": 830,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state-result\",\"requestId\":9,\"documentHandle\":1,\"revision\":0,\"selectionType\":\"none\",\"selectionTextMissing\":false,\"selectionText\":\"\",\"sourceSequence\":9,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":1418,\"y\":1418,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":true,\"paragraphStyle\":\"Heading 1\",\"stateChangedTotal\":182,\"stateChangedUnrecognised\":175,\"formatStale\":false}}"
+      },
+      {
+       "ms": 36,
+       "len": 831,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state-result\",\"requestId\":10,\"documentHandle\":1,\"revision\":0,\"selectionType\":\"none\",\"selectionTextMissing\":false,\"selectionText\":\"\",\"sourceSequence\":9,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":1418,\"y\":1418,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":true,\"paragraphStyle\":\"Heading 1\",\"stateChangedTotal\":182,\"stateChangedUnrecognised\":175,\"formatStale\":false}}"
+      },
+      {
+       "ms": 42,
+       "len": 71,
+       "truncated": false,
+       "raw": "{\"type\":\"lok\",\"id\":18,\"payload\":\"text\",\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 42,
+       "len": 84,
+       "truncated": false,
+       "raw": "{\"type\":\"lok\",\"id\":1,\"payload\":\"3818, 4184, 0, 348\",\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 42,
+       "len": 778,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state\",\"requestId\":0,\"documentHandle\":1,\"revision\":0,\"source\":\"visible-cursor\",\"sourceSequence\":10,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":3818,\"y\":4184,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":true,\"paragraphStyle\":\"Heading 1\",\"stateChangedTotal\":182,\"stateChangedUnrecognised\":175,\"formatStale\":true}}"
+      },
+      {
+       "ms": 42,
+       "len": 831,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state-result\",\"requestId\":11,\"documentHandle\":1,\"revision\":0,\"selectionType\":\"none\",\"selectionTextMissing\":false,\"selectionText\":\"\",\"sourceSequence\":10,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":3818,\"y\":4184,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":true,\"paragraphStyle\":\"Heading 1\",\"stateChangedTotal\":182,\"stateChangedUnrecognised\":175,\"formatStale\":true}}"
+      },
+      {
+       "ms": 47,
+       "len": 211,
+       "truncated": false,
+       "raw": "{\"type\":\"tile\",\"ptr\":297388104,\"size\":4150800,\"w\":900,\"h\":1153,\"documentWidthTwips\":12808,\"documentHeightTwips\":16408,\"documentSizeChanged\":false,\"schemaVersion\":1,\"requestId\":12,\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 53,
+       "len": 211,
+       "truncated": false,
+       "raw": "{\"type\":\"tile\",\"ptr\":297388104,\"size\":4150800,\"w\":900,\"h\":1153,\"documentWidthTwips\":12808,\"documentHeightTwips\":16408,\"documentSizeChanged\":false,\"schemaVersion\":1,\"requestId\":13,\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 339,
+       "len": 94,
+       "truncated": false,
+       "raw": "{\"type\":\"lok\",\"id\":8,\"payload\":\".uno:DecrementIndent=enabled\",\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 339,
+       "len": 93,
+       "truncated": false,
+       "raw": "{\"type\":\"lok\",\"id\":8,\"payload\":\".uno:DefaultNumbering=false\",\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 339,
+       "len": 778,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state\",\"requestId\":0,\"documentHandle\":1,\"revision\":0,\"source\":\"format-state\",\"sourceSequence\":11,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":3818,\"y\":4184,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":false,\"paragraphStyle\":\"Heading 1\",\"stateChangedTotal\":184,\"stateChangedUnrecognised\":176,\"formatStale\":false}}"
+      },
+      {
+       "ms": 339,
+       "len": 105,
+       "truncated": false,
+       "raw": "{\"type\":\"lok\",\"id\":8,\"payload\":\".uno:StyleApply=Default Paragraph Style\",\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 339,
+       "len": 792,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state\",\"requestId\":0,\"documentHandle\":1,\"revision\":0,\"source\":\"format-state\",\"sourceSequence\":12,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":3818,\"y\":4184,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":false,\"paragraphStyle\":\"Default Paragraph Style\",\"stateChangedTotal\":185,\"stateChangedUnrecognised\":176,\"formatStale\":false}}"
+      },
+      {
+       "ms": 367,
+       "len": 86,
+       "truncated": false,
+       "raw": "{\"type\":\"lok\",\"id\":8,\"payload\":\".uno:StateTableCell=\",\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 1361,
+       "len": 84,
+       "truncated": false,
+       "raw": "{\"type\":\"lok\",\"id\":1,\"payload\":\"1418, 4184, 0, 348\",\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 1361,
+       "len": 793,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state\",\"requestId\":0,\"documentHandle\":1,\"revision\":0,\"source\":\"visible-cursor\",\"sourceSequence\":13,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":1418,\"y\":4184,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":false,\"paragraphStyle\":\"Default Paragraph Style\",\"stateChangedTotal\":186,\"stateChangedUnrecognised\":177,\"formatStale\":true}}"
+      },
+      {
+       "ms": 1362,
+       "len": 970,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-action-completed\",\"requestId\":14,\"documentHandle\":1,\"beforeRevision\":0,\"revision\":0,\"action\":\"move-line-home\",\"option\":false,\"changed\":false,\"completion\":\"documented-callback-visible-cursor\",\"callbackSequenceBefore\":12,\"callbackSequenceAfter\":13,\"state\":{\"sourceSequence\":13,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":1418,\"y\":4184,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":false,\"paragraphStyle\":\"Default Paragraph Style\",\"stateChangedTotal\":186,\"stateChangedUnrecognised\":177,\"formatStale\":true}}}"
+      },
+      {
+       "ms": 1365,
+       "len": 211,
+       "truncated": false,
+       "raw": "{\"type\":\"tile\",\"ptr\":297388104,\"size\":4150800,\"w\":900,\"h\":1153,\"documentWidthTwips\":12808,\"documentHeightTwips\":16408,\"documentSizeChanged\":false,\"schemaVersion\":1,\"requestId\":15,\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 1370,
+       "len": 211,
+       "truncated": false,
+       "raw": "{\"type\":\"tile\",\"ptr\":297388104,\"size\":4150800,\"w\":900,\"h\":1153,\"documentWidthTwips\":12808,\"documentHeightTwips\":16408,\"documentSizeChanged\":false,\"schemaVersion\":1,\"requestId\":16,\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 1789,
+       "len": 125,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"saved\",\"requestId\":17,\"documentHandle\":1,\"revision\":0,\"format\":\"odt\",\"ptr\":290030552,\"size\":15782}"
+      },
+      {
+       "ms": 2076,
+       "len": 70,
+       "truncated": false,
+       "raw": "{\"type\":\"lok\",\"id\":5,\"payload\":\"true\",\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 2076,
+       "len": 793,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state\",\"requestId\":0,\"documentHandle\":1,\"revision\":0,\"source\":\"cursor-visible\",\"sourceSequence\":14,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":1418,\"y\":4184,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":false,\"paragraphStyle\":\"Default Paragraph Style\",\"stateChangedTotal\":186,\"stateChangedUnrecognised\":177,\"formatStale\":true}}"
+      }
+     ],
+     "engineDropped": 0,
+     "posted": [
+      {
+       "ms": 18,
+       "kind": "response",
+       "requestId": 5,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 19,
+       "kind": "response",
+       "requestId": 6,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 19,
+       "kind": "response",
+       "requestId": 7,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 25,
+       "kind": "response",
+       "requestId": 8,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 31,
+       "kind": "response",
+       "requestId": 9,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 37,
+       "kind": "response",
+       "requestId": 10,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 42,
+       "kind": "event",
+       "event": "document-invalidated",
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 42,
+       "kind": "event",
+       "event": "editor-state",
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 42,
+       "kind": "response",
+       "requestId": 11,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 49,
+       "kind": "response",
+       "requestId": 12,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 55,
+       "kind": "response",
+       "requestId": 13,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 339,
+       "kind": "event",
+       "event": "editor-state",
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 339,
+       "kind": "event",
+       "event": "editor-state",
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 1361,
+       "kind": "event",
+       "event": "document-invalidated",
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 1361,
+       "kind": "event",
+       "event": "editor-state",
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 1362,
+       "kind": "response",
+       "requestId": 14,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 1367,
+       "kind": "response",
+       "requestId": 15,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 1373,
+       "kind": "response",
+       "requestId": 16,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 1789,
+       "kind": "response",
+       "requestId": 17,
+       "ok": true,
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 2076,
+       "kind": "event",
+       "event": "editor-state",
+       "mine": false,
+       "body": null
+      },
+      {
+       "ms": 31791,
+       "kind": "event",
+       "event": "cancel-result",
+       "requestId": 18,
+       "mine": false,
+       "body": null
+      }
+     ],
+     "postedDropped": 0,
+     "marks": [
+      {
+       "label": "before-caret-click",
+       "engineIndex": 0,
+       "postedIndex": 0,
+       "ms": 15
+      },
+      {
+       "label": "after-caret-click",
+       "engineIndex": 12,
+       "postedIndex": 11,
+       "ms": 320
+      },
+      {
+       "label": "press-1-before",
+       "engineIndex": 18,
+       "postedIndex": 13,
+       "ms": 1324
+      },
+      {
+       "label": "press-1-after",
+       "engineIndex": 23,
+       "postedIndex": 18,
+       "ms": 1529
+      },
+      {
+       "label": "press-2-before",
+       "engineIndex": 23,
+       "postedIndex": 18,
+       "ms": 1530
+      },
+      {
+       "label": "press-2-after",
+       "engineIndex": 26,
+       "postedIndex": 21,
+       "ms": 31912
+      }
+     ],
+     "sent": []
+    }
+   },
+   "died": true,
+   "deadState": "recoverable-error",
+   "noticeRescue": "checkpoint",
+   "noticeText": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+   "engineEventsTotal": 26,
+   "engineEventsDropped": 0,
+   "pressTrace": [
+    {
+     "press": 1,
+     "key": "Home",
+     "code": 36,
+     "final": false,
+     "watchTimeoutSeconds": 35.0,
+     "resolution": "ready",
+     "secondsToResolution": 0.201,
+     "sinkLeftBefore": 268,
+     "sinkTopBefore": 294,
+     "sinkLeftAfter": 100,
+     "sinkTopAfter": 294,
+     "stateAfter": "ready",
+     "latencyAfter": "移到行首 39 ms",
+     "pendingAfter": "0",
+     "revisionAfter": "0",
+     "deadStateAfter": null,
+     "engineIndexBefore": 18,
+     "engineIndexAfter": 23,
+     "window": [
+      {
+       "ms": 1361,
+       "len": 84,
+       "truncated": false,
+       "raw": "{\"type\":\"lok\",\"id\":1,\"payload\":\"1418, 4184, 0, 348\",\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 1361,
+       "len": 793,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state\",\"requestId\":0,\"documentHandle\":1,\"revision\":0,\"source\":\"visible-cursor\",\"sourceSequence\":13,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":1418,\"y\":4184,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":false,\"paragraphStyle\":\"Default Paragraph Style\",\"stateChangedTotal\":186,\"stateChangedUnrecognised\":177,\"formatStale\":true}}"
+      },
+      {
+       "ms": 1362,
+       "len": 970,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-action-completed\",\"requestId\":14,\"documentHandle\":1,\"beforeRevision\":0,\"revision\":0,\"action\":\"move-line-home\",\"option\":false,\"changed\":false,\"completion\":\"documented-callback-visible-cursor\",\"callbackSequenceBefore\":12,\"callbackSequenceAfter\":13,\"state\":{\"sourceSequence\":13,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":1418,\"y\":4184,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":false,\"paragraphStyle\":\"Default Paragraph Style\",\"stateChangedTotal\":186,\"stateChangedUnrecognised\":177,\"formatStale\":true}}}"
+      },
+      {
+       "ms": 1365,
+       "len": 211,
+       "truncated": false,
+       "raw": "{\"type\":\"tile\",\"ptr\":297388104,\"size\":4150800,\"w\":900,\"h\":1153,\"documentWidthTwips\":12808,\"documentHeightTwips\":16408,\"documentSizeChanged\":false,\"schemaVersion\":1,\"requestId\":15,\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 1370,
+       "len": 211,
+       "truncated": false,
+       "raw": "{\"type\":\"tile\",\"ptr\":297388104,\"size\":4150800,\"w\":900,\"h\":1153,\"documentWidthTwips\":12808,\"documentHeightTwips\":16408,\"documentSizeChanged\":false,\"schemaVersion\":1,\"requestId\":16,\"documentHandle\":1,\"revision\":0}"
+      }
+     ],
+     "lokIds": [
+      1
+     ],
+     "types": [
+      "editor-action-completed",
+      "editor-state",
+      "lok",
+      "tile"
+     ],
+     "completions": [
+      "documented-callback-visible-cursor"
+     ],
+     "pressVerdict": "answered"
+    },
+    {
+     "press": 2,
+     "key": "Home",
+     "code": 36,
+     "final": true,
+     "watchTimeoutSeconds": 65.0,
+     "resolution": "dead",
+     "secondsToResolution": 30.38,
+     "sinkLeftBefore": 100,
+     "sinkTopBefore": 294,
+     "sinkLeftAfter": 100,
+     "sinkTopAfter": 294,
+     "stateAfter": "recoverable-error",
+     "latencyAfter": "移到行首 失敗",
+     "pendingAfter": "0",
+     "revisionAfter": "0",
+     "deadStateAfter": "recoverable-error",
+     "engineIndexBefore": 23,
+     "engineIndexAfter": 26,
+     "window": [
+      {
+       "ms": 1789,
+       "len": 125,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"saved\",\"requestId\":17,\"documentHandle\":1,\"revision\":0,\"format\":\"odt\",\"ptr\":290030552,\"size\":15782}"
+      },
+      {
+       "ms": 2076,
+       "len": 70,
+       "truncated": false,
+       "raw": "{\"type\":\"lok\",\"id\":5,\"payload\":\"true\",\"documentHandle\":1,\"revision\":0}"
+      },
+      {
+       "ms": 2076,
+       "len": 793,
+       "truncated": false,
+       "raw": "{\"schemaVersion\":1,\"type\":\"editor-state\",\"requestId\":0,\"documentHandle\":1,\"revision\":0,\"source\":\"cursor-visible\",\"sourceSequence\":14,\"documentChangeSequence\":0,\"visible\":true,\"caret\":{\"x\":1418,\"y\":4184,\"width\":0,\"height\":348},\"selection\":{\"observed\":true,\"collapsed\":true,\"start\":null,\"end\":null,\"rectangles\":[]},\"a11y\":{\"observed\":false,\"changeCount\":0,\"unparsedCount\":0,\"lastSequence\":0,\"contentLength\":-1,\"position\":-1,\"enabled\":false,\"unavailable\":\"core-built-without-accessibility\",\"paragraphFresh\":false,\"paragraphFingerprint\":\"0\",\"listPrefixLength\":0},\"format\":{\"bold\":false,\"italic\":false,\"underline\":false,\"strikethrough\":false,\"listBullet\":false,\"listNumber\":false,\"paragraphStyle\":\"Default Paragraph Style\",\"stateChangedTotal\":186,\"stateChangedUnrecognised\":177,\"formatStale\":true}}"
+      }
+     ],
+     "lokIds": [
+      5
+     ],
+     "types": [
+      "editor-state",
+      "lok",
+      "saved"
+     ],
+     "completions": [],
+     "pressVerdict": "silent"
+    }
+   ],
+   "outcome": "DIED",
+   "transitions": [
+    {
+     "ms": 0,
+     "state": "loading",
+     "noticeShow": "0",
+     "noticeRescue": "none",
+     "noticeText": "",
+     "latency": "—",
+     "revision": "—",
+     "pending": "0",
+     "checkpoint": "無"
+    },
+    {
+     "ms": 1414,
+     "state": "ready",
+     "noticeShow": "0",
+     "noticeRescue": "none",
+     "noticeText": "",
+     "latency": "—",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無"
+    },
+    {
+     "ms": 4513,
+     "state": "closed",
+     "noticeShow": "0",
+     "noticeRescue": "none",
+     "noticeText": "",
+     "latency": "—",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無"
+    },
+    {
+     "ms": 4514,
+     "state": "loading",
+     "noticeShow": "0",
+     "noticeRescue": "none",
+     "noticeText": "",
+     "latency": "—",
+     "revision": "—",
+     "pending": "0",
+     "checkpoint": "無"
+    },
+    {
+     "ms": 5493,
+     "state": "ready",
+     "noticeShow": "0",
+     "noticeRescue": "none",
+     "noticeText": "",
+     "latency": "—",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無"
+    },
+    {
+     "ms": 10219,
+     "state": "busy",
+     "noticeShow": "0",
+     "noticeRescue": "none",
+     "noticeText": "",
+     "latency": "",
+     "revision": "0",
+     "pending": "1",
+     "checkpoint": "無"
+    },
+    {
+     "ms": 10245,
+     "state": "ready",
+     "noticeShow": "0",
+     "noticeRescue": "none",
+     "noticeText": "",
+     "latency": "",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無"
+    },
+    {
+     "ms": 11528,
+     "state": "busy",
+     "noticeShow": "0",
+     "noticeRescue": "none",
+     "noticeText": "",
+     "latency": "",
+     "revision": "0",
+     "pending": "1",
+     "checkpoint": "無"
+    },
+    {
+     "ms": 11565,
+     "state": "ready",
+     "noticeShow": "0",
+     "noticeRescue": "none",
+     "noticeText": "",
+     "latency": "",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無"
+    },
+    {
+     "ms": 11733,
+     "state": "busy",
+     "noticeShow": "0",
+     "noticeRescue": "none",
+     "noticeText": "",
+     "latency": "",
+     "revision": "0",
+     "pending": "1",
+     "checkpoint": "無"
+    },
+    {
+     "ms": 41993,
+     "state": "recoverable-error",
+     "noticeShow": "1",
+     "noticeRescue": "checkpoint",
+     "noticeText": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+     "latency": "",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "有（r0）"
+    }
+   ],
+   "toasts": [
+    "點一下放游標，或拖曳選一段，再按動作",
+    "已開啟 a11y-audible.odt",
+    "移到行首：TIMEOUT：editorActionV2 timed out after 30000 ms（可能已經改到文件：請回到檢查點）"
+   ],
+   "pageErrors": {
+    "errors": [],
+    "rejections": []
+   },
+   "cdpEvents": [
+    {
+     "method": "Page.frameStartedNavigating",
+     "params": {
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "url": "http://127.0.0.1:33411/e2-editor.html",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "navigationType": "differentDocument"
+     },
+     "_t": 0.002
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/e2-editor.html",
+       "method": "GET",
+       "headers": {
+        "Upgrade-Insecure-Requests": "1",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Linux\""
+       },
+       "mixedContentType": "none",
+       "initialPriority": "VeryHigh",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.613998,
+      "wallTime": 1789009224.72426,
+      "initiator": {
+       "type": "other"
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Document",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false
+     },
+     "_t": 0.003
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.618364,
+      "type": "Document",
+      "response": {
+       "url": "http://127.0.0.1:33411/e2-editor.html",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Content-Length": "16050",
+        "Content-type": "text/html",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Last-Modified": "Mon, 07 Sep 2026 23:15:22 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/html",
+       "charset": "",
+       "connectionReused": true,
+       "connectionId": 166,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 298,
+       "timing": {
+        "requestTime": 91045.614701,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": -1,
+        "dnsEnd": -1,
+        "connectStart": -1,
+        "connectEnd": -1,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.249,
+        "sendEnd": 0.353,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 0.728,
+        "receiveHeadersEnd": 0.792
+       },
+       "responseTime": 1789009224725.675,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.007
+    },
+    {
+     "method": "Runtime.executionContextsCleared",
+     "params": {},
+     "_t": 0.011
+    },
+    {
+     "method": "Runtime.executionContextsCleared",
+     "params": {},
+     "_t": 0.012
+    },
+    {
+     "method": "Page.frameNavigated",
+     "params": {
+      "frame": {
+       "id": "7F2BC60B010F4460C9C856236FC186D8",
+       "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+       "url": "http://127.0.0.1:33411/e2-editor.html",
+       "domainAndRegistry": "",
+       "securityOrigin": "http://127.0.0.1:33411",
+       "securityOriginDetails": {
+        "isLocalhost": true
+       },
+       "mimeType": "text/html",
+       "adFrameStatus": {
+        "adFrameType": "none"
+       },
+       "secureContextType": "SecureLocalhost",
+       "crossOriginIsolatedContextType": "Isolated",
+       "gatedAPIFeatures": [
+        "SharedArrayBuffers",
+        "SharedArrayBuffersTransferAllowed"
+       ]
+      },
+      "type": "Navigation"
+     },
+     "_t": 0.012
+    },
+    {
+     "method": "Network.policyUpdated",
+     "params": {},
+     "_t": 0.013
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.2",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/e2-editor-app.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/e2-editor.html",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.62396,
+      "wallTime": 1789009224.734261,
+      "initiator": {
+       "type": "parser",
+       "url": "http://127.0.0.1:33411/e2-editor.html",
+       "lineNumber": 329,
+       "columnNumber": 49
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.018
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.61655,
+      "encodedDataLength": 16348
+     },
+     "_t": 0.219
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.2",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.628742,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/e2-editor-app.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "85440",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": true,
+       "connectionId": 176,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 304,
+       "timing": {
+        "requestTime": 91045.624675,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": -1,
+        "dnsEnd": -1,
+        "connectStart": -1,
+        "connectEnd": -1,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.238,
+        "sendEnd": 0.29,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 0.676,
+        "receiveHeadersEnd": 0.72
+       },
+       "responseTime": 1789009224735.598,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.219
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.2",
+      "timestamp": 91045.62725,
+      "encodedDataLength": 85744
+     },
+     "_t": 0.219
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.4",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/sdk/document-sdk.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/e2-editor-app.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.629013,
+      "wallTime": 1789009224.73927,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/e2-editor-app.js",
+       "lineNumber": 28,
+       "columnNumber": 37
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.219
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.5",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/editor-shell-v2/narrow-editor-v2-session.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/e2-editor-app.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.629063,
+      "wallTime": 1789009224.739315,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/e2-editor-app.js",
+       "lineNumber": 30,
+       "columnNumber": 7
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.219
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.6",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/editor-shell/recovery-notice.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/e2-editor-app.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.629098,
+      "wallTime": 1789009224.739349,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/e2-editor-app.js",
+       "lineNumber": 38,
+       "columnNumber": 31
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.219
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.7",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/editor-shell-v2/narrow-editor-v2-client.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/e2-editor-app.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.629123,
+      "wallTime": 1789009224.739375,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/e2-editor-app.js",
+       "lineNumber": 39,
+       "columnNumber": 34
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.219
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.6",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.636963,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/editor-shell/recovery-notice.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "2647",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Fri, 14 Aug 2026 04:08:07 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 217,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 303,
+       "timing": {
+        "requestTime": 91045.629509,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.499,
+        "dnsEnd": 0.501,
+        "connectStart": 0.501,
+        "connectEnd": 0.559,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 1.705,
+        "sendEnd": 1.729,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 2.302,
+        "receiveHeadersEnd": 2.345
+       },
+       "responseTime": 1789009224742.058,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.6",
+      "timestamp": 91045.636362,
+      "encodedDataLength": 2950
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.4",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.638373,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/sdk/document-sdk.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "18143",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Sun, 23 Aug 2026 16:39:50 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 207,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 304,
+       "timing": {
+        "requestTime": 91045.62927,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.508,
+        "dnsEnd": 0.513,
+        "connectStart": 0.513,
+        "connectEnd": 0.617,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 1.795,
+        "sendEnd": 1.857,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 3.665,
+        "receiveHeadersEnd": 3.688
+       },
+       "responseTime": 1789009224743.181,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.4",
+      "timestamp": 91045.637413,
+      "encodedDataLength": 18447
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.5",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.638579,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/editor-shell-v2/narrow-editor-v2-session.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "25451",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Wed, 09 Sep 2026 12:28:26 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 212,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 304,
+       "timing": {
+        "requestTime": 91045.629401,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.513,
+        "dnsEnd": 0.516,
+        "connectStart": 0.516,
+        "connectEnd": 0.576,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 1.767,
+        "sendEnd": 1.792,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 4.525,
+        "receiveHeadersEnd": 4.549
+       },
+       "responseTime": 1789009224744.173,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.5",
+      "timestamp": 91045.637792,
+      "encodedDataLength": 25755
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.8",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/editor-shell-v2/narrow-editor-v2-session.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.638736,
+      "wallTime": 1789009224.748995,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/editor-shell-v2/narrow-editor-v2-session.js",
+       "lineNumber": 32,
+       "columnNumber": 30
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.9",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/editor-shell-v2/paragraph-editor-client.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/editor-shell-v2/narrow-editor-v2-session.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.638789,
+      "wallTime": 1789009224.749042,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/editor-shell-v2/narrow-editor-v2-session.js",
+       "lineNumber": 35,
+       "columnNumber": 44
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.10",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/editor-shell-v2/paragraph-editor-session.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/editor-shell-v2/narrow-editor-v2-session.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.638829,
+      "wallTime": 1789009224.749082,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/editor-shell-v2/narrow-editor-v2-session.js",
+       "lineNumber": 36,
+       "columnNumber": 28
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.7",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.639135,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/editor-shell-v2/narrow-editor-v2-client.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "17295",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Wed, 09 Sep 2026 12:28:26 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 229,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 304,
+       "timing": {
+        "requestTime": 91045.629639,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 1.186,
+        "dnsEnd": 1.188,
+        "connectStart": 1.188,
+        "connectEnd": 1.258,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 1.619,
+        "sendEnd": 1.645,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 5.179,
+        "receiveHeadersEnd": 5.205
+       },
+       "responseTime": 1789009224745.064,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.7",
+      "timestamp": 91045.638391,
+      "encodedDataLength": 17599
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.8",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.643608,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "25267",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Sat, 22 Aug 2026 05:46:00 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 246,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 304,
+       "timing": {
+        "requestTime": 91045.639094,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.357,
+        "dnsEnd": 0.364,
+        "connectStart": 0.364,
+        "connectEnd": 0.447,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.646,
+        "sendEnd": 0.686,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 1.398,
+        "receiveHeadersEnd": 1.423
+       },
+       "responseTime": 1789009224750.738,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.8",
+      "timestamp": 91045.643064,
+      "encodedDataLength": 25571
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.11",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/input/input-adapter.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.643821,
+      "wallTime": 1789009224.754077,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+       "lineNumber": 0,
+       "columnNumber": 33
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.12",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/input/clipboard-adapter.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.643874,
+      "wallTime": 1789009224.754128,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+       "lineNumber": 1,
+       "columnNumber": 42
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.13",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/reader-shell/tile-scheduler.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.643907,
+      "wallTime": 1789009224.754157,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+       "lineNumber": 2,
+       "columnNumber": 30
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.14",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/editor-shell/editor-client.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.64393,
+      "wallTime": 1789009224.754181,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+       "lineNumber": 3,
+       "columnNumber": 35
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.15",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/editor-shell/state-machine.js",
+       "method": "GET",
+       "headers": {
+        "Origin": "http://127.0.0.1:33411",
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.643964,
+      "wallTime": 1789009224.754216,
+      "initiator": {
+       "type": "script",
+       "url": "http://127.0.0.1:33411/editor-shell/editor-session.js",
+       "lineNumber": 4,
+       "columnNumber": 35
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false,
+      "renderBlockingBehavior": "NonBlocking"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.9",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.645416,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/editor-shell-v2/paragraph-editor-client.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "15262",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Wed, 09 Sep 2026 12:28:26 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 251,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 304,
+       "timing": {
+        "requestTime": 91045.639196,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.373,
+        "dnsEnd": 0.375,
+        "connectStart": 0.375,
+        "connectEnd": 0.422,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.601,
+        "sendEnd": 0.621,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 2.978,
+        "receiveHeadersEnd": 2.991
+       },
+       "responseTime": 1789009224752.42,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.9",
+      "timestamp": 91045.644787,
+      "encodedDataLength": 15566
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.10",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.645553,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/editor-shell-v2/paragraph-editor-session.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "5841",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Wed, 19 Aug 2026 10:43:18 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 256,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 303,
+       "timing": {
+        "requestTime": 91045.639283,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.351,
+        "dnsEnd": 0.352,
+        "connectStart": 0.352,
+        "connectEnd": 0.394,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.548,
+        "sendEnd": 0.57,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 2.232,
+        "receiveHeadersEnd": 2.247
+       },
+       "responseTime": 1789009224751.761,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.10",
+      "timestamp": 91045.644902,
+      "encodedDataLength": 6144
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.15",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.652382,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/editor-shell/state-machine.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "1899",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Sun, 16 Aug 2026 09:52:43 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 291,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 303,
+       "timing": {
+        "requestTime": 91045.644552,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.669,
+        "dnsEnd": 0.67,
+        "connectStart": 0.67,
+        "connectEnd": 0.7,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.936,
+        "sendEnd": 0.958,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 5.922,
+        "receiveHeadersEnd": 5.937
+       },
+       "responseTime": 1789009224760.721,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.15",
+      "timestamp": 91045.651734,
+      "encodedDataLength": 2202
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.11",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.652629,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/input/input-adapter.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "16112",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Sun, 16 Aug 2026 08:19:03 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 271,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 304,
+       "timing": {
+        "requestTime": 91045.64422,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.774,
+        "dnsEnd": 0.778,
+        "connectStart": 0.778,
+        "connectEnd": 0.85,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 1.089,
+        "sendEnd": 1.119,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 2.873,
+        "receiveHeadersEnd": 2.914
+       },
+       "responseTime": 1789009224757.34,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.11",
+      "timestamp": 91045.651857,
+      "encodedDataLength": 16416
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.12",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.653256,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/input/clipboard-adapter.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "5360",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Mon, 03 Aug 2026 02:39:12 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 276,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 303,
+       "timing": {
+        "requestTime": 91045.644295,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.79,
+        "dnsEnd": 0.792,
+        "connectStart": 0.792,
+        "connectEnd": 0.825,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 1.057,
+        "sendEnd": 1.076,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 3.667,
+        "receiveHeadersEnd": 3.684
+       },
+       "responseTime": 1789009224758.209,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.12",
+      "timestamp": 91045.651978,
+      "encodedDataLength": 5663
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.14",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.655279,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/editor-shell/editor-client.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "8605",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Sun, 16 Aug 2026 09:52:43 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 286,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 303,
+       "timing": {
+        "requestTime": 91045.644394,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.784,
+        "dnsEnd": 0.785,
+        "connectStart": 0.785,
+        "connectEnd": 0.817,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 1.05,
+        "sendEnd": 1.076,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 5.24,
+        "receiveHeadersEnd": 5.258
+       },
+       "responseTime": 1789009224759.881,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.14",
+      "timestamp": 91045.65268,
+      "encodedDataLength": 8908
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.13",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.655402,
+      "type": "Script",
+      "response": {
+       "url": "http://127.0.0.1:33411/reader-shell/tile-scheduler.js",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "11005",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "text/javascript",
+        "Last-Modified": "Sat, 01 Aug 2026 18:27:44 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/javascript",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 281,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 304,
+       "timing": {
+        "requestTime": 91045.644346,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.786,
+        "dnsEnd": 0.787,
+        "connectStart": 0.787,
+        "connectEnd": 0.819,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 1.041,
+        "sendEnd": 1.061,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 4.382,
+        "receiveHeadersEnd": 4.397
+       },
+       "responseTime": 1789009224758.974,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.13",
+      "timestamp": 91045.652408,
+      "encodedDataLength": 11309
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.16",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/e1-fixtures/manifest.json",
+       "method": "GET",
+       "headers": {
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/e2-editor.html",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.656867,
+      "wallTime": 1789009224.767133,
+      "initiator": {
+       "type": "script",
+       "stack": {
+        "callFrames": [
+         {
+          "functionName": "",
+          "scriptId": "5",
+          "url": "http://127.0.0.1:33411/e2-editor-app.js",
+          "lineNumber": 1669,
+          "columnNumber": 25
+         },
+         {
+          "functionName": "",
+          "scriptId": "5",
+          "url": "http://127.0.0.1:33411/e2-editor-app.js",
+          "lineNumber": 1680,
+          "columnNumber": 2
+         }
+        ]
+       }
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Fetch",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.16",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.705262,
+      "type": "Fetch",
+      "response": {
+       "url": "http://127.0.0.1:33411/e1-fixtures/manifest.json",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "8826",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "application/json",
+        "Last-Modified": "Wed, 09 Sep 2026 12:28:26 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "application/json",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 299,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 304,
+       "timing": {
+        "requestTime": 91045.658084,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.452,
+        "dnsEnd": 0.457,
+        "connectStart": 0.457,
+        "connectEnd": 0.566,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.631,
+        "sendEnd": 0.668,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 1.102,
+        "receiveHeadersEnd": 1.136
+       },
+       "responseTime": 1789009224769.432,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.16",
+      "timestamp": 91045.660473,
+      "encodedDataLength": 9130
+     },
+     "_t": 0.221
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.17",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/e1-fixtures/list-contexts.odt",
+       "method": "GET",
+       "headers": {
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/e2-editor.html",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.706249,
+      "wallTime": 1789009224.816521,
+      "initiator": {
+       "type": "script",
+       "stack": {
+        "callFrames": [
+         {
+          "functionName": "openFixture",
+          "scriptId": "5",
+          "url": "http://127.0.0.1:33411/e2-editor-app.js",
+          "lineNumber": 1633,
+          "columnNumber": 25
+         },
+         {
+          "functionName": "",
+          "scriptId": "5",
+          "url": "http://127.0.0.1:33411/e2-editor-app.js",
+          "lineNumber": 1678,
+          "columnNumber": 8
+         }
+        ]
+       }
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Fetch",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false
+     },
+     "_t": 0.222
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "791053.18",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "documentURL": "http://127.0.0.1:33411/e2-editor.html",
+      "request": {
+       "url": "http://127.0.0.1:33411/favicon.ico",
+       "method": "GET",
+       "headers": {
+        "sec-ch-ua-platform": "\"Linux\"",
+        "Referer": "http://127.0.0.1:33411/e2-editor.html",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\"",
+        "sec-ch-ua-mobile": "?0"
+       },
+       "mixedContentType": "none",
+       "initialPriority": "High",
+       "referrerPolicy": "strict-origin-when-cross-origin",
+       "isSameSite": true
+      },
+      "timestamp": 91045.706384,
+      "wallTime": 1789009224.816642,
+      "initiator": {
+       "type": "other"
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Other",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false
+     },
+     "_t": 0.222
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.17",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.709299,
+      "type": "Fetch",
+      "response": {
+       "url": "http://127.0.0.1:33411/e1-fixtures/list-contexts.odt",
+       "status": 200,
+       "statusText": "OK",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "1558",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-type": "application/vnd.oasis.opendocument.text",
+        "Last-Modified": "Thu, 13 Aug 2026 11:45:19 GMT",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "application/vnd.oasis.opendocument.text",
+       "charset": "",
+       "connectionReused": false,
+       "connectionId": 308,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 327,
+       "timing": {
+        "requestTime": 91045.706498,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.197,
+        "dnsEnd": 0.227,
+        "connectStart": 0.227,
+        "connectEnd": 0.333,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.459,
+        "sendEnd": 0.494,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 0.833,
+        "receiveHeadersEnd": 0.865
+       },
+       "responseTime": 1789009224817.578,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.222
+    },
+    {
+     "method": "Network.responseReceived",
+     "params": {
+      "requestId": "791053.18",
+      "loaderId": "3E3C9BA765D2AAC89CE2BB55107EFB1B",
+      "timestamp": 91045.709515,
+      "type": "Other",
+      "response": {
+       "url": "http://127.0.0.1:33411/favicon.ico",
+       "status": 404,
+       "statusText": "File not found",
+       "headers": {
+        "Cache-Control": "no-cache",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Connection": "close",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Content-Length": "460",
+        "Date": "Thu, 10 Sep 2026 03:00:24 GMT",
+        "Content-Type": "text/html;charset=utf-8",
+        "Server": "SimpleHTTP/0.6 Python/3.14.4"
+       },
+       "mimeType": "text/html",
+       "charset": "utf-8",
+       "connectionReused": false,
+       "connectionId": 313,
+       "remoteIPAddress": "127.0.0.1",
+       "remotePort": 33411,
+       "fromDiskCache": false,
+       "fromServiceWorker": false,
+       "fromPrefetchCache": false,
+       "encodedDataLength": 295,
+       "timing": {
+        "requestTime": 91045.706619,
+        "proxyStart": -1,
+        "proxyEnd": -1,
+        "dnsStart": 0.255,
+        "dnsEnd": 0.258,
+        "connectStart": 0.258,
+        "connectEnd": 0.305,
+        "sslStart": -1,
+        "sslEnd": -1,
+        "workerStart": -1,
+        "workerReady": -1,
+        "workerFetchStart": -1,
+        "workerRespondWithSettled": -1,
+        "sendStart": 0.403,
+        "sendEnd": 0.426,
+        "pushStart": 0,
+        "pushEnd": 0,
+        "receiveHeadersStart": 1.708,
+        "receiveHeadersEnd": 1.731
+       },
+       "responseTime": 1789009224818.573,
+       "protocol": "http/1.0",
+       "alternateProtocolUsage": "unspecifiedReason",
+       "securityState": "secure"
+      },
+      "hasExtraInfo": true,
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8"
+     },
+     "_t": 0.222
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "network",
+       "level": "error",
+       "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+       "timestamp": 1789009224819.773,
+       "url": "http://127.0.0.1:33411/favicon.ico",
+       "networkRequestId": "791053.18"
+      }
+     },
+     "_t": 0.222
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.17",
+      "timestamp": 91045.70939,
+      "encodedDataLength": 1885
+     },
+     "_t": 0.222
+    },
+    {
+     "method": "Network.loadingFinished",
+     "params": {
+      "requestId": "791053.18",
+      "timestamp": 91045.709794,
+      "encodedDataLength": 755
+     },
+     "_t": 0.222
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "A1D580B72F407B6C957729B45A8BEAFF",
+      "loaderId": "",
+      "documentURL": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js",
+      "request": {
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js",
+       "method": "GET",
+       "headers": {
+        "Accept": "*/*"
+       },
+       "initialPriority": "VeryLow",
+       "referrerPolicy": "strict-origin-when-cross-origin"
+      },
+      "timestamp": 91045.711706,
+      "wallTime": 1789009224.821958,
+      "initiator": {
+       "type": "other",
+       "url": "http://127.0.0.1:33411/e2-editor.html"
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false
+     },
+     "_t": 0.222
+    },
+    {
+     "method": "Target.attachedToTarget",
+     "params": {
+      "sessionId": "FC49A19AB3ACAB9B28A4AB6F901E055D",
+      "targetInfo": {
+       "targetId": "A1D580B72F407B6C957729B45A8BEAFF",
+       "type": "worker",
+       "title": "oxoffice-document-engine",
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js",
+       "attached": true,
+       "parentId": "7F2BC60B010F4460C9C856236FC186D8",
+       "canAccessOpener": false,
+       "parentFrameId": "7F2BC60B010F4460C9C856236FC186D8",
+       "browserContextId": "6C1F212C1D1692ACE4AD2042F54A4DD0"
+      },
+      "waitingForDebugger": false
+     },
+     "_t": 0.225
+    },
+    {
+     "method": "Inspector.workerScriptLoaded",
+     "params": {},
+     "sessionId": "FC49A19AB3ACAB9B28A4AB6F901E055D",
+     "_t": 0.334
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "worker",
+       "level": "info",
+       "text": "Thread name: \"configmgrWriter\"",
+       "timestamp": 1789009225419.251,
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+       "lineNumber": 6,
+       "stackTrace": {
+        "callFrames": [
+         {
+          "functionName": "_emscripten_console_log",
+          "scriptId": "3",
+          "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+          "lineNumber": 6,
+          "columnNumber": 119526
+         }
+        ]
+       },
+       "workerId": "A1D580B72F407B6C957729B45A8BEAFF"
+      }
+     },
+     "_t": 0.698
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "worker",
+       "level": "info",
+       "text": "Thread name: \"lo_startmain\"",
+       "timestamp": 1789009225428.379,
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+       "lineNumber": 6,
+       "stackTrace": {
+        "callFrames": [
+         {
+          "functionName": "_emscripten_console_log",
+          "scriptId": "3",
+          "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+          "lineNumber": 6,
+          "columnNumber": 119526
+         }
+        ]
+       },
+       "workerId": "A1D580B72F407B6C957729B45A8BEAFF"
+      }
+     },
+     "_t": 0.707
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "worker",
+       "level": "info",
+       "text": "Thread name: \"configmgrWriter\"",
+       "timestamp": 1789009225418.978,
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+       "lineNumber": 6,
+       "stackTrace": {
+        "callFrames": [
+         {
+          "functionName": "_emscripten_console_log",
+          "scriptId": "3",
+          "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+          "lineNumber": 6,
+          "columnNumber": 119526
+         }
+        ]
+       },
+       "workerId": "3439E2E283974E3F8CE8BD9C52E090B8"
+      }
+     },
+     "sessionId": "FC49A19AB3ACAB9B28A4AB6F901E055D",
+     "_t": 4.71
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "worker",
+       "level": "info",
+       "text": "Thread name: \"lo_startmain\"",
+       "timestamp": 1789009225428.347,
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+       "lineNumber": 6,
+       "stackTrace": {
+        "callFrames": [
+         {
+          "functionName": "_emscripten_console_log",
+          "scriptId": "3",
+          "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+          "lineNumber": 6,
+          "columnNumber": 119526
+         }
+        ]
+       },
+       "workerId": "0CE541A8BCB896470549BF809C11D281"
+      }
+     },
+     "sessionId": "FC49A19AB3ACAB9B28A4AB6F901E055D",
+     "_t": 4.71
+    },
+    {
+     "method": "DOM.setChildNodes",
+     "params": {
+      "parentId": 5,
+      "nodes": [
+       {
+        "nodeId": 6,
+        "parentId": 5,
+        "backendNodeId": 43,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 3,
+        "attributes": [
+         "class",
+         "titlebar"
+        ]
+       },
+       {
+        "nodeId": 7,
+        "parentId": 5,
+        "backendNodeId": 44,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 15,
+        "attributes": [
+         "class",
+         "provenance"
+        ]
+       },
+       {
+        "nodeId": 8,
+        "parentId": 5,
+        "backendNodeId": 45,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 2,
+        "attributes": [
+         "id",
+         "notice",
+         "data-show",
+         "0",
+         "data-rescue",
+         "none"
+        ]
+       },
+       {
+        "nodeId": 9,
+        "parentId": 5,
+        "backendNodeId": 46,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 31,
+        "attributes": [
+         "class",
+         "toolbar",
+         "id",
+         "toolbar",
+         "data-selection-shape",
+         "collapsed"
+        ]
+       },
+       {
+        "nodeId": 10,
+        "parentId": 5,
+        "backendNodeId": 47,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 2,
+        "attributes": [
+         "class",
+         "desk",
+         "id",
+         "desk"
+        ],
+        "isScrollable": true
+       },
+       {
+        "nodeId": 11,
+        "parentId": 5,
+        "backendNodeId": 48,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 8,
+        "attributes": [
+         "class",
+         "statusbar"
+        ]
+       },
+       {
+        "nodeId": 12,
+        "parentId": 5,
+        "backendNodeId": 49,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 13,
+          "parentId": 12,
+          "backendNodeId": 50,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "點一下放游標，或拖曳選一段，再按動作"
+         }
+        ],
+        "attributes": [
+         "id",
+         "toast",
+         "role",
+         "status",
+         "class",
+         "show"
+        ]
+       },
+       {
+        "nodeId": 14,
+        "parentId": 5,
+        "backendNodeId": 51,
+        "nodeType": 1,
+        "nodeName": "SCRIPT",
+        "localName": "script",
+        "nodeValue": "",
+        "childNodeCount": 0,
+        "attributes": [
+         "type",
+         "module",
+         "src",
+         "./e2-editor-app.js"
+        ]
+       }
+      ]
+     },
+     "_t": 4.712
+    },
+    {
+     "method": "DOM.setChildNodes",
+     "params": {
+      "parentId": 9,
+      "nodes": [
+       {
+        "nodeId": 15,
+        "parentId": 9,
+        "backendNodeId": 1,
+        "nodeType": 1,
+        "nodeName": "SELECT",
+        "localName": "select",
+        "nodeValue": "",
+        "childNodeCount": 16,
+        "children": [
+         {
+          "nodeId": 17,
+          "parentId": 15,
+          "backendNodeId": 53,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 19,
+            "parentId": 17,
+            "backendNodeId": 56,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "plain-grapheme"
+           }
+          ],
+          "attributes": [
+           "value",
+           "plain-grapheme"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 18,
+            "backendNodeId": 54,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 20,
+          "parentId": 15,
+          "backendNodeId": 57,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 22,
+            "parentId": 20,
+            "backendNodeId": 59,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "multi-paragraph"
+           }
+          ],
+          "attributes": [
+           "value",
+           "multi-paragraph"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 21,
+            "backendNodeId": 58,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 23,
+          "parentId": 15,
+          "backendNodeId": 60,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 25,
+            "parentId": 23,
+            "backendNodeId": 62,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "styled-list"
+           }
+          ],
+          "attributes": [
+           "value",
+           "styled-list"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 24,
+            "backendNodeId": 61,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 26,
+          "parentId": 15,
+          "backendNodeId": 63,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 28,
+            "parentId": 26,
+            "backendNodeId": 65,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "list-contexts"
+           }
+          ],
+          "attributes": [
+           "value",
+           "list-contexts"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 27,
+            "backendNodeId": 64,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 29,
+          "parentId": 15,
+          "backendNodeId": 66,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 31,
+            "parentId": 29,
+            "backendNodeId": 68,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "empty-paragraph"
+           }
+          ],
+          "attributes": [
+           "value",
+           "empty-paragraph"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 30,
+            "backendNodeId": 67,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 32,
+          "parentId": 15,
+          "backendNodeId": 69,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 34,
+            "parentId": 32,
+            "backendNodeId": 71,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "markdown-syntax"
+           }
+          ],
+          "attributes": [
+           "value",
+           "markdown-syntax"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 33,
+            "backendNodeId": 70,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 35,
+          "parentId": 15,
+          "backendNodeId": 72,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 37,
+            "parentId": 35,
+            "backendNodeId": 74,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "table-boundary"
+           }
+          ],
+          "attributes": [
+           "value",
+           "table-boundary"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 36,
+            "backendNodeId": 73,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 38,
+          "parentId": 15,
+          "backendNodeId": 75,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 40,
+            "parentId": 38,
+            "backendNodeId": 77,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "paragraph-content"
+           }
+          ],
+          "attributes": [
+           "value",
+           "paragraph-content"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 39,
+            "backendNodeId": 76,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 41,
+          "parentId": 15,
+          "backendNodeId": 78,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 43,
+            "parentId": 41,
+            "backendNodeId": 80,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "image-variants"
+           }
+          ],
+          "attributes": [
+           "value",
+           "image-variants"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 42,
+            "backendNodeId": 79,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 44,
+          "parentId": 15,
+          "backendNodeId": 81,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 46,
+            "parentId": 44,
+            "backendNodeId": 83,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "frame-no-image"
+           }
+          ],
+          "attributes": [
+           "value",
+           "frame-no-image"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 45,
+            "backendNodeId": 82,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 47,
+          "parentId": 15,
+          "backendNodeId": 84,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 49,
+            "parentId": 47,
+            "backendNodeId": 86,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "frame-paragraph-anchored"
+           }
+          ],
+          "attributes": [
+           "value",
+           "frame-paragraph-anchored"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 48,
+            "backendNodeId": 85,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 50,
+          "parentId": 15,
+          "backendNodeId": 87,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 52,
+            "parentId": 50,
+            "backendNodeId": 89,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "frame-char-anchored"
+           }
+          ],
+          "attributes": [
+           "value",
+           "frame-char-anchored"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 51,
+            "backendNodeId": 88,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 53,
+          "parentId": 15,
+          "backendNodeId": 90,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 55,
+            "parentId": 53,
+            "backendNodeId": 92,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "endnote-frame"
+           }
+          ],
+          "attributes": [
+           "value",
+           "endnote-frame"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 54,
+            "backendNodeId": 91,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 56,
+          "parentId": 15,
+          "backendNodeId": 93,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 58,
+            "parentId": 56,
+            "backendNodeId": 95,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "frame-contexts"
+           }
+          ],
+          "attributes": [
+           "value",
+           "frame-contexts"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 57,
+            "backendNodeId": 94,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 59,
+          "parentId": 15,
+          "backendNodeId": 96,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 61,
+            "parentId": 59,
+            "backendNodeId": 98,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "r7-t2-styled"
+           }
+          ],
+          "attributes": [
+           "value",
+           "r7-t2-styled"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 60,
+            "backendNodeId": 97,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         },
+         {
+          "nodeId": 62,
+          "parentId": 15,
+          "backendNodeId": 99,
+          "nodeType": 1,
+          "nodeName": "OPTION",
+          "localName": "option",
+          "nodeValue": "",
+          "childNodeCount": 1,
+          "children": [
+           {
+            "nodeId": 64,
+            "parentId": 62,
+            "backendNodeId": 101,
+            "nodeType": 3,
+            "nodeName": "#text",
+            "localName": "",
+            "nodeValue": "a11y-audible"
+           }
+          ],
+          "attributes": [
+           "value",
+           "a11y-audible"
+          ],
+          "shadowRoots": [
+           {
+            "nodeId": 63,
+            "backendNodeId": 100,
+            "nodeType": 11,
+            "nodeName": "#document-fragment",
+            "localName": "",
+            "nodeValue": "",
+            "childNodeCount": 2,
+            "shadowRootType": "user-agent"
+           }
+          ],
+          "assignedSlot": {
+           "nodeType": 1,
+           "nodeName": "SLOT",
+           "backendNodeId": 55
+          }
+         }
+        ],
+        "attributes": [
+         "id",
+         "fixture",
+         "title",
+         "範例文件"
+        ],
+        "shadowRoots": [
+         {
+          "nodeId": 16,
+          "backendNodeId": 52,
+          "nodeType": 11,
+          "nodeName": "#document-fragment",
+          "localName": "",
+          "nodeValue": "",
+          "childNodeCount": 4,
+          "shadowRootType": "user-agent"
+         }
+        ]
+       },
+       {
+        "nodeId": 65,
+        "parentId": 9,
+        "backendNodeId": 5,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 66,
+          "parentId": 65,
+          "backendNodeId": 102,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "📂 開啟檔案"
+         }
+        ],
+        "attributes": [
+         "id",
+         "open-file",
+         "title",
+         "開啟你自己的 .odt"
+        ]
+       },
+       {
+        "nodeId": 67,
+        "parentId": 9,
+        "backendNodeId": 103,
+        "nodeType": 1,
+        "nodeName": "INPUT",
+        "localName": "input",
+        "nodeValue": "",
+        "childNodeCount": 0,
+        "children": [],
+        "attributes": [
+         "type",
+         "file",
+         "id",
+         "file",
+         "accept",
+         ".odt,application/vnd.oasis.opendocument.text",
+         "hidden",
+         ""
+        ],
+        "shadowRoots": [
+         {
+          "nodeId": 68,
+          "backendNodeId": 104,
+          "nodeType": 11,
+          "nodeName": "#document-fragment",
+          "localName": "",
+          "nodeValue": "",
+          "childNodeCount": 2,
+          "shadowRootType": "user-agent"
+         }
+        ]
+       },
+       {
+        "nodeId": 69,
+        "parentId": 9,
+        "backendNodeId": 6,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 0,
+        "attributes": [
+         "class",
+         "sep"
+        ]
+       },
+       {
+        "nodeId": 70,
+        "parentId": 9,
+        "backendNodeId": 7,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 71,
+          "parentId": 70,
+          "backendNodeId": 105,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "↶ 復原"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "undo"
+        ]
+       },
+       {
+        "nodeId": 72,
+        "parentId": 9,
+        "backendNodeId": 106,
+        "nodeType": 8,
+        "nodeName": "#comment",
+        "localName": "",
+        "nodeValue": " Hidden until the profile carries redo; see updateRedoAffordance(). "
+       },
+       {
+        "nodeId": 73,
+        "parentId": 9,
+        "backendNodeId": 107,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 74,
+          "parentId": 73,
+          "backendNodeId": 108,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "↷ 重做"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "redo"
+        ]
+       },
+       {
+        "nodeId": 75,
+        "parentId": 9,
+        "backendNodeId": 8,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 0,
+        "attributes": [
+         "class",
+         "sep"
+        ]
+       },
+       {
+        "nodeId": 76,
+        "parentId": 9,
+        "backendNodeId": 9,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 77,
+          "parentId": 76,
+          "backendNodeId": 109,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "◀"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "move-character-left",
+         "title",
+         ""
+        ]
+       },
+       {
+        "nodeId": 78,
+        "parentId": 9,
+        "backendNodeId": 10,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 79,
+          "parentId": 78,
+          "backendNodeId": 110,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "▶"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "move-character-right",
+         "title",
+         ""
+        ]
+       },
+       {
+        "nodeId": 80,
+        "parentId": 9,
+        "backendNodeId": 11,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 81,
+          "parentId": 80,
+          "backendNodeId": 111,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "⌫ 刪除"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "delete-backward",
+         "title",
+         ""
+        ]
+       },
+       {
+        "nodeId": 82,
+        "parentId": 9,
+        "backendNodeId": 12,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 83,
+          "parentId": 82,
+          "backendNodeId": 112,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "⌦ 前刪"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "delete-forward",
+         "title",
+         ""
+        ]
+       },
+       {
+        "nodeId": 84,
+        "parentId": 9,
+        "backendNodeId": 13,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 85,
+          "parentId": 84,
+          "backendNodeId": 113,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "↵ 分段"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "insert-paragraph-break",
+         "title",
+         ""
+        ]
+       },
+       {
+        "nodeId": 86,
+        "parentId": 9,
+        "backendNodeId": 14,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 87,
+          "parentId": 86,
+          "backendNodeId": 114,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "↳ 換行"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "insert-line-break",
+         "title",
+         ""
+        ]
+       },
+       {
+        "nodeId": 88,
+        "parentId": 9,
+        "backendNodeId": 15,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 0,
+        "attributes": [
+         "class",
+         "sep"
+        ]
+       },
+       {
+        "nodeId": 89,
+        "parentId": 9,
+        "backendNodeId": 16,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 90,
+          "parentId": 89,
+          "backendNodeId": 115,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "B"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "set-bold",
+         "class",
+         "b",
+         "title",
+         "",
+         "aria-pressed",
+         "true"
+        ]
+       },
+       {
+        "nodeId": 91,
+        "parentId": 9,
+        "backendNodeId": 17,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 92,
+          "parentId": 91,
+          "backendNodeId": 116,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "I"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "set-italic",
+         "class",
+         "i",
+         "title",
+         "",
+         "aria-pressed",
+         "false"
+        ]
+       },
+       {
+        "nodeId": 93,
+        "parentId": 9,
+        "backendNodeId": 18,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 94,
+          "parentId": 93,
+          "backendNodeId": 117,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "U"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "set-underline",
+         "class",
+         "u",
+         "title",
+         "",
+         "aria-pressed",
+         "false"
+        ]
+       },
+       {
+        "nodeId": 95,
+        "parentId": 9,
+        "backendNodeId": 19,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 96,
+          "parentId": 95,
+          "backendNodeId": 118,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "S"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "set-strikethrough",
+         "class",
+         "s",
+         "title",
+         "",
+         "aria-pressed",
+         "false"
+        ]
+       },
+       {
+        "nodeId": 97,
+        "parentId": 9,
+        "backendNodeId": 20,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 98,
+          "parentId": 97,
+          "backendNodeId": 119,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "清除格式"
+         }
+        ],
+        "attributes": [
+         "id",
+         "clear-format",
+         "title",
+         "把粗體、斜體、底線、刪除線都關掉"
+        ]
+       },
+       {
+        "nodeId": 99,
+        "parentId": 9,
+        "backendNodeId": 21,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 0,
+        "attributes": [
+         "class",
+         "sep"
+        ]
+       },
+       {
+        "nodeId": 100,
+        "parentId": 9,
+        "backendNodeId": 22,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 101,
+          "parentId": 100,
+          "backendNodeId": 120,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "標題"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "set-paragraph-heading",
+         "title",
+         ""
+        ]
+       },
+       {
+        "nodeId": 102,
+        "parentId": 9,
+        "backendNodeId": 23,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 103,
+          "parentId": 102,
+          "backendNodeId": 121,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "內文"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "set-paragraph-body",
+         "title",
+         ""
+        ]
+       },
+       {
+        "nodeId": 104,
+        "parentId": 9,
+        "backendNodeId": 24,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 105,
+          "parentId": 104,
+          "backendNodeId": 122,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "• 項目符號"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "set-list-unordered",
+         "title",
+         ""
+        ]
+       },
+       {
+        "nodeId": 106,
+        "parentId": 9,
+        "backendNodeId": 25,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 107,
+          "parentId": 106,
+          "backendNodeId": 123,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "1. 編號"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "set-list-ordered",
+         "title",
+         ""
+        ]
+       },
+       {
+        "nodeId": 108,
+        "parentId": 9,
+        "backendNodeId": 26,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 109,
+          "parentId": 108,
+          "backendNodeId": 124,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "移除清單"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "set-list-none",
+         "title",
+         ""
+        ]
+       },
+       {
+        "nodeId": 110,
+        "parentId": 9,
+        "backendNodeId": 27,
+        "nodeType": 1,
+        "nodeName": "DIV",
+        "localName": "div",
+        "nodeValue": "",
+        "childNodeCount": 0,
+        "attributes": [
+         "class",
+         "sep"
+        ]
+       },
+       {
+        "nodeId": 111,
+        "parentId": 9,
+        "backendNodeId": 2,
+        "nodeType": 1,
+        "nodeName": "INPUT",
+        "localName": "input",
+        "nodeValue": "",
+        "childNodeCount": 0,
+        "children": [],
+        "attributes": [
+         "type",
+         "text",
+         "id",
+         "text",
+         "placeholder",
+         "要插入的文字",
+         "size",
+         "12"
+        ],
+        "shadowRoots": [
+         {
+          "nodeId": 112,
+          "backendNodeId": 125,
+          "nodeType": 11,
+          "nodeName": "#document-fragment",
+          "localName": "",
+          "nodeValue": "",
+          "childNodeCount": 2,
+          "shadowRootType": "user-agent"
+         }
+        ]
+       },
+       {
+        "nodeId": 113,
+        "parentId": 9,
+        "backendNodeId": 28,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 114,
+          "parentId": 113,
+          "backendNodeId": 126,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "插入"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "insert-text"
+        ]
+       },
+       {
+        "nodeId": 115,
+        "parentId": 9,
+        "backendNodeId": 127,
+        "nodeType": 1,
+        "nodeName": "SPAN",
+        "localName": "span",
+        "nodeValue": "",
+        "childNodeCount": 0,
+        "attributes": [
+         "class",
+         "spacer"
+        ]
+       },
+       {
+        "nodeId": 116,
+        "parentId": 9,
+        "backendNodeId": 128,
+        "nodeType": 1,
+        "nodeName": "BUTTON",
+        "localName": "button",
+        "nodeValue": "",
+        "childNodeCount": 1,
+        "children": [
+         {
+          "nodeId": 117,
+          "parentId": 116,
+          "backendNodeId": 129,
+          "nodeType": 3,
+          "nodeName": "#text",
+          "localName": "",
+          "nodeValue": "儲存 ODT"
+         }
+        ],
+        "attributes": [
+         "data-action",
+         "save",
+         "class",
+         "primary"
+        ]
+       }
+      ]
+     },
+     "_t": 4.713
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 73,
+      "name": "hidden",
+      "value": ""
+     },
+     "_t": 5.117
+    },
+    {
+     "method": "Network.requestWillBeSent",
+     "params": {
+      "requestId": "D7127CD7D88DC63EDA320868D00B5F01",
+      "loaderId": "",
+      "documentURL": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js",
+      "request": {
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js",
+       "method": "GET",
+       "headers": {
+        "Accept": "*/*"
+       },
+       "initialPriority": "VeryLow",
+       "referrerPolicy": "strict-origin-when-cross-origin"
+      },
+      "timestamp": 91050.349792,
+      "wallTime": 1789009229.460045,
+      "initiator": {
+       "type": "other",
+       "url": "http://127.0.0.1:33411/e2-editor.html"
+      },
+      "redirectHasExtraInfo": false,
+      "type": "Script",
+      "frameId": "7F2BC60B010F4460C9C856236FC186D8",
+      "hasUserGesture": false
+     },
+     "_t": 5.117
+    },
+    {
+     "method": "Target.attachedToTarget",
+     "params": {
+      "sessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+      "targetInfo": {
+       "targetId": "D7127CD7D88DC63EDA320868D00B5F01",
+       "type": "worker",
+       "title": "oxoffice-document-engine",
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js",
+       "attached": true,
+       "parentId": "7F2BC60B010F4460C9C856236FC186D8",
+       "canAccessOpener": false,
+       "parentFrameId": "7F2BC60B010F4460C9C856236FC186D8",
+       "browserContextId": "6C1F212C1D1692ACE4AD2042F54A4DD0"
+      },
+      "waitingForDebugger": false
+     },
+     "_t": 5.117
+    },
+    {
+     "method": "Inspector.workerScriptLoaded",
+     "params": {},
+     "sessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+     "_t": 5.117
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "worker",
+       "level": "info",
+       "text": "Thread name: \"configmgrWriter\"",
+       "timestamp": 1789009229964.959,
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+       "lineNumber": 6,
+       "stackTrace": {
+        "callFrames": [
+         {
+          "functionName": "_emscripten_console_log",
+          "scriptId": "3",
+          "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+          "lineNumber": 6,
+          "columnNumber": 119526
+         }
+        ]
+       },
+       "workerId": "D7127CD7D88DC63EDA320868D00B5F01"
+      }
+     },
+     "_t": 5.518
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "worker",
+       "level": "info",
+       "text": "Thread name: \"lo_startmain\"",
+       "timestamp": 1789009229966.594,
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+       "lineNumber": 6,
+       "stackTrace": {
+        "callFrames": [
+         {
+          "functionName": "_emscripten_console_log",
+          "scriptId": "3",
+          "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+          "lineNumber": 6,
+          "columnNumber": 119526
+         }
+        ]
+       },
+       "workerId": "D7127CD7D88DC63EDA320868D00B5F01"
+      }
+     },
+     "_t": 5.518
+    },
+    {
+     "method": "DOM.attributeRemoved",
+     "params": {
+      "nodeId": 89,
+      "name": "aria-pressed"
+     },
+     "_t": 5.92
+    },
+    {
+     "method": "DOM.attributeRemoved",
+     "params": {
+      "nodeId": 91,
+      "name": "aria-pressed"
+     },
+     "_t": 5.92
+    },
+    {
+     "method": "DOM.attributeRemoved",
+     "params": {
+      "nodeId": 93,
+      "name": "aria-pressed"
+     },
+     "_t": 5.92
+    },
+    {
+     "method": "DOM.attributeRemoved",
+     "params": {
+      "nodeId": 95,
+      "name": "aria-pressed"
+     },
+     "_t": 5.92
+    },
+    {
+     "method": "DOM.attributeRemoved",
+     "params": {
+      "nodeId": 73,
+      "name": "hidden"
+     },
+     "_t": 5.92
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 12,
+      "name": "class",
+      "value": ""
+     },
+     "_t": 5.92
+    },
+    {
+     "method": "DOM.childNodeRemoved",
+     "params": {
+      "parentNodeId": 12,
+      "nodeId": 13
+     },
+     "_t": 5.92
+    },
+    {
+     "method": "DOM.childNodeInserted",
+     "params": {
+      "parentNodeId": 12,
+      "previousNodeId": 0,
+      "node": {
+       "nodeId": 118,
+       "backendNodeId": 130,
+       "nodeType": 3,
+       "nodeName": "#text",
+       "localName": "",
+       "nodeValue": "已開啟 a11y-audible.odt"
+      }
+     },
+     "_t": 5.92
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 12,
+      "name": "class",
+      "value": "show"
+     },
+     "_t": 5.92
+    },
+    {
+     "method": "Target.detachedFromTarget",
+     "params": {
+      "sessionId": "FC49A19AB3ACAB9B28A4AB6F901E055D",
+      "targetId": "A1D580B72F407B6C957729B45A8BEAFF"
+     },
+     "_t": 9.921
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 91,
+      "name": "aria-pressed",
+      "value": "false"
+     },
+     "_t": 9.921
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 89,
+      "name": "aria-pressed",
+      "value": "false"
+     },
+     "_t": 9.921
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 95,
+      "name": "aria-pressed",
+      "value": "false"
+     },
+     "_t": 9.921
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 93,
+      "name": "aria-pressed",
+      "value": "false"
+     },
+     "_t": 9.921
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 12,
+      "name": "class",
+      "value": ""
+     },
+     "_t": 9.921
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "worker",
+       "level": "info",
+       "text": "Thread name: \"configmgrWriter\"",
+       "timestamp": 1789009229964.907,
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+       "lineNumber": 6,
+       "stackTrace": {
+        "callFrames": [
+         {
+          "functionName": "_emscripten_console_log",
+          "scriptId": "3",
+          "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+          "lineNumber": 6,
+          "columnNumber": 119526
+         }
+        ]
+       },
+       "workerId": "37E88D3B85B818072856F1E542FD1522"
+      }
+     },
+     "sessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+     "_t": 10.422
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "worker",
+       "level": "info",
+       "text": "Thread name: \"lo_startmain\"",
+       "timestamp": 1789009229966.55,
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+       "lineNumber": 6,
+       "stackTrace": {
+        "callFrames": [
+         {
+          "functionName": "_emscripten_console_log",
+          "scriptId": "3",
+          "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+          "lineNumber": 6,
+          "columnNumber": 119526
+         }
+        ]
+       },
+       "workerId": "CDFC6A0F49000267C2FBECA590B97387"
+      }
+     },
+     "sessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+     "_t": 10.422
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "rendering",
+       "level": "warning",
+       "text": "Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently",
+       "timestamp": 1789009235151.875,
+       "lineNumber": 6,
+       "stackTrace": {
+        "callFrames": [
+         {
+          "functionName": "",
+          "scriptId": "23",
+          "url": "",
+          "lineNumber": 6,
+          "columnNumber": 37
+         },
+         {
+          "functionName": "",
+          "scriptId": "23",
+          "url": "",
+          "lineNumber": 17,
+          "columnNumber": 2
+         }
+        ]
+       }
+      }
+     },
+     "_t": 10.431
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 8,
+      "name": "data-show",
+      "value": "1"
+     },
+     "_t": 42.334
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 8,
+      "name": "data-rescue",
+      "value": "checkpoint"
+     },
+     "_t": 42.334
+    },
+    {
+     "method": "DOM.childNodeRemoved",
+     "params": {
+      "parentNodeId": 12,
+      "nodeId": 118
+     },
+     "_t": 42.334
+    },
+    {
+     "method": "DOM.childNodeInserted",
+     "params": {
+      "parentNodeId": 12,
+      "previousNodeId": 0,
+      "node": {
+       "nodeId": 119,
+       "backendNodeId": 131,
+       "nodeType": 3,
+       "nodeName": "#text",
+       "localName": "",
+       "nodeValue": "移到行首：TIMEOUT：editorActionV2 timed out after 30000 ms（可能已經改到文件：請回到檢查點）"
+      }
+     },
+     "_t": 42.334
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 12,
+      "name": "class",
+      "value": "bad"
+     },
+     "_t": 42.334
+    },
+    {
+     "method": "DOM.attributeModified",
+     "params": {
+      "nodeId": 12,
+      "name": "class",
+      "value": "bad show"
+     },
+     "_t": 42.334
+    }
+   ],
+   "cdpEventsDropped": 0,
+   "cdpEventsFromWorker": [
+    {
+     "method": "Inspector.workerScriptLoaded",
+     "params": {},
+     "sessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+     "_t": 5.117
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "worker",
+       "level": "info",
+       "text": "Thread name: \"configmgrWriter\"",
+       "timestamp": 1789009229964.907,
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+       "lineNumber": 6,
+       "stackTrace": {
+        "callFrames": [
+         {
+          "functionName": "_emscripten_console_log",
+          "scriptId": "3",
+          "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+          "lineNumber": 6,
+          "columnNumber": 119526
+         }
+        ]
+       },
+       "workerId": "37E88D3B85B818072856F1E542FD1522"
+      }
+     },
+     "sessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+     "_t": 10.422
+    },
+    {
+     "method": "Log.entryAdded",
+     "params": {
+      "entry": {
+       "source": "worker",
+       "level": "info",
+       "text": "Thread name: \"lo_startmain\"",
+       "timestamp": 1789009229966.55,
+       "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+       "lineNumber": 6,
+       "stackTrace": {
+        "callFrames": [
+         {
+          "functionName": "_emscripten_console_log",
+          "scriptId": "3",
+          "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/probe.js",
+          "lineNumber": 6,
+          "columnNumber": 119526
+         }
+        ]
+       },
+       "workerId": "CDFC6A0F49000267C2FBECA590B97387"
+      }
+     },
+     "sessionId": "D4A8D21437B099F75A20DF98F8C9EDCA",
+     "_t": 10.422
+    }
+   ],
+   "workerTargets": {
+    "D4A8D21437B099F75A20DF98F8C9EDCA": {
+     "targetId": "D7127CD7D88DC63EDA320868D00B5F01",
+     "type": "worker",
+     "title": "oxoffice-document-engine",
+     "url": "http://127.0.0.1:33411/profiles/e2-editor-v8/sdk-worker.js",
+     "attached": true,
+     "parentId": "7F2BC60B010F4460C9C856236FC186D8",
+     "canAccessOpener": false,
+     "parentFrameId": "7F2BC60B010F4460C9C856236FC186D8",
+     "browserContextId": "6C1F212C1D1692ACE4AD2042F54A4DD0"
+    }
+   },
+   "completedAt": "2026-09-10T03:01:08.061146+00:00"
+  }
+ ],
+ "servedFrom": "/tmp/f096flag-P-jgrsuovy/root",
+ "port": 33411,
+ "browser": "Chrome/151.0.7922.169",
+ "completedAt": "2026-09-10T03:01:08.152343+00:00",
+ "counts": {
+  "press1:answered": 1,
+  "press2:silent": 1,
+  "outcome:DIED": 1
+ }
+}
