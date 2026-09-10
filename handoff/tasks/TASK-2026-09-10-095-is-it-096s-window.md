@@ -168,3 +168,56 @@ this task starts. Commit per unit, zh-TW subjects, trailer
 ---
 
 ## Execution record
+
+### 2026-09-10 — the shakedown forced one change, not a widening
+
+Two unbanked shakedown attempts were run on `e2-editor-v8` /
+`a11y-audible.odt` before the counted matrix, and are reported here rather
+than as separate files because the same "record every attempt" discipline
+this tree already applies to counted runs applies to a probe still finding
+its feet:
+
+1. **First attempt** (`caret_click_fractions`'s `["near"]` fraction — just
+   inside the START of the last line's ink — followed immediately by one
+   `ArrowDown`): `caretMovedAfterPress == true`, `outcome ==
+   "NOT_REPRODUCED"`. Raw frames: before the press, `sinkTop 391, sinkLeft
+   133`; 151 ms after the press, `sinkTop 391` (unchanged), `sinkLeft 356`
+   (moved to the ink's own right edge, 355). **The click at `["near"]` does
+   not land on the SDK's boundary condition** — it resolves quickly to the
+   end of the same line, a real answered move, not the wedge 096 measured.
+   `lastLineEvidence` itself was correct throughout (`bandCount: 10`
+   matching the fixture's own ten paragraphs, `rowsBelowCount: 0`); the last
+   line really was the last line. The click point on that line was wrong.
+2. **Second attempt** (a `walk_to_boundary()` helper, pressing `ArrowDown`
+   repeatedly — mirroring `probe_096_boundary_arrow.py`'s own boundary-walk
+   — until the caret stopped moving, THEN doing the measured press):
+   reached the boundary (`caretMovedAfterPress == false`) and died at
+   29.335 s, but `outcome == "DIED_WITH_CHECKPOINT"` (`noticeRescue:
+   "checkpoint"`), not the pinned `"none"`. Cause, read from
+   `editor-shell-v2/narrow-editor-v2-session.js:329-340` (read, not
+   edited): every one of the fifteen v2 actions — including a plain caret
+   move — is enqueued with `mutation: true`, so the walk's own presses
+   marked the document dirty and half C's `_checkpointBeforeBoundaryMove()`
+   took a checkpoint before the press this task measures. **The walk was
+   the confound, not the click.**
+
+**The fix, forced by both measurements together**: place the initial caret
+on the last line with `caret_click_fractions`'s `["past"]` fraction (`min(
+right + 0.06 * span, width - 2)`, documented in `run_e2_c_product_path.py`
+as snapping the caret to the line's own last character) instead of
+`["near"]`, and do the ONE measured `ArrowDown` directly, with no boundary
+walk. This is not a widening of §2's criteria — the criteria describe what
+happens after the boundary press and after the click, not how the caret
+reaches the last line — and it removes the second attempt's confound by
+construction: nothing presses a key, and nothing marks the document dirty,
+before the single press this task measures.
+
+`shakedown-1.json` (the final, banked attempt, `e2-editor-v8` /
+`a11y-audible.odt`): `outcome: "REPRODUCED_NO_CHECKPOINT"`,
+`caretMovedAfterPress: false`, `clickPlacedCaret: false`,
+`timeToDeadStateSeconds: 30.001`, `noticeRescue: "none"`, `noticeText`
+character-identical to the owner's quote, `revisionBeforePress ==
+revisionAfterWatch == "0"`. Every S8-pinned field in §2 is met on this one
+attempt; the counted matrix (S8, S14, L8, three attempts each) is run and
+judged in the following commits.
+
