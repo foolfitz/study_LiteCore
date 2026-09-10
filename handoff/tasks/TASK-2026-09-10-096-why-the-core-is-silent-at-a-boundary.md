@@ -174,3 +174,28 @@ cause.
 ## Execution record
 
 *(appended by the executor after the runs; nothing above this line is edited)*
+
+### Main-session source trace, before any run (2026-09-10, append-only; not a criterion)
+
+The Home key's path to `LRMargin`, read after §1 was written and recorded so
+the executor and the reviewer do not have to re-derive it:
+
+* `officecfg/registry/data/org/openoffice/Office/Accelerators.xcu:2587-2590`
+  (and `:4131-4134`): `HOME` → `.uno:GoToStartOfLine` for Writer text.
+* `sw/sdi/swriter.sdi:2144`: `GoToStartOfLine` is slot `FN_START_OF_LINE`.
+* `sw/source/uibase/shells/txtcrsr.cxx:130-132`: `case FN_START_OF_LINE:
+  bRet = rSh.LeftMargin(false, false);`
+* `sw/source/uibase/wrtsh/move.cxx:176-190`: `SwWrtShell::LeftMargin` →
+  `SwCursorShell::LeftMargin()` (unless the cursor is read-only, which this
+  document is not).
+* `sw/inc/crsrsh.hxx:402`: `LeftMargin() { return LRMargin(true); }`, with
+  `bAPI` defaulting to `false` (`:293`) — the branch that can call
+  `SetInFrontOfLabel(true)` is therefore reachable from a real Home key.
+* The fixture's numbered list style is
+  `<text:list-level-style-number text:level="1" style:num-format="1"
+  style:num-suffix="."/>` (a11y-audible.odt content.xml), i.e. a visible
+  number, which `HasVisibleNumberingOrBullet()` requires.
+
+Under LOK the key arrives through `postKeyEvent` → `SwEditWin::KeyInput` →
+the accelerator table; whether that table is the one above on this build is
+what arm P's "both Home presses answered" cell measures, so it is not assumed.
