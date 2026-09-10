@@ -199,3 +199,103 @@ the executor and the reviewer do not have to re-derive it:
 Under LOK the key arrives through `postKeyEvent` → `SwEditWin::KeyInput` →
 the accelerator table; whether that table is the one above on this build is
 what arm P's "both Home presses answered" cell measures, so it is not assumed.
+
+---
+
+## Supersession 1 — the reading in §1 is wrong in two places; arms and verdict replaced before any run (2026-09-10, append-only)
+
+**What forced this.** The codex review seat (B′ second review seat, thread
+`01a08917-3840-7782-8150-60cc2989e434`) attacked §1 on two points; the main
+session then read the cited lines and confirms both:
+
+1. `SwCursor::UpDown` (`sw/source/core/crsr/swcrsr.cxx:2108-2125`, tdf#150457
+   branch): on the first/last line, if the cursor is **not** already at the
+   line's start/end offset it jumps there (`bRet = true`); if it **is**, it
+   calls `pSh->UpdateCursor()` explicitly **and then** sets `bRet = false`.
+   So at the boundary `UpdateCursor` *is* called. §1's "a boundary press is
+   `bRet == false` so `UpdateCursor` is never called" is false for the arrow
+   path. (The jump branch also explains T9's shakedown: a `near` click plus
+   one ArrowDown moved within the line — it jumped to the line end.)
+2. `CallbackFlushHandler` (`desktop/source/lib/init.cxx:1592-1600`) registers
+   `LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR` (and `TEXT_SELECTION`,
+   `CURSOR_VISIBLE`, …) in `m_states`, and at flush (`:2529-2537`) **skips the
+   callback when the payload equals the stored state** — "Skipping duplicate".
+   §1's "there is one gate and it is `bRet`" missed this second, downstream
+   one; §1 read `enqueueUpdatedType` and not the flush loop.
+
+**The corrected question.** Two mechanisms can produce "zero callbacks reach
+the engine" at a boundary:
+
+* **M1 (gate)** — `UpdateCursor` is not called, nothing is enqueued.
+  Refuted at the source for the arrow path by (1); still the shape of
+  `LeftRight`/`LRMargin`'s `if (bRet) UpdateCursor();`.
+* **M2 (state dedup)** — `UpdateCursor` runs, `SetPosAndShow` notifies, the
+  payload is fetched at flush and is identical to `m_states[type]`, so it is
+  dropped. Silence is then a property of the flush handler, not of the cursor
+  shell.
+
+They predict differently for one cheap gesture: **a press that runs
+`UpdateCursor` without changing the cursor rect.** Under M1 it is answered
+(a callback is emitted because `bRet` is true); under M2 it is silent (the
+payload is a duplicate). Home at a position already at the left margin is
+exactly that press: `SwCursor::LeftRightMargin` returns true whenever the
+frame's `LeftMargin` succeeds (`swcrsr.cxx`), so `LRMargin` calls
+`UpdateCursor()` (`crsrsh.cxx:555-558`) with the rect unchanged.
+
+Arm F of §2 does **not** discriminate: the flag reset changes the rect, so
+both M1 and M2 predict "answered". It is withdrawn as a discriminator and kept
+only as the E-cell check (does the in-front-of-label position move the rect).
+
+**"Answered" is now measured at the engine, not from `#s-latency`.** The
+engine stamps every completion with `callbackSequenceBefore/After`
+(`probe_engine.cpp:2157-2160`) and the page carries the engine's callback
+counter as `sourceSequence` (the 084 guard reads it). Per press the probe
+records `sourceSequence` before and after; **answered = the counter advanced
+and the state pill returned to `ready` within 1 s; silent = the counter did
+not advance and the session reaches `recoverable-error` at 29–31 s** (on v8).
+`#sink` x stays as a secondary cell only. The RAW CDP buffer and the worker
+console are banked as before.
+
+### Arms (replace §2; three attempts each; `e2-editor-v8`; fixture `a11y-audible.odt` unless stated; each arm ends at its last listed press and watches 60 s)
+
+| arm | where | keys | M2 predicts | M1 predicts |
+|---|---|---|---|---|
+| **P′** plain, same-position Home | click mid-line on the plain line 「夾在中間的這一行不是清單 只是普通內文」 (its `near`+0.3 of ink width) | Home; Home | 1st Home answered (rect moved to margin); **2nd Home silent → wedge, dead 29–31 s, `rescue: none`** | 2nd Home answered, counter advanced, no wedge |
+| **G** numbered, three Homes | click mid-line on 「編號的部分開始…」 (a numbered item) | Home; Home; Home | 1st answered; 2nd answered **and** sink x moves left (in front of the label); **3rd silent → wedge** | 3rd answered |
+| **C** control | `past` on the last line (as T9) | ArrowDown | silent → wedge 29–31 s (both) | same |
+| **N** tdf#150457 | `near` on the last line | ArrowDown; ArrowDown | 1st answered, caret x moves to the line end; **2nd silent → wedge** (both) | same |
+
+**Positive controls**: C and N's second press must wedge, and P′/G's first
+Home must be answered, in the same batch — else the instrument is suspect
+first. G's second Home not moving the sink left is recorded as "flag path not
+reached" and makes G's third press uninformative, not red.
+
+### Verdict (replaces §3)
+
+* **M2 confirmed**: P′'s second Home silent 3/3 **and** G's third Home silent
+  3/3 (with G's second answered and shifted left 3/3), C and N as predicted.
+* **M1 confirmed**: P′'s second Home answered 3/3 **and** G's third Home
+  answered 3/3, C and N as predicted.
+* Anything else: not established, cell named. 2/3 is banked as 2/3.
+
+A silent press must show **counter not advanced**; a press where the counter
+advanced but the session still wedged is a third thing (a callback the engine
+rejected — 096's explanation (b)) and is banked under its own heading.
+
+### What a confirmation licenses (replaces §5's first bullet)
+
+* **M2**: core did run its cursor update; LibreOfficeKit's flush handler
+  suppresses unchanged `INVALIDATE_VISIBLE_CURSOR` state by design
+  (`init.cxx:1592-1600`, `2529-2537`), so a client that waits for a cursor
+  callback after a no-op move waits forever. Not an upstream defect; a
+  contract mismatch on the engine side, repaired by A. R2
+  (`postUnoCommand` + `LOK_CALLBACK_UNO_COMMAND_RESULT`) becomes the principled
+  remedy because `UNO_COMMAND_RESULT` is **not** in `m_states` and is delivered
+  every time; the optional native arm U stands as its measurement.
+* **M1**: §1 as written stands for the Home path only; the arrow path is
+  explained by (1) above and M2 must then be re-attacked with another gesture.
+
+Default conclusion and constraints (§4, §6) are unchanged; the new fixture of
+§6 is **not needed** (no arm uses a document that ends in a numbered item) and
+is not created. Report files: `flag-reset-P.json`, `-G.json`, `-C.json`,
+`-N.json`, shakedown `flag-reset-shakedown-1.json`, `RESULT-why-silent.md`.
