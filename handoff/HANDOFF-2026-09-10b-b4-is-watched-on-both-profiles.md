@@ -80,3 +80,24 @@ reordered to the end (0 of 12, full run on the final identity before any
 cutover, floor of three calendar days); T4 must be re-earned on the final
 identity and is the owner's evening. The shipping page still points at v8.
 **No cutover has been performed.**
+
+---
+
+## Later the same day (append-only)
+
+* **Form B′** replaces form B for tasks opened after 2026-09-10 (PLAN, "Form
+  B′"): diagnosis and discrimination design, pinned criteria, and small
+  semantics-heavy runner/probe edits return to the main session; sonnet keeps
+  long runs and evidence banking; opus and codex (available again) review only.
+  A subagent's diagnosis is a hypothesis until the main session has read the
+  source it rests on.
+* **T9 closed**: finding 095 is re-attributed as 096's pre-death window on
+  profiles without half A (S8 died 3/3 at 30.0 s, S14 survived 3/3, L8 was
+  never a boundary press — the long fixture ends with an empty paragraph).
+  See PLAN "T9 landed".
+* Open list is now: the wrong-gesture wording (061's shape, owner's ruling);
+  findings 094 and 097; why the core broadcasts nothing at a boundary (next,
+  under B′: main session designs the discrimination from the engine source,
+  sonnet runs the native harness, codex reviews the diagnosis before action);
+  and the new unexplained item that arrow presses alone let half C bank a
+  checkpoint.

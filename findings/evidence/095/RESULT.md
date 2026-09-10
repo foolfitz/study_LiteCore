@@ -111,3 +111,21 @@ canvas `pointerdown` over CDP, not a physical mouse. What changes is what
 the caveat is now a caveat ABOUT — with S8 and S14 green, the pending move
 is the unit under test, and the owner pressed real arrow keys for 096; the
 click is no longer load-bearing for attributing 095 to 096's window.
+
+## Main-session pre-read (2026-09-10, append-only)
+
+The nine attempts were re-read from the JSON with an independent reader
+(first version treated `attempts` as the list; it is the count, the records
+are in `runs` — caught by the raw value in the exception). Cells agree with
+the table above.
+
+**L8's seam, and what the fixture says.** `lastLineEvidence` reports the full
+canvas scanned, the click on the last ink band, `rowsBelowCount: 0` — and the
+same attempt reports the press answered as `下移一行` with the caret moved.
+Both are true only if something inkless lies below. Read, not inferred:
+`dist/a11y-long.odt`'s content.xml ends with
+`<text:p text:style-name="Text_20_body"/>` — an empty paragraph, the last of
+133 — while `test-docs/e1/a11y-audible.odt` ends with a non-empty paragraph.
+So on the long fixture the last ink band is not the document's last line, and
+on the short one it is. Rule for any probe that finds "the last line" by ink:
+**ink locates the last painted line, never the document boundary.**

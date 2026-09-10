@@ -77,7 +77,7 @@ ArrowDown，只會在行內移動（40 ms 內從 x=133 到 x=356，`sinkTop` 沒
 `["past"]`（那一行文字的最後一個字元），一次按鍵直達，才同時滿足「真的撞到
 邊界」與「文件仍然是乾淨的」兩個條件。修法記在協定的 Execution record。
 
-**結論（本張這裡licenses 的那句話）**：S8 與 S14 都綠燈，**095 重新歸因為
+**結論（本張在這裡准許的那句話）**：S8 與 S14 都綠燈，**095 重新歸因為
 096 的死前窗口，限沒有半 A 的 profile**——詳見
 `findings/096-arrow-key-at-a-document-boundary-kills-the-session-with-no-checkpoint.md`。
 這張檔案保留，不併入 096。L8 綠燈只解釋到「那一按不是邊界按」，不多說。
@@ -86,3 +86,28 @@ ArrowDown，只會在行內移動（40 ms 內從 x=133 到 x=356，`sinkTop` 沒
 `pointerdown`，不是真的滑鼠。但書的對象換了——S8 與 S14 綠燈之後，受測的是
 「那個懸而未決的移動」，不是點擊本身；096 的邊界按鍵是擁有者用真鍵盤按的，
 點擊不再是把 095 歸因到 096 窗口這件事的承重構件。
+
+### 主 session 的 pre-read（2026-09-10，只 append）
+
+九次嘗試的格子用主 session 自己的讀取器重讀（第一版讀取器把 `attempts` 當成
+list，其實是次數、資料在 `runs`——是例外訊息帶的原始值抓到的）：S8 三次
+`timeToDeadStateSeconds` 30.001／30.001／30.0、`noticeRescue: none`、
+`clickPlacedCaret: false`；S14 三次 `latencyAfterPress: 下移一行 255–256 ms`、
+`caretMovedAfterPress: false`、`clickPlacedCaret: true`、`deadState: null`；
+L8 三次 `下移一行 74–78 ms`、`caretMovedAfterPress: true`。與上一節一致。
+
+**L8 有一道縫，上一節的說法對，但理由要補讀的那一半。**探針自己的證據
+`lastLineEvidence` 說整張畫布（27,198 px、682 個墨帶）掃完、點的是最後一個
+墨帶、`rowsBelowCount: 0`；同一次嘗試那一按卻被回答成「下移一行」而且游標真的
+動了。兩件事同時為真，下面就必須有一個**沒有墨的東西**。不推，直接讀 fixture：
+
+- `wasm_sdk_probe/dist/a11y-long.odt` 的 content.xml 以
+  `<text:p text:style-name="Text_20_body"/>` 結尾——**一個空段落**，133 個段落
+  元素的最後一個。ArrowDown 移進的就是它；墨帶掃描看不見它。
+- `test-docs/e1/a11y-audible.odt` 以「最後一行到了 整份文件到這裡結束」這個
+  **非空**段落結尾，所以最後一個墨帶就是文件真正的最後一行，那一按才是邊界按。
+
+所以 fixture 相依性的解釋不只是「那一按不是邊界按」，而是**可讀的**：長文件
+多一個空尾段，短文件沒有。這也是給下一個用墨帶找「最後一行」的探針的警語：
+**墨帶只能找到最後一行有墨的地方，不能找到文件的邊界**；要找邊界得問引擎，
+或先讀 content.xml 知道尾巴長什麼樣。

@@ -1246,3 +1246,28 @@ diagnosis about to be acted on, a criterion about to be frozen. The standing
 rule for any reviewer holds: **hand it the criteria to attack, never the
 conclusion to confirm.** Its quota is finite; the main session watches it the
 way it watches its own.
+
+---
+
+## T9 landed: 095 is 096's pre-death window on profiles without A (2026-09-10, append-only)
+
+Sonnet, four commits `bf0e95f3`..`eda5a724`; re-read by the main session from
+the JSON. S8 (v8, short): died 3/3 at 30.0–30.001 s with `rescue: none`, the
+click never landed. S14 (v14, short): press answered 255–256 ms, click landed
+in 0.76 s, no death in 65 s, 3/3. L8 (v8, long): press answered as a move in
+74–78 ms, click landed, 3/3. Positive controls met in one batch. 095 is
+re-attributed (file kept, cross-referenced), the harness-path caveat on the
+click stays but the click is no longer load-bearing.
+
+One seam the main session closed by reading rather than inferring: L8's ink
+scan saw nothing below the clicked band, yet the caret moved down — the long
+fixture ends with an empty paragraph (`content.xml`), the short one does not.
+Recorded in 095 and in `findings/evidence/095/RESULT.md` with the rule "ink
+locates the last painted line, never the document boundary."
+
+Shakedown forced one probe fix, recorded in the protocol's execution record:
+pre-walking ArrowDown presses to reach the boundary marks the document dirty
+and triggers half C's checkpoint, so `rescue` becomes `checkpoint`; the fix
+clicks the line's last character so a single press reaches the boundary on a
+clean document. **Observed and not explained: arrow presses alone mark the
+document dirty enough for half C to bank a checkpoint.**
