@@ -2113,6 +2113,16 @@ MUTATIONS = {
     # produced after its own recovery button was pressed:
     # `findings/evidence/096/checkpoint-before-the-gesture.json` -- 3 of 3
     # WORK_LOST without, 3 of 3 RECOVERED with.
+    #
+    # SINCE 2026-09-10 IT REDS TWO CLAUSES, NOT ONE, and that is the measurable
+    # proof that B4 is back in reach on a fixed profile. On `e2-editor-v14` the
+    # press is answered, so the arm kills the session a second way and then asks
+    # B4 -- with this hunk removed the product declares 無, offers 重新開啟, and
+    # what comes back does not carry the work. Required cells, pinned in
+    # `handoff/tasks/TASK-2026-09-10-096-b4-second-inducer.md` §4(i) before this
+    # comment existed: `B3 false`, `B4 false`,
+    # `checkpointOnOfferIsThisGestures false`, `workCameBack false`,
+    # `clausesExercised` containing B4, and nothing else red.
     "boundary-move-takes-no-checkpoint": {
         "check": "a-boundary-arrow-press-does-not-cost-the-work",
         "path": "editor-shell-v2/narrow-editor-v2-session.js",
@@ -2123,6 +2133,64 @@ MUTATIONS = {
                         "boundary kills the session and the product says there "
                         "is no checkpoint, so everything typed since the last "
                         "save is gone",
+        "alsoRed": [],
+    },
+    # THE SECOND INDUCER'S OWN TWO RED CASES (2026-09-10).  Both live in the
+    # `worker-crashed` branch of `_handleEngineEvent`, which is reached by
+    # NOTHING ELSE in a run: `induce_worker_failure` has one other call site and
+    # it fires only when finding 038 stops reproducing, which it does not on
+    # either profile today (`finding038Reproduced: true`, measured on v8 and on
+    # v14). So `alsoRed` is empty on purpose, and a run that reds anything else
+    # falsifies that declaration instead of confirming the mutation.
+    #
+    # They are the red cases for the REACH, not for the gesture: the 096 hunk
+    # above still owns the product defect. The §9 argument and the required cells
+    # are in the gate amendment of 2026-09-10 and in §4 of
+    # `handoff/tasks/TASK-2026-09-10-096-b4-second-inducer.md`, both written
+    # before this code.
+    #
+    # Neither contradicts the 2026-09-09 amendment's "a second mutation is not
+    # offered": that sentence is about the ENGINE half -- a press answered with a
+    # completion the client rejects -- which still cannot be built without a
+    # link. These two are about the crash path.
+    "worker-crash-throws-the-checkpoint-away": {
+        "check": "a-boundary-arrow-press-does-not-cost-the-work",
+        "path": "editor-shell/editor-session.js",
+        "find": '    if (event.event === "worker-crashed")\n'
+                '      this._enterRecovery(Object.assign(new Error('
+                'event.error?.message || "Worker crashed"), {\n'
+                '        code: event.error?.code || "WORKER_CRASHED",\n'
+                '      }));\n',
+        "replace": '    if (event.event === "worker-crashed") {\n'
+                   '      this._checkpointBytes = null;\n'
+                   '      this._checkpointRevision = null;\n'
+                   '      this._checkpointStamp = null;\n'
+                   '      this._checkpointError = null;\n'
+                   '      this.state.update({ hasCheckpoint: false, '
+                   'checkpointRevision: null });\n'
+                   '      this._enterRecovery(Object.assign(new Error('
+                   'event.error?.message || "Worker crashed"), {\n'
+                   '        code: event.error?.code || "WORKER_CRASHED",\n'
+                   '      }));\n'
+                   '    }\n',
+        "reintroduces": "a session that throws the pre-gesture checkpoint away "
+                        "as it dies, so the notice offers 重新開啟 to a user "
+                        "whose work WAS protected -- B3 stays green and B4 goes "
+                        "red, which is the pair no single-clause check could "
+                        "tell apart",
+        "alsoRed": [],
+    },
+    "worker-crash-is-never-noticed": {
+        "check": "a-boundary-arrow-press-does-not-cost-the-work",
+        "path": "editor-shell/editor-session.js",
+        "find": '    if (event.event === "worker-crashed")',
+        "replace": '    if (false && event.event === "worker-crashed")',
+        "reintroduces": "a product that does not notice its document worker "
+                        "failing -- and, for this check, the inducer rendering "
+                        "the run must never report as a PASS: the dead state B4 "
+                        "needs is never reached, so `B4` is null, "
+                        "`clausesExercised` omits it and the check is FAIL "
+                        "rather than NOT_ESTABLISHED",
         "alsoRed": [],
     },
     "cut-swallows-the-refusal": {
