@@ -1112,3 +1112,74 @@ the wrong-gesture wording (061's shape), findings 094/095/097, and why the core
 broadcasts nothing at a boundary are still open, and the gate is where it was
 (soak 0 of 12, deferred behind development, T4 to re-earn on the final
 identity).
+
+---
+
+## T9 — is finding 095 the pre-death window of 096? (2026-09-10, append-only)
+
+Opened by the main session while the owner is away, under their standing
+instruction of 2026-09-10 to keep executing autonomously. Chosen because it is
+the one open item that needs no ruling, no product byte and no link, and the
+09-10 handoff already named its discriminator in one line: **wait longer than
+30 s.**
+
+**The prediction, from the 096 trace.** ArrowDown at the document's last line is
+a boundary press. On a profile without half A (v8, v12) the engine's move path
+arms no deadline, so `gEditorPending` stays armed and every later action and
+caret placement answers `BUSY` — 095's "the next canvas click places no caret,
+`#s-latency` blank for 25 s, no error, no toast, no notice" is exactly that
+window, and the probe stopped 5 s short of the SDK's 30 s deadline that ends it
+with the no-checkpoint notice. On v14 the press is answered in ~260 ms and the
+click lands. The fixture dependence is predicted too: on the 133-paragraph
+document the "last painted line" is not the document's last line, so the press
+was never a boundary press and nothing wedged.
+
+### Criteria, pinned before the probe exists (form one, per attempt)
+
+Three arms, three attempts each, `a11y-audible.odt` unless stated; keys via
+`Input.dispatchKeyEvent`, click via canvas pointerdown, the file through the
+product's own `#file` input, engine state read as `probe_096_boundary_arrow.py`
+reads it (its RAW event buffer, worker console, toast observer, state-pill
+trace). Reuse that probe's machinery; add only the click after the press and a
+watch of at least 60 s.
+
+* **S8 (v8, short fixture)** — press ArrowDown on the last line; at +2 s click a
+  top line. Predicted: the click places no caret (no `定位游標` in `#s-latency`)
+  while the press is pending; the session enters `recoverable-error` with the
+  no-checkpoint notice (`rescue: none`) between 29 and 31 s after the press;
+  `revision` unchanged. **Red for the prediction**: a caret is placed by the
+  click, or no dead state by 60 s.
+* **S14 (v14, short fixture)** — same. Predicted: the press is answered within
+  1 s (state `ready`, `#s-latency` populated); the click places a caret within
+  5 s; no dead state within 60 s. **Red**: click places no caret, or death.
+* **L8 (v8, the long fixture 095 used)** — same. Predicted: the press is NOT a
+  boundary press — the caret moves (sink/latency shows an answered move under
+  1 s) — and the click lands. **Red**: the press is a boundary press by the
+  probe's own criterion (no move) and yet nothing wedges; then the fixture
+  dependence stays unexplained and P1 may not be quoted for it.
+
+Positive controls are the arms themselves: S8 must die and S14 must not, in the
+same batch, or the instrument is suspect before the product is.
+
+**Default conclusion if never run**: 095 stays "observed, not investigated" and
+may not be cited as 096's window.
+
+**What a green does and does not license.** S8 + S14 green: 095 is
+re-attributed as the pre-death window of 096 on profiles without A — recorded
+as a section appended to 095, the file kept (not merged), 096 cross-referenced.
+The harness-path caveat on the *click* remains (no real mouse here), but the
+click is then no longer the unit under test: the pending move is, and the owner
+pressed real keys for 096. L8 green: the fixture dependence is explained by
+"not a boundary press", nothing more.
+
+### Constraints on the executor (sonnet, main tree, headless Chrome)
+
+Protocol file `handoff/tasks/TASK-2026-09-10-095-is-it-096s-window.md`
+(English) written from these criteria and committed **before** any probe code;
+the criteria may be restated, not widened. Probe and JSON under
+`findings/evidence/095/`, `RESULT.md` in English. Append a dated measurement
+section to `findings/095-*.md` in zh-TW. No `--write`, no `make`, no edit under
+`src/ sdk/ web/ editor-shell*/ dist/ tools/`, nothing else run. Commit per
+unit, zh-TW messages, trailer `Co-Authored-By: Claude Fable 5.1
+<noreply@anthropic.com>`, no `Claude-Session:` line, no push. Report `## SUMMARY`
+≤30 lines.
