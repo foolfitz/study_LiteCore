@@ -703,3 +703,55 @@ B4——「回來的東西含不含打進去的字」，也就是半 C 存在的
 profile 上都沒有人守**，而且檢查會一直報三條子句的 PASS，讀的人不開 JSON 看不出少了
 哪一條。若 T8b 跑了而誘因永遠不發火：射程不存在，這一格在修好的 profile 上是紅的，
 決定回到擁有者手上（(b) 或第三個誘因）——**不得靠「把紅留著」偷偷選 (b)**。
+
+---
+
+## T8b 量完了：B4 在修好的 profile 上回到射程內（2026-09-10，只 append）
+
+上一節的預設結論沒有用到。七趟全部押在 `findings/evidence/096/product-path/`，
+判讀在 `RESULT-b4-second-inducer.md`；下面的數字是主 session 用自己的讀取器重讀
+七份 JSON 得到的，不是抄 T8b 的摘要（第一版讀取器猜錯 schema、每格印出 None，
+是印出來的原始值抓到的，照 AGENTS.md §7）。
+
+| 趟 | profile | 突變 | 這一格 | B1–B4 | clausesExercised | b4Inducer |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | v14 | boundary-move-takes-no-checkpoint | FAIL | T T F F | B1 B3 B2 B4 | worker-failure |
+| 2 | v14 | worker-crash-throws-the-checkpoint-away | FAIL | T T T F | B1 B3 B2 B4 | worker-failure |
+| 3 | v14 | worker-crash-is-never-noticed | FAIL | T T T null | B1 B3 B2 | worker-failure |
+| 4–6 | v14 | 無 | PASS ×3 | T T T T | B1 B3 B2 B4 | worker-failure |
+| 7 | v8 | 無 | PASS | T T T T | B1 B3 B4 | boundary-press |
+
+**三個紅案各只紅這一格**（`alsoRed: []` 成立，對照組是第 4 趟）。(i) 同時紅 B3
+與 B4，這是「B4 回到射程」的可量證明——連結之前它只能紅 B3；(ii) B3 綠而 B4 紅，
+死掉時宣告變成 `無`、提示給的是重新開啟——這是任何單一子句的檢查分不出的那一對；
+(iii) `B4: null`、`clausesExercised` 沒有 B4、判 **FAIL 不判 NE**，誘因發火了但產品
+沒察覺（`stateAfterFallback: ready`）。
+
+**v14 三趟全過**：誘因 6/6 發火（三個紅案加三趟平跑）、死後宣告 `有（r1）` 就是這個
+手勢押的、提示給 `checkpoint`、按下去存出來的檔含標記。組成不變，40 PASS／2 NE。
+
+**出貨的 v8 逐格不變**：`clausesExercised` 仍是 `[B1,B3,B4]`，`boundary` 酬載裡只多
+一格 `b4Inducer: "boundary-press"`，`savedBytes` 差 1 位元組（平跑之間本來就會差）。
+`compare_b4_cells.py` 可重跑。**038 在七份報告都仍重現**，兩個新突變的
+`alsoRed: []` 宣稱靠的是這一格。
+
+### 這一格現在能宣稱什麼、不能宣稱什麼
+
+- v14 上的 B4 是**比 v8 上的 B4 弱的宣稱**：它證明的是「手勢押下的檢查點撐得過另一
+  種死法」，不是「那一按弄死 session 之後救得回來」——後者在帶 A 的 profile 上由設計
+  不可觸及。引用時不得拿前者當後者。
+- 誘因是儀器（CDP 的 `Target.setAutoAttach` 送進 worker 的真實未捕捉錯誤），失敗是
+  產品自己的。若誘因因儀器原因失效，這一格在每一趟固定 profile 上都是紅的，直到有
+  人去看——這是寫在程式碼裡的已接受成本，取代「一趟不能引用 B4 卻不自己講的綠」。
+- Worker generation 預算是 3：初開第 1 代、recovery 那格第 2 代、這一格回復第 3 代。
+  v8 與 v14 用量相同，七趟沒有一趟撞到 `WORKER_GENERATION_LIMIT`。
+
+### 量到但不解釋
+
+- `savedBytes` 在四次未突變的存檔取了四個值（12895／12897／12899／12899）。
+- `offPageInk.scans` 在本應相同的 v14 平跑之間是 38 或 39。
+
+### 還開著的（不因這一節改變）
+
+提示句子指名錯的手勢（061 的形狀）、094／095／097、核心在邊界為何不廣播——
+都還是 09-10 交接列的那幾條。closing 這一節唯一關掉的是「B4 沒人守」。

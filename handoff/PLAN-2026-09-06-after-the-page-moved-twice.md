@@ -1072,3 +1072,43 @@ runs: v14 shows `clausesExercised` containing all of B1, B2, B3, B4 with
 worker-failure inducer does not fire on v14, that is a result to bank, not a
 task failure. Bank under `findings/evidence/096/product-path/`, append
 `RESULT-b4-second-inducer.md`. Nothing else is run; no soak run is banked.
+
+---
+
+## T8a and T8b landed: B4 is watched on both profiles (2026-09-10, append-only)
+
+T8a (opus): nine commits `fdc51c10`..`ffb5c96a` — protocol
+`handoff/tasks/TASK-2026-09-10-096-b4-second-inducer.md`, gate amendment,
+`press_the_notice_and_save` lifted out of the dying branch (proved
+output-identical against stubs), the second inducer in the answered branch,
+B4-unexercised = FAIL not NE, three mutations, finding and README appends.
+`make test-e2-c-static` exit 0. Pre-read by the main session: passed; the dying
+branch gained exactly one cell (`b4Inducer`).
+
+T8b (sonnet): `ad1da7d9`, `9e382aad` — seven runs banked under
+`findings/evidence/096/product-path/`, judged in `RESULT-b4-second-inducer.md`,
+re-read independently by the main session from the JSON:
+
+| run | check | B1–B4 | clausesExercised | b4Inducer |
+|---|---|---|---|---|
+| mutate (i) boundary-move-takes-no-checkpoint, v14 | FAIL | T T F F | B1 B3 B2 B4 | worker-failure |
+| mutate (ii) worker-crash-throws-the-checkpoint-away, v14 | FAIL | T T T F | B1 B3 B2 B4 | worker-failure |
+| mutate (iii) worker-crash-is-never-noticed, v14 | FAIL | T T T null | B1 B3 B2 | worker-failure |
+| plain v14 ×3 | PASS | T T T T | B1 B3 B2 B4 | worker-failure |
+| plain v8 control | PASS | T T T T | B1 B3 B4 | boundary-press |
+
+Every red case reds this check alone (`alsoRed: []`, baseline plain v14 run
+01); the inducer fired 6/6; v8's `boundary` payload is cell-for-cell the banked
+one plus `b4Inducer` (and a 1-byte `savedBytes` drift seen between plain runs
+anyway); `finding038Reproduced: true` on all seven; no generation-limit hit.
+§5 acceptance met on every clause. The narrowing the amendment made
+conditional on "all three red" is therefore **in force**.
+
+Observed, not explained: `savedBytes` took four values across four unmutated
+saves; `offPageInk.scans` was 38 or 39 across identical plain v14 runs.
+
+The B4 gap is closed. Nothing else on the 2026-09-10 handoff's open list moved:
+the wrong-gesture wording (061's shape), findings 094/095/097, and why the core
+broadcasts nothing at a boundary are still open, and the gate is where it was
+(soak 0 of 12, deferred behind development, T4 to re-earn on the final
+identity).
