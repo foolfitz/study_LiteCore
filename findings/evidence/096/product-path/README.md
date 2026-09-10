@@ -134,3 +134,39 @@ renderings were driven through stubs with no browser — `B4` `true` / `false` /
 `null` / `null`, the last two with `clausesExercised` omitting `B4` and
 `ok: false` — which tests the **verdict composition, not the product**, and is
 not evidence about any artifact.
+
+---
+
+# Append (2026-09-10, T8b): the seven runs, banked
+
+All seven `tools/run_e2_c_product_path.py --browser chrome` runs the T8a
+append above deferred, one Chrome instance at a time, from
+`wasm_sdk_probe/`. Full field-level reading, red-case verdicts against §4,
+the control comparison, and the §5 acceptance table are in
+`RESULT-b4-second-inducer.md` in this directory; this section only lists the
+new files and the commands that produced them.
+
+| file | command |
+| --- | --- |
+| `mutate-boundary-move-takes-no-checkpoint-e2-editor-v14.json` | `run_e2_c_product_path.py --browser chrome --profile e2-editor-v14 --mutate boundary-move-takes-no-checkpoint --out …` |
+| `mutate-worker-crash-throws-the-checkpoint-away-e2-editor-v14.json` | `run_e2_c_product_path.py --browser chrome --profile e2-editor-v14 --mutate worker-crash-throws-the-checkpoint-away --out …` |
+| `mutate-worker-crash-is-never-noticed-e2-editor-v14.json` | `run_e2_c_product_path.py --browser chrome --profile e2-editor-v14 --mutate worker-crash-is-never-noticed --out …` |
+| `plain-e2-editor-v14-b4-01.json` | `run_e2_c_product_path.py --browser chrome --profile e2-editor-v14 --out …` |
+| `plain-e2-editor-v14-b4-02.json` | same command, second run |
+| `plain-e2-editor-v14-b4-03.json` | same command, third run |
+| `plain-e2-editor-v8-after-t8a.json` | `run_e2_c_product_path.py --browser chrome --out …` (no `--profile`, the shipping page — matches how `plain-e2-editor-v8.json` above was produced: same shell generation v51, `declaredSha256 == servedSha256 == 2ffbec81…`, `differingPaths: []`) |
+
+`compare_b4_cells.py` (same directory): deep-diffs the
+`a-boundary-arrow-press-does-not-cost-the-work` check between two banked
+reports, flags the brief's three named exemptions (`b4Inducer`, timing,
+`savedBytes`), and prints every other differing path. Used here as
+`compare_b4_cells.py plain-e2-editor-v8.json plain-e2-editor-v8-after-t8a.json`
+for the control comparison.
+
+**Headline: all three red cases matched §4's pinned cells exactly with
+`alsoRed: []`, all three plain-v14 acceptance clauses in §5 were met (the
+worker-failure inducer fired 6/6 attempts in this batch), and the v8 control
+reproduced `["B1","B3","B4"]` with no cell moved inside the check's
+`observed`/`verdict` payload beyond the two named exemptions.** One line
+moved outside that scope — the check's `oracle` string — traced to the
+already-landed T8a commit `ffb5c96a1510`, not to anything this batch ran.

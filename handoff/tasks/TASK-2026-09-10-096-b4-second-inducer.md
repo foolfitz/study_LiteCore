@@ -346,3 +346,55 @@ has no commit. Item 3's `b4Inducer` requirement does add one cell to the dying
 branch — `"boundary-press"` — which is the only way that value can ever be
 produced, and no `B1..B4`, `clausesExercised`, `why` or `boundary[...]` cell
 moved.
+
+### 2026-09-10 — T8b, the runs. Nothing above was edited.
+
+Seven `tools/run_e2_c_product_path.py --browser chrome` runs, sequential, one
+Chrome instance at a time, from `wasm_sdk_probe/`: the three red cases on
+`--profile e2-editor-v14` (§4 (i)/(ii)/(iii)), three plain runs on
+`--profile e2-editor-v14`, and one plain run on the shipping profile (no
+`--profile`). All seven banked under
+`findings/evidence/096/product-path/`, full field-level reading in
+`findings/evidence/096/product-path/RESULT-b4-second-inducer.md`.
+
+* **All three red cases went red exactly as §4 pins them, and nothing else
+  went red** (`alsoRed: []`, confirmed against `plain-e2-editor-v14-b4-01.json`
+  as the baseline): (i) `boundary-move-takes-no-checkpoint` reds B3 and B4
+  together; (ii) `worker-crash-throws-the-checkpoint-away` reds B4 alone with
+  B3 staying true; (iii) `worker-crash-is-never-noticed` renders `B4: null`,
+  `clausesExercised` without `B4`, `outcome: "FAIL"` (not `NOT_ESTABLISHED`) —
+  the §3 decision holds under an actual run, not only under the stubs T8a
+  drove.
+* **§5's acceptance is met**: all three plain `e2-editor-v14` runs show
+  `clausesExercised` containing B1-B4, `b4Inducer: "worker-failure"` 3/3, and
+  every pinned fallback cell (`fallbackInducer.fired`, `stateAfterFallback`,
+  `declaredCheckpointAfterFallback`, `checkpointOnOfferIsThisGestures`,
+  `workCameBack`, `B4`) at its required value, composition unchanged at 40
+  PASS / 2 NE. **The worker-failure inducer fired on every attempt in this
+  batch (6/6)** — the brief's "if it does not fire, that is a result to bank"
+  contingency did not arise.
+* **The v8 control reproduces `["B1","B3","B4"]`** with `b4Inducer:
+  "boundary-press"` and the same `servedShell` (shell generation v51,
+  `declaredSha256 == servedSha256 == 2ffbec81…`, `differingPaths: []`) as the
+  original `plain-e2-editor-v8.json`. Inside the check's `observed`/`verdict`
+  payload — the scope §2.5 promises unchanged — nothing moved beyond the new
+  `b4Inducer` cell and a 1-byte `savedBytes` drift consistent with
+  run-to-run variance already seen among the plain v14 runs. Widening the
+  comparison to the check's `oracle` string (outside that scope) finds one
+  more line moved, traced to the already-landed T8a commit `ffb5c96a1510`
+  rather than to anything T8b ran.
+* `finding038Reproduced: true` on all seven reports, confirming the
+  precondition the two new mutations' `alsoRed: []` claim (§4, closing
+  paragraph) depends on.
+* No report contains `WORKER_GENERATION_LIMIT` or an observed
+  `restart-required` state (the string appears only inside a different
+  check's static explanatory text in these reports); §7 limit 2's ceiling was
+  not approached in this batch.
+* Headless Chrome process count was 0 before the first run and 0 after the
+  last; no leftover process was found or killed.
+
+**Supersedes nothing.** This entry adds the measurement T8a's entry above
+explicitly deferred ("no browser was started and no measurement was banked
+... until T8b has turned all three red cases red, the narrowing this
+protocol registers is not in force") — with this entry, the narrowing is in
+force.
