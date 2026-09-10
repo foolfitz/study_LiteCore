@@ -38,8 +38,59 @@
   而選哪一個要等 096 的成因定了才知道——那個欄位有可能本來就是要描述
   一個真實的補救路徑，只是從來沒有接上。
 
+## 清點：其他硬寫、產品路徑不讀的契約欄位（2026-09-10）
+
+原「未做」第一條要求普查（AGENTS.md §5：普查不抽樣）。查法：對 v8 profile 的
+`editorContract` 逐欄，看 `web/e2-editor-app.js`、四個 `editor-shell-v2/*.js`、
+`editor-shell/*.js`、`sdk/document-sdk.js`、`sdk/sdk-worker.js` 有沒有把它**當契約
+欄位讀**（`editorContract.<欄>` 或 `contract.<欄>`，不是同名的方法或事件欄位——
+裸字比對會把 `undo()` 方法、`result.state`、`event.selectionBarrier` 都誤計）。
+
+**產品路徑會讀的欄位**（作為對照，這些不是這張單的對象）：`version`、`actions`、
+`abiVersion`、`gestureBits`、`redo`、`caretParagraphText`、`documentOutline`、
+`documentOutlineGeometry`、`wasmSha256`。
+
+**硬寫且產品路徑不讀的欄位——共 14 個，本張的 `boundaryRejectionRequiresFreshWorker`
+是其中之一**：
+
+| 欄位 | 值 | 種類 |
+| --- | --- | --- |
+| `boundaryRejectionRequiresFreshWorker` | `true` | **被實測反證**（本張） |
+| `automaticRetry` | `false` | 誠實宣告（「我方不做 X」） |
+| `rawCallbackExposed` | `false` | 誠實宣告（診斷頁 `e1-discovery-app.js` 有斷言，但那讀的是 `diagnostic.*`，產品 profile 沒有那個子物件） |
+| `arbitraryKeyCodeAccepted` | `false` | 誠實宣告 |
+| `arbitraryUnoCommandAccepted` | `false` | 誠實宣告 |
+| `diagnosticOperationsExposed` | `false` | 誠實宣告 |
+| `inlineFormatEnabledIsHonoured` | `true` | 機制描述（078 量過） |
+| `textCommit` | `"document-sdk-insert-text"` | 機制描述 |
+| `undo` | `"document-sdk-undo"` | 機制描述 |
+| `state` | `"typed-editor-state-v1"` | 機制描述 |
+| `selectionBarrier` | `"verified-single-writer-unit-v1"` | 機制描述 |
+| `formatBarrier` | `"verified-format-readback-v2"` | 機制描述 |
+| `postDispatchFailureDisposition` | `"rollback-to-checkpoint"` | 機制描述 |
+| `crossParagraphDisposition` | `"verify-every-block"` | 機制描述 |
+
+**結論：這一格是收斂的，不是發散的。**14 個裡只有
+`boundaryRejectionRequiresFreshWorker` 是**被實測反證**的（40/40 卡死，行為與宣告
+相反）；其餘 13 個是「產品不讀、但沒被證偽」——一類是給外部／診斷讀者看的誠實宣告
+（我方不接受任意 keycode／UNO、不吐 raw callback），一類是描述產品**直接實作**的
+機制（不是靠讀那個欄位才決定要不要做）。所以 097 是**單一欄位的缺陷**，不是「契約
+整片是虛構」的系統性問題。
+
+**具體佐證欄位不是齊頭死的**：`redo` 有人讀而 `undo` 沒有——`offersRedo`
+（`narrow-editor-v2-client.js:218-221`）刻意 gate 在 `contract.redo ===
+"document-sdk-redo"`，因為 `oxsdk_document_redo` 是新的編譯匯出，舊 binary 上會抓
+不到符號；`undo` 則被假設永遠在，base class 無條件呼叫，沒有對應的 `offersUndo`。
+同一種形狀的欄位，一個是承重的、一個是純描述的。
+
+**誠實的界限（AGENTS.md §7／§11）**：「不讀」是這一輪**靜態量到**的。其餘 13 個
+「與行為一致」則是**讀出來的分類**，除了 078（inline format）與診斷頁對
+`rawCallbackExposed` 的斷言之外，**這一輪沒有對它們逐一重新量測**。所以本節只證明了
+`boundaryRejectionRequiresFreshWorker` 是被反證的那一個，**沒有**宣稱其餘 13 個
+為真——它們是「未被證偽」，不是「已證為真」。
+
 ## 未做
 
-- 沒有清點**還有哪些**契約欄位是硬寫的、沒有人讀的。只查了這一個。
-  **這一節是「沒查」，不是「查了沒有」。**
+- **其餘 13 個欄位與實測行為是否一致，未逐一重新量測**（見上節誠實的界限）。
+  只證明了本張這一個被反證。**這一節是「沒逐一量」，不是「量了都對」。**
 - 沒有查 `manifest.diagnostic` 這個子物件在什麼時候、為什麼被 pop 掉。
