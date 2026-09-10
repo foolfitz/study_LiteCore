@@ -3914,6 +3914,50 @@ return sink ? { top: sink.offsetTop, left: sink.offsetLeft } : null;
 })()"""
 
 
+def press_the_notice_and_save(session, boundary: dict) -> bool:
+    """B4's measurement, in ONE place because it now has TWO callers.
+
+    The session is dead and the product is offering its notice.  This presses
+    whatever the product offers, waits for a usable session, saves through the
+    product's own save button and records whether the sentinel came back.
+    Returns whether the recovery produced a ready session; `workCameBack` is in
+    `boundary` either way, because "the button did not bring the session back"
+    and "the session came back without the work" are different sentences.
+
+    THE BUTTON IS PRESSED EITHER WAY, and that is not politeness towards a red
+    verdict -- it is this region's contract.  `liveness.expecting` holds the
+    dead-session guard off INSIDE the arm and probes again on the way out, so an
+    arm that leaves the session dead stops the whole run.  Ending early on a
+    failed B1 made the mutation round report a STOPPED run instead of one red
+    check, and made this arm's correctness depend on being the last one in the
+    file.  Pressing whatever the product offers restores a usable session in
+    both worlds: `回到檢查點` reopens from the checkpoint, `重新開啟` from the
+    authority bytes.
+
+    It also buys the negative half of B4 as a MEASUREMENT rather than an
+    assumption: on a product with no checkpoint, what comes back is a document
+    without the typed text, and the run says so instead of leaving the reader to
+    infer it.
+
+    The keys, their ORDER and their values are exactly what the dying branch
+    wrote before this was lifted out of it (2026-09-10), so the shipping
+    profile's banked cells do not move -- `plain-e2-editor-v8.json` is the
+    control T8b re-measures.
+    """
+    boundary["pressedTheNotice"] = evaluate(session, CLICK_NOTICE)
+    recovered = wait_for(session, lambda s: s.get("state") == "ready", 240)
+    boundary["stateAfterRecovery"] = (recovered or {}).get("state")
+    if boundary["stateAfterRecovery"] != "ready":
+        return False
+    evaluate(session, CLEAR_TOAST)
+    saved = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
+    boundary["savedBytes"] = saved.get("bytes")
+    boundary["savedIsOdt"] = is_an_odt(saved)
+    boundary["workCameBack"] = bool(saved) and is_an_odt(saved) \
+        and BOUNDARY_MARK in (saved.get("content") or "")
+    return True
+
+
 def boundary_rescue(session, boundary: dict) -> dict:
     """FINDING 096: does an arrow key with nowhere to go still cost the work?
 
@@ -4072,35 +4116,16 @@ def boundary_rescue(session, boundary: dict) -> dict:
     boundary["notice"] = notice
     b1 = notice.get("shown") is True and notice.get("rescue") == "checkpoint"
 
-    # THE BUTTON IS PRESSED EITHER WAY, and that is not politeness towards a
-    # red verdict -- it is this region's contract.  `liveness.expecting` holds
-    # the dead-session guard off INSIDE the arm and probes again on the way
-    # out, so an arm that leaves the session dead stops the whole run.  Ending
-    # early on a failed B1 made the mutation round report a STOPPED run instead
-    # of one red check, and made this arm's correctness depend on being the
-    # last one in the file.  Pressing whatever the product offers restores a
-    # usable session in both worlds: `回到檢查點` reopens from the checkpoint,
-    # `重新開啟` from the authority bytes.
-    #
-    # It also buys the negative half of B4 as a MEASUREMENT rather than an
-    # assumption: on a product with no checkpoint, what comes back is a
-    # document without the typed text, and the run says so instead of leaving
-    # the reader to infer it.
+    # THE BUTTON IS PRESSED EITHER WAY -- this region's contract, not politeness
+    # towards a red verdict.  The argument, and the negative half of B4 it buys,
+    # are in `press_the_notice_and_save`, which is where the steps now live
+    # because the second inducer measures B4 the same way.
     exercised.append("B4")
-    boundary["pressedTheNotice"] = evaluate(session, CLICK_NOTICE)
-    recovered = wait_for(session, lambda s: s.get("state") == "ready", 240)
-    boundary["stateAfterRecovery"] = (recovered or {}).get("state")
-    if boundary["stateAfterRecovery"] != "ready":
+    if not press_the_notice_and_save(session, boundary):
         return {"ok": False, "outcome": None, "B1": b1, "B2": b2, "B3": b3,
                 "B4": False, "clausesExercised": exercised,
                 "why": "the product's own recovery button did not bring a "
                        "usable session back"}
-    evaluate(session, CLEAR_TOAST)
-    saved = capture_save(session, evaluate(session, SAVE_COUNT) or 0)
-    boundary["savedBytes"] = saved.get("bytes")
-    boundary["savedIsOdt"] = is_an_odt(saved)
-    boundary["workCameBack"] = bool(saved) and is_an_odt(saved) \
-        and BOUNDARY_MARK in (saved.get("content") or "")
     b4 = b1 and boundary["workCameBack"]
     return {"ok": bool(b1 and b2 and b3 and b4), "outcome": None,
             "B1": b1, "B2": b2, "B3": b3, "B4": b4,
