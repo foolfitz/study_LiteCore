@@ -1235,3 +1235,14 @@ Usage guard: the main session still does not run loops, does not `cat` large
 files (grep the section), and does not fork. If a day starts to look like
 OxODF 2026-09-02 (dozens of commits, context × turns), fall back to form B for
 the rest of that day and say so in the ledger.
+
+### Codex is available again (2026-09-10, append-only)
+
+The owner reports codex usable again (it was off since 2026-08-23 for quota).
+Under B′ it takes the **second review seat**: adversarial review of protocols
+and terminating claims alongside opus, preferred where two independent model
+families are worth more than one — a gate condition being declared met, a
+diagnosis about to be acted on, a criterion about to be frozen. The standing
+rule for any reviewer holds: **hand it the criteria to attack, never the
+conclusion to confirm.** Its quota is finite; the main session watches it the
+way it watches its own.
