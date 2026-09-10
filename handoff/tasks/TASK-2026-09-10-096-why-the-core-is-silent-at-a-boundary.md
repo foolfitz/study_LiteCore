@@ -399,3 +399,10 @@ Probe base changes from `probe_096_boundary_arrow.py` to
 `probe_096_flag_reset.py` still stands. The `sourceSequence` cell is removed
 everywhere; `lokIds` per press replaces it. No product change, no getState
 injection (that would be new machinery for a cell the raw stream already gives).
+
+---
+
+## Cost correction on arm U (2026-09-10, append-only)
+
+The owner corrected the cost framing: a native LibreOffice core build is ~1-2 h at most, not a relink-class obstacle. So arm U -- the native LOK harness that observes core's `SAL_INFO("lok", "Skipping duplicate ...")` (`init.cxx:2533`) **directly**, removing the reliance on the source premise (LeftMargin->true) the browser verdict rests on -- is a **reasonable planned step, not a last resort.** Supersession 2's "it is the user's core build" still holds (the owner runs it), but its framing of arm U as merely optional is downgraded: the browser verdict rests on a source premise, and this protocol has already spent two review rounds correcting the main session's source readings, so the direct observation is worth the build. Whether to spend it is the owner's call, offered with the browser result in hand; the exact build + run commands are teed up once T10 confirms the instrument and whether an `instdir` already exists.
+
