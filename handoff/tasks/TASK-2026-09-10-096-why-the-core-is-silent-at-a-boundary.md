@@ -299,3 +299,103 @@ Default conclusion and constraints (§4, §6) are unchanged; the new fixture of
 §6 is **not needed** (no arm uses a document that ends in a numbered item) and
 is not created. Report files: `flag-reset-P.json`, `-G.json`, `-C.json`,
 `-N.json`, shakedown `flag-reset-shakedown-1.json`, `RESULT-why-silent.md`.
+
+---
+
+## Supersession 2 — the instrument is the raw lok stream, not sourceSequence; M1 is refuted at source, P′ isolates the dedup (2026-09-10, append-only)
+
+**What forced this.** The codex review seat's second pass (same thread) landed
+one fatal hit and one caveat; the main session read every line it cited and
+confirms them:
+
+1. **The "answered = sourceSequence advanced" cell of Supersession 1 is not
+   usable.** `sourceSequence` increments only when `editorStateChanged` is true
+   (`src/probe_engine.cpp:2562-2587`); `LOK_CALLBACK_STATE_CHANGED` (id 8)
+   bumps a *separate* counter `stateChangedTotal` (`:2521-2534`) and does **not**
+   move `sourceSequence`. `callbackSequenceAfter` is emitted only on a
+   completion (`:2157-2163`), so a silent press produces none. And the product
+   page writes only state/revision/pending/checkpoint to the DOM
+   (`web/e2-editor-app.js`), so the counter is not readable from the page at
+   all without injecting an `editor.getState()` probe (the 084 route). So
+   "counter advanced" cannot be measured and, worse, could not separate "zero
+   callbacks" from "id 8 arrived, not accepted."
+
+2. **Read-only and ActionPend are silence causes outside M1/M2** (caveat).
+   `SwWrtShell::LeftMargin(false,false)` scrolls and returns without touching
+   `LRMargin`/`UpdateCursor` when `IsCursorReadonly()` (`move.cxx:176-189`) —
+   excluded here because the fixture is editable. `UpdateCursor` early-returns
+   under `ActionPend()` (`crsrsh.cxx:1971-1981`) — controlled inside P′ itself
+   (see below), not assumed away.
+
+**The instrument (replaces Supersession 1's counter).** Reuse
+`findings/evidence/096/probe_096_engine_side.py`'s raw capture: it attaches to
+the document worker and records, per press-window, every raw
+`{"type":"lok","id":N,"payload":…}` line `onLokCallback` emits
+(`probe_engine.cpp:2474-2483`) and every `editor-action-completed`. Per press
+the new probe records `lokIds` (the set of raw ids in the window), whether a
+completion for the press's request arrived, and the state pill / dead-state.
+This is the instrument the engine-side round already used to bank "id 1 → 37 ms
+completion" for the moving press and "none / 8,8,8" for the boundary press.
+
+* **answered** = a raw `lok` id **1** (`INVALIDATE_VISIBLE_CURSOR`) or **2**
+  (`TEXT_SELECTION`) arrived in the window **and** the press's request
+  completed / the pill returned to `ready`.
+* **silent** = no id 1 or 2 in the window **and** the session reaches
+  `recoverable-error` at 29–31 s. The window's `lokIds` still shows any id 8,
+  so "zero callbacks" and "id 8 only" are distinct cells, not merged.
+
+**Why M1 is refuted at source for both paths, and what P′ then proves.**
+
+* The gate `if (bRet) UpdateCursor()` is **open** for the boundary arrow:
+  `SwCursor::UpDown`'s tdf#150457 branch calls `pSh->UpdateCursor()`
+  explicitly **before** `bRet = false` (`swcrsr.cxx:2117-2125`). It is open for
+  a same-position Home: `SwTextFrame::LeftMargin` returns **true
+  unconditionally** (`sw/source/core/text/frmcrsr.cxx:672-696`), so
+  `SwCursor::LeftRightMargin` is true, so `LRMargin` calls `UpdateCursor()`
+  (`crsrsh.cxx:553-558`). So M1 ("UpdateCursor not called") is false wherever
+  the rect is unchanged; the only remaining cause of silence is the flush-time
+  dedup of the unchanged `INVALIDATE_VISIBLE_CURSOR` payload
+  (`init.cxx:1592`, `2529-2537`), which is downstream of `onLokCallback`, so a
+  deduped id 1 never even emits a raw line.
+
+* **P′ is the isolation, not a direct observation of the dedup.** The dedup is
+  internal and never surfaces a raw line; the argument is source + observation:
+  the gate is *provably* open (LeftMargin→true), the rect is unchanged (same
+  position), so P′'s second Home being **silent** leaves the dedup as the only
+  explanation. Its own **first** Home (mid-line → margin, rect changes) being
+  **answered** in the same attempt is the ActionPend/global-suppression control:
+  it shows `UpdateCursor`'s emission does reach the engine in this gesture, so a
+  silent second Home is the payload being a duplicate, not the pipe being shut.
+
+### Verdict (replaces Supersession 1's verdict)
+
+* **Confirmed — the silence is the unchanged-payload dedup**: P′ first Home
+  answered 3/3 and second Home silent 3/3; G answered on all three presses with
+  the second moving the sink left 3/3 (rect-change delivers); C and N wedge as
+  predicted. The boundary arrow shares the mechanism because it too runs
+  `UpdateCursor` with an unchanged rect (tdf#150457).
+* **Refuted**: P′'s second Home answered 3/3 (a raw id 1 arrives despite the
+  unchanged rect) — then the dedup is not operative and the boundary silence
+  needs another cause; re-open with the native arm.
+* **Not established**, cell named, otherwise. A press with a raw id 8 but no
+  id 1/2 and a wedge is banked under its own heading (096 explanation (b),
+  "a callback the engine rejected"), not read as either verdict.
+
+### The native arm U is the only thing that separates dedup from a closed gate directly
+
+Since the raw stream cannot see an enqueue that the dedup dropped, the direct
+observation ("UpdateCursor ran, SetPosAndShow enqueued, flush skipped it") lives
+only in core's `SAL_INFO("lok", "Skipping duplicate …")` (`init.cxx:2533`). That
+needs a native LOK harness **with a built core** (`f059_native_*` link against
+`$(LOBUILD)/instdir`, which is not present on this machine) — it is the
+user's core build, not a browser arm. So U stays optional and, if no `instdir`
+exists, is recorded "not run"; the browser verdict rests on the source premise
+above, stated as a premise.
+
+### §6 amendment
+
+Probe base changes from `probe_096_boundary_arrow.py` to
+`probe_096_engine_side.py` (the worker-attached raw-lok capture). File name
+`probe_096_flag_reset.py` still stands. The `sourceSequence` cell is removed
+everywhere; `lokIds` per press replaces it. No product change, no getState
+injection (that would be new machinery for a cell the raw stream already gives).
