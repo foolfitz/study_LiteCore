@@ -496,3 +496,11 @@ callback capture as JSONL, and `RESULT-native-dedup.md`. No core build, no edit
 to `libreoffice-26-8/**` or `dist/ src/ sdk/ web/ editor-shell*/`, no
 `build_cutover_page.py --write`. The main session reads `sal.log` itself.
 
+### Execution record — arm U (2026-09-10)
+
+Ran against the existing `native-lok-26-8/build` (no build). M2 CONFIRMED
+directly, 3/3: press B (same-position Home, rect unchanged) delivered no type 1
+and logged `Skipping duplicate [1]: [1418, 1418, 0, 280]`; press A (rect
+changed) delivered type 1 and logged no skip-[1]. Instrument red cases held.
+Evidence: `findings/evidence/096/native/round-*/` (verbatim `sal.log` +
+`presses.jsonl`), `RESULT-native-dedup.md`. Nothing above this line was edited.

@@ -798,3 +798,31 @@ overclaim。**但這份協定已經兩輪在修主 session 的原始碼讀法（
 （`init.cxx:2533`）——那要一顆 native core build，而擁有者 2026-09-10 指正過那是
 一兩小時、負擔得起的。處置見下一節；**瀏覽器能給的已經到頂**。
 
+## arm U（native）直接觀測：沉默就是 flush 丟掉沒變的游標 callback——前提變成觀測（2026-09-10，只 append）
+
+擁有者裁定跑 arm U。不用 build：既有的 `native-lok-26-8/build` 是 `ENABLE_SAL_LOG=TRUE`。
+harness `tools/f096_native_dedup.cpp`（判準先釘在協定的「Arm U is runnable today」）
+在 `SAL_LOG="+INFO.lok"` 下跑 `Ctrl+Home → End → Home(A) → Home(B)`，每按鍵前往
+stderr 印 marker 以逐按歸屬。三輪一致，證據在 `findings/evidence/096/native/round-*/`
+（逐字 `sal.log` ＋ `presses.jsonl`）。
+
+| 受測按鍵 | 矩形 | 交付 type 1 給 callback | 該按視窗內的 `Skipping duplicate [1]` |
+| --- | --- | --- | --- |
+| A：Home（行尾→行首） | 變 | **有** | **無** |
+| B：Home（已在行首） | 不變 | **無** | **有**：`Skipping duplicate [1]: [1418, 1418, 0, 280]` |
+
+那個 `[1418, 1418, 0, 280]` 就是游標矩形，和 press A 的結果一字不差。所以 press B 時
+**core 確實 enqueue 了一則 `INVALIDATE_VISIBLE_CURSOR`**（閘門開、`SetPosAndShow`
+沒有矩形守衛就通知了），而 `CallbackFlushHandler` 在送到 client 之前把它當重複丟掉
+（`init.cxx:2535`）。這正是瀏覽器量到的「沒有 type 1、session 楔住」。
+
+**上一節（pre-read）點名的那個唯一前提「那一按讓 UpdateCursor 跑了」現在是觀測不是
+推論**：dedup 的 log 指名它丟掉的型別，而能 log 就代表那則通知被 enqueue 過。儀器
+紅案也過：press A（矩形變）的視窗沒有 skip-[1]，三輪皆然。
+
+**結論定案**：096 邊界那一按的沉默＝LibreOfficeKit 自己的 flush 去重把「矩形沒變的
+游標通知」丟掉，引擎的移動路徑在等一則永遠不會出來的 callback。**不是上游缺陷**
+（去重是刻意的），缺陷在引擎那條移動路徑的契約，半 A（250 ms 期限）就是對的修法。
+T10 的 C 臂（零事件、索引凍住）是同一機制——孤零零一則被丟的 id 1，旁邊沒有別的事件。
+「核心為什麼在邊界不廣播」這一題到此收掉。
+
