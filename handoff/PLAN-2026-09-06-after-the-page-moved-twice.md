@@ -1183,3 +1183,55 @@ section to `findings/095-*.md` in zh-TW. No `--write`, no `make`, no edit under
 unit, zh-TW messages, trailer `Co-Authored-By: Claude Fable 5.1
 <noreply@anthropic.com>`, no `Claude-Session:` line, no push. Report `## SUMMARY`
 ≤30 lines.
+
+---
+
+## Form B′ — the split is by failure type, not by seat (2026-09-10, append-only)
+
+The owner asked, with fable's usage running lower than expected under form B,
+which tasks should move back to the main session. Decided by the owner on
+2026-09-10 after the evidence below; this section supersedes the form-B table
+at the top of this file for every task opened after it. Tasks already open
+(T9) finish under the brief they were given.
+
+### The evidence: every executor error recorded since 2026-09-06
+
+| when | seat | what | type |
+|---|---|---|---|
+| 09-07 T1d | executor | `build_cutover_page.py --write` — cutover before the gate, v47 frozen on cut-over bytes; report said v45 "similarly carries its cutover repoint" (it does not) | tool side-effect read as default; a claim not measured |
+| 09-07 T0 | sonnet | judge served-shell pin set to v45's digest, "wrong in the same way and never exercised" (R-2) | an identity pinned without the check being driven |
+| 09-08 phase 2 | sonnet | first reading read v12 as identical to v8 — settled 1.5 s where v12 needs 1.0–1.5 s; would have been green | timing-sensitive instrument setting, vacuous green |
+| 09-08b | a subagent | `getBounds()` "returns 1/100 mm by UNO convention" — measured: pixels, 26.5× off | plausible claim from general knowledge, not from the tree |
+| 09-06 089 | sonnet | a 26.6× gap reported as general; the regrid showed seconds-class reproduces, 30-s-class does not | extrapolation from a sample |
+
+Four of five are one shape: **a thing not measured, written as fact.** It is
+the costly shape because it flows into downstream reasoning, and the only
+thing that catches it is a re-measurement at pre-read — which the main
+session already does with its own reader.
+
+Recorded on the other side, for fairness: opus T1a caught two overstatements
+in the main session's own brief; the 096 three-way protocols held; T8a proved
+its refactor output-identical; T8b's seven runs re-read exactly. And the main
+session's own errors this week — the `≳99%` threshold not met literally
+(0.9759), a report reader that guessed the schema wrong (2026-09-10), the
+08-29 §11 table — are of a different shape: wording and reading, caught in the
+same turn by raw output. The split below follows the shape of the error, not
+the intelligence of the seat.
+
+### The split from here
+
+| stays with / moves to **fable** (main session) | **sonnet** | **opus** |
+|---|---|---|
+| decisions; briefs; **pinned criteria written directly** (no expansion step when they fit in ~60 lines); **diagnosis and discrimination design** — reading the tree, listing hypotheses, designing falsifiable arms; **small semantics-heavy runner/probe edits** (≲150 lines, where the change is what a cell *means*: verdict composition, mutation entries, oracle text); pre-read of every assembled result with its own reader; the sentence that declares a gate condition met | long browser/desktop runs; banking evidence, README and RESULT tables; gate operations, soak runs; mechanical execution of a protocol whose cells are already pinned; handoff drafts when asked | **adversarial review only** — of the main session's protocols, of terminating claims, of a diagnosis before it is acted on. Not for expanding briefs. |
+
+Rules that carry over unchanged: never `--write` in a measurement brief; name
+the forbidden tool modes; `## SUMMARY` ≤30 lines; worktree isolation for
+tracked-only tasks; every claim in a report names the measurement it rests
+on. New rule: **a diagnosis produced by a subagent is a hypothesis until the
+main session has read the source it rests on** — the `getBounds()` claim is
+the reference case.
+
+Usage guard: the main session still does not run loops, does not `cat` large
+files (grep the section), and does not fork. If a day starts to look like
+OxODF 2026-09-02 (dozens of commits, context × turns), fall back to form B for
+the rest of that day and say so in the ledger.
