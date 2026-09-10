@@ -101,3 +101,28 @@ identity and is the owner's evening. The shipping page still points at v8.
   sonnet runs the native harness, codex reviews the diagnosis before action);
   and the new unexplained item that arrow presses alone let half C bank a
   checkpoint.
+
+## Even later the same day — 096 "why silent" measured, and a cost correction (append-only)
+
+* **T10 ran the why-silent arms** (`findings/evidence/096/RESULT-why-silent.md`,
+  probe `probe_096_flag_reset.py`). Verdict **M2** — the silence is
+  `CallbackFlushHandler`'s flush-time dedup of an unchanged
+  `INVALIDATE_VISIBLE_CURSOR` payload, **as a source-supported inference, not a
+  direct observation** (the dedup is upstream of `onLokCallback`, so the browser
+  cannot see the dropped callback). The main session re-read all four JSONs'
+  `pressTrace` and the source; the verdict survives. Its one remaining premise
+  — that `UpdateCursor` ran on the silent press (gate open) — is pure source for
+  arm C (tdf#150457). Pre-read appended to `findings/096-*.md`.
+* **The direct closer is arm U**: a native LO core build + a small harness that
+  captures core's own `SAL_INFO("lok", "Skipping duplicate …")`
+  (`init.cxx:2533`). Not run by T10 (compilation was out of scope).
+* **Cost correction (owner, 2026-09-10)**: a native core build is ~1–2 h, and a
+  relink is "about the same weight" — **not** a relink-class obstacle. The
+  effort axis was overstated; the identity-binding axis (rebuild invalidates
+  bound evidence; archive first; no rebuild between sweep and judgment) still
+  stands and is a different thing. See the memory `user-handles-core-rebuilds`
+  and `wasm-build-not-reproducible` updates. Consequence: designing a browser-
+  only discrimination to *avoid* a relink is no longer the default; when the
+  clean answer is behind a relink and the detour rests on a premise, relink.
+* **Delegation is now form B′** (diagnosis/criteria/small semantics-heavy edits
+  to the main session; sonnet runs; opus and codex, available again, review).
