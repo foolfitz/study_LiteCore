@@ -316,3 +316,33 @@ not a task failure** — and by §3 above the run will say so in red.
 
 Reserved. Appended to, never edited: T8a adds what the static checks said once
 the code is landed, T8b adds the runs.
+
+### 2026-09-10 — T8a, static only. Nothing above was edited.
+
+Eight commits, `fdc51c10` through `54d2b7df` plus this one: this protocol, the gate amendment, the
+shared `press_the_notice_and_save` tail (proved output-identical to the inline
+code it replaced, in both worlds, `json.dumps` so key order counted), the second
+inducer, the FAIL-not-NE rendering, the three `MUTATIONS` entries, the finding's
+disposition and the evidence README's.
+
+* `make test-e2-c-static` **exit 0** (108 unit tests, which include
+  `test_product_path_mutations.py` holding all three patterns to exactly one
+  occurrence in `dist/`). `tools/check_usable_editor.py` exit 0,
+  `tools/audit_product_path_coverage.py` exit 0.
+* Each mutated file was handed to `node --check`: all three parse.
+* The four B4 renderings were driven through stubs with no browser — `B4` `true`
+  / `false` / `null` / `null`, the last two with `clausesExercised` omitting
+  `B4` and `ok: false`. That exercises the verdict composition and is **not**
+  evidence about any artifact; the red cases are T8b's.
+* **No browser was started and no measurement was banked.** Until T8b has turned
+  all three red cases red, the narrowing this protocol registers is not in force
+  (gate amendment of 2026-09-10, last section).
+
+One deviation from the brief's numbering, recorded rather than left to be
+noticed: its item 4 ("the dying branch is not edited") was landed **before** item
+3, as the refactor commit, so that the commit adding the inducer could not be the
+one that moved the shipping profile's cells. Its item 8 is a constraints list and
+has no commit. Item 3's `b4Inducer` requirement does add one cell to the dying
+branch — `"boundary-press"` — which is the only way that value can ever be
+produced, and no `B1..B4`, `clausesExercised`, `why` or `boundary[...]` cell
+moved.

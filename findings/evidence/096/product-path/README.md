@@ -66,3 +66,71 @@ measured here. On the shipping profile the check runs B1/B3/B4; on v14 it runs
 B1/B3/B2. No single run covers all four.
 
 Full reading: `findings/evidence/096/RESULT-after-the-link.md`.
+
+---
+
+# Append (2026-09-10): B4 gets a second inducer — **no run in this directory yet**
+
+The gap the v14 run above measured — `clausesExercised` `["B1","B3","B2"]` on the
+fixed profile against `["B1","B3","B4"]` on the shipping one, so **no single run
+covers all four clauses and the silent one is B4** — was put to the owner, who
+ruled on 2026-09-10 for a **second inducer** rather than for writing B4 off as
+shipping-side only.
+
+What landed in the tree today is code and text, **not a measurement**:
+
+* `handoff/tasks/TASK-2026-09-10-096-b4-second-inducer.md` — the protocol,
+  committed before the runner was edited: the criteria, the three red cases with
+  the field values that constitute red, the §3 decision and its reasoning, four
+  named limits, and the default conclusions.
+* the gate amendment of 2026-09-10 in
+  `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` — append-only, and it
+  names the bullet of the 2026-09-09 amendment it supersedes.
+* `tools/run_e2_c_product_path.py` — on a run where the press is **answered**,
+  after B2: `induce_worker_failure`, wait for the dead state, **read the
+  declaration before pressing it**, press the product's own notice, save through
+  the product's own button, and require the saved ODT to carry the sentinel. The
+  declared checkpoint must name `r{revisionAfterTyping}`, by the same predicate
+  B3 applies to `checkpointAfterTheKey`. The verdict gains `b4Inducer`
+  (`"boundary-press"` / `"worker-failure"` / `null`).
+* three `MUTATIONS` entries: `boundary-move-takes-no-checkpoint` (existing, which
+  must now red B4 as well as B3), `worker-crash-throws-the-checkpoint-away` and
+  `worker-crash-is-never-noticed`.
+
+**The dying branch is unchanged** beyond one added cell. Its save-and-compare
+tail was lifted into `press_the_notice_and_save` so both inducers ask one
+question; the lift was proved output-identical by running the pre-lift code from
+`ef93c4c4` beside it against the same stubs, in both worlds (recovery works /
+recovery does not), and comparing `json.dumps` of the `boundary` dict, so key
+order counted. Identical in both. The only addition in that branch is
+`b4Inducer: "boundary-press"`; `plain-e2-editor-v8.json` stays the control.
+
+## What would falsify the change, stated before the runs
+
+T8b runs the three red cases once each on `--profile e2-editor-v14`, then three
+plain v14 runs and one on v8. The change is in force only if:
+
+* each red case reds `a-boundary-arrow-press-does-not-cost-the-work` **and
+  nothing else**, with the cells the protocol's §4 pins — in particular
+  `worker-crash-is-never-noticed` must render as `B4: null`, `clausesExercised`
+  without `B4`, `outcome: "FAIL"` (**not** `NOT_ESTABLISHED`);
+* the plain v14 runs show `clausesExercised` containing all four clauses,
+  `b4Inducer: "worker-failure"` 3/3, `stateAfterFallback: "recoverable-error"`,
+  `declaredCheckpointAfterFallback: "有（r1）"`,
+  `checkpointOnOfferIsThisGestures: true`, `workCameBack: true`, `B4: true`, and
+  a composition unchanged at 40 PASS / 2 NE;
+* the v8 run reproduces `["B1","B3","B4"]` with the values already banked here.
+
+**If `induce_worker_failure` does not fire on v14, that is a result to bank, not
+a task failure** — and by design the run says so in red rather than in a green
+that cannot be quoted for B4.
+
+## What was NOT done here
+
+No browser was started, no profile byte moved, no `make` target other than
+`test-e2-c-static` (exit 0, 108 unit tests) was run, and
+`build_cutover_page.py --write` was not run. Before landing, the four B4
+renderings were driven through stubs with no browser — `B4` `true` / `false` /
+`null` / `null`, the last two with `clausesExercised` omitting `B4` and
+`ok: false` — which tests the **verdict composition, not the product**, and is
+not evidence about any artifact.
