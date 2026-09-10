@@ -3973,8 +3973,11 @@ def boundary_rescue(session, boundary: dict) -> dict:
         return evaluate(session, READ_STATE) or {}
 
     def bail(why, outcome="NOT_ESTABLISHED"):
+        # `b4Inducer` is present and null rather than absent: a reader who has
+        # to tell "the field is missing" from "no inducer ran" is reading two
+        # different schemas out of one run.
         return {"ok": False, "outcome": outcome, "why": why,
-                "clausesExercised": []}
+                "clausesExercised": [], "b4Inducer": None}
 
     name = "boundary-rescue.odt"
     boundary["openedAs"] = name
@@ -4098,17 +4101,114 @@ def boundary_rescue(session, boundary: dict) -> dict:
               and (settled or {}).get("revision")
               == boundary["revisionAfterTyping"]
               and "失敗" not in ((settled or {}).get("latency") or ""))
+        # THE SECOND INDUCER, and the reach it buys -- the owner's ruling of
+        # 2026-09-10, registered in the gate amendment of the same day and in
+        # `handoff/tasks/TASK-2026-09-10-096-b4-second-inducer.md`.
+        #
+        # WHY IT IS HERE.  On `e2-editor-v14` this branch is the one that runs,
+        # and it reported `["B1","B3","B2"]` while the shipping profile reported
+        # `["B1","B3","B4"]` -- so no single run covered all four clauses, and
+        # the one that went silent on the FIXED profile was B4, which is the
+        # whole reason half C exists. The logic was sound and was predicted in
+        # advance: half A answers the press, the session never dies, so there is
+        # no notice to press. The consequence is 069 one turn later -- fix an
+        # element and the net that guarded it stops being driven.
+        #
+        # WHAT IS SUBSTITUTED IS ONLY THE KILLING STEP. The gesture still
+        # happens first and still banks its own checkpoint; the checkpoint then
+        # restored from is REQUIRED to name this gesture's revision below,
+        # because once the death is induced from outside, "a checkpoint exists"
+        # is no longer evidence that the arrow key took it. Same helper, same
+        # argument and same shape as `recovery-returns-what-the-product-promised`
+        # (:8810), which lost finding 038 on the accessibility core and was given
+        # this inducer rather than an NE.
+        #
+        # AGENTS.md §3: a DESIGNED SENTINEL, not a hole. On a profile carrying A
+        # the gesture CANNOT kill the session -- that is what A is for.
+        #
+        # B1 STAYS THE PRESS'S VERDICT. The induced failure is not the press and
+        # may not be read as one.
+        b4 = None
+        why_b4 = None
+        inducer = None
+        if not usable:
+            why_b4 = ("the press left the session "
+                      f"{(settled or {}).get('state')!r}, so there was no live "
+                      "session to kill a second time and B4 was not attempted")
+        else:
+            inducer = "worker-failure"
+            boundary["fallbackInducer"] = induce_worker_failure(session)
+            if not boundary["fallbackInducer"].get("fired"):
+                why_b4 = ("the second inducer never fired, so B4 -- what comes "
+                          "back contains what was typed -- was not measured on "
+                          "this profile: "
+                          f"{boundary['fallbackInducer'].get('why')}")
+            else:
+                # 90 s is a CEILING, not an expectation: the worker's `error`
+                # event reaches `DocumentSdk._handleCrash` synchronously with
+                # the throw, so the transition is milliseconds. It also bounds
+                # what the `worker-crash-is-never-noticed` red case costs.
+                wedged = wait_for(session, dead_session, 90)
+                boundary["stateAfterFallback"] = (wedged or {}).get("state")
+                if not dead_session(wedged):
+                    why_b4 = ("the second inducer fired and the product never "
+                              "noticed: a real uncaught error inside the "
+                              "document worker left the session "
+                              f"{boundary['stateAfterFallback']!r}, so the dead "
+                              "state B4 needs was never reached")
+                else:
+                    # THE DECLARATION, READ BEFORE THE BUTTON IS PRESSED, which
+                    # is the whole point -- and held to THIS gesture's revision
+                    # by the same predicate B3 applies to `checkpointAfterTheKey`
+                    # above, so the two cells cannot drift apart.
+                    declared = (wedged or {}).get("checkpoint") or ""
+                    offered = evaluate(session, READ_NOTICE) or {}
+                    boundary["declaredCheckpointAfterFallback"] = declared
+                    boundary["noticeAfterFallback"] = offered
+                    boundary["checkpointOnOfferIsThisGestures"] = (
+                        declared.startswith("有")
+                        and f"r{boundary['revisionAfterTyping']}" in declared)
+                    offers = (offered.get("shown") is True
+                              and offered.get("rescue") == "checkpoint")
+                    exercised.append("B4")
+                    if not press_the_notice_and_save(session, boundary):
+                        b4 = False
+                        why_b4 = ("the product's own recovery button did not "
+                                  "bring a usable session back after the second "
+                                  "inducer")
+                    else:
+                        b4 = bool(offers
+                                  and boundary["checkpointOnOfferIsThisGestures"]
+                                  and boundary["workCameBack"])
+                        if not b4:
+                            why_b4 = (
+                                "the gesture banked a checkpoint and the session "
+                                "was then killed a second way, and what came "
+                                "back does not carry the work: "
+                                f"rescue={offered.get('rescue')!r}, "
+                                f"#s-checkpoint {declared!r}, and the document "
+                                "the product saved after pressing "
+                                f"「{offered.get('label')}」 "
+                                f"{'does' if boundary['workCameBack'] else 'does not'} "
+                                "contain what was typed"
+                                + ("" if boundary["checkpointOnOfferIsThisGestures"]
+                                   else ". The checkpoint on offer was NOT this "
+                                        "gesture's, so pressing it would have "
+                                        "measured one an earlier gesture banked"))
         # B1 in this branch is `usable`, not True: a press that neither
         # answered nor killed the session -- still `busy` when the wait ran out
         # -- has left the work unreachable just as surely, and labelling that
         # B1 True would put a green beside a red verdict.
-        return {"ok": bool(usable and b2 and b3), "outcome": None,
-                "B1": usable, "B2": b2, "B3": b3, "B4": None,
+        press_why = (None if (usable and b2 and b3) else
+                     "the press was answered but the answer did not leave a "
+                     "usable session at the revision it started from, or the "
+                     "checkpoint was not this gesture's")
+        return {"ok": bool(usable and b2 and b3 and b4 is not False),
+                "outcome": None,
+                "B1": usable, "B2": b2, "B3": b3, "B4": b4,
                 "clausesExercised": exercised,
-                "why": None if (usable and b2 and b3) else
-                       "the press was answered but the answer did not leave a "
-                       "usable session at the revision it started from, or the "
-                       "checkpoint was not this gesture's"}
+                "why": "; and ".join(w for w in (press_why, why_b4) if w) or None,
+                "b4Inducer": inducer}
 
     # The session died.  B1 is then the question the owner's finding is about:
     # is there a way back, or does the product say there is none?
@@ -4125,7 +4225,8 @@ def boundary_rescue(session, boundary: dict) -> dict:
         return {"ok": False, "outcome": None, "B1": b1, "B2": b2, "B3": b3,
                 "B4": False, "clausesExercised": exercised,
                 "why": "the product's own recovery button did not bring a "
-                       "usable session back"}
+                       "usable session back",
+                "b4Inducer": "boundary-press"}
     b4 = b1 and boundary["workCameBack"]
     return {"ok": bool(b1 and b2 and b3 and b4), "outcome": None,
             "B1": b1, "B2": b2, "B3": b3, "B4": b4,
@@ -4139,7 +4240,13 @@ def boundary_rescue(session, boundary: dict) -> dict:
                     "met it" if not b1 else
                     "the notice offered the checkpoint but what came back after "
                     "pressing it does not contain what was typed, or the "
-                    "checkpoint was not this gesture's")}
+                    "checkpoint was not this gesture's"),
+            # WHICH INDUCER PRODUCED THE CELLS ABOVE, said in the verdict rather
+            # than inferred from `clausesExercised`. The gesture itself, here;
+            # the worker failure in the answered branch. The only addition to
+            # this branch on 2026-09-10 -- every other cell, and every
+            # `boundary[...]` key, is what `plain-e2-editor-v8.json` banked.
+            "b4Inducer": "boundary-press"}
 
 
 def is_an_odt(report: dict) -> bool:
