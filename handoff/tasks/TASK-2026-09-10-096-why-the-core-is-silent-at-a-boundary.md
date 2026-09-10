@@ -406,3 +406,26 @@ injection (that would be new machinery for a cell the raw stream already gives).
 
 The owner corrected the cost framing: a native LibreOffice core build is ~1-2 h at most, not a relink-class obstacle. So arm U -- the native LOK harness that observes core's `SAL_INFO("lok", "Skipping duplicate ...")` (`init.cxx:2533`) **directly**, removing the reliance on the source premise (LeftMargin->true) the browser verdict rests on -- is a **reasonable planned step, not a last resort.** Supersession 2's "it is the user's core build" still holds (the owner runs it), but its framing of arm U as merely optional is downgraded: the browser verdict rests on a source premise, and this protocol has already spent two review rounds correcting the main session's source readings, so the direct observation is worth the build. Whether to spend it is the owner's call, offered with the browser result in hand; the exact build + run commands are teed up once T10 confirms the instrument and whether an `instdir` already exists.
 
+---
+
+### 2026-09-10 — T10 (append-only; the executor's run)
+
+**Shakedown.** One P′ attempt, `findings/evidence/096/flag-reset-shakedown-1.json`. It measured exactly what Supersession 2 names on the first try (first Home answered, `lokIds=[1]`; second Home silent, `lokIds=[5]`, dead at 30.38s) -- **no probe fix was forced**; `probe_096_flag_reset.py` is committed as written.
+
+**Twelve counted attempts, zero VOID, zero deviation from Supersession 2's prediction.** `flag-reset-P.json` (3), `-G.json` (3), `-C.json` (3), `-N.json` (3). Full detail and the per-press table are in `findings/evidence/096/RESULT-why-silent.md`; summary:
+
+- P′: first Home answered 3/3 (`lokIds=[1]`), second Home silent 3/3 (`lokIds=[5]`, `sinkLeft` unchanged, dead 30.2-30.4s).
+- G: first two Homes answered 3/3/3, second Home's `sinkLeft` left of the first's (112 < first's landing, matching "in front of the label") 3/3; third Home silent 3/3 (`lokIds=[8]`).
+- C: the single press silent 3/3 (`lokIds=[]` -- the emptiest of the three silent shapes).
+- N: first ArrowDown answered 3/3 (`sinkLeft` jumps 133→356, the tdf#150457 branch), second silent 3/3 (`lokIds=[5]`).
+
+All positive controls held in the same batch (C/N wedge; P′/G's leading Homes answered).
+
+**Verdict: M2 CONFIRMED**, by Supersession 2's rule read literally -- every clause met 3/3 (P′ 4/4 counting the shakedown), no cell not-established, no "third thing" (a raw id 1/2 with the session still dead) observed on any of the 12+1 attempts.
+
+**Arm U: not run.** `$(LOBUILD)/instdir/program` (`wasm-lite/build-headless-probe/instdir/program`) exists but is the Emscripten/WASM cross-build (`soffice.wasm`/`soffice.js`), not a native harness. A native core build does exist (`native-lok-26-8/build/instdir/program/soffice.bin`, a real ELF binary) and this tree has several one-off native LOK harnesses built against native cores for *other* findings (059, 048, 046, ...), but none tests this question (dispatching a boundary move via `postUnoCommand`/`bNotifyWhenFinished` and reading `LOK_CALLBACK_UNO_COMMAND_RESULT` or the `Skipping duplicate` `SAL_INFO` line). Building one is compiling a new harness, which this task does not do. Recorded "not run -- no pre-existing native harness answers this question," not "no core build on this machine" -- the latter would have been false and is not what blocked arm U.
+
+**Observed, not explained (see RESULT-why-silent.md for detail, not folded into the verdict):** the three arms' "silent" windows carry three different non-1/2 shapes (`[]` for C, `[5]` for P′/N, `[8]` for G); `noticeRescue` is `"none"` (the original zero-checkpoint notice) for C -- whose single press is the first and only key dispatched in that session -- and `"checkpoint"` for P′/G/N, each of which had a preceding answered press first; G's second Home also moves `sinkTop` by 4px. None of these bear on M1/M2 and none is explained here.
+
+Evidence: `findings/evidence/096/probe_096_flag_reset.py`, `flag-reset-shakedown-1.json`, `flag-reset-{P,G,C,N}.json`, `RESULT-why-silent.md`.
+
