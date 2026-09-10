@@ -611,3 +611,95 @@ v13 與 v8 各 10/10 進 `recoverable-error`。**但探針記的是
 Home／End 與兩個字元移動；250 ms 在長文件上夠不夠、落到讀回的發生率；任何 v1 profile
 （`editor-shell/editor-client.js` 仍然會拒絕 `verified-move-readback`，本輪沒有動過
 也沒有量過任何 v1 artifact）。
+
+---
+
+# 追記（2026-09-10）：B4 的缺口由擁有者裁 a，第二個誘因已落地——**但還沒跑**
+
+**這一段是 append，上面一個字都沒有改。**
+
+連結之後那一段的第 4 件「預測沒有預期到的事」登錄的是：**B4 在 v14 上不再被執行**，
+`clausesExercised` 在 v14 是 `["B1","B3","B2"]`、在出貨的 v8 是 `["B1","B3","B4"]`，
+**沒有任何單一一趟同時蓋到四條，而安靜掉的正好是半 C 存在的理由那一條**。兩個選項是
+(a) 補第二個誘因，讓 B4 在修好的 profile 上到得了；(b) 寫下「B4 只在出貨那一側有意義」。
+
+**擁有者 2026-09-10 裁 (a)。**協定
+`handoff/tasks/TASK-2026-09-10-096-b4-second-inducer.md`（**寫在 runner 被改之前**）、
+閘門 amendment 在 `handoff/PLAN-2026-08-28-the-v11-cutover-horizon.md` 的同日那一段
+（append-only，並指名它取代 2026-09-09 那份裡的「**B4 is exercised only while the
+press wedges**」那一條——那條預測逐字成立，擁有者裁定它不可接受）。
+
+## 換掉的只有「殺」那一步
+
+誘因沿用 `recovery-returns-what-the-product-promised` 的那一支（`induce_worker_failure`，
+worker 裡一個真的未捕捉錯誤，從產品外面誘發，不依賴任何缺陷）。那一按被回答之後：
+發火 → 等 `dead_session`（90 秒是上限不是預期）→ **按下去之前先讀宣告** → 按產品
+自己的提示 → 等 ready → 走產品自己的存檔鍵 → B4 ＝存出來的 ODT 含不含那個標記。
+
+**手勢照樣先發生、照樣先存它自己的檢查點**，所以受測的性質沒有變：半 C 在**這一按
+之前**存的那個檢查點能不能把打進去的字帶回來。
+
+**因此多一條必要條件，而它不是裝飾**：`declaredCheckpointAfterFallback` 要以「有」
+開頭且含 `r{revisionAfterTyping}`——**跟 B3 讀 `checkpointAfterTheKey` 是同一個
+判別式**，兩格不會各自漂。死是從外面誘發的，「有檢查點」本身**不再**能證明那是方向鍵
+存的；不符就 B4 False，`why` 指名「提供的不是這個手勢的檢查點」。
+
+`B1` 仍然是**那一按**的判定。誘發的死不是那一按，不准被讀成那一按。
+`b4Inducer` 進 verdict（`"boundary-press"`／`"worker-failure"`／`null`），
+**死掉那一支只多這一格**，其餘逐格是 `plain-e2-editor-v8.json` 押下的那些。
+
+AGENTS.md §3：登錄為**設計好的哨兵，不是洞**——帶著 A 的 profile 上那個手勢**殺不死**
+session，那正是 A 在做的事。§4：不是新機制，沒有產品位元組、沒有引擎改動、沒有連結。
+
+## 「B4 沒被執行」判 FAIL，不判 NOT_ESTABLISHED
+
+決定與理由都寫下來，因為 §3 要求這兩種登錄不准寫成同一句話：
+
+- 前例的規則是「NE 只留給**沒有任何誘因到得了那個狀態**」，而正是那句話判掉了 NE：
+  v14 上這一格**報的是 PASS** 而 B4 是安靜的，降成 NE 只會讓**整趟**維持綠燈
+  （`report["ok"]` 不算 NE），把同一個洞藏得更安靜一格。2026-08-27 的裁決對**這支
+  誘因的出處那一格**就叫過那個形狀「穿著 NE 戲服的 finding」。
+- 它也不是「沒量到」：B1、B2、B3 都被驅動、都有回報。這一格是**量到了而沒達到自己的
+  要求**，那就是 FAIL。
+- 真正到不了的前置條件（沒有 CDP、profile 不提供 `move-line-up`）**在那支函式上游就
+  已經是 NE**，所以一趟 Firefox 不可能跑出這種紅。
+- `B4` 在那個狀態留 `null` 而不是 `false`：這一趟從來沒有宣稱工作沒回來，只說沒有人問。
+
+**先寫下來的代價**：`induce_worker_failure` 若因為儀器原因失效，這一格會在每一顆修好的
+profile 上紅到有人去看。這是 (a) 的標價。
+
+## 三個紅案（欄位值寫在程式碼之前，協定 §4）
+
+| 紅案 | 逼出來的狀態 | 要紅在哪 |
+| --- | --- | --- |
+| `boundary-move-takes-no-checkpoint`（既有） | 半 C 那兩行拿掉 | **B3 與 B4 都紅**（以前只有 B3） |
+| `worker-crash-throws-the-checkpoint-away`（新） | crash 那一支在進 recovery 前把檢查點丟掉 | **B3 綠、B4 紅**——單一子句分不出來的那一對 |
+| `worker-crash-is-never-noticed`（新） | 同一支被關掉，誘因發火而產品沒注意到 | **B4 `null`、`clausesExercised` 沒有 B4、這一格 FAIL** |
+
+兩個新的都在 `editor-shell/editor-session.js` 的 `worker-crashed` 那一支，一趟裡沒有
+別的東西到得了那裡（`induce_worker_failure` 另一個呼叫點只在 038 不再重現時發火，而
+038 在 v8 與 v14 上都還重現）。所以 `alsoRed` 刻意是空的，**紅到別格就是把這個宣稱
+證偽**。三個 pattern 在 `dist/` 各比到剛好一次，改完的檔 `node --check` 都過。
+
+## 本輪**沒有**量到的（不得被上面的文字蓋過去）
+
+**一次瀏覽器都沒開。**T8a 是靜態的：協定、amendment、runner、三個 mutation 進樹，
+只跑 `make test-e2-c-static`（exit 0）。**三個紅案與三趟 v14 無突變、一趟 v8 對照，
+全部是 T8b 的事**，而且在它們跑過之前，這條收緊**不生效**、組成退回 2026-09-09 登錄
+的那一版。落地前我只用 stub 把四種呈現的控制流跑過（無瀏覽器）：
+`B4` 依序是 `true`／`false`／`null`／`null`，後兩者 `clausesExercised` 沒有 B4、
+`ok: false`。**那驗的是判定組成，不是產品。**
+
+四條具名極限也先寫在協定裡：`Target.setAutoAttach` 兩個呼叫點的**順序依賴**（今天只有
+一個會發火，因為 038 還重現）；`maxWorkerGenerations` 預設 3 而這一臂用到 2，**不能再
+長出第三次回復**；使用者不會故意弄死 worker，所以這一臂量的是「產品在一個它本來就在
+處理的崩潰類別之後怎麼做」；以及**v14 上的 B4 比出貨那一側的 B4 弱**——它說的是「手勢
+存的檢查點在另一個死因之後還活著」，不是「那個手勢自己的死還回得來」。**不得拿一趟
+v14 去引用較強的那個宣稱。**
+
+## 預設結論（若這件事永遠沒做完）
+
+B4——「回來的東西含不含打進去的字」，也就是半 C 存在的理由——**在每一顆帶著 A 的
+profile 上都沒有人守**，而且檢查會一直報三條子句的 PASS，讀的人不開 JSON 看不出少了
+哪一條。若 T8b 跑了而誘因永遠不發火：射程不存在，這一格在修好的 profile 上是紅的，
+決定回到擁有者手上（(b) 或第三個誘因）——**不得靠「把紅留著」偷偷選 (b)**。
