@@ -4203,7 +4203,34 @@ def boundary_rescue(session, boundary: dict) -> dict:
                      "the press was answered but the answer did not leave a "
                      "usable session at the revision it started from, or the "
                      "checkpoint was not this gesture's")
-        return {"ok": bool(usable and b2 and b3 and b4 is not False),
+        # A MISSING MEASUREMENT IS NOT A GREEN, and `b4 is True` rather than
+        # `b4 is not False` is the whole of that sentence in code.
+        #
+        # The alternative was NOT_ESTABLISHED, and the precedent's rule --
+        # reserve NE for "no inducer could reach the state at all" -- is what
+        # decided against it here. On `e2-editor-v14` this check reported PASS
+        # with B4 silent, and an NE would keep the RUN green (`report["ok"]`
+        # counts NE as neither) while hiding the same hole one notch quieter.
+        # The 2026-08-27 adjudication called that shape "a finding wearing an NE
+        # costume" on the very check this inducer comes from.
+        #
+        # It is also not unestablished: B1, B2 and B3 were driven and reported.
+        # This check is established and short of its own requirement, which is
+        # what FAIL means. The preconditions that genuinely cannot be reached --
+        # no CDP, or a profile that does not offer `move-line-up` -- are NE
+        # UPSTREAM of this function, so a Firefox run cannot produce this red.
+        #
+        # `B4` stays None rather than False in that state: the run never claims
+        # the work failed to come back, only that nothing asked. The two
+        # sentences are in `why`, never merged.
+        #
+        # ACCEPTED COST, written down before it is paid: if
+        # `induce_worker_failure` stops working for an instrument reason, this
+        # check is red on every fixed-profile run until somebody looks. The
+        # reasoning is §3 of `handoff/tasks/TASK-2026-09-10-096-b4-second-
+        # inducer.md`, and the alternative is a green run that cannot be quoted
+        # for B4 and does not say so.
+        return {"ok": bool(usable and b2 and b3 and b4 is True),
                 "outcome": None,
                 "B1": usable, "B2": b2, "B3": b3, "B4": b4,
                 "clausesExercised": exercised,
