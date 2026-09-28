@@ -1,0 +1,124 @@
+# M3 asset delivery — step 0
+
+What the shipped editor pulls from the server when it is opened from Files in the
+`litecore` app, and what it pulls again the next time. Host `litecore` `49cc4ab` (clean),
+Nextcloud 34.0.2, Apache + PHP-FPM (ddev), page `e2-editor-app.js` `fbfb59a4…`, profile
+`e2-editor-v8`. Nothing in the app, the product or `dist/` was changed by these probes.
+
+## Files
+
+| file | what |
+| --- | --- |
+| `assets-2026-09-28T155551+0000.json` | `probe_m3_assets.py`: closure, wire pass, browser pass (Chrome 151, Firefox 156; one profile each, **cache on**, two opens) |
+| `browser-cache-2026-09-28T155905+0000.json` | `probe_m3_browser_cache.py`, **invalid**: every lab file 404'd (see "Instrument errors") |
+| `browser-cache-2026-09-28T160045+0000.json` | same probe, **confounded**: second round in the same document |
+| `browser-cache-2026-09-28T160212+0000.json` | same probe, the valid run: second round in a new document, positive controls |
+
+## S0-1. The closure (tool-derived, and matched by the server log)
+
+`probe_m3_assets.closure()` derives it from the sources that decide it: the page's static
+module graph from `e2-editor-app.js` (13 files; no dynamic `import()` in any of them), the
+one hard-coded `workerUrl`, and that worker's `sdk-manifest.json` — `artifactFiles` plus the
+resource packs with `loadAtStartup === true` (the worker's own loader loads only those;
+finding 085). Plus `e2-editor.html`, which the host re-wraps.
+
+22 files, **169,617,155 bytes**: `probe.wasm` 115.3 MB, `base-r5….data` 34.2 MB,
+`cjk-r5….data` 19.5 MB, everything else 0.6 MB. Declared but never loaded:
+`fallback-fonts-r5` (49.1 MB data + metadata).
+
+The server log of the first open lists exactly these paths under the app (plus the host's
+own `litecore-editor.js`, `litecore-files.mjs`, and the 303 for the wasm), in both browsers.
+`e1-fixtures/` is not requested: with a host present the page returns before its fixture
+fetch.
+
+## S0-2. What goes over the wire, and how
+
+Wire pass (logged in, no browser), every closure file through `/apps/litecore/r/…`:
+
+- every file except the wasm is served by PHP (`file_get_contents`, whole file in memory),
+  `Cache-Control: no-cache`, **no ETag, no Last-Modified**;
+- `.js` is compressed on the way (Apache `mod_deflate` on PHP's `text/javascript`);
+  `.data`, `.metadata`, `.json` are not (`application/octet-stream` / `application/json`);
+- the wasm is a 303 to the app directory's static file, which Apache serves uncompressed
+  (115,297,503 bytes even with `Accept-Encoding: gzip, br, zstd`), `max-age=15778463`
+  (no `immutable`: the URL has no `?v=`).
+
+Offline compression of the closure's big files (bytes):
+
+| file | raw | gzip -9 | zstd -19 |
+| --- | ---: | ---: | ---: |
+| `probe.wasm` | 115,297,503 | 40,990,537 | 30,688,739 |
+| `base-r5….data` | 34,178,400 | 7,316,692 | 5,532,633 |
+| `cjk-r5….data` | 19,484,784 | 15,553,191 | 12,171,653 |
+| `base-r5….metadata` | 181,072 | 19,072 | 16,088 |
+| `probe.js` | 143,998 | 36,205 | 33,642 |
+
+The closure is 169.6 MB raw, about 64 MB gzip, about 49 MB zstd.
+
+## S0-3. A second open downloads everything again — both browsers, cache on
+
+Server log, requests under the app, per open (bytes = Apache `%O`, headers included):
+
+| browser | open | app requests | bytes | seconds to host `done` |
+| --- | --- | ---: | ---: | ---: |
+| Chrome 151 | first | 32 | 169,603,663 | 2.50 |
+| Chrome 151 | second | 30 | 169,577,836 | 2.52 |
+| Firefox 156 | first | 32 | 169,603,665 | 3.23 |
+| Firefox 156 | second | 30 | 169,577,838 | 3.17 |
+
+The second open re-fetches every closure file with a 200 and a full body, **including the
+115 MB wasm that Apache sends with `max-age=15778463`**. `probe.js` is fetched 8 times per
+open (the worker and each of the 7 pthreads). The seconds do not show the cost: this is a
+loopback connection. At 50 Mbit/s, 169.6 MB is about 27 s (derived, not measured).
+
+Every M3 counted run so far used `cold` sessions (cache disabled), so none of them could
+have seen this.
+
+## S0-4. X1: which responses the browsers' HTTP caches keep (the valid run, `…160212`)
+
+Lab files in the app's `js/cachetest/` (untracked, removed after the run; the report
+records `labRemoved: true`), each fetched as `<file>?v=1`, so Nextcloud's own `.htaccess`
+sends `Cache-Control: max-age=15778463, immutable`. Per profile: fetch each file, go to a
+new document, fetch each again. "second" = whether the second fetch reached the server.
+
+| file (bytes on the wire) | Chrome, profile on /tmp (14 GB free) | Chrome, profile on /home (88 GB free) | Firefox, /home |
+| --- | --- | --- | --- |
+| ctrl-1k, ctrl-5m (controls) | cached | cached | cached |
+| rand-20m, rand-45m | cached | cached | cached |
+| rand-60m | cached | cached | **refetched** |
+| rand-80m, rand-100m | cached | cached | **refetched** |
+| rand-120m | **refetched** | cached | **refetched** |
+| `raw.wasm` = shipped `probe.wasm`, 115.3 MB | **refetched** | cached | **refetched** |
+| `enc-gzip.wasm`: 41.0 MB gzip, `Content-Encoding: gzip`, decodes to 115.3 MB | cached | cached | cached |
+| `enc-zstd.wasm`: 30.7 MB zstd, `Content-Encoding: zstd`, decodes to 115.3 MB | cached | cached | cached |
+
+Every first fetch was 200 with the right decoded length (the encoded ones decoded to
+115,297,503 bytes in the page).
+
+Read:
+
+- **Firefox keeps nothing above a cap between 45 and 60 MB**, and the cap applies to the
+  **encoded** size: the 115 MB wasm is never kept as served today, and is kept when sent as
+  41 MB of gzip.
+- **Chrome's cap follows the free space of the profile's disk**: the same file is kept with
+  88 GB free and not with 14 GB free. The shipped wasm, as served today, falls on the wrong
+  side on the smaller disk. Where exactly the cap sits for a given disk was not measured.
+- So the second-open re-download in S0-3 has two causes: the size of the wasm (both
+  browsers here — Chrome's step-0 profile was on /tmp) and `no-cache` without a validator
+  on everything PHP serves.
+
+Browser defaults as documented upstream (Firefox `browser.cache.disk.max_entry_size`
+51200 KiB; Chrome's cache size following free disk) are consistent with this; they were
+not read from the browsers' source here.
+
+## Instrument errors (kept, not hidden)
+
+- `…155905`: the lab directory was a new top-level entry of the app repo; `nc-link`
+  symlinks each top-level entry into `apps-extra/litecore/` once, so it was never served
+  and every file 404'd. The summary line printed `REFETCH` for them — a verdict without its
+  payload. The raw statuses in the report showed the 404s. Fixed: lab under `js/` (linked),
+  positive controls added, the summary prints the statuses.
+- `…160045`: the second round ran in the same document, where a repeated fetch can be
+  answered without the HTTP cache. It said Chrome keeps 60 MB and Firefox keeps 45 MB but
+  not 60 MB; it could not say anything about reopening the editor. Fixed: a navigation
+  before each round. The valid run differs from it only for sizes it did not include.
