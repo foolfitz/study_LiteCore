@@ -150,3 +150,8 @@ edit it (that file's hash is bound to the LOCKS LAND counted run).
   wire check repeats the host record; "no copy" also empties the total row's S3 half, which
   row 6 implies). One case was fixed after the census: the third save's `If-Match` is now
   scored and mutated on the attempt level, the one the wire check compares.
+
+## Counted run (2026-09-28)
+
+`runs/2026-09-28T152217+0000.json`: **`VERSIONS CORRECT`**, 6/6, no red. Read `RESULT.md`.
+The four counted-run rules of `../m3-locks/README.md` applied; none was invoked.

@@ -336,8 +336,14 @@ E1h 的序列、兩個瀏覽器各 3/3，才能取代 PHP。
 
 ### 5.3 第二個坎：169 MB 靜態資產
 
-必須 web server 直出、immutable 快取、**不穿過 PHP**。而且**這體積上不了 App Store tarball**
-（推論，上限未查），得另想發布——安裝時下載，或分開散布。
+必須 web server 直出、immutable 快取、**不穿過 PHP**。~~而且**這體積上不了 App Store tarball**
+（推論，上限未查），得另想發布——安裝時下載，或分開散布。~~
+
+**2026-09-28 更正（已觀察）**：「上不了 App Store」**不成立為一般規則**。App Store 的原始碼預設下載上限是
+`MAX_DOWNLOAD_SIZE = 30 MiB`（`nextcloud/appstore` `nextcloudappstore/settings/base.py:305`；文件範例寫 20 MiB），
+但正式站在 2026-09-24 發佈了 `richdocumentscode` 26.4.402，套件是 **269 MB**（GitHub release asset；App Store API
+`apps.json` 裡那個版本的 `download` 就指向它）。所以正式站沒有套用那個預設，或者對個別 app 有例外——**對我們的 app
+適不適用未知**，要問或要試。體積仍是發布成本，但不再是「做不到」。
 
 **2026-09-28 補充（已觀察，閘門 0 的 C7）**：「web server 直出」在 Apache 上只對一部分副檔名成立。
 擋住其餘檔案的是 **Apache `.htaccess` 的副檔名白名單加上 pretty URL**（`nextcloud/.htaccess:207`；
@@ -369,6 +375,8 @@ WebDAV 取檔 → 出貨的編輯器開啟它並做一個段落動作，Chrome 1
 還沒量）、以及「乾淨」在宿主收下之前就成立的殼層語意。
 
 **2026-09-28 三補充（已觀察）：鎖與權限落地。**`litecore` app（`49cc4ab`）開檔時先取 WebDAV token 鎖、再讀版本，每 60 秒續約，離頁時解鎖；每一種被拒絕的存檔都有出路（423／412 走衝突副本、唯讀 403 另存到自己的資料夾、連副本都存不了就給下載）。12 臂 counted run `LOCKS LAND`，Chrome 151／Firefox 156 共 52 次全過，紅案 87 個全紅（`findings/evidence/m3-locks/RESULT.md`）；頁面、殼層、引擎都沒動。過程掉出三張上游 finding：100（OCS 上鎖端點該回 423 卻回 500）、101（token 鎖續約不會延長，宿主已繞過）、**102（token 鎖誰送都收——有寫入權的人拿持有者的 token 就寫得穿；我們靠 `If-Match` 不掉資料，但「開著時別人寫不進來」只對照規矩來的用戶端成立）**。關分頁**不會**釋放鎖（兩個瀏覽器都不會），鎖約 306 秒後自行失效。剩下的：**版本**（Nextcloud 自己的檔案版本在我們存檔後長什麼樣，還沒量）、頁面沒有唯讀模式、「乾淨」在宿主收下之前就成立的殼層語意。
+
+**2026-09-28 四補充（已觀察）：版本正確。**`specs/SPEC-M3-versions.md`，宿主、頁面、殼層都沒動。HTTP 探針：我們的存檔在版本上跟一般用戶端沒有差別；上鎖、解鎖不產生版本；**從 Files 還原版本會穿過我們的 token 鎖**（files_lock 的儲存層不看 token 鎖），宿主下一次存檔 412、另存衝突副本。R1 經過真的頁面（開檔 → 存兩次 → 在頁面開著時還原 → 第三次存檔 → 離頁），計數執行 `VERSIONS CORRECT`，Chrome／Firefox 各 3/3，紅案 68 個全紅（`findings/evidence/m3-versions/RESULT.md`）：使用者做出的四個狀態（原檔、兩次存檔、第三次的副本）都逐位元拿得回來。過程掉出兩張上游 finding：**103（同一秒內別人的寫入不換 ETag，`If-Match` 擋不住，帶舊 ETag 的存檔會蓋掉它）**與 **104（同一秒內兩次寫入之後，任何還原都會讓第二次寫入永久遺失）**；鎖與權限、宿主入口規格與 101／102 的「帶 `If-Match` 所以不掉資料」已原地修訂。剩下的：頁面沒有唯讀模式、「乾淨」在宿主收下之前就成立的殼層語意（兩件都要換頁面身分），以及 §5.3 的資產派送。
 
 ### 5.5 完成判準
 
@@ -493,6 +501,7 @@ M4 把功能 corpus 換掉之後才動：filter allowlist、component／library 
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-28 | **§5.4 四補：版本正確**（`VERSIONS CORRECT`，R1 兩個瀏覽器各 3/3），掉出 finding 103、104。**§5.3 更正**：「169 MB 上不了 App Store」不是一般規則——原始碼預設上限 30 MiB，但正式站 09-24 發佈了 269 MB 的 `richdocumentscode`。 |
 | 2026-09-28 | **§5.4 再補：宿主入口落地**（擁有者選 A）。頁面加 `liteCoreHost`、殼層 v53；開、存、衝突在兩個瀏覽器各 3/3；剩鎖、版本、「乾淨」的時機。 |
 | 2026-09-28 | **§5.4 補 M3 骨架的結果**：從 Files 開 ODT 走通（`SKELETON WORKS`，兩個瀏覽器各 3/3，不改產品位元組），但存回、鎖、版本、衝突都卡在「產品頁沒有宿主入口」這個決定上。 |
 | 2026-09-28 | **M3 閘門 0 通過，§5.1 改寫、§5.3 補 C7。**計數執行（`findings/evidence/m3-gate-0/runs/2026-09-28T065153Z-apache-fpm.json`）的判定是 `VERDICT E1h`：出貨編輯器放在 Nextcloud 頂欄底下的專屬路由，引擎腳本由 PHP 帶 COEP，Chrome 151／Firefox 156 各 3/3。**更正兩句**：「掛在標準 Nextcloud 介面上會壞掉一片」在乾淨實例上、在量到的範圍內（頁面載入＋一次選單，附偵測器範圍）不成立；有第三方 app 的機器沒量，而把 header 掛在別的 app 頁面上的代價有外部證據（nextcloud/richdocuments#4103），因此依裁決選擇只隔離 app 自己的路由（這是選擇，不是量出「就地開啟」不可能）；「`credentialless` 只有 Chrome」是錯的，Firefox 156 也隔離。§5.3 記下擋住 `.json`／`.data`／`.metadata` 的是 Apache `.htaccess` 白名單加 pretty URL，nginx 未量。引擎腳本如何拿到 COEP 的四條路列為 M3 工作項。 |
