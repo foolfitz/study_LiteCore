@@ -4,9 +4,9 @@ Finding 099 was found and fixed together with 098, in the same file and the same
 change (shell generation v52). Its unit-level evidence and the review seats live with
 098's: `findings/evidence/098/README.md`, sections 1 and 3.
 
-This directory holds the **browser-level** evidence for the **within-Worker** mode,
-added 2026-09-28 after the fix landed. The **cross-Worker** mode is still measured at
-unit level only (it needs two induced deaths and a revision coincidence).
+This directory holds the **browser-level** evidence for **both** modes, added
+2026-09-28 after the fix landed: the within-Worker mode on v8 and v14 (section 1), the
+cross-Worker mode on v8 (section 2).
 
 ## 1. Within-Worker, on the real engine — `probe_099_within_worker_review_path.py`
 
@@ -129,3 +129,67 @@ In the 2026-09-28 v14 run only one of them fired. If a profile ever needs both i
 run, the second is expected to fail this way; check 42 would then report FAIL with
 `B4: null` (its accepted cost, written in the runner), i.e. loud, not a silent green.
 Not changed here.
+
+## 2. Cross-Worker, on the real engine — `probe_099_cross_worker_revision_coincidence.py`
+
+The finding's own trigger condition, driven through the product: after one rollback the
+new Worker's revision is engineered to equal the old checkpoint's, and the skipped press
+is itself the boundary press that causes the second death.
+
+**Two inducers**, because the worker-failure inducer works once per browser (section 1,
+run 1): death one is `induce_worker_failure`; death two is the boundary press itself —
+on `e2-editor-v8` (no half A) an ArrowUp with nowhere to go wedges for the SDK's 30 s and
+the session dies. So this runs on v8 only, by construction; on v14 half A answers the
+press and there is no second death.
+
+**Recipe** (`multi-paragraph.odt`): click near the start of line 1, type `F099GENONE`
+→ r1; ArrowLeft → half C banks 有（r1）; worker failure → 「回到檢查點」 → a new Worker
+opens the r1 checkpoint (**revision read here**); click line 1 again (`placeCaret`
+banks nothing), type `F099GENTWO` → revision **1** in the new Worker, equal to the old
+checkpoint's; ArrowUp until a press does not move the caret (check 42's loop: the first
+press moves the caret to the start of the document, the second wedges); the product's
+notice → 「回到檢查點」 → save → `content.xml`. Every ArrowUp asks half C's guard first,
+with the same revision and stamp, so the FIRST ArrowUp is the press under test.
+
+Arms and serving are section 1's. Criteria in the docstring before the first run;
+predicted prefix LOST_MARK2, a-only LOST_MARK2, landed KEPT_MARK2.
+
+### Result — `cross-worker-v8-2026-09-28.json`
+
+Chrome 151.0.7922.169, pin `4a2710bba1ef07d9`, a fresh browser per attempt.
+
+| arm | outcome | revision after recovery one | first ArrowUp | death two |
+| --- | --- | --- | --- | --- |
+| `prefix` | **LOST_MARK2 3/3** | 0, 3/3 | 0.15–0.16 s (no save) | 30.2 s |
+| `a-only` | **LOST_MARK2 3/3** | 0, 3/3 | 0.15–0.16 s (no save) | 30.2–30.5 s |
+| `landed` | **KEPT_MARK2 3/3** | 0, 3/3 | 0.46 s (the save) | 30.5 s |
+
+`armsDisagreeAsPredicted: true`; positive control (the r1 checkpoint's mark came back)
+9/9. What came back: `E1-F099GENONEMULTI-START alpha` in `prefix`/`a-only` — the second
+generation's work is gone, under a notice that said 「回到檢查點」 — and
+`E1-FF099GENTWO099GENONEMULTI-START alpha` in `landed`.
+
+Readings:
+
+- **Premise 1 is measured, not read**: the revision label reads 0 right after the first
+  recovery, 9/9 here (and 9/9 in run 1). The engine restarts revisions per Worker.
+- **The label again cannot show it**: 有（r1） before and after the tested press in every
+  arm, and 有（r1） after the second recovery — `landed`'s new checkpoint is also r1.
+- Death two took 30.2–30.5 s in every arm: the SDK's timeout on the wedged boundary press
+  (finding 096 on v8), not something this probe tuned.
+
+### Run 1: the positive control was wrong — `cross-worker-v8-2026-09-28-run1-mark1-split-by-mark2.json`
+
+The first full run matched the prediction in `prefix` and `a-only` (LOST_MARK2 3/3 each)
+and **voided `landed` 3/3 on the positive control**: `F099GENONE` was not found in what
+came back. The recorded raw input shows why: the saved line was
+`E1-FF099GENTWO099GENONEMULTI-START alpha`. The click after recovery is derived from the
+line's ink, which the first mark had lengthened, so it landed *inside* the first mark and
+the second was typed there; every character of the first mark came back, in order, split
+by the very work under test. The control now looks for the first mark with the second
+removed (removal cannot create the first mark where it is absent) — the reason is
+written beside the predicate in the probe. Run 1's file is kept unchanged; re-reading its
+recorded paragraphs with the corrected control gives the predicted split (landed
+MARK2+MARK1 3/3, others MARK1 only), but the verdict is run 2's, taken with the
+corrected probe and the same recipe.
+

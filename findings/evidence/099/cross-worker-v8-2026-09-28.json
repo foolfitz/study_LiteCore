@@ -1,0 +1,1150 @@
+{
+ "schemaVersion": 1,
+ "finding": "099",
+ "mode": "cross-Worker",
+ "evidenceClass": "red-case",
+ "profile": "e2-editor-v8 (the page as dist/ pins it)",
+ "fixture": "./e1-fixtures/multi-paragraph.odt",
+ "marks": [
+  "F099GENONE",
+  "F099GENTWO"
+ ],
+ "prediction": {
+  "prefix": "LOST_MARK2",
+  "a-only": "LOST_MARK2",
+  "landed": "KEPT_MARK2"
+ },
+ "startedAt": "2026-09-28T04:54:49.818336+00:00",
+ "arms": [
+  {
+   "arm": "prefix",
+   "servedSessionSha256": "ad148f5b2961c354abfd67cf461b9c9e06fed33cb307cb7acb766fcdc417536d",
+   "servesLandedBytes": false,
+   "servedPageSha256": "1ec7baf9fb53c808cf127476346d69d56cf93a802f6c72680fa84416f7599ecc",
+   "servedPin": "4a2710bba1ef07d9",
+   "servedMatchesArm": true,
+   "prediction": "LOST_MARK2",
+   "attempts": [
+    {
+     "arm": "prefix",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:54:50.240705+00:00",
+     "firstClick": {
+      "bands": 5,
+      "x": "0.136533",
+      "y": "0.09584",
+      "latency": "定位游標 34 ms",
+      "checkpoint": "無"
+     },
+     "typing1": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "1",
+      "checkpoint": "有（r1）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterDeathOne": "recoverable-error",
+     "recoveryOne": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "revisionAfterFirstRecovery": "0",
+     "secondClick": {
+      "bands": 5,
+      "x": "0.150400",
+      "y": "0.09584",
+      "latency": "定位游標 33 ms",
+      "checkpoint": "有（r1）"
+     },
+     "typing2": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "有（r1）"
+     },
+     "upPresses": [
+      {
+       "press": 1,
+       "moved": true,
+       "seconds": 0.16,
+       "checkpoint": "有（r1）",
+       "state": "ready",
+       "takenByThePage": [
+        true
+       ]
+      },
+      {
+       "press": 2,
+       "moved": false,
+       "seconds": 4.11,
+       "checkpoint": "有（r1）",
+       "state": "busy",
+       "takenByThePage": [
+        true
+       ]
+      }
+     ],
+     "deathTwo": {
+      "state": "recoverable-error",
+      "seconds": 30.19,
+      "checkpoint": "有（r1）"
+     },
+     "recoveryTwo": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "savedParagraphs": [
+      "E1-F099GENONEMULTI-START alpha",
+      "第二段中文 beta",
+      "第三段跨行 gamma",
+      "第四段落 delta",
+      "E1-MULTI-END omega"
+     ],
+     "mark2CameBack": false,
+     "mark1CameBack": true,
+     "outcome": "LOST_MARK2",
+     "completedAt": "2026-09-28T04:55:32.712807+00:00"
+    },
+    {
+     "arm": "prefix",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:55:33.003668+00:00",
+     "firstClick": {
+      "bands": 5,
+      "x": "0.136533",
+      "y": "0.09584",
+      "latency": "定位游標 36 ms",
+      "checkpoint": "無"
+     },
+     "typing1": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "1",
+      "checkpoint": "有（r1）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterDeathOne": "recoverable-error",
+     "recoveryOne": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "revisionAfterFirstRecovery": "0",
+     "secondClick": {
+      "bands": 5,
+      "x": "0.150400",
+      "y": "0.09584",
+      "latency": "定位游標 33 ms",
+      "checkpoint": "有（r1）"
+     },
+     "typing2": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "有（r1）"
+     },
+     "upPresses": [
+      {
+       "press": 1,
+       "moved": true,
+       "seconds": 0.16,
+       "checkpoint": "有（r1）",
+       "state": "ready",
+       "takenByThePage": [
+        true
+       ]
+      },
+      {
+       "press": 2,
+       "moved": false,
+       "seconds": 4.11,
+       "checkpoint": "有（r1）",
+       "state": "busy",
+       "takenByThePage": [
+        true
+       ]
+      }
+     ],
+     "deathTwo": {
+      "state": "recoverable-error",
+      "seconds": 30.2,
+      "checkpoint": "有（r1）"
+     },
+     "recoveryTwo": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "savedParagraphs": [
+      "E1-F099GENONEMULTI-START alpha",
+      "第二段中文 beta",
+      "第三段跨行 gamma",
+      "第四段落 delta",
+      "E1-MULTI-END omega"
+     ],
+     "mark2CameBack": false,
+     "mark1CameBack": true,
+     "outcome": "LOST_MARK2",
+     "completedAt": "2026-09-28T04:56:15.785466+00:00"
+    },
+    {
+     "arm": "prefix",
+     "attempt": 3,
+     "startedAt": "2026-09-28T04:56:16.075022+00:00",
+     "firstClick": {
+      "bands": 5,
+      "x": "0.136533",
+      "y": "0.09584",
+      "latency": "定位游標 32 ms",
+      "checkpoint": "無"
+     },
+     "typing1": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "1",
+      "checkpoint": "有（r1）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterDeathOne": "recoverable-error",
+     "recoveryOne": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "revisionAfterFirstRecovery": "0",
+     "secondClick": {
+      "bands": 5,
+      "x": "0.150400",
+      "y": "0.09584",
+      "latency": "定位游標 35 ms",
+      "checkpoint": "有（r1）"
+     },
+     "typing2": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "有（r1）"
+     },
+     "upPresses": [
+      {
+       "press": 1,
+       "moved": true,
+       "seconds": 0.16,
+       "checkpoint": "有（r1）",
+       "state": "ready",
+       "takenByThePage": [
+        true
+       ]
+      },
+      {
+       "press": 2,
+       "moved": false,
+       "seconds": 4.1,
+       "checkpoint": "有（r1）",
+       "state": "busy",
+       "takenByThePage": [
+        true
+       ]
+      }
+     ],
+     "deathTwo": {
+      "state": "recoverable-error",
+      "seconds": 30.16,
+      "checkpoint": "有（r1）"
+     },
+     "recoveryTwo": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "savedParagraphs": [
+      "E1-F099GENONEMULTI-START alpha",
+      "第二段中文 beta",
+      "第三段跨行 gamma",
+      "第四段落 delta",
+      "E1-MULTI-END omega"
+     ],
+     "mark2CameBack": false,
+     "mark1CameBack": true,
+     "outcome": "LOST_MARK2",
+     "completedAt": "2026-09-28T04:56:58.825036+00:00"
+    }
+   ]
+  },
+  {
+   "arm": "a-only",
+   "servedSessionSha256": "b218f6c6730202c2ea3f70e864babd44d4779afcfdf778913c3c918ef9a1f67d",
+   "servesLandedBytes": false,
+   "servedPageSha256": "1ec7baf9fb53c808cf127476346d69d56cf93a802f6c72680fa84416f7599ecc",
+   "servedPin": "4a2710bba1ef07d9",
+   "servedMatchesArm": true,
+   "prediction": "LOST_MARK2",
+   "attempts": [
+    {
+     "arm": "a-only",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:56:59.332754+00:00",
+     "firstClick": {
+      "bands": 5,
+      "x": "0.136533",
+      "y": "0.09584",
+      "latency": "定位游標 5 ms",
+      "checkpoint": "無"
+     },
+     "typing1": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "1",
+      "checkpoint": "有（r1）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterDeathOne": "recoverable-error",
+     "recoveryOne": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "revisionAfterFirstRecovery": "0",
+     "secondClick": {
+      "bands": 5,
+      "x": "0.150400",
+      "y": "0.09584",
+      "latency": "定位游標 33 ms",
+      "checkpoint": "有（r1）"
+     },
+     "typing2": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "有（r1）"
+     },
+     "upPresses": [
+      {
+       "press": 1,
+       "moved": true,
+       "seconds": 0.16,
+       "checkpoint": "有（r1）",
+       "state": "ready",
+       "takenByThePage": [
+        true
+       ]
+      },
+      {
+       "press": 2,
+       "moved": false,
+       "seconds": 4.1,
+       "checkpoint": "有（r1）",
+       "state": "busy",
+       "takenByThePage": [
+        true
+       ]
+      }
+     ],
+     "deathTwo": {
+      "state": "recoverable-error",
+      "seconds": 30.16,
+      "checkpoint": "有（r1）"
+     },
+     "recoveryTwo": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "savedParagraphs": [
+      "E1-F099GENONEMULTI-START alpha",
+      "第二段中文 beta",
+      "第三段跨行 gamma",
+      "第四段落 delta",
+      "E1-MULTI-END omega"
+     ],
+     "mark2CameBack": false,
+     "mark1CameBack": true,
+     "outcome": "LOST_MARK2",
+     "completedAt": "2026-09-28T04:57:42.071669+00:00"
+    },
+    {
+     "arm": "a-only",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:57:42.391146+00:00",
+     "firstClick": {
+      "bands": 5,
+      "x": "0.136533",
+      "y": "0.09584",
+      "latency": "定位游標 34 ms",
+      "checkpoint": "無"
+     },
+     "typing1": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "1",
+      "checkpoint": "有（r1）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterDeathOne": "recoverable-error",
+     "recoveryOne": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "revisionAfterFirstRecovery": "0",
+     "secondClick": {
+      "bands": 5,
+      "x": "0.150400",
+      "y": "0.09584",
+      "latency": "定位游標 32 ms",
+      "checkpoint": "有（r1）"
+     },
+     "typing2": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "有（r1）"
+     },
+     "upPresses": [
+      {
+       "press": 1,
+       "moved": true,
+       "seconds": 0.15,
+       "checkpoint": "有（r1）",
+       "state": "ready",
+       "takenByThePage": [
+        true
+       ]
+      },
+      {
+       "press": 2,
+       "moved": false,
+       "seconds": 4.11,
+       "checkpoint": "有（r1）",
+       "state": "busy",
+       "takenByThePage": [
+        true
+       ]
+      }
+     ],
+     "deathTwo": {
+      "state": "recoverable-error",
+      "seconds": 30.19,
+      "checkpoint": "有（r1）"
+     },
+     "recoveryTwo": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "savedParagraphs": [
+      "E1-F099GENONEMULTI-START alpha",
+      "第二段中文 beta",
+      "第三段跨行 gamma",
+      "第四段落 delta",
+      "E1-MULTI-END omega"
+     ],
+     "mark2CameBack": false,
+     "mark1CameBack": true,
+     "outcome": "LOST_MARK2",
+     "completedAt": "2026-09-28T04:58:26.260668+00:00"
+    },
+    {
+     "arm": "a-only",
+     "attempt": 3,
+     "startedAt": "2026-09-28T04:58:26.566740+00:00",
+     "firstClick": {
+      "bands": 5,
+      "x": "0.136533",
+      "y": "0.09584",
+      "latency": "定位游標 11 ms",
+      "checkpoint": "無"
+     },
+     "typing1": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "1",
+      "checkpoint": "有（r1）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterDeathOne": "recoverable-error",
+     "recoveryOne": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "revisionAfterFirstRecovery": "0",
+     "secondClick": {
+      "bands": 5,
+      "x": "0.150400",
+      "y": "0.09584",
+      "latency": "定位游標 34 ms",
+      "checkpoint": "有（r1）"
+     },
+     "typing2": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "有（r1）"
+     },
+     "upPresses": [
+      {
+       "press": 1,
+       "moved": true,
+       "seconds": 0.16,
+       "checkpoint": "有（r1）",
+       "state": "ready",
+       "takenByThePage": [
+        true
+       ]
+      },
+      {
+       "press": 2,
+       "moved": false,
+       "seconds": 4.1,
+       "checkpoint": "有（r1）",
+       "state": "busy",
+       "takenByThePage": [
+        true
+       ]
+      }
+     ],
+     "deathTwo": {
+      "state": "recoverable-error",
+      "seconds": 30.45,
+      "checkpoint": "有（r1）"
+     },
+     "recoveryTwo": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "savedParagraphs": [
+      "E1-F099GENONEMULTI-START alpha",
+      "第二段中文 beta",
+      "第三段跨行 gamma",
+      "第四段落 delta",
+      "E1-MULTI-END omega"
+     ],
+     "mark2CameBack": false,
+     "mark1CameBack": true,
+     "outcome": "LOST_MARK2",
+     "completedAt": "2026-09-28T04:59:09.902086+00:00"
+    }
+   ]
+  },
+  {
+   "arm": "landed",
+   "servedSessionSha256": "191de37335892b12fba765242ca8671993a95c3341f2509cba0026dbe2a283a0",
+   "servesLandedBytes": true,
+   "servedPageSha256": "1ec7baf9fb53c808cf127476346d69d56cf93a802f6c72680fa84416f7599ecc",
+   "servedPin": "4a2710bba1ef07d9",
+   "servedMatchesArm": true,
+   "prediction": "KEPT_MARK2",
+   "attempts": [
+    {
+     "arm": "landed",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:59:10.413506+00:00",
+     "firstClick": {
+      "bands": 5,
+      "x": "0.136533",
+      "y": "0.09584",
+      "latency": "定位游標 34 ms",
+      "checkpoint": "無"
+     },
+     "typing1": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "1",
+      "checkpoint": "有（r1）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterDeathOne": "recoverable-error",
+     "recoveryOne": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "revisionAfterFirstRecovery": "0",
+     "secondClick": {
+      "bands": 5,
+      "x": "0.150400",
+      "y": "0.09584",
+      "latency": "定位游標 34 ms",
+      "checkpoint": "有（r1）"
+     },
+     "typing2": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "有（r1）"
+     },
+     "upPresses": [
+      {
+       "press": 1,
+       "moved": true,
+       "seconds": 0.46,
+       "checkpoint": "有（r1）",
+       "state": "ready",
+       "takenByThePage": [
+        true
+       ]
+      },
+      {
+       "press": 2,
+       "moved": false,
+       "seconds": 4.11,
+       "checkpoint": "有（r1）",
+       "state": "busy",
+       "takenByThePage": [
+        true
+       ]
+      }
+     ],
+     "deathTwo": {
+      "state": "recoverable-error",
+      "seconds": 30.48,
+      "checkpoint": "有（r1）"
+     },
+     "recoveryTwo": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "savedParagraphs": [
+      "E1-FF099GENTWO099GENONEMULTI-START alpha",
+      "第二段中文 beta",
+      "第三段跨行 gamma",
+      "第四段落 delta",
+      "E1-MULTI-END omega"
+     ],
+     "mark2CameBack": true,
+     "mark1CameBack": true,
+     "outcome": "KEPT_MARK2",
+     "completedAt": "2026-09-28T04:59:53.973183+00:00"
+    },
+    {
+     "arm": "landed",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:59:54.297416+00:00",
+     "firstClick": {
+      "bands": 5,
+      "x": "0.136533",
+      "y": "0.09584",
+      "latency": "定位游標 34 ms",
+      "checkpoint": "無"
+     },
+     "typing1": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "1",
+      "checkpoint": "有（r1）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterDeathOne": "recoverable-error",
+     "recoveryOne": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "revisionAfterFirstRecovery": "0",
+     "secondClick": {
+      "bands": 5,
+      "x": "0.150400",
+      "y": "0.09584",
+      "latency": "定位游標 34 ms",
+      "checkpoint": "有（r1）"
+     },
+     "typing2": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "有（r1）"
+     },
+     "upPresses": [
+      {
+       "press": 1,
+       "moved": true,
+       "seconds": 0.46,
+       "checkpoint": "有（r1）",
+       "state": "ready",
+       "takenByThePage": [
+        true
+       ]
+      },
+      {
+       "press": 2,
+       "moved": false,
+       "seconds": 4.1,
+       "checkpoint": "有（r1）",
+       "state": "busy",
+       "takenByThePage": [
+        true
+       ]
+      }
+     ],
+     "deathTwo": {
+      "state": "recoverable-error",
+      "seconds": 30.5,
+      "checkpoint": "有（r1）"
+     },
+     "recoveryTwo": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "savedParagraphs": [
+      "E1-FF099GENTWO099GENONEMULTI-START alpha",
+      "第二段中文 beta",
+      "第三段跨行 gamma",
+      "第四段落 delta",
+      "E1-MULTI-END omega"
+     ],
+     "mark2CameBack": true,
+     "mark1CameBack": true,
+     "outcome": "KEPT_MARK2",
+     "completedAt": "2026-09-28T05:00:37.672415+00:00"
+    },
+    {
+     "arm": "landed",
+     "attempt": 3,
+     "startedAt": "2026-09-28T05:00:37.962540+00:00",
+     "firstClick": {
+      "bands": 5,
+      "x": "0.136533",
+      "y": "0.09584",
+      "latency": "定位游標 31 ms",
+      "checkpoint": "無"
+     },
+     "typing1": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "1",
+      "checkpoint": "有（r1）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterDeathOne": "recoverable-error",
+     "recoveryOne": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "revisionAfterFirstRecovery": "0",
+     "secondClick": {
+      "bands": 5,
+      "x": "0.150400",
+      "y": "0.09584",
+      "latency": "定位游標 34 ms",
+      "checkpoint": "有（r1）"
+     },
+     "typing2": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "有（r1）"
+     },
+     "upPresses": [
+      {
+       "press": 1,
+       "moved": true,
+       "seconds": 0.46,
+       "checkpoint": "有（r1）",
+       "state": "ready",
+       "takenByThePage": [
+        true
+       ]
+      },
+      {
+       "press": 2,
+       "moved": false,
+       "seconds": 4.1,
+       "checkpoint": "有（r1）",
+       "state": "busy",
+       "takenByThePage": [
+        true
+       ]
+      }
+     ],
+     "deathTwo": {
+      "state": "recoverable-error",
+      "seconds": 30.47,
+      "checkpoint": "有（r1）"
+     },
+     "recoveryTwo": {
+      "notice": {
+       "shown": true,
+       "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+       "label": "回到檢查點",
+       "disabled": false,
+       "rescue": "checkpoint"
+      },
+      "pressed": true,
+      "state": "ready",
+      "revision": "0",
+      "checkpoint": "有（r1）"
+     },
+     "savedParagraphs": [
+      "E1-FF099GENTWO099GENONEMULTI-START alpha",
+      "第二段中文 beta",
+      "第三段跨行 gamma",
+      "第四段落 delta",
+      "E1-MULTI-END omega"
+     ],
+     "mark2CameBack": true,
+     "mark1CameBack": true,
+     "outcome": "KEPT_MARK2",
+     "completedAt": "2026-09-28T05:01:21.024972+00:00"
+    }
+   ]
+  }
+ ],
+ "browser": "Chrome/151.0.7922.169",
+ "completedAt": "2026-09-28T05:01:21.124622+00:00",
+ "verdict": {
+  "prefix": {
+   "outcomes": [
+    "LOST_MARK2",
+    "LOST_MARK2",
+    "LOST_MARK2"
+   ],
+   "asPredictedEvery": true,
+   "revisionAfterFirstRecovery": [
+    "0",
+    "0",
+    "0"
+   ]
+  },
+  "a-only": {
+   "outcomes": [
+    "LOST_MARK2",
+    "LOST_MARK2",
+    "LOST_MARK2"
+   ],
+   "asPredictedEvery": true,
+   "revisionAfterFirstRecovery": [
+    "0",
+    "0",
+    "0"
+   ]
+  },
+  "landed": {
+   "outcomes": [
+    "KEPT_MARK2",
+    "KEPT_MARK2",
+    "KEPT_MARK2"
+   ],
+   "asPredictedEvery": true,
+   "revisionAfterFirstRecovery": [
+    "0",
+    "0",
+    "0"
+   ]
+  },
+  "armsDisagreeAsPredicted": true
+ }
+}
