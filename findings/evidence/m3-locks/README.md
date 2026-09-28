@@ -16,8 +16,9 @@ along with every file and share the probe made.
 | `superseded/semantics-2026-09-28T100954Z.json` | **Probe bug, do not read facts from it.** The PROPFIND ETag was taken XML-escaped (`&quot;…&quot;`) and sent as `If-Match`, so every conditional PUT in it is a 412 about the probe, not about Nextcloud. Kept because its two 500s are real (see finding 100). |
 | `semantics-2026-09-28T101145Z.json` | L1 (both ways of taking a user lock), L3, L4, P1, P2 |
 | `semantics-2026-09-28T101329Z.json` | same, plus L5; L1–P2 statuses identical to `101145Z` cell for cell |
+| `semantics-2026-09-28T101717Z.json` | L6 only (`--only L6`; a fourth full run hit Nextcloud's share-creation limit, HTTP 429, 20 per 10 min) |
 
-## Facts (two runs agree)
+## Facts (L1–P2: two runs agree; L5, L6: one run)
 
 | # | observation | status / value |
 | --- | --- | --- |
@@ -40,6 +41,10 @@ along with every file and share the probe made.
 | L5 | another user's token `LOCK` / OCS unlock (not file owner) | 423 / 423 |
 | L5 | **the file owner's OCS unlock of a token lock, without the token** | 200, then PUT without token 204 |
 | L5 | the holder's refresh with the token that was removed | **400** (not 412) |
+| L6 | token refresh / expiry — does the ETag move? | 200, **no** / **no** |
+| L6 | PUT with the right `If-Match` and an **expired** token / a **removed** token | **412** / **412**, nothing written |
+| L6 | then the same PUT with `If-Match` only | 204 |
+| L6 | the file owner's unlock of a token lock — ETag moves? | yes |
 | L4 | someone else holds a user lock: our OCS lock / DAV `X-User-Lock` / token `LOCK` / PUT | **500** / 423 / 423 / 423 |
 | L4 | the file owner removes someone else's user lock (OCS DELETE) | 200 |
 | P1 | read-only share of a file (`oc:permissions` `SGDN`, no `W`): recipient's PUT | 403 |
