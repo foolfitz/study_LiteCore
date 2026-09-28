@@ -45,7 +45,7 @@ from probe_m3_gate0_coep import (  # noqa: E402
     DIST, EventChrome, firefox_profile, sha256_file, summarize_cdp, utc_now, wait_until)
 from probe_m3_lock_semantics import Client  # noqa: E402
 from r7_support import evaluate  # noqa: E402
-from run_browser_probe import WEBDRIVER_ELEMENT_KEY, FirefoxSession  # noqa: E402
+from run_browser_probe import WEBDRIVER_ELEMENT_KEY, FirefoxSession, wait_http  # noqa: E402
 from run_e2_c_page_smoke import POINT_AT, PRESS, navigate  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -72,6 +72,7 @@ PLAN = {
     "readonly": ("K9", BOTH, 3),
     "nowhere": ("K10", BOTH, 3),
     "offline": ("K11", ("chrome",), 3),
+    "unlock-refused": ("K12", BOTH, 3),   # added after the 2026-09-28 review, before any counted run
 }
 LOCK_PROPFIND = (b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns" '
                  b'xmlns:nc="http://nextcloud.org/ns"><d:prop><d:getetag/><oc:fileid/><d:lockdiscovery/>'
@@ -354,6 +355,36 @@ def save(session, record: dict[str, Any], count: int, how: str = "button") -> di
     return state
 
 
+def idle(session, seconds: float) -> None:
+    """Wait without starving the CDP socket: unread events back up the
+    websocket's queue until its keepalive ping times out (shakedown 112341Z)."""
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        time.sleep(min(10, max(0, deadline - time.monotonic())))
+        if isinstance(session, LockChrome):
+            session.call("Page.getNavigationHistory")
+
+
+HOST_NOW = "(() => Date.now() - JSON.parse(document.documentElement.getAttribute('data-litecore')).started)()"
+
+
+def wire(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Chrome only: what actually went out to WebDAV, headers included -- the
+    host's own record of If-Match and If is not evidence of the request."""
+    rows = []
+    for event in events:
+        if event["method"] != "Network.requestWillBeSent":
+            continue
+        request = event["params"]["request"]
+        if "/remote.php/dav/files/" not in request["url"]:
+            continue
+        headers = {k.lower(): v for k, v in (request.get("headers") or {}).items()}
+        rows.append({"method": request["method"], "url": request["url"],
+                     "ifMatch": headers.get("if-match"), "if": headers.get("if"),
+                     "timeout": headers.get("timeout")})
+    return rows
+
+
 def chrome_download_dir(session: LockChrome, directory: Path) -> str:
     for method, params in (("Page.setDownloadBehavior", {"behavior": "allow", "downloadPath": str(directory)}),
                            ("Browser.setDownloadBehavior", {"behavior": "allow", "downloadPath": str(directory)})):
@@ -433,13 +464,17 @@ def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any
                     session.call("Page.close", timeout=10)
                 except Exception as error:  # noqa: BLE001 -- the socket goes with the tab
                     record["closeAnswer"] = f"{type(error).__name__}: {error}"
+                time.sleep(2)
+                record["pagesAfterClose"] = [t.get("url") for t in wait_http(f"{session.base_url}/json/list")
+                                             if t.get("type") == "page"]
             else:
+                record["editorWindow"] = session.command("GET", "/window")
                 session.command("POST", "/window/new", {"type": "window"})
-                session.command("DELETE", "/window")
+                record["windowsAfterClose"] = session.command("DELETE", "/window")
             record["expiry"] = server.poll_expiry()
         elif arm == "heartbeat":
             record["lockBefore"] = server.props(server.admin, NAME)
-            time.sleep(330)
+            idle(session, 330)
             record["lockAfter"] = server.props(server.admin, NAME)
             record["hostBeforeSave"] = host_record(session)
             save(session, record, 1)
@@ -449,7 +484,25 @@ def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any
             record["lockBefore"] = server.props(server.admin, NAME)
             record["killed"] = kill_tree(session.process.pid)
             closed = True
+            time.sleep(1)
+            record["aliveAfterKill"] = [pid for pid in record["killed"] if Path(f"/proc/{pid}").exists()
+                                        and "zombie" not in Path(f"/proc/{pid}/status").read_text().lower()]
             record["expiry"] = server.poll_expiry()
+        elif arm == "unlock-refused":
+            # Another user's refused unlock still moves the ETag (files_lock
+            # unlockFile propagates before it checks): our lock is alive, our
+            # version is stale.
+            fileid = record["reset"]["fileId"]
+            record["refusedUnlock"] = server.other.call("refused unlock", "DELETE",
+                                                        f"/ocs/v2.php/apps/files_lock/lock/{fileid}",
+                                                        form={"lockType": 0})["status"]
+            record["afterRefused"] = server.props(server.admin, NAME)
+            edit(session, record)
+            save(session, record, 1)
+            record["host"] = host_record(session)
+            record["lockAfterSave"] = server.props(server.admin, NAME)
+            record["serverAfter"] = server.content(server.admin, NAME)
+            record["copiesAfter"] = server.copies(client, folder, name[:-4], remove=True)
         elif arm == "foreign-lock":
             edit(session, record)
             save(session, record, 1)
@@ -483,15 +536,17 @@ def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any
             record["copiesAfter"] = server.copies(client, folder, name[:-4], remove=True)
         elif arm == "frozen":
             edit(session, record)
+            record["freezeAt"] = evaluate(session, HOST_NOW)
             try:
                 session.call("Page.setWebLifecycleState", {"state": "frozen"})
                 record["frozen"] = True
             except Exception as error:  # noqa: BLE001 -- recorded, the arm then fails
                 record["frozen"] = f"{type(error).__name__}: {error}"
-            time.sleep(320)
+            idle(session, 320)
             record["lockWhileFrozen"] = server.props(server.admin, NAME)
-            time.sleep(10)
+            idle(session, 10)
             session.call("Page.setWebLifecycleState", {"state": "active"})
+            record["thawAt"] = evaluate(session, HOST_NOW)
             save(session, record, 1)
             record["host"] = host_record(session)
             record["serverAfter"] = server.content(server.admin, NAME)
@@ -521,9 +576,12 @@ def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any
             record["hostAfterDownload"] = host_record(session)
             record["barAfterDownload"] = evaluate(session, BAR)
             if kind == "chrome":
+                # A download the page cannot see complete does not lift the guard (spec S5).
                 record["leave2"] = session.leave_attempt(server.instance.base + "/apps/files/")
-                time.sleep(2)
-                record["left"] = evaluate(session, "(() => location.pathname)()")
+                if record["leave2"]["dialog"]:
+                    session.call("Page.handleJavaScriptDialog", {"accept": False})
+                time.sleep(1)
+                record["stayedAgain"] = evaluate(session, "(() => location.pathname)()")
             record["serverAfter"] = server.content(server.admin, admin_path)
             record["copiesAfter"] = server.copies(server.admin, RO_FOLDER, INNER[:-4], remove=True)
         elif arm == "offline":
@@ -532,6 +590,12 @@ def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any
                                                               "downloadThroughput": -1, "uploadThroughput": -1})
             save(session, record, 1)
             record["barOffline"] = evaluate(session, BAR)
+            # Stay offline across a refresh: a refresh that gets no answer must
+            # not cost the lock (spec §3 K1).
+            record["offlineRefresh"] = wait_until(
+                session, "(() => { const v = JSON.parse(document.documentElement.getAttribute('data-litecore'));"
+                         " return (v.lock.refreshes || []).some((r) => r.status === 'network') && v.lock.state; })()",
+                75, poll=1.0)
             session.call("Network.emulateNetworkConditions", {"offline": False, "latency": 0,
                                                               "downloadThroughput": -1, "uploadThroughput": -1})
             insert_marker(session, record)
@@ -544,7 +608,7 @@ def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any
             events = session.drain()
             record["cdp"] = summarize_cdp(events)
             record["fixtureRequests"] = requests_matching(events, "/e1-fixtures/")
-            record["davRequests"] = requests_matching(events, "/remote.php/dav/files/")
+            record["davRequests"] = wire(events)
             record["dialogs"] = [e["params"] for e in events if e["method"] == "Page.javascriptDialogOpening"]
     except Exception:  # noqa: BLE001 -- a run that dies is recorded, not lost
         record["fatal"] = traceback.format_exc()
@@ -642,6 +706,33 @@ def one_copy(run: dict[str, Any], label: str, sent: str | None) -> list[str]:
     return []
 
 
+def on_wire(run: dict[str, Any], expected: list[tuple[Any, bool]]) -> list[str]:
+    """Chrome: the PUTs to the document as sent -- If-Match equal to what the
+    host recorded, and If carrying the server's own token exactly when expected."""
+    if run.get("browser") != "chrome":
+        return []
+    name = (run.get("file") or {}).get("path", "")
+    quoted = urllib.parse.quote(name)
+    puts = [r for r in run.get("davRequests") or [] if r["method"] == "PUT" and r["url"].endswith(quoted)]
+    attempts_ = [a for s in (run.get("host") or {}).get("saves") or [] for a in s.get("attempts") or []]
+    token = (run.get("afterOpen") or {}).get("token")
+    bad = []
+    if len(puts) != len(expected) or len(attempts_) != len(expected):
+        return [f"wire: {len(puts)} PUTs, host recorded {len(attempts_)}, expected {len(expected)}"]
+    for put, attempt, (_, with_token) in zip(puts, attempts_, expected):
+        if put["ifMatch"] != attempt.get("ifMatch") or not put["ifMatch"]:
+            bad.append(f"wire If-Match {put['ifMatch']} vs recorded {attempt.get('ifMatch')}")
+        if with_token and put["if"] != f"(<{token}>)":
+            bad.append(f"wire If {put['if']} vs server token {token}")
+        if not with_token and put["if"]:
+            bad.append(f"wire If {put['if']} on an attempt without the token")
+    locks = [i for i, r in enumerate(run.get("davRequests") or []) if r["method"] == "LOCK"]
+    gets = [i for i, r in enumerate(run.get("davRequests") or []) if r["method"] == "GET"]
+    if run.get("arm") not in ("readonly", "nowhere") and (not locks or not gets or locks[0] > gets[0]):
+        bad.append(f"wire order: LOCK at {locks[:1]}, GET at {gets[:1]}")
+    return bad
+
+
 def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
     if run.get("fatal"):
         return [f"fatal: {run['fatal'].strip().splitlines()[-1]}"]
@@ -667,6 +758,7 @@ def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
             bad.append(f"server {server_after and server_after[:12]} != second save {saves[1].get('sha256', '')[:12]}")
         if run.get("copiesAfter"):
             bad.append(f"copies {run.get('copiesAfter')}")
+        bad += on_wire(run, [(204, True), (204, True)])
         if not (run.get("release") or {}).get("released") or not (200 <= (run.get("otherPutAfter") or 0) < 300):
             bad.append(f"after leaving: release {run.get('release', {}).get('released')}, other PUT {run.get('otherPutAfter')}")
     elif arm == "closetab":
@@ -676,6 +768,12 @@ def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
             bad.append(f"no lock before closing {(run.get('lockBefore') or {}).get('lock')!r}")
         if not polls or polls[-1].get("lock") != "" or polls[-1].get("at", 9e9) > 315:
             bad.append(f"expiry {polls[-1:] if polls else None}")
+        if run.get("browser") == "chrome" and ("pagesAfterClose" not in run
+                                               or any(ROUTE in (u or "") for u in run["pagesAfterClose"])):
+            bad.append(f"the editor tab is still there: {run.get('pagesAfterClose')}")
+        if run.get("browser") == "firefox" and (not run.get("editorWindow")
+                                                or run["editorWindow"] in (run.get("windowsAfterClose") or [run["editorWindow"]])):
+            bad.append(f"the editor window is still there: {run.get('editorWindow')} in {run.get('windowsAfterClose')}")
     elif arm == "heartbeat":
         bad += held_at_open(run)
         before, after = run.get("lockBefore") or {}, run.get("lockAfter") or {}
@@ -693,6 +791,25 @@ def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
             bad.append(f"first poll after kill {polls[:1]} (the lock must still be there)")
         if not polls or polls[-1].get("lock") != "" or polls[-1].get("at", 9e9) > 315:
             bad.append(f"expiry {polls[-1:] if polls else None}")
+        if not run.get("killed") or run.get("aliveAfterKill") != []:
+            bad.append(f"killed {run.get('killed')}, still alive {run.get('aliveAfterKill')}")
+    elif arm == "unlock-refused":
+        bad += held_at_open(run) + edited(run)
+        after, before = run.get("afterRefused") or {}, run.get("afterOpen") or {}
+        if run.get("refusedUnlock") != 423 or after.get("etag") == before.get("etag") or after.get("token") != before.get("token"):
+            bad.append(f"refused unlock {run.get('refusedUnlock')}, etag {before.get('etag')} -> {after.get('etag')}, "
+                       f"token {before.get('token')} -> {after.get('token')}")
+        if len(saves) != 1 or attempts(saves[0]) != [(412, True)]:
+            bad.append(f"save {[attempts(s) for s in saves]} (the token is alive: no retry without it)")
+        else:
+            bad += one_copy(run, "衝突副本", saves[0].get("sha256"))
+            bad += page_failed_with(run.get("save1State") or {}, "CONFLICT", (saves[0].get("conflictCopy") or {}).get("name") or "?")
+        kept = run.get("lockAfterSave") or {}
+        if (host.get("lock") or {}).get("state") != "held" or kept.get("token") != before.get("token"):
+            bad.append(f"lock after the save: host {(host.get('lock') or {}).get('state')}, server token {kept.get('token')}")
+        if server_after != original:
+            bad.append(f"server {server_after and server_after[:12]} changed")
+        bad += on_wire(run, [(412, True)])
     elif arm == "foreign-lock":
         bad += edited(run)
         lock = host.get("lock") or {}
@@ -718,6 +835,7 @@ def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
             bad += page_failed_with(run.get("save1State") or {}, "CONFLICT", (saves[0].get("conflictCopy") or {}).get("name") or "?")
         if server_after != report["intruder"]["sha256"]:
             bad.append(f"server {server_after and server_after[:12]} is not the intruder's")
+        bad += on_wire(run, [(412, True), (412, False)])
         waited = run.get("afterWait") or {}
         if waited.get("state") != "ready" or waited.get("doc") != NAME or waited.get("revision") != run.get("savedRevision"):
             bad.append(f"view after 5 s {waited.get('state')}/{waited.get('doc')}/{waited.get('revision')} vs {run.get('savedRevision')}")
@@ -729,6 +847,7 @@ def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
             bad.append(f"save {[attempts(s) for s in saves]}, server {server_after and server_after[:12]}")
         if run.get("copiesAfter"):
             bad.append(f"copies {run.get('copiesAfter')}")
+        bad += on_wire(run, [(412, True), (204, False)])
         state = run.get("save1State") or {}
         if not (state.get("latency") or "").startswith("存回 ") or "失敗" in state.get("latency", ""):
             bad.append(f"page says {state.get('latency')!r}")
@@ -741,6 +860,11 @@ def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
             bad.append(f"save {[attempts(s) for s in saves]}, server {server_after and server_after[:12]}")
         if run.get("copiesAfter") or lock.get("state") != "lost" or lock.get("lostBy") not in ("refresh", "save"):
             bad.append(f"copies {run.get('copiesAfter')}, lock {lock.get('state')}/{lock.get('lostBy')}")
+        start, end = run.get("freezeAt"), run.get("thawAt")
+        inside = [r for r in lock.get("refreshes") or [] if isinstance(start, int) and isinstance(end, int)
+                  and start < r.get("at", -1) < end]
+        if not (isinstance(start, int) and isinstance(end, int) and end - start >= 320_000) or inside:
+            bad.append(f"freeze window {start}..{end}, refreshes inside it {inside}")
     elif arm == "readonly":
         bad += edited(run)
         lock = host.get("lock") or {}
@@ -768,15 +892,19 @@ def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
         sent = saves[0].get("sha256") if saves else None
         if (run.get("download") or {}).get("sha256") != sent:
             bad.append(f"download {run.get('download')} != sent {(sent or '')[:12]}")
-        if (run.get("barAfterDownload") or {}).get("downloadHidden") is not True \
-                or ((run.get("hostAfterDownload") or {}).get("unstranded") or {}).get("how") != "download":
-            bad.append(f"after download {run.get('barAfterDownload')} {(run.get('hostAfterDownload') or {}).get('unstranded')}")
+        after_download = run.get("hostAfterDownload") or {}
+        if (run.get("barAfterDownload") or {}).get("downloadHidden") is not False \
+                or (after_download.get("stranded") or {}).get("sha256") != sent \
+                or ((after_download.get("downloaded") or [{}])[-1]).get("sha256") != sent:
+            bad.append(f"after download: bar {run.get('barAfterDownload')}, stranded {after_download.get('stranded')}, "
+                       f"downloaded {after_download.get('downloaded')}")
         if run.get("browser") == "chrome":
             dialog = (run.get("leave1") or {}).get("dialog") or {}
             if dialog.get("type") != "beforeunload" or not str(run.get("stayed", "")).endswith(ROUTE):
                 bad.append(f"first leave: dialog {dialog.get('type')}, stayed at {run.get('stayed')}")
-            if (run.get("leave2") or {}).get("dialog") or "/apps/files" not in str(run.get("left")):
-                bad.append(f"second leave: dialog {(run.get('leave2') or {}).get('dialog')}, at {run.get('left')}")
+            dialog2 = (run.get("leave2") or {}).get("dialog") or {}
+            if dialog2.get("type") != "beforeunload" or not str(run.get("stayedAgain", "")).endswith(ROUTE):
+                bad.append(f"leaving after the download: dialog {dialog2.get('type')}, stayed at {run.get('stayedAgain')}")
         if server_after != original or run.get("copiesAfter"):
             bad.append(f"server {server_after and server_after[:12]}, copies {run.get('copiesAfter')}")
     elif arm == "offline":
@@ -787,7 +915,10 @@ def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
             bad.append(f"offline save {attempts(first)}, copy {copy_}")
         if (run.get("barOffline") or {}).get("downloadHidden") is not False:
             bad.append(f"bar offline {run.get('barOffline')}")
+        if run.get("offlineRefresh") != "held":
+            bad.append(f"no refresh while offline, or it cost the lock: {run.get('offlineRefresh')!r}")
         second = saves[1] if len(saves) > 1 else {}
+        bad += on_wire(run, [("network", True), (204, True)])
         if attempts(second) != [(204, True)] or server_after != second.get("sha256"):
             bad.append(f"online save {attempts(second)}, server {server_after and server_after[:12]}")
         if (run.get("barAfter") or {}).get("downloadHidden") is not True or host.get("stranded") is not None \
@@ -805,6 +936,8 @@ def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
         problems.append(f"page {static.get('page')}")
     if strict and static.get("testStatic") != 0:
         problems.append(f"make test-e2-c-static exit {static.get('testStatic')}")
+    if strict and (report.get("hostDirty") or not report.get("hostFiles")):
+        problems.append(f"host not bound: dirty {report.get('hostDirty')!r}, files {report.get('hostFiles')}")
     tally: dict[str, dict[str, Any]] = {}
     for run in report.get("runs") or []:
         key = f"{run['browser']}:{run['arm']}"
@@ -836,52 +969,93 @@ def _first(report: dict, arm: str, browser: str = "chrome") -> dict:
 
 
 # Each mutation must turn its own arm red; the name says what was broken.
+# (label, arm, mutation, browsers it applies to -- None = every browser the arm runs in)
+C = ("chrome",)
 RED_CASES = [
-    ("hold: lock taken after the read", "hold", lambda r: r["host"]["fetched"].update(etag='"stale"')),
-    ("hold: other user's PUT not refused", "hold", lambda r: r.update(otherPut=204)),
-    ("hold: a save without the token", "hold", lambda r: r["host"]["saves"][1]["attempts"][0].update(withToken=False)),
-    ("hold: not released on leaving", "hold", lambda r: r["release"].update(released=False)),
-    ("closetab: never lapsed", "closetab", lambda r: r["expiry"][-1].update(lock="1")),
-    ("closetab: lapsed too late", "closetab", lambda r: r["expiry"][-1].update(at=330.0)),
-    ("heartbeat: token changed", "heartbeat", lambda r: r["lockAfter"].update(token="opaquelocktoken:other")),
-    ("heartbeat: a refresh refused", "heartbeat", lambda r: r["hostBeforeSave"]["lock"]["refreshes"][0].update(status=400)),
-    ("crash: released at once (no positive control)", "crash", lambda r: r["expiry"][0].update(lock="")),
-    ("crash: never expired", "crash", lambda r: r["expiry"][-1].update(lock="1")),
-    ("foreign-lock: overwrote", "foreign-lock", lambda r: r["serverAfter"].update(sha256="0" * 64)),
-    ("foreign-lock: notice without holder", "foreign-lock", lambda r: r["bar"].update(notice="")),
-    ("broken: no retry without token", "broken-then-written", lambda r: r["host"]["saves"][0]["attempts"].pop()),
-    ("broken: copy missing", "broken-then-written", lambda r: r.update(copiesAfter=[])),
-    ("expired: gave up after the dead token", "expired", lambda r: r["host"]["saves"][0]["attempts"][1].update(status=412)),
-    ("expired: made a copy anyway", "expired", lambda r: r.update(copiesAfter=[{"name": "x（衝突副本）.odt"}])),
-    ("frozen: lock never expired", "frozen", lambda r: r["lockWhileFrozen"].update(lock="1")),
-    ("readonly: sent a LOCK", "readonly", lambda r: r["host"]["lock"].update(state="held")),
-    ("readonly: copy bytes differ", "readonly", lambda r: r["copiesAfter"][0].update(sha256="0" * 64)),
-    ("nowhere: download bytes differ", "nowhere", lambda r: r["download"].update(sha256="0" * 64)),
-    ("nowhere: no guard on leaving", "nowhere", lambda r: r["leave1"].update(dialog=None)),
-    ("nowhere: guard still armed after download", "nowhere", lambda r: r.update(leave2={"dialog": {"type": "beforeunload"}})),
-    ("offline: second save lost the token", "offline", lambda r: r["host"]["saves"][1]["attempts"][0].update(withToken=False)),
-    ("offline: still stranded", "offline", lambda r: r["host"].update(stranded={"sha256": "x"})),
+    ("opened: the bundled sample was fetched", "hold", lambda r: r.update(fixtureRequests=[{"url": "e1-fixtures/x"}]), C),
+    ("opened: other bytes were opened", "hold", lambda r: r["host"]["fetched"].update(sha256="0" * 64), None),
+    ("hold: lock taken after the read", "hold", lambda r: r["host"]["fetched"].update(etag='"stale"'), None),
+    ("hold: other user's PUT not refused", "hold", lambda r: r.update(otherPut=204), None),
+    ("hold: a save without the token (host record)", "hold", lambda r: r["host"]["saves"][1]["attempts"][0].update(withToken=False), None),
+    ("hold: the wire PUT lacks If", "hold", lambda r: [x.update({"if": None}) for x in r["davRequests"] if x["method"] == "PUT"], C),
+    ("hold: the wire If-Match is not the recorded one", "hold", lambda r: [x.update(ifMatch='"x"') for x in r["davRequests"] if x["method"] == "PUT"], C),
+    ("hold: version chain broken", "hold", lambda r: r["host"]["saves"][1].update(ifMatch='"x"'), None),
+    ("hold: server holds the first save, not the second", "hold", lambda r: r["serverAfter"].update(sha256=r["host"]["saves"][0]["sha256"]), None),
+    ("hold: not released on leaving", "hold", lambda r: r["release"].update(released=False), None),
+    ("closetab: never lapsed", "closetab", lambda r: r["expiry"][-1].update(lock="1"), None),
+    ("closetab: lapsed too late", "closetab", lambda r: r["expiry"][-1].update(at=330.0), None),
+    ("closetab: the tab was not closed (chrome)", "closetab", lambda r: r.update(pagesAfterClose=[ROUTE]), C),
+    ("closetab: the window was not closed (firefox)", "closetab", lambda r: r.update(windowsAfterClose=[r.get("editorWindow")]), ("firefox",)),
+    ("heartbeat: the lock lapsed", "heartbeat", lambda r: r["lockAfter"].update(lock=""), None),
+    ("heartbeat: token changed", "heartbeat", lambda r: r["lockAfter"].update(token="opaquelocktoken:other"), None),
+    ("heartbeat: a refresh refused", "heartbeat", lambda r: r["hostBeforeSave"]["lock"]["refreshes"][0].update(status=400), None),
+    ("crash: released at once (no positive control)", "crash", lambda r: r["expiry"][0].update(lock=""), None),
+    ("crash: never expired", "crash", lambda r: r["expiry"][-1].update(lock="1"), None),
+    ("crash: the browser survived the kill", "crash", lambda r: r.update(aliveAfterKill=[1]), None),
+    ("foreign-lock: overwrote", "foreign-lock", lambda r: r["serverAfter"].update(sha256="0" * 64), None),
+    ("foreign-lock: notice without holder", "foreign-lock", lambda r: r["bar"].update(notice=""), None),
+    ("foreign-lock: copy bytes differ", "foreign-lock", lambda r: r["copiesAfter"][0].update(sha256="0" * 64), None),
+    ("broken: no retry without token", "broken-then-written", lambda r: r["host"]["saves"][0]["attempts"].pop(), None),
+    ("broken: copy missing", "broken-then-written", lambda r: r.update(copiesAfter=[]), None),
+    ("broken: the intruder's bytes were overwritten", "broken-then-written", lambda r: r["serverAfter"].update(sha256=r["original"] if "original" in r else "0" * 64), None),
+    ("broken: the view was reloaded", "broken-then-written", lambda r: r["afterWait"].update(revision="999"), None),
+    ("expired: gave up after the dead token", "expired", lambda r: r["host"]["saves"][0]["attempts"][1].update(status=412), None),
+    ("expired: made a copy anyway", "expired", lambda r: r.update(copiesAfter=[{"name": "x（衝突副本）.odt"}]), None),
+    ("expired: server bytes are not the save's", "expired", lambda r: r["serverAfter"].update(sha256="0" * 64), None),
+    ("expired: the retry still carried If on the wire", "expired", lambda r: [x.update({"if": "(<t>)"}) for x in r["davRequests"] if x["method"] == "PUT"], C),
+    ("frozen: lock never expired", "frozen", lambda r: r["lockWhileFrozen"].update(lock="1"), None),
+    ("frozen: refreshed while frozen", "frozen", lambda r: r["host"]["lock"]["refreshes"].append({"at": r["freezeAt"] + 60000, "status": 200}), None),
+    ("frozen: server bytes are not the save's", "frozen", lambda r: r["serverAfter"].update(sha256="0" * 64), None),
+    ("readonly: sent a LOCK (host record)", "readonly", lambda r: r["host"]["lock"].update(state="held"), None),
+    ("readonly: sent a LOCK (wire)", "readonly", lambda r: r["davRequests"].append({"method": "LOCK", "url": "x"}), C),
+    ("readonly: copy bytes differ", "readonly", lambda r: r["copiesAfter"][0].update(sha256="0" * 64), None),
+    ("readonly: owner's file changed", "readonly", lambda r: r["serverAfter"].update(sha256="0" * 64), None),
+    ("nowhere: download bytes differ", "nowhere", lambda r: r["download"].update(sha256="0" * 64), None),
+    ("nowhere: no download button while stranded", "nowhere", lambda r: r["barStranded"].update(downloadHidden=True), None),
+    ("nowhere: owner's file changed", "nowhere", lambda r: r["serverAfter"].update(sha256="0" * 64), None),
+    ("nowhere: no guard on leaving", "nowhere", lambda r: r["leave1"].update(dialog=None), C),
+    ("nowhere: the download lifted the guard", "nowhere", lambda r: r["leave2"].update(dialog=None), C),
+    ("nowhere: the download dropped the bytes", "nowhere", lambda r: r["hostAfterDownload"].update(stranded=None), None),
+    ("offline: the offline save did not fail on the network", "offline", lambda r: r["host"]["saves"][0]["attempts"][0].update(status=204), None),
+    ("offline: no refresh while offline", "offline", lambda r: r.update(offlineRefresh=None), None),
+    ("offline: second save lost the token", "offline", lambda r: r["host"]["saves"][1]["attempts"][0].update(withToken=False), None),
+    ("offline: still stranded", "offline", lambda r: r["host"].update(stranded={"sha256": "x"}), None),
+    ("unlock-refused: dropped a live token and retried", "unlock-refused", lambda r: r["host"]["saves"][0]["attempts"].append({"status": 423, "withToken": False}), None),
+    ("unlock-refused: the lock was lost", "unlock-refused", lambda r: r["lockAfterSave"].update(token=None), None),
+    ("unlock-refused: no copy", "unlock-refused", lambda r: r.update(copiesAfter=[]), None),
 ]
 
 
 def red_cases(path: Path) -> int:
+    """Every case must find its run and turn it red. A missing run is a
+    failure, not a skip: a red case that never ran proves nothing."""
     report = json.loads(path.read_text())
     failures = 0
-    for label, arm, mutate in RED_CASES:
-        try:
-            base = _first(report, arm)
-        except StopIteration:
-            print(f"  skip  {label} (no {arm} run in this report)")
-            continue
-        if score_arm(base, report):
-            print(f"  SKIP  {label}: the unmutated run is already red")
-            failures += 1
-            continue
-        mutated = copy.deepcopy(base)
-        mutate(mutated)
-        red = bool(score_arm(mutated, report))
-        failures += not red
-        print(f"  {'red ' if red else 'GREEN'}  {label}")
+    for label, arm, mutate, only in RED_CASES:
+        for browser in (only or PLAN[arm][1]):
+            if browser not in PLAN[arm][1]:
+                continue
+            try:
+                base = _first(report, arm, browser)
+            except StopIteration:
+                print(f"  MISSING {label} [{browser}]: no {arm} run in this report")
+                failures += 1
+                continue
+            if score_arm(base, report):
+                print(f"  SKIP  {label} [{browser}]: the unmutated run is already red")
+                failures += 1
+                continue
+            mutated = copy.deepcopy(base)
+            mutated["original"] = report["original"]["sha256"]
+            mutate(mutated)
+            red = bool(score_arm(mutated, report))
+            failures += not red
+            print(f"  {'red ' if red else 'GREEN'}  {label} [{browser}]")
+    static = copy.deepcopy(report)
+    static["static"]["page"]["dist"] = "0" * 64
+    red = bool(score(static, strict=True)["problems"])
+    failures += not red
+    print(f"  {'red ' if red else 'GREEN'}  static: the served page is not the spec's")
     return failures
 
 
@@ -910,6 +1084,10 @@ def main() -> int:
         if counted:
             print(f"refusing a counted run: page is {static['page']}, spec wants {PAGE_SHA256[:12]}…")
             return 2
+    dirty = subprocess.run(["git", "status", "--short"], cwd=DEFAULT_DDEV, capture_output=True, text=True).stdout.strip()
+    if counted and dirty:
+        print(f"refusing a counted run: the host repo has uncommitted changes:\n{dirty}")
+        return 2
     if counted:
         static["testStatic"] = subprocess.run(["make", "-C", str(PROJECT), "test-e2-c-static"],
                                               capture_output=True, text=True).returncode
@@ -923,7 +1101,8 @@ def main() -> int:
                                    capture_output=True, text=True).stdout.strip(),
         "hostDirty": subprocess.run(["git", "status", "--short"], cwd=DEFAULT_DDEV,
                                     capture_output=True, text=True).stdout.strip(),
-        "hostScriptSha256": sha256_file(DEFAULT_DDEV / "js" / "litecore-editor.js"),
+        "hostFiles": {name: sha256_file(DEFAULT_DDEV / name) for name in (
+            "js/litecore-editor.js", "lib/Controller/EditorController.php", "templates/editor.php")},
         "original": {"source": str(FIXTURE.relative_to(DIST)), "sha256": sha256_file(FIXTURE)},
         "intruder": {"source": str(SAMPLE.relative_to(DIST)), "sha256": sha256_file(SAMPLE)},
         "runs": [],
