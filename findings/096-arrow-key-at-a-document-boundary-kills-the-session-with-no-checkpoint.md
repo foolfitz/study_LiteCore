@@ -826,3 +826,28 @@ stderr 印 marker 以逐按歸屬。三輪一致，證據在 `findings/evidence/
 T10 的 C 臂（零事件、索引凍住）是同一機制——孤零零一則被丟的 id 1，旁邊沒有別的事件。
 「核心為什麼在邊界不廣播」這一題到此收掉。
 
+
+## 更正：半 C 的價格控制——「revision 是內容的誠實替身」不成立（2026-09-28，只 append）
+
+**取代**本檔「C —— 殼層」一節第一段的最後一句（「revision 守衛擋掉『按住方向鍵每按一次
+存一次』——因為 `action()` 把十五個動作全都用 `mutation: true` 入列，基底類別自己的
+stamp 守衛在這裡擋不住」）以及 `narrow-editor-v2-session.js` 裡同義的那段註解
+（「The guard can only ever cause an EXTRA save, never a missed one」）。原文留著。
+
+- **前提一被 finding 098 撤掉**：一次純移動不該是 mutation。v2 `action()` 現在對六個
+  按鍵路徑移動用 `mutation: false` 入列，和基底類別的 `moveCharacter`、client 的後置
+  條件、引擎的分類三邊一致。移動不再跳 stamp，所以基底類別自己的 stamp 守衛**擋得住**
+  按住方向鍵的情況。
+- **revision 守衛本身被 finding 099 證偽，破法有兩種**：（一）revision 在每個 Worker 開檔
+  時歸零，而檢查點撐過回復，回復一次之後守衛拿兩個不相干的計數器互比；（二）同一個 Worker
+  內，格式動作回成「已派送、未驗證」時 session 算它一次修改，引擎卻不推進 revision。兩種
+  都會讓方向鍵跳過需要的檢查點，下一次死亡就回到較舊的 bytes——半 C 要保護的 B4 性質被
+  破壞。單元層級實測（`editor-shell-v2/tests/narrow-editor-v2-session.test.mjs` 的三支
+  099 測試）。
+- **修法**：守衛改比 content stamp（`_checkpointStamp === _currentContentStamp`，
+  session 自有、永不歸零）。098 與 099 一起落地為殼層 generation v52，裁決與量測見
+  `findings/098-*.md` 與 `findings/099-*.md`。
+
+本節上方 3/3 的 `with` 臂量測**不受影響**：那一輪每個 attempt 只死一次（碰不到第二代），
+而且在押檢查點與受測那一按之間只有打字、沒有走 review 路徑的動作（碰不到 Worker 內那一種）。
+兩個條件缺一，都不足以排除。

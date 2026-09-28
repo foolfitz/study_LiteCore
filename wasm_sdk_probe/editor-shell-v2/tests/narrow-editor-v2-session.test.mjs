@@ -580,17 +580,20 @@ test("finding 096: a CLEAN document pays nothing", async () => {
 
 test("finding 096: holding the key down does not save per keypress",
      async () => {
-       // THE PRICE CONTROL, and it is a test because the base class's own guard
-       // does not hold here: `action()` enqueues every one of the fifteen with
-       // `mutation: true`, so the drain bumps the content stamp after a MOVE as
-       // well and `_checkpointBeforeSelection` alone would save every time.
+       // THE PRICE CONTROL.  It holds because a move is not a mutation (finding
+       // 098): the drain leaves the content stamp alone after one, so the stamp
+       // the checkpoint was banked at still describes the document.  Until 098
+       // every action went in with `mutation: true` and this was held up by a
+       // revision comparison instead -- which finding 099 showed is wrong
+       // across Worker generations.  If moves ever bump the stamp again, this
+       // goes red at `saves.length`, not silently.
        const { session, saves } = await opened();
        await session.action("set-bold", { enabled: true });
        for (let i = 0; i < 10; i += 1) await session.action("move-line-up");
        assert.equal(saves.length, 1, "one save per keypress");
        assert.equal(session.boundaryCheckpointsTaken, 1);
        assert.equal(session.boundaryCheckpointsSkipped, 9);
-       // And a NEW edit re-arms it: the checkpoint describes a revision that no
+       // And a NEW edit re-arms it: the checkpoint describes content that no
        // longer holds, so the next move has something else to bank.
        await session.action("set-bold", { enabled: true });
        await session.action("move-line-up");
@@ -611,3 +614,286 @@ test("finding 096: a checkpoint that cannot be written does not eat the key",
        assert.equal(f.session.state.snapshot.checkpointError.code,
                     "CHECKPOINT_FAILED");
      });
+
+// -------------------------------------------------- finding 098
+
+test("finding 098: moving the caret on a CLEAN document never makes it dirty "
+     + "and never banks anything", async () => {
+  // The minimal reproduction the finding named and nobody had run: a clean
+  // document, the SECOND boundary-capable move.  The first move is what used
+  // to flip `dirty`; the second is the one that then paid for a checkpoint of
+  // bytes identical to the authority's.  Ten, so a guard that only covers the
+  // second press is not mistaken for one that covers the key held down.
+  for (const action of ["move-character-left", "move-character-right",
+                        "move-line-up", "move-line-down", "move-line-home",
+                        "move-line-end"]) {
+    const { session, saves } = await opened();
+    for (let i = 0; i < 10; i += 1) await session.action(action);
+    assert.equal(session.state.snapshot.dirty, false,
+                 `${action} marked an untouched document dirty`);
+    assert.equal(saves.length, 0, `${action} saved a document nobody touched`);
+    assert.equal(session.state.snapshot.hasCheckpoint, false,
+                 `${action} left a checkpoint behind for a caret move`);
+    assert.equal(session.boundaryCheckpointsTaken, 0);
+  }
+});
+
+test("finding 098: on a successful answer, `dirty` says the document changed "
+     + "exactly when the engine said it did -- for every action the client "
+     + "offers", async () => {
+  // SUCCESSFUL answers only.  On the "review" path (a format action that came
+  // back dispatched-unverified) the session counts a mutation while the
+  // engine held the revision -- deliberately, see the 099 tests below.
+  // Iterates the client's own list, so an action appended to EDITOR_V3_ACTIONS
+  // is covered without editing this test.  Two oracles, and the second is the
+  // one that carries weight:
+  //
+  //   * the revision the fixture answered with.  WEAKER THAN IT LOOKS: the
+  //     fixture decides which actions leave the revision alone from its own
+  //     MOVE list, a hand copy of the six -- the third one, beside the
+  //     session's BOUNDARY_CAPABLE_MOVES and the client's move sets.
+  //   * the CLIENT'S POSTCONDITION, asked directly: does it accept an answer
+  //     that left the revision where it was?  That is the contract's own
+  //     statement of "this action changes nothing", and it is not a copy.  If
+  //     the session's list and the client's drift apart, this goes red; if the
+  //     fixture's drifts from the client's, the action itself is rejected as
+  //     EDITOR_RESULT_INVALID and the test goes red that way instead.
+  const { EDITOR_V3_ACTIONS } = await import("../narrow-editor-v2-client.js");
+  const format = new Set(["set-bold", "set-italic", "set-underline",
+                          "set-strikethrough"]);
+  for (const action of EDITOR_V3_ACTIONS) {
+    const { session } = await opened();
+    const before = session.state.snapshot.revision;
+    await session.action(action, format.has(action) ? { enabled: true } : {});
+    const changed = session.state.snapshot.revision !== before;
+    assert.equal(session.state.snapshot.dirty, changed,
+                 `${action}: revision ${changed ? "moved" : "held"} but dirty `
+                 + `is ${session.state.snapshot.dirty}`);
+    // The paragraph five are validated by a different client (route C,
+    // `changed: null`) and are mutations by construction; `_validateInherited`
+    // has no branch for them, so asking it would answer "accepted" for the
+    // wrong reason.
+    if (PARAGRAPH.has(action)) {
+      assert.equal(session.state.snapshot.dirty, true, `${action} is a mutation`);
+      continue;
+    }
+    let clientSaysNothingChanges = true;
+    try {
+      session.editor._validateInherited(action, 7, {
+        action, beforeRevision: 7, revision: 7, changed: false,
+        completion: "documented-callback-visible-cursor", state: {},
+      });
+    } catch {
+      clientSaysNothingChanges = false;
+    }
+    assert.equal(session.state.snapshot.dirty, !clientSaysNothingChanges,
+                 `${action}: the client's postcondition says it `
+                 + `${clientSaysNothingChanges ? "changes nothing" : "changes the document"}`
+                 + ` but the session left dirty ${session.state.snapshot.dirty}`);
+  }
+});
+
+// -------------------------------------------------- finding 099
+
+/**
+ * One life of the 099 scenario: `before` edits banked by an arrow key, a
+ * forced post-dispatch failure, a rollback, `after` more edits, the arrow key
+ * again, and a second failure and rollback.  Returns what was banked and which
+ * bytes each fresh Worker was opened from; the caller judges.
+ */
+async function twoDeaths(before, after) {
+  const failure = Object.assign(new Error("unverifiable"), {
+    code: "MUTATION_OUTCOME_UNKNOWN",
+    details: { formatBarrier: { dispatched: true } },
+  });
+  const f = await opened({ failing: "set-list-ordered", failure });
+  // Bytes that say which save produced them, and a record of which bytes each
+  // fresh Worker was opened from -- installed after the first open, so index
+  // 0 is the first ROLLBACK.
+  const banked = [];
+  f.document.save = async () => {
+    banked.push(f.document.revision);
+    return Uint8Array.of(banked.length).buffer;
+  };
+  const reopenedFrom = [];
+  const open = f.engine.open.bind(f.engine);
+  f.engine.open = async (bytes, options) => {
+    reopenedFrom.push(new Uint8Array(bytes)[0] ?? null);
+    return open(bytes, options);
+  };
+  const edit = (i) => f.session.action("set-bold", { enabled: i % 2 === 0 });
+
+  for (let i = 0; i < before; i += 1) await edit(i);
+  await f.session.action("move-character-left");
+  const bankedInGenerationOne = banked.length;
+  await f.session.setList("ordered").catch(() => {});
+  await f.session.rollback();
+  const revisionAfterRollback = f.session.state.snapshot.revision;
+
+  for (let i = 0; i < after; i += 1) await edit(i);
+  await f.session.action("move-character-left");
+  const bankedAfterFirstMove = banked.length;
+  // The price control, ACROSS the rollback: nothing typed since, so nothing
+  // to bank.
+  await f.session.action("move-character-left");
+  const bankedAfterSecondMove = banked.length;
+  await f.session.setList("ordered").catch(() => {});
+  await f.session.rollback();
+  return { banked, reopenedFrom, bankedInGenerationOne, revisionAfterRollback,
+           bankedAfterFirstMove, bankedAfterSecondMove };
+}
+
+test("finding 099: after a rollback, the new Worker's work is banked however "
+     + "its revision lines up with the old checkpoint's", async () => {
+  // Revisions restart at zero with every Worker (probe_engine.cpp: `gState
+  // .revision = 0` on open; editor-session.js says the same beside the
+  // content stamps).  The checkpoint survives the restart -- that is the whole
+  // point of it -- so a guard that compares ITS revision with the NEW
+  // Worker's is comparing two unrelated counters.  When they coincided, the
+  // move skipped the checkpoint and the next death rolled back to the OLDER
+  // one: the work typed since the first rollback was gone, under a notice
+  // that says 「回到檢查點」.
+  //
+  // A GRID, NOT ONE CASE.  The first version of this test pinned the single
+  // coincidence the finding was found with (two edits, then two more), and the
+  // adversarial review built a wrong guard that passed it: skip also when
+  // `_checkpointRevision === document.revision + 1`.  This grid covers the
+  // offsets -4..+2 through the product's own gestures, and that is ALL it
+  // covers: a guard that misfires at +3 passed it in the second review.  The
+  // test below that sweeps the revision directly is what pins "the skip does
+  // not read the revision"; this one pins the scenario end to end.
+  for (let before = 1; before <= 3; before += 1) {
+    for (let after = 1; after <= 5; after += 1) {
+      const cell = `${before} edits, rollback, ${after} edits`;
+      const got = await twoDeaths(before, after);
+      assert.equal(got.bankedInGenerationOne, 1, `${cell}: gen one not banked`);
+      assert.equal(got.revisionAfterRollback, 0,
+                   `${cell}: the fixture must restart revisions, as the engine does`);
+      assert.equal(got.reopenedFrom[0], 1, `${cell}: first rollback not from save 1`);
+      assert.equal(got.bankedAfterFirstMove, 2,
+                   `${cell}: the new Worker's work was not banked`);
+      assert.equal(got.bankedAfterSecondMove, 2,
+                   `${cell}: a move with nothing new typed banked again`);
+      assert.equal(got.reopenedFrom[1], 2,
+                   `${cell}: the second rollback went back to generation ONE's `
+                   + "bytes -- everything typed after the first rollback is lost");
+    }
+  }
+});
+
+test("finding 099: the skip reads the content, never the revision -- at any "
+     + "revision, in any generation", async () => {
+  // THE PROPERTY, asserted directly on the guard rather than through a
+  // scenario, because no scenario grid covers every offset (see above).  The
+  // checkpoint is banked at revision 20, then `document.revision` is set to
+  // every value 0..40 -- offsets -20..+20, the coincidence included -- and
+  // the guard is asked.  Content differs from the checkpoint: it must bank.
+  // Content equals it: it must not.  In generation one, so a guard that only
+  // consults the revision "where it is safe" fails here too.
+  const bankedAt20 = async (editAfter) => {
+    const f = await opened();
+    for (let i = 0; i < 20; i += 1)
+      await f.session.action("set-bold", { enabled: i % 2 === 0 });
+    await f.session.action("move-line-up");
+    assert.equal(f.saves.length, 1);
+    assert.equal(f.session.state.snapshot.checkpointRevision, 20);
+    if (editAfter) await f.session.action("set-italic", { enabled: true });
+    return f;
+  };
+  for (let revision = 0; revision <= 40; revision += 1) {
+    const changed = await bankedAt20(true);
+    const held = changed.document.revision;
+    changed.document.revision = revision;
+    await changed.session._checkpointBeforeBoundaryMove(changed.document);
+    changed.document.revision = held;
+    assert.equal(changed.saves.length, 2,
+                 `revision ${revision}: content the checkpoint lacks was not banked`);
+
+    const same = await bankedAt20(false);
+    same.document.revision = revision;
+    await same.session._checkpointBeforeBoundaryMove(same.document);
+    assert.equal(same.saves.length, 1,
+                 `revision ${revision}: content already banked was saved again`);
+  }
+});
+
+test("finding 099: WITHIN one Worker, a change that came back unverified is "
+     + "banked by the next arrow key", async () => {
+  // The second way revision and content part company.  A format action that
+  // comes back "dispatched, unverified" resolves with the queue open
+  // (`recoveryFor` → "review"); the drain counts it as a mutation, but the
+  // engine never advanced the revision (`failFormatBarrier` does not call
+  // `advanceRevision`).  The pre-fix guard compared revisions, saw them equal,
+  // and skipped -- so a later death went back to bytes without the change.
+  const review = Object.assign(new Error("dispatched, unverified"), {
+    code: "MUTATION_OUTCOME_UNKNOWN",
+    details: { formatBarrier: { dispatched: true, route: "collapsed",
+                                failureShape: "multi-block-readback" } },
+  });
+  const f = await opened({ failing: "set-list-unordered", failure: review });
+  const banked = [];
+  f.document.save = async () => {
+    banked.push(f.document.revision);
+    return Uint8Array.of(banked.length).buffer;
+  };
+  const reopenedFrom = [];
+  const open = f.engine.open.bind(f.engine);
+  f.engine.open = async (bytes, options) => {
+    reopenedFrom.push(new Uint8Array(bytes)[0] ?? null);
+    return open(bytes, options);
+  };
+  await f.session.action("set-bold", { enabled: true });
+  await f.session.action("move-line-up");
+  assert.equal(banked.length, 1);
+  const error = await f.session.setList("unordered").then(() => null, (e) => e);
+  assert.equal(error?.recovery, "review", "the fixture must take the review path");
+  assert.equal(f.session.state.snapshot.state, "ready");
+  assert.equal(f.document.revision, 1, "the engine holds the revision on this path");
+  await f.session.action("move-line-up");
+  assert.equal(banked.length, 2, "the unverified change was not banked");
+  // A death now must come back WITH it.
+  const request = f.engine._request.bind(f.engine);
+  f.engine._request = async (operation, payload) => {
+    if (payload.action === "set-list-ordered")
+      throw Object.assign(new Error("unverifiable"), {
+        code: "MUTATION_OUTCOME_UNKNOWN",
+        details: { formatBarrier: { dispatched: true } } });
+    return request(operation, payload);
+  };
+  await f.session.setList("ordered").catch(() => {});
+  await f.session.rollback();
+  assert.equal(reopenedFrom[0], 2, "the rollback went to bytes without the change");
+});
+
+test("finding 099: a checkpoint save that failed is retried on the next move",
+     async () => {
+  // The price control must not read a failed save as a banked one.
+  const f = await opened();
+  let failing = true;
+  f.document.save = async () => {
+    if (failing) throw new Error("transient");
+    f.saves.push(f.document.revision);
+    return new ArrayBuffer(16);
+  };
+  await f.session.action("set-bold", { enabled: true });
+  await f.session.action("move-line-up");
+  assert.equal(f.session.state.snapshot.checkpointError.code, "CHECKPOINT_FAILED");
+  failing = false;
+  await f.session.action("move-line-up");
+  assert.equal(f.saves.length, 1, "one transient failure left the work unbanked");
+  assert.equal(f.session.state.snapshot.hasCheckpoint, true);
+});
+
+test("finding 098: shift+arrow on a clean document is not a mutation either",
+     async () => {
+  // `extendSelection` rides the same posted key (probe_engine.cpp files it
+  // with `mutation = false`); the page does not send it through `action()`
+  // today, which is why this is a test rather than a measurement.
+  const { session, saves } = await opened();
+  for (const action of ["move-character-left", "move-character-right"]) {
+    await session.action(action, { extendSelection: true });
+    await session.action(action, { extendSelection: true });
+  }
+  assert.equal(session.state.snapshot.dirty, false);
+  assert.equal(saves.length, 0);
+});

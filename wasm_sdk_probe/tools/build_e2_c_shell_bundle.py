@@ -502,7 +502,26 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # until the owner links.  `web/e2-editor-app.js` is byte-identical to v49's.
 # The engine's deadline cannot be measured on any artifact in this tree, and
 # nothing here pretends otherwise.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v51.json")
+#
+# v52, 2026-09-28: findings 098 and 099, one file
+# (`editor-shell-v2/narrow-editor-v2-session.js`) and one change, because the
+# second fix only holds with the first.
+#
+#   * 098 -- `action()` enqueues the six key-path moves with `mutation: false`.
+#     They went in with `mutation: true`, so one arrow key marked a never-typed
+#     document dirty and the second banked a checkpoint of the bytes it was
+#     opened from (`#s-checkpoint` 有（r0）, measured 3/3 on the page).
+#   * 099 -- half C's price control compares content stamps, not revisions.
+#     Revisions restart at zero with every Worker and the checkpoint survives
+#     the rollback, so after one rollback a coincident revision skipped a
+#     checkpoint and the next death went back to the OLDER bytes.  Stamps only
+#     work as the price control once moves stop bumping them -- hence one
+#     generation, not two.
+#
+# Frozen in the SAME COMMIT as the change (finding 091's rule).  THE ENTRYPOINT
+# STILL PINS `e2-editor-v8` and `web/e2-editor-app.js` is byte-identical to
+# v51's: not a cutover, not a link.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v52.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

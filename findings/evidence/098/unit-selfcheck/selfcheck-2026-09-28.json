@@ -1,0 +1,84 @@
+{
+ "baseline (HEAD)": {
+  "tests": 37,
+  "pass": 31,
+  "red": [
+   "finding 098: moving the caret on a CLEAN document never makes it dirty and never banks anything",
+   "finding 098: on a successful answer, `dirty` says the document changed exactly when the engine said it did -- for every action the client offers",
+   "finding 098: shift+arrow on a clean document is not a mutation either",
+   "finding 099: WITHIN one Worker, a change that came back unverified is banked by the next arrow key",
+   "finding 099: after a rollback, the new Worker's work is banked however its revision lines up with the old checkpoint's",
+   "finding 099: the skip reads the content, never the revision -- at any revision, in any generation"
+  ]
+ },
+ "A only": {
+  "tests": 37,
+  "pass": 34,
+  "red": [
+   "finding 099: WITHIN one Worker, a change that came back unverified is banked by the next arrow key",
+   "finding 099: after a rollback, the new Worker's work is banked however its revision lines up with the old checkpoint's",
+   "finding 099: the skip reads the content, never the revision -- at any revision, in any generation"
+  ]
+ },
+ "C1 only": {
+  "tests": 37,
+  "pass": 31,
+  "red": [
+   "finding 096: holding the key down does not save per keypress",
+   "finding 098: moving the caret on a CLEAN document never makes it dirty and never banks anything",
+   "finding 098: on a successful answer, `dirty` says the document changed exactly when the engine said it did -- for every action the client offers",
+   "finding 098: shift+arrow on a clean document is not a mutation either",
+   "finding 099: after a rollback, the new Worker's work is banked however its revision lines up with the old checkpoint's",
+   "finding 099: the skip reads the content, never the revision -- at any revision, in any generation"
+  ]
+ },
+ "A + C3 (guard 2 deleted)": {
+  "tests": 37,
+  "pass": 36,
+  "red": [
+   "finding 096: holding the key down does not save per keypress"
+  ]
+ },
+ "A + C1 (the fix, as in the tree)": {
+  "tests": 37,
+  "pass": 37,
+  "red": []
+ },
+ "A + C1 + codex's revision+1 skip": {
+  "tests": 37,
+  "pass": 35,
+  "red": [
+   "finding 099: after a rollback, the new Worker's work is banked however its revision lines up with the old checkpoint's",
+   "finding 099: the skip reads the content, never the revision -- at any revision, in any generation"
+  ]
+ },
+ "V1 revision+3 skip": {
+  "tests": 37,
+  "pass": 36,
+  "red": [
+   "finding 099: the skip reads the content, never the revision -- at any revision, in any generation"
+  ]
+ },
+ "V2 no retry after a failed save": {
+  "tests": 37,
+  "pass": 36,
+  "red": [
+   "finding 099: a checkpoint save that failed is retried on the next move"
+  ]
+ },
+ "V3 shift-move counted as a mutation": {
+  "tests": 37,
+  "pass": 36,
+  "red": [
+   "finding 098: shift+arrow on a clean document is not a mutation either"
+  ]
+ },
+ "V4 revision guard in generation one": {
+  "tests": 37,
+  "pass": 35,
+  "red": [
+   "finding 099: WITHIN one Worker, a change that came back unverified is banked by the next arrow key",
+   "finding 099: the skip reads the content, never the revision -- at any revision, in any generation"
+  ]
+ }
+}

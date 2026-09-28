@@ -62,6 +62,15 @@ const ACTIONS = new Set(EDITOR_V3_ACTIONS);
 // broadcasts nothing, and the operation waits for a broadcast that is never
 // coming.  Listing only the measured ones would be choosing the smaller
 // protection by taste, and the cost of the larger one is bounded below.
+//
+// FINDING 098.  The set carries TWO consequences of that one engine path, and
+// both are read from it rather than from a second list.  A posted key can
+// wedge (096, above); and a posted key changes nothing -- the engine files it
+// with `mutation = false`, the client's postcondition requires the revision to
+// stay put and `changed: false` (narrow-editor-v2-client.js,
+// `_validateInherited`), and the base class's own `moveCharacter` enqueues
+// it as a non-mutation.  So `action()` enqueues these six as non-mutations
+// as well.
 const BOUNDARY_CAPABLE_MOVES = new Set([
   "move-character-left", "move-character-right",
   "move-line-up", "move-line-down", "move-line-home", "move-line-end",
@@ -309,17 +318,36 @@ export class NarrowEditorV2Session extends EditorSession {
    * the product where being subtly wrong costs the user's unsaved work (this
    * file's own header says so about the queue).
    *
-   * THE REVISION GUARD IS THE PRICE CONTROL, and it is here rather than in the
-   * base class because the base class's own guard does not fit this gesture.
-   * `_checkpointBeforeSelection` skips when the content stamp has not moved
-   * since the last checkpoint -- but `action()` enqueues every one of the
-   * fifteen with `mutation: true`, so the drain bumps that stamp after a MOVE
-   * as well, and a user holding an arrow key down on a dirty document would
-   * pay a full ODT save per keypress.  Revision is the honest stand-in for
-   * content here: every path that changes the document advances it
-   * (`advanceRevision` is called on every mutation completion and on every UNO
-   * command result, undo and redo included), so equal revision means equal
-   * bytes.  The guard can only ever cause an EXTRA save, never a missed one.
+   * THE CONTENT STAMP IS THE PRICE CONTROL: a user holding an arrow key down
+   * on a dirty document must not pay a full ODT save per keypress, so a move
+   * whose content was already banked skips.  The stamp is the base class's
+   * (`_currentContentStamp` against `_checkpointStamp`, the same comparison
+   * `_checkpointBeforeSelection` makes itself); it is asked here first only so
+   * the skip can be counted.  It holds as a price control because a move is
+   * not a mutation -- `action()` enqueues the six with `mutation: false`, so
+   * the drain does not bump the stamp after one (finding 098).
+   *
+   * NOT THE REVISION, and this paragraph used to say the opposite.  Until
+   * finding 099 the guard compared `_checkpointRevision` with
+   * `document.revision`, because moves bumped the stamp and revision did not.
+   * Revision and content part company in two ways, and either one made that
+   * guard skip a checkpoint the user's work needed:
+   *   - ACROSS WORKERS.  Revisions restart at zero with every Worker
+   *     (probe_engine.cpp on open; the base class says so beside the stamps),
+   *     while the checkpoint survives the rollback -- that is what it is for.
+   *     After one rollback the guard compared two unrelated counters, and when
+   *     they coincided the next death went back to the OLDER bytes under a
+   *     notice saying 「回到檢查點」.
+   *   - WITHIN ONE WORKER.  A format action that comes back "dispatched,
+   *     unverified" (`recoveryFor` → "review", resolved in `action()` below)
+   *     may have changed the document, and the drain counts it as a mutation --
+   *     but the engine does not advance the revision on that path
+   *     (`failFormatBarrier` never calls `advanceRevision`).
+   * A stamp names one content state for the whole session: `_contentSequence`
+   * never resets, every counted mutation takes a new value, and a reopen
+   * restores the stamp of the bytes it opened (editor-session.js,
+   * `_openFresh`).
+   * That is the property this needs.
    *
    * WHAT IT DOES NOT DO.  It does not make the press answer, and it must not
    * be read as doing so: with a pre-fix engine the user still waits out the
@@ -330,9 +358,10 @@ export class NarrowEditorV2Session extends EditorSession {
     // Nothing typed since the last save: there is nothing to lose, and a save
     // here would be a cost with no beneficiary.  The base class asks the same
     // question first, and asking it here too keeps the cheap answer cheap.
+    // `dirty` means "typed" only because moves are not mutations (098).
     if (!this.state.snapshot.dirty) return;
     if (this.state.snapshot.hasCheckpoint
-        && this._checkpointRevision === document.revision) {
+        && this._checkpointStamp === this._currentContentStamp) {
       this.boundaryCheckpointsSkipped += 1;
       return;
     }
@@ -385,7 +414,11 @@ export class NarrowEditorV2Session extends EditorSession {
           throw error;
         }
       },
-      { mutation: true },
+      // FINDING 098.  Every action used to go in with `mutation: true`, so one
+      // arrow key marked a never-typed document dirty, bumped its content
+      // stamp, and the second one banked a checkpoint of the bytes it was
+      // opened from.  A move changes nothing -- see BOUNDARY_CAPABLE_MOVES.
+      { mutation: !BOUNDARY_CAPABLE_MOVES.has(action) },
     )
       .then((result) => {
         const carried = result?.[DISPATCHED_UNVERIFIED];
