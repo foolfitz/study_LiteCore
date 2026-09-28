@@ -1,0 +1,961 @@
+#!/usr/bin/env python3
+"""M3 locks and permissions: arms K1-K11 of specs/SPEC-M3-locks-and-permissions.md §4.
+
+The `litecore` app's host takes a WebDAV token lock before it reads the file,
+refreshes it, releases it on pagehide, retries once without a dead token, and
+gives every refused save a way out (a copy next to the file, else a download
+button and a guard on leaving). Each arm drives the real Files -> editor route
+path in a fresh browser and reads the outcome from the server, not only from
+the host's own record.
+
+    python3 wasm_sdk_probe/tools/check_m3_locks.py --label shakedown --arms hold --browsers chrome --repeats 1
+    python3 wasm_sdk_probe/tools/check_m3_locks.py --label counted
+    python3 wasm_sdk_probe/tools/check_m3_locks.py --score findings/evidence/m3-locks/runs/<file>.json
+    python3 wasm_sdk_probe/tools/check_m3_locks.py --red-cases findings/evidence/m3-locks/shakedown/<file>.json
+
+A second user `lcprobe` and three shares are made once per invocation (Nextcloud
+allows 20 new shares per user per 10 min) and removed at the end.
+"""
+from __future__ import annotations
+
+import argparse
+import copy
+import hashlib
+import html
+import json
+import os
+import secrets
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+import traceback
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from check_m3_host_entry import CTRL_S, MARKER, PICKERS, host_record, requests_matching  # noqa: E402
+from check_m3_skeleton_open import (  # noqa: E402
+    ACTION, DEFAULT_DDEV, FIXTURE, NAME, ROUTE, SAMPLE, Instance, product_state, state_until)
+from probe_m3_gate0_coep import (  # noqa: E402
+    DIST, EventChrome, firefox_profile, sha256_file, summarize_cdp, utc_now, wait_until)
+from probe_m3_lock_semantics import Client  # noqa: E402
+from r7_support import evaluate  # noqa: E402
+from run_browser_probe import WEBDRIVER_ELEMENT_KEY, FirefoxSession  # noqa: E402
+from run_e2_c_page_smoke import POINT_AT, PRESS, navigate  # noqa: E402
+
+PROJECT = Path(__file__).resolve().parent.parent
+REPO = PROJECT.parent
+EVIDENCE = REPO / "findings" / "evidence" / "m3-locks"
+PAGE_SHA256 = "fbfb59a4014995322f210812e3627ff828dbecae351d157305a75701e2d76632"
+ODT = "application/vnd.oasis.opendocument.text"
+OTHER = "lcprobe"
+RO_NAME = "M3 鎖 唯讀.odt"
+RO_FOLDER = "M3 鎖 唯讀資料夾"
+INNER = "M3 鎖 資料夾內.odt"
+STRANDED = "存回失敗，而且沒有地方可以另存：內容還在這個頁面裡，請按「下載這份內容」。"
+BOTH = ("chrome", "firefox")
+# arm -> (spec id, browsers, counted runs per browser)
+PLAN = {
+    "hold": ("K1", BOTH, 3),
+    "closetab": ("K2′", BOTH, 1),   # K2 withdrawn 2026-09-28: closing does not release
+    "heartbeat": ("K3", BOTH, 1),
+    "crash": ("K4", BOTH, 1),
+    "foreign-lock": ("K5", BOTH, 3),
+    "broken-then-written": ("K6", BOTH, 3),
+    "expired": ("K7", BOTH, 3),
+    "frozen": ("K8", ("chrome",), 1),
+    "readonly": ("K9", BOTH, 3),
+    "nowhere": ("K10", BOTH, 3),
+    "offline": ("K11", ("chrome",), 3),
+}
+LOCK_PROPFIND = (b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns" '
+                 b'xmlns:nc="http://nextcloud.org/ns"><d:prop><d:getetag/><oc:fileid/><d:lockdiscovery/>'
+                 b"<nc:lock/><nc:lock-owner/><nc:lock-owner-type/></d:prop></d:propfind>")
+HOST_DONE = ("(() => { const v = document.documentElement.getAttribute('data-litecore');"
+             " return v && JSON.parse(v).done && v; })()")
+BAR = """(() => ({ notice: document.querySelector('#litecore-host-notice').textContent,
+  barHidden: document.querySelector('#litecore-host-bar').hidden,
+  downloadHidden: document.querySelector('#litecore-host-download').hidden }))()"""
+CENTER = """(() => { const r = document.querySelector(ARG).getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height }; })()"""
+# Truthy while the host's 60 s refresh period (counted from the lock) is 5-40 s in.
+QUIET_PHASE = ("(() => { const v = JSON.parse(document.documentElement.getAttribute('data-litecore'));"
+               " const p = (Date.now() - v.started - v.lock.at) % 60000; return p > 5000 && p < 40000 && p; })()")
+
+
+class LockChrome(EventChrome):
+    KEEP = EventChrome.KEEP | {"Page.javascriptDialogOpening", "Page.downloadWillBegin", "Page.downloadProgress"}
+
+    def real_click(self, selector: str) -> dict[str, Any]:
+        """A trusted click (CDP Input): it gives the page user activation,
+        which a DOM .click() does not -- and beforeunload needs it."""
+        box = evaluate(self, CENTER.replace("ARG", json.dumps(selector)))
+        for kind in ("mousePressed", "mouseReleased"):
+            self.call("Input.dispatchMouseEvent", {"type": kind, "x": box["x"], "y": box["y"],
+                                                   "button": "left", "clickCount": 1})
+        return box
+
+    def leave_attempt(self, url: str, wait: float = 5.0) -> dict[str, Any]:
+        """Navigate the way a link would (renderer-initiated, so beforeunload
+        runs); a dialog blocks the page, so the evaluate is not awaited."""
+        self.next_id += 1
+        sent = self.next_id
+        self.websocket.send(json.dumps({"id": sent, "method": "Runtime.evaluate",
+                                        "params": {"expression": f"location.href = {json.dumps(url)}; true"}}))
+        deadline = time.monotonic() + wait
+        dialog = None
+        while time.monotonic() < deadline:
+            try:
+                message = json.loads(self.websocket.recv(timeout=max(0.1, deadline - time.monotonic())))
+            except TimeoutError:
+                break
+            if message.get("method") == "Page.javascriptDialogOpening":
+                dialog = message["params"]
+                break
+            if message.get("method") in self.KEEP:
+                self.events.append(message)
+        return {"dialog": dialog}
+
+
+def kill_tree(pid: int) -> list[int]:
+    """SIGKILL a process and every descendant, collected first so none is
+    reparented away before it is killed."""
+    found, queue = [], [pid]
+    while queue:
+        current = queue.pop()
+        found.append(current)
+        children = subprocess.run(["pgrep", "-P", str(current)], capture_output=True, text=True).stdout.split()
+        queue.extend(int(child) for child in children)
+    for each in found:
+        try:
+            os.kill(each, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+    return found
+
+
+class Server:
+    """The server side of every check: admin and the second user over HTTP,
+    and the lock table for the two arms that act on it directly."""
+
+    def __init__(self, instance: Instance, log: list[dict[str, Any]]):
+        self.instance = instance
+        self.admin = Client(instance.base, "admin", instance.password, log)
+        self.other: Client | None = None
+        self.targets: dict[str, str] = {}
+        self.shares: list[str] = []
+        self.fixture = FIXTURE.read_bytes()
+        self.intruder = SAMPLE.read_bytes()
+
+    def setup(self) -> dict[str, Any]:
+        password = secrets.token_urlsafe(24)
+        self.clear_locks()
+        self.admin.call("setup", "DELETE", f"/ocs/v2.php/cloud/users/{OTHER}")
+        made = self.admin.call("setup", "POST", "/ocs/v2.php/cloud/users", form={"userid": OTHER, "password": password})
+        if made["status"] != 200:
+            raise RuntimeError(f"cannot create {OTHER}: {made['status']} {made['body']}")
+        self.other = Client(self.instance.base, OTHER, password, self.admin.log)
+        self.other_password = password
+        self.upload(self.admin, NAME)
+        self.upload(self.admin, RO_NAME)
+        self.admin.call("setup", "MKCOL", self.admin.dav_path(RO_FOLDER))
+        self.upload(self.admin, f"{RO_FOLDER}/{INNER}")
+        for key, path, permissions in (("rw", NAME, 3), ("ro", RO_NAME, 1), ("folder", RO_FOLDER, 1)):
+            answer = self.admin.call("setup", "POST", "/ocs/v2.php/apps/files_sharing/api/v1/shares", form={
+                "path": "/" + path, "shareType": 0, "shareWith": OTHER, "permissions": permissions})
+            if answer["status"] != 200:
+                raise RuntimeError(f"cannot share {path}: {answer['status']} (429 = share-creation limit)")
+            data = json.loads(answer["body"])["ocs"]["data"]
+            self.shares.append(str(data["id"]))
+            self.targets[key] = data["file_target"].lstrip("/")
+        return {"targets": self.targets, "fileIds": {n: self.fileid(self.admin, n)
+                                                    for n in (NAME, RO_NAME, f"{RO_FOLDER}/{INNER}")}}
+
+    def teardown(self) -> None:
+        self.admin.call("teardown", "DELETE", f"/ocs/v2.php/cloud/users/{OTHER}")
+        for path in (RO_NAME, RO_FOLDER):
+            self.admin.call("teardown", "DELETE", self.admin.dav_path(path))
+        self.clear_locks()
+        self.upload(self.admin, NAME)
+
+    def upload(self, client: Client, path: str, body: bytes | None = None) -> int:
+        return client.call("upload", "PUT", client.dav_path(path), self.fixture if body is None else body,
+                           {"Content-Type": ODT})["status"]
+
+    def fileid(self, client: Client, path: str) -> int | None:
+        value = self.props(client, path).get("fileid")
+        return int(value) if value else None
+
+    def full(self, client: Client, step: str, method: str, path: str, body: bytes | None,
+             headers: dict[str, str]) -> tuple[int, str]:
+        """Like Client.call, but the whole body: Client keeps 1500 characters,
+        and a folder listing or a lockdiscovery runs past that."""
+        request = urllib.request.Request(client.base + client.dav_path(path), data=body, method=method,
+                                         headers={"X-Requested-With": "XMLHttpRequest", **headers})
+        request.add_header("Authorization", client.auth)
+        try:
+            with urllib.request.urlopen(request, context=client.tls, timeout=60) as response:
+                status, raw = response.status, response.read()
+        except urllib.error.HTTPError as error:
+            status, raw = error.code, error.read()
+        client.log.append({"step": step, "actor": client.user, "method": method, "path": path,
+                           "status": status, "bytes": len(raw)})
+        return status, raw.decode("utf-8", "replace")
+
+    def props(self, client: Client, path: str) -> dict[str, Any]:
+        status, body = self.full(client, "props", "PROPFIND", path, LOCK_PROPFIND,
+                                 {"Depth": "0", "Content-Type": "application/xml"})
+        grab = lambda tag: (body.split(f"<{tag}>", 1)[1].split(f"</{tag}>", 1)[0]  # noqa: E731
+                            if f"<{tag}>" in body else None)
+        token = None
+        if "<d:locktoken>" in body:
+            token = grab("d:locktoken").split("<d:href>", 1)[-1].split("</d:href>", 1)[0].strip()
+        return {"status": status, "etag": html.unescape(grab("d:getetag") or "") or None,
+                "fileid": grab("oc:fileid"), "lock": grab("nc:lock"), "lockOwner": grab("nc:lock-owner"),
+                "lockOwnerType": grab("nc:lock-owner-type"), "token": token}
+
+    def content(self, client: Client, path: str) -> dict[str, Any]:
+        """The bytes' hash, read raw (the probe client keeps no zip bodies)."""
+        request = urllib.request.Request(client.base + client.dav_path(path), method="GET")
+        request.add_header("Authorization", client.auth)
+        try:
+            with urllib.request.urlopen(request, context=client.tls, timeout=60) as response:
+                raw = response.read()
+                return {"status": response.status, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
+        except urllib.error.HTTPError as error:
+            return {"status": error.code, "sha256": None, "bytes": 0}
+
+    def put(self, client: Client, path: str, body: bytes, headers: dict[str, str] | None = None) -> int:
+        return client.call("put", "PUT", client.dav_path(path), body, {"Content-Type": ODT, **(headers or {})})["status"]
+
+    def copies(self, client: Client, folder: str, stem: str, remove: bool) -> list[dict[str, Any]]:
+        _, listing = self.full(client, "list", "PROPFIND", folder,
+                               b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:displayname/></d:prop></d:propfind>',
+                               {"Depth": "1", "Content-Type": "application/xml"})
+        hrefs = [chunk.split("</d:href>", 1)[0] for chunk in listing.split("<d:href>")[1:]]
+        names = [urllib.parse.unquote(href.rstrip("/").rsplit("/", 1)[-1]) for href in hrefs]
+        found = []
+        for name in sorted(n for n in names if n.startswith(stem + "（") and "副本" in n):
+            path = f"{folder}/{name}" if folder else name
+            found.append({"name": name, **self.content(client, path)})
+            if remove:
+                client.call("remove", "DELETE", client.dav_path(path))
+        return found
+
+    def clear_locks(self, fileid: int | None = None) -> str:
+        where = f" WHERE file_id = {int(fileid)}" if fileid else ""
+        result = subprocess.run(["ddev", "mysql", "-e", f"DELETE FROM oc_files_lock{where}; SELECT ROW_COUNT();"],
+                                cwd=self.instance.root, capture_output=True, text=True, timeout=60)
+        return (result.stdout.strip().splitlines() or ["?"])[-1]
+
+    def poll_expiry(self, limit: float = 420, every: float = 15) -> list[dict[str, Any]]:
+        """After the page is gone: the lock, every 15 s, until it lapses."""
+        started = time.monotonic()
+        polls = []
+        while True:
+            seen = self.props(self.admin, NAME)
+            polls.append({"at": round(time.monotonic() - started, 1), "lock": seen.get("lock")})
+            if seen.get("lock") == "" or time.monotonic() - started > limit:
+                return polls
+            time.sleep(every)
+
+    def wait_unlocked(self, client: Client, path: str, limit: float, every: float = 1.0) -> dict[str, Any]:
+        started = time.monotonic()
+        polls = []
+        while True:
+            seen = self.props(client, path)
+            polls.append({"at": round(time.monotonic() - started, 1), "lock": seen.get("lock")})
+            if seen.get("lock") in ("", None) and seen.get("status") == 207:
+                return {"released": True, "seconds": polls[-1]["at"], "polls": polls}
+            if time.monotonic() - started > limit:
+                return {"released": False, "polls": polls}
+            time.sleep(every)
+
+
+# --------------------------------------------------------------------------
+# Driving
+
+
+def login(session, base: str, user: str, password: str) -> Any:
+    navigate(session, base + "/login", timeout=60)
+    if isinstance(session, LockChrome):
+        session.evaluate(
+            "(() => { window.__m3login = null;"
+            " fetch('/login', {method: 'POST', body: new URLSearchParams({"
+            f"user: {json.dumps(user)}, password: {json.dumps(password)},"
+            " requesttoken: document.head.dataset.requesttoken})})"
+            ".then((r) => { window.__m3login = {status: r.status, url: r.url}; })"
+            ".catch((e) => { window.__m3login = {error: String(e)}; }); return true; })()")
+        return wait_until(session, "(() => window.__m3login)()", 30)
+    wait_until(session, "(() => document.querySelector('#user') !== null)()", 30)
+    for selector, text in (("#user", user), ("#password", password)):
+        element = session.command("POST", "/element", {"using": "css selector", "value": selector})
+        session.command("POST", f"/element/{element[WEBDRIVER_ELEMENT_KEY]}/value", {"text": text})
+    session.click('button[type="submit"]')
+    return wait_until(session, "(() => !location.pathname.endsWith('/login') && location.href)()", 30)
+
+
+def open_from_files(session, base: str, folder: str, name: str, record: dict[str, Any]) -> None:
+    navigate(session, base + "/apps/files/files?dir=" + urllib.parse.quote("/" + folder), timeout=120)
+    selector = (f'[data-cy-files-list-row-name={json.dumps(name, ensure_ascii=False)}]'
+                ' [data-cy-files-list-row-name-link]')
+    record["filesRow"] = wait_until(session, f"(() => document.querySelector({json.dumps(selector)}) !== null)()", 60)
+    record["clickedFrom"] = evaluate(session, "(() => location.href)()")
+    if isinstance(session, LockChrome):
+        session.drain()
+    started = time.monotonic()
+    session.click(selector)
+    record["landed"] = wait_until(
+        session, f"(() => location.pathname.endsWith({json.dumps(ROUTE)}) && location.href)()", 60)
+    raw = wait_until(session, HOST_DONE, 300)
+    record["host"] = json.loads(raw) if isinstance(raw, str) else {"notReported": raw}
+    record["secondsToOpened"] = round(time.monotonic() - started, 2)
+    record["pickers"] = evaluate(session, PICKERS)
+    record["bar"] = evaluate(session, BAR)
+
+
+def edit(session, record: dict[str, Any], key: str = "smoke") -> None:
+    before = product_state(session)
+    evaluate(session, POINT_AT.replace("ARG_X", "0.35").replace("ARG_Y", "0.28"))
+    caret = state_until(session, lambda s: "定位游標" in (s.get("latency") or ""), 60)
+    evaluate(session, PRESS.replace("ARG_ACTION", ACTION))
+    acted = state_until(session, lambda s: s.get("revision") != caret.get("revision")
+                        or "失敗" in (s.get("latency") or ""), 120)
+    record[key] = {"before": before, "caret": caret, "acted": acted}
+
+
+def insert_marker(session, record: dict[str, Any]) -> None:
+    ahead = product_state(session)
+    evaluate(session, f"(() => {{ document.querySelector('#text').value = {json.dumps(MARKER)}; return true; }})()")
+    evaluate(session, PRESS.replace("ARG_ACTION", "insert-text"))
+    record["inserted"] = state_until(session, lambda s: s.get("revision") != ahead.get("revision")
+                                     or "失敗" in (s.get("latency") or ""), 60)
+
+
+def save(session, record: dict[str, Any], count: int, how: str = "button") -> dict[str, Any]:
+    """Press save and wait until the host has settled that many saves, then
+    for the page's own line to show the outcome."""
+    if how == "button":
+        evaluate(session, PRESS.replace("ARG_ACTION", "save"))
+    else:
+        record["ctrlS"] = evaluate(session, CTRL_S)
+    record[f"save{count}Seen"] = wait_until(
+        session, "(() => { const v = document.documentElement.getAttribute('data-litecore');"
+                 f" const s = v && JSON.parse(v).saves; return s && s.length >= {count}"
+                 f" && s[{count - 1}].settled === true && s.length; }})()", 180)
+    time.sleep(0.5)
+    state = state_until(session, lambda s: (s.get("latency") or "").startswith("存回"), 60)
+    record[f"save{count}State"] = state
+    return state
+
+
+def chrome_download_dir(session: LockChrome, directory: Path) -> str:
+    for method, params in (("Page.setDownloadBehavior", {"behavior": "allow", "downloadPath": str(directory)}),
+                           ("Browser.setDownloadBehavior", {"behavior": "allow", "downloadPath": str(directory)})):
+        try:
+            session.call(method, params)
+            return method
+        except Exception:  # noqa: BLE001 -- try the other
+            continue
+    return "none"
+
+
+def downloaded(directory: Path, limit: float = 30) -> dict[str, Any]:
+    deadline = time.monotonic() + limit
+    while time.monotonic() < deadline:
+        files = [p for p in directory.iterdir() if p.is_file() and not p.name.endswith((".part", ".crdownload"))]
+        if files:
+            time.sleep(0.5)
+            path = max(files, key=lambda p: p.stat().st_mtime)
+            return {"name": path.name, "sha256": sha256_file(path), "bytes": path.stat().st_size}
+        time.sleep(0.5)
+    return {"none": True, "listing": [p.name for p in directory.iterdir()]}
+
+
+def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any]:
+    record: dict[str, Any] = {"arm": arm, "spec": PLAN[arm][0], "browser": kind, "startedAt": utc_now()}
+    as_other = arm in ("readonly", "nowhere")
+    client = server.other if as_other else server.admin
+    folder = {"readonly": "", "nowhere": server.targets["folder"]}.get(arm, "")
+    name = {"readonly": server.targets["ro"], "nowhere": INNER}.get(arm, NAME)
+    path = f"{folder}/{name}" if folder else name
+    admin_path = {"readonly": RO_NAME, "nowhere": f"{RO_FOLDER}/{INNER}"}.get(arm, NAME)
+    record["file"] = {"user": client.user, "path": path, "adminPath": admin_path}
+    record["clearedLocks"] = server.clear_locks()
+    record["reset"] = {"upload": server.upload(server.admin, admin_path),
+                       "fileId": server.fileid(server.admin, admin_path)}
+    record["copiesBefore"] = server.copies(client, folder, name[:-4], remove=True)
+    record["serverBefore"] = server.content(server.admin, admin_path)
+    downloads = scratch / f"downloads-{arm}-{kind}-{time.monotonic_ns()}"
+    downloads.mkdir()
+    if kind == "chrome":
+        session = LockChrome("cold")
+        record["downloadVia"] = chrome_download_dir(session, downloads)
+    else:
+        session = FirefoxSession("cold", profile_dir=firefox_profile(scratch / f"ff-{time.monotonic_ns()}"),
+                                 extra_prefs={"browser.download.folderList": 2, "browser.download.dir": str(downloads),
+                                              "browser.download.useDownloadDir": True,
+                                              "browser.download.always_ask_before_handling_new_types": False,
+                                              "browser.helperApps.neverAsk.saveToDisk": ODT})
+    record["version"] = getattr(session, "version", None)
+    closed = False
+    try:
+        if arm == "foreign-lock":
+            record["foreignLock"] = server.other.call("foreign lock", "LOCK", server.other.dav_path(server.targets["rw"]),
+                                                      None, {"X-User-Lock": "1"})["status"]
+        record["login"] = login(session, server.instance.base, client.user,
+                                server.other_password if as_other else server.instance.password)
+        open_from_files(session, server.instance.base, folder, name, record)
+        record["afterOpen"] = server.props(server.admin, admin_path)
+        if arm == "hold":
+            record["seenByOther"] = server.props(server.other, server.targets["rw"])
+            record["otherPut"] = server.put(server.other, server.targets["rw"], server.intruder)
+            record["afterOtherPut"] = server.content(server.admin, NAME)
+            edit(session, record)
+            save(session, record, 1)
+            insert_marker(session, record)
+            save(session, record, 2, how="ctrl-s")
+            record["host"] = host_record(session)
+            record["serverAfter"] = server.content(server.admin, NAME)
+            record["copiesAfter"] = server.copies(client, folder, name[:-4], remove=True)
+            navigate(session, server.instance.base + "/apps/files/", timeout=120)
+            record["release"] = server.wait_unlocked(server.admin, NAME, 15)
+            record["otherPutAfter"] = server.put(server.other, server.targets["rw"], server.intruder)
+        elif arm == "closetab":
+            record["lockBefore"] = server.props(server.admin, NAME)
+            if kind == "chrome":
+                try:
+                    session.call("Page.close", timeout=10)
+                except Exception as error:  # noqa: BLE001 -- the socket goes with the tab
+                    record["closeAnswer"] = f"{type(error).__name__}: {error}"
+            else:
+                session.command("POST", "/window/new", {"type": "window"})
+                session.command("DELETE", "/window")
+            record["expiry"] = server.poll_expiry()
+        elif arm == "heartbeat":
+            record["lockBefore"] = server.props(server.admin, NAME)
+            time.sleep(330)
+            record["lockAfter"] = server.props(server.admin, NAME)
+            record["hostBeforeSave"] = host_record(session)
+            save(session, record, 1)
+            record["host"] = host_record(session)
+            record["serverAfter"] = server.content(server.admin, NAME)
+        elif arm == "crash":
+            record["lockBefore"] = server.props(server.admin, NAME)
+            record["killed"] = kill_tree(session.process.pid)
+            closed = True
+            record["expiry"] = server.poll_expiry()
+        elif arm == "foreign-lock":
+            edit(session, record)
+            save(session, record, 1)
+            record["host"] = host_record(session)
+            record["serverAfter"] = server.content(server.admin, NAME)
+            record["copiesAfter"] = server.copies(client, folder, name[:-4], remove=True)
+        elif arm == "broken-then-written":
+            fileid = record["reset"]["fileId"]
+            record["ownerUnlock"] = server.admin.call("owner unlock", "DELETE", f"/ocs/v2.php/apps/files_lock/lock/{fileid}",
+                                                      form={"lockType": 0})["status"]
+            record["intruded"] = server.put(server.admin, NAME, server.intruder)
+            record["afterIntrusion"] = server.content(server.admin, NAME)
+            edit(session, record)
+            saved = save(session, record, 1)
+            time.sleep(5)
+            record["afterWait"] = product_state(session)
+            record["savedRevision"] = saved.get("revision")
+            record["host"] = host_record(session)
+            record["serverAfter"] = server.content(server.admin, NAME)
+            record["copiesAfter"] = server.copies(client, folder, name[:-4], remove=True)
+        elif arm == "expired":
+            edit(session, record)
+            # Delete the row well away from a refresh (every 60 s from the lock),
+            # so the save, not the heartbeat, is the first to meet the dead token.
+            record["phaseWait"] = wait_until(session, QUIET_PHASE, 70, poll=0.5)
+            record["deleted"] = server.clear_locks(record["reset"]["fileId"])
+            record["afterDelete"] = server.props(server.admin, NAME)
+            save(session, record, 1)
+            record["host"] = host_record(session)
+            record["serverAfter"] = server.content(server.admin, NAME)
+            record["copiesAfter"] = server.copies(client, folder, name[:-4], remove=True)
+        elif arm == "frozen":
+            edit(session, record)
+            try:
+                session.call("Page.setWebLifecycleState", {"state": "frozen"})
+                record["frozen"] = True
+            except Exception as error:  # noqa: BLE001 -- recorded, the arm then fails
+                record["frozen"] = f"{type(error).__name__}: {error}"
+            time.sleep(320)
+            record["lockWhileFrozen"] = server.props(server.admin, NAME)
+            time.sleep(10)
+            session.call("Page.setWebLifecycleState", {"state": "active"})
+            save(session, record, 1)
+            record["host"] = host_record(session)
+            record["serverAfter"] = server.content(server.admin, NAME)
+            record["copiesAfter"] = server.copies(client, folder, name[:-4], remove=True)
+        elif arm == "readonly":
+            edit(session, record)
+            save(session, record, 1)
+            record["host"] = host_record(session)
+            record["serverAfter"] = server.content(server.admin, RO_NAME)
+            record["copiesAfter"] = server.copies(client, folder, name[:-4], remove=True)
+        elif arm == "nowhere":
+            edit(session, record)
+            save(session, record, 1)
+            record["host"] = host_record(session)
+            record["barStranded"] = evaluate(session, BAR)
+            if kind == "chrome":
+                record["activation"] = session.real_click("#litecore-host-notice")
+                record["leave1"] = session.leave_attempt(server.instance.base + "/apps/files/")
+                if record["leave1"]["dialog"]:
+                    session.call("Page.handleJavaScriptDialog", {"accept": False})
+                time.sleep(1)
+                record["stayed"] = evaluate(session, "(() => location.pathname)()")
+                session.real_click("#litecore-host-download")
+            else:
+                session.click("#litecore-host-download")
+            record["download"] = downloaded(downloads)
+            record["hostAfterDownload"] = host_record(session)
+            record["barAfterDownload"] = evaluate(session, BAR)
+            if kind == "chrome":
+                record["leave2"] = session.leave_attempt(server.instance.base + "/apps/files/")
+                time.sleep(2)
+                record["left"] = evaluate(session, "(() => location.pathname)()")
+            record["serverAfter"] = server.content(server.admin, admin_path)
+            record["copiesAfter"] = server.copies(server.admin, RO_FOLDER, INNER[:-4], remove=True)
+        elif arm == "offline":
+            edit(session, record)
+            session.call("Network.emulateNetworkConditions", {"offline": True, "latency": 0,
+                                                              "downloadThroughput": -1, "uploadThroughput": -1})
+            save(session, record, 1)
+            record["barOffline"] = evaluate(session, BAR)
+            session.call("Network.emulateNetworkConditions", {"offline": False, "latency": 0,
+                                                              "downloadThroughput": -1, "uploadThroughput": -1})
+            insert_marker(session, record)
+            save(session, record, 2, how="ctrl-s")
+            record["host"] = host_record(session)
+            record["barAfter"] = evaluate(session, BAR)
+            record["serverAfter"] = server.content(server.admin, NAME)
+            record["copiesAfter"] = server.copies(client, folder, name[:-4], remove=True)
+        if isinstance(session, LockChrome) and arm not in ("closetab", "crash"):
+            events = session.drain()
+            record["cdp"] = summarize_cdp(events)
+            record["fixtureRequests"] = requests_matching(events, "/e1-fixtures/")
+            record["davRequests"] = requests_matching(events, "/remote.php/dav/files/")
+            record["dialogs"] = [e["params"] for e in events if e["method"] == "Page.javascriptDialogOpening"]
+    except Exception:  # noqa: BLE001 -- a run that dies is recorded, not lost
+        record["fatal"] = traceback.format_exc()
+    finally:
+        if closed:
+            session.process.wait(timeout=30)
+        else:
+            try:
+                session.close()
+            except Exception:  # noqa: BLE001
+                pass
+        record["locksAtEnd"] = server.props(server.admin, admin_path)
+        record["clearedAtEnd"] = server.clear_locks()
+    return record
+
+
+# --------------------------------------------------------------------------
+# Scoring -- raw fields only.
+
+
+def opened_ok(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
+    """H1 of the host entry, for whichever user and file the arm opened."""
+    bad = []
+    fileid = (run.get("reset") or {}).get("fileId")
+    landed = run.get("landed")
+    query = urllib.parse.parse_qs(urllib.parse.urlsplit(landed).query) if isinstance(landed, str) else {}
+    if not (isinstance(run.get("clickedFrom"), str) and "/apps/files/" in run["clickedFrom"]) \
+            or query.get("fileId") != [str(fileid)]:
+        bad.append(f"click path: from {run.get('clickedFrom')!r} to {landed!r}")
+    host = run.get("host") or {}
+    iso = host.get("isolation") or {}
+    if iso.get("crossOriginIsolated") is not True or iso.get("sharedArrayBuffer") is not True:
+        bad.append(f"isolation {iso}")
+    if run.get("browser") == "chrome" and "cdp" in run:
+        rows = [d for d in (run.get("cdp") or {}).get("documents") or [] if d.get("url") == landed]
+        if not rows or rows[0].get("coop") != "same-origin" or rows[0].get("coep") != "require-corp":
+            bad.append(f"document headers {rows}")
+        if run.get("fixtureRequests") != []:
+            bad.append(f"sample requests {run.get('fixtureRequests')}")
+    fetched = host.get("fetched") or {}
+    if fetched.get("status") != 200 or fetched.get("sha256") != report["original"]["sha256"]:
+        bad.append(f"fetched {fetched}")
+    name = (run.get("file") or {}).get("path", "").rsplit("/", 1)[-1]
+    opened = next((s.get("state") or {} for s in host.get("steps") or [] if s.get("step") == "opened"), {})
+    if opened.get("state") != "ready" or opened.get("doc") != name:
+        bad.append(f"opened {opened}")
+    if (run.get("pickers") or {}) != {"fixtureDisabled": True, "openFileDisabled": True, "fileDisabled": True,
+                                      "fixtureOptions": 0}:
+        bad.append(f"pickers {run.get('pickers')}")
+    return bad
+
+
+def edited(run: dict[str, Any], key: str = "smoke") -> list[str]:
+    smoke = run.get(key) or {}
+    caret, acted = smoke.get("caret") or {}, smoke.get("acted") or {}
+    before, after = caret.get("revision") or "", acted.get("revision") or ""
+    if not (before.isdigit() and after.isdigit() and int(after) == int(before) + 1
+            and "失敗" not in (acted.get("latency") or "")):
+        return [f"{key} {before!r}->{after!r} {acted.get('latency')!r}"]
+    return []
+
+
+def held_at_open(run: dict[str, Any]) -> list[str]:
+    """The lock was taken, and taken before the read: the GET's version is the
+    post-lock one (taking a lock moves the ETag; the server says which it is)."""
+    bad = []
+    host = run.get("host") or {}
+    lock, fetched, after = host.get("lock") or {}, host.get("fetched") or {}, run.get("afterOpen") or {}
+    if lock.get("status") != 200 or lock.get("state") not in ("held", "released", "lost"):
+        bad.append(f"lock at open {lock.get('status')}/{lock.get('state')}")
+    if not (isinstance(lock.get("at"), int) and isinstance(fetched.get("at"), int) and lock["at"] <= fetched["at"]):
+        bad.append(f"lock at {lock.get('at')} vs fetched at {fetched.get('at')}")
+    if after.get("lock") != "1" or after.get("lockOwnerType") != "2" or after.get("lockOwner") != "admin":
+        bad.append(f"server lock after open {after.get('lock')}/{after.get('lockOwnerType')}/{after.get('lockOwner')}")
+    if not fetched.get("etag") or fetched.get("etag") != after.get("etag"):
+        bad.append(f"fetched version {fetched.get('etag')} is not the post-lock {after.get('etag')}")
+    return bad
+
+
+def attempts(save: dict[str, Any]) -> list[tuple[Any, Any]]:
+    return [(a.get("status"), a.get("withToken")) for a in save.get("attempts") or []]
+
+
+def page_failed_with(state: dict[str, Any], *needles: str) -> list[str]:
+    toast = state.get("toast") or ""
+    if state.get("latency") != "存回 失敗" or not all(n in toast for n in needles):
+        return [f"page says {state.get('latency')!r} / {toast!r}, wanted {needles}"]
+    return []
+
+
+def one_copy(run: dict[str, Any], label: str, sent: str | None) -> list[str]:
+    copies = run.get("copiesAfter") or []
+    if len(copies) != 1 or label not in copies[0]["name"] or copies[0].get("sha256") != sent:
+        return [f"copies {[(c.get('name'), (c.get('sha256') or '')[:12]) for c in copies]}, wanted one {label} = {(sent or '')[:12]}"]
+    return []
+
+
+def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
+    if run.get("fatal"):
+        return [f"fatal: {run['fatal'].strip().splitlines()[-1]}"]
+    arm = run["arm"]
+    bad = opened_ok(run, report)
+    host = run.get("host") or {}
+    saves = host.get("saves") or []
+    original = report["original"]["sha256"]
+    server_after = (run.get("serverAfter") or {}).get("sha256")
+    if arm == "hold":
+        bad += held_at_open(run) + edited(run)
+        seen = run.get("seenByOther") or {}
+        if seen.get("lock") != "1" or seen.get("lockOwnerType") != "2" or seen.get("lockOwner") != "admin":
+            bad.append(f"seen by other {seen}")
+        if run.get("otherPut") != 423 or (run.get("afterOtherPut") or {}).get("sha256") != original:
+            bad.append(f"other PUT {run.get('otherPut')}, server {(run.get('afterOtherPut') or {}).get('sha256', '')[:12]}")
+        fetched = (host.get("fetched") or {}).get("etag")
+        if len(saves) != 2 or [attempts(s) for s in saves] != [[(204, True)], [(204, True)]]:
+            bad.append(f"saves {[attempts(s) for s in saves]}")
+        elif saves[0].get("ifMatch") != fetched or saves[1].get("ifMatch") != saves[0].get("etag"):
+            bad.append(f"version chain {fetched} -> {saves[0].get('ifMatch')}, {saves[0].get('etag')} -> {saves[1].get('ifMatch')}")
+        elif server_after != saves[1].get("sha256"):
+            bad.append(f"server {server_after and server_after[:12]} != second save {saves[1].get('sha256', '')[:12]}")
+        if run.get("copiesAfter"):
+            bad.append(f"copies {run.get('copiesAfter')}")
+        if not (run.get("release") or {}).get("released") or not (200 <= (run.get("otherPutAfter") or 0) < 300):
+            bad.append(f"after leaving: release {run.get('release', {}).get('released')}, other PUT {run.get('otherPutAfter')}")
+    elif arm == "closetab":
+        bad += held_at_open(run)
+        polls = run.get("expiry") or []
+        if (run.get("lockBefore") or {}).get("lock") != "1":
+            bad.append(f"no lock before closing {(run.get('lockBefore') or {}).get('lock')!r}")
+        if not polls or polls[-1].get("lock") != "" or polls[-1].get("at", 9e9) > 315:
+            bad.append(f"expiry {polls[-1:] if polls else None}")
+    elif arm == "heartbeat":
+        bad += held_at_open(run)
+        before, after = run.get("lockBefore") or {}, run.get("lockAfter") or {}
+        if after.get("lock") != "1" or not before.get("token") or before.get("token") != after.get("token"):
+            bad.append(f"after 330 s: lock {after.get('lock')!r}, token {before.get('token')} -> {after.get('token')}")
+        refreshes = ((run.get("hostBeforeSave") or {}).get("lock") or {}).get("refreshes") or []
+        if len(refreshes) < 5 or any(r.get("status") != 200 for r in refreshes):
+            bad.append(f"refreshes {[r.get('status') for r in refreshes]}")
+        if len(saves) != 1 or attempts(saves[0]) != [(204, True)] or server_after != saves[0].get("sha256"):
+            bad.append(f"save {[attempts(s) for s in saves]}")
+    elif arm == "crash":
+        bad += held_at_open(run)
+        polls = run.get("expiry") or []
+        if not polls or polls[0].get("lock") != "1":
+            bad.append(f"first poll after kill {polls[:1]} (the lock must still be there)")
+        if not polls or polls[-1].get("lock") != "" or polls[-1].get("at", 9e9) > 315:
+            bad.append(f"expiry {polls[-1:] if polls else None}")
+    elif arm == "foreign-lock":
+        bad += edited(run)
+        lock = host.get("lock") or {}
+        if run.get("foreignLock") != 200 or lock.get("status") != 423 or lock.get("state") != "refused":
+            bad.append(f"foreign {run.get('foreignLock')}, ours {lock.get('status')}/{lock.get('state')}")
+        if OTHER not in (run.get("bar") or {}).get("notice", ""):
+            bad.append(f"notice {(run.get('bar') or {}).get('notice')!r}")
+        if len(saves) != 1 or attempts(saves[0]) != [(423, False)]:
+            bad.append(f"save {[attempts(s) for s in saves]}")
+        else:
+            bad += one_copy(run, "衝突副本", saves[0].get("sha256"))
+            bad += page_failed_with(run.get("save1State") or {}, "CONFLICT", (saves[0].get("conflictCopy") or {}).get("name") or "?")
+        if server_after != original:
+            bad.append(f"server {server_after and server_after[:12]} changed")
+    elif arm == "broken-then-written":
+        bad += held_at_open(run) + edited(run)
+        if run.get("ownerUnlock") != 200 or not (200 <= (run.get("intruded") or 0) < 300):
+            bad.append(f"owner unlock {run.get('ownerUnlock')}, intruder {run.get('intruded')}")
+        if len(saves) != 1 or attempts(saves[0]) != [(412, True), (412, False)]:
+            bad.append(f"save {[attempts(s) for s in saves]}")
+        else:
+            bad += one_copy(run, "衝突副本", saves[0].get("sha256"))
+            bad += page_failed_with(run.get("save1State") or {}, "CONFLICT", (saves[0].get("conflictCopy") or {}).get("name") or "?")
+        if server_after != report["intruder"]["sha256"]:
+            bad.append(f"server {server_after and server_after[:12]} is not the intruder's")
+        waited = run.get("afterWait") or {}
+        if waited.get("state") != "ready" or waited.get("doc") != NAME or waited.get("revision") != run.get("savedRevision"):
+            bad.append(f"view after 5 s {waited.get('state')}/{waited.get('doc')}/{waited.get('revision')} vs {run.get('savedRevision')}")
+    elif arm == "expired":
+        bad += held_at_open(run) + edited(run)
+        if run.get("deleted") != "1" or (run.get("afterDelete") or {}).get("lock") != "":
+            bad.append(f"lock row deleted {run.get('deleted')}, server lock {(run.get('afterDelete') or {}).get('lock')!r}")
+        if len(saves) != 1 or attempts(saves[0]) != [(412, True), (204, False)] or server_after != saves[0].get("sha256"):
+            bad.append(f"save {[attempts(s) for s in saves]}, server {server_after and server_after[:12]}")
+        if run.get("copiesAfter"):
+            bad.append(f"copies {run.get('copiesAfter')}")
+        state = run.get("save1State") or {}
+        if not (state.get("latency") or "").startswith("存回 ") or "失敗" in state.get("latency", ""):
+            bad.append(f"page says {state.get('latency')!r}")
+    elif arm == "frozen":
+        bad += held_at_open(run) + edited(run)
+        if run.get("frozen") is not True or (run.get("lockWhileFrozen") or {}).get("lock") != "":
+            bad.append(f"frozen {run.get('frozen')}, lock at 320 s {(run.get('lockWhileFrozen') or {}).get('lock')!r}")
+        lock = host.get("lock") or {}
+        if len(saves) != 1 or server_after != saves[0].get("sha256") or (saves[0].get("attempts") or [{}])[-1].get("status") != 204:
+            bad.append(f"save {[attempts(s) for s in saves]}, server {server_after and server_after[:12]}")
+        if run.get("copiesAfter") or lock.get("state") != "lost" or lock.get("lostBy") not in ("refresh", "save"):
+            bad.append(f"copies {run.get('copiesAfter')}, lock {lock.get('state')}/{lock.get('lostBy')}")
+    elif arm == "readonly":
+        bad += edited(run)
+        lock = host.get("lock") or {}
+        sent_lock = [r for r in run.get("davRequests") or [] if r.get("method") == "LOCK"]
+        if lock.get("state") != "readonly" or sent_lock or (run.get("afterOpen") or {}).get("lock") != "":
+            bad.append(f"lock {lock}, LOCK requests {sent_lock}, server lock {(run.get('afterOpen') or {}).get('lock')!r}")
+        if "唯讀" not in (run.get("bar") or {}).get("notice", ""):
+            bad.append(f"notice {(run.get('bar') or {}).get('notice')!r}")
+        if len(saves) != 1 or attempts(saves[0]) != [(403, False)]:
+            bad.append(f"save {[attempts(s) for s in saves]}")
+        else:
+            bad += one_copy(run, "另存副本", saves[0].get("sha256"))
+            bad += page_failed_with(run.get("save1State") or {}, (saves[0].get("conflictCopy") or {}).get("name") or "?")
+        if server_after != original:
+            bad.append(f"owner's file changed {server_after and server_after[:12]}")
+    elif arm == "nowhere":
+        bad += edited(run)
+        copy_ = (saves[0].get("conflictCopy") or {}) if saves else {}
+        if len(saves) != 1 or attempts(saves[0]) != [(403, False)] or copy_.get("status") != 403 or not copy_.get("failed"):
+            bad.append(f"save {[attempts(s) for s in saves]}, copy {copy_}")
+        stranded_bar = run.get("barStranded") or {}
+        if stranded_bar.get("downloadHidden") is not False or stranded_bar.get("notice") != STRANDED:
+            bad.append(f"bar while stranded {stranded_bar}")
+        bad += page_failed_with(run.get("save1State") or {}, "下載這份內容")
+        sent = saves[0].get("sha256") if saves else None
+        if (run.get("download") or {}).get("sha256") != sent:
+            bad.append(f"download {run.get('download')} != sent {(sent or '')[:12]}")
+        if (run.get("barAfterDownload") or {}).get("downloadHidden") is not True \
+                or ((run.get("hostAfterDownload") or {}).get("unstranded") or {}).get("how") != "download":
+            bad.append(f"after download {run.get('barAfterDownload')} {(run.get('hostAfterDownload') or {}).get('unstranded')}")
+        if run.get("browser") == "chrome":
+            dialog = (run.get("leave1") or {}).get("dialog") or {}
+            if dialog.get("type") != "beforeunload" or not str(run.get("stayed", "")).endswith(ROUTE):
+                bad.append(f"first leave: dialog {dialog.get('type')}, stayed at {run.get('stayed')}")
+            if (run.get("leave2") or {}).get("dialog") or "/apps/files" not in str(run.get("left")):
+                bad.append(f"second leave: dialog {(run.get('leave2') or {}).get('dialog')}, at {run.get('left')}")
+        if server_after != original or run.get("copiesAfter"):
+            bad.append(f"server {server_after and server_after[:12]}, copies {run.get('copiesAfter')}")
+    elif arm == "offline":
+        bad += held_at_open(run) + edited(run)
+        first = saves[0] if saves else {}
+        copy_ = first.get("conflictCopy") or {}
+        if attempts(first) != [("network", True)] or copy_.get("status") != "network" or not copy_.get("failed"):
+            bad.append(f"offline save {attempts(first)}, copy {copy_}")
+        if (run.get("barOffline") or {}).get("downloadHidden") is not False:
+            bad.append(f"bar offline {run.get('barOffline')}")
+        second = saves[1] if len(saves) > 1 else {}
+        if attempts(second) != [(204, True)] or server_after != second.get("sha256"):
+            bad.append(f"online save {attempts(second)}, server {server_after and server_after[:12]}")
+        if (run.get("barAfter") or {}).get("downloadHidden") is not True or host.get("stranded") is not None \
+                or (host.get("unstranded") or {}).get("how") != "saved":
+            bad.append(f"after the online save: bar {run.get('barAfter')}, stranded {host.get('stranded')}, {host.get('unstranded')}")
+        if run.get("copiesAfter"):
+            bad.append(f"copies {run.get('copiesAfter')}")
+    return bad
+
+
+def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
+    problems: list[str] = []
+    static = report.get("static") or {}
+    if static.get("page") != {"dist": PAGE_SHA256, "web": PAGE_SHA256}:
+        problems.append(f"page {static.get('page')}")
+    if strict and static.get("testStatic") != 0:
+        problems.append(f"make test-e2-c-static exit {static.get('testStatic')}")
+    tally: dict[str, dict[str, Any]] = {}
+    for run in report.get("runs") or []:
+        key = f"{run['browser']}:{run['arm']}"
+        entry = tally.setdefault(key, {"pass": 0, "runs": 0, "problems": []})
+        entry["runs"] += 1
+        bad = score_arm(run, report)
+        if bad:
+            entry["problems"].append(bad)
+        else:
+            entry["pass"] += 1
+    if strict:
+        for arm, (_, browsers, count) in PLAN.items():
+            for browser in browsers:
+                entry = tally.get(f"{browser}:{arm}") or {"pass": 0, "runs": 0}
+                if entry["runs"] != count or entry["pass"] != count:
+                    problems.append(f"{browser}:{arm} {entry['pass']}/{entry['runs']} of {count}")
+    ok = not problems and all(not e["problems"] for e in tally.values())
+    return {"verdict": ("LOCKS LAND" if ok else "LOCKS DO NOT LAND") if strict else ("clean" if ok else "red"),
+            "tally": tally, "problems": problems}
+
+
+def one_line(result: dict[str, Any]) -> str:
+    cells = " ".join(f"{k}={v['pass']}/{v['runs']}" for k, v in sorted(result["tally"].items()))
+    return f"{result['verdict']} {cells} problems={result['problems']}"
+
+
+def _first(report: dict, arm: str, browser: str = "chrome") -> dict:
+    return next(r for r in report["runs"] if r["arm"] == arm and r["browser"] == browser)
+
+
+# Each mutation must turn its own arm red; the name says what was broken.
+RED_CASES = [
+    ("hold: lock taken after the read", "hold", lambda r: r["host"]["fetched"].update(etag='"stale"')),
+    ("hold: other user's PUT not refused", "hold", lambda r: r.update(otherPut=204)),
+    ("hold: a save without the token", "hold", lambda r: r["host"]["saves"][1]["attempts"][0].update(withToken=False)),
+    ("hold: not released on leaving", "hold", lambda r: r["release"].update(released=False)),
+    ("closetab: never lapsed", "closetab", lambda r: r["expiry"][-1].update(lock="1")),
+    ("closetab: lapsed too late", "closetab", lambda r: r["expiry"][-1].update(at=330.0)),
+    ("heartbeat: token changed", "heartbeat", lambda r: r["lockAfter"].update(token="opaquelocktoken:other")),
+    ("heartbeat: a refresh refused", "heartbeat", lambda r: r["hostBeforeSave"]["lock"]["refreshes"][0].update(status=400)),
+    ("crash: released at once (no positive control)", "crash", lambda r: r["expiry"][0].update(lock="")),
+    ("crash: never expired", "crash", lambda r: r["expiry"][-1].update(lock="1")),
+    ("foreign-lock: overwrote", "foreign-lock", lambda r: r["serverAfter"].update(sha256="0" * 64)),
+    ("foreign-lock: notice without holder", "foreign-lock", lambda r: r["bar"].update(notice="")),
+    ("broken: no retry without token", "broken-then-written", lambda r: r["host"]["saves"][0]["attempts"].pop()),
+    ("broken: copy missing", "broken-then-written", lambda r: r.update(copiesAfter=[])),
+    ("expired: gave up after the dead token", "expired", lambda r: r["host"]["saves"][0]["attempts"][1].update(status=412)),
+    ("expired: made a copy anyway", "expired", lambda r: r.update(copiesAfter=[{"name": "x（衝突副本）.odt"}])),
+    ("frozen: lock never expired", "frozen", lambda r: r["lockWhileFrozen"].update(lock="1")),
+    ("readonly: sent a LOCK", "readonly", lambda r: r["host"]["lock"].update(state="held")),
+    ("readonly: copy bytes differ", "readonly", lambda r: r["copiesAfter"][0].update(sha256="0" * 64)),
+    ("nowhere: download bytes differ", "nowhere", lambda r: r["download"].update(sha256="0" * 64)),
+    ("nowhere: no guard on leaving", "nowhere", lambda r: r["leave1"].update(dialog=None)),
+    ("nowhere: guard still armed after download", "nowhere", lambda r: r.update(leave2={"dialog": {"type": "beforeunload"}})),
+    ("offline: second save lost the token", "offline", lambda r: r["host"]["saves"][1]["attempts"][0].update(withToken=False)),
+    ("offline: still stranded", "offline", lambda r: r["host"].update(stranded={"sha256": "x"})),
+]
+
+
+def red_cases(path: Path) -> int:
+    report = json.loads(path.read_text())
+    failures = 0
+    for label, arm, mutate in RED_CASES:
+        try:
+            base = _first(report, arm)
+        except StopIteration:
+            print(f"  skip  {label} (no {arm} run in this report)")
+            continue
+        if score_arm(base, report):
+            print(f"  SKIP  {label}: the unmutated run is already red")
+            failures += 1
+            continue
+        mutated = copy.deepcopy(base)
+        mutate(mutated)
+        red = bool(score_arm(mutated, report))
+        failures += not red
+        print(f"  {'red ' if red else 'GREEN'}  {label}")
+    return failures
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--label", choices=("shakedown", "counted"))
+    parser.add_argument("--browsers", default="chrome,firefox")
+    parser.add_argument("--repeats", type=int, default=None, help="shakedown only")
+    parser.add_argument("--arms", default=",".join(PLAN), help="shakedown only: a counted run runs the plan")
+    parser.add_argument("--score", type=Path)
+    parser.add_argument("--red-cases", type=Path)
+    args = parser.parse_args()
+    if args.score:
+        report = json.loads(args.score.read_text())
+        result = score(report, strict=report.get("label") == "counted")
+        print(one_line(result))
+        return 0 if result["verdict"] in ("LOCKS LAND", "clean") else 1
+    if args.red_cases:
+        return 1 if red_cases(args.red_cases) else 0
+    if not args.label:
+        parser.error("--label, --score or --red-cases")
+    counted = args.label == "counted"
+    static = {"page": {"dist": sha256_file(DIST / "e2-editor-app.js"),
+                       "web": sha256_file(PROJECT / "web" / "e2-editor-app.js")}}
+    if static["page"] != {"dist": PAGE_SHA256, "web": PAGE_SHA256}:
+        if counted:
+            print(f"refusing a counted run: page is {static['page']}, spec wants {PAGE_SHA256[:12]}…")
+            return 2
+    if counted:
+        static["testStatic"] = subprocess.run(["make", "-C", str(PROJECT), "test-e2-c-static"],
+                                              capture_output=True, text=True).returncode
+    instance = Instance(DEFAULT_DDEV)
+    log: list[dict[str, Any]] = []
+    server = Server(instance, log)
+    report: dict[str, Any] = {
+        "runner": "check_m3_locks.py", "runnerSha256": sha256_file(Path(__file__)), "label": args.label,
+        "startedAt": utc_now(), "static": static,
+        "hostRepo": subprocess.run(["git", "log", "-1", "--format=%H %s"], cwd=DEFAULT_DDEV,
+                                   capture_output=True, text=True).stdout.strip(),
+        "hostDirty": subprocess.run(["git", "status", "--short"], cwd=DEFAULT_DDEV,
+                                    capture_output=True, text=True).stdout.strip(),
+        "hostScriptSha256": sha256_file(DEFAULT_DDEV / "js" / "litecore-editor.js"),
+        "original": {"source": str(FIXTURE.relative_to(DIST)), "sha256": sha256_file(FIXTURE)},
+        "intruder": {"source": str(SAMPLE.relative_to(DIST)), "sha256": sha256_file(SAMPLE)},
+        "runs": [],
+    }
+    arms = list(PLAN) if counted else args.arms.split(",")
+    browsers = args.browsers.split(",")
+    out = EVIDENCE / ("runs" if counted else "shakedown") / f"{report['startedAt'].replace(':', '')}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        report["setup"] = server.setup()
+        with tempfile.TemporaryDirectory(prefix="m3-locks-", dir=PROJECT / "build") as scratch:
+            for arm in arms:
+                spec, allowed, count = PLAN[arm]
+                for browser in browsers:
+                    if browser not in allowed:
+                        continue
+                    for index in range(count if counted or args.repeats is None else args.repeats):
+                        print(f"{spec} {arm} {browser} #{index + 1}", flush=True)
+                        report["runs"].append(run_arm(arm, browser, server, Path(scratch)))
+                        out.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n")
+    finally:
+        server.teardown()
+        report["completedAt"] = utc_now()
+        report["httpLog"] = log
+        out.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n")
+    result = score(report, strict=counted)
+    report["score"] = result
+    out.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n")
+    print(out.relative_to(REPO))
+    print(one_line(result))
+    return 0 if result["verdict"] in ("LOCKS LAND", "clean") else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

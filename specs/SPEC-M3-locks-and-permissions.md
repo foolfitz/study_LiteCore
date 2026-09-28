@@ -39,8 +39,8 @@
 
 **持有**
 
-- K1 每 60 秒續約（`LOCK`＋`If: (<token>)`＋`Timeout: Second-300`）。任何非 200 或網路錯誤＝鎖已失去：丟掉 token、停止續約、
-  宿主列顯示「鎖已失效」。**不重新上鎖**（重新上鎖會改 ETag，而那時已分不出「是我自己改的」還是「別人在空窗期寫過」）。
+- K1 每 60 秒續約（`LOCK`＋`If: (<token>)`＋`Timeout: Second-300`）。任何非 200 的 HTTP 回應＝鎖已失去：丟掉 token、停止續約、
+  宿主列顯示「鎖已失效」。~~或網路錯誤~~**網路錯誤不算**：伺服器上的鎖可能還在，下一次再續；真的失效了，下一次存檔由 S3 接住。**不重新上鎖**（重新上鎖會改 ETag，而那時已分不出「是我自己改的」還是「別人在空窗期寫過」）。
 
 **存檔**（`save(bytes)`，一次一個，頁面已排隊）
 
@@ -57,7 +57,8 @@
 
 **關頁**
 
-- C1 `pagehide` 時以 `fetch(…, { keepalive: true })` 送 `UNLOCK`（`Lock-Token`），停止續約。
+- C1 `pagehide` 時以 `fetch(…, { keepalive: true })` 送 `UNLOCK`（`Lock-Token`）~~，~~**兩次**，停止續約。送兩次是實測的選擇，不是有解釋的選擇：Chrome 151 在這條路由上單獨一個 UNLOCK 到達伺服器 0/4、兩個 4/4，原因未明（`findings/evidence/m3-locks/unload/README.md`）；第二個若多餘，伺服器回 412、什麼都不改。
+- C1′ **關分頁或關整個瀏覽器時不釋放**（量到的，見修訂紀錄）：鎖在 300 秒內自己失效，跟當掉一樣。所以關掉之後 5 分鐘內重開同一個檔，宿主會說「你在另一個視窗或裝置開著這個檔案」，存檔會另存副本——具名限制，資料不會掉。
 - C2 瀏覽器當掉或被砍時，鎖在最後一次續約之後 300 秒內自己失效（第 2 節 L3 量過機制，這裡量的是整條路）。
 
 **明確不承諾**：頁面沒有唯讀模式（唯讀檔照樣能編輯，存檔走另存）；「乾淨」仍在宿主收下之前就成立（殼層語意，另一步）；
@@ -74,7 +75,7 @@ Chrome 沒有 `e1-fixtures/` 請求）。
 | 臂 | 做法 | 通過條件 | 次數 |
 | --- | --- | --- | --- |
 | **K1 hold** | admin 開自己的檔 → 別人查鎖、別人 PUT → 標題＋按鈕存檔 → 插入標記＋Ctrl+S 存第二次 → 導向 Files | 宿主紀錄裡 `LOCK` 200 **早於** GET；開著時別人 PROPFIND 看到 `nc:lock` 1、owner-type 2、owner admin，別人的 PUT 是 423 且伺服器位元組不變；兩次存檔都是 204、都帶 token、第一次的 `If-Match` 等於 GET 拿到的版本、第二次等於第一次的新版本；伺服器位元組＝第二次送出的位元組；沒有任何副本；導向 Files 之後 15 秒內 `nc:lock` 為空、別人不帶 token 的 PUT 是 2xx | Chrome 3、Firefox 3 |
-| **K2 closetab** | 開檔、確認上鎖 → 關掉編輯分頁（Chrome `Page.close`；Firefox 先開第二個視窗再關編輯視窗） | 關之前 `nc:lock` 1（正向對照）；關之後 15 秒內 `nc:lock` 為空 | Chrome 3、Firefox 3 |
+| ~~**K2 closetab**~~ **K2′ closetab** | 開檔、確認上鎖 → 關掉編輯分頁（Chrome `Page.close`；Firefox 先開第二個視窗再關編輯視窗）→ 每 15 秒 PROPFIND | ~~關之前 `nc:lock` 1（正向對照）；關之後 15 秒內 `nc:lock` 為空~~ 關之前 `nc:lock` 1（正向對照）；關之後 315 秒內 `nc:lock` 為空；記下秒數（若更早釋放也算過，不要求它一定殘留） | ~~Chrome 3、Firefox 3~~ Chrome 1、Firefox 1 |
 | **K3 heartbeat** | 開檔、確認上鎖，前景閒置 330 秒（比逾時長）→ 存檔 | 330 秒後 `nc:lock` 仍是 1，且 lockdiscovery 的 token 與開頭相同；宿主紀錄續約 ≥ 5 次且全是 200；存檔 204、帶 token | Chrome 1、Firefox 1 |
 | **K4 crash** | 開檔、確認上鎖 → SIGKILL 整個瀏覽器行程樹 → 每 15 秒 PROPFIND | 砍完第一次查仍是 1（正向對照：鎖沒有被正常關頁釋放）；砍完 315 秒內變成空；記下秒數 | Chrome 1、Firefox 1 |
 | **K5 foreign-lock** | 開檔之前別人先以 `X-User-Lock` 鎖住 → admin 開檔 → 存檔 | 宿主的 `LOCK` 是 423、不持有 token、宿主列指名 `lcprobe`；文件照樣開、`ready`；存檔的 PUT 是 423、另存「衝突副本」2xx 且位元組＝送出的位元組；伺服器原檔位元組不變；頁面顯示 `存回 失敗` 且訊息含副本檔名 | Chrome 3、Firefox 3 |
@@ -99,4 +100,7 @@ H4（無宿主時產品路徑不變）不重跑。宿主入口的 H5（壞宿主
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-28 | **擁有者裁示 A，任何計數執行之前：K2 撤回，改成 K2′。**shakedown `110206Z`：離開頁面（K1）在兩個瀏覽器都會釋放，**關分頁不會**——Chrome 關分頁時兩個 UNLOCK 都送到了但伺服器回 401（DAV 的 cookie session／CSRF 檢查沒過：請求沒帶可用的 cookie，`apps/dav/lib/Connector/Sabre/Auth.php` 的兩條 401 路徑都需要它），Firefox 關視窗時一個請求都沒送（access log）。K2 的前提（關分頁會送出能生效的 UNLOCK）在兩個瀏覽器都不成立，照第 4 節「撤回宣稱，不要造機械去維持它」撤回，不做只憑 token 解鎖的公開端點。K2′ 量的是剩下的保證：300 秒內自己失效。次數改成各 1（每次要等 5 分鐘），與 K4 同。另：同一輪 shakedown 的 K5、K6 紅在 runner 自己（借來的 HTTP client 把回應截在 1500 字元，副本清單被截掉），宿主行為正確；runner 已改成讀完整本文。 |
+| 2026-09-28 | **K1 第一次 shakedown 之後、任何計數執行之前**：C1 改成送兩次 UNLOCK。shakedown `103223Z` 除了釋放以外全過，而 access log 裡沒有任何來自瀏覽器的 UNLOCK；十組對照（`unload/README.md`）排除了 CDP Network、掛著的 DevTools、headless，找不到機制，只量到「兩個 4/4、一個 0/4」。判準不動：K1、K2 量的就是這件事的結果。 |
+| 2026-09-28 | **寫宿主時、任何量測之前**：K1 的「網路錯誤＝失鎖」刪掉。短暫斷線（K11 就是一例）會讓一把仍然有效的鎖被自己丟掉，之後的存檔就不帶 token；而失效的 token 本來就由 S3 處理，所以網路錯誤時保留 token 沒有代價。 |
 | 2026-09-28 | 初版。在宿主程式碼、runner、任何瀏覽器量測之前寫下；只有第 0 步的 HTTP 探針先跑過。 |

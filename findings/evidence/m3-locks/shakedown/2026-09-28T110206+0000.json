@@ -1,0 +1,3096 @@
+{
+ "runner": "check_m3_locks.py",
+ "runnerSha256": "f2a163fbda9f10dde2c227710f788bff40659b7ce6fe6a14def475ba92ddb2e9",
+ "label": "shakedown",
+ "startedAt": "2026-09-28T11:02:06+00:00",
+ "static": {
+  "page": {
+   "dist": "fbfb59a4014995322f210812e3627ff828dbecae351d157305a75701e2d76632",
+   "web": "fbfb59a4014995322f210812e3627ff828dbecae351d157305a75701e2d76632"
+  }
+ },
+ "hostRepo": "0dcb745845d615a26b02d88131c0d3e0c4cbcc04 Host: never write unconditionally, keep the user's bytes on a conflict",
+ "hostDirty": "M js/litecore-editor.js\n M lib/Controller/EditorController.php\n M templates/editor.php",
+ "hostScriptSha256": "496f9ed2f3c9625ea8b167e28f3064b1fcd054763ecda5e0d3e229aa6f9b2ddd",
+ "original": {
+  "source": "e1-fixtures/multi-paragraph.odt",
+  "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934"
+ },
+ "intruder": {
+  "source": "e1-fixtures/list-contexts.odt",
+  "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d"
+ },
+ "runs": [
+  {
+   "arm": "hold",
+   "spec": "K1",
+   "browser": "chrome",
+   "startedAt": "2026-09-28T11:02:11+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "downloadVia": "Page.setDownloadBehavior",
+   "version": "Chrome/151.0.7922.169",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/apps/litecore/r/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1790593336694,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 251
+     },
+     {
+      "step": "fetched",
+      "at": 296
+     },
+     {
+      "step": "opened",
+      "at": 2053,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 骨架 測試.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 5189,
+      "name": "M3 骨架 測試.odt",
+      "bytes": 10228,
+      "attempts": [
+       {
+        "ifMatch": "\"6aba4938eb3b7\"",
+        "withToken": true,
+        "at": 5189,
+        "status": 204
+       }
+      ],
+      "sha256": "22eeaf1baeec685c65aa92c8fa1b74d5f276ec7fd82532711e03de8b84b894cd",
+      "ifMatch": "\"6aba4938eb3b7\"",
+      "status": 204,
+      "etag": "\"d03828c20988fdc8581c62675d34a69f\"",
+      "settled": true
+     },
+     {
+      "at": 6384,
+      "name": "M3 骨架 測試.odt",
+      "bytes": 10422,
+      "attempts": [
+       {
+        "ifMatch": "\"d03828c20988fdc8581c62675d34a69f\"",
+        "withToken": true,
+        "at": 6384,
+        "status": 204
+       }
+      ],
+      "sha256": "2b4f542b154831c7fa9481c8876378dc691d9027d956c90c48510b23ec621a75",
+      "ifMatch": "\"d03828c20988fdc8581c62675d34a69f\"",
+      "status": 204,
+      "etag": "\"ade42754683bac675323350305265e7b\"",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 272,
+     "refreshes": []
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "ee652ea9e7e3294783e83804707e3369",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/apps/litecore/r/e2-editor.html?fileId=76",
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6aba4938eb3b7\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 296
+    },
+    "finished": 2053
+   },
+   "secondsToOpened": 2.52,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6aba4938eb3b7\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:ffa0593b-1055-4887-94b1-90f6ab7f473a"
+   },
+   "seenByOther": {
+    "status": 207,
+    "etag": "\"6aba4938eb3b7\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:ffa0593b-1055-4887-94b1-90f6ab7f473a"
+   },
+   "otherPut": 423,
+   "afterOtherPut": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "smoke": {
+    "before": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "—",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "caret": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 31 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "acted": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "標題 48 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    }
+   },
+   "save1Seen": 1,
+   "save1State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "1",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 51 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "inserted": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "2",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "插入文字 7 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "ctrlS": true,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "2",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 56 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.2 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "2b4f542b154831c7fa9481c8876378dc691d9027d956c90c48510b23ec621a75",
+    "bytes": 10422
+   },
+   "copiesAfter": [],
+   "release": {
+    "released": true,
+    "seconds": 0.3,
+    "polls": [
+     {
+      "at": 0.3,
+      "lock": ""
+     }
+    ]
+   },
+   "otherPutAfter": 204,
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.ddev.site:8443/apps/litecore/r/e2-editor.html?fileId=76",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/apps/files/",
+      "status": 200,
+      "coop": null,
+      "coep": null,
+      "dip": null
+     }
+    ],
+    "loadingFailed": [
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     }
+    ],
+    "errorLogs": [
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "url": "https://litecore.ddev.site:8443/core/preview?fileId=722&x=250&y=250"
+     },
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "url": "https://litecore.ddev.site:8443/core/preview?fileId=724&x=250&y=250"
+     }
+    ],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+    },
+    {
+     "method": "REPORT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/Readme.md"
+    }
+   ],
+   "dialogs": [],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"f467b1c150fb749b745751bc805d99f1\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "clearedAtEnd": "0"
+  },
+  {
+   "arm": "hold",
+   "spec": "K1",
+   "browser": "firefox",
+   "startedAt": "2026-09-28T11:02:27+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "version": "156.0",
+   "login": "https://litecore.ddev.site:8443/apps/dashboard/",
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/apps/litecore/r/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1790593353929,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 235
+     },
+     {
+      "step": "fetched",
+      "at": 276
+     },
+     {
+      "step": "opened",
+      "at": 2440,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 骨架 測試.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 4727,
+      "name": "M3 骨架 測試.odt",
+      "bytes": 10209,
+      "attempts": [
+       {
+        "ifMatch": "\"6aba494a2c3d7\"",
+        "withToken": true,
+        "at": 4727,
+        "status": 204
+       }
+      ],
+      "sha256": "9dd059dbb038198c91b613cb62236348bdd1ad23554689f85cc1fc91ad764c51",
+      "ifMatch": "\"6aba494a2c3d7\"",
+      "status": 204,
+      "etag": "\"c052b18dad5e50b68be8476ea21e7746\"",
+      "settled": true
+     },
+     {
+      "at": 5975,
+      "name": "M3 骨架 測試.odt",
+      "bytes": 10393,
+      "attempts": [
+       {
+        "ifMatch": "\"c052b18dad5e50b68be8476ea21e7746\"",
+        "withToken": true,
+        "at": 5975,
+        "status": 204
+       }
+      ],
+      "sha256": "6f263fba5ad5faf8b57391382a0a58d34ae7dc97c241f0f1dcf48c8490ce66fb",
+      "ifMatch": "\"c052b18dad5e50b68be8476ea21e7746\"",
+      "status": 204,
+      "etag": "\"646f49b80b99d34fc154b1f94b4d5e0e\"",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 255,
+     "refreshes": []
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "6335a30b06f1ca830908c99d95e84a1c",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/apps/litecore/r/e2-editor.html?fileId=76",
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6aba494a2c3d7\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 276
+    },
+    "finished": 2440
+   },
+   "secondsToOpened": 3.0,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6aba494a2c3d7\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:d05bb853-0f66-4184-9069-910d6486040b"
+   },
+   "seenByOther": {
+    "status": 207,
+    "etag": "\"6aba494a2c3d7\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:d05bb853-0f66-4184-9069-910d6486040b"
+   },
+   "otherPut": 423,
+   "afterOtherPut": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "smoke": {
+    "before": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "—",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "caret": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 35 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "acted": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "標題 41 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    }
+   },
+   "save1Seen": 1,
+   "save1State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "1",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 56 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "inserted": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "2",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "插入文字 6 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "ctrlS": true,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "2",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 60 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.1 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "6f263fba5ad5faf8b57391382a0a58d34ae7dc97c241f0f1dcf48c8490ce66fb",
+    "bytes": 10393
+   },
+   "copiesAfter": [],
+   "release": {
+    "released": true,
+    "seconds": 0.3,
+    "polls": [
+     {
+      "at": 0.3,
+      "lock": ""
+     }
+    ]
+   },
+   "otherPutAfter": 204,
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"775aed1b438b3b08bf910756ad35828d\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "clearedAtEnd": "0"
+  },
+  {
+   "arm": "closetab",
+   "spec": "K2",
+   "browser": "chrome",
+   "startedAt": "2026-09-28T11:02:53+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "downloadVia": "Page.setDownloadBehavior",
+   "version": "Chrome/151.0.7922.169",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/apps/litecore/r/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1790593379200,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 266
+     },
+     {
+      "step": "fetched",
+      "at": 307
+     },
+     {
+      "step": "opened",
+      "at": 2067,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 骨架 測試.odt"
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 287,
+     "refreshes": []
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "7093c1c304e99cc23ebd899076f85ebc",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/apps/litecore/r/e2-editor.html?fileId=76",
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6aba4963762f0\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 307
+    },
+    "finished": 2067
+   },
+   "secondsToOpened": 2.54,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6aba4963762f0\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02"
+   },
+   "lockBefore": {
+    "status": 207,
+    "etag": "\"6aba4963762f0\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02"
+   },
+   "release": {
+    "released": false,
+    "polls": [
+     {
+      "at": 0.3,
+      "lock": "1"
+     },
+     {
+      "at": 1.6,
+      "lock": "1"
+     },
+     {
+      "at": 2.9,
+      "lock": "1"
+     },
+     {
+      "at": 4.2,
+      "lock": "1"
+     },
+     {
+      "at": 5.5,
+      "lock": "1"
+     },
+     {
+      "at": 6.8,
+      "lock": "1"
+     },
+     {
+      "at": 8.1,
+      "lock": "1"
+     },
+     {
+      "at": 9.4,
+      "lock": "1"
+     },
+     {
+      "at": 10.7,
+      "lock": "1"
+     },
+     {
+      "at": 12.0,
+      "lock": "1"
+     },
+     {
+      "at": 13.3,
+      "lock": "1"
+     },
+     {
+      "at": 14.5,
+      "lock": "1"
+     },
+     {
+      "at": 15.8,
+      "lock": "1"
+     }
+    ]
+   },
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"6aba4963762f0\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02"
+   },
+   "clearedAtEnd": "1"
+  },
+  {
+   "arm": "closetab",
+   "spec": "K2",
+   "browser": "firefox",
+   "startedAt": "2026-09-28T11:03:29+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "version": "156.0",
+   "login": "https://litecore.ddev.site:8443/apps/dashboard/",
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/apps/litecore/r/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1790593416681,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 215
+     },
+     {
+      "step": "fetched",
+      "at": 260
+     },
+     {
+      "step": "opened",
+      "at": 2421,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 骨架 測試.odt"
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 238,
+     "refreshes": []
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "53ed5edc523724a2807f76134ecf838a",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/apps/litecore/r/e2-editor.html?fileId=76",
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6aba4988dfb13\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 260
+    },
+    "finished": 2421
+   },
+   "secondsToOpened": 3.02,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6aba4988dfb13\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e"
+   },
+   "lockBefore": {
+    "status": 207,
+    "etag": "\"6aba4988dfb13\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e"
+   },
+   "release": {
+    "released": false,
+    "polls": [
+     {
+      "at": 0.3,
+      "lock": "1"
+     },
+     {
+      "at": 1.6,
+      "lock": "1"
+     },
+     {
+      "at": 2.9,
+      "lock": "1"
+     },
+     {
+      "at": 4.2,
+      "lock": "1"
+     },
+     {
+      "at": 5.5,
+      "lock": "1"
+     },
+     {
+      "at": 6.8,
+      "lock": "1"
+     },
+     {
+      "at": 8.0,
+      "lock": "1"
+     },
+     {
+      "at": 9.3,
+      "lock": "1"
+     },
+     {
+      "at": 10.6,
+      "lock": "1"
+     },
+     {
+      "at": 11.9,
+      "lock": "1"
+     },
+     {
+      "at": 13.2,
+      "lock": "1"
+     },
+     {
+      "at": 14.5,
+      "lock": "1"
+     },
+     {
+      "at": 15.8,
+      "lock": "1"
+     }
+    ]
+   },
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"6aba4988dfb13\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e"
+   },
+   "clearedAtEnd": "1"
+  }
+ ],
+ "setup": {
+  "targets": {
+   "rw": "M3 骨架 測試.odt",
+   "ro": "M3 鎖 唯讀.odt",
+   "folder": "M3 鎖 唯讀資料夾"
+  },
+  "fileIds": {
+   "M3 骨架 測試.odt": 76,
+   "M3 鎖 唯讀.odt": 722,
+   "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt": 724
+  }
+ },
+ "completedAt": "2026-09-28T11:04:09+00:00",
+ "httpLog": [
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/ocs/v2.php/cloud/users/lcprobe",
+   "sent": {},
+   "status": 404,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"failure\",\"statuscode\":998,\"message\":\"\"},\"data\":[]}}"
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/cloud/users",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"lcprobe\"}}}"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"8979b3bde238a1a669f1c929e018a5a1\"",
+    "oc-etag": "\"8979b3bde238a1a669f1c929e018a5a1\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"78927536c06a36a85cb9d2db1ea5c2fc\"",
+    "oc-etag": "\"78927536c06a36a85cb9d2db1ea5c2fc\"",
+    "oc-fileid": "00000722oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "MKCOL",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾",
+   "sent": {},
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "oc-fileid": "00000723oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"b5d2c5009a46c3198554847408da110e\"",
+    "oc-etag": "\"b5d2c5009a46c3198554847408da110e\"",
+    "oc-fileid": "00000724oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"24\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":3,\"can_edit\":true,\"can_delete\":true,\"stime\":1790593330,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9aa8\\u67b6 \\u6e2c\\u8a66.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":76,\"file_source\":76,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9aa8\\u67b6 \\u6e2c\\u8a66.odt\",\"item_size\":1343,\"item_mtime\":1790593328,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"mail_send\":1,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"25\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790593330,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":722,\"file_source\":722,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790593329,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"mail_send\":1,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"26\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790593330,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":723,\"file_source\":723,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790593329,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"mail_send\":1,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;8979b3bde238a1a669f1c929e018a5a1&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery/><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%8e%96%20%e5%94%af%e8%ae%80.odt</d:href><d:propstat><d:prop><d:getetag>&quot;78927536c06a36a85cb9d2db1ea5c2fc&quot;</d:getetag><oc:fileid>722</oc:fileid><d:lockdiscovery/><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%8e%96%20%e5%94%af%e8%ae%80%e8%b3%87%e6%96%99%e5%a4%be/M3%20%e9%8e%96%20%e8%b3%87%e6%96%99%e5%a4%be%e5%85%a7.odt</d:href><d:propstat><d:prop><d:getetag>&quot;b5d2c5009a46c3198554847408da110e&quot;</d:getetag><oc:fileid>724</oc:fileid><d:lockdiscovery/><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"ee652ea9e7e3294783e83804707e3369\"",
+    "oc-etag": "\"ee652ea9e7e3294783e83804707e3369\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;ee652ea9e7e3294783e83804707e3369&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery/><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/",
+   "sent": {
+    "Depth": "1",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/</d:href><d:propstat><d:prop><d:displayname>admin</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud.png</d:href><d:propstat><d:prop><d:displayname>Nextcloud.png</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Templates/</d:href><d:propstat><d:prop><d:displayname>Templates</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Documents/</d:href><d:propstat><d:prop><d:displayname>Documents</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Photos/</d:href><d:propstat><d:prop><d:displayname>Photos</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Reasons%20to%20use%20Nextcloud.pdf</d:href><d:propstat><d:prop><d:displayname>Reasons to use Nextcloud.pdf</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud%20intro.mp4</d:href><d:propstat><d:prop><d:displayname>Nextcloud intro"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4938eb3b7&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:ffa0593b-1055-4887-94b1-90f6ab7f473a</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "lcprobe",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/lcprobe/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/lcprobe/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4938eb3b7&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/lcprobe/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:ffa0593b-1055-4887-94b1-90f6ab7f473a</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "put",
+   "actor": "lcprobe",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/lcprobe/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 423,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8"
+   },
+   "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<d:error xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\">\n  <s:exception>Sabre\\DAV\\Exception\\Locked</s:exception>\n  <s:message/>\n  <d:lock-token-submitted>\n    <d:href>files/lcprobe/M3 骨架 測試.odt</d:href>\n  </d:lock-token-submitted>\n</d:error>\n"
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/",
+   "sent": {
+    "Depth": "1",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/</d:href><d:propstat><d:prop><d:displayname>admin</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud.png</d:href><d:propstat><d:prop><d:displayname>Nextcloud.png</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Templates/</d:href><d:propstat><d:prop><d:displayname>Templates</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Documents/</d:href><d:propstat><d:prop><d:displayname>Documents</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Photos/</d:href><d:propstat><d:prop><d:displayname>Photos</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Reasons%20to%20use%20Nextcloud.pdf</d:href><d:propstat><d:prop><d:displayname>Reasons to use Nextcloud.pdf</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud%20intro.mp4</d:href><d:propstat><d:prop><d:displayname>Nextcloud intro"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba49406dc66&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery/><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "put",
+   "actor": "lcprobe",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/lcprobe/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"f467b1c150fb749b745751bc805d99f1\"",
+    "oc-etag": "\"f467b1c150fb749b745751bc805d99f1\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;f467b1c150fb749b745751bc805d99f1&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery/><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"6335a30b06f1ca830908c99d95e84a1c\"",
+    "oc-etag": "\"6335a30b06f1ca830908c99d95e84a1c\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6335a30b06f1ca830908c99d95e84a1c&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery/><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/",
+   "sent": {
+    "Depth": "1",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/</d:href><d:propstat><d:prop><d:displayname>admin</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud.png</d:href><d:propstat><d:prop><d:displayname>Nextcloud.png</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Templates/</d:href><d:propstat><d:prop><d:displayname>Templates</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Documents/</d:href><d:propstat><d:prop><d:displayname>Documents</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Photos/</d:href><d:propstat><d:prop><d:displayname>Photos</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Reasons%20to%20use%20Nextcloud.pdf</d:href><d:propstat><d:prop><d:displayname>Reasons to use Nextcloud.pdf</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud%20intro.mp4</d:href><d:propstat><d:prop><d:displayname>Nextcloud intro"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba494a2c3d7&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:d05bb853-0f66-4184-9069-910d6486040b</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "lcprobe",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/lcprobe/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/lcprobe/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba494a2c3d7&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/lcprobe/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:d05bb853-0f66-4184-9069-910d6486040b</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "put",
+   "actor": "lcprobe",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/lcprobe/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 423,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8"
+   },
+   "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<d:error xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\">\n  <s:exception>Sabre\\DAV\\Exception\\Locked</s:exception>\n  <s:message/>\n  <d:lock-token-submitted>\n    <d:href>files/lcprobe/M3 骨架 測試.odt</d:href>\n  </d:lock-token-submitted>\n</d:error>\n"
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/",
+   "sent": {
+    "Depth": "1",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/</d:href><d:propstat><d:prop><d:displayname>admin</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud.png</d:href><d:propstat><d:prop><d:displayname>Nextcloud.png</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Templates/</d:href><d:propstat><d:prop><d:displayname>Templates</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Documents/</d:href><d:propstat><d:prop><d:displayname>Documents</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Photos/</d:href><d:propstat><d:prop><d:displayname>Photos</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Reasons%20to%20use%20Nextcloud.pdf</d:href><d:propstat><d:prop><d:displayname>Reasons to use Nextcloud.pdf</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud%20intro.mp4</d:href><d:propstat><d:prop><d:displayname>Nextcloud intro"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba49513c243&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery/><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "put",
+   "actor": "lcprobe",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/lcprobe/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"775aed1b438b3b08bf910756ad35828d\"",
+    "oc-etag": "\"775aed1b438b3b08bf910756ad35828d\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;775aed1b438b3b08bf910756ad35828d&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery/><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"7093c1c304e99cc23ebd899076f85ebc\"",
+    "oc-etag": "\"7093c1c304e99cc23ebd899076f85ebc\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;7093c1c304e99cc23ebd899076f85ebc&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery/><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/",
+   "sent": {
+    "Depth": "1",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/</d:href><d:propstat><d:prop><d:displayname>admin</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud.png</d:href><d:propstat><d:prop><d:displayname>Nextcloud.png</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Templates/</d:href><d:propstat><d:prop><d:displayname>Templates</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Documents/</d:href><d:propstat><d:prop><d:displayname>Documents</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Photos/</d:href><d:propstat><d:prop><d:displayname>Photos</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Reasons%20to%20use%20Nextcloud.pdf</d:href><d:propstat><d:prop><d:displayname>Reasons to use Nextcloud.pdf</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud%20intro.mp4</d:href><d:propstat><d:prop><d:displayname>Nextcloud intro"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4963762f0&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:a637eae0-798d-4080-8c12-6b98922bbd02</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"53ed5edc523724a2807f76134ecf838a\"",
+    "oc-etag": "\"53ed5edc523724a2807f76134ecf838a\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;53ed5edc523724a2807f76134ecf838a&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery/><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/",
+   "sent": {
+    "Depth": "1",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/</d:href><d:propstat><d:prop><d:displayname>admin</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud.png</d:href><d:propstat><d:prop><d:displayname>Nextcloud.png</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Templates/</d:href><d:propstat><d:prop><d:displayname>Templates</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Documents/</d:href><d:propstat><d:prop><d:displayname>Documents</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Photos/</d:href><d:propstat><d:prop><d:displayname>Photos</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Reasons%20to%20use%20Nextcloud.pdf</d:href><d:propstat><d:prop><d:displayname>Reasons to use Nextcloud.pdf</d:displayname></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response><d:response><d:href>/remote.php/dav/files/admin/Nextcloud%20intro.mp4</d:href><d:propstat><d:prop><d:displayname>Nextcloud intro"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/M3%20%e9%aa%a8%e6%9e%b6%20%e6%b8%ac%e8%a9%a6.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba4988dfb13&quot;</d:getetag><oc:fileid>76</oc:fileid><d:lockdiscovery><d:activelock><d:lockscope><d:exclusive/></d:lockscope><d:locktype><d:write/></d:locktype><d:lockroot><d:href>/remote.php/dav/files/admin/M3 骨架 測試.odt</d:href></d:lockroot><d:depth>1</d:depth><d:timeout>Second-300</d:timeout><d:locktoken><d:href>opaquelocktoken:901d6068-c0e1-4bca-9ace-7818b67e085e</d:href></d:locktoken><d:owner>LiteCore</d:owner></d:activelock></d:lockdiscovery><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "teardown",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/ocs/v2.php/cloud/users/lcprobe",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[]}}"
+  },
+  {
+   "step": "teardown",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "teardown",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"33eae9c7b04e83703cf6e1103121eec8\"",
+    "oc-etag": "\"33eae9c7b04e83703cf6e1103121eec8\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  }
+ ],
+ "score": {
+  "verdict": "red",
+  "tally": {
+   "chrome:hold": {
+    "pass": 1,
+    "runs": 1,
+    "problems": []
+   },
+   "firefox:hold": {
+    "pass": 1,
+    "runs": 1,
+    "problems": []
+   },
+   "chrome:closetab": {
+    "pass": 0,
+    "runs": 1,
+    "problems": [
+     [
+      "before '1', release {'released': False, 'polls': [{'at': 0.3, 'lock': '1'}, {'at': 1.6, 'lock': '1'}, {'at': 2.9, 'lock': '1'}, {'at': 4.2, 'lock': '1'}, {'at': 5.5, 'lock': '1'}, {'at': 6.8, 'lock': '1'}, {'at': 8.1, 'lock': '1'}, {'at': 9.4, 'lock': '1'}, {'at': 10.7, 'lock': '1'}, {'at': 12.0, 'lock': '1'}, {'at': 13.3, 'lock': '1'}, {'at': 14.5, 'lock': '1'}, {'at': 15.8, 'lock': '1'}]}"
+     ]
+    ]
+   },
+   "firefox:closetab": {
+    "pass": 0,
+    "runs": 1,
+    "problems": [
+     [
+      "before '1', release {'released': False, 'polls': [{'at': 0.3, 'lock': '1'}, {'at': 1.6, 'lock': '1'}, {'at': 2.9, 'lock': '1'}, {'at': 4.2, 'lock': '1'}, {'at': 5.5, 'lock': '1'}, {'at': 6.8, 'lock': '1'}, {'at': 8.0, 'lock': '1'}, {'at': 9.3, 'lock': '1'}, {'at': 10.6, 'lock': '1'}, {'at': 11.9, 'lock': '1'}, {'at': 13.2, 'lock': '1'}, {'at': 14.5, 'lock': '1'}, {'at': 15.8, 'lock': '1'}]}"
+     ]
+    ]
+   }
+  },
+  "problems": []
+ }
+}
