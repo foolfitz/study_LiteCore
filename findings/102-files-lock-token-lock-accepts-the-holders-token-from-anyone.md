@@ -55,7 +55,7 @@ RFC 4918 §6.5 本來就把 lock token 當成公開資訊，所以 token 被看�
 
 ## 對我們產品的影響
 
-- **資料不會掉**：`litecore` 宿主的每一次寫入都帶 `If-Match`。被人寫穿之後 ETag 動了，
+- ~~**資料不會掉**~~ **寫穿換了 ETag 時資料不會掉**（2026-09-28 修訂：寫穿若與宿主最後一次存檔落在同一秒，ETag 不會換，宿主的下一次存檔會把它蓋掉，見 [103](103-nextcloud-a-second-write-in-the-same-second-keeps-the-etag-so-if-match-lets-an-overwrite-through.md)；被蓋掉的內容留在版本歷史裡）：`litecore` 宿主的每一次寫入都帶 `If-Match`。被人寫穿之後 ETag 動了，
   宿主下一次存檔拿到 412，token 還在伺服器上，走衝突副本，**不重試**
   （`js/litecore-editor.js` `saveOnce`，約 337–345 行）。如果 token 已經不在，宿主會用
   **同一個舊 ETag** 重試一次，也還是 412，最後同樣走副本。兩條路都不會覆寫對方的位元組。
