@@ -117,3 +117,8 @@ Written before `runs/` has any report, because of the Chrome K7 cell above:
 3. A repeat is a new full counted run, not the missing arms.
 4. No other ddev project is started or restarted while a counted run is going.
 
+
+## Counted run (2026-09-28)
+
+`runs/2026-09-28T131020+0000.json`: **`LOCKS LAND`**, 52/52 runs, no red, so none of the
+rules above was invoked. Red cases against it: 87 `red`, nothing else. Read `RESULT.md`.
