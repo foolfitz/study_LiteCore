@@ -123,16 +123,32 @@ save／cancel，binary 只比 `writer-review` 小 **1.6 KiB**。LibreOffice core
 |---|---|---|
 | **CSP** | **不是問題。**`EmptyContentSecurityPolicy::allowEvalWasm()` 存在，會吐出 `'wasm-unsafe-eval'` | `lib/public/AppFramework/Http/EmptyContentSecurityPolicy.php:122`、`:466` |
 | **Files 整合** | 不是問題。`registerFileAction(new FileAction({…}))`，NC 28 以後的標準做法 | — |
-| **COOP/COEP** | **這是真正的坎。**整個 `lib/` 與 `apps/` grep 不到任何一行 | 已 grep，`--include=*.php`，零命中 |
+| **COOP/COEP** | **這是真正的坎**（2026-09-28：已量過，坎過得去，見下）。整個 `lib/` 與 `apps/` grep 不到任何一行 | 已 grep，`--include=*.php`，零命中 |
 
 **為什麼 COEP 是坎**：`require-corp` 一旦掛上，該頁**每一個子資源**都要帶 CORP/CORS——大頭貼、
-預覽圖、主題 CSS、其他 app 的資產。掛在標準 Nextcloud 介面上會壞掉一片。
+預覽圖、主題 CSS、其他 app 的資產。~~掛在標準 Nextcloud 介面上會壞掉一片。~~
 
-三個候選繞法（**全部待驗證**）：專屬路由／iframe 只載自包含資產、獨立 origin、
-`COEP: credentialless`（只有 Chrome）。
+三個候選繞法（~~**全部待驗證**~~ 2026-09-28：獨立 origin 仍待驗證，其餘已量）：專屬路由／iframe
+只載自包含資產、獨立 origin、~~`COEP: credentialless`（只有 Chrome）~~ `COEP: credentialless`。
 
 ⇒ **推論**：這個 app 多半不能長成「Files 側邊欄就地開啟」，比較像「另開一條乾淨的編輯路由」。
 **這件事會決定 app 長什麼樣子，所以要在最前面決定，不能拖到後面。**
+
+**2026-09-28 更正（已觀察，M3 閘門 0 計數執行，判定 `VERDICT E1h`；全文見
+`findings/evidence/m3-gate-0/RESULT.md`，路線圖 §5.1）**：
+
+- 「壞掉一片」**在乾淨的 Nextcloud 34.0.2 上、在量到的範圍內不成立**：頂欄那一頁掛上 COOP＋COEP 後，
+  頁面載入加一次選單，Nextcloud 自己的失敗載入在 Chrome 151 與 Firefox 156 都是零，頂欄指紋與不隔離時
+  相同（Firefox 的偵測器只看得到元素層級的失敗，字型、CSS 背景、`fetch`、iframe 看不到）。有第三方
+  app 的機器沒量；把 header 掛在別的 app 頁面上的代價有外部證據——nextcloud/richdocuments#4103
+  （Nextcloud Office 在 Collabora 宣告支援 WASM 時對每個 app framework 頁面加 header，Maps、
+  Memories、Mail 被回報壞掉，2024-10-08 開單至今未關）。
+- 「`credentialless` 只有 Chrome」**是錯的**：Firefox 156 也隔離。
+- 推論的「另開一條編輯路由」那一半由量測支持：出貨編輯器放在頂欄底下的**專屬路由**，引擎腳本由 PHP
+  帶 COEP，兩個瀏覽器各 3/3；引擎的 worker 腳本若從 app 目錄靜態直出（不帶 COEP），兩個瀏覽器都開不了機。
+  「不能就地開啟」那一半**沒有被量出來**：不隔離頁面裡的普通 iframe 兩個瀏覽器都不隔離，但
+  `Document-Isolation-Policy` 的 iframe 在 Chrome 會隔離；把 Files 整頁隔離在乾淨實例上載入時零新增
+  失敗；編輯器本身沒在 Files 裡跑過。不採用就地開啟是依 #4103 做的**選擇**（fable 裁決）。
 
 ### 3.3 第二個坎：169 MB 靜態資產
 
@@ -636,6 +652,7 @@ Euro-Office 的官方頁面或 Wikipedia。
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-28 | **§3.2 依 M3 閘門 0 的計數執行更正兩句**（`VERDICT E1h`，`findings/evidence/m3-gate-0/RESULT.md`）：「掛在標準 Nextcloud 介面上會壞掉一片」在乾淨實例上不成立，會壞的是有第三方 app 的機器（nextcloud/richdocuments#4103）；「`credentialless` 只有 Chrome」是錯的，Firefox 156 也隔離。「另開一條編輯路由」由量測支持；「不能就地開啟」沒被量出來，不採用是依 #4103 的選擇。「全部待驗證」改為「獨立 origin 仍待驗證」。原句以刪除線保留。 |
 | 2026-08-20 | **新增第 7 節「買家是機構」**，把定位（第 6 節）接到「怎麼變成一筆生意」。內容：機構是一條簽字鏈不是一個使用者；三個關卡（資安檢核填得完／驗收得完的規格／維運編制）；**封閉 ABI 第一次變現的位置**，同時記下「不要對使用者行銷封閉 ABI，要行銷它的結果」。**撤回本文先前的顧慮「沒有伺服器就沒有維運合約可賣」**——依使用者提供的前提（台灣不會有機關把 Nextcloud 與編輯器拆成兩案），編輯器是既有導入案的差異化條件，加進去**不會讓那份合約變重**。另記通路的真相（App Store 是被找到的地方，不是銷售管道）並補上 ZetaOffice 休眠的一半解釋（有產品沒通路、賣給開發者）。**7.6 記下 a11y 已從長期提前**（milestone §3）及其外部佐證（Collabora 26.04 的 BITV 2.0 認證）。待驗證新增兩項：台灣公部門的無障礙規範等級、以及「沒有伺服器怎麼稽核」的標準說法。原第 7～9 節順延為 8～10。 |
 | 2026-08-20 | **ZetaOffice 的產品線判定為休眠，威脅評估下修。**起因是使用者注意到 GitHub 自 2025-06 後幾乎沒更新；查下去發現 GitHub 是最不重要的訊號——CDN 上的 `soffice.wasm` 停在 **2025-05-13**（比併購早兩週，之後一次都沒再編），blog 最後一篇就是併購公告，npm 最後一版在併購後兩天，而**商業方案的 `business-cdn.zetaoffice.net` 現在連 DNS 都查不到**。2026-04 那三個 commit 是跟上游 embindtest 改版、讓它還編得過，不是產品開發。採納使用者的判讀：**不是被關掉，是被吸收去推 COWASM**（與 4.2 在 `cool-26-04` 建置系統裡找到的 zetajs 整合一致）。§4.3 改標題、新增 4.3.4，§6 表格加「產品狀態」與「對我們的威脅」兩列，第 2 句改寫。並列出一個沒被排除的替代解釋（賣不動）與查證方式（第 7 節第 11 項）。 |
 | 2026-08-20 | 補入字型與體積的實測，並更正一次判讀。新增 §4.3.1～4.3.3：直接量 ZetaOffice 的 CDN——首載 53.2 MB（brotli），而且那顆 wasm 裡裝了 Writer／Calc／Impress／Draw 四個 app 加完整 Qt UI，比我們 Writer-only 的還小；其資源包**沒有任何 CJK 字型**。新增第 5 節：**撤回「缺 CJK 是護城河」的一部分**——缺字型造成的三件事裡，只有「排版與分頁」是硬的，而 Local Font Access（Chromium 桌面限定）與第三方字型 CDN（Google Fonts 的省錢機制在瀏覽器端，我們取用不到；且與數位主權定位相斥）都解不掉它。可守的其實是 R5 的**分包機制**，不是字型資產本身。同時記下 4.3.2 否證了 milestone 文件 §1.1 對 `configure.ac` 那句註解的引用語氣。 |

@@ -273,22 +273,61 @@ runtime memory」。**用算的那個數字是記憶不是量測。**
 
 ## 5. M3 — 建立 Nextcloud app
 
-### 5.1 閘門 0：COOP/COEP（**最先做，它決定 app 長什麼樣**）
+### 5.1 閘門 0：COOP/COEP（**2026-09-28 已過；形狀＝E1h**）
 
-**已觀察**：SharedArrayBuffer 是硬需求（`PTHREAD_POOL_SIZE=7`）；而 Nextcloud server 31.0.13 的
-`lib/` 與 `apps/` 裡 **grep 不到任何一行 COOP/COEP**。
+**已觀察**：SharedArrayBuffer 是硬需求（`PTHREAD_POOL_SIZE=7`）；而 Nextcloud server 31.0.13、
+33.0.8、34.0.2 裡 **grep 不到任何一行 COOP/COEP**。
 
-`COEP: require-corp` 掛上之後，該頁**每一個子資源**都要帶 CORP/CORS——大頭貼、預覽圖、主題 CSS、
-其他 app 的資產。掛在標準 Nextcloud 介面上會壞掉一片。
+**2026-09-28 更新——閘門 0 通過，推薦形狀 E1h**（已觀察）。計數執行
+`findings/evidence/m3-gate-0/runs/2026-09-28T065153Z-apache-fpm.json`，判定是
+`check_m3_gate0_report.py` 印出的那一行 `VERDICT E1h`；判準、fable 的裁決與全表見
+`handoff/m3-gate-0/PREDICTION.md`、`RULING.md`、`findings/evidence/m3-gate-0/RESULT.md`。
 
-三個候選繞法（**全部待驗證**）：
+能說的是：出貨的編輯器（七個 hash）在乾淨的 Nextcloud 34.0.2、Apache＋pretty URL 上，放在
+**Nextcloud 頂欄底下的專屬路由**，所有引擎腳本（module JS、`sdk-worker.js`、`probe.js` 含
+pthread）由 PHP 帶 COEP 送出、`.wasm` 靜態直出、資料檔走 PHP——Chrome 151 與 Firefox 156 各
+3/3 開機、定位游標、做一個段落動作，全程 cross-origin isolated。沒有頂欄的 E3 也各 3/3。
+負向對照（同一頁不帶 header）兩個瀏覽器都在開機時失敗、都沒有隔離也沒有 SharedArrayBuffer；
+Chrome 的 log 把失敗歸因到隔離（`SharedArrayBuffer transfer requires self.crossOriginIsolated`），
+Firefox 沒有能歸因的欄位（只記到 120 秒逾時），那一邊是相關不是歸因。
 
-1. 專屬路由／iframe，只載自包含資產
-2. 獨立 origin
-3. `COEP: credentialless`（只有 Chrome）
+原本兩句要更正：
 
-**推論**：這個 app 多半不能長成「Files 側邊欄就地開啟」，比較像「另開一條乾淨的編輯路由」。
-**閘門 0 不先過，後面全部白做。**
+- ~~掛在標準 Nextcloud 介面上會壞掉一片~~——**在乾淨的實例上、在量到的範圍內不成立**：頂欄那一頁
+  掛上 COOP＋COEP `require-corp` 之後，頁面載入加上點開一次 app 選單，Nextcloud 自己的失敗載入
+  兩個瀏覽器都是零，頂欄指紋（167 個元素、id 的**數目** 22、8/8 張圖、app 選單 6 項）與不隔離時相同。
+  偵測器的範圍要跟著講：Chrome 是 CDP 的 `loadingFailed`；Firefox 只看得到元素層級的失敗
+  （`<img>` 全抓，`<script>`／`<link>` 只抓得到探針腳本執行之後的），被擋的字型、CSS 背景圖、
+  `fetch`、iframe 在 Firefox 都看不到。
+  有第三方 app 的機器沒量，而且有兩個方向：(1) **把 header 掛在別的 app 的頁面上，會弄壞那些 app**——
+  這就是 nextcloud/richdocuments#4103：Nextcloud Office 在 Collabora 宣告支援 WASM 時，對每一個
+  app framework 頁面加 COOP＋COEP（`v8.4.0` 起，2024-04），Maps 圖磚、Memories 預覽、Mail 內嵌 HTML
+  被回報壞掉，2024-10-08 開單至今未關；(2) 在我們自己的隔離路由上，若有 app 往每一頁塞跨源、
+  不帶 CORS 的子資源，會在我們這一頁被擋——A1 的 canary 就是它的模型，乾淨實例上沒有 app 這樣做。
+  **(1) 是推薦形狀只隔離 app 自己路由的理由。**
+- ~~`COEP: credentialless`（只有 Chrome）~~——**錯**：Firefox 156 也隔離，跨源 canary 照樣載得進來。
+
+候選繞法的實測結果：
+
+1. 專屬路由——**可行**（E1h／E3）。條件是**引擎的 worker 腳本本身要帶 COEP**：從 app 目錄直出的
+   靜態 `sdk-worker.js` 不帶 COEP，兩個瀏覽器都在開機時死掉（E1，0/3）。Chrome 記下原因
+   `coep-frame-resource-needs-coep-header`；Firefox 只記到產品的 `WORKER_CRASHED`，原因是從 Chrome
+   加上瀏覽器規則**推論**的。
+2. 獨立 origin——**沒量**（仍待驗證）；專屬路由已經夠用。
+3. `COEP: credentialless`——兩個瀏覽器都隔離（見上）。
+4. 在不隔離的頁面裡嵌 iframe——兩個瀏覽器都**不隔離**；`Document-Isolation-Policy` 只有 Chrome
+   能讓它隔離。把 Files 整頁隔離，在乾淨實例上頁面載入時零新增失敗——但那正是 #4103 的形狀，
+   **不當產品機制**；編輯器本身也從沒在 Files 裡跑過，所以「側邊欄就地開啟」既沒證明可行也沒證明
+   不可行。⇒ 「只隔離自己的路由、另開一條編輯路由」是**依 #4103 做的選擇**（fable 裁決），不是量出來的
+   不可能。
+
+**已命名的限制**：nginx 沒量（header 是 PHP 設的，但 `.htaccess` 那條路與靜態白名單在 nginx 上
+不同）、Safari 沒量、有第三方 app 的機器沒量、煙霧序列以外的互動沒量（COOP `same-origin` 會切斷
+彈出視窗的 `window.opener`，這裡沒有東西走到）。
+
+**帶進 M3 的工作項**：引擎腳本怎麼拿到 COEP。四條路——PHP（已量）、app `.htaccess`（只有 Apache）、
+blob URL worker（要改產品，CSP 加 `worker-src blob:`）、COEP service worker——每一條都要先跑過
+E1h 的序列、兩個瀏覽器各 3/3，才能取代 PHP。
 
 ### 5.2 已確認不是問題（已觀察）
 
@@ -299,6 +338,15 @@ runtime memory」。**用算的那個數字是記憶不是量測。**
 
 必須 web server 直出、immutable 快取、**不穿過 PHP**。而且**這體積上不了 App Store tarball**
 （推論，上限未查），得另想發布——安裝時下載，或分開散布。
+
+**2026-09-28 補充（已觀察，閘門 0 的 C7）**：「web server 直出」在 Apache 上只對一部分副檔名成立。
+擋住其餘檔案的是 **Apache `.htaccess` 的副檔名白名單加上 pretty URL**（`nextcloud/.htaccess:207`；
+裁決說官方映像也是如此，本樹未查），不是 Nextcloud 本身：白名單以外的一律改寫到 `index.php`。從 app 目錄實測：
+`.js` 與 115 MB 的 `probe.wasm` 都是 200、位元組與磁碟相同；`sdk-manifest.json`、`.odt`，以及 v14
+切分打包的 `.data`（40 MB）／`.metadata` 全部 404。⇒ v14 的 `.data`／`.metadata` 與所有 `.json`
+要走 PHP 或另一條路由。nginx 的 `try_files` 會直出它們——**未量**，而且這個推論只讀了 DDEV 通用的
+PHP 設定（`.ddev/nginx_full/nginx-site.conf:28`），沒讀 Nextcloud 文件裡的 nginx 設定。另外，直出的 `.js` 不帶 COEP，
+worker 腳本就算能直出也不能直接用（§5.1）。
 
 ### 5.4 還要接的
 
@@ -427,6 +475,7 @@ M4 把功能 corpus 換掉之後才動：filter allowlist、component／library 
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-28 | **M3 閘門 0 通過，§5.1 改寫、§5.3 補 C7。**計數執行（`findings/evidence/m3-gate-0/runs/2026-09-28T065153Z-apache-fpm.json`）的判定是 `VERDICT E1h`：出貨編輯器放在 Nextcloud 頂欄底下的專屬路由，引擎腳本由 PHP 帶 COEP，Chrome 151／Firefox 156 各 3/3。**更正兩句**：「掛在標準 Nextcloud 介面上會壞掉一片」在乾淨實例上、在量到的範圍內（頁面載入＋一次選單，附偵測器範圍）不成立；有第三方 app 的機器沒量，而把 header 掛在別的 app 頁面上的代價有外部證據（nextcloud/richdocuments#4103），因此依裁決選擇只隔離 app 自己的路由（這是選擇，不是量出「就地開啟」不可能）；「`credentialless` 只有 Chrome」是錯的，Firefox 156 也隔離。§5.3 記下擋住 `.json`／`.data`／`.metadata` 的是 Apache `.htaccess` 白名單加 pretty URL，nginx 未量。引擎腳本如何拿到 COEP 的四條路列為 M3 工作項。 |
 | 2026-08-20 | **a11y 從長期目標提前，成為新的第 3 節。**使用者裁示提前到 Nextcloud app 之前；本文再往前放一格到 M2a 之前，理由是「WASM 上的 LOK accessibility 能不能用」**完全沒量過**（056 只證明了今天不行，沒證明改組態之後行），這種高不確定性的問題應該早問。**這是一次反轉**——2026-08-17 的裁示是「a11y 移到長期、不要為它提議重編 core」，其前提是「短期目標＝能用的編輯器」；買家確定是機構之後，a11y 從功能變成**採購門檻**（外部佐證：Collabora Online 26.04 把 BITV 2.0 認證放進頭條）。新節寫了兩半：核心那一半有閘門 0（改 `configure.ac` ＋ 重編，只問「吐不吐得出 focused paragraph」，不過就停），殼層那一半是**目前為零的 ARIA 投影**（報讀軟體讀不到 canvas）。並記下「把 `calc` 加回 `--with-wasm-module` 不是修法」（057 已否決）。§9 把 a11y 那列劃掉並註明移出理由；§10 新增一項只有使用者答得出來的問題（台灣公部門的無障礙規範等級）。**第 3 節之後全部順延一號**：前一列修訂紀錄提到的 §5.1／§5.2／§5.4 現為 §6.1／§6.2／§6.4，§4.x（M3）現為 §5.x。 |
 | 2026-08-20 | **下修 §1.1 與 §5.1 對 `configure.ac:2327-2328` 那句註解的引用。**初版把它讀成「三個模組一起編 Chromium 載不動」，據此把 M4 閘門 0 設為高風險。更正：那句寫的是 **debug** build，而 ZetaOffice 正在出貨一個含 `swriter`／`scalc`／`simpress`／`sdraw` 四個模組的 release build 且瀏覽器跑得起來（36.3 MB brotli，實測見產品路線文件 §4.3.2）。⇒ 閘門 0 從「可能擋下 M4」降級為**便宜的例行確認**，理由改成「他們的 profile 不是我們的 profile」與「要防的是組合失敗不是體積」；M4 的真正風險移到閘門 1（記憶體），而那一格外部參考點幫不上忙。同時在 §1.2 明確標註**排序衝突不受此次下修影響**——那一條講的是裁切決定會失效，不是體積會爆炸。§5.4 補上 `sdraw`／`simpress` 一起出貨的外部佐證。 |
 | 2026-08-20 | 初版。依使用者提出的五項順序展開，插入 Nextcloud app 為 M3；查出 `--with-wasm-module` 的實際行為並據此指出「壓縮在擴格式之前會導致重做」，處方為把壓縮切成 M2a／M2b。 |

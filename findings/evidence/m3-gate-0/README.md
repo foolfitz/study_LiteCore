@@ -12,7 +12,8 @@ runner's `provisionalGate` / `gate` field.
 | path | what |
 | --- | --- |
 | `shakedown/` | Instrument runs. **None counts toward any criterion.** 055554Z = shakedown 1 (Chrome only; exposed the menu, whitelist and APCu defects); 060421Z = shakedown 3 (both browsers, pre-ruling instrument); 063109Z = shakedown 4 (post-ruling instrument, probe app `f837937`; the base of the reader's red cases). Shakedown 2 died on Firefox before writing a report (snap `/tmp`). |
-| `runs/` | Counted runs (`--label counted`, repeats 3). Written only by the runner. |
+| `RESULT.md` | **The verdict** (`VERDICT E1h`, counted run `065153Z`), the PASS sentence and named limits as RULING.md CONDITIONS 6–9 fix them, and the measured table per criterion. |
+| `runs/` | Counted runs (`--label counted`, repeats 3). Written only by the runner. `2026-09-28T065153Z-apache-fpm.json` is the first and only one; Amendment 1 closed with it. |
 | `runs/*.occ-*.txt` | Read-only instance evidence saved beside a counted report (`occ integrity:check-core`, `occ config:list system` with secrets masked, `occ app:list`). |
 | `reader-red-cases/` | One gzipped mutated copy of shakedown 4 per predicate, and `SUMMARY.json`: the reader green on the base, red on (a) in strict mode, red on every copy where it says. |
 | `external/` | Upstream precedent: richdocuments' listener as shipped, and nextcloud/richdocuments#4103 (JSON from the GitHub API, 2026-09-28). |

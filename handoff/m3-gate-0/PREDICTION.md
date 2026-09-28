@@ -216,3 +216,15 @@ and every copy red on the predicate it names.
   URLs", not "Nextcloud"; nginx stays a named limit (its `try_files` would serve those
   files — unmeasured).
 - What a PASS may say, and its named limits, are fixed in RULING.md CONDITIONS 6–9.
+
+---
+
+## Closed — 2026-09-28 (appended after the first counted run)
+
+Counted run `findings/evidence/m3-gate-0/runs/2026-09-28T065153Z-apache-fpm.json`
+(sha256 `3b31b3d9…a98e`), 06:51:53Z–07:01:21Z, on the instrument and reader committed
+in `a9759513`. Reader: `VERDICT E1h shapes=E1h,E3 failing={}`. Gate 0 passes; the
+recommended shape is E1h. Every prediction above held. The PASS sentence, the named
+limits and the measured table are in `findings/evidence/m3-gate-0/RESULT.md`.
+Amendment 1 closes here: nothing above is edited, and any later concern about this gate
+becomes a finding or M3 work, not a new criterion.
