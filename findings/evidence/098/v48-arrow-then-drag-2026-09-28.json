@@ -1,0 +1,509 @@
+{
+ "schemaVersion": 1,
+ "finding": "098",
+ "question": "v48: does an arrow key make the next drag bank a checkpoint of an untouched document?",
+ "fixture": "./e1-fixtures/multi-paragraph.odt",
+ "prediction": {
+  "v48": {
+   "drag-only": "無",
+   "arrow-then-drag": "有（r0）",
+   "typed-then-drag": "有（r1）"
+  },
+  "v52": {
+   "drag-only": "無",
+   "arrow-then-drag": "無",
+   "typed-then-drag": "有（r1）"
+  }
+ },
+ "startedAt": "2026-09-28T04:41:38.556039+00:00",
+ "shells": [
+  {
+   "identity": {
+    "manifest": "wasm_sdk_probe/e2/editor-shell-v2-bundle-v48.json",
+    "declaredSha256": "ecfb6866117673c21a7c21995f7ea76fe60beb9f94a73c222053a18cc573a6ef",
+    "servedSha256": "ecfb6866117673c21a7c21995f7ea76fe60beb9f94a73c222053a18cc573a6ef",
+    "servesDeclared": true,
+    "shell": "v48",
+    "servedFrom": "/tmp/f098-v48-s68w5jxg/root",
+    "servedHtmlSha256": "7c2a37fe04ed93ed2d8c0d5dd02ef04ff4606e6776945f3b544824585ffef8d5",
+    "servedPin": "4a2710bba1ef07d9"
+   },
+   "attempts": [
+    {
+     "shell": "v48",
+     "scenario": "drag-only",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:41:39.004931+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 33 ms",
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "無",
+      "state": "ready",
+      "latency": "定位游標 379 ms",
+      "seconds": 3.02
+     },
+     "outcome": "無",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:41:45.802325+00:00"
+    },
+    {
+     "shell": "v48",
+     "scenario": "arrow-then-drag",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:41:45.802447+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 32 ms",
+     "arrowMoved": true,
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "有（r0）",
+      "state": "ready",
+      "latency": "定位游標 28 ms",
+      "seconds": 0.61
+     },
+     "outcome": "有（r0）",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:41:50.040190+00:00"
+    },
+    {
+     "shell": "v48",
+     "scenario": "typed-then-drag",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:41:50.040274+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 37 ms",
+     "revisionAfterTyping": "1",
+     "beforeDrag": {
+      "revision": "1",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "1",
+      "checkpoint": "有（r1）",
+      "state": "ready",
+      "latency": "定位游標 31 ms",
+      "seconds": 0.61
+     },
+     "outcome": "有（r1）",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:41:54.121064+00:00"
+    },
+    {
+     "shell": "v48",
+     "scenario": "drag-only",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:41:54.121132+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 33 ms",
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "無",
+      "state": "ready",
+      "latency": "定位游標 357 ms",
+      "seconds": 3.01
+     },
+     "outcome": "無",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:00.301968+00:00"
+    },
+    {
+     "shell": "v48",
+     "scenario": "arrow-then-drag",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:42:00.302039+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 32 ms",
+     "arrowMoved": true,
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "有（r0）",
+      "state": "ready",
+      "latency": "定位游標 31 ms",
+      "seconds": 0.61
+     },
+     "outcome": "有（r0）",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:04.840055+00:00"
+    },
+    {
+     "shell": "v48",
+     "scenario": "typed-then-drag",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:42:04.840123+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 33 ms",
+     "revisionAfterTyping": "1",
+     "beforeDrag": {
+      "revision": "1",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "1",
+      "checkpoint": "有（r1）",
+      "state": "ready",
+      "latency": "定位游標 36 ms",
+      "seconds": 0.61
+     },
+     "outcome": "有（r1）",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:08.922496+00:00"
+    },
+    {
+     "shell": "v48",
+     "scenario": "drag-only",
+     "attempt": 3,
+     "startedAt": "2026-09-28T04:42:08.922568+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 32 ms",
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "無",
+      "state": "ready",
+      "latency": "定位游標 400 ms",
+      "seconds": 3.02
+     },
+     "outcome": "無",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:15.707418+00:00"
+    },
+    {
+     "shell": "v48",
+     "scenario": "arrow-then-drag",
+     "attempt": 3,
+     "startedAt": "2026-09-28T04:42:15.707519+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 27 ms",
+     "arrowMoved": true,
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "有（r0）",
+      "state": "ready",
+      "latency": "定位游標 31 ms",
+      "seconds": 0.61
+     },
+     "outcome": "有（r0）",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:19.641457+00:00"
+    },
+    {
+     "shell": "v48",
+     "scenario": "typed-then-drag",
+     "attempt": 3,
+     "startedAt": "2026-09-28T04:42:19.641524+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 29 ms",
+     "revisionAfterTyping": "1",
+     "beforeDrag": {
+      "revision": "1",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "1",
+      "checkpoint": "有（r1）",
+      "state": "ready",
+      "latency": "定位游標 28 ms",
+      "seconds": 0.61
+     },
+     "outcome": "有（r1）",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:23.720968+00:00"
+    }
+   ]
+  },
+  {
+   "identity": {
+    "manifest": "wasm_sdk_probe/e2/editor-shell-v2-bundle-v52.json",
+    "declaredSha256": "7a1e8815a9b18996302ed320c22c4057a67fc03981d24b4ff6b959c2294673ba",
+    "servedSha256": "7a1e8815a9b18996302ed320c22c4057a67fc03981d24b4ff6b959c2294673ba",
+    "servesDeclared": true,
+    "shell": "v52",
+    "servedFrom": "/tmp/f098-v52-acjiieur/root",
+    "servedHtmlSha256": "f7e477998385c28390aaa6e77f8907ca15b0e0f1003e0d2ee469ed1f785236e0",
+    "servedPin": "4a2710bba1ef07d9"
+   },
+   "attempts": [
+    {
+     "shell": "v52",
+     "scenario": "drag-only",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:42:24.240932+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 33 ms",
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "無",
+      "state": "ready",
+      "latency": "定位游標 380 ms",
+      "seconds": 3.02
+     },
+     "outcome": "無",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:31.034505+00:00"
+    },
+    {
+     "shell": "v52",
+     "scenario": "arrow-then-drag",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:42:31.034582+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 33 ms",
+     "arrowMoved": true,
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "無",
+      "state": "ready",
+      "latency": "定位游標 27 ms",
+      "seconds": 3.02
+     },
+     "outcome": "無",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:37.678138+00:00"
+    },
+    {
+     "shell": "v52",
+     "scenario": "typed-then-drag",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:42:37.678213+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 32 ms",
+     "revisionAfterTyping": "1",
+     "beforeDrag": {
+      "revision": "1",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "1",
+      "checkpoint": "有（r1）",
+      "state": "ready",
+      "latency": "定位游標 37 ms",
+      "seconds": 0.61
+     },
+     "outcome": "有（r1）",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:41.763819+00:00"
+    },
+    {
+     "shell": "v52",
+     "scenario": "drag-only",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:42:41.763895+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 33 ms",
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "無",
+      "state": "ready",
+      "latency": "定位游標 360 ms",
+      "seconds": 3.02
+     },
+     "outcome": "無",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:47.955803+00:00"
+    },
+    {
+     "shell": "v52",
+     "scenario": "arrow-then-drag",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:42:47.955907+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 33 ms",
+     "arrowMoved": true,
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "無",
+      "state": "ready",
+      "latency": "定位游標 32 ms",
+      "seconds": 3.02
+     },
+     "outcome": "無",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:54.297850+00:00"
+    },
+    {
+     "shell": "v52",
+     "scenario": "typed-then-drag",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:42:54.297928+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 33 ms",
+     "revisionAfterTyping": "1",
+     "beforeDrag": {
+      "revision": "1",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "1",
+      "checkpoint": "有（r1）",
+      "state": "ready",
+      "latency": "定位游標 28 ms",
+      "seconds": 0.61
+     },
+     "outcome": "有（r1）",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:42:58.596919+00:00"
+    },
+    {
+     "shell": "v52",
+     "scenario": "drag-only",
+     "attempt": 3,
+     "startedAt": "2026-09-28T04:42:58.597003+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 33 ms",
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "無",
+      "state": "ready",
+      "latency": "定位游標 359 ms",
+      "seconds": 3.02
+     },
+     "outcome": "無",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:43:04.786641+00:00"
+    },
+    {
+     "shell": "v52",
+     "scenario": "arrow-then-drag",
+     "attempt": 3,
+     "startedAt": "2026-09-28T04:43:04.786716+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 29 ms",
+     "arrowMoved": true,
+     "beforeDrag": {
+      "revision": "0",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "0",
+      "checkpoint": "無",
+      "state": "ready",
+      "latency": "定位游標 27 ms",
+      "seconds": 3.02
+     },
+     "outcome": "無",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:43:11.126115+00:00"
+    },
+    {
+     "shell": "v52",
+     "scenario": "typed-then-drag",
+     "attempt": 3,
+     "startedAt": "2026-09-28T04:43:11.126180+00:00",
+     "checkpointAtOpen": "無",
+     "placed": "定位游標 27 ms",
+     "revisionAfterTyping": "1",
+     "beforeDrag": {
+      "revision": "1",
+      "checkpoint": "無"
+     },
+     "afterDrag": {
+      "revision": "1",
+      "checkpoint": "有（r1）",
+      "state": "ready",
+      "latency": "定位游標 28 ms",
+      "seconds": 0.61
+     },
+     "outcome": "有（r1）",
+     "asPredicted": true,
+     "completedAt": "2026-09-28T04:43:15.207098+00:00"
+    }
+   ]
+  }
+ ],
+ "browser": "Chrome/151.0.7922.169",
+ "completedAt": "2026-09-28T04:43:15.310958+00:00",
+ "verdict": {
+  "v48/drag-only": {
+   "outcomes": [
+    "無",
+    "無",
+    "無"
+   ],
+   "asPredictedEvery": true
+  },
+  "v48/arrow-then-drag": {
+   "outcomes": [
+    "有（r0）",
+    "有（r0）",
+    "有（r0）"
+   ],
+   "asPredictedEvery": true
+  },
+  "v48/typed-then-drag": {
+   "outcomes": [
+    "有（r1）",
+    "有（r1）",
+    "有（r1）"
+   ],
+   "asPredictedEvery": true
+  },
+  "v52/drag-only": {
+   "outcomes": [
+    "無",
+    "無",
+    "無"
+   ],
+   "asPredictedEvery": true
+  },
+  "v52/arrow-then-drag": {
+   "outcomes": [
+    "無",
+    "無",
+    "無"
+   ],
+   "asPredictedEvery": true
+  },
+  "v52/typed-then-drag": {
+   "outcomes": [
+    "有（r1）",
+    "有（r1）",
+    "有（r1）"
+   ],
+   "asPredictedEvery": true
+  }
+ }
+}

@@ -120,3 +120,37 @@ Check 42 (`a-boundary-arrow-press-does-not-cost-the-work`): v8 exercised B1, B3,
 the worker failure). B3's control held on both — `checkpointBeforeTheKey` 無 after the
 typing, 有（r1） after the key — because typing is still a mutation; only moves changed.
 One run per profile, as the ruling asked; this is a no-regression check, not a count.
+
+## 5. The shipped shell, v48 — `probe_098_v48_arrow_then_drag.py`
+
+Added 2026-09-28 after landing. 098's scope section inferred, without measuring it, that
+the shell users are served today (v48: moves are mutations, no half C) banks a
+checkpoint of an untouched document when an arrow key is followed by a drag, through the
+base class's `_checkpointBeforeSelection`.
+
+**The v48 shell is rebuilt from git, not guessed.** All 13 files in
+`e2/editor-shell-v2-bundle-v48.json`'s `included` list are taken from `2d319677` (the
+commit that froze v48) and laid over a mirror of `dist/`; the probe recomputes the
+bundle digest over the served files, the way the product-path runner does, and refuses
+to run unless it equals the declared `ecfb6866…` (it did: `servesDeclared: true`).
+`web/e2-editor.html` is outside the hash net (finding 094) and is taken from the same
+commit (`servedHtmlSha256 7c2a37fe…`). The same scenarios run on the current `dist/`
+(v52, served digest = declared `7a1e8815…`) as the comparison. Pin `4a2710bba1ef07d9`
+(v8) on both; Chrome 151.0.7922.169; scenarios interleaved, 3 attempts each.
+
+Criteria written in the probe's docstring before the first run; `#s-checkpoint` after
+the drag settles:
+
+| shell | drag only (control) | **one ArrowRight, then drag** | type, then drag (positive control) |
+| --- | --- | --- | --- |
+| v48 (shipped) | 無 3/3 | **有（r0） 3/3** | 有（r1） 3/3 |
+| v52 (fixed) | 無 3/3 | 無 3/3 | 有（r1） 3/3 |
+
+All 18 as predicted. The inference holds on the shipped bytes: a document nobody typed
+into, one arrow key, one drag → a checkpoint of bytes identical to what was opened, the
+label reads 有（r0）, and the drag takes 0.61 s instead of returning at once (the save).
+Not data loss. On v52 the same gesture banks nothing — the fix measured through a
+second consumer (the base class's selection checkpoint), not only through half C.
+
+The "drag" column's `seconds` of 3.0 in the 無 cells is the probe's own 3-second wait for
+the label to change, not a latency.

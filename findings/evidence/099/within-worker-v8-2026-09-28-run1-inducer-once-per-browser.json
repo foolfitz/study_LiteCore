@@ -1,0 +1,931 @@
+{
+ "schemaVersion": 1,
+ "finding": "099",
+ "mode": "within-Worker",
+ "evidenceClass": "red-case",
+ "profile": "e2-editor-v8 (the page as dist/ pins it)",
+ "fixture": "./e1-fixtures/multi-paragraph.odt",
+ "sentinel": "F099REVIEWMARK",
+ "prediction": {
+  "prefix": "LOST_THE_BULLET",
+  "a-only": "LOST_THE_BULLET",
+  "landed": "KEPT_THE_BULLET"
+ },
+ "startedAt": "2026-09-28T04:33:07.875176+00:00",
+ "arms": [
+  {
+   "arm": "prefix",
+   "fixed": {
+    "098": false,
+    "099": false
+   },
+   "servedSessionSha256": "ad148f5b2961c354abfd67cf461b9c9e06fed33cb307cb7acb766fcdc417536d",
+   "landedSessionSha256": "191de37335892b12fba765242ca8671993a95c3341f2509cba0026dbe2a283a0",
+   "servesLandedBytes": false,
+   "servedPageSha256": "1ec7baf9fb53c808cf127476346d69d56cf93a802f6c72680fa84416f7599ecc",
+   "servedPin": "4a2710bba1ef07d9",
+   "servedMatchesArm": true,
+   "prediction": "LOST_THE_BULLET",
+   "attempts": [
+    {
+     "arm": "prefix",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:33:08.293888+00:00",
+     "boot": "ready",
+     "opened": "ready",
+     "revisionAtOpen": "0",
+     "checkpointAtOpen": "無",
+     "bands": 5,
+     "click": {
+      "x": "0.246422",
+      "y": "0.12142",
+      "derived": true
+     },
+     "placed": "定位游標 28 ms",
+     "typing": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "break": {
+      "action": "insert-paragraph-break",
+      "revisionBefore": "1",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "returnPress": {
+      "key": "ArrowRight",
+      "moved": true,
+      "seconds": 0.15,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "review": {
+      "revisionBefore": "2",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "有（r2）",
+      "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+     },
+     "revisionUnchangedByReview": true,
+     "testedPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.15,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterInducer": "recoverable-error",
+     "checkpointOnOffer": "有（r2）",
+     "notice": {
+      "shown": true,
+      "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+      "label": "回到檢查點",
+      "disabled": false,
+      "rescue": "checkpoint"
+     },
+     "pressedTheNotice": true,
+     "stateAfterRecovery": "ready",
+     "savedBytes": 10366,
+     "cameBack": {
+      "readable": true,
+      "sentinelParagraphs": [
+       1
+      ],
+      "sentinelCameBack": true,
+      "paragraphAfterSentinel": {
+       "tag": "p",
+       "text": "",
+       "inListItem": false
+      },
+      "breakCameBack": true,
+      "bulletCameBack": false
+     },
+     "savedParagraphs": [
+      {
+       "tag": "p",
+       "text": "E1-MULTI-START alpha",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "第二段中文 betaF099REVIEWMARK",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "第三段跨行 gamma",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "第四段落 delta",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "E1-MULTI-END omega",
+       "inListItem": false
+      }
+     ],
+     "outcome": "LOST_THE_BULLET",
+     "completedAt": "2026-09-28T04:33:20.435412+00:00"
+    },
+    {
+     "arm": "prefix",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:33:20.435502+00:00",
+     "boot": "ready",
+     "opened": "ready",
+     "revisionAtOpen": "0",
+     "checkpointAtOpen": "無",
+     "bands": 5,
+     "click": {
+      "x": "0.246422",
+      "y": "0.12142",
+      "derived": true
+     },
+     "placed": "定位游標 27 ms",
+     "typing": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "break": {
+      "action": "insert-paragraph-break",
+      "revisionBefore": "1",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.46,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "returnPress": {
+      "key": "ArrowRight",
+      "moved": true,
+      "seconds": 0.15,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "review": {
+      "revisionBefore": "2",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "有（r2）",
+      "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+     },
+     "revisionUnchangedByReview": true,
+     "testedPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.16,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": false,
+      "why": "auto-attach delivered no session for a document worker",
+      "attachedTypes": []
+     },
+     "outcome": "VOID",
+     "why": "the worker failure never fired: auto-attach delivered no session for a document worker",
+     "completedAt": "2026-09-28T04:33:30.296701+00:00"
+    },
+    {
+     "arm": "prefix",
+     "attempt": 3,
+     "startedAt": "2026-09-28T04:33:30.296849+00:00",
+     "boot": "ready",
+     "opened": "ready",
+     "revisionAtOpen": "0",
+     "checkpointAtOpen": "無",
+     "bands": 5,
+     "click": {
+      "x": "0.246422",
+      "y": "0.12142",
+      "derived": true
+     },
+     "placed": "定位游標 33 ms",
+     "typing": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "break": {
+      "action": "insert-paragraph-break",
+      "revisionBefore": "1",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.46,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "returnPress": {
+      "key": "ArrowRight",
+      "moved": true,
+      "seconds": 0.15,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "review": {
+      "revisionBefore": "2",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "有（r2）",
+      "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+     },
+     "revisionUnchangedByReview": true,
+     "testedPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.15,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": false,
+      "why": "auto-attach delivered no session for a document worker",
+      "attachedTypes": []
+     },
+     "outcome": "VOID",
+     "why": "the worker failure never fired: auto-attach delivered no session for a document worker",
+     "completedAt": "2026-09-28T04:33:40.166808+00:00"
+    }
+   ]
+  },
+  {
+   "arm": "a-only",
+   "fixed": {
+    "098": true,
+    "099": false
+   },
+   "servedSessionSha256": "b218f6c6730202c2ea3f70e864babd44d4779afcfdf778913c3c918ef9a1f67d",
+   "landedSessionSha256": "191de37335892b12fba765242ca8671993a95c3341f2509cba0026dbe2a283a0",
+   "servesLandedBytes": false,
+   "servedPageSha256": "1ec7baf9fb53c808cf127476346d69d56cf93a802f6c72680fa84416f7599ecc",
+   "servedPin": "4a2710bba1ef07d9",
+   "servedMatchesArm": true,
+   "prediction": "LOST_THE_BULLET",
+   "attempts": [
+    {
+     "arm": "a-only",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:33:40.691204+00:00",
+     "boot": "ready",
+     "opened": "ready",
+     "revisionAtOpen": "0",
+     "checkpointAtOpen": "無",
+     "bands": 5,
+     "click": {
+      "x": "0.246422",
+      "y": "0.12142",
+      "derived": true
+     },
+     "placed": "定位游標 28 ms",
+     "typing": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "break": {
+      "action": "insert-paragraph-break",
+      "revisionBefore": "1",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "returnPress": {
+      "key": "ArrowRight",
+      "moved": true,
+      "seconds": 0.15,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "review": {
+      "revisionBefore": "2",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "有（r2）",
+      "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+     },
+     "revisionUnchangedByReview": true,
+     "testedPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.15,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterInducer": "recoverable-error",
+     "checkpointOnOffer": "有（r2）",
+     "notice": {
+      "shown": true,
+      "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+      "label": "回到檢查點",
+      "disabled": false,
+      "rescue": "checkpoint"
+     },
+     "pressedTheNotice": true,
+     "stateAfterRecovery": "ready",
+     "savedBytes": 10367,
+     "cameBack": {
+      "readable": true,
+      "sentinelParagraphs": [
+       1
+      ],
+      "sentinelCameBack": true,
+      "paragraphAfterSentinel": {
+       "tag": "p",
+       "text": "",
+       "inListItem": false
+      },
+      "breakCameBack": true,
+      "bulletCameBack": false
+     },
+     "savedParagraphs": [
+      {
+       "tag": "p",
+       "text": "E1-MULTI-START alpha",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "第二段中文 betaF099REVIEWMARK",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "第三段跨行 gamma",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "第四段落 delta",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "E1-MULTI-END omega",
+       "inListItem": false
+      }
+     ],
+     "outcome": "LOST_THE_BULLET",
+     "completedAt": "2026-09-28T04:33:53.631251+00:00"
+    },
+    {
+     "arm": "a-only",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:33:53.631339+00:00",
+     "boot": "ready",
+     "opened": "ready",
+     "revisionAtOpen": "0",
+     "checkpointAtOpen": "無",
+     "bands": 5,
+     "click": {
+      "x": "0.246422",
+      "y": "0.12142",
+      "derived": true
+     },
+     "placed": "定位游標 32 ms",
+     "typing": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "break": {
+      "action": "insert-paragraph-break",
+      "revisionBefore": "1",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "returnPress": {
+      "key": "ArrowRight",
+      "moved": true,
+      "seconds": 0.16,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "review": {
+      "revisionBefore": "2",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "有（r2）",
+      "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+     },
+     "revisionUnchangedByReview": true,
+     "testedPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.15,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": false,
+      "why": "auto-attach delivered no session for a document worker",
+      "attachedTypes": []
+     },
+     "outcome": "VOID",
+     "why": "the worker failure never fired: auto-attach delivered no session for a document worker",
+     "completedAt": "2026-09-28T04:34:03.851903+00:00"
+    },
+    {
+     "arm": "a-only",
+     "attempt": 3,
+     "startedAt": "2026-09-28T04:34:03.852007+00:00",
+     "boot": "ready",
+     "opened": "ready",
+     "revisionAtOpen": "0",
+     "checkpointAtOpen": "無",
+     "bands": 5,
+     "click": {
+      "x": "0.246422",
+      "y": "0.12142",
+      "derived": true
+     },
+     "placed": "定位游標 33 ms",
+     "typing": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "break": {
+      "action": "insert-paragraph-break",
+      "revisionBefore": "1",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.46,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "returnPress": {
+      "key": "ArrowRight",
+      "moved": true,
+      "seconds": 0.15,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "review": {
+      "revisionBefore": "2",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "有（r2）",
+      "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+     },
+     "revisionUnchangedByReview": true,
+     "testedPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.16,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": false,
+      "why": "auto-attach delivered no session for a document worker",
+      "attachedTypes": []
+     },
+     "outcome": "VOID",
+     "why": "the worker failure never fired: auto-attach delivered no session for a document worker",
+     "completedAt": "2026-09-28T04:34:13.711128+00:00"
+    }
+   ]
+  },
+  {
+   "arm": "landed",
+   "fixed": {
+    "098": true,
+    "099": true
+   },
+   "servedSessionSha256": "191de37335892b12fba765242ca8671993a95c3341f2509cba0026dbe2a283a0",
+   "landedSessionSha256": "191de37335892b12fba765242ca8671993a95c3341f2509cba0026dbe2a283a0",
+   "servesLandedBytes": true,
+   "servedPageSha256": "1ec7baf9fb53c808cf127476346d69d56cf93a802f6c72680fa84416f7599ecc",
+   "servedPin": "4a2710bba1ef07d9",
+   "servedMatchesArm": true,
+   "prediction": "KEPT_THE_BULLET",
+   "attempts": [
+    {
+     "arm": "landed",
+     "attempt": 1,
+     "startedAt": "2026-09-28T04:34:14.221828+00:00",
+     "boot": "ready",
+     "opened": "ready",
+     "revisionAtOpen": "0",
+     "checkpointAtOpen": "無",
+     "bands": 5,
+     "click": {
+      "x": "0.246422",
+      "y": "0.12142",
+      "derived": true
+     },
+     "placed": "定位游標 28 ms",
+     "typing": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "break": {
+      "action": "insert-paragraph-break",
+      "revisionBefore": "1",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.61,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "returnPress": {
+      "key": "ArrowRight",
+      "moved": true,
+      "seconds": 0.16,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "review": {
+      "revisionBefore": "2",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "有（r2）",
+      "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+     },
+     "revisionUnchangedByReview": true,
+     "testedPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.46,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": true,
+      "workerUrl": [
+       "e2-editor-v8",
+       "sdk-worker.js"
+      ],
+      "recipe": "an uncaught error inside the document worker, which the SDK reports as `worker-crashed` -- the failure class the recovery path exists for, and no product change",
+      "dependsOnADefect": false
+     },
+     "stateAfterInducer": "recoverable-error",
+     "checkpointOnOffer": "有（r2）",
+     "notice": {
+      "shown": true,
+      "text": "這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。",
+      "label": "回到檢查點",
+      "disabled": false,
+      "rescue": "checkpoint"
+     },
+     "pressedTheNotice": true,
+     "stateAfterRecovery": "ready",
+     "savedBytes": 10881,
+     "cameBack": {
+      "readable": true,
+      "sentinelParagraphs": [
+       1
+      ],
+      "sentinelCameBack": true,
+      "paragraphAfterSentinel": {
+       "tag": "p",
+       "text": "",
+       "inListItem": true
+      },
+      "breakCameBack": true,
+      "bulletCameBack": true
+     },
+     "savedParagraphs": [
+      {
+       "tag": "p",
+       "text": "E1-MULTI-START alpha",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "第二段中文 betaF099REVIEWMARK",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "",
+       "inListItem": true
+      },
+      {
+       "tag": "p",
+       "text": "第三段跨行 gamma",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "第四段落 delta",
+       "inListItem": false
+      },
+      {
+       "tag": "p",
+       "text": "E1-MULTI-END omega",
+       "inListItem": false
+      }
+     ],
+     "outcome": "KEPT_THE_BULLET",
+     "completedAt": "2026-09-28T04:34:26.666142+00:00"
+    },
+    {
+     "arm": "landed",
+     "attempt": 2,
+     "startedAt": "2026-09-28T04:34:26.666206+00:00",
+     "boot": "ready",
+     "opened": "ready",
+     "revisionAtOpen": "0",
+     "checkpointAtOpen": "無",
+     "bands": 5,
+     "click": {
+      "x": "0.246422",
+      "y": "0.12142",
+      "derived": true
+     },
+     "placed": "定位游標 32 ms",
+     "typing": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "break": {
+      "action": "insert-paragraph-break",
+      "revisionBefore": "1",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.46,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "returnPress": {
+      "key": "ArrowRight",
+      "moved": true,
+      "seconds": 0.15,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "review": {
+      "revisionBefore": "2",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "有（r2）",
+      "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+     },
+     "revisionUnchangedByReview": true,
+     "testedPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.46,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": false,
+      "why": "auto-attach delivered no session for a document worker",
+      "attachedTypes": []
+     },
+     "outcome": "VOID",
+     "why": "the worker failure never fired: auto-attach delivered no session for a document worker",
+     "completedAt": "2026-09-28T04:34:36.827181+00:00"
+    },
+    {
+     "arm": "landed",
+     "attempt": 3,
+     "startedAt": "2026-09-28T04:34:36.827364+00:00",
+     "boot": "ready",
+     "opened": "ready",
+     "revisionAtOpen": "0",
+     "checkpointAtOpen": "無",
+     "bands": 5,
+     "click": {
+      "x": "0.246422",
+      "y": "0.12142",
+      "derived": true
+     },
+     "placed": "定位游標 27 ms",
+     "typing": {
+      "action": "insert-text",
+      "revisionBefore": "0",
+      "revisionAfter": "1",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "break": {
+      "action": "insert-paragraph-break",
+      "revisionBefore": "1",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "無"
+     },
+     "bankPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.46,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "returnPress": {
+      "key": "ArrowRight",
+      "moved": true,
+      "seconds": 0.15,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "review": {
+      "revisionBefore": "2",
+      "revisionAfter": "2",
+      "state": "ready",
+      "checkpoint": "有（r2）",
+      "toast": "• 項目符號：MUTATION_OUTCOME_UNKNOWN：the postcondition read covered more than one paragraph, so it does not describe the paragraph this action was dispatched on（動作已送出，但這一格的檢查涵蓋了不只一個段落，無法單獨核對你的段落。請看一下結果，不是你要的就按「復原」。這是檢查的極限，不是文件壞了）"
+     },
+     "revisionUnchangedByReview": true,
+     "testedPress": {
+      "key": "ArrowLeft",
+      "moved": true,
+      "seconds": 0.46,
+      "state": "ready",
+      "revision": "2",
+      "checkpoint": "有（r2）"
+     },
+     "inducer": {
+      "name": "INDUCE_WORKER_FAILURE",
+      "fired": false,
+      "why": "auto-attach delivered no session for a document worker",
+      "attachedTypes": []
+     },
+     "outcome": "VOID",
+     "why": "the worker failure never fired: auto-attach delivered no session for a document worker",
+     "completedAt": "2026-09-28T04:34:46.981409+00:00"
+    }
+   ]
+  }
+ ],
+ "browser": "Chrome/151.0.7922.169",
+ "completedAt": "2026-09-28T04:34:47.084976+00:00",
+ "verdict": {
+  "prefix": {
+   "outcomes": [
+    "LOST_THE_BULLET",
+    "VOID",
+    "VOID"
+   ],
+   "asPredictedEvery": false,
+   "revisionUnchangedByReview": [
+    true,
+    true,
+    true
+   ]
+  },
+  "a-only": {
+   "outcomes": [
+    "LOST_THE_BULLET",
+    "VOID",
+    "VOID"
+   ],
+   "asPredictedEvery": false,
+   "revisionUnchangedByReview": [
+    true,
+    true,
+    true
+   ]
+  },
+  "landed": {
+   "outcomes": [
+    "KEPT_THE_BULLET",
+    "VOID",
+    "VOID"
+   ],
+   "asPredictedEvery": false,
+   "revisionUnchangedByReview": [
+    true,
+    true,
+    true
+   ]
+  },
+  "armsDisagreeAsPredicted": false
+ }
+}
