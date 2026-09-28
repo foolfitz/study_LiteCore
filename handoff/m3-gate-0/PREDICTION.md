@@ -156,3 +156,63 @@ ignores it). Clean instance only — a third-party app that injects a cross-orig
 no-CORS subresource into every page would break A1's shape; C5's canary is the model
 of that. Interactions beyond page load (menus, popups that rely on `window.opener`)
 are not exercised, except the editor's own sequence.
+
+---
+
+## Amendment 1 — fable's ruling, 2026-09-28 (appended before the first counted run)
+
+Source: `handoff/m3-gate-0/RULING.md` (verbatim). This append replaces nothing above;
+where it is stricter, it wins. §9 of CLAUDE.md: written before any counted run; forced
+and named (synthetic tests D1–D5 in the ruling showed the runner's `gate()` green on
+false inputs; addendum F8 = richdocuments / nextcloud/richdocuments#4103); every
+predicate is form 1 or 2; closed at the first counted run.
+
+**The verdict is no longer the runner's.** `probe_m3_gate0_coep.py` writes a
+`provisionalGate` that is not read. The verdict is one line from
+`wasm_sdk_probe/tools/check_m3_gate0_report.py REPORT.json`, which recomputes from raw
+fields (a pass from the recorded editor steps; C1/C3 by applying the runner's scorers
+to the raw pages) and requires:
+
+- **a** `label == counted`, `repeats == 3`, `action == set-paragraph-heading`, browsers
+  exactly {chrome, firefox}, no `fatal`, every shape arm has `repeats` runs.
+- **b** every E1/E1h/E3 run that passed read `crossOriginIsolated` and
+  `SharedArrayBuffer` true, was on its own URL, imported the product module, and was
+  re-wrapped from the hashed `e2-editor.html`; in Chrome the document response on the
+  wire carried COOP `same-origin` + COEP `require-corp`.
+- **c** E0, once per browser, failed at `boot` with state `stopped` (not a read error —
+  a login page is not a negative result), not isolated, no `SharedArrayBuffer`, product
+  module loaded; in Chrome its log attributes the failure (`requires
+  self.crossOriginIsolated`).
+- **d** the served bytes are the product: static `e2-editor-app.js`, v8 `sdk-worker.js`,
+  `probe.wasm` and PHP-served v8 `sdk-worker.js`, `probe.js` hash to `report.product`;
+  the seven `PRODUCT_FILES` on disk still hash to `report.product` when the reader runs;
+  the container's bind mount is this `dist`.
+- **e** C1 holds in both; A0 has no Nextcloud failures; **no noisy field** (A0 vs A0b —
+  a noisy field makes C3 not established, it is no longer "reported, not judged"); C3
+  holds; every page arm's `href` starts with its URL.
+- **f** E1h's own Nextcloud chrome, read on E1h per run: no Nextcloud failures, header
+  fields equal to A0's, app menu opens with ≥ 1 entry.
+- **g** recommended shape by the reader: `E1h` iff E1h 3/3 in both ∧ e ∧ f; else `E3`
+  iff E3 3/3 in both; else `STOP`. E1 is never a shape. Any of a, b, c, d, h failing →
+  `NOT_ESTABLISHED`.
+- **h** Nextcloud `34.0.2`, `debug` false, probe app tree clean, `apache-fpm`.
+
+The reader is made red first: `--red-cases` builds one mutated copy of shakedown 4's
+report per case (kept gzipped under `findings/evidence/m3-gate-0/reader-red-cases/`)
+and requires shakedown 4 itself green under `--allow-shakedown`, red on (a) without it,
+and every copy red on the predicate it names.
+
+**Other amendments.**
+- A5's headers come from `BeforeTemplateRenderedEvent` + `addHeader`, filtered to
+  `getApp() === 'files'` (the API Nextcloud Office uses; it applies it to every page).
+  The A5 listener is never a product mechanism. C5's report cites
+  nextcloud/richdocuments#4103 as the known cost of isolating shared pages.
+- Shakedown 4 runs on the post-ruling instrument (probe app `f837937`) before the counted
+  run and must show: `noisy == []` in both browsers, `toggleVerified == [true, true]`,
+  A5 isolated in both, and the reader green on E1h with E3 also passing.
+- Saved beside the counted report: `occ integrity:check-core`, `occ config:list system`
+  (secrets masked), `occ app:list`.
+- C7's consequence is written as "Apache `.htaccess` extension whitelist with pretty
+  URLs", not "Nextcloud"; nginx stays a named limit (its `try_files` would serve those
+  files — unmeasured).
+- What a PASS may say, and its named limits, are fixed in RULING.md CONDITIONS 6–9.

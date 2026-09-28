@@ -600,6 +600,7 @@ def score_browser(result: dict[str, Any], canary_origin: str, repeats: int) -> d
     for arm, runs in result["editor"].items():
         e[arm] = {"passed": sum(1 for r in runs if r.get("passed")), "of": len(runs),
                   "failedAt": [r.get("failedAt") for r in runs],
+                  "canvas": [r.get("canvas") for r in runs],
                   "bootStates": [((r.get("steps") or [{}])[0].get("state") or {}).get("state") for r in runs]}
     scores["C2"] = e
 
@@ -712,14 +713,17 @@ def main() -> int:
     report["scores"] = {kind: (score_browser(result, canary_origin, args.repeats) if "fatal" not in result
                                else {"NOT_MEASURED": result["fatal"].strip().splitlines()[-1]})
                         for kind, result in report["browsers"].items()}
-    report["gate"] = gate(report["scores"], args.repeats)
+    # Provisional only. fable's ruling (handoff/m3-gate-0/RULING.md, D1-D7) showed
+    # this function green on false inputs; the verdict is check_m3_gate0_report.py's.
+    report["provisionalGate"] = gate(report["scores"], args.repeats)
+    report["provisionalGate"]["note"] = "not the verdict: run tools/check_m3_gate0_report.py on this file"
     report["completedAt"] = utc_now()
 
     out = args.out or (EVIDENCE / ("runs" if args.label == "counted" else "shakedown") /
                        f"{report['startedAt'].replace(':', '').replace('+0000', 'Z')}-{instance.webserver}.json")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n")
-    print(json.dumps({"report": str(out), "gate": report["gate"],
+    print(json.dumps({"report": str(out), "provisionalGate": report["provisionalGate"],
                       "scores": report["scores"]}, indent=1, ensure_ascii=False))
     return 0
 

@@ -1,0 +1,154 @@
+{
+ "base": "findings/evidence/m3-gate-0/shakedown/2026-09-28T063109Z-apache-fpm.json",
+ "baseline": "VERDICT E1h shapes=E1h,E3 failing={}",
+ "baselineGreen": true,
+ "strictOnShakedown": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'a': 2}",
+ "strictRedOnA": true,
+ "cases": [
+  {
+   "case": "a-one-browser",
+   "expects": "a",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'a': 1}"
+  },
+  {
+   "case": "a-other-action",
+   "expects": "a",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'a': 1}"
+  },
+  {
+   "case": "b-pass-without-isolation",
+   "expects": "b",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'b': 1}"
+  },
+  {
+   "case": "b-page-not-hashed",
+   "expects": "b",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'b': 1}"
+  },
+  {
+   "case": "b-wire-without-coep",
+   "expects": "b",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'b': 1}"
+  },
+  {
+   "case": "b-wrong-page",
+   "expects": "b",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'b': 1}"
+  },
+  {
+   "case": "c-e0-read-error",
+   "expects": "c",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'c': 1}"
+  },
+  {
+   "case": "c-e0-isolated",
+   "expects": "c",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'c': 1}"
+  },
+  {
+   "case": "c-e0-no-attribution",
+   "expects": "c",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'c': 1}"
+  },
+  {
+   "case": "d-static-not-served",
+   "expects": "d",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'d': 1}"
+  },
+  {
+   "case": "d-product-hash-drift",
+   "expects": "d",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'d': 2}"
+  },
+  {
+   "case": "d-wire-bytes-differ",
+   "expects": "d",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'d': 1}"
+  },
+  {
+   "case": "e-canary-not-caught",
+   "expects": "e",
+   "red": true,
+   "got": "VERDICT E3 shapes=E1h,E3 failing={'e': 1}"
+  },
+  {
+   "case": "e-noisy-field",
+   "expects": "e",
+   "red": true,
+   "got": "VERDICT E3 shapes=E1h,E3 failing={'e': 1}"
+  },
+  {
+   "case": "e-a0-failure",
+   "expects": "e",
+   "red": true,
+   "got": "VERDICT E3 shapes=E1h,E3 failing={'e': 1}"
+  },
+  {
+   "case": "e-a6-wrong-page",
+   "expects": "e",
+   "red": true,
+   "got": "VERDICT E3 shapes=E1h,E3 failing={'e': 1}"
+  },
+  {
+   "case": "f-header-differs",
+   "expects": "f",
+   "red": true,
+   "got": "VERDICT E3 shapes=E1h,E3 failing={'f': 1}"
+  },
+  {
+   "case": "f-menu-empty",
+   "expects": "f",
+   "red": true,
+   "got": "VERDICT E3 shapes=E1h,E3 failing={'f': 1}"
+  },
+  {
+   "case": "f-nextcloud-blocked",
+   "expects": "f",
+   "red": true,
+   "got": "VERDICT E3 shapes=E1h,E3 failing={'f': 1}"
+  },
+  {
+   "case": "g-e1h-fails-so-e3",
+   "expects": "verdict:E3",
+   "red": true,
+   "got": "VERDICT E3 shapes=E3 failing={}"
+  },
+  {
+   "case": "g-both-fail-so-stop",
+   "expects": "verdict:STOP",
+   "red": true,
+   "got": "VERDICT STOP shapes=- failing={}"
+  },
+  {
+   "case": "h-dirty",
+   "expects": "h",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'h': 1}"
+  },
+  {
+   "case": "h-version",
+   "expects": "h",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'h': 1}"
+  },
+  {
+   "case": "h-nginx",
+   "expects": "h",
+   "red": true,
+   "got": "VERDICT NOT_ESTABLISHED shapes=E1h,E3 failing={'h': 1}"
+  }
+ ],
+ "allRed": true
+}
