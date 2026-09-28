@@ -122,3 +122,49 @@ not read from the browsers' source here.
   answered without the HTTP cache. It said Chrome keeps 60 MB and Firefox keeps 45 MB but
   not 60 MB; it could not say anything about reopening the editor. Fixed: a navigation
   before each round. The valid run differs from it only for sizes it did not include.
+
+# After step 0: the packaged host, shakedowns, and finding 105
+
+Spec: `specs/SPEC-M3-asset-delivery.md`. Host commits in `~/Projects/Nextcloud_Apps/litecore`:
+`7a11a4b` (serve the packaged engine), `c296d2a` (unlock at beforeunload too; version 0.2.0),
+`8075b48` (ETag on every packaged file). Packaged by `wasm_sdk_probe/tools/package_m3_engine.py`:
+buildId `9076b0b425222c0e`, 22 files, 169,617,155 → 63,855,360 bytes.
+
+## Shakedowns (`check_m3_assets.py`, `shakedown/`)
+
+| report | host | outcome |
+| --- | --- | --- |
+| `2026-09-28T161410+0000.json` | `7a11a4b` + uncommitted redirect fix | Chrome fatal: the Files row was not found before the click (not seen again; the runner now records the Files page when it happens). Firefox passed K0–K2 as then written, but its second open's `LOCK` was 423: the first open's lock had not been released → finding 105. |
+| `2026-09-28T161628+0000.json` | same | aborted at setup: the upload was 423 (that lock, still held). |
+| `2026-09-28T164501+0000.json` | `c296d2a` | Firefox clean. Chrome K2-3 red: on the second open `sdk-manifest.json` came back 200 with its body. The worker fetches it with `cache: "no-cache"` (shipped `sdk-worker.js:513`); without a validator the revalidation can only resend it. → ETag (`8075b48`), K2-3 rewritten and K1-6 added (spec §7, before any counted run). |
+| `2026-09-28T164739+0000.json` | `8075b48` | clean, Chrome 1/1, Firefox 1/1; `--red-cases`: 60 cases, every one red in its own clause. |
+
+In the clean one: first open 25 app rows, 63.9 MB sent (both browsers); second open 303 + the
+document + (Chrome only) a 304 for the manifest — about 18 KB; each leave released the lock in
+1.3–1.9 s.
+
+The first redirect fix (in the same working tree as `161410`): `linkTo('', 'index.php')` is
+`/` with pretty URLs on, so the Location was `//apps/litecore/r/…` — scheme-relative, a browser
+would take `apps` for a host. Caught by the first HTTP check, before any browser run.
+
+## Leave-unlock probe (`probe_m3_leave_unlock.py`, `leave-unlock-*.json`) — finding 105
+
+Per run: fresh profile, open from Files, host `done`, optionally the smoke edit, then back to
+Files and poll the server's lock for 10 s; a `pagehide` listener added to the page records
+whether the event fired and `persisted` into localStorage; the access log gives the UNLOCKs.
+
+| report | host | arms (unlocked within 10 s) |
+| --- | --- | --- |
+| `…161945` | `7a11a4b` | Firefox warm edit 0/2, warm none 1/2, cold edit 2/2; Chrome warm edit 2/2, none 2/2 |
+| `…162401` | `49cc4ab` (old host, checked out for the A/B, then back) | Firefox warm edit 3/4, warm none 4/4 |
+| `…162726` | `7a11a4b` | Firefox warm edit 3/4, warm none 2/4 |
+| `…163344` | `7a11a4b` + the fix (then committed as `c296d2a`) | Firefox warm edit 6/6, warm none 6/6, cold edit 6/6; Chrome warm edit 6/6, none 6/6 |
+
+`pagehide` fired in every run, always `persisted: false`. Every run that kept the lock has no
+UNLOCK in the access log at all. With the fix, 2–4 UNLOCKs arrive per leave (the beforeunload
+pair every time; the pagehide pair not always). `releasedBy` in the printed summary is `None`
+because the probe reads the host's record at open, before leaving.
+
+The first `…161945` attempt died before any run: the probe's stale-lock release sent the bare
+uuid from `nc:lock-token`; the header needs `<opaquelocktoken:uuid>` (500 otherwise). Fixed
+before the arms ran; the report is the fixed run.

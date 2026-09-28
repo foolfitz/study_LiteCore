@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+"""M3 asset delivery, shakedown finding -- does leaving the editor release the lock?
+
+The first `check_m3_assets.py` shakedown (Firefox, cache on, new host): the
+first open's LOCK 200, then leaving sent no UNLOCK at all (access log), and the
+second open's LOCK was 423 -- the page told the user they had the file open
+elsewhere and would save to a copy.  Step 0 (old host, cache on, no edit) had
+UNLOCKs from both browsers.  Every counted M3 run had the cache off.
+
+Arms: browser x cache (warm|cold) x edit (smoke action or none).  Per run: open
+from Files, wait for the host's `done`, record a `pagehide` listener's view
+(fired? persisted = went into the back/forward cache?) into localStorage,
+optionally do the smoke action, navigate to Files, then poll the server's lock
+for 10 s and read the access log for UNLOCKs.  A stale token lock from an
+earlier run is released with its own token before the upload, and recorded.
+
+  probe_m3_leave_unlock.py [--arms firefox:warm:edit,...] [--repeats 2]
+Report: findings/evidence/m3-assets/leave-unlock-<UTC>.json
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+import tempfile
+import time
+import traceback
+from pathlib import Path
+from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from check_m3_assets import open_and_smoke  # noqa: E402
+from check_m3_skeleton_open import DEFAULT_DDEV, FILES, FIXTURE, NAME, Instance  # noqa: E402
+from probe_m3_assets import AccessLog  # noqa: E402
+from probe_m3_gate0_coep import (  # noqa: E402
+    EventChrome, browser_login, firefox_profile, sha256_file, utc_now, wait_until)
+from r7_support import evaluate  # noqa: E402
+from run_browser_probe import FirefoxSession  # noqa: E402
+from run_e2_c_page_smoke import navigate  # noqa: E402
+import check_m3_assets  # noqa: E402
+
+PROJECT = Path(__file__).resolve().parent.parent
+REPO = PROJECT.parent
+EVIDENCE = REPO / "findings" / "evidence" / "m3-assets"
+DEFAULT_ARMS = ("firefox:warm:edit,firefox:warm:none,firefox:cold:edit,"
+                "chrome:warm:edit,chrome:warm:none")
+LOCK_PROPS = (b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"><d:prop>'
+              b'<nc:lock/><nc:lock-owner-type/><nc:lock-token/><nc:lock-time/></d:prop></d:propfind>')
+RECORDER = """(() => { addEventListener('pagehide', (e) => {
+  try { localStorage.setItem('lc-pagehide', JSON.stringify({persisted: e.persisted, at: Date.now()})); } catch (x) {}
+}); localStorage.removeItem('lc-pagehide'); return true; })()"""
+
+
+def lock_state(instance: Instance) -> dict[str, Any]:
+    _, answer = instance.dav("PROPFIND", NAME, LOCK_PROPS, {"Depth": "0", "Content-Type": "application/xml"})
+    text = answer.decode()
+    pick = lambda tag: (re.search(rf"<nc:{tag}>([^<]*)</nc:{tag}>", text) or [None, None])[1]  # noqa: E731
+    return {"lock": pick("lock"), "type": pick("lock-owner-type"), "token": pick("lock-token"),
+            "time": pick("lock-time")}
+
+
+def release_stale(instance: Instance) -> dict[str, Any] | None:
+    state = lock_state(instance)
+    if state["lock"] != "1" or not state["token"]:
+        return None
+    status, _ = instance.dav("UNLOCK", NAME, None, {"Lock-Token": f"<opaquelocktoken:{state['token']}>"})  # PROPFIND gives the bare uuid
+    return {"was": state, "unlockStatus": status, "after": lock_state(instance)}
+
+
+def run(arm: str, instance: Instance, scratch: Path) -> dict[str, Any]:
+    kind, cache, edit = arm.split(":")
+    record: dict[str, Any] = {"arm": arm, "released": release_stale(instance)}
+    record["upload"] = instance.upload(FIXTURE, NAME)
+    log = AccessLog(instance)
+    if kind == "chrome":
+        session = EventChrome(cache)
+    else:
+        session = FirefoxSession(cache, profile_dir=firefox_profile(scratch / f"ff-{time.monotonic_ns()}"))
+    agent = "Chrome" if kind == "chrome" else "Firefox"
+    try:
+        browser_login(session, instance.base, instance.password)
+        if edit == "edit":
+            record["open"] = open_and_smoke(session, instance)
+        else:
+            record["open"] = open_only(session, instance)
+        record["hostLock"] = record["open"]["host"].get("lock")
+        record["recorder"] = evaluate(session, RECORDER)
+        record["lockBeforeLeave"] = lock_state(instance)
+        start = log.offset()
+        left = time.monotonic()
+        navigate(session, instance.base + FILES, timeout=120)
+        record["navigated"] = round(time.monotonic() - left, 2)
+        polls = []
+        while time.monotonic() - left < 10:
+            state = lock_state(instance)
+            polls.append({"t": round(time.monotonic() - left, 2), "lock": state["lock"]})
+            if state["lock"] != "1":
+                break
+            time.sleep(0.5)
+        record["polls"] = polls
+        record["pagehide"] = evaluate(session, "(() => localStorage.getItem('lc-pagehide'))()")
+        record["unlocks"] = [{k: r[k] for k in ("when", "method", "status")} for r in log.since(start)
+                             if agent in r.get("agent", "") and r.get("method") in ("UNLOCK", "LOCK")]
+    except Exception:  # noqa: BLE001
+        record["fatal"] = traceback.format_exc()
+    finally:
+        session.close()
+    return record
+
+
+def open_only(session, instance: Instance) -> dict[str, Any]:
+    navigate(session, instance.base + FILES, timeout=120)
+    selector = (f'[data-cy-files-list-row-name={json.dumps(NAME, ensure_ascii=False)}]'
+                ' [data-cy-files-list-row-name-link]')
+    wait_until(session, f"(() => document.querySelector({json.dumps(selector)}) !== null)()", 60)
+    session.click(selector)
+    raw = wait_until(session, "(() => { const v = document.documentElement.getAttribute('data-litecore');"
+                              " return v && JSON.parse(v).done && v; })()", 300)
+    return {"host": json.loads(raw) if isinstance(raw, str) else {"notReported": raw}}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--arms", default=DEFAULT_ARMS)
+    parser.add_argument("--repeats", type=int, default=2)
+    args = parser.parse_args()
+    instance = Instance(DEFAULT_DDEV)
+    report: dict[str, Any] = {
+        "schema": "m3-leave-unlock/1", "startedAt": utc_now(), "probe": sha256_file(Path(__file__)),
+        "host": subprocess.run(["git", "log", "-1", "--format=%H %s"], cwd=DEFAULT_DDEV,
+                               capture_output=True, text=True).stdout.strip(),
+        "hostDirty": subprocess.run(["git", "status", "--short"], cwd=DEFAULT_DDEV,
+                                    capture_output=True, text=True).stdout.strip(),
+        "controllerSha256": sha256_file(DEFAULT_DDEV / "lib/Controller/EditorController.php"),
+        "hostScriptSha256": sha256_file(DEFAULT_DDEV / "js/litecore-editor.js"),
+        "runs": []}
+    out = EVIDENCE / f"leave-unlock-{report['startedAt'].replace(':', '')}.json"
+    with tempfile.TemporaryDirectory(prefix="m3-leave-", dir=PROJECT / "build") as scratch:
+        for arm in args.arms.split(","):
+            for index in range(args.repeats):
+                print(arm, index + 1, flush=True)
+                report["runs"].append(run(arm, instance, Path(scratch)))
+                out.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n")
+    report["releasedAtEnd"] = release_stale(instance)
+    report["completedAt"] = utc_now()
+    out.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n")
+    print(out.relative_to(REPO))
+    for r in report["runs"]:
+        last = (r.get("polls") or [{}])[-1]
+        print(f"{r['arm']:22} hostLock={(r.get('hostLock') or {}).get('state')} pagehide={r.get('pagehide')}"
+              f" releasedBy={(r.get('hostLock') or {}).get('releasedBy')}"
+              f" unlockedAt={last.get('t') if last.get('lock') != '1' else 'STILL LOCKED'}"
+              f" log={[(u['method'], u['status']) for u in r.get('unlocks', [])]}"
+              f"{' FATAL ' + r['fatal'].splitlines()[-1] if 'fatal' in r else ''}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

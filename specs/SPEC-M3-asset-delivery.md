@@ -48,7 +48,8 @@
   安裝的那一個也 404。
 - 請求接受 gzip：直接串流 `.gz`（`StreamResponse`，不整檔讀進記憶體），`Content-Encoding: gzip`、`Content-Length`＝gz 大小。
   不接受：用 zlib 邊解邊送。兩種都帶 `Vary: Accept-Encoding`。
-- 資產一律 `Cache-Control: private, max-age=31536000, immutable`（`Response::cacheFor`）。**編輯器文件本身除外**：它嵌了這個
+- 資產一律 `Cache-Control: private, max-age=31536000, immutable`（`Response::cacheFor`），並帶 `ETag`（送出的位元組的 sha256）；
+  帶著它的條件請求由 Nextcloud 回 304（2026-09-29 補）。**編輯器文件本身除外**：它嵌了這個
   使用者、這個檔案的 initial state（檔案 id、ETag），維持不快取。
 - 腳本照舊帶 COEP `require-corp` 與 worker 用的 CSP；`Content-Type` 依副檔名，`.wasm` 是 `application/wasm`（串流編譯需要）。
 - Files 的連結不改（`/apps/litecore/r/e2-editor.html?fileId=N`），那個網址改成 303 到
@@ -75,6 +76,19 @@
 
 zstd 比 gzip 再省約 15 MB（wasm −25%），但 PHP 沒有內建 zstd／brotli 的解碼器，遇到不接受它的用戶端就沒有退路；gzip 用
 zlib，PHP 內建。gzip 的 41.0 MB 在 Firefox 實測保留的範圍內（45 MB 保留）。zstd／brotli 列為之後的選項（第 6 節）。
+
+### 3.5 離頁解鎖提前到 `beforeunload`（finding 105，2026-09-29 補）
+
+第一次 shakedown 撞到：快取開著的 Firefox 離開編輯頁時，宿主在 `pagehide` 送的 UNLOCK 經常沒到伺服器（新宿主 6/13 解鎖、
+舊宿主 9/10），下一次開同一個檔 `LOCK` 423、只能另存副本。修法：`beforeunload` 就送 UNLOCK（兩發），`pagehide` 再送
+（兩發）；宿主要問「確定離開嗎」的那一支不解鎖。修法後 30/30。細節與代價見 finding 105。這是宿主 JS 的改動，與資產派送
+同一個宿主 commit 出貨。
+
+### 3.6 宿主 JS 改了就要升 app 版本
+
+`litecore-editor.js` 由 Nextcloud 以 `?v=<md5(app 版本) 前 8 碼>` 送出（`TemplateLayout::getVersionHashByPath`，讀原始碼），
+Apache 對它送 `max-age=15778463, immutable`。app 版本不變，快取開著的使用者就一直用舊的宿主 JS。引擎不受此限（網址帶 buildId）。
+所以這一步把 `appinfo/info.xml` 的版本升到 0.2.0，之後宿主 JS 每改一次都要升。
 
 ## 4. 驗收判準（先於 runner 與任何計數執行寫下）
 
@@ -103,17 +117,23 @@ zlib，PHP 內建。gzip 的 41.0 MB 在 Firefox 實測保留的範圍內（45 M
 4. `/apps/litecore/r/e2-editor.html?fileId=N` 是 303，`Location` 以 `/index.php/apps/litecore/r/<buildId>/e2-editor.html?fileId=N` 結尾。
 5. 編輯器文件（帶測試檔的 fileId）：200、COOP `same-origin`、COEP `require-corp`，`Cache-Control` **不含** `immutable` 也
    不含正的 `max-age`。
+6. （2026-09-29 補，見修訂紀錄）第 1 條的每個回應都帶 `ETag`；帶著它（`If-None-Match`）再以 gzip 取一次：304、本文 0 位元組。
 
 ### K2 瀏覽器（每次一個新的、**快取開著**的 profile）
 
 每次：上傳測試檔 → 從 Files 開 → 等宿主 `done` → 放游標、做一個段落動作（同宿主入口 H1 的煙霧步驟）→ 回 Files → 再開一次
-→ 同樣的煙霧步驟 → 回 Files。紀錄是 web 容器的 Apache access log 在每次開檔前後兩個位移之間、該瀏覽器 User-Agent 的列。
+→ 同樣的煙霧步驟 → 回 Files。紀錄是 web 容器的 Apache access log 在每次開檔前後兩個位移之間、該瀏覽器 User-Agent 的列；
+每次回 Files 之後，runner 以 admin 輪詢測試檔的 `nc:lock` 10 秒（K2-5，2026-09-29 補）。
 
 1. **第一次開檔**：`/r/<buildId>/` 底下被請求的路徑集合＝MANIFEST 的路徑集合（編輯器文件包括在內），每一列 200；app 路徑
    （含 `/apps-extra/litecore/`）底下沒有任何 4xx／5xx；`/r/` 底下除了那個 303 與上述路徑之外沒有別的。
 2. **第一次開檔送出的是壓縮後的位元組**：每一個資產請求的 `%O` ＜ 該檔 gz 位元組數＋4096。
-3. **第二次開檔沒有資產請求到伺服器**：`/r/<buildId>/` 底下只有編輯器文件（1 列）；303 那一列可以有。
+3. ~~**第二次開檔沒有資產請求到伺服器**：`/r/<buildId>/` 底下只有編輯器文件（1 列）；303 那一列可以有。~~
+   **第二次開檔沒有任何資產帶本文回來**（2026-09-29 改，見修訂紀錄）：`/r/<buildId>/` 底下編輯器文件恰好 1 列；其餘每一列都是
+   304；303 那一列可以有。
 4. 兩次開檔宿主都到 `done`、都沒有 `stranded`；兩次的煙霧步驟都成功（游標放下、動作使 revision 前進）。
+5. （2026-09-29 補，見修訂紀錄）**兩次開檔宿主的鎖都是 `held`**——第二次沒有被第一次留下的鎖擋成 423；**每次離頁之後 10 秒內
+   伺服器上沒有鎖**。
 
 次數：Chrome 3、Firefox 3。報告記下每個 profile 所在磁碟的剩餘空間（Chrome 的上限跟著它走）。
 
@@ -162,3 +182,5 @@ K0–K2 每一條至少一個突變，每個突變都要找得到它的那一條
 | 日期 | 內容 |
 |---|---|
 | 2026-09-29 | 立。第 0 步證據 `findings/evidence/m3-assets/`。 |
+| 2026-09-29 | **任何計數執行之前：加 K2-5、§3.5、§3.6。**逼出它的是第一次 shakedown（`shakedown/2026-09-28T161410+0000.json`：Firefox 第二次開檔 `LOCK` 423）與分辨探針 `leave-unlock-*.json`（finding 105）。形式：逐實例性質（每一次開檔、每一次離頁）。截止：計數執行落地即封閉。計數語意：沒有計數執行存在，不涉及歸零。K3 的鎖與權限 runner 全部是快取關著跑的，**看不到**這個缺陷；所以它放在 K2，不是 K3。宿主 commit 因此從 `7a11a4b` 往後移。 |
+| 2026-09-29 | **任何計數執行之前：K2-3 改寫、加 K1-6、§3.2 加 ETag。**逼出它的是第二次 shakedown（`shakedown/2026-09-28T164501+0000.json`）：Chrome 第二次開檔重抓了 `sdk-manifest.json`（200、2,894 位元組），Firefox 沒有。原因讀原始碼：worker 以 `cache: "no-cache"` 抓它的 manifest（出貨的 `sdk-worker.js:513`），也就是**產品刻意每次向伺服器確認**；我們的回應沒有 validator，確認的結果只能是整份重送。原本的 K2-3 是為「沒有請求」這個處方寫的，而那個處方與產品的設計衝突（頁面與 profile 的位元組不動）。改寫的理由：我們要擋的是「重抓位元組」（第 2 節的 169.6 MB），所以新的 K2-3 對**任何**帶本文的資產回應都仍然是紅，只允許 304。形式：逐實例性質。截止：計數執行落地即封閉。宿主加 `ETag`（gzip 與原樣各用自己送出的位元組的 sha256），Nextcloud 的 `NotModifiedMiddleware` 對完全相符的 `If-None-Match` 回 304。 |

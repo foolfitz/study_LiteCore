@@ -50,7 +50,10 @@ DEFAULT_DDEV = Path.home() / "Projects" / "Nextcloud_Apps" / "litecore"
 FIXTURE = DIST / "e1-fixtures" / "multi-paragraph.odt"
 SAMPLE = DIST / "e1-fixtures" / "list-contexts.odt"   # what the product opens on its own
 NAME = "M3 骨架 測試.odt"
-ROUTE = "/apps/litecore/r/e2-editor.html"
+# A suffix, not the whole path (SPEC-M3-asset-delivery K3): since the asset-delivery
+# host the editor document is /index.php/apps/litecore/r/<buildId>/e2-editor.html, and
+# every M3 runner only asks "did the browser land on the editor" through it.
+ROUTE = "/e2-editor.html"
 FILES = "/apps/files/files?dir=/"
 ACTION = "set-paragraph-heading"
 BROWSERS = {"chrome", "firefox"}
