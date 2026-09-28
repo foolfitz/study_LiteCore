@@ -100,8 +100,9 @@ Read:
 - **Firefox keeps nothing above a cap between 45 and 60 MB**, and the cap applies to the
   **encoded** size: the 115 MB wasm is never kept as served today, and is kept when sent as
   41 MB of gzip.
-- **Chrome's cap follows the free space of the profile's disk**: the same file is kept with
-  88 GB free and not with 14 GB free. The shipped wasm, as served today, falls on the wrong
+- **Chrome's cap follows the free space of the profile's disk** — or its filesystem: `/tmp` is
+  **tmpfs** on this machine and `/home` is ext4, so the pair changes both (review item 8): the
+  same file is kept with 88 GB free (ext4) and not with 14 GB free (tmpfs). The shipped wasm, as served today, falls on the wrong
   side on the smaller disk. Where exactly the cap sits for a given disk was not measured.
 - So the second-open re-download in S0-3 has two causes: the size of the wasm (both
   browsers here — Chrome's step-0 profile was on /tmp) and `no-cache` without a validator
@@ -134,10 +135,11 @@ buildId `9076b0b425222c0e`, 22 files, 169,617,155 → 63,855,360 bytes.
 
 | report | host | outcome |
 | --- | --- | --- |
-| `2026-09-28T161410+0000.json` | `7a11a4b` + uncommitted redirect fix | Chrome fatal: the Files row was not found before the click (not seen again; the runner now records the Files page when it happens). Firefox passed K0–K2 as then written, but its second open's `LOCK` was 423: the first open's lock had not been released → finding 105. |
+| `2026-09-28T161410+0000.json` | `49cc4ab` + an uncommitted tree equal in content to `7a11a4b` (committed after this run), before the redirect fix | Chrome fatal: the Files row was not found before the click (not seen again; the runner now records the Files page when it happens). Firefox passed K0–K2 as then written, but its second open's `LOCK` was 423: the first open's lock had not been released → finding 105. |
 | `2026-09-28T161628+0000.json` | same | aborted at setup: the upload was 423 (that lock, still held). |
 | `2026-09-28T164501+0000.json` | `c296d2a` | Firefox clean. Chrome K2-3 red: on the second open `sdk-manifest.json` came back 200 with its body. The worker fetches it with `cache: "no-cache"` (shipped `sdk-worker.js:513`); without a validator the revalidation can only resend it. → ETag (`8075b48`), K2-3 rewritten and K1-6 added (spec §7, before any counted run). |
 | `2026-09-28T164739+0000.json` | `8075b48` | clean, Chrome 1/1, Firefox 1/1; `--red-cases`: 60 cases, every one red in its own clause. |
+| `2026-09-28T172209+0000.json` | `5e53362` (after the review) | clean, Chrome 1/1, Firefox 1/1; address `9076b0b425222c0e-566647db`; the no-cache list derived from the sources is `profiles/e2-editor-v8/sdk-manifest.json`; `--red-cases`: 84 cases, every one red in its own clause. |
 
 In the clean one: first open 25 app rows, 63.9 MB sent (both browsers); second open 303 + the
 document + (Chrome only) a 304 for the manifest — about 18 KB; each leave released the lock in
@@ -155,16 +157,30 @@ whether the event fired and `persisted` into localStorage; the access log gives 
 
 | report | host | arms (unlocked within 10 s) |
 | --- | --- | --- |
-| `…161945` | `7a11a4b` | Firefox warm edit 0/2, warm none 1/2, cold edit 2/2; Chrome warm edit 2/2, none 2/2 |
+| `…161945` | `49cc4ab` + uncommitted tree equal to `7a11a4b` | Firefox warm edit 0/2, warm none 1/2, cold edit 2/2; Chrome warm edit 2/2, none 2/2 |
 | `…162401` | `49cc4ab` (old host, checked out for the A/B, then back) | Firefox warm edit 3/4, warm none 4/4 |
 | `…162726` | `7a11a4b` | Firefox warm edit 3/4, warm none 2/4 |
 | `…163344` | `7a11a4b` + the fix (then committed as `c296d2a`) | Firefox warm edit 6/6, warm none 6/6, cold edit 6/6; Chrome warm edit 6/6, none 6/6 |
 
 `pagehide` fired in every run, always `persisted: false`. Every run that kept the lock has no
-UNLOCK in the access log at all. With the fix, 2–4 UNLOCKs arrive per leave (the beforeunload
-pair every time; the pagehide pair not always). `releasedBy` in the printed summary is `None`
+UNLOCK in the access log at all. With the fix, 2–4 UNLOCKs arrive per leave. ~~(the beforeunload
+pair every time; the pagehide pair not always)~~ — the log has method, status and one-second
+time only, so which pair arrived cannot be told (review item 17). `releasedBy` in the printed summary is `None`
 because the probe reads the host's record at open, before leaving.
 
 The first `…161945` attempt died before any run: the probe's stale-lock release sent the bare
 uuid from `nc:lock-token`; the header needs `<opaquelocktoken:uuid>` (500 otherwise). Fixed
 before the arms ran; the report is the fixed run.
+
+## K4: the release archive (measured, registered, not pass/fail)
+
+Host `8075b48`, engine buildId `9076b0b425222c0e`. What a release would carry (spec §4 K4):
+
+    tar --sort=name --owner=0 --group=0 --numeric-owner --mtime='2026-09-29 00:00Z' \
+        -czf litecore-0.2.0.tar.gz litecore/appinfo litecore/lib litecore/templates litecore/js litecore/engine
+
+**63,416,048 bytes (60.5 MiB)**, 47 entries; `engine/` is 63,861,611 bytes of it before tar.
+The App Store's source default `MAX_DOWNLOAD_SIZE` is 30 MiB (roadmap §5.3); the live store
+has published a 269 MB `richdocumentscode`. zstd for the wasm (about 49 MB for the closure,
+step 0) would not bring it under 30 MiB either, so the store question does not depend on the
+compression choice. The archive was built in the session scratchpad, not kept.

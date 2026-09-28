@@ -37,6 +37,11 @@ from probe_m3_gate0_coep import DIST, sha256_file, utc_now  # noqa: E402
 from check_m3_skeleton_open import DEFAULT_DDEV  # noqa: E402
 
 SCHEMA = "litecore-engine/1"
+# The largest encoded size Firefox 156 was measured to keep in its HTTP cache
+# (45 MB kept, 60 MB not; findings/evidence/m3-assets/README.md, X1).  A file
+# over it would silently lose the second-open benefit in Firefox, so packaging
+# refuses instead.  The shipped wasm is 40.9 MB of gzip.
+MAX_GZ_BYTES = 45_000_000
 
 
 def build_id(files: dict[str, dict[str, Any]]) -> str:
@@ -57,6 +62,9 @@ def package(app: Path, dist: Path = DIST) -> dict[str, Any]:
         if hashlib.sha256(raw).hexdigest() != item["sha256"]:
             raise RuntimeError(f"{path} changed while packaging")
         packed = gzip.compress(raw, compresslevel=9, mtime=0)
+        if len(packed) > MAX_GZ_BYTES:
+            raise RuntimeError(f"{path}: {len(packed)} bytes of gzip, over the {MAX_GZ_BYTES} measured to stay"
+                               " in Firefox's cache (see MAX_GZ_BYTES)")
         target = staging / "files" / (path + ".gz")
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(packed)
@@ -66,7 +74,8 @@ def package(app: Path, dist: Path = DIST) -> dict[str, Any]:
         "schema": SCHEMA,
         "buildId": build_id(files),
         "source": {
-            "dist": str(dist),
+            # Relative: the manifest ships in the release archive.
+            "dist": "study_LiteCore/" + str(dist.relative_to(dist.parents[1])),
             "page": {PAGE_MODULE: sha256_file(dist / PAGE_MODULE)},
             "profile": derived["worker"]["profile"],
             "wasmSha256": next(f["sha256"] for p, f in files.items() if p.endswith("/probe.wasm")),
@@ -79,10 +88,16 @@ def package(app: Path, dist: Path = DIST) -> dict[str, Any]:
         "files": dict(sorted(files.items())),
     }
     (staging / "MANIFEST.json").write_text(json.dumps(manifest, indent=1) + "\n")
-    current = app / "engine"
+    # Two renames, then the delete: requests see the old engine or the new one,
+    # except for the moment between the renames (404 from the route).
+    current, retired = app / "engine", app / "engine.old"
+    if retired.exists():
+        shutil.rmtree(retired)
     if current.exists():
-        shutil.rmtree(current)
+        current.rename(retired)
     staging.rename(current)
+    if retired.exists():
+        shutil.rmtree(retired)
     return manifest
 
 

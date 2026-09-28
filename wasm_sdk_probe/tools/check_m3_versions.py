@@ -49,7 +49,9 @@ from run_e2_c_page_smoke import navigate  # noqa: E402
 EVIDENCE = REPO / "findings" / "evidence" / "m3-versions"
 VNAME = "M3 版本 測試.odt"
 PLAN = {"versions": ("R1", ("chrome", "firefox"), 3)}
-HOST_COMMIT = "49cc4ab"
+# SPEC-M3-asset-delivery K3 re-runs this unchanged against the asset-delivery host;
+# the counted run of 2026-09-28 was bound to 49cc4ab.
+HOST_COMMIT = "5e53362"
 NS = {"d": "DAV:", "nc": "http://nextcloud.org/ns"}
 LISTING = (b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns">'
            b"<d:prop><d:getlastmodified/><d:getcontentlength/><nc:version-author/></d:prop></d:propfind>")
