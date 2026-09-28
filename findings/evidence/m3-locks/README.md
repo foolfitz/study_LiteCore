@@ -17,6 +17,8 @@ along with every file and share the probe made.
 | `semantics-2026-09-28T101145Z.json` | L1 (both ways of taking a user lock), L3, L4, P1, P2 |
 | `semantics-2026-09-28T101329Z.json` | same, plus L5; L1–P2 statuses identical to `101145Z` cell for cell |
 | `semantics-2026-09-28T101717Z.json` | L6 only (`--only L6`; a fourth full run hit Nextcloud's share-creation limit, HTTP 429, 20 per 10 min) |
+| `semantics-2026-09-28T130648Z.json` | L7 and L8 (`--only L7 L8`), added after the review: L7 = a share recipient's refused OCS unlock of our token lock, and a PUT by that recipient carrying the holder's token; L8 = finding 101's minimal repro with the host's fix beside it as the control |
+| `semantics-2026-09-28T130750Z.json` | L7 again, with the recipient's PUT sending bytes distinct from the fixture, a GET readback by the holder, and the recipient's own PROPFIND `lockdiscovery`; every L7 status identical to `130648Z` |
 
 ## Facts (L1–P2: two runs agree; L5, L6: one run)
 
@@ -66,3 +68,52 @@ along with every file and share the probe made.
   lock; `keepalive` UNLOCK on page close in either browser; timer throttling of a
   heartbeat in a background tab; session expiry (401) through the browser's cookie
   session; nginx.
+
+## L7 and L8 (added 2026-09-28, after the review)
+
+- **L7, K12's premise, now measured (2/2):** the recipient's OCS unlock is refused (423),
+  the ETag moves anyway, `nc:lock` stays `1`, and the holder's PUT with its live token
+  and the pre-refusal `If-Match` gets 412. Until this run it rested on reading
+  `LockService::unlockFile` only (`propagateEtag` before the permission check).
+- **L7, a lock bypass (2/2, finding 102):** the recipient's token-less PUT is refused
+  (423), but the same PUT carrying the **holder's** token is 204, and in `130750Z` the
+  holder's GET reads back the recipient's bytes. The token is not hard to get: it is in
+  the refused unlock's 423 body, and in the recipient's own PROPFIND `lockdiscovery` (207).
+  RFC 4918 §6.5 treats tokens as public; §6.4 requires the server to check that the
+  principal submitting one is the lock's creator. This server does not.
+- **L8, finding 101 minimal (1/1):** A locked with `Second-20`, refreshed at 10.3 s with
+  `Second-20`, took a token-less PUT at 22.32 s with 204 and `nc:lock` was empty. B, the
+  host's fix (refresh at 10.59 s with `Second-30`), refused the same PUT at 23.2 s with
+  423, lock still held — the control that A's 204 means the lock was gone, not that the
+  PUT was never going to be refused.
+
+## Shakedown against host `49cc4ab` (2026-09-28)
+
+- `shakedown/2026-09-28T121837+0000.json` — all twelve arms, both browsers, one repeat.
+  21 of 22 cells clean. **Chrome K7 is red, and the host never ran:** at 12:53:47Z the
+  run's reset upload got 404, the login page got 404, the server read got 404, and the
+  404 body is `404 page not found` (text/plain) — the shared ddev-router's answer when no
+  route matches. The owner's other ddev project's containers (`ddev-fgp-nc-web`, `-db`)
+  were **created** at 12:53:42.5Z, five seconds earlier; a project start rewrites the
+  router's routes. Attributed by timing and by the response's signature, not by a
+  reproduced mechanism. By the end of the same run a PROPFIND answered 207.
+- `shakedown/2026-09-28T130528+0000.json` — Chrome K7 alone (`--arms expired --browsers
+  chrome`), run because the first one never reached the host: clean.
+- Red cases (`--red-cases`): against `121837`, 83 `red`, 0 `GREEN`, 0 `MISSING`, and the
+  four Chrome K7 cases `SKIP` (their base run is the dead one); against `130528`, those
+  four are `red` and the static check is `red`. Together every mutation × browser pair
+  turns red once.
+
+## Counted run: rules fixed before it started
+
+Written before `runs/` has any report, because of the Chrome K7 cell above:
+
+1. A counted run is judged as a whole. A red run in it is not replaced, and no report is
+   edited or merged.
+2. If a red run's own record shows the instance was not reachable at setup — the reset
+   upload **and** the login page both got the router's `404 page not found` — the whole
+   counted run is repeated, and the red report stays in `runs/` with a line here saying
+   why it does not count. Any other red is read as a finding first.
+3. A repeat is a new full counted run, not the missing arms.
+4. No other ddev project is started or restarted while a counted run is going.
+

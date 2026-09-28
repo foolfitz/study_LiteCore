@@ -17,6 +17,12 @@ on the `litecore` ddev instance and keeps every raw status and header:
       or removed token.
   L4  a user lock held by someone else: what our lock attempt and our PUT get,
       and whether the file's owner can remove it.
+  L7  a share recipient's refused OCS unlock of our token lock: does it still move
+      the ETag (K12 rests on this, read from LockService::unlockFile only)? the
+      refusal's body carries the lock's token — can the recipient PUT with it?
+  L8  finding 101's minimal repro: Timeout Second-20, refresh at 10 s with Second-20,
+      token-less PUT at 22 s; beside it the host's fix (refresh with Second-30) as
+      the control that the same PUT is refused while the lock is alive.
   P1  read-only share of a file, and of a folder: the recipient's PUT, and a new
       file next to it (where a conflict copy would go).
   P2  quota exceeded: the PUT status.
@@ -111,7 +117,7 @@ class Client:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--only", nargs="*", default=None,
-                        help="sections to run (L1 L3 L4 L5 L6 P1 P2); default all. "
+                        help="sections to run (L1 L3 L4 L5 L6 L7 L8 P1 P2); default all. "
                              "Nextcloud rate-limits share creation (429), and a full run makes 8.")
     args = parser.parse_args()
     want = lambda section: args.only is None or section in args.only  # noqa: E731
@@ -288,6 +294,74 @@ def main() -> int:
             facts["L4"] = {"otherLockStatus": theirs["status"], "ourLockStatus": ours["status"], "ourDavUserLockStatus": ours_dav["status"],
                            "ourTokenLockStatus": ours_token["status"], "ourPutStatus": put["status"],
                            "seenByOwner": seen, "ownerUnlockStatus": broken["status"]}
+
+        # L7: someone else's refused unlock of our token lock
+        if want("L7"):
+            name = f"L7 被拒絕的解鎖 {stamp}.odt"
+            fid = upload(name)
+            target = share("/" + name, 3)
+            lock = admin.call("L7 LOCK", "LOCK", admin.dav_path(name), LOCKINFO,
+                              {"Content-Type": "application/xml", "Timeout": "Second-300"})
+            token = lock["headers"].get("lock-token", "").strip("<>")
+            before = admin.props("L7 before", name)
+            refused = other.call("L7 recipient OCS unlock", "DELETE", lock_url(fid), form={"lockType": 0})
+            after = admin.props("L7 after refused unlock", name)
+            stale = admin.call("L7 holder PUT, token + pre-refusal If-Match", "PUT", admin.dav_path(name), fixture,
+                               {"Content-Type": ODT, "If-Match": before["etag"], "If": f"(<{token}>)"})
+            discovery = other.call("L7 recipient PROPFIND lockdiscovery", "PROPFIND", other.dav_path(target),
+                                   b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:lockdiscovery/>'
+                                   b"</d:prop></d:propfind>", {"Depth": "0", "Content-Type": "application/xml"})
+            # distinct from the fixture, so the readback tells whose bytes the file holds
+            intruder = f"L7 recipient bytes {stamp}".encode()
+            bare = other.call("L7 recipient PUT, no token", "PUT", other.dav_path(target), intruder, {"Content-Type": ODT})
+            borrowed = other.call("L7 recipient PUT with the holder's token", "PUT", other.dav_path(target), intruder,
+                                  {"Content-Type": ODT, "If": f"(<{token}>)"})
+            readback = admin.call("L7 holder GET", "GET", admin.dav_path(name))
+            end = admin.props("L7 end", name)
+            admin.call("L7 UNLOCK", "UNLOCK", admin.dav_path(name), None, {"Lock-Token": f"<{token}>"})
+            facts["L7"] = {"refusedUnlockStatus": refused["status"],
+                           # the header's token is opaquelocktoken:<uuid>; the OCS body has the bare uuid
+                           "refusalBodyCarriesToken": bool(token) and token.split(":", 1)[-1] in (refused["body"] or ""),
+                           "refusedUnlockChangesEtag": before["etag"] != after["etag"],
+                           "lockHeldAfterRefusal": after["lock"], "holderPutWithStaleEtag": stale["status"],
+                           "recipientPutNoToken": bare["status"], "recipientPutWithHoldersToken": borrowed["status"],
+                           "etagMovedByRecipientPuts": after["etag"] != end["etag"],
+                           "fileHoldsRecipientBytes": readback["body"] == intruder.decode(),
+                           "recipientLockdiscoveryStatus": discovery["status"],
+                           "recipientLockdiscoveryCarriesToken": bool(token) and token.split(":", 1)[-1] in (discovery["body"] or "")}
+
+        # L8: finding 101, minimal; B is the host's fix and the control for A's PUT
+        if want("L8"):
+            names = {arm: f"L8 續約 {arm} {stamp}.odt" for arm in ("A", "B")}
+            for arm in names:
+                upload(names[arm])
+            start, tokens, timeline = time.monotonic(), {}, {}
+
+            def at(second: float) -> float:
+                time.sleep(max(0.0, start + second - time.monotonic()))
+                return round(time.monotonic() - start, 2)
+
+            for arm, name in names.items():
+                lock = admin.call(f"L8 {arm} LOCK Second-20", "LOCK", admin.dav_path(name), LOCKINFO,
+                                  {"Content-Type": "application/xml", "Timeout": "Second-20"})
+                tokens[arm] = lock["headers"].get("lock-token", "").strip("<>")
+                timeline[arm] = {"lock": [round(time.monotonic() - start, 2), lock["status"]]}
+            at(10)
+            for arm, name in names.items():
+                asked = {"A": "Second-20", "B": f"Second-{int(time.monotonic() - start) + 20}"}[arm]
+                refresh = admin.call(f"L8 {arm} refresh {asked}", "LOCK", admin.dav_path(name), None,
+                                     {"Timeout": asked, "If": f"(<{tokens[arm]}>)"})
+                timeline[arm]["refresh"] = [round(time.monotonic() - start, 2), asked, refresh["status"]]
+            at(22)
+            for arm, name in names.items():
+                put = admin.call(f"L8 {arm} PUT at 22 s, no token", "PUT", admin.dav_path(name), fixture,
+                                 {"Content-Type": ODT})
+                timeline[arm]["put"] = [round(time.monotonic() - start, 2), put["status"]]
+                timeline[arm]["lockAfter"] = admin.props(f"L8 {arm} after PUT", name)["lock"]
+                admin.call(f"L8 {arm} UNLOCK", "UNLOCK", admin.dav_path(name), None, {"Lock-Token": f"<{tokens[arm]}>"})
+            facts["L8"] = {"timeline": timeline,
+                           "refreshDidNotExtend": timeline["A"]["put"][1] in (200, 201, 204),
+                           "controlRefusedWhileAlive": timeline["B"]["put"][1] == 423}
 
         # P1: read-only share of a file, and of a folder
         if want("P1"):
