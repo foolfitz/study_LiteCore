@@ -96,3 +96,27 @@ coincidence; 099 is measured at unit level only.
   not) and now a unit test. Also flagged: comment overstatements (fixed), the probe's
   weak predicate and hash field name (fixed), and finding-text claims beyond what was
   measured (fixed in 096/098/099).
+
+## 4. Product path after landing — `product-path/`
+
+`tools/run_e2_c_product_path.py --browser chrome`, one run on the shipping profile (no
+`--profile`) and one with `--profile e2-editor-v14`, sequential, after
+`make test-e2-c-static` (exit 0), on shell generation v52 (`7a1e8815…`).
+
+| run | result | served shell |
+| --- | --- | --- |
+| `v52-shipping-e2-editor-v8.json` | `ok: true`, 40 PASS / 2 NE | served = declared v52 |
+| `v52-profile-e2-editor-v14.json` | `ok: true`, 40 PASS / 2 NE | differs only in the entrypoint (the repointed page `d7480132…`, same shape as the 09-10 v14 runs) |
+
+Compared cell by cell with the last plain runs before the fix
+(`findings/evidence/096/product-path/plain-e2-editor-v8-after-t8a.json` and
+`plain-e2-editor-v14-b4-0{1,2,3}.json`): **no check changed outcome** on either profile.
+The two NE are the same two as before (`notice-action-recovers-the-session`, the designed
+sentinel; `a-refused-action-is-reported-and-changes-nothing`, diagnostic-only by
+construction).
+
+Check 42 (`a-boundary-arrow-press-does-not-cost-the-work`): v8 exercised B1, B3, B4
+(inducer: the boundary press itself); v14 exercised all four, B1, B3, B2, B4 (inducer:
+the worker failure). B3's control held on both — `checkpointBeforeTheKey` 無 after the
+typing, 有（r1） after the key — because typing is still a mutation; only moves changed.
+One run per profile, as the ruling asked; this is a no-regression check, not a count.
