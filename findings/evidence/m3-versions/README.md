@@ -91,3 +91,18 @@ the ETag as it was, and `If-Match` cannot tell the two apart. Finding 103.
   one a second or more later; by the Scanner reading it would also keep the ETag.
 - nginx, encryption, and other storage backends: the Scanner skips the ETag reuse for storages
   that implement `IReliableEtagStorage`; which backends do was not checked.
+
+## Arm R1 through the real page (`check_m3_versions.py`)
+
+Spec: `specs/SPEC-M3-versions.md` §4, written and committed (`81eb8f38`) before the runner
+existed. The runner borrows every page-driving helper from `check_m3_locks.py` and does not
+edit it (that file's hash is bound to the LOCKS LAND counted run).
+
+- `shakedown/2026-09-28T143951+0000.json` — one run per browser, both clean. In both:
+  the listing after open holds the current entry only; after two saves it is `[F, S1]` +
+  current; the restore (Files' request, no token) is 201 with the token unchanged; after
+  it the listing is `[S1, S2]` + current (= F); the third save is one attempt, 412 with the
+  token, and lands in a conflict copy equal to S3 whose own listing is the current entry
+  only; the original still holds F; leaving releases the lock in 0.3 s (Chrome) / 0.4 s
+  (Firefox) and the listing does not change. `--red-cases` against it: all 46 mutation ×
+  browser cases and the static case red.
