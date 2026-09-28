@@ -1,0 +1,311 @@
+{
+ "probe": "probe_m3_lock_semantics.py",
+ "at": "2026-09-28T10:17:17Z",
+ "instance": "https://litecore.ddev.site:8443",
+ "filesLockTimeoutSetting": "unset (app default -1)",
+ "sections": [
+  "L6"
+ ],
+ "facts": {
+  "L6": {
+   "refreshStatus": 200,
+   "refreshChangesEtag": false,
+   "expiryChangesEtag": false,
+   "putWithExpiredToken": 412,
+   "putWithExpiredTokenChangedEtag": false,
+   "ownerUnlockChangesEtag": true,
+   "putWithRemovedToken": 412,
+   "putWithIfMatchOnlyAfter": 204
+  }
+ },
+ "log": [
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/ocs/v2.php/cloud/users/lcprobe",
+   "sent": {},
+   "status": 404,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"failure\",\"statuscode\":998,\"message\":\"\"},\"data\":[]}}"
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/cloud/users",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"lcprobe\"}}}"
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"1bf8466cde22a5c6d52918fe552fe0e7\"",
+    "oc-etag": "\"1bf8466cde22a5c6d52918fe552fe0e7\"",
+    "oc-fileid": "00000553oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/L6%20token%20%e9%81%8e%e6%9c%9f%20181702.odt</d:href><d:propstat><d:prop><d:getetag>&quot;1bf8466cde22a5c6d52918fe552fe0e7&quot;</d:getetag><oc:fileid>553</oc:fileid><oc:permissions>RGDNVW</oc:permissions><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/><nc:lock-time/><nc:lock-timeout/><nc:share-permissions/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "L6 LOCK",
+   "actor": "admin",
+   "method": "LOCK",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Content-Type": "application/xml",
+    "Timeout": "Second-6"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "lock-token": "<opaquelocktoken:9dd77659-02c5-4883-b621-424bdc10769d>"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:prop xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\">\n <d:lockdiscovery>\n  <d:activelock>\n   <d:lockscope>\n    <d:exclusive/>\n   </d:lockscope>\n   <d:locktype>\n    <d:write/>\n   </d:locktype>\n   <d:lockroot>\n    <d:href>/remote.php/dav/files/admin/L6 token 過期 181702.odt</d:href>\n   </d:lockroot>\n   <d:depth>infinity</d:depth>\n   <d:timeout>Second-6</d:timeout>\n   <d:locktoken>\n    <d:href>opaquelocktoken:9dd77659-02c5-4883-b621-424bdc10769d</d:href>\n   </d:locktoken>\n   <d:owner>litecore probe</d:owner>\n  </d:activelock>\n </d:lockdiscovery>\n</d:prop>\n"
+  },
+  {
+   "step": "L6 after LOCK",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/L6%20token%20%e9%81%8e%e6%9c%9f%20181702.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba3e9f1cd74&quot;</d:getetag><oc:fileid>553</oc:fileid><oc:permissions>RGDNVW</oc:permissions><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type><nc:lock-time>1790590623</nc:lock-time><nc:lock-timeout>6</nc:lock-timeout></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:share-permissions/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "L6 refresh",
+   "actor": "admin",
+   "method": "LOCK",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Timeout": "Second-6",
+    "If": "(<opaquelocktoken:9dd77659-02c5-4883-b621-424bdc10769d>)"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "lock-token": "<opaquelocktoken:9dd77659-02c5-4883-b621-424bdc10769d>"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:prop xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\">\n <d:lockdiscovery>\n  <d:activelock>\n   <d:lockscope>\n    <d:exclusive/>\n   </d:lockscope>\n   <d:locktype>\n    <d:write/>\n   </d:locktype>\n   <d:lockroot>\n    <d:href>/remote.php/dav/files/admin/L6 token 過期 181702.odt</d:href>\n   </d:lockroot>\n   <d:depth>1</d:depth>\n   <d:timeout>Second-6</d:timeout>\n   <d:locktoken>\n    <d:href>opaquelocktoken:9dd77659-02c5-4883-b621-424bdc10769d</d:href>\n   </d:locktoken>\n   <d:owner>litecore probe</d:owner>\n  </d:activelock>\n </d:lockdiscovery>\n</d:prop>\n"
+  },
+  {
+   "step": "L6 after refresh",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/L6%20token%20%e9%81%8e%e6%9c%9f%20181702.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba3e9f1cd74&quot;</d:getetag><oc:fileid>553</oc:fileid><oc:permissions>RGDNVW</oc:permissions><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type><nc:lock-time>1790590623</nc:lock-time><nc:lock-timeout>6</nc:lock-timeout></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:share-permissions/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "L6 after expiry",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/L6%20token%20%e9%81%8e%e6%9c%9f%20181702.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba3e9f1cd74&quot;</d:getetag><oc:fileid>553</oc:fileid><oc:permissions>RGDNVW</oc:permissions><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/><nc:lock-time/><nc:lock-timeout/><nc:share-permissions/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "L6 PUT with the expired token",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text",
+    "If-Match": "\"6aba3e9f1cd74\"",
+    "If": "(<opaquelocktoken:9dd77659-02c5-4883-b621-424bdc10769d>)"
+   },
+   "status": 412,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8"
+   },
+   "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<d:error xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\">\n  <s:exception>Sabre\\DAV\\Exception\\PreconditionFailed</s:exception>\n  <s:message>Failed to find a valid token/etag combination for files/admin/L6 token 過期 181702.odt</s:message>\n  <s:header>If</s:header>\n</d:error>\n"
+  },
+  {
+   "step": "L6",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/L6%20token%20%e9%81%8e%e6%9c%9f%20181702.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba3e9f1cd74&quot;</d:getetag><oc:fileid>553</oc:fileid><oc:permissions>RGDNVW</oc:permissions><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/><nc:lock-time/><nc:lock-timeout/><nc:share-permissions/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "L6 LOCK 2",
+   "actor": "admin",
+   "method": "LOCK",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Content-Type": "application/xml",
+    "Timeout": "Second-300"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "lock-token": "<opaquelocktoken:95a92649-f648-41b9-b166-97bb76fb8a40>"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:prop xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\">\n <d:lockdiscovery>\n  <d:activelock>\n   <d:lockscope>\n    <d:exclusive/>\n   </d:lockscope>\n   <d:locktype>\n    <d:write/>\n   </d:locktype>\n   <d:lockroot>\n    <d:href>/remote.php/dav/files/admin/L6 token 過期 181702.odt</d:href>\n   </d:lockroot>\n   <d:depth>infinity</d:depth>\n   <d:timeout>Second-300</d:timeout>\n   <d:locktoken>\n    <d:href>opaquelocktoken:95a92649-f648-41b9-b166-97bb76fb8a40</d:href>\n   </d:locktoken>\n   <d:owner>litecore probe</d:owner>\n  </d:activelock>\n </d:lockdiscovery>\n</d:prop>\n"
+  },
+  {
+   "step": "L6 after LOCK 2",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/L6%20token%20%e9%81%8e%e6%9c%9f%20181702.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba3eab20418&quot;</d:getetag><oc:fileid>553</oc:fileid><oc:permissions>RGDNVW</oc:permissions><nc:lock>1</nc:lock><nc:lock-owner>admin</nc:lock-owner><nc:lock-owner-type>2</nc:lock-owner-type><nc:lock-time>1790590635</nc:lock-time><nc:lock-timeout>300</nc:lock-timeout></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:share-permissions/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "L6 file owner unlock",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/ocs/v2.php/apps/files_lock/lock/553",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[]}}"
+  },
+  {
+   "step": "L6 after owner unlock",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Depth": "0",
+    "Content-Type": "application/xml"
+   },
+   "status": 207,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8",
+    "dav": "1, 3, extended-mkcol, access-control, calendarserver-principal-property-search, nc-paginate, nextcloud-checksum-update, nc-calendar-search, nc-enable-birthday-calendar, 2"
+   },
+   "body": "<?xml version=\"1.0\"?>\n<d:multistatus xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\" xmlns:oc=\"http://owncloud.org/ns\" xmlns:nc=\"http://nextcloud.org/ns\"><d:response><d:href>/remote.php/dav/files/admin/L6%20token%20%e9%81%8e%e6%9c%9f%20181702.odt</d:href><d:propstat><d:prop><d:getetag>&quot;6aba3eabaa532&quot;</d:getetag><oc:fileid>553</oc:fileid><oc:permissions>RGDNVW</oc:permissions><nc:lock></nc:lock></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat><d:propstat><d:prop><nc:lock-owner/><nc:lock-owner-type/><nc:lock-time/><nc:lock-timeout/><nc:share-permissions/></d:prop><d:status>HTTP/1.1 404 Not Found</d:status></d:propstat></d:response></d:multistatus>\n"
+  },
+  {
+   "step": "L6 PUT with the removed token",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text",
+    "If-Match": "\"6aba3eabaa532\"",
+    "If": "(<opaquelocktoken:95a92649-f648-41b9-b166-97bb76fb8a40>)"
+   },
+   "status": 412,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8"
+   },
+   "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<d:error xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\">\n  <s:exception>Sabre\\DAV\\Exception\\PreconditionFailed</s:exception>\n  <s:message>Failed to find a valid token/etag combination for files/admin/L6 token 過期 181702.odt</s:message>\n  <s:header>If</s:header>\n</d:error>\n"
+  },
+  {
+   "step": "L6 PUT with If-Match only",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text",
+    "If-Match": "\"6aba3eabaa532\""
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"a964530bdbd7c059da1d1ddbb253baf7\"",
+    "oc-etag": "\"a964530bdbd7c059da1d1ddbb253baf7\"",
+    "oc-fileid": "00000553oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "cleanup",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/ocs/v2.php/cloud/users/lcprobe",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[]}}"
+  },
+  {
+   "step": "cleanup",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/L6 token 過期 181702.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  }
+ ]
+}
