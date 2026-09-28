@@ -64,3 +64,11 @@ Admin user, own file only (no received shares, no public links: the `r/*` routes
 Chrome's click is a synthetic `.click()`; Firefox's is a WebDriver click. Apache only.
 One document, one small file (1.3 KB). The product profile is the shipped v8; v14's
 `.data`/`.metadata` would need a PHP route (gate 0 C7) that this app does not have yet.
+
+## Correction — 2026-09-28, later the same day (appended)
+
+Same identity gap as gate 0's correction: the seven product hashes do not cover the
+shell bundle's eleven other modules, which were shell v52's bytes (inference from
+`dist/` hashes and mtimes). And `dist/e2-editor-app.js` changed after this run: it
+carries the M3 host entry, which replaces this skeleton's `#file` bridge. The page that
+ran here is `1ec7baf9…` (`git show a9759513:wasm_sdk_probe/web/e2-editor-app.js`).

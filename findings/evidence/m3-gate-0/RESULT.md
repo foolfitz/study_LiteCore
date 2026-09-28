@@ -183,3 +183,26 @@ python3 wasm_sdk_probe/tools/check_m3_gate0_report.py \
 Predicate d re-hashes `wasm_sdk_probe/dist` and reads the DDEV bind mount, so it goes
 red if the product bytes on disk change after today; the report itself carries the
 hashes above.
+
+## Correction — 2026-09-28, later the same day (appended; nothing above is edited)
+
+**"The shipped editor (the seven hashes)" binds less than it reads.** The seven
+`PRODUCT_FILES` include the page and `sdk/document-sdk.js`, but not the other eleven
+JavaScript modules of the shell bundle the page imports (`editor-shell-v2/*`,
+`editor-shell/*`, `input/*`, `reader-shell/tile-scheduler.js`). Nothing in the report
+hashes them. By inference — `dist/` is untracked — they were **shell generation v52's**
+bytes (`e2/editor-shell-v2-bundle-v52.json`, `bundleSha256 7a1e8815…`): every one of
+them hashes to v52's manifest today, and every mtime predates the counted run
+(06:51:53Z; the latest is `narrow-editor-v2-session.js` at 04:01Z, v52's own change).
+That is **not** the declared shipping generation (v48). So the PASS sentence is read
+as: the seven hashes **plus shell v52's eleven other modules**, not "what users get
+today". This does not change the verdict, because gate 0 is about headers and
+isolation, not shell behaviour. It is a gap in the identity the report records, and
+the ruling's D8 did not name it.
+
+**Predicate d goes red from here on, by design.** The same day, the M3 host entry
+changed `web/e2-editor-app.js` and was staged into `dist/`
+(`1ec7baf9…` → `77276b4d…`; specs/SPEC-M3-host-entry.md). Re-running the reader on
+this counted report now fails (d): the page on disk is no longer the page that ran.
+The page that ran is `git show a9759513:wasm_sdk_probe/web/e2-editor-app.js`
+(sha256 `1ec7baf9fb53c808…`).

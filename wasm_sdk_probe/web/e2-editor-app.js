@@ -48,6 +48,16 @@ import { EDITOR_V2_ACTIONS } from "./editor-shell-v2/narrow-editor-v2-client.js"
 // would look like a broken build rather than a mistake.
 const PINNED_WASM_SHA256 = "4a2710bba1ef07d9";
 
+// M3's host entry (specs/SPEC-M3-host-entry.md).  A host that embeds this page
+// -- the Nextcloud app -- puts `globalThis.liteCoreHost = { load, save }` in
+// place BEFORE importing this module.  Read once, here: a host that appears
+// later is not a host.  With one, the page opens what `load()` returns instead
+// of its bundled sample, and a save hands the bytes to `save()` instead of a
+// download link.  The M3 skeleton reached this page only through `#file`, so it
+// paid for the sample's open on every document and could not save back at all.
+const HOST = globalThis.liteCoreHost ?? null;
+let hostSaves = Promise.resolve();
+
 const $ = (selector) => document.querySelector(selector);
 const el = {
   canvas: $("#canvas"), paper: $("#paper"), desk: $("#desk"), sink: $("#sink"),
@@ -1018,7 +1028,21 @@ async function insertText() {
   await run("插入文字", () => session.commitText(text));
 }
 
-async function saveDocument() {
+// With a host, one save at a time, end to end: the session's bytes AND the
+// host's write.  Two quick presses (or a held Ctrl+S) otherwise send two writes
+// that both carry the version the host saw at open, so the second is refused as
+// a conflict with nobody else involved -- and queueing only the host's half is
+// not enough, because the order in which two `run("儲存")` calls return depends
+// on their repaints, so the older bytes could be written last.  Without a host
+// nothing changes: each press is its own download, as before.
+function saveDocument() {
+  if (!HOST) return saveOnce();
+  const turn = hostSaves.then(saveOnce);
+  hostSaves = turn.catch(() => {});
+  return turn;
+}
+
+async function saveOnce() {
   // `EditorSession.save()` resolves to {bytes, revision, contentStamp}, not to
   // the bytes.  Taking the whole result made `new Blob([result])` stringify it,
   // so every save from this button wrote 15 bytes of "[object Object]" and the
@@ -1026,6 +1050,16 @@ async function saveDocument() {
   // the button, because every harness in this tree calls session.save() itself
   // and destructures.
   const { bytes } = await run("儲存", () => session.save());
+  if (HOST) {
+    // Locks, versions and conflicts are the host's to decide; a throw from it
+    // is shown as a failure (run() says `存回 失敗` and why), never as a save.
+    // `session.save()` has already marked the session clean by now -- the same
+    // as the download below, which the user can also cancel.  The bytes are
+    // still the session's recovery authority, so pressing save again retries.
+    await run("存回", () => HOST.save(bytes, { name: documentName }));
+    toast(`已存回 ${documentName}（${(bytes.byteLength / 1024).toFixed(1)} KB）`);
+    return;
+  }
   const url = URL.createObjectURL(
     new Blob([bytes], { type: "application/vnd.oasis.opendocument.text" }));
   const anchor = document.createElement("a");
@@ -1663,10 +1697,34 @@ el.file.addEventListener("change", () => {
     .catch((error) => toast(describeError(error), true));
 });
 
+// With a host, the page opens the host's document and nothing else.  The two
+// local pickers are switched off: a document opened from them would be written
+// over the host's file by the next save.  A `liteCoreHost` that is not the
+// contract's shape is refused rather than ignored -- falling back to the bundled
+// sample would let the user edit a document they believe is theirs.
+async function openFromHost() {
+  el.fixture.disabled = true;
+  el.openFile.disabled = true;
+  el.file.disabled = true;
+  if (typeof HOST.load !== "function" || typeof HOST.save !== "function")
+    throw Object.assign(new Error("宿主入口不完整：需要 load() 與 save()"),
+                        { code: "HOST_ENTRY_INVALID" });
+  const { bytes, name } = await HOST.load();
+  if (!(bytes instanceof ArrayBuffer) || typeof name !== "string" || !name)
+    throw Object.assign(new Error("宿主給的文件不是 { bytes: ArrayBuffer, name }"),
+                        { code: "HOST_ENTRY_INVALID" });
+  await openDocument(bytes, name);
+  toast(`已開啟 ${name}`);
+}
+
 void (async () => {
   el.pinnedHash.textContent = PINNED_WASM_SHA256;
   if (!globalThis.crossOriginIsolated)
     toast("此頁需要 cross-origin isolation：請以 web/serve.py 提供", true);
+  if (HOST) {
+    await openFromHost();
+    return;
+  }
   const manifest = await fetch("./e1-fixtures/manifest.json", { cache: "no-cache" })
     .then((value) => value.json());
   el.fixture.replaceChildren(...manifest.fixtures.map((fixture) => {

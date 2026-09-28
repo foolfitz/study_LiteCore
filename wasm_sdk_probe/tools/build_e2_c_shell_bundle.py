@@ -521,7 +521,16 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # Frozen in the SAME COMMIT as the change (finding 091's rule).  THE ENTRYPOINT
 # STILL PINS `e2-editor-v8` and `web/e2-editor-app.js` is byte-identical to
 # v51's: not a cutover, not a link.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v52.json")
+#
+# v53, 2026-09-28: M3's host entry (specs/SPEC-M3-host-entry.md), one file
+# (`web/e2-editor-app.js`).  The page reads `globalThis.liteCoreHost = { load,
+# save }` once at module evaluation.  With a host it opens what `load()` gives
+# instead of its bundled sample, switches off the two local pickers, hands a
+# save's bytes to `save()` instead of a download link, and runs one save at a
+# time end to end.  A host of the wrong shape is refused, not ignored.  Without
+# a host nothing changes: the product-path net on v8 and v14 is cell for cell
+# the same as on v52.  Still pins `e2-editor-v8`; no engine change, no link.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v53.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
