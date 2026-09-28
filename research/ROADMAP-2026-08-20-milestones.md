@@ -336,7 +336,7 @@ E1h 的序列、兩個瀏覽器各 3/3，才能取代 PHP。
 
 ### 5.3 第二個坎：169 MB 靜態資產
 
-必須 web server 直出、immutable 快取、**不穿過 PHP**。~~而且**這體積上不了 App Store tarball**
+~~必須 web server 直出、~~immutable 快取~~、**不穿過 PHP**~~（前後兩項 2026-09-29 撤回，見本節末）。~~而且**這體積上不了 App Store tarball**
 （推論，上限未查），得另想發布——安裝時下載，或分開散布。~~
 
 **2026-09-28 更正（已觀察）**：「上不了 App Store」**不成立為一般規則**。App Store 的原始碼預設下載上限是
@@ -353,6 +353,21 @@ E1h 的序列、兩個瀏覽器各 3/3，才能取代 PHP。
 要走 PHP 或另一條路由。nginx 的 `try_files` 會直出它們——**未量**，而且這個推論只讀了 DDEV 通用的
 PHP 設定（`.ddev/nginx_full/nginx-site.conf:28`），沒讀 Nextcloud 文件裡的 nginx 設定。另外，直出的 `.js` 不帶 COEP，
 worker 腳本就算能直出也不能直接用（§5.1）。
+
+**2026-09-29 結果（已觀察）：資產派送落地，而且問題不在原本以為的地方。**`specs/SPEC-M3-asset-delivery.md`，計數執行
+`ASSETS DELIVERED`（Chrome／Firefox 各 3/3，`findings/evidence/m3-assets/RESULT.md`）。
+
+- 量下來的真問題：**快取開著，每開一次檔兩個瀏覽器都從伺服器重抓整整 169.6 MB**——`.data` 經 PHP 送、`no-cache` 又沒有
+  validator；115 MB 的原樣 wasm 超過 Firefox 快取的單筆上限（編碼後 45 MB 收、60 MB 不收），Chrome 在剩餘空間小的磁碟上也不收。
+  之前所有 M3 計數執行都關著快取，看不到。
+- 處方：app 自帶一份 gzip 預壓縮的引擎（`engine/`，工具從 `dist/` 推出閉包產生），全部經一條 PHP 路由送，網址帶
+  「buildId＋服務政策雜湊」，`immutable`＋ETag。**第一次開檔 63.9 MB、之後約 18 KB**（Chrome 多一個 manifest 的 304，產品自己要求的）。
+- **撤回「web server 直出」與「不穿過 PHP」**：直出的原樣 wasm 正是進不了快取的那一種，而 app 沒辦法不靠伺服器設定替靜態檔加
+  `Content-Encoding`；引擎腳本本來就得經 PHP 才有 COEP（§5.1）。代價寫在規格 §3.3：每個使用者每次升級都要經 PHP 重抓 64 MB，
+  慢速用戶端可能吃滿 PHP-FPM（未量）。
+- 發佈壓縮檔 60.5 MiB（App Store 原始碼預設上限 30 MiB；壓縮法換 zstd 也不會低於 30 MiB）。
+- 掉出 finding 105：快取開著的 Firefox 離頁時解鎖請求常常沒送到（宿主已修，改在 `beforeunload` 也送）。
+- 沒做：從壓縮檔裝進另一台 Nextcloud、nginx、Safari；Firefox 使用者**每次登出**都被 Nextcloud 清掉快取（`Clear-Site-Data`）。
 
 ### 5.4 還要接的
 
@@ -501,6 +516,7 @@ M4 把功能 corpus 換掉之後才動：filter allowlist、component／library 
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-29 | **§5.3 資產派送落地**（`ASSETS DELIVERED`，兩個瀏覽器各 3/3）；撤回「web server 直出」「不穿過 PHP」兩個前提；真問題是每次開檔重抓 169.6 MB（快取關著跑的計數執行都看不到）；掉出 finding 105。 |
 | 2026-09-28 | **§5.4 四補：版本正確**（`VERSIONS CORRECT`，R1 兩個瀏覽器各 3/3），掉出 finding 103、104。**§5.3 更正**：「169 MB 上不了 App Store」不是一般規則——原始碼預設上限 30 MiB，但正式站 09-24 發佈了 269 MB 的 `richdocumentscode`。 |
 | 2026-09-28 | **§5.4 再補：宿主入口落地**（擁有者選 A）。頁面加 `liteCoreHost`、殼層 v53；開、存、衝突在兩個瀏覽器各 3/3；剩鎖、版本、「乾淨」的時機。 |
 | 2026-09-28 | **§5.4 補 M3 骨架的結果**：從 Files 開 ODT 走通（`SKELETON WORKS`，兩個瀏覽器各 3/3，不改產品位元組），但存回、鎖、版本、衝突都卡在「產品頁沒有宿主入口」這個決定上。 |

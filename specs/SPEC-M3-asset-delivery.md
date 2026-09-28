@@ -225,6 +225,7 @@ K0–K2 每一條至少一個突變，每個突變都要找得到它的那一條
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-29 | **計數執行：`ASSETS DELIVERED`**（`findings/evidence/m3-assets/runs/2026-09-28T172628+0000.json`，Chrome 3/3、Firefox 3/3，宿主 `5e53362` 乾淨、位址 `9076b0b425222c0e-566647db`、頁面 `fbfb59a4…`、runner `9e970440…`；從報告重新評分同一判定；紅案 84 個全紅；`make test-e2-c-static` exit 0；期間沒有容器被建立）。判準沒有再動。K3 另判。 |
 | 2026-09-29 | 立。第 0 步證據 `findings/evidence/m3-assets/`。 |
 | 2026-09-29 | **任何計數執行之前：加 K2-5、§3.5、§3.6。**逼出它的是第一次 shakedown（`shakedown/2026-09-28T161410+0000.json`：Firefox 第二次開檔 `LOCK` 423）與分辨探針 `leave-unlock-*.json`（finding 105）。形式：逐實例性質（每一次開檔、每一次離頁）。截止：計數執行落地即封閉。計數語意：沒有計數執行存在，不涉及歸零。K3 的鎖與權限 runner 全部是快取關著跑的，**看不到**這個缺陷；所以它放在 K2，不是 K3。宿主 commit 因此從 `7a11a4b` 往後移。 |
 | 2026-09-29 | **任何計數執行之前：K2-3 改寫、加 K1-6、§3.2 加 ETag。**逼出它的是第二次 shakedown（`shakedown/2026-09-28T164501+0000.json`）：Chrome 第二次開檔重抓了 `sdk-manifest.json`（200、2,894 位元組），Firefox 沒有。原因讀原始碼：worker 以 `cache: "no-cache"` 抓它的 manifest（出貨的 `sdk-worker.js:513`），也就是**產品刻意每次向伺服器確認**；我們的回應沒有 validator，確認的結果只能是整份重送。原本的 K2-3 是為「沒有請求」這個處方寫的，而那個處方與產品的設計衝突（頁面與 profile 的位元組不動）。改寫的理由：我們要擋的是「重抓位元組」（第 2 節的 169.6 MB），所以新的 K2-3 對**任何**帶本文的資產回應都仍然是紅，只允許 304。形式：逐實例性質。截止：計數執行落地即封閉。宿主加 `ETag`（gzip 與原樣各用自己送出的位元組的 sha256），Nextcloud 的 `NotModifiedMiddleware` 對完全相符的 `If-None-Match` 回 304。 |
