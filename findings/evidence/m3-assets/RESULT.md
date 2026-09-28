@@ -51,8 +51,37 @@ path the product revalidates by design (derived from the sources by the runner).
 Install from the archive into another Nextcloud (not done — owner's decision); nginx and Safari;
 PHP-FPM under slow clients and after every address change; Firefox's logout wiping the cache
 (`Clear-Site-Data`); Firefox on a small disk; the guarded leave's pagehide-only unlock (finding
-105). **K3** — the host-entry, locks and versions counted runs repeated on this host — is
-reported separately below when it lands.
+105). K3 is below: versions and locks hold on this host; host entry cannot run on any locking host.
+
+## K3: the earlier M3 counted runs, repeated on this host
+
+Run by a sonnet executor from `handoff/tasks/TASK-2026-09-29-assets-K3-rerun.md`; re-scored by
+the main session from the stored reports. Host `5e53362`, clean, `make test-e2-c-static` exit 0,
+`docker ps` identical before and after.
+
+| runner | report | verdict | red cases |
+| --- | --- | --- | --- |
+| versions | `../m3-versions/runs/2026-09-28T173014+0000.json` (17:30–17:34Z) | `VERSIONS CORRECT` 3/3 + 3/3 | 68, all red |
+| locks | `../m3-locks/runs/2026-09-28T174346+0000.json` (17:43–18:29Z) | `LOCKS LAND`, all 22 cells | 87, all red |
+| host entry | none | **not runnable on any locking host** | — |
+
+**Host entry did not run, and that is not this step's regression.** Its last counted run
+(2026-09-28 09:51Z) was against host `0dcb745`, which took no lock; locks came in `4bd24e1` /
+`49cc4ab`, and the runner was never repeated after that. The access log of the three attempts
+shows the mechanism, the same each time: the runner's own HeadlessChrome opens the editor and
+takes the token lock (`LOCK` 200, 01:34:26 +0800), saves twice, and the runner then closes the
+browser without leaving the page (`check_m3_host_entry.py:275-276`); the lock stays until it
+lapses (~306 s), so the runner's next reset upload is 423 (01:34:33) and the runner dies before
+writing a report. The executor's reading ("something actively re-locking; an orphaned
+geckodriver") was checked and is wrong: that geckodriver (started 2026-09-28 14:03 +0800) has
+no browser under it. Its conflict arm (an intruder PUT while the page holds the lock) would be
+refused by the lock too.
+
+What host entry checked is now covered by the two runs above on this host — open (both), two
+saves chaining with Ctrl+S (versions step 2), a conflict going to a copy (versions step 6,
+locks' foreign-lock arms) — except its H5 (the page refusing a broken host), which is page
+behaviour and the page is unchanged. Retiring or adapting the host-entry runner is left for
+the next session (handoff).
 
 ## K4: the release archive
 

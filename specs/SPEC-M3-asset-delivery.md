@@ -225,6 +225,7 @@ K0–K2 每一條至少一個突變，每個突變都要找得到它的那一條
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-29 | **K3**：版本 `VERSIONS CORRECT`（`m3-versions/runs/2026-09-28T173014+0000.json`）、鎖 `LOCKS LAND`（`m3-locks/runs/2026-09-28T174346+0000.json`）在宿主 `5e53362` 上照舊成立，紅案 68、87 全紅，主 session 從報告重新評分。**宿主入口跑不起來**：它的 runner 寫在宿主會上鎖之前（上一次計數執行綁 `0dcb745`），關瀏覽器不離頁、鎖留約 306 秒，下一次重設上傳 423。這不是這一步的退步；它檢查的東西除了 H5（頁面拒絕壞宿主，頁面沒動）都已由版本與鎖在新宿主上覆蓋。runner 要退役還是改寫，留給下一個 session。執行者「有東西在主動重新上鎖／孤兒 geckodriver」的讀法查過是錯的（access log：上鎖的是 runner 自己的 HeadlessChrome）。 |
 | 2026-09-29 | **計數執行：`ASSETS DELIVERED`**（`findings/evidence/m3-assets/runs/2026-09-28T172628+0000.json`，Chrome 3/3、Firefox 3/3，宿主 `5e53362` 乾淨、位址 `9076b0b425222c0e-566647db`、頁面 `fbfb59a4…`、runner `9e970440…`；從報告重新評分同一判定；紅案 84 個全紅；`make test-e2-c-static` exit 0；期間沒有容器被建立）。判準沒有再動。K3 另判。 |
 | 2026-09-29 | 立。第 0 步證據 `findings/evidence/m3-assets/`。 |
 | 2026-09-29 | **任何計數執行之前：加 K2-5、§3.5、§3.6。**逼出它的是第一次 shakedown（`shakedown/2026-09-28T161410+0000.json`：Firefox 第二次開檔 `LOCK` 423）與分辨探針 `leave-unlock-*.json`（finding 105）。形式：逐實例性質（每一次開檔、每一次離頁）。截止：計數執行落地即封閉。計數語意：沒有計數執行存在，不涉及歸零。K3 的鎖與權限 runner 全部是快取關著跑的，**看不到**這個缺陷；所以它放在 K2，不是 K3。宿主 commit 因此從 `7a11a4b` 往後移。 |
