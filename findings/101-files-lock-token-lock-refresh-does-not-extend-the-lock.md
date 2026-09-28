@@ -5,7 +5,7 @@
 | **狀態** | 已確認（原始碼＋一次端到端實測＋HTTP 最小重現附對照組）／上游未回報（送出擱置中） |
 | **上游** | nextcloud/files_lock（GitHub） |
 | **發現日** | 2026-09-28 |
-| **嚴重度** | 一般（鎖在用戶端看來還在，其實已失效；資料不會掉，因為我們的寫入一律帶 `If-Match`） |
+| **嚴重度** | 一般（鎖在用戶端看來還在，其實已失效；~~資料不會掉，因為我們的寫入一律帶 `If-Match`~~ 寫入一律帶 `If-Match`，所以通常不會掉資料——但鎖失效之後，別人的寫入若與宿主手上 ETag 所屬的寫入落在同一秒，`If-Match` 看不到它（2026-09-28 修訂，[103](103-nextcloud-a-second-write-in-the-same-second-keeps-the-etag-so-if-match-lets-an-overwrite-through.md)）） |
 | **可重現** | 1/1 端到端（Firefox K3）＋1/1 HTTP 最小重現（L8），原始碼路徑確定 |
 | **是否上游** | 是：NC 34.0.2 tarball 內附、預設啟用的 files_lock 34.0.1，零設定 |
 

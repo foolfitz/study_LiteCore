@@ -49,6 +49,7 @@ from run_e2_c_page_smoke import navigate  # noqa: E402
 EVIDENCE = REPO / "findings" / "evidence" / "m3-versions"
 VNAME = "M3 版本 測試.odt"
 PLAN = {"versions": ("R1", ("chrome", "firefox"), 3)}
+HOST_COMMIT = "49cc4ab"
 NS = {"d": "DAV:", "nc": "http://nextcloud.org/ns"}
 LISTING = (b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns">'
            b"<d:prop><d:getlastmodified/><d:getcontentlength/><nc:version-author/></d:prop></d:propfind>")
@@ -82,10 +83,12 @@ class VServer(Server):
                            "status": status, "bytes": len(data)})
         return status, data
 
-    def listing(self, step: str, path: str) -> dict[str, Any]:
-        """The file's mtime and every version row; bytes for every row but the current one
-        (revision == mtime), whose GET is 404 at best and a server-side TypeError right after
-        a restore (evidence README, V3)."""
+    def listing(self, step: str, path: str, get_current: bool = False) -> dict[str, Any]:
+        """The file's mtime and every version row, with the bytes of every row but the current
+        one (revision == mtime). The current row is fetched only when asked (before any restore):
+        its GET is 404 when no .v<mtime> file exists, and a server-side TypeError right after a
+        restore (evidence README, V3). A 200 there means a version file was written without the
+        mtime moving -- the failure shape rows 1 and 3 guard (review item 1)."""
         status, data = self.raw(step, "PROPFIND", self.admin.dav_path(path), MTIME,
                                 {"Depth": "0", "Content-Type": "application/xml"})
         if status != 207:
@@ -105,8 +108,9 @@ class VServer(Server):
             revision = href.rsplit("/", 1)[1]
             entry = {"revision": int(revision), "current": int(revision) == mtime,
                      "author": response.findtext(".//nc:version-author", namespaces=NS)}
-            if not entry["current"]:
+            if not entry["current"] or get_current:
                 got, body = self.raw(step + " (bytes)", "GET", href[href.index("/remote.php"):])
+                entry["get"] = got
                 entry["sha256"] = hashlib.sha256(body).hexdigest() if got == 200 else f"GET {got}"
             entries.append(entry)
         return {"status": 207, "mtime": mtime, "fileid": fileid, "entries": sorted(entries, key=lambda e: e["revision"])}
@@ -127,7 +131,7 @@ def run_versions(kind: str, server: VServer, scratch: Path) -> dict[str, Any]:
     record["removedOld"] = server.admin.call("reset", "DELETE", server.admin.dav_path(VNAME))["status"]
     record["reset"] = {"upload": server.upload(server.admin, VNAME), "fileId": server.fileid(server.admin, VNAME)}
     record["copiesBefore"] = server.copies(server.admin, "", VNAME[:-4], remove=True)
-    record["L0"] = server.listing("L0", VNAME)
+    record["L0"] = server.listing("L0", VNAME, get_current=True)
     if kind == "chrome":
         session = LockChrome("cold")
     else:
@@ -137,15 +141,16 @@ def run_versions(kind: str, server: VServer, scratch: Path) -> dict[str, Any]:
         record["login"] = login(session, server.instance.base, "admin", server.instance.password)
         open_from_files(session, server.instance.base, "", VNAME, record)
         record["afterOpen"] = server.props(server.admin, VNAME)
-        record["L1"] = server.listing("L1 after open", VNAME)
+        record["L1"] = server.listing("L1 after open", VNAME, get_current=True)
         edit(session, record)
         save(session, record, 1)
         time.sleep(3)
         insert_marker(session, record)
+        record["inserted1"] = record.pop("inserted")
         save(session, record, 2, how="ctrl-s")
         record["serverAfterSaves"] = server.content(server.admin, VNAME)
         record["afterSaves"] = server.props(server.admin, VNAME)
-        record["L2"] = server.listing("L2 after two saves", VNAME)
+        record["L2"] = server.listing("L2 after two saves", VNAME, get_current=True)
         oldest = next((e["revision"] for e in record["L2"].get("entries") or [] if not e["current"]), None)
         record["restoredRevision"] = oldest
         record["restore"], _ = server.raw(
@@ -156,6 +161,7 @@ def run_versions(kind: str, server: VServer, scratch: Path) -> dict[str, Any]:
         record["afterRestore"] = server.props(server.admin, VNAME)
         record["L3"] = server.listing("L3 after restore", VNAME)
         insert_marker(session, record)
+        record["inserted2"] = record.pop("inserted")
         save(session, record, 3)
         record["host"] = host_record(session)
         record["serverAfter"] = server.content(server.admin, VNAME)
@@ -172,6 +178,7 @@ def run_versions(kind: str, server: VServer, scratch: Path) -> dict[str, Any]:
         navigate(session, server.instance.base + "/apps/files/", timeout=120)
         record["release"] = server.wait_unlocked(server.admin, VNAME, 15)
         record["L5"] = server.listing("L5 after leaving", VNAME)
+        record["serverAtEnd"] = server.content(server.admin, VNAME)
     except Exception:  # noqa: BLE001 -- a run that dies is recorded, not lost
         record["fatal"] = traceback.format_exc()
     finally:
@@ -188,6 +195,13 @@ def run_versions(kind: str, server: VServer, scratch: Path) -> dict[str, Any]:
 # Scoring -- raw fields only, one line per row of the spec's table.
 
 
+def inserted(run: dict[str, Any], key: str) -> list[str]:
+    state = run.get(key) or {}
+    if "失敗" in (state.get("latency") or "") or not state.get("revision"):
+        return [f"{key} {state.get('revision')!r} {state.get('latency')!r}"]
+    return []
+
+
 def score_run(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
     if run.get("fatal"):
         return [f"fatal: {run['fatal'].strip().splitlines()[-1]}"]
@@ -196,10 +210,11 @@ def score_run(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
     saves = host.get("saves") or []
     sent = [s.get("sha256") for s in saves]
     bad = opened_ok(run, report) + held_at_open(run) + edited(run)
-    # 1: taking the lock makes no version
+    bad += inserted(run, "inserted1") + inserted(run, "inserted2")
+    # 1: taking the lock makes no version, not even a version file under the current row
     l1 = run.get("L1") or {}
-    if [e["current"] for e in l1.get("entries") or []] != [True]:
-        bad.append(f"L1 {shape(l1)}: want the current entry only")
+    if [(e["current"], e.get("get")) for e in l1.get("entries") or []] != [(True, 404)]:
+        bad.append(f"L1 {[(e['current'], e.get('get')) for e in l1.get('entries') or []]}: want the current row only, GET 404")
     # 2: two saves, both 204 with the token, server holds the second
     if len(saves) != 3 or [attempts(s) for s in saves[:2]] != [[(204, True)], [(204, True)]] \
             or sent[0] == sent[1] or (run.get("serverAfterSaves") or {}).get("sha256") != sent[1]:
@@ -207,11 +222,15 @@ def score_run(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
                    f"{((run.get('serverAfterSaves') or {}).get('sha256') or '')[:12]}")
         return bad   # every later row names S1..S3
     S1, S2, S3 = sent
-    # 3: history = [F, S1] + current, all by admin
+    if len({F, S1, S2, S3}) != 4:
+        bad.append(f"the four states are not distinct: {[x and x[:12] for x in (F, S1, S2, S3)]}")
+    # 3: history = [F, S1] + current, all by admin; the current row has no version file
     l2 = run.get("L2") or {}
     currents = [e for e in l2.get("entries") or [] if e["current"]]
     if older(l2) != [F, S1] or len(currents) != 1:
         bad.append(f"L2 {shape(l2)}: want [F, S1] + one current")
+    elif currents[0].get("get") != 404:
+        bad.append(f"L2 current row GET {currents[0].get('get')}: a version file sits under the current mtime")
     if any(e.get("author") != "admin" for e in l2.get("entries") or []):
         bad.append(f"L2 authors {[e.get('author') for e in l2.get('entries') or []]}")
     # 4: the restore goes through the token lock, the lock stays
@@ -223,11 +242,16 @@ def score_run(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
                    f"token {opened.get('token')} -> {restored.get('token')}")
     # 5: the pre-restore content is kept
     l3 = run.get("L3") or {}
-    if older(l3) != [S1, S2] or [e for e in l3.get("entries") or [] if e["current"]] == []:
-        bad.append(f"L3 {shape(l3)}: want [S1, S2] + one current")
+    if older(l3) != [S1, S2]:
+        bad.append(f"L3 {shape(l3)}: want [S1, S2] as the older rows")
+    if len([e for e in l3.get("entries") or [] if e["current"]]) != 1:
+        bad.append(f"L3 {shape(l3)}: want one current row")
     # 6: the third save is refused once, not retried, and goes to a copy; the lock is kept
     if attempts(saves[2]) != [(412, True)]:
         bad.append(f"third save {attempts(saves[2])} (the token is alive: no retry without it)")
+    elif saves[2]["attempts"][0].get("ifMatch") != (run.get("afterSaves") or {}).get("etag"):
+        bad.append(f"third save's If-Match {saves[2]['attempts'][0].get('ifMatch')} is not the version before the restore "
+                   f"{(run.get('afterSaves') or {}).get('etag')}: its 412 is not about the restore")
     else:
         bad += one_copy(run, "衝突副本", S3)
         bad += page_failed_with(run.get("save3State") or {}, "CONFLICT", (saves[2].get("conflictCopy") or {}).get("name") or "?")
@@ -237,8 +261,8 @@ def score_run(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
     if (run.get("serverAfter") or {}).get("sha256") != F:
         bad.append(f"server {((run.get('serverAfter') or {}).get('sha256') or '')[:12]} is not the restored F")
     bad += on_wire(run, [(204, True), (204, True), (412, True)])
-    # 7: a refused save makes no version; the copy has no history
-    if shape(run.get("L4") or {}) != shape(l3):
+    # 7: a refused save makes no new row and does not move the mtime; the copy has no history
+    if shape(run.get("L4") or {}) != shape(l3) or (run.get("L4") or {}).get("mtime") != l3.get("mtime"):
         bad.append(f"L4 {shape(run.get('L4') or {})} != L3")
     copies = run.get("copyListings") or []
     if len(copies) != 1 or [e["current"] for e in copies[0].get("entries") or []] != [True]:
@@ -246,13 +270,15 @@ def score_run(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
     # 8: leaving releases the lock and makes no version
     if not (run.get("release") or {}).get("released"):
         bad.append(f"release {run.get('release')}")
-    if shape(run.get("L5") or {}) != shape(run.get("L4") or {}):
+    if shape(run.get("L5") or {}) != shape(run.get("L4") or {}) \
+            or (run.get("L5") or {}).get("mtime") != (run.get("L4") or {}).get("mtime"):
         bad.append(f"L5 {shape(run.get('L5') or {})} != L4")
-    # total: all four states can be had back, byte for byte
-    held = {F: (run.get("serverAfter") or {}).get("sha256") == F, S1: S1 in older(run.get("L5") or {}),
-            S2: S2 in older(run.get("L5") or {}), S3: [c.get("sha256") for c in run.get("copiesAfter") or []] == [S3]}
-    if not all(held.values()):
-        bad.append(f"not retrievable: {[k[:12] for k, v in held.items() if not v]}")
+    # total: all four states can be had back, byte for byte, read after leaving
+    held = [("F", (run.get("serverAtEnd") or {}).get("sha256") == F), ("S1", S1 in older(run.get("L5") or {})),
+            ("S2", S2 in older(run.get("L5") or {})),
+            ("S3", [c.get("sha256") for c in run.get("copiesAfter") or []] == [S3])]
+    if not all(ok for _, ok in held):
+        bad.append(f"not retrievable at the end: {[k for k, ok in held if not ok]}")
     return bad
 
 
@@ -265,6 +291,8 @@ def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
         problems.append(f"make test-e2-c-static exit {static.get('testStatic')}")
     if strict and (report.get("hostDirty") or not report.get("hostFiles")):
         problems.append(f"host not bound: dirty {report.get('hostDirty')!r}, files {report.get('hostFiles')}")
+    if strict and not (report.get("hostRepo") or "").startswith(HOST_COMMIT):
+        problems.append(f"host is {report.get('hostRepo')!r}, spec §3 names {HOST_COMMIT}")
     tally: dict[str, dict[str, Any]] = {}
     for run in report.get("runs") or []:
         entry = tally.setdefault(f"{run['browser']}:{run['arm']}", {"pass": 0, "runs": 0, "problems": []})
@@ -290,37 +318,76 @@ def one_line(result: dict[str, Any]) -> str:
     return f"{result['verdict']} {cells} problems={result['problems']}"
 
 
-def _drop_older(run: dict, key: str, index: int) -> None:
-    run[key]["entries"] = [e for e in run[key]["entries"] if e["current"]] if index < 0 else \
-        [e for i, e in enumerate(run[key]["entries"]) if i != index]
+def _each(run: dict, keys: tuple[str, ...], change) -> None:
+    for key in keys:
+        change(run[key])
+
+
+def _current(listing: dict) -> dict:
+    return next(e for e in listing["entries"] if e["current"])
+
+
+def _extra(sha: str):
+    return lambda listing: listing["entries"].append({"revision": 9_999_999_999, "current": False, "sha256": sha})
+
+
+def _s(run: dict, n: int) -> str:
+    return run["host"]["saves"][n]["sha256"]
+
+
+def _lose_third_edit(run: dict) -> None:
+    run["host"]["saves"][2]["sha256"] = _s(run, 1)
+    run["copiesAfter"][0]["sha256"] = _s(run, 1)
+
+
+def _stale_third(run: dict) -> None:
+    run["host"]["saves"][2]["ifMatch"] = '"older"'
+    run["host"]["saves"][2]["attempts"][0]["ifMatch"] = '"older"'
+    puts = [x for x in run.get("davRequests") or [] if x["method"] == "PUT" and x["url"].endswith(urllib.parse.quote(VNAME))]
+    if puts:
+        puts[-1]["ifMatch"] = '"older"'
 
 
 C = ("chrome",)
-# (label, mutation, browsers it applies to -- None = both); every row of §4 has at least one.
+# (label, mutation, browsers it applies to -- None = both). Each case is meant to be caught by
+# its own clause: a clause turned off should leave at least one case green (review item 8).
+# The total row's S1/S2 half is implied by rows 5, 7 and 8 together and has no case of its own.
 RED_CASES = [
-    ("1 open: other bytes were opened", lambda r: r["host"]["fetched"].update(sha256="0" * 64), None),
-    ("1 open: lock taken after the read", lambda r: r["host"]["fetched"].update(etag='"stale"'), None),
-    ("1 L1: taking the lock made a version", lambda r: r["L1"]["entries"].insert(0, {"revision": 1, "current": False, "sha256": "x"}), None),
+    ("1 other bytes were opened", lambda r: r["host"]["fetched"].update(sha256="0" * 64), None),
+    ("1 the read is not the post-lock version", lambda r: r["host"]["fetched"].update(etag='"stale"'), None),
+    ("1 lock taken after the read", lambda r: r["host"]["lock"].update(at=r["host"]["fetched"]["at"] + 1), None),
+    ("1 L1 taking the lock made a row", lambda r: r["L1"]["entries"].insert(0, {"revision": 1, "current": False, "sha256": "x"}), None),
+    ("1 L1 a version file under the current row", lambda r: _current(r["L1"]).update(get=200), None),
     ("2 a save without the token", lambda r: r["host"]["saves"][1]["attempts"][0].update(withToken=False), None),
-    ("2 server holds the first save", lambda r: r["serverAfterSaves"].update(sha256=r["host"]["saves"][0]["sha256"]), None),
-    ("3 L2 lost the first save's version", lambda r: _drop_older(r, "L2", 1), None),
+    ("2 server holds the first save", lambda r: r["serverAfterSaves"].update(sha256=_s(r, 0)), None),
+    ("2 the first marker insert failed", lambda r: r["inserted1"].update(latency="插入 失敗"), None),
+    ("2 the third edit is lost (S3 == S2)", _lose_third_edit, None),
+    ("3 L2 lost the first save", lambda r: r["L2"]["entries"].pop(1), None),
     ("3 L2 version by someone else", lambda r: r["L2"]["entries"][0].update(author="lcprobe"), None),
-    ("3 L2 no current entry", lambda r: [e.update(current=False, sha256="y") for e in r["L2"]["entries"]], None),
+    ("3 L2 two current rows", lambda r: r["L2"]["entries"].append({**_current(r["L2"]), "revision": 9_999_999_999}), None),
+    ("3 L2 a version file under the current row", lambda r: _current(r["L2"]).update(get=200), None),
     ("4 restore refused", lambda r: r.update(restore=423), None),
-    ("4 restore did not write", lambda r: r["serverAfterRestore"].update(sha256=r["host"]["saves"][1]["sha256"]), None),
+    ("4 restore did not write", lambda r: r["serverAfterRestore"].update(sha256=_s(r, 1)), None),
     ("4 restore cost the lock", lambda r: r["afterRestore"].update(token=None), None),
-    ("5 L3 lost the pre-restore content", lambda r: _drop_older(r, "L3", -1), None),
+    ("4 the ETag did not move", lambda r: r["afterRestore"].update(etag=r["afterSaves"]["etag"]), None),
+    ("5 an extra older row after the restore", lambda r: _each(r, ("L3", "L4", "L5"), _extra(r["L2"]["entries"][0]["sha256"])), None),
+    ("5 no current row after the restore",
+     lambda r: _each(r, ("L3", "L4", "L5"), lambda l: l.update(entries=[e for e in l["entries"] if not e["current"]])), None),
     ("6 third save retried without the token", lambda r: r["host"]["saves"][2]["attempts"].append({"status": 204, "withToken": False}), None),
-    ("6 third save overwrote the restore", lambda r: r["serverAfter"].update(sha256=r["host"]["saves"][2]["sha256"]), None),
+    ("6 third save's If-Match predates the restore", _stale_third, None),
     ("6 no copy", lambda r: r.update(copiesAfter=[]), None),
     ("6 page says it saved", lambda r: r["save3State"].update(latency="存回 成功"), None),
+    ("6 the second marker insert failed", lambda r: r["inserted2"].update(latency="插入 失敗"), None),
     ("6 the lock was lost", lambda r: r["lockAfterSave"].update(token=None), None),
+    ("6 the original is not F after the third save", lambda r: r["serverAfter"].update(sha256=_s(r, 2)), None),
     ("6 the wire PUT lacks If", lambda r: [x.update({"if": None}) for x in r["davRequests"] if x["method"] == "PUT"], C),
-    ("7 the refused save made a version", lambda r: r["L4"]["entries"].append({"revision": 9, "current": False, "sha256": "z"}), None),
+    ("7 the refused save made a row", lambda r: _each(r, ("L4", "L5"), _extra("z")), None),
+    ("7 the refused save moved the mtime", lambda r: _each(r, ("L4", "L5"), lambda l: l.update(mtime=l["mtime"] + 1)), None),
     ("7 the copy has a history", lambda r: r["copyListings"][0]["entries"].insert(0, {"revision": 1, "current": False, "sha256": "w"}), None),
     ("8 not released on leaving", lambda r: r["release"].update(released=False), None),
-    ("8 leaving made a version", lambda r: r["L5"]["entries"].append({"revision": 9, "current": False, "sha256": "v"}), None),
-    ("total the second save is gone", lambda r: [e.update(sha256="gone") for e in r["L5"]["entries"] if e.get("sha256") == r["host"]["saves"][1]["sha256"]], None),
+    ("8 leaving made a row", lambda r: _extra("v")(r["L5"]), None),
+    ("8 leaving moved the mtime", lambda r: r["L5"].update(mtime=r["L5"]["mtime"] + 1), None),
+    ("total the original is not F at the end", lambda r: r["serverAtEnd"].update(sha256=_s(r, 0)), None),
 ]
 
 
@@ -341,9 +408,12 @@ def red_cases(path: Path) -> int:
             red = bool(score_run(mutated, report))
             failures += not red
             print(f"  {'red ' if red else 'GREEN'}  {label} [{browser}]")
+    # A shakedown is not bound (no testStatic, maybe not the host commit), so its strict score
+    # already has problems: the case is red only if the mutation adds a page problem of its own.
     static = copy.deepcopy(report)
     static["static"]["page"]["dist"] = "0" * 64
-    red = bool(score(static, strict=True)["problems"])
+    added = [p for p in score(static, strict=True)["problems"] if p not in score(report, strict=True)["problems"]]
+    red = any(p.startswith("page ") for p in added)
     failures += not red
     print(f"  {'red ' if red else 'GREEN'}  static: the served page is not the spec's")
     return failures

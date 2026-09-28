@@ -5,7 +5,7 @@
 | **狀態** | 已確認（HTTP 實測 2/2，第二次附讀回）／上游未回報（送出擱置中） |
 | **上游** | nextcloud/files_lock（GitHub）；送出管道要先查安全政策，見下 |
 | **發現日** | 2026-09-28 |
-| **嚴重度** | 一般（鎖的保證對「照規矩來的用戶端」才成立；對方本來就有寫入權，所以不是越權；我們的宿主不掉資料，因為寫入一律帶 `If-Match`） |
+| **嚴重度** | 一般（鎖的保證對「照規矩來的用戶端」才成立；對方本來就有寫入權，所以不是越權；~~我們的宿主不掉資料，因為寫入一律帶 `If-Match`~~ 寫穿換了 ETag 時宿主不掉資料；與宿主手上 ETag 所屬的寫入同一秒的寫穿例外（2026-09-28 修訂，[103](103-nextcloud-a-second-write-in-the-same-second-keeps-the-etag-so-if-match-lets-an-overwrite-through.md)）） |
 | **可重現** | 2/2（`probe_m3_lock_semantics.py --only L7`） |
 | **是否上游** | 是：NC 34.0.2 tarball 內附、預設啟用的 files_lock 34.0.1，零設定 |
 

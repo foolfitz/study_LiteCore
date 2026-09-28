@@ -16,13 +16,19 @@ version Nextcloud keeps (revision, size, sha256 of its bytes, author, label):
       versions/<user>/restore/target, no lock token) while our token lock is held.
       Then the host's next save (old If-Match, token): refused? version added?
   V4  the same restore by a share recipient with write permission.
-  V5  control for V3/V4: the recipient holds a *user* lock; the owner's restore.
+  V5  control for V3/V4: the recipient holds a *user* lock; the owner's restore of an older
+      version whose bytes differ from the current ones (the first two runs restored the
+      row V4 had already restored, i.e. the current bytes onto themselves).
       files_lock's storage wrapper refuses writes under user and app locks and
       never looks at token locks (LockWrapper::isFileLocked), so a refusal here
       and none in V3/V4 would put the difference on the lock type.
   V6  a conflict copy (PUT If-None-Match: *): its own history, and the original's.
-  V7  (added after the first run's V2) someone else's same-size write in the same second
-      as ours: does our later PUT with our If-Match get 412, or overwrite it?
+  V7  (added after the first run's V2) someone else's write in the same second as ours:
+      does our later PUT with our If-Match get 412, or overwrite it?
+  V8  (added after the review) two writes in the same second, then a restore of an older
+      version: Storage::rollback keeps the pre-restore content only when no .v<mtime> file
+      exists, and after a same-second pair one does. Is the second write kept anywhere?
+      Control: the same with the two writes a second and a half apart.
 
 A second user `lcprobe` is created for the run and deleted at the end, with every
 file and the one share the probe made.
@@ -76,7 +82,13 @@ class VClient(Client):
         request.add_header("Authorization", self.auth)
         try:
             with urllib.request.urlopen(request, context=self.tls, timeout=60) as response:
-                status, got, data = response.status, response.headers, response.read()
+                status, got = response.status, response.headers
+                try:
+                    data = response.read()
+                except http.client.IncompleteRead as error:
+                    # Content-Length promised more than came (seen on a version GET after V8's restore)
+                    data = error.partial
+                    status = f"{status} incomplete: {len(data)} of {len(data) + (error.expected or 0)} bytes"
         except urllib.error.HTTPError as error:
             status, got, data = error.code, error.headers, error.read()
         except (http.client.RemoteDisconnected, ConnectionError, urllib.error.URLError) as error:
@@ -293,7 +305,9 @@ def main() -> int:
 
             if want("V5"):
                 history = admin.versions("V5 before", fid)
-                oldest = history[0]["revision"] if isinstance(history, list) and history else None
+                current = admin.content("V5 current", name)
+                oldest = next((v["revision"] for v in history if isinstance(history, list)
+                               and len(v["sha256"]) == 64 and v["sha256"] != current), None)
                 user_lock, _ = other.raw("V5 recipient user lock", "LOCK", other.dav_path(target), None,
                                          {"X-User-Lock": "1"})
                 before = admin.file("V5 before restore", name)
@@ -323,8 +337,8 @@ def main() -> int:
             facts["V6"] = {"copyStatus": entry["status"], "copyVersions": admin.versions("V6 copy", copied["fileid"]),
                            "originalBefore": original_before, "originalAfter": admin.versions("V6 original after", fid)}
         # V7: does If-Match catch someone else's write that lands in the same second with the same size?
-        # Local storage's ETag is md5(mtime . ino . dev . size) (Local::calculateEtag), and V2 saw two
-        # different same-size bodies written in one second share an ETag. The server-side stat is read
+        # V2 saw two different bodies written in one second share an ETag. The cache keeps the old
+        # ETag while storage_mtime (seconds) is unchanged (Scanner.php:174-183). The server-side stat is read
         # so the ETag's inputs are measured, not inferred. Control: the other write one byte longer.
         if want("V7"):
             name = f"V7-ifmatch-{stamp}.odt"
@@ -367,6 +381,29 @@ def main() -> int:
                 "lastTrialTheirsSha256": last["theirs"]["sha256"],
                 "stillInHistory": isinstance(history, list)
                 and any(v["sha256"] == last["theirs"]["sha256"] for v in history)}
+        # V8: a same-second pair, then a restore of the oldest version; control: the pair 1.5 s apart
+        if want("V8"):
+            rows = []
+            for n, gap in enumerate((0.0, 0.0, 0.0, 1.5, 1.5)):
+                name = f"V8 還原 同秒 {n} {stamp}.odt"
+                fid = upload(name)["fileid"]
+                time.sleep(2.5)
+                first = put(f"V8 {n} first", name, body(f"V8 {n} first"))
+                time.sleep(gap)
+                second = put(f"V8 {n} second", name, body(f"V8 {n} second"))
+                before = admin.file(f"V8 {n} before restore", name)
+                history = admin.versions(f"V8 {n} before restore", fid)
+                oldest = history[0]["revision"] if isinstance(history, list) and history else None
+                restored = admin.restore(f"V8 {n} restore oldest", fid, oldest) if oldest else None
+                after_sha = admin.content(f"V8 {n} after restore", name)
+                after = admin.versions(f"V8 {n} after restore", fid)
+                shas = [v["sha256"] for v in after] if isinstance(after, list) else []
+                rows.append({"gap": gap, "first": first, "second": second, "sameEtag": first["etag"] == second["etag"],
+                             "before": before, "versionsBefore": history, "restoredRevision": oldest,
+                             "restoreStatus": restored and restored["status"], "currentSha256AfterRestore": after_sha,
+                             "versionsAfterRestore": after, "secondInFile": after_sha == second["sha256"],
+                             "secondInHistory": second["sha256"] in shas, "firstInHistory": first["sha256"] in shas})
+            facts["V8"] = rows
     finally:
         for share_id in shares:
             admin.call("cleanup", "DELETE", f"/ocs/v2.php/apps/files_sharing/api/v1/shares/{share_id}")
