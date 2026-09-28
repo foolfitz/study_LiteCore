@@ -15,6 +15,20 @@ Arms, each in a fresh browser, the server file reset to the original first:
                               Ctrl+S: the second write must chain on the first's version.
   conflict also waits 5 s (the view must not be reloaded) and presses save again;
                               both saves must be refused and both land as conflict copies.
+  Every arm ends by going back to Files (so the page releases its token lock
+                              at leaving) and polls the server's lock for 10 s
+                              -- recorded, not scored.  A lock still there when
+                              the next arm resets is recorded and cleared.
+  conflict's intruder is admin -- the page's own user -- writing with its
+                              own lock token from another client: since the
+                              host locks (49cc4ab) a PUT without the token is
+                              423 and no conflict could be made.  Same
+                              principal + its token is a legitimate write (RFC
+                              4918 §6.4), not finding 102 (another user).  The
+                              arm is pinned to the branch it claims: intruder
+                              2xx with a token, each save one PUT (412, token),
+                              the token still on the server
+                              (SPEC-M3-install-elsewhere §3.4, fable's ruling).
   broken, broken-no-save      (1 each, Chrome) `liteCoreHost` forced to `{}` / to
                               a host without save() before any page script runs
                               (CDP addScriptToEvaluateOnNewDocument; the Firefox
@@ -38,6 +52,7 @@ import html
 import io
 import json
 import re
+import subprocess
 import sys
 import tempfile
 import time
@@ -166,6 +181,53 @@ def conflict_copies(instance: Instance, remove: bool) -> list[dict[str, Any]]:
     return found
 
 
+LOCK_PROPS = (b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns"'
+              b' xmlns:oc="http://owncloud.org/ns"><d:prop><nc:lock/><d:lockdiscovery/><oc:fileid/></d:prop></d:propfind>')
+
+
+def dav_answer(instance: Instance, method: str, name: str, body: bytes | None = None,
+               headers: dict[str, str] | None = None) -> tuple[int, bytes]:
+    """instance.dav, but a refusal is an answer, not an exception."""
+    try:
+        return instance.dav(method, name, body, headers)
+    except urllib.error.HTTPError as error:
+        return error.code, error.read()
+
+
+def server_lock(instance: Instance) -> dict[str, Any]:
+    """The server's lock on the document: nc:lock, and the token lockdiscovery
+    shows to anyone who can read the file (finding 102)."""
+    status, answer = dav_answer(instance, "PROPFIND", NAME, LOCK_PROPS,
+                                {"Depth": "0", "Content-Type": "application/xml"})
+    text = answer.decode("utf-8", "replace")
+    lock = re.search(r"<nc:lock>([^<]*)</nc:lock>", text)
+    token = re.search(r"<d:locktoken>\s*<d:href>([^<]+)</d:href>", text)
+    fileid = re.search(r"<oc:fileid>(\d+)</oc:fileid>", text)
+    return {"status": status, "lock": lock.group(1) if lock else None,
+            "token": token.group(1).strip() if token else None,
+            "fileId": int(fileid.group(1)) if fileid else None}
+
+
+def clear_lock(instance: Instance, fileid: int) -> str:
+    """What check_m3_locks' clear_locks does, for this one file."""
+    done = subprocess.run(["ddev", "mysql", "-e", f"DELETE FROM oc_files_lock WHERE file_id = {int(fileid)};"
+                           " SELECT ROW_COUNT();"], cwd=instance.root, capture_output=True, text=True, timeout=60)
+    return (done.stdout.strip().splitlines() or ["?"])[-1]
+
+
+def leave_and_watch(session, instance: Instance) -> list[dict[str, Any]]:
+    """Back to Files, then the server's lock for up to 10 s (as assets' K2-5)."""
+    left = time.monotonic()
+    navigate(session, instance.base + FILES, timeout=120)
+    polls = []
+    while True:
+        lock = server_lock(instance)
+        polls.append({"t": round(time.monotonic() - left, 2), "lock": lock["lock"], "status": lock["status"]})
+        if lock["lock"] != "1" or time.monotonic() - left >= 10:
+            return polls
+        time.sleep(0.5)
+
+
 def requests_matching(events: list[dict[str, Any]], needle: str) -> list[dict[str, Any]]:
     return [{"method": e["params"]["request"]["method"], "url": e["params"]["request"]["url"]}
             for e in events if e["method"] == "Network.requestWillBeSent"
@@ -208,6 +270,9 @@ def saves_reached(session, count: int, timeout: float = 180) -> Any:
 
 def run_arm(arm: str, kind: str, instance: Instance, scratch: Path, intruder: bytes) -> dict[str, Any]:
     record: dict[str, Any] = {"arm": arm, "browser": kind}
+    record["lockAtReset"] = server_lock(instance)
+    if record["lockAtReset"]["lock"] == "1" and record["lockAtReset"]["fileId"]:
+        record["staleLockCleared"] = clear_lock(instance, record["lockAtReset"]["fileId"])
     record["reset"] = instance.upload(FIXTURE, NAME)
     record["copiesBefore"] = conflict_copies(instance, remove=True)
     record["serverBefore"] = server_file(instance)
@@ -237,9 +302,15 @@ def run_arm(arm: str, kind: str, instance: Instance, scratch: Path, intruder: by
                                 or "失敗" in (s.get("latency") or ""), 120)
             record["smoke"] = {"before": caret_before, "caret": caret, "acted": acted}
             if arm == "conflict":
-                status, _ = instance.dav("PUT", NAME, intruder,
-                                         {"Content-Type": "application/vnd.oasis.opendocument.text"})
-                record["intruded"] = {"status": status, "server": server_file(instance)}
+                # With the page's token: the lock refuses a PUT without it (423).
+                held = server_lock(instance)
+                token = held.get("token") or ""
+                if token and not token.startswith("opaquelocktoken:"):
+                    token = "opaquelocktoken:" + token
+                status, _ = dav_answer(instance, "PUT", NAME, intruder, {
+                    "Content-Type": "application/vnd.oasis.opendocument.text",
+                    **({"If": f"(<{token}>)"} if token else {})})
+                record["intruded"] = {"status": status, "lock": held, "server": server_file(instance)}
             # First save: the button.
             evaluate(session, PRESS.replace("ARG_ACTION", "save"))
             record["firstSaveSeen"] = saves_reached(session, 1)
@@ -273,6 +344,10 @@ def run_arm(arm: str, kind: str, instance: Instance, scratch: Path, intruder: by
     except Exception:  # noqa: BLE001 -- a run that dies is recorded, not lost
         record["fatal"] = traceback.format_exc()
     finally:
+        try:
+            record["leave"] = leave_and_watch(session, instance)
+        except Exception as error:  # noqa: BLE001 -- recorded, not scored
+            record["leave"] = f"{type(error).__name__}: {error}"
         session.close()
     return record
 
@@ -354,6 +429,19 @@ def h2(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
 
 def h3(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
     bad = smoke_ok(run)
+    if (report.get("intruder") or {}).get("mode") == "lock-token":
+        # The arm measures the live-lock branch; a refused intruder or a lock
+        # that died must not pass as H3 (fable's ruling, condition 3).
+        intruded = run.get("intruded") or {}
+        if not isinstance(intruded.get("status"), int) or not 200 <= intruded["status"] < 300:
+            bad.append(f"intruder {intruded.get('status')}: no conflict was made")
+        if not (intruded.get("lock") or {}).get("token"):
+            bad.append("intruder: the page held no lock token to write with")
+        for index, save in enumerate((run.get("host") or {}).get("saves") or []):
+            attempts = [(a.get("status"), a.get("withToken")) for a in save.get("attempts") or []]
+            if attempts != [(412, True)] or save.get("tokenOnServer") is not True:
+                bad.append(f"save {index + 1}: attempts {attempts}, tokenOnServer {save.get('tokenOnServer')!r}"
+                           " -- not the live-lock branch")
     saves = (run.get("host") or {}).get("saves") or []
     after = run.get("serverAfter") or {}
     for key in ("saved", "savedAgain"):
@@ -404,6 +492,8 @@ def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
         problems.append(f"served shell is not a frozen generation: {(report.get('shell') or {}).get('differsFromManifest')}")
     if (report.get("instance") or {}).get("app", {}).get("dirty"):
         problems.append("app tree dirty")
+    if "lockAtEnd" in report and (report.get("intruder") or {}).get("mode") != "lock-token":
+        problems.append("a report from the locking-host runner without the intruder's mode")
     per: dict[str, Any] = {}
     for kind, arms in (report.get("browsers") or {}).items():
         cells: dict[str, Any] = {}
@@ -458,6 +548,9 @@ RED_CASES = [
     ("H3-view-reloaded", lambda r: _first(r, "chrome", "conflict")["afterWait"].update(revision="0")),
     ("H3-second-press-overwrote", lambda r: _first(r, "firefox", "conflict")["host"]["saves"][1].update(status=204)),
     ("H3-edits-lost", lambda r: _first(r, "chrome", "conflict").update(copiesAfter=[])),
+    ("H3-intruder-refused", lambda r: _first(r, "firefox", "conflict")["intruded"].update(status=423)),
+    ("H3-lock-died", lambda r: _first(r, "chrome", "conflict")["host"]["saves"][0]["attempts"].append(
+        {"status": 412, "withToken": False})),
     ("H5-opened-anyway", lambda r: _first(r, "chrome", "broken")["final"].update(state="ready", doc="list-contexts.odt")),
     ("H5-sample-fetched", lambda r: _first(r, "chrome", "broken")["fixtureRequests"].append({"method": "GET", "url": "x/e1-fixtures/list-contexts.odt"})),
     ("H5-no-save-accepted", lambda r: _first(r, "chrome", "broken-no-save")["final"].update(state="ready")),
@@ -466,12 +559,18 @@ RED_CASES = [
 ]
 
 
+LOCK_TOKEN_CASES = {"H3-intruder-refused", "H3-lock-died"}
+
+
 def red_cases(path: Path) -> int:
     base = json.loads(path.read_text())
     baseline = score(base, strict=False)
     print(("GREEN" if baseline["lands"] else "RED  ") + " base " + one_line(baseline))
     ok = baseline["lands"]
     for name, mutate in RED_CASES:
+        if name in LOCK_TOKEN_CASES and (base.get("intruder") or {}).get("mode") != "lock-token":
+            print(f"SKIP  {name:24} the report predates the token intruder; its H3 is not pinned")
+            continue
         mutated = copy.deepcopy(base)
         mutate(mutated)
         result = score(mutated, strict=False)
@@ -516,7 +615,8 @@ def main() -> int:
         "original": {"source": str(FIXTURE.relative_to(DIST)), "sha256": sha256_file(FIXTURE),
                      "heading": has_heading(FIXTURE.read_bytes()),
                      "texts": paragraph_texts(FIXTURE.read_bytes())},
-        "intruder": {"source": str(SAMPLE.relative_to(DIST)), "sha256": sha256_file(SAMPLE)},
+        "intruder": {"source": str(SAMPLE.relative_to(DIST)), "sha256": sha256_file(SAMPLE),
+                     "mode": "lock-token", "principal": "admin, the page's own user"},
         "browsers": {},
     }
     if args.label == "counted" and (report["instance"]["app"]["dirty"]
@@ -542,6 +642,9 @@ def main() -> int:
                 if kind == "chrome" and arm in wanted:
                     arms[arm] = [run_arm(arm, kind, instance, Path(scratch) / f"chrome-{arm}", intruder)]
             report["browsers"][kind] = arms
+    report["lockAtEnd"] = server_lock(instance)
+    if report["lockAtEnd"]["lock"] == "1" and report["lockAtEnd"]["fileId"]:
+        report["lockAtEnd"]["cleared"] = clear_lock(instance, report["lockAtEnd"]["fileId"])
     instance.upload(FIXTURE, NAME)   # leave the file as the runner found it
     conflict_copies(instance, remove=True)
     report["completedAt"] = utc_now()

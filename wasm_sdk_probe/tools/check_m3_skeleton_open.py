@@ -57,6 +57,59 @@ ROUTE = "/e2-editor.html"
 FILES = "/apps/files/files?dir=/"
 ACTION = "set-paragraph-heading"
 BROWSERS = {"chrome", "firefox"}
+# SPEC-M3-install-elsewhere: any instance but the dev one has the app from the
+# release archive, and is bound to it file by file through this record.
+RELEASE_RECORD = REPO / "findings" / "evidence" / "m3-install" / "release.json"
+HOST_FILES = ("js/litecore-editor.js", "lib/Controller/EditorController.php", "templates/editor.php")
+
+
+def installed_app(root: Path) -> Path | None:
+    """Where the app lives on the instance at `root`: None on the dev instance
+    (the host repo itself, nc-linked in); elsewhere, the directory the release
+    archive was unpacked into (SPEC-M3-install-elsewhere §3.2)."""
+    if root.resolve() == DEFAULT_DDEV.resolve():
+        return None
+    return root / "nextcloud" / "apps-extra" / "litecore"
+
+
+def tree_listing(app: Path) -> tuple[dict[str, str], list[str]]:
+    """Every regular file under `app` with its sha256, and every symlink."""
+    files, links = {}, []
+    for path in sorted(app.rglob("*")):
+        name = path.relative_to(app).as_posix()
+        if path.is_symlink():
+            links.append(name)
+        elif path.is_file():
+            files[name] = sha256_file(path)
+    return files, links
+
+
+def host_binding(root: Path) -> dict[str, Any]:
+    """hostRepo / hostDirty / hostFiles as the counted runners record them.
+    Dev instance: the host repo (git), as before.  Anywhere else: the installed
+    tree against the release record in both directions; hostRepo is the
+    record's commit only when nothing differs, and hostDirty names every
+    difference -- so the runners' "dirty refuses a counted run" still holds."""
+    app = installed_app(root)
+    if app is None:
+        git = lambda *a: subprocess.run(["git", *a], cwd=DEFAULT_DDEV, capture_output=True,  # noqa: E731
+                                        text=True).stdout.strip()
+        return {"hostRepo": git("log", "-1", "--format=%H %s"), "hostDirty": git("status", "--short"),
+                "hostFiles": {n: sha256_file(DEFAULT_DDEV / n) for n in HOST_FILES},
+                "appDir": str(DEFAULT_DDEV), "sourceRepo": str(DEFAULT_DDEV)}
+    release = json.loads(RELEASE_RECORD.read_text())
+    members = release["members"]
+    files, links = tree_listing(app) if app.is_dir() else ({}, [])
+    differ = ["the app directory itself is a symlink"] if app.is_symlink() else []
+    differ += [f"symlink {n}" for n in links]
+    differ += [f"missing {n}" for n in sorted(set(members) - set(files))]
+    differ += [f"extra {n}" for n in sorted(set(files) - set(members))]
+    differ += [f"changed {n}" for n in sorted(set(files) & set(members)) if files[n] != members[n]]
+    return {"hostRepo": "" if differ else f"{release['commit']} {release['subject']}",
+            "hostDirty": "\n".join(differ) if app.is_dir() else f"no app at {app}",
+            "hostFiles": {n: files[n] for n in HOST_FILES if n in files},
+            "appDir": str(app), "sourceRepo": release["sourceRepo"],
+            "release": {"archiveSha256": release["archive"]["sha256"], "members": len(members)}}
 
 
 class Instance:
@@ -95,20 +148,25 @@ class Instance:
 
     def describe(self) -> dict[str, Any]:
         occ = lambda *a: self._run(["ddev", "occ", *a])  # noqa: E731
+        described = {"baseUrl": self.base, "webserver": self.webserver,
+                     "nextcloud": json.loads(occ("status", "--output=json")),
+                     "debug": occ("config:system:get", "debug").strip()}
+        if installed_app(self.root) is not None:
+            binding = host_binding(self.root)
+            return {**described, "app": {
+                "repo": binding["appDir"], "commit": binding["hostRepo"].split(" ")[0],
+                "dirty": binding["hostDirty"].splitlines(), "release": binding["release"],
+                "files": tree_listing(Path(binding["appDir"]))[0] if Path(binding["appDir"]).is_dir() else {}}}
         files = {}
         for name in self._run(["git", "ls-files"]).split("\n"):
             path = self.root / name
             if name and path.is_file() and not path.is_symlink():
                 files[name] = sha256_file(path)
-        return {
-            "baseUrl": self.base, "webserver": self.webserver,
-            "nextcloud": json.loads(occ("status", "--output=json")),
-            "debug": occ("config:system:get", "debug").strip(),
-            "app": {"repo": str(self.root),
-                    "commit": self._run(["git", "rev-parse", "HEAD"]).strip(),
-                    "dirty": self._run(["git", "status", "--porcelain"]).strip().splitlines(),
-                    "files": files},
-        }
+        return {**described,
+                "app": {"repo": str(self.root),
+                        "commit": self._run(["git", "rev-parse", "HEAD"]).strip(),
+                        "dirty": self._run(["git", "status", "--porcelain"]).strip().splitlines(),
+                        "files": files}}
 
 
 def product_state(session) -> dict[str, Any]:

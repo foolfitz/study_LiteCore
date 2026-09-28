@@ -48,7 +48,8 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check_m3_skeleton_open import (  # noqa: E402
-    ACTION, DEFAULT_DDEV, FILES, FIXTURE, NAME, Instance, product_state, state_until)
+    ACTION, DEFAULT_DDEV, FILES, FIXTURE, NAME, Instance, host_binding, installed_app, product_state,
+    state_until)
 from package_m3_engine import MAX_GZ_BYTES, build_id  # noqa: E402
 from probe_m3_assets import AccessLog, closure  # noqa: E402
 from probe_m3_gate0_coep import (  # noqa: E402
@@ -91,7 +92,11 @@ def strip_front(path: str) -> str:
 # K0
 
 
-def package_record(app: Path) -> dict[str, Any]:
+def package_record(app: Path, repo: Path | None = None, rev: str | None = None) -> dict[str, Any]:
+    """K0 from the app's directory.  The git clauses (K0-4's tracked half, K0-6)
+    read `repo` -- the app's directory on the dev instance; on another instance
+    the host repo at the commit the release archive was built from."""
+    repo = repo or app
     manifest = json.loads((app / "engine" / "MANIFEST.json").read_text())
     derived = closure(DIST)
     files = {}
@@ -104,9 +109,10 @@ def package_record(app: Path) -> dict[str, Any]:
             decoded = f"undecodable: {error}"
         files[path] = {"gzSha256": hashlib.sha256(body).hexdigest(), "decodedSha256": decoded,
                        "distSha256": sha256_file(DIST / path) if (DIST / path).is_file() else None}
-    tracked = subprocess.run(["git", "ls-files"], cwd=app, capture_output=True, text=True).stdout.split("\n")
-    git_time = lambda *a: subprocess.run(["git", "log", "-1", "--format=%ct", *a], cwd=app,  # noqa: E731
-                                         capture_output=True, text=True).stdout.strip()
+    tracked = subprocess.run(["git", "ls-files"] if rev is None else ["git", "ls-tree", "-r", "--name-only", rev],
+                             cwd=repo, capture_output=True, text=True).stdout.split("\n")
+    git_time = lambda *a: subprocess.run(["git", "log", "-1", "--format=%ct", *([rev] if rev else []), *a],  # noqa: E731
+                                         cwd=repo, capture_output=True, text=True).stdout.strip()
     return {"manifest": manifest,
             "noCacheFetches": no_cache_fetches(DIST, list(manifest.get("files", {}))),
             # K0-6: Nextcloud serves the host scripts as ?v=<md5(app version)>, immutable.
@@ -683,6 +689,8 @@ def red_cases(path: Path) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--label", choices=("shakedown", "counted"))
+    parser.add_argument("--ddev-root", type=Path, default=DEFAULT_DDEV,
+                        help="another instance: the app installed from the release archive (SPEC-M3-install-elsewhere)")
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--repeats", type=int, default=None, help="shakedown only")
     parser.add_argument("--score", type=Path)
@@ -703,29 +711,29 @@ def main() -> int:
     if counted and static["page"] != {"dist": PAGE_SHA256, "web": PAGE_SHA256}:
         print(f"refusing a counted run: page is {static['page']}, spec wants {PAGE_SHA256[:12]}…")
         return 2
-    dirty = subprocess.run(["git", "status", "--short"], cwd=DEFAULT_DDEV, capture_output=True, text=True).stdout.strip()
+    binding = host_binding(args.ddev_root)
+    dirty = binding["hostDirty"]
     if counted and dirty:
         print(f"refusing a counted run: the host repo has uncommitted changes:\n{dirty}")
         return 2
     if counted:
         static["testStatic"] = subprocess.run(["make", "-C", str(PROJECT), "test-e2-c-static"],
                                               capture_output=True, text=True).returncode
-    instance = Instance(DEFAULT_DDEV)
+    instance = Instance(args.ddev_root)
     report: dict[str, Any] = {
         "runner": "check_m3_assets.py", "runnerSha256": sha256_file(Path(__file__)), "label": args.label,
         "startedAt": utc_now(), "static": static,
-        "hostRepo": subprocess.run(["git", "log", "-1", "--format=%H %s"], cwd=DEFAULT_DDEV,
-                                   capture_output=True, text=True).stdout.strip(),
-        "hostDirty": dirty,
-        "hostFiles": {name: sha256_file(DEFAULT_DDEV / name) for name in (
-            "js/litecore-editor.js", "lib/Controller/EditorController.php", "templates/editor.php")},
+        "hostRepo": binding["hostRepo"], "hostDirty": dirty, "hostFiles": binding["hostFiles"],
+        "hostBinding": {k: v for k, v in binding.items() if k not in ("hostRepo", "hostDirty", "hostFiles")},
         "instance": instance.describe(),
         "runs": [],
     }
     out = EVIDENCE / ("runs" if counted else "shakedown") / f"{report['startedAt'].replace(':', '')}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     try:
-        report["package"] = package_record(DEFAULT_DDEV)
+        report["package"] = (package_record(DEFAULT_DDEV) if installed_app(args.ddev_root) is None
+                             else package_record(Path(binding["appDir"]), Path(binding["sourceRepo"]),
+                                                 binding["hostRepo"].split(" ")[0] or "HEAD"))
         uploaded = instance.upload(FIXTURE, NAME)
         report["wire"] = wire_record(instance, report["package"]["manifest"], uploaded["fileId"])
         out.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n")

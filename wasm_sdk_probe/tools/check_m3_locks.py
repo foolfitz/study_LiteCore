@@ -40,7 +40,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check_m3_host_entry import CTRL_S, MARKER, PICKERS, host_record, requests_matching  # noqa: E402
 from check_m3_skeleton_open import (  # noqa: E402
-    ACTION, DEFAULT_DDEV, FIXTURE, NAME, ROUTE, SAMPLE, Instance, product_state, state_until)
+    ACTION, DEFAULT_DDEV, FIXTURE, NAME, ROUTE, SAMPLE, Instance, host_binding, product_state, state_until)
 from probe_m3_gate0_coep import (  # noqa: E402
     DIST, EventChrome, firefox_profile, sha256_file, summarize_cdp, utc_now, wait_until)
 from probe_m3_lock_semantics import Client  # noqa: E402
@@ -1062,6 +1062,8 @@ def red_cases(path: Path) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--label", choices=("shakedown", "counted"))
+    parser.add_argument("--ddev-root", type=Path, default=DEFAULT_DDEV,
+                        help="another instance: the app installed from the release archive (SPEC-M3-install-elsewhere)")
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--repeats", type=int, default=None, help="shakedown only")
     parser.add_argument("--arms", default=",".join(PLAN), help="shakedown only: a counted run runs the plan")
@@ -1084,25 +1086,23 @@ def main() -> int:
         if counted:
             print(f"refusing a counted run: page is {static['page']}, spec wants {PAGE_SHA256[:12]}…")
             return 2
-    dirty = subprocess.run(["git", "status", "--short"], cwd=DEFAULT_DDEV, capture_output=True, text=True).stdout.strip()
+    binding = host_binding(args.ddev_root)
+    dirty = binding["hostDirty"]
     if counted and dirty:
         print(f"refusing a counted run: the host repo has uncommitted changes:\n{dirty}")
         return 2
     if counted:
         static["testStatic"] = subprocess.run(["make", "-C", str(PROJECT), "test-e2-c-static"],
                                               capture_output=True, text=True).returncode
-    instance = Instance(DEFAULT_DDEV)
+    instance = Instance(args.ddev_root)
     log: list[dict[str, Any]] = []
     server = Server(instance, log)
     report: dict[str, Any] = {
         "runner": "check_m3_locks.py", "runnerSha256": sha256_file(Path(__file__)), "label": args.label,
         "startedAt": utc_now(), "static": static,
-        "hostRepo": subprocess.run(["git", "log", "-1", "--format=%H %s"], cwd=DEFAULT_DDEV,
-                                   capture_output=True, text=True).stdout.strip(),
-        "hostDirty": subprocess.run(["git", "status", "--short"], cwd=DEFAULT_DDEV,
-                                    capture_output=True, text=True).stdout.strip(),
-        "hostFiles": {name: sha256_file(DEFAULT_DDEV / name) for name in (
-            "js/litecore-editor.js", "lib/Controller/EditorController.php", "templates/editor.php")},
+        "hostRepo": binding["hostRepo"], "hostDirty": dirty, "hostFiles": binding["hostFiles"],
+        "hostBinding": {k: v for k, v in binding.items() if k not in ("hostRepo", "hostDirty", "hostFiles")},
+        "baseUrl": instance.base,
         "original": {"source": str(FIXTURE.relative_to(DIST)), "sha256": sha256_file(FIXTURE)},
         "intruder": {"source": str(SAMPLE.relative_to(DIST)), "sha256": sha256_file(SAMPLE)},
         "runs": [],
