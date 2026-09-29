@@ -530,7 +530,25 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # time end to end.  A host of the wrong shape is refused, not ignored.  Without
 # a host nothing changes: the product-path net on v8 and v14 is cell for cell
 # the same as on v52.  Still pins `e2-editor-v8`; no engine change, no link.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v53.json")
+#
+# v54, 2026-09-29: M3 page honesty (specs/SPEC-M3-page-honesty.md), two files.
+#
+#   * `editor-shell-v2/narrow-editor-v2-session.js` -- setViewOnly() refuses
+#     every mutation before it is queued (EDITOR_VIEW_ONLY), actionMutates()
+#     is fail-closed, and hasUnsavedEdits() is dirty OR pending, never a
+#     revision (099's lesson: revisions restart with every Worker).
+#   * `web/e2-editor-app.js` -- a read-only file opens view-only; edits nobody
+#     has handed over (hasUnsavedEdits, or a save not yet ended) are asked about
+#     on leaving, through the host's watchUnsaved() when there is a host
+#     (finding 107); held Ctrl+S saves once, not per key repeat (finding 106);
+#     hasUnsavedWork() is fail-closed with no session (review BLOCKING 2).
+#
+# NOT frozen in the same commit as the change (finding 091's rule): the page
+# changed in 500eb39a and again in b61e9fd9, and the round's shakedowns kept
+# forcing changes; frozen once they stopped (all six M3 runners clean on page
+# fc80050c and host 0.2.4, b954857d).  Still pins `e2-editor-v8`; no engine
+# change, no link.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v54.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

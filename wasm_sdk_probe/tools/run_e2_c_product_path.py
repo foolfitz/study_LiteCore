@@ -261,8 +261,11 @@ READ_TOASTS = "(() => (window.__pp ? window.__pp.toasts.slice() : null))()"
 # a static test can ask whether it still matches the page in dist/.  The runner
 # refuses to patch blindly when it does not -- but only for somebody who runs
 # the diagnostic, and `cut-swallows-its-failure` died exactly that way.
+# 2026-09-29: the page's catch now opens with the view-only branch (M3 page
+# honesty, 500eb39a), so the anchor is the catch and that branch's first line;
+# the mirror records every rejection there, the view-only one included.
 BARRIER_DETAILS_ANCHOR = ("  } catch (error) {\n"
-                          "    el.s.latency.textContent = `${label} 失敗`;\n")
+                          "    // Refused by the view-only gate: nothing was attempted, so nothing failed.\n")
 
 # THE WORKER'S OWN NARROWING, and it is where the answer to finding 082 went.
 #
