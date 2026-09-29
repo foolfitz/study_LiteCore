@@ -113,3 +113,44 @@ Registered, not gated (R2, counted report):
   ~7 predicted before running; the restore pair shared a second in all six. The misclassified
   pairs under a send-phase rule are all PUTs sent at >= .965 of a second whose write landed in the
   next one (the server stamps the mtime ~30 ms after the send).
+
+## Condition 7: the four earlier counted runners, re-run on 0.2.2 (2026-09-29)
+
+Dev instance, host `695d9ad` (0.2.2) clean, page `fbfb59a4…`; each runner unchanged except the
+one binding written down before the run (`check_m3_versions.HOST_COMMIT` 5e53362 -> 695d9ad,
+commit `b1b46ef7`; spec §3). Run one after another by a script (each runner clears the whole lock
+table), each followed by its own `--red-cases` on the counted report. No ddev container was
+created from 03:58Z to 05:07Z (newest: 2026-09-28 14:33Z).
+
+| runner | report | verdict | red cases |
+| --- | --- | --- | --- |
+| locks | `../m3-locks/runs/2026-09-29T040942+0000.json` (04:09–04:55Z) | `LOCKS LAND`, all 22 cells, 52/52 | 87, all red (same count as before) |
+| versions R1 | `../m3-versions/runs/2026-09-29T045548+0000.json` (04:55–04:59Z) | `VERSIONS CORRECT` 3/3 + 3/3 | 68, all red (same) |
+| assets | `../m3-assets/runs/2026-09-29T045936+0000.json` (04:59–05:02Z) | `ASSETS DELIVERED` 3/3 + 3/3 | 84, all red (same) |
+| host entry | `../m3-host-entry/runs/2026-09-29T050202Z.json` (05:02–05:07Z) | `HOST_ENTRY LANDS` (open-save 3/3 + 3/3, conflict 3/3 + 3/3, broken 1/1, broken-no-save 1/1) | 23, all red (its "GREEN base" line is the unmutated report landing) |
+
+**No expectation was amended.** Fable's F2 caveat (a wait or an extra GET might break shapes such
+as one attempt per save, or the second save chaining on the first's version) did not bite: the
+read-back is recorded inside the attempt, the nets count only PUTs, and a pair of saves in these
+nets is never within 1.1 s of each other's answer except on the retry paths (expired /
+broken-then-written), which kept their shapes with about a second more of waiting. The one
+place 0.2.2 behaves differently from 0.2.1 by design -- the read-back finding the same version
+with other bytes -- is reached by none of them (R3 is the only net that reaches it).
+
+## Condition 4: held Ctrl+S after the fix (2026-09-29)
+
+The condition-1 probe, unchanged (`probe_m3_same_second_saves.py`), on the committed 0.2.2
+(`695d9ad`, tree clean): `2026-09-29T050705+0000.json`.
+
+| | 0.2.1 (`023742Z`) | 0.2.2 (`050705Z`) |
+| --- | --- | --- |
+| button + Ctrl+S pairs with the same ETag | Chrome 5/12, Firefox 6/12 | **0/12 and 0/12** (0 of 99 consecutive pairs in each browser) |
+| versions added by the 24 pair saves | 19, 18 | **24, 24** |
+| PUTs per 1-s held Ctrl+S | 30 ×3, 30 ×3 | 30 ×3, 30 ×3 |
+| first to last PUT of a hold | 3.72–3.80 s, 4.71–5.17 s | 34.64–34.71 s, 34.93–35.20 s |
+| versions added by the 90 held saves | 15, 18 | **90, 90** |
+
+A 1-s hold still sends 30 PUTs (> 5): registered as **finding 106** against the page
+(`event.repeat` unfiltered is page identity); nothing was added to the host (condition 4).
+`2026-09-29T033411+0000.json` is the same probe on the pre-review draft host (1.0 s spacing,
+uncommitted): 0/99 same-ETag, tails 31.5–32.3 s.

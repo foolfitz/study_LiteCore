@@ -225,6 +225,7 @@ GET 中位數 Chrome 23 ms、Firefox 24 ms，PUT 46、46.5 ms；逐趟 23 次分
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-29 | **計數執行：`SAME-SECOND SAVES KEPT`**（`findings/evidence/m3-same-second/runs/2026-09-29T035833+0000.json`；R2 Chrome 3/3、Firefox 3/3，R3 Chrome 3/3、Firefox 3/3；宿主 `695d9ad`（0.2.2）乾淨、頁面 `fbfb59a4…`、runner `a4356968…`；紅案 70 個全紅）。**條件 7**：R1 在 0.2.2 上重跑仍是 `VERSIONS CORRECT`（`…/m3-versions/runs/2026-09-29T045548+0000.json`，3/3＋3/3，紅案 68 全紅），鎖與權限、資產派送、宿主入口也都照舊（證據 README）。沒有任何期望被改；唯一改的是先寫下的綁定 `HOST_COMMIT`。判準沒有再動。 |
 | 2026-09-29 | **對抗性審核（opus，唯讀）之後、任何計數執行之前：判準修訂與登錄。**處置全表在 `findings/evidence/m3-same-second/review-2026-09-29-opus.md` 末尾。判準層：R3 步驟 3 加「擋下 S2 的是讀回比對」（宿主紀錄 `changed`、Chrome 網路層只有 S1 一個 PUT）。事實層：§3 補更正（宿主改了；R1 的 `HOST_COMMIT` 是綁定不是判準，條件 7 前寫下）；§5 與 R3 的「之後落地的寫入 ETag 一定會換」限縮到以伺服器時間蓋 mtime 的寫入；間隔取 1.1 秒的理由；0.2.1 的同秒對數預測偏低（登錄）；入場條件的量測值與限度。 |
 | 2026-09-29 | **加 R3（§4）、§5 的 103 更正、(c) 的「同日補」段、0.2.1 第一次 shakedown 之後的那段附記。**依據：裁決條件 6。**順序要照實說**：(c) 的補充段寫在 runner 之前；R3 的判準寫在第一次 0.2.1 shakedown（`031241Z`）跑動期間、R3 的 runner 程式碼與任何 R3 執行之前；附記寫在那次 shakedown 之後。但這幾段與 runner、兩份 0.2.1 shakedown 同一個 commit（`2e473813`）進版控，**git 只證明得了 R2 的判準（`b498d213`）先於 runner，其餘的先後只有我的敘述**（審核第 6 項）。 |
 | 2026-09-29 | **加 R2 `same-second`（§4），§5 的「不做，除非擁有者要」改寫成做。**依據：fable 代擁有者裁決 D（`findings/evidence/m3-same-second/ruling-2026-09-29-fable-d.md`）與它的條件 1 量測（同 ETag 的對 Chrome 5/12、Firefox 6/12）。寫在 runner 與宿主改動之前。R2 控相位，因為條件 1 的「約一半」查下去是探針固定節奏造成的相位漂移，不是機率。R1 的判準一個字都沒動。 |
