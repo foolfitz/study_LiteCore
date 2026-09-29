@@ -12,6 +12,9 @@ KNOWN = ["set-bold", "set-italic", "set-underline", "set-strikethrough", "clear-
 MUTANTS = {
     "gate removed": [("if (this._viewOnly && options?.mutation === true) {",
                       "if (false && this._viewOnly && options?.mutation === true) {")],
+    "gate refuses default options too (mutation !== false)": [
+        ("if (this._viewOnly && options?.mutation === true) {",
+         "if (this._viewOnly && options?.mutation !== false) {")],
     "actionMutates defaults to false": [("return !BOUNDARY_CAPABLE_MOVES.has(name);",
                                           "return BOUNDARY_CAPABLE_MOVES.has(name) ? false : "
                                           + json.dumps(KNOWN) + ".includes(name);")],

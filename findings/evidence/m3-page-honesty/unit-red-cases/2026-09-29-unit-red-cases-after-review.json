@@ -1,0 +1,139 @@
+{
+ "target": "editor-shell-v2/narrow-editor-v2-session.js",
+ "targetSha256": "747eea718c253ea01e00ec7477915c9a78c62148a6f167e6b42a677d2ff331f2",
+ "testSha256": "b032be586a6059bc640a3c22f58f4b77199d566c6c5c170a350da8b09cb59aa0",
+ "cases": {
+  "gate removed": {
+   "edits": [
+    [
+     "if (this._viewOnly && options?.mutation === true) {",
+     "if (false && this._viewOnly && options?.mutation === true) {"
+    ]
+   ],
+   "exit": 1,
+   "summary": [
+    "# tests 42",
+    "# pass 40",
+    "# fail 2"
+   ],
+   "failedTests": [
+    "not ok 38 - view-only: every mutating entry point is refused before it is queued",
+    "not ok 41 - view-only survives a fresh Worker (a rollback reopens the engine)"
+   ],
+   "assertions": [
+    "error: |- commitText + actual - expected",
+    "error: 'Missing expected rejection.' code: 'ERR_ASSERTION' name: 'AssertionError'"
+   ]
+  },
+  "gate refuses default options too (mutation !== false)": {
+   "edits": [
+    [
+     "if (this._viewOnly && options?.mutation === true) {",
+     "if (this._viewOnly && options?.mutation !== false) {"
+    ]
+   ],
+   "exit": 1,
+   "summary": [
+    "# tests 42",
+    "# pass 41",
+    "# fail 1"
+   ],
+   "failedTests": [
+    "not ok 39 - view-only: moves still run, and the gate is off by default"
+   ],
+   "assertions": [
+    "error: 'view-only: select-range would change the document' code: 'EDITOR_VIEW_ONLY' stack: |-"
+   ]
+  },
+  "actionMutates defaults to false": {
+   "edits": [
+    [
+     "return !BOUNDARY_CAPABLE_MOVES.has(name);",
+     "return BOUNDARY_CAPABLE_MOVES.has(name) ? false : [\"set-bold\", \"set-italic\", \"set-underline\", \"set-strikethrough\", \"clear-format\", \"set-paragraph-heading\", \"set-paragraph-body\", \"set-list-unordered\", \"set-list-ordered\", \"set-list-none\", \"delete-backward\", \"delete-forward\", \"insert-paragraph-break\", \"insert-line-break\", \"insert-text\", \"undo\", \"redo\", \"save\"].includes(name);"
+    ]
+   ],
+   "exit": 1,
+   "summary": [
+    "# tests 42",
+    "# pass 41",
+    "# fail 1"
+   ],
+   "failedTests": [
+    "not ok 40 - actionMutates is fail-closed: only the six moves are not mutations"
+   ],
+   "assertions": [
+    "error: |- no-such-control "
+   ]
+  },
+  "unsaved compares revisions": {
+   "edits": [
+    [
+     "  hasUnsavedEdits() {\n    const snapshot = this.state.snapshot;\n    return snapshot.dirty === true || (snapshot.pending ?? 0) > 0;\n  }",
+     "  async save(...args) { const r = await super.save(...args); this.__savedRev = this.state.snapshot.revision; return r; }\n  hasUnsavedEdits() {\n    const snapshot = this.state.snapshot;\n    return (snapshot.pending ?? 0) > 0 || Number(snapshot.revision) > Number(this.__savedRev ?? 0);\n  }"
+    ]
+   ],
+   "exit": 1,
+   "summary": [
+    "# tests 42",
+    "# pass 41",
+    "# fail 1"
+   ],
+   "failedTests": [
+    "not ok 42 - finding 107: unsaved edits follow dirty and pending, never the revision"
+   ],
+   "assertions": [
+    "error: |- rolled back to unsaved content "
+   ]
+  },
+  "unsaved compares revisions with !==": {
+   "edits": [
+    [
+     "  hasUnsavedEdits() {\n    const snapshot = this.state.snapshot;\n    return snapshot.dirty === true || (snapshot.pending ?? 0) > 0;\n  }",
+     "  async save(...args) { const r = await super.save(...args); this.__savedRev = this.state.snapshot.revision; return r; }\n  hasUnsavedEdits() {\n    const snapshot = this.state.snapshot;\n    return (snapshot.pending ?? 0) > 0 || Number(snapshot.revision) !== Number(this.__savedRev ?? 0);\n  }"
+    ]
+   ],
+   "exit": 1,
+   "summary": [
+    "# tests 42",
+    "# pass 41",
+    "# fail 1"
+   ],
+   "failedTests": [
+    "not ok 42 - finding 107: unsaved edits follow dirty and pending, never the revision"
+   ],
+   "assertions": [
+    "error: |- same revision number, other content "
+   ]
+  },
+  "unsaved ignores pending": {
+   "edits": [
+    [
+     "return snapshot.dirty === true || (snapshot.pending ?? 0) > 0;",
+     "return snapshot.dirty === true;"
+    ]
+   ],
+   "exit": 1,
+   "summary": [
+    "# tests 42",
+    "# pass 41",
+    "# fail 1"
+   ],
+   "failedTests": [
+    "not ok 42 - finding 107: unsaved edits follow dirty and pending, never the revision"
+   ],
+   "assertions": [
+    "error: |- an edit still in the engine (pending) "
+   ]
+  }
+ },
+ "unmutated": {
+  "exit": 0,
+  "summary": [
+   "# tests 42",
+   "# pass 42",
+   "# fail 0"
+  ],
+  "failedTests": [],
+  "assertions": []
+ }
+}

@@ -78,8 +78,14 @@ let viewOnly = false;
 // same code, and it guards the second kind itself.
 let savesUnsettled = 0;
 
+// Fail closed: a session without `hasUnsavedEdits` throws here, and the host
+// counts a throw as "ask" -- an optional call answering `false` would switch
+// finding 107's fix off without a sign (review 2026-09-29, implementation).
+// No document yet is the only "nothing to lose".  editor-shell-v2/tests/
+// page-unsaved-work.test.mjs compiles this function with `session` and
+// `savesUnsettled` as its only names in scope.
 function hasUnsavedWork() {
-  return (session?.hasUnsavedEdits?.() ?? false) || savesUnsettled > 0;
+  return (session ? session.hasUnsavedEdits() : false) || savesUnsettled > 0;
 }
 
 function guardLeave(event) {
@@ -96,7 +102,12 @@ function guardLeave(event) {
 // question.  A host without `watchUnsaved` is an older host: the page still
 // asks rather than let edits go silently.
 if (HOST && typeof HOST.watchUnsaved === "function") HOST.watchUnsaved(hasUnsavedWork);
-else addEventListener("beforeunload", guardLeave);
+else {
+  // An older host is a version mismatch, not a shipped pairing: said where a
+  // driver reads the host's record (specs/SPEC-M3-page-honesty.md §7.1).
+  if (HOST) document.documentElement.setAttribute("data-litecore-page-guard", "own");
+  addEventListener("beforeunload", guardLeave);
+}
 
 const $ = (selector) => document.querySelector(selector);
 const el = {

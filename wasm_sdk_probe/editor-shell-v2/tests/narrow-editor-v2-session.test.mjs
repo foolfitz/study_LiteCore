@@ -944,6 +944,17 @@ test("view-only: moves still run, and the gate is off by default", async () => {
     await session.action(action);
     assert.ok(calls.includes(`editorActionV2:${action}`), `${action} was refused`);
   }
+  // Reading also drags and copies (and clicks, which this fixture's engine does
+  // not model), all queued with default options.  A gate written
+  // `mutation !== false` refuses these too and still refuses every mutation
+  // above (measured 2026-09-29: 42/42 passed that mutant).
+  const reads = calls.length;
+  await session.selectRange({ xTwips: 0, yTwips: 0 }, { xTwips: 100, yTwips: 100 });
+  assert.ok(calls.length > reads, "the drag reached nothing");
+  // This fixture's clipboard refuses the copy from INSIDE the operation, which
+  // is past the gate; what matters here is that the gate did not refuse it.
+  await session.copySelection().catch((error) =>
+    assert.notEqual(error.code, "EDITOR_VIEW_ONLY", "a copy was refused as an edit"));
   session.setViewOnly(false);
   await session.action("set-bold", { enabled: true });
   assert.ok(calls.includes("editorActionV2:set-bold"));

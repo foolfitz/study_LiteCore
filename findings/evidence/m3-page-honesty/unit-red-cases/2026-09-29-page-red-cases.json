@@ -1,0 +1,85 @@
+{
+ "page": "web/e2-editor-app.js",
+ "pageSha256": "d6ca2493d11ddf5c1182a15924614161aaa0d1284d51055237587b25bd18b376",
+ "testSha256": "7cc33b32948a25a3535860b4ebdfaddf7c09f30ede31c2eae60914bcc19d1cfc",
+ "cases": {
+  "revision greater than zero": {
+   "line": "  return (session ? Number(session.state.snapshot.revision) > 0 : false) || savesUnsettled > 0;",
+   "exit": 1,
+   "summary": [
+    "# tests 4",
+    "# pass 1",
+    "# fail 3"
+   ],
+   "failedTests": [
+    "not ok 2 - the session's answer decides, whatever the revision says",
+    "not ok 3 - a save asked for and not yet settled counts, even when the session is clean",
+    "not ok 4 - fail closed: a session without hasUnsavedEdits throws (the host asks on a throw)"
+   ],
+   "assertions": [
+    "error: |- revision 0, unsaved ",
+    "error: |- Expected values to be strictly equal: ",
+    "error: 'Missing expected exception.' code: 'ERR_ASSERTION' name: 'AssertionError'"
+   ]
+  },
+  "revision against a saved revision (review's example)": {
+   "line": "  return (session ? session.state.snapshot.revision !== savedRevision : false) || savesUnsettled > 0;",
+   "exit": 1,
+   "summary": [
+    "# tests 4",
+    "# pass 2",
+    "# fail 2"
+   ],
+   "failedTests": [
+    "not ok 2 - the session's answer decides, whatever the revision says",
+    "not ok 3 - a save asked for and not yet settled counts, even when the session is clean"
+   ],
+   "assertions": [
+    "error: 'savedRevision is not defined' code: 'ERR_TEST_FAILURE' name: 'ReferenceError'",
+    "error: 'savedRevision is not defined' code: 'ERR_TEST_FAILURE' name: 'ReferenceError'"
+   ]
+  },
+  "fail open (optional call)": {
+   "line": "  return (session?.hasUnsavedEdits?.() ?? false) || savesUnsettled > 0;",
+   "exit": 1,
+   "summary": [
+    "# tests 4",
+    "# pass 3",
+    "# fail 1"
+   ],
+   "failedTests": [
+    "not ok 4 - fail closed: a session without hasUnsavedEdits throws (the host asks on a throw)"
+   ],
+   "assertions": [
+    "error: 'Missing expected exception.' code: 'ERR_ASSERTION' name: 'AssertionError'"
+   ]
+  },
+  "unsettled saves ignored": {
+   "line": "  return (session ? session.hasUnsavedEdits() : false);",
+   "exit": 1,
+   "summary": [
+    "# tests 4",
+    "# pass 2",
+    "# fail 2"
+   ],
+   "failedTests": [
+    "not ok 1 - no document: nothing to lose, unless a save is still settling",
+    "not ok 3 - a save asked for and not yet settled counts, even when the session is clean"
+   ],
+   "assertions": [
+    "error: |- Expected values to be strictly equal: ",
+    "error: |- Expected values to be strictly equal: "
+   ]
+  }
+ },
+ "unmutated": {
+  "exit": 0,
+  "summary": [
+   "# tests 4",
+   "# pass 4",
+   "# fail 0"
+  ],
+  "failedTests": [],
+  "assertions": []
+ }
+}

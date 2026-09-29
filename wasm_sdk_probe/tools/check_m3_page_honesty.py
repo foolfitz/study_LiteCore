@@ -31,15 +31,19 @@ import subprocess
 import sys
 import tempfile
 import time
+import hashlib
+import re
 import traceback
+import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from check_m3_host_entry import CTRL_S, MARKER, host_record, server_file  # noqa: E402
+from check_m3_host_entry import CTRL_S, MARKER, host_record, paragraph_texts, server_file  # noqa: E402
 from check_m3_locks import (  # noqa: E402
-    BAR, CENTER, OTHER, RO_NAME, LockChrome, Server, chrome_download_dir, downloaded, edit, insert_marker,
+    BAR, CENTER, OTHER, RO_NAME, LockChrome, Server, chrome_download_dir, downloaded, edit, edited, insert_marker,
     login, open_from_files, save, wire)
 from check_m3_skeleton_open import (  # noqa: E402
     DEFAULT_DDEV, FIXTURE, NAME, ROUTE, Instance, binding_fields, host_binding, product_state, state_until)
@@ -58,6 +62,9 @@ BOTH = ("chrome", "firefox")
 PAGE_SHA256: str | None = None
 SESSION_SHA256: str | None = None
 HOST_VERSION = "0.2.3"
+# The host commit too (review 2026-09-29, implementation): a version string alone
+# lets a changed host with an unchanged info.xml through.
+HOST_COMMIT: str | None = None
 # arm -> (cells, browsers, rounds in a counted run)
 PLAN = {
     "U0": ("U0", BOTH, 3), "U1": ("U1", BOTH, 3), "Uwin": ("U-window", BOTH, 3), "U2": ("U2", BOTH, 3),
@@ -96,8 +103,11 @@ RECORDER = """(() => {
     const raw = document.documentElement.getAttribute('data-litecore');
     const guards = raw ? (JSON.parse(raw).guards || []) : null;
     const pending = document.querySelector('#s-pending');
+    // A handler PROPERTY asks by its return value, with neither preventDefault
+    // nor the returnValue setter: record that one exists at all.
     put({ what: 'fired', lastGuard: guards && guards.length ? guards[guards.length - 1] : null,
-          guards: guards ? guards.length : null, pending: pending ? pending.textContent : null });
+          guards: guards ? guards.length : null, pending: pending ? pending.textContent : null,
+          handlerProperty: typeof window.onbeforeunload === 'function' });
   });
   put({ what: 'installed' });
   return true;
@@ -124,18 +134,34 @@ HELD = """(() => { const sink = document.querySelector('#sink'); sink.focus(); w
   for (let i = 0; i < 30; i++) setTimeout(() => window.__m3held.push(sink.dispatchEvent(new KeyboardEvent('keydown', {
     key: 's', code: 'KeyS', ctrlKey: true, repeat: i > 0, bubbles: true, cancelable: true })) === false), i * 33);
   return true; })()"""
-SEPARATE = """(() => { const sink = document.querySelector('#sink'); const t0 = performance.now();
-  const key = () => sink.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS', ctrlKey: true,
-    bubbles: true, cancelable: true })) === false;
-  const first = key();
-  document.querySelector('#text').value = ARG_MARKER;
-  document.querySelector('#toolbar button[data-action="insert-text"]').click();
-  const second = key();
-  return { first, second, spanMs: Math.round(performance.now() - t0) }; })()"""
-PAIR_AT = ("(() => { const v = JSON.parse(document.documentElement.getAttribute('data-litecore'));"
-           " const button = document.querySelector('#toolbar button[data-action=\"save\"]'); button.click();"
-           " const secondAt = Date.now() - v.started; const second = " + CTRL_S.strip() + ";"
-           " return { secondAt, second }; })()")
+# Two evaluates, so a task passes between the presses: the first press's save
+# takes the session's bytes in a microtask, and a marker inserted in the SAME
+# task would be in both saves -- then "the last bytes carry the marker" holds
+# even if the second save re-sent the first's bytes (review 2026-09-29,
+# implementation).  Save #1 is read back from the file's versions and must NOT
+# carry the marker.
+SEP_KEY = """sink.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS', ctrlKey: true,
+    bubbles: true, cancelable: true })) === false"""
+SEP_FIRST = ("(() => { const sink = document.querySelector('#sink'); window.__m3sep = performance.now();"
+             " return " + SEP_KEY + "; })()")
+SEP_SECOND = ("(() => { const sink = document.querySelector('#sink');"
+              " document.querySelector('#text').value = ARG_MARKER;"
+              " document.querySelector('#toolbar button[data-action=\"insert-text\"]').click();"
+              " const second = " + SEP_KEY + ";"
+              " return { second, spanMs: Math.round(performance.now() - window.__m3sep) }; })()")
+# The second press lands while the first save is under way: when the page
+# shows 「儲存 N ms」 (the session's bytes taken) and before the host has
+# answered the PUT.  Pressed in the same task as the first (as before) it was
+# true by construction that it came before the answer, and a debounce keyed on
+# "a save in progress" passed (review 2026-09-29, implementation).
+PAIR_AT = ("(() => { const node = document.querySelector('#s-latency'); window.__m3pair = null;"
+           " const v = () => JSON.parse(document.documentElement.getAttribute('data-litecore'));"
+           " new MutationObserver((records, observer) => {"
+           "  if (!/^儲存 \\d+ ms$/.test(node.textContent)) return; observer.disconnect();"
+           "  const secondAt = Date.now() - v().started; const second = " + CTRL_S.strip() + ";"
+           "  window.__m3pair = { secondAt, second, savesAtSecond: v().saves.length }; })"
+           " .observe(node, { childList: true, characterData: true, subtree: true });"
+           " document.querySelector('#toolbar button[data-action=\"save\"]').click(); return true; })()")
 SAVES = """(() => { const v = document.documentElement.getAttribute('data-litecore');
   const s = v && JSON.parse(v).saves; return s ? [s.length, s.every(x => x.settled === true)] : [0, true]; })()"""
 ARROW_DOWN = """(() => document.querySelector('#sink').dispatchEvent(new KeyboardEvent('keydown', {
@@ -394,16 +420,19 @@ def run_host_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str
         elif arm == "Ksep":
             edit(session, record)
             before = evaluate(session, SAVES)[0]
-            record["separate"] = evaluate(session, SEPARATE.replace("ARG_MARKER", json.dumps(MARKER)))
+            first = evaluate(session, SEP_FIRST)
+            record["separate"] = {"first": first, **(evaluate(session, SEP_SECOND.replace("ARG_MARKER", json.dumps(MARKER))) or {})}
             record["settled"] = settled(session, before + 2, quiet=5.0)
             record["savesBefore"] = before
             record["host"] = host_record(session)
             record["serverAfter"] = server_file(server.instance, NAME)
+            record["versions"] = versions(server, NAME)
         elif arm == "Ktwo":
             edit(session, record)
             before = evaluate(session, SAVES)[0]
-            record["pair"] = evaluate(session, PAIR_AT)
+            record["pairArmed"] = evaluate(session, PAIR_AT)
             record["settled"] = settled(session, before + 2, quiet=3.0)
+            record["pair"] = evaluate(session, "(() => window.__m3pair)()")
             record["savesBefore"] = before
             record["host"] = host_record(session)
         record["serverAfterArm"] = server.content(server.admin, NAME)
@@ -416,6 +445,40 @@ def run_host_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str
         record["copiesAfter"] = server.copies(server.admin, "", NAME[:-4], remove=True)
         record["completedAt"] = utc_now()
     return record
+
+
+def versions(server: Server, name: str) -> list[dict[str, Any]]:
+    """Every version Nextcloud keeps of the file, with its bytes' hash and
+    paragraph texts (K-sep reads save #1 back from here)."""
+    client = server.admin
+    fileid = server.fileid(client, name)
+
+    def raw(method: str, path: str, body: bytes | None = None, headers: dict[str, str] | None = None):
+        request = urllib.request.Request(client.base + path, data=body, method=method, headers=headers or {})
+        request.add_header("Authorization", client.auth)
+        try:
+            with urllib.request.urlopen(request, context=client.tls, timeout=60) as response:
+                return response.status, response.read()
+        except urllib.error.HTTPError as error:
+            return error.code, error.read()
+
+    collection = f"/remote.php/dav/versions/{client.user}/versions/{fileid}"
+    status, data = raw("PROPFIND", collection, b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop>'
+                       b"<d:getlastmodified/></d:prop></d:propfind>", {"Depth": "1", "Content-Type": "application/xml"})
+    found = []
+    for href in re.findall(r"<d:href>([^<]+)</d:href>", data.decode("utf-8", "replace")):
+        if urllib.parse.unquote(href).rstrip("/").endswith(f"/versions/{fileid}"):
+            continue
+        got, body = raw("GET", href)
+        entry = {"href": href.rsplit("/", 1)[-1], "status": got}
+        if got == 200:
+            entry["sha256"] = hashlib.sha256(body).hexdigest()
+            try:
+                entry["texts"] = paragraph_texts(body)
+            except Exception as error:  # noqa: BLE001 -- recorded
+                entry["texts"] = f"unreadable: {error}"
+        found.append(entry)
+    return [{"collection": status}] + found
 
 
 def run_download_arm(arm: str, kind: str, scratch: Path) -> dict[str, Any]:
@@ -639,6 +702,8 @@ def asked_by(run: dict[str, Any], key: str, who: str, reason: str | None = None,
     askers = sorted({e.get("who") for e in asks(entries)})
     if askers != [who]:
         bad.append(f"{key}: askers {askers}, wanted [{who!r}]")
+    if any(e.get("handlerProperty") for e in entries if e.get("what") == "fired"):
+        bad.append(f"{key}: an onbeforeunload handler property is set")
     if reason is not None:
         fired = [e for e in entries if e.get("what") == "fired"]
         reasons = ((fired[-1].get("lastGuard") or {}).get("reasons") or []) if fired else []
@@ -656,6 +721,8 @@ def not_asked(run: dict[str, Any], key: str = "leave") -> list[str]:
         bad.append(f"{key}: no `fired` record ({result.get('record')!r:.120})")
     if asks(entries):
         bad.append(f"{key}: asked by {sorted({e.get('who') for e in asks(entries)})}")
+    if any(e.get("handlerProperty") for e in entries if e.get("what") == "fired"):
+        bad.append(f"{key}: an onbeforeunload handler property is set")
     if run["browser"] == "chrome" and result.get("dialog"):
         bad.append(f"{key}: a dialog in Chrome")
     return bad
@@ -677,6 +744,7 @@ def first_attempt(save: dict[str, Any]) -> dict[str, Any]:
     return (save.get("attempts") or [{}])[0]
 
 
+EDITS = ("U1", "Uwin", "U2", "U3", "U4", "U6a", "U6b", "Kheld", "Ksep", "Ktwo")
 LATENCY_OK = {"placed": r"^定位游標 \d+ ms$", "movedDown": r"^下移一行 \d+ ms$"}
 
 
@@ -691,6 +759,8 @@ def score_arm(run: dict[str, Any]) -> list[str]:
     elif (run.get("ready") or {}).get("state") != "ready":
         bad.append(f"download-mode page not ready: {run.get('ready')}")
     host = run.get("host") or {}
+    if arm in EDITS:
+        bad += edited(run)
     if arm == "U0":
         entries, result = left_record(run)
         if not any(e.get("what") == "fired" for e in entries):
@@ -720,8 +790,11 @@ def score_arm(run: dict[str, Any]) -> list[str]:
             if run.get("copiesAfterSave"):
                 bad.append(f"copies after the save: {run['copiesAfterSave']}")
             bad += not_asked(run, "leave3")
-        elif (run.get("serverAfterArm") or {}).get("sha256") != (run.get("serverBefore") or {}).get("sha256"):
-            bad.append("server file changed")
+        else:
+            if "/apps/files" not in str((left_record(run, "leave1")[1]).get("pathAfter")):
+                bad.append(f"leave1: still at {left_record(run, 'leave1')[1].get('pathAfter')!r} (Firefox accepts the prompt)")
+            if (run.get("serverAfterArm") or {}).get("sha256") != (run.get("serverBefore") or {}).get("sha256"):
+                bad.append("server file changed")
     elif arm == "Uwin":
         entries, result = left_record(run)
         bad += asked_by(run, "leave", "host", "page")
@@ -794,8 +867,18 @@ def score_arm(run: dict[str, Any]) -> list[str]:
         texts = " ".join((run.get("serverAfter") or {}).get("texts") or [])
         if MARKER not in texts:
             bad.append("the second save does not carry the marker")
+        if len(saves) == 2:
+            if (run.get("serverAfter") or {}).get("sha256") != saves[1].get("sha256"):
+                bad.append("the server's bytes are not the second save's")
+            first = [v for v in run.get("versions") or [] if v.get("sha256") and v.get("sha256") == saves[0].get("sha256")]
+            if not first:
+                bad.append("save #1 is not among the file's versions")
+            elif MARKER in " ".join(first[0].get("texts") or []):
+                bad.append("save #1 already carries the marker: the presses were not separate")
     elif arm == "Ktwo":
         pair = run.get("pair") or {}
+        if pair.get("second") is not True:
+            bad.append(f"the second press was never made or not prevented: {pair}")
         saves = new_saves(run)
         if len(saves) != 2 or any(first_attempt(x).get("status") != 204 for x in saves):
             bad.append(f"host saves {[first_attempt(x).get('status') for x in saves]}")
@@ -832,6 +915,10 @@ def score_view(run: dict[str, Any], re) -> list[str]:
         for row in buttons:
             if mutates.get(row["item"]) == "1" and row["item"] != "save" and row["revisionAfter"] == row["revisionBefore"]:
                 bad.append(f"V2 control: {row['item']} did not advance ({row['latency']!r})")
+            # The other direction: a control that changed the document must be
+            # labelled as one, or view-only leaves it enabled and exempt here.
+            if row["revisionAfter"] != row["revisionBefore"] and mutates.get(row["item"]) != "1":
+                bad.append(f"V2 control: {row['item']} advanced but is labelled mutates={mutates.get(row['item'])!r}")
         return bad
     # V1
     opened = run.get("opened") or {}
@@ -839,8 +926,9 @@ def score_view(run: dict[str, Any], re) -> list[str]:
         bad.append(f"V1 host lock {(opened.get('lock') or {}).get('state')} handedReadOnly {opened.get('handedReadOnly')}")
     if "只能檢視" not in (run.get("bar") or {}).get("notice", ""):
         bad.append(f"V1 notice {(run.get('bar') or {}).get('notice')!r}")
-    if (run.get("afterOpen") or {}).get("lock") not in ("", None):
-        bad.append(f"V1 server lock {(run.get('afterOpen') or {}).get('lock')!r}")
+    after_open = run.get("afterOpen") or {}
+    if after_open.get("status") != 207 or after_open.get("lock") != "":
+        bad.append(f"V1 server lock {after_open.get('status')} {after_open.get('lock')!r}")
     if run["browser"] == "chrome" and any(r.get("method") == "LOCK" for r in run.get("davRequests") or []):
         bad.append("V1 a LOCK went out")
     # V7
@@ -848,8 +936,16 @@ def score_view(run: dict[str, Any], re) -> list[str]:
         want = control.get("mutates") == "1"
         if control.get("mutates") not in ("0", "1") or control.get("disabled") != want:
             bad.append(f"V7 {control.get('action') or control.get('id')}: disabled {control.get('disabled')} mutates {control.get('mutates')}")
-    if not all((run.get("textField") or {}).values()):
-        bad.append(f"V7 text field {run.get('textField')}")
+    text_field = run.get("textField") or {}
+    if text_field.get("disabled") is not True or text_field.get("sinkReadOnly") is not True:
+        bad.append(f"V7 text field {text_field}")
+    # By name, not only disabled == mutates: both come from one expression, so a
+    # page that labelled the moves "1" would stay consistent and unclickable.
+    moves = {(c.get("action") or c.get("id")): c for c in run.get("controls") or []}
+    for name in ("move-character-left", "move-character-right"):
+        control = moves.get(name) or {}
+        if control.get("mutates") != "0" or control.get("disabled") is not False:
+            bad.append(f"V7 move {name}: mutates {control.get('mutates')} disabled {control.get('disabled')}")
     # V5
     if run.get("ctrlS") is not True or run.get("savesAfterCtrlS") != 0:
         bad.append(f"V5 Ctrl+S prevented {run.get('ctrlS')} saves {run.get('savesAfterCtrlS')}")
@@ -897,6 +993,8 @@ def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
             static_bad.append(f"session {st.get('session')}")
         if st.get("hostVersion") != HOST_VERSION:
             static_bad.append(f"host version {st.get('hostVersion')}")
+        if HOST_COMMIT is None or not str(report.get("hostRepo") or "").startswith(HOST_COMMIT):
+            static_bad.append(f"host commit {str(report.get('hostRepo'))[:12]}, pinned {HOST_COMMIT}")
         if st.get("testStatic") != 0:
             static_bad.append(f"make test-e2-c-static {st.get('testStatic')}")
         for arm, (_, browsers, count) in PLAN.items():
@@ -999,7 +1097,7 @@ RED_CASES = [
      lambda r: r["serverAfterArm"].update(sha256=ZERO)),
     ("U3", None, "U3 asked after the second edit", "leave: askers", _drop_asks()),
     ("U4", None, "U4 the stranger's unlock was refused", "refused unlock", lambda r: r.update(refusedUnlock=200)),
-    ("U4", None, "U4 the save went to a conflict copy", "copy", lambda r: r["host"]["saves"][0].update(conflictCopy={})),
+    ("U4", None, "U4 the save went to a conflict copy", "copy {}", lambda r: r["host"]["saves"][0].update(conflictCopy={})),
     ("U4", None, "U4 the copy holds the save's bytes", "copies", lambda r: r["copiesAfter"][0].update(sha256=ZERO)),
     ("U4", None, "U4 not asked", "leave: asked by", _add_ask("host")),
     ("U5", None, "U5 not asked (\"always ask\")", "leave: asked by", _add_ask("host")),
@@ -1026,13 +1124,18 @@ RED_CASES = [
     ("V", None, "V1 the host was handed readOnly", "V1 host lock", lambda r: r["opened"].update(handedReadOnly=False)),
     ("V", None, "V1 the read-only notice", "V1 notice", lambda r: r["bar"].update(notice="")),
     ("V", None, "V1 no lock on the server", "V1 server lock", lambda r: r["afterOpen"].update(lock="1")),
+    ("V", None, "V1 the lock property answered", "V1 server lock", lambda r: r["afterOpen"].update(lock=None)),
     ("V", CHROME, "V1 no LOCK on the wire", "V1 a LOCK went out",
      lambda r: r.setdefault("davRequests", []).append({"method": "LOCK"})),
-    ("V", None, "V7 a mutating control is disabled", "V7",
-     lambda r: _mutating_control(r["controls"]).update(disabled=False)),
-    ("V", None, "V7 the moves stay usable", "V7",
-     lambda r: next(c for c in r["controls"] if c.get("mutates") == "0").update(disabled=True)),
+    ("V", None, "V7 a mutating control is disabled", "V7 set-bold: disabled False",
+     lambda r: next(c for c in r["controls"] if c.get("action") == "set-bold").update(disabled=False)),
+    ("V", None, "V7 the moves stay usable (disabled)", "V7 move move-character-left",
+     lambda r: next(c for c in r["controls"] if c.get("action") == "move-character-left").update(disabled=True)),
+    ("V", None, "V7 the moves stay usable (labelled and disabled as a mutation)", "V7 move move-character-right",
+     lambda r: next(c for c in r["controls"] if c.get("action") == "move-character-right").update(
+         mutates="1", disabled=True)),
     ("V", None, "V7 the text field is disabled", "V7 text field", lambda r: r["textField"].update(disabled=False)),
+    ("V", None, "V7 the text field record is not empty", "V7 text field", lambda r: r.update(textField={})),
     ("V", None, "V5 Ctrl+S prevented and no save", "V5 Ctrl+S", lambda r: r.update(savesAfterCtrlS=1)),
     ("V", None, "V5 no host save", "V5 host saves", lambda r: r["host"].update(saves=[{"attempts": []}])),
     ("V", None, "V5 no copy", "V5 copies", lambda r: r.update(copiesAfter=[{"name": "x.odt"}])),
@@ -1055,6 +1158,40 @@ RED_CASES = [
      lambda r: r.update(census=[x for x in r["census"] if x["item"] != "insert-text"])),
     ("V2 writable control", None, "V2 control: an empty census does not pass", "V2 census",
      lambda r: r.update(census=[], controlsAtCensus=[])),
+    ("V2 writable control", None, "V2 control: a control that changed the document is labelled a mutation",
+     "V2 control: set-bold advanced but is labelled",
+     lambda r: next(c for c in r["controlsAtCensus"] if c.get("action") == "set-bold").update(mutates="0")),
+    # Clauses the implementation review found with no red case.
+    ("U1", CHROME, "U1 Chrome showed the dialog on leave1", "leave1: no dialog in Chrome",
+     lambda r: r["leaves"]["leave1"].update(dialog=None)),
+    ("U1", FIREFOX, "U1 Firefox left the page", "leave1: still at",
+     lambda r: r["leaves"]["leave1"].update(pathAfter="/index.php/apps/litecore/r/x/e2-editor.html")),
+    ("U1", None, "U1 the edit landed", "smoke", lambda r: r["smoke"]["acted"].update(revision=r["smoke"]["caret"]["revision"])),
+    ("U2", CHROME, "U2 no dialog in Chrome", "a dialog in Chrome",
+     lambda r: r["leaves"]["leave"].update(dialog={"type": "beforeunload"})),
+    ("U2", None, "U2 no onbeforeunload handler property", "handler property",
+     lambda r: _fired_entry(r).update(handlerProperty=True)),
+    ("U3", CHROME, "U3 Chrome showed the dialog", "leave: no dialog in Chrome",
+     lambda r: r["leaves"]["leave"].update(dialog=None)),
+    ("U-window", None, "U-window the host's reason is page", "leave: host guard reasons", _reasons(["inFlight"])),
+    ("K-held", None, "K-held settled", "never settled", lambda r: r.update(settled={"timedOut": True})),
+    ("K-held", None, "K-held the edit landed", "smoke",
+     lambda r: r["smoke"]["acted"].update(latency="標題 失敗")),
+    ("K-sep", None, "K-sep both presses prevented", "presses", lambda r: r["separate"].update(second=False)),
+    ("K-sep", None, "K-sep save #1 is a version without the marker", "save #1 already carries the marker",
+     lambda r: next(v for v in r["versions"] if v.get("sha256") == r["host"]["saves"][0]["sha256"]).update(
+         texts=["x " + MARKER])),
+    ("K-sep", None, "K-sep save #1 was found among the versions", "save #1 is not among",
+     lambda r: r.update(versions=[])),
+    ("K-sep", None, "K-sep the server holds the second save", "not the second save's",
+     lambda r: r["serverAfter"].update(sha256=ZERO)),
+    ("K-two", None, "K-two the second press was made and prevented", "the second press was never made",
+     lambda r: r.update(pair=None)),
+    ("V", None, "V2 read-only: nothing left pending", "pending 1",
+     lambda r: _row(r, "set-italic").update(pending="1")),
+    ("V", None, "V5 Ctrl+S was prevented", "V5 Ctrl+S", lambda r: r.update(ctrlS=False)),
+    ("V", None, "the document opened", "not opened", lambda r: next(
+        x for x in r["opened"]["steps"] if x.get("step") == "opened")["state"].update(state="busy")),
 ]
 CELL_OF = {cell: arm for arm, (cell, _, _) in PLAN.items()}
 CELL_OF.update({"V": "Vro", **{arm: arm for arm in PLAN}})
@@ -1157,8 +1294,8 @@ def main() -> int:
         if binding["hostDirty"]:
             print(f"refusing a counted run: the host repo has uncommitted changes:\n{binding['hostDirty']}")
             return 2
-        if PAGE_SHA256 is None or SESSION_SHA256 is None:
-            print("refusing a counted run: PAGE_SHA256 / SESSION_SHA256 are not written down yet")
+        if PAGE_SHA256 is None or SESSION_SHA256 is None or HOST_COMMIT is None:
+            print("refusing a counted run: PAGE_SHA256 / SESSION_SHA256 / HOST_COMMIT are not written down yet")
             return 2
         static["testStatic"] = subprocess.run(["make", "-C", str(PROJECT), "test-e2-c-static"],
                                               capture_output=True, text=True).returncode
