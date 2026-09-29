@@ -50,8 +50,10 @@ EVIDENCE = REPO / "findings" / "evidence" / "m3-versions"
 VNAME = "M3 版本 測試.odt"
 PLAN = {"versions": ("R1", ("chrome", "firefox"), 3)}
 # SPEC-M3-asset-delivery K3 re-runs this unchanged against the asset-delivery host;
-# the counted run of 2026-09-28 was bound to 49cc4ab.
-HOST_COMMIT = "5e53362"
+# the counted run of 2026-09-28 was bound to 49cc4ab, K3's to 5e53362. Ruling D's
+# condition 7 re-runs it against 0.2.2 (the host a second apart and reading back):
+# a binding, not a criterion (SPEC-M3-versions §3, written before the run).
+HOST_COMMIT = "695d9ad"
 NS = {"d": "DAV:", "nc": "http://nextcloud.org/ns"}
 LISTING = (b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:nc="http://nextcloud.org/ns">'
            b"<d:prop><d:getlastmodified/><d:getcontentlength/><nc:version-author/></d:prop></d:propfind>")
