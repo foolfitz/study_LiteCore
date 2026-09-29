@@ -1,0 +1,76 @@
+{
+ "probe": "probe_m3_readback_size.py",
+ "probeSha256": "19d00d5f1acb4fbe8f6ca98215af1d74305839054d7b4861eee027fb3524d177",
+ "criteria": "findings/evidence/m3-same-second/readback-size/CRITERIA.md",
+ "startedAt": "2026-09-29T05:52:04+00:00",
+ "hostRepo": "695d9ad1e891af426efa95a8aa376be0e47ecd59 Host: a second apart, and read back before writing; version 0.2.2",
+ "hostDirty": "",
+ "hostFiles": {
+  "js/litecore-editor.js": "81c1bd0a117aca99b6291c75201afaa3fad9a0581fed608b9925ae475534238b",
+  "lib/Controller/EditorController.php": "404f6e2b2c377cc0031ed8b76db70473ccc7f0e9603317fa9b1ed74ef6b9748d",
+  "templates/editor.php": "49876f2b2eb2a77cee7c33f549ca8c486826656e8cb43dcdf2d24ce19ae7dbf9"
+ },
+ "hostBinding": {
+  "appDir": "/home/jiajun/Projects/Nextcloud_Apps/litecore",
+  "sourceRepo": "/home/jiajun/Projects/Nextcloud_Apps/litecore"
+ },
+ "instance": "https://litecore.ddev.site:8443",
+ "saves": 2,
+ "arms": {
+  "chrome-5": {
+   "browser": "chrome",
+   "lockAtReset": {
+    "status": 207,
+    "lock": "",
+    "token": null,
+    "fileId": 76
+   },
+   "reset": {
+    "putStatus": 204,
+    "fileId": 76,
+    "sha256": "e8b5b0c261be15b39d44b93bc3db5519eb6d79f66a62b7b732fd8a04db5035b6",
+    "bytes": 5239620
+   },
+   "copiesBefore": [],
+   "version": "Chrome/151.0.7922.169",
+   "login": {
+    "result": {
+     "status": 200,
+     "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+    }
+   },
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/9076b0b425222c0e-566647db/e2-editor.html?fileId=76",
+   "opened": true,
+   "openedState": {
+    "state": "ready",
+    "doc": "M3 骨架 測試.odt",
+    "revision": "0",
+    "toast": "已開啟 M3 骨架 測試.odt"
+   },
+   "timeOrigin": 1790661129308.005,
+   "presses": [
+    [
+     2478,
+     true
+    ]
+   ],
+   "settled": [
+    {
+     "timedOut": true,
+     "lastError": "ConnectionClosedError: sent 1009 (message too big) frame with 12793144 bytes exceeds limit of 1048576 bytes; no close frame received"
+    }
+   ],
+   "fatal": "Traceback (most recent call last):\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/probe_m3_readback_size.py\", line 122, in run_arm\n    record[\"presses\"].append(evaluate(session, PRESS_AT))\n                             ~~~~~~~~^^^^^^^^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/r7_support.py\", line 96, in evaluate\n    return session.evaluate(expression)\n           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py\", line 276, in evaluate\n    result = self.call(\n             ~~~~~~~~~^\n        \"Runtime.evaluate\",\n        ^^^^^^^^^^^^^^^^^^^\n    ...<4 lines>...\n        },\n        ^^\n    ).get(\"result\", {})\n    ^\n  File \"/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/probe_m3_gate0_coep.py\", line 198, in call\n    self.websocket.send(json.dumps(message))\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3/dist-packages/websockets/sync/connection.py\", line 467, in send\n    with self.send_context():\n         ~~~~~~~~~~~~~~~~~^^\n  File \"/usr/lib/python3.14/contextlib.py\", line 141, in __enter__\n    return next(self.gen)\n  File \"/usr/lib/python3/dist-packages/websockets/sync/connection.py\", line 1012, in send_context\n    raise self.protocol.close_exc from original_exc\nwebsockets.exceptions.ConnectionClosedError: sent 1009 (message too big) frame with 12793144 bytes exceeds limit of 1048576 bytes; no close frame received\n",
+   "leave": "ConnectionClosedError: sent 1009 (message too big) frame with 12793144 bytes exceeds limit of 1048576 bytes; no close frame received",
+   "mib": 5,
+   "verdict": {
+    "outcome": "not measured",
+    "why": "0 counted saves",
+    "rows": []
+   }
+  }
+ },
+ "completedAt": "2026-09-29T05:57:24+00:00"
+}
