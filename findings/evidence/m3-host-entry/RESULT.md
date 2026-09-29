@@ -81,3 +81,16 @@ criterion they name (`--red-cases`).
   source by the review, not measured); render failure after a successful PUT (the page
   would say `存回 失敗`).
 - **Environment:** Apache only. Admin user.
+
+## Re-run on the page-honesty page and host 0.2.4 (2026-09-29)
+
+SPEC-M3-page-honesty §7.6/§7.11: the page moved to `fc80050c…` (view-only mode, the leave
+guard, held Ctrl+S) and the host to 0.2.4 (`369e6ed`, finding 108), so this runner was
+re-counted. Bindings written before the run (`a2df684f`): none of its own (it records page, shell v54 and host commit in the report). Engine package
+`7f4f4e2204b4a9ec`, shell generation v54. No expectation amended.
+
+- Shakedown: `shakedown/2026-09-29T121659Z.json` — clean.
+- **Counted: `runs/2026-09-29T151343Z.json` — `HOST_ENTRY LANDS`**, open-save 3/3 and conflict 3/3 in both browsers, broken 1/1 and broken-no-save 1/1 in Chrome, no problems.
+- Red cases on the counted report: `runs/red-cases-on-2026-09-29T151343.txt` — base GREEN, 23 RED.
+
+Run one at a time after `PAGE HONEST` (`m3-page-honesty/RESULT.md`, which lists all six).

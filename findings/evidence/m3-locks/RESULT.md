@@ -90,3 +90,16 @@ those arms also checks directly that the page is gone.
   Firefox K8/K11 (no freeze or offline hook in the driver); whether 102 also holds for
   user locks; nginx, Safari, a machine with third-party apps; versions (Nextcloud's own
   file versions after our saves).
+
+## Re-run on the page-honesty page and host 0.2.4 (2026-09-29)
+
+SPEC-M3-page-honesty §7.6/§7.11: the page moved to `fc80050c…` (view-only mode, the leave
+guard, held Ctrl+S) and the host to 0.2.4 (`369e6ed`, finding 108), so this runner was
+re-counted. Bindings written before the run (`a2df684f`): `PAGE_SHA256` = `fc80050c…`. Engine package
+`7f4f4e2204b4a9ec`, shell generation v54. No expectation amended.
+
+- Shakedown: `shakedown/2026-09-29T112644+0000.json` — clean.
+- **Counted: `runs/2026-09-29T142032+0000.json` — `LOCKS LAND`**, all 22 arms (K1–K12), 52 runs, no problems.
+- Red cases on the counted report: `runs/red-cases-on-2026-09-29T142032.txt` — 99 red, 0 not.
+
+Run one at a time after `PAGE HONEST` (`m3-page-honesty/RESULT.md`, which lists all six).

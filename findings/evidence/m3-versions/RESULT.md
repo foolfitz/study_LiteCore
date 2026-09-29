@@ -51,3 +51,16 @@ overwritten — it wins, and the page's next save goes to a conflict copy.
 - Retention (`auto`) may later thin S1; "retrievable" is a write-time property.
 - The Files UI itself (whether it shows "Restore" on a file we hold) was not driven; R1 sends
   the request read from its source map.
+
+## Re-run on the page-honesty page and host 0.2.4 (2026-09-29)
+
+SPEC-M3-page-honesty §7.6/§7.11: the page moved to `fc80050c…` (view-only mode, the leave
+guard, held Ctrl+S) and the host to 0.2.4 (`369e6ed`, finding 108), so this runner was
+re-counted. Bindings written before the run (`a2df684f`): `HOST_COMMIT` = `369e6ed` (the page pin is `check_m3_locks.PAGE_SHA256`). Engine package
+`7f4f4e2204b4a9ec`, shell generation v54. No expectation amended.
+
+- Shakedown: `shakedown/2026-09-29T121311+0000.json` — clean.
+- **Counted: `runs/2026-09-29T150721+0000.json` — `VERSIONS CORRECT`**, 3/3 per browser, no problems.
+- Red cases on the counted report: `runs/red-cases-on-2026-09-29T150721.txt` — 68 red, 0 not.
+
+Run one at a time after `PAGE HONEST` (`m3-page-honesty/RESULT.md`, which lists all six).

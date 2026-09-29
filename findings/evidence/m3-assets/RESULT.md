@@ -86,3 +86,16 @@ the next session (handoff).
 ## K4: the release archive
 
 63,416,048 bytes (60.5 MiB), README "K4". Above the App Store's source default of 30 MiB.
+
+## Re-run on the page-honesty page and host 0.2.4 (2026-09-29)
+
+SPEC-M3-page-honesty §7.6/§7.11: the page moved to `fc80050c…` (view-only mode, the leave
+guard, held Ctrl+S) and the host to 0.2.4 (`369e6ed`, finding 108), so this runner was
+re-counted. Bindings written before the run (`a2df684f`): `PAGE_SHA256` = `fc80050c…`. Engine package
+`7f4f4e2204b4a9ec`, shell generation v54. No expectation amended.
+
+- Shakedown: `shakedown/2026-09-29T112408+0000.json` — clean.
+- **Counted: `runs/2026-09-29T151106+0000.json` — `ASSETS DELIVERED`**, 3/3 per browser (K2 saving before each leave, §7.8), no problems.
+- Red cases on the counted report: `runs/red-cases-on-2026-09-29T151106.txt` — 90 red, 0 not.
+
+Run one at a time after `PAGE HONEST` (`m3-page-honesty/RESULT.md`, which lists all six).

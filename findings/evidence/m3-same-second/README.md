@@ -157,3 +157,16 @@ A 1-s hold still sends 30 PUTs (> 5): registered as **finding 106** against the 
 (`event.repeat` unfiltered is page identity); nothing was added to the host (condition 4).
 `2026-09-29T033411+0000.json` is the same probe on the pre-review draft host (1.0 s spacing,
 uncommitted): 0/99 same-ETag, tails 31.5–32.3 s.
+
+## Re-run on the page-honesty page and host 0.2.4 (2026-09-29)
+
+SPEC-M3-page-honesty §7.6/§7.11: the page moved to `fc80050c…` (view-only mode, the leave
+guard, held Ctrl+S) and the host to 0.2.4 (`369e6ed`, finding 108), so this runner was
+re-counted. Bindings written before the run (`a2df684f`): `HOST_VERSION` = 0.2.4 (the page pin is `check_m3_locks.PAGE_SHA256`). Engine package
+`7f4f4e2204b4a9ec`, shell generation v54. No expectation amended.
+
+- Shakedown: `shakedown/2026-09-29T122209+0000.json` — clean.
+- **Counted: `runs/2026-09-29T151851+0000.json` — `SAME-SECOND SAVES KEPT`**, same-second and same-second-foreign 3/3 per browser, no red clauses.
+- Red cases on the counted report: `runs/red-cases-on-2026-09-29T151851.txt` — 70 red, 0 not (the case named "the host is not 0.2.2" is the old name; it sets 0.2.1 and is red against 0.2.4).
+
+Run one at a time after `PAGE HONEST` (`m3-page-honesty/RESULT.md`, which lists all six).
