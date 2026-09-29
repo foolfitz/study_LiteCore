@@ -121,6 +121,16 @@ already produced; with the sha and time in the message, 90/90. Review 3 then fou
 `lstart` moves with clock steps, among others; this shakedown's rows have no start ticks, so it
 cannot score against reinstall 3's baseline.
 
+**`shakedown/2026-09-29T011402+0000.json`** (the last before the counted window: tool at
+`b30b58b7`, reinstall 3's baseline, equivalence at 01:08:15Z, dev host entry = the counted
+`../m3-host-entry/runs/2026-09-29T010833Z.json`). Red only on I3-6 locks (arms not run).
+782 good samples over 398.5 s, widest gap 0.519 s; all four controls seen (control 4: worker
+46938, orphan 50045, request 5.09 s); the stream alive at stop with the four control events
+only. Scored strictly, every remaining problem is the shakedown's own (runners at one repeat,
+locks on three arms, label) — I0, I1, I2, I4, I3-5, I3-7 and I3-8 clean. **`--strict
+--red-cases`: 111 of 111 red, 0 skipped, 0 failed.** The window's counted run was started after
+this.
+
 ## Counted run: rules fixed before it started
 
 The four rules of `../m3-locks/README.md` ("Counted run: rules fixed before it started") apply
