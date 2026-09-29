@@ -102,11 +102,10 @@ by changing a message's text, so they are cited on the clean reports (review ite
 
 Registered, not gated (R2, counted report):
 
-- **Wait**: every second-in-a-row save waited about 1 s (981–1105 ms in the final shakedown);
-  every first save 0 ms.
-- **Latency the user sees** (the page's own line): a second save right after another went from
-  ~40–50 ms (0.2.1) to ~1050–1080 ms; a save that does not follow another stays at ~70 ms (the
-  read-back adds ~24 ms).
+- **Wait**: every second-in-a-row save waited 982–1091 ms; every first save 0 ms.
+- **Latency the user sees** (the page's own line, "存回 N ms"): the second save of a pair went
+  from 38–58 ms (0.2.1, `031828Z`) to 1048–1161 ms; a save that does not follow another went
+  from 50–57 ms to 67–71 ms (the read-back GET, ~24 ms).
 - **R3 entry condition** (median read-back GET <= median PUT, host's own record): Chrome 24 vs
   46 ms, Firefox 24 vs 46 ms over 69 saves each (also held per single run in the shakedowns).
   Only on the 9.5 KB fixture; the read-back downloads the whole document before every save.
