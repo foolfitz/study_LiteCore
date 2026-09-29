@@ -67,6 +67,13 @@
 「PID 1 的子行程在裝 app 之前叫什麼名字」。第一次安裝（2026-09-29 06:3x）沒有這段基線，所以以 `--reinstall` 重裝一次：
 先確認安裝目錄與發佈紀錄逐檔相同、`occ app:remove litecore`，再照上面的步驟裝。重裝的位元組與第一次相同。
 
+（審核二第 1 項）**`app:remove` 會留下 app 設定**（`enabled: no`、`installed_version: 0.2.1`），所以那次重裝的 `app:enable`
+是「啟用一個已知版本」，不是安裝。`--reinstall` 因此在 `app:remove` 之後逐鍵刪掉 `litecore` 自己的 app 設定
+（`occ config:app:delete`；這個 app 沒有 migration、背景工作、repair step——`appinfo/info.xml`——所以 app 設定就是它在
+資料庫裡的全部狀態），刪了什麼、刪完讀回什麼都記在 `removedFirst`；I1-1 要求安裝前 `config:list` 裡**沒有** `litecore`。
+基線改成「PID 1 的後代，以 (pid, 啟動時間, comm) 識別」（第 3.5 節），所以基線只在**同一個容器生命週期**內有效：安裝與
+開窗各記一次 web 容器的 `State.StartedAt`，兩者不同，I4-1b 紅（容器重啟過就要重裝重取基線）。
+
 ### 3.3 四支計數 runner 接受「另一台」
 
 `check_m3_assets.py`、`check_m3_versions.py`、`check_m3_locks.py`、`check_m3_host_entry.py` 都接受 `--ddev-root`
@@ -75,8 +82,14 @@
 - 實例（網址、admin 密碼、`ddev occ`／`ddev mysql`、access log）一律從 `--ddev-root` 來。
 - **宿主綁定**（報告的 `hostRepo`／`hostDirty`／`hostFiles`，與宿主入口的 `instance.app`）：在開發實例上照舊讀 git；
   在其他實例上讀**安裝目錄**，逐檔對發佈紀錄——兩邊的檔案集合相同、每個 sha256 相同、沒有 symlink，`hostRepo` 才是
-  發佈紀錄的來源 commit，否則 `hostRepo` 是空字串、`hostDirty` 列出每一處不符。評分函式一行都不改：計數時「dirty 就
-  拒絕」「`hostRepo` 以 `5e53362` 開頭」照舊成立。
+  發佈紀錄的來源 commit，否則 `hostRepo` 是空字串、`hostDirty` 列出每一處不符。~~評分函式一行都不改~~（**不成立**，審核二
+  第 11 項：§3.4 第 4 點改了宿主入口的 `score`——H3 釘分支。資產派送、版本、鎖三支的評分函式沒改。所以宿主入口那幾列
+  等價性是有意義的比較，而且過了：舊報告沒有 `intruder.mode`，評分不變。）計數時「dirty 就拒絕」「`hostRepo` 以
+  `5e53362` 開頭」照舊成立。
+  （審核二第 17 項）「逐檔相同」另外把**空目錄**與**非一般檔**（socket、FIFO、裝置檔）列為不符——`tree_listing` 原本只看
+  一般檔與 symlink，這兩種放在安裝目錄裡它看不見（`check_m3_skeleton_open.tree_oddities`）。
+  （審核二第 10 項）三支 runner 記錄宿主綁定改成呼叫同一個函式 `binding_fields`，資產派送的 K0 記錄改成呼叫
+  `package_for`——runner 與等價性檢查呼叫的是同一個東西，不是一份抄本。
 - 資產派送 K0 的兩條 git 條款（K0-4 的「被追蹤」那半、K0-6）讀的是**來源 repo**；K0-4 的目錄列表那半、K0-1～3、K0-5
   讀安裝目錄。
 - **等價性**：改完之後，用改過的 runner 重新評分每一份既有的計數報告，判定逐份與改動前相同~~（改動沒有改到開發實例那條路）~~。
@@ -84,9 +97,24 @@
   舊新各跑一次、逐欄比對：宿主綁定三欄（舊的是內嵌的 git 指令，新的是 `host_binding`）、資產派送 K0 的 `package_record`、
   `Instance.describe()` 的 `app`。並記下 `tools/` 裡每個被載入模組的 sha256——`host_binding` 住在
   `check_m3_skeleton_open.py`，它不在任何 runner 的 sha 裡。
+  （審核二第 10 項）「舊的」那一側原本是一份手抄的 git 指令，跟 `host_binding` 開發實例那支逐字相同，所以比對它證明不了
+  runner 以前真的這樣記；「新的」那一側寫死 `package_record(DEFAULT_DDEV)`，不是 runner 實際走的條件分支。改成：舊側
+  是三個運算式（`hostRepo`、`hostDirty`、`hostFiles`，加上資產派送的 `package_record(DEFAULT_DDEV)`），工具先在
+  `git show 9748b714:` 的三支 runner 原始碼裡逐一找到它們（空白正規化後逐字；`hostDirty` 在資產派送與版本是
+  `dirty = …` 加 `"hostDirty": dirty` 兩處），找到的**同一段文字**再拿去求值；新側呼叫 runner 自己呼叫的
+  `binding_fields`、`package_for`、`Instance.describe`。找得到與否記在 `equivalence.json` 的 `transcription`，I3-8 判。
+  （審核二第 5 項）每一列另外記舊新兩支 runner 的 `--red-cases` exit，舊新要相同（列的比較本來就是整個 dict 相等）。
+  （審核二第 12 項，依 §3.5 的裁決 Q3）`module_shas` 只量**編排器自己**這個 process 載入的模組；runner 是 subprocess，它們
+  延遲載入的模組（`build_e2_c_shell_bundle`、`validate_e1_c`）與 `make test-e2-c-static` 讀的一切（node 測試、`web/*.js`、
+  Makefile）沒有東西綁。所以在等價性檢查、開窗、收窗三個時點各記一次：`git rev-parse HEAD:wasm_sdk_probe`（tree 物件）、
+  最後一個碰 `wasm_sdk_probe` 的 commit、`git status --porcelain --untracked-files=all -- wasm_sdk_probe`（**必須是空的**），
+  以及 `sys.version`、`node --version`、`make --version` 第一行。三個時點的 tree、最後 commit、三個版本要相同；開窗時工作樹
+  不乾淨就**拒絕**計數執行（不只是判紅）。`module_shas` 照留。**具名極限**：gitignore 掉的路徑（`dist/`、`build/`、
+  `__pycache__`）不在範圍；`dist/` 由各 runner 自己核對的頁面與引擎 sha 綁住。
 - （審核後加）**綁定的自我測試**：`host_binding` 是 I1-2、I3-5 與每一次「dirty 就拒絕」背後唯一的儀器。每次開窗前在一個
   暫存實例上解出發佈壓縮檔，量乾淨、改一個位元組、多一個檔、少一個檔、多一個 symlink、整個安裝目錄換成 symlink 六種；
   乾淨那一種要讀成乾淨，其餘五種都要在 `hostDirty` 點名。「安裝目錄本身是 symlink」原本看不見（`rglob` 會跟進去），已補。
+  （審核二第 17 項）再加兩種：多一個 FIFO、多一個空目錄——共八種，乾淨一種、漂移七種。
 
 ### 3.4 宿主入口 runner（E）
 
@@ -139,16 +167,27 @@
 
 ### 3.5 伺服器端行程的量法
 
-`check_m3_install_elsewhere.py run` 在四支 runner 跑的整段時間裡，每 0.5 秒以一次 `docker exec ddev-litecoreprobe-web`
+~~`check_m3_install_elsewhere.py run` 在四支 runner 跑的整段時間裡，每 0.5 秒以一次 `docker exec ddev-litecoreprobe-web`
 取樣 web 容器：`ps -eo pid,ppid,comm,args`，加上 `find /proc/[0-9]*/fd -lname '*litecore-dist*'`（誰開著掛載底下的檔）。
-每個樣本記下 `docker exec` 花了多久（`d`）。docker exec 的身分是 uid 1000，跟 php-fpm worker 相同，看得到它們的 fd
-（2026-09-29 實測）。
+每個樣本記下 `docker exec` 花了多久（`d`）。~~（**已被下一段取代**，審核二第 16 項：舊文沒劃掉，讀起來像現行做法。）
+docker exec 的身分是 uid 1000，跟 php-fpm worker 相同，看得到它們的 fd（2026-09-29 實測）。
 
 **（第二次 shakedown 之後改儀器，判準不動）**取樣改成**整個時間窗只用一個常駐的 `docker exec`**：容器裡的 shell 迴圈每 0.5 秒
 印出容器時鐘、`ps`、以及每個開著掛載底下檔案的 fd 連同它的 ppid 與 cmdline（`/proc/<pid>/stat`、`/proc/<pid>/cmdline`）。
 逼出它的兩個量測（`findings/evidence/m3-install/shakedown/2026-09-28T230921+0000.json`）：每個樣本一次 `docker exec` 時，
 有一次被正向對照自己同時在跑的 `docker exec` 拖到 1.6 秒（I4-2 因此紅）；對照的 `sleep` 在 `ps` 跑完、`find` 跑之前才被 fork，
-沒有 ps 列可以歸屬（I2-3 因此紅）。兩者都是儀器錯，不是產品。實測新迴圈的間隔 0.509–0.515 秒。
+沒有 ps 列可以歸屬（I2-3 因此紅）。兩者都是儀器錯，不是產品。實測新迴圈的間隔 ~~0.509–0.515 秒~~（沒有證據檔，審核二第
+16 項）窗內最大 0.515 秒（`findings/evidence/m3-install/shakedown/2026-09-28T231953+0000.json`）。
+
+**（審核二之後再改儀器，判準見下）**迴圈內的順序與格式：
+
+- **先 `find` 再 `ps`**（第 6a 項）：一個在兩者之間被 fork 的開檔者，只要到 `ps` 時還活著就有 ps 列；已經死了的，保有 `find`
+  當下讀到的 ppid 與 cmdline。原本的順序只補得了「少一層」。
+- `ppid` 取 `/proc/<pid>/stat` 最後一個 `") "` 之後的第二欄（第 15 項：`comm` 可以含空白，`cut -f4` 會讀錯；實測一個叫
+  `lc sp` 的開檔者與它的子行程都讀對）。
+- `ps -ww -eo pid=,ppid=,comm=,lstart=,args=`（第 15 項：沒有終端時 `args` 被截在 80 欄；`lstart` 給每個行程 pid 以外的
+  身分，第 2 項）。`comm` 以「下一段是 `lstart` 形狀」切開，所以含空白也讀得對。
+- 取樣器的 stderr 由一條執行緒持續讀掉，最後 50 行記進報告（第 15 項：沒人讀的 pipe 滿了會卡住迴圈）。
 
 ~~Nextcloud 在這個容器裡以 php-fpm 執行，app 的每一行 PHP 都在某個 `php-fpm` 行程裡；**app 若啟動任何行程（文件伺服器、
 轉檔器、`exec()` 出去的 shell），它會是某個 `php-fpm` 的後代，而且 `comm` 不是 `php-fpm`**。判準就寫成這個，不列舉「哪些
@@ -157,24 +196,78 @@ PID 1，不再是 php-fpm 的後代；而 `ddev occ` 以 `php occ` 執行時會�
 
 所以判準分兩條，都不列舉「哪些程式算文件伺服器」：
 
-- **I4-1a**：php-fpm 的後代而自己不是 php-fpm——抓 app 在請求裡直接起的子行程。
-- **I4-1b**：**PID 1 的直接子行程**，名字不在「裝 app 之前 PID 1 的子行程」的名字集合裡——抓被收養的孤兒，不管它原本是
-  誰生的（背景化的文件伺服器、`occ` 載入 app 時起出來又留下的東西）。基線在解壓之前量（§3.2）。**實測**（2026-09-29，
+- **I4-1a**：php-fpm 的後代而自己不是 php-fpm——抓 app 在請求裡直接起的子行程。（審核二第 13 項）另外：名字是 php-fpm、
+  但祖先裡有**兩個以上** php-fpm 的行程——worker 以 `pcntl_fork` 生出的子行程保留 `php-fpm` 這個名字，原規則把它當成
+  worker 放過；只有 master 的子行程才是 worker。
+- **I4-1b**：~~**PID 1 的直接子行程**，名字不在「裝 app 之前 PID 1 的子行程」的名字集合裡~~（審核二第 2 項：以名字比，
+  一個跟基線同名的孤兒連同它整棵子樹都漏掉；只看直接子行程，孤兒的子孫也漏掉）**PID 1 的每一個後代，以 (pid, `lstart`,
+  `comm`) 識別，都要是「裝 app 之前 PID 1 的後代」之一**——抓被收養的孤兒，不管它原本是誰生的（背景化的文件伺服器、
+  `occ` 載入 app 時起出來又留下的東西）。基線在解壓之前量（§3.2），只在同一個容器生命週期內有效。**實測**（2026-09-29，
   shakedown 的樣本）：服務行程樹不接在 PID 1 底下——PID 1 是 `bash /pre-start.sh`，supervisord、php-fpm、apache 的根是
-  另一個 ppid 0 的 `bash -c …start.sh`（PID 9）。所以規則寫成「PID 1 的直接子行程」，不是審核者提議的「接到 PID 1 的血統」
-  （那樣會把整棵服務樹算進基線以外）。孤兒一定被收養到 PID 1（容器裡沒有 subreaper）。
+  另一個 ppid 0 的 `bash -c …start.sh`（PID 9）。~~所以規則寫成「PID 1 的直接子行程」，不是審核者提議的「接到 PID 1 的血統」
+  （那樣會把整棵服務樹算進基線以外）。~~（**寫錯了**，審核二第 2 項：那是我從 PID 9 的發現推論出來的，而同一批樣本顯示
+  PID 1 的後代只有 pid 8 `cat`（加上對照）——服務樹正是**不在** PID 1 底下，所以血統規則不會把它算進去。）
+  ~~孤兒一定被收養到 PID 1（容器裡沒有 subreaper）。~~（審核二第 14 項：推論，不是量測；處置見下方裁決。）
+  依裁決改成量到的那句（條件 8）：**在兩條實際走過的路上（docker exec 根：對照 1；php-fpm worker：對照 4），背景化的子行程
+  在對照期間內是 PID 1 的直接子行程——每個窗都量一次。**不寫「容器裡沒有 subreaper」這種全稱句。一次性量測
+  （`findings/evidence/m3-install/fpm-path-measurement-2026-09-29.md`）另外登錄：孤兒會**繼承** worker 開著的檔（PHP 的
+  `fopen` 不設 `O_CLOEXEC`），而且只有 I4-1b 抓得到它——`exec('… &')` 的 `sh -c` 幾毫秒就結束，I4-1a 看不到。
 
-**正向對照**（否則「沒看到」與「儀器沒接上」長得一樣），窗一開就跑，三個：
+**正向對照**（否則「沒看到」與「儀器沒接上」長得一樣），窗一開就跑，~~三個~~四個（對照 4 是下方裁決加的），外加窗尾一個：
 
 1. 把 `/bin/bash` 複製成 `/tmp/litecore-ctl/php-fpm`（`comm` 因此是 `php-fpm`），讓它背景起 `/tmp/litecore-ctl/lcorphan 6`
    （`sleep` 的複本）、前景 `sleep 2` 後結束。I4-1a 必須在對照期間看到那個 `sleep`；它結束之後 `lcorphan` 被 PID 1 收養，
-   I4-1b 必須看到 `lcorphan`。
+   I4-1b 必須看到 `lcorphan`。（審核二第 6b 項）`lcorphan` 的 stdio 導到 `/dev/null`：它原本握著 docker exec 的 pipe，讓那支
+   exec 多撐約 4 秒、拖慢同時的另一支 exec。
 2. 把 `/bin/bash` 複製成 `/tmp/litecore-ctl/lcfd`，讓它 `exec 3</mnt/litecore-dist/e2-editor.html` 再睡 3 秒。I2-3 必須看到
    `lcfd` 開著掛載底下的檔（實測：`find` 找得到 `/proc/<pid>/fd/3`）。
 3. `docker create` 一個名為 `litecore-ctl-events` 的容器再 `docker rm`。I4-3 的事件串流必須看到它的 `create`。
+   （審核二第 9 項）映像改用 `ddev/ddev-utilities:latest`：用 web 容器的映像建出來的容器帶著 litecoreprobe 的 compose 標籤，
+   中斷在 create 與 rm 之間時，會留下一個 ddev 會當成 litecoreprobe web 容器的停止容器。（審核二第 3 項）**窗尾再做一次**
+   （`litecore-ctl-events-end`，在 `window.end` 之前），也必須被串流到——事件串流只在 +13 秒左右證明過活著，中途死掉會讀成
+   「沒有事件」；停止串流前另外記它還在不在跑（`lifecycleAlive`）。
+4. （裁決加）**走真實 php-fpm 的對照**：以容器裡的 PHP CLI 跑一支 25 行的 FastCGI 用戶端，連 pool 的 socket
+   （`/run/php/php-fpm.sock`，0666），請 pool 在一個普通的 `php-fpm: pool www` worker 裡執行 `/tmp/litecore-ctl/fpm.php`——
+   沒有 HTTP 請求、docroot 裡沒有檔案、任何 access log 都沒有一列（所以 I2-1、I2-4 不受影響）。腳本依序：背景起
+   `/tmp/litecore-ctl/lcorphan4 8`（stdio 導到 `/dev/null`）、前景跑 `/tmp/litecore-ctl/lcfg 2`、開 `/mnt/litecore-dist/e2-editor.html`
+   睡 3 秒再關、印出 `worker=<pid> orphan=<pid>`。先起子行程再開檔，因為 `fopen` 不設 `O_CLOEXEC`，之後起的子行程會繼承 fd。
+   I4-1a 必須看到 `lcfg`，**而且它的 php-fpm 是腳本回報的那個 worker、那個 worker 的父行程是 ppid 不為 0 的 php-fpm**（真的
+   master；對照 1 的假 php-fpm 是 docker exec 起的，ppid 0）；I4-1b 必須看到 `lcorphan4`；I2-3 必須看到**那個 worker 自己**開著
+   **那個檔**。名字刻意跟對照 1、2 不同，每個對照各有自己「一定要看到」的集合，誰也不能替誰滿足。
 
 對照的歸屬看行程或它的祖先的 `args` 有沒有 `/tmp/litecore-ctl`，而且樣本時間在該對照起訖 ±1 秒內（審核第 17 項：樣本的
-時間戳記在 docker exec 之前，會早約 45 ms）。
+時間戳記在 docker exec 之前，會早約 45 ms）。對照 4 的 worker 自己的 `args` 是 pool 的，不含那個路徑：它的 fd 以「腳本回報的
+pid、腳本開的那個檔、對照 4 的時間窗」三者同時成立來歸屬（取樣迴圈記下每個 fd 指向的檔，I2-3 的問題列因此帶著檔名）。
+**具名極限**：對照 4 的那約 5 秒（±1）裡，那一個 worker 讀那一個檔不會被判紅；讀掛載底下別的檔會。腳本沒回報 pid 時，
+「對照 4 沒看到」直接紅，不會 SKIP。
+
+#### 裁決（fable，2026-09-29，擁有者授權代為決定）：對照 4、subreaper、工具的綁定
+
+審核二把三件事留給「下一個 session 決定」：第 4 項（I2-3 有沒有走 php-fpm 的對照）、第 14 項（「沒有 subreaper」是推論）、
+第 12 項（`module_shas` 漏掉延遲載入的模組與 `make test-e2-c-static` 讀的一切）。主 session 先量（上面的一次性量測），再以
+選項 A／B／C 附傾向送 fable；fable 唯讀，裁決 **Q1 C、Q2 C、Q3 C（加強）**，十三條條件逐條落地，對照表在
+`findings/evidence/m3-install/ruling-2026-09-29-fable-controls.md`。白話理由（原文）：
+
+> Q1：B 最差——I2-4 的整句意思就是「窗內沒有任何 /apps/litecoreprobe/ 請求」，B 要在那裡開豁免；而且照探針 app 的程式碼，
+> `.wasm` 根本是 redirect 到 Apache 靜態檔去，不經 php-fpm，PHP 那條路也只在 `file_get_contents` 那幾毫秒持有 fd，所以 B
+> 既不 php-fpm-faithful 也不改機率。A 只有一次性量測，容器換 image、換 php-fpm 設定就沒人看著。C 是逐實例性質（每個窗都要
+> 看到），成本一支 docker exec 約 5 秒，跑在 runner 之前所以不跟 runner 搶 worker。但要講清楚：C **不改 I2-3 的射程**，它
+> 證明的是「儀器看得到真 php-fpm worker 的 fd」與「I4-1a／1b 在真的 php-fpm 血統上會亮」——現有對照 1 是 bash 改名的假
+> php-fpm，掛在 docker exec 底下。射程句照 A 改寫，不論 C 落不落地。
+>
+> Q2：既然 C 每個窗都有一個真 worker 背景化的孤兒，「沒有 subreaper」就從推論變成每窗量到的事實。但要寫成量到的那句——
+> 「兩條路（docker exec 根：對照 1；php-fpm worker：對照 4）背景化的子行程在對照期間內是 PID 1 的直接子行程」——不是
+> 「容器裡沒有 subreaper」這種全稱句。fd 繼承那件事留在一次性量測檔裡登錄。
+>
+> Q3：A 只綁 runner 自己 process 載入的模組，`make test-e2-c-static` 那串（node 測試、Makefile、web/*.js）還是沒人綁，而且
+> 要改四支 runner 的記錄路徑、碰 I3-8。B 是手工枚舉（第 1 節不可當硬判準那種）：多一個輸入目錄它不會紅。C 是工具封閉的
+> 枚舉，成員由 git 生成。但主 session 寫的 `--untracked-files=no` 有洞：一個沒進版控的 `tools/foo.py` 或 `tests/*.test.mjs`
+> （Makefile 用 glob）它看不到；改成 `all` 要空，今天這棵樹本來就沒有這種檔，不多花任何東西。另外現況比 F4 說的還少：
+> `module_shas` 量的是編排器自己的 process，runner 是 subprocess。
+
+主 session 核對過 fable 引用的數字：第三次 shakedown 的引擎請求 471 次／窗長 383.5 秒、`check_m3_host_entry.py:104` 的延遲
+import、`EditorController.php:226` 的 `StreamResponse`、當時工作樹有五個改過的工具檔。fable 更正了主 session 的一個事實：
+探針 app 的路由對 `.wasm` 是 redirect 到 Apache 靜態檔（`ProbeController.php:151-153`），不經 php-fpm。
 
 **容器**（審核第 4 項）：`docker ps -a` 的集合只看得到「多了一個容器」，看不到**啟動**一個本來就在的容器（這台機器上有
 `oxool-dev`，一個 OxOOL 文件伺服器，狀態 Exited）。所以窗內另外即時串流 `docker events` 的容器生命週期事件（create、
@@ -200,11 +293,11 @@ start、restart、unpause、die、kill、stop、pause、destroy）。**不能事
 ### I1 安裝
 
 1. `occ app:enable litecore` exit 0；之後 `occ app:list` 的 `enabled` 裡有 `litecore`，版本＝壓縮檔裡 `info.xml` 的
-   `<version>`。
+   `<version>`。（審核二第 1 項）而且那是**安裝**不是重新啟用：安裝前的 `occ config:list` 裡沒有 `litecore` 這個 app。
 2. 安裝目錄是實體目錄，底下沒有任何 symlink；它的檔案集合與每一個 sha256＝發佈紀錄的成員（兩個方向都比）——安裝當下量一次，
    **開窗時再量一次**（`host_binding`，含「目錄本身不是 symlink」）；`occ app:getpath litecore` 在安裝後與開窗時都是
    `/var/www/html/nextcloud/apps-extra/litecore`（Nextcloud 依版本在 `apps_paths` 之間挑，別處的一份會被優先服務，審核第 5 項）；
-   §3.3 的綁定自我測試六種全對。
+   §3.3 的綁定自我測試~~六種~~八種全對。（審核二第 17 項）安裝目錄底下也沒有空目錄與非一般檔（`tree.others` 是空的）。
 3. `occ config:list system` 安裝前後逐鍵相同（`--private` 不開，值以 `***REMOVED SENSITIVE VALUE***` 比對）。其他 app 設定的
    差異**記下、不判**（第一次安裝實測只有 `litecore` 自己的三個鍵）。
 4. 探針 app 的 `files_probe` 與 `files_isolation` 在安裝前、時間窗開始、時間窗結束三次都讀到 `off`。
@@ -222,7 +315,14 @@ start、restart、unpause、die、kill、stop、pause、destroy）。**不能事
    （審核第 14 項：窗內造成的 408 會晚 40 秒才落地）。
 2. 四支 runner 報告裡的 `baseUrl`／`instance.baseUrl` 都是 `https://litecoreprobe.ddev.site:8443`。
 3. （審核後加）窗內每個樣本：沒有任何行程開著 `/mnt/litecore-dist` 底下的檔，正向對照 2 除外而且一定要看到。
-   限度：讀得比 0.5 秒快的小檔可能漏掉；引擎的大檔（gz 最大 41 MB）串流遠比 0.5 秒久。
+   ~~限度：讀得比 0.5 秒快的小檔可能漏掉；引擎的大檔（gz 最大 41 MB）串流遠比 0.5 秒久。~~（**被自己的量測推翻**，審核二
+   第 4 項：41 MB 的 gz 在 0.096 秒內送完，`findings/evidence/m3-assets/runs/2026-09-28T172628+0000.json`
+   `wire.files["profiles/e2-editor-v8/probe.wasm"].gzip`——那是開發實例經宿主的 `StreamResponse` 送的，不是掛載。）
+   **射程**（裁決條件 1）：一次持續 d 秒（d < 0.5）的讀取被抓到的機率約 d／0.5；最大的引擎檔也只要 0.096 秒。所以 I2-3 是
+   **整個窗的統計性質**（第三次 shakedown 的窗 383.5 秒裡有 471 次引擎請求），**不是逐次讀取的保證**。**如果窗內從來沒看到
+   任何人讀掛載**，結論只是「窗內沒有被抓到的掛載讀取」，可能有一次短讀取沒被抓到，判準不多宣稱什麼。
+   （裁決加）正向對照 4 的 worker 開著它自己那個檔，除外而且一定要看到——這證明儀器看得到**真的 php-fpm worker** 的 fd，
+   不改上面的射程。
 4. （審核後加）窗內 litecoreprobe 的 access log 沒有任何請求路徑落在 `/apps/litecoreprobe/` 或 `/apps-extra/litecoreprobe/`
    底下（探針 app 那條不受開關控制的路由，第 2 節）。儀器非空洞：同一段 log 裡有引擎路由 `/apps/litecore/r/` 的請求。
 
@@ -242,27 +342,42 @@ start、restart、unpause、die、kill、stop、pause、destroy）。**不能事
 另外（不在時間窗內）：
 
 7. 宿主入口（§3.4 的 runner）在**開發實例**上計數執行 `LANDS`，紅案全紅（同樣在評分當下重跑），而且在開窗**之前**結束。
+   （裁決條件 12）而且在等價性檢查**之後**開始——它延遲載入的模組只有 §3.3 的 tree 綁定綁得住。
 8. §3.3 的等價性：改過的四支 runner 對既有計數報告重新評分，判定逐份與改動前相同；開發實例上的記錄路徑舊新逐欄相同；
-   計數時，runner 的 sha256 與 `tools/` 被載入模組的 sha256 在等價性檢查、開窗、收窗三個時點相同。
+   計數時，runner 的 sha256 與 `tools/` 被載入模組的 sha256 在等價性檢查、開窗、收窗三個時點相同。（審核二）每一列的紅案
+   exit 舊新相同；舊的記錄運算式在 `9748b714` 的三支 runner 原始碼裡都找得到（`transcription`）；（裁決 Q3）計數時
+   `wasm_sdk_probe` 的 tree、最後 commit、三個直譯器版本在三個時點相同，三個時點的工作樹都沒有未提交的東西。
 
 ### I4 沒有伺服器端文件行程
 
 1. 時間窗內每一個樣本：**a** 沒有任何行程是某個 `comm`＝`php-fpm` 行程的後代而自己的 `comm` 不是 `php-fpm`；**b** PID 1 的
    每一個直接子行程，名字都在安裝前基線裡 PID 1 子行程的名字集合裡。基線至少 120 個好樣本、集合非空。正向對照 1 的違規
    只准出現在它的起訖（±1 秒）之內，而且那段之內**一定**要出現：a 看到它的 `sleep`、b 看到 `lcorphan`。
+   （審核二與裁決之後，任何計數執行之前）**a** 另外：沒有任何 `php-fpm` 的祖先裡有兩個以上 `php-fpm`（第 13 項）。
+   ~~**b** PID 1 的每一個直接子行程，名字都在安裝前基線裡 PID 1 子行程的名字集合裡~~ **b** PID 1 的每一個**後代**，
+   (pid, 啟動時間, comm) 都在安裝前基線裡 PID 1 後代的集合裡（第 2 項）；安裝與開窗時 web 容器的 `State.StartedAt` 相同。
+   正向對照 4 的違規也只准出現在它的起訖（±1 秒）之內，而且那段之內一定要出現：a 看到**真的 worker 底下**的 `lcfg`、
+   b 看到 `lcorphan4`。
 2. 取樣器非空洞：時間窗內好樣本數 ≥ 窗長秒數，**相鄰兩個好樣本（含窗的兩端）相距不超過 1.0 秒**（審核第 3 項：原本只算總數，
    窗長一半的空白也過得了；shakedown 實測最大間隔 0.501 秒），每個樣本都至少有一個 `php-fpm` 行程。
 3. `docker ps -a` 的容器集合（名稱、映像、建立時間、狀態）在時間窗開始與結束相同；窗內即時串流的容器生命週期事件，除了
    正向對照 3 的容器之外**一筆都沒有**，而正向對照 3 的 `create` 一定要被串流到。
+   （審核二第 3、9 項）窗尾的第二個對照容器的 `create` 也一定要被串流到；停止串流時它還在跑。事件串流看的是**整台主機**的
+   容器，不只 ddev 專案：**窗內主機上任何容器的生命週期活動都會讓 I4-3 紅**——長跑期間別在這台機器上起停任何容器。
 
 **登錄、不判**：安裝目錄的 PHP（去掉註解之後）裡有沒有 PHP 手冊「程式執行」那一章的函式（`exec`、`shell_exec`、`system`、
-`passthru`、`proc_open`、`popen`、`pcntl_exec`、反引號）——手工枚舉，記在 `archive.execFamilyScan`。
+`passthru`、`proc_open`、`popen`、`pcntl_exec`、反引號）——手工枚舉，記在 `archive.execFamilyScan`。（審核二第 13 項）
+加上 `pcntl_fork`（在手冊的「行程控制」那一章，不是「程式執行」；加它是因為 I4-1a 的新分支就是為它寫的）。
+（審核二第 8 項）另外登錄每個窗內樣本裡 ppid 0 的根（PID 1 以外）——docker exec 起的東西：健康檢查、`php occ`、
+`runc init`、服務樹的 `bash -c …start.sh`——記在評分結果的 `registered.execRoots`，以出現的樣本數計。
 
 ### 紅案與計數
 
 `--red-cases` 對 I0–I4 每一條至少一個突變，每個突變都要**多出**一個以該條款開頭的問題（相對於報告本來就有的問題）。
 （審核第 9 項）只在計數模式才判的分支，在 shakedown 報告上用 `--red-cases --strict` 讓它紅：報告本身不乾淨沒關係，看的是
 每個突變有沒有多出它那一條的問題。**先讓評分紅一次再跑計數**——在一份 shakedown 報告上，`--strict` 零 SKIP、零 GREEN。
+（審核二第 7 項）每個突變另外指定「多出的問題必須含有的一段字」，把它釘在它要測的那個分支上：同一條款的另一個分支替它
+變紅不算數（I0-2 的 git blob、I4-1b 的對照原本都只是被順帶抓到）；審核列出的每一個沒有突變的分支各補一個。
 計數執行照 `findings/evidence/m3-locks/README.md` 的「Counted run: rules fixed before it started」四條。長跑期間不啟動、
 不重啟任何其他 ddev 專案；開發實例上的宿主入口計數執行在開窗之前結束，窗內不對開發實例做任何事。
 
@@ -283,6 +398,13 @@ I0–I4 全過＝**`INSTALLS ELSEWHERE`**：M3 的完成判準（§5.5）在一�
 - 只取樣 web 容器。資料庫容器、router 不在範圍。I4-3 保證窗內沒有容器被建立或啟動；**一個窗外就已經在跑、經網路被呼叫的
   服務**不在 I4 的範圍（開窗時的 `docker ps -a` 狀態記在報告裡）。
 - 入侵者與頁面是同一個使用者（admin）；另一個使用者帶 token 寫入是 finding 102 的量測，這一步沒有重做。
+- （審核二第 8 項）**docker exec 起的行程樹不在 I4-1 裡**：它們的根 ppid 是 0，不在 php-fpm 底下、也不在 PID 1 底下。窗內有人
+  以 `docker exec -d` 起一個文件伺服器，I4-1 看不到（exec 事件也被 I4-3 的濾器濾掉）。這些根登錄在 `registered.execRoots`，
+  不判。app 自己沒有辦法走這條路（它只能在 php-fpm 裡跑）；會走這條路的是操作者與我們自己的儀器。
+- I2-3 的射程是統計性的（§4 I2-3）；對照 4 的那一個 worker 在它那約 5 秒裡讀它那一個檔不判紅（§3.5 具名極限）。
+- 「沒有 subreaper」只在兩條實際走過的路上量過（docker exec 根、php-fpm worker）；服務樹裡其他行程（supervisord、apache）
+  背景化出去的子行程會落在哪裡沒有量。
+- 工具的綁定不含 gitignore 掉的路徑（§3.3）。
 - 重裝時 opcache 不會重新載入：mtime 固定（`build_m3_release.py` 的 `MTIME`），而 PHP 的 opcache 以 mtime 判斷檔案有沒有變。
   這一步的重裝用的是**逐位元相同**的檔案，所以快取的 bytecode 也相同；換成不同位元組的建置之後要重新載入 php-fpm。
 
@@ -294,3 +416,4 @@ I0–I4 全過＝**`INSTALLS ELSEWHERE`**：M3 的完成判準（§5.5）在一�
 | 2026-09-29 | shakedown 之後、任何計數執行之前：§3.4 補宿主衝突分支的觀察（`tokenOnServer` true）；§3.4 更正「版本與鎖都沒有 H3 的條款」——「等 5 秒不重載」鎖與權限 K6 有，沒有的是「再按一次」；I2-1 加開窗前置條件（開發實例安靜 ≥ 60 秒），理由是 shakedown 量到的 408 殘渣。判準本身沒有放寬。 |
 | 2026-09-29 | **對抗性審核（opus，唯讀，19 項）與裁決（fable，H3）之後、任何計數執行之前。**審核全文與逐項處置在 `findings/evidence/m3-install/review-2026-09-29-opus.md`。改正三件寫錯的事實：`dist/` 沒有 `.gz`（有 117 個、30 個與發佈成員相同）；「app 起的行程一定是 php-fpm 的後代」（背景化的行程被 PID 1 收養）；「長壽的文件伺服器漏不掉」。加的判準：I1-2 開窗時重量、`app:getpath`、綁定自我測試；I2-1 健康檢查列數與窗後等 60 秒；I2-3 掛載開檔；I2-4 探針 app 路由；I3-5 報告時間在窗內；I3-6 紅案評分時重跑、報告 sha256；I3-8 記錄路徑舊新比對與模組 sha；I4-1b 孤兒與安裝前基線（因此重裝一次）；I4-2 相鄰間隔 ≤ 1.0 秒；I4-3 容器生命週期事件串流；三個正向對照。§3.4 依 fable 裁決保留 H3、改正理由（同一個使用者，不是 102）、H3 評分釘分支。判準沒有一條被放寬；全部先於任何計數執行。 |
 | 2026-09-29 | 第二次 shakedown 之後、任何計數執行之前：取樣器改成一個常駐的 `docker exec` 迴圈，開檔持有者連 ppid 與 cmdline 一起記（§3.5）。理由是兩個儀器錯：一次 1.6 秒的取樣間隔（對照自己的 exec 拖慢）、一個 ps 沒看到的對照子行程。判準不動（間隔上限仍是 1.0 秒）。 |
+| 2026-09-29 | **第二次對抗性審核（opus，唯讀，17 項，`findings/evidence/m3-install/review-2026-09-29-opus-2.md`）與裁決（fable，對照 4／subreaper／工具綁定，`ruling-2026-09-29-fable-controls.md`）之後、任何計數執行之前。**改正四件寫錯的事：拒絕「接到 PID 1 的血統」的理由（服務樹不在 PID 1 底下，血統規則不會把它算進去）；「評分函式一行都不改」（宿主入口的改了）；I2-3 的射程句（41 MB 0.096 秒送完）；§3.5 沒劃掉的舊取樣法與沒有證據檔的 0.509–0.515。收緊的判準：I1-1 要真的安裝（安裝前沒有 app 設定，重裝因此會刪掉殘留設定）；I1-2 空目錄與非一般檔、自我測試加兩種；I3-7 在等價性檢查之後開始；I3-8 紅案 exit、舊運算式逐字核對、tree 綁定；I4-1a 抓 worker 底下的 php-fpm；I4-1b 改成 PID 1 的後代以 (pid, 啟動時間, comm) 識別、基線與窗同一個容器生命週期；I4-3 窗尾第二個對照與串流存活；新增正向對照 4（真的 php-fpm worker，經 FastCGI）。改儀器：先 `find` 再 `ps -ww`、`lstart`、stat 的 ppid 解析、fd 記目標檔、stderr 排乾、對照 1 的 stdio、對照容器換映像。紅案每個釘在自己的分支上，從 45 個到 90 個。**判準沒有一條被放寬**；全部先於任何計數執行。 |

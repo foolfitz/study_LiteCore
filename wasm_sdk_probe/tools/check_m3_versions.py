@@ -41,7 +41,7 @@ from check_m3_host_entry import host_record, requests_matching  # noqa: E402
 from check_m3_locks import (  # noqa: E402
     ODT, PAGE_SHA256, PROJECT, REPO, LockChrome, Server, attempts, edit, edited, held_at_open, insert_marker, login,
     on_wire, one_copy, open_from_files, opened_ok, page_failed_with, save, wire)
-from check_m3_skeleton_open import DEFAULT_DDEV, FIXTURE, Instance, host_binding  # noqa: E402
+from check_m3_skeleton_open import DEFAULT_DDEV, FIXTURE, Instance, binding_fields, host_binding  # noqa: E402
 from probe_m3_gate0_coep import DIST, firefox_profile, sha256_file, summarize_cdp, utc_now  # noqa: E402
 from run_browser_probe import FirefoxSession  # noqa: E402
 from run_e2_c_page_smoke import navigate  # noqa: E402
@@ -460,8 +460,7 @@ def main() -> int:
     report: dict[str, Any] = {
         "runner": "check_m3_versions.py", "runnerSha256": sha256_file(Path(__file__)), "label": args.label,
         "startedAt": utc_now(), "static": static,
-        "hostRepo": binding["hostRepo"], "hostDirty": dirty, "hostFiles": binding["hostFiles"],
-        "hostBinding": {k: v for k, v in binding.items() if k not in ("hostRepo", "hostDirty", "hostFiles")},
+        **binding_fields(binding),
         "baseUrl": instance.base,
         "original": {"source": str(FIXTURE.relative_to(DIST)), "sha256": sha256_file(FIXTURE)},
         "runs": [],

@@ -84,6 +84,31 @@ def tree_listing(app: Path) -> tuple[dict[str, str], list[str]]:
     return files, links
 
 
+def tree_oddities(app: Path) -> list[str]:
+    """What tree_listing does not list: every empty directory, and anything
+    that is neither a regular file, a directory nor a symlink (socket, FIFO,
+    device) -- none of which a release archive of files can put there."""
+    odd = []
+    for path in sorted(app.rglob("*")):
+        name = path.relative_to(app).as_posix()
+        if path.is_symlink():
+            continue
+        if path.is_dir():
+            if not any(path.iterdir()):
+                odd.append(f"empty directory {name}")
+        elif not path.is_file():
+            odd.append(f"special file {name}")
+    return odd
+
+
+def binding_fields(binding: dict[str, Any]) -> dict[str, Any]:
+    """The four report fields every counted runner records from host_binding:
+    one callable, so the equivalence check (SPEC-M3-install-elsewhere I3-8)
+    runs what the runners run rather than a copy of it."""
+    return {"hostRepo": binding["hostRepo"], "hostDirty": binding["hostDirty"], "hostFiles": binding["hostFiles"],
+            "hostBinding": {k: v for k, v in binding.items() if k not in ("hostRepo", "hostDirty", "hostFiles")}}
+
+
 def host_binding(root: Path) -> dict[str, Any]:
     """hostRepo / hostDirty / hostFiles as the counted runners record them.
     Dev instance: the host repo (git), as before.  Anywhere else: the installed
@@ -102,6 +127,7 @@ def host_binding(root: Path) -> dict[str, Any]:
     files, links = tree_listing(app) if app.is_dir() else ({}, [])
     differ = ["the app directory itself is a symlink"] if app.is_symlink() else []
     differ += [f"symlink {n}" for n in links]
+    differ += tree_oddities(app) if app.is_dir() else []
     differ += [f"missing {n}" for n in sorted(set(members) - set(files))]
     differ += [f"extra {n}" for n in sorted(set(files) - set(members))]
     differ += [f"changed {n}" for n in sorted(set(files) & set(members)) if files[n] != members[n]]

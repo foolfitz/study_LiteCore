@@ -33,3 +33,30 @@ this step exists.
 Also confirmed by the reviewer: the stored counted host-entry report scores identically under
 the tools at `9748b714` and now; the H3 pin is sound for the ruling's scenarios; the ruling's
 commit times check out; `shakedown/…230921` was red only because of the instrument.
+
+## Done (2026-09-29, the next session, before any counted run)
+
+Every "Adopt" row above is implemented. Three rows the table left to "next session decides"
+(4, 12, 14) went to fable on the owner's authority after a measurement
+(`fpm-path-measurement-2026-09-29.md`); the ruling and its thirteen conditions are in
+`ruling-2026-09-29-fable-controls.md`. Spec §6 has the revision row.
+
+| # | what was done |
+| --- | --- |
+| 1 | `install --reinstall` deletes every `litecore` app-config key after `app:remove` (`occ config:app:delete`), records the keys and a read-back (`removedFirst.configDeleted`, `configAfter`); I1-1 now requires `install.before.apps.apps` to have no `litecore`. The app has no migrations, jobs or repair steps (`appinfo/info.xml`). |
+| 2 | I4-1b flags any descendant of PID 1 whose (pid, `lstart`, comm) is not among the baseline's PID-1 descendants; `ps` now emits `lstart`. The baseline holds only within one container lifetime, so install and window record `docker inspect … State.StartedAt` and I4-1b is red when they differ. Spec sentence struck and corrected. |
+| 3 | `Lifecycle.stop()` records `poll() is None` (`window.lifecycleAlive`, must be true); a second container control `litecore-ctl-events-end` runs just before `window.end` and its `create` must be streamed. |
+| 4 | Ruling Q1 C: I2-3's reach restated as statistical (spec §4 I2-3, citing the 0.096 s); new in-window **control 4** over FastCGI in a real `php-fpm: pool www` worker. |
+| 5 | (fixed in the earlier session) plus: equivalence rows now carry each side's `--red-cases` exit (`redExit`), compared with the rest of the row. |
+| 6 | (a) `find` runs before `ps` in the loop; (b) control 1's orphan has `</dev/null >/dev/null 2>&1`; (c) resolved by the reinstall; (d) fixed earlier. |
+| 7 | Every red case now names a substring the added problem must carry, pinning it to its branch. Added: I0-2 buildId and member list; I1-1 re-enable; I1-2 root symlink, file differs, FIFO, getpath at install, clean-reads-dirty, one per self-test drift (7); I2-1 `devLogRead`; I3 no report; I3-7 baseUrl, commit, red-case exit, missing report, runner sha; I3-8 red-case exit, coverage, transcription; `label`; I4-1a php-fpm under a worker; I4-1b baseline name under a new pid, grandchild of PID 1, orphan control not seen, container restarted; I4-1 short baseline; I4-3 end control, dead stream; plus control 4 (7) and the tree binding (5) from the ruling. 45 → 90 cases. |
+| 8 | Registered, not gated: `score()["registered"]["execRoots"]` counts every ppid-0 root other than PID 1 per in-window sample; spec §5 says a `docker exec -d` process is unseen by I4-1. |
+| 9 | The event control uses `ddev/ddev-utilities:latest`; spec §4 I4-3 states that any container activity on the host during the window turns I4-3 red. |
+| 10 | The old side evaluates `OLD_EXPRESSIONS`, and `transcription()` checks each (whitespace-squashed) at its site in `git show 9748b714:` of the three runners; the new side calls `binding_fields` / `package_for` / `Instance.describe`, which the runners now call too. Red first: changing `--short` to `--porcelain` or naming a non-existent PRE made the check false. |
+| 11 | Spec §3.3 corrected: host entry's `score` changed (§3.4 point 4); its equivalence rows are meaningful and pass. |
+| 12 | Ruling Q3 C (amended): `tree_binding()` at the equivalence check, window start and window end — tree of `wasm_sdk_probe`, last commit touching it, `--untracked-files=all` porcelain (must be empty; a dirty tree refuses a counted run), `sys.version`, `node --version`, `make --version`. `module_shas` kept. |
+| 13 | I4-1a also flags a `php-fpm` with two or more `php-fpm` ancestors; `pcntl_fork` added to the registered scan. |
+| 14 | Ruling Q2 C: control 4's backgrounded child must be seen under PID 1 in every window; the spec states the measured sentence (two paths), not "no subreaper in the container". |
+| 15 | `ps -ww`; ppid from the second field after the last `") "` of `/proc/<pid>/stat` (a holder named `lc sp` read correctly, live); `devLogRead` stamped before the read; the sampler's stderr drained by a thread (last 50 lines kept); `red_cases_now` returns -2 on an exception instead of crashing `score()`. |
+| 16 | §3.5's per-exec text struck; the 0.515 s max gap cited to `shakedown/2026-09-28T231953+0000.json`. |
+| 17 | `tree_oddities()` names empty directories and non-regular files; `host_binding` and the install record use it; the self-test adds `fifo` and `empty-dir` (eight cases). |

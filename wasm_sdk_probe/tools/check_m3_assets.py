@@ -48,7 +48,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check_m3_skeleton_open import (  # noqa: E402
-    ACTION, DEFAULT_DDEV, FILES, FIXTURE, NAME, Instance, host_binding, installed_app, product_state,
+    ACTION, DEFAULT_DDEV, FILES, FIXTURE, NAME, Instance, binding_fields, host_binding, installed_app, product_state,
     state_until)
 from package_m3_engine import MAX_GZ_BYTES, build_id  # noqa: E402
 from probe_m3_assets import AccessLog, closure  # noqa: E402
@@ -122,6 +122,17 @@ def package_record(app: Path, repo: Path | None = None, rev: str | None = None) 
             "files": files,
             "treeEntries": sorted(os.listdir(app)),
             "trackedDist": [t for t in tracked if t == "dist" or t.startswith("dist/")]}
+
+
+def package_for(root: Path, binding: dict[str, Any]) -> dict[str, Any]:
+    """K0's record for the instance at `root`: the host repo on the dev
+    instance; elsewhere the installed tree, with the git clauses read from the
+    release's source repo at its commit.  The runner and the equivalence check
+    (SPEC-M3-install-elsewhere I3-8) both call this."""
+    if installed_app(root) is None:
+        return package_record(DEFAULT_DDEV)
+    return package_record(Path(binding["appDir"]), Path(binding["sourceRepo"]),
+                          binding["hostRepo"].split(" ")[0] or "HEAD")
 
 
 def score_package(pkg: dict[str, Any]) -> list[str]:
@@ -723,17 +734,14 @@ def main() -> int:
     report: dict[str, Any] = {
         "runner": "check_m3_assets.py", "runnerSha256": sha256_file(Path(__file__)), "label": args.label,
         "startedAt": utc_now(), "static": static,
-        "hostRepo": binding["hostRepo"], "hostDirty": dirty, "hostFiles": binding["hostFiles"],
-        "hostBinding": {k: v for k, v in binding.items() if k not in ("hostRepo", "hostDirty", "hostFiles")},
+        **binding_fields(binding),
         "instance": instance.describe(),
         "runs": [],
     }
     out = EVIDENCE / ("runs" if counted else "shakedown") / f"{report['startedAt'].replace(':', '')}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     try:
-        report["package"] = (package_record(DEFAULT_DDEV) if installed_app(args.ddev_root) is None
-                             else package_record(Path(binding["appDir"]), Path(binding["sourceRepo"]),
-                                                 binding["hostRepo"].split(" ")[0] or "HEAD"))
+        report["package"] = package_for(args.ddev_root, binding)
         uploaded = instance.upload(FIXTURE, NAME)
         report["wire"] = wire_record(instance, report["package"]["manifest"], uploaded["fileId"])
         out.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n")

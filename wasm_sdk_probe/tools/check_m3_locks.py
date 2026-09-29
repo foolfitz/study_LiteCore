@@ -40,7 +40,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check_m3_host_entry import CTRL_S, MARKER, PICKERS, host_record, requests_matching  # noqa: E402
 from check_m3_skeleton_open import (  # noqa: E402
-    ACTION, DEFAULT_DDEV, FIXTURE, NAME, ROUTE, SAMPLE, Instance, host_binding, product_state, state_until)
+    ACTION, DEFAULT_DDEV, FIXTURE, NAME, ROUTE, SAMPLE, Instance, binding_fields, host_binding, product_state, state_until)
 from probe_m3_gate0_coep import (  # noqa: E402
     DIST, EventChrome, firefox_profile, sha256_file, summarize_cdp, utc_now, wait_until)
 from probe_m3_lock_semantics import Client  # noqa: E402
@@ -1100,8 +1100,7 @@ def main() -> int:
     report: dict[str, Any] = {
         "runner": "check_m3_locks.py", "runnerSha256": sha256_file(Path(__file__)), "label": args.label,
         "startedAt": utc_now(), "static": static,
-        "hostRepo": binding["hostRepo"], "hostDirty": dirty, "hostFiles": binding["hostFiles"],
-        "hostBinding": {k: v for k, v in binding.items() if k not in ("hostRepo", "hostDirty", "hostFiles")},
+        **binding_fields(binding),
         "baseUrl": instance.base,
         "original": {"source": str(FIXTURE.relative_to(DIST)), "sha256": sha256_file(FIXTURE)},
         "intruder": {"source": str(SAMPLE.relative_to(DIST)), "sha256": sha256_file(SAMPLE)},
