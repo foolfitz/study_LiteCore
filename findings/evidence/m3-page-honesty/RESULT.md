@@ -86,8 +86,10 @@ Each of those runners' RESULT (or README) has the same rows appended.
 - The M3 product still ships `e2-editor-v8`, so finding 096 (ArrowDown on the last line
   kills v8 after 30 s) is in the product; the V arms aim at the first line for that reason
   (§7.9).
-- Condition 9 of the K2 ruling (§7.8: Firefox, cache on, leave after being guarded, ×12) is
-  a one-time measurement still to run, before the H+J release archive.
+- Condition 9 of the K2 ruling (§7.8) was run after this counted run, on the same page and
+  host (spec §7.13): the guarded leave in Firefox with the cache on released the lock 12/12,
+  the unguarded control 12/12 (`m3-assets/leave-unlock-2026-09-29T154506+0000.json`). It is a
+  one-time measurement, not a criterion of this verdict.
 
 ## How it got here
 
