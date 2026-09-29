@@ -398,6 +398,16 @@ WebDAV 取檔 → 出貨的編輯器開啟它並做一個段落動作，Chrome 1
 在一台**乾淨的** Nextcloud 上：從 Files 點開一份 ODT → 編輯 → 存回 → 版本正確 → 鎖正確，
 **且整個流程沒有任何伺服器端文件行程**。
 
+**2026-09-29：`INSTALLS ELSEWHERE`**（`findings/evidence/m3-install/RESULT.md`，規格 `specs/SPEC-M3-install-elsewhere.md`）。
+在一台從**發佈壓縮檔**安裝 `litecore` 的 Nextcloud（`litecoreprobe`）上，M3 的四支計數 runner 各自過了計數判定——資產派送、
+版本（Chrome／Firefox 各 3/3）、宿主入口 `LANDS`、鎖與權限 22 格 52/52——同一個 58 分鐘的窗裡，web 容器每 0.5 秒取樣一次
+（6,806 個樣本），沒有任何行程在 php-fpm 底下或被 PID 1 收養成為文件伺服器、沒有人讀 study_LiteCore 的 `dist/`、主機上
+沒有任何容器被建立或啟動；四個正向對照（其中一個跑在**真的 php-fpm worker** 裡）每一個都被看到。紅案 111 個全紅。
+**兩個限定跟著這個判定走**：（一）那台實例**不是全新的**（閘門 0 的探針實例原樣加裝，差異與擋住它們的判準見規格第 2 節）；
+（二）「沒有伺服器端文件行程」量的是 web 容器裡的行程與主機的容器生命週期，**不含**窗外就已經在跑、經網路被呼叫的服務，
+也不含 `docker exec` 起的行程樹（規格第 5 節）。「乾淨的」那一半因此只到「從壓縮檔裝、不是從工作樹連」；全新實例要新建
+ddev 專案，擁有者這一輪沒選。
+
 ### 5.6 定位對照（已觀察）
 
 Euro-Office Docs 要一台 Document Server：**最低 4 GB RAM、建議 8 GB、10 GB 磁碟**、

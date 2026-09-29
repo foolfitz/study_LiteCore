@@ -137,3 +137,11 @@ The four rules of `../m3-locks/README.md` ("Counted run: rules fixed before it s
 to the window run as a whole, and to the dev host-entry counted run. In addition: nothing is
 run against the dev instance between the start of `run` and its end, and the dev host-entry
 counted run is finished before `run` is started.
+
+## Counted run (2026-09-29)
+
+`runs/2026-09-29T012339+0000.json`: **`INSTALLS ELSEWHERE`**, no problem, 6,806 samples over a
+3470 s window; the four runners `ASSETS DELIVERED` (3/3, 3/3), `VERSIONS CORRECT` (3/3, 3/3),
+host entry `LANDS`, `LOCKS LAND` (52/52) on litecoreprobe; the dev host-entry counted run
+`LANDS` before it. Re-scored from the stored report: the same. Red cases against it, re-run at
+scoring time: 111 of 111 red. None of the four rules above was invoked. Read `RESULT.md`.
