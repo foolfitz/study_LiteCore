@@ -23,3 +23,27 @@ gzip sizes are the packaged ones from `engine/MANIFEST.json` (buildId `7f4f4e220
 
 Not measured here: what the browsers send in `Accept-Encoding` (spec §2, prediction P1; Z2-1 is its
 measurement).
+
+## Shakedown 1 (host 0.2.5, uncommitted tree identical to `7420418`)
+
+`findings/evidence/m3-assets/shakedown/2026-09-29T161427+0000.json` (UTC; 2026-09-30 00:14 local),
+`check_m3_assets.py --label shakedown --repeats 1`: chrome 1/1, firefox 1/1, firefox-nozstd 1/1,
+every K and Z clause clean. `--red-cases`: 147 cases, every one red in its own clause
+(`red-cases-on-2026-09-29T161427.txt` beside the report).
+
+- Address `7f4f4e2204b4a9ec-90d7bc2c` (build id unchanged, policy hash moved: P3).
+- First open, bytes under the address (Apache `%O`): Chrome 48,556,860 (22 requests); Firefox the
+  same six `D` rows as zstd; firefox-nozstd 63,887,915, every `D` row gzip-sized (P2: the pref took
+  effect). Second open: Chrome 2 requests (the document and the `sdk-manifest.json` 304), Firefox
+  and firefox-nozstd 1 (the document).
+- The `D` rows in both zstd arms: `e2-editor-app.js` 32,371, `probe.js` 34,568, `probe.wasm`
+  30,671,453, base `.metadata` 16,964, base `.data` 5,533,560, cjk `.data` 12,171,668 — each its
+  zstd size plus 875–930 bytes of headers. So the page's module import, the worker's
+  `importScripts`/`fetch` all advertised zstd in both browsers (P1, one round each so far).
+
+## Z4: the release archive (measured, registered)
+
+Host `7420418`, engine buildId `7f4f4e2204b4a9ec` with both codings. Same command as the asset
+spec's K4 (mtime `2026-09-30 00:00Z`), built in the session scratchpad, not kept:
+**111,689,706 bytes (106.5 MiB)**, 69 entries; `engine/` is 112,394,407 bytes before tar (K4 on
+0.2.0 was 63,416,048 bytes, 47 entries). Prediction was about 107 MiB.
