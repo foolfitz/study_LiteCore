@@ -991,6 +991,7 @@ test("finding 107: unsaved edits follow dirty and pending, never the revision",
        await moving;
        assert.equal(session.hasUnsavedEdits(), true, "an edit that landed (dirty)");
        await session.save();
+       const savedRevision = session.state.snapshot.revision;
        assert.equal(session.hasUnsavedEdits(), false, "saved");
        // A rollback to a checkpoint newer than the last save restarts the
        // revision at zero while the content is still unsaved: a predicate that
@@ -1002,4 +1003,14 @@ test("finding 107: unsaved edits follow dirty and pending, never the revision",
        assert.equal(session.state.snapshot.state, "ready");
        assert.equal(session.state.snapshot.revision, 0, "the fresh Worker restarted the revision");
        assert.equal(session.hasUnsavedEdits(), true, "rolled back to unsaved content");
+       // And edits in the fresh Worker climb back to the number the save was
+       // taken at, with other content: a predicate asking "is the revision the
+       // one I saved at?" (!==, not >) calls THIS saved.  Measured 2026-09-29:
+       // that mutant passed every assertion above
+       // (findings/evidence/m3-page-honesty/unit-red-cases/).
+       for (let i = 0; session.state.snapshot.revision < savedRevision && i < 8; i++)
+         await session.action("set-bold", { enabled: i % 2 === 0 });
+       assert.equal(session.state.snapshot.revision, savedRevision,
+                    "back at the saved revision's number");
+       assert.equal(session.hasUnsavedEdits(), true, "same revision number, other content");
      });

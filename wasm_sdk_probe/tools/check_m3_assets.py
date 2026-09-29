@@ -11,8 +11,8 @@ this runner.  It never changes the app, the product or dist/.
                 paths that must 404, the Files entry's redirect, the editor
                 document's headers
   K2  browser   per browser and repeat, one fresh profile with its HTTP cache
-                ON: open from Files, smoke, back to Files, open again, smoke,
-                back.  The record of each open is the web container's Apache
+                ON: open from Files, smoke, save, back to Files, open again,
+                smoke, save, back.  The record of each open is the web container's Apache
                 access log between two offsets; after each "back", the
                 server's lock on the file for up to 10 s (K2-5).
 
@@ -35,6 +35,7 @@ import hashlib
 import json
 import os
 import re
+import secrets
 import shutil
 import subprocess
 import sys
@@ -47,6 +48,8 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from check_m3_host_entry import saves_reached  # noqa: E402
+from check_m3_page_honesty import READ_RECORD, RECORDER  # noqa: E402
 from check_m3_skeleton_open import (  # noqa: E402
     ACTION, DEFAULT_DDEV, FILES, FIXTURE, NAME, Instance, binding_fields, host_binding, installed_app, product_state,
     state_until)
@@ -373,6 +376,31 @@ def open_and_smoke(session, instance: Instance) -> dict[str, Any]:
     return record
 
 
+# The save before each leave: SPEC-M3-page-honesty §7.8 (ruling A').  Host 0.2.3
+# guards a leave with unsaved edits and keeps the lock for the user who stays,
+# which leaves only the pagehide UNLOCK -- finding 105's unfixed path.  K2-5
+# measures the UNGUARDED leave (the one 105's fix was measured on); before 0.2.3
+# K2's leave was unguarded because the host did not guard on edits, now because
+# it saves first.  Said openly, and proved per leave: the save is a 204 with the
+# token, and the leave's own record shows no guard (the two `K2 instrument`
+# clauses).  Not in `open_and_smoke`: probe_m3_leave_unlock imports it, and its
+# edit arm must keep leaving unsaved.
+DONE_TO_LEAVE = ("(() => { const v = JSON.parse(document.documentElement.getAttribute('data-litecore'));"
+                 " return Math.round(Date.now() - v.started - v.finished) / 1000; })()")
+HOST_SAVES = ("(() => { const v = document.documentElement.getAttribute('data-litecore');"
+              " return v ? (JSON.parse(v).saves || []) : null; })()")
+
+
+def save_before_leaving(session) -> dict[str, Any]:
+    evaluate(session, PRESS.replace("ARG_ACTION", "save"))
+    saved: dict[str, Any] = {"settled": saves_reached(session, 1)}
+    saved["state"] = state_until(session, lambda s: (s.get("latency") or "").startswith("存回"), 60)
+    saves = evaluate(session, HOST_SAVES) or []
+    saved["hostSave"] = saves[-1] if saves else None
+    saved["hostSaves"] = len(saves)
+    return saved
+
+
 def run_browser(kind: str, instance: Instance, scratch: Path) -> dict[str, Any]:
     log = AccessLog(instance)
     record: dict[str, Any] = {"browser": kind, "cache": "warm"}
@@ -391,7 +419,13 @@ def run_browser(kind: str, instance: Instance, scratch: Path) -> dict[str, Any]:
         for label in ("first", "second"):
             start = log.offset()
             record[label] = open_and_smoke(session, instance)
+            record[label]["saved"] = save_before_leaving(session)
+            nonce = secrets.token_hex(8)
+            record[label]["recorder"] = evaluate(session, RECORDER.replace("ARG_NONCE", json.dumps(nonce)))
+            record[label]["secondsDoneToLeave"] = evaluate(session, DONE_TO_LEAVE)
             record[label]["leave"] = leave_and_watch(session, instance)
+            raw = wait_until(session, READ_RECORD.replace("ARG_NONCE", json.dumps(nonce)), 10)
+            record[label]["leftRecord"] = json.loads(raw) if isinstance(raw, str) else {"missing": raw}
             rows = log.since(start)
             record[label]["log"] = [
                 {k: r[k] for k in ("method", "target", "path", "status", "sent")}
@@ -439,6 +473,17 @@ def score_run(run: dict[str, Any], ctx: dict[str, Any]) -> list[str]:
         # Exactly "": the property answered and said unlocked.  None is no answer.
         if not leave or leave[-1].get("lock") != "" or leave[-1].get("t", 99) > 10.5:
             bad.append(f"K2-5 {label}: after leaving the server lock is {leave[-1:]}")
+        saved = o.get("saved") or {}
+        attempts = (saved.get("hostSave") or {}).get("attempts") or [{}]
+        if attempts[0].get("status") != 204 or attempts[0].get("withToken") is not True \
+                or not re.fullmatch(r"存回 \d+ ms", (saved.get("state") or {}).get("latency") or ""):
+            bad.append(f"K2 instrument {label}: pre-leave save did not land ({attempts[0].get('status')!r},"
+                       f" token {attempts[0].get('withToken')!r}, {(saved.get('state') or {}).get('latency')!r})")
+        left = o.get("leftRecord") if isinstance(o.get("leftRecord"), list) else []
+        fired = [e for e in left if e.get("what") == "fired"]
+        if not fired or fired[-1].get("lastGuard") is not None or fired[-1].get("guards") not in (0, None):
+            bad.append(f"K2 instrument {label}: leave was guarded"
+                       f" {(fired[-1].get('lastGuard') or {}).get('reasons') if fired else None} / no fired record")
         if o.get("unparsed") or o.get("otherAgents"):
             bad.append(f"K2 instrument {label}: {len(o.get('unparsed') or [])} unparsed log lines,"
                        f" {len(o.get('otherAgents') or [])} app requests from other clients")
@@ -530,6 +575,10 @@ def _first_asset(run: dict, c: dict, suffix: str) -> dict:
     prefix = asset_prefix(c["address"])
     return next(r for r in run["first"]["log"] if strip_front(r["path"]).startswith(prefix)
                 and strip_front(r["path"]).endswith(suffix))
+
+
+def _fired(run: dict, label: str) -> dict:
+    return next(e for e in run[label]["leftRecord"] if e.get("what") == "fired")
 
 
 def _wasm_path(m: dict) -> str:
@@ -647,6 +696,13 @@ RUN_CASES = [
      lambda r, c: r["second"].update(unparsed=["garbled"])),
     ("K2 instrument", "another client in the window", lambda r, c: r["first"].update(
         otherAgents=[{"path": "/apps/litecore/r/x", "status": 200, "agent": "curl"}])),
+    # SPEC-M3-page-honesty §7.8: the save before the leave, and the leave unguarded.
+    ("K2 instrument", "the pre-leave save was refused (412)",
+     lambda r, c: r["first"]["saved"]["hostSave"]["attempts"][0].update(status=412)),
+    ("K2 instrument", "the leave was guarded (reason page)",
+     lambda r, c: _fired(r, "second").update(lastGuard={"reasons": ["page"]}, guards=1)),
+    ("K2 instrument", "no fired record",
+     lambda r, c: r["first"].update(leftRecord=[e for e in r["first"]["leftRecord"] if e.get("what") != "fired"])),
 ]
 
 

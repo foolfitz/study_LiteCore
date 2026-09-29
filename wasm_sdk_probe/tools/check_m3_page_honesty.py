@@ -24,6 +24,7 @@ the prompt by itself, so there only the recorder speaks.
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import secrets
 import subprocess
@@ -94,8 +95,9 @@ RECORDER = """(() => {
   addEventListener('beforeunload', () => {
     const raw = document.documentElement.getAttribute('data-litecore');
     const guards = raw ? (JSON.parse(raw).guards || []) : null;
+    const pending = document.querySelector('#s-pending');
     put({ what: 'fired', lastGuard: guards && guards.length ? guards[guards.length - 1] : null,
-          guards: guards ? guards.length : null });
+          guards: guards ? guards.length : null, pending: pending ? pending.textContent : null });
   });
   put({ what: 'installed' });
   return true;
@@ -155,6 +157,34 @@ send('pointermove', b, 1);
 send('pointerup', b, 0);
 return true;
 })()"""
+# The document's text lines, from the canvas ink, read right after the open
+# (before any caret is drawn): bands of rows with more than two dark opaque
+# pixels, at least five rows tall (the page's one-row edges drop out).  V4 and
+# the census aim at the FIRST line.  y 0.28 is below this fixture's text, so a
+# click there puts the caret on the LAST line, and ArrowDown on the last line is
+# finding 096: the shipped v8 engine answers nothing, the action times out after
+# 30 s and the session goes to recoverable-error -- both V arms of the first
+# shakedown (2026-09-29T091816) died that way before the census began.
+TEXT_LINES = """(() => { const c = document.querySelector('#canvas'); const w = c.width, h = c.height;
+const d = c.getContext('2d').getImageData(0, 0, w, h).data; const rows = [];
+for (let y = 0; y < h; y++) { let n = 0; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4;
+  if (d[i+3] > 128 && d[i] < 100 && d[i+1] < 100 && d[i+2] < 100) n++; } rows.push(n); }
+const bands = []; let start = -1;
+for (let y = 0; y <= h; y++) { const on = y < h && rows[y] > 2; if (on && start < 0) start = y;
+  if (!on && start >= 0) { if (y - start >= 5) bands.push({ a: start, b: y - 1, mid: +(((start + y - 1) / 2) / h).toFixed(4) });
+    start = -1; } }
+return { h, w, bands }; })()"""
+
+
+def first_line(session, record: dict[str, Any]) -> str:
+    record["lines"] = evaluate(session, TEXT_LINES)
+    bands = (record["lines"] or {}).get("bands") or []
+    if len(bands) < 2:
+        raise RuntimeError(f"fewer than two text lines on the canvas: {record['lines']}")
+    record["lineY"] = str(bands[0]["mid"])
+    return record["lineY"]
+
+
 # What a textarea's own editing sends first: the page and the input adapter act on beforeinput.
 BEFOREINPUT = """(() => { const sink = document.querySelector('#sink'); sink.focus();
   return sink.dispatchEvent(new InputEvent('beforeinput', { inputType: ARG_TYPE, bubbles: true,
@@ -457,13 +487,15 @@ def census(session, kind: str, record: dict[str, Any], writable: bool) -> list[d
         return lambda: evaluate(session, f"(() => {{ const b = document.querySelectorAll('#toolbar button')[{i}];"
                                          " b.disabled = false; b.hidden = false; b.click(); return true; })()")
 
+    line = record["lineY"]
+
     def point():
-        evaluate(session, POINT_AT.replace("ARG_X", "0.35").replace("ARG_Y", "0.28"))
+        evaluate(session, POINT_AT.replace("ARG_X", "0.35").replace("ARG_Y", line))
         state_until(session, lambda s: "定位游標" in (s.get("latency") or ""), 30)
 
     def select():
-        evaluate(session, DRAG.replace("ARG_X1", "0.2").replace("ARG_Y1", "0.28")
-                 .replace("ARG_X2", "0.5").replace("ARG_Y2", "0.28"))
+        evaluate(session, DRAG.replace("ARG_X1", "0.2").replace("ARG_Y1", line)
+                 .replace("ARG_X2", "0.5").replace("ARG_Y2", line))
         time.sleep(1.0)
         quiet_state(session)
 
@@ -485,6 +517,13 @@ def census(session, kind: str, record: dict[str, Any], writable: bool) -> list[d
             select()
         if writable and name in ("delete-backward", "insert-paragraph-break", "set-paragraph-heading"):
             point()
+        if writable and name == "delete-forward":
+            # A character to delete in the same paragraph: at a paragraph's end a
+            # forward delete is a structure boundary, refused by contract with
+            # the session sent to restart-required (SPEC-E1-C 4.x, finding 016) --
+            # measured in the second shakedown, 2026-09-29T093035.
+            click(by_action["move-character-left"])()
+            quiet_state(session)
         if not writable and name == "save":
             record["putsBeforeSaveClick"] = len((host_record(session).get("saves") or []))
         rows.append(census_step(session, kind, name, click(by_action[name])))
@@ -536,7 +575,9 @@ def run_view_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str
         nonce = install_recorder(session, record)
         record["textField"] = evaluate(session, TEXT_FIELD)
         # V7 and V4: a caret placed (a state update), then the controls; then a line down.
-        evaluate(session, POINT_AT.replace("ARG_X", "0.35").replace("ARG_Y", "0.28"))
+        # On the first line, not the last: see TEXT_LINES.
+        line = first_line(session, record)
+        evaluate(session, POINT_AT.replace("ARG_X", "0.35").replace("ARG_Y", line))
         record["placed"] = state_until(session, lambda s: "定位游標" in (s.get("latency") or ""), 30)
         record["controls"] = evaluate(session, CONTROLS)
         record["sinkTopBefore"] = evaluate(session, SINK_TOP)
@@ -718,6 +759,14 @@ def score_arm(run: dict[str, Any]) -> list[str]:
         bad += not_asked(run)
     elif arm == "U7":
         bad += asked_by(run, "leave", "host", "page")
+        # The cell's claim is WHY it asked: the edit still in the engine, not
+        # one that had already landed (that is U1/U3).  The page's own pill,
+        # read by the recorder at beforeunload.
+        entries, _ = left_record(run)
+        fired = [e for e in entries if e.get("what") == "fired"]
+        pending = str((fired[-1].get("pending") if fired else None) or "")
+        if not (pending.isdigit() and int(pending) > 0):
+            bad.append(f"leave: pending {pending!r} at beforeunload, wanted > 0")
     elif arm == "U6a":
         bad += asked_by(run, "leave", "page")
     elif arm == "U6b":
@@ -772,6 +821,13 @@ def score_view(run: dict[str, Any], re) -> list[str]:
     census_rows = run.get("census") or []
     buttons = [r for r in census_rows if r.get("half") != "keyboard"]
     mutates = {(c["action"] or c["id"]): c.get("mutates") for c in (run.get("controlsAtCensus") or [])}
+    # The census covers every control the PAGE lists (not a list in this file),
+    # except open-file (§7.3: a modal the driver cannot dismiss).  Without this
+    # an empty census passes both arms.
+    wanted = set(mutates) - {"open-file"}
+    missing = sorted(wanted - {r.get("item") for r in buttons})
+    if not wanted or missing or "insert-text" not in wanted:
+        bad.append(f"V2 census: {len(wanted)} controls listed, missing {missing}")
     if writable:
         for row in buttons:
             if mutates.get(row["item"]) == "1" and row["item"] != "save" and row["revisionAfter"] == row["revisionBefore"]:
@@ -853,6 +909,202 @@ def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
             "failures": [r for r in rows if r["problems"]], "keyboard": keyboard}
 
 
+# ------------------------------------------------------------------ red cases
+# One mutation per criterion, on a clean shakedown run of the arm it targets:
+# the case counts only if score_arm names the criterion's own problem (a
+# substring of it), not merely any problem.  CHROME/FIREFOX limit a case to the
+# browser whose branch the criterion lives in.
+
+def _rec(run: dict, key: str = "leave") -> list[dict]:
+    return run["leaves"][key]["record"]
+
+
+def _set_rec(run: dict, key: str, entries: list[dict]) -> None:
+    run["leaves"][key]["record"] = entries
+
+
+def _fired_entry(run: dict, key: str = "leave") -> dict:
+    return [e for e in _rec(run, key) if e.get("what") == "fired"][-1]
+
+
+def _drop_fired(key: str = "leave"):
+    return lambda r: _set_rec(r, key, [e for e in _rec(r, key) if e.get("what") != "fired"])
+
+
+def _add_ask(who: str, key: str = "leave"):
+    return lambda r: _rec(r, key).append({"what": "preventDefault", "who": who})
+
+
+def _drop_asks(key: str = "leave"):
+    return lambda r: _set_rec(r, key, [e for e in _rec(r, key) if not asks([e])])
+
+
+def _asker(who: str, key: str = "leave"):
+    def mutate(r: dict) -> None:
+        for e in asks(_rec(r, key)):
+            e["who"] = who
+    return mutate
+
+
+def _reasons(reasons: list[str], key: str = "leave"):
+    return lambda r: _fired_entry(r, key).update(lastGuard={"at": 1, "reasons": reasons})
+
+
+def _first_save(r: dict) -> dict:
+    return first_attempt(r["host"]["saves"][0])
+
+
+def _mutating_control(controls: list[dict]) -> dict:
+    return next(c for c in controls if c.get("mutates") == "1")
+
+
+def _row(r: dict, item: str) -> dict:
+    return next(x for x in r["census"] if x["item"] == item)
+
+
+CHROME, FIREFOX = ("chrome",), ("firefox",)
+ZERO = "0" * 64
+RED_CASES = [
+    # (arm, browsers or None for both, criterion, expected substring, mutation)
+    ("U0", None, "U0 recorder saw the leave", "no `fired` record", _drop_fired()),
+    ("U0", None, "U0 only the runner asked", "wanted ['runner'] only", _add_ask("page")),
+    ("U0", CHROME, "U0 Chrome showed the dialog", "no dialog in Chrome",
+     lambda r: r["leaves"]["leave"].update(dialog=None)),
+    ("U1", None, "U1 asked", "leave1: askers", _drop_asks("leave1")),
+    ("U1", None, "U1 the host asked, not the page", "leave1: askers", _asker("page", "leave1")),
+    ("U1", None, "U1 the host's reason is page", "leave1: host guard reasons", _reasons(["inFlight"], "leave1")),
+    ("U1", CHROME, "U1 the lock survives staying", "after leave1: host lock",
+     lambda r: r["hostAfterLeave1"]["lock"].update(state="released")),
+    ("U1", CHROME, "U1 the server token survives staying", "after leave2: server lock",
+     lambda r: r["serverAfterLeave2"].update(token="opaquelocktoken:x")),
+    ("U1", CHROME, "U1 asked again on leave2", "leave2: askers", _drop_asks("leave2")),
+    ("U1", CHROME, "U1 the save after staying is a 204 with the token", "save after staying",
+     lambda r: _first_save(r).update(status=412)),
+    ("U1", CHROME, "U1 the save lands on the original", "the save did not land on the original",
+     lambda r: r["serverAfterSave"].update(sha256=ZERO)),
+    ("U1", CHROME, "U1 no copy after the save", "copies after the save",
+     lambda r: r.update(copiesAfterSave=[{"name": "x（衝突副本）.odt"}])),
+    ("U1", CHROME, "U1 no ask after saving", "leave3: asked by", _add_ask("host", "leave3")),
+    ("U1", FIREFOX, "U1 Firefox: the server file is untouched", "server file changed",
+     lambda r: r["serverAfterArm"].update(sha256=ZERO)),
+    ("U-window", None, "U-window asked", "leave: askers", _drop_asks()),
+    ("U-window", None, "U-window is the window, not the save in flight", "not the window",
+     _reasons(["page", "inFlight"])),
+    ("U-window", CHROME, "U-window the trap fired", "the trap never fired", lambda r: r.update(trap=None)),
+    ("U-window", CHROME, "U-window the save finished after staying", "the save did not finish",
+     lambda r: r["host"].update(saves=[])),
+    ("U2", None, "U2 not asked", "leave: asked by", _add_ask("host")),
+    ("U2", None, "U2 the recorder saw the leave", "no `fired` record", _drop_fired()),
+    ("U2", None, "U2 the server holds the save's bytes", "server bytes are not the save's",
+     lambda r: r["serverAfterArm"].update(sha256=ZERO)),
+    ("U3", None, "U3 asked after the second edit", "leave: askers", _drop_asks()),
+    ("U4", None, "U4 the stranger's unlock was refused", "refused unlock", lambda r: r.update(refusedUnlock=200)),
+    ("U4", None, "U4 the save went to a conflict copy", "copy", lambda r: r["host"]["saves"][0].update(conflictCopy={})),
+    ("U4", None, "U4 the copy holds the save's bytes", "copies", lambda r: r["copiesAfter"][0].update(sha256=ZERO)),
+    ("U4", None, "U4 not asked", "leave: asked by", _add_ask("host")),
+    ("U5", None, "U5 not asked (\"always ask\")", "leave: asked by", _add_ask("host")),
+    ("U5", None, "U5 the recorder saw the leave", "no `fired` record", _drop_fired()),
+    ("U7", None, "U7 asked", "leave: askers", _drop_asks()),
+    ("U7", None, "U7 asked because the edit was still pending", "pending",
+     lambda r: _fired_entry(r).update(pending="0")),
+    ("U6a", None, "U6 first half: the page asked (download mode)", "leave: askers", _asker("host")),
+    ("U6b", None, "U6 second half: a download happened", "no download", lambda r: r.update(download={"none": True})),
+    ("U6b", None, "U6 second half: not asked after the download", "leave: asked by", _add_ask("page")),
+    ("K-held", None, "K-held every keydown prevented", "keydowns prevented",
+     lambda r: r["prevented"].__setitem__(5, False)),
+    ("K-held", None, "K-held exactly one host save", "host saves",
+     lambda r: r["host"]["saves"].append(copy.deepcopy(r["host"]["saves"][-1]))),
+    ("K-held", None, "K-held exactly one page-level save", "page-level saves", lambda r: r.update(pageSaves=2)),
+    ("K-sep", None, "K-sep two presses under 300 ms", "presses", lambda r: r["separate"].update(spanMs=400)),
+    ("K-sep", None, "K-sep two host saves", "host saves", lambda r: r["host"].update(saves=r["host"]["saves"][:1])),
+    ("K-sep", None, "K-sep the second save carries the marker", "marker",
+     lambda r: r["serverAfter"].update(texts=[])),
+    ("K-two", None, "K-two two host saves", "host saves", lambda r: r["host"].update(saves=r["host"]["saves"][:1])),
+    ("K-two", None, "K-two the second press lands before the first save's answer", "second press",
+     lambda r: r["pair"].update(secondAt=(_first_save(r).get("respondedAt") or 0) + 1)),
+    ("V", None, "V1 no LOCK (host record)", "V1 host lock", lambda r: r["opened"]["lock"].update(state="held")),
+    ("V", None, "V1 the host was handed readOnly", "V1 host lock", lambda r: r["opened"].update(handedReadOnly=False)),
+    ("V", None, "V1 the read-only notice", "V1 notice", lambda r: r["bar"].update(notice="")),
+    ("V", None, "V1 no lock on the server", "V1 server lock", lambda r: r["afterOpen"].update(lock="1")),
+    ("V", CHROME, "V1 no LOCK on the wire", "V1 a LOCK went out",
+     lambda r: r.setdefault("davRequests", []).append({"method": "LOCK"})),
+    ("V", None, "V7 a mutating control is disabled", "V7",
+     lambda r: _mutating_control(r["controls"]).update(disabled=False)),
+    ("V", None, "V7 the moves stay usable", "V7",
+     lambda r: next(c for c in r["controls"] if c.get("mutates") == "0").update(disabled=True)),
+    ("V", None, "V7 the text field is disabled", "V7 text field", lambda r: r["textField"].update(disabled=False)),
+    ("V", None, "V5 Ctrl+S prevented and no save", "V5 Ctrl+S", lambda r: r.update(savesAfterCtrlS=1)),
+    ("V", None, "V5 no host save", "V5 host saves", lambda r: r["host"].update(saves=[{"attempts": []}])),
+    ("V", None, "V5 no copy", "V5 copies", lambda r: r.update(copiesAfter=[{"name": "x.odt"}])),
+    ("V", None, "V2 read-only: no revision advanced", "V2 insert-text",
+     lambda r: _row(r, "insert-text").update(revisionAfter="1")),
+    ("V", None, "V2 read-only: the pill stays ready", "V2 set-bold",
+     lambda r: _row(r, "set-bold").update(state="recoverable-error")),
+    ("V", None, "V2 read-only: no toast but the read-only one", "V2 undo",
+     lambda r: _row(r, "undo").update(toast="復原：EDITOR_NOT_READY")),
+    ("V", None, "V2 read-only: the census covers every control", "V2 census",
+     lambda r: r.update(census=[x for x in r["census"] if x["item"] != "clear-format"])),
+    ("V", None, "V4 a line down", "V4 movedDown", lambda r: r["movedDown"].update(latency="定位游標 30 ms")),
+    ("V", None, "V4 the caret went down", "V4 caret y", lambda r: r.update(sinkTopAfter=r["sinkTopBefore"])),
+    ("V", None, "V6 not asked", "leave: asked by", _add_ask("host")),
+    ("V", None, "V6 the server file is untouched", "V6 server file changed",
+     lambda r: r["serverAfter"].update(sha256=ZERO)),
+    ("V2 writable control", None, "V2 control: every mutating control advances", "V2 control: set-italic",
+     lambda r: _row(r, "set-italic").update(revisionAfter=_row(r, "set-italic")["revisionBefore"])),
+    ("V2 writable control", None, "V2 control: the census covers every control", "V2 census",
+     lambda r: r.update(census=[x for x in r["census"] if x["item"] != "insert-text"])),
+    ("V2 writable control", None, "V2 control: an empty census does not pass", "V2 census",
+     lambda r: r.update(census=[], controlsAtCensus=[])),
+]
+CELL_OF = {cell: arm for arm, (cell, _, _) in PLAN.items()}
+CELL_OF.update({"V": "Vro", **{arm: arm for arm in PLAN}})
+
+
+def red_cases(paths: list[Path]) -> tuple[int, int]:
+    runs = [run for path in paths for run in json.loads(path.read_text())["runs"]]
+    failures = reds = 0
+
+    def clean(arm: str, browser: str) -> dict | None:
+        return next((r for r in runs if r["arm"] == arm and r["browser"] == browser and not score_arm(r)), None)
+
+    for cell, browsers, label, expect, mutate in RED_CASES:
+        arm = CELL_OF[cell]
+        for browser in browsers or BOTH:
+            base = clean(arm, browser)
+            if base is None:
+                print(f"  MISSING {label} [{browser}]: no clean {arm} run")
+                failures += 1
+                continue
+            mutated = copy.deepcopy(base)
+            try:
+                mutate(mutated)
+            except (KeyError, IndexError, StopIteration, TypeError) as error:
+                print(f"  MISSING {label} [{browser}]: the clean run has nothing to mutate ({error!r})")
+                failures += 1
+                continue
+            problems = score_arm(mutated)
+            red = any(expect in problem for problem in problems)
+            failures += not red
+            reds += red
+            print(f"  {'red ' if red else 'GREEN'}  {label} [{browser}]" + ("" if red else f"  -> {problems}"))
+    # Report level: a U cell does not count in a browser and round whose U0 failed.
+    for browser in BOTH:
+        u0, u1 = clean("U0", browser), clean("U1", browser)
+        if u0 is None or u1 is None:
+            print(f"  MISSING U0 gates the U cells [{browser}]: no clean U0/U1")
+            failures += 1
+            continue
+        u0, u1 = copy.deepcopy(u0), copy.deepcopy(u1)
+        u0["round"] = u1["round"] = 1
+        _drop_fired()(u0)
+        rows = score({"runs": [u0, u1], "static": {}}, strict=False)["failures"]
+        red = any(r["arm"] == "U1" and "U0 did not hold" in " ".join(r["problems"]) for r in rows)
+        failures += not red
+        reds += red
+        print(f"  {'red ' if red else 'GREEN'}  U0 gates the U cells [{browser}]")
+    return reds, failures
+
+
 def one_line(result: dict[str, Any]) -> str:
     cells = " ".join(f"{k}:{v['pass']}/{v['runs']}" for k, v in sorted(result["cells"].items()))
     return f"VERDICT {result['verdict']}  {cells}" + (f"  static: {result['static']}" if result["static"] else "")
@@ -883,7 +1135,13 @@ def main() -> int:
     parser.add_argument("--repeats", type=int, default=None, help="shakedown only")
     parser.add_argument("--arms", default=",".join(PLAN), help="shakedown only: a counted run runs the plan")
     parser.add_argument("--score", type=Path)
+    parser.add_argument("--red-cases", type=Path, nargs="+", metavar="REPORT",
+                        help="each mutation must turn its own criterion red, on clean runs pooled from REPORTs")
     args = parser.parse_args()
+    if args.red_cases:
+        reds, failures = red_cases(args.red_cases)
+        print(f"red cases: {reds} red, {failures} not red or missing")
+        return 0 if failures == 0 else 1
     if args.score:
         report = json.loads(args.score.read_text())
         result = score(report, strict=report.get("label") == "counted")

@@ -69,8 +69,11 @@ PLAN = {
     "broken-then-written": ("K6", BOTH, 3),
     "expired": ("K7", BOTH, 3),
     "frozen": ("K8", ("chrome",), 1),
-    "readonly": ("K9", BOTH, 3),
-    "nowhere": ("K10", BOTH, 3),
+    # K9′/K10′ (SPEC-M3-page-honesty §7.4): writable at open, the share cut to
+    # read-only after the edit, then the save.  A file read-only at open now
+    # opens view-only and can no longer be saved at all (page-honesty V1).
+    "readonly": ("K9′", BOTH, 3),
+    "nowhere": ("K10′", BOTH, 3),
     "offline": ("K11", ("chrome",), 3),
     "unlock-refused": ("K12", BOTH, 3),   # added after the 2026-09-28 review, before any counted run
 }
@@ -150,6 +153,7 @@ class Server:
         self.other: Client | None = None
         self.targets: dict[str, str] = {}
         self.shares: list[str] = []
+        self.share_ids: dict[str, str] = {}
         self.fixture = FIXTURE.read_bytes()
         self.intruder = SAMPLE.read_bytes()
 
@@ -173,9 +177,24 @@ class Server:
                 raise RuntimeError(f"cannot share {path}: {answer['status']} (429 = share-creation limit)")
             data = json.loads(answer["body"])["ocs"]["data"]
             self.shares.append(str(data["id"]))
+            self.share_ids[key] = str(data["id"])
             self.targets[key] = data["file_target"].lstrip("/")
         return {"targets": self.targets, "fileIds": {n: self.fileid(self.admin, n)
                                                     for n in (NAME, RO_NAME, f"{RO_FOLDER}/{INNER}")}}
+
+    def set_share(self, key: str, permissions: int) -> dict[str, Any]:
+        """Change one of setup's shares, then read it back (§7.4: the premise is
+        read, not assumed)."""
+        path = f"/ocs/v2.php/apps/files_sharing/api/v1/shares/{self.share_ids[key]}"
+        put = self.admin.call(f"share {key} -> {permissions}", "PUT", path, form={"permissions": permissions})
+        got = self.admin.call(f"share {key} readback", "GET", path)
+        try:
+            data = json.loads(got["body"])["ocs"]["data"]
+            data = data[0] if isinstance(data, list) else data
+            read = int(data["permissions"])
+        except (TypeError, ValueError, KeyError, IndexError):
+            read = None
+        return {"status": put["status"], "readStatus": got["status"], "permissions": read}
 
     def teardown(self) -> None:
         self.admin.call("teardown", "DELETE", f"/ocs/v2.php/cloud/users/{OTHER}")
@@ -439,6 +458,12 @@ def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any
         if arm == "foreign-lock":
             record["foreignLock"] = server.other.call("foreign lock", "LOCK", server.other.dav_path(server.targets["rw"]),
                                                       None, {"X-User-Lock": "1"})["status"]
+        if arm in SHARE_OF:
+            # K9′/K10′: writable at open.  Read back; a grant that did not take
+            # is not this arm's premise, so it ends the run (fatal, red).
+            record["grant"] = server.set_share(SHARE_OF[arm], 3)
+            if record["grant"]["permissions"] != 3:
+                raise RuntimeError(f"the share did not become writable: {record['grant']}")
         record["login"] = login(session, server.instance.base, client.user,
                                 server.other_password if as_other else server.instance.password)
         open_from_files(session, server.instance.base, folder, name, record)
@@ -553,12 +578,14 @@ def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any
             record["copiesAfter"] = server.copies(client, folder, name[:-4], remove=True)
         elif arm == "readonly":
             edit(session, record)
+            revoke(server, session, record, "ro", admin_path)
             save(session, record, 1)
             record["host"] = host_record(session)
             record["serverAfter"] = server.content(server.admin, RO_NAME)
             record["copiesAfter"] = server.copies(client, folder, name[:-4], remove=True)
         elif arm == "nowhere":
             edit(session, record)
+            revoke(server, session, record, "folder", admin_path)
             save(session, record, 1)
             record["host"] = host_record(session)
             record["barStranded"] = evaluate(session, BAR)
@@ -569,6 +596,7 @@ def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any
                     session.call("Page.handleJavaScriptDialog", {"accept": False})
                 time.sleep(1)
                 record["stayed"] = evaluate(session, "(() => location.pathname)()")
+                record["hostAfterLeave1"] = host_record(session)
                 session.real_click("#litecore-host-download")
             else:
                 session.click("#litecore-host-download")
@@ -582,6 +610,7 @@ def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any
                     session.call("Page.handleJavaScriptDialog", {"accept": False})
                 time.sleep(1)
                 record["stayedAgain"] = evaluate(session, "(() => location.pathname)()")
+                record["hostAfterLeave2"] = host_record(session)
             record["serverAfter"] = server.content(server.admin, admin_path)
             record["copiesAfter"] = server.copies(server.admin, RO_FOLDER, INNER[:-4], remove=True)
         elif arm == "offline":
@@ -622,7 +651,21 @@ def run_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str, Any
                 pass
         record["locksAtEnd"] = server.props(server.admin, admin_path)
         record["clearedAtEnd"] = server.clear_locks()
+        if arm in SHARE_OF:
+            record["restored"] = server.set_share(SHARE_OF[arm], 1)
     return record
+
+
+# K9′/K10′: which of setup's shares the arm opens writable and then cuts.
+SHARE_OF = {"readonly": "ro", "nowhere": "folder"}
+
+
+def revoke(server: Server, session, record: dict[str, Any], key: str, admin_path: str) -> None:
+    """After the edit, before the save: the share goes to read-only (1), read
+    back; the server's lock at that moment is recorded (§7.4)."""
+    record["hostBeforeRevoke"] = host_record(session)
+    record["revoke"] = server.set_share(key, 1)
+    record["lockAtRevoke"] = server.props(server.admin, admin_path)
 
 
 # --------------------------------------------------------------------------
@@ -671,7 +714,7 @@ def edited(run: dict[str, Any], key: str = "smoke") -> list[str]:
     return []
 
 
-def held_at_open(run: dict[str, Any]) -> list[str]:
+def held_at_open(run: dict[str, Any], owner: str = "admin") -> list[str]:
     """The lock was taken, and taken before the read: the GET's version is the
     post-lock one (taking a lock moves the ETag; the server says which it is)."""
     bad = []
@@ -681,10 +724,27 @@ def held_at_open(run: dict[str, Any]) -> list[str]:
         bad.append(f"lock at open {lock.get('status')}/{lock.get('state')}")
     if not (isinstance(lock.get("at"), int) and isinstance(fetched.get("at"), int) and lock["at"] <= fetched["at"]):
         bad.append(f"lock at {lock.get('at')} vs fetched at {fetched.get('at')}")
-    if after.get("lock") != "1" or after.get("lockOwnerType") != "2" or after.get("lockOwner") != "admin":
+    if after.get("lock") != "1" or after.get("lockOwnerType") != "2" or after.get("lockOwner") != owner:
         bad.append(f"server lock after open {after.get('lock')}/{after.get('lockOwnerType')}/{after.get('lockOwner')}")
     if not fetched.get("etag") or fetched.get("etag") != after.get("etag"):
         bad.append(f"fetched version {fetched.get('etag')} is not the post-lock {after.get('etag')}")
+    return bad
+
+
+def cut_after_open(run: dict[str, Any]) -> list[str]:
+    """K9′/K10′ (§7.4): writable at open -- the lock taken, by the recipient,
+    no read-only notice -- then the share cut to 1 and read back as 1, with the
+    server's lock still there at that moment."""
+    bad = held_at_open(run, OTHER)
+    grant, cut = run.get("grant") or {}, run.get("revoke") or {}
+    if grant.get("permissions") != 3 or cut.get("permissions") != 1:
+        bad.append(f"share {grant.get('permissions')} at open -> {cut.get('permissions')} after the edit, wanted 3 -> 1")
+    if ((run.get("hostBeforeRevoke") or {}).get("lock") or {}).get("state") != "held":
+        bad.append(f"host lock before the cut {((run.get('hostBeforeRevoke') or {}).get('lock') or {}).get('state')}")
+    if (run.get("lockAtRevoke") or {}).get("lock") != "1":
+        bad.append(f"server lock at the cut {(run.get('lockAtRevoke') or {}).get('lock')!r}")
+    if "唯讀" in (run.get("bar") or {}).get("notice", ""):
+        bad.append(f"read-only notice at open {(run.get('bar') or {}).get('notice')!r}")
     return bad
 
 
@@ -728,7 +788,7 @@ def on_wire(run: dict[str, Any], expected: list[tuple[Any, bool]]) -> list[str]:
             bad.append(f"wire If {put['if']} on an attempt without the token")
     locks = [i for i, r in enumerate(run.get("davRequests") or []) if r["method"] == "LOCK"]
     gets = [i for i, r in enumerate(run.get("davRequests") or []) if r["method"] == "GET"]
-    if run.get("arm") not in ("readonly", "nowhere") and (not locks or not gets or locks[0] > gets[0]):
+    if not locks or not gets or locks[0] > gets[0]:
         bad.append(f"wire order: LOCK at {locks[:1]}, GET at {gets[:1]}")
     return bad
 
@@ -866,25 +926,23 @@ def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
         if not (isinstance(start, int) and isinstance(end, int) and end - start >= 320_000) or inside:
             bad.append(f"freeze window {start}..{end}, refreshes inside it {inside}")
     elif arm == "readonly":
-        bad += edited(run)
-        lock = host.get("lock") or {}
-        sent_lock = [r for r in run.get("davRequests") or [] if r.get("method") == "LOCK"]
-        if lock.get("state") != "readonly" or sent_lock or (run.get("afterOpen") or {}).get("lock") != "":
-            bad.append(f"lock {lock}, LOCK requests {sent_lock}, server lock {(run.get('afterOpen') or {}).get('lock')!r}")
-        if "唯讀" not in (run.get("bar") or {}).get("notice", ""):
-            bad.append(f"notice {(run.get('bar') or {}).get('notice')!r}")
-        if len(saves) != 1 or attempts(saves[0]) != [(403, False)]:
-            bad.append(f"save {[attempts(s) for s in saves]}")
+        bad += edited(run) + cut_after_open(run)
+        # §7.4: 403 WITH the token.  412 means cutting the share moved the ETag:
+        # that run went another way -- red, and stop and report, not a new expectation.
+        if len(saves) != 1 or attempts(saves[0]) != [(403, True)]:
+            bad.append(f"save {[attempts(s) for s in saves]}, wanted [(403, True)]")
         else:
             bad += one_copy(run, "另存副本", saves[0].get("sha256"))
             bad += page_failed_with(run.get("save1State") or {}, (saves[0].get("conflictCopy") or {}).get("name") or "?")
+        bad += on_wire(run, [(403, True)])
         if server_after != original:
             bad.append(f"owner's file changed {server_after and server_after[:12]}")
     elif arm == "nowhere":
-        bad += edited(run)
+        bad += edited(run) + cut_after_open(run)
         copy_ = (saves[0].get("conflictCopy") or {}) if saves else {}
-        if len(saves) != 1 or attempts(saves[0]) != [(403, False)] or copy_.get("status") != 403 or not copy_.get("failed"):
-            bad.append(f"save {[attempts(s) for s in saves]}, copy {copy_}")
+        if len(saves) != 1 or attempts(saves[0]) != [(403, True)] or copy_.get("status") != 403 or not copy_.get("failed"):
+            bad.append(f"save {[attempts(s) for s in saves]}, copy {copy_}, wanted [(403, True)] and a failed copy")
+        bad += on_wire(run, [(403, True)])
         stranded_bar = run.get("barStranded") or {}
         if stranded_bar.get("downloadHidden") is not False or stranded_bar.get("notice") != STRANDED:
             bad.append(f"bar while stranded {stranded_bar}")
@@ -905,6 +963,11 @@ def score_arm(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
             dialog2 = (run.get("leave2") or {}).get("dialog") or {}
             if dialog2.get("type") != "beforeunload" or not str(run.get("stayedAgain", "")).endswith(ROUTE):
                 bad.append(f"leaving after the download: dialog {dialog2.get('type')}, stayed at {run.get('stayedAgain')}")
+            # §7.4 (review item 12): each ask is the host's, for the stranded bytes.
+            for n in ("1", "2"):
+                guards = (run.get(f"hostAfterLeave{n}") or {}).get("guards") or []
+                if len(guards) < int(n) or "stranded" not in (guards[int(n) - 1].get("reasons") or []):
+                    bad.append(f"leave{n}: host guards {guards}, wanted a `stranded` reason")
         if server_after != original or run.get("copiesAfter"):
             bad.append(f"server {server_after and server_after[:12]}, copies {run.get('copiesAfter')}")
     elif arm == "offline":
@@ -1006,8 +1069,20 @@ RED_CASES = [
     ("frozen: lock never expired", "frozen", lambda r: r["lockWhileFrozen"].update(lock="1"), None),
     ("frozen: refreshed while frozen", "frozen", lambda r: r["host"]["lock"]["refreshes"].append({"at": r["freezeAt"] + 60000, "status": 200}), None),
     ("frozen: server bytes are not the save's", "frozen", lambda r: r["serverAfter"].update(sha256="0" * 64), None),
-    ("readonly: sent a LOCK (host record)", "readonly", lambda r: r["host"]["lock"].update(state="held"), None),
-    ("readonly: sent a LOCK (wire)", "readonly", lambda r: r["davRequests"].append({"method": "LOCK", "url": "x"}), C),
+    # §7.4: K9′/K10′ replace the two "sent a LOCK" cases.
+    ("readonly: the cut did not take (read back 3)", "readonly", lambda r: r["revoke"].update(permissions=3), None),
+    ("readonly: the PUT carried no token", "readonly",
+     lambda r: r["host"]["saves"][0]["attempts"][0].update(withToken=False), None),
+    ("readonly: the PUT was 412, not 403", "readonly",
+     lambda r: r["host"]["saves"][0]["attempts"][0].update(status=412), None),
+    ("readonly: no lock at open", "readonly", lambda r: r["afterOpen"].update(lock=""), None),
+    ("readonly: a read-only notice at open", "readonly",
+     lambda r: r["bar"].update(notice="唯讀：只能檢視，不能修改或存檔。"), None),
+    ("nowhere: the cut did not take (read back 3)", "nowhere", lambda r: r["revoke"].update(permissions=3), None),
+    ("nowhere: the PUT was 412, not 403", "nowhere",
+     lambda r: r["host"]["saves"][0]["attempts"][0].update(status=412), None),
+    ("nowhere: a guard without the stranded reason", "nowhere",
+     lambda r: r["hostAfterLeave1"]["guards"][0].update(reasons=["page"]), C),
     ("readonly: copy bytes differ", "readonly", lambda r: r["copiesAfter"][0].update(sha256="0" * 64), None),
     ("readonly: owner's file changed", "readonly", lambda r: r["serverAfter"].update(sha256="0" * 64), None),
     ("nowhere: download bytes differ", "nowhere", lambda r: r["download"].update(sha256="0" * 64), None),

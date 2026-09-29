@@ -14,7 +14,16 @@ optionally do the smoke action, navigate to Files, then poll the server's lock
 for 10 s and read the access log for UNLOCKs.  A stale token lock from an
 earlier run is released with its own token before the upload, and recorded.
 
+Since host 0.2.3 (SPEC-M3-page-honesty §7.8, condition 9): the page-honesty
+leave recorder is installed after the smoke and read after the navigation, so
+each run says whether its leave was GUARDED (the host asked, reason `page`) or
+not.  On 0.2.3 the edit arm is the guarded leave -- only the pagehide UNLOCK
+remains, finding 105's unfixed path -- and the none arm is its unguarded
+control.  An edit run without a `page` guard, or a none run with any guard, is
+an instrument failure and is not counted.
+
   probe_m3_leave_unlock.py [--arms firefox:warm:edit,...] [--repeats 2]
+  (condition 9: --arms firefox:warm:edit,firefox:warm:none --repeats 12)
 Report: findings/evidence/m3-assets/leave-unlock-<UTC>.json
 """
 
@@ -23,6 +32,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import secrets
 import subprocess
 import sys
 import tempfile
@@ -41,6 +51,8 @@ from r7_support import evaluate  # noqa: E402
 from run_browser_probe import FirefoxSession  # noqa: E402
 from run_e2_c_page_smoke import navigate  # noqa: E402
 import check_m3_assets  # noqa: E402
+from check_m3_page_honesty import READ_RECORD  # noqa: E402
+from check_m3_page_honesty import RECORDER as LEAVE_RECORDER  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
 REPO = PROJECT.parent
@@ -88,6 +100,9 @@ def run(arm: str, instance: Instance, scratch: Path) -> dict[str, Any]:
             record["open"] = open_only(session, instance)
         record["hostLock"] = record["open"]["host"].get("lock")
         record["recorder"] = evaluate(session, RECORDER)
+        nonce = secrets.token_hex(8)
+        record["leaveRecorder"] = evaluate(session, LEAVE_RECORDER.replace("ARG_NONCE", json.dumps(nonce)))
+        record["secondsDoneToLeave"] = evaluate(session, check_m3_assets.DONE_TO_LEAVE)
         record["lockBeforeLeave"] = lock_state(instance)
         start = log.offset()
         left = time.monotonic()
@@ -102,6 +117,8 @@ def run(arm: str, instance: Instance, scratch: Path) -> dict[str, Any]:
             time.sleep(0.5)
         record["polls"] = polls
         record["pagehide"] = evaluate(session, "(() => localStorage.getItem('lc-pagehide'))()")
+        raw = wait_until(session, READ_RECORD.replace("ARG_NONCE", json.dumps(nonce)), 10)
+        record["leftRecord"] = json.loads(raw) if isinstance(raw, str) else {"missing": raw}
         record["unlocks"] = [{k: r[k] for k in ("when", "method", "status")} for r in log.since(start)
                              if agent in r.get("agent", "") and r.get("method") in ("UNLOCK", "LOCK")]
     except Exception:  # noqa: BLE001
@@ -109,6 +126,24 @@ def run(arm: str, instance: Instance, scratch: Path) -> dict[str, Any]:
     finally:
         session.close()
     return record
+
+
+def guarded(record: dict[str, Any]) -> list[str] | None:
+    """The host's guard reasons at this run's leave, [] for an unguarded leave,
+    None when the recorder saw no `fired` (the run says nothing)."""
+    entries = record.get("leftRecord") if isinstance(record.get("leftRecord"), list) else []
+    fired = [e for e in entries if e.get("what") == "fired"]
+    if not fired:
+        return None
+    return list((fired[-1].get("lastGuard") or {}).get("reasons") or [])
+
+
+def instrument_ok(record: dict[str, Any]) -> bool:
+    """Condition 9: edit = guarded for `page`, none = not guarded."""
+    reasons = guarded(record)
+    if reasons is None or "fatal" in record:
+        return False
+    return ("page" in reasons) if record["arm"].endswith(":edit") else reasons == []
 
 
 def open_only(session, instance: Instance) -> dict[str, Any]:
@@ -154,7 +189,14 @@ def main() -> int:
               f" releasedBy={(r.get('hostLock') or {}).get('releasedBy')}"
               f" unlockedAt={last.get('t') if last.get('lock') != '1' else 'STILL LOCKED'}"
               f" log={[(u['method'], u['status']) for u in r.get('unlocks', [])]}"
+              f" guard={guarded(r)} counted={instrument_ok(r)}"
               f"{' FATAL ' + r['fatal'].splitlines()[-1] if 'fatal' in r else ''}")
+    for arm in args.arms.split(","):
+        runs = [r for r in report["runs"] if r["arm"] == arm]
+        counted = [r for r in runs if instrument_ok(r)]
+        released = [r for r in counted if (r.get("polls") or [{}])[-1].get("lock") not in ("1", None)]
+        print(f"{arm}: released within 10 s {len(released)}/{len(counted)} counted"
+              f" ({len(runs) - len(counted)} instrument failures)")
     return 0
 
 
