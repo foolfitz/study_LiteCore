@@ -109,6 +109,9 @@ Registered, not gated (R2, counted report):
 - **R3 entry condition** (median read-back GET <= median PUT, host's own record): Chrome 24 vs
   46 ms, Firefox 24 vs 46 ms over 69 saves each (also held per single run in the shakedowns).
   Only on the 9.5 KB fixture; the read-back downloads the whole document before every save.
+  *Appended 2026-09-29:* measured up to 52.4 MB (`readback-size/README.md`, criteria committed
+  first): the condition holds at every size in both browsers, ratio 0.32–0.61; the read-back is a
+  full download, so on a real link it costs about size / downlink (localhost here).
 - **0.2.1 same-second pairs per run** (phase-controlled): 8, 9, 9, 8, 9, 8 of 10 -- more than the
   ~7 predicted before running; the restore pair shared a second in all six. The misclassified
   pairs under a send-phase rule are all PUTs sent at >= .965 of a second whose write landed in the
