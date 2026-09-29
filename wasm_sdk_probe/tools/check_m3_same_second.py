@@ -37,6 +37,7 @@ import sys
 import tempfile
 import time
 import traceback
+import urllib.parse
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
@@ -262,6 +263,17 @@ def score_foreign(run: dict[str, Any], report: dict[str, Any]) -> list[str]:
             or after.get("token") != opened.get("token"):
         bad.append(f"lock: host {((run.get('host') or {}).get('lock') or {}).get('state')}, "
                    f"server token {opened.get('token')} -> {after.get('token')}")
+    # The read-back is what stopped S2 (review item 4): no PUT for it, in the host's record and on the wire.
+    if attempts(s2) != [("changed", True)]:
+        bad.append(f"blocked: S2 {attempts(s2)}, want one attempt 'changed' with the token (no PUT)")
+    if run["browser"] == "chrome":
+        quoted = urllib.parse.quote(SNAME)
+        puts = [r for r in run.get("davRequests") or [] if r["method"] == "PUT" and r["url"].endswith(quoted)]
+        first = (s1.get("attempts") or [{}])[0]
+        if len(puts) != 1 or puts[0].get("ifMatch") != first.get("ifMatch") \
+                or puts[0].get("if") != f"(<{opened.get('token')}>)":
+            bad.append(f"wire: {len(puts)} PUTs to the file {[(x.get('ifMatch'), x.get('if')) for x in puts]}, "
+                       f"want only S1's, If-Match {first.get('ifMatch')}, the server's token")
     return bad
 
 
@@ -402,6 +414,45 @@ def _drop_last_known(key: str):
 _F: list[str] = []   # the report's F, set by red_cases before any mutation runs
 
 
+def _swap_known(key: str):
+    """Swap the bytes of the two newest rows that hold saves: same rows, wrong order."""
+    def mutate(run: dict) -> None:
+        known = {s["sha256"] for s in run["host"]["saves"]}
+        rows = [e for e in run[key]["entries"] if not e["current"] and e.get("sha256") in known]
+        rows[-1]["sha256"], rows[-2]["sha256"] = rows[-2]["sha256"], rows[-1]["sha256"]
+    return mutate
+
+
+def _drop_save(key: str, n: int):
+    def mutate(run: dict) -> None:
+        sha = run["host"]["saves"][n]["sha256"]
+        run[key]["entries"] = [e for e in run[key]["entries"] if e.get("sha256") != sha]
+    return mutate
+
+
+def _file_puts(run: dict) -> list[dict]:
+    quoted = urllib.parse.quote(SNAME)
+    return [x for x in run["davRequests"] if x["method"] == "PUT" and x["url"].endswith(quoted)]
+
+
+def _wire_put(change):
+    return lambda r: change(_file_puts(r)[3])
+
+
+def _wire_drop_put(run: dict) -> None:
+    run["davRequests"].remove(_file_puts(run)[3])
+
+
+def _wire_dup_put(run: dict) -> None:
+    run["davRequests"].append(dict(_file_puts(run)[0]))
+
+
+def _wire_get_first(run: dict) -> None:
+    rows = run["davRequests"]
+    lock = next(i for i, x in enumerate(rows) if x["method"] == "LOCK")
+    rows.append(rows.pop(lock))
+
+
 C = ("chrome",)
 # (label, clause prefix that must catch it, mutation, browsers -- None = both). Each case
 # counts only if the mutated run has a NEW problem line under its own clause, so the same
@@ -428,6 +479,16 @@ RED_CASES = [
     ("(c) Lc rows out of order", "(c)", lambda r: r["Lc"].update(entries=list(reversed(r["Lc"]["entries"]))), None),
     ("copies: a conflict copy was left", "copies", lambda r: r.update(copiesAfter=[{"name": "x（衝突副本）.odt"}]), None),
     ("wire: a PUT without If", "wire", lambda r: [x.update({"if": None}) for x in r["davRequests"] if x["method"] == "PUT"], C),
+    # review item 3: one case for every sub-clause that had none
+    ("(b) Lb rows out of save order", "(b)", _swap_known("Lb"), None),
+    ("(c) Lc lost S1 (not only S23)", "(c)", _drop_save("Lc", 0), None),
+    ("(c) Lc holds bytes nobody saved", "(c)",
+     lambda r: r["Lc"]["entries"].append({"revision": 9_999_999_999, "current": False, "sha256": "e" * 64}), None),
+    ("(c) Lc has two current rows", "(c)",
+     lambda r: r["Lc"]["entries"].append({**next(e for e in r["Lc"]["entries"] if e["current"]), "revision": 9_999_999_998}), None),
+    ("wire: a PUT's If-Match is not the recorded one", "wire", _wire_put(lambda x: x.update(ifMatch='"other"')), C),
+    ("wire: one PUT fewer on the wire than recorded", "wire", _wire_drop_put, C),
+    ("wire: the GET went out before the LOCK", "wire", _wire_get_first, C),
 ]
 RED_CASES_R3 = [
     ("open: other bytes were opened", "open", lambda r: r["host"]["fetched"].update(sha256="0" * 64), None),
@@ -441,6 +502,14 @@ RED_CASES_R3 = [
     ("page: the page blames the network", "page",
      lambda r: r["save2State"].update(latency="存回 失敗", toast="存回：連不上伺服器。"), None),
     ("lock: the lock was lost", "lock", lambda r: r["lockAfterSave"].update(token=None), None),
+    ("lock: the host says it no longer holds the lock", "lock", lambda r: r["host"]["lock"].update(state="lost"), None),
+    ("shape: S2 sent S1's bytes", "shape", lambda r: r["host"]["saves"][1].update(sha256=r["host"]["saves"][0]["sha256"]), None),
+    ("blocked: S2 was refused by If-Match instead", "blocked",
+     lambda r: r["host"]["saves"][1].update(attempts=[{"status": 412, "withToken": True}]), None),
+    ("blocked: S2 was read back, then PUT anyway", "blocked",
+     lambda r: r["host"]["saves"][1]["attempts"].append({"status": 204, "withToken": True}), None),
+    ("wire: a second PUT to the file", "wire", _wire_dup_put, C),
+    ("wire: S1's PUT went out without the token", "wire", lambda r: _file_puts(r)[0].update({"if": None}), C),
 ]
 
 
@@ -451,8 +520,10 @@ def red_cases(path: Path) -> int:
     cases = [(case, "same-second") for case in RED_CASES] + [(case, "same-second-foreign") for case in RED_CASES_R3]
     for (label, clause, mutate, only), arm in cases:
         for browser in (only or PLAN[arm][1]):
-            base = next((r for r in report["runs"] if r["browser"] == browser and r["arm"] == arm
-                         and not r.get("fatal")), None)
+            # A clean base when there is one (review item 11): on an already-red base a case can
+            # "add a line" by changing a message's text without its clause newly firing.
+            mine = [r for r in report["runs"] if r["browser"] == browser and r["arm"] == arm and not r.get("fatal")]
+            base = next((r for r in mine if not score_run(r, report)), mine[0] if mine else None)
             if base is None:
                 print(f"  MISSING {label} [{browser}]: no run to mutate")
                 failures += 1
