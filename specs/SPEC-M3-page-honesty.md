@@ -280,10 +280,56 @@ K2-5 這一格是 finding 105 修法的回歸網：它問的是「沒被攔下�
 - 紅案（第 4 步）：`check_m3_page_honesty.py --red-cases REPORT…`，每一條判準一個突變、必須紅在**它自己**那一條（比對問題字串），另加
   「U0 不成立時同瀏覽器同輪的 U 格不算」一個報告層的紅案。乾淨基底取自最終版 runner 的 shakedown。
 
+### 7.11 實作審核的處置，與 BLOCKING 1 的量測（2026-09-29，任何計數執行之前）
+
+實作與 runner 的對抗性審核（opus，唯讀）：2 BLOCKING、4 SHOULD、11 NOTE，原文與逐項處置在
+`findings/evidence/m3-page-honesty/review-2026-09-29-opus-implementation.md`。除 BLOCKING 1 外都在 `b61e9fd9` 處置：
+
+- **BLOCKING 2（已修）**：頁面的 `hasUnsavedWork()` 改成 fail-closed（`session ? session.hasUnsavedEdits() : false`），新測試
+  `page-unsaved-work.test.mjs` 只給頁面那個函式 `session`／`savesUnsettled` 兩個名字去編譯它；四個頁面突變全紅。這補上了 §7.10 之後
+  仍在的那一層：U3 說的是「頁面的判斷」，之前的單元測試只測到 session 的。
+- **SHOULD（四項都修）**：V7 按名字驗兩個移動；可寫對照也驗反方向；K-sep 的兩次按壓拆成兩次 evaluate，並從 Nextcloud 的版本讀回第一次
+  存檔、它**不得**帶標記；唯讀的單元測試涵蓋 `selectRange`／`copySelection`（`mutation !== false` 那個關卡的突變，重現為 42/42 全過，
+  現在紅）。
+- **NOTE**：記錄器也錄 `onbeforeunload` 屬性那條路；每一個編輯臂都要求編輯真的落地；V1／V7／Firefox 的 U1 在欄位缺席時不再空洞；加
+  `HOST_COMMIT` 綁定（計數執行必填）；紅案加 16 個、過寬的子字串收窄；K-two 的第二次按壓改在頁面顯示「儲存 N ms」時送出（落在第一次
+  存檔進行中）。**登錄不修**：按住 Enter 在儲存按鈕上（106 經按鈕的那條路）；`check_m3_assets` 共用的「K2 instrument」前綴與
+  `check_m3_locks` 的「任何問題都算紅」紅案判定（兩者都超出本輪對那兩支 runner 的 diff 上限，§7.6／§7.8）；V2 鍵盤那一半的極限
+  （067 的路）；V5／V4 的空洞由下游補償；`e2-editor.html` 不在綁定裡（094）。
+- 頁面因此換身分成 `fc80050c…`；**`b61e9fd9` 之前的每一份頁面誠實化與資產 shakedown 報告，在評分上都是過期的**（頁面與 runner 都在
+  底下換過），它們量到的事（瞄準點、K9′／K10′ 的前提等）仍然成立。
+
+**BLOCKING 1（已量、已修，finding 108）。**宿主的 60 秒 refresh 若在存檔的 PUT 還在路上時判鎖失效，`loseLock()` 把 `token` 設成
+`null`；PUT 回 412 後 `tokenOnServer(null)` 丟 `TypeError`，`save()` 沒有 `catch`——存檔以「沒有寫進原檔、沒有副本、沒有 stranded」
+結束，頁面不問就讓人離開。這是 **§7.1 前提的反例**：§7.1 把「結束」定義成 resolve 或 reject，是因為相信每一個 reject 都是副本或
+stranded；宿主裡沒有任何東西保證這件事。
+
+量測（`findings/evidence/m3-page-honesty/save-throw/README.md`，探針 `probe_m3_save_throw.py`，Chrome；三步的預期寫在 09-29g 交接、
+任何執行之前）：
+
+| 步 | 宿主 | 預期 | 實測 |
+| --- | --- | --- | --- |
+| 1 | 0.2.3（`c740d2f`）原樣 | LOST | LOST：原檔不變、無副本、無 stranded、離頁不問 |
+| 2 | 只加 catch-all | KEPT（stranded＋詢問） | KEPT：同一個 `TypeError` 仍發生，位元組被留住，`beforeunload` 對話框出現 |
+| 3 | 再加 `sentToken`＋0.2.4 | KEPT（原檔或副本） | KEPT 在原檔：412（帶 token）→ 204（不帶）；commit 後的乾淨宿主重跑相同 |
+
+處置：
+
+- **宿主 0.2.4（`369e6ed`）**，範圍仍是 `js/litecore-editor.js` 與 `appinfo/info.xml`，但**超出 §7.1 宣告的宿主範圍**（§7.1 寫「不修」
+  `.text()` 那一項）——依 §7.6「其他任何需要改的地方：停手，先寫進本節」，這一段就是那份紀錄，寫在任何 0.2.4 的計數執行之前。
+  兩個改動：`save()` 接住任何還沒落在三種結局之一的例外、把位元組 strand 起來（**§7.1 的前提從此由構造成立**，不再靠每一條路剛好
+  這樣寫）；412 之後問的是實際送出的 token（`sentToken`），`tokenOnServer()` 對空 token 回 false。
+- **§7.5 的 `.text()` 那一項關閉**：由 catch-all 涵蓋，**由構造推得、未量**（0.2.4 上這支探針走不到 catch-all；它只在第 2 步量過）。
+- **綁定**（§7.6 的四個常數之外，本 runner 自己的）：`HOST_VERSION` 0.2.4、`HOST_COMMIT` `369e6ed…`；§7.6 的
+  `check_m3_versions.HOST_COMMIT` 與 `check_m3_same_second.HOST_VERSION` 同樣指向 0.2.4。值在計數執行之前填，不在之後。
+- 順帶量到（登錄）：對已刪除的鎖列 refresh，伺服器回 **400** 不是 412；400 在宿主的 `LOST` 清單裡，所以觸發成立。
+- **沒量的**：自然發生率（refresh 落在 PUT 往返之內的機率）；Firefox；過期或 Files 解鎖造成的失效（可能是 412／423，宿主一視同仁，讀原始碼）。
+
 ## 6. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-29 | **加 §7.11：實作審核的處置與 BLOCKING 1 的量測。**審核（opus）2 BLOCKING／4 SHOULD／11 NOTE 的處置摘要（`b61e9fd9`）；BLOCKING 1＝§7.1 前提的反例（refresh 在 PUT 途中判鎖失效 → `tokenOnServer(null)` 丟例外 → 存檔無處可去），三步量測照預測（LOST → KEPT stranded → KEPT 原檔），宿主 0.2.4（`369e6ed`）以 catch-all 讓前提由構造成立＋問送出去的 token，登錄 finding 108；超出 §7.1 宿主範圍的紀錄；§7.5 的 `.text()` 那一項關閉（構造推得、未量）。判準文字沒改。 |
 | 2026-09-29 | **加 §7.10：量測工具的補強。**U3 的單元測試抓不到 `!==` 版的 revision 比較（量到 42/42 全過），補兩句斷言後五個突變全紅；V2 普查不得為空（涵蓋頁面列出的每一顆按鈕）；U7 要在離頁那一刻驗 `pending > 0`；新 runner 加 `--red-cases`。判準文字沒改、產品程式碼沒改。 |
 | 2026-09-29 | **加 §7.8、§7.9。**§7.8：`check_m3_assets` K2 的處置由 fable 代擁有者裁決＝A′（K2 離開前先存、逐次自證沒被攔；另登錄一次性量測「Firefox 快取開、被攔之後離開」×12，不擋閘門），取代 §7.7 的「處置待決」與 §7.6 對該 runner 的 diff 上限。§7.9：Chrome 第一輪 shakedown 逼出的 runner 修正——V4／V2 瞄準第一行（y 0.28 落在末行、撞 096）、`delete-forward` 先左移一格（段尾前刪是契約上的結構邊界）；可寫對照的移動被手勢遮罩拒絕是設計；K-two 的實作讀法登錄。判準都沒改。 |
 | 2026-09-29 | **加 §7.7：離頁靜態普查的結果。**唯一會改變結果的是 `check_m3_assets` K2（帶著未存修改離開 → 0.2.3 不放鎖 → Firefox 走 105 的舊路），處置待決、傾向 A（K2 離開前先存）；順帶修掉 `savesUnsettled` 晚一次繪製才歸零的時序瑕疵。 |
