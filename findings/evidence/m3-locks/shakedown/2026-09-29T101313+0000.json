@@ -1,0 +1,3889 @@
+{
+ "runner": "check_m3_locks.py",
+ "runnerSha256": "6d49e17ca5662087f28b66e9328c414aa351b7fad250e5af1d9a618284ef0a45",
+ "label": "shakedown",
+ "startedAt": "2026-09-29T10:13:13+00:00",
+ "static": {
+  "page": {
+   "dist": "f42e0227ed3af2d753a228d47e9dadba42cc4092d8a5ed6de6425ccdec3cdd07",
+   "web": "f42e0227ed3af2d753a228d47e9dadba42cc4092d8a5ed6de6425ccdec3cdd07"
+  }
+ },
+ "hostRepo": "c740d2f9c963677e294e1f441de4f0266fef1804 Host 0.2.3: read-only files open view-only; the host alone decides leaving",
+ "hostDirty": "",
+ "hostFiles": {
+  "js/litecore-editor.js": "bb41c944c1c887042745d802b616cce711aec5e8856e27bf05d02189ae765282",
+  "lib/Controller/EditorController.php": "404f6e2b2c377cc0031ed8b76db70473ccc7f0e9603317fa9b1ed74ef6b9748d",
+  "templates/editor.php": "49876f2b2eb2a77cee7c33f549ca8c486826656e8cb43dcdf2d24ce19ae7dbf9"
+ },
+ "hostBinding": {
+  "appDir": "/home/jiajun/Projects/Nextcloud_Apps/litecore",
+  "sourceRepo": "/home/jiajun/Projects/Nextcloud_Apps/litecore"
+ },
+ "baseUrl": "https://litecore.ddev.site:8443",
+ "original": {
+  "source": "e1-fixtures/multi-paragraph.odt",
+  "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934"
+ },
+ "intruder": {
+  "source": "e1-fixtures/list-contexts.odt",
+  "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d"
+ },
+ "runs": [
+  {
+   "arm": "readonly",
+   "spec": "K9′",
+   "browser": "chrome",
+   "startedAt": "2026-09-29T10:13:18+00:00",
+   "file": {
+    "user": "lcprobe",
+    "path": "M3 鎖 唯讀.odt",
+    "adminPath": "M3 鎖 唯讀.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 4831
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "downloadVia": "Page.setDownloadBehavior",
+   "version": "Chrome/151.0.7922.169",
+   "grant": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 3
+   },
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4831",
+   "host": {
+    "started": 1790676805386,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 271
+     },
+     {
+      "step": "fetched",
+      "at": 341
+     },
+     {
+      "step": "opened",
+      "at": 2273,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 唯讀.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 唯讀.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 4979,
+      "name": "M3 鎖 唯讀.odt",
+      "bytes": 10228,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 4979,
+         "status": 200,
+         "etag": "\"6abb8f45a4ea1\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 24
+        },
+        "ifMatch": "\"6abb8f45a4ea1\"",
+        "withToken": true,
+        "at": 5003,
+        "respondedAt": 5030,
+        "status": 403
+       }
+      ],
+      "sha256": "b9eef6a59b1a635c4c6f0e5242ad52d11e465ad2c402ebf1511a5e2b9e10b11b",
+      "ifMatch": "\"6abb8f45a4ea1\"",
+      "status": 403,
+      "responseEtag": null,
+      "conflictCopy": {
+       "name": "M3 鎖 唯讀（另存副本 2026-09-29 181330）.odt",
+       "status": 201
+      },
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 294,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 4831,
+     "name": "M3 鎖 唯讀.odt",
+     "size": 1343,
+     "etag": "5be792acedcdf917fad900c996ff4bd5",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4831",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f45a4ea1\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 341
+    },
+    "handedReadOnly": false,
+    "finished": 2273
+   },
+   "secondsToOpened": 2.89,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6abb8f45a4ea1\"",
+    "fileid": "4831",
+    "lock": "1",
+    "lockOwner": "lcprobe",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:fe569683-3539-4a9b-a6a8-0dd6912f49f4"
+   },
+   "smoke": {
+    "before": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "—",
+     "doc": "M3 鎖 唯讀.odt",
+     "toast": "已開啟 M3 鎖 唯讀.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "caret": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 33 ms",
+     "doc": "M3 鎖 唯讀.odt",
+     "toast": "已開啟 M3 鎖 唯讀.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "acted": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "標題 60 ms",
+     "doc": "M3 鎖 唯讀.odt",
+     "toast": "已開啟 M3 鎖 唯讀.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    }
+   },
+   "hostBeforeRevoke": {
+    "started": 1790676805386,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 271
+     },
+     {
+      "step": "fetched",
+      "at": 341
+     },
+     {
+      "step": "opened",
+      "at": 2273,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 唯讀.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 唯讀.odt"
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 294,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 4831,
+     "name": "M3 鎖 唯讀.odt",
+     "size": 1343,
+     "etag": "5be792acedcdf917fad900c996ff4bd5",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4831",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f45a4ea1\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 341
+    },
+    "handedReadOnly": false,
+    "finished": 2273
+   },
+   "revoke": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 1
+   },
+   "lockAtRevoke": {
+    "status": 207,
+    "etag": "\"6abb8f45a4ea1\"",
+    "fileid": "4831",
+    "lock": "1",
+    "lockOwner": "lcprobe",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:fe569683-3539-4a9b-a6a8-0dd6912f49f4"
+   },
+   "save1Seen": 1,
+   "save1State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "1",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 鎖 唯讀.odt",
+    "toast": "存回：HOST_SAVE_FAILED：你沒有這個檔案的寫入權限。你的內容另存為「M3 鎖 唯讀（另存副本 2026-09-29 181330）.odt」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "copiesAfter": [
+    {
+     "name": "M3 鎖 唯讀（另存副本 2026-09-29 181330）.odt",
+     "status": 200,
+     "sha256": "b9eef6a59b1a635c4c6f0e5242ad52d11e465ad2c402ebf1511a5e2b9e10b11b",
+     "bytes": 10228
+    }
+   ],
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4831",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     }
+    ],
+    "loadingFailed": [
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%EF%BC%88%E5%8F%A6%E5%AD%98%E5%89%AF%E6%9C%AC%202026-09-29%20181330%EF%BC%89.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     }
+    ],
+    "errorLogs": [
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 403 ()",
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80.odt"
+     }
+    ],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80.odt",
+     "ifMatch": "\"6abb8f45a4ea1\"",
+     "if": "(<opaquelocktoken:fe569683-3539-4a9b-a6a8-0dd6912f49f4>)",
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%EF%BC%88%E5%8F%A6%E5%AD%98%E5%89%AF%E6%9C%AC%202026-09-29%20181330%EF%BC%89.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    }
+   ],
+   "dialogs": [],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"6abb8f45a4ea1\"",
+    "fileid": "4831",
+    "lock": "1",
+    "lockOwner": "lcprobe",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:fe569683-3539-4a9b-a6a8-0dd6912f49f4"
+   },
+   "clearedAtEnd": "1",
+   "restored": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 1
+   }
+  },
+  {
+   "arm": "readonly",
+   "spec": "K9′",
+   "browser": "firefox",
+   "startedAt": "2026-09-29T10:13:33+00:00",
+   "file": {
+    "user": "lcprobe",
+    "path": "M3 鎖 唯讀.odt",
+    "adminPath": "M3 鎖 唯讀.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 4831
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "version": "156.0",
+   "grant": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 3
+   },
+   "login": "https://litecore.ddev.site:8443/apps/dashboard/",
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4831",
+   "host": {
+    "started": 1790676821598,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 268
+     },
+     {
+      "step": "fetched",
+      "at": 348
+     },
+     {
+      "step": "opened",
+      "at": 2675,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 唯讀.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 唯讀.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 5466,
+      "name": "M3 鎖 唯讀.odt",
+      "bytes": 10209,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 5466,
+         "status": 200,
+         "etag": "\"6abb8f55d989a\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 32
+        },
+        "ifMatch": "\"6abb8f55d989a\"",
+        "withToken": true,
+        "at": 5498,
+        "respondedAt": 5525,
+        "status": 403
+       }
+      ],
+      "sha256": "8771de7b1140b54fb0104e8bf6fac14c705ddaf21f5a48f2f6f0d5a5d6d4ba2f",
+      "ifMatch": "\"6abb8f55d989a\"",
+      "status": 403,
+      "responseEtag": null,
+      "conflictCopy": {
+       "name": "M3 鎖 唯讀（另存副本 2026-09-29 181347）.odt",
+       "status": 201
+      },
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 297,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 4831,
+     "name": "M3 鎖 唯讀.odt",
+     "size": 1343,
+     "etag": "4265c0ece323a7add7fece4cdfd31321",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4831",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f55d989a\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 348
+    },
+    "handedReadOnly": false,
+    "finished": 2675
+   },
+   "secondsToOpened": 3.43,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6abb8f55d989a\"",
+    "fileid": "4831",
+    "lock": "1",
+    "lockOwner": "lcprobe",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:dfaa5a66-2115-4b29-a82e-a576fd573b46"
+   },
+   "smoke": {
+    "before": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "—",
+     "doc": "M3 鎖 唯讀.odt",
+     "toast": "已開啟 M3 鎖 唯讀.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "caret": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 38 ms",
+     "doc": "M3 鎖 唯讀.odt",
+     "toast": "已開啟 M3 鎖 唯讀.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "acted": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "標題 44 ms",
+     "doc": "M3 鎖 唯讀.odt",
+     "toast": "已開啟 M3 鎖 唯讀.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    }
+   },
+   "hostBeforeRevoke": {
+    "started": 1790676821598,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 268
+     },
+     {
+      "step": "fetched",
+      "at": 348
+     },
+     {
+      "step": "opened",
+      "at": 2675,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 唯讀.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 唯讀.odt"
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 297,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 4831,
+     "name": "M3 鎖 唯讀.odt",
+     "size": 1343,
+     "etag": "4265c0ece323a7add7fece4cdfd31321",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4831",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f55d989a\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 348
+    },
+    "handedReadOnly": false,
+    "finished": 2675
+   },
+   "revoke": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 1
+   },
+   "lockAtRevoke": {
+    "status": 207,
+    "etag": "\"6abb8f55d989a\"",
+    "fileid": "4831",
+    "lock": "1",
+    "lockOwner": "lcprobe",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:dfaa5a66-2115-4b29-a82e-a576fd573b46"
+   },
+   "save1Seen": 1,
+   "save1State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "1",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 鎖 唯讀.odt",
+    "toast": "存回：HOST_SAVE_FAILED：你沒有這個檔案的寫入權限。你的內容另存為「M3 鎖 唯讀（另存副本 2026-09-29 181347）.odt」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "copiesAfter": [
+    {
+     "name": "M3 鎖 唯讀（另存副本 2026-09-29 181347）.odt",
+     "status": 200,
+     "sha256": "8771de7b1140b54fb0104e8bf6fac14c705ddaf21f5a48f2f6f0d5a5d6d4ba2f",
+     "bytes": 10209
+    }
+   ],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"6abb8f5d4f617\"",
+    "fileid": "4831",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "clearedAtEnd": "0",
+   "restored": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 1
+   }
+  },
+  {
+   "arm": "nowhere",
+   "spec": "K10′",
+   "browser": "chrome",
+   "startedAt": "2026-09-29T10:14:00+00:00",
+   "file": {
+    "user": "lcprobe",
+    "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+    "adminPath": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 4833
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "downloadVia": "Page.setDownloadBehavior",
+   "version": "Chrome/151.0.7922.169",
+   "grant": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 3
+   },
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%E8%B3%87%E6%96%99%E5%A4%BE",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+   "host": {
+    "started": 1790676846657,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 264
+     },
+     {
+      "step": "fetched",
+      "at": 343
+     },
+     {
+      "step": "opened",
+      "at": 2265,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 資料夾內.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 資料夾內.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 4995,
+      "name": "M3 鎖 資料夾內.odt",
+      "bytes": 10230,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 4995,
+         "status": 200,
+         "etag": "\"6abb8f6ee6305\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 26
+        },
+        "ifMatch": "\"6abb8f6ee6305\"",
+        "withToken": true,
+        "at": 5021,
+        "respondedAt": 5044,
+        "status": 403
+       }
+      ],
+      "sha256": "4f78ecd62df1ae3e7008e61e7df1c70776f2d6ab59ca1588e5f433ed923c91ba",
+      "ifMatch": "\"6abb8f6ee6305\"",
+      "status": 403,
+      "responseEtag": null,
+      "conflictCopy": {
+       "name": "M3 鎖 資料夾內（另存副本 2026-09-29 181411）.odt",
+       "status": 403,
+       "failed": true
+      },
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 290,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": {
+     "sha256": "4f78ecd62df1ae3e7008e61e7df1c70776f2d6ab59ca1588e5f433ed923c91ba",
+     "bytes": 10230,
+     "at": 5072
+    },
+    "notice": "存回失敗，而且沒有地方可以另存：內容還在這個頁面裡，請按「下載這份內容」。",
+    "file": {
+     "id": 4833,
+     "name": "M3 鎖 資料夾內.odt",
+     "size": 1343,
+     "etag": "91a0f588b9236f06d3c72c69017f0f71",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f6ee6305\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 343
+    },
+    "handedReadOnly": false,
+    "finished": 2265
+   },
+   "secondsToOpened": 2.87,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6abb8f6ee6305\"",
+    "fileid": "4833",
+    "lock": "1",
+    "lockOwner": "lcprobe",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:ac5264ee-e8d0-44d3-af95-640c4d062973"
+   },
+   "smoke": {
+    "before": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "—",
+     "doc": "M3 鎖 資料夾內.odt",
+     "toast": "已開啟 M3 鎖 資料夾內.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "caret": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 33 ms",
+     "doc": "M3 鎖 資料夾內.odt",
+     "toast": "已開啟 M3 鎖 資料夾內.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "acted": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "標題 68 ms",
+     "doc": "M3 鎖 資料夾內.odt",
+     "toast": "已開啟 M3 鎖 資料夾內.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    }
+   },
+   "hostBeforeRevoke": {
+    "started": 1790676846657,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 264
+     },
+     {
+      "step": "fetched",
+      "at": 343
+     },
+     {
+      "step": "opened",
+      "at": 2265,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 資料夾內.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 資料夾內.odt"
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 290,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 4833,
+     "name": "M3 鎖 資料夾內.odt",
+     "size": 1343,
+     "etag": "91a0f588b9236f06d3c72c69017f0f71",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f6ee6305\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 343
+    },
+    "handedReadOnly": false,
+    "finished": 2265
+   },
+   "revoke": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 1
+   },
+   "lockAtRevoke": {
+    "status": 207,
+    "etag": "\"6abb8f6ee6305\"",
+    "fileid": "4833",
+    "lock": "1",
+    "lockOwner": "lcprobe",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:ac5264ee-e8d0-44d3-af95-640c4d062973"
+   },
+   "save1Seen": 1,
+   "save1State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "1",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 鎖 資料夾內.odt",
+    "toast": "存回：HOST_SAVE_FAILED：你沒有這個檔案的寫入權限。另存副本也失敗（403）：內容還在這個頁面裡，請按「下載這份內容」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "barStranded": {
+    "notice": "存回失敗，而且沒有地方可以另存：內容還在這個頁面裡，請按「下載這份內容」。",
+    "barHidden": false,
+    "downloadHidden": false
+   },
+   "activation": {
+    "x": 267.5,
+    "y": 76,
+    "w": 511,
+    "h": 21
+   },
+   "leave1": {
+    "dialog": {
+     "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+     "frameId": "F13641846117D07F767866DDCCD2B85E",
+     "message": "",
+     "type": "beforeunload",
+     "hasBrowserHandler": true,
+     "defaultPrompt": ""
+    }
+   },
+   "stayed": "/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html",
+   "hostAfterLeave1": {
+    "started": 1790676846657,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 264
+     },
+     {
+      "step": "fetched",
+      "at": 343
+     },
+     {
+      "step": "opened",
+      "at": 2265,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 資料夾內.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 資料夾內.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 4995,
+      "name": "M3 鎖 資料夾內.odt",
+      "bytes": 10230,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 4995,
+         "status": 200,
+         "etag": "\"6abb8f6ee6305\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 26
+        },
+        "ifMatch": "\"6abb8f6ee6305\"",
+        "withToken": true,
+        "at": 5021,
+        "respondedAt": 5044,
+        "status": 403
+       }
+      ],
+      "sha256": "4f78ecd62df1ae3e7008e61e7df1c70776f2d6ab59ca1588e5f433ed923c91ba",
+      "ifMatch": "\"6abb8f6ee6305\"",
+      "status": 403,
+      "responseEtag": null,
+      "conflictCopy": {
+       "name": "M3 鎖 資料夾內（另存副本 2026-09-29 181411）.odt",
+       "status": 403,
+       "failed": true
+      },
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 290,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": {
+     "sha256": "4f78ecd62df1ae3e7008e61e7df1c70776f2d6ab59ca1588e5f433ed923c91ba",
+     "bytes": 10230,
+     "at": 5072
+    },
+    "notice": "存回失敗，而且沒有地方可以另存：內容還在這個頁面裡，請按「下載這份內容」。",
+    "file": {
+     "id": 4833,
+     "name": "M3 鎖 資料夾內.odt",
+     "size": 1343,
+     "etag": "91a0f588b9236f06d3c72c69017f0f71",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f6ee6305\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 343
+    },
+    "handedReadOnly": false,
+    "finished": 2265,
+    "guarded": 1,
+    "guards": [
+     {
+      "at": 5584,
+      "reasons": [
+       "stranded"
+      ]
+     }
+    ]
+   },
+   "download": {
+    "name": "M3 鎖 資料夾內.odt",
+    "sha256": "4f78ecd62df1ae3e7008e61e7df1c70776f2d6ab59ca1588e5f433ed923c91ba",
+    "bytes": 10230
+   },
+   "hostAfterDownload": {
+    "started": 1790676846657,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 264
+     },
+     {
+      "step": "fetched",
+      "at": 343
+     },
+     {
+      "step": "opened",
+      "at": 2265,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 資料夾內.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 資料夾內.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 4995,
+      "name": "M3 鎖 資料夾內.odt",
+      "bytes": 10230,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 4995,
+         "status": 200,
+         "etag": "\"6abb8f6ee6305\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 26
+        },
+        "ifMatch": "\"6abb8f6ee6305\"",
+        "withToken": true,
+        "at": 5021,
+        "respondedAt": 5044,
+        "status": 403
+       }
+      ],
+      "sha256": "4f78ecd62df1ae3e7008e61e7df1c70776f2d6ab59ca1588e5f433ed923c91ba",
+      "ifMatch": "\"6abb8f6ee6305\"",
+      "status": 403,
+      "responseEtag": null,
+      "conflictCopy": {
+       "name": "M3 鎖 資料夾內（另存副本 2026-09-29 181411）.odt",
+       "status": 403,
+       "failed": true
+      },
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 290,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": {
+     "sha256": "4f78ecd62df1ae3e7008e61e7df1c70776f2d6ab59ca1588e5f433ed923c91ba",
+     "bytes": 10230,
+     "at": 5072,
+     "downloaded": true
+    },
+    "notice": "已交給瀏覽器下載。請確認檔案真的存好了；在下一次存回成功之前，離開這頁都會先問你。",
+    "file": {
+     "id": 4833,
+     "name": "M3 鎖 資料夾內.odt",
+     "size": 1343,
+     "etag": "91a0f588b9236f06d3c72c69017f0f71",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f6ee6305\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 343
+    },
+    "handedReadOnly": false,
+    "finished": 2265,
+    "guarded": 1,
+    "guards": [
+     {
+      "at": 5584,
+      "reasons": [
+       "stranded"
+      ]
+     }
+    ],
+    "downloaded": [
+     {
+      "sha256": "4f78ecd62df1ae3e7008e61e7df1c70776f2d6ab59ca1588e5f433ed923c91ba",
+      "at": 6593
+     }
+    ]
+   },
+   "barAfterDownload": {
+    "notice": "已交給瀏覽器下載。請確認檔案真的存好了；在下一次存回成功之前，離開這頁都會先問你。",
+    "barHidden": false,
+    "downloadHidden": false
+   },
+   "leave2": {
+    "dialog": {
+     "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+     "frameId": "F13641846117D07F767866DDCCD2B85E",
+     "message": "",
+     "type": "beforeunload",
+     "hasBrowserHandler": true,
+     "defaultPrompt": ""
+    }
+   },
+   "stayedAgain": "/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html",
+   "hostAfterLeave2": {
+    "started": 1790676846657,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 264
+     },
+     {
+      "step": "fetched",
+      "at": 343
+     },
+     {
+      "step": "opened",
+      "at": 2265,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 資料夾內.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 資料夾內.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 4995,
+      "name": "M3 鎖 資料夾內.odt",
+      "bytes": 10230,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 4995,
+         "status": 200,
+         "etag": "\"6abb8f6ee6305\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 26
+        },
+        "ifMatch": "\"6abb8f6ee6305\"",
+        "withToken": true,
+        "at": 5021,
+        "respondedAt": 5044,
+        "status": 403
+       }
+      ],
+      "sha256": "4f78ecd62df1ae3e7008e61e7df1c70776f2d6ab59ca1588e5f433ed923c91ba",
+      "ifMatch": "\"6abb8f6ee6305\"",
+      "status": 403,
+      "responseEtag": null,
+      "conflictCopy": {
+       "name": "M3 鎖 資料夾內（另存副本 2026-09-29 181411）.odt",
+       "status": 403,
+       "failed": true
+      },
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 290,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": {
+     "sha256": "4f78ecd62df1ae3e7008e61e7df1c70776f2d6ab59ca1588e5f433ed923c91ba",
+     "bytes": 10230,
+     "at": 5072,
+     "downloaded": true
+    },
+    "notice": "已交給瀏覽器下載。請確認檔案真的存好了；在下一次存回成功之前，離開這頁都會先問你。",
+    "file": {
+     "id": 4833,
+     "name": "M3 鎖 資料夾內.odt",
+     "size": 1343,
+     "etag": "91a0f588b9236f06d3c72c69017f0f71",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f6ee6305\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 343
+    },
+    "handedReadOnly": false,
+    "finished": 2265,
+    "guarded": 2,
+    "guards": [
+     {
+      "at": 5584,
+      "reasons": [
+       "stranded"
+      ]
+     },
+     {
+      "at": 7597,
+      "reasons": [
+       "stranded"
+      ]
+     }
+    ],
+    "downloaded": [
+     {
+      "sha256": "4f78ecd62df1ae3e7008e61e7df1c70776f2d6ab59ca1588e5f433ed923c91ba",
+      "at": 6593
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "copiesAfter": [],
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     }
+    ],
+    "loadingFailed": [],
+    "errorLogs": [
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 403 ()",
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%E8%B3%87%E6%96%99%E5%A4%BE/M3%20%E9%8E%96%20%E8%B3%87%E6%96%99%E5%A4%BE%E5%85%A7.odt"
+     },
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 403 ()",
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%E8%B3%87%E6%96%99%E5%A4%BE/M3%20%E9%8E%96%20%E8%B3%87%E6%96%99%E5%A4%BE%E5%85%A7%EF%BC%88%E5%8F%A6%E5%AD%98%E5%89%AF%E6%9C%AC%202026-09-29%20181411%EF%BC%89.odt"
+     }
+    ],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%E8%B3%87%E6%96%99%E5%A4%BE/M3%20%E9%8E%96%20%E8%B3%87%E6%96%99%E5%A4%BE%E5%85%A7.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%E8%B3%87%E6%96%99%E5%A4%BE/M3%20%E9%8E%96%20%E8%B3%87%E6%96%99%E5%A4%BE%E5%85%A7.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%E8%B3%87%E6%96%99%E5%A4%BE/M3%20%E9%8E%96%20%E8%B3%87%E6%96%99%E5%A4%BE%E5%85%A7.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%E8%B3%87%E6%96%99%E5%A4%BE/M3%20%E9%8E%96%20%E8%B3%87%E6%96%99%E5%A4%BE%E5%85%A7.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%E8%B3%87%E6%96%99%E5%A4%BE/M3%20%E9%8E%96%20%E8%B3%87%E6%96%99%E5%A4%BE%E5%85%A7.odt",
+     "ifMatch": "\"6abb8f6ee6305\"",
+     "if": "(<opaquelocktoken:ac5264ee-e8d0-44d3-af95-640c4d062973>)",
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/lcprobe/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%E8%B3%87%E6%96%99%E5%A4%BE/M3%20%E9%8E%96%20%E8%B3%87%E6%96%99%E5%A4%BE%E5%85%A7%EF%BC%88%E5%8F%A6%E5%AD%98%E5%89%AF%E6%9C%AC%202026-09-29%20181411%EF%BC%89.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    }
+   ],
+   "dialogs": [],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"6abb8f6ee6305\"",
+    "fileid": "4833",
+    "lock": "1",
+    "lockOwner": "lcprobe",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:ac5264ee-e8d0-44d3-af95-640c4d062973"
+   },
+   "clearedAtEnd": "1",
+   "restored": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 1
+   }
+  },
+  {
+   "arm": "nowhere",
+   "spec": "K10′",
+   "browser": "firefox",
+   "startedAt": "2026-09-29T10:14:17+00:00",
+   "file": {
+    "user": "lcprobe",
+    "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+    "adminPath": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 4833
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "version": "156.0",
+   "grant": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 3
+   },
+   "login": "https://litecore.ddev.site:8443/apps/dashboard/",
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/M3%20%E9%8E%96%20%E5%94%AF%E8%AE%80%E8%B3%87%E6%96%99%E5%A4%BE",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+   "host": {
+    "started": 1790676864747,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 243
+     },
+     {
+      "step": "fetched",
+      "at": 325
+     },
+     {
+      "step": "opened",
+      "at": 2662,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 資料夾內.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 資料夾內.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 5380,
+      "name": "M3 鎖 資料夾內.odt",
+      "bytes": 10207,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 5380,
+         "status": 200,
+         "etag": "\"6abb8f81032ac\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 30
+        },
+        "ifMatch": "\"6abb8f81032ac\"",
+        "withToken": true,
+        "at": 5410,
+        "respondedAt": 5432,
+        "status": 403
+       }
+      ],
+      "sha256": "237ee7b46f8564363e733996e65a29b41aa269b057da32bf2c8faf4376cc2d03",
+      "ifMatch": "\"6abb8f81032ac\"",
+      "status": 403,
+      "responseEtag": null,
+      "conflictCopy": {
+       "name": "M3 鎖 資料夾內（另存副本 2026-09-29 181430）.odt",
+       "status": 403,
+       "failed": true
+      },
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 269,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": {
+     "sha256": "237ee7b46f8564363e733996e65a29b41aa269b057da32bf2c8faf4376cc2d03",
+     "bytes": 10207,
+     "at": 5452
+    },
+    "notice": "存回失敗，而且沒有地方可以另存：內容還在這個頁面裡，請按「下載這份內容」。",
+    "file": {
+     "id": 4833,
+     "name": "M3 鎖 資料夾內.odt",
+     "size": 1343,
+     "etag": "3aeea149d7c79c1f3421f654503c631a",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f81032ac\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 325
+    },
+    "handedReadOnly": false,
+    "finished": 2662
+   },
+   "secondsToOpened": 3.31,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6abb8f81032ac\"",
+    "fileid": "4833",
+    "lock": "1",
+    "lockOwner": "lcprobe",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:8f85c6dc-1bd2-4c29-8591-8f36b4d3096a"
+   },
+   "smoke": {
+    "before": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "—",
+     "doc": "M3 鎖 資料夾內.odt",
+     "toast": "已開啟 M3 鎖 資料夾內.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "caret": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 39 ms",
+     "doc": "M3 鎖 資料夾內.odt",
+     "toast": "已開啟 M3 鎖 資料夾內.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "acted": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "標題 46 ms",
+     "doc": "M3 鎖 資料夾內.odt",
+     "toast": "已開啟 M3 鎖 資料夾內.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    }
+   },
+   "hostBeforeRevoke": {
+    "started": 1790676864747,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 243
+     },
+     {
+      "step": "fetched",
+      "at": 325
+     },
+     {
+      "step": "opened",
+      "at": 2662,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 資料夾內.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 資料夾內.odt"
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 269,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 4833,
+     "name": "M3 鎖 資料夾內.odt",
+     "size": 1343,
+     "etag": "3aeea149d7c79c1f3421f654503c631a",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f81032ac\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 325
+    },
+    "handedReadOnly": false,
+    "finished": 2662
+   },
+   "revoke": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 1
+   },
+   "lockAtRevoke": {
+    "status": 207,
+    "etag": "\"6abb8f81032ac\"",
+    "fileid": "4833",
+    "lock": "1",
+    "lockOwner": "lcprobe",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:8f85c6dc-1bd2-4c29-8591-8f36b4d3096a"
+   },
+   "save1Seen": 1,
+   "save1State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "1",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 鎖 資料夾內.odt",
+    "toast": "存回：HOST_SAVE_FAILED：你沒有這個檔案的寫入權限。另存副本也失敗（403）：內容還在這個頁面裡，請按「下載這份內容」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "barStranded": {
+    "notice": "存回失敗，而且沒有地方可以另存：內容還在這個頁面裡，請按「下載這份內容」。",
+    "barHidden": false,
+    "downloadHidden": false
+   },
+   "download": {
+    "name": "M3 鎖 資料夾內.odt",
+    "sha256": "237ee7b46f8564363e733996e65a29b41aa269b057da32bf2c8faf4376cc2d03",
+    "bytes": 10207
+   },
+   "hostAfterDownload": {
+    "started": 1790676864747,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 243
+     },
+     {
+      "step": "fetched",
+      "at": 325
+     },
+     {
+      "step": "opened",
+      "at": 2662,
+      "state": {
+       "state": "ready",
+       "doc": "M3 鎖 資料夾內.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 鎖 資料夾內.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 5380,
+      "name": "M3 鎖 資料夾內.odt",
+      "bytes": 10207,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 5380,
+         "status": 200,
+         "etag": "\"6abb8f81032ac\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 30
+        },
+        "ifMatch": "\"6abb8f81032ac\"",
+        "withToken": true,
+        "at": 5410,
+        "respondedAt": 5432,
+        "status": 403
+       }
+      ],
+      "sha256": "237ee7b46f8564363e733996e65a29b41aa269b057da32bf2c8faf4376cc2d03",
+      "ifMatch": "\"6abb8f81032ac\"",
+      "status": 403,
+      "responseEtag": null,
+      "conflictCopy": {
+       "name": "M3 鎖 資料夾內（另存副本 2026-09-29 181430）.odt",
+       "status": 403,
+       "failed": true
+      },
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 269,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": {
+     "sha256": "237ee7b46f8564363e733996e65a29b41aa269b057da32bf2c8faf4376cc2d03",
+     "bytes": 10207,
+     "at": 5452,
+     "downloaded": true
+    },
+    "notice": "已交給瀏覽器下載。請確認檔案真的存好了；在下一次存回成功之前，離開這頁都會先問你。",
+    "file": {
+     "id": 4833,
+     "name": "M3 鎖 資料夾內.odt",
+     "size": 1343,
+     "etag": "3aeea149d7c79c1f3421f654503c631a",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/4aa3646d4e540b32-566647db/e2-editor.html?fileId=4833",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6abb8f81032ac\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 325
+    },
+    "handedReadOnly": false,
+    "finished": 2662,
+    "downloaded": [
+     {
+      "sha256": "237ee7b46f8564363e733996e65a29b41aa269b057da32bf2c8faf4376cc2d03",
+      "at": 5997
+     }
+    ]
+   },
+   "barAfterDownload": {
+    "notice": "已交給瀏覽器下載。請確認檔案真的存好了；在下一次存回成功之前，離開這頁都會先問你。",
+    "barHidden": false,
+    "downloadHidden": false
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "copiesAfter": [],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"6abb8f81032ac\"",
+    "fileid": "4833",
+    "lock": "1",
+    "lockOwner": "lcprobe",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:8f85c6dc-1bd2-4c29-8591-8f36b4d3096a"
+   },
+   "clearedAtEnd": "1",
+   "restored": {
+    "status": 200,
+    "readStatus": 200,
+    "permissions": 1
+   }
+  }
+ ],
+ "setup": {
+  "targets": {
+   "rw": "M3 骨架 測試.odt",
+   "ro": "M3 鎖 唯讀.odt",
+   "folder": "M3 鎖 唯讀資料夾"
+  },
+  "fileIds": {
+   "M3 骨架 測試.odt": 76,
+   "M3 鎖 唯讀.odt": 4831,
+   "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt": 4833
+  }
+ },
+ "completedAt": "2026-09-29T10:14:45+00:00",
+ "httpLog": [
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/ocs/v2.php/cloud/users/lcprobe",
+   "sent": {},
+   "status": 404,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"failure\",\"statuscode\":998,\"message\":\"\"},\"data\":[]}}"
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/cloud/users",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"lcprobe\"}}}"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"420a81cca398a2d3ae48cdeb51f17392\"",
+    "oc-etag": "\"420a81cca398a2d3ae48cdeb51f17392\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"dd78cd834a396327af37a055afcff786\"",
+    "oc-etag": "\"dd78cd834a396327af37a055afcff786\"",
+    "oc-fileid": "00004831oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "MKCOL",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾",
+   "sent": {},
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "oc-fileid": "00004832oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"d3adbf946bc8683276b35d43fb7669d7\"",
+    "oc-etag": "\"d3adbf946bc8683276b35d43fb7669d7\"",
+    "oc-fileid": "00004833oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"94\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":3,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9aa8\\u67b6 \\u6e2c\\u8a66.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":76,\"file_source\":76,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9aa8\\u67b6 \\u6e2c\\u8a66.odt\",\"item_size\":1343,\"item_mtime\":1790676795,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"mail_send\":1,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676795,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"mail_send\":1,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "setup",
+   "actor": "admin",
+   "method": "POST",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676796,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"mail_send\":1,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 骨架 測試.odt",
+   "status": 207,
+   "bytes": 618
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀.odt",
+   "status": 207,
+   "bytes": 611
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "status": 207,
+   "bytes": 692
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"5be792acedcdf917fad900c996ff4bd5\"",
+    "oc-etag": "\"5be792acedcdf917fad900c996ff4bd5\"",
+    "oc-fileid": "00004831oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀.odt",
+   "status": 207,
+   "bytes": 611
+  },
+  {
+   "step": "list",
+   "actor": "lcprobe",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3021
+  },
+  {
+   "step": "share ro -> 3",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":3,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676798,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share ro readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":3,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676798,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀.odt",
+   "status": 207,
+   "bytes": 935
+  },
+  {
+   "step": "share ro -> 1",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676798,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share ro readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676798,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀.odt",
+   "status": 207,
+   "bytes": 935
+  },
+  {
+   "step": "list",
+   "actor": "lcprobe",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3370
+  },
+  {
+   "step": "remove",
+   "actor": "lcprobe",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/lcprobe/M3 鎖 唯讀（另存副本 2026-09-29 181330）.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀.odt",
+   "status": 207,
+   "bytes": 935
+  },
+  {
+   "step": "share ro -> 1",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676798,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share ro readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676798,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"4265c0ece323a7add7fece4cdfd31321\"",
+    "oc-etag": "\"4265c0ece323a7add7fece4cdfd31321\"",
+    "oc-fileid": "00004831oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀.odt",
+   "status": 207,
+   "bytes": 611
+  },
+  {
+   "step": "list",
+   "actor": "lcprobe",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3021
+  },
+  {
+   "step": "share ro -> 3",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":3,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676814,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share ro readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":3,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676814,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀.odt",
+   "status": 207,
+   "bytes": 935
+  },
+  {
+   "step": "share ro -> 1",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676814,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share ro readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676814,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀.odt",
+   "status": 207,
+   "bytes": 935
+  },
+  {
+   "step": "list",
+   "actor": "lcprobe",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3370
+  },
+  {
+   "step": "remove",
+   "actor": "lcprobe",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/lcprobe/M3 鎖 唯讀（另存副本 2026-09-29 181347）.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀.odt",
+   "status": 207,
+   "bytes": 592
+  },
+  {
+   "step": "share ro -> 1",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676814,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share ro readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/95",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"95\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676796,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_type\":\"file\",\"item_permissions\":27,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"application\\/vnd.oasis.opendocument.text\",\"has_preview\":true,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4831,\"file_source\":4831,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80.odt\",\"item_size\":1343,\"item_mtime\":1790676814,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"91a0f588b9236f06d3c72c69017f0f71\"",
+    "oc-etag": "\"91a0f588b9236f06d3c72c69017f0f71\"",
+    "oc-fileid": "00004833oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "status": 207,
+   "bytes": 692
+  },
+  {
+   "step": "list",
+   "actor": "lcprobe",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾",
+   "status": 207,
+   "bytes": 761
+  },
+  {
+   "step": "share folder -> 3",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":3,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676841,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share folder readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":3,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676841,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "status": 207,
+   "bytes": 1045
+  },
+  {
+   "step": "share folder -> 1",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676841,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share folder readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676841,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "status": 207,
+   "bytes": 1045
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾",
+   "status": 207,
+   "bytes": 757
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "status": 207,
+   "bytes": 1045
+  },
+  {
+   "step": "share folder -> 1",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676841,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share folder readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676841,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"3aeea149d7c79c1f3421f654503c631a\"",
+    "oc-etag": "\"3aeea149d7c79c1f3421f654503c631a\"",
+    "oc-fileid": "00004833oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "status": 207,
+   "bytes": 692
+  },
+  {
+   "step": "list",
+   "actor": "lcprobe",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾",
+   "status": 207,
+   "bytes": 761
+  },
+  {
+   "step": "share folder -> 3",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":3,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676857,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share folder readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":3,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676857,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "status": 207,
+   "bytes": 1045
+  },
+  {
+   "step": "share folder -> 1",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676857,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share folder readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676857,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "status": 207,
+   "bytes": 1045
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾",
+   "status": 207,
+   "bytes": 757
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt",
+   "status": 207,
+   "bytes": 1045
+  },
+  {
+   "step": "share folder -> 1",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {
+    "Content-Type": "application/x-www-form-urlencoded"
+   },
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676857,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}}}"
+  },
+  {
+   "step": "share folder readback",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/ocs/v2.php/apps/files_sharing/api/v1/shares/96",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[{\"id\":\"96\",\"share_type\":0,\"uid_owner\":\"admin\",\"displayname_owner\":\"admin\",\"permissions\":1,\"can_edit\":true,\"can_delete\":true,\"stime\":1790676797,\"parent\":null,\"expiration\":null,\"token\":null,\"uid_file_owner\":\"admin\",\"note\":\"\",\"label\":\"\",\"displayname_file_owner\":\"admin\",\"path\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_type\":\"folder\",\"item_permissions\":31,\"is-mount-root\":false,\"mount-type\":\"\",\"mimetype\":\"httpd\\/unix-directory\",\"has_preview\":false,\"storage_id\":\"home::admin\",\"storage\":2,\"item_source\":4832,\"file_source\":4832,\"file_parent\":7,\"file_target\":\"\\/M3 \\u9396 \\u552f\\u8b80\\u8cc7\\u6599\\u593e\",\"item_size\":1343,\"item_mtime\":1790676857,\"share_with\":\"lcprobe\",\"share_with_displayname\":\"lcprobe\",\"share_with_displayname_unique\":\"lcprobe\",\"status\":{\"status\":\"online\",\"message\":null,\"icon\":null,\"clearAt\":null},\"mail_send\":0,\"hide_download\":0,\"attributes\":null}]}}"
+  },
+  {
+   "step": "teardown",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/ocs/v2.php/cloud/users/lcprobe",
+   "sent": {},
+   "status": 200,
+   "headers": {
+    "content-type": "application/json; charset=utf-8"
+   },
+   "body": "{\"ocs\":{\"meta\":{\"status\":\"ok\",\"statuscode\":200,\"message\":\"OK\"},\"data\":[]}}"
+  },
+  {
+   "step": "teardown",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "teardown",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 鎖 唯讀資料夾",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 骨架 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"38eeafac13914f6ed9a299e21f7f8284\"",
+    "oc-etag": "\"38eeafac13914f6ed9a299e21f7f8284\"",
+    "oc-fileid": "00000076oczcndor1sx6"
+   },
+   "body": null
+  }
+ ],
+ "score": {
+  "verdict": "red",
+  "tally": {
+   "chrome:readonly": {
+    "pass": 1,
+    "runs": 1,
+    "problems": []
+   },
+   "firefox:readonly": {
+    "pass": 1,
+    "runs": 1,
+    "problems": []
+   },
+   "chrome:nowhere": {
+    "pass": 1,
+    "runs": 1,
+    "problems": []
+   },
+   "firefox:nowhere": {
+    "pass": 1,
+    "runs": 1,
+    "problems": []
+   }
+  },
+  "problems": [
+   "page {'dist': 'f42e0227ed3af2d753a228d47e9dadba42cc4092d8a5ed6de6425ccdec3cdd07', 'web': 'f42e0227ed3af2d753a228d47e9dadba42cc4092d8a5ed6de6425ccdec3cdd07'}"
+  ]
+ }
+}
