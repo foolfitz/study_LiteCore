@@ -145,3 +145,14 @@ counted run is finished before `run` is started.
 host entry `LANDS`, `LOCKS LAND` (52/52) on litecoreprobe; the dev host-entry counted run
 `LANDS` before it. Re-scored from the stored report: the same. Red cases against it, re-run at
 scoring time: 111 of 111 red. None of the four rules above was invoked. Read `RESULT.md`.
+
+## 0.2.2 archive, record only (2026-09-29, ruling D condition 8)
+
+`build_m3_release.py --commit 695d9ad` -> `wasm_sdk_probe/build/release/litecore-0.2.2.tar.gz`,
+sha256 `39dd48e37ab36dd1f4c9cba7538bade0afc77c2e3a66284f539748fbd7c31c99`, 63,432,709 bytes, the
+second build byte-identical; 30 members, of which exactly `appinfo/info.xml` and
+`js/litecore-editor.js` differ from 0.2.1. Its record is `release-0.2.2.json`. **`release.json`
+stays the 0.2.1 record**: the tool writes that file in place, and litecoreprobe still runs 0.2.1
+installed from the 0.2.1 archive, so overwriting it would make every runner read that instance as
+dirty (review 2026-09-29 item 12). **No new install window** was run: `INSTALLS ELSEWHERE` remains
+a fact about 0.2.1; whether 0.2.2 gets one is the owner's call.
