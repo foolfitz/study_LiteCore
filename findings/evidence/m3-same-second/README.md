@@ -38,9 +38,31 @@ Also registered:
 - **Not explained**: with ~160 ms between the two PUTs, most pairs would be expected to share a
   second, yet about half did (5/12, 6/12). The history loss matches the ETag signal exactly
   (every same-ETag pair cost one version, no other pair did). Why the rate is ~½ was not
-  looked into; the fix (≥ 1 s between the host's own PUTs) does not depend on it.
+  looked into; the fix (≥ 1 s between the host's own PUTs) does not depend on it. *(Explained
+  afterwards: it is phase, not chance -- see the addendum at the end.)*
 
 Smoke run before it (`smoke/2026-09-29T023637+0000.json`, Chrome, 2 pairs, 1 held): both pairs
 same-ETag, 30 PUTs for the hold; its first version of the probe stored the file's whole version
 list (the file keeps its id across resets, ~500 revisions), which the full run replaced by the
 revisions each phase added.
+
+## Addendum (2026-09-29, before R2 was written): the "about half" is phase, not chance
+
+Read from the same report, no new run. The host's own clock (`started` + `attempts[].at`) gives
+where in the wall-clock second each PUT was sent:
+
+| | pairs with different ETags | pairs with the same ETag |
+| --- | --- | --- |
+| Chrome | pair 0–6: first PUT at .856–.952 of a second, second at .033–.092 of the next | pair 7–11: first at .965–.018, second at .133–.166 |
+| Firefox | pair 0–5: first at .840–.954, second at .013–.149 of the next | pair 6–11: first at .984–.143, second at .172–.329 |
+
+The same-ETag pairs are not scattered: they are the **last** five (Chrome) and six (Firefox)
+pairs, contiguous. The probe pressed a pair every ~3.01 s (drain + 1.5 s), so the phase in the
+second drifted by ~13 ms per pair; it started late in a second (.84–.89), so the early pairs
+straddled the boundary and the later ones, having drifted past it, did not. The split sits at a
+first-PUT send phase of about .95–.97: the first write's server mtime is taken after the send
+(a write starting at .965 already lands in the next second). For a pair pressed at a random phase
+with a ~160 ms gap, the same-second rate would be about 1 − 0.16 ≈ 0.84, not ½.
+
+Consequence for R2 (`specs/SPEC-M3-versions.md` §4): the runner controls the phase instead of
+relying on chance -- ten pairs at phases .05, .15, …, .95, and the restore pair at .05.
