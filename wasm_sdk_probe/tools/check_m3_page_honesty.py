@@ -419,6 +419,8 @@ def run_host_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str
             record["savesBefore"] = before
             record["host"] = host_record(session)
         elif arm == "Ksep":
+            # Save #1 is a version named after its mtime, so it is at or after this.
+            record["versionsSince"] = since = int(time.time()) - 2
             edit(session, record)
             before = evaluate(session, SAVES)[0]
             first = evaluate(session, SEP_FIRST)
@@ -427,7 +429,7 @@ def run_host_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str
             record["savesBefore"] = before
             record["host"] = host_record(session)
             record["serverAfter"] = server_file(server.instance, NAME)
-            record["versions"] = versions(server, NAME)
+            record["versions"] = versions(server, NAME, since)
         elif arm == "Ktwo":
             edit(session, record)
             before = evaluate(session, SAVES)[0]
@@ -441,16 +443,24 @@ def run_host_arm(arm: str, kind: str, server: Server, scratch: Path) -> dict[str
         record["fatal"] = traceback.format_exc()
     finally:
         if kind == "chrome":
-            record["davRequests"] = wire(session.drain())
+            # A CDP socket that died fails this run, not the whole report (spec §7.12).
+            try:
+                record["davRequests"] = wire(session.drain())
+            except Exception:  # noqa: BLE001
+                record.setdefault("fatal", traceback.format_exc())
         session.close()
         record["copiesAfter"] = server.copies(server.admin, "", NAME[:-4], remove=True)
         record["completedAt"] = utc_now()
     return record
 
 
-def versions(server: Server, name: str) -> list[dict[str, Any]]:
-    """Every version Nextcloud keeps of the file, with its bytes' hash and
-    paragraph texts (K-sep reads save #1 back from here)."""
+def versions(server: Server, name: str, since: int | None = None) -> list[dict[str, Any]]:
+    """The versions Nextcloud keeps of the file, with their bytes' hash and
+    paragraph texts (K-sep reads save #1 back from here). Only those named (mtime
+    seconds) at or after `since`: the file keeps every run's versions (1,645 on
+    2026-09-29), and reading all of them left the CDP socket unread for minutes
+    until its keepalive dropped it (spec §7.12). Too late a `since` can only hide
+    save #1, which K-sep scores as red."""
     client = server.admin
     fileid = server.fileid(client, name)
 
@@ -466,9 +476,13 @@ def versions(server: Server, name: str) -> list[dict[str, Any]]:
     collection = f"/remote.php/dav/versions/{client.user}/versions/{fileid}"
     status, data = raw("PROPFIND", collection, b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop>'
                        b"<d:getlastmodified/></d:prop></d:propfind>", {"Depth": "1", "Content-Type": "application/xml"})
-    found = []
+    found, skipped = [], 0
     for href in re.findall(r"<d:href>([^<]+)</d:href>", data.decode("utf-8", "replace")):
         if urllib.parse.unquote(href).rstrip("/").endswith(f"/versions/{fileid}"):
+            continue
+        stamp = href.rstrip("/").rsplit("/", 1)[-1]
+        if since is not None and stamp.isdigit() and int(stamp) < since:
+            skipped += 1
             continue
         got, body = raw("GET", href)
         entry = {"href": href.rsplit("/", 1)[-1], "status": got}
@@ -479,7 +493,7 @@ def versions(server: Server, name: str) -> list[dict[str, Any]]:
             except Exception as error:  # noqa: BLE001 -- recorded
                 entry["texts"] = f"unreadable: {error}"
         found.append(entry)
-    return [{"collection": status}] + found
+    return [{"collection": status, "since": since, "olderSkipped": skipped}] + found
 
 
 def run_download_arm(arm: str, kind: str, scratch: Path) -> dict[str, Any]:

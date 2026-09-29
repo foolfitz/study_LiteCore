@@ -325,10 +325,30 @@ stranded；宿主裡沒有任何東西保證這件事。
 - 順帶量到（登錄）：對已刪除的鎖列 refresh，伺服器回 **400** 不是 412；400 在宿主的 `LOST` 清單裡，所以觸發成立。
 - **沒量的**：自然發生率（refresh 落在 PUT 往返之內的機率）；Firefox；過期或 Files 解鎖造成的失效（可能是 412／423，宿主一視同仁，讀原始碼）。
 
+### 7.12 re-shakedown 逼出的 runner 修正（2026-09-29，頁面 `fc80050c…`／宿主 0.2.4，任何計數執行之前）
+
+判準沒改；改的是 K-sep 讀版本的範圍，以及一格死掉時不拖垮整份報告。
+
+- **K-sep 讀回 save #1 的方式讓 runner 整支崩掉（已觀察）**。`findings/evidence/m3-page-honesty/shakedown/2026-09-29T110830+0000.json`：
+  前 22 格全過，第 23 格 `Ksep chrome` 在 `finally` 的 `session.drain()` 丟 `ConnectionClosedError: sent 1011 (internal error)
+  keepalive ping timeout`，整支 runner 結束，後面各格沒跑。成因（讀原始碼＋量）：`versions()` 逐一 GET 並解析檔案的**每一個**
+  版本，而 dev 實例上這個檔案累積了整天所有 runner 的版本——**1,645 個**（一次 PROPFIND 數到的）；逐一讀完要好幾分鐘（在 300 秒
+  逾時內沒讀完），這段期間沒有人讀 CDP 的 websocket。`websockets` 15 預設 `max_queue=16`、`ping_interval=20`、`ping_timeout=20`，
+  `Network.enable` 開著：佇列滿了背景讀取就停，pong 讀不到，連線被判死。這是 `b61e9fd9` 新加的讀回第一次真的跑（交接文件記
+  K-sep 在新評分下沒有乾淨執行），不是產品的問題。
+- **修正**：K-sep 在編輯之前記下 `versionsSince`（現在減 2 秒），`versions()` 只讀名稱（mtime 秒數）不早於它的版本，並記下略過
+  幾個（`olderSkipped`）。**方向是安全的**：`since` 太晚只會讓 save #1 找不到，而那是 K-sep 的紅（「save #1 is not among the file's
+  versions」），不會變成假綠。另外 `finally` 的 `drain()` 包起來：CDP 斷線記成**該格** `fatal`（評分把 `fatal` 當失敗），不再帶走整份
+  報告。**已觀察**（`2026-09-29T124121+0000.json`，只跑 K-sep）：兩個瀏覽器都過，略過 1,647／1,650 個舊版本、讀 2 個，save #1 找到
+  且不帶標記、伺服器上的是第二次存檔。
+- **登錄**：其他 runner 的 CDP 連線同樣是 `websockets` 預設值，只要某一段不讀 websocket 超過約 20–40 秒、而頁面持續出事件，就會
+  以同一個形狀斷線。這一輪六支 runner 的其他格都沒碰到；不改共用的 `ChromeSession`（它綁著許多既有 runner 的身分）。
+
 ## 6. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-29 | **加 §7.12：re-shakedown 逼出的 runner 修正。**K-sep 讀回 save #1 時逐一讀檔案的 1,645 個版本，CDP 閒置到 keepalive 斷線、整支 runner 崩掉；改成只讀本格開始之後的版本（錯了只會紅），`finally` 的 `drain()` 失敗記成該格 `fatal`。判準沒改。 |
 | 2026-09-29 | **加 §7.11：實作審核的處置與 BLOCKING 1 的量測。**審核（opus）2 BLOCKING／4 SHOULD／11 NOTE 的處置摘要（`b61e9fd9`）；BLOCKING 1＝§7.1 前提的反例（refresh 在 PUT 途中判鎖失效 → `tokenOnServer(null)` 丟例外 → 存檔無處可去），三步量測照預測（LOST → KEPT stranded → KEPT 原檔），宿主 0.2.4（`369e6ed`）以 catch-all 讓前提由構造成立＋問送出去的 token，登錄 finding 108；超出 §7.1 宿主範圍的紀錄；§7.5 的 `.text()` 那一項關閉（構造推得、未量）。判準文字沒改。 |
 | 2026-09-29 | **加 §7.10：量測工具的補強。**U3 的單元測試抓不到 `!==` 版的 revision 比較（量到 42/42 全過），補兩句斷言後五個突變全紅；V2 普查不得為空（涵蓋頁面列出的每一顆按鈕）；U7 要在離頁那一刻驗 `pending > 0`；新 runner 加 `--red-cases`。判準文字沒改、產品程式碼沒改。 |
 | 2026-09-29 | **加 §7.8、§7.9。**§7.8：`check_m3_assets` K2 的處置由 fable 代擁有者裁決＝A′（K2 離開前先存、逐次自證沒被攔；另登錄一次性量測「Firefox 快取開、被攔之後離開」×12，不擋閘門），取代 §7.7 的「處置待決」與 §7.6 對該 runner 的 diff 上限。§7.9：Chrome 第一輪 shakedown 逼出的 runner 修正——V4／V2 瞄準第一行（y 0.28 落在末行、撞 096）、`delete-forward` 先左移一格（段尾前刪是契約上的結構邊界）；可寫對照的移動被手勢遮罩拒絕是設計；K-two 的實作讀法登錄。判準都沒改。 |

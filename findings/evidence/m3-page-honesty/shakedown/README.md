@@ -70,3 +70,38 @@ report-level case checks that a failed U0 voids the same browser's U cells.
   Red cases: `red-cases-on-2026-09-29T101313.txt` — every K9′/K10′ case red;
   the other arms are MISSING because this report ran only these two (a full
   locks shakedown is still due before counting).
+
+## Re-shakedown on the reviewed page and host 0.2.4, 2026-09-29 (UTC)
+
+Page `fc80050c…` (`b61e9fd9`, the implementation-review dispositions), session
+subclass `747eea71…`, host 0.2.4 (`369e6ed`, finding 108), engine
+`7f4f4e2204b4a9ec` (re-packaged from the updated `dist/`). The bindings were
+committed before these runs (`a2df684f`), and every report's `static` shows the
+served page, the served session and the host version matching them. Still
+shakedown, not counted. Every page-honesty and assets report above predates
+`b61e9fd9` and is stale for scoring.
+
+| Report | Runner sha256 | Arms | Result |
+|---|---|---|---|
+| `110830` | `dc578378…` | all, both browsers | **Runner died at cell 23** (`Ksep chrome`): the first 22 cells ok, then `ConnectionClosedError … keepalive ping timeout` in `finally`'s `session.drain()`. K-sep's `versions()` read back every version of the file — 1,645 on the dev instance (one PROPFIND) — one GET at a time, for minutes, with nobody reading the CDP socket; with `websockets` 15 defaults (`max_queue` 16, ping 20 s / 20 s) and `Network.enable` on, the reader stalls and the pong is never read. Spec §7.12. |
+| `124121` | `11b350c4…` | Ksep, both browsers | After the fix (versions named at or after `versionsSince` only; a failed drain is that cell's `fatal`): clean. Skipped 1,647 / 1,650 older versions, read 2; save #1 found, without the marker; the server holds save #2. |
+| `124234` | `11b350c4…` | all 15, both browsers | **clean, 30/30 cells.** |
+
+Red cases on `124234`: `red-cases-on-2026-09-29T124234.txt` —
+**154 red, 0 not red or missing**, including K-sep's 14 (the dry run on the
+stale reports had those 14 MISSING).
+
+The other five M3 runners on the same page, host and engine, one at a time
+(`--label shakedown`, default arms, both browsers), and their red cases:
+
+| Runner | Report | Result | Red cases |
+|---|---|---|---|
+| `check_m3_assets` | `m3-assets/shakedown/2026-09-29T112408+0000.json` | clean, chrome 3/3, firefox 3/3, no problems | `red-cases-on-2026-09-29T112408.txt`: 90 red, 0 not |
+| `check_m3_locks` | `m3-locks/shakedown/2026-09-29T112644+0000.json` | clean, all 22 arms (K1–K12), no problems | `red-cases-on-2026-09-29T112644.txt`: 99 red, 0 not |
+| `check_m3_versions` | `m3-versions/shakedown/2026-09-29T121311+0000.json` | clean, 3/3 per browser | `red-cases-on-2026-09-29T121311.txt`: 68 red, 0 not |
+| `check_m3_host_entry` | `m3-host-entry/shakedown/2026-09-29T121659Z.json` | HOST_ENTRY LANDS (open-save 3/3 ×2, conflict 3/3 ×2, broken 1/1, broken-no-save 1/1) | `red-cases-on-2026-09-29T121659.txt`: base GREEN, 23 RED |
+| `check_m3_same_second` | `m3-same-second/shakedown/2026-09-29T122209+0000.json` | clean, same-second and same-second-foreign 3/3 per browser | `red-cases-on-2026-09-29T122209.txt`: 70 red, 0 not |
+
+The same-second red-case label "static: the host is not 0.2.2" is the case's
+old name; its mutation sets `hostVersion` to 0.2.1, which is red against the
+0.2.4 binding as well.
