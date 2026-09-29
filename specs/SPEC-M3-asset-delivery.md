@@ -220,6 +220,7 @@ K0–K2 每一條至少一個突變，每個突變都要找得到它的那一條
 - **B. 在另一台乾淨的 Nextcloud 上從壓縮檔安裝**（例如 `litecoreprobe`，或新建一個 ddev 專案——新建會重建共用 router，
   你其他的 ddev 專案會短暫 404）。
 - **C. zstd／brotli**：第一次開檔再省約 15 MB，代價是不接受它的用戶端要另外準備一份 gzip（壓縮檔變大）或沒有退路。
+  （2026-09-30 補）zstd 那一半已做：`specs/SPEC-M3-zstd.md`，`ZSTD DELIVERED`（宿主 0.2.5），gzip 保留為退路，壓縮檔 106.5 MiB。brotli 沒做。
 
 ## 7. 修訂紀錄
 

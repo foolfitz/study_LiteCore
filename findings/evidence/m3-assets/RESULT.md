@@ -99,3 +99,12 @@ re-counted. Bindings written before the run (`a2df684f`): `PAGE_SHA256` = `fc800
 - Red cases on the counted report: `runs/red-cases-on-2026-09-29T151106.txt` — 90 red, 0 not.
 
 Run one at a time after `PAGE HONEST` (`m3-page-honesty/RESULT.md`, which lists all six).
+
+## 2026-09-30: re-counted on host 0.2.5 with the zstd step
+
+`runs/2026-09-29T163517+0000.json`: `ASSETS DELIVERED [SPEC-M3-asset-delivery+SPEC-M3-zstd]`,
+chrome 3/3, firefox 3/3, firefox-nozstd 3/3, 156 red cases red — the gate `ZSTD DELIVERED` of
+`specs/SPEC-M3-zstd.md`. The table and bindings are in `findings/evidence/m3-zstd/RESULT.md`,
+together with the other five M3 runners re-counted on 0.2.5. Reports from before the zstd step
+are scored against their own criteria (`criteria` field; the 0.2.4 run `151106` still re-scores
+`ASSETS DELIVERED`).
