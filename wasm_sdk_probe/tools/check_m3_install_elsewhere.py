@@ -90,16 +90,22 @@ MARK = "@@LC@@"
 # ppid is the second field after the last ") " of /proc/<pid>/stat -- a comm
 # may hold spaces (item 15).  ps -ww: without a terminal, args are cut at 80
 # columns (item 15).  lstart gives each process an identity beyond its pid
-# (I4-1b keys on pid, start and comm; item 2).  An fd line is tab-separated:
+# (review 2, item 2) -- but lstart is btime + ticks/HZ, and btime moves with
+# every clock step (review 3, item 1: its fraction was .80, so a 0.2 s NTP step
+# shifts every lstart by a second), so I4-1b keys on field 22 of
+# /proc/<pid>/stat, the start in clock ticks since boot, which no clock step
+# moves.  LC_ALL=C: under zh_TW ps prints lstart in Chinese and PS_ROW reads
+# nothing (review 3, item 14).  An fd line is tab-separated:
 # the fd, its holder's ppid, the file it points at (so an I2-3 problem names
 # the file, and control 4's excuse holds for its own file only -- fable's
 # ruling, condition 5), the holder's command line.
-LOOP = (f"while :; do echo {MARK}T $(date +%s.%N); echo {MARK}F; "
+LOOP = (f"export LC_ALL=C; while :; do echo {MARK}T $(date +%s.%N); echo {MARK}F; "
         "find /proc/[0-9]*/fd -lname '*litecore-dist*' 2>/dev/null | while read f; do "
         "p=${f#/proc/}; p=${p%%/*}; "
         "printf '%s\\t%s\\t%s\\t%s\\n' \"$f\" \"$(sed 's/.*) //' /proc/$p/stat 2>/dev/null | cut -d' ' -f2)\" "
         "\"$(readlink $f)\" \"$(tr '\\0' ' ' </proc/$p/cmdline 2>/dev/null | cut -c1-160)\"; "
-        f"done; echo {MARK}P; ps -ww -eo pid=,ppid=,comm=,lstart=,args=; echo {MARK}E; sleep {INTERVAL}; done")
+        f"done; echo {MARK}P; ps -ww -eo pid=,ppid=,comm=,lstart=,args=; echo {MARK}S; "
+        f"cat /proc/[0-9]*/stat 2>/dev/null; echo {MARK}E; sleep {INTERVAL}; done")
 PS_ROW = re.compile(r"^\s*(\d+)\s+(\d+)\s+(.*?)\s+([A-Z][a-z]{2} [A-Z][a-z]{2} [ \d]\d \d\d:\d\d:\d\d \d{4})\s?(.*)$")
 EVENT_IMAGE = "ddev/ddev-utilities:latest"   # review 2, item 9: not the project-labelled web image
 LIFECYCLE = ("create", "start", "restart", "unpause", "die", "kill", "stop", "pause", "destroy")
@@ -197,16 +203,23 @@ def epoch(iso: str | None) -> float | None:
 def parse_block(lines: list[str]) -> tuple[float, list[list[Any]], list[list[Any]]]:
     """One block of LOOP's output: its clock, the container's processes (the
     sampler's own shell and everything below it left out), the fds.  A row is
-    [pid, ppid, comm, args, lstart]; rows stored before 2026-09-29's second
-    review have no lstart."""
+    [pid, ppid, comm, args, lstart, start ticks]; rows stored before the
+    second review have neither, before the third no ticks."""
     stamp = float(lines[0].split()[1])
-    fd_at, ps_at = lines.index(f"{MARK}F"), lines.index(f"{MARK}P")
+    fd_at, ps_at, stat_at = lines.index(f"{MARK}F"), lines.index(f"{MARK}P"), lines.index(f"{MARK}S")
+    ticks = {}
+    for line in lines[stat_at + 1:]:
+        head, _, tail = line.rpartition(") ")
+        fields = tail.split()
+        if head and len(fields) > 19 and line.split(" ", 1)[0].isdigit():
+            ticks[int(line.split(" ", 1)[0])] = int(fields[19])   # field 22: starttime, clock ticks since boot
     raw = []
-    for line in lines[ps_at + 1:]:
+    for line in lines[ps_at + 1:stat_at]:
         match = PS_ROW.match(line)
         if match:
-            raw.append([int(match.group(1)), int(match.group(2)), match.group(3).strip(),
-                        match.group(5)[:160], match.group(4)])
+            pid = int(match.group(1))
+            raw.append([pid, int(match.group(2)), match.group(3).strip(), match.group(5)[:160], match.group(4),
+                        ticks.get(pid)])
     by_pid = {r[0]: r for r in raw}
     rows = [r for r in raw if not any(MARK in a[3] for a in lineage(by_pid, r[0]))]
     fds = []
@@ -227,6 +240,8 @@ class Sampler(threading.Thread):
         super().__init__(daemon=True)
         self.samples: list[dict[str, Any]] = []
         self.stderr: list[str] = []
+        hz = sh(["docker", "exec", WEB, "getconf", "CLK_TCK"]).stdout.strip()
+        self.hz = int(hz) if hz.isdigit() else hz
         self.halt = threading.Event()
         self.process = subprocess.Popen(["docker", "exec", WEB, "sh", "-c", LOOP], stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE, text=True)
@@ -303,9 +318,29 @@ def is_control(chain: list[list[Any]]) -> bool:
 
 
 def identity(row: list[Any]) -> tuple[Any, ...]:
-    """A process across samples: pid, start time, comm (rows without lstart
-    predate 2026-09-29's second review)."""
-    return (row[0], row[4] if len(row) > 4 else None, row[2])
+    """A process across samples: pid, start in clock ticks since boot, comm.
+    Rows without ticks (before review 3) never match rows with them, so an old
+    baseline turns every window red rather than green."""
+    return (row[0], row[5] if len(row) > 5 else None, row[2])
+
+
+def late_in_baseline(samples: list[dict[str, Any]], hz: Any) -> list[str]:
+    """Review 3, item 2: the baseline is retaken at every --reinstall, after
+    app:remove, not before the app ever ran -- an orphan an earlier install or
+    window left under PID 1 would be whitelisted by it.  Every PID-1 descendant
+    in the baseline must have started within 10 s of PID 1 itself (the
+    container's start), in ticks, so no clock enters."""
+    if not isinstance(hz, int) or hz <= 0:
+        return [f"no clock-tick rate recorded ({hz!r})"]
+    late = set()
+    for sample in expand(samples):
+        by_pid = {r[0]: r for r in sample["rows"]}
+        init = by_pid.get(1)
+        for row in pid1_descendants(sample["rows"]):
+            if init is None or len(row) < 6 or row[5] is None or init[5] is None or row[5] - init[5] > 10 * hz:
+                late.add(f"{row[2]} (pid {row[0]}) started "
+                         f"{'?' if init is None or len(row) < 6 or row[5] is None or init[5] is None else round((row[5] - init[5]) / hz, 1)} s after PID 1")
+    return sorted(late)
 
 
 def pid1_descendants(rows: list[list[Any]]) -> list[list[Any]]:
@@ -332,11 +367,11 @@ def process_findings(sample: dict[str, Any], orphans_ok: set[tuple[Any, ...]]) -
         chain = lineage(by_pid, row[0])
         fpms = [r for r in chain[1:] if r[2] == "php-fpm"]
         if fpms and (row[2] != "php-fpm" or len(fpms) > 1):
-            found.append({"rule": "I4-1a", "comm": row[2], "pid": row[0], "args": row[3],
+            found.append({"rule": "I4-1a", "comm": row[2], "pid": row[0], "ppid": row[1], "args": row[3],
                           "control": is_control(chain), "via": [fpms[0][0], fpms[0][3]]})
     for row in pid1_descendants(sample["rows"]):
         if identity(row) not in orphans_ok:
-            found.append({"rule": "I4-1b", "comm": row[2], "pid": row[0], "args": row[3],
+            found.append({"rule": "I4-1b", "comm": row[2], "pid": row[0], "ppid": row[1], "args": row[3],
                           "control": is_control(lineage(by_pid, row[0]))})
     for entry in sample["fds"]:
         # [pid, fd, ppid, cmdline, target]; the first two shakedowns stored
@@ -430,10 +465,11 @@ def fpm_control() -> dict[str, Any]:
            for name, text in (("fcgi.php", FPM_CLIENT), ("fpm.php", FPM_SCRIPT))]
     started = time.time()
     ran = sh(["docker", "exec", WEB, "php", f"{CONTROL}/fcgi.php", f"{CONTROL}/fpm.php"], timeout=60)
+    returned = time.time()   # after this the worker is an ordinary pool worker again (review 3, item 5)
     said = re.search(r"worker=(\d+) orphan=(\d+)", ran.stdout)
     time.sleep(max(0.0, started + 9 - time.time()))   # lcorphan4 sleeps 8 s from about `started`
-    return {"start": round(started, 3), "end": round(time.time(), 3), "exit": ran.returncode,
-            "worker": int(said.group(1)) if said else None, "orphan": int(said.group(2)) if said else None,
+    return {"start": round(started, 3), "returned": round(returned, 3), "end": round(time.time(), 3),
+            "exit": ran.returncode, "worker": int(said.group(1)) if said else None, "orphan": int(said.group(2)) if said else None,
             "file": FPM_FILE, "stdout": ran.stdout[-300:], "stderr": ran.stderr[-300:],
             "exits": [setup.returncode, *put]}
 
@@ -538,6 +574,7 @@ def install(reinstall: bool) -> int:
     time.sleep(BASELINE_SECONDS)
     sampler.stop()
     record["baseline"] = sampler.samples
+    record["hz"] = sampler.hz
     with tarfile.open(archive) as bundle:
         bundle.extractall(target.parent, filter="data")
     enabled = sh(["ddev", "occ", "app:enable", "litecore"], cwd=PROBE)
@@ -811,10 +848,12 @@ def run(args: argparse.Namespace) -> int:
     sampler.start()
     time.sleep(2)
     window["start"] = round(time.time(), 3)
-    window["controls"] = positive_controls()
     report["window"] = window
     report["runners"] = {}
     try:
+        # Inside the try: if a control raises, the sampler and the stream are
+        # still stopped and the report still written (review 3, item 7).
+        window["controls"] = positive_controls()
         names = list(RUNNERS) if counted else args.runners.split(",")
         for name in names:
             extra = [] if counted else ["--repeats", str(args.repeats),
@@ -902,25 +941,38 @@ CONTROL_WANTS = {"process": ("I4-1a sleep", "I4-1b lcorphan"), "fd": ("I2-3 lcfd
                  "fpm": ("I4-1a lcfg", "I4-1b lcorphan4", "I2-3 worker")}
 
 
-def control_label(key: str, ctl: dict[str, Any], bad: dict[str, Any], by_pid: dict[int, list[Any]]) -> str | None:
-    """The finding as control `key` accounts for it, or None if it does not.
-    A control's own processes are recognised by /tmp/litecore-ctl in their
-    lineage.  Control 4's worker is not (its args are the pool's): its fd is
-    accounted for by the pid the script reported, on the file the script
-    opened, and nothing else (condition 4 and 5).  `lcfg` counts as seen only
-    below that worker, whose parent is php-fpm with a parent of its own -- the
-    real master, not control 1's fake one, which docker exec starts (ppid 0)."""
+def control_label(key: str, ctl: dict[str, Any], bad: dict[str, Any], by_pid: dict[int, list[Any]],
+                  t: float) -> str | None:
+    """The finding at sample time t as control `key` accounts for it, or None
+    if it does not.  A control's own processes are recognised by
+    /tmp/litecore-ctl in their lineage.  Control 4's worker is not (its args
+    are the pool's): while its request runs -- not after (review 3, item 5) --
+    its fd on the file the script opened is accounted for by the pid the script
+    reported (conditions 4 and 5), and so is a php-fpm-named child of it: the
+    instant between exec()'s fork and its exec (review 3, item 12).  `lcfg`
+    counts as seen only below that worker, whose parent is php-fpm with a parent
+    of its own -- the real master, not control 1's fake one, which docker exec
+    starts (ppid 0).  An orphan counts as seen only as a direct child of PID 1,
+    and control 4's only with the pid the script reported (condition 8; review
+    3, item 10)."""
     if bad["rule"] not in CONTROL_RULES[key]:
         return None
-    if key == "fpm" and bad["rule"] == "I2-3" and ctl.get("worker") is not None and bad["pid"] == ctl["worker"]:
+    worker = ctl.get("worker") if key == "fpm" else None
+    running = worker is not None and t <= (ctl.get("returned") or 0) + 1
+    if running and bad["rule"] == "I2-3" and bad["pid"] == worker:
         return "I2-3 worker" if bad.get("target") == ctl.get("file") else None
+    if running and bad["rule"] == "I4-1a" and bad["comm"] == "php-fpm" and bad.get("ppid") == worker:
+        return "I4-1a fork of the worker"
     if not bad["control"]:
         return None
     if key == "fpm" and bad["rule"] == "I4-1a" and bad["comm"] == "lcfg":
-        worker = by_pid.get(ctl.get("worker"))
-        master = by_pid.get(worker[1]) if worker else None
-        real = bad["via"][0] == ctl.get("worker") and master is not None and master[2] == "php-fpm" and master[1] != 0
+        row = by_pid.get(worker)
+        master = by_pid.get(row[1]) if row else None
+        real = bad["via"][0] == worker and master is not None and master[2] == "php-fpm" and master[1] != 0
         return "I4-1a lcfg" if real else "I4-1a lcfg, not below the real worker"
+    if bad["rule"] == "I4-1b":
+        direct = bad.get("ppid") == 1 and (key != "fpm" or bad["pid"] == ctl.get("orphan"))
+        return f"I4-1b {bad['comm']}" + ("" if direct else ", not the reported direct child of PID 1")
     return f"{bad['rule']} {bad['comm']}"
 
 
@@ -1073,14 +1125,18 @@ def score(report: dict[str, Any], strict: bool, loaded: dict[str, Any] | None = 
             # Its lazily imported modules are bound only by the tree check (condition 12).
             checked = epoch(equivalence_seen.get("at"))
             if epoch(dev.get("startedAt")) is None or checked is None or epoch(dev.get("startedAt")) < checked:
-                problems.append("I3-7 the dev host-entry run started before the equivalence check")
+                problems.append(f"I3-7 the dev host-entry run started {dev.get('startedAt')} before the equivalence "
+                                f"check {equivalence_seen.get('at')}")
             if strict and (dev.get("runner") or {}).get("sha256") != shas_now.get("host-entry"):
-                problems.append("I3-7 dev host entry ran with another runner than the one checked")
+                problems.append(f"I3-7 dev host entry ran with runner {str((dev.get('runner') or {}).get('sha256'))[:12]}, "
+                                f"equivalence checked {str(shas_now.get('host-entry'))[:12]}")
     rows = equivalence_seen.get("rows") or []
     if strict or rows:
         if {r.get("runner") for r in rows} != set(RUNNERS):
             problems.append(f"I3-8 equivalence covers {sorted({r.get('runner') for r in rows})}")
         for row in rows:
+            if any("redExit" not in (row.get(side) or {}) for side in ("before", "after")):
+                problems.append(f"I3-8 {row.get('runner')} {row.get('report')}: no red-case exit recorded")
             if row.get("before") != row.get("after"):
                 problems.append(f"I3-8 {row.get('runner')} {row.get('report')}: {row.get('before')} -> {row.get('after')}")
         recording = equivalence_seen.get("recording") or {}
@@ -1114,6 +1170,9 @@ def score(report: dict[str, Any], strict: bool, loaded: dict[str, Any] | None = 
     if len(baseline_good) < BASELINE_SECONDS or not orphans_ok:
         problems.append(f"I4-1 the pre-install baseline has {len(baseline_good)} samples, "
                         f"PID-1 descendants {sorted(orphans_ok, key=str)}")
+    late = late_in_baseline(install.get("baseline") or [], install.get("hz"))
+    if late:
+        problems.append(f"I4-1 the pre-install baseline whitelists what started after the container: {late[:4]}")
     if not window.get("webStartedAt") or install.get("webStartedAt") != window.get("webStartedAt"):
         problems.append(f"I4-1b the web container started {window.get('webStartedAt')!r} at the window, "
                         f"{install.get('webStartedAt')!r} at the baseline: not one lifetime, so the baseline's "
@@ -1128,7 +1187,7 @@ def score(report: dict[str, Any], strict: bool, loaded: dict[str, Any] | None = 
             for key in CONTROL_WANTS:
                 ctl = controls.get(key) or {}
                 if ctl.get("start", 0) - 1 <= sample["t"] <= ctl.get("end", 0) + 1:
-                    accounted = control_label(key, ctl, bad, by_pid)
+                    accounted = control_label(key, ctl, bad, by_pid, sample["t"])
                     if accounted:
                         seen_control[key].add(accounted)
                         break
@@ -1208,6 +1267,51 @@ def _inject(r: dict[str, Any], extra_rows: list[list[Any]], extra_fds: list[list
     r["samples"] = [s for s in expand(r["samples"])]
     r["samples"].append({"t": _mid(r) + 0.001, "rows": base["rows"] + extra_rows, "fds": base["fds"] + list(extra_fds)})
     r["samples"].sort(key=lambda s: s["t"])
+
+
+def _inject_at(r: dict[str, Any], t: float, extra_rows: list[list[Any]]) -> None:
+    """A sample at time t: the next stored sample's rows plus extra_rows."""
+    good = expand(r["samples"])
+    base = next(s for s in good if s["t"] >= t)
+    r["samples"] = good + [{"t": round(t, 3), "rows": base["rows"] + extra_rows, "fds": base["fds"]}]
+    r["samples"].sort(key=lambda s: s["t"])
+
+
+def _rows(r: dict[str, Any], change) -> None:
+    """Every stored sample, each row replaced by change(row, sample rows)."""
+    r["samples"] = [{**s, "rows": [change(list(row), s["rows"]) for row in s["rows"]]} for s in expand(r["samples"])]
+
+
+def _window_rows(r: dict[str, Any], change) -> None:
+    w = r["window"]
+    r["samples"] = [{**s, "rows": [change(list(row)) if w["start"] <= s["t"] <= w["end"] else row
+                                   for row in s["rows"]]} for s in expand(r["samples"])]
+
+
+def _fake_master(r: dict[str, Any], comm: str, ppid: int) -> None:
+    """Control 4's worker below a new parent row: comm, with that ppid."""
+    worker = _worker_of(r)
+    r["samples"] = [{**s, "rows": [[row[0], 999980, *row[2:]] if row[0] == worker else row for row in s["rows"]]
+                     + [[999980, ppid, comm, f"{comm}: fake", START, 1]]} for s in expand(r["samples"])]
+
+
+def _lcfg_below_another_fpm(r: dict[str, Any]) -> None:
+    worker = _worker_of(r)
+    out = []
+    for s in expand(r["samples"]):
+        rows = [[row[0], 999986, *row[2:]] if row[2] == "lcfg" else row for row in s["rows"]]
+        if any(row[2] == "lcfg" for row in s["rows"]):
+            rows.append([999986, worker, "php-fpm", "php-fpm: pool www", START, 1])
+        out.append({**s, "rows": rows})
+    r["samples"] = out
+
+
+def _late_baseline(r: dict[str, Any]) -> None:
+    hz = r["install"]["hz"]
+    r["install"]["baseline"] = [
+        {**s, "rows": s["rows"] + [[999984, 1, "soffice.bin", "soffice.bin --headless", START,
+                                    next(row[5] for row in s["rows"] if row[0] == 1) + 60 * hz]]}
+        for s in expand(r["install"]["baseline"])]
 
 
 def _mid_rows(r: dict[str, Any]) -> list[list[Any]]:
@@ -1351,7 +1455,7 @@ REPORT_CASES = [
         completedAt=datetime.datetime.fromtimestamp(_mid(r), datetime.UTC).isoformat()), "did not finish before"),
     ("I3-7", "no dev host-entry report", lambda r, L: L.update({"dev-host-entry": None}), "no host-entry report"),
     ("I3-7", "a dev run with an unchecked runner", lambda r, L: L["dev-host-entry"]["runner"].update(sha256="9" * 64),
-     "another runner"),
+     "ran with runner 999999999999"),
     ("I3-8", "a report scoring differently", lambda r, L: r["equivalence"]["rows"][0]["after"].update(exit=9), "->"),
     ("I3-8", "a report whose red cases now pass", lambda r, L: r["equivalence"]["rows"][0]["after"].update(
         redExit=1), "->"),
@@ -1376,7 +1480,7 @@ REPORT_CASES = [
     ("I3-8", "another interpreter at the window start", lambda r, L: r["treeBindingStart"].update(node="v0.0.0"),
      "changed between"),
     ("I3-7", "the dev run started before the equivalence check", lambda r, L: L["dev-host-entry"].update(
-        startedAt="2026-01-01T00:00:00+00:00"), "before the equivalence check"),
+        startedAt="2026-01-01T00:00:00+00:00"), "started 2026-01-01T00:00:00+00:00 before the equivalence check"),
     ("I4-1a", "a shell under php-fpm", lambda r, L: _inject(r, [[999991, _fpm(r), "sh", "sh -c soffice --headless",
                                                                START]]), "I4-1a sh "),
     ("I4-1a", "php-fpm forked by a worker", lambda r, L: _inject(r, [[999997, _worker(r), "php-fpm",
@@ -1402,6 +1506,53 @@ REPORT_CASES = [
      "(lcfg) was not seen"),
     ("I4-1a", "control 4's span moved", lambda r, L: r["window"]["controls"]["fpm"].update(start=1.0, end=2.0),
      "I4-1a lcfg (pid"),
+    # review 3: branches no case pinned, and this round's new ones
+    ("I4-1a", "control 4's worker below a php-fpm started by docker exec", lambda r, L: _fake_master(r, "php-fpm", 0),
+     "(lcfg) was not seen"),
+    ("I4-1a", "control 4's worker below something not php-fpm", lambda r, L: _fake_master(r, "supervisord", 16),
+     "(lcfg) was not seen"),
+    ("I4-1a", "lcfg below a php-fpm that is not the worker", lambda r, L: _lcfg_below_another_fpm(r),
+     "(lcfg) was not seen"),
+    ("I4-1a", "a violation inside control 1's span", lambda r, L: _inject_at(
+        r, r["window"]["controls"]["process"]["start"] + 1, [[999981, _fpm(r), "sh", "sh -c soffice", START, 1]]),
+     "I4-1a sh (pid 999981"),
+    ("I4-1b", "a violation inside control 4's span", lambda r, L: _inject_at(
+        r, r["window"]["controls"]["fpm"]["start"] + 2, [[999982, 1, "soffice.bin", "soffice.bin --headless", START, 1]]),
+     "I4-1b soffice.bin (pid 999982"),
+    ("I4-1a", "a child of control 4's worker that is not the control's", lambda r, L: _inject_at(
+        r, r["window"]["controls"]["fpm"]["start"] + 1, [[999983, _worker_of(r), "soffice", "soffice --headless",
+                                                          START, 1]]), "I4-1a soffice (pid 999983"),
+    ("I4-1a", "a php-fpm fork of the worker after its request", lambda r, L: _inject_at(
+        r, r["window"]["controls"]["fpm"]["returned"] + 2.5, [[999985, _worker_of(r), "php-fpm", "php-fpm: pool www",
+                                                               START, 1]]), "I4-1a php-fpm (pid 999985"),
+    ("I2-3", "the worker's fd after its request returned", lambda r, L: r["window"]["controls"]["fpm"].update(
+        returned=r["window"]["controls"]["fpm"]["start"] - 5), "I2-3 php-fpm (pid"),
+    ("I4-1b", "control 4's orphan not a direct child of PID 1", lambda r, L: _rows(
+        r, lambda row, rows: [row[0], 8, *row[2:]] if row[2] == "lcorphan4" else row), "(lcorphan4) was not seen"),
+    ("I4-1b", "control 4 reporting another orphan", lambda r, L: r["window"]["controls"]["fpm"].update(
+        orphan=r["window"]["controls"]["fpm"]["orphan"] + 100000), "(lcorphan4) was not seen"),
+    ("I4-1b", "control 1's orphan not a direct child of PID 1", lambda r, L: _rows(
+        r, lambda row, rows: [row[0], 8, *row[2:]] if row[2] == "lcorphan" else row), "(lcorphan) was not seen"),
+    ("I4-1b", "the baseline's cat restarted", lambda r, L: _window_rows(
+        r, lambda row: [*row[:5], row[5] + 1] if row[0] == 8 else row), "I4-1b cat (pid 8"),
+    ("I4-1b", "the baseline's cat renamed", lambda r, L: _window_rows(
+        r, lambda row: [row[0], row[1], "soffice.bin", *row[3:]] if row[0] == 8 else row), "I4-1b soffice.bin (pid 8"),
+    ("I4-1b", "no container start recorded", lambda r, L: (r["window"].update(webStartedAt=""),
+                                                           r["install"].update(webStartedAt="")), "not one lifetime"),
+    ("I4-1", "a baseline descendant started after the container", lambda r, L: _late_baseline(r),
+     "whitelists what started after the container"),
+    ("I4-1", "no clock-tick rate recorded", lambda r, L: r["install"].update(hz=None), "no clock-tick rate"),
+    ("I3-5", "host entry bound to a dirty tree", lambda r, L: L["host-entry"]["instance"]["app"].update(
+        dirty=["M lib/x.php"]), "host-entry is not bound"),
+    ("I3-5", "host entry bound to another commit", lambda r, L: L["host-entry"]["instance"]["app"].update(
+        commit="0" * 40), "host-entry is not bound"),
+    ("I3-8", "host entry with an unchecked runner", lambda r, L: L["host-entry"]["runner"].update(sha256="4" * 64),
+     "host-entry ran with runner 444444444444"),
+    ("I3-8", "a recording path that errored on both sides", lambda r, L: r["equivalence"]["recording"].update(
+        before={"error": "x"}, after={"error": "x"}), "recording path changed"),
+    ("I3-8", "an equivalence row without its red-case exit", lambda r, L: [
+        side.pop("redExit") for side in (r["equivalence"]["rows"][0]["before"], r["equivalence"]["rows"][0]["after"])],
+     "no red-case exit recorded"),
     ("I4-1b", "the container restarted since the baseline", lambda r, L: r["window"].update(
         webStartedAt="2026-01-01T00:00:00Z"), "not one lifetime"),
     ("I4-1", "no pre-install baseline", lambda r, L: r["install"].update(baseline=[]), "pre-install baseline"),
@@ -1428,7 +1579,8 @@ REPORT_CASES = [
 STRICT_ONLY = {"a counted run with an unchecked runner", "a module changed after the check",
                "a dev run with an unchecked runner", "no dev host-entry report", "a shakedown scored as counted",
                "wasm_sdk_probe changed by the window start", "uncommitted tools at the window end",
-               "another last commit at the window end", "another interpreter at the window start"}
+               "another last commit at the window end", "another interpreter at the window start",
+               "host entry with an unchecked runner"}
 
 
 def red_cases(path: Path, force_strict: bool) -> int:

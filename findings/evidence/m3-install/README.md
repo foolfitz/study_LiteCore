@@ -19,7 +19,11 @@ chose this instance on 2026-09-29 over a new ddev project (which would rebuild t
 | `install.json` | The install on litecoreprobe (the **reinstall**, see below): `occ app:list`, `config:list system`, `config:list` (all apps), `user:list` and the probe app's two switches before and after; 120 s of process samples taken before unpacking (I4-1b's baseline); `app:enable` output; `app:getpath`; the installed tree (every file, every symlink). |
 | `review-2026-09-29-opus.md` | The adversarial review (19 items) and the main session's disposition of each. |
 | `ruling-2026-09-29-fable-h3.md` | fable's ruling (on the owner's authority) to keep host entry's H3, its fact check and conditions. |
-| `equivalence.json` | Every counted report of the four runners that existed at `9748b714`, scored by the runners at `9748b714` and by the runners now (I3-8). |
+| `review-2026-09-29-opus-2.md` | The second adversarial review (17 items), its dispositions, and (appended) what was done with each. |
+| `review-2026-09-29-opus-3.md` | The third adversarial review (15 items): `lstart` moves with clock steps (I4-1b now keys on start ticks), the baseline could whitelist an earlier orphan, unpinned branches; verification and disposition of each. |
+| `fpm-path-measurement-2026-09-29.md` | One-off: a real php-fpm worker driven over FastCGI; its background child lands on PID 1 at once and inherits the worker's open file. |
+| `ruling-2026-09-29-fable-controls.md` | fable's ruling (on the owner's authority) on review 2's items 4, 12, 14: control 4, the subreaper sentence, the tree binding; thirteen conditions and where each landed. |
+| `equivalence.json` | Every counted report of the four runners that existed at `9748b714`, scored and red-cased by the runners at `9748b714` and by the runners now; the dev-instance recording path old vs new, the old side's expressions found verbatim in `9748b714`'s runners; the tree binding of `wasm_sdk_probe/` (I3-8). |
 | `shakedown/` | Window runs with `--label shakedown` (fewer repeats, locks on a subset of arms). |
 | `runs/` | Counted window runs. |
 
@@ -58,6 +62,18 @@ config identical, users `admin` only. **`app:remove` left `litecore`'s app confi
 version rather than installing a new one; the first install above is the from-nothing one.
 The bytes are identical to the first install's (same archive sha256).
 
+**Reinstall 2** (after review 2, item 1; tool at `5a4bc239`): tree checked clean against the
+release, `occ app:remove litecore` (exit 0, `Removed app 'litecore' (version 0.2.1)`), then
+each of `litecore`'s app-config keys deleted (`enabled`, `installed_version`, `types`, each exit
+0; read back `{}`). `install.before.apps` has no `litecore`; after `app:enable` (exit 0,
+`litecore 0.2.1 enabled`) the three keys exist again, created from nothing — the same record as
+the first install's. Baseline: 236 good samples over 120 s with the one-exec sampler (`lstart`
+per row), no error; PID 1's descendants: only `(8, Mon Sep 28 13:50:31 2026, cat)`. Web
+container `StartedAt 2026-09-28T05:50:31.655867945Z`. 30 files equal to the release, no
+symlink, no empty directory or special file; `app:getpath` =
+`/var/www/html/nextcloud/apps-extra/litecore`; `system` config identical; users `admin` only;
+probe switches `off`/`off`; the only app config that differs across the install is `litecore`'s.
+
 ## Shakedowns
 
 **`shakedown/2026-09-28T223255+0000.json`** (the first window; runners at 1 repeat, locks on
@@ -81,6 +97,21 @@ Also seen on the dev instance, from the adapted host-entry runner
 (`../m3-host-entry/shakedown/2026-09-28T223038Z.json`, 1 repeat): every arm clean; the
 conflict intruder's token PUT 204, then both of the page's saves `(412, tokenOnServer true)`;
 every arm's leave ended with `nc:lock` empty; no stale lock at any reset.
+
+**`shakedown/2026-09-29T003935+0000.json`** (tool at `5a4bc239`, after review 2 and the ruling;
+reinstall 2's baseline; equivalence at 00:39Z; runners at 1 repeat, locks on
+`hold,foreign-lock,broken-then-written`; dev host entry = the older dev shakedown
+`../m3-host-entry/shakedown/2026-09-28T230636Z.json`). Red on two clauses, both expected: I3-6
+locks (its red cases need arms not run) and I3-7 (that dev report predates the equivalence
+check). Everything new worked: 776 good samples over 395.4 s, widest gap 0.533 s, no sampler
+error or stderr; all four controls seen — control 4's worker (pid 38723) holding
+`e2-editor.html`, `lcfg` below it, `lcorphan4` under PID 1 — both container controls streamed,
+the stream alive at stop; no probe-app request; the dev log had 7 lines, all health checks;
+`execFamilyScan` empty; tree binding equal at start and end. `--strict --red-cases`: 88/90,
+the two GREEN being I3-7 cases whose messages were constant strings that the old dev report
+already produced; with the sha and time in the message, 90/90. Review 3 then found that
+`lstart` moves with clock steps, among others; this shakedown's rows have no start ticks, so it
+cannot score against reinstall 3's baseline.
 
 ## Counted run: rules fixed before it started
 

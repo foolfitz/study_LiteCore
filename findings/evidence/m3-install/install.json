@@ -1,7 +1,7 @@
 {
- "startedAt": "2026-09-28T23:06:36+00:00",
+ "startedAt": "2026-09-29T00:36:41+00:00",
  "tool": "wasm_sdk_probe/tools/check_m3_install_elsewhere.py",
- "toolSha256": "5fe2be390767afa08df8fcd731e26ad34c318ec24a2887b4833e8584ff03535d",
+ "toolSha256": "e4fafcf32fb1f421564a59660efd023439839e5029dd906520d4dcf20ab3584d",
  "archive": {
   "path": "wasm_sdk_probe/build/release/litecore-0.2.1.tar.gz",
   "sha256": "849f29f722e7870601228a8962040da5cb1b8a9deddf1e959f047e6c45cf734c",
@@ -12,7 +12,13 @@
   "exit": 0,
   "stdout": "Disabled app 'litecore' (uninstall steps executed).\nRemoved app 'litecore' (version 0.2.1).\n",
   "stderr": "",
-  "dirGone": true
+  "dirGone": true,
+  "configDeleted": {
+   "enabled": 0,
+   "installed_version": 0,
+   "types": 0
+  },
+  "configAfter": {}
  },
  "before": {
   "appList": {
@@ -188,7 +194,7 @@
      "types": ""
     },
     "backgroundjob": {
-     "lastjob": "134682646616350721"
+     "lastjob": "134692264751013889"
     },
     "bruteforcesettings": {
      "enabled": "yes",
@@ -200,7 +206,7 @@
      "installed_version": "34.0.0",
      "loopback_tmp_scheme": "https",
      "maintenance_run": "0",
-     "maintenance_update": "{\"3\":1790634809,\"2\":1790634809,\"1\":1790635070}",
+     "maintenance_update": "{\"3\":1790634809,\"2\":1790637641,\"1\":1790637641}",
      "types": "filesystem,dav"
     },
     "cloud_federation_api": {
@@ -220,7 +226,7 @@
     },
     "core": {
      "installedat": "1790574638.3794",
-     "lastcron": 1790635142,
+     "lastcron": 1790637959,
      "lastupdatedat": 1790574638,
      "metadataGenerationDone": true,
      "previewMovedDone": true,
@@ -329,11 +335,6 @@
     "firstrunwizard": {
      "enabled": "no",
      "installed_version": "7.0.0-dev.0",
-     "types": ""
-    },
-    "litecore": {
-     "enabled": "no",
-     "installed_version": "0.2.1",
      "types": ""
     },
     "litecoreprobe": {
@@ -506,1951 +507,1919 @@
   },
   "users": "{\"admin\":\"admin\"}"
  },
+ "webStartedAt": "2026-09-28T05:50:31.655867945Z",
  "baseline": [
   {
-   "t": 1790636800.396,
-   "d": 0.07,
+   "t": 1790642204.825,
+   "r": 1790642204.832,
    "rows": [
     [
      1,
      0,
      "bash",
-     "bash /pre-start.sh"
+     "bash /pre-start.sh",
+     "Mon Sep 28 13:50:30 2026"
     ],
     [
      8,
      1,
      "cat",
-     "cat"
+     "cat",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      9,
      0,
      "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      15,
      9,
      "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      16,
      15,
      "supervisord",
-     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc"
+     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc/supervisor/supervisord-apache-fpm.conf",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      1600,
      16,
      "php-fpm",
-     "php-fpm: master process (/etc/php/8.4/fpm/php-fp"
+     "php-fpm: master process (/etc/php/8.4/fpm/php-fpm.conf)",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1601,
      16,
      "apache2ctl",
-     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND"
+     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1602,
      16,
      "mailpit",
-     "/usr/local/bin/mailpit"
+     "/usr/local/bin/mailpit",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1614,
      1601,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1624,
      1614,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1626,
      1614,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
-     24592,
+     38457,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:39 2026"
     ],
     [
-     24685,
+     38543,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:48 2026"
     ],
     [
-     25043,
+     38723,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:04 2026"
     ],
     [
-     25640,
+     39277,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:59 2026"
     ],
     [
-     26435,
+     41393,
      0,
      "sh",
-     "/bin/sh -c /healthcheck.sh"
+     "/bin/sh -c /healthcheck.sh",
+     "Tue Sep 29 08:36:19 2026"
     ],
     [
-     26441,
-     26435,
+     41399,
+     41393,
      "sh",
-     "sh /healthcheck.sh"
+     "sh /healthcheck.sh",
+     "Tue Sep 29 08:36:19 2026"
     ],
     [
-     26442,
-     26441,
+     41400,
+     41399,
      "sleep",
-     "sleep 59"
+     "sleep 59",
+     "Tue Sep 29 08:36:19 2026"
     ]
    ],
    "fds": []
   },
   {
-   "t": 1790636800.896,
-   "d": 0.047,
+   "t": 1790642205.334,
+   "r": 1790642205.341,
    "same": true
   },
   {
-   "t": 1790636801.397,
-   "d": 0.058,
+   "t": 1790642205.843,
+   "r": 1790642205.85,
    "same": true
   },
   {
-   "t": 1790636801.897,
-   "d": 0.044,
+   "t": 1790642206.352,
+   "r": 1790642206.36,
    "same": true
   },
   {
-   "t": 1790636802.397,
-   "d": 0.061,
+   "t": 1790642206.862,
+   "r": 1790642206.869,
    "same": true
   },
   {
-   "t": 1790636802.897,
-   "d": 0.052,
+   "t": 1790642207.371,
+   "r": 1790642207.377,
    "same": true
   },
   {
-   "t": 1790636803.397,
-   "d": 0.069,
+   "t": 1790642207.879,
+   "r": 1790642207.884,
    "same": true
   },
   {
-   "t": 1790636803.897,
-   "d": 0.063,
+   "t": 1790642208.387,
+   "r": 1790642208.394,
    "same": true
   },
   {
-   "t": 1790636804.397,
-   "d": 0.056,
+   "t": 1790642208.896,
+   "r": 1790642208.903,
    "same": true
   },
   {
-   "t": 1790636804.897,
-   "d": 0.063,
+   "t": 1790642209.406,
+   "r": 1790642209.414,
    "same": true
   },
   {
-   "t": 1790636805.397,
-   "d": 0.054,
+   "t": 1790642209.917,
+   "r": 1790642209.923,
    "same": true
   },
   {
-   "t": 1790636805.897,
-   "d": 0.057,
+   "t": 1790642210.425,
+   "r": 1790642210.433,
    "same": true
   },
   {
-   "t": 1790636806.397,
-   "d": 0.059,
+   "t": 1790642210.934,
+   "r": 1790642210.941,
    "same": true
   },
   {
-   "t": 1790636806.898,
-   "d": 0.051,
+   "t": 1790642211.443,
+   "r": 1790642211.449,
    "same": true
   },
   {
-   "t": 1790636807.398,
-   "d": 0.048,
+   "t": 1790642211.951,
+   "r": 1790642211.957,
    "same": true
   },
   {
-   "t": 1790636807.898,
-   "d": 0.052,
+   "t": 1790642212.459,
+   "r": 1790642212.466,
    "same": true
   },
   {
-   "t": 1790636808.398,
-   "d": 0.051,
+   "t": 1790642212.968,
+   "r": 1790642212.974,
    "same": true
   },
   {
-   "t": 1790636808.898,
-   "d": 0.049,
+   "t": 1790642213.476,
+   "r": 1790642213.482,
    "same": true
   },
   {
-   "t": 1790636809.398,
-   "d": 0.054,
+   "t": 1790642213.984,
+   "r": 1790642213.989,
    "same": true
   },
   {
-   "t": 1790636809.898,
-   "d": 0.045,
+   "t": 1790642214.491,
+   "r": 1790642214.497,
    "same": true
   },
   {
-   "t": 1790636810.398,
-   "d": 0.055,
+   "t": 1790642214.999,
+   "r": 1790642215.008,
    "same": true
   },
   {
-   "t": 1790636810.898,
-   "d": 0.053,
+   "t": 1790642215.51,
+   "r": 1790642215.517,
    "same": true
   },
   {
-   "t": 1790636811.398,
-   "d": 0.06,
+   "t": 1790642216.019,
+   "r": 1790642216.026,
+   "same": true
+  },
+  {
+   "t": 1790642216.527,
+   "r": 1790642216.534,
+   "same": true
+  },
+  {
+   "t": 1790642217.036,
+   "r": 1790642217.043,
+   "same": true
+  },
+  {
+   "t": 1790642217.545,
+   "r": 1790642217.552,
+   "same": true
+  },
+  {
+   "t": 1790642218.054,
+   "r": 1790642218.061,
+   "same": true
+  },
+  {
+   "t": 1790642218.563,
+   "r": 1790642218.57,
+   "same": true
+  },
+  {
+   "t": 1790642219.072,
+   "r": 1790642219.079,
+   "same": true
+  },
+  {
+   "t": 1790642219.581,
+   "r": 1790642219.589,
+   "same": true
+  },
+  {
+   "t": 1790642220.091,
+   "r": 1790642220.098,
+   "same": true
+  },
+  {
+   "t": 1790642220.6,
+   "r": 1790642220.607,
+   "same": true
+  },
+  {
+   "t": 1790642221.109,
+   "r": 1790642221.115,
+   "same": true
+  },
+  {
+   "t": 1790642221.617,
+   "r": 1790642221.623,
+   "same": true
+  },
+  {
+   "t": 1790642222.126,
+   "r": 1790642222.133,
+   "same": true
+  },
+  {
+   "t": 1790642222.635,
+   "r": 1790642222.643,
+   "same": true
+  },
+  {
+   "t": 1790642223.146,
+   "r": 1790642223.153,
+   "same": true
+  },
+  {
+   "t": 1790642223.655,
+   "r": 1790642223.662,
+   "same": true
+  },
+  {
+   "t": 1790642224.164,
+   "r": 1790642224.171,
+   "same": true
+  },
+  {
+   "t": 1790642224.673,
+   "r": 1790642224.68,
+   "same": true
+  },
+  {
+   "t": 1790642225.182,
+   "r": 1790642225.189,
+   "same": true
+  },
+  {
+   "t": 1790642225.691,
+   "r": 1790642225.699,
+   "same": true
+  },
+  {
+   "t": 1790642226.201,
+   "r": 1790642226.209,
+   "same": true
+  },
+  {
+   "t": 1790642226.711,
+   "r": 1790642226.718,
+   "same": true
+  },
+  {
+   "t": 1790642227.22,
+   "r": 1790642227.226,
+   "same": true
+  },
+  {
+   "t": 1790642227.728,
+   "r": 1790642227.735,
+   "same": true
+  },
+  {
+   "t": 1790642228.237,
+   "r": 1790642228.245,
+   "same": true
+  },
+  {
+   "t": 1790642228.747,
+   "r": 1790642228.754,
+   "same": true
+  },
+  {
+   "t": 1790642229.256,
+   "r": 1790642229.264,
+   "same": true
+  },
+  {
+   "t": 1790642229.766,
+   "r": 1790642229.773,
+   "same": true
+  },
+  {
+   "t": 1790642230.275,
+   "r": 1790642230.283,
+   "same": true
+  },
+  {
+   "t": 1790642230.785,
+   "r": 1790642230.792,
+   "same": true
+  },
+  {
+   "t": 1790642231.294,
+   "r": 1790642231.302,
+   "same": true
+  },
+  {
+   "t": 1790642231.804,
+   "r": 1790642231.812,
+   "same": true
+  },
+  {
+   "t": 1790642232.314,
+   "r": 1790642232.321,
+   "same": true
+  },
+  {
+   "t": 1790642232.824,
+   "r": 1790642232.831,
+   "same": true
+  },
+  {
+   "t": 1790642233.334,
+   "r": 1790642233.341,
+   "same": true
+  },
+  {
+   "t": 1790642233.844,
+   "r": 1790642233.851,
+   "same": true
+  },
+  {
+   "t": 1790642234.354,
+   "r": 1790642234.361,
+   "same": true
+  },
+  {
+   "t": 1790642234.864,
+   "r": 1790642234.872,
+   "same": true
+  },
+  {
+   "t": 1790642235.374,
+   "r": 1790642235.382,
+   "same": true
+  },
+  {
+   "t": 1790642235.884,
+   "r": 1790642235.892,
+   "same": true
+  },
+  {
+   "t": 1790642236.394,
+   "r": 1790642236.402,
+   "same": true
+  },
+  {
+   "t": 1790642236.904,
+   "r": 1790642236.912,
+   "same": true
+  },
+  {
+   "t": 1790642237.414,
+   "r": 1790642237.422,
+   "same": true
+  },
+  {
+   "t": 1790642237.924,
+   "r": 1790642237.932,
+   "same": true
+  },
+  {
+   "t": 1790642238.434,
+   "r": 1790642238.442,
+   "same": true
+  },
+  {
+   "t": 1790642238.944,
+   "r": 1790642238.951,
+   "same": true
+  },
+  {
+   "t": 1790642239.454,
+   "r": 1790642239.461,
    "rows": [
     [
      1,
      0,
      "bash",
-     "bash /pre-start.sh"
+     "bash /pre-start.sh",
+     "Mon Sep 28 13:50:30 2026"
     ],
     [
      8,
      1,
      "cat",
-     "cat"
+     "cat",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      9,
      0,
      "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      15,
      9,
      "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      16,
      15,
      "supervisord",
-     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc"
+     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc/supervisor/supervisord-apache-fpm.conf",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      1600,
      16,
      "php-fpm",
-     "php-fpm: master process (/etc/php/8.4/fpm/php-fp"
+     "php-fpm: master process (/etc/php/8.4/fpm/php-fpm.conf)",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1601,
      16,
      "apache2ctl",
-     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND"
+     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1602,
      16,
      "mailpit",
-     "/usr/local/bin/mailpit"
+     "/usr/local/bin/mailpit",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1614,
      1601,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1624,
      1614,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1626,
      1614,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
-     24592,
+     38457,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:39 2026"
     ],
     [
-     24685,
+     38543,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:48 2026"
     ],
     [
-     25043,
+     38723,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:04 2026"
     ],
     [
-     25640,
+     39277,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:59 2026"
+    ]
+   ],
+   "fds": []
+  },
+  {
+   "t": 1790642239.963,
+   "r": 1790642239.97,
+   "same": true
+  },
+  {
+   "t": 1790642240.472,
+   "r": 1790642240.479,
+   "rows": [
+    [
+     1,
+     0,
+     "bash",
+     "bash /pre-start.sh",
+     "Mon Sep 28 13:50:30 2026"
     ],
     [
-     26435,
+     8,
+     1,
+     "cat",
+     "cat",
+     "Mon Sep 28 13:50:31 2026"
+    ],
+    [
+     9,
+     0,
+     "bash",
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
+    ],
+    [
+     15,
+     9,
+     "bash",
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
+    ],
+    [
+     16,
+     15,
+     "supervisord",
+     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc/supervisor/supervisord-apache-fpm.conf",
+     "Mon Sep 28 13:50:31 2026"
+    ],
+    [
+     1600,
+     16,
+     "php-fpm",
+     "php-fpm: master process (/etc/php/8.4/fpm/php-fpm.conf)",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     1601,
+     16,
+     "apache2ctl",
+     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     1602,
+     16,
+     "mailpit",
+     "/usr/local/bin/mailpit",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     1614,
+     1601,
+     "apache2",
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     1624,
+     1614,
+     "apache2",
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     1626,
+     1614,
+     "apache2",
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     38457,
+     1600,
+     "php-fpm",
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:39 2026"
+    ],
+    [
+     38543,
+     1600,
+     "php-fpm",
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:48 2026"
+    ],
+    [
+     38723,
+     1600,
+     "php-fpm",
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:04 2026"
+    ],
+    [
+     39277,
+     1600,
+     "php-fpm",
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:59 2026"
+    ],
+    [
+     41863,
      0,
      "sh",
-     "/bin/sh -c /healthcheck.sh"
+     "/bin/sh -c /healthcheck.sh",
+     "Tue Sep 29 08:37:19 2026"
     ],
     [
-     26441,
-     26435,
+     41869,
+     41863,
      "sh",
-     "sh /healthcheck.sh"
+     "sh /healthcheck.sh",
+     "Tue Sep 29 08:37:19 2026"
     ],
     [
-     26674,
-     26441,
+     41870,
+     41869,
+     "sleep",
+     "sleep 59",
+     "Tue Sep 29 08:37:19 2026"
+    ]
+   ],
+   "fds": []
+  },
+  {
+   "t": 1790642240.982,
+   "r": 1790642240.989,
+   "same": true
+  },
+  {
+   "t": 1790642241.492,
+   "r": 1790642241.499,
+   "same": true
+  },
+  {
+   "t": 1790642242.001,
+   "r": 1790642242.008,
+   "same": true
+  },
+  {
+   "t": 1790642242.511,
+   "r": 1790642242.518,
+   "same": true
+  },
+  {
+   "t": 1790642243.02,
+   "r": 1790642243.027,
+   "same": true
+  },
+  {
+   "t": 1790642243.529,
+   "r": 1790642243.537,
+   "same": true
+  },
+  {
+   "t": 1790642244.039,
+   "r": 1790642244.046,
+   "same": true
+  },
+  {
+   "t": 1790642244.548,
+   "r": 1790642244.555,
+   "same": true
+  },
+  {
+   "t": 1790642245.057,
+   "r": 1790642245.065,
+   "same": true
+  },
+  {
+   "t": 1790642245.567,
+   "r": 1790642245.574,
+   "same": true
+  },
+  {
+   "t": 1790642246.077,
+   "r": 1790642246.084,
+   "same": true
+  },
+  {
+   "t": 1790642246.586,
+   "r": 1790642246.593,
+   "same": true
+  },
+  {
+   "t": 1790642247.095,
+   "r": 1790642247.101,
+   "same": true
+  },
+  {
+   "t": 1790642247.603,
+   "r": 1790642247.611,
+   "same": true
+  },
+  {
+   "t": 1790642248.112,
+   "r": 1790642248.12,
+   "same": true
+  },
+  {
+   "t": 1790642248.622,
+   "r": 1790642248.629,
+   "same": true
+  },
+  {
+   "t": 1790642249.131,
+   "r": 1790642249.139,
+   "same": true
+  },
+  {
+   "t": 1790642249.64,
+   "r": 1790642249.647,
+   "same": true
+  },
+  {
+   "t": 1790642250.148,
+   "r": 1790642250.155,
+   "same": true
+  },
+  {
+   "t": 1790642250.657,
+   "r": 1790642250.664,
+   "same": true
+  },
+  {
+   "t": 1790642251.166,
+   "r": 1790642251.173,
+   "same": true
+  },
+  {
+   "t": 1790642251.676,
+   "r": 1790642251.682,
+   "same": true
+  },
+  {
+   "t": 1790642252.184,
+   "r": 1790642252.191,
+   "same": true
+  },
+  {
+   "t": 1790642252.693,
+   "r": 1790642252.7,
+   "same": true
+  },
+  {
+   "t": 1790642253.203,
+   "r": 1790642253.21,
+   "same": true
+  },
+  {
+   "t": 1790642253.713,
+   "r": 1790642253.72,
+   "same": true
+  },
+  {
+   "t": 1790642254.223,
+   "r": 1790642254.23,
+   "same": true
+  },
+  {
+   "t": 1790642254.732,
+   "r": 1790642254.739,
+   "same": true
+  },
+  {
+   "t": 1790642255.242,
+   "r": 1790642255.249,
+   "same": true
+  },
+  {
+   "t": 1790642255.752,
+   "r": 1790642255.76,
+   "same": true
+  },
+  {
+   "t": 1790642256.262,
+   "r": 1790642256.268,
+   "same": true
+  },
+  {
+   "t": 1790642256.77,
+   "r": 1790642256.777,
+   "same": true
+  },
+  {
+   "t": 1790642257.279,
+   "r": 1790642257.286,
+   "same": true
+  },
+  {
+   "t": 1790642257.789,
+   "r": 1790642257.796,
+   "same": true
+  },
+  {
+   "t": 1790642258.299,
+   "r": 1790642258.306,
+   "same": true
+  },
+  {
+   "t": 1790642258.809,
+   "r": 1790642258.817,
+   "same": true
+  },
+  {
+   "t": 1790642259.319,
+   "r": 1790642259.327,
+   "same": true
+  },
+  {
+   "t": 1790642259.829,
+   "r": 1790642259.836,
+   "same": true
+  },
+  {
+   "t": 1790642260.339,
+   "r": 1790642260.346,
+   "same": true
+  },
+  {
+   "t": 1790642260.849,
+   "r": 1790642260.856,
+   "same": true
+  },
+  {
+   "t": 1790642261.359,
+   "r": 1790642261.366,
+   "same": true
+  },
+  {
+   "t": 1790642261.869,
+   "r": 1790642261.876,
+   "same": true
+  },
+  {
+   "t": 1790642262.379,
+   "r": 1790642262.386,
+   "same": true
+  },
+  {
+   "t": 1790642262.889,
+   "r": 1790642262.896,
+   "same": true
+  },
+  {
+   "t": 1790642263.399,
+   "r": 1790642263.407,
+   "same": true
+  },
+  {
+   "t": 1790642263.909,
+   "r": 1790642263.915,
+   "same": true
+  },
+  {
+   "t": 1790642264.417,
+   "r": 1790642264.425,
+   "same": true
+  },
+  {
+   "t": 1790642264.927,
+   "r": 1790642264.932,
+   "same": true
+  },
+  {
+   "t": 1790642265.434,
+   "r": 1790642265.441,
+   "same": true
+  },
+  {
+   "t": 1790642265.944,
+   "r": 1790642265.951,
+   "same": true
+  },
+  {
+   "t": 1790642266.453,
+   "r": 1790642266.461,
+   "same": true
+  },
+  {
+   "t": 1790642266.963,
+   "r": 1790642266.97,
+   "same": true
+  },
+  {
+   "t": 1790642267.472,
+   "r": 1790642267.479,
+   "same": true
+  },
+  {
+   "t": 1790642267.981,
+   "r": 1790642267.989,
+   "same": true
+  },
+  {
+   "t": 1790642268.491,
+   "r": 1790642268.498,
+   "same": true
+  },
+  {
+   "t": 1790642269.0,
+   "r": 1790642269.007,
+   "same": true
+  },
+  {
+   "t": 1790642269.509,
+   "r": 1790642269.516,
+   "same": true
+  },
+  {
+   "t": 1790642270.018,
+   "r": 1790642270.024,
+   "same": true
+  },
+  {
+   "t": 1790642270.526,
+   "r": 1790642270.534,
+   "same": true
+  },
+  {
+   "t": 1790642271.037,
+   "r": 1790642271.043,
+   "same": true
+  },
+  {
+   "t": 1790642271.545,
+   "r": 1790642271.552,
+   "same": true
+  },
+  {
+   "t": 1790642272.054,
+   "r": 1790642272.06,
+   "same": true
+  },
+  {
+   "t": 1790642272.562,
+   "r": 1790642272.569,
+   "same": true
+  },
+  {
+   "t": 1790642273.071,
+   "r": 1790642273.079,
+   "same": true
+  },
+  {
+   "t": 1790642273.581,
+   "r": 1790642273.587,
+   "same": true
+  },
+  {
+   "t": 1790642274.089,
+   "r": 1790642274.095,
+   "same": true
+  },
+  {
+   "t": 1790642274.597,
+   "r": 1790642274.605,
+   "same": true
+  },
+  {
+   "t": 1790642275.108,
+   "r": 1790642275.115,
+   "same": true
+  },
+  {
+   "t": 1790642275.618,
+   "r": 1790642275.625,
+   "same": true
+  },
+  {
+   "t": 1790642276.128,
+   "r": 1790642276.135,
+   "same": true
+  },
+  {
+   "t": 1790642276.637,
+   "r": 1790642276.645,
+   "same": true
+  },
+  {
+   "t": 1790642277.148,
+   "r": 1790642277.155,
+   "same": true
+  },
+  {
+   "t": 1790642277.657,
+   "r": 1790642277.665,
+   "same": true
+  },
+  {
+   "t": 1790642278.167,
+   "r": 1790642278.173,
+   "same": true
+  },
+  {
+   "t": 1790642278.676,
+   "r": 1790642278.683,
+   "same": true
+  },
+  {
+   "t": 1790642279.186,
+   "r": 1790642279.194,
+   "same": true
+  },
+  {
+   "t": 1790642279.697,
+   "r": 1790642279.704,
+   "same": true
+  },
+  {
+   "t": 1790642280.207,
+   "r": 1790642280.214,
+   "same": true
+  },
+  {
+   "t": 1790642280.716,
+   "r": 1790642280.723,
+   "same": true
+  },
+  {
+   "t": 1790642281.226,
+   "r": 1790642281.234,
+   "same": true
+  },
+  {
+   "t": 1790642281.737,
+   "r": 1790642281.744,
+   "same": true
+  },
+  {
+   "t": 1790642282.247,
+   "r": 1790642282.254,
+   "same": true
+  },
+  {
+   "t": 1790642282.757,
+   "r": 1790642282.764,
+   "same": true
+  },
+  {
+   "t": 1790642283.266,
+   "r": 1790642283.273,
+   "same": true
+  },
+  {
+   "t": 1790642283.776,
+   "r": 1790642283.783,
+   "same": true
+  },
+  {
+   "t": 1790642284.286,
+   "r": 1790642284.294,
+   "same": true
+  },
+  {
+   "t": 1790642284.797,
+   "r": 1790642284.804,
+   "same": true
+  },
+  {
+   "t": 1790642285.306,
+   "r": 1790642285.313,
+   "same": true
+  },
+  {
+   "t": 1790642285.816,
+   "r": 1790642285.824,
+   "same": true
+  },
+  {
+   "t": 1790642286.327,
+   "r": 1790642286.334,
+   "same": true
+  },
+  {
+   "t": 1790642286.837,
+   "r": 1790642286.844,
+   "same": true
+  },
+  {
+   "t": 1790642287.346,
+   "r": 1790642287.354,
+   "same": true
+  },
+  {
+   "t": 1790642287.856,
+   "r": 1790642287.863,
+   "same": true
+  },
+  {
+   "t": 1790642288.366,
+   "r": 1790642288.374,
+   "same": true
+  },
+  {
+   "t": 1790642288.876,
+   "r": 1790642288.884,
+   "same": true
+  },
+  {
+   "t": 1790642289.387,
+   "r": 1790642289.394,
+   "same": true
+  },
+  {
+   "t": 1790642289.896,
+   "r": 1790642289.904,
+   "same": true
+  },
+  {
+   "t": 1790642290.407,
+   "r": 1790642290.415,
+   "same": true
+  },
+  {
+   "t": 1790642290.917,
+   "r": 1790642290.924,
+   "same": true
+  },
+  {
+   "t": 1790642291.427,
+   "r": 1790642291.434,
+   "same": true
+  },
+  {
+   "t": 1790642291.936,
+   "r": 1790642291.943,
+   "same": true
+  },
+  {
+   "t": 1790642292.445,
+   "r": 1790642292.452,
+   "same": true
+  },
+  {
+   "t": 1790642292.954,
+   "r": 1790642292.962,
+   "same": true
+  },
+  {
+   "t": 1790642293.464,
+   "r": 1790642293.47,
+   "same": true
+  },
+  {
+   "t": 1790642293.973,
+   "r": 1790642293.979,
+   "same": true
+  },
+  {
+   "t": 1790642294.481,
+   "r": 1790642294.488,
+   "same": true
+  },
+  {
+   "t": 1790642294.99,
+   "r": 1790642294.997,
+   "same": true
+  },
+  {
+   "t": 1790642295.499,
+   "r": 1790642295.507,
+   "same": true
+  },
+  {
+   "t": 1790642296.009,
+   "r": 1790642296.016,
+   "same": true
+  },
+  {
+   "t": 1790642296.518,
+   "r": 1790642296.526,
+   "same": true
+  },
+  {
+   "t": 1790642297.028,
+   "r": 1790642297.034,
+   "same": true
+  },
+  {
+   "t": 1790642297.536,
+   "r": 1790642297.544,
+   "same": true
+  },
+  {
+   "t": 1790642298.045,
+   "r": 1790642298.051,
+   "same": true
+  },
+  {
+   "t": 1790642298.553,
+   "r": 1790642298.56,
+   "same": true
+  },
+  {
+   "t": 1790642299.062,
+   "r": 1790642299.07,
+   "same": true
+  },
+  {
+   "t": 1790642299.572,
+   "r": 1790642299.579,
+   "rows": [
+    [
+     1,
+     0,
+     "bash",
+     "bash /pre-start.sh",
+     "Mon Sep 28 13:50:30 2026"
+    ],
+    [
+     8,
+     1,
+     "cat",
+     "cat",
+     "Mon Sep 28 13:50:31 2026"
+    ],
+    [
+     9,
+     0,
+     "bash",
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
+    ],
+    [
+     15,
+     9,
+     "bash",
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
+    ],
+    [
+     16,
+     15,
+     "supervisord",
+     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc/supervisor/supervisord-apache-fpm.conf",
+     "Mon Sep 28 13:50:31 2026"
+    ],
+    [
+     1600,
+     16,
+     "php-fpm",
+     "php-fpm: master process (/etc/php/8.4/fpm/php-fpm.conf)",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     1601,
+     16,
+     "apache2ctl",
+     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     1602,
+     16,
+     "mailpit",
+     "/usr/local/bin/mailpit",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     1614,
+     1601,
+     "apache2",
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     1624,
+     1614,
+     "apache2",
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     1626,
+     1614,
+     "apache2",
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
+    ],
+    [
+     38457,
+     1600,
+     "php-fpm",
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:39 2026"
+    ],
+    [
+     38543,
+     1600,
+     "php-fpm",
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:48 2026"
+    ],
+    [
+     38723,
+     1600,
+     "php-fpm",
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:04 2026"
+    ],
+    [
+     39277,
+     1600,
+     "php-fpm",
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:59 2026"
+    ],
+    [
+     41863,
+     0,
+     "sh",
+     "/bin/sh -c /healthcheck.sh",
+     "Tue Sep 29 08:37:19 2026"
+    ],
+    [
+     41869,
+     41863,
+     "sh",
+     "sh /healthcheck.sh",
+     "Tue Sep 29 08:37:19 2026"
+    ],
+    [
+     42461,
+     41869,
      "supervisorctl",
-     "/usr/bin/python3 /usr/bin/supervisorctl status p"
+     "/usr/bin/python3 /usr/bin/supervisorctl status apache2",
+     "Tue Sep 29 08:38:18 2026"
     ],
     [
-     26675,
-     26441,
+     42462,
+     41869,
      "grep",
-     "grep -q FATAL"
+     "grep -q FATAL",
+     "Tue Sep 29 08:38:18 2026"
     ]
    ],
    "fds": []
   },
   {
-   "t": 1790636811.899,
-   "d": 0.053,
+   "t": 1790642300.081,
+   "r": 1790642300.087,
    "rows": [
     [
      1,
      0,
      "bash",
-     "bash /pre-start.sh"
+     "bash /pre-start.sh",
+     "Mon Sep 28 13:50:30 2026"
     ],
     [
      8,
      1,
      "cat",
-     "cat"
+     "cat",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      9,
      0,
      "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      15,
      9,
      "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      16,
      15,
      "supervisord",
-     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc"
+     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc/supervisor/supervisord-apache-fpm.conf",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      1600,
      16,
      "php-fpm",
-     "php-fpm: master process (/etc/php/8.4/fpm/php-fp"
+     "php-fpm: master process (/etc/php/8.4/fpm/php-fpm.conf)",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1601,
      16,
      "apache2ctl",
-     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND"
+     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1602,
      16,
      "mailpit",
-     "/usr/local/bin/mailpit"
+     "/usr/local/bin/mailpit",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1614,
      1601,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1624,
      1614,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1626,
      1614,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
-     24592,
+     38457,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:39 2026"
     ],
     [
-     24685,
+     38543,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:48 2026"
     ],
     [
-     25043,
+     38723,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:04 2026"
     ],
     [
-     25640,
+     39277,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:59 2026"
     ]
    ],
    "fds": []
   },
   {
-   "t": 1790636812.399,
-   "d": 0.085,
+   "t": 1790642300.589,
+   "r": 1790642300.596,
    "same": true
   },
   {
-   "t": 1790636812.899,
-   "d": 0.058,
+   "t": 1790642301.098,
+   "r": 1790642301.104,
    "rows": [
     [
      1,
      0,
      "bash",
-     "bash /pre-start.sh"
+     "bash /pre-start.sh",
+     "Mon Sep 28 13:50:30 2026"
     ],
     [
      8,
      1,
      "cat",
-     "cat"
+     "cat",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      9,
      0,
      "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      15,
      9,
      "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
+     "bash -c set -eu && ( /start.sh > /var/tmp/logpipe 2>&1 || kill -- -1)",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      16,
      15,
      "supervisord",
-     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc"
+     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc/supervisor/supervisord-apache-fpm.conf",
+     "Mon Sep 28 13:50:31 2026"
     ],
     [
      1600,
      16,
      "php-fpm",
-     "php-fpm: master process (/etc/php/8.4/fpm/php-fp"
+     "php-fpm: master process (/etc/php/8.4/fpm/php-fpm.conf)",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1601,
      16,
      "apache2ctl",
-     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND"
+     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1602,
      16,
      "mailpit",
-     "/usr/local/bin/mailpit"
+     "/usr/local/bin/mailpit",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1614,
      1601,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1624,
      1614,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
      1626,
      1614,
      "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
+     "/usr/sbin/apache2 -D FOREGROUND",
+     "Mon Sep 28 13:50:33 2026"
     ],
     [
-     24592,
+     38457,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:39 2026"
     ],
     [
-     24685,
+     38543,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:24:48 2026"
     ],
     [
-     25043,
+     38723,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:04 2026"
     ],
     [
-     25640,
+     39277,
      1600,
      "php-fpm",
-     "php-fpm: pool www"
+     "php-fpm: pool www",
+     "Tue Sep 29 07:25:59 2026"
     ],
     [
-     26708,
+     42482,
      0,
      "sh",
-     "/bin/sh -c /healthcheck.sh"
+     "/bin/sh -c /healthcheck.sh",
+     "Tue Sep 29 08:38:19 2026"
     ],
     [
-     26714,
-     26708,
+     42488,
+     42482,
      "sh",
-     "sh /healthcheck.sh"
+     "sh /healthcheck.sh",
+     "Tue Sep 29 08:38:19 2026"
     ],
     [
-     26715,
-     26714,
+     42489,
+     42488,
      "sleep",
-     "sleep 59"
+     "sleep 59",
+     "Tue Sep 29 08:38:19 2026"
     ]
    ],
    "fds": []
   },
   {
-   "t": 1790636813.399,
-   "d": 0.055,
+   "t": 1790642301.606,
+   "r": 1790642301.612,
    "same": true
   },
   {
-   "t": 1790636813.899,
-   "d": 0.048,
+   "t": 1790642302.114,
+   "r": 1790642302.121,
    "same": true
   },
   {
-   "t": 1790636814.399,
-   "d": 0.051,
+   "t": 1790642302.623,
+   "r": 1790642302.63,
    "same": true
   },
   {
-   "t": 1790636814.899,
-   "d": 0.059,
+   "t": 1790642303.132,
+   "r": 1790642303.138,
    "same": true
   },
   {
-   "t": 1790636815.401,
-   "d": 0.061,
+   "t": 1790642303.641,
+   "r": 1790642303.649,
    "same": true
   },
   {
-   "t": 1790636815.901,
-   "d": 0.05,
+   "t": 1790642304.151,
+   "r": 1790642304.159,
    "same": true
   },
   {
-   "t": 1790636816.402,
-   "d": 0.058,
+   "t": 1790642304.66,
+   "r": 1790642304.668,
    "same": true
   },
   {
-   "t": 1790636816.902,
-   "d": 0.048,
+   "t": 1790642305.17,
+   "r": 1790642305.177,
    "same": true
   },
   {
-   "t": 1790636817.402,
-   "d": 0.054,
+   "t": 1790642305.679,
+   "r": 1790642305.685,
    "same": true
   },
   {
-   "t": 1790636817.902,
-   "d": 0.066,
+   "t": 1790642306.187,
+   "r": 1790642306.195,
    "same": true
   },
   {
-   "t": 1790636818.402,
-   "d": 0.059,
+   "t": 1790642306.697,
+   "r": 1790642306.702,
    "same": true
   },
   {
-   "t": 1790636818.902,
-   "d": 0.057,
+   "t": 1790642307.204,
+   "r": 1790642307.212,
    "same": true
   },
   {
-   "t": 1790636819.402,
-   "d": 0.049,
+   "t": 1790642307.714,
+   "r": 1790642307.721,
    "same": true
   },
   {
-   "t": 1790636819.902,
-   "d": 0.058,
+   "t": 1790642308.223,
+   "r": 1790642308.232,
    "same": true
   },
   {
-   "t": 1790636820.402,
-   "d": 0.057,
+   "t": 1790642308.734,
+   "r": 1790642308.741,
    "same": true
   },
   {
-   "t": 1790636820.902,
-   "d": 0.052,
+   "t": 1790642309.243,
+   "r": 1790642309.25,
    "same": true
   },
   {
-   "t": 1790636821.402,
-   "d": 0.055,
+   "t": 1790642309.752,
+   "r": 1790642309.76,
    "same": true
   },
   {
-   "t": 1790636821.903,
-   "d": 0.049,
+   "t": 1790642310.262,
+   "r": 1790642310.27,
    "same": true
   },
   {
-   "t": 1790636822.403,
-   "d": 0.045,
+   "t": 1790642310.772,
+   "r": 1790642310.779,
    "same": true
   },
   {
-   "t": 1790636822.903,
-   "d": 0.053,
+   "t": 1790642311.281,
+   "r": 1790642311.288,
    "same": true
   },
   {
-   "t": 1790636823.403,
-   "d": 0.049,
+   "t": 1790642311.79,
+   "r": 1790642311.797,
    "same": true
   },
   {
-   "t": 1790636823.903,
-   "d": 0.062,
+   "t": 1790642312.299,
+   "r": 1790642312.306,
    "same": true
   },
   {
-   "t": 1790636824.403,
-   "d": 0.053,
+   "t": 1790642312.808,
+   "r": 1790642312.816,
    "same": true
   },
   {
-   "t": 1790636824.903,
-   "d": 0.047,
+   "t": 1790642313.318,
+   "r": 1790642313.326,
    "same": true
   },
   {
-   "t": 1790636825.403,
-   "d": 0.048,
+   "t": 1790642313.828,
+   "r": 1790642313.833,
    "same": true
   },
   {
-   "t": 1790636825.903,
-   "d": 0.05,
+   "t": 1790642314.335,
+   "r": 1790642314.342,
    "same": true
   },
   {
-   "t": 1790636826.404,
-   "d": 0.047,
+   "t": 1790642314.845,
+   "r": 1790642314.853,
    "same": true
   },
   {
-   "t": 1790636826.904,
-   "d": 0.05,
+   "t": 1790642315.355,
+   "r": 1790642315.363,
    "same": true
   },
   {
-   "t": 1790636827.404,
-   "d": 0.05,
+   "t": 1790642315.865,
+   "r": 1790642315.871,
    "same": true
   },
   {
-   "t": 1790636827.905,
-   "d": 0.05,
+   "t": 1790642316.374,
+   "r": 1790642316.381,
    "same": true
   },
   {
-   "t": 1790636828.405,
-   "d": 0.052,
+   "t": 1790642316.882,
+   "r": 1790642316.889,
    "same": true
   },
   {
-   "t": 1790636828.905,
-   "d": 0.052,
+   "t": 1790642317.391,
+   "r": 1790642317.398,
    "same": true
   },
   {
-   "t": 1790636829.405,
-   "d": 0.047,
+   "t": 1790642317.9,
+   "r": 1790642317.907,
    "same": true
   },
   {
-   "t": 1790636829.905,
-   "d": 0.05,
+   "t": 1790642318.409,
+   "r": 1790642318.416,
    "same": true
   },
   {
-   "t": 1790636830.405,
-   "d": 0.048,
+   "t": 1790642318.918,
+   "r": 1790642318.925,
    "same": true
   },
   {
-   "t": 1790636830.905,
-   "d": 0.048,
+   "t": 1790642319.427,
+   "r": 1790642319.434,
    "same": true
   },
   {
-   "t": 1790636831.405,
-   "d": 0.056,
+   "t": 1790642319.936,
+   "r": 1790642319.943,
    "same": true
   },
   {
-   "t": 1790636831.905,
-   "d": 0.054,
+   "t": 1790642320.445,
+   "r": 1790642320.452,
    "same": true
   },
   {
-   "t": 1790636832.405,
-   "d": 0.055,
+   "t": 1790642320.953,
+   "r": 1790642320.96,
    "same": true
   },
   {
-   "t": 1790636832.905,
-   "d": 0.055,
+   "t": 1790642321.462,
+   "r": 1790642321.469,
    "same": true
   },
   {
-   "t": 1790636833.406,
-   "d": 0.058,
+   "t": 1790642321.971,
+   "r": 1790642321.977,
    "same": true
   },
   {
-   "t": 1790636833.906,
-   "d": 0.065,
+   "t": 1790642322.479,
+   "r": 1790642322.485,
    "same": true
   },
   {
-   "t": 1790636834.406,
-   "d": 0.055,
+   "t": 1790642322.987,
+   "r": 1790642322.994,
    "same": true
   },
   {
-   "t": 1790636834.906,
-   "d": 0.063,
+   "t": 1790642323.496,
+   "r": 1790642323.503,
    "same": true
   },
   {
-   "t": 1790636835.406,
-   "d": 0.057,
+   "t": 1790642324.005,
+   "r": 1790642324.012,
    "same": true
   },
   {
-   "t": 1790636835.906,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636836.406,
-   "d": 0.048,
-   "same": true
-  },
-  {
-   "t": 1790636836.906,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636837.406,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636837.906,
-   "d": 0.06,
-   "same": true
-  },
-  {
-   "t": 1790636838.407,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636838.907,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636839.407,
-   "d": 0.061,
-   "same": true
-  },
-  {
-   "t": 1790636839.907,
-   "d": 0.057,
-   "same": true
-  },
-  {
-   "t": 1790636840.407,
-   "d": 0.061,
-   "same": true
-  },
-  {
-   "t": 1790636840.907,
-   "d": 0.057,
-   "same": true
-  },
-  {
-   "t": 1790636841.407,
-   "d": 0.068,
-   "same": true
-  },
-  {
-   "t": 1790636841.907,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636842.407,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636842.907,
-   "d": 0.048,
-   "same": true
-  },
-  {
-   "t": 1790636843.407,
-   "d": 0.06,
-   "same": true
-  },
-  {
-   "t": 1790636843.908,
-   "d": 0.063,
-   "same": true
-  },
-  {
-   "t": 1790636844.408,
-   "d": 0.056,
-   "same": true
-  },
-  {
-   "t": 1790636844.908,
-   "d": 0.056,
-   "same": true
-  },
-  {
-   "t": 1790636845.408,
-   "d": 0.053,
-   "same": true
-  },
-  {
-   "t": 1790636845.908,
-   "d": 0.051,
-   "same": true
-  },
-  {
-   "t": 1790636846.408,
-   "d": 0.056,
-   "same": true
-  },
-  {
-   "t": 1790636846.908,
-   "d": 0.058,
-   "same": true
-  },
-  {
-   "t": 1790636847.408,
-   "d": 0.052,
-   "same": true
-  },
-  {
-   "t": 1790636847.908,
-   "d": 0.057,
-   "same": true
-  },
-  {
-   "t": 1790636848.42,
-   "d": 0.078,
-   "same": true
-  },
-  {
-   "t": 1790636848.92,
-   "d": 0.054,
-   "same": true
-  },
-  {
-   "t": 1790636849.421,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636849.921,
-   "d": 0.055,
-   "same": true
-  },
-  {
-   "t": 1790636850.421,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636850.921,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636851.421,
-   "d": 0.056,
-   "same": true
-  },
-  {
-   "t": 1790636851.921,
-   "d": 0.051,
-   "same": true
-  },
-  {
-   "t": 1790636852.422,
-   "d": 0.055,
-   "same": true
-  },
-  {
-   "t": 1790636852.922,
-   "d": 0.054,
-   "same": true
-  },
-  {
-   "t": 1790636853.422,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636853.922,
-   "d": 0.054,
-   "same": true
-  },
-  {
-   "t": 1790636854.422,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636854.922,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636855.422,
-   "d": 0.052,
-   "same": true
-  },
-  {
-   "t": 1790636855.922,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636856.422,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636856.922,
-   "d": 0.052,
-   "same": true
-  },
-  {
-   "t": 1790636857.423,
-   "d": 0.055,
-   "same": true
-  },
-  {
-   "t": 1790636857.923,
-   "d": 0.055,
-   "same": true
-  },
-  {
-   "t": 1790636858.423,
-   "d": 0.055,
-   "same": true
-  },
-  {
-   "t": 1790636858.923,
-   "d": 0.056,
-   "same": true
-  },
-  {
-   "t": 1790636859.423,
-   "d": 0.06,
-   "same": true
-  },
-  {
-   "t": 1790636859.923,
-   "d": 0.058,
-   "same": true
-  },
-  {
-   "t": 1790636860.423,
-   "d": 0.054,
-   "same": true
-  },
-  {
-   "t": 1790636860.923,
-   "d": 0.053,
-   "same": true
-  },
-  {
-   "t": 1790636861.423,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636861.923,
-   "d": 0.054,
-   "same": true
-  },
-  {
-   "t": 1790636862.424,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636862.924,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636863.424,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636863.924,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636864.424,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636864.924,
-   "d": 0.044,
-   "same": true
-  },
-  {
-   "t": 1790636865.424,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636865.925,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636866.425,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636866.925,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636867.425,
-   "d": 0.054,
-   "same": true
-  },
-  {
-   "t": 1790636867.925,
-   "d": 0.055,
-   "same": true
-  },
-  {
-   "t": 1790636868.426,
-   "d": 0.051,
-   "same": true
-  },
-  {
-   "t": 1790636868.926,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636869.426,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636869.926,
-   "d": 0.045,
-   "same": true
-  },
-  {
-   "t": 1790636870.427,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636870.927,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636871.427,
-   "d": 0.045,
-   "same": true
-  },
-  {
-   "t": 1790636871.928,
-   "d": 0.045,
-   "rows": [
-    [
-     1,
-     0,
-     "bash",
-     "bash /pre-start.sh"
-    ],
-    [
-     8,
-     1,
-     "cat",
-     "cat"
-    ],
-    [
-     9,
-     0,
-     "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
-    ],
-    [
-     15,
-     9,
-     "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
-    ],
-    [
-     16,
-     15,
-     "supervisord",
-     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc"
-    ],
-    [
-     1600,
-     16,
-     "php-fpm",
-     "php-fpm: master process (/etc/php/8.4/fpm/php-fp"
-    ],
-    [
-     1601,
-     16,
-     "apache2ctl",
-     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND"
-    ],
-    [
-     1602,
-     16,
-     "mailpit",
-     "/usr/local/bin/mailpit"
-    ],
-    [
-     1614,
-     1601,
-     "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
-    ],
-    [
-     1624,
-     1614,
-     "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
-    ],
-    [
-     1626,
-     1614,
-     "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
-    ],
-    [
-     24592,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ],
-    [
-     24685,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ],
-    [
-     25043,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ],
-    [
-     25640,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ],
-    [
-     26708,
-     0,
-     "sh",
-     "/bin/sh -c /healthcheck.sh"
-    ],
-    [
-     26714,
-     26708,
-     "sh",
-     "sh /healthcheck.sh"
-    ],
-    [
-     27659,
-     26714,
-     "supervisorctl",
-     "/usr/bin/python3 /usr/bin/supervisorctl status n"
-    ],
-    [
-     27660,
-     26714,
-     "grep",
-     "grep -q FATAL"
-    ]
-   ],
-   "fds": []
-  },
-  {
-   "t": 1790636872.428,
-   "d": 0.047,
-   "rows": [
-    [
-     1,
-     0,
-     "bash",
-     "bash /pre-start.sh"
-    ],
-    [
-     8,
-     1,
-     "cat",
-     "cat"
-    ],
-    [
-     9,
-     0,
-     "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
-    ],
-    [
-     15,
-     9,
-     "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
-    ],
-    [
-     16,
-     15,
-     "supervisord",
-     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc"
-    ],
-    [
-     1600,
-     16,
-     "php-fpm",
-     "php-fpm: master process (/etc/php/8.4/fpm/php-fp"
-    ],
-    [
-     1601,
-     16,
-     "apache2ctl",
-     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND"
-    ],
-    [
-     1602,
-     16,
-     "mailpit",
-     "/usr/local/bin/mailpit"
-    ],
-    [
-     1614,
-     1601,
-     "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
-    ],
-    [
-     1624,
-     1614,
-     "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
-    ],
-    [
-     1626,
-     1614,
-     "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
-    ],
-    [
-     24592,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ],
-    [
-     24685,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ],
-    [
-     25043,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ],
-    [
-     25640,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ]
-   ],
-   "fds": []
-  },
-  {
-   "t": 1790636872.928,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636873.429,
-   "d": 0.046,
-   "rows": [
-    [
-     1,
-     0,
-     "bash",
-     "bash /pre-start.sh"
-    ],
-    [
-     8,
-     1,
-     "cat",
-     "cat"
-    ],
-    [
-     9,
-     0,
-     "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
-    ],
-    [
-     15,
-     9,
-     "bash",
-     "bash -c set -eu && ( /start.sh > /var/tmp/logpip"
-    ],
-    [
-     16,
-     15,
-     "supervisord",
-     "/usr/bin/python3 /usr/bin/supervisord -n -c /etc"
-    ],
-    [
-     1600,
-     16,
-     "php-fpm",
-     "php-fpm: master process (/etc/php/8.4/fpm/php-fp"
-    ],
-    [
-     1601,
-     16,
-     "apache2ctl",
-     "/bin/sh /usr/sbin/apache2ctl -D FOREGROUND"
-    ],
-    [
-     1602,
-     16,
-     "mailpit",
-     "/usr/local/bin/mailpit"
-    ],
-    [
-     1614,
-     1601,
-     "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
-    ],
-    [
-     1624,
-     1614,
-     "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
-    ],
-    [
-     1626,
-     1614,
-     "apache2",
-     "/usr/sbin/apache2 -D FOREGROUND"
-    ],
-    [
-     24592,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ],
-    [
-     24685,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ],
-    [
-     25043,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ],
-    [
-     25640,
-     1600,
-     "php-fpm",
-     "php-fpm: pool www"
-    ],
-    [
-     27691,
-     0,
-     "sh",
-     "/bin/sh -c /healthcheck.sh"
-    ],
-    [
-     27697,
-     27691,
-     "sh",
-     "sh /healthcheck.sh"
-    ],
-    [
-     27698,
-     27697,
-     "sleep",
-     "sleep 59"
-    ]
-   ],
-   "fds": []
-  },
-  {
-   "t": 1790636873.929,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636874.429,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636874.93,
-   "d": 0.052,
-   "same": true
-  },
-  {
-   "t": 1790636875.43,
-   "d": 0.045,
-   "same": true
-  },
-  {
-   "t": 1790636875.93,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636876.43,
-   "d": 0.048,
-   "same": true
-  },
-  {
-   "t": 1790636876.93,
-   "d": 0.043,
-   "same": true
-  },
-  {
-   "t": 1790636877.43,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636877.931,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636878.431,
-   "d": 0.044,
-   "same": true
-  },
-  {
-   "t": 1790636878.931,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636879.431,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636879.932,
-   "d": 0.048,
-   "same": true
-  },
-  {
-   "t": 1790636880.432,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636880.932,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636881.432,
-   "d": 0.055,
-   "same": true
-  },
-  {
-   "t": 1790636881.932,
-   "d": 0.048,
-   "same": true
-  },
-  {
-   "t": 1790636882.432,
-   "d": 0.057,
-   "same": true
-  },
-  {
-   "t": 1790636882.932,
-   "d": 0.056,
-   "same": true
-  },
-  {
-   "t": 1790636883.432,
-   "d": 0.044,
-   "same": true
-  },
-  {
-   "t": 1790636883.932,
-   "d": 0.054,
-   "same": true
-  },
-  {
-   "t": 1790636884.432,
-   "d": 0.097,
-   "same": true
-  },
-  {
-   "t": 1790636884.933,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636885.433,
-   "d": 0.056,
-   "same": true
-  },
-  {
-   "t": 1790636885.933,
-   "d": 0.052,
-   "same": true
-  },
-  {
-   "t": 1790636886.433,
-   "d": 0.069,
-   "same": true
-  },
-  {
-   "t": 1790636886.933,
-   "d": 0.063,
-   "same": true
-  },
-  {
-   "t": 1790636887.433,
-   "d": 0.053,
-   "same": true
-  },
-  {
-   "t": 1790636887.933,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636888.433,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636888.934,
-   "d": 0.044,
-   "same": true
-  },
-  {
-   "t": 1790636889.434,
-   "d": 0.045,
-   "same": true
-  },
-  {
-   "t": 1790636889.934,
-   "d": 0.053,
-   "same": true
-  },
-  {
-   "t": 1790636890.434,
-   "d": 0.051,
-   "same": true
-  },
-  {
-   "t": 1790636890.934,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636891.434,
-   "d": 0.044,
-   "same": true
-  },
-  {
-   "t": 1790636891.935,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636892.435,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636892.935,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636893.435,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636893.936,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636894.436,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636894.936,
-   "d": 0.045,
-   "same": true
-  },
-  {
-   "t": 1790636895.437,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636895.937,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636896.437,
-   "d": 0.045,
-   "same": true
-  },
-  {
-   "t": 1790636896.937,
-   "d": 0.044,
-   "same": true
-  },
-  {
-   "t": 1790636897.437,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636897.938,
-   "d": 0.051,
-   "same": true
-  },
-  {
-   "t": 1790636898.438,
-   "d": 0.054,
-   "same": true
-  },
-  {
-   "t": 1790636898.938,
-   "d": 0.053,
-   "same": true
-  },
-  {
-   "t": 1790636899.438,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636899.938,
-   "d": 0.048,
-   "same": true
-  },
-  {
-   "t": 1790636900.438,
-   "d": 0.061,
-   "same": true
-  },
-  {
-   "t": 1790636900.938,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636901.438,
-   "d": 0.054,
-   "same": true
-  },
-  {
-   "t": 1790636901.938,
-   "d": 0.048,
-   "same": true
-  },
-  {
-   "t": 1790636902.439,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636902.94,
-   "d": 0.051,
-   "same": true
-  },
-  {
-   "t": 1790636903.44,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636903.94,
-   "d": 0.051,
-   "same": true
-  },
-  {
-   "t": 1790636904.441,
-   "d": 0.045,
-   "same": true
-  },
-  {
-   "t": 1790636904.941,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636905.442,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636905.942,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636906.442,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636906.943,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636907.443,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636907.943,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636908.443,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636908.943,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636909.444,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636909.944,
-   "d": 0.048,
-   "same": true
-  },
-  {
-   "t": 1790636910.444,
-   "d": 0.052,
-   "same": true
-  },
-  {
-   "t": 1790636910.944,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636911.445,
-   "d": 0.044,
-   "same": true
-  },
-  {
-   "t": 1790636911.945,
-   "d": 0.048,
-   "same": true
-  },
-  {
-   "t": 1790636912.446,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636912.946,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636913.446,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636913.946,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636914.447,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636914.947,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636915.447,
-   "d": 0.051,
-   "same": true
-  },
-  {
-   "t": 1790636915.948,
-   "d": 0.049,
-   "same": true
-  },
-  {
-   "t": 1790636916.448,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636916.949,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636917.449,
-   "d": 0.05,
-   "same": true
-  },
-  {
-   "t": 1790636917.949,
-   "d": 0.046,
-   "same": true
-  },
-  {
-   "t": 1790636918.449,
-   "d": 0.052,
-   "same": true
-  },
-  {
-   "t": 1790636918.95,
-   "d": 0.057,
-   "same": true
-  },
-  {
-   "t": 1790636919.45,
-   "d": 0.047,
-   "same": true
-  },
-  {
-   "t": 1790636919.95,
-   "d": 0.046,
+   "t": 1790642324.514,
+   "r": 1790642324.522,
    "same": true
   }
  ],
@@ -2634,7 +2603,7 @@
      "types": ""
     },
     "backgroundjob": {
-     "lastjob": "134682646616350721"
+     "lastjob": "134692264751013889"
     },
     "bruteforcesettings": {
      "enabled": "yes",
@@ -2646,7 +2615,7 @@
      "installed_version": "34.0.0",
      "loopback_tmp_scheme": "https",
      "maintenance_run": "0",
-     "maintenance_update": "{\"3\":1790634809,\"2\":1790634809,\"1\":1790635070}",
+     "maintenance_update": "{\"3\":1790634809,\"2\":1790637641,\"1\":1790637641}",
      "types": "filesystem,dav"
     },
     "cloud_federation_api": {
@@ -2666,7 +2635,7 @@
     },
     "core": {
      "installedat": "1790574638.3794",
-     "lastcron": 1790635142,
+     "lastcron": 1790637959,
      "lastupdatedat": 1790574638,
      "metadataGenerationDone": true,
      "previewMovedDone": true,
@@ -2987,7 +2956,8 @@
    "lib/Listener/FilesScriptsListener.php": "36106e7098c5d6483b802d1f6ba26015363a4b76fc108dbfcdc8e0ecd8a0e60d",
    "templates/editor.php": "49876f2b2eb2a77cee7c33f549ca8c486826656e8cb43dcdf2d24ce19ae7dbf9"
   },
-  "links": []
+  "links": [],
+  "others": []
  },
- "completedAt": "2026-09-28T23:08:44+00:00"
+ "completedAt": "2026-09-29T00:38:49+00:00"
 }
