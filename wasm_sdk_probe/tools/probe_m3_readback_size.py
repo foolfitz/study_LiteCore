@@ -104,7 +104,7 @@ def run_arm(kind: str, instance: Instance, scratch: Path, fixture: Path, saves: 
         record["staleLockCleared"] = clear_lock(instance, record["lockAtReset"]["fileId"])
     record["reset"] = upload(instance, fixture)
     record["copiesBefore"] = conflict_copies(instance, remove=True)
-    session = (EventChrome("cold") if kind == "chrome" else FirefoxSession("cold", profile_dir=firefox_profile(scratch)))
+    session = (EventChrome("cold") if kind == "chrome" else FirefoxSession("cold", profile_dir=firefox_profile(scratch / f"arm-{fixture.stem}")))
     record["version"] = session.version
     try:
         open_from_files(session, instance, record)
