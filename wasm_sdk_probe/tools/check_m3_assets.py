@@ -64,7 +64,9 @@ from run_e2_c_page_smoke import POINT_AT, PRESS, navigate  # noqa: E402
 PROJECT = Path(__file__).resolve().parent.parent
 REPO = PROJECT.parent
 EVIDENCE = REPO / "findings" / "evidence" / "m3-assets"
-PAGE_SHA256 = "fbfb59a4014995322f210812e3627ff828dbecae351d157305a75701e2d76632"
+# SPEC-M3-page-honesty §7.6: the reviewed page (b61e9fd9), written 2026-09-29 before
+# the re-shakedown and counted runs on host 0.2.4 (369e6ed); was fbfb59a4….
+PAGE_SHA256 = "fc80050c22948df63f012fa87a254c63e4f19227aa387ded76747bd6c21d947e"
 PLAN = {"chrome": 3, "firefox": 3}
 DOC = "e2-editor.html"
 ENTRY = "/apps/litecore/r/e2-editor.html"
