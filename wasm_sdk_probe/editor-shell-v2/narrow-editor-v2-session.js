@@ -141,6 +141,8 @@ export class NarrowEditorV2Session extends EditorSession {
     super(options);
     let client = null;
     this.clientReplacements = 0;
+    // SPEC-M3-page-honesty §3: a read-only file opens view-only.  See _enqueue.
+    this._viewOnly = false;
     Object.defineProperty(this, "editor", {
       configurable: true,
       enumerable: true,
@@ -426,6 +428,71 @@ export class NarrowEditorV2Session extends EditorSession {
         return result;
       })
       .catch((error) => { throw this._withDisposition(error); });
+  }
+
+  /**
+   * View-only (SPEC-M3-page-honesty §3, the owner's ruling A of 2026-09-29: a
+   * file the user may not write opens to be read, not edited).
+   *
+   * THE GATE IS THE QUEUE, not the buttons.  Every operation that changes the
+   * document reaches the engine through `_enqueue` with `mutation: true` --
+   * the base class's commitText, delete, insertBreak, setInlineFormat and
+   * undo, and this class's action() (all but BOUNDARY_CAPABLE_MOVES) and
+   * redo().  Refusing there, BEFORE the item is queued, means a control the
+   * page forgot to disable still changes nothing: no operation runs, the state
+   * does not move, the queue is not blocked, and no recovery is offered --
+   * nothing happened, so `recovery` is "none" (set here, because
+   * `recoveryFor` does not know this code and `_withDisposition` keeps a
+   * recovery that is already there).
+   *
+   * Moves stay allowed on purpose: reading a document is moving through it.
+   * A flag on the session, not on the input adapter, so a restart (a fresh
+   * Worker) does not quietly make the document editable again.
+   */
+  setViewOnly(on) {
+    this._viewOnly = on === true;
+  }
+
+  get viewOnly() {
+    return this._viewOnly === true;
+  }
+
+  /**
+   * Does this control change the document?  Read from the same set that
+   * decides the queue flag in action(), so the page's buttons and the gate
+   * cannot disagree.  Fail-closed: any name this class does not know as a
+   * move -- including "save", "undo", a typo, or an action added later --
+   * counts as changing the document.
+   */
+  actionMutates(name) {
+    return !BOUNDARY_CAPABLE_MOVES.has(name);
+  }
+
+  /**
+   * Finding 107: does the session hold edits that no save has taken yet?
+   *
+   * `dirty` is set when a mutation completes and cleared when a save's bytes
+   * are produced; `pending` covers the edit still inside the engine (dirty is
+   * written only after the operation and its state read return), at the price
+   * of also counting a move in flight.  NOT the revision: revisions restart at
+   * zero with every Worker, so after a rollback to a checkpoint newer than the
+   * last save a revision comparison says "saved" when it is not (the 099
+   * class).  The page adds its own half -- a save asked for and not yet
+   * settled by the host -- because only the page knows when that ends.
+   */
+  hasUnsavedEdits() {
+    const snapshot = this.state.snapshot;
+    return snapshot.dirty === true || (snapshot.pending ?? 0) > 0;
+  }
+
+  _enqueue(label, operation, options = {}) {
+    if (this._viewOnly && options?.mutation === true) {
+      const error = new Error(`view-only: ${label} would change the document`);
+      error.code = "EDITOR_VIEW_ONLY";
+      error.recovery = "none";
+      return Promise.reject(error);
+    }
+    return super._enqueue(label, operation, options);
   }
 
   setList(kind, options = {}) {

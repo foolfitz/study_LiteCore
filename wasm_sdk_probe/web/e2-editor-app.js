@@ -58,6 +58,46 @@ const PINNED_WASM_SHA256 = "4a2710bba1ef07d9";
 const HOST = globalThis.liteCoreHost ?? null;
 let hostSaves = Promise.resolve();
 
+// SPEC-M3-page-honesty: a file the user may not write opens view-only (the
+// owner's ruling A, 2026-09-29).  The SESSION refuses -- its queue turns away
+// every mutation before it is queued (NarrowEditorV2Session._enqueue) -- and
+// the page only stops offering what would be refused, so a control this page
+// forgets to disable still changes nothing.
+const VIEW_ONLY_TEXT = "唯讀：只能檢視";
+let viewOnly = false;
+
+// FINDING 107.  Leaving with edits nobody saved lost them without a word: no
+// `beforeunload` existed in this page, the shell's `dirty` fed only its
+// checkpoints, and the host guarded only bytes it could not write.  "Unsaved"
+// is the session's half (an edit landed or still in the engine,
+// `hasUnsavedEdits()`) plus this page's: a save asked for and not yet
+// SETTLED.  Counted from the press, because between the session producing the
+// bytes (which marks it clean) and the host being handed them this page
+// renders, and in that gap nothing is written anywhere.  Settled, not "kept":
+// the host rejects a copy that landed and bytes it could not place with the
+// same code, and it guards the second kind itself.
+let savesUnsettled = 0;
+
+function hasUnsavedWork() {
+  return (session?.hasUnsavedEdits?.() ?? false) || savesUnsettled > 0;
+}
+
+function guardLeave(event) {
+  if (!hasUnsavedWork()) return;
+  event.preventDefault();
+  event.returnValue = "";
+}
+
+// With a host, the HOST decides, alone.  Its `beforeunload` is registered
+// before this module is imported and releases the lock whenever it is not
+// guarding; had this page asked on its own, a user who chose to stay would be
+// left holding no lock and the next save would go to a conflict copy
+// (specs/SPEC-M3-page-honesty.md §7.1).  So the page hands the host its
+// question.  A host without `watchUnsaved` is an older host: the page still
+// asks rather than let edits go silently.
+if (HOST && typeof HOST.watchUnsaved === "function") HOST.watchUnsaved(hasUnsavedWork);
+else addEventListener("beforeunload", guardLeave);
+
 const $ = (selector) => document.querySelector(selector);
 const el = {
   canvas: $("#canvas"), paper: $("#paper"), desk: $("#desk"), sink: $("#sink"),
@@ -109,6 +149,7 @@ function toast(message, bad = false) {
 }
 
 function describeError(error) {
+  if (error?.code === "EDITOR_VIEW_ONLY") return VIEW_ONLY_TEXT;
   const code = error?.code ? `${error.code}：` : "";
   return `${code}${error?.message || String(error)}`;
 }
@@ -643,6 +684,22 @@ function updateGestureAffordance() {
     if (state === null) button.removeAttribute("aria-pressed");
     else button.setAttribute("aria-pressed", state ? "true" : "false");
   }
+  applyControlMutability();
+}
+
+// SPEC-M3-page-honesty §7.1 (V7).  Every toolbar control carries whether it
+// changes the document, asked of the session -- the same set its view-only
+// gate uses, and fail-closed, so a control the session does not know as a move
+// counts as a change.  In view-only that alone decides `disabled`.  It runs at
+// the end of updateGestureAffordance because that function re-sets the action
+// buttons on every state update, and would otherwise switch them back on.
+function applyControlMutability() {
+  if (typeof session?.actionMutates !== "function") return;
+  for (const button of el.toolbar.querySelectorAll("button")) {
+    const mutates = session.actionMutates(button.dataset.action ?? button.id);
+    button.dataset.mutates = mutates ? "1" : "0";
+    if (viewOnly && mutates) button.disabled = true;
+  }
 }
 
 /**
@@ -905,6 +962,12 @@ async function run(label, operation) {
     await renderDocument();
     return result;
   } catch (error) {
+    // Refused by the view-only gate: nothing was attempted, so nothing failed.
+    if (error?.code === "EDITOR_VIEW_ONLY") {
+      el.s.latency.textContent = `${label}：唯讀`;
+      toast(VIEW_ONLY_TEXT, true);
+      throw error;
+    }
     el.s.latency.textContent = `${label} 失敗`;
     // The disposition is a field, not a guess from the message (E2-B 5.13).
     const recovery = error?.recovery;
@@ -1036,13 +1099,37 @@ async function insertText() {
 // on their repaints, so the older bytes could be written last.  Without a host
 // nothing changes: each press is its own download, as before.
 function saveDocument() {
-  if (!HOST) return saveOnce();
-  const turn = hostSaves.then(saveOnce);
+  // A view-only document has nothing to save, and a save here would be a PUT
+  // the server refuses and a copy the user did not ask for.
+  if (viewOnly) {
+    toast(VIEW_ONLY_TEXT, true);
+    return Promise.resolve();
+  }
+  savesUnsettled += 1;
+  // Once, at the moment the save ends -- when the host's write settles (or the
+  // download is handed over), NOT when `run()` has also repainted: a runner or a
+  // user leaving right after 「存回 N ms」 would otherwise meet a page that still
+  // says "unsaved", and the host would guard and keep the lock for nothing.
+  // The `.then` below is the backstop for a save that failed before reaching
+  // the host.
+  let settled = false;
+  const settle = () => {
+    if (settled) return;
+    settled = true;
+    savesUnsettled -= 1;
+  };
+  if (!HOST) {
+    const once = saveOnce(settle);
+    once.then(settle, settle);
+    return once;
+  }
+  const turn = hostSaves.then(() => saveOnce(settle));
   hostSaves = turn.catch(() => {});
+  turn.then(settle, settle);
   return turn;
 }
 
-async function saveOnce() {
+async function saveOnce(settle = () => {}) {
   // `EditorSession.save()` resolves to {bytes, revision, contentStamp}, not to
   // the bytes.  Taking the whole result made `new Blob([result])` stringify it,
   // so every save from this button wrote 15 bytes of "[object Object]" and the
@@ -1056,7 +1143,7 @@ async function saveOnce() {
     // `session.save()` has already marked the session clean by now -- the same
     // as the download below, which the user can also cancel.  The bytes are
     // still the session's recovery authority, so pressing save again retries.
-    await run("存回", () => HOST.save(bytes, { name: documentName }));
+    await run("存回", () => HOST.save(bytes, { name: documentName }).finally(settle));
     toast(`已存回 ${documentName}（${(bytes.byteLength / 1024).toFixed(1)} KB）`);
     return;
   }
@@ -1066,6 +1153,7 @@ async function saveOnce() {
   anchor.href = url;
   anchor.download = documentName.replace(/\.odt$/i, "") + "-v2.odt";
   anchor.click();
+  settle();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
   toast(`已存出 ${(bytes.byteLength / 1024).toFixed(1)} KB`);
 }
@@ -1388,6 +1476,10 @@ el.sink.addEventListener("keydown", (event) => {
     // the page rather than the document -- an answer to the user's request that
     // is worse than no answer.
     event.preventDefault();
+    // FINDING 106.  A held Ctrl+S is one request, not one per key repeat: the
+    // repeats were each a full save (thirty PUTs for a one-second hold, about
+    // 35 s of saving on host 0.2.2).  The first keydown has `repeat: false`.
+    if (event.repeat) return;
     void saveDocument().catch(() => {});
     return;
   }
@@ -1619,7 +1711,7 @@ function showExpired(details) {
 // a document the user chose: both end at the same `session.open({bytes, name})`.
 // Splitting the fetch off is the whole of "open a real file" -- there is no
 // engine side to it, which is why it does not need a link.
-async function openDocument(bytes, name) {
+async function openDocument(bytes, name, { readOnly = false } = {}) {
   if (session) {
     try { await session.close(); } catch { /* a dead session must not block */ }
     session = null;
@@ -1640,6 +1732,10 @@ async function openDocument(bytes, name) {
     //
     // Only failures surface -- a toast per keystroke would be its own defect.
     onInputTrace(entry) {
+      if (entry?.error?.code === "EDITOR_VIEW_ONLY") {
+        toast(VIEW_ONLY_TEXT, true);
+        return;
+      }
       if (entry?.action === "composition-rejected" || entry?.status === "failed")
         toast(`輸入未送出：${entry.reason || entry.code || entry.action}`, true);
     },
@@ -1648,6 +1744,10 @@ async function openDocument(bytes, name) {
         toast(`剪貼簿未完成：${entry.code || entry.status}`, true);
     },
   });
+  // Before open, so no input can land between the document appearing and the
+  // gate closing.
+  viewOnly = readOnly === true;
+  session.setViewOnly?.(viewOnly);
   await session.open({ bytes, name });
   session.attachInput(el.sink);
   const actual = session.engine.manifest?.editorContract?.wasmSha256 ?? "";
@@ -1657,7 +1757,10 @@ async function openDocument(bytes, name) {
                         { code: "PAGE_BUILD_MISMATCH" });
   }
   documentName = name;
-  el.s.doc.textContent = name;
+  el.s.doc.textContent = viewOnly ? `${name}（${VIEW_ONLY_TEXT}）` : name;
+  // A read-only sink: typing and IME never start, arrow keys still arrive.
+  el.sink.readOnly = viewOnly;
+  el.text.disabled = viewOnly;
   layoutCanvas();
   await renderDocument();
   updateGestureAffordance();
@@ -1709,12 +1812,12 @@ async function openFromHost() {
   if (typeof HOST.load !== "function" || typeof HOST.save !== "function")
     throw Object.assign(new Error("宿主入口不完整：需要 load() 與 save()"),
                         { code: "HOST_ENTRY_INVALID" });
-  const { bytes, name } = await HOST.load();
+  const { bytes, name, readOnly } = await HOST.load();
   if (!(bytes instanceof ArrayBuffer) || typeof name !== "string" || !name)
     throw Object.assign(new Error("宿主給的文件不是 { bytes: ArrayBuffer, name }"),
                         { code: "HOST_ENTRY_INVALID" });
-  await openDocument(bytes, name);
-  toast(`已開啟 ${name}`);
+  await openDocument(bytes, name, { readOnly: readOnly === true });
+  toast(viewOnly ? `已開啟 ${name}（${VIEW_ONLY_TEXT}）` : `已開啟 ${name}`);
 }
 
 void (async () => {

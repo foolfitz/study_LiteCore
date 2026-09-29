@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { NarrowEditorV2Session } from "../narrow-editor-v2-session.js";
-import { NarrowEditorV2Client } from "../narrow-editor-v2-client.js";
+import { EDITOR_V3_ACTIONS, NarrowEditorV2Client } from "../narrow-editor-v2-client.js";
 import { EditorStateMachine } from "../../editor-shell/state-machine.js";
 
 const manifestOf = (profile) => JSON.parse(readFileSync(
@@ -897,3 +897,109 @@ test("finding 098: shift+arrow on a clean document is not a mutation either",
   assert.equal(session.state.snapshot.dirty, false);
   assert.equal(saves.length, 0);
 });
+
+// SPEC-M3-page-honesty §3 / §7 (V3, U3).  View-only is a gate on the queue:
+// a mutation is refused BEFORE it is queued, so nothing reaches the engine,
+// nothing about the state moves, and nothing is offered as a recovery.
+const SNAPSHOT_KEYS = ["state", "revision", "dirty", "pending", "hasCheckpoint", "error"];
+const pick = (snapshot) => Object.fromEntries(SNAPSHOT_KEYS.map((k) => [k, snapshot[k]]));
+
+test("view-only: every mutating entry point is refused before it is queued",
+     async () => {
+       const { session, calls } = await opened();
+       session.setViewOnly(true);
+       assert.equal(session.viewOnly, true);
+       const attempts = {
+         commitText: () => session.commitText("x"),
+         deleteBackward: () => session.delete("backward"),
+         insertBreak: () => session.insertBreak("paragraph"),
+         setInlineFormat: () => session.setInlineFormat("bold", true),
+         undo: () => session.undo(),
+         redo: () => session.redo(),
+       };
+       // Every action the session accepts -- the list the session itself is built from.
+       for (const action of EDITOR_V3_ACTIONS) {
+         if (!MOVE.has(action))
+           attempts[`action:${action}`] = () => session.action(action, { enabled: true });
+       }
+       assert.ok(Object.keys(attempts).length > 10, "the census is not empty");
+       for (const [name, attempt] of Object.entries(attempts)) {
+         const before = { calls: calls.length, snapshot: pick(session.state.snapshot) };
+         await assert.rejects(attempt(), (error) => {
+           assert.equal(error.code, "EDITOR_VIEW_ONLY", name);
+           assert.equal(error.recovery, "none", name);
+           return true;
+         });
+         assert.equal(calls.length, before.calls, `${name} reached the engine`);
+         assert.deepEqual(pick(session.state.snapshot), before.snapshot, `${name} moved the state`);
+       }
+       assert.equal(session.state.snapshot.state, "ready");
+     });
+
+test("view-only: moves still run, and the gate is off by default", async () => {
+  const { session, calls } = await opened();
+  assert.equal(session.viewOnly, false);
+  session.setViewOnly(true);
+  for (const action of MOVE) {
+    await session.action(action);
+    assert.ok(calls.includes(`editorActionV2:${action}`), `${action} was refused`);
+  }
+  session.setViewOnly(false);
+  await session.action("set-bold", { enabled: true });
+  assert.ok(calls.includes("editorActionV2:set-bold"));
+});
+
+test("actionMutates is fail-closed: only the six moves are not mutations", () => {
+  const session = new NarrowEditorV2Session({ engineFactory: async () => null });
+  for (const action of MOVE) assert.equal(session.actionMutates(action), false, action);
+  for (const name of ["set-bold", "set-paragraph-heading", "delete-backward", "undo",
+                      "redo", "save", "insert-text", "clear-format", "no-such-control",
+                      undefined, null, ""])
+    assert.equal(session.actionMutates(name), true, String(name));
+});
+
+test("view-only survives a fresh Worker (a rollback reopens the engine)", async () => {
+  const failure = Object.assign(new Error("unverifiable"), {
+    code: "MUTATION_OUTCOME_UNKNOWN",
+    details: { formatBarrier: { dispatched: true } },
+  });
+  const { session, calls } = await opened({ failing: "set-list-ordered", failure });
+  await session.action("set-bold", { enabled: true });
+  await session.selectRange({ xTwips: 0, yTwips: 0 }, { xTwips: 100, yTwips: 100 });
+  await session.setList("ordered").catch(() => {});
+  session.setViewOnly(true);
+  const opens = calls.filter((c) => c === "open").length;
+  await session.rollback();
+  assert.equal(calls.filter((c) => c === "open").length, opens + 1, "no fresh Worker");
+  assert.equal(session.state.snapshot.state, "ready");
+  await assert.rejects(session.action("set-italic", { enabled: true }),
+                       (error) => error.code === "EDITOR_VIEW_ONLY");
+});
+
+test("finding 107: unsaved edits follow dirty and pending, never the revision",
+     async () => {
+       const failure = Object.assign(new Error("unverifiable"), {
+         code: "MUTATION_OUTCOME_UNKNOWN",
+         details: { formatBarrier: { dispatched: true } },
+       });
+       const { session } = await opened({ failing: "set-list-ordered", failure });
+       assert.equal(session.hasUnsavedEdits(), false, "a document just opened");
+       await session.action("move-character-right");
+       assert.equal(session.hasUnsavedEdits(), false, "a move is not an edit (098)");
+       const moving = session.action("set-bold", { enabled: true });
+       assert.equal(session.hasUnsavedEdits(), true, "an edit still in the engine (pending)");
+       await moving;
+       assert.equal(session.hasUnsavedEdits(), true, "an edit that landed (dirty)");
+       await session.save();
+       assert.equal(session.hasUnsavedEdits(), false, "saved");
+       // A rollback to a checkpoint newer than the last save restarts the
+       // revision at zero while the content is still unsaved: a predicate that
+       // compared revisions would call this saved.
+       await session.action("set-italic", { enabled: true });
+       await session.selectRange({ xTwips: 0, yTwips: 0 }, { xTwips: 100, yTwips: 100 });
+       await session.setList("ordered").catch(() => {});
+       await session.rollback();
+       assert.equal(session.state.snapshot.state, "ready");
+       assert.equal(session.state.snapshot.revision, 0, "the fresh Worker restarted the revision");
+       assert.equal(session.hasUnsavedEdits(), true, "rolled back to unsaved content");
+     });

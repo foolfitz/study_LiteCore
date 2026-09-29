@@ -201,9 +201,33 @@ admin 把那個分享改成權限 1，並**讀回**確認已是 1；存檔。
 
 **離頁的靜態普查**（第 22 項）：任何 shakedown 之前，逐一列出每一支 runner 每一格離開頁面時是否帶著未存的修改；結果附在本節之後。
 
+### 7.7 離頁靜態普查的結果（2026-09-29，唯讀 Explore agent，任何 shakedown 之前）
+
+對象：`check_m3_locks`、`check_m3_versions`、`check_m3_assets`、`check_m3_host_entry`、`check_m3_same_second`、
+`run_e2_c_product_path`（下載模式）。逐一看每一個讓頁面離開或換文件的點：當下有沒有未交出的修改、Chrome 有沒有使用者啟動、
+出現詢問時 runner 會怎樣。**沒有任何一點會卡死**（Chrome 的 `Browser.close` 不跑離頁詢問；Firefox 的 WebDriver 自動接受）。
+
+- **會改變結果的只有一處：`check_m3_assets` 的 K2**（兩次開檔都做了段落動作、沒存，就 `leave_and_watch` 導向 Files）。
+  Chrome 沒有使用者啟動，不跳對話框、導覽照走；但 0.2.3 的宿主會以 `page` 為由擋、**不放鎖**，只剩 `pagehide` 的 UNLOCK。
+  Chrome 的 `pagehide` UNLOCK 實測 4/4 會到；**Firefox（該 runner 開著 HTTP 快取）正是 finding 105 修法之前的那條路**，
+  K2-5（離頁 10 秒內鎖放掉）很可能轉紅，第二次開檔可能遇到 423。**處置待決（計數之前）**，選項：
+  A）K2 在離開前先存檔——K2 量的是資產派送，不是離頁語意；帶著未存修改離開這件事改由本規格的 U1 量；
+  B）不改 runner，K2-5 在 Firefox 的紅登錄成 105 的後果、改期望；
+  C）宿主在「只有 `page` 理由」時仍先放鎖——使用者選「留下」就回到審核第 2 項的問題（手上沒有鎖），不採用。
+  傾向 A，理由寫在上面；改的是 runner 的步驟，§7.6 說「其他任何需要改的地方先寫進本節」，這裡就是那一筆，決定之後再動。
+- `check_m3_locks` 的 readonly／nowhere：照 §7.4 改寫（普查也確認舊的 nowhere 在 0.2.3 下 leave1 會真的離開，接著
+  `real_click("#litecore-host-download")` 在 Files 頁上會丟例外）。
+- `check_m3_locks` hold、`check_m3_versions`、`check_m3_host_entry`、`check_m3_same_second`：正常路徑都是存完才走，**否**；
+  只有存檔逾時的失敗路徑才會帶著未存修改離開。
+- `run_e2_c_product_path`：頁內換文件（`OPEN_FILE`、`SWITCH_FIXTURE`、長文件那幾臂）會丟掉未存的修改——那不是導覽，不觸發
+  `beforeunload`，行為與改動前相同（§7.5 已登錄）；結尾的 `session.close()` 在 Firefox 帶著未存修改，WebDriver 自動接受，不影響結果。
+- 普查順帶指出一個**修法本身的時序瑕疵**，已修（讀原始碼確認）：`savesUnsettled` 原本在 `run("存回")` 重繪完才歸零，比 runner
+  等的「存回 N ms」晚一次繪製；現在在 `HOST.save()` 結束（或下載交出）的那一刻歸零。
+
 ## 6. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-29 | **加 §7.7：離頁靜態普查的結果。**唯一會改變結果的是 `check_m3_assets` K2（帶著未存修改離開 → 0.2.3 不放鎖 → Firefox 走 105 的舊路），處置待決、傾向 A（K2 離開前先存）；順帶修掉 `savesUnsettled` 晚一次繪製才歸零的時序瑕疵。 |
 | 2026-09-29 | **加 §7：對抗性審核（opus，唯讀）之後、任何實作之前的修訂。**處置全表在 `findings/evidence/m3-page-honesty/review-2026-09-29-opus.md`。判準層：未交出的定義改成「dirty 或 pending 或存檔未結束」；有宿主時由宿主唯一決定（`watchUnsaved`，擋時不放鎖）；觀測法改成包住原型並以 stack 歸屬、缺紀錄算不過；U0／U1／V2／V4 取代，U-window／U7／K-sep／V7 新增，K9′／K10′ 判定式逐條寫出；回歸的綁定列舉成四個常數。事實層：§1 的報讀限於提供段落文字的 profile。登錄六項（§7.5）。 |
 | 2026-09-29 | 初版。依據：finding 107（同日量到）、finding 106、擁有者對唯讀的裁示 A。寫在頁面、殼層、宿主改動與 runner 之前。 |
