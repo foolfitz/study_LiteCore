@@ -224,10 +224,48 @@ admin 把那個分享改成權限 1，並**讀回**確認已是 1；存檔。
 - 普查順帶指出一個**修法本身的時序瑕疵**，已修（讀原始碼確認）：`savesUnsettled` 原本在 `run("存回")` 重繪完才歸零，比 runner
   等的「存回 N ms」晚一次繪製；現在在 `HOST.save()` 結束（或下載交出）的那一刻歸零。
 
+### 7.8 `check_m3_assets` K2 的處置：裁決 A′（2026-09-29，fable 代擁有者裁決，任何 runner 改動之前）
+
+**取代** §7.7 第一點的「處置待決」；**取代** §7.6 對 `check_m3_assets` 的 diff 上限——該 runner 的 diff＝`PAGE_SHA256` 一行加本節第 2–6 條。
+擁有者 2026-09-29 授權 fable 代為裁決這一題；題目、事實清單（F1–F10）與原始裁決文字留在本 session 的委派紀錄，此處是可執行的摘要。
+
+**裁決：A′。**K2 在每一次離開前先存檔，並且**每一次**自證那次離頁沒被攔；另外登錄一次性的量測（不是閘門判準）。B、C 駁回。
+
+**理由（給擁有者，原文照貼）：**
+K2-5 這一格是 finding 105 修法的回歸網：它問的是「沒被攔下來的離頁，在 Firefox 開著快取時，鎖有沒有在 10 秒內放掉」，修法就是在這條路上量到 12/12 的。宿主 0.2.3 之後，帶著沒存的修改離開會被攔下來、不走這條路；K2 以前沒存就走，是因為舊宿主不會攔，不是因為 K2 要測「沒存就走」。所以讓 K2 離開前先存檔，是把它放回它本來就在量的那條路。改成 B 的話，K2-5 在 Firefox 會變成在量一條已登錄、還沒修、大約一半會失敗的路，等於拆掉回歸網；而且鎖一卡住，runner 下一輪的上傳（`check_m3_assets.py:379`，在 try 之外）會直接讓整份報告當掉。「沒存就走」由本規格的 U1 量；「沒存就走＋Firefox＋快取開」目前沒有任何計數執行量得到——這不是 A 造成的缺口（K2 從來沒量過被攔下來的離頁），但 0.2.3 讓它變成每一次未存離開都會走到的路，所以另外登錄一次性的量測，用既有探針的 edit 臂跑 12 次，把 105 裡「約一半」那句從推算換成數字。先存檔這一步要公開寫在三個地方、runner 要自己證明那一次離頁確實沒被攔（存檔 204、離頁紀錄裡沒有 guard），否則就真的成了規則要禁止的「偷偷先存」。
+
+**與 §4 回歸段那條規則（「不得靜默繞過（例如偷偷先存檔）」）的關係，明寫**：那條規則的觸發條件是 runner「卡在離頁」，§7.7 已記下沒有任何 runner 會卡住，而且 K2 的**期望不變**，所以規則的字面沒有被觸發；它的正面處方（「改那一格的期望」）是 B 形的，這裡**不照它走**，理由如上。它點名的惡行（偷偷先存）靠三件事避開：存檔寫在三處（本節、`SPEC-M3-asset-delivery.md` 的修訂紀錄、finding 105），以及 runner 逐次證明離頁沒被攔（下面第 4 條）。
+
+**執行條件**（逐條，別人可查）：
+
+1. 本節先落地，才動任何 runner。
+2. `check_m3_assets.py` 的 `run_browser`：每次 `open_and_smoke` 之後按儲存，等宿主 `saves` 的最後一筆 `settled === true`（同 `check_m3_host_entry.saves_reached`），再等狀態列 `存回 N ms`；記下 `saved`（狀態與宿主那一筆存檔）與 `secondsDoneToLeave`（不設門檻）。**`open_and_smoke` 本身不動**——`probe_m3_leave_unlock.py:35` import 它，它的 edit 臂必須繼續帶著未存修改離開。
+3. 離開前裝上本規格的離頁記錄器（`check_m3_page_honesty.RECORDER`／`READ_RECORD`，import 不複製），離開後讀回存成 `leftRecord`。
+4. `score_run` 加兩條，前綴 `K2 instrument`：（a）離頁前的存檔沒有落地（第一次嘗試不是帶 token 的 204，或狀態列不符 `^存回 \d+ ms$`）；（b）離頁被攔或沒有 `fired`（`leftRecord` 要有一筆 `fired`，其 `lastGuard` 為 null、`guards` 為 0 或 null）。K2-1～K2-5 的字串與 `PLAN` 逐位元不變。
+5. 紅案加三個：存檔 412；`fired.lastGuard` 改成 `{"reasons": ["page"]}`；拿掉 `fired`。在 0.2.3 上第一份乾淨的 shakedown 上跑 `--red-cases`：這三個以 `K2 instrument` 轉紅，既有的每一個仍紅。
+6. 模組 docstring 的 K2 一行改成「open from Files, smoke, save, back to Files, open again, smoke, save, back」。
+7. `specs/SPEC-M3-asset-delivery.md` 修訂紀錄 append：K2 每次離開前先存（理由＝上文）；K2-5 現在讀的是「沒被攔的離頁 10 秒內放鎖」（105 修法量的那一臂）；K2 的離頁比探針晚一個存檔（記成 `secondsDoneToLeave`，登錄差異、不設門檻）；§3.5 的殘留那句照舊成立——沒有計數執行量被攔的離頁。
+8. finding 105 append（時間軸＋「沒有修到的一條路」底下）：K2 只量沒被攔的離頁（0.2.3 之前沒被攔是因為 0.2.2 不因編輯而攔，現在是因為它先存）；第 9 條登錄與其預設結論；狀態列維持「未量」直到第 9 條做完。
+9. **一次性量測（登錄，不擋任何閘門）**：`probe_m3_leave_unlock.py` 加上本規格的記錄器（smoke 之後裝、導覽之後讀）；臂 `firefox:warm:edit`（0.2.3 上會被攔）與 `firefox:warm:none`（正向對照，不被攔），各 `--repeats 12`；宿主 0.2.3 最終 commit、頁面＝釘住的 `PAGE_SHA256`。edit 臂的 `fired.lastGuard.reasons` 不含 `page`、或 none 臂出現擋，該次作廢並記為儀器失敗。記錄：每臂 10 秒內放鎖的次數、每次的 UNLOCK 數、`secondsDoneToLeave`。產物 `findings/evidence/m3-assets/leave-unlock-<UTC>.json`＋README 一列，數字寫進 finding 105 取代「約有一半」。不得與任何 M3 runner 同時跑。建議在 0.2.3 的 release archive（H＋J）之前做；時機由擁有者定。**如果永遠沒做**：105 的「約有一半」維持為從修法前 6/13 那一臂推算的外插，狀態列維持「未量」，沒有任何閘門結論依賴它。
+10. `check_m3_assets.py --label shakedown` 在 0.2.3 上兩個瀏覽器各至少 1 次，**在釘 `PAGE_SHA256` 與任何計數執行之前**：第二次開檔（開的是存過的文件、再做一次同一個段落動作）K2-4 乾淨、兩條 instrument 乾淨、第 5 條的紅案全紅。
+11. 「未存就離開由 U1 量」這句話，要等 U1 在**兩個**瀏覽器都有計數格才成立；在 Firefox 的 U1 shakedown 落地之前，任何地方都不寫「U1 涵蓋它」。
+12. 登錄（不是條件）：`run_browser` 的上傳在 `try` 外，任何被卡住的鎖（真的 105 回歸）會讓報告當掉而不是把 K2-5 判紅。修它超出本輪 §7.6 的 diff 上限，登錄為已知的儀器極限。
+
+### 7.9 本規格 runner 的 shakedown 逼出的修正（2026-09-29，Chrome 第一輪，任何計數執行之前）
+
+判準沒有改；改的是 runner 的步驟（瞄準點與前提），理由逐條寫下。證據在 `findings/evidence/m3-page-honesty/shakedown/`。
+
+- **V4 與 V2 的瞄準點改成文件第一行**（取代 runner 原本的畫布 y＝0.28）。**已觀察**（`2026-09-29T091816+0000.json`）：兩個 V 臂都在普查開始之前死掉——y＝0.28 在這份 fixture 的文字下方（五段文字的墨帶在畫布高度的 0.10–0.21），點下去游標落在**最後一行**，接著 ArrowDown 就是 finding 096（出貨的 v8 在末行按下鍵，30 秒逾時、session 進 `recoverable-error`）；可寫對照也一樣死，所以不是唯讀關卡的問題。對照（scratchpad 診斷，同一個 dev 實例）：點第一行再 ArrowDown，`下移一行 38 ms`、`ready`、`#sink` top 497→519。runner 現在開檔後先讀畫布墨帶（`TEXT_LINES`：每列暗且不透明像素 >2、至少 5 列高），瞄第一行的中線；找不到兩行以上就讓那一格明確失敗。V4 的判準（`下移一行 N ms`、`#sink` top 嚴格變大）沒有規定點哪裡，所以不改判準。
+- **這件事對產品的意思**（登錄，不修）：M3 的 Nextcloud app 服務的是 `e2-editor-v8`（`MANIFEST.json` 的 `source.profile`，wasm `4a2710bb…`），所以在 M3 產品裡點在文字下方再按下鍵，會照 096 死掉。096 的引擎修法在 v14，沒有出貨。
+- **V2 可寫對照的 `delete-forward` 前提：先把游標左移一格**。**已觀察**（`2026-09-29T093035+0000.json`）：游標在段尾時按前刪＝跨段刪除，殼層依契約回 `EDITOR_BOUNDARY_UNSUPPORTED`、session 進 `restart-required`（`SPEC-E1-C-editor-validation.md:139`，finding 016 的修法），後面每一項都被擋。這屬於 §7.3 V2 的「事前布置好前提」，不是豁免。修正後（`2026-09-29T093656+0000.json`）可寫對照 17 顆會改內容的按鈕逐一前進。
+- **可寫對照裡的 `move-character-left/right` 顯示「失敗」**：那時有一段範圍選取（格式那幾項前拖出來的），頁面本來就停用移動鍵，runner 強制拿掉 `disabled` 去按，session 以 `EDITOR_FORMAT_GESTURE_UNSUPPORTED` 拒絕、文件沒變、狀態仍 `ready`——設計好的手勢遮罩。移動依 §7.3 本來就豁免「要前進」；「移動能用」由唯讀臂的 V4 與 V7 量（唯讀臂沒有選取，兩個移動都成功）。
+- **K-two 的實作與 §7.3 的字面不同（交接文件第 3 項，計數之前登錄）**：§7.3 寫「緊接著讀 `#s-pending`，要 > 0」；runner 實作的是「第二次按壓的宿主時鐘時間＜第一次存檔 PUT 的 `respondedAt`」（`check_m3_page_honesty.py` 的 `PAIR_AT` 與 K-two 評分）。理由：`saveOnce` 在之後的 microtask 才開始，同一個 task 裡讀 `pending` 可能還是 0，那個讀法會把一個真的落在存檔之前的第二次按壓判成沒有。兩者要證的是同一件事（第二次按壓落在第一次存檔結束之前），實作的讀法直接比時間。
+
 ## 6. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-29 | **加 §7.8、§7.9。**§7.8：`check_m3_assets` K2 的處置由 fable 代擁有者裁決＝A′（K2 離開前先存、逐次自證沒被攔；另登錄一次性量測「Firefox 快取開、被攔之後離開」×12，不擋閘門），取代 §7.7 的「處置待決」與 §7.6 對該 runner 的 diff 上限。§7.9：Chrome 第一輪 shakedown 逼出的 runner 修正——V4／V2 瞄準第一行（y 0.28 落在末行、撞 096）、`delete-forward` 先左移一格（段尾前刪是契約上的結構邊界）；可寫對照的移動被手勢遮罩拒絕是設計；K-two 的實作讀法登錄。判準都沒改。 |
 | 2026-09-29 | **加 §7.7：離頁靜態普查的結果。**唯一會改變結果的是 `check_m3_assets` K2（帶著未存修改離開 → 0.2.3 不放鎖 → Firefox 走 105 的舊路），處置待決、傾向 A（K2 離開前先存）；順帶修掉 `savesUnsettled` 晚一次繪製才歸零的時序瑕疵。 |
 | 2026-09-29 | **加 §7：對抗性審核（opus，唯讀）之後、任何實作之前的修訂。**處置全表在 `findings/evidence/m3-page-honesty/review-2026-09-29-opus.md`。判準層：未交出的定義改成「dirty 或 pending 或存檔未結束」；有宿主時由宿主唯一決定（`watchUnsaved`，擋時不放鎖）；觀測法改成包住原型並以 stack 歸屬、缺紀錄算不過；U0／U1／V2／V4 取代，U-window／U7／K-sep／V7 新增，K9′／K10′ 判定式逐條寫出；回歸的綁定列舉成四個常數。事實層：§1 的報讀限於提供段落文字的 profile。登錄六項（§7.5）。 |
 | 2026-09-29 | 初版。依據：finding 107（同日量到）、finding 106、擁有者對唯讀的裁示 A。寫在頁面、殼層、宿主改動與 runner 之前。 |
