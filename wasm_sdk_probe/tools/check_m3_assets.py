@@ -2,19 +2,25 @@
 """M3 asset delivery -- the `litecore` app serves its own packaged engine.
 
 Criteria: specs/SPEC-M3-asset-delivery.md section 4 (K0-K2), written before
-this runner.  It never changes the app, the product or dist/.
+this runner, and specs/SPEC-M3-zstd.md section 4 (Z0-Z2: the zstd
+representation, written before its code).  It never changes the app, the
+product or dist/.
 
   K0  package   offline: engine/MANIFEST.json against the closure derived from
                 dist/ now, every .gz against dist/, the build id, no `dist` in
-                the app tree
+                the app tree; Z0 every .zst and its frame header
   K1  wire      no browser: every packaged file with and without gzip, the
                 paths that must 404, the Files entry's redirect, the editor
-                document's headers
+                document's headers; Z1 every file as a browser asks (zstd),
+                which coding each Accept-Encoding gets, ETags across codings
   K2  browser   per browser and repeat, one fresh profile with its HTTP cache
                 ON: open from Files, smoke, save, back to Files, open again,
                 smoke, save, back.  The record of each open is the web container's Apache
                 access log between two offsets; after each "back", the
-                server's lock on the file for up to 10 s (K2-5).
+                server's lock on the file for up to 10 s (K2-5).  Z2: the
+                first open's big files came as zstd (chrome, firefox) or as
+                gzip (firefox-nozstd: Firefox with zstd taken out of its
+                Accept-Encoding pref).
 
   check_m3_assets.py --label shakedown|counted     run, write a report
   check_m3_assets.py --score REPORT.json           re-score a report, one line
@@ -44,6 +50,7 @@ import time
 import traceback
 import urllib.error
 import urllib.request
+from compression import zstd
 from pathlib import Path
 from typing import Any
 
@@ -53,7 +60,7 @@ from check_m3_page_honesty import READ_RECORD, RECORDER  # noqa: E402
 from check_m3_skeleton_open import (  # noqa: E402
     ACTION, DEFAULT_DDEV, FILES, FIXTURE, NAME, Instance, binding_fields, host_binding, installed_app, product_state,
     state_until)
-from package_m3_engine import MAX_GZ_BYTES, build_id  # noqa: E402
+from package_m3_engine import MAX_GZ_BYTES, MAX_ZST_BYTES, MAX_ZSTD_WINDOW, build_id, zstd_frame  # noqa: E402
 from probe_m3_assets import AccessLog, closure  # noqa: E402
 from probe_m3_gate0_coep import (  # noqa: E402
     DIST, EventChrome, Wire, browser_login, firefox_profile, sha256_file, utc_now, wait_until)
@@ -67,7 +74,7 @@ EVIDENCE = REPO / "findings" / "evidence" / "m3-assets"
 # SPEC-M3-page-honesty §7.6: the reviewed page (b61e9fd9), written 2026-09-29 before
 # the re-shakedown and counted runs on host 0.2.4 (369e6ed); was fbfb59a4….
 PAGE_SHA256 = "fc80050c22948df63f012fa87a254c63e4f19227aa387ded76747bd6c21d947e"
-PLAN = {"chrome": 3, "firefox": 3}
+PLAN = {"chrome": 3, "firefox": 3, "firefox-nozstd": 3}
 DOC = "e2-editor.html"
 ENTRY = "/apps/litecore/r/e2-editor.html"
 YEAR = 31536000
@@ -81,6 +88,18 @@ NO_CACHE_FETCH = re.compile(r'fetch\(new URL\("(\./[^"]+)",\s*self\.location\.hr
 INITIAL_STATE = re.compile(r'id="initial-state-litecore-config" value="([^"]+)"')
 TYPES = {".js": "text/javascript", ".json": "application/json", ".wasm": "application/wasm",
          ".data": "application/octet-stream", ".metadata": "application/octet-stream"}
+# SPEC-M3-zstd §4, written 2026-09-30 before the code: the engine's decoded
+# content did not change, only its codings.
+ENGINE_SCHEMA = "litecore-engine/2"
+BUILD_ID = "7f4f4e2204b4a9ec"
+# What Chrome 151 and Firefox 156 are predicted to send over HTTPS (spec §2, P1).
+BROWSER_AE = "gzip, deflate, br, zstd"
+# Z1-2: Accept-Encoding -> the coding the host must pick.
+SELECTION = {"zstd": "zstd", "ZSTD": "zstd", "gzip;q=0, zstd": "zstd", "zstd;q=0, gzip": "gzip",
+             "gzip, deflate, br": "gzip", "zstd;q=0": "identity", "br": "identity"}
+SELECTION_PATH = "sdk/document-sdk.js"
+# Z2-2: the fallback arm, Firefox without zstd in its HTTPS Accept-Encoding.
+NOZSTD_PREFS = {"network.http.accept-encoding.secure": "gzip, deflate, br"}
 KEEP = ("content-type", "content-encoding", "content-length", "cache-control", "vary", "location", "etag",
         "cross-origin-opener-policy", "cross-origin-embedder-policy")
 
@@ -114,6 +133,14 @@ def package_record(app: Path, repo: Path | None = None, rev: str | None = None) 
             decoded = f"undecodable: {error}"
         files[path] = {"gzSha256": hashlib.sha256(body).hexdigest(), "decodedSha256": decoded,
                        "distSha256": sha256_file(DIST / path) if (DIST / path).is_file() else None}
+        squeezed = app / "engine" / "files" / (path + ".zst")
+        zbody = squeezed.read_bytes() if squeezed.is_file() else b""
+        try:
+            zdecoded = hashlib.sha256(zstd.decompress(zbody)).hexdigest()
+        except Exception as error:  # noqa: BLE001 -- recorded
+            zdecoded = f"undecodable: {error}"
+        files[path].update(zstSha256=hashlib.sha256(zbody).hexdigest(), zstBytes=len(zbody),
+                           zstDecodedSha256=zdecoded, zstFrame=zstd_frame(zbody))
     tracked = subprocess.run(["git", "ls-files"] if rev is None else ["git", "ls-tree", "-r", "--name-only", rev],
                              cwd=repo, capture_output=True, text=True).stdout.split("\n")
     git_time = lambda *a: subprocess.run(["git", "log", "-1", "--format=%ct", *([rev] if rev else []), *a],  # noqa: E731
@@ -164,6 +191,32 @@ def score_package(pkg: dict[str, Any]) -> list[str]:
     js, version = pkg.get("lastJsCommit") or "", pkg.get("lastVersionCommit") or ""
     if not (js.isdigit() and version.isdigit() and int(js) <= int(version)):
         bad.append(f"K0-6 host scripts changed after the last version bump (js {js!r}, version {version!r})")
+    return bad + score_zstd_package(pkg)
+
+
+def score_zstd_package(pkg: dict[str, Any]) -> list[str]:
+    """Z0 (SPEC-M3-zstd §4)."""
+    bad = []
+    manifest = pkg["manifest"]
+    for path, entry in manifest.get("files", {}).items():
+        seen = pkg["files"].get(path, {})
+        if not (seen.get("zstSha256") == entry.get("zstSha256") and seen.get("zstBytes") == entry.get("zstBytes")):
+            bad.append(f"Z0-1 {path}: .zst is {str(seen.get('zstSha256'))[:12]} ({seen.get('zstBytes')} B),"
+                       f" manifest says {str(entry.get('zstSha256'))[:12]} ({entry.get('zstBytes')} B)")
+        if not (seen.get("zstDecodedSha256") == entry.get("sha256") == seen.get("distSha256")
+                == pkg["derived"].get(path)):
+            bad.append(f"Z0-1 {path}: .zst decodes to {str(seen.get('zstDecodedSha256'))[:12]},"
+                       f" manifest {str(entry.get('sha256'))[:12]} dist {str(seen.get('distSha256'))[:12]}")
+        frame = seen.get("zstFrame") or {}
+        window = frame.get("window")
+        if frame.get("error") or not isinstance(window, int) or window > MAX_ZSTD_WINDOW \
+                or frame.get("trailingBytes") != 0:
+            bad.append(f"Z0-2 {path}: frame {frame}")
+        if not isinstance(entry.get("zstBytes"), int) or entry["zstBytes"] > MAX_ZST_BYTES:
+            bad.append(f"Z0-3 {path}: {entry.get('zstBytes')} bytes of zstd, over {MAX_ZST_BYTES}")
+    if manifest.get("schema") != ENGINE_SCHEMA or manifest.get("buildId") != BUILD_ID:
+        bad.append(f"Z0-4 schema {manifest.get('schema')!r} buildId {manifest.get('buildId')!r},"
+                   f" spec binds {ENGINE_SCHEMA} {BUILD_ID}")
     return bad
 
 
@@ -196,9 +249,10 @@ def fetch(wire: Wire, url: str, encoding: str, extra: dict[str, str] | None = No
     record = {"status": status, "seconds": round(time.monotonic() - started, 3), "bodyBytes": len(body),
               "bodySha256": hashlib.sha256(body).hexdigest(),
               "headers": {k: headers.get(k) for k in KEEP if headers.get(k) is not None}}
-    if headers.get("content-encoding") == "gzip":
+    decoder = {"gzip": gzip.decompress, "zstd": zstd.decompress}.get(headers.get("content-encoding") or "")
+    if decoder:
         try:
-            body = gzip.decompress(body)
+            body = decoder(body)
             record["decodedSha256"] = hashlib.sha256(body).hexdigest()
         except Exception as error:  # noqa: BLE001 -- recorded
             record["decodedSha256"] = f"undecodable: {error}"
@@ -229,6 +283,12 @@ def wire_record(instance: Instance, manifest: dict[str, Any], file_id: int) -> d
         files[path] = {"gzip": fetch(wire, base + path, "gzip"), "identity": fetch(wire, base + path, "identity")}
         etag = files[path]["gzip"]["headers"].get("etag")
         files[path]["conditional"] = fetch(wire, base + path, "gzip", {"If-None-Match": etag} if etag else {})
+        # Z1: as a browser asks, and each coding's validator against the other.
+        files[path]["zstd"] = fetch(wire, base + path, BROWSER_AE)
+        zetag = files[path]["zstd"]["headers"].get("etag")
+        files[path]["zstdConditional"] = fetch(wire, base + path, BROWSER_AE, {"If-None-Match": zetag} if zetag else {})
+        files[path]["zstdWithGzipEtag"] = fetch(wire, base + path, BROWSER_AE, {"If-None-Match": etag} if etag else {})
+        files[path]["gzipWithZstdEtag"] = fetch(wire, base + path, "gzip", {"If-None-Match": zetag} if zetag else {})
     declared = manifest["source"].get("declaredNotLoaded") or []
     negatives = {
         "a declared-not-loaded pack": base + (declared[0] if declared else "profiles/resources/missing.data"),
@@ -243,6 +303,7 @@ def wire_record(instance: Instance, manifest: dict[str, Any], file_id: int) -> d
     return {
         "address": address,
         "files": files,
+        "selection": {encoding: fetch(wire, base + SELECTION_PATH, encoding) for encoding in SELECTION},
         "negatives": {label: {"url": url, **{k: v for k, v in fetch(wire, url, "gzip").items()
                                              if k in ("status", "headers")}}
                       for label, url in negatives.items()},
@@ -304,6 +365,7 @@ def score_wire(w: dict[str, Any], manifest: dict[str, Any]) -> list[str]:
         # "//..." is scheme-relative: a browser takes the next segment for a host.
         if entry["status"] != 303 or location.startswith("//") or not location.endswith(want_location):
             bad.append(f"K1-4 {label}: {entry['status']} -> {location!r}")
+    bad += score_zstd_wire(w, manifest)
     d = w["document"]
     dh = d["headers"]
     if (d["status"] != 200 or dh.get("cross-origin-opener-policy") != "same-origin"
@@ -316,6 +378,63 @@ def score_wire(w: dict[str, Any], manifest: dict[str, Any]) -> list[str]:
     said = ((state or {}).get("editor") or {}).get("sourceSha256") if isinstance(state, dict) else None
     if said != manifest["files"].get(DOC, {}).get("sha256"):
         bad.append(f"K1-5 the document re-wrapped {str(said)[:12]}, not the packaged {DOC}")
+    return bad
+
+
+def representation(record: dict[str, Any], entry: dict[str, Any]) -> str:
+    """Which coding a response carried, judged by its header AND its bytes."""
+    encoding = record.get("headers", {}).get("content-encoding")
+    body = record.get("bodySha256")
+    if encoding == "zstd" and body == entry.get("zstSha256"):
+        return "zstd"
+    if encoding == "gzip" and body == entry.get("gzSha256"):
+        return "gzip"
+    if encoding is None and body == entry.get("sha256"):
+        return "identity"
+    return f"? ({encoding}, {str(body)[:12]})"
+
+
+def unquote(etag: str | None) -> str | None:
+    return etag[1:-1] if etag and len(etag) > 1 and etag[0] == etag[-1] == '"' else etag
+
+
+def score_zstd_wire(w: dict[str, Any], manifest: dict[str, Any]) -> list[str]:
+    """Z1 (SPEC-M3-zstd §4)."""
+    bad = []
+    for path, entry in manifest["files"].items():
+        if path == DOC:
+            continue
+        row = w["files"].get(path) or {}
+        z = row.get("zstd")
+        if z is None:
+            bad.append(f"Z1-1 {path} was not fetched as a browser asks")
+            continue
+        h = z["headers"]
+        if z["status"] != 200 or representation(z, entry) != "zstd" or z.get("decodedSha256") != entry["sha256"]:
+            bad.append(f"Z1-1 {path}: {z['status']} {representation(z, entry)} decoded {str(z.get('decodedSha256'))[:12]}")
+        if h.get("content-length") != str(entry.get("zstBytes")) or unquote(h.get("etag")) != entry.get("zstSha256"):
+            bad.append(f"Z1-1 {path}: content-length {h.get('content-length')!r} etag {h.get('etag')!r}")
+        cc = h.get("cache-control", "")
+        if "immutable" not in cc or max_age(cc) < YEAR or "accept-encoding" not in (h.get("vary") or "").lower() \
+                or not (h.get("content-type") or "").startswith(TYPES.get(Path(path).suffix, "?")) \
+                or (path.endswith(".js") and h.get("cross-origin-embedder-policy") != "require-corp"):
+            bad.append(f"Z1-1 {path}: headers {h}")
+        c, cross, back = row.get("zstdConditional") or {}, row.get("zstdWithGzipEtag") or {}, row.get("gzipWithZstdEtag") or {}
+        if c.get("status") != 304 or c.get("bodyBytes") != 0:
+            bad.append(f"Z1-3 {path}: its own ETag got {c.get('status')} {c.get('bodyBytes')} bytes")
+        if cross.get("status") != 200 or representation(cross, entry) != "zstd":
+            bad.append(f"Z1-3 {path}: a browser with the gzip ETag got {cross.get('status')} {representation(cross, entry)}")
+        if back.get("status") != 200 or representation(back, entry) != "gzip":
+            bad.append(f"Z1-3 {path}: gzip with the zstd ETag got {back.get('status')} {representation(back, entry)}")
+        etags = [(row.get(k) or {}).get("headers", {}).get("etag") for k in ("zstd", "gzip", "identity")]
+        if None in etags or len(set(etags)) != 3:
+            bad.append(f"Z1-4 {path}: ETags zstd/gzip/identity {etags}")
+    entry = manifest["files"].get(SELECTION_PATH, {})
+    for encoding, want in SELECTION.items():
+        got = (w.get("selection") or {}).get(encoding)
+        if got is None or got["status"] != 200 or representation(got, entry) != want:
+            bad.append(f"Z1-2 Accept-Encoding {encoding!r}: want {want}, got"
+                       f" {got and got['status']} {got and representation(got, entry)}")
     return bad
 
 
@@ -412,7 +531,9 @@ def run_browser(kind: str, instance: Instance, scratch: Path) -> dict[str, Any]:
         session = EventChrome("warm", profile_dir=profile)
     else:
         profile = scratch / f"firefox-{time.monotonic_ns()}"
-        session = FirefoxSession("warm", profile_dir=firefox_profile(profile))
+        prefs = NOZSTD_PREFS if kind == "firefox-nozstd" else None
+        record["prefs"] = prefs
+        session = FirefoxSession("warm", profile_dir=firefox_profile(profile), extra_prefs=prefs)
     record["profileDiskFree"] = shutil.disk_usage(profile).free
     record["version"] = getattr(session, "version", None)
     agent = "Chrome" if kind == "chrome" else "Firefox"
@@ -519,6 +640,39 @@ def score_run(run: dict[str, Any], ctx: dict[str, Any]) -> list[str]:
                      and not (r["status"] == 304 and r["path"][len(prefix):] in ctx["noCache"])]
             if again:
                 bad.append(f"K2-3 second open reached the server for {sorted(set(again))}")
+    return bad + score_zstd_run(run, ctx)
+
+
+def distinguishable(manifest: dict[str, Any]) -> list[str]:
+    """Z2's D: the files whose gzip is at least SLACK bytes bigger than their
+    zstd, so a gzip response can never pass Z2-1 (%O counts the body)."""
+    return sorted(p for p, e in manifest.get("files", {}).items()
+                  if p != DOC and e.get("gzBytes", 0) - e.get("zstBytes", 1 << 62) >= SLACK)
+
+
+def score_zstd_run(run: dict[str, Any], ctx: dict[str, Any]) -> list[str]:
+    """Z2 (SPEC-M3-zstd §4), on the first open's log."""
+    manifest = ctx["manifest"]
+    files = manifest.get("files", {})
+    d = distinguishable(manifest)
+    must = [p for p in files if p.endswith("/probe.wasm") or p.endswith(".data")]
+    bad = []
+    if not must or not set(must) <= set(d):
+        bad.append(f"Z2 D is {d}; it must hold the wasm and the .data files {must}")
+    kind = run.get("browser")
+    if kind not in ("chrome", "firefox", "firefox-nozstd"):
+        return bad + [f"Z2 unknown browser {kind!r}"]
+    prefix = asset_prefix(ctx["address"])
+    for r in (run.get("first") or {}).get("log") or []:
+        name = strip_front(r["path"])[len(prefix):] if strip_front(r["path"]).startswith(prefix) else None
+        if name not in d:
+            continue
+        entry = files[name]
+        if kind == "firefox-nozstd":
+            if not entry["gzBytes"] <= r["sent"] < entry["gzBytes"] + SLACK:
+                bad.append(f"Z2-2 {name}: {r['sent']} bytes sent, gzip is {entry['gzBytes']}")
+        elif r["sent"] >= entry["zstBytes"] + SLACK:
+            bad.append(f"Z2-1 {name}: {r['sent']} bytes sent, zstd is {entry['zstBytes']}")
     return bad
 
 
@@ -607,6 +761,21 @@ PACKAGE_CASES = [
     ("K0-6", "a host script changed after the last version bump",
      lambda p: p.update(lastJsCommit=str(int(p["lastVersionCommit"]) + 60))),
     ("K0-6", "no version bump found", lambda p: p.update(lastVersionCommit="")),
+    ("Z0-1", "a .zst is not the manifest's",
+     lambda p: p["files"][_wasm_path(p["manifest"])].update(zstSha256="5" * 64)),
+    ("Z0-1", "a .zst decodes to other bytes",
+     lambda p: p["files"]["sdk/document-sdk.js"].update(zstDecodedSha256="5" * 64)),
+    ("Z0-1", "a .zst is missing", lambda p: p["files"]["sdk/document-sdk.js"].update(
+        zstSha256=hashlib.sha256(b"").hexdigest(), zstBytes=0, zstDecodedSha256="undecodable: empty", zstFrame={"error": "x"})),
+    ("Z0-2", "a 16 MiB window, read from a real frame (level 1, window_log 24)",
+     lambda p: p["files"][_wasm_path(p["manifest"])].update(zstFrame=zstd_frame(_wide_frame()))),
+    ("Z0-2", "trailing bytes after the frame", lambda p: p["files"][_wasm_path(p["manifest"])].update(
+        zstFrame=zstd_frame(zstd.compress(b"litecore") + b"x"))),
+    ("Z0-3", "a .zst over Firefox's measured cache room",
+     lambda p: p["manifest"]["files"][_wasm_path(p["manifest"])].update(zstBytes=MAX_ZST_BYTES + 1)),
+    ("Z0-4", "a schema-1 manifest", lambda p: p["manifest"].update(schema="litecore-engine/1")),
+    ("Z0-4", "another engine", lambda p: p["manifest"].update(
+        buildId=build_id(dict(p["manifest"]["files"], **{"x.js": {"sha256": "0" * 64}})))),
 ]
 
 WIRE_CASES = [
@@ -648,6 +817,31 @@ WIRE_CASES = [
     ("K1-5", "the document has no COEP", lambda w, m: w["document"]["headers"].pop("cross-origin-embedder-policy")),
     ("K1-5", "the document re-wrapped some other page (review item 10)",
      lambda w, m: w["document"]["initialState"]["editor"].update(sourceSha256="4" * 64)),
+    ("Z1-1", "a browser request answered with gzip",
+     lambda w, m: w["files"][_wasm_path(m)].update(zstd=copy.deepcopy(w["files"][_wasm_path(m)]["gzip"]))),
+    ("Z1-1", "zstd body is not the packaged bytes",
+     lambda w, m: w["files"][_wasm_path(m)]["zstd"].update(bodySha256="6" * 64)),
+    ("Z1-1", "Content-Length is the gzip's", lambda w, m: w["files"][_wasm_path(m)]["zstd"]["headers"].update(
+        {"content-length": str(m["files"][_wasm_path(m)]["gzBytes"])})),
+    ("Z1-1", "the zstd ETag is the gzip's", lambda w, m: w["files"]["sdk/document-sdk.js"]["zstd"]["headers"].update(
+        etag=w["files"]["sdk/document-sdk.js"]["gzip"]["headers"]["etag"])),
+    ("Z1-1", "zstd without Vary", lambda w, m: w["files"][_wasm_path(m)]["zstd"]["headers"].pop("vary")),
+    ("Z1-1", "zstd script without COEP",
+     lambda w, m: w["files"]["sdk/document-sdk.js"]["zstd"]["headers"].pop("cross-origin-embedder-policy")),
+    ("Z1-2", "zstd;q=0 ignored", lambda w, m: w["selection"].update(
+        {"zstd;q=0, gzip": copy.deepcopy(w["selection"]["zstd"])})),
+    ("Z1-2", "a zstd-less browser gets identity", lambda w, m: w["selection"].update(
+        {"gzip, deflate, br": copy.deepcopy(w["selection"]["br"])})),
+    ("Z1-2", "the token is matched case-sensitively", lambda w, m: w["selection"].update(
+        {"ZSTD": copy.deepcopy(w["selection"]["br"])})),
+    ("Z1-3", "the gzip ETag revalidates the zstd representation",
+     lambda w, m: w["files"][_wasm_path(m)]["zstdWithGzipEtag"].update(status=304, bodyBytes=0, bodySha256=hashlib.sha256(b"").hexdigest())),
+    ("Z1-3", "zstd's own ETag answered with the body",
+     lambda w, m: w["files"]["sdk/document-sdk.js"]["zstdConditional"].update(status=200, bodyBytes=3930)),
+    ("Z1-3", "a gzip request with the zstd ETag got 304",
+     lambda w, m: w["files"]["sdk/document-sdk.js"]["gzipWithZstdEtag"].update(status=304, bodyBytes=0)),
+    ("Z1-4", "one ETag for every coding", lambda w, m: w["files"]["sdk/document-sdk.js"]["identity"]["headers"].update(
+        etag=w["files"]["sdk/document-sdk.js"]["zstd"]["headers"]["etag"])),
 ]
 
 RUN_CASES = [
@@ -705,7 +899,25 @@ RUN_CASES = [
      lambda r, c: _fired(r, "second").update(lastGuard={"reasons": ["page"]}, guards=1)),
     ("K2 instrument", "no fired record",
      lambda r, c: r["first"].update(leftRecord=[e for e in r["first"]["leftRecord"] if e.get("what") != "fired"])),
+    # SPEC-M3-zstd: which browsers each applies to is the fourth field.
+    ("Z2-1", "the wasm came as gzip", lambda r, c: _first_asset(r, c, "probe.wasm").update(
+        sent=c["manifest"]["files"][_wasm_path(c["manifest"])]["gzBytes"] + 900), ("chrome", "firefox")),
+    ("Z2-1", "the page module came as gzip", lambda r, c: _first_asset(r, c, "/e2-editor-app.js").update(
+        sent=c["manifest"]["files"]["e2-editor-app.js"]["gzBytes"] + 900), ("chrome", "firefox")),
+    ("Z2-2", "the fallback arm got zstd", lambda r, c: _first_asset(r, c, "probe.wasm").update(
+        sent=c["manifest"]["files"][_wasm_path(c["manifest"])]["zstBytes"] + 900), ("firefox-nozstd",)),
+    ("Z2-2", "the fallback arm got identity", lambda r, c: _first_asset(r, c, "cjk-r5.b76b0433203017ca.data").update(
+        sent=c["manifest"]["files"]["profiles/resources/cjk-r5.b76b0433203017ca.data"]["bytes"] + 900), ("firefox-nozstd",)),
+    ("Z2 D", "D lost the wasm (zstd no smaller than gzip)", lambda r, c: c["manifest"]["files"][_wasm_path(c["manifest"])]
+     .update(zstBytes=c["manifest"]["files"][_wasm_path(c["manifest"])]["gzBytes"])),
 ]
+
+
+def _wide_frame() -> bytes:
+    """A real frame over the limit: 20 MiB at window_log 24 (16 MiB)."""
+    data = hashlib.sha256(b"litecore").digest() * (20 * (1 << 20) // 32)
+    return zstd.compress(data, options={zstd.CompressionParameter.compression_level: 1,
+                                        zstd.CompressionParameter.window_log: 24})
 
 
 def red_cases(path: Path) -> int:
@@ -736,16 +948,16 @@ def red_cases(path: Path) -> int:
             mutate(w, manifest)
             judge(label, clause, score_wire(w, manifest))
     ctx = run_context(report)
-    for clause, label, mutate in RUN_CASES:
-        for browser in PLAN:
+    for clause, label, mutate, *only in RUN_CASES:
+        for browser in only[0] if only else PLAN:
             base = next((r for r in report["runs"] if r["browser"] == browser and not score_run(r, ctx)), None)
             if base is None:
                 print(f"  MISSING {clause} {label} [{browser}]: no clean run to mutate")
                 failures += 1
                 continue
-            mutated = copy.deepcopy(base)
-            mutate(mutated, ctx)
-            judge(f"{label} [{browser}]", clause, score_run(mutated, ctx))
+            mutated, c = copy.deepcopy(base), copy.deepcopy(ctx)
+            mutate(mutated, c)
+            judge(f"{label} [{browser}]", clause, score_run(mutated, c))
     static = copy.deepcopy(report)
     static["static"]["page"]["dist"] = "0" * 64
     judge("the served page is not the spec's", "static: page", score(static, strict=False)["problems"])
@@ -760,7 +972,7 @@ def main() -> int:
     parser.add_argument("--label", choices=("shakedown", "counted"))
     parser.add_argument("--ddev-root", type=Path, default=DEFAULT_DDEV,
                         help="another instance: the app installed from the release archive (SPEC-M3-install-elsewhere)")
-    parser.add_argument("--browsers", default="chrome,firefox")
+    parser.add_argument("--browsers", default=",".join(PLAN))
     parser.add_argument("--repeats", type=int, default=None, help="shakedown only")
     parser.add_argument("--score", type=Path)
     parser.add_argument("--red-cases", type=Path)
