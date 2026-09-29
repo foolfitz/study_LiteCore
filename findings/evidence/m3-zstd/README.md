@@ -47,3 +47,28 @@ Host `7420418`, engine buildId `7f4f4e2204b4a9ec` with both codings. Same comman
 spec's K4 (mtime `2026-09-30 00:00Z`), built in the session scratchpad, not kept:
 **111,689,706 bytes (106.5 MiB)**, 69 entries; `engine/` is 112,394,407 bytes before tar (K4 on
 0.2.0 was 63,416,048 bytes, 47 entries). Prediction was about 107 MiB.
+
+## After the review (2026-09-30)
+
+The review (`review-2026-09-30-opus.md`) found the release builder packing `.gz` only (BLOCKING 1),
+CSP never compared across codings (HEAVY 2), and the scorer turning the 0.2.4 counted report red
+(HEAVY 3). Dispositions: spec §7, second row of 2026-09-30.
+
+- Shakedown 2, `m3-assets/shakedown/2026-09-29T163206+0000.json`: chrome, firefox, firefox-nozstd
+  1/1 each, clean against K0–K2 + Z0–Z2 + Z4-1; `--red-cases` 156, every one red in its own clause.
+  Chrome's CDP record (unscored): all 13 page-level modules arrived `content-encoding: zstd` on the
+  first open (12 of them too small for `%O` to tell apart), and every one was `fromDiskCache` on the
+  second; the editor document is gzip (Apache on the rendered page, not the engine route).
+- The 0.2.4 counted report `m3-assets/runs/2026-09-29T151106+0000.json` re-scores
+  `ASSETS DELIVERED [SPEC-M3-asset-delivery]` with the new scorer; its own 90 red cases stay red.
+- Header comparison, measured before writing the exclusion list: two fetches of the same file differ
+  only in `date`, `expires`, `x-request-id`; the three codings differ in `content-encoding`,
+  `content-length`, `etag`; everything else, CSP included, is identical.
+
+## Z4-2: the builder's archive (measured, registered)
+
+`build_m3_release.py --record findings/evidence/m3-zstd/release-0.2.5.json` (not `release.json`,
+which litecoreprobe's binding still reads for 0.2.1): host `7420418`, 0.2.5, buildId
+`7f4f4e2204b4a9ec`, **111,711,969 bytes (106.5 MiB)**, 52 members (the host's tracked files,
+`engine/MANIFEST.json`, 22 `.gz`, 22 `.zst`), sha256 `602fe6bb…`, the second build byte-identical.
+The archive itself is in `wasm_sdk_probe/build/release/` (not in git).

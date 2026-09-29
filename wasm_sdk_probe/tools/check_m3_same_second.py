@@ -59,7 +59,9 @@ from run_e2_c_page_smoke import PRESS, navigate  # noqa: E402
 EVIDENCE = REPO / "findings" / "evidence" / "m3-same-second"
 SNAME = "M3 同秒 測試.odt"
 PLAN = {"same-second": ("R2", ("chrome", "firefox"), 3), "same-second-foreign": ("R3", ("chrome", "firefox"), 3)}
-HOST_VERSION = "0.2.4"   # ruling D shipped as 0.2.2; SPEC-M3-page-honesty §7.6/§7.11 re-runs on 0.2.4
+# ruling D shipped as 0.2.2; SPEC-M3-page-honesty §7.6/§7.11 re-ran it on 0.2.4; SPEC-M3-zstd Z3
+# re-runs it on 0.2.5 (written 2026-09-30 before that run).
+HOST_VERSION = "0.2.5"
 PAIRS = 10
 SAVES = 2 * PAIRS + 1 + 2   # the ten pairs, the single save (S21), the restore pair (S22, S23)
 BUTTON = PRESS.replace("ARG_ACTION", "save")
