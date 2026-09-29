@@ -161,12 +161,22 @@ whether the event fired and `persisted` into localStorage; the access log gives 
 | `…162401` | `49cc4ab` (old host, checked out for the A/B, then back) | Firefox warm edit 3/4, warm none 4/4 |
 | `…162726` | `7a11a4b` | Firefox warm edit 3/4, warm none 2/4 |
 | `…163344` | `7a11a4b` + the fix (then committed as `c296d2a`) | Firefox warm edit 6/6, warm none 6/6, cold edit 6/6; Chrome warm edit 6/6, none 6/6 |
+| `…154412` | `369e6ed` (0.2.4), page `fc80050c…`; shakedown of the leave recorder (SPEC-M3-page-honesty §7.8 condition 9) | Firefox warm edit 1/1 (guard `page`), warm none 1/1 (no guard) |
+| `…154506` | `369e6ed` (0.2.4), page `fc80050c…`; **condition 9** | Firefox warm edit **12/12** (every leave guarded, reason `page`), warm none **12/12** (none guarded); 0 instrument failures |
 
 `pagehide` fired in every run, always `persisted: false`. Every run that kept the lock has no
 UNLOCK in the access log at all. With the fix, 2–4 UNLOCKs arrive per leave. ~~(the beforeunload
 pair every time; the pagehide pair not always)~~ — the log has method, status and one-second
 time only, so which pair arrived cannot be told (review item 17). `releasedBy` in the printed summary is `None`
 because the probe reads the host's record at open, before leaving.
+
+**Condition 9 (`…154506`, 2026-09-29).** The guarded leave — the host asks at `beforeunload`, does not
+release there, and only its `pagehide` UNLOCK is left — released the lock within 10 s in 12/12 (lock gone
+1.31–1.55 s after the navigation, 2 UNLOCKs in the access log every time); the unguarded control 12/12
+(1.38–1.88 s, 2–4 UNLOCKs). `secondsDoneToLeave` 1.47–1.50 s in the edit arm (the smoke edit comes first),
+0.14–0.25 s in the none arm. `pagehide` fired every time, `persisted: false`. Before the fix this was the
+path that lost the lock 7 times in 13; 0/12 now, 95% upper bound about 26%. Why the pagehide UNLOCK now
+arrives when it used to not is not attributed (finding 105).
 
 The first `…161945` attempt died before any run: the probe's stale-lock release sent the bare
 uuid from `nc:lock-token`; the header needs `<opaquelocktoken:uuid>` (500 otherwise). Fixed
