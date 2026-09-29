@@ -112,8 +112,98 @@ V2 的鍵盤那半是**手工枚舉**（第 1 節形式三），只當一次性�
 - `mutation` 旗標正確與否只量到今天的清單（V2 的可寫對照）；之後新增的動作若標錯旗標，V3 不會知道——那是 V2 重跑的事。
 - 「按住 Ctrl+S」只量合成的 `keydown`（同 106），不量真鍵盤的自動重複延遲。
 
+## 7. 審核之後的修訂（2026-09-29，任何實作、runner 與瀏覽器量測之前）
+
+對抗性審核（opus，唯讀）26 項，原文與逐項處置在 `findings/evidence/m3-page-honesty/review-2026-09-29-opus.md`。
+BLOCKING 的四項（1–4）我讀過它引用的原始碼、都成立。本節**取代**第 3、4 節裡被點名的部分；原文留著，沒被點名的照舊。
+
+### 7.1 改動範圍的修訂（取代 §3 的 U 條件與宿主範圍）
+
+- **「未交出的修改」的定義**（取代 §3 U 的條件）：`snapshot.dirty` **或** `snapshot.pending > 0` **或**「有一次存檔已經被要求、
+  還沒有結束」。有宿主時「結束」＝`HOST.save()` resolve 或 reject（**結束，不是收下**：頁面分不出副本存到了還是 stranded，
+  兩者用同一個 code；stranded 由宿主自己擋）。沒有宿主時「結束」＝下載的 anchor 被點了。從要求存檔的那一刻起算，所以涵蓋
+  `session.save()` 完成到 `HOST.save()` 開始之間那段 `renderDocument()`（審核第 1 項）。`pending > 0` 涵蓋第一個編輯還在引擎裡的
+  那段（第 8 項），代價是游標移動進行中離開也會問一次。**不得用 revision 判斷**（099 的類型；Worker 重開時 revision 歸零）。
+- **有宿主時，宿主是唯一決定的監聽器**（審核第 2 項）：宿主的 `beforeunload` 比頁面早註冊，而且不擋的時候會先放鎖；頁面若自己
+  再擋，使用者選「留下」時手上已經沒有鎖、下一次存檔變衝突副本。所以宿主 0.2.3 加 `liteCoreHost.watchUnsaved(fn)`：頁面把上面的
+  判斷交給宿主；宿主的 `beforeunload` 在 `stranded || inFlight > 0 || fn()` 時擋、**不放鎖**，其餘才放鎖；每一次擋都記下理由
+  （`stranded`／`inFlight`／`page`）。頁面有宿主時只走 `watchUnsaved`；宿主沒有這個方法時頁面自己掛監聽器並在宿主紀錄旁記下
+  （版本不配對，不是出貨組態）。沒有宿主時頁面自己掛。
+- **宿主 0.2.3 的範圍**（取代 §3 的宿主那一點）：`js/litecore-editor.js` 與 `appinfo/info.xml`；`load()` 多回 `readOnly`；
+  `watchUnsaved`；擋的理由記錄；唯讀的宿主列文字。**不修**：`tokenOnServer` 的 `.text()` 丟例外時存檔以「沒有副本也沒有 stranded」
+  結束（審核第 11 項，讀原始碼，走不到的修法不寫——059 的教訓），登錄在 §7.5。
+- **頁面**：每一顆 `#toolbar button` 帶 `data-mutates`（`session.actionMutates(dataset.action ?? id)`，不認得的＝會改）；檢視模式下
+  `disabled` 由它決定，而且寫在 `updateGestureAffordance()` 裡（它每次狀態更新都重設按鈕，第 15 項）；`EDITOR_VIEW_ONLY` 在
+  `run()` 與輸入 trace 的 toast 都對應成一句「唯讀：只能檢視」。
+- **§1 的「報讀照常」**限於提供段落文字的 profile；出貨的 v8 沒有（`#a11y-para` 是固定句），v8 上能保證的是「能移動游標」。
+
+### 7.2 離頁的觀測法（取代 §4 的觀測法段落）
+
+開檔完成之後，runner 包住 `Event.prototype.preventDefault` 與 `BeforeUnloadEvent.prototype.returnValue` 的 setter：對
+`type === 'beforeunload'` 的每一次呼叫，把 `{nonce, what, value, stack}` 追加進 `sessionStorage` 裡**這一格自己的 nonce** 底下；
+另加一個監聽器記 `{nonce, fired: true}`。判讀：
+
+- **「問了」**＝有一筆 `preventDefault` 或非空 `returnValue`；**是誰問的**看 stack（`litecore-editor.js`＝宿主、`e2-editor-app.js`＝頁面、
+  runner 自己的腳本＝runner）。
+- **沒有 `fired` 那一筆＝這一格不算過**（不是「沒問」）。負向的格（沒問）要 `fired` 在、而且沒有任何一筆 ask。
+- Chrome 另外以 CDP 對話框觀測（真的點擊給使用者啟動）。Firefox 在 WebDriver classic 下自動接受，所以 Firefox 只有記錄器。
+
+### 7.3 判準的修訂
+
+| 格 | 修訂（取代同名格或新增） |
+|---|---|
+| **U0**（取代） | **不編輯**，runner 自己加一個會問的監聽器，離開：記錄器看到 ask、而且**只有** runner 的 stack。它不成立＝**同一個瀏覽器同一輪**的 U 格一律不算。 |
+| **U1**（取代） | 編輯、離開：宿主紀錄多一筆擋、理由含 `page`；ask 的 stack 是宿主。Chrome：對話框、取消；**宿主鎖仍是 `held`、伺服器 token 與開檔後相同**；再離開一次（leave2），同樣擋、同樣取消；再按儲存：**204 寫進原檔**（不是副本）；再離開：沒問。Firefox：自動接受，記錄器看到宿主的 ask，伺服器檔案＝開檔前。 |
+| **U-window**（新增） | 編輯；runner 在 `#s-latency` 上掛 MutationObserver，一出現「儲存 N ms」而宿主紀錄的存檔數還沒增加，就導覽離開：問了（宿主、理由 `page`）。Chrome 取消之後，這次存檔照常結束（204）。 |
+| **U2／U4／U5**（補） | 負向：`fired` 在、沒有任何 ask。 |
+| **U3**（補） | 頁面的判斷只讀 `dirty`／`pending`／存檔進行中，不讀 revision：殼層單元測試斷言它（改成 revision 比較的突變要紅）。 |
+| **U6**（補） | 下載模式：ask 的 stack 是頁面；第二段負向照上。 |
+| **U7**（新增） | 按「標題」並在**同一個 task** 裡導覽離開：問了（`pending > 0`）。 |
+| **K-held**（補） | 最後一個 `keydown` 之後等 5 秒沒有新的存檔；頁面層的存檔完成次數（runner 在 `#s-latency` 上數「儲存 N ms」）＝1，宿主存檔＝1。 |
+| **K-sep**（新增） | 兩個 `repeat: false` 的 Ctrl+S，中間插入一段標記文字，前後相隔 < 300 ms：恰好 2 次存檔、2 個 PUT，伺服器最後的位元組含標記。 |
+| **K-two**（補） | 兩個按壓在同一個 evaluate 裡；緊接著讀 `#s-pending`，要 > 0（第二個按壓落在第一次存檔結束之前）。 |
+| **V2**（取代） | 普查＝**每一顆** `#toolbar button`（含 `#clear-format`）加 `#text`＋鍵盤那半。**唯讀**：runner 先拿掉每一顆按鈕的 `disabled`（模擬 UI 層失守），再逐項按；每一項之後 revision 不變、pending 0、pill `ready`、`#toast` 為空或含「唯讀」。**可寫對照**：同一份普查，事前布置好前提（插入欄位先填字、Ctrl+X 前先用 Shift+方向鍵選一段、Ctrl+V 用帶 `DataTransfer` 的 paste 事件、復原在編輯之後、重做在復原之後）；**每一項都要讓 revision 前進**，只有這幾個例外（理由）：`data-mutates="0"` 的按鈕（移動，本來就不改）、`save`（存檔不改文件）、`open-file`（有宿主時停用）。只有**按鈕那半**是硬判準；鍵盤那半是一次性量測（第 23 項）。 |
+| **V3**（補） | 加：被拒時 state 與 pending 都沒變；`restart()` 之後仍是 view-only；測試讀的樹內檔案 sha256＝宿主實際送出的那份。 |
+| **V4**（取代） | 多段 fixture、唯讀：點畫布 → `#s-latency` 符合 `/^定位游標 \d+ ms$/`；ArrowDown → 符合 `/^下移一行 \d+ ms$/`，而且 `#sink`（跟著游標走）的 top 嚴格變大；pill `ready`。 |
+| **V7**（新增） | 唯讀、至少一次狀態更新之後（例如一次游標移動）：每一顆 `#toolbar button` 的 `disabled` ＝（`data-mutates === "1"`）；`#text` 停用；`move-character-left/right` 可按。 |
+
+### 7.4 K9′／K10′ 的判定式（取代 §4 回歸段「期望與原 K9／K10 相同」）
+
+布置：`lcprobe` 開的檔在開檔時**可寫**（K9′：直接分享給他、權限 3；K10′：放在分享給他的資料夾裡、權限 3）；編輯；runner 以
+admin 把那個分享改成權限 1，並**讀回**確認已是 1；存檔。
+
+- 改寫的判定式：開檔時宿主**有** `LOCK` 且 `held`（取代「沒有送 LOCK」）；收回權限的那一刻伺服器 `nc:lock` 是 1；存檔的 attempts
+  ＝`[(403, True)]`（**帶 token**，取代 `(403, False)`）；開檔時宿主列**不**含「唯讀」（取代「含唯讀」）。
+- 照舊的判定式：K9′ 一份「另存副本」在收件人自己的資料夾、位元組＝送出的；頁面 `存回 失敗`＋副本檔名；擁有者的檔沒變。K10′ 副本也
+  403、`failed`；stranded 的宿主列；下載鈕；leave1、leave2 **各有一筆宿主的擋、理由含 `stranded`**（第 12 項）。
+- wire order（`check_m3_locks.py:731`）：K9′／K10′ **不再豁免**。
+- 紅案：刪掉「readonly: sent a LOCK（host record／wire）」兩個；新增「收回沒生效（讀回仍是 3）」「PUT 沒帶 token」「PUT 是 412 不是 403」
+  「K10′ 的擋沒有 `stranded` 理由」；「副本位元組不同」「擁有者的檔變了」照舊。
+- **每一趟**的前提：收回之後的 PUT 是 403。是 412（改權限動了 ETag）＝那一趟走的是別條路，**算紅**，停手回報，不改期望。
+
+### 7.5 登錄（不在本輪修，也不當判準）
+
+- **Firefox 的「問了才離開」**：宿主在擋的時候不放鎖，使用者選「離開」之後只剩 `pagehide` 的 UNLOCK——finding 105 那條沒修的路，
+  現在每一次帶著未存修改離開都會走到。解法（例如 `sendBeacon` 到 app 自己的解鎖路由）是新機制，不在本輪。
+- `tokenOnServer` 的 `.text()` 丟例外 → 存檔以「沒有副本也沒有 stranded」結束、沒有守衛（讀原始碼）。
+- V2 量的是 revision，不是內容：runner 拿不到 module 範圍裡的 `session`，為了測試給產品加除錯把手是為測試改產品。這裡 revision
+  夠用的理由：關卡在**排入佇列之前**拒絕；會改內容卻不動 revision 的路（`failFormatBarrier`）只在 mutation 操作**裡面**跑。
+- 下載模式下切換範例文件或開本機檔，會丟掉未存的修改而不問（同 107 的類型；M3 產品有宿主時兩個選擇器都停用）。
+- `placeCaret` 的點擊標為非 mutation，但 LOK 的點擊可能改內容（例如核取方塊內容控制項）——推論，未量。
+- 跨 Worker 回復的 U3（revision 歸零之後）沒有格；由 U3 的單元測試擋「改用 revision」。
+
+### 7.6 回歸的綁定（取代 §4 回歸段「只更新綁定（…等）」）
+
+要改的常數**就這四個**：`check_m3_locks.PAGE_SHA256`、`check_m3_assets.PAGE_SHA256`、`check_m3_versions.HOST_COMMIT`、
+`check_m3_same_second.HOST_VERSION`（`check_m3_host_entry.py` 沒有寫死的綁定）。`check_m3_versions`、`check_m3_assets`、
+`check_m3_host_entry`、`check_m3_same_second` 的 diff 只能碰這幾行；`check_m3_locks` 的 diff＝那一行加 §7.4。**其他任何需要改的
+地方**：停手，先把哪裡、為什麼寫進本節，才跑。
+
+**離頁的靜態普查**（第 22 項）：任何 shakedown 之前，逐一列出每一支 runner 每一格離開頁面時是否帶著未存的修改；結果附在本節之後。
+
 ## 6. 修訂紀錄
 
 | 日期 | 內容 |
 |---|---|
+| 2026-09-29 | **加 §7：對抗性審核（opus，唯讀）之後、任何實作之前的修訂。**處置全表在 `findings/evidence/m3-page-honesty/review-2026-09-29-opus.md`。判準層：未交出的定義改成「dirty 或 pending 或存檔未結束」；有宿主時由宿主唯一決定（`watchUnsaved`，擋時不放鎖）；觀測法改成包住原型並以 stack 歸屬、缺紀錄算不過；U0／U1／V2／V4 取代，U-window／U7／K-sep／V7 新增，K9′／K10′ 判定式逐條寫出；回歸的綁定列舉成四個常數。事實層：§1 的報讀限於提供段落文字的 profile。登錄六項（§7.5）。 |
 | 2026-09-29 | 初版。依據：finding 107（同日量到）、finding 106、擁有者對唯讀的裁示 A。寫在頁面、殼層、宿主改動與 runner 之前。 |
