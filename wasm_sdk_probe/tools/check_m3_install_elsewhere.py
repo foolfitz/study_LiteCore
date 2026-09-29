@@ -53,6 +53,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_m3_release as release_tool  # noqa: E402
 import check_m3_assets  # noqa: E402
+from package_m3_engine import engine_members  # noqa: E402
 import check_m3_host_entry  # noqa: E402
 import check_m3_locks  # noqa: E402
 import check_m3_versions  # noqa: E402
@@ -768,9 +769,9 @@ def archive_records(release: dict[str, Any]) -> dict[str, Any]:
     tracked = release_tool.tracked(repo, release["commit"])
     manifest = json.loads((repo / "engine" / "MANIFEST.json").read_text())
     engine = {"engine/MANIFEST.json": sha256_file(repo / "engine" / "MANIFEST.json")}
-    for path in manifest["files"]:
-        packed = repo / "engine" / "files" / f"{path}.gz"
-        engine[f"engine/files/{path}.gz"] = sha256_file(packed) if packed.is_file() else None
+    # Every coding the manifest names (SPEC-M3-zstd §7, review item 1), not .gz alone.
+    for name in engine_members(manifest):
+        engine[name] = sha256_file(repo / name) if (repo / name).is_file() else None
     rebuilt = release_tool.build(release_tool.collect(repo, release["commit"])[0])
     top = set(release_tool.git(repo, "ls-tree", "--name-only", release["commit"]).decode().split())
     scan = {}

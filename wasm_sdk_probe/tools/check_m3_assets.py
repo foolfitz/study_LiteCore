@@ -55,6 +55,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import build_m3_release  # noqa: E402
 from check_m3_host_entry import saves_reached  # noqa: E402
 from check_m3_page_honesty import READ_RECORD, RECORDER  # noqa: E402
 from check_m3_skeleton_open import (  # noqa: E402
@@ -75,6 +76,10 @@ EVIDENCE = REPO / "findings" / "evidence" / "m3-assets"
 # the re-shakedown and counted runs on host 0.2.4 (369e6ed); was fbfb59a4….
 PAGE_SHA256 = "fc80050c22948df63f012fa87a254c63e4f19227aa387ded76747bd6c21d947e"
 PLAN = {"chrome": 3, "firefox": 3, "firefox-nozstd": 3}
+# A report is scored against the criteria its runner wrote into it (SPEC-M3-zstd
+# §7, review item 3): reports from before the zstd step keep their own verdicts.
+CRITERIA = ["SPEC-M3-asset-delivery", "SPEC-M3-zstd"]
+LEGACY_PLAN = {"chrome": 3, "firefox": 3}
 DOC = "e2-editor.html"
 ENTRY = "/apps/litecore/r/e2-editor.html"
 YEAR = 31536000
@@ -97,7 +102,12 @@ BROWSER_AE = "gzip, deflate, br, zstd"
 # Z1-2: Accept-Encoding -> the coding the host must pick.
 SELECTION = {"zstd": "zstd", "ZSTD": "zstd", "gzip;q=0, zstd": "zstd", "zstd;q=0, gzip": "gzip",
              "gzip, deflate, br": "gzip", "zstd;q=0": "identity", "br": "identity"}
-SELECTION_PATH = "sdk/document-sdk.js"
+# The 0.2.4 counted run's address (runs/2026-09-29T151106): the zstd policy must move it (Z1-5).
+PREVIOUS_ADDRESS = "7f4f4e2204b4a9ec-566647db"
+# Z1-1: headers that differ between two requests for the same bytes (measured
+# 2026-09-30: date, expires, x-request-id) and the three a coding owns.
+PER_REQUEST = {"date", "expires", "x-request-id"}
+PER_CODING = {"content-encoding", "content-length", "etag"}
 # Z2-2: the fallback arm, Firefox without zstd in its HTTPS Accept-Encoding.
 NOZSTD_PREFS = {"network.http.accept-encoding.secure": "gzip, deflate, br"}
 KEEP = ("content-type", "content-encoding", "content-length", "cache-control", "vary", "location", "etag",
@@ -167,7 +177,7 @@ def package_for(root: Path, binding: dict[str, Any]) -> dict[str, Any]:
                           binding["hostRepo"].split(" ")[0] or "HEAD")
 
 
-def score_package(pkg: dict[str, Any]) -> list[str]:
+def score_package(pkg: dict[str, Any], zstd_step: bool = True) -> list[str]:
     bad = []
     manifest = pkg["manifest"]
     listed = manifest.get("files", {})
@@ -191,7 +201,7 @@ def score_package(pkg: dict[str, Any]) -> list[str]:
     js, version = pkg.get("lastJsCommit") or "", pkg.get("lastVersionCommit") or ""
     if not (js.isdigit() and version.isdigit() and int(js) <= int(version)):
         bad.append(f"K0-6 host scripts changed after the last version bump (js {js!r}, version {version!r})")
-    return bad + score_zstd_package(pkg)
+    return bad + (score_zstd_package(pkg) if zstd_step else [])
 
 
 def score_zstd_package(pkg: dict[str, Any]) -> list[str]:
@@ -238,7 +248,7 @@ def no_cache_fetches(root: Path, files: list[str]) -> list[str]:
 
 
 def fetch(wire: Wire, url: str, encoding: str, extra: dict[str, str] | None = None,
-          initial_state: bool = False) -> dict[str, Any]:
+          initial_state: bool = False, full_headers: bool = False) -> dict[str, Any]:
     request = urllib.request.Request(url, headers={"Accept-Encoding": encoding, **(extra or {})})
     started = time.monotonic()
     try:
@@ -249,6 +259,8 @@ def fetch(wire: Wire, url: str, encoding: str, extra: dict[str, str] | None = No
     record = {"status": status, "seconds": round(time.monotonic() - started, 3), "bodyBytes": len(body),
               "bodySha256": hashlib.sha256(body).hexdigest(),
               "headers": {k: headers.get(k) for k in KEEP if headers.get(k) is not None}}
+    if full_headers:
+        record["allHeaders"] = sorted([k.lower(), v] for k, v in headers.items())
     decoder = {"gzip": gzip.decompress, "zstd": zstd.decompress}.get(headers.get("content-encoding") or "")
     if decoder:
         try:
@@ -267,7 +279,7 @@ def fetch(wire: Wire, url: str, encoding: str, extra: dict[str, str] | None = No
     return record
 
 
-def wire_record(instance: Instance, manifest: dict[str, Any], file_id: int) -> dict[str, Any]:
+def wire_record(instance: Instance, manifest: dict[str, Any], file_id: int, zstd_step: bool = True) -> dict[str, Any]:
     wire = Wire(instance)
     wire.login()
     build = manifest["buildId"]
@@ -280,15 +292,20 @@ def wire_record(instance: Instance, manifest: dict[str, Any], file_id: int) -> d
     for path in manifest["files"]:
         if path == DOC:
             continue
-        files[path] = {"gzip": fetch(wire, base + path, "gzip"), "identity": fetch(wire, base + path, "identity")}
+        files[path] = {"gzip": fetch(wire, base + path, "gzip", full_headers=zstd_step),
+                       "identity": fetch(wire, base + path, "identity")}
         etag = files[path]["gzip"]["headers"].get("etag")
         files[path]["conditional"] = fetch(wire, base + path, "gzip", {"If-None-Match": etag} if etag else {})
+        if not zstd_step:
+            continue
         # Z1: as a browser asks, and each coding's validator against the other.
-        files[path]["zstd"] = fetch(wire, base + path, BROWSER_AE)
+        files[path]["zstd"] = fetch(wire, base + path, BROWSER_AE, full_headers=True)
         zetag = files[path]["zstd"]["headers"].get("etag")
         files[path]["zstdConditional"] = fetch(wire, base + path, BROWSER_AE, {"If-None-Match": zetag} if zetag else {})
         files[path]["zstdWithGzipEtag"] = fetch(wire, base + path, BROWSER_AE, {"If-None-Match": etag} if etag else {})
         files[path]["gzipWithZstdEtag"] = fetch(wire, base + path, "gzip", {"If-None-Match": zetag} if zetag else {})
+        # Z1-2 on every path (review item 4), bodies kept only as hashes.
+        files[path]["selection"] = {encoding: fetch(wire, base + path, encoding) for encoding in SELECTION}
     declared = manifest["source"].get("declaredNotLoaded") or []
     negatives = {
         "a declared-not-loaded pack": base + (declared[0] if declared else "profiles/resources/missing.data"),
@@ -303,7 +320,6 @@ def wire_record(instance: Instance, manifest: dict[str, Any], file_id: int) -> d
     return {
         "address": address,
         "files": files,
-        "selection": {encoding: fetch(wire, base + SELECTION_PATH, encoding) for encoding in SELECTION},
         "negatives": {label: {"url": url, **{k: v for k, v in fetch(wire, url, "gzip").items()
                                              if k in ("status", "headers")}}
                       for label, url in negatives.items()},
@@ -319,7 +335,7 @@ def max_age(cache_control: str) -> int:
     return int(match.group(1)) if match else 0
 
 
-def score_wire(w: dict[str, Any], manifest: dict[str, Any]) -> list[str]:
+def score_wire(w: dict[str, Any], manifest: dict[str, Any], zstd_step: bool = True) -> list[str]:
     bad = []
     build = manifest["buildId"]
     address = w.get("address") or ""
@@ -365,7 +381,8 @@ def score_wire(w: dict[str, Any], manifest: dict[str, Any]) -> list[str]:
         # "//..." is scheme-relative: a browser takes the next segment for a host.
         if entry["status"] != 303 or location.startswith("//") or not location.endswith(want_location):
             bad.append(f"K1-4 {label}: {entry['status']} -> {location!r}")
-    bad += score_zstd_wire(w, manifest)
+    if zstd_step:
+        bad += score_zstd_wire(w, manifest)
     d = w["document"]
     dh = d["headers"]
     if (d["status"] != 200 or dh.get("cross-origin-opener-policy") != "same-origin"
@@ -419,6 +436,12 @@ def score_zstd_wire(w: dict[str, Any], manifest: dict[str, Any]) -> list[str]:
                 or not (h.get("content-type") or "").startswith(TYPES.get(Path(path).suffix, "?")) \
                 or (path.endswith(".js") and h.get("cross-origin-embedder-policy") != "require-corp"):
             bad.append(f"Z1-1 {path}: headers {h}")
+        # Every other header -- CSP included -- as the gzip response has it (review item 2).
+        same = [[k, v] for k, v in z.get("allHeaders") or [] if k not in PER_REQUEST | PER_CODING]
+        other = [[k, v] for k, v in (row.get("gzip") or {}).get("allHeaders") or [] if k not in PER_REQUEST | PER_CODING]
+        if not same or same != other:
+            bad.append(f"Z1-1 {path}: headers beside the coding differ from gzip's:"
+                       f" {[x for x in same if x not in other]} vs {[x for x in other if x not in same]}")
         c, cross, back = row.get("zstdConditional") or {}, row.get("zstdWithGzipEtag") or {}, row.get("gzipWithZstdEtag") or {}
         if c.get("status") != 304 or c.get("bodyBytes") != 0:
             bad.append(f"Z1-3 {path}: its own ETag got {c.get('status')} {c.get('bodyBytes')} bytes")
@@ -429,12 +452,13 @@ def score_zstd_wire(w: dict[str, Any], manifest: dict[str, Any]) -> list[str]:
         etags = [(row.get(k) or {}).get("headers", {}).get("etag") for k in ("zstd", "gzip", "identity")]
         if None in etags or len(set(etags)) != 3:
             bad.append(f"Z1-4 {path}: ETags zstd/gzip/identity {etags}")
-    entry = manifest["files"].get(SELECTION_PATH, {})
-    for encoding, want in SELECTION.items():
-        got = (w.get("selection") or {}).get(encoding)
-        if got is None or got["status"] != 200 or representation(got, entry) != want:
-            bad.append(f"Z1-2 Accept-Encoding {encoding!r}: want {want}, got"
-                       f" {got and got['status']} {got and representation(got, entry)}")
+        for encoding, want in SELECTION.items():
+            got = (row.get("selection") or {}).get(encoding)
+            if got is None or got["status"] != 200 or representation(got, entry) != want:
+                bad.append(f"Z1-2 {path} Accept-Encoding {encoding!r}: want {want}, got"
+                           f" {got and got['status']} {got and representation(got, entry)}")
+    if w.get("address") == PREVIOUS_ADDRESS:
+        bad.append(f"Z1-5 the address is still 0.2.4's {PREVIOUS_ADDRESS}: the coding is not in the serving policy")
     return bad
 
 
@@ -541,6 +565,7 @@ def run_browser(kind: str, instance: Instance, scratch: Path) -> dict[str, Any]:
         record["login"] = browser_login(session, instance.base, instance.password)
         for label in ("first", "second"):
             start = log.offset()
+            mark = len(getattr(session, "events", []))
             record[label] = open_and_smoke(session, instance)
             record[label]["saved"] = save_before_leaving(session)
             nonce = secrets.token_hex(8)
@@ -556,6 +581,8 @@ def run_browser(kind: str, instance: Instance, scratch: Path) -> dict[str, Any]:
             # The instrument's own gaps, kept so the scorer can refuse them: lines it
             # could not parse, and app requests from any other client in the window.
             record[label]["unparsed"] = [r["unparsed"] for r in rows if "unparsed" in r]
+            if kind == "chrome":
+                record[label]["cdp"] = page_responses(session.events[mark:])
             record[label]["otherAgents"] = [
                 {k: r[k] for k in ("path", "status", "agent")} for r in rows
                 if "unparsed" not in r and agent not in r.get("agent", "") and "/litecore/" in r.get("path", "")]
@@ -566,6 +593,25 @@ def run_browser(kind: str, instance: Instance, scratch: Path) -> dict[str, Any]:
         if kind == "chrome":
             shutil.rmtree(profile, ignore_errors=True)
     return record
+
+
+def page_responses(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Chrome's own account of the page-level responses under the app route
+    (CDP Network.responseReceived; the worker's requests are not in it).
+    Recorded, not scored: a direct reading beside Z2's %O inference (review
+    item 13)."""
+    out = []
+    for event in events:
+        if event.get("method") != "Network.responseReceived":
+            continue
+        response = event["params"]["response"]
+        if "/apps/litecore/r/" not in response.get("url", ""):
+            continue
+        headers = {k.lower(): v for k, v in (response.get("headers") or {}).items()}
+        out.append({"path": response["url"].split("/apps/litecore/r/", 1)[1].split("?")[0],
+                    "status": response.get("status"), "contentEncoding": headers.get("content-encoding"),
+                    "fromDiskCache": response.get("fromDiskCache"), "type": event["params"].get("type")})
+    return out
 
 
 def score_run(run: dict[str, Any], ctx: dict[str, Any]) -> list[str]:
@@ -640,7 +686,7 @@ def score_run(run: dict[str, Any], ctx: dict[str, Any]) -> list[str]:
                      and not (r["status"] == 304 and r["path"][len(prefix):] in ctx["noCache"])]
             if again:
                 bad.append(f"K2-3 second open reached the server for {sorted(set(again))}")
-    return bad + score_zstd_run(run, ctx)
+    return bad + (score_zstd_run(run, ctx) if ctx.get("zstd") else [])
 
 
 def distinguishable(manifest: dict[str, Any]) -> list[str]:
@@ -650,16 +696,23 @@ def distinguishable(manifest: dict[str, Any]) -> list[str]:
                   if p != DOC and e.get("gzBytes", 0) - e.get("zstBytes", 1 << 62) >= SLACK)
 
 
+def gzip_distinguishable(manifest: dict[str, Any]) -> list[str]:
+    """D' (review item 8): the members of D whose raw bytes are also at least
+    SLACK over their gzip, so identity can never pass Z2-2 either."""
+    files = manifest.get("files", {})
+    return [p for p in distinguishable(manifest) if files[p]["bytes"] - files[p]["gzBytes"] >= SLACK]
+
+
 def score_zstd_run(run: dict[str, Any], ctx: dict[str, Any]) -> list[str]:
     """Z2 (SPEC-M3-zstd §4), on the first open's log."""
     manifest = ctx["manifest"]
     files = manifest.get("files", {})
-    d = distinguishable(manifest)
+    kind = run.get("browser")
+    d = gzip_distinguishable(manifest) if kind == "firefox-nozstd" else distinguishable(manifest)
     must = [p for p in files if p.endswith("/probe.wasm") or p.endswith(".data")]
     bad = []
     if not must or not set(must) <= set(d):
         bad.append(f"Z2 D is {d}; it must hold the wasm and the .data files {must}")
-    kind = run.get("browser")
     if kind not in ("chrome", "firefox", "firefox-nozstd"):
         return bad + [f"Z2 unknown browser {kind!r}"]
     prefix = asset_prefix(ctx["address"])
@@ -676,10 +729,49 @@ def score_zstd_run(run: dict[str, Any], ctx: dict[str, Any]) -> list[str]:
     return bad
 
 
+def zstd_step(report: dict[str, Any]) -> bool:
+    return "SPEC-M3-zstd" in (report.get("criteria") or [])
+
+
 def run_context(report: dict[str, Any]) -> dict[str, Any]:
     package = report.get("package") or {}
     return {"manifest": package.get("manifest") or {}, "address": (report.get("wire") or {}).get("address") or "?",
-            "noCache": package.get("noCacheFetches") or []}
+            "noCache": package.get("noCacheFetches") or [], "zstd": zstd_step(report)}
+
+
+# --------------------------------------------------------------------------
+# Z4-1: the release builder's members
+
+
+def release_record(root: Path, binding: dict[str, Any]) -> dict[str, Any]:
+    """The engine members build_m3_release.collect() would put in the archive of
+    this host commit, as {name: sha256}.  Dev instance: the host repo at HEAD;
+    elsewhere: the release's source repo at its commit (as package_for)."""
+    if installed_app(root) is None:
+        repo, commit = DEFAULT_DDEV, "HEAD"
+    else:
+        repo, commit = Path(binding["sourceRepo"]), binding["hostRepo"].split(" ")[0] or "HEAD"
+    files, _ = build_m3_release.collect(repo, commit)
+    return {"repo": str(repo), "commit": commit,
+            "engineMembers": {n: hashlib.sha256(b).hexdigest() for n, b in sorted(files.items())
+                              if n.startswith("engine/")}}
+
+
+def score_release(release: dict[str, Any], manifest: dict[str, Any]) -> list[str]:
+    """Z4-1: the builder ships MANIFEST.json and, for every path, its .gz and its
+    .zst -- enumerated here from the manifest, not through the builder's table."""
+    members = release.get("engineMembers") or {}
+    want = {"engine/MANIFEST.json"}
+    bad = []
+    for path, entry in manifest.get("files", {}).items():
+        for suffix, field in ((".gz", "gzSha256"), (".zst", "zstSha256")):
+            name = f"engine/files/{path}{suffix}"
+            want.add(name)
+            if members.get(name) != entry.get(field):
+                bad.append(f"Z4-1 release member {name}: {str(members.get(name))[:12]}, manifest {str(entry.get(field))[:12]}")
+    if set(members) != want:
+        bad.append(f"Z4-1 release engine members differ: {sorted(set(members) ^ want)[:6]}")
+    return bad
 
 
 # --------------------------------------------------------------------------
@@ -697,8 +789,11 @@ def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
         problems.append(f"static: host not bound: dirty {report.get('hostDirty')!r}")
     ctx = run_context(report)
     manifest = ctx["manifest"]
-    problems += score_package(report["package"]) if report.get("package") else ["K0 no package record"]
-    problems += score_wire(report["wire"], manifest) if report.get("wire") and manifest else ["K1 no wire record"]
+    step = ctx["zstd"]
+    problems += score_package(report["package"], step) if report.get("package") else ["K0 no package record"]
+    problems += score_wire(report["wire"], manifest, step) if report.get("wire") and manifest else ["K1 no wire record"]
+    if step:
+        problems += score_release(report.get("release") or {}, manifest)
     tally: dict[str, dict[str, Any]] = {}
     for run in report.get("runs") or []:
         entry = tally.setdefault(run["browser"], {"pass": 0, "runs": 0, "problems": []})
@@ -709,18 +804,20 @@ def score(report: dict[str, Any], strict: bool) -> dict[str, Any]:
         else:
             entry["pass"] += 1
     if strict:
-        for browser, count in PLAN.items():
+        for browser, count in (PLAN if step else LEGACY_PLAN).items():
             entry = tally.get(browser) or {"pass": 0, "runs": 0}
             if entry["runs"] != count or entry["pass"] != count:
                 problems.append(f"K2 {browser} {entry['pass']}/{entry['runs']} of {count}")
     ok = not problems and all(not e["problems"] for e in tally.values())
+    # The verdict string stays: install-elsewhere reads it.  SPEC-M3-zstd's
+    # ZSTD DELIVERED is this verdict on a report whose criteria include it.
     return {"verdict": ("ASSETS DELIVERED" if ok else "ASSETS NOT DELIVERED") if strict else ("clean" if ok else "red"),
-            "tally": tally, "problems": problems}
+            "criteria": report.get("criteria") or ["SPEC-M3-asset-delivery"], "tally": tally, "problems": problems}
 
 
 def one_line(result: dict[str, Any]) -> str:
     cells = " ".join(f"{k}={v['pass']}/{v['runs']}" for k, v in sorted(result["tally"].items()))
-    return f"{result['verdict']} {cells} problems={result['problems'][:6]}"
+    return f"{result['verdict']} [{'+'.join(result['criteria'])}] {cells} problems={result['problems'][:6]}"
 
 
 # --------------------------------------------------------------------------
@@ -828,12 +925,21 @@ WIRE_CASES = [
     ("Z1-1", "zstd without Vary", lambda w, m: w["files"][_wasm_path(m)]["zstd"]["headers"].pop("vary")),
     ("Z1-1", "zstd script without COEP",
      lambda w, m: w["files"]["sdk/document-sdk.js"]["zstd"]["headers"].pop("cross-origin-embedder-policy")),
-    ("Z1-2", "zstd;q=0 ignored", lambda w, m: w["selection"].update(
-        {"zstd;q=0, gzip": copy.deepcopy(w["selection"]["zstd"])})),
-    ("Z1-2", "a zstd-less browser gets identity", lambda w, m: w["selection"].update(
-        {"gzip, deflate, br": copy.deepcopy(w["selection"]["br"])})),
-    ("Z1-2", "the token is matched case-sensitively", lambda w, m: w["selection"].update(
-        {"ZSTD": copy.deepcopy(w["selection"]["br"])})),
+    ("Z1-1", "a looser CSP on the zstd representation (review item 2)",
+     lambda w, m: w["files"]["sdk/document-sdk.js"]["zstd"].update(allHeaders=[
+         [k, v + " 'unsafe-eval'" if k == "content-security-policy" else v]
+         for k, v in w["files"]["sdk/document-sdk.js"]["zstd"]["allHeaders"]])),
+    ("Z1-1", "a header only the zstd representation carries",
+     lambda w, m: w["files"][_wasm_path(m)]["zstd"]["allHeaders"].append(["x-extra", "1"])),
+    ("Z1-2", "zstd;q=0 ignored", lambda w, m: _sel(w, "sdk/document-sdk.js").update(
+        {"zstd;q=0, gzip": copy.deepcopy(_sel(w, "sdk/document-sdk.js")["zstd"])})),
+    ("Z1-2", "a zstd-less browser gets identity", lambda w, m: _sel(w, "sdk/document-sdk.js").update(
+        {"gzip, deflate, br": copy.deepcopy(_sel(w, "sdk/document-sdk.js")["br"])})),
+    ("Z1-2", "the token is matched case-sensitively", lambda w, m: _sel(w, "sdk/document-sdk.js").update(
+        {"ZSTD": copy.deepcopy(_sel(w, "sdk/document-sdk.js")["br"])})),
+    ("Z1-2", "only the wasm ignores zstd;q=0 (review item 4)", lambda w, m: _sel(w, _wasm_path(m)).update(
+        {"zstd;q=0, gzip": copy.deepcopy(_sel(w, _wasm_path(m))["zstd"])})),
+    ("Z1-5", "the address did not move (review item 9)", lambda w, m: w.update(address=PREVIOUS_ADDRESS)),
     ("Z1-3", "the gzip ETag revalidates the zstd representation",
      lambda w, m: w["files"][_wasm_path(m)]["zstdWithGzipEtag"].update(status=304, bodyBytes=0, bodySha256=hashlib.sha256(b"").hexdigest())),
     ("Z1-3", "zstd's own ETag answered with the body",
@@ -910,6 +1016,28 @@ RUN_CASES = [
         sent=c["manifest"]["files"]["profiles/resources/cjk-r5.b76b0433203017ca.data"]["bytes"] + 900), ("firefox-nozstd",)),
     ("Z2 D", "D lost the wasm (zstd no smaller than gzip)", lambda r, c: c["manifest"]["files"][_wasm_path(c["manifest"])]
      .update(zstBytes=c["manifest"]["files"][_wasm_path(c["manifest"])]["gzBytes"])),
+    ("Z2 D", "D' lost the cjk pack (gzip saves under 1500; review item 8)", lambda r, c: c["manifest"]["files"][
+        "profiles/resources/cjk-r5.b76b0433203017ca.data"].update(bytes=c["manifest"]["files"][
+            "profiles/resources/cjk-r5.b76b0433203017ca.data"]["gzBytes"] + 100), ("firefox-nozstd",)),
+]
+
+
+def _sel(w: dict, path: str) -> dict:
+    return w["files"][path]["selection"]
+
+
+def _without(members: dict, name: str) -> dict:
+    members.pop(name)
+    return members
+
+
+RELEASE_CASES = [
+    ("Z4-1", "the release carries no .zst (review item 1)", lambda r, m: r.update(engineMembers={
+        n: d for n, d in r["engineMembers"].items() if not n.endswith(".zst")})),
+    ("Z4-1", "one .zst missing", lambda r, m: _without(r["engineMembers"], f"engine/files/{_wasm_path(m)}.zst")),
+    ("Z4-1", "a .zst that is not the manifest's",
+     lambda r, m: r["engineMembers"].update({f"engine/files/{_wasm_path(m)}.zst": "7" * 64})),
+    ("Z4-1", "an extra engine member", lambda r, m: r["engineMembers"].update({"engine/files/x.br": "7" * 64})),
 ]
 
 
@@ -931,25 +1059,36 @@ def red_cases(path: Path) -> int:
         failures += not red
         print(f"  {'red ' if red else 'GREEN'}  {clause} {label}")
 
-    if score_package(report["package"]):
+    step = zstd_step(report)
+    # A report from before the zstd step is mutated only in its own clauses.
+    mine = lambda cases: [c for c in cases if step or not c[0].startswith("Z")]  # noqa: E731
+    if score_package(report["package"], step):
         print("  MISSING package cases: the package record is not clean")
-        failures += len(PACKAGE_CASES)
+        failures += len(mine(PACKAGE_CASES))
     else:
-        for clause, label, mutate in PACKAGE_CASES:
+        for clause, label, mutate in mine(PACKAGE_CASES):
             pkg = copy.deepcopy(report["package"])
             mutate(pkg)
-            judge(label, clause, score_package(pkg))
-    if score_wire(report["wire"], manifest):
+            judge(label, clause, score_package(pkg, step))
+    if score_wire(report["wire"], manifest, step):
         print("  MISSING wire cases: the wire record is not clean")
-        failures += len(WIRE_CASES)
+        failures += len(mine(WIRE_CASES))
     else:
-        for clause, label, mutate in WIRE_CASES:
+        for clause, label, mutate in mine(WIRE_CASES):
             w = copy.deepcopy(report["wire"])
             mutate(w, manifest)
-            judge(label, clause, score_wire(w, manifest))
+            judge(label, clause, score_wire(w, manifest, step))
+    if step:
+        if score_release(report.get("release") or {}, manifest):
+            print("  MISSING release cases: the release record is not clean")
+            failures += len(RELEASE_CASES)
+        for clause, label, mutate in RELEASE_CASES:
+            r = copy.deepcopy(report.get("release") or {"engineMembers": {}})
+            mutate(r, manifest)
+            judge(label, clause, score_release(r, manifest))
     ctx = run_context(report)
-    for clause, label, mutate, *only in RUN_CASES:
-        for browser in only[0] if only else PLAN:
+    for clause, label, mutate, *only in mine(RUN_CASES):
+        for browser in only[0] if only else (PLAN if step else LEGACY_PLAN):
             base = next((r for r in report["runs"] if r["browser"] == browser and not score_run(r, ctx)), None)
             if base is None:
                 print(f"  MISSING {clause} {label} [{browser}]: no clean run to mutate")
@@ -1003,7 +1142,7 @@ def main() -> int:
     instance = Instance(args.ddev_root)
     report: dict[str, Any] = {
         "runner": "check_m3_assets.py", "runnerSha256": sha256_file(Path(__file__)), "label": args.label,
-        "startedAt": utc_now(), "static": static,
+        "startedAt": utc_now(), "static": static, "criteria": CRITERIA,
         **binding_fields(binding),
         "instance": instance.describe(),
         "runs": [],
@@ -1014,6 +1153,7 @@ def main() -> int:
         report["package"] = package_for(args.ddev_root, binding)
         uploaded = instance.upload(FIXTURE, NAME)
         report["wire"] = wire_record(instance, report["package"]["manifest"], uploaded["fileId"])
+        report["release"] = release_record(args.ddev_root, binding)
         out.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n")
         with tempfile.TemporaryDirectory(prefix="m3-assets-", dir=PROJECT / "build") as scratch:
             for browser in args.browsers.split(","):

@@ -51,6 +51,28 @@ MAX_ZST_BYTES = MAX_GZ_BYTES
 # content coding (RFC 9659); levels 20+ and long mode go over it.
 ZSTD_LEVEL = 19
 MAX_ZSTD_WINDOW = 1 << 23
+# Every coding the engine carries: its file suffix and its manifest fields.  The
+# release builder and install-elsewhere derive the engine's files from a
+# manifest through this table, never from a suffix of their own (SPEC-M3-zstd
+# §7, review item 1: a .gz-only release of a zstd host is dead in both browsers).
+CODINGS = {"gzip": {"suffix": ".gz", "bytes": "gzBytes", "sha256": "gzSha256"},
+           "zstd": {"suffix": ".zst", "bytes": "zstBytes", "sha256": "zstSha256"}}
+
+
+def engine_members(manifest: dict[str, Any]) -> dict[str, str]:
+    """{path under the app: sha256} for every packaged file the manifest names:
+    one per coding field an entry carries.  An entry with a hash field this
+    table does not know is refused, not skipped."""
+    known = {c["sha256"] for c in CODINGS.values()} | {"sha256"}
+    members = {}
+    for path, entry in manifest["files"].items():
+        unknown = [k for k in entry if k.endswith("Sha256") and k not in known]
+        if unknown:
+            raise RuntimeError(f"{path}: manifest fields {unknown} name no coding in CODINGS")
+        for coding in CODINGS.values():
+            if coding["sha256"] in entry:
+                members[f"engine/files/{path}{coding['suffix']}"] = entry[coding["sha256"]]
+    return members
 
 
 def zstd_frame(body: bytes) -> dict[str, Any]:

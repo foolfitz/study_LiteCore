@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """M3 release archive -- what an admin would install (SPEC-M3-install-elsewhere §3.1).
 
-  build_m3_release.py [--commit REV]     build twice, compare, write archive + record
+  build_m3_release.py [--commit REV] [--record PATH]
+                                         build twice, compare, write archive + record
+                                         (--record: somewhere other than release.json,
+                                         which an installed instance's binding reads)
 
 Members, under `litecore/`: the host commit's tracked files below appinfo/ lib/
 templates/ js/, read from git objects (not the working tree), plus
-engine/MANIFEST.json and every engine/files/<path>.gz it lists, read from the
-host's engine/ (untracked; package_m3_engine.py wrote it and assets' K0 checked
-it).  Deterministic: sorted names, one fixed mtime, uid/gid 0, modes 755/644,
+engine/MANIFEST.json and every packaged file it names (package_m3_engine.
+engine_members: one per coding, .gz and .zst), read from the host's engine/
+(untracked; package_m3_engine.py wrote it and assets' K0/Z0 checked it).  Deterministic: sorted names, one fixed mtime, uid/gid 0, modes 755/644,
 a gzip header with mtime 0 and no file name.
 
 The archive goes to wasm_sdk_probe/build/release/ (not in git, about 60 MB);
@@ -32,6 +35,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check_m3_skeleton_open import DEFAULT_DDEV, RELEASE_RECORD  # noqa: E402
+from package_m3_engine import engine_members  # noqa: E402
 from probe_m3_gate0_coep import utc_now  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -63,8 +67,8 @@ def collect(repo: Path, commit: str) -> tuple[dict[str, bytes], dict[str, Any]]:
     raw = (repo / "engine" / "MANIFEST.json").read_bytes()
     manifest = json.loads(raw)
     files["engine/MANIFEST.json"] = raw
-    for path in manifest["files"]:
-        files[f"engine/files/{path}.gz"] = (repo / "engine" / "files" / f"{path}.gz").read_bytes()
+    for name in engine_members(manifest):
+        files[name] = (repo / name).read_bytes()
     return files, manifest
 
 
@@ -95,6 +99,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", type=Path, default=DEFAULT_DDEV)
     parser.add_argument("--commit", default="HEAD")
+    parser.add_argument("--record", type=Path, default=RELEASE_RECORD)
     args = parser.parse_args()
     commit = git(args.repo, "rev-parse", args.commit).decode().strip()
     subject = git(args.repo, "log", "-1", "--format=%s", commit).decode().strip()
@@ -113,8 +118,8 @@ def main() -> int:
         "secondBuildSha256": hashlib.sha256(second).hexdigest(),
         "members": {name: hashlib.sha256(body).hexdigest() for name, body in sorted(files.items())},
     }
-    RELEASE_RECORD.parent.mkdir(parents=True, exist_ok=True)
-    RELEASE_RECORD.write_text(json.dumps(record, indent=1) + "\n")
+    args.record.parent.mkdir(parents=True, exist_ok=True)
+    args.record.write_text(json.dumps(record, indent=1) + "\n")
     print(json.dumps({k: record[k] for k in ("commit", "version", "buildId", "archive", "secondBuildSha256")}
                      | {"members": len(record["members"])}, indent=1))
     return 0 if record["secondBuildSha256"] == record["archive"]["sha256"] else 1
