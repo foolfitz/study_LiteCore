@@ -74,6 +74,14 @@ symlink, no empty directory or special file; `app:getpath` =
 `/var/www/html/nextcloud/apps-extra/litecore`; `system` config identical; users `admin` only;
 probe switches `off`/`off`; the only app config that differs across the install is `litecore`'s.
 
+**Reinstall 3** (after review 3; tool at `b30b58b7`), the one `install.json` now holds and the
+counted window binds to: the same steps and the same outcome as reinstall 2 (three config keys
+deleted, read back `{}`; no `litecore` config before; `litecore 0.2.1 enabled`; 30 files equal
+to the release; `system` identical), plus the start ticks review 3 asked for: `hz` 100, 236
+good samples, PID 1's descendants only `(8, 45762911, cat)` — 0.22 s after PID 1, so nothing
+in the baseline started after the container. Equivalence re-run after it: 6/6 score and
+red-case the same, recording paths equal, old expressions found in `9748b714`, tree clean.
+
 ## Shakedowns
 
 **`shakedown/2026-09-28T223255+0000.json`** (the first window; runners at 1 repeat, locks on
