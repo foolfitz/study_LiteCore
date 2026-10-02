@@ -27,6 +27,8 @@ chose this instance on 2026-09-29 over a new ddev project (which would rebuild t
 | `equivalence.json` (from 2026-10-02) | The dev baseline (I3-9–I3-11): the counted dev-instance reports on the release commit, selected by rule from the four `runs/` directories (`devIndex`, `devBaseline`: sha256, committed blob and the blob of the commit that first added it, red-case exit, the last `wasm_sdk_probe/` commit before each and what changed since, browser versions); the dev-instance recording path now (`recording.now`) and, registered, its differences from `9748b714`'s (`recording.preDifferences`); the runners' import closure and every line under `wasm_sdk_probe/` naming the orchestrator, both read from git at `head` (the scorer re-derives them, and `devCommit`/`changed`, from git); the old expressions found verbatim in `9748b714`'s runners and the tree binding (I3-8). The 0.2.1 window's copy, in the old shape above, is embedded in `runs/2026-09-29T012339+0000.json`. |
 | `shakedown/` | Window runs with `--label shakedown` (fewer repeats, locks on a subset of arms). |
 | `runs/` | Counted window runs. |
+| `RESULT-0.2.5.md` | The 0.2.5 counted window's result (2026-10-02), the browser limitation first. `RESULT.md` is 0.2.1's. |
+| `review-2026-10-02-opus-i3-8-prime.md`, `review-2026-10-02-opus-i3-9-12.md` | The two adversarial reviews of the 0.2.5 round, verbatim; the second opens with its dispositions. |
 
 ## Reproduce
 
@@ -157,3 +159,21 @@ stays the 0.2.1 record**: the tool writes that file in place, and litecoreprobe 
 installed from the 0.2.1 archive, so overwriting it would make every runner read that instance as
 dirty (review 2026-09-29 item 12). **No new install window** was run: `INSTALLS ELSEWHERE` remains
 a fact about 0.2.1; whether 0.2.2 gets one is the owner's call.
+
+## 0.2.5 (J, 2026-10-02)
+
+**Release and install.** `release.json` is the 0.2.5 record (`litecore` `7420418`, archive `602fe6bb…`, 111,711,969 bytes, 52 members, built twice byte-identical); the 0.2.1 record is kept as `release-0.2.1.json`. `install --reinstall --was release-0.2.1.json` (2026-10-02 14:18:42–14:20:50Z) verified the 0.2.1 install against its own record, removed it, deleted the app config, extracted 0.2.5 and enabled it (`install.json`). The web container started at 14:16:50Z and served no Nextcloud request before the install (its access log holds only `/phpstatus` health checks), so php-fpm's opcache held no 0.2.1 bytecode (spec §5's opcache note).
+
+**I3-8 as written could not pass** (`equivalence.json` of 14:21:12Z, committed in `bf9bcfb9` and overwritten since: `git show bf9bcfb9:findings/evidence/m3-install/equivalence.json`): 1 of 6 PRE-era rows scored the same, because the scorers were changed on purpose after the 0.2.1 window and re-counted. The proposal I3-8′ went to review (`review-2026-10-02-opus-i3-8-prime.md`, 1 BLOCKING: Firefox had been snap-refreshed 156.0 → 157.0 on 2026-10-01). The owner chose **B**: run on whatever Firefox is installed, keep the 2026-09-29 dev reports as the baseline, no browser criterion, browser versions registered (spec revision row 2026-10-02, with the owner's words).
+
+**Criteria then** (spec §4 I3-8 struck parts, I3-9..I3-12, `f42d428e`): the PRE rows withdrawn; the dev baseline selected by rule, re-scored and red-cased, its recording equal to now, nothing under `wasm_sdk_probe/` changed since it but the orchestrator; criteria equal. A second review (`review-2026-10-02-opus-i3-9-12.md`, 0 BLOCKING, 2 HEAVY) found the orchestrator launches and judges the runners while host entry's own score does not pin its arms, and that a dev run after the check could be re-run until green; both were made criteria before counting (I3-13, I3-14, `81856daa`), with the LIGHT items.
+
+**Superseded runs (tool `f42d428e`)** — kept, not counted: `equivalence` at 15:41:03Z (run twice on the same commit, the second by mistake; the file kept the second; both 0 problems), I3-7 `../m3-host-entry/runs/2026-10-02T154130Z.json` (`LANDS`, red cases 23/23; under the rules of `81856daa` it started before the check, so it is **part of the dev baseline** and judged as such), shakedown `shakedown/2026-10-02T154722+0000.json` (`--strict --red-cases` 135/135).
+
+**Before the counted window (tool `81856daa`):**
+
+- `equivalence` 16:06:54–16:07:01Z, head `81856daa`, exit 0: 5 dev reports selected — assets `2026-09-29T163517`, versions `2026-09-29T182723`, locks `2026-09-29T174033`, host entry `2026-09-29T183110Z` and `2026-10-02T154130Z` — all on the current runner shas, all reach their verdicts, red cases all red, recording equal to now, each changed since its last `wasm_sdk_probe/` commit only in the orchestrator; 88 registered PRE-vs-now differences, all `zst*` fields.
+- I3-7: `../m3-host-entry/runs/2026-10-02T160707Z.json`, 16:07:07–16:12:21Z, `LANDS`, red cases 23 of 23 red (`red-cases-on-2026-10-02T160707Z.txt` there), Firefox 157.0, Chrome 151.0.7922.169.
+- Shakedown `shakedown/2026-10-02T161235+0000.json` (runners at one repeat, locks on `hold,foreign-lock,broken-then-written`, dev host entry = the I3-7 report above): 897 good samples. Scored strictly, every problem is the shakedown's own (one repeat, no static test, three lock arms, so I3-1..I3-4, I3-6 locks, I3-13 run shape, label); I0, I1, I2, I4, I3-5, I3-7, I3-8..I3-12, I3-14 and I3-13's test document clean. **`--strict --red-cases`: 153 of 153 red, 0 skipped, 0 failed** (`shakedown/red-cases-strict-on-2026-10-02T161235.txt`).
+
+**Counted run (2026-10-02):** `runs/2026-10-02T162328+0000.json`, **`INSTALLS ELSEWHERE`**, no problem, 7,172 samples over a 3653 s window; the four runners `ASSETS DELIVERED` (3/3, 3/3, 3/3), `VERSIONS CORRECT` (3/3, 3/3), host entry `LANDS`, `LOCKS LAND` (52/52) on litecoreprobe, all on Firefox 157.0 and Chrome 151.0.7922.169. Re-scored from the stored report: the same. Red cases against it, re-run at scoring time: 153 of 153 red (`runs/red-cases-on-2026-10-02T162328.txt`). None of the four counted-run rules was invoked. Read `RESULT-0.2.5.md`.
