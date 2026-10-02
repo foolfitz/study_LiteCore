@@ -1,0 +1,4008 @@
+{
+ "probe": "m3-host-entry",
+ "label": "shakedown",
+ "startedAt": "2026-10-02T16:17:23+00:00",
+ "criteria": "specs/SPEC-M3-host-entry.md §4",
+ "repeats": 1,
+ "runner": {
+  "path": "wasm_sdk_probe/tools/check_m3_host_entry.py",
+  "sha256": "399cb1120b0f5eaff76e39218bfcb9ce447bf1099875e130b8ec03c023c51a1a"
+ },
+ "instance": {
+  "baseUrl": "https://litecoreprobe.ddev.site:8443",
+  "webserver": "apache-fpm",
+  "nextcloud": {
+   "installed": true,
+   "version": "34.0.2.1",
+   "versionstring": "34.0.2",
+   "edition": "",
+   "maintenance": false,
+   "needsDbUpgrade": false,
+   "productname": "Nextcloud",
+   "extendedSupport": false
+  },
+  "debug": "false",
+  "app": {
+   "repo": "/home/jiajun/Projects/Nextcloud_Apps/litecoreprobe/nextcloud/apps-extra/litecore",
+   "commit": "7420418f8151248180ab3dda7747681d85d06fde",
+   "dirty": [],
+   "release": {
+    "archiveSha256": "602fe6bbae8983e5d4231fc25e0ecd8004ea05441d19de2e38869c063d5cd0f2",
+    "members": 52
+   },
+   "files": {
+    "appinfo/info.xml": "5ccd9bfd183b2959bf50980d3fdf5e3807ba304a43996c3d09c6db3d6b27f2b3",
+    "engine/MANIFEST.json": "49d25aa53f6b22ee842941fc31505b101cf68d049b0b20f8bdf8fa75bd725168",
+    "engine/files/e2-editor-app.js.gz": "c8c0ca544076c5fc722eeae26ac813213e869e11746a0a2c3ed826e969213360",
+    "engine/files/e2-editor-app.js.zst": "225f39ee7528a5b05d44268d42316468b5cf9f9f5c8c7166c95638579cd51144",
+    "engine/files/e2-editor.html.gz": "3ee9497eb05981aaa0f545bd7558828bc54bda57a6f5722fd3be1999c868a8cd",
+    "engine/files/e2-editor.html.zst": "9ed94a9abc90a3bd4f39b0858bafe84bef646aaf1fb4567953a3e6c106e42c2e",
+    "engine/files/editor-shell/editor-client.js.gz": "0eb17352ac290504b42db07d11ba990d687b4b5e5eda62fa277f00eb7d246185",
+    "engine/files/editor-shell/editor-client.js.zst": "81f1dd14e3de594284ce92a282b4da808993494b839e9e747efbfa70a42075c3",
+    "engine/files/editor-shell/editor-session.js.gz": "bf16e228bc908cd2a8b0da705d60603e193b0318e0f7bb034fee985c82e3a69e",
+    "engine/files/editor-shell/editor-session.js.zst": "16b5324fdecbd48562d1dbddd4a49924bd02cbc461aaf21589322464fd1aff78",
+    "engine/files/editor-shell/recovery-notice.js.gz": "658327be4da2be2b900a60578de9b349066ae473717db43b18e225332cc24bf5",
+    "engine/files/editor-shell/recovery-notice.js.zst": "74ec9e261a3e122585791c7752c47cc37daf3d55ff439ee8fd44be7a041ff729",
+    "engine/files/editor-shell/state-machine.js.gz": "e010f929ccd0087feb5d4cd3ce6493250f72dd652d1dc756ca8c007215d698ce",
+    "engine/files/editor-shell/state-machine.js.zst": "4fcd98468d82a07bcbb03bfe1f9dc0355ceb9eeae2106de6b472800f84792cfa",
+    "engine/files/editor-shell-v2/narrow-editor-v2-client.js.gz": "ddeef407e43d10ce99f3599fc14f5352761cc387e206f1dac4415fa5b76a119d",
+    "engine/files/editor-shell-v2/narrow-editor-v2-client.js.zst": "b6424acbc0450c4abee4dd799a8b9de90130ce80830728446978496b51a4f15e",
+    "engine/files/editor-shell-v2/narrow-editor-v2-session.js.gz": "a6833b87e2fba33ba0cc6397c3a47f9a757a939d1e233d9359ee23bfdb61fbb0",
+    "engine/files/editor-shell-v2/narrow-editor-v2-session.js.zst": "21248ec197048c9540b0b73048d5d3793bd2f5b14aa6ce43af2434e878b561b4",
+    "engine/files/editor-shell-v2/paragraph-editor-client.js.gz": "397df43c0bcd92fe47e86e217a8af90bb81df20d810682cd20bf3a387159d374",
+    "engine/files/editor-shell-v2/paragraph-editor-client.js.zst": "79e661ad14afa5e50b6fbe490d8519626eee6c878889aff52def1b899ceae871",
+    "engine/files/editor-shell-v2/paragraph-editor-session.js.gz": "4cf30ea0d5ac444ffac44892ffff7b8fcbd99f6e0661ec5aec72740f8e22e303",
+    "engine/files/editor-shell-v2/paragraph-editor-session.js.zst": "4c2b7d205e6da244c43e3fdc448d82e8bfb4b023ea0d4a3dfae014164410374e",
+    "engine/files/input/clipboard-adapter.js.gz": "dab4139aa54d429073082725b5ff00e2fca0cb8670260fb765e4247b4f4e459b",
+    "engine/files/input/clipboard-adapter.js.zst": "7e28bff4d527b0cf58963a92fe047686a2e72a4cf7ac5f0afbac95def1044d75",
+    "engine/files/input/input-adapter.js.gz": "e80f7224fff4f842adaa8875b8e475469ff5ecad7e7bee1e25556c3e8cfb4ab8",
+    "engine/files/input/input-adapter.js.zst": "593d2cc82043f403490f9ee2f337999ede7ce5ed3c3d7f89f494b8ae3c1d17c0",
+    "engine/files/profiles/e2-editor-v8/probe.js.gz": "77e533d35b5a827e8a7818fed6415f21d807bd8e1606d390b3f25ee4286f592e",
+    "engine/files/profiles/e2-editor-v8/probe.js.zst": "e6073aee0f3d97959a24fdbd3a8b05c6cae89e7ff7b8a7dc8d7dfd540d48f2d8",
+    "engine/files/profiles/e2-editor-v8/probe.wasm.gz": "147e601b9520d5cf56ee4fe51ad591ac5ca802af7cc500bf0f62063eb6108e7a",
+    "engine/files/profiles/e2-editor-v8/probe.wasm.zst": "3f734c1e2cfd26bf7a94ed24a1de44af309116c84b37884f9c707b2f892c140a",
+    "engine/files/profiles/e2-editor-v8/sdk-manifest.json.gz": "06218a0182c2fb8275647f6527f62c712dce0d3e83d6773081a1175702f65b50",
+    "engine/files/profiles/e2-editor-v8/sdk-manifest.json.zst": "4bbb1e0a5d7af432d3c66ad02e2b0c9cb195d56c4085e2d7ee305190893485aa",
+    "engine/files/profiles/e2-editor-v8/sdk-worker.js.gz": "c0e666c3bbf0a3106c97c87939efd9bebefcfaa12cd26b3548b981c40d1dce86",
+    "engine/files/profiles/e2-editor-v8/sdk-worker.js.zst": "8efcc5b8c63260770015ad21960677946c559e54257d9e427d069871e6454ebd",
+    "engine/files/profiles/resources/base-r5.ba15a988a7fec468.data.gz": "73a7aa698eaf13503d465b24855d18132d89c764537f441b258738b330df06cc",
+    "engine/files/profiles/resources/base-r5.ba15a988a7fec468.data.zst": "b434c3924b171a40a8e6a24d1c0df265628accacccfabbd219a4f16c478a0492",
+    "engine/files/profiles/resources/base-r5.ef11ef80faf373bc.metadata.gz": "2716758dacd6b7def984a2f607eac9ffc8ceca017749ff5c8f50548ed6fbb2ba",
+    "engine/files/profiles/resources/base-r5.ef11ef80faf373bc.metadata.zst": "a43c932900f18d90b8e43af3da6613cf1d9289be2881c004d6a7c49b06cadfab",
+    "engine/files/profiles/resources/cjk-r5.b76b0433203017ca.data.gz": "112aeb1aa66d9a4b6d11f4c48045b227a034edbf3101ca27f45cd317eda3d67c",
+    "engine/files/profiles/resources/cjk-r5.b76b0433203017ca.data.zst": "2062512688b2a769ac2677f8d2f5401d5432b0d29031f5c49d7d9dcffabc5e1d",
+    "engine/files/profiles/resources/cjk-r5.fafab99558ab6f8b.metadata.gz": "8dc24b8af9414254f5986de9002e06f493c51cb6b2e7e976102ae5b0aa6fb852",
+    "engine/files/profiles/resources/cjk-r5.fafab99558ab6f8b.metadata.zst": "6cd835269873a26fb21ce8abfb98f2de5c0e1350869ef45349882b2ce0d6ddee",
+    "engine/files/reader-shell/tile-scheduler.js.gz": "998fd922bf2a2ff15cd4e7d905730e360dd874972e788c726f85f6e03f55e445",
+    "engine/files/reader-shell/tile-scheduler.js.zst": "1e57779fbe5cd2696de480b9e0ce451896e1e885f0ab5cca90982e3636935eb5",
+    "engine/files/sdk/document-sdk.js.gz": "16fc3b5a83f2f1b9b126fd7fee0b1d978fde2ba82757cd1629f4c222c7daf06c",
+    "engine/files/sdk/document-sdk.js.zst": "031efa2d76f222d214e8dd49ec502b4e7346938c60545b3cbd39c0e63e6a96eb",
+    "js/litecore-editor.js": "33da187f349c01f7879b0d29f1cd2be9d62a27cfa1245561cfa8bc1dbcc8e846",
+    "js/litecore-files.mjs": "8200733949b951173942937fbbc9fe02f0ebf4685f8df93a10af91a48f821ea3",
+    "lib/AppInfo/Application.php": "33c5510471f22a25f99eefa6c8cf3f1fc1d1ab674791b8da8b97d976220a3d60",
+    "lib/Controller/EditorController.php": "eb940b1a7e4003e500bf7e9eba4d7292173a89f6a776d41ddcac993516ad0dea",
+    "lib/Listener/FilesScriptsListener.php": "36106e7098c5d6483b802d1f6ba26015363a4b76fc108dbfcdc8e0ecd8a0e60d",
+    "templates/editor.php": "49876f2b2eb2a77cee7c33f549ca8c486826656e8cb43dcdf2d24ce19ae7dbf9"
+   }
+  }
+ },
+ "page": {
+  "web": "fc80050c22948df63f012fa87a254c63e4f19227aa387ded76747bd6c21d947e",
+  "dist": "fc80050c22948df63f012fa87a254c63e4f19227aa387ded76747bd6c21d947e"
+ },
+ "product": {
+  "e2-editor.html": "f7e477998385c28390aaa6e77f8907ca15b0e0f1003e0d2ee469ed1f785236e0",
+  "e2-editor-app.js": "fc80050c22948df63f012fa87a254c63e4f19227aa387ded76747bd6c21d947e",
+  "sdk/document-sdk.js": "11c0b1c14c30e1d0c24f92bc9eaaa25864c45daf6a1760021e63a40875936a12",
+  "profiles/e2-editor-v8/sdk-worker.js": "070229cd10bda4a006200bfc9412862339518215db768f4d38ce61f2524ef52d",
+  "profiles/e2-editor-v8/probe.js": "c382b834aa768b9118ee1e6a9bc832414481407f1139fcb35b36cfb540a43aab",
+  "profiles/e2-editor-v8/probe.wasm": "4a2710bba1ef07d9364f02bd07905f0e95e92f805d97eab37dfb262e2a28b47f",
+  "profiles/e2-editor-v8/sdk-manifest.json": "d70481cb1be5b1f963458a090a8b2b23e48ef68a4d07f3ebd934e566f03efa0d"
+ },
+ "shell": {
+  "manifest": "e2/editor-shell-v2-bundle-v54.json",
+  "bundleSha256": "4a92f90fed9843394221d09870ca6207c5866bd28f2846156fd196c30343316a",
+  "served": {
+   "editor-shell-v2/narrow-editor-v2-client.js": "c9f2fa1228a149b7b1b770511eb4c0ab5ea27585c597ce6f0863471535c4ed0f",
+   "editor-shell-v2/narrow-editor-v2-session.js": "747eea718c253ea01e00ec7477915c9a78c62148a6f167e6b42a677d2ff331f2",
+   "editor-shell-v2/paragraph-editor-client.js": "44fb36da00197be8571c13577fc234b730e080236832302858e50519e9021741",
+   "editor-shell-v2/paragraph-editor-session.js": "d853d420d794af4d79edd0956e504a5e61eef3c98bd95f112a03f53d248279c9",
+   "editor-shell/editor-client.js": "b779f157c3e3588ab46bffdae657430c6fba7ae1ce402d652ba2f9c49d88698a",
+   "editor-shell/editor-session.js": "95bc60cc655074e958ab2d5f174ebf682c54a551f0ee04cf25a989d5c34ca14a",
+   "editor-shell/recovery-notice.js": "a6f916bc78268c42f717bb996223cd1b0ad248d1023890abf6ee3e0c24d66e43",
+   "editor-shell/state-machine.js": "7b1d9e2d6619d408004cd2eb49f3cdf845f7d8f16c2e3e9c24b6e2243b9a8cf3",
+   "input/clipboard-adapter.js": "ec84cec0494697d7ce4045769bc47e7f665f2e0386d99ce2fd8ae468d9318bd8",
+   "input/input-adapter.js": "f815e156a901ac6b05614cae16e69e2157fefaaeced3ebe1225668f496334d16",
+   "reader-shell/tile-scheduler.js": "4c60ab4e5ed11e32155af50a7b6983500cdab47431c8fc494aaf2369f046e722",
+   "sdk/document-sdk.js": "11c0b1c14c30e1d0c24f92bc9eaaa25864c45daf6a1760021e63a40875936a12",
+   "web/e2-editor-app.js": "fc80050c22948df63f012fa87a254c63e4f19227aa387ded76747bd6c21d947e"
+  },
+  "differsFromManifest": []
+ },
+ "original": {
+  "source": "e1-fixtures/multi-paragraph.odt",
+  "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+  "heading": false,
+  "texts": [
+   "E1-MULTI-START alpha",
+   "第二段中文 beta",
+   "第三段跨行 gamma",
+   "第四段落 delta",
+   "E1-MULTI-END omega"
+  ]
+ },
+ "intruder": {
+  "source": "e1-fixtures/list-contexts.odt",
+  "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+  "mode": "lock-token",
+  "principal": "admin, the page's own user"
+ },
+ "browsers": {
+  "chrome": {
+   "open-save": [
+    {
+     "arm": "open-save",
+     "browser": "chrome",
+     "lockAtReset": {
+      "status": 207,
+      "lock": "",
+      "token": null,
+      "fileId": 98
+     },
+     "reset": {
+      "putStatus": 204,
+      "fileId": 98,
+      "name": "M3 骨架 測試.odt",
+      "source": "e1-fixtures/multi-paragraph.odt",
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343
+     },
+     "copiesBefore": [],
+     "serverBefore": {
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343,
+      "heading": false,
+      "styles": {
+       "headingElements": 0,
+       "paragraphs": []
+      },
+      "texts": [
+       "E1-MULTI-START alpha",
+       "第二段中文 beta",
+       "第三段跨行 gamma",
+       "第四段落 delta",
+       "E1-MULTI-END omega"
+      ],
+      "etag": "\"2f378365dbf3851dcd52ea16daa348b0\""
+     },
+     "version": "Chrome/151.0.7922.169",
+     "login": {
+      "result": {
+       "status": 200,
+       "url": "https://litecoreprobe.ddev.site:8443/apps/dashboard/"
+      }
+     },
+     "filesRow": true,
+     "clickedFrom": "https://litecoreprobe.ddev.site:8443/apps/files/files?dir=/",
+     "landed": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+     "host": {
+      "started": 1790957850548,
+      "done": true,
+      "steps": [
+       {
+        "step": "imported",
+        "at": 296
+       },
+       {
+        "step": "fetched",
+        "at": 358
+       },
+       {
+        "step": "opened",
+        "at": 2298,
+        "state": {
+         "state": "ready",
+         "doc": "M3 骨架 測試.odt",
+         "revision": "0",
+         "toast": "已開啟 M3 骨架 測試.odt"
+        }
+       }
+      ],
+      "saves": [
+       {
+        "at": 3734,
+        "name": "M3 骨架 測試.odt",
+        "bytes": 10229,
+        "attempts": [
+         {
+          "waited": 0,
+          "check": {
+           "at": 3734,
+           "status": 200,
+           "etag": "\"6abfd91ad2b80\"",
+           "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+           "ms": 33
+          },
+          "ifMatch": "\"6abfd91ad2b80\"",
+          "withToken": true,
+          "at": 3767,
+          "respondedAt": 3830,
+          "status": 204
+         }
+        ],
+        "sha256": "9e696a1c60128e449418515f28d558e3ecbadd4c82e956db77321fbb7a18b0a8",
+        "ifMatch": "\"6abfd91ad2b80\"",
+        "status": 204,
+        "etag": "\"b8ca1fc37ac03cb01283df35c5021a28\"",
+        "outcome": "saved",
+        "settled": true
+       },
+       {
+        "at": 5191,
+        "name": "M3 骨架 測試.odt",
+        "bytes": 10415,
+        "attempts": [
+         {
+          "waited": 0,
+          "check": {
+           "at": 5191,
+           "status": 200,
+           "etag": "\"b8ca1fc37ac03cb01283df35c5021a28\"",
+           "sha256": "9e696a1c60128e449418515f28d558e3ecbadd4c82e956db77321fbb7a18b0a8",
+           "ms": 22
+          },
+          "ifMatch": "\"b8ca1fc37ac03cb01283df35c5021a28\"",
+          "withToken": true,
+          "at": 5213,
+          "respondedAt": 5270,
+          "status": 204
+         }
+        ],
+        "sha256": "f95b0cbcc39c0f0f660b7791ee11f474e90655bd4414d84357035d689496688c",
+        "ifMatch": "\"b8ca1fc37ac03cb01283df35c5021a28\"",
+        "status": 204,
+        "etag": "\"7fe51a2699bf7f9b602bd1cbe75ba220\"",
+        "outcome": "saved",
+        "settled": true
+       }
+      ],
+      "lock": {
+       "state": "held",
+       "status": 200,
+       "at": 318,
+       "refreshes": [],
+       "verified": true
+      },
+      "stranded": null,
+      "notice": "",
+      "file": {
+       "id": 98,
+       "name": "M3 骨架 測試.odt",
+       "size": 1343,
+       "etag": "2f378365dbf3851dcd52ea16daa348b0",
+       "writable": true
+      },
+      "isolation": {
+       "crossOriginIsolated": true,
+       "sharedArrayBuffer": true
+      },
+      "href": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+      "watchingPage": true,
+      "fetched": {
+       "status": 200,
+       "contentType": "application/vnd.oasis.opendocument.text",
+       "etag": "\"6abfd91ad2b80\"",
+       "bytes": 1343,
+       "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+       "at": 358
+      },
+      "handedReadOnly": false,
+      "finished": 2299
+     },
+     "secondsToOpened": 2.85,
+     "pickers": {
+      "fixtureDisabled": true,
+      "openFileDisabled": true,
+      "fileDisabled": true,
+      "fixtureOptions": 0
+     },
+     "smoke": {
+      "before": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "0",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "—",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      },
+      "caret": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "0",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "定位游標 28 ms",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      },
+      "acted": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "1",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "標題 72 ms",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      }
+     },
+     "firstSaveSeen": 1,
+     "saved": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "1",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 96 ms",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "inserted": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "2",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "插入文字 7 ms",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "ctrlS": true,
+     "secondSaveSeen": 2,
+     "savedAgain": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "2",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 79 ms",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "已存回 M3 骨架 測試.odt（10.2 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "serverAfter": {
+      "sha256": "f95b0cbcc39c0f0f660b7791ee11f474e90655bd4414d84357035d689496688c",
+      "bytes": 10415,
+      "heading": true,
+      "styles": {
+       "headingElements": 0,
+       "paragraphs": [
+        [
+         "p",
+         "Standard",
+         null
+        ],
+        [
+         "p",
+         "Standard",
+         null
+        ],
+        [
+         "p",
+         "Standard",
+         null
+        ],
+        [
+         "p",
+         "Standard",
+         null
+        ],
+        [
+         "p",
+         "P1",
+         "Heading_20_1"
+        ]
+       ]
+      },
+      "texts": [
+       "E1-MULTI-START alpha",
+       "第二段中文 beta",
+       "第三段跨行 gamma",
+       "第四段落 delta",
+       "E1-MULTI-ENLC2D omega"
+      ],
+      "etag": "\"7fe51a2699bf7f9b602bd1cbe75ba220\""
+     },
+     "copiesAfter": [],
+     "cdp": {
+      "documents": [
+       {
+        "url": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+        "status": 200,
+        "coop": "same-origin",
+        "coep": "require-corp",
+        "dip": null
+       }
+      ],
+      "loadingFailed": [
+       {
+        "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+        "type": "Fetch",
+        "errorText": "net::ERR_ABORTED",
+        "blockedReason": null,
+        "corsError": null
+       },
+       {
+        "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+        "type": "Fetch",
+        "errorText": "net::ERR_ABORTED",
+        "blockedReason": null,
+        "corsError": null
+       }
+      ],
+      "errorLogs": [],
+      "exceptions": []
+     },
+     "fixtureRequests": [],
+     "davRequests": [
+      {
+       "method": "PROPFIND",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/Readme.md"
+      },
+      {
+       "method": "LOCK",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "PROPFIND",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "GET",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "GET",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "PUT",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "GET",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "PUT",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      }
+     ],
+     "leave": [
+      {
+       "t": 2.02,
+       "lock": "",
+       "status": 207
+      }
+     ]
+    }
+   ],
+   "conflict": [
+    {
+     "arm": "conflict",
+     "browser": "chrome",
+     "lockAtReset": {
+      "status": 207,
+      "lock": "",
+      "token": null,
+      "fileId": 98
+     },
+     "reset": {
+      "putStatus": 204,
+      "fileId": 98,
+      "name": "M3 骨架 測試.odt",
+      "source": "e1-fixtures/multi-paragraph.odt",
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343
+     },
+     "copiesBefore": [],
+     "serverBefore": {
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343,
+      "heading": false,
+      "styles": {
+       "headingElements": 0,
+       "paragraphs": []
+      },
+      "texts": [
+       "E1-MULTI-START alpha",
+       "第二段中文 beta",
+       "第三段跨行 gamma",
+       "第四段落 delta",
+       "E1-MULTI-END omega"
+      ],
+      "etag": "\"98da721a1af90490b3e3795965a512a3\""
+     },
+     "version": "Chrome/151.0.7922.169",
+     "login": {
+      "result": {
+       "status": 200,
+       "url": "https://litecoreprobe.ddev.site:8443/apps/dashboard/"
+      }
+     },
+     "filesRow": true,
+     "clickedFrom": "https://litecoreprobe.ddev.site:8443/apps/files/files?dir=/",
+     "landed": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+     "host": {
+      "started": 1790957865395,
+      "done": true,
+      "steps": [
+       {
+        "step": "imported",
+        "at": 249
+       },
+       {
+        "step": "fetched",
+        "at": 311
+       },
+       {
+        "step": "opened",
+        "at": 2251,
+        "state": {
+         "state": "ready",
+         "doc": "M3 骨架 測試.odt",
+         "revision": "0",
+         "toast": null
+        }
+       }
+      ],
+      "saves": [
+       {
+        "at": 4936,
+        "name": "M3 骨架 測試.odt",
+        "bytes": 10229,
+        "attempts": [
+         {
+          "waited": 0,
+          "check": {
+           "at": 4937,
+           "status": 200,
+           "etag": "\"5626098e3de89299aac2422f87b30819\"",
+           "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+           "ms": 19
+          },
+          "ifMatch": "\"6abfd929a2117\"",
+          "withToken": true,
+          "at": 4956,
+          "respondedAt": 4973,
+          "status": 412
+         }
+        ],
+        "sha256": "1250104dce856622d0a2cce248174d4a57ee9f0fe7e08bb57004e32e6e0fba67",
+        "ifMatch": "\"6abfd929a2117\"",
+        "tokenOnServer": true,
+        "status": 412,
+        "responseEtag": "\"5626098e3de89299aac2422f87b30819\"",
+        "conflictCopy": {
+         "name": "M3 骨架 測試（衝突副本 2026-10-03 001750）.odt",
+         "status": 201
+        },
+        "outcome": "copy",
+        "settled": true
+       },
+       {
+        "at": 10915,
+        "name": "M3 骨架 測試.odt",
+        "bytes": 10237,
+        "attempts": [
+         {
+          "waited": 0,
+          "check": {
+           "at": 10915,
+           "status": 200,
+           "etag": "\"5626098e3de89299aac2422f87b30819\"",
+           "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+           "ms": 29
+          },
+          "ifMatch": "\"6abfd929a2117\"",
+          "withToken": true,
+          "at": 10944,
+          "respondedAt": 10961,
+          "status": 412
+         }
+        ],
+        "sha256": "b2a817988c06a5979775bb338edd40d4e0b8e246a0bea5217ea00c4e8f606c4d",
+        "ifMatch": "\"6abfd929a2117\"",
+        "tokenOnServer": true,
+        "status": 412,
+        "responseEtag": "\"5626098e3de89299aac2422f87b30819\"",
+        "conflictCopy": {
+         "name": "M3 骨架 測試（衝突副本 2026-10-03 001756）.odt",
+         "status": 201
+        },
+        "outcome": "copy",
+        "settled": true
+       }
+      ],
+      "lock": {
+       "state": "held",
+       "status": 200,
+       "at": 272,
+       "refreshes": [],
+       "verified": true
+      },
+      "stranded": null,
+      "notice": "",
+      "file": {
+       "id": 98,
+       "name": "M3 骨架 測試.odt",
+       "size": 1343,
+       "etag": "98da721a1af90490b3e3795965a512a3",
+       "writable": true
+      },
+      "isolation": {
+       "crossOriginIsolated": true,
+       "sharedArrayBuffer": true
+      },
+      "href": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+      "watchingPage": true,
+      "fetched": {
+       "status": 200,
+       "contentType": "application/vnd.oasis.opendocument.text",
+       "etag": "\"6abfd929a2117\"",
+       "bytes": 1343,
+       "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+       "at": 311
+      },
+      "handedReadOnly": false,
+      "finished": 2251
+     },
+     "secondsToOpened": 2.85,
+     "pickers": {
+      "fixtureDisabled": true,
+      "openFileDisabled": true,
+      "fileDisabled": true,
+      "fixtureOptions": 0
+     },
+     "smoke": {
+      "before": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "0",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "—",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      },
+      "caret": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "0",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "定位游標 47 ms",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      },
+      "acted": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "1",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "標題 69 ms",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      }
+     },
+     "intruded": {
+      "status": 204,
+      "lock": {
+       "status": 207,
+       "lock": "1",
+       "token": "opaquelocktoken:b41af8cf-25c0-4e0a-bf6f-e9cf02929180",
+       "fileId": 98
+      },
+      "server": {
+       "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+       "bytes": 1558,
+       "heading": true,
+       "styles": {
+        "headingElements": 1,
+        "paragraphs": [
+         [
+          "h",
+          "Heading_20_1",
+          null
+         ]
+        ]
+       },
+       "texts": [
+        "E1-LC-HEADING",
+        "E1-LC-ISOLATED 前後都不是清單的段落",
+        "E1-LC-SPACER",
+        "E1-LC-BULLET-ONE",
+        "E1-LC-BULLET-TWO 中文項目",
+        "E1-LC-BETWEEN",
+        "E1-LC-NUMBER-ONE",
+        "E1-LC-NUMBER-TWO",
+        "E1-LC-END"
+       ],
+       "etag": "\"5626098e3de89299aac2422f87b30819\""
+      }
+     },
+     "firstSaveSeen": 1,
+     "saved": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "1",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 失敗",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 骨架 測試（衝突副本 2026-10-03 001750）.odt」。",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "afterWait": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "1",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 失敗",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 骨架 測試（衝突副本 2026-10-03 001750）.odt」。",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "secondSaveSeen": 2,
+     "savedAgain": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "1",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 失敗",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 骨架 測試（衝突副本 2026-10-03 001756）.odt」。",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "serverAfter": {
+      "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+      "bytes": 1558,
+      "heading": true,
+      "styles": {
+       "headingElements": 1,
+       "paragraphs": [
+        [
+         "h",
+         "Heading_20_1",
+         null
+        ]
+       ]
+      },
+      "texts": [
+       "E1-LC-HEADING",
+       "E1-LC-ISOLATED 前後都不是清單的段落",
+       "E1-LC-SPACER",
+       "E1-LC-BULLET-ONE",
+       "E1-LC-BULLET-TWO 中文項目",
+       "E1-LC-BETWEEN",
+       "E1-LC-NUMBER-ONE",
+       "E1-LC-NUMBER-TWO",
+       "E1-LC-END"
+      ],
+      "etag": "\"5626098e3de89299aac2422f87b30819\""
+     },
+     "copiesAfter": [
+      {
+       "name": "M3 骨架 測試（衝突副本 2026-10-03 001750）.odt",
+       "sha256": "1250104dce856622d0a2cce248174d4a57ee9f0fe7e08bb57004e32e6e0fba67",
+       "bytes": 10229,
+       "heading": true,
+       "styles": {
+        "headingElements": 0,
+        "paragraphs": [
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Heading_20_1",
+          null
+         ]
+        ]
+       },
+       "texts": [
+        "E1-MULTI-START alpha",
+        "第二段中文 beta",
+        "第三段跨行 gamma",
+        "第四段落 delta",
+        "E1-MULTI-END omega"
+       ],
+       "etag": "\"c461a14d93088930fdb61f7bb587e208\""
+      },
+      {
+       "name": "M3 骨架 測試（衝突副本 2026-10-03 001756）.odt",
+       "sha256": "b2a817988c06a5979775bb338edd40d4e0b8e246a0bea5217ea00c4e8f606c4d",
+       "bytes": 10237,
+       "heading": true,
+       "styles": {
+        "headingElements": 0,
+        "paragraphs": [
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Heading_20_1",
+          null
+         ]
+        ]
+       },
+       "texts": [
+        "E1-MULTI-START alpha",
+        "第二段中文 beta",
+        "第三段跨行 gamma",
+        "第四段落 delta",
+        "E1-MULTI-END omega"
+       ],
+       "etag": "\"f8fb58bea241b8e0d065d328eb84954e\""
+      }
+     ],
+     "cdp": {
+      "documents": [
+       {
+        "url": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+        "status": 200,
+        "coop": "same-origin",
+        "coep": "require-corp",
+        "dip": null
+       }
+      ],
+      "loadingFailed": [
+       {
+        "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-10-03%20001750%EF%BC%89.odt",
+        "type": "Fetch",
+        "errorText": "net::ERR_ABORTED",
+        "blockedReason": null,
+        "corsError": null
+       },
+       {
+        "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-10-03%20001756%EF%BC%89.odt",
+        "type": "Fetch",
+        "errorText": "net::ERR_ABORTED",
+        "blockedReason": null,
+        "corsError": null
+       }
+      ],
+      "errorLogs": [
+       {
+        "source": "network",
+        "text": "Failed to load resource: the server responded with a status of 412 ()",
+        "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+       },
+       {
+        "source": "network",
+        "text": "Failed to load resource: the server responded with a status of 412 ()",
+        "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+       }
+      ],
+      "exceptions": []
+     },
+     "fixtureRequests": [],
+     "davRequests": [
+      {
+       "method": "PROPFIND",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/Readme.md"
+      },
+      {
+       "method": "LOCK",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "PROPFIND",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "GET",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "GET",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "PUT",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "PROPFIND",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "PUT",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-10-03%20001750%EF%BC%89.odt"
+      },
+      {
+       "method": "GET",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "PUT",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "PROPFIND",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+      },
+      {
+       "method": "PUT",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-10-03%20001756%EF%BC%89.odt"
+      }
+     ],
+     "leave": [
+      {
+       "t": 1.97,
+       "lock": "",
+       "status": 207
+      }
+     ]
+    }
+   ],
+   "broken": [
+    {
+     "arm": "broken",
+     "browser": "chrome",
+     "lockAtReset": {
+      "status": 207,
+      "lock": "",
+      "token": null,
+      "fileId": 98
+     },
+     "reset": {
+      "putStatus": 204,
+      "fileId": 98,
+      "name": "M3 骨架 測試.odt",
+      "source": "e1-fixtures/multi-paragraph.odt",
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343
+     },
+     "copiesBefore": [],
+     "serverBefore": {
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343,
+      "heading": false,
+      "styles": {
+       "headingElements": 0,
+       "paragraphs": []
+      },
+      "texts": [
+       "E1-MULTI-START alpha",
+       "第二段中文 beta",
+       "第三段跨行 gamma",
+       "第四段落 delta",
+       "E1-MULTI-END omega"
+      ],
+      "etag": "\"44f7ff4f7e3b56faef10a52dca461c26\""
+     },
+     "version": "Chrome/151.0.7922.169",
+     "login": {
+      "result": {
+       "status": 200,
+       "url": "https://litecoreprobe.ddev.site:8443/apps/dashboard/"
+      }
+     },
+     "filesRow": true,
+     "clickedFrom": "https://litecoreprobe.ddev.site:8443/apps/files/files?dir=/",
+     "landed": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+     "final": {
+      "state": "stopped",
+      "label": "錯誤",
+      "revision": "—",
+      "pending": "—",
+      "checkpoint": "—",
+      "latency": "—",
+      "doc": "—",
+      "toast": "HOST_ENTRY_INVALID：宿主入口不完整：需要 load() 與 save()",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "pickers": {
+      "fixtureDisabled": true,
+      "openFileDisabled": true,
+      "fileDisabled": true,
+      "fixtureOptions": 0
+     },
+     "host": {
+      "started": 1790957887605,
+      "done": true,
+      "steps": [
+       {
+        "step": "imported",
+        "at": 263
+       },
+       {
+        "step": "opened",
+        "at": 263,
+        "state": {
+         "state": "stopped",
+         "doc": "—",
+         "revision": "—",
+         "toast": "HOST_ENTRY_INVALID：宿主入口不完整：需要 load() 與 save()"
+        }
+       }
+      ],
+      "saves": [],
+      "lock": {
+       "state": "none"
+      },
+      "stranded": null,
+      "notice": "",
+      "file": {
+       "id": 98,
+       "name": "M3 骨架 測試.odt",
+       "size": 1343,
+       "etag": "44f7ff4f7e3b56faef10a52dca461c26",
+       "writable": true
+      },
+      "isolation": {
+       "crossOriginIsolated": true,
+       "sharedArrayBuffer": true
+      },
+      "href": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+      "finished": 263
+     },
+     "cdp": {
+      "documents": [
+       {
+        "url": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+        "status": 200,
+        "coop": "same-origin",
+        "coep": "require-corp",
+        "dip": null
+       }
+      ],
+      "loadingFailed": [],
+      "errorLogs": [],
+      "exceptions": []
+     },
+     "fixtureRequests": [],
+     "davRequests": [
+      {
+       "method": "PROPFIND",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/Readme.md"
+      }
+     ],
+     "leave": [
+      {
+       "t": 1.97,
+       "lock": "",
+       "status": 207
+      }
+     ]
+    }
+   ],
+   "broken-no-save": [
+    {
+     "arm": "broken-no-save",
+     "browser": "chrome",
+     "lockAtReset": {
+      "status": 207,
+      "lock": "",
+      "token": null,
+      "fileId": 98
+     },
+     "reset": {
+      "putStatus": 204,
+      "fileId": 98,
+      "name": "M3 骨架 測試.odt",
+      "source": "e1-fixtures/multi-paragraph.odt",
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343
+     },
+     "copiesBefore": [],
+     "serverBefore": {
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343,
+      "heading": false,
+      "styles": {
+       "headingElements": 0,
+       "paragraphs": []
+      },
+      "texts": [
+       "E1-MULTI-START alpha",
+       "第二段中文 beta",
+       "第三段跨行 gamma",
+       "第四段落 delta",
+       "E1-MULTI-END omega"
+      ],
+      "etag": "\"bc7c89f6319697cc1659c7b98fa5d55d\""
+     },
+     "version": "Chrome/151.0.7922.169",
+     "login": {
+      "result": {
+       "status": 200,
+       "url": "https://litecoreprobe.ddev.site:8443/apps/dashboard/"
+      }
+     },
+     "filesRow": true,
+     "clickedFrom": "https://litecoreprobe.ddev.site:8443/apps/files/files?dir=/",
+     "landed": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+     "final": {
+      "state": "stopped",
+      "label": "錯誤",
+      "revision": "—",
+      "pending": "—",
+      "checkpoint": "—",
+      "latency": "—",
+      "doc": "—",
+      "toast": "HOST_ENTRY_INVALID：宿主入口不完整：需要 load() 與 save()",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "pickers": {
+      "fixtureDisabled": true,
+      "openFileDisabled": true,
+      "fileDisabled": true,
+      "fixtureOptions": 0
+     },
+     "host": {
+      "started": 1790957896117,
+      "done": true,
+      "steps": [
+       {
+        "step": "imported",
+        "at": 249
+       },
+       {
+        "step": "opened",
+        "at": 249,
+        "state": {
+         "state": "stopped",
+         "doc": "—",
+         "revision": "—",
+         "toast": "HOST_ENTRY_INVALID：宿主入口不完整：需要 load() 與 save()"
+        }
+       }
+      ],
+      "saves": [],
+      "lock": {
+       "state": "none"
+      },
+      "stranded": null,
+      "notice": "",
+      "file": {
+       "id": 98,
+       "name": "M3 骨架 測試.odt",
+       "size": 1343,
+       "etag": "bc7c89f6319697cc1659c7b98fa5d55d",
+       "writable": true
+      },
+      "isolation": {
+       "crossOriginIsolated": true,
+       "sharedArrayBuffer": true
+      },
+      "href": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+      "finished": 249
+     },
+     "cdp": {
+      "documents": [
+       {
+        "url": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+        "status": 200,
+        "coop": "same-origin",
+        "coep": "require-corp",
+        "dip": null
+       }
+      ],
+      "loadingFailed": [],
+      "errorLogs": [],
+      "exceptions": []
+     },
+     "fixtureRequests": [],
+     "davRequests": [
+      {
+       "method": "PROPFIND",
+       "url": "https://litecoreprobe.ddev.site:8443/remote.php/dav/files/admin/Readme.md"
+      }
+     ],
+     "leave": [
+      {
+       "t": 2.0,
+       "lock": "",
+       "status": 207
+      }
+     ]
+    }
+   ]
+  },
+  "firefox": {
+   "open-save": [
+    {
+     "arm": "open-save",
+     "browser": "firefox",
+     "lockAtReset": {
+      "status": 207,
+      "lock": "",
+      "token": null,
+      "fileId": 98
+     },
+     "reset": {
+      "putStatus": 204,
+      "fileId": 98,
+      "name": "M3 骨架 測試.odt",
+      "source": "e1-fixtures/multi-paragraph.odt",
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343
+     },
+     "copiesBefore": [],
+     "serverBefore": {
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343,
+      "heading": false,
+      "styles": {
+       "headingElements": 0,
+       "paragraphs": []
+      },
+      "texts": [
+       "E1-MULTI-START alpha",
+       "第二段中文 beta",
+       "第三段跨行 gamma",
+       "第四段落 delta",
+       "E1-MULTI-END omega"
+      ],
+      "etag": "\"6cae85351872fa3a3a87fa09c7e459ca\""
+     },
+     "version": "157.0",
+     "login": {
+      "result": "https://litecoreprobe.ddev.site:8443/apps/dashboard/"
+     },
+     "filesRow": true,
+     "clickedFrom": "https://litecoreprobe.ddev.site:8443/apps/files/files?dir=/",
+     "landed": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+     "host": {
+      "started": 1790957906080,
+      "done": true,
+      "steps": [
+       {
+        "step": "imported",
+        "at": 240
+       },
+       {
+        "step": "fetched",
+        "at": 300
+       },
+       {
+        "step": "opened",
+        "at": 2446,
+        "state": {
+         "state": "ready",
+         "doc": "M3 骨架 測試.odt",
+         "revision": "0",
+         "toast": "已開啟 M3 骨架 測試.odt"
+        }
+       }
+      ],
+      "saves": [
+       {
+        "at": 3803,
+        "name": "M3 骨架 測試.odt",
+        "bytes": 10208,
+        "attempts": [
+         {
+          "waited": 0,
+          "check": {
+           "at": 3804,
+           "status": 200,
+           "etag": "\"6abfd95252695\"",
+           "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+           "ms": 31
+          },
+          "ifMatch": "\"6abfd95252695\"",
+          "withToken": true,
+          "at": 3835,
+          "respondedAt": 3898,
+          "status": 204
+         }
+        ],
+        "sha256": "24955e8e1a57a050b4ba23c21d33532c88a8b191b80950dab9aa830ef3f6f901",
+        "ifMatch": "\"6abfd95252695\"",
+        "status": 204,
+        "etag": "\"dd2ccc466950153d30813f4290723b12\"",
+        "outcome": "saved",
+        "settled": true
+       },
+       {
+        "at": 5041,
+        "name": "M3 骨架 測試.odt",
+        "bytes": 10393,
+        "attempts": [
+         {
+          "waited": 0,
+          "check": {
+           "at": 5041,
+           "status": 200,
+           "etag": "\"dd2ccc466950153d30813f4290723b12\"",
+           "sha256": "24955e8e1a57a050b4ba23c21d33532c88a8b191b80950dab9aa830ef3f6f901",
+           "ms": 22
+          },
+          "ifMatch": "\"dd2ccc466950153d30813f4290723b12\"",
+          "withToken": true,
+          "at": 5063,
+          "respondedAt": 5122,
+          "status": 204
+         }
+        ],
+        "sha256": "b640a02f21b29de1ae8386f88ca9809c1f0f0938768d48244dc64f6a394bb4c4",
+        "ifMatch": "\"dd2ccc466950153d30813f4290723b12\"",
+        "status": 204,
+        "etag": "\"4ca4e507989f87871357d29177c323d1\"",
+        "outcome": "saved",
+        "settled": true
+       }
+      ],
+      "lock": {
+       "state": "held",
+       "status": 200,
+       "at": 260,
+       "refreshes": [],
+       "verified": true
+      },
+      "stranded": null,
+      "notice": "",
+      "file": {
+       "id": 98,
+       "name": "M3 骨架 測試.odt",
+       "size": 1343,
+       "etag": "6cae85351872fa3a3a87fa09c7e459ca",
+       "writable": true
+      },
+      "isolation": {
+       "crossOriginIsolated": true,
+       "sharedArrayBuffer": true
+      },
+      "href": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+      "watchingPage": true,
+      "fetched": {
+       "status": 200,
+       "contentType": "application/vnd.oasis.opendocument.text",
+       "etag": "\"6abfd95252695\"",
+       "bytes": 1343,
+       "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+       "at": 300
+      },
+      "handedReadOnly": false,
+      "finished": 2446
+     },
+     "secondsToOpened": 3.06,
+     "pickers": {
+      "fixtureDisabled": true,
+      "openFileDisabled": true,
+      "fileDisabled": true,
+      "fixtureOptions": 0
+     },
+     "smoke": {
+      "before": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "0",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "—",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      },
+      "caret": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "0",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "定位游標 37 ms",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      },
+      "acted": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "1",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "標題 43 ms",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      }
+     },
+     "firstSaveSeen": 1,
+     "saved": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "1",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 95 ms",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "inserted": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "2",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "插入文字 6 ms",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "ctrlS": true,
+     "secondSaveSeen": 2,
+     "savedAgain": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "2",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 81 ms",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "已存回 M3 骨架 測試.odt（10.1 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "serverAfter": {
+      "sha256": "b640a02f21b29de1ae8386f88ca9809c1f0f0938768d48244dc64f6a394bb4c4",
+      "bytes": 10393,
+      "heading": true,
+      "styles": {
+       "headingElements": 0,
+       "paragraphs": [
+        [
+         "p",
+         "Standard",
+         null
+        ],
+        [
+         "p",
+         "Standard",
+         null
+        ],
+        [
+         "p",
+         "Standard",
+         null
+        ],
+        [
+         "p",
+         "Standard",
+         null
+        ],
+        [
+         "p",
+         "P1",
+         "Heading_20_1"
+        ]
+       ]
+      },
+      "texts": [
+       "E1-MULTI-START alpha",
+       "第二段中文 beta",
+       "第三段跨行 gamma",
+       "第四段落 delta",
+       "E1-MULTI-ENLC2D omega"
+      ],
+      "etag": "\"4ca4e507989f87871357d29177c323d1\""
+     },
+     "copiesAfter": [],
+     "leave": [
+      {
+       "t": 1.71,
+       "lock": "",
+       "status": 207
+      }
+     ]
+    }
+   ],
+   "conflict": [
+    {
+     "arm": "conflict",
+     "browser": "firefox",
+     "lockAtReset": {
+      "status": 207,
+      "lock": "",
+      "token": null,
+      "fileId": 98
+     },
+     "reset": {
+      "putStatus": 204,
+      "fileId": 98,
+      "name": "M3 骨架 測試.odt",
+      "source": "e1-fixtures/multi-paragraph.odt",
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343
+     },
+     "copiesBefore": [],
+     "serverBefore": {
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+      "bytes": 1343,
+      "heading": false,
+      "styles": {
+       "headingElements": 0,
+       "paragraphs": []
+      },
+      "texts": [
+       "E1-MULTI-START alpha",
+       "第二段中文 beta",
+       "第三段跨行 gamma",
+       "第四段落 delta",
+       "E1-MULTI-END omega"
+      ],
+      "etag": "\"22dc0929c9ab96022bfb36936d36a40a\""
+     },
+     "version": "157.0",
+     "login": {
+      "result": "https://litecoreprobe.ddev.site:8443/apps/dashboard/"
+     },
+     "filesRow": true,
+     "clickedFrom": "https://litecoreprobe.ddev.site:8443/apps/files/files?dir=/",
+     "landed": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+     "host": {
+      "started": 1790957931882,
+      "done": true,
+      "steps": [
+       {
+        "step": "imported",
+        "at": 246
+       },
+       {
+        "step": "fetched",
+        "at": 312
+       },
+       {
+        "step": "opened",
+        "at": 2470,
+        "state": {
+         "state": "ready",
+         "doc": "M3 骨架 測試.odt",
+         "revision": "0",
+         "toast": "已開啟 M3 骨架 測試.odt"
+        }
+       }
+      ],
+      "saves": [
+       {
+        "at": 5030,
+        "name": "M3 骨架 測試.odt",
+        "bytes": 10209,
+        "attempts": [
+         {
+          "waited": 0,
+          "check": {
+           "at": 5030,
+           "status": 200,
+           "etag": "\"a7696938a29201f21d288cd8f2cd1536\"",
+           "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+           "ms": 22
+          },
+          "ifMatch": "\"6abfd96c2452e\"",
+          "withToken": true,
+          "at": 5052,
+          "respondedAt": 5068,
+          "status": 412
+         }
+        ],
+        "sha256": "e2f093dbac213e30c78a2d1658e4c722c5e5d999b61d625d1e2dd2b4ad92b440",
+        "ifMatch": "\"6abfd96c2452e\"",
+        "tokenOnServer": true,
+        "status": 412,
+        "responseEtag": "\"a7696938a29201f21d288cd8f2cd1536\"",
+        "conflictCopy": {
+         "name": "M3 骨架 測試（衝突副本 2026-10-03 001856）.odt",
+         "status": 201
+        },
+        "outcome": "copy",
+        "settled": true
+       },
+       {
+        "at": 10769,
+        "name": "M3 骨架 測試.odt",
+        "bytes": 10216,
+        "attempts": [
+         {
+          "waited": 0,
+          "check": {
+           "at": 10769,
+           "status": 200,
+           "etag": "\"a7696938a29201f21d288cd8f2cd1536\"",
+           "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+           "ms": 30
+          },
+          "ifMatch": "\"6abfd96c2452e\"",
+          "withToken": true,
+          "at": 10799,
+          "respondedAt": 10817,
+          "status": 412
+         }
+        ],
+        "sha256": "f6336ae0c66ecc39595ec8f5c7f585b0baa6ed23b8a3d23ac54e01b64618bf0c",
+        "ifMatch": "\"6abfd96c2452e\"",
+        "tokenOnServer": true,
+        "status": 412,
+        "responseEtag": "\"a7696938a29201f21d288cd8f2cd1536\"",
+        "conflictCopy": {
+         "name": "M3 骨架 測試（衝突副本 2026-10-03 001902）.odt",
+         "status": 201
+        },
+        "outcome": "copy",
+        "settled": true
+       }
+      ],
+      "lock": {
+       "state": "held",
+       "status": 200,
+       "at": 269,
+       "refreshes": [],
+       "verified": true
+      },
+      "stranded": null,
+      "notice": "",
+      "file": {
+       "id": 98,
+       "name": "M3 骨架 測試.odt",
+       "size": 1343,
+       "etag": "22dc0929c9ab96022bfb36936d36a40a",
+       "writable": true
+      },
+      "isolation": {
+       "crossOriginIsolated": true,
+       "sharedArrayBuffer": true
+      },
+      "href": "https://litecoreprobe.ddev.site:8443/index.php/apps/litecore/r/7f4f4e2204b4a9ec-90d7bc2c/e2-editor.html?fileId=98",
+      "watchingPage": true,
+      "fetched": {
+       "status": 200,
+       "contentType": "application/vnd.oasis.opendocument.text",
+       "etag": "\"6abfd96c2452e\"",
+       "bytes": 1343,
+       "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+       "at": 312
+      },
+      "handedReadOnly": false,
+      "finished": 2470
+     },
+     "secondsToOpened": 3.03,
+     "pickers": {
+      "fixtureDisabled": true,
+      "openFileDisabled": true,
+      "fileDisabled": true,
+      "fixtureOptions": 0
+     },
+     "smoke": {
+      "before": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "0",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "—",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      },
+      "caret": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "0",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "定位游標 29 ms",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      },
+      "acted": {
+       "state": "ready",
+       "label": "就緒",
+       "revision": "1",
+       "pending": "0",
+       "checkpoint": "無",
+       "latency": "標題 45 ms",
+       "doc": "M3 骨架 測試.odt",
+       "toast": "已開啟 M3 骨架 測試.odt",
+       "buttons": [
+        {
+         "action": "undo",
+         "disabled": false
+        },
+        {
+         "action": "redo",
+         "disabled": false
+        },
+        {
+         "action": "move-character-left",
+         "disabled": false
+        },
+        {
+         "action": "move-character-right",
+         "disabled": false
+        },
+        {
+         "action": "delete-backward",
+         "disabled": false
+        },
+        {
+         "action": "delete-forward",
+         "disabled": false
+        },
+        {
+         "action": "insert-paragraph-break",
+         "disabled": false
+        },
+        {
+         "action": "insert-line-break",
+         "disabled": false
+        },
+        {
+         "action": "set-bold",
+         "disabled": false
+        },
+        {
+         "action": "set-italic",
+         "disabled": false
+        },
+        {
+         "action": "set-underline",
+         "disabled": false
+        },
+        {
+         "action": "set-strikethrough",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-heading",
+         "disabled": false
+        },
+        {
+         "action": "set-paragraph-body",
+         "disabled": false
+        },
+        {
+         "action": "set-list-unordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-ordered",
+         "disabled": false
+        },
+        {
+         "action": "set-list-none",
+         "disabled": false
+        },
+        {
+         "action": "insert-text",
+         "disabled": false
+        },
+        {
+         "action": "save",
+         "disabled": false
+        }
+       ]
+      }
+     },
+     "intruded": {
+      "status": 204,
+      "lock": {
+       "status": 207,
+       "lock": "1",
+       "token": "opaquelocktoken:a6769350-a402-4c81-b6d9-6a31ea795f3e",
+       "fileId": 98
+      },
+      "server": {
+       "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+       "bytes": 1558,
+       "heading": true,
+       "styles": {
+        "headingElements": 1,
+        "paragraphs": [
+         [
+          "h",
+          "Heading_20_1",
+          null
+         ]
+        ]
+       },
+       "texts": [
+        "E1-LC-HEADING",
+        "E1-LC-ISOLATED 前後都不是清單的段落",
+        "E1-LC-SPACER",
+        "E1-LC-BULLET-ONE",
+        "E1-LC-BULLET-TWO 中文項目",
+        "E1-LC-BETWEEN",
+        "E1-LC-NUMBER-ONE",
+        "E1-LC-NUMBER-TWO",
+        "E1-LC-END"
+       ],
+       "etag": "\"a7696938a29201f21d288cd8f2cd1536\""
+      }
+     },
+     "firstSaveSeen": 1,
+     "saved": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "1",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 失敗",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 骨架 測試（衝突副本 2026-10-03 001856）.odt」。",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "afterWait": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "1",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 失敗",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 骨架 測試（衝突副本 2026-10-03 001856）.odt」。",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "secondSaveSeen": 2,
+     "savedAgain": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "1",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 失敗",
+      "doc": "M3 骨架 測試.odt",
+      "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改或移走，沒有覆寫。你的內容另存為「M3 骨架 測試（衝突副本 2026-10-03 001902）.odt」。",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "serverAfter": {
+      "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+      "bytes": 1558,
+      "heading": true,
+      "styles": {
+       "headingElements": 1,
+       "paragraphs": [
+        [
+         "h",
+         "Heading_20_1",
+         null
+        ]
+       ]
+      },
+      "texts": [
+       "E1-LC-HEADING",
+       "E1-LC-ISOLATED 前後都不是清單的段落",
+       "E1-LC-SPACER",
+       "E1-LC-BULLET-ONE",
+       "E1-LC-BULLET-TWO 中文項目",
+       "E1-LC-BETWEEN",
+       "E1-LC-NUMBER-ONE",
+       "E1-LC-NUMBER-TWO",
+       "E1-LC-END"
+      ],
+      "etag": "\"a7696938a29201f21d288cd8f2cd1536\""
+     },
+     "copiesAfter": [
+      {
+       "name": "M3 骨架 測試（衝突副本 2026-10-03 001856）.odt",
+       "sha256": "e2f093dbac213e30c78a2d1658e4c722c5e5d999b61d625d1e2dd2b4ad92b440",
+       "bytes": 10209,
+       "heading": true,
+       "styles": {
+        "headingElements": 0,
+        "paragraphs": [
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Heading_20_1",
+          null
+         ]
+        ]
+       },
+       "texts": [
+        "E1-MULTI-START alpha",
+        "第二段中文 beta",
+        "第三段跨行 gamma",
+        "第四段落 delta",
+        "E1-MULTI-END omega"
+       ],
+       "etag": "\"466ba40071cbb5f4fe317a73ba820a2f\""
+      },
+      {
+       "name": "M3 骨架 測試（衝突副本 2026-10-03 001902）.odt",
+       "sha256": "f6336ae0c66ecc39595ec8f5c7f585b0baa6ed23b8a3d23ac54e01b64618bf0c",
+       "bytes": 10216,
+       "heading": true,
+       "styles": {
+        "headingElements": 0,
+        "paragraphs": [
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Standard",
+          null
+         ],
+         [
+          "p",
+          "Heading_20_1",
+          null
+         ]
+        ]
+       },
+       "texts": [
+        "E1-MULTI-START alpha",
+        "第二段中文 beta",
+        "第三段跨行 gamma",
+        "第四段落 delta",
+        "E1-MULTI-END omega"
+       ],
+       "etag": "\"e37ecfb7ec5d6a2a26ff81745a0f355a\""
+      }
+     ],
+     "leave": [
+      {
+       "t": 1.68,
+       "lock": "",
+       "status": 207
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "lockAtEnd": {
+  "status": 207,
+  "lock": "",
+  "token": null,
+  "fileId": 98
+ },
+ "completedAt": "2026-10-02T16:19:19+00:00",
+ "score": {
+  "lands": true,
+  "problems": [],
+  "browsers": {
+   "chrome": {
+    "open-save": {
+     "passed": 1,
+     "of": 1,
+     "failing": []
+    },
+    "conflict": {
+     "passed": 1,
+     "of": 1,
+     "failing": []
+    },
+    "broken": {
+     "passed": 1,
+     "of": 1,
+     "failing": []
+    },
+    "broken-no-save": {
+     "passed": 1,
+     "of": 1,
+     "failing": []
+    }
+   },
+   "firefox": {
+    "open-save": {
+     "passed": 1,
+     "of": 1,
+     "failing": []
+    },
+    "conflict": {
+     "passed": 1,
+     "of": 1,
+     "failing": []
+    }
+   }
+  }
+ }
+}

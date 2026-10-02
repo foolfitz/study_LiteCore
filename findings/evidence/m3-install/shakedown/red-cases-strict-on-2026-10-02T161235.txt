@@ -1,0 +1,155 @@
+  base report has 11 problems; judging each mutation by the problems it adds
+  red   I0-1 an extra member
+  red   I0-2 a member that is not its git blob
+  red   I0-2 an engine file that is not the host's
+  red   I0-2 an engine buildId that differs
+  red   I0-2 a record that lists another member
+  red   I0-3 a rebuild that differs
+  red   I0-4 a symlink member
+  red   I1-1 enable failed
+  red   I1-1 a re-enable, not an install
+  red   I1-2 a symlink in the installed tree
+  red   I1-2 an installed root that is a symlink
+  red   I1-2 an installed file that differs
+  red   I1-2 a FIFO in the installed tree
+  red   I1-2 the tree drifted by the window
+  red   I1-2 served from another app path at install
+  red   I1-2 served from another app path at the window
+  red   I1-2 a self-test that reads a clean copy dirty
+  red   I1-2 a binding blind to changed
+  red   I1-2 a binding blind to extra
+  red   I1-2 a binding blind to missing
+  red   I1-2 a binding blind to symlink
+  red   I1-2 a binding blind to root-symlink
+  red   I1-2 a binding blind to fifo
+  red   I1-2 a binding blind to empty-dir
+  red   I1-3 system config changed
+  red   I1-4 the probe app turned on
+  red   I2-1 the dev instance was reached
+  red   I2-1 the dev log read nothing
+  red   I2-1 the window opened right after dev traffic
+  red   I2-1 the dev log read too early
+  red   I2-2 a runner on the dev instance
+  red   I2-3 a dist file held open
+  red   I2-3 a holder ps missed
+  red   I2-3 no fd control
+  red   I2-4 the probe app served a file
+  red   I2-4 the probe log read nothing
+  red   I3 a runner with no report
+  red   I3-1 an assets run died
+  red   I3-2 a versions run died
+  red   I3-3 a locks run died
+  red   I3-4 a host-entry run died
+  red   I3-5 a report bound to a dirty tree
+  red   I3-5 a report from before the window
+  red   I3-6 red cases that stayed green
+  red   I3-6 a report rewritten after the run
+  red   I3-7 the dev host entry did not land
+  red   I3-7 the dev report is from another instance
+  red   I3-7 the dev report on another commit
+  red   I3-7 dev red cases that stayed green
+  red   I3-7 the dev host entry ran inside the window
+  red   I3-7 no dev host-entry report
+  red   I3-7 a dev run with an unchecked runner
+  red   I3-8 an old expression not found in PRE
+  red   I3-8 a counted run with an unchecked runner
+  red   I3-8 a module changed after the check
+  red   label a shakedown scored as counted
+  red   I3-8 wasm_sdk_probe changed by the window start
+  red   I3-8 uncommitted tools at the window end
+  red   I3-8 another last commit at the window end
+  red   I3-8 another interpreter at the window start
+  red   I3-7 the dev run started before the equivalence check
+  red   I4-1a a shell under php-fpm
+  red   I4-1a php-fpm forked by a worker
+  red   I4-1a no fpm-child control
+  red   I4-1b a daemon left to PID 1
+  red   I4-1b a baseline name under a new pid
+  red   I4-1b a grandchild of PID 1
+  red   I4-1b the orphan control not seen
+  red   I2-3 control 4's worker fd not seen
+  red   I2-3 control 4 reporting another worker
+  red   I2-3 control 4's worker holding another mount file
+  red   I4-1b control 4's orphan not seen
+  red   I4-1a control 4's child not seen
+  red   I4-1a control 4's worker under a fake master
+  red   I4-1a control 4's span moved
+  red   I4-1a control 4's worker below a php-fpm started by docker exec
+  red   I4-1a control 4's worker below something not php-fpm
+  red   I4-1a lcfg below a php-fpm that is not the worker
+  red   I4-1a a violation inside control 1's span
+  red   I4-1b a violation inside control 4's span
+  red   I4-1a a child of control 4's worker that is not the control's
+  red   I4-1a a php-fpm fork of the worker after its request
+  red   I2-3 the worker's fd after its request returned
+  red   I4-1b control 4's orphan not a direct child of PID 1
+  red   I4-1b control 4 reporting another orphan
+  red   I4-1b control 1's orphan not a direct child of PID 1
+  red   I4-1b the baseline's cat restarted
+  red   I4-1b the baseline's cat renamed
+  red   I4-1b no container start recorded
+  red   I4-1 a baseline descendant started after the container
+  red   I4-1 no clock-tick rate recorded
+  red   I3-5 host entry bound to a dirty tree
+  red   I3-5 host entry bound to another commit
+  red   I3-8 host entry with an unchecked runner
+  red   I3-8 another openssl at the window end
+  red   I3-9 a recorded field that differs now
+  red   I3-9 a recorded field missing now
+  red   I3-9 a nested package field that differs now
+  red   I3-9 a field that exists only now
+  red   I3-9 a field whose type changed
+  red   I3-9 a list that differs
+  red   I3-9 the recording path errored
+  red   I3-9 a dev report with no recording field
+  red   I3-10 a runner without a dev report
+  red   I3-10 a dev report recorded by another runner
+  red   I3-10 a dev report that re-scores red
+  red   I3-10 dev red cases that stayed green
+  red   I3-10 dev red cases that stay green when re-run
+  red   I3-10 a dev report from litecoreprobe
+  red   I3-10 a report the rule does not select, recorded
+  red   I3-10 a report the rule selects, left out
+  red   I3-10 a dev report started after the check
+  red   I3-10 a dev report on another commit
+  red   I3-10 a shakedown in the baseline
+  red   I3-10 a dev report not committed
+  red   I3-10 a dev report edited before the check
+  red   I3-10 a dev report edited after it was first committed
+  red   I3-10 a dev report changed since the check
+  red   I3-10 an equivalence check for another release
+  red   I3-11 a runner module changed after a dev report
+  red   I3-11 a static-test input changed after a dev report
+  red   I3-11 no commit before a dev report
+  red   I3-11 a runner importing the orchestrator
+  red   I3-11 a closure that misses a runner
+  red   I3-11 something naming the orchestrator
+  red   I3-11 a recorded change list git does not show
+  red   I3-11 a recorded closure git does not show
+  red   I3-11 recorded mentions git does not show
+  red   I3-11 a module the check loaded, missing from the closure
+  red   I3-12 assets judged under other criteria
+  red   I3-12 host entry judged under other criteria
+  red   I3-9 a versions dev report that differs from now
+  red   I3-9 an equal value of another type
+  red   I3-13 host entry without its conflict arm
+  red   I3-13 locks without an arm
+  red   I3-13 the dev host entry with another plan
+  red   I3-13 versions on another test document
+  red   I3-13 the dev host entry on another test document
+  red   I3-14 another dev run between the check and the window
+  red   I3-14 a dev host entry that is not the one run
+  red   I3-8 an equivalence check before the install
+  red   I3-8 another libssl at the window end
+  red   I4-1b the container restarted since the baseline
+  red   I4-1 no pre-install baseline
+  red   I4-1 a baseline too short
+  red   I4-2 a third of the samples
+  red   I4-2 a 1.6 s blackout
+  red   I4-2 a sample without php-fpm
+  red   I4-3 a new container
+  red   I4-3 a container started
+  red   I4-3 the event stream saw nothing
+  red   I4-3 a stream that died before the end
+  red   I4-3 a stream not running when stopped
+153 of 153 red, 0 skipped, 0 failed
