@@ -119,6 +119,24 @@
   以及 `sys.version`、`node --version`、`make --version` 第一行。三個時點的 tree、最後 commit、三個版本要相同；開窗時工作樹
   不乾淨就**拒絕**計數執行（不只是判紅）。`module_shas` 照留。**具名極限**：gitignore 掉的路徑（`dist/`、`build/`、
   `__pycache__`）不在範圍；`dist/` 由各 runner 自己核對的頁面與引擎 sha 綁住。
+- （2026-10-02，在 0.2.5 上重跑之前）**等價性的錨從 PRE 換成開發基線。**上面那套比的是「`9748b714` 的工具」對「現在的工具」。
+  它要證的事——`--ddev-root` 的改動對開發實例中性——在 0.2.1 的計數窗口證過了；之後評分函式**刻意**改過（頁面與宿主 pin、
+  資產派送 K2 的 A′ 儀器、鎖的 K9′／K10′），每一項都在新綁定上重新計數，所以在 0.2.5 上照原文重跑，6 列只有 1 列相同
+  （`findings/evidence/m3-install/equivalence.json`，2026-10-02T14:21:12Z）。照原文要綠只能把舊報告釘回舊綁定——那是造機械
+  維持舊宣稱（CLAUDE.md「驗收判準的形式」第 4 節）。所以 PRE 的列與「記錄路徑 PRE 對現在」撤回（I3-8），它守的那個問題
+  ——**判 litecoreprobe 的工具，是不是產生開發實例那些判定的同一套**——改用 2026-09-29 在開發實例上、宿主 0.2.5 跑出來的
+  四份計數報告當基線來守（I3-9～I3-11）：報告由工具依原始欄位選（不手列）；它們記下的記錄欄位要等於現在的記錄路徑**完全**
+  相同；它們的 runner sha 要等於現在的 runner 檔；而它們跑過之後，`wasm_sdk_probe/` 底下除了編排器本身之外**沒有任何檔案**
+  被 commit 改過。最後這條比對抗性審核建議的「runner 的 import 閉包＋Makefile＋`editor-shell-v2/tests/`＋`web/`」嚴：
+  `make test-e2-c-static` 實際讀的遠不只那幾處（`tools/check_e1_c_bundle_intact.py`、`tools/inventory_corpus_axes.py`、
+  `test-docs/`、`tests/*.py`、`editor-shell/`、`e2/`），手列就是第 1 節不可當硬判準的那種；反過來只放行一個檔，任何別的漂移
+  都會紅。放行的那一個要自證不在 runner 的路上：不在四支 runner 的 import 閉包裡（工具用 `ast` 走 import，含函式內的延遲
+  import——`modulefinder` 在本機 Python 3.14 上崩）、Makefile 沒有提到它。PRE 對現在的記錄路徑比較照跑，改成登錄、不判；
+  `transcription` 照判。tree 綁定另記 `ssl.OPENSSL_VERSION`（審核第 12 項）。
+  **具名極限**：開發報告跑的時候工作樹乾不乾淨，沒有任何地方記錄；libssl3 在 2026-10-02 09:24 升級，晚於開發報告，`openssl`
+  只綁得到等價性檢查到收窗；記錄路徑的四個可呼叫物件（`binding_fields`、`package_for`、`release_record`、`Instance.describe`）
+  是手列的——I3-11 讓開發報告之後沒有任何 commit 改得到它們，但工具若改從別的函式記錄，這個清單不會自己變。瀏覽器：見 I3 的
+  「登錄、不判」與修訂紀錄（擁有者裁示 B）。
 - （審核後加）**綁定的自我測試**：`host_binding` 是 I1-2、I3-5 與每一次「dirty 就拒絕」背後唯一的儀器。每次開窗前在一個
   暫存實例上解出發佈壓縮檔，量乾淨、改一個位元組、多一個檔、少一個檔、多一個 symlink、整個安裝目錄換成 symlink 六種；
   乾淨那一種要讀成乾淨，其餘五種都要在 `hostDirty` 點名。「安裝目錄本身是 symlink」原本看不見（`rglob` 會跟進去），已補。
@@ -353,10 +371,40 @@ start、restart、unpause、die、kill、stop、pause、destroy）。**不能事
 
 7. 宿主入口（§3.4 的 runner）在**開發實例**上計數執行 `LANDS`，紅案全紅（同樣在評分當下重跑），而且在開窗**之前**結束。
    （裁決條件 12）而且在等價性檢查**之後**開始——它延遲載入的模組只有 §3.3 的 tree 綁定綁得住。
-8. §3.3 的等價性：改過的四支 runner 對既有計數報告重新評分，判定逐份與改動前相同；開發實例上的記錄路徑舊新逐欄相同；
-   計數時，runner 的 sha256 與 `tools/` 被載入模組的 sha256 在等價性檢查、開窗、收窗三個時點相同。（審核二）每一列的紅案
-   exit 舊新相同；舊的記錄運算式在 `9748b714` 的三支 runner 原始碼裡都找得到（`transcription`）；（裁決 Q3）計數時
+8. §3.3 的等價性：~~改過的四支 runner 對既有計數報告重新評分，判定逐份與改動前相同；開發實例上的記錄路徑舊新逐欄相同；~~
+   計數時，runner 的 sha256 與 `tools/` 被載入模組的 sha256 在等價性檢查、開窗、收窗三個時點相同。（審核二）~~每一列的紅案
+   exit 舊新相同；~~舊的記錄運算式在 `9748b714` 的三支 runner 原始碼裡都找得到（`transcription`）；（裁決 Q3）計數時
    `wasm_sdk_probe` 的 tree、最後 commit、三個直譯器版本在三個時點相同，三個時點的工作樹都沒有未提交的東西。
+   （2026-10-02）劃線的三段**撤回**（理由在 §3.3 末段與修訂紀錄），由下面 9～11 取代；tree 綁定另記 `ssl.OPENSSL_VERSION`，
+   三個時點也要相同。
+
+（2026-10-02 新增，任何 0.2.5 的窗口與等價性檢查的重跑之前；理由見 §3.3 末段與修訂紀錄。）
+
+9. **記錄路徑對開發基線**：等價性檢查當下，開發實例的記錄路徑——`binding_fields(host_binding)` 的四欄（`hostRepo`、
+   `hostDirty`、`hostFiles`、`hostBinding`）、`package_for`、`release_record`、`Instance.describe()` 整份——與第 10 條每一份
+   **被判**的開發基線報告記下的**完全相等**。比的是報告裡有的那幾欄（頂層同名的鍵；`describe()` 對 `instance`），每份至少
+   比到一欄。dict 遞迴；list、純量與型別改變是葉子，比相等；任一邊缺鍵就紅——只在現在才有的欄位**沒有豁免**（審核第 4 項：
+   Z0-1、Z0-2 讀的正是只在現在才有的 `zst*` 欄位）。記錄路徑出錯就紅。
+10. **開發基線**：工具選、不手列。四支 runner 各自 `findings/evidence/<runner>/runs/` 裡的每一份報告，若 `label` 是 counted、
+    base URL 是開發實例（版本與鎖讀頂層 `baseUrl`，資產派送與宿主入口讀 `instance.baseUrl`）、綁定的宿主 commit
+    （`hostRepo`；宿主入口是 `instance.app.commit`）以 `release.json` 的 `commit` 開頭、`startedAt` 早於等價性檢查，就被選進來；
+    評分當下照同一條規則重選，要等於 `equivalence.json` 記下的集合，而每一份被選的報告本身也要照這四項重驗。被選的報告裡，
+    記下的 runner sha256 等於等價性檢查當下 runner 檔的那幾份**被判**：每支 runner 至少一份；**全部**達到該 runner 的計數判定
+    （`ASSETS DELIVERED`、`VERSIONS CORRECT`、`LOCKS LAND`、宿主入口 `LANDS`，評分當下由 runner 自己的 `score` 重算）；
+    紅案在等價性檢查時 exit 0，評分當下重跑也全紅（審核第 3 項：不准挑）。sha 不同的列出、不判。每一份被選的報告，在等價性
+    檢查時是已 commit 的 blob（`HEAD:<路徑>` 的 blob 等於工作樹那份的 blob），評分當下的 sha256 等於檢查時記下的（審核第 9 項）；
+    `release.json` 的 commit 在等價性檢查與開窗時相同。
+11. **開發基線之後 `wasm_sdk_probe/` 只動過編排器**：每一份被判的開發報告，取它 `startedAt` 當下或之前最後一個碰
+    `wasm_sdk_probe/` 的 commit；從它到等價性檢查的 HEAD，`wasm_sdk_probe/` 底下改過的檔案**只准**是
+    `tools/check_m3_install_elsewhere.py`。這個例外要自證：它不在四支 runner 的 import 閉包裡（工具以 `ast` 從四支 runner 走
+    import，含函式內的延遲 import；閉包裡要有四支 runner 本身），`Makefile` 也沒有提到它。
+12. **判準組相同**：`litecoreprobe` 上每一份 runner 報告的 `criteria` 等於同一支 runner 被判的開發基線報告的 `criteria`
+    （審核第 10 項：資產派送的 `criteria` 決定 Z0–Z2 評不評）。
+
+**登錄、不判**（擁有者裁示 B，修訂紀錄 2026-10-02）：每一份開發基線報告與每一份 `litecoreprobe` 報告逐次 run 的瀏覽器
+`version` 集合（`runs[i].version`；宿主入口是 `browsers/<b>/<arm>[i].version`），記在 `equivalence.json` 與評分結果的
+`registered.browserVersions`——0.2.5 的 RESULT 開頭那一行瀏覽器限定引用的就是這兩處；PRE 的記錄路徑對現在的差異
+（`recording.preDifferences`）；四支 runner 的 import 閉包。
 
 ### I4 沒有伺服器端文件行程
 
@@ -445,3 +493,4 @@ I0–I4 全過＝**`INSTALLS ELSEWHERE`**：M3 的完成判準（§5.5）在一�
 | 2026-09-29 | **第二次對抗性審核（opus，唯讀，17 項，`findings/evidence/m3-install/review-2026-09-29-opus-2.md`）與裁決（fable，對照 4／subreaper／工具綁定，`ruling-2026-09-29-fable-controls.md`）之後、任何計數執行之前。**改正四件寫錯的事：拒絕「接到 PID 1 的血統」的理由（服務樹不在 PID 1 底下，血統規則不會把它算進去）；「評分函式一行都不改」（宿主入口的改了）；I2-3 的射程句（41 MB 0.096 秒送完）；§3.5 沒劃掉的舊取樣法與沒有證據檔的 0.509–0.515。收緊的判準：I1-1 要真的安裝（安裝前沒有 app 設定，重裝因此會刪掉殘留設定）；I1-2 空目錄與非一般檔、自我測試加兩種；I3-7 在等價性檢查之後開始；I3-8 紅案 exit、舊運算式逐字核對、tree 綁定；I4-1a 抓 worker 底下的 php-fpm；I4-1b 改成 PID 1 的後代以 (pid, 啟動時間, comm) 識別、基線與窗同一個容器生命週期；I4-3 窗尾第二個對照與串流存活；新增正向對照 4（真的 php-fpm worker，經 FastCGI）。改儀器：先 `find` 再 `ps -ww`、`lstart`、stat 的 ppid 解析、fd 記目標檔、stderr 排乾、對照 1 的 stdio、對照容器換映像。紅案每個釘在自己的分支上，從 45 個到 90 個。**判準沒有一條被放寬**；全部先於任何計數執行。 |
 | 2026-09-29 | **第三次對抗性審核（opus，唯讀，15 項，`findings/evidence/m3-install/review-2026-09-29-opus-3.md`）之後、任何計數執行之前。**改正兩件寫錯的事：重裝「不是安裝」的理由（`Enable.php` 一律安裝，殘留設定只換分支）；對照 4 的豁免時長（程式碼是約 11 秒，改成到請求返回為止）。修掉一個會讓計數窗整窗誤紅的儀器錯：I4-1b 的身分改用開機後 tick，不用隨時鐘移動的 `lstart`。收緊的判準：基線的 PID 1 後代要在容器啟動 10 秒內；對照的孤兒要是 PID 1 的直接子行程、對照 4 的要是回報的 pid；等價性每列必須帶紅案 exit。改儀器：`LC_ALL=C`；對照移進 `try`。紅案 90 → 111：補上審核列出的每個沒被釘住的分支。**判準沒有一條被放寬。** |
 | 2026-10-02 | **在 0.2.5 上重跑（交接的 J；`SPEC-M3-zstd.md` §6），任何 0.2.5 的執行之前寫下。**發佈＝`litecore` `7420418`（0.2.5）、壓縮檔 `602fe6bb…`（111,711,969 位元組、52 個成員，建置工具連建兩次逐位元相同），`release.json` 改寫成它（0.2.1 的紀錄另存 `release-0.2.1.json`）。自 0.2.1 的計數窗口以來，**判準條文不動**，變的是兩件機制，都在 `SPEC-M3-zstd` 的審核裡定案：(1) I0 的預期成員改由 `package_m3_engine.engine_members()` 從 MANIFEST 推出（每個路徑的 `.gz` 與 `.zst`），原本寫死只有 `.gz`——照舊的話 0.2.5 的發佈會漏掉 `.zst`、裝起來引擎全部 404；(2) I3 裡資產 runner 的報告帶 `criteria`（含 `SPEC-M3-zstd`），所以在 litecoreprobe 上也評 Z0–Z2、Z4-1，並多一臂 `firefox-nozstd`（3 次）。順序照上一次：`install --reinstall`（機器重開過，舊基線本來就失效）→ `equivalence` → 開發實例的宿主入口計數執行 → shakedown 窗口與 `--strict --red-cases` → 計數窗口。期間不得有任何容器生命週期事件（I4-3）。 |
+| 2026-10-02 | **I3-8 的 PRE 列撤回、新增 I3-9～I3-12；工具改動、等價性檢查的重跑與任何 0.2.5 的窗口之前。**更正同日前一列的「判準條文不動」（那一列不刪，這一列取代它那一句）：那一列寫在等價性檢查跑之前；檢查跑出來 6 列只有 1 列相同（`equivalence.json`，2026-10-02T14:21:12Z），差異全部來自 0.2.1 窗口之後**刻意**改過、且已在新綁定上重新計數的評分（頁面與宿主 pin、資產派送 K2 的 A′ 儀器、鎖的 K9′／K10′）。照原文要綠只能把舊報告釘回舊綁定，那是造機械維持舊宣稱（「驗收判準的形式」第 4 節）。所以這是**撤回加新增**，不是「判準沒有一條被放寬」：撤回的是「現在的評分函式對 PRE 時代的計數報告評得與 PRE 時相同（含紅案 exit）」與「記錄路徑 PRE 對現在逐欄相同」——**前者之後沒有東西再檢查**；後者照跑、改成登錄。它們守的問題改由 I3-9～I3-11 以 2026-09-29 的四份開發計數報告為基線來守。保留照判：`transcription` 與 I3-8 的三時點綁定（加 `openssl`）。提案 I3-8′（`findings/evidence/m3-install/proposal-2026-10-02-i3-8-prime.md`）送 opus 對抗性審核（`review-2026-10-02-opus-i3-8-prime.md`，1 BLOCKING、6 HEAVY、5 LIGHT），**沒有照提案採用**。審核逐項處置：1 依擁有者裁示 B（下述）；2 採審核的選項 B 但更嚴（I3-11 只放行編排器一個檔，理由在 §3.3 末段）；3、4、8、9、10、12 照建議（I3-10、I3-9、I3-12、tree 綁定的 `openssl`）；5 因列撤回不再需要——任何地方都不保留列的歸因；6 即本列的更正；7 照建議（撤掉釘在 PRE 列與記錄路徑舊新比對上的紅案，每條新判準補釘分支的紅案，工具 commit → 重跑等價性檢查 → I3-7）；11 寫在 `findings/evidence/m3-install/RESULT.md` 的更正（0.2.1 的 Re-check 要用當時的工具跑）。**瀏覽器（擁有者裁示 B，2026-10-02）**：審核的 BLOCKING 是 Firefox 已被 snap 自動更新（156.0 → 157.0，2026-10-01 10:42 CST），建議 A（在 157 上重跑四支開發計數，並加瀏覽器版本相等的判準）。擁有者原話：「我不想因為firefox升級的關係重新量測」。裁示：J 在當下裝的 Firefox 上跑；開發基線用 09-29 的報告（Firefox 156.0）；不為瀏覽器重跑開發計數；**不設瀏覽器判準**，逐次 run 的 `version` 登錄；0.2.5 的 RESULT **開頭**寫明「開發實例的判定在 Firefox 156.0、litecoreprobe 的窗在 Firefox 157.0（Chrome 兩邊都是 151.0.7922.169）；窗裡任何一格紅，瀏覽器差異都是沒有排除的解釋」。既有的計數判定**不因升級重跑**，照它們量到的成立（Firefox 156）；之後的計數執行用當下裝的版本。I3-7 照舊——開發實例上宿主入口計數一次，在重跑的等價性檢查之後、開窗之前；它會跑在 157 上，那是原有協定，不是為瀏覽器重量。**順序**：工具 commit（`wasm_sdk_probe/` 乾淨）→ 重跑等價性檢查 → I3-7 → shakedown 窗口與 `--strict --red-cases`（零 SKIP、零 GREEN）→ 計數窗口。**web 容器在計數窗口結束前任何時候重啟**（I4-1b 的基線因此失效），就 `install --reinstall`（不帶 `--was`，`release.json` 已是裝著的版本），然後從等價性檢查重來：基線、等價性檢查、開發執行與兩個窗口要在同一個容器生命週期裡。**截止與計數**：I3-9～I3-12 適用 0.2.5 的窗口及之後，直到修訂紀錄另寫；這個閘門的判準**新增**在 0.2.5 的計數窗口落地時封閉，之後的顧慮變成 finding 或事後工作。0.2.5 還沒有任何窗口，沒有計數要歸零。0.2.1 的判定照舊，綁 0.2.1 與當天的工具。**如果這些永遠沒做**：0.2.5 沒有 `INSTALLS ELSEWHERE`。 |

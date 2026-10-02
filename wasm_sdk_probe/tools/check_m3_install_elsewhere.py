@@ -9,9 +9,11 @@ Criteria I0-I4: specs/SPEC-M3-install-elsewhere.md §4, written before this tool
         a process baseline of the web container is sampled first (I4-1b);
         --reinstall removes a clean earlier install first (occ app:remove)
   check_m3_install_elsewhere.py equivalence
-        every counted report of the four runners that existed at PRE, scored by
-        the runners at PRE and now; the dev-instance recording path (host
-        binding, K0 package record, instance description) old vs new (I3-8)
+        the dev baseline (I3-9..I3-11, 2026-10-02): the counted dev-instance
+        reports on the release commit, selected by rule, re-scored and
+        red-cased; the dev-instance recording path now against what each
+        recorded; what changed under wasm_sdk_probe/ since each ran.  PRE's
+        recording path is still run and transcribed (registered; I3-8)
   check_m3_install_elsewhere.py selftest
         host_binding against a scratch copy of the release, clean and mutated
   check_m3_install_elsewhere.py run --label shakedown|counted [--dev-host-entry R]
@@ -31,6 +33,7 @@ boolean this tool concluded while running.
 from __future__ import annotations
 
 import argparse
+import ast
 import contextlib
 import copy
 import datetime
@@ -41,6 +44,7 @@ import json
 import os
 import re
 import shutil
+import ssl
 import subprocess
 import sys
 import tarfile
@@ -74,6 +78,10 @@ WEB = "ddev-litecoreprobe-web"
 APP_IN_CONTAINER = "/var/www/html/nextcloud/apps-extra/litecore"
 MOUNT = "/mnt/litecore-dist"
 PRE = "9748b714"            # study_LiteCore before the runners learned --ddev-root
+ORCHESTRATOR = "wasm_sdk_probe/tools/check_m3_install_elsewhere.py"   # I3-11's one exception
+# Report fields the dev-instance recording path writes (I3-9): top-level keys;
+# "instance" is Instance.describe().
+RECORDING_KEYS = ("hostRepo", "hostDirty", "hostFiles", "hostBinding", "package", "release", "instance")
 CONTROL = "/tmp/litecore-ctl"
 PROBE_KEYS = ("files_probe", "files_isolation")
 INTERVAL = 0.5
@@ -181,13 +189,15 @@ def tree_binding() -> dict[str, Any]:
     It covers what module_shas cannot -- the runners are subprocesses with
     lazily imported modules, test-e2-c-static runs node tests, the Makefile --
     but not gitignored paths (dist/, build/); dist/ is bound by the page and
-    engine shas the runners check themselves."""
+    engine shas the runners check themselves.  openssl since 2026-10-02
+    (review of I3-8', item 12: libssl3 was upgraded under the runners)."""
     git = lambda *a: sh(["git", *a], cwd=REPO).stdout.strip()  # noqa: E731
     make = sh(["make", "--version"]).stdout.splitlines()
     return {"tree": git("rev-parse", "HEAD:wasm_sdk_probe"),
             "lastCommit": git("log", "-1", "--format=%H", "--", "wasm_sdk_probe"),
             "porcelain": git("status", "--porcelain", "--untracked-files=all", "--", "wasm_sdk_probe"),
-            "python": sys.version, "node": sh(["node", "--version"]).stdout.strip(), "make": make[0] if make else ""}
+            "python": sys.version, "node": sh(["node", "--version"]).stdout.strip(), "make": make[0] if make else "",
+            "openssl": ssl.OPENSSL_VERSION}
 
 
 def epoch(iso: str | None) -> float | None:
@@ -654,18 +664,19 @@ out["describeApp"] = Instance(DEFAULT_DDEV).describe()["app"]
 print(json.dumps(out, sort_keys=True))
 """
 
-# The same fields as the runners record them now: through the callables the
-# runners themselves call (binding_fields, package_for, Instance.describe).
+# The fields as the runners record them now: through the callables the
+# runners themselves call (binding_fields, package_for, release_record,
+# Instance.describe), keyed as the reports key them (RECORDING_KEYS).
 NEW_RECORDING = r"""
 import json, sys
 sys.path.insert(0, sys.argv[1])
 import check_m3_assets as assets
 from check_m3_skeleton_open import DEFAULT_DDEV, Instance, binding_fields, host_binding
 binding = host_binding(DEFAULT_DDEV)
-fields = binding_fields(binding)
-out = {key: fields[key] for key in ("hostRepo", "hostDirty", "hostFiles")}
+out = binding_fields(binding)
 out["package"] = assets.package_for(DEFAULT_DDEV, binding)
-out["describeApp"] = Instance(DEFAULT_DDEV).describe()["app"]
+out["release"] = assets.release_record(DEFAULT_DDEV, binding)
+out["instance"] = Instance(DEFAULT_DDEV).describe()
 print(json.dumps(out, sort_keys=True))
 """
 
@@ -684,46 +695,237 @@ def transcription() -> dict[str, dict[str, bool]]:
     return out
 
 
+def differences(then: Any, now: Any, path: str = "") -> list[str]:
+    """Exact equality, said where it fails (I3-9; review of I3-8', item 8):
+    dicts recurse, a key on one side only is a difference, everything else
+    -- lists, scalars, a change of type -- is a leaf compared whole."""
+    if isinstance(then, dict) and isinstance(now, dict):
+        out = []
+        for key in sorted(set(then) | set(now), key=str):
+            where = f"{path}/{key}" if path else str(key)
+            if key not in now:
+                out.append(f"{where} only in the dev report")
+            elif key not in then:
+                out.append(f"{where} only now")
+            else:
+                out += differences(then[key], now[key], where)
+        return out
+    if type(then) is type(now) and then == now:
+        return []
+    return [f"{path}: {str(then)[:60]!r} then, {str(now)[:60]!r} now"]
+
+
+def import_closure(roots: list[str]) -> list[str]:
+    """The tools/*.py the runners import, transitively and at any depth of
+    their code -- a lazy import inside a function included (I3-11).  ast, not
+    modulefinder: modulefinder crashes on this Python (3.14)."""
+    seen: set[str] = set()
+    todo = list(roots)
+    while todo:
+        name = todo.pop()
+        if name in seen:
+            continue
+        seen.add(name)
+        for node in ast.walk(ast.parse((TOOLS / name).read_text())):
+            if isinstance(node, ast.Import):
+                modules = [alias.name for alias in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                modules = [node.module]
+            else:
+                continue
+            todo += [f"{m.split('.')[0]}.py" for m in modules if (TOOLS / f"{m.split('.')[0]}.py").is_file()]
+    return sorted(seen)
+
+
+def report_base(body: dict[str, Any]) -> str | None:
+    return (body.get("instance") or {}).get("baseUrl") or body.get("baseUrl")
+
+
+def report_commit(name: str, body: dict[str, Any]) -> str:
+    if name == "host-entry":
+        return str(((body.get("instance") or {}).get("app") or {}).get("commit") or "")
+    return str(body.get("hostRepo") or "").split(" ")[0]
+
+
+def report_runner_sha(body: dict[str, Any]) -> str | None:
+    runner = body.get("runner")
+    return runner.get("sha256") if isinstance(runner, dict) else body.get("runnerSha256")
+
+
+def browser_versions(name: str, body: dict[str, Any]) -> list[str]:
+    """Registered, not scored (owner's decision B, 2026-10-02)."""
+    if name in ("host-entry", "dev-host-entry"):
+        runs = [run for arms in (body.get("browsers") or {}).values() for arm in arms.values()
+                if isinstance(arm, list) for run in arm]
+    else:
+        runs = body.get("runs") or []
+    return sorted({str(run.get("version")) for run in runs if isinstance(run, dict)})
+
+
+def dev_index() -> list[dict[str, Any]]:
+    """The raw fields I3-10's rule selects on, for every report in the four
+    runners' runs/ -- litecoreprobe's own reports live there too."""
+    index = []
+    for name, (_, directory, _) in RUNNERS.items():
+        for path in sorted((REPO / "findings" / "evidence" / directory / "runs").glob("*.json")):
+            body = json.loads(path.read_text())
+            index.append({"runner": name, "report": str(path.relative_to(REPO)), "label": body.get("label"),
+                          "baseUrl": report_base(body), "commit": report_commit(name, body),
+                          "startedAt": body.get("startedAt")})
+    return index
+
+
+def dev_selection(index: list[dict[str, Any]], commit: str, checked: str | None) -> list[str]:
+    """I3-10: counted, on the dev instance, bound to the release commit,
+    started before the equivalence check."""
+    at = epoch(checked)
+    if len(commit or "") < 7 or at is None:
+        return []
+    return sorted(e["report"] for e in index if e.get("label") == "counted" and e.get("baseUrl") == DEV_URL
+                  and str(e.get("commit") or "").startswith(commit)
+                  and epoch(e.get("startedAt")) is not None and epoch(e.get("startedAt")) < at)
+
+
+@functools.lru_cache(maxsize=None)
+def file_sha(path: str) -> str | None:
+    return sha256_file(REPO / path) if path and (REPO / path).is_file() else None
+
+
+def baseline_problems(eq: dict[str, Any], loaded: dict[str, Any], commit: str
+                      ) -> tuple[list[str], dict[str, list[dict[str, Any]]]]:
+    """I3-9, I3-10, I3-11 from the equivalence record's raw fields and the
+    reports as they are now; returns the problems and the judged dev reports
+    by runner.  The selection is redone here, never read back."""
+    problems: list[str] = []
+    entries = eq.get("devBaseline") or []
+    if eq.get("releaseCommit") != commit:
+        problems.append(f"I3-10 the equivalence check selected for release {str(eq.get('releaseCommit'))[:12]!r}, "
+                        f"the window's is {commit[:12]!r}")
+    stored = sorted(str(e.get("report")) for e in entries)
+    selected = dev_selection(loaded.get("dev-index") or [], commit, eq.get("startedAt"))
+    if selected != stored:
+        problems.append(f"I3-10 the dev baseline is not what the rule selects: recorded, not selected "
+                        f"{sorted(set(stored) - set(selected))[:3]}; selected, not recorded {sorted(set(selected) - set(stored))[:3]}")
+    now = (eq.get("recording") or {}).get("now") or {}
+    if not now or "error" in now:
+        problems.append(f"I3-9 the dev-instance recording path errored: {str(now.get('error'))[-300:]!r}")
+    closure = eq.get("importClosure") or []
+    missing = [tool for tool, _, _ in RUNNERS.values() if tool not in closure]
+    if missing:
+        problems.append(f"I3-11 the import closure misses runners {missing}")
+    if Path(ORCHESTRATOR).name in closure:
+        problems.append(f"I3-11 a runner imports {Path(ORCHESTRATOR).name}")
+    if eq.get("makefileMentions") != []:
+        problems.append(f"I3-11 the Makefile names the orchestrator: {eq.get('makefileMentions')!r}")
+    shas = eq.get("runnerSha256") or {}
+    judged: dict[str, list[dict[str, Any]]] = {name: [] for name in RUNNERS}
+    for entry in entries:
+        name, path = entry.get("runner"), str(entry.get("report") or "")
+        body = (loaded.get("dev-baseline") or {}).get(path)
+        tag = f"{name} {Path(path).name}"
+        if name not in RUNNERS or body is None:
+            problems.append(f"I3-10 {tag}: not loaded")
+            continue
+        # The rule again, on the report itself.
+        if report_base(body) != DEV_URL:
+            problems.append(f"I3-10 {tag} ran against {report_base(body)!r}")
+        if len(commit) < 7 or not report_commit(name, body).startswith(commit):
+            problems.append(f"I3-10 {tag} is bound to {report_commit(name, body)[:12]!r}, not {commit[:12]}")
+        if body.get("label") != "counted":
+            problems.append(f"I3-10 {tag} label {body.get('label')!r}")
+        began, checked = epoch(body.get("startedAt")), epoch(eq.get("startedAt"))
+        if began is None or checked is None or began >= checked:
+            problems.append(f"I3-10 {tag} started {body.get('startedAt')}, not before the equivalence check "
+                            f"{eq.get('startedAt')}")
+        if not entry.get("headBlob") or entry.get("headBlob") != entry.get("fileBlob"):
+            problems.append(f"I3-10 {tag} was not the committed blob at the equivalence check "
+                            f"(HEAD {str(entry.get('headBlob'))[:12]!r}, file {str(entry.get('fileBlob'))[:12]!r})")
+        if file_sha(path) != entry.get("sha256"):
+            problems.append(f"I3-10 {tag} changed since the equivalence check")
+        if report_runner_sha(body) != shas.get(name):
+            continue   # listed, not judged
+        judged[name].append({"entry": entry, "body": body})
+        ok, verdict = runner_verdict(name, body, True)
+        if not ok:
+            problems.append(f"I3-10 {tag} does not reach its verdict: {verdict[:300]}")
+        if entry.get("redExit") != 0 or red_cases_now(RUNNERS[name][0], path, str(entry.get("sha256") or "")) != 0:
+            problems.append(f"I3-10 {tag}: red cases did not all go red (or the report changed)")
+        fields = {key: body[key] for key in RECORDING_KEYS if key in body}
+        if not fields:
+            problems.append(f"I3-9 {tag}: no recording field to compare")
+        if now and "error" not in now:
+            differ = differences(fields, {key: now[key] for key in fields if key in now})
+            if differ:
+                problems.append(f"I3-9 {tag}: {len(differ)} differences {differ[:4]}")
+        if not entry.get("devCommit") or entry.get("changed") is None:
+            problems.append(f"I3-11 {tag}: no wasm_sdk_probe commit at or before {body.get('startedAt')}")
+        else:
+            other = [c for c in entry["changed"] if c != ORCHESTRATOR]
+            if other:
+                problems.append(f"I3-11 {tag}: changed since {str(entry['devCommit'])[:12]}: {other[:5]}")
+    for name in RUNNERS:
+        if not judged[name]:
+            problems.append(f"I3-10 {name}: no dev report recorded by the runner the equivalence check bound "
+                            f"({str(shas.get(name))[:12]})")
+    return problems, judged
+
+
 def equivalence() -> int:
-    rows = []
+    git = lambda *a: sh(["git", *a], cwd=REPO)  # noqa: E731
+    release = json.loads(RELEASE_RECORD.read_text())
+    started = utc_now()
+    index = dev_index()
+    baseline, bodies = [], {}
+    for path in dev_selection(index, release["commit"], started):
+        name = next(e["runner"] for e in index if e["report"] == path)
+        bodies[path] = body = json.loads((REPO / path).read_text())
+        red = sh([sys.executable, str(TOOLS / RUNNERS[name][0]), "--red-cases", str(REPO / path)], cwd=REPO, timeout=900)
+        dev_commit = git("rev-list", "-1", f"--before={body.get('startedAt')}", "HEAD", "--", "wasm_sdk_probe").stdout.strip()
+        baseline.append({
+            "runner": name, "report": path, "sha256": sha256_file(REPO / path),
+            "headBlob": git("rev-parse", "--verify", "--quiet", f"HEAD:{path}").stdout.strip(),
+            "fileBlob": git("hash-object", path).stdout.strip(), "redExit": red.returncode,
+            "devCommit": dev_commit,
+            "changed": git("diff", "--name-only", dev_commit, "HEAD", "--", "wasm_sdk_probe").stdout.splitlines()
+            if dev_commit else None,
+            "browserVersions": browser_versions(name, body)})
     with tempfile.TemporaryDirectory(prefix="m3-install-pre-", dir=PROJECT / "build") as scratch:
         old = Path(scratch)
         archive = subprocess.run(["git", "archive", PRE, "wasm_sdk_probe/tools"], cwd=REPO, capture_output=True,
                                  check=True).stdout
         subprocess.run(["tar", "-x", "-C", str(old)], input=archive, check=True)
         (old / "wasm_sdk_probe" / "dist").symlink_to(PROJECT / "dist")
-        old_tools = old / "wasm_sdk_probe" / "tools"
-        for name, (tool, directory, _) in RUNNERS.items():
-            listed = sh(["git", "ls-tree", "--name-only", PRE, f"findings/evidence/{directory}/runs/"], cwd=REPO)
-            for report in sorted(n for n in listed.stdout.splitlines() if n.endswith(".json")):
-                row: dict[str, Any] = {"runner": name, "report": report}
-                for side, path in (("before", old_tools / tool), ("after", TOOLS / tool)):
-                    done = sh([sys.executable, str(path), "--score", str(REPO / report)], cwd=REPO)
-                    red = sh([sys.executable, str(path), "--red-cases", str(REPO / report)], cwd=REPO, timeout=900)
-                    row[side] = {"exit": done.returncode, "line": (done.stdout.strip().splitlines() or [""])[-1],
-                                 "redExit": red.returncode}
-                rows.append(row)
         recording = {}
-        for side, code, where, extra in (("before", OLD_RECORDING, old_tools, [json.dumps(OLD_EXPRESSIONS)]),
-                                         ("after", NEW_RECORDING, TOOLS, [])):
+        for side, code, where, extra in (("pre", OLD_RECORDING, old / "wasm_sdk_probe" / "tools",
+                                           [json.dumps(OLD_EXPRESSIONS)]), ("now", NEW_RECORDING, TOOLS, [])):
             done = sh([sys.executable, "-c", code, str(where), *extra], cwd=REPO)
             recording[side] = json.loads(done.stdout) if done.returncode == 0 else {"error": done.stderr[-1500:]}
-    record = {"at": utc_now(), "pre": PRE, "head": sh(["git", "rev-parse", "HEAD"], cwd=REPO).stdout.strip(),
+    pre, now = recording["pre"], recording["now"]
+    # Registered, not scored (I3-8's PRE comparison, withdrawn 2026-10-02).
+    recording["preDifferences"] = None if "error" in pre or "error" in now else differences(
+        pre, {k: (now.get("instance") or {}).get("app") if k == "describeApp" else now.get(k) for k in pre})
+    record = {"startedAt": started, "pre": PRE, "head": git("rev-parse", "HEAD").stdout.strip(),
+              "releaseCommit": release["commit"],
               "runnerSha256": {name: sha256_file(TOOLS / tool) for name, (tool, _, _) in RUNNERS.items()},
-              "moduleSha256": module_shas(), "rows": rows, "recording": recording,
-              "transcription": transcription(), "treeBinding": tree_binding()}
+              "moduleSha256": module_shas(), "devIndex": index, "devBaseline": baseline,
+              "importClosure": import_closure([tool for tool, _, _ in RUNNERS.values()]),
+              "makefileMentions": [line.strip() for line in (PROJECT / "Makefile").read_text().splitlines()
+                                   if Path(ORCHESTRATOR).name in line],
+              "recording": recording, "transcription": transcription(), "treeBinding": tree_binding()}
+    record["at"] = utc_now()
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     (EVIDENCE / "equivalence.json").write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n")
-    same = sum(1 for r in rows if r["before"] == r["after"])
+    problems, judged = baseline_problems(record, {"dev-index": index, "dev-baseline": bodies}, release["commit"])
     transcribed = all(all(v.values()) for v in record["transcription"].values())
-    print(f"{same}/{len(rows)} reports score and red-case the same; recording paths equal: "
-          f"{recording['before'] == recording['after'] and 'error' not in recording['before']}; "
+    print(f"dev baseline: {len(baseline)} selected, judged {{{', '.join(f'{n}: {len(j)}' for n, j in judged.items())}}}; "
+          f"PRE-vs-now recording differences (registered): {len(recording['preDifferences'] or [])}; "
           f"old expressions found in {PRE}: {transcribed}")
+    for problem in problems:
+        print(f"  {problem[:400]}")
     if record["treeBinding"]["porcelain"]:
         print(f"wasm_sdk_probe/ has uncommitted changes; a counted window cannot bind to this check:\n"
               f"{record['treeBinding']['porcelain']}")
-    return 0 if rows and same == len(rows) and recording["before"] == recording["after"] and transcribed \
-        and not record["treeBinding"]["porcelain"] else 1
+    return 0 if not problems and transcribed and not record["treeBinding"]["porcelain"] else 1
 
 
 def selftest() -> dict[str, Any]:
@@ -925,6 +1127,11 @@ def load_reports(report: dict[str, Any]) -> dict[str, Any]:
         loaded[name] = json.loads((REPO / path).read_text()) if path and (REPO / path).is_file() else None
     dev = (report.get("devHostEntry") or {}).get("report")
     loaded["dev-host-entry"] = json.loads((REPO / dev).read_text()) if dev and (REPO / dev).is_file() else None
+    # I3-10: the selection is redone from the reports as they are now.
+    loaded["dev-index"] = dev_index()
+    loaded["dev-baseline"] = {str(e.get("report")): json.loads((REPO / e["report"]).read_text())
+                              for e in (report.get("equivalence") or {}).get("devBaseline") or []
+                              if e.get("report") and (REPO / e["report"]).is_file()}
     return loaded
 
 
@@ -1151,19 +1358,18 @@ def score(report: dict[str, Any], strict: bool, loaded: dict[str, Any] | None = 
             if strict and (dev.get("runner") or {}).get("sha256") != shas_now.get("host-entry"):
                 problems.append(f"I3-7 dev host entry ran with runner {str((dev.get('runner') or {}).get('sha256'))[:12]}, "
                                 f"equivalence checked {str(shas_now.get('host-entry'))[:12]}")
-    rows = equivalence_seen.get("rows") or []
-    if strict or rows:
-        if {r.get("runner") for r in rows} != set(RUNNERS):
-            problems.append(f"I3-8 equivalence covers {sorted({r.get('runner') for r in rows})}")
-        for row in rows:
-            if any("redExit" not in (row.get(side) or {}) for side in ("before", "after")):
-                problems.append(f"I3-8 {row.get('runner')} {row.get('report')}: no red-case exit recorded")
-            if row.get("before") != row.get("after"):
-                problems.append(f"I3-8 {row.get('runner')} {row.get('report')}: {row.get('before')} -> {row.get('after')}")
-        recording = equivalence_seen.get("recording") or {}
-        if not recording.get("before") or "error" in recording.get("before", {}) \
-                or recording.get("before") != recording.get("after"):
-            problems.append("I3-8 the dev-instance recording path changed (host binding, K0 record or description)")
+    # I3-8's PRE rows and PRE-vs-now recording are withdrawn (2026-10-02);
+    # the dev baseline stands in for them (I3-9..I3-12).
+    judged: dict[str, list[dict[str, Any]]] = {}
+    if strict or equivalence_seen.get("devBaseline") is not None:
+        found, judged = baseline_problems(equivalence_seen, loaded, commit)
+        problems += found
+        for name in RUNNERS:
+            body = loaded.get(name)
+            for dev_seen in judged.get(name) or []:
+                if body is not None and body.get("criteria") != dev_seen["body"].get("criteria"):
+                    problems.append(f"I3-12 {name}: criteria {body.get('criteria')!r}, "
+                                    f"dev baseline {dev_seen['body'].get('criteria')!r}")
         transcribed = equivalence_seen.get("transcription") or {}
         missing = sorted(f"{tool} {key}" for tool, keys in OLD_SITES.items() for key in keys
                          if (transcribed.get(tool) or {}).get(key) is not True)
@@ -1176,7 +1382,8 @@ def score(report: dict[str, Any], strict: bool, loaded: dict[str, Any] | None = 
             if not seen.get("tree") or seen.get("porcelain") != "":
                 problems.append(f"I3-8 wasm_sdk_probe/ at the {label}: tree {seen.get('tree')!r}, "
                                 f"uncommitted {str(seen.get('porcelain'))[:200]!r}")
-            differ = [k for k in ("tree", "lastCommit", "python", "node", "make") if seen.get(k) != tree_eq.get(k)]
+            differ = [k for k in ("tree", "lastCommit", "python", "node", "make", "openssl")
+                      if seen.get(k) != tree_eq.get(k)]
             if differ:
                 problems.append(f"I3-8 wasm_sdk_probe/ or the interpreters changed between the equivalence check "
                                 f"and the {label}: {differ}")
@@ -1252,7 +1459,11 @@ def score(report: dict[str, Any], strict: bool, loaded: dict[str, Any] | None = 
     return {"verdict": ("INSTALLS ELSEWHERE" if ok else "DOES NOT INSTALL ELSEWHERE") if strict
             else ("clean" if ok else "red"), "problems": problems, "samples": len(good),
             "controlsSeen": sorted(f"{key}: {label}" for key, labels in seen_control.items() for label in labels),
-            "registered": {"execRoots": exec_roots(good)}}
+            "registered": {"execRoots": exec_roots(good), "browserVersions": {
+                **{name: {"devBaseline": sorted({v for d in judged.get(name) or [] for v in browser_versions(name, d["body"])}),
+                          "litecoreprobe": browser_versions(name, loaded[name]) if loaded.get(name) else None}
+                   for name in RUNNERS},
+                "devHostEntry": browser_versions("dev-host-entry", dev) if dev else None}}}
 
 
 def exec_roots(good: list[dict[str, Any]]) -> dict[str, int]:
@@ -1386,6 +1597,35 @@ def _selftest_blind(case: str):
     return lambda r, L: r["bindingSelftest"][case].update(hostDirty="", hostRepo="x")
 
 
+def _now(r: dict[str, Any]) -> dict[str, Any]:
+    return r["equivalence"]["recording"]["now"]
+
+
+def _first(d: dict[str, Any]) -> Any:
+    return d[sorted(d)[0]]
+
+
+def _dev_entry(r: dict[str, Any], name: str) -> dict[str, Any]:
+    return next(e for e in r["equivalence"]["devBaseline"] if e["runner"] == name)
+
+
+def _dev_body(r: dict[str, Any], L: dict[str, Any], name: str) -> dict[str, Any]:
+    return L["dev-baseline"][_dev_entry(r, name)["report"]]
+
+
+def _drop_dev(r: dict[str, Any], L: dict[str, Any], name: str) -> None:
+    """A runner whose dev report is gone: from the record and from runs/ alike."""
+    gone = {e["report"] for e in r["equivalence"]["devBaseline"] if e["runner"] == name}
+    r["equivalence"]["devBaseline"] = [e for e in r["equivalence"]["devBaseline"] if e["report"] not in gone]
+    L["dev-index"] = [e for e in L["dev-index"] if e["report"] not in gone]
+
+
+def _unselected(r: dict[str, Any], L: dict[str, Any]) -> str:
+    """A report in runs/ the rule does not select (litecoreprobe's, an older commit's)."""
+    stored = {e["report"] for e in r["equivalence"]["devBaseline"]}
+    return next(e["report"] for e in L["dev-index"] if e["runner"] == "assets" and e["report"] not in stored)
+
+
 # (clause, label, mutation, a substring the added problem must carry).  The
 # substring pins each mutation to its branch: a mutation meant for one branch
 # of a clause is not passed by another branch of the same clause (review 2,
@@ -1477,13 +1717,6 @@ REPORT_CASES = [
     ("I3-7", "no dev host-entry report", lambda r, L: L.update({"dev-host-entry": None}), "no host-entry report"),
     ("I3-7", "a dev run with an unchecked runner", lambda r, L: L["dev-host-entry"]["runner"].update(sha256="9" * 64),
      "ran with runner 999999999999"),
-    ("I3-8", "a report scoring differently", lambda r, L: r["equivalence"]["rows"][0]["after"].update(exit=9), "->"),
-    ("I3-8", "a report whose red cases now pass", lambda r, L: r["equivalence"]["rows"][0]["after"].update(
-        redExit=1), "->"),
-    ("I3-8", "equivalence missing a runner", lambda r, L: r["equivalence"].update(
-        rows=[x for x in r["equivalence"]["rows"] if x["runner"] != "locks"]), "equivalence covers"),
-    ("I3-8", "a changed recording path", lambda r, L: r["equivalence"]["recording"]["after"].update(hostDirty="x"),
-     "recording path changed"),
     ("I3-8", "an old expression not found in PRE", lambda r, L: r["equivalence"]["transcription"][
         "check_m3_locks.py"].update(hostDirty=False), "not transcribed"),
     ("I3-8", "a counted run with an unchecked runner", lambda r, L: L["assets"].update(runnerSha256="4" * 64),
@@ -1569,11 +1802,66 @@ REPORT_CASES = [
         commit="0" * 40), "host-entry is not bound"),
     ("I3-8", "host entry with an unchecked runner", lambda r, L: L["host-entry"]["runner"].update(sha256="4" * 64),
      "host-entry ran with runner 444444444444"),
-    ("I3-8", "a recording path that errored on both sides", lambda r, L: r["equivalence"]["recording"].update(
-        before={"error": "x"}, after={"error": "x"}), "recording path changed"),
-    ("I3-8", "an equivalence row without its red-case exit", lambda r, L: [
-        side.pop("redExit") for side in (r["equivalence"]["rows"][0]["before"], r["equivalence"]["rows"][0]["after"])],
-     "no red-case exit recorded"),
+    ("I3-8", "another openssl at the window end", lambda r, L: r["treeBindingEnd"].update(openssl="OpenSSL 0.0.0"),
+     "changed between"),
+    # the dev baseline (2026-10-02): I3-9 recording, I3-10 selection and
+    # verdicts, I3-11 drift since, I3-12 criteria (review of I3-8', item 7)
+    ("I3-9", "a recorded field that differs now", lambda r, L: _now(r).update(hostRepo="0" * 40), "hostRepo: "),
+    ("I3-9", "a recorded field missing now", lambda r, L: _now(r).pop("hostFiles"), "hostFiles only in the dev report"),
+    ("I3-9", "a nested package field that differs now", lambda r, L: _first(_now(r)["package"]["files"]).update(
+        zstBytes=-1), "/zstBytes: "),
+    ("I3-9", "a field that exists only now", lambda r, L: _first(_now(r)["package"]["files"]).update(extra=1),
+     "/extra only now"),
+    ("I3-9", "a field whose type changed", lambda r, L: _now(r).update(hostDirty=[]), "hostDirty: "),
+    ("I3-9", "a list that differs", lambda r, L: _now(r)["instance"]["app"]["dirty"].append(" M x"),
+     "instance/app/dirty: "),
+    ("I3-9", "the recording path errored", lambda r, L: r["equivalence"]["recording"].update(now={"error": "x"}),
+     "recording path errored"),
+    ("I3-9", "a dev report with no recording field", lambda r, L: [_dev_body(r, L, "versions").pop(k) for k in
+                                                                  ("hostRepo", "hostDirty", "hostFiles", "hostBinding")],
+     "no recording field"),
+    ("I3-10", "a runner without a dev report", lambda r, L: _drop_dev(r, L, "locks"),
+     "locks: no dev report recorded by the runner"),
+    ("I3-10", "a dev report recorded by another runner", lambda r, L: _dev_body(r, L, "locks").update(
+        runnerSha256="9" * 64), "locks: no dev report recorded by the runner"),
+    ("I3-10", "a dev report that re-scores red", lambda r, L: _dev_body(r, L, "versions")["runs"][-1].update(
+        fatal="Traceback: mutated"), "does not reach its verdict"),
+    ("I3-10", "dev red cases that stayed green", lambda r, L: _dev_entry(r, "assets").update(redExit=1),
+     "red cases did not all go red"),
+    ("I3-10", "a dev report from litecoreprobe", lambda r, L: _dev_body(r, L, "assets")["instance"].update(
+        baseUrl=PROBE_URL), f"ran against {PROBE_URL!r}"),
+    ("I3-10", "a report the rule does not select, recorded", lambda r, L: r["equivalence"]["devBaseline"].append(
+        {**_dev_entry(r, "assets"), "report": _unselected(r, L)}), "recorded, not selected ['findings"),
+    ("I3-10", "a report the rule selects, left out", lambda r, L: r["equivalence"].update(devBaseline=[
+        e for e in r["equivalence"]["devBaseline"] if e["runner"] != "host-entry"]), "selected, not recorded ['findings"),
+    ("I3-10", "a dev report started after the check", lambda r, L: _dev_body(r, L, "locks").update(
+        startedAt="2099-01-01T00:00:00+00:00"), "not before the equivalence check"),
+    ("I3-10", "a dev report on another commit", lambda r, L: _dev_body(r, L, "versions").update(
+        hostRepo="0" * 40 + " x"), "is bound to '000000000000'"),
+    ("I3-10", "a shakedown in the baseline", lambda r, L: _dev_body(r, L, "assets").update(label="shakedown"),
+     "label 'shakedown'"),
+    ("I3-10", "a dev report not committed", lambda r, L: _dev_entry(r, "locks").update(headBlob=""),
+     "was not the committed blob"),
+    ("I3-10", "a dev report edited before the check", lambda r, L: _dev_entry(r, "locks").update(fileBlob="0" * 40),
+     "was not the committed blob"),
+    ("I3-10", "a dev report changed since the check", lambda r, L: _dev_entry(r, "versions").update(sha256="5" * 64),
+     "changed since the equivalence check"),
+    ("I3-10", "an equivalence check for another release", lambda r, L: r["equivalence"].update(
+        releaseCommit="0" * 40), "selected for release"),
+    ("I3-11", "a runner module changed after a dev report", lambda r, L: _dev_entry(r, "assets")["changed"].append(
+        "wasm_sdk_probe/tools/check_m3_skeleton_open.py"), "check_m3_skeleton_open.py']"),
+    ("I3-11", "a static-test input changed after a dev report", lambda r, L: _dev_entry(r, "locks")["changed"].append(
+        "wasm_sdk_probe/Makefile"), "wasm_sdk_probe/Makefile']"),
+    ("I3-11", "no commit before a dev report", lambda r, L: _dev_entry(r, "versions").update(devCommit=""),
+     "no wasm_sdk_probe commit"),
+    ("I3-11", "a runner importing the orchestrator", lambda r, L: r["equivalence"]["importClosure"].append(
+        Path(ORCHESTRATOR).name), "a runner imports"),
+    ("I3-11", "a closure that misses a runner", lambda r, L: r["equivalence"]["importClosure"].remove(
+        "check_m3_locks.py"), "misses runners ['check_m3_locks.py']"),
+    ("I3-11", "the Makefile naming the orchestrator", lambda r, L: r["equivalence"].update(
+        makefileMentions=[f"python3 tools/{Path(ORCHESTRATOR).name}"]), "Makefile names the orchestrator"),
+    ("I3-12", "assets judged under other criteria", lambda r, L: L["assets"].update(
+        criteria=["SPEC-M3-asset-delivery"]), "I3-12 assets: criteria"),
     ("I4-1b", "the container restarted since the baseline", lambda r, L: r["window"].update(
         webStartedAt="2026-01-01T00:00:00Z"), "not one lifetime"),
     ("I4-1", "no pre-install baseline", lambda r, L: r["install"].update(baseline=[]), "pre-install baseline"),
@@ -1601,7 +1889,7 @@ STRICT_ONLY = {"a counted run with an unchecked runner", "a module changed after
                "a dev run with an unchecked runner", "no dev host-entry report", "a shakedown scored as counted",
                "wasm_sdk_probe changed by the window start", "uncommitted tools at the window end",
                "another last commit at the window end", "another interpreter at the window start",
-               "host entry with an unchecked runner"}
+               "host entry with an unchecked runner", "another openssl at the window end"}
 
 
 def red_cases(path: Path, force_strict: bool) -> int:

@@ -84,3 +84,15 @@ Shakedowns: `shakedown/` (five windows; the last, `…011402+0000.json`, took `-
     python3 wasm_sdk_probe/tools/check_m3_install_elsewhere.py --red-cases findings/evidence/m3-install/runs/2026-09-29T012339+0000.json
 
 Both read only stored reports (the runners' own red cases are re-run in process).
+
+## Re-check: correction (2026-10-02)
+
+The two commands above, run with the tools as they are after 2026-09-29, come out red: the runners' scorers changed on purpose afterwards (page and host pins, the asset runner's K2 A′ instrument, the locks runner's K9′/K10′ arms), so today's `--score` re-scores this window's runner reports as `ASSETS NOT DELIVERED`, `VERSIONS NOT CORRECT` and `LOCKS DO NOT LAND` (review of 2026-10-02, item 11). This verdict is bound to the tools of its day. Re-check it with them — `wasm_sdk_probe/` is identical at `b30b58b7` (the window's tool commit) and `71e0ac8e` (the commit that recorded this result), and the worktree also carries this window's reports and the 0.2.1 `release.json`:
+
+    git worktree add --detach ../m3-install-0.2.1 71e0ac8e
+    ln -s "$PWD/wasm_sdk_probe/dist" ../m3-install-0.2.1/wasm_sdk_probe/dist
+    cd ../m3-install-0.2.1
+    python3 wasm_sdk_probe/tools/check_m3_install_elsewhere.py --score     findings/evidence/m3-install/runs/2026-09-29T012339+0000.json
+    python3 wasm_sdk_probe/tools/check_m3_install_elsewhere.py --red-cases findings/evidence/m3-install/runs/2026-09-29T012339+0000.json
+
+Run on 2026-10-02: `INSTALLS ELSEWHERE samples=6806 problems=[]`, and `111 of 111 red, 0 skipped, 0 failed`.
