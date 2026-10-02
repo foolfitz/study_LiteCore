@@ -197,7 +197,10 @@ def tree_binding() -> dict[str, Any]:
             "lastCommit": git("log", "-1", "--format=%H", "--", "wasm_sdk_probe"),
             "porcelain": git("status", "--porcelain", "--untracked-files=all", "--", "wasm_sdk_probe"),
             "python": sys.version, "node": sh(["node", "--version"]).stdout.strip(), "make": make[0] if make else "",
-            "openssl": ssl.OPENSSL_VERSION}
+            # The package version too: OPENSSL_VERSION read the same across
+            # Ubuntu's 3.5.5-1ubuntu3.5, 3.6 and 3.7 (review of I3-9..12, item 3).
+            "openssl": ssl.OPENSSL_VERSION,
+            "libssl": sorted(sh(["dpkg-query", "-W", "-f=${binary:Package} ${Version}\n", "libssl3t64"]).stdout.splitlines())}
 
 
 def epoch(iso: str | None) -> float | None:
@@ -715,30 +718,76 @@ def differences(then: Any, now: Any, path: str = "") -> list[str]:
     return [f"{path}: {str(then)[:60]!r} then, {str(now)[:60]!r} now"]
 
 
-def import_closure(roots: list[str]) -> list[str]:
-    """The tools/*.py the runners import, transitively and at any depth of
-    their code -- a lazy import inside a function included (I3-11).  ast, not
-    modulefinder: modulefinder crashes on this Python (3.14)."""
+def git_out(*args: str) -> str:
+    return sh(["git", *args], cwd=REPO).stdout
+
+
+@functools.lru_cache(maxsize=None)
+def import_closure(commit: str) -> tuple[str, ...]:
+    """The tools/*.py the four runners import at `commit`, transitively and at
+    any depth of their code -- a lazy import inside a function included
+    (I3-11).  Read from git, so the scorer can redo it from the equivalence
+    check's HEAD (review of I3-9..12, item 5).  ast, not modulefinder:
+    modulefinder crashes on this Python (3.14)."""
+    present = set(git_out("ls-tree", "--name-only", f"{commit}:wasm_sdk_probe/tools").split())
     seen: set[str] = set()
-    todo = list(roots)
+    todo = [tool for tool, _, _ in RUNNERS.values()]
     while todo:
         name = todo.pop()
-        if name in seen:
+        if name in seen or name not in present:
             continue
         seen.add(name)
-        for node in ast.walk(ast.parse((TOOLS / name).read_text())):
+        for node in ast.walk(ast.parse(git_out("show", f"{commit}:wasm_sdk_probe/tools/{name}"))):
             if isinstance(node, ast.Import):
                 modules = [alias.name for alias in node.names]
             elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
                 modules = [node.module]
             else:
                 continue
-            todo += [f"{m.split('.')[0]}.py" for m in modules if (TOOLS / f"{m.split('.')[0]}.py").is_file()]
-    return sorted(seen)
+            todo += [f"{m.split('.')[0]}.py" for m in modules if f"{m.split('.')[0]}.py" in present]
+    return tuple(sorted(seen))
 
 
-def report_base(body: dict[str, Any]) -> str | None:
-    return (body.get("instance") or {}).get("baseUrl") or body.get("baseUrl")
+@functools.lru_cache(maxsize=None)
+def orchestrator_mentions(commit: str) -> tuple[str, ...]:
+    """Every line under wasm_sdk_probe/ at `commit`, the orchestrator aside,
+    that names it (I3-11: nothing may launch or import it but us)."""
+    found = git_out("grep", "-n", Path(ORCHESTRATOR).name, commit, "--", "wasm_sdk_probe", f":!{ORCHESTRATOR}")
+    return tuple(found.splitlines())
+
+
+@functools.lru_cache(maxsize=None)
+def drift_since(started: str, head: str) -> tuple[str, tuple[str, ...] | None]:
+    """The last wasm_sdk_probe/ commit at or before `started` (an ISO time
+    with its offset), and what changed under wasm_sdk_probe/ from it to
+    `head` (I3-11)."""
+    dev_commit = git_out("rev-list", "-1", f"--before={started}", head, "--", "wasm_sdk_probe").strip()
+    if not dev_commit:
+        return "", None
+    return dev_commit, tuple(git_out("diff", "--name-only", dev_commit, head, "--", "wasm_sdk_probe").splitlines())
+
+
+def report_base(name: str, body: dict[str, Any]) -> str | None:
+    """Where each runner records it (I3-10): assets and host entry under
+    instance, versions and locks at the top."""
+    if name in ("assets", "host-entry"):
+        return (body.get("instance") or {}).get("baseUrl")
+    return body.get("baseUrl")
+
+
+def run_shape(name: str, body: dict[str, Any]) -> Any:
+    """What a runner ran (I3-13): (browser, arm, count) over its runs; host
+    entry, whose own score does not pin its arms, {browser: {arm: runs}} and
+    its repeats."""
+    if name in ("host-entry", "dev-host-entry"):
+        return {"repeats": body.get("repeats"),
+                "browsers": {b: {a: len(runs) if isinstance(runs, list) else None for a, runs in arms.items()}
+                             for b, arms in (body.get("browsers") or {}).items()}}
+    counts: dict[tuple[Any, Any], int] = {}
+    for run in body.get("runs") or []:
+        key = (run.get("browser"), run.get("arm"))
+        counts[key] = counts.get(key, 0) + 1
+    return sorted([str(b), str(a), n] for (b, a), n in counts.items())
 
 
 def report_commit(name: str, body: dict[str, Any]) -> str:
@@ -770,7 +819,7 @@ def dev_index() -> list[dict[str, Any]]:
         for path in sorted((REPO / "findings" / "evidence" / directory / "runs").glob("*.json")):
             body = json.loads(path.read_text())
             index.append({"runner": name, "report": str(path.relative_to(REPO)), "label": body.get("label"),
-                          "baseUrl": report_base(body), "commit": report_commit(name, body),
+                          "baseUrl": report_base(name, body), "commit": report_commit(name, body),
                           "startedAt": body.get("startedAt")})
     return index
 
@@ -784,6 +833,18 @@ def dev_selection(index: list[dict[str, Any]], commit: str, checked: str | None)
     return sorted(e["report"] for e in index if e.get("label") == "counted" and e.get("baseUrl") == DEV_URL
                   and str(e.get("commit") or "").startswith(commit)
                   and epoch(e.get("startedAt")) is not None and epoch(e.get("startedAt")) < at)
+
+
+def dev_after_check(index: list[dict[str, Any]], commit: str, checked: str | None, until: float | None) -> list[str]:
+    """I3-14: the counted dev-instance reports on the release commit started
+    at or after the equivalence check and by `until` (the window's start) --
+    the complement of dev_selection, so no dev run falls between the two."""
+    at = epoch(checked)
+    if len(commit or "") < 7 or at is None or until is None:
+        return []
+    return sorted(e["report"] for e in index if e.get("label") == "counted" and e.get("baseUrl") == DEV_URL
+                  and str(e.get("commit") or "").startswith(commit)
+                  and epoch(e.get("startedAt")) is not None and at <= epoch(e.get("startedAt")) <= until)
 
 
 @functools.lru_cache(maxsize=None)
@@ -815,8 +876,20 @@ def baseline_problems(eq: dict[str, Any], loaded: dict[str, Any], commit: str
         problems.append(f"I3-11 the import closure misses runners {missing}")
     if Path(ORCHESTRATOR).name in closure:
         problems.append(f"I3-11 a runner imports {Path(ORCHESTRATOR).name}")
-    if eq.get("makefileMentions") != []:
-        problems.append(f"I3-11 the Makefile names the orchestrator: {eq.get('makefileMentions')!r}")
+    if eq.get("orchestratorMentions") != []:
+        problems.append(f"I3-11 something under wasm_sdk_probe/ names the orchestrator: "
+                        f"{str(eq.get('orchestratorMentions'))[:300]}")
+    # The producer checked, not only the consumer (review of I3-9..12, item 5):
+    # what the check recorded is what git says at its HEAD, and the closure
+    # holds every module the check itself loaded but the orchestrator.
+    head = str(eq.get("head") or "")
+    if list(closure) != list(import_closure(head)):
+        problems.append(f"I3-11 the recorded import closure is not what git says at {head[:12]!r}")
+    if list(eq.get("orchestratorMentions") or []) != list(orchestrator_mentions(head)):
+        problems.append(f"I3-11 the recorded mentions of the orchestrator are not what git says at {head[:12]!r}")
+    unlisted = sorted(set(eq.get("moduleSha256") or {}) - set(closure) - {Path(ORCHESTRATOR).name})
+    if unlisted or not eq.get("moduleSha256"):
+        problems.append(f"I3-11 modules the equivalence check loaded are missing from the closure: {unlisted[:5]}")
     shas = eq.get("runnerSha256") or {}
     judged: dict[str, list[dict[str, Any]]] = {name: [] for name in RUNNERS}
     for entry in entries:
@@ -827,8 +900,8 @@ def baseline_problems(eq: dict[str, Any], loaded: dict[str, Any], commit: str
             problems.append(f"I3-10 {tag}: not loaded")
             continue
         # The rule again, on the report itself.
-        if report_base(body) != DEV_URL:
-            problems.append(f"I3-10 {tag} ran against {report_base(body)!r}")
+        if report_base(name, body) != DEV_URL:
+            problems.append(f"I3-10 {tag} ran against {report_base(name, body)!r}")
         if len(commit) < 7 or not report_commit(name, body).startswith(commit):
             problems.append(f"I3-10 {tag} is bound to {report_commit(name, body)[:12]!r}, not {commit[:12]}")
         if body.get("label") != "counted":
@@ -840,6 +913,10 @@ def baseline_problems(eq: dict[str, Any], loaded: dict[str, Any], commit: str
         if not entry.get("headBlob") or entry.get("headBlob") != entry.get("fileBlob"):
             problems.append(f"I3-10 {tag} was not the committed blob at the equivalence check "
                             f"(HEAD {str(entry.get('headBlob'))[:12]!r}, file {str(entry.get('fileBlob'))[:12]!r})")
+        # Committed once and never edited after (review of I3-9..12, item 7).
+        if not entry.get("addedBlob") or entry.get("addedBlob") != entry.get("headBlob"):
+            problems.append(f"I3-10 {tag} was edited after it was first committed "
+                            f"(added {str(entry.get('addedBlob'))[:12]!r}, HEAD {str(entry.get('headBlob'))[:12]!r})")
         if file_sha(path) != entry.get("sha256"):
             problems.append(f"I3-10 {tag} changed since the equivalence check")
         if report_runner_sha(body) != shas.get(name):
@@ -848,8 +925,11 @@ def baseline_problems(eq: dict[str, Any], loaded: dict[str, Any], commit: str
         ok, verdict = runner_verdict(name, body, True)
         if not ok:
             problems.append(f"I3-10 {tag} does not reach its verdict: {verdict[:300]}")
-        if entry.get("redExit") != 0 or red_cases_now(RUNNERS[name][0], path, str(entry.get("sha256") or "")) != 0:
-            problems.append(f"I3-10 {tag}: red cases did not all go red (or the report changed)")
+        if entry.get("redExit") != 0:
+            problems.append(f"I3-10 {tag}: red cases at the equivalence check exited {entry.get('redExit')!r}")
+        rerun = red_cases_now(RUNNERS[name][0], path, str(entry.get("sha256") or ""))
+        if rerun != 0:
+            problems.append(f"I3-10 {tag}: red cases re-run while scoring: {rerun} (not all red, or the report changed)")
         fields = {key: body[key] for key in RECORDING_KEYS if key in body}
         if not fields:
             problems.append(f"I3-9 {tag}: no recording field to compare")
@@ -863,6 +943,10 @@ def baseline_problems(eq: dict[str, Any], loaded: dict[str, Any], commit: str
             other = [c for c in entry["changed"] if c != ORCHESTRATOR]
             if other:
                 problems.append(f"I3-11 {tag}: changed since {str(entry['devCommit'])[:12]}: {other[:5]}")
+        dev_commit, changed = drift_since(str(body.get("startedAt")), head)
+        if (entry.get("devCommit"), entry.get("changed")) != (dev_commit, None if changed is None else list(changed)):
+            problems.append(f"I3-11 {tag}: the recorded commit and changes are not what git says "
+                            f"({dev_commit[:12]!r}, {list(changed or [])[:3]})")
     for name in RUNNERS:
         if not judged[name]:
             problems.append(f"I3-10 {name}: no dev report recorded by the runner the equivalence check bound "
@@ -874,20 +958,22 @@ def equivalence() -> int:
     git = lambda *a: sh(["git", *a], cwd=REPO)  # noqa: E731
     release = json.loads(RELEASE_RECORD.read_text())
     started = utc_now()
+    head = git("rev-parse", "HEAD").stdout.strip()
     index = dev_index()
     baseline, bodies = [], {}
     for path in dev_selection(index, release["commit"], started):
         name = next(e["runner"] for e in index if e["report"] == path)
         bodies[path] = body = json.loads((REPO / path).read_text())
         red = sh([sys.executable, str(TOOLS / RUNNERS[name][0]), "--red-cases", str(REPO / path)], cwd=REPO, timeout=900)
-        dev_commit = git("rev-list", "-1", f"--before={body.get('startedAt')}", "HEAD", "--", "wasm_sdk_probe").stdout.strip()
+        dev_commit, changed = drift_since(str(body.get("startedAt")), head)
+        added = git("log", "--diff-filter=A", "--format=%H", head, "--", path).stdout.split()
         baseline.append({
             "runner": name, "report": path, "sha256": sha256_file(REPO / path),
-            "headBlob": git("rev-parse", "--verify", "--quiet", f"HEAD:{path}").stdout.strip(),
-            "fileBlob": git("hash-object", path).stdout.strip(), "redExit": red.returncode,
-            "devCommit": dev_commit,
-            "changed": git("diff", "--name-only", dev_commit, "HEAD", "--", "wasm_sdk_probe").stdout.splitlines()
-            if dev_commit else None,
+            "headBlob": git("rev-parse", "--verify", "--quiet", f"{head}:{path}").stdout.strip(),
+            "fileBlob": git("hash-object", path).stdout.strip(),
+            "addedIn": added[-1] if added else "",
+            "addedBlob": git("rev-parse", "--verify", "--quiet", f"{added[-1]}:{path}").stdout.strip() if added else "",
+            "redExit": red.returncode, "devCommit": dev_commit, "changed": None if changed is None else list(changed),
             "browserVersions": browser_versions(name, body)})
     with tempfile.TemporaryDirectory(prefix="m3-install-pre-", dir=PROJECT / "build") as scratch:
         old = Path(scratch)
@@ -904,13 +990,12 @@ def equivalence() -> int:
     # Registered, not scored (I3-8's PRE comparison, withdrawn 2026-10-02).
     recording["preDifferences"] = None if "error" in pre or "error" in now else differences(
         pre, {k: (now.get("instance") or {}).get("app") if k == "describeApp" else now.get(k) for k in pre})
-    record = {"startedAt": started, "pre": PRE, "head": git("rev-parse", "HEAD").stdout.strip(),
+    record = {"startedAt": started, "pre": PRE, "head": head,
               "releaseCommit": release["commit"],
               "runnerSha256": {name: sha256_file(TOOLS / tool) for name, (tool, _, _) in RUNNERS.items()},
               "moduleSha256": module_shas(), "devIndex": index, "devBaseline": baseline,
-              "importClosure": import_closure([tool for tool, _, _ in RUNNERS.values()]),
-              "makefileMentions": [line.strip() for line in (PROJECT / "Makefile").read_text().splitlines()
-                                   if Path(ORCHESTRATOR).name in line],
+              "importClosure": list(import_closure(head)),
+              "orchestratorMentions": list(orchestrator_mentions(head)),
               "recording": recording, "transcription": transcription(), "treeBinding": tree_binding()}
     record["at"] = utc_now()
     EVIDENCE.mkdir(parents=True, exist_ok=True)
@@ -1364,25 +1449,54 @@ def score(report: dict[str, Any], strict: bool, loaded: dict[str, Any] | None = 
     if strict or equivalence_seen.get("devBaseline") is not None:
         found, judged = baseline_problems(equivalence_seen, loaded, commit)
         problems += found
-        for name in RUNNERS:
-            body = loaded.get(name)
+        # I3-12 criteria; I3-13 what was run and on which document -- the
+        # orchestrator launches and judges the runners, so this, not I3-11,
+        # binds what it launches (review of I3-9..12, items 1 and 4).
+        compared = [(name, loaded.get(name), "") for name in RUNNERS]
+        compared.append(("host-entry", dev, "the dev host entry (I3-7)"))
+        for name, body, label in compared:
+            if body is None:
+                continue
+            who = label or name
             for dev_seen in judged.get(name) or []:
-                if body is not None and body.get("criteria") != dev_seen["body"].get("criteria"):
+                base_body = dev_seen["body"]
+                if not label and body.get("criteria") != base_body.get("criteria"):
                     problems.append(f"I3-12 {name}: criteria {body.get('criteria')!r}, "
-                                    f"dev baseline {dev_seen['body'].get('criteria')!r}")
+                                    f"dev baseline {base_body.get('criteria')!r}")
+                if strict and run_shape(name, body) != run_shape(name, base_body):
+                    problems.append(f"I3-13 {who}: ran {run_shape(name, body)}, "
+                                    f"dev baseline {Path(dev_seen['entry']['report']).name} ran {run_shape(name, base_body)}")
+                if "original" in base_body and (body.get("original") or {}).get("sha256") != \
+                        (base_body.get("original") or {}).get("sha256"):
+                    problems.append(f"I3-13 {who}: test document {str((body.get('original') or {}).get('sha256'))[:12]!r}, "
+                                    f"dev baseline {str((base_body.get('original') or {}).get('sha256'))[:12]!r}")
+        # I3-14: no other counted dev run between the check and the window
+        # (review of I3-9..12, item 2: I3-7 must not be re-run until green).
+        if strict or dev is not None:
+            after = dev_after_check(loaded.get("dev-index") or [], commit, equivalence_seen.get("startedAt"), start)
+            passed = (report.get("devHostEntry") or {}).get("report")
+            if after != ([passed] if passed else []):
+                problems.append(f"I3-14 counted dev-instance runs between the equivalence check and the window: "
+                                f"{[Path(p).name for p in after]}, passed {Path(str(passed)).name if passed else None}")
         transcribed = equivalence_seen.get("transcription") or {}
         missing = sorted(f"{tool} {key}" for tool, keys in OLD_SITES.items() for key in keys
                          if (transcribed.get(tool) or {}).get(key) is not True)
         if missing:
             problems.append(f"I3-8 old recording expressions not transcribed from {PRE}: {missing[:6]}")
     if strict:
+        # One container lifetime: install, then the check, then the window
+        # (review of I3-9..12, item 11; I4-1b binds install to window).
+        installed, checked = epoch(install.get("completedAt")), epoch(equivalence_seen.get("startedAt"))
+        if installed is None or checked is None or checked < installed:
+            problems.append(f"I3-8 the equivalence check ({equivalence_seen.get('startedAt')}) did not start after "
+                            f"the install ({install.get('completedAt')})")
         tree_eq = equivalence_seen.get("treeBinding") or {}
         for label, seen in (("equivalence check", tree_eq), ("window start", report.get("treeBindingStart") or {}),
                             ("window end", report.get("treeBindingEnd") or {})):
             if not seen.get("tree") or seen.get("porcelain") != "":
                 problems.append(f"I3-8 wasm_sdk_probe/ at the {label}: tree {seen.get('tree')!r}, "
                                 f"uncommitted {str(seen.get('porcelain'))[:200]!r}")
-            differ = [k for k in ("tree", "lastCommit", "python", "node", "make", "openssl")
+            differ = [k for k in ("tree", "lastCommit", "python", "node", "make", "openssl", "libssl")
                       if seen.get(k) != tree_eq.get(k)]
             if differ:
                 problems.append(f"I3-8 wasm_sdk_probe/ or the interpreters changed between the equivalence check "
@@ -1827,7 +1941,9 @@ REPORT_CASES = [
     ("I3-10", "a dev report that re-scores red", lambda r, L: _dev_body(r, L, "versions")["runs"][-1].update(
         fatal="Traceback: mutated"), "does not reach its verdict"),
     ("I3-10", "dev red cases that stayed green", lambda r, L: _dev_entry(r, "assets").update(redExit=1),
-     "red cases did not all go red"),
+     "red cases at the equivalence check exited 1"),
+    ("I3-10", "dev red cases that stay green when re-run", lambda r, L: _dev_entry(r, "locks").update(
+        sha256="6" * 64), "red cases re-run while scoring: -1"),
     ("I3-10", "a dev report from litecoreprobe", lambda r, L: _dev_body(r, L, "assets")["instance"].update(
         baseUrl=PROBE_URL), f"ran against {PROBE_URL!r}"),
     ("I3-10", "a report the rule does not select, recorded", lambda r, L: r["equivalence"]["devBaseline"].append(
@@ -1844,6 +1960,8 @@ REPORT_CASES = [
      "was not the committed blob"),
     ("I3-10", "a dev report edited before the check", lambda r, L: _dev_entry(r, "locks").update(fileBlob="0" * 40),
      "was not the committed blob"),
+    ("I3-10", "a dev report edited after it was first committed", lambda r, L: _dev_entry(r, "assets").update(
+        addedBlob="0" * 40), "was edited after it was first committed"),
     ("I3-10", "a dev report changed since the check", lambda r, L: _dev_entry(r, "versions").update(sha256="5" * 64),
      "changed since the equivalence check"),
     ("I3-10", "an equivalence check for another release", lambda r, L: r["equivalence"].update(
@@ -1858,10 +1976,48 @@ REPORT_CASES = [
         Path(ORCHESTRATOR).name), "a runner imports"),
     ("I3-11", "a closure that misses a runner", lambda r, L: r["equivalence"]["importClosure"].remove(
         "check_m3_locks.py"), "misses runners ['check_m3_locks.py']"),
-    ("I3-11", "the Makefile naming the orchestrator", lambda r, L: r["equivalence"].update(
-        makefileMentions=[f"python3 tools/{Path(ORCHESTRATOR).name}"]), "Makefile names the orchestrator"),
+    ("I3-11", "something naming the orchestrator", lambda r, L: r["equivalence"].update(
+        orchestratorMentions=[f"wasm_sdk_probe/Makefile:1:\tpython3 tools/{Path(ORCHESTRATOR).name}"]),
+     "names the orchestrator"),
+    # the producer, checked against git (review of I3-9..12, item 5)
+    ("I3-11", "a recorded change list git does not show", lambda r, L: _dev_entry(r, "assets").update(changed=[]),
+     "the recorded commit and changes are not what git says"),
+    ("I3-11", "a recorded closure git does not show", lambda r, L: r["equivalence"]["importClosure"].remove(
+        "build_e2_c_shell_bundle.py"), "recorded import closure is not what git says"),
+    ("I3-11", "recorded mentions git does not show", lambda r, L: r["equivalence"].update(
+        orchestratorMentions=["x"]), "recorded mentions of the orchestrator are not what git says"),
+    ("I3-11", "a module the check loaded, missing from the closure", lambda r, L: r["equivalence"]["moduleSha256"].update(
+        {"zz_unlisted.py": "0" * 64}), "missing from the closure: ['zz_unlisted.py']"),
     ("I3-12", "assets judged under other criteria", lambda r, L: L["assets"].update(
         criteria=["SPEC-M3-asset-delivery"]), "I3-12 assets: criteria"),
+    # review of I3-9..12, item 8: branches the census found unpinned
+    ("I3-12", "host entry judged under other criteria", lambda r, L: L["host-entry"].update(criteria="x"),
+     "I3-12 host-entry: criteria"),
+    ("I3-9", "a versions dev report that differs from now", lambda r, L: _dev_body(r, L, "versions").update(
+        hostDirty="x"), "hostDirty: 'x' then"),
+    ("I3-9", "an equal value of another type", lambda r, L: _first(_now(r)["package"]["files"]).update(
+        zstBytes=float(_first(_now(r)["package"]["files"])["zstBytes"])), ".0' now"),
+    # I3-13 (items 1 and 4) and I3-14 (item 2)
+    ("I3-13", "host entry without its conflict arm", lambda r, L: [
+        arms.pop("conflict") for arms in L["host-entry"]["browsers"].values()], "I3-13 host-entry: ran"),
+    ("I3-13", "locks without an arm", lambda r, L: L["locks"].update(
+        runs=[x for x in L["locks"]["runs"] if x.get("arm") != "hold"]), "I3-13 locks: ran"),
+    ("I3-13", "the dev host entry with another plan", lambda r, L: L["dev-host-entry"]["browsers"]["firefox"].pop(
+        "conflict"), "I3-13 the dev host entry (I3-7): ran"),
+    ("I3-13", "versions on another test document", lambda r, L: L["versions"]["original"].update(sha256="0" * 64),
+     "I3-13 versions: test document '000000000000'"),
+    ("I3-13", "the dev host entry on another test document", lambda r, L: L["dev-host-entry"]["original"].update(
+        sha256="0" * 64), "I3-13 the dev host entry (I3-7): test document"),
+    ("I3-14", "another dev run between the check and the window", lambda r, L: L["dev-index"].append(
+        {"runner": "locks", "report": "findings/evidence/m3-locks/runs/rerun.json", "label": "counted",
+         "baseUrl": DEV_URL, "commit": r["release"]["commit"], "startedAt": r["equivalence"]["startedAt"]}),
+     "between the equivalence check and the window: ["),
+    ("I3-14", "a dev host entry that is not the one run", lambda r, L: r["devHostEntry"].update(
+        report="findings/evidence/m3-host-entry/runs/elsewhere.json"), "passed elsewhere.json"),
+    ("I3-8", "an equivalence check before the install", lambda r, L: r["equivalence"].update(
+        startedAt="2026-01-01T00:00:00+00:00"), "did not start after the install"),
+    ("I3-8", "another libssl at the window end", lambda r, L: r["treeBindingEnd"].update(libssl="0.0"),
+     "changed between"),
     ("I4-1b", "the container restarted since the baseline", lambda r, L: r["window"].update(
         webStartedAt="2026-01-01T00:00:00Z"), "not one lifetime"),
     ("I4-1", "no pre-install baseline", lambda r, L: r["install"].update(baseline=[]), "pre-install baseline"),
@@ -1889,7 +2045,9 @@ STRICT_ONLY = {"a counted run with an unchecked runner", "a module changed after
                "a dev run with an unchecked runner", "no dev host-entry report", "a shakedown scored as counted",
                "wasm_sdk_probe changed by the window start", "uncommitted tools at the window end",
                "another last commit at the window end", "another interpreter at the window start",
-               "host entry with an unchecked runner", "another openssl at the window end"}
+               "host entry with an unchecked runner", "another openssl at the window end",
+               "another libssl at the window end", "an equivalence check before the install",
+               "host entry without its conflict arm", "locks without an arm", "the dev host entry with another plan"}
 
 
 def red_cases(path: Path, force_strict: bool) -> int:
