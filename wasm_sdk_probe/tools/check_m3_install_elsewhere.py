@@ -537,7 +537,23 @@ def web_started() -> str:
     return sh(["docker", "inspect", WEB, "--format", "{{.State.StartedAt}}"]).stdout.strip()
 
 
-def install(reinstall: bool) -> int:
+def differs_from(app: Path, record: dict[str, Any]) -> str:
+    """host_binding's comparison of an installed tree against a release record,
+    for a record other than release.json: an upgrade removes the install of the
+    PREVIOUS release, which must be that release untouched (2026-10-02, J on
+    0.2.5 -- release.json already names the new one)."""
+    members = record["members"]
+    files, links = tree_listing(app) if app.is_dir() else ({}, [])
+    differ = ["the app directory itself is a symlink"] if app.is_symlink() else []
+    differ += [f"symlink {n}" for n in links]
+    differ += tree_oddities(app) if app.is_dir() else []
+    differ += [f"missing {n}" for n in sorted(set(members) - set(files))]
+    differ += [f"extra {n}" for n in sorted(set(files) - set(members))]
+    differ += [f"changed {n}" for n in sorted(set(files) & set(members)) if files[n] != members[n]]
+    return "\n".join(differ)
+
+
+def install(reinstall: bool, was: Path | None = None) -> int:
     release = json.loads(RELEASE_RECORD.read_text())
     archive = REPO / release["archive"]["path"]
     target = installed_app(PROBE)
@@ -549,13 +565,17 @@ def install(reinstall: bool) -> int:
         if not reinstall:
             print(f"refusing: {target} already exists (--reinstall removes a clean one)")
             return 2
-        dirty = host_binding(PROBE)["hostDirty"]
+        previous = json.loads(was.read_text()) if was else None
+        dirty = differs_from(target, previous) if previous else host_binding(PROBE)["hostDirty"]
         if dirty:
-            print(f"refusing to remove an install that is not the release:\n{dirty}")
+            print(f"refusing to remove an install that is not the {'--was' if was else ''} release:\n{dirty}")
             return 2
         done = sh(["ddev", "occ", "app:remove", "litecore"], cwd=PROBE)
         removed = {"exit": done.returncode, "stdout": done.stdout[-1000:], "stderr": done.stderr[-1000:],
-                   "dirGone": not target.exists()}
+                   "dirGone": not target.exists(),
+                   "verifiedAgainst": {"record": str((was or RELEASE_RECORD).resolve().relative_to(REPO)),
+                                       "version": (previous or release)["version"],
+                                       "archiveSha256": (previous or release)["archive"]["sha256"]}}
         if target.exists():
             shutil.rmtree(target)
         # app:remove leaves the app's config (enabled: no, installed_version),
@@ -1619,6 +1639,8 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("command", nargs="?", choices=("install", "equivalence", "selftest", "run"))
     parser.add_argument("--reinstall", action="store_true")
+    parser.add_argument("--was", type=Path, help="install --reinstall: the release record the existing install"
+                        " must match (an upgrade; default release.json)")
     parser.add_argument("--label", choices=("shakedown", "counted"))
     parser.add_argument("--dev-host-entry", help="a counted host-entry report from the dev instance (I3-7)")
     parser.add_argument("--runners", default=",".join(RUNNERS), help="shakedown only")
@@ -1636,7 +1658,7 @@ def main() -> int:
         print(one_line(result))
         return 0 if result["verdict"] in ("INSTALLS ELSEWHERE", "clean") else 1
     if args.command == "install":
-        return install(args.reinstall)
+        return install(args.reinstall, args.was)
     if args.command == "equivalence":
         return equivalence()
     if args.command == "selftest":
