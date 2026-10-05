@@ -158,3 +158,19 @@ Firefox＝WebDriver actions）。座標沿用 `findings/evidence/109/README.md` 
   `/apps/files/files/<id>?dir=/`。A2-3 的判分因此補一條：落地路徑必須以 `/apps/files/files/<id>` 或
   `/index.php/apps/files/files/<id>` **開頭**。
 - 0.2.6 的 shakedown（`shakedown/`）：修正後全部臂兩個瀏覽器都過。
+
+## 8. 審核結果（2026-10-06，opus 對抗性審核，任何計數執行之前）
+
+原文：`findings/evidence/m3-production-ui/review-2026-10-06-opus.md`。
+
+- **B1（BLOCKING，主 session 讀原始碼確認）**：Worker 世代上限預設 3（`editor-shell/editor-session.js:81`），頁面沒有覆寫；
+  `restart()` 先釋放引擎、`_openFresh` 才檢查上限（:148）。所以**同一次頁面載入裡第三次段落交界拒絕**（或之前有過一次回復，
+  則第二次）時，自動重開會丟掉引擎、進 `recoverable-error`（`WORKER_GENERATION_LIMIT`）、存檔被拒，內容只剩在檢查點位元組裡；
+  重新整理頁面就全丟——109 換了個時間點回來。§7 已經說明 Tab、Shift+Enter 換行之後的 Backspace 也會觸發，所以這不是罕見路徑。
+  **3.1 的「零損失」宣稱因此只對前兩次成立；修好之前不得跑任何計數。**瀏覽器上尚未量測。
+- 處置方向（未決，交擁有者）：審核者建議 A——重開之前先問世代是否還允許；不允許時把 `checkpointBytes()` 交給 `HOST.save()`
+  （沒有宿主就下載），再請使用者重新整理；並照 C 把宣稱寫成「每次頁面載入前 N 次」＋一支三次拒絕的臂。另一個方向是對「什麼都
+  沒留下」的拒絕（a11y core 的語意檢查、deadline 拒絕）不開新 Worker，只能降低頻率。
+- 其餘 20 條 NON-BLOCKING 未處置，下一輪逐條處置（照 §10 只追加）。其中產品面的：重開期間按的鍵會掉、但 toast 說「都還在」（2）；
+  重開後沒有把焦點還給輸入槽、游標在文件開頭（3）；Ctrl+Z／Ctrl+Y／Ctrl+S 在重開期間仍跳 `EDITOR_NOT_READY`（6）；
+  不支援 `@scope` 的瀏覽器會讓產品樣式整份失效（8）。
