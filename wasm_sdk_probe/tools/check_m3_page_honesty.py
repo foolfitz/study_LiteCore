@@ -283,8 +283,12 @@ def install_recorder(session, record: dict[str, Any]) -> str:
 
 
 def activate(session, kind: str, record: dict[str, Any]) -> None:
+    # A trusted click on something inert, for user activation.  It was `#text`
+    # until host 0.2.6 hid that field (SPEC-M3-production-ui §3.4): a hidden
+    # element's box is 0x0, so the click landed at (0,0), on Nextcloud's header.
+    # The state pill is visible on every host and has no handler.
     if kind == "chrome":
-        record.setdefault("activations", []).append(session.real_click("#text"))
+        record.setdefault("activations", []).append(session.real_click("#state-pill"))
 
 
 def settled(session, count: int, quiet: float = 1.0, timeout: float = 180) -> Any:

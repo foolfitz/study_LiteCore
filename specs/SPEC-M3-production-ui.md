@@ -133,3 +133,28 @@ Firefox＝WebDriver actions）。座標沿用 `findings/evidence/109/README.md` 
 - 重開之後游標回到文件開頭、復原堆疊清空（3.1 的代價）；若要保留游標，要記住拒絕前的位置並在重開後放回去。
 - 兩支一次性探針（`probe_m3_unsaved_leave.py`、`probe_m3_save_throw.py`）仍點 `#text`，在 0.2.6 上要改目標才能再用。
 - install-elsewhere 不在 0.2.6 上重跑，除非擁有者要求。
+
+## 7. 追加（2026-10-06，shakedown 之後、任何計數執行之前）
+
+只追加，不改上文。
+
+- **新事實（讀原始碼）**：barrier 的「邊界」字元集合是 `\r`、`\n`、`\t`、U+2028、U+2029、U+FFFC
+  （`probe_engine.cpp` `selectionBarrierContainsBoundary`）。所以 109 不只段落交界：**Shift+Enter 換行之後按 Backspace、
+  刪除一個 Tab** 也會被拒。修法後一樣是零損失自動重開。P 臂的按鍵順序因此只在段落中間按 Backspace／Delete，Enter 與
+  Shift+Enter 放最後。真的支援這些刪除屬於 C。
+- **紅案已跑**（宿主 0.2.5、頁面 `fc80050c…`，`findings/evidence/m3-production-ui/prefix/`）：B-del、B-bs 兩個瀏覽器都紅在預測
+  的地方（世代不變、存檔 `EDITOR_NOT_READY`、伺服器檔案沒有標記）——**Firefox 157 同樣重現 109**；A1-3 也紅（`restart-required`
+  時 21 顆只停用 1 顆）；S 兩個瀏覽器都紅（容器外 178 個元素被產品樣式表改動，含 `body` 的背景、`display`）；P 的 A3-1 紅
+  （十個開發控制項與說明文字看得見）。B-ctl 兩個瀏覽器都過（正向對照在修法前就該過）。
+- **shakedown 逼出的儀器修正**（都是 runner，不是判準）：
+  1. Chrome 的 CDP 連線在存檔時斷線：`Network.requestWillBeSent` 帶著 PUT 本文，這份文件 JSON 跳脫後 1.37 MB，超過 websocket
+     的 1 MiB 上限。runner 的 Chrome 端改成 `Network.disable`（不需要網路事件；每臂是新的 profile，第一次載入本來就是冷的）。
+  2. `keyed()` 的世代讀錯欄位（`READ_STATE` 沒有世代），永遠是 `None`。改讀 `#s-generation`。
+  3. 「尚未儲存」的 1.5 秒視窗從按鍵之前起算，而 `keyed()` 自己就要等 1.6 秒以上，迴圈一次都沒跑——第一次 shakedown 兩個 P 臂
+     因此紅在 A3-2。改成從修改落地起算。判準文字不變（1.5 秒內出現）。
+- **shakedown 逼出的產品修正**：關閉鈕的網址原本手拼 `/index.php/apps/files/files/<id>`，在 pretty URL 開著時落在
+  `/apps/files/index.php/apps/files/files/<id>`（A2-3 的正規式仍然比對成功——**判分沒有抓到，是讀落地網址時看到的**）。宿主
+  `fa08307` 改用 `linkToRoute('files.view.indexViewFileid', …)`（Files 自己 `showFile()` 用的路由，不帶 `openfile`），重跑落在
+  `/apps/files/files/<id>?dir=/`。A2-3 的判分因此補一條：落地路徑必須以 `/apps/files/files/<id>` 或
+  `/index.php/apps/files/files/<id>` **開頭**。
+- 0.2.6 的 shakedown（`shakedown/`）：修正後全部臂兩個瀏覽器都過。
