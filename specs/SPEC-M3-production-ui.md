@@ -174,3 +174,59 @@ Firefox＝WebDriver actions）。座標沿用 `findings/evidence/109/README.md` 
 - 其餘 20 條 NON-BLOCKING 未處置，下一輪逐條處置（照 §10 只追加）。其中產品面的：重開期間按的鍵會掉、但 toast 說「都還在」（2）；
   重開後沒有把焦點還給輸入槽、游標在文件開頭（3）；Ctrl+Z／Ctrl+Y／Ctrl+S 在重開期間仍跳 `EDITOR_NOT_READY`（6）；
   不支援 `@scope` 的瀏覽器會讓產品樣式整份失效（8）。
+
+## 9. B1 的處置（2026-10-06，擁有者選 A；任何計數執行之前）
+
+只追加，不改上文。本節取代 §8「處置方向（未決）」那一條；§3.1 的「零損失」宣稱照下面的「宣稱改寫」縮限。
+
+### 9.1 修法
+
+- **殼層** `narrow-editor-v2-session.js` 加兩個方法（基礎類別 `editor-session.js` 綁著 E1-C 的雜湊，不動）：
+  - `restartAvailable()`：`_generation < _maxWorkerGenerations`。也就是 `restart()` 會不會撞上限——**在 `restart()` 之前**問，
+    因為 `restart()` 先釋放引擎、`_openFresh` 才檢查上限。
+  - `takeContentForRescue()`：只在停下的狀態（`restart-required`／`recoverable-error`）、且 `restartKeepsContent()` 為真時，
+    回傳 `_openFresh` 會打開的那份位元組，並把它當成已存——authority 換成它、清掉檢查點、`dirty: false`，與 `save()` 的
+    `finalize` 同一套。其餘情況回 `null`，不動任何狀態。
+- **頁面** `e2-editor-app.js`：
+  - `reopenAfterBoundaryRefusal` 第一件事問 `restartAvailable()`；為假就**不重開**，改走 `rescueAtGenerationLimit()`：
+    沒有未存修改＝直接請使用者重新整理；有、而且 `restartKeepsContent()`＝把 `takeContentForRescue()` 的位元組交給既有的
+    存檔路徑（有宿主＝`HOST.save()`，同一條 `hostSaves` 序列、`savesUnsettled` 照算；沒有宿主＝下載）；有、但保不住＝照實說。
+  - 回復通知在 `restartAvailable()` 為假時改由頁面說話：狀態寫在 `#notice` 的 `data-limit`（`saving`／`saved`／`failed`／
+    `clean`／`lost`／`pending`），按鈕是「重新整理頁面」（`pending` 時是「存回」，給不是從段落交界走到上限的路）。
+    **不再**在上限呼叫 `rollback()`——那會先丟引擎再撞上限。
+  - 不自動重新整理：擁有者選的是「請使用者重新整理」；存回失敗時宿主列會出現「下載這份內容」，使用者需要先看到它。
+- **為什麼交出去的那一刻就標記乾淨**：與既有存檔同一個約定——`session.save()` 一產出位元組就標記乾淨，宿主寫入的空窗由
+  `savesUnsettled` 蓋住，寫入失敗由宿主自己滯留位元組並守住離開（finding 108 的修法，宿主 0.2.4 起）。不標記的話，使用者照
+  指示重新整理時宿主的 `beforeunload` 仍會問（交接文件點名的細節），而那一問是錯的。
+
+### 9.2 宣稱改寫（取代 §3.1 的「零損失」）
+
+每次頁面載入，世代上限 3（開檔用掉一個），所以**前兩次**段落交界拒絕自動重開、零損失（之前若有過一次回到檢查點，則前一次）。
+**之後的每一次**不重開：拒絕那一刻的內容交給存檔；存回成功＝零損失，請使用者重新整理頁面；存回失敗＝宿主滯留＋可下載，
+與一般存檔失敗相同。檢查點寫不出來（`restartKeepsContent()` 為假）時照實說保不住，與 §3.1 原本的那一支相同。
+
+### 9.3 判準（新增；先於任何會算進它的執行，被 B1 逼出來）
+
+| 判準 | 內容 | 形式 | 從來沒做時的結論 |
+| --- | --- | --- | --- |
+| **A1-4** | 單元測試（`narrow-editor-v2-session.test.mjs` 的 B1 節＋頁面函式在測試裡編譯、只給指名的變數）：兩次拒絕重開後 `restartAvailable()` 為假；第三次拒絕時頁面**沒有**呼叫 `restart()`、引擎沒有被釋放、交給存檔的位元組＝第三次拒絕那一刻存的檢查點、之後 `hasUnsavedEdits()` 為假；檢查點寫不出來時 `takeContentForRescue()` 回 `null` 且 `dirty` 不變；`ready` 時回 `null`。紅案三個：拿掉頁面的 `restartAvailable()` 檢查、`takeContentForRescue()` 不標記乾淨、不檢查狀態——各自至少紅一條 | 逐實例（單元） | B1 維持未修 |
+| **A1-5** | 新臂 **B-3x**，每瀏覽器計數 **2/2**：打標記 M1→交界拒絕→（重開，世代 2）→**不點擊直接**打 M2→點到交界→拒絕→（世代 3）→不點擊直接打 M3→點到交界→拒絕。**不按儲存。**之後：世代仍是 3；狀態是 `restart-required`（不是 `recoverable-error`）；`#notice` 的 `data-limit` 在 10 秒內變成 `saved`；伺服器上檔案的 content.xml 含 M1、M2、M3；宿主的 `watchUnsaved` 問題回 false；按「重新整理頁面」→宿主**沒有問**（`out.guards` 沒多一筆）、重新開好的文件含三個標記、世代 1。**非空洞**：第一、二次拒絕各使世代＋1 | 逐實例（每一臂） | §9.2 的宣稱只能寫「前兩次」，B1 維持未修 |
+| **A1-5 紅案** | 同一臂對修法前的頁面（0.2.6 現行引擎包，頁面 `d41ae604…`）每瀏覽器跑 1 次，必須紅：第三次拒絕後 `recoverable-error`＋`WORKER_GENERATION_LIMIT`、伺服器沒有 M3 | 先紅一次 | runner 不得用來宣告 A1-5 |
+
+計數語意：本輪還沒有任何計數執行，所以沒有計數要歸零；§4 的 R 列照舊，B-3x 加進 `check_m3_production_ui.py` 的計數計畫。
+
+### 9.4 預測（寫在執行之前）
+
+- 紅案：兩個瀏覽器都紅在預測的地方（上限與瀏覽器無關）。
+- 修法後：第三次拒絕到 `data-limit=saved` 約 1–3 秒（檢查點約 0.94 秒已在拒絕裡付掉；剩下是一次 PUT＋宿主讀回比對）。
+  M2、M3 不點擊就打得進去（第 3 條審核意見的修法，見 9.5）。
+- 產品路徑網逐格不變（網裡沒有格會走到段落交界拒絕，更不會走到第三次）。
+
+### 9.5 審核意見中產品面的三條，一起修
+
+- **（2）** 重開之後的 toast 原本說「尚未儲存的修改都還在」，但拒絕之後到重開完成之間按的鍵會掉。改成只宣稱**按這一鍵之前**
+  的修改還在（佇列先進先出，排在被拒那一鍵前面的都已經進了檢查點）。**沒有判準**，是措辭的範圍縮小。
+- **（3）** 重開成功之後把焦點還給輸入槽。由 A1-5 的「不點擊直接打 M2、M3」量。游標在文件開頭仍是 §6 登錄的代價。
+- **（6）** Ctrl+Z／Ctrl+Y／Ctrl+S 照工具列與按鍵的規則：狀態不是 ready／busy 時不做事、不跳 toast。**讀原始碼**：輸入槽在佇列擋住時
+  被停用（`input-adapter.js` `setBlocked`），按鍵多半根本到不了這個處理器，所以這是補守衛，**沒有量**。
+- **（8）** `@scope` 的瀏覽器下限是宿主的事，另寫（9.6，未寫）。
