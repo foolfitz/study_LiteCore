@@ -646,6 +646,7 @@ function updateState(snapshot) {
   }
   updateGestureAffordance();
   updateRedoAffordance();
+  applySessionAvailability(snapshot);
   // Finding 058.  The caret arrives as a state update, not as a document
   // change, so redrawing only on render would leave it a gesture behind.
   paint();
@@ -711,6 +712,29 @@ function applyControlMutability() {
     button.dataset.mutates = mutates ? "1" : "0";
     if (viewOnly && mutates) button.disabled = true;
   }
+}
+
+// FINDING 109, the half the owner saw first: in `restart-required` every button
+// still looked pressable, and each press answered EDITOR_NOT_READY.  Outside
+// ready/busy the session refuses every operation before queueing it
+// (EditorSession._enqueue), so the toolbar says so.  Runs after the two passes
+// above, which re-enable the action buttons on every update; a button this
+// turned off is marked, so that only those are given back -- one disabled for
+// another reason (view-only, the manifest) stays as that reason left it.
+// 📂 is not a session operation, and outside a host it is a way out.
+function applySessionAvailability(snapshot) {
+  const accepting = SESSION_ACCEPTS.has(snapshot.state);
+  for (const button of el.toolbar.querySelectorAll("button")) {
+    if (button === el.openFile) continue;
+    if (!accepting) {
+      if (!button.disabled) button.dataset.unavailable = "1";
+      button.disabled = true;
+    } else if (button.dataset.unavailable === "1") {
+      delete button.dataset.unavailable;
+      if (!EDITOR_V2_ACTIONS.includes(button.dataset.action)) button.disabled = false;
+    }
+  }
+  if (accepting) applyControlMutability();
 }
 
 /**
@@ -965,6 +989,42 @@ function pointToTwips(event) {
 
 /* ---------------------------------------------------------------- actions */
 
+// FINDING 109.  A delete at a paragraph boundary -- Delete at a paragraph's
+// end, Backspace at its start -- is refused by the engine before anything is
+// dispatched, and the refusal asks for a fresh Worker.  This page used to show
+// the code and the engine's English, leave every button looking pressable, and
+// offer one way out, which reopened the last SAVED bytes: everything typed
+// since was gone.  The session now banks the work as part of the refusal
+// (NarrowEditorV2Session `_checkpointBeforeBoundaryRestart`), so when a restart
+// would reopen exactly what the user had (`restartKeepsContent()`), this page
+// performs it without asking -- there is nothing to decide, and the notice's
+// only button would have done the same.  When it would NOT (the checkpoint
+// could not be written), the recovery notice stays up and says so, as before.
+//
+// Merging the two paragraphs is what the user wanted, and it is engine work
+// (the barrier keeps the separator outside its safe scope); not this page's.
+const BOUNDARY_TEXT = "目前還不能在段落交界刪除（把兩段合併成一段）。文件沒有被改動";
+const SESSION_ACCEPTS = new Set(["ready", "busy"]);
+
+async function reopenAfterBoundaryRefusal() {
+  // When the queue blocks, everything queued behind the refused delete is
+  // rejected with the same error, so this runs once per rejected item; only
+  // the first finds the session still waiting for a restart.
+  if (session?.state?.snapshot?.state !== "restart-required") return;
+  if (!session.restartKeepsContent()) {
+    toast(`${BOUNDARY_TEXT}，但沒能先保住尚未儲存的修改——請看上方的說明。`, true);
+    return;
+  }
+  const unsaved = session.state.snapshot.dirty === true;
+  toast(`${BOUNDARY_TEXT}，正在重新載入…`);
+  try {
+    await run("重新載入", () => session.restart());
+    toast(`${BOUNDARY_TEXT}，已重新載入${unsaved ? "；尚未儲存的修改都還在" : ""}。`);
+  } catch {
+    // run() has already said why.
+  }
+}
+
 async function run(label, operation) {
   const started = performance.now();
   try {
@@ -980,6 +1040,10 @@ async function run(label, operation) {
       throw error;
     }
     el.s.latency.textContent = `${label} 失敗`;
+    if (error?.code === "EDITOR_BOUNDARY_UNSUPPORTED") {
+      void reopenAfterBoundaryRefusal();
+      throw error;
+    }
     // The disposition is a field, not a guess from the message (E2-B 5.13).
     const recovery = error?.recovery;
     toast(`${label}：${describeError(error)}` +
@@ -1068,6 +1132,10 @@ const ACTION_LABELS = {
 };
 
 async function editorAction(action) {
+  // The keyboard still reaches here while the toolbar is off (finding 109's
+  // reload, a restart): say nothing, rather than toast EDITOR_NOT_READY at
+  // someone waiting for the document to come back.
+  if (!SESSION_ACCEPTS.has(session?.state?.snapshot?.state)) return;
   const button = el.toolbar.querySelector(`[data-action="${action}"]`);
   const label = button ? button.textContent.trim()
                        : (ACTION_LABELS[action] ?? action);

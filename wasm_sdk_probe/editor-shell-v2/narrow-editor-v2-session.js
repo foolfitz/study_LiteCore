@@ -166,6 +166,8 @@ export class NarrowEditorV2Session extends EditorSession {
     // gesture banked from one some earlier selection left behind.
     this.boundaryCheckpointsTaken = 0;
     this.boundaryCheckpointsSkipped = 0;
+    // Finding 109: refusals that reached the checkpoint call (banked or not).
+    this.boundaryRefusalCheckpoints = 0;
     this._guardEditorStateAgainstStaleWrites();
   }
 
@@ -372,6 +374,56 @@ export class NarrowEditorV2Session extends EditorSession {
   }
 
   /**
+   * FINDING 109.  Bank the work while the engine can still write it.
+   *
+   * A delete at a paragraph boundary (Delete at a paragraph's end, Backspace
+   * at its start) is refused with EDITOR_BOUNDARY_UNSUPPORTED, and every site
+   * that raises it refuses BEFORE dispatching: the selection barrier before
+   * `postUnoCommand` (probe_engine.cpp, `verifyAndDispatchSelectionBarrierDelete`
+   * and `rejectSelectionBarrierAtDeadline`), the a11y core's semantic check
+   * before `startUnoMutation`.  The document is exactly what it was.  But the
+   * barrier leaves its selection behind and asks for a fresh Worker, the base
+   * class blocks the queue as `restart-required` on the code
+   * (editor-shell/editor-session.js:319) -- and from there a save is refused
+   * and a restart reopens the last SAVED bytes.  A user who had placed the
+   * caret with the mouse had no checkpoint, so one Delete lost everything typed
+   * since the last save.
+   *
+   * So this runs inside the operation, after the refusal and before the
+   * rethrow: the drain still owns the engine, nothing is queued ahead of it,
+   * and the content stamp has not moved (a refused action is not counted as a
+   * mutation).  It is the base class's checkpoint, unchanged -- a no-op on a
+   * clean document or on content already banked, and a failure is recorded as
+   * `checkpointError` rather than thrown, so the refusal the caller gets is
+   * still the engine's.  Whether a restart then loses anything is
+   * `restartKeepsContent()`'s question, asked of the stamps, not of this.
+   */
+  async _checkpointBeforeBoundaryRestart(document) {
+    this.boundaryRefusalCheckpoints += 1;
+    await this._checkpointBeforeSelection(document);
+  }
+
+  /**
+   * Would `restart()` now reopen exactly the content this session holds?
+   *
+   * The same choice `_openFresh` makes (editor-shell/editor-session.js): the
+   * checkpoint when it is newer than the last save, otherwise the saved bytes.
+   * True when the stamp of what it would open is the current content stamp.
+   * NOT `!dirty || hasCheckpoint`: a checkpoint save that failed leaves an
+   * OLDER checkpoint in place with `hasCheckpoint` still true, and reopening
+   * that one loses the edits made since -- the case a host must not paper over
+   * by restarting on the user's behalf.
+   */
+  restartKeepsContent() {
+    if (this._authorityBytes === null) return false;
+    const useCheckpoint = this._checkpointBytes !== null
+      && this._checkpointStamp !== null
+      && this._checkpointStamp > this._authorityStamp;
+    const reopened = useCheckpoint ? this._checkpointStamp : this._authorityStamp;
+    return reopened === this._currentContentStamp;
+  }
+
+  /**
    * Any of the fifteen, through the same queue as everything else.
    *
    * The queue is the point.  A paragraph action that ran outside it could
@@ -393,6 +445,8 @@ export class NarrowEditorV2Session extends EditorSession {
           return await editor.action(action, options);
         } catch (error) {
           this._blockQueueIfDispatched(error);
+          if (error?.code === "EDITOR_BOUNDARY_UNSUPPORTED")
+            await this._checkpointBeforeBoundaryRestart(document);
           // Finding 046's residual.  Declining to block is NOT enough to keep
           // the queue open: the base class blocks on the CODE, and
           // MUTATION_OUTCOME_UNKNOWN is in its RECOVERY_ERRORS

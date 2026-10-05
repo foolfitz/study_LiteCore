@@ -1025,3 +1025,118 @@ test("finding 107: unsaved edits follow dirty and pending, never the revision",
                     "back at the saved revision's number");
        assert.equal(session.hasUnsavedEdits(), true, "same revision number, other content");
      });
+
+// -------------------------------------------------- finding 109
+
+/**
+ * A session whose `delete-forward`/`delete-backward` the engine refuses at a
+ * paragraph boundary, with saves that say which save produced them and a
+ * record of the bytes each fresh Worker is opened from (index 0 = the first
+ * RESTART, installed after the first open).
+ */
+async function boundary(action = "delete-forward") {
+  const failure = Object.assign(new Error(
+    "one Writer unit did not produce a safe single-line text selection; "
+    + "no mutation was dispatched; start a fresh Worker"),
+  { code: "EDITOR_BOUNDARY_UNSUPPORTED" });
+  const f = await opened({ failing: action, failure });
+  f.banked = [];
+  f.stateAtSave = [];
+  f.document.save = async () => {
+    f.banked.push(f.document.revision);
+    f.stateAtSave.push(f.session.state.snapshot.state);
+    return Uint8Array.of(100 + f.banked.length).buffer;
+  };
+  f.reopenedFrom = [];
+  const open = f.engine.open.bind(f.engine);
+  f.engine.open = async (bytes, options) => {
+    f.reopenedFrom.push(new Uint8Array(bytes)[0] ?? null);
+    return open(bytes, options);
+  };
+  return f;
+}
+
+test("finding 109: a refused boundary delete on a DIRTY document banks the "
+     + "work before the queue blocks, and the restart reopens it", async () => {
+  for (const action of ["delete-forward", "delete-backward"]) {
+    const f = await boundary(action);
+    await f.session.action("set-bold", { enabled: true });
+    assert.equal(f.session.restartKeepsContent(), false,
+                 `${action}: dirty and nothing banked -- a restart would lose it`);
+    const error = await f.session.action(action).then(() => null, (e) => e);
+    assert.equal(error.code, "EDITOR_BOUNDARY_UNSUPPORTED", action);
+    assert.equal(error.recovery, "restart", action);
+    assert.equal(f.session.state.snapshot.state, "restart-required", action);
+    assert.equal(f.banked.length, 1, `${action}: the refusal banked nothing`);
+    assert.equal(f.stateAtSave[0], "busy",
+                 `${action}: the save ran after the queue blocked, `
+                 + "when the engine is no longer the drain's");
+    assert.equal(f.session.state.snapshot.hasCheckpoint, true, action);
+    assert.equal(f.session.boundaryRefusalCheckpoints, 1, action);
+    assert.equal(f.session.restartKeepsContent(), true, action);
+    await f.session.restart();
+    assert.equal(f.reopenedFrom[0], 101,
+                 `${action}: the restart reopened the last SAVED bytes, `
+                 + "not the work the refusal banked");
+    assert.equal(f.session.state.snapshot.dirty, true,
+                 `${action}: reopened unsaved work must still read as unsaved`);
+  }
+});
+
+test("finding 109: a CLEAN document pays nothing and loses nothing", async () => {
+  const f = await boundary();
+  await f.session.action("delete-forward").catch(() => {});
+  assert.equal(f.session.state.snapshot.state, "restart-required");
+  assert.equal(f.banked.length, 0, "there was nothing to bank and it saved anyway");
+  assert.equal(f.session.restartKeepsContent(), true);
+});
+
+test("finding 109: content a move already banked is not saved twice", async () => {
+  const f = await boundary();
+  await f.session.action("set-bold", { enabled: true });
+  await f.session.action("move-line-end");
+  assert.equal(f.banked.length, 1);
+  await f.session.action("delete-forward").catch(() => {});
+  assert.equal(f.banked.length, 1, "the same content was banked a second time");
+  assert.equal(f.session.boundaryRefusalCheckpoints, 1);
+  assert.equal(f.session.restartKeepsContent(), true);
+});
+
+test("finding 109: a checkpoint that cannot be written says so, and a restart "
+     + "is NOT reported as keeping the content", async () => {
+  const f = await boundary();
+  f.document.save = async () => { throw new Error("disk is gone"); };
+  await f.session.action("set-bold", { enabled: true });
+  const error = await f.session.action("delete-forward").then(() => null, (e) => e);
+  // The refusal the caller gets is still the engine's, not the save's.
+  assert.equal(error.code, "EDITOR_BOUNDARY_UNSUPPORTED");
+  assert.equal(f.session.state.snapshot.state, "restart-required");
+  assert.equal(f.session.state.snapshot.checkpointError.code, "CHECKPOINT_FAILED");
+  assert.equal(f.session.restartKeepsContent(), false);
+});
+
+test("finding 109: an OLDER checkpoint does not make a restart safe", async () => {
+  // `hasCheckpoint` stays true from an earlier gesture when the new save
+  // fails, so `!dirty || hasCheckpoint` would call this safe and a host
+  // restarting on the user's behalf would reopen the older bytes.
+  const f = await boundary();
+  await f.session.action("set-bold", { enabled: true });
+  await f.session.action("move-line-end");
+  assert.equal(f.session.state.snapshot.hasCheckpoint, true);
+  await f.session.action("set-italic", { enabled: true });
+  f.document.save = async () => { throw new Error("disk is gone"); };
+  await f.session.action("delete-forward").catch(() => {});
+  assert.equal(f.session.state.snapshot.hasCheckpoint, true,
+               "the fixture must leave the older checkpoint in place");
+  assert.equal(f.session.restartKeepsContent(), false,
+               "the older checkpoint was reported as holding the newer work");
+});
+
+test("finding 109: after a save, the saved bytes are what a restart keeps", async () => {
+  const f = await boundary();
+  await f.session.action("set-bold", { enabled: true });
+  await f.session.save();
+  assert.equal(f.session.restartKeepsContent(), true);
+  await f.session.action("set-italic", { enabled: true });
+  assert.equal(f.session.restartKeepsContent(), false);
+});
