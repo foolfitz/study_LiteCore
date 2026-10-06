@@ -1,0 +1,36 @@
+D01 ⌦ body|body (positive control)     unit[type 1 cp [10] rects 3]  ['same']  undo=[True]
+D02 ⌦ unlabelled heading|body          unit[type 1 cp [10] rects 2]  ['same']  undo=[True]
+D03 ⌫ unlabelled heading|body          unit[type 1 cp [10] rects 2]  ['same']  undo=[True]
+D04 ⌫ body|unlabelled heading          unit[type 1 cp [10] rects 3]  ['differs']  undo=[True]
+      select-vs-key: - p [Text_20_body] 'N05 body before heading'
+      select-vs-key: - h [Heading_20_1] outline=1 listHeader=true 'N06 heading two'
+      select-vs-key: + p [Text_20_body] 'N05 body before headingN06 heading two'
+D05 ⌦ body|unlabelled heading          unit[type 1 cp [10] rects 3]  ['same']  undo=[True]
+D06 ⌦ unlabelled H1|unlabelled H2      unit[type 1 cp [10] rects 2]  ['same']  undo=[True]
+D07 ⌫ unlabelled H1|unlabelled H2      unit[type 1 cp [10] rects 2]  ['differs']  undo=[True]
+      select-vs-key: - h [Heading_20_1] outline=1 'N06 heading two'
+      select-vs-key: - h [Heading_20_2] outline=2 listHeader=true 'N07 subheading'
+      select-vs-key: + h [Heading_20_1] outline=1 'N06 heading twoN07 subheading'
+D08 ⌫ body|first-line-indented         unit[type 1 cp [10] rects 3]  ['differs']  undo=[True]
+      select-vs-key: - p [Text_20_body] 'N08 plain before indent'
+      select-vs-key: - p [First_20_line_20_indent] indents={'text-indent': '0in', 'margin-left': '0in'} 'N09 first line indented'
+      select-vs-key: + p [Text_20_body] 'N08 plain before indentN09 first line indented'
+D09 ⌦ body|first-line-indented         unit[type 1 cp [10] rects 3]  ['same']  undo=[True]
+D10 ⌫ first-line-indented|first-line-indented unit[type 1 cp [10] rects 2]  ['differs']  undo=[True]
+      select-vs-key: - p [First_20_line_20_indent] 'N09 first line indented'
+      select-vs-key: - p [First_20_line_20_indent] indents={'text-indent': '0in', 'margin-left': '0in'} 'N10 indented again'
+      select-vs-key: + p [First_20_line_20_indent] 'N09 first line indentedN10 indented again'
+D11 ⌫ first-line-indented|left-margin  unit[type 1 cp [10] rects 2]  ['differs']  undo=[True]
+      select-vs-key: - p [First_20_line_20_indent] 'N10 indented again'
+      select-vs-key: - p [Left_20_margin] indents={'text-indent': '0in', 'margin-left': '0in'} 'N11 left margin'
+      select-vs-key: + p [First_20_line_20_indent] 'N10 indented againN11 left margin'
+D12 ⌫ left-margin|hanging-indent       unit[type 1 cp [10] rects 2]  ['differs']  undo=[True]
+      select-vs-key: - p [Left_20_margin] 'N11 left margin'
+      select-vs-key: - p [Hanging_20_indent] indents={'text-indent': '0in', 'margin-left': '0.1972in'} 'N12 hanging indent'
+      select-vs-key: + p [Left_20_margin] 'N11 left marginN12 hanging indent'
+D13 ⌫ hanging-indent|body              unit[type 1 cp [10] rects 2]  ['same']  undo=[True]
+D14 ⌫ unlabelled heading|first-line-indented unit[type 1 cp [10] rects 2]  ['differs']  undo=[True]
+      select-vs-key: - h [Heading_20_1] outline=1 'N14 heading before indent'
+      select-vs-key: - p [First_20_line_20_indent] indents={'text-indent': '0in', 'margin-left': '0in'} 'N15 indented after heading'
+      select-vs-key: + h [Heading_20_1] outline=1 'N14 heading before indentN15 indented after heading'
+D15 ⌦ unlabelled heading|first-line-indented unit[type 1 cp [10] rects 2]  ['same']  undo=[True]
