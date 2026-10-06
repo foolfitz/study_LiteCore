@@ -1,0 +1,13 @@
+D01 ⌦ body|body (positive control)     unit[type 1 cp [10] rects 3]  ['same']  undo=[True]  presses-to-match=[1, 1, 1]
+D04 ⌫ body|unlabelled heading          unit[type 1 cp [10] rects 3]  ['differs']  undo=[True]  presses-to-match=[2, 2, 2]
+      select-vs-key: - p [Text_20_body] 'N05 body before heading'
+      select-vs-key: - h [Heading_20_1] outline=1 listHeader=true 'N06 heading two'
+      select-vs-key: + p [Text_20_body] 'N05 body before headingN06 heading two'
+D08 ⌫ body|first-line-indented         unit[type 1 cp [10] rects 3]  ['differs']  undo=[True]  presses-to-match=[2, 2, 2]
+      select-vs-key: - p [Text_20_body] 'N08 plain before indent'
+      select-vs-key: - p [First_20_line_20_indent] indents={'text-indent': '0in', 'margin-left': '0in'} 'N09 first line indented'
+      select-vs-key: + p [Text_20_body] 'N08 plain before indentN09 first line indented'
+D12 ⌫ left-margin|hanging-indent       unit[type 1 cp [10] rects 2]  ['differs']  undo=[True]  presses-to-match=[3, 3, 3]
+      select-vs-key: - p [Left_20_margin] 'N11 left margin'
+      select-vs-key: - p [Hanging_20_indent] indents={'text-indent': '0in', 'margin-left': '0.1972in'} 'N12 hanging indent'
+      select-vs-key: + p [Left_20_margin] 'N11 left marginN12 hanging indent'

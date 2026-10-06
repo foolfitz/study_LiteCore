@@ -107,3 +107,55 @@ Predictions `PREDICTION-3.md` (`076ac980`); probe `f1860939…`, PRESSES=3: the 
 | D12 (hanging indent) | first line folded into the margin → margin removed → merge | 3, 3, 3 |
 
 With round E: **deleting the barrier's selection at a paragraph's start gives Writer's own document after two presses (three for a hanging indent or an indented list item), in every shape measured**; it never gives a document Writer cannot reach. That is option A's exact cost: it skips the intermediate state(s).
+
+## Fourth round: option B's sequence and the undo stack (`undo/`)
+
+Why: the owner chose **B′** (2026-10-06) — measure whether option B can work before choosing between it and A. B = keep the selection barrier for deletes inside a paragraph; at a boundary, take the unit selection back, press the user's own key, and prove what it did from the undo stack (`getCommandValues(".uno:UndoCount")`, `".uno:Undo"`). Predictions `PREDICTION-4.md` (`202153b5`). Probe as committed there: arm **b** (unit selection → the opposite arrow *without* Shift, only when something was selected → the user's key), the undo stack around every dispatch and press, TSV fields `occurrence` and `offset`. Reader `tools/analyze_merge_undo.py`.
+
+Shakedowns before the predictions (not counted): Shift + the opposite arrow brings the caret back but leaves the empty selection's mark, and the key that follows changes nothing; an unshifted arrow when nothing was selected (document start) moves the caret, and Backspace then deleted "M".
+
+### `undo/round-20261006T081216Z/` (boundaries.fodt, 12 cases) and `undo/round-20261006T082156Z/` (boundaries-indent.fodt, 4 cases), PRESSES=3
+
+Placement held on every arm (all three arms' caret drawn at the same place), one unit signature per case, select-vs-key verdicts as in rounds 1 and D.
+
+| Case | Arm b: caret back at the placed caret | Arm b = key arm's first press | Undo comment |
+|---|---|---|---|
+| C01, C02, D01 (merge) | 3/3 | 3/3, **content.xml byte-identical** | `Delete paragraph` |
+| C27 (line break) | 3/3 | 3/3, identical | `Delete One line break` |
+| C03 (numbered heading), D04 (unlabelled heading), C09 (list item) | 3/3 | 3/3, identical | `Number On/Off` |
+| D08 (first-line indent), D12 (hanging indent) | 3/3 | 3/3, identical | `Apply attributes` |
+| G01 (two characters, then the boundary) | 3/3 | 3/3, identical | `Delete “0”` (press 1; presses 1–2 fold, press 3 the join is a new action) |
+| **C08** (Delete at a body's end before a bullet item) | **0/3** — the unshifted Left lands in front of the item's label, not at the body's end | 0/3: the key then did `Number On/Off` where Writer's own key merges | — |
+| C15, C16 (table) | 0/3 (the unit is the table) | the key changed nothing either way | — |
+| C17 (cell end), C29, C30 (document start, end) | 3/3 | the key changes nothing; stack unchanged | — |
+
+Undo stack against `content.xml`, every press of every arm: **234 presses, 0 disagreements** — the stack changed exactly when the document did, including every "nothing changed" press.
+
+### `undo/round-20261006T082510Z/` (undo-grouping.fodt, 3 cases, PRESSES=25)
+
+| Case | Presses where the document changed and the stack did not |
+|---|---|
+| G12, Backspace through distinct characters (control) | none, 3 rounds (one folded action; its comment changes on every press) |
+| **G10**, Backspace through a run of "a" | **20–25**, all 3 rounds |
+| **G11**, Delete through the same run | **20–25**, all 3 rounds |
+
+The comment of a folded delete is the deleted text shortened to `aaaaaaaa...aaaaaaa`; from press 20 it is the same string, the count stays 1, and the stack no longer shows the change. As predicted from `ShortenString` — and the reason B cannot replace the barrier inside a paragraph. At a boundary nothing folds (G01: the join after two folded deletes is a new action).
+
+### `undo/pmpc-round-20261006T083157Z/` (the owner's document, 6 cases, PRESSES=3; saved documents under `wasm_sdk_probe/build/`)
+
+| Case | Arm b: caret back | Arm b = key (content.xml bytes) | Undo comment |
+|---|---|---|---|
+| E01 (⌦ indented body\|H1), E02 (⌦ H1\|indented body, a TOC bookmark at the boundary) | 3/3 | 3/3 | `Delete paragraph` |
+| E05 (⌫ at an unlabelled heading's start) | 3/3 | 3/3 | `Number On/Off` |
+| E10 (⌫ at an indented paragraph's start) | 3/3 | 3/3 | `Apply attributes` |
+| E12 (⌫ at a numbered item's start) | 3/3 | 3/3 | `Number On/Off` |
+| T01 (⌦ at the end of the table of contents' title 「目次」) | 3/3 | 3/3 | `Delete Paragraphs` |
+
+90 presses, 0 stack-vs-content disagreements. **T01 was predicted wrong**: the prediction called the whole table of contents protected, and Writer's own Delete merges its title 「目次」 into the first entry (23 → 22 index paragraphs; the block reduction treats the index as one opaque block and could not see it — `content.xml` and the undo stack did). The no-op that the first round-E attempt recorded happened between two index *entries*, not at the title. So round four does not re-measure the barrier's proof failing on a no-op; a fifth round that wants to must aim at an index entry (whose text carries a tab, which the TSV cannot hold today).
+
+## What the four rounds say for B
+
+- At every paragraph boundary measured — plain, line break, numbered and unlabelled headings, list items, first-line, left and hanging indents, headings with table-of-contents bookmarks, in the fixtures and in the owner's document — B's sequence produced **the same `content.xml` as Writer's own key, 3/3**, and the caret came back to where it was placed before the key.
+- The undo stack changed **exactly** when the document did on every press at a boundary or on a no-op (324 presses across the four batches); it fails only for a long run of identical characters deleted one by one inside a paragraph (G10, G11 from press 20), where B is not used.
+- Where the step cannot be taken back (C08: Delete before a bullet item lands in front of the label; C15, C16: a table selected whole), the caret check fails every time, so B can refuse there before pressing anything.
+- Not measured here, and needed before B ships: the order of a posted key and the engine's undo readback on WASM; the undo stack at its limit (the count saturates; the whole payload must be compared); a delete on a real no-op inside a protected index entry.

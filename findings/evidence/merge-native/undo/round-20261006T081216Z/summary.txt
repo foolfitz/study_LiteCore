@@ -1,0 +1,34 @@
+C01 ⌦ body|body (positive control)     unit[type 1 cp [10] rects 3]  ['same']  undo=[True]  presses-to-match=[1, 1, 1]
+C02 ⌫ body|body                        unit[type 1 cp [10] rects 3]  ['same']  undo=[True]  presses-to-match=[1, 1, 1]
+C03 ⌫ body|numbered heading            unit[type 1 cp [10, 49, 46, 32] rects 3]  ['differs']  undo=[True]  presses-to-match=[2, 2, 2]
+      select-vs-key: - p [Text_20_body] 'M02 plain beta'
+      select-vs-key: - h [Heading_20_1] outline=1 listHeader=true 'M03 heading gamma'
+      select-vs-key: + p [Text_20_body] 'M02 plain betaM03 heading gamma'
+C08 ⌦ body|bullet item                 unit[type 1 cp [10, 32, 32, 32, 32, 8226, 32] rects 3]  ['same']  undo=[True]  presses-to-match=[1, 1, 1]
+C09 ⌫ body|bullet item                 unit[type 1 cp [10, 32, 32, 32, 32, 8226, 32] rects 3]  ['differs']  undo=[True]  presses-to-match=[2, 2, 2]
+      select-vs-key: - p [Text_20_body] 'M08 before list'
+      select-vs-key: - p [Text_20_body] list=['Bullets:header'] 'M09 item one'
+      select-vs-key: + p [Text_20_body] 'M08 before listM09 item one'
+C15 ⌦ body|table                       unit[type 1 cp [10, 77, 49, 55, 32, 99, 101, 108, 108, 32, 111, 110, 101, 9, 77, 49, 55, 98, 32, 99, 101, 108, 108, 32, 116, 119, 111, 10] rects 3]  ['differs']  undo=[True]  presses-to-match=[None, None, None]
+      select-vs-key: - p [Text_20_body] 'M15 before table'
+      select-vs-key: - TABLE T1
+      select-vs-key: -   [0,0] p [Standard] 'M17 cell one'
+      select-vs-key: -   [0,1] p [Standard] 'M17b cell two'
+      select-vs-key: - p [Text_20_body] 'M16 after table'
+      select-vs-key: + p [Text_20_body] 'M15 before tableM16 after table'
+C16 ⌫ table|body                       unit[type 1 cp [10, 77, 49, 55, 32, 99, 101, 108, 108, 32, 111, 110, 101, 9, 77, 49, 55, 98, 32, 99, 101, 108, 108, 32, 116, 119, 111, 10] rects 3]  ['differs']  undo=[True]  presses-to-match=[None, None, None]
+      select-vs-key: - p [Text_20_body] 'M15 before table'
+      select-vs-key: - TABLE T1
+      select-vs-key: -   [0,0] p [Standard] 'M17 cell one'
+      select-vs-key: -   [0,1] p [Standard] 'M17b cell two'
+      select-vs-key: - p [Text_20_body] 'M16 after table'
+      select-vs-key: + p [Text_20_body] 'M15 before tableM16 after table'
+C17 ⌦ cell|cell                        unit[type 1 cp [77, 49, 55, 32, 99, 101, 108, 108, 32, 111, 110, 101, 9, 77, 49, 55, 98, 32, 99, 101, 108, 108, 32, 116, 119, 111, 10] rects 1]  ['differs']  undo=[True]  presses-to-match=[None, None, None]
+      select-vs-key: -   [0,0] p [Standard] 'M17 cell one'
+      select-vs-key: -   [0,1] p [Standard] 'M17b cell two'
+      select-vs-key: +   [0,0] p [Standard] ''
+      select-vs-key: +   [0,1] p [Standard] ''
+C27 ⌦ line break inside a paragraph    unit[type 1 cp [10] rects 1]  ['same']  undo=[True]  presses-to-match=[1, 1, 1]
+C29 ⌫ document start                   unit[type 0 cp [] rects 0]  ['not dispatched; key changed nothing']  undo=[]
+C30 ⌦ document end                     unit[type 0 cp [] rects 0]  ['not dispatched; key changed nothing']  undo=[]
+G01 ⌫ two characters, then body|body   unit[type 1 cp [48] rects 1]  ['same']  undo=[True]  presses-to-match=[1, 1, 1]

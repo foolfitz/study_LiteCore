@@ -1,0 +1,50 @@
+D01 b        body|body (positive control)
+    r1 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y
+    r2 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y
+    r3 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y
+D01 key      body|body (positive control)
+    r1 p1: doc=Y stack=Y [Delete paragraph] | p2: doc=Y stack=Y [Delete “N”] | p3: doc=Y stack=Y [Delete “N0”]
+    r2 p1: doc=Y stack=Y [Delete paragraph] | p2: doc=Y stack=Y [Delete “N”] | p3: doc=Y stack=Y [Delete “N0”]
+    r3 p1: doc=Y stack=Y [Delete paragraph] | p2: doc=Y stack=Y [Delete “N”] | p3: doc=Y stack=Y [Delete “N0”]
+D01 select   body|body (positive control)
+    r1 p1: doc=Y stack=Y [Delete paragraph]
+    r2 p1: doc=Y stack=Y [Delete paragraph]
+    r3 p1: doc=Y stack=Y [Delete paragraph]
+D04 b        body|unlabelled heading
+    r1 p1: doc=Y stack=Y [Number On/Off]  restore=ok =key=Y
+    r2 p1: doc=Y stack=Y [Number On/Off]  restore=ok =key=Y
+    r3 p1: doc=Y stack=Y [Number On/Off]  restore=ok =key=Y
+D04 key      body|unlabelled heading
+    r1 p1: doc=Y stack=Y [Number On/Off] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “g”]
+    r2 p1: doc=Y stack=Y [Number On/Off] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “g”]
+    r3 p1: doc=Y stack=Y [Number On/Off] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “g”]
+D04 select   body|unlabelled heading
+    r1 p1: doc=Y stack=Y [Delete paragraph]
+    r2 p1: doc=Y stack=Y [Delete paragraph]
+    r3 p1: doc=Y stack=Y [Delete paragraph]
+D08 b        body|first-line-indented
+    r1 p1: doc=Y stack=Y [Apply attributes]  restore=ok =key=Y
+    r2 p1: doc=Y stack=Y [Apply attributes]  restore=ok =key=Y
+    r3 p1: doc=Y stack=Y [Apply attributes]  restore=ok =key=Y
+D08 key      body|first-line-indented
+    r1 p1: doc=Y stack=Y [Apply attributes] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “t”]
+    r2 p1: doc=Y stack=Y [Apply attributes] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “t”]
+    r3 p1: doc=Y stack=Y [Apply attributes] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “t”]
+D08 select   body|first-line-indented
+    r1 p1: doc=Y stack=Y [Delete paragraph]
+    r2 p1: doc=Y stack=Y [Delete paragraph]
+    r3 p1: doc=Y stack=Y [Delete paragraph]
+D12 b        left-margin|hanging-indent
+    r1 p1: doc=Y stack=Y [Apply attributes]  restore=ok =key=Y
+    r2 p1: doc=Y stack=Y [Apply attributes]  restore=ok =key=Y
+    r3 p1: doc=Y stack=Y [Apply attributes]  restore=ok =key=Y
+D12 key      left-margin|hanging-indent
+    r1 p1: doc=Y stack=Y [Apply attributes] | p2: doc=Y stack=Y [Apply attributes] | p3: doc=Y stack=Y [Delete paragraph]
+    r2 p1: doc=Y stack=Y [Apply attributes] | p2: doc=Y stack=Y [Apply attributes] | p3: doc=Y stack=Y [Delete paragraph]
+    r3 p1: doc=Y stack=Y [Apply attributes] | p2: doc=Y stack=Y [Apply attributes] | p3: doc=Y stack=Y [Delete paragraph]
+D12 select   left-margin|hanging-indent
+    r1 p1: doc=Y stack=Y [Delete paragraph]
+    r2 p1: doc=Y stack=Y [Delete paragraph]
+    r3 p1: doc=Y stack=Y [Delete paragraph]
+
+presses: 60, stack-vs-content.xml disagreements: 0

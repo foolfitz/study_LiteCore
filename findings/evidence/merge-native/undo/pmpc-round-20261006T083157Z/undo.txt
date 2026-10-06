@@ -1,0 +1,74 @@
+E01 b        indented body|H1 (positive control)
+    r1 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y
+    r2 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y
+    r3 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y
+E01 key      indented body|H1 (positive control)
+    r1 p1: doc=Y stack=Y [Delete paragraph] | p2: doc=Y stack=Y [Delete “三”] | p3: doc=Y stack=Y [Delete “、”]
+    r2 p1: doc=Y stack=Y [Delete paragraph] | p2: doc=Y stack=Y [Delete “三”] | p3: doc=Y stack=Y [Delete “、”]
+    r3 p1: doc=Y stack=Y [Delete paragraph] | p2: doc=Y stack=Y [Delete “三”] | p3: doc=Y stack=Y [Delete “、”]
+E01 select   indented body|H1 (positive control)
+    r1 p1: doc=Y stack=Y [Delete paragraph]
+    r2 p1: doc=Y stack=Y [Delete paragraph]
+    r3 p1: doc=Y stack=Y [Delete paragraph]
+E02 b        H1|indented body
+    r1 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y
+    r2 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y
+    r3 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y
+E02 key      H1|indented body
+    r1 p1: doc=Y stack=Y [Delete paragraph] | p2: doc=Y stack=Y [Delete “這”] | p3: doc=Y stack=Y [Delete “這本”]
+    r2 p1: doc=Y stack=Y [Delete paragraph] | p2: doc=Y stack=Y [Delete “這”] | p3: doc=Y stack=Y [Delete “這本”]
+    r3 p1: doc=Y stack=Y [Delete paragraph] | p2: doc=Y stack=Y [Delete “這”] | p3: doc=Y stack=Y [Delete “這本”]
+E02 select   H1|indented body
+    r1 p1: doc=Y stack=Y [Delete paragraph]
+    r2 p1: doc=Y stack=Y [Delete paragraph]
+    r3 p1: doc=Y stack=Y [Delete paragraph]
+E05 b        indented body|H1
+    r1 p1: doc=Y stack=Y [Number On/Off]  restore=ok =key=Y
+    r2 p1: doc=Y stack=Y [Number On/Off]  restore=ok =key=Y
+    r3 p1: doc=Y stack=Y [Number On/Off]  restore=ok =key=Y
+E05 key      indented body|H1
+    r1 p1: doc=Y stack=Y [Number On/Off] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “。”]
+    r2 p1: doc=Y stack=Y [Number On/Off] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “。”]
+    r3 p1: doc=Y stack=Y [Number On/Off] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “。”]
+E05 select   indented body|H1
+    r1 p1: doc=Y stack=Y [Delete paragraph]
+    r2 p1: doc=Y stack=Y [Delete paragraph]
+    r3 p1: doc=Y stack=Y [Delete paragraph]
+E10 b        indented body|indented body
+    r1 p1: doc=Y stack=Y [Apply attributes]  restore=ok =key=Y
+    r2 p1: doc=Y stack=Y [Apply attributes]  restore=ok =key=Y
+    r3 p1: doc=Y stack=Y [Apply attributes]  restore=ok =key=Y
+E10 key      indented body|indented body
+    r1 p1: doc=Y stack=Y [Apply attributes] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “？”]
+    r2 p1: doc=Y stack=Y [Apply attributes] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “？”]
+    r3 p1: doc=Y stack=Y [Apply attributes] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “？”]
+E10 select   indented body|indented body
+    r1 p1: doc=Y stack=Y [Delete paragraph]
+    r2 p1: doc=Y stack=Y [Delete paragraph]
+    r3 p1: doc=Y stack=Y [Delete paragraph]
+E12 b        indented body|numbered item
+    r1 p1: doc=Y stack=Y [Number On/Off]  restore=ok =key=Y
+    r2 p1: doc=Y stack=Y [Number On/Off]  restore=ok =key=Y
+    r3 p1: doc=Y stack=Y [Number On/Off]  restore=ok =key=Y
+E12 key      indented body|numbered item
+    r1 p1: doc=Y stack=Y [Number On/Off] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “：”]
+    r2 p1: doc=Y stack=Y [Number On/Off] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “：”]
+    r3 p1: doc=Y stack=Y [Number On/Off] | p2: doc=Y stack=Y [Delete paragraph] | p3: doc=Y stack=Y [Delete “：”]
+E12 select   indented body|numbered item
+    r1 p1: doc=Y stack=Y [Delete paragraph]
+    r2 p1: doc=Y stack=Y [Delete paragraph]
+    r3 p1: doc=Y stack=Y [Delete paragraph]
+T01 b        table-of-contents title|entry (protected section)
+    r1 p1: doc=Y(blocks n) stack=Y [Delete Paragraphs]  restore=ok =key=Y
+    r2 p1: doc=Y(blocks n) stack=Y [Delete Paragraphs]  restore=ok =key=Y
+    r3 p1: doc=Y(blocks n) stack=Y [Delete Paragraphs]  restore=ok =key=Y
+T01 key      table-of-contents title|entry (protected section)
+    r1 p1: doc=Y(blocks n) stack=Y [Delete Paragraphs] | p2: doc=Y(blocks n) stack=Y [Delete “一”] | p3: doc=Y(blocks n) stack=Y [Delete “、”]
+    r2 p1: doc=Y(blocks n) stack=Y [Delete Paragraphs] | p2: doc=Y(blocks n) stack=Y [Delete “一”] | p3: doc=Y(blocks n) stack=Y [Delete “、”]
+    r3 p1: doc=Y(blocks n) stack=Y [Delete Paragraphs] | p2: doc=Y(blocks n) stack=Y [Delete “一”] | p3: doc=Y(blocks n) stack=Y [Delete “、”]
+T01 select   table-of-contents title|entry (protected section)
+    r1 p1: doc=Y(blocks n) stack=Y [Delete Paragraphs]
+    r2 p1: doc=Y(blocks n) stack=Y [Delete Paragraphs]
+    r3 p1: doc=Y(blocks n) stack=Y [Delete Paragraphs]
+
+presses: 90, stack-vs-content.xml disagreements: 0
