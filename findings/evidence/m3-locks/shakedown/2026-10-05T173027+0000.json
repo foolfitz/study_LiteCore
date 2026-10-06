@@ -1,0 +1,2436 @@
+{
+ "runner": "check_m3_locks.py",
+ "runnerSha256": "4c507d3a225e65b756894cf082aaaff05cdae946daf5f83d2a8e1b7c8efb881f",
+ "label": "shakedown",
+ "startedAt": "2026-10-05T17:30:27+00:00",
+ "static": {
+  "page": {
+   "dist": "d41ae604536d8d3c34adde0bf6ae6c6afe1469034183a7f02cb857df3a91b895",
+   "web": "d41ae604536d8d3c34adde0bf6ae6c6afe1469034183a7f02cb857df3a91b895"
+  }
+ },
+ "hostRepo": "fa08307c79d5da7518e95b3a9c2189049e844423 Host 0.2.6: the close button's URL from the router, not by hand",
+ "hostDirty": "",
+ "hostFiles": {
+  "js/litecore-editor.js": "2ec67efeaddc8f4dd9b78e96a470c0eb8504c5d222b2725b0548411119068a28",
+  "lib/Controller/EditorController.php": "b475ae183a7a1f77126ae838bcc07a9e4047e4cd834eb50aa86654f56e56018b",
+  "templates/editor.php": "4a03cbd4b920cf67c4d8968b56767505be28a46cc60f05ff65b52ebb4de49c8f"
+ },
+ "hostBinding": {
+  "appDir": "/home/jiajun/Projects/Nextcloud_Apps/litecore",
+  "sourceRepo": "/home/jiajun/Projects/Nextcloud_Apps/litecore"
+ },
+ "baseUrl": "https://litecore.ddev.site:8443",
+ "original": {
+  "source": "e1-fixtures/multi-paragraph.odt",
+  "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934"
+ },
+ "intruder": {
+  "source": "e1-fixtures/list-contexts.odt",
+  "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d"
+ },
+ "runs": [
+  {
+   "arm": "hold",
+   "spec": "K1",
+   "browser": "chrome",
+   "startedAt": "2026-10-05T17:30:32+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "downloadVia": "Page.setDownloadBehavior",
+   "version": "Chrome/151.0.7922.169",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1791221438467,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 278
+     },
+     {
+      "step": "fetched",
+      "at": 344
+     },
+     {
+      "step": "opened",
+      "at": 2079,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": null
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 5355,
+      "name": "M3 骨架 測試.odt",
+      "bytes": 10228,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 5355,
+         "status": 200,
+         "etag": "\"6ac3debeba705\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 26
+        },
+        "ifMatch": "\"6ac3debeba705\"",
+        "withToken": true,
+        "at": 5381,
+        "respondedAt": 5429,
+        "status": 204
+       }
+      ],
+      "sha256": "5b2dba48aae4fbff8c5904b50acf799929714ca584f72029c9a2cdaf84d2f99f",
+      "ifMatch": "\"6ac3debeba705\"",
+      "status": 204,
+      "etag": "\"993965e551f3d52de0a71271da32daa0\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 6543,
+      "name": "M3 骨架 測試.odt",
+      "bytes": 10420,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 6543,
+         "status": 200,
+         "etag": "\"993965e551f3d52de0a71271da32daa0\"",
+         "sha256": "5b2dba48aae4fbff8c5904b50acf799929714ca584f72029c9a2cdaf84d2f99f",
+         "ms": 24
+        },
+        "ifMatch": "\"993965e551f3d52de0a71271da32daa0\"",
+        "withToken": true,
+        "at": 6567,
+        "respondedAt": 6624,
+        "status": 204
+       }
+      ],
+      "sha256": "e839903e33db8674034b3aaf60c3c3253aa2038a5551d5b4ef2249340a2ad623",
+      "ifMatch": "\"993965e551f3d52de0a71271da32daa0\"",
+      "status": 204,
+      "etag": "\"fbe33c0ad2173881bbd0a02ba289e292\"",
+      "outcome": "saved",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 300,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "92e4099c1ec1318f44e810a2189258d5",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ac3debeba705\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 344
+    },
+    "handedReadOnly": false,
+    "finished": 2079
+   },
+   "secondsToOpened": 2.59,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ac3debeba705\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:49f003d1-2e6d-4aac-9156-a40e36559c7f"
+   },
+   "seenByOther": {
+    "status": 207,
+    "etag": "\"6ac3debeba705\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:49f003d1-2e6d-4aac-9156-a40e36559c7f"
+   },
+   "otherPut": 423,
+   "afterOtherPut": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "smoke": {
+    "before": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "—",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "caret": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 32 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "acted": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "標題 67 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    }
+   },
+   "save1Seen": 1,
+   "save1State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "1",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 74 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "inserted": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "2",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "插入文字 6 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "ctrlS": true,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "2",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 81 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.2 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "e839903e33db8674034b3aaf60c3c3253aa2038a5551d5b4ef2249340a2ad623",
+    "bytes": 10420
+   },
+   "copiesAfter": [],
+   "release": {
+    "released": true,
+    "seconds": 0.4,
+    "polls": [
+     {
+      "at": 0.4,
+      "lock": ""
+     }
+    ]
+   },
+   "otherPutAfter": 204,
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/apps/files/",
+      "status": 200,
+      "coop": null,
+      "coep": null,
+      "dip": null
+     }
+    ],
+    "loadingFailed": [
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     }
+    ],
+    "errorLogs": [
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 500 ()",
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt"
+     },
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "url": "https://litecore.ddev.site:8443/core/preview?fileId=7513&x=250&y=250"
+     },
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "url": "https://litecore.ddev.site:8443/core/preview?fileId=7515&x=250&y=250"
+     },
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 409 ()",
+      "url": "https://litecore.ddev.site:8443/apps/text/session/73/sync"
+     },
+     {
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 409 ()",
+      "url": "https://litecore.ddev.site:8443/apps/text/session/73/sync"
+     }
+    ],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/Readme.md",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"6ac3debeba705\"",
+     "if": "(<opaquelocktoken:49f003d1-2e6d-4aac-9156-a40e36559c7f>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"993965e551f3d52de0a71271da32daa0\"",
+     "if": "(<opaquelocktoken:49f003d1-2e6d-4aac-9156-a40e36559c7f>)",
+     "timeout": null
+    },
+    {
+     "method": "UNLOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "UNLOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "REPORT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/Readme.md",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    }
+   ],
+   "dialogs": [],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"0b7dcd73a32325b9ce37626f48d891ee\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "clearedAtEnd": "0"
+  },
+  {
+   "arm": "hold",
+   "spec": "K1",
+   "browser": "firefox",
+   "startedAt": "2026-10-05T17:30:49+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "version": "157.0",
+   "login": "https://litecore.ddev.site:8443/apps/dashboard/",
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1791221456711,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 238
+     },
+     {
+      "step": "fetched",
+      "at": 305
+     },
+     {
+      "step": "opened",
+      "at": 2459,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 骨架 測試.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 4833,
+      "name": "M3 骨架 測試.odt",
+      "bytes": 10208,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 4833,
+         "status": 200,
+         "etag": "\"6ac3ded0ec29f\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 25
+        },
+        "ifMatch": "\"6ac3ded0ec29f\"",
+        "withToken": true,
+        "at": 4858,
+        "respondedAt": 4907,
+        "status": 204
+       }
+      ],
+      "sha256": "ef0746d196dbf1cf16c6bfc6b620bb64e16cf5af0ec5fef110c06bb15c6e373c",
+      "ifMatch": "\"6ac3ded0ec29f\"",
+      "status": 204,
+      "etag": "\"7a832ab24192864ad3acfa5dc5bcbcc4\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 6120,
+      "name": "M3 骨架 測試.odt",
+      "bytes": 10392,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 6121,
+         "status": 200,
+         "etag": "\"7a832ab24192864ad3acfa5dc5bcbcc4\"",
+         "sha256": "ef0746d196dbf1cf16c6bfc6b620bb64e16cf5af0ec5fef110c06bb15c6e373c",
+         "ms": 24
+        },
+        "ifMatch": "\"7a832ab24192864ad3acfa5dc5bcbcc4\"",
+        "withToken": true,
+        "at": 6145,
+        "respondedAt": 6205,
+        "status": 204
+       }
+      ],
+      "sha256": "65c4d603ddcb7a5b8d0e3fb56c52bf2906cb5f0b7bc5dfd250142f0a1b7a84ae",
+      "ifMatch": "\"7a832ab24192864ad3acfa5dc5bcbcc4\"",
+      "status": 204,
+      "etag": "\"9593d7afb6157ce2fee7eb9fd28ffa3e\"",
+      "outcome": "saved",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 259,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "4254781837a1d20bf719b28e6279420d",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ac3ded0ec29f\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 305
+    },
+    "handedReadOnly": false,
+    "finished": 2459
+   },
+   "secondsToOpened": 3.07,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ac3ded0ec29f\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:b06ee0e5-e5e7-4e55-9cf8-cc178258d458"
+   },
+   "seenByOther": {
+    "status": 207,
+    "etag": "\"6ac3ded0ec29f\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:b06ee0e5-e5e7-4e55-9cf8-cc178258d458"
+   },
+   "otherPut": 423,
+   "afterOtherPut": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "smoke": {
+    "before": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "—",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "caret": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "0",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "定位游標 43 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    },
+    "acted": {
+     "state": "ready",
+     "label": "就緒",
+     "revision": "1",
+     "pending": "0",
+     "checkpoint": "無",
+     "latency": "標題 44 ms",
+     "doc": "M3 骨架 測試.odt",
+     "toast": "已開啟 M3 骨架 測試.odt",
+     "buttons": [
+      {
+       "action": "undo",
+       "disabled": false
+      },
+      {
+       "action": "redo",
+       "disabled": false
+      },
+      {
+       "action": "move-character-left",
+       "disabled": false
+      },
+      {
+       "action": "move-character-right",
+       "disabled": false
+      },
+      {
+       "action": "delete-backward",
+       "disabled": false
+      },
+      {
+       "action": "delete-forward",
+       "disabled": false
+      },
+      {
+       "action": "insert-paragraph-break",
+       "disabled": false
+      },
+      {
+       "action": "insert-line-break",
+       "disabled": false
+      },
+      {
+       "action": "set-bold",
+       "disabled": false
+      },
+      {
+       "action": "set-italic",
+       "disabled": false
+      },
+      {
+       "action": "set-underline",
+       "disabled": false
+      },
+      {
+       "action": "set-strikethrough",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-heading",
+       "disabled": false
+      },
+      {
+       "action": "set-paragraph-body",
+       "disabled": false
+      },
+      {
+       "action": "set-list-unordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-ordered",
+       "disabled": false
+      },
+      {
+       "action": "set-list-none",
+       "disabled": false
+      },
+      {
+       "action": "insert-text",
+       "disabled": false
+      },
+      {
+       "action": "save",
+       "disabled": false
+      }
+     ]
+    }
+   },
+   "save1Seen": 1,
+   "save1State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "1",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 74 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "inserted": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "2",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "插入文字 6 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.0 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "ctrlS": true,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "2",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 85 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（10.1 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "65c4d603ddcb7a5b8d0e3fb56c52bf2906cb5f0b7bc5dfd250142f0a1b7a84ae",
+    "bytes": 10392
+   },
+   "copiesAfter": [],
+   "release": {
+    "released": true,
+    "seconds": 0.4,
+    "polls": [
+     {
+      "at": 0.4,
+      "lock": ""
+     }
+    ]
+   },
+   "otherPutAfter": 204,
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"fcdc18c3b011385dc6e14016eaebf16d\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "clearedAtEnd": "0"
+  },
+  {
+   "arm": "closetab",
+   "spec": "K2′",
+   "browser": "chrome",
+   "startedAt": "2026-10-05T17:31:16+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "downloadVia": "Page.setDownloadBehavior",
+   "version": "Chrome/151.0.7922.169",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1791221482259,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 256
+     },
+     {
+      "step": "fetched",
+      "at": 321
+     },
+     {
+      "step": "opened",
+      "at": 2064,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 骨架 測試.odt"
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 278,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "51e0d4de76bc2e0ee5d98e28e444057f",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ac3deea823a2\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 321
+    },
+    "handedReadOnly": false,
+    "finished": 2064
+   },
+   "secondsToOpened": 2.53,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ac3deea823a2\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:32525218-b4c8-4609-a56d-7181ef697abe"
+   },
+   "lockBefore": {
+    "status": 207,
+    "etag": "\"6ac3deea823a2\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:32525218-b4c8-4609-a56d-7181ef697abe"
+   },
+   "pagesAfterClose": [],
+   "expiry": [
+    {
+     "at": 0.3,
+     "lock": ""
+    }
+   ],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"6ac3deed11542\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "clearedAtEnd": "0"
+  },
+  {
+   "arm": "closetab",
+   "spec": "K2′",
+   "browser": "firefox",
+   "startedAt": "2026-10-05T17:31:37+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "version": "157.0",
+   "login": "https://litecore.ddev.site:8443/apps/dashboard/",
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1791221504803,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 247
+     },
+     {
+      "step": "fetched",
+      "at": 312
+     },
+     {
+      "step": "opened",
+      "at": 2273,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": null
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 268,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "81c7041152342173de993524dd4a36f3",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ac3df0110c5c\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 312
+    },
+    "handedReadOnly": false,
+    "finished": 2273
+   },
+   "secondsToOpened": 2.75,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ac3df0110c5c\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:06f9c549-616b-454b-a14a-d1ecd4a55dd2"
+   },
+   "lockBefore": {
+    "status": 207,
+    "etag": "\"6ac3df0110c5c\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:06f9c549-616b-454b-a14a-d1ecd4a55dd2"
+   },
+   "editorWindow": "a9be2fe2-7cc6-4c9a-8031-81e806227985",
+   "windowsAfterClose": [
+    "576ec392-d75c-48c9-95ea-c25c879b6bd2"
+   ],
+   "expiry": [
+    {
+     "at": 0.3,
+     "lock": ""
+    }
+   ],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"6ac3df03e8b9a\"",
+    "fileid": "76",
+    "lock": "",
+    "lockOwner": null,
+    "lockOwnerType": null,
+    "token": null
+   },
+   "clearedAtEnd": "0"
+  },
+  {
+   "arm": "heartbeat",
+   "spec": "K3",
+   "browser": "chrome",
+   "startedAt": "2026-10-05T17:31:59+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 骨架 測試.odt",
+    "adminPath": "M3 骨架 測試.odt"
+   },
+   "clearedLocks": "0",
+   "reset": {
+    "upload": 204,
+    "fileId": 76
+   },
+   "copiesBefore": [],
+   "serverBefore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "downloadVia": "Page.setDownloadBehavior",
+   "version": "Chrome/151.0.7922.169",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+   "host": {
+    "started": 1791221524766,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 249
+     },
+     {
+      "step": "fetched",
+      "at": 317
+     },
+     {
+      "step": "opened",
+      "at": 2050,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": null
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 333392,
+      "name": "M3 骨架 測試.odt",
+      "bytes": 9738,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 333392,
+         "status": 200,
+         "etag": "\"6ac3df1508240\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 23
+        },
+        "ifMatch": "\"6ac3df1508240\"",
+        "withToken": true,
+        "at": 333415,
+        "respondedAt": 333473,
+        "status": 204
+       }
+      ],
+      "sha256": "0dd4cfc1122d65e9b919805a054ae2b7789206aa7ebc6ecca0d09e8848ea1902",
+      "ifMatch": "\"6ac3df1508240\"",
+      "status": 204,
+      "etag": "\"cbb00169cf94adbcb62306025995a733\"",
+      "outcome": "saved",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 271,
+     "refreshes": [
+      {
+       "at": 60317,
+       "status": 200,
+       "seconds": 361
+      },
+      {
+       "at": 120318,
+       "status": 200,
+       "seconds": 421
+      },
+      {
+       "at": 180316,
+       "status": 200,
+       "seconds": 481
+      },
+      {
+       "at": 240317,
+       "status": 200,
+       "seconds": 541
+      },
+      {
+       "at": 300322,
+       "status": 200,
+       "seconds": 601
+      }
+     ],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "54803e41e108abd6d54be62c81c60b92",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ac3df1508240\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 317
+    },
+    "handedReadOnly": false,
+    "finished": 2051
+   },
+   "secondsToOpened": 2.53,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ac3df1508240\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:770c09b6-5b3e-42c8-ac28-394b2bd81bb6"
+   },
+   "lockBefore": {
+    "status": 207,
+    "etag": "\"6ac3df1508240\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:770c09b6-5b3e-42c8-ac28-394b2bd81bb6"
+   },
+   "lockAfter": {
+    "status": 207,
+    "etag": "\"6ac3df1508240\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:770c09b6-5b3e-42c8-ac28-394b2bd81bb6"
+   },
+   "hostBeforeSave": {
+    "started": 1791221524766,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 249
+     },
+     {
+      "step": "fetched",
+      "at": 317
+     },
+     {
+      "step": "opened",
+      "at": 2050,
+      "state": {
+       "state": "ready",
+       "doc": "M3 骨架 測試.odt",
+       "revision": "0",
+       "toast": null
+      }
+     }
+    ],
+    "saves": [],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 271,
+     "refreshes": [
+      {
+       "at": 60317,
+       "status": 200,
+       "seconds": 361
+      },
+      {
+       "at": 120318,
+       "status": 200,
+       "seconds": 421
+      },
+      {
+       "at": 180316,
+       "status": 200,
+       "seconds": 481
+      },
+      {
+       "at": 240317,
+       "status": 200,
+       "seconds": 541
+      },
+      {
+       "at": 300322,
+       "status": 200,
+       "seconds": 601
+      }
+     ],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "file": {
+     "id": 76,
+     "name": "M3 骨架 測試.odt",
+     "size": 1343,
+     "etag": "54803e41e108abd6d54be62c81c60b92",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ac3df1508240\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 317
+    },
+    "handedReadOnly": false,
+    "finished": 2051
+   },
+   "save1Seen": 1,
+   "save1State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 81 ms",
+    "doc": "M3 骨架 測試.odt",
+    "toast": "已存回 M3 骨架 測試.odt（9.5 KB）",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "0dd4cfc1122d65e9b919805a054ae2b7789206aa7ebc6ecca0d09e8848ea1902",
+    "bytes": 9738
+   },
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/253730c6228b350c-90d7bc2c/e2-editor.html?fileId=76",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     }
+    ],
+    "loadingFailed": [
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     }
+    ],
+    "errorLogs": [],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/Readme.md",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": "(<opaquelocktoken:770c09b6-5b3e-42c8-ac28-394b2bd81bb6>)",
+     "timeout": "Second-361"
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": "(<opaquelocktoken:770c09b6-5b3e-42c8-ac28-394b2bd81bb6>)",
+     "timeout": "Second-421"
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": "(<opaquelocktoken:770c09b6-5b3e-42c8-ac28-394b2bd81bb6>)",
+     "timeout": "Second-481"
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": "(<opaquelocktoken:770c09b6-5b3e-42c8-ac28-394b2bd81bb6>)",
+     "timeout": "Second-541"
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": "(<opaquelocktoken:770c09b6-5b3e-42c8-ac28-394b2bd81bb6>)",
+     "timeout": "Second-601"
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E9%AA%A8%E6%9E%B6%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"6ac3df1508240\"",
+     "if": "(<opaquelocktoken:770c09b6-5b3e-42c8-ac28-394b2bd81bb6>)",
+     "timeout": null
+    }
+   ],
+   "dialogs": [],
+   "locksAtEnd": {
+    "status": 207,
+    "etag": "\"cbb00169cf94adbcb62306025995a733\"",
+    "fileid": "76",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:770c09b6-5b3e-42c8-ac28-394b2bd81bb6"
+   },
+   "clearedAtEnd": "1"
+  }
+ ],
+ "setup": {
+  "targets": {
+   "rw": "M3 骨架 測試.odt",
+   "ro": "M3 鎖 唯讀.odt",
+   "folder": "M3 鎖 唯讀資料夾"
+  },
+  "fileIds": {
+   "M3 骨架 測試.odt": 76,
+   "M3 鎖 唯讀.odt": 7513,
+   "M3 鎖 唯讀資料夾/M3 鎖 資料夾內.odt": 7515
+  }
+ }
+}

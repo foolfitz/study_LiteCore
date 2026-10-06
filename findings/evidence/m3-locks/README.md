@@ -122,3 +122,12 @@ Written before `runs/` has any report, because of the Chrome K7 cell above:
 
 `runs/2026-09-28T131020+0000.json`: **`LOCKS LAND`**, 52/52 runs, no red, so none of the
 rules above was invoked. Red cases against it: 87 `red`, nothing else. Read `RESULT.md`.
+
+## Interrupted shakedown on host 0.2.6 (2026-10-05, SPEC-M3-production-ui)
+
+`shakedown/2026-10-05T173027+0000.json` — part of a background chain that ran the six M3 runners
+one at a time on host 0.2.6 `fa08307` with page `d41ae604…` (before the B1 fix). The machine shut
+down at 01:43 local (17:43 UTC) during `heartbeat` in Firefox, so the report has no `score` and no
+`completedAt`. The five arms it finished pass with the runner's own `score_arm`: `hold` and
+`closetab` in both browsers, `heartbeat` in Chrome. Kept as the record of what ran; superseded by
+the runs on host 0.2.7 and page `e97d6e03…` (SPEC-M3-production-ui §11), which are the ones that count.
