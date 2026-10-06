@@ -56,6 +56,13 @@
 // than merge (removes an indent, stops counting a heading), does a later press
 // reach what the select arm's single delete gives?
 
+// MERGE_ESHAPE=1 (R0c, SPEC-M3-paragraph-merge 16.2): the b arm takes the
+// E shape instead of the unshifted restore -- K1 (Shift+arrow, as before),
+// .uno:Escape, K2 (Shift+arrow back), .uno:Escape, then the key.  Each step's
+// readback (with the START/END its flush sent, cleared right before the step)
+// and the .uno:Undo payload after each Escape are recorded; no unshifted arrow
+// is pressed.  Nothing selected at K1: no Escape, no K2, no key.
+
 #define LOK_USE_UNSTABLE_API
 
 #include <LibreOfficeKit/LibreOfficeKit.h>
@@ -403,6 +410,53 @@ Readback placeAndCheck(LibreOfficeKitDocument *document, const Case &c,
   return readSelection(document);
 }
 
+bool eshape() {
+  const char *value = std::getenv("MERGE_ESHAPE");
+  return value && std::string(value) == "1";
+}
+
+// R0c: the rest of the b arm in the E shape (16.2), after K1's readback.
+void runEShape(LibreOfficeKitDocument *document, const Case &c,
+               const Readback &unit, const std::string &undoStart,
+               const std::string &stem) {
+  std::cout << ",\"eshape\":true,\"undoStart\":\"" << jsonEscape(undoStart) << "\"";
+  if (unit.type == LOK_SELTYPE_NONE) {
+    std::cout << ",\"eshapeStop\":\"nothing-selected\""
+              << ",\"saved\":" << (saveAs(document, stem + "-b.odt") ? "true" : "false");
+    return;
+  }
+  clearSelectionEnds();
+  const std::string esc1Result = dispatch(document, ".uno:Escape");
+  drain(700);
+  const Readback esc1 = readSelection(document);
+  std::cout << ",\"esc1Result\":\"" << jsonEscape(esc1Result)
+            << "\",\"esc1\":" << readbackJson(esc1)
+            << ",\"esc1Undo\":\"" << jsonEscape(commandValues(document, ".uno:Undo")) << "\"";
+  clearSelectionEnds();
+  key(document, (c.backward ? kRight : kLeft) | kShift);
+  drain(700);
+  std::cout << ",\"k2\":" << readbackJson(readSelection(document));
+  clearSelectionEnds();
+  const std::string esc2Result = dispatch(document, ".uno:Escape");
+  drain(700);
+  const Readback esc2 = readSelection(document);
+  std::cout << ",\"esc2Result\":\"" << jsonEscape(esc2Result)
+            << "\",\"esc2\":" << readbackJson(esc2)
+            << ",\"esc2Undo\":\"" << jsonEscape(commandValues(document, ".uno:Undo")) << "\""
+            << ",\"undoBefore\":" << undoJson(document);
+  key(document, c.backward ? kBackspace : kDelete);
+  drain(900);
+  std::cout << ",\"undoAfter\":" << undoJson(document)
+            << ",\"after\":" << readbackJson(readSelection(document))
+            << ",\"saved\":" << (saveAs(document, stem + "-b.odt") ? "true" : "false");
+  if (!followText().empty()) {
+    typeText(document, followText());
+    std::cout << ",\"follow\":\"" << jsonEscape(followText())
+              << "\",\"followSaved\":"
+              << (saveAs(document, stem + "-b-follow.odt") ? "true" : "false");
+  }
+}
+
 void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
              const std::string &outDir, int presses) {
   const std::string stem =
@@ -488,11 +542,15 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
       std::cout << ",\"pretype\":\"" << jsonEscape(c.pretype)
                 << "\",\"typedAt\":" << readbackJson(typedAt);
     const Readback &origin = c.pretype.empty() ? placed : typedAt;
+    const std::string undoStart = eshape() ? commandValues(document, ".uno:Undo") : "";
     clearSelectionEnds();
     key(document, (c.backward ? kLeft : kRight) | kShift);
     drain(700);
     const Readback bUnit = readSelection(document);
     std::cout << ",\"unit\":" << readbackJson(bUnit);
+    if (eshape()) {
+      runEShape(document, c, bUnit, undoStart, stem);
+    } else {
     // Nothing selected (a document's start or end): there is no step to take
     // back, and an unshifted arrow would MOVE the caret (shakedown
     // round-20261006T080850Z: at C29 it moved right and Backspace deleted
@@ -536,6 +594,7 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
       std::cout << ",\"follow\":\"" << jsonEscape(followText())
                 << "\",\"followSaved\":"
                 << (saveAs(document, stem + "-b-follow.odt") ? "true" : "false");
+    }
     }
     document->pClass->destroy(document);
     std::cout << "}" << std::endl;
