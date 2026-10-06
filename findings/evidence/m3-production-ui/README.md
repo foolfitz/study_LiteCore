@@ -74,6 +74,14 @@ socket's 1 MiB frame limit. The runner's Chrome side now disables the Network do
   key (review item 13): the unsaved mark appeared 0.49 s (Chrome) / 0.14 s (Firefox) after the key.
   S compared 1065 (Chrome) / 974 (Firefox) properties over 285 elements, `--accent` resolves in the
   container, 0 elements outside change.
+- `shake4-0.2.7-focus.json` (host 0.2.7 `0488586`, engine buildId `fabdb50e…`, page `e97d6e03…`
+  with the focus fix `bc95b342`, session `3f5f754b…`): B3x, Bdel, Bbs, both browsers, **all pass**.
+  B3x: every key typed after a reopen without clicking landed (revision 0→1→2→3 in generations 2
+  and 3); third refusal not restarted; `data-limit=saved` 0.78 s (Chrome) / 1.09 s (Firefox) after
+  the key, the host's last save `settled`/`saved`; `zqa`, `zqb`, `zqc` all in the server's file with
+  no save pressed; the host's unsaved mark gone 0.51 s / 0.31 s later; the reload through the
+  notice's button was not asked about (the recorder saw the `beforeunload` fire); generation 1
+  after it, the host's lock `held`, and the page opened the rescued bytes.
 - Re-scored with the final scorer and `--expect-red` (review item 17): `prefix/prefix-0.2.5.json`,
   `prefix-0.2.5-chrome-rerun.json` and `b3x-red-0.2.6-prefix.json` stay red for their original
   reasons (S additionally red on the two fields those older reports do not have); Bctl, the positive
