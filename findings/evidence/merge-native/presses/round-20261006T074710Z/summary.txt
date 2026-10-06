@@ -1,0 +1,18 @@
+C01 ⌦ body|body (positive control)     unit[type 1 cp [10] rects 3]  ['same']  undo=[True]  presses-to-match=[1, 1, 1]
+C02 ⌫ body|body                        unit[type 1 cp [10] rects 3]  ['same']  undo=[True]  presses-to-match=[1, 1, 1]
+C03 ⌫ body|numbered heading            unit[type 1 cp [10, 49, 46, 32] rects 3]  ['differs']  undo=[True]  presses-to-match=[2, 2, 2]
+      select-vs-key: - p [Text_20_body] 'M02 plain beta'
+      select-vs-key: - h [Heading_20_1] outline=1 listHeader=true 'M03 heading gamma'
+      select-vs-key: + p [Text_20_body] 'M02 plain betaM03 heading gamma'
+C09 ⌫ body|bullet item                 unit[type 1 cp [10, 32, 32, 32, 32, 8226, 32] rects 3]  ['differs']  undo=[True]  presses-to-match=[2, 2, 2]
+      select-vs-key: - p [Text_20_body] 'M08 before list'
+      select-vs-key: - p [Text_20_body] list=['Bullets:header'] 'M09 item one'
+      select-vs-key: + p [Text_20_body] 'M08 before listM09 item one'
+C11 ⌫ bullet item|bullet item          unit[type 1 cp [32, 32, 32, 32, 8226, 32, 10, 32, 32, 32, 32, 8226, 32] rects 3]  ['differs']  undo=[True]  presses-to-match=[2, 2, 2]
+      select-vs-key: - p [Text_20_body] list=['Bullets'] 'M09 item one'
+      select-vs-key: - p [Text_20_body] list=['Bullets'] 'M10 item two'
+      select-vs-key: + p [Text_20_body] list=['Bullets'] 'M09 item oneM10 item two'
+C14 ⌫ numbered item|numbered item      unit[type 1 cp [32, 32, 32, 32, 32, 10, 32, 32, 32, 32, 50, 46, 32] rects 3]  ['differs']  undo=[True]  presses-to-match=[2, 2, 2]
+      select-vs-key: - p [Text_20_body] list=['Numbers'] 'M12 number one'
+      select-vs-key: - p [Text_20_body] list=['Numbers'] 'M13 number two'
+      select-vs-key: + p [Text_20_body] list=['Numbers'] 'M12 number oneM13 number two'

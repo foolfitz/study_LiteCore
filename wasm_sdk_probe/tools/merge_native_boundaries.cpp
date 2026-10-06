@@ -23,8 +23,21 @@
 //
 // CASES_TSV (optional) replaces the built-in cases, for another fixture: one
 // case per line, "id<TAB>anchor<TAB>backward 0|1<TAB>line 0|1<TAB>boundary",
-// blank lines and lines starting with '#' ignored.  The anchor must be the
-// whole paragraph (or line) and occur once before any other copy of it.
+// optionally a 6th field "occurrence" (default 1: the first copy of the anchor
+// from the document's start; 2 = the second, e.g. a heading's copy in the
+// table of contents), and a 7th "offset" (default 0: after the checked
+// placement, move the caret this many characters, Right if positive, Left if
+// negative, so a key arm can delete characters before it reaches the
+// boundary).  Blank lines and lines starting with '#' are ignored.  The anchor
+// must be the whole paragraph (or line).
+//
+// Every arm also records the undo stack's depth (getCommandValues
+// ".uno:UndoCount") around each dispatch and key press, and the top action
+// (".uno:Undo").  Added for the fourth round: the barrier's completion proof
+// (command success + collapsed selection) held for a delete that changed
+// nothing, inside a protected table of contents
+// (round-20261006T073914Z-second-search-fault); does the undo stack tell the
+// two apart?
 //
 // PRESSES (optional, default 1): the key arm presses its key this many times,
 // saving after each press (-key.odt, then -key2.odt, -key3.odt, ...).  Added
@@ -64,6 +77,8 @@ struct Case {
   bool backward;      // Backspace at the start (true) or Delete at the end
   bool line;          // position by line (the line-break cases), not paragraph
   std::string boundary;
+  int occurrence = 1;
+  int offset = 0;
 };
 
 const std::vector<Case> kCases = {
@@ -207,6 +222,19 @@ std::string readbackJson(const Readback &readback) {
   return out;
 }
 
+std::string commandValues(LibreOfficeKitDocument *document, const char *command) {
+  char *values = document->pClass->getCommandValues(document, command);
+  std::string out = values ? values : "";
+  std::free(values);
+  return out;
+}
+
+// The undo stack around a mutation: depth, and the top action's description.
+std::string undoJson(LibreOfficeKitDocument *document) {
+  return "{\"count\":\"" + jsonEscape(commandValues(document, ".uno:UndoCount")) +
+         "\",\"actions\":\"" + jsonEscape(commandValues(document, ".uno:Undo")) + "\"}";
+}
+
 void key(LibreOfficeKitDocument *document, int code) {
   document->pClass->postKeyEvent(document, LOK_KEYEVENT_KEYINPUT, 0, code);
   document->pClass->postKeyEvent(document, LOK_KEYEVENT_KEYUP, 0, code);
@@ -269,9 +297,11 @@ Readback position(LibreOfficeKitDocument *document, const Case &c,
   drain(300);
   // As e2b_native_crossparagraph.cpp: the search is posted without a result
   // request and given time; the selection readback below is the check.
-  document->pClass->postUnoCommand(document, ".uno:ExecuteSearch",
-                                   arguments.c_str(), false);
-  drain(900);
+  for (int hit = 0; hit < c.occurrence; ++hit) {
+    document->pClass->postUnoCommand(document, ".uno:ExecuteSearch",
+                                     arguments.c_str(), false);
+    drain(900);
+  }
   searchResult = readSelection(document).text;
   // Always to the start first.  The search leaves the caret at the anchor's
   // end, which IS the paragraph's end when the anchor is the whole paragraph,
@@ -311,6 +341,12 @@ Readback placeAndCheck(LibreOfficeKitDocument *document, const Case &c,
                             : (c.backward ? ".uno:GoToStartOfPara" : ".uno:GoToEndOfPara");
   dispatch(document, back, nullptr, 1500);
   drain(300);
+  for (int step = 0; step < (c.offset < 0 ? -c.offset : c.offset); ++step) {
+    key(document, c.offset < 0 ? kLeft : kRight);
+    drain(60);
+  }
+  if (c.offset)
+    drain(300);
   return readSelection(document);
 }
 
@@ -346,17 +382,65 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
       // The product refuses here (nothing to delete); so does this arm.
       std::cout << ",\"dispatched\":false";
     } else {
+      std::cout << ",\"undoBefore\":" << undoJson(document);
       const std::string result = dispatch(
           document, c.backward ? ".uno:SwBackspace" : ".uno:Delete");
       drain(400);
       std::cout << ",\"dispatched\":true,\"result\":\"" << jsonEscape(result)
-                << "\",\"after\":" << readbackJson(readSelection(document));
+                << "\",\"after\":" << readbackJson(readSelection(document))
+                << ",\"undoAfter\":" << undoJson(document);
       std::cout << ",\"saved\":" << (saveAs(document, stem + "-select.odt") ? "true" : "false");
       const std::string undo = dispatch(document, ".uno:Undo");
       drain(400);
       std::cout << ",\"undo\":\"" << jsonEscape(undo) << "\",\"undoSaved\":"
                 << (saveAs(document, stem + "-select-undo.odt") ? "true" : "false");
     }
+    document->pClass->destroy(document);
+    std::cout << "}" << std::endl;
+  }
+
+  // Arm "b": option B's sequence (fourth round).  The barrier's one-unit
+  // selection as today; then, instead of deleting it, the opposite arrow
+  // WITHOUT Shift takes the caret back one unit and drops the selection, and
+  // the user's own key is pressed.  (Shift + the opposite arrow came back to
+  // the caret too, but the key that followed changed nothing -- the empty
+  // selection kept its mark; shakedown round-20261006T080725Z, not counted.)  Its document must equal the key arm's, the caret must come back
+  // to where it was placed, and the undo stack is the completion readback.
+  {
+    LibreOfficeKitDocument *document = openDocument(kit, url);
+    std::cout << "{\"round\":" << round << ",\"case\":\"" << c.id
+              << "\",\"arm\":\"b\",\"boundary\":\"" << c.boundary
+              << "\",\"backward\":" << (c.backward ? "true" : "false");
+    if (!document) {
+      std::cout << ",\"fatal\":\"documentLoad\"}" << std::endl;
+      return;
+    }
+    std::string search, check;
+    const Readback placed = placeAndCheck(document, c, search, check);
+    std::cout << ",\"search\":\"" << jsonEscape(search)
+              << "\",\"placementCheck\":\"" << jsonEscape(check)
+              << "\",\"placementOk\":" << (check == c.anchor ? "true" : "false")
+              << ",\"placed\":" << readbackJson(placed);
+    key(document, (c.backward ? kLeft : kRight) | kShift);
+    drain(700);
+    const Readback bUnit = readSelection(document);
+    std::cout << ",\"unit\":" << readbackJson(bUnit);
+    // Nothing selected (a document's start or end): there is no step to take
+    // back, and an unshifted arrow would MOVE the caret (shakedown
+    // round-20261006T080850Z: at C29 it moved right and Backspace deleted
+    // "M").  The caret is left where it is, and the readback says where.
+    if (bUnit.type != LOK_SELTYPE_NONE) {
+      key(document, c.backward ? kRight : kLeft);
+      drain(700);
+    }
+    std::cout << ",\"restoreKeyPressed\":" << (bUnit.type != LOK_SELTYPE_NONE ? "true" : "false")
+              << ",\"restored\":" << readbackJson(readSelection(document))
+              << ",\"undoBefore\":" << undoJson(document);
+    key(document, c.backward ? kBackspace : kDelete);
+    drain(900);
+    std::cout << ",\"undoAfter\":" << undoJson(document)
+              << ",\"after\":" << readbackJson(readSelection(document))
+              << ",\"saved\":" << (saveAs(document, stem + "-b.odt") ? "true" : "false");
     document->pClass->destroy(document);
     std::cout << "}" << std::endl;
   }
@@ -376,10 +460,12 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
     std::cout << ",\"search\":\"" << jsonEscape(search)
               << "\",\"placementCheck\":\"" << jsonEscape(check)
               << "\",\"placementOk\":" << (check == c.anchor ? "true" : "false")
-              << ",\"placed\":" << readbackJson(placed);
+              << ",\"placed\":" << readbackJson(placed)
+              << ",\"undoBefore\":" << undoJson(document);
     key(document, c.backward ? kBackspace : kDelete);
     drain(900);
-    std::cout << ",\"after\":" << readbackJson(readSelection(document))
+    std::cout << ",\"undoAfter\":" << undoJson(document)
+              << ",\"after\":" << readbackJson(readSelection(document))
               << ",\"saved\":" << (saveAs(document, stem + "-key.odt") ? "true" : "false");
     if (presses > 1) {
       std::cout << ",\"laterPresses\":[";
@@ -387,6 +473,7 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
         key(document, c.backward ? kBackspace : kDelete);
         drain(900);
         std::cout << (press > 2 ? "," : "") << "{\"press\":" << press
+                  << ",\"undo\":" << undoJson(document)
                   << ",\"after\":" << readbackJson(readSelection(document))
                   << ",\"saved\":"
                   << (saveAs(document, stem + "-key" + std::to_string(press) + ".odt") ? "true" : "false")
@@ -410,11 +497,20 @@ std::vector<Case> readCases(const char *path) {
     std::stringstream split(row);
     for (std::string field; std::getline(split, field, '\t');)
       fields.push_back(field);
-    if (fields.size() != 5) {
-      std::cerr << "bad case row (want 5 tab-separated fields): " << row << "\n";
+    if (fields.size() < 5 || fields.size() > 7) {
+      std::cerr << "bad case row (want 5 to 7 tab-separated fields): " << row << "\n";
       std::exit(2);
     }
-    out.push_back({fields[0], fields[1], fields[2] == "1", fields[3] == "1", fields[4]});
+    Case c{fields[0], fields[1], fields[2] == "1", fields[3] == "1", fields[4]};
+    if (fields.size() >= 6)
+      c.occurrence = std::atoi(fields[5].c_str());
+    if (fields.size() == 7)
+      c.offset = std::atoi(fields[6].c_str());
+    if (c.occurrence < 1) {
+      std::cerr << "bad occurrence: " << row << "\n";
+      std::exit(2);
+    }
+    out.push_back(c);
   }
   return out;
 }
