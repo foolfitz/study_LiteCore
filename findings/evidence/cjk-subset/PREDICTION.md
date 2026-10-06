@@ -45,3 +45,7 @@ Basis: fable's derivation from the CFF charstrings (§7.2 of the research file),
 **Instrument change:** layout features = fontTools' default set (it mirrors shapers' defaults plus the vertical features) minus `locl`. The instrument description above ("all layout features except `locl`") is superseded by this line. Registered consequence: a document that names an optional feature (e.g. `Noto Sans CJK TC:fwid`) gets default forms for glyphs not kept.
 
 **Predictions for the corrected policy** (the shakedown measured the old policy only): the table above stands as written — C glyphs 19,000–21,000 / zstd 3.8–4.7 MB; E 24,600–27,000 / 4.8–5.9; F 42,000–45,000 / 6.9–8.4. Coverage and identity 0 failures. The shakedown's 7 corpus documents with misses at tier C are expected to remain at C (code points outside Big5/HKSCS in test fixtures, e.g. kana or Hangul) and to drop at E or F.
+
+## Amendment 2 (2026-10-07, after the counted run of the corrected policy)
+
+The counted run (`result-before-combining.json`, kept) showed U+0301 and U+0304 missing at every tier in two fixtures: the base set left out Combining Diacritical Marks (U+0300–U+036F), which decomposed Latin text uses. A gap in the instrument, not a coverage choice: added to the base set, all three tiers rebuilt. Expected effect: those two misses disappear at every tier, sizes change by a few KB; nothing else moves.
