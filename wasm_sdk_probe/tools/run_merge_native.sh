@@ -24,9 +24,14 @@ echo "== compiling =="
 g++ -std=c++17 -O2 -I"$src/include" \
   "$here/tools/merge_native_boundaries.cpp" -ldl -lpthread -o "$probe"
 
-fixture="$here/test-docs/merge/boundaries.fodt"
-[ -f "$fixture" ] || { echo "fixture missing: $fixture" >&2; exit 1; }
-sha256sum "$fixture" "$here/tools/merge_native_boundaries.cpp" > "$round_dir/inputs.sha256"
+source_fixture="$here/test-docs/merge/boundaries.fodt"
+[ -f "$source_fixture" ] || { echo "fixture missing: $source_fixture" >&2; exit 1; }
+# A copy per round: LibreOffice writes a lock file next to whatever it loads,
+# and a killed run's lock made the next run load the document read-only
+# (round-20261006T063803Z-read-only-fault: every save equal to the original).
+fixture="$round_dir/boundaries.fodt"
+cp "$source_fixture" "$fixture"
+sha256sum "$source_fixture" "$here/tools/merge_native_boundaries.cpp" > "$round_dir/inputs.sha256"
 
 echo "== running ($rounds rounds) =="
 set +e
@@ -35,7 +40,7 @@ SAL_USE_VCLPLUGIN=svp \
   >"$round_dir/arms.jsonl" 2>"$round_dir/sal.log"
 status=$?
 set -e
-rm -rf "$profile_dir" "$probe"
+rm -rf "$profile_dir" "$probe"; rm -f "$round_dir"/.~lock.*
 echo "== exit: $status =="
 echo "round: $round_dir"
 exit "$status"

@@ -248,12 +248,19 @@ Readback position(LibreOfficeKitDocument *document, const Case &c,
                                    arguments.c_str(), false);
   drain(900);
   searchResult = readSelection(document).text;
-  const char *move = c.line ? (c.backward ? ".uno:GoToStartOfLine"
-                                          : ".uno:GoToEndOfLine")
-                            : (c.backward ? ".uno:GoToStartOfPara"
-                                          : ".uno:GoToEndOfPara");
-  dispatch(document, move, nullptr, 1500);
-  drain(400);
+  // Always to the start first.  The search leaves the caret at the anchor's
+  // end, which IS the paragraph's end when the anchor is the whole paragraph,
+  // and GoToEndOfPara from a paragraph's end goes on to the NEXT paragraph's
+  // end (the first run, round-20261006T063607Z-instrument-fault, measured
+  // P2's boundary for C01 that way).  From the start, the end is this one's.
+  dispatch(document, c.line ? ".uno:GoToStartOfLine" : ".uno:GoToStartOfPara",
+           nullptr, 1500);
+  drain(300);
+  if (!c.backward) {
+    dispatch(document, c.line ? ".uno:GoToEndOfLine" : ".uno:GoToEndOfPara",
+             nullptr, 1500);
+    drain(300);
+  }
   return readSelection(document);
 }
 
@@ -274,9 +281,19 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
       return;
     }
     std::string search;
+    // Placement self-check: from the caret to the paragraph's (line's) far
+    // edge must be exactly the anchor, or this case measured another boundary.
+    position(document, c, search);
+    const char *edge = c.line ? (c.backward ? ".uno:EndOfLineSel" : ".uno:StartOfLineSel")
+                              : (c.backward ? ".uno:EndOfParaSel" : ".uno:StartOfParaSel");
+    dispatch(document, edge, nullptr, 1500);
+    drain(300);
+    const Readback check = readSelection(document);
     const Readback placed = position(document, c, search);
-    std::cout << ",\"search\":\"" << jsonEscape(search) << "\",\"placed\":"
-              << readbackJson(placed);
+    std::cout << ",\"search\":\"" << jsonEscape(search)
+              << "\",\"placementCheck\":\"" << jsonEscape(check.text)
+              << "\",\"placementOk\":" << (check.text == c.anchor ? "true" : "false")
+              << ",\"placed\":" << readbackJson(placed);
     key(document, (c.backward ? kLeft : kRight) | kShift);
     drain(700);
     const Readback unit = readSelection(document);
