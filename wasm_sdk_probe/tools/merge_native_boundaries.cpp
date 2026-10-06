@@ -51,6 +51,7 @@
 #include <LibreOfficeKit/LibreOfficeKitEnums.h>
 #include <LibreOfficeKit/LibreOfficeKitInit.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -429,11 +430,33 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
     // back, and an unshifted arrow would MOVE the caret (shakedown
     // round-20261006T080850Z: at C29 it moved right and Backspace deleted
     // "M").  The caret is left where it is, and the readback says where.
+    //
+    // MERGE_RESTORE_PRESSES (sixth round, default 1): press the restore arrow
+    // again, up to that many times in all, while the caret is not back at the
+    // placed caret.  Round four's C08 (Delete before a bullet item) stopped in
+    // front of the item's label after one press; the question is whether a
+    // second press reaches the placed caret.  Every intermediate readback is
+    // recorded.
+    int restoreMax = 1;
+    if (const char *value = std::getenv("MERGE_RESTORE_PRESSES"))
+      restoreMax = std::max(1, std::atoi(value));
+    int restorePresses = 0;
+    std::string restoreSteps;
     if (bUnit.type != LOK_SELTYPE_NONE) {
-      key(document, c.backward ? kRight : kLeft);
-      drain(700);
+      for (int press = 0; press < restoreMax; ++press) {
+        key(document, c.backward ? kRight : kLeft);
+        drain(700);
+        ++restorePresses;
+        const Readback step = readSelection(document);
+        restoreSteps += (restoreSteps.empty() ? "" : ",") + readbackJson(step);
+        if (step.type == LOK_SELTYPE_NONE && !placed.cursor.empty() &&
+            step.cursor == placed.cursor)
+          break;
+      }
     }
     std::cout << ",\"restoreKeyPressed\":" << (bUnit.type != LOK_SELTYPE_NONE ? "true" : "false")
+              << ",\"restorePresses\":" << restorePresses
+              << ",\"restoreSteps\":[" << restoreSteps << "]"
               << ",\"restored\":" << readbackJson(readSelection(document))
               << ",\"undoBefore\":" << undoJson(document);
     key(document, c.backward ? kBackspace : kDelete);

@@ -132,6 +132,8 @@ def main() -> int:
             steps[0]["equalsKeyBlocks"] = key_doc.exists() and _native.document(
                 stem.parent / f"{stem.name}-b.odt") == _native.document(key_doc)
             steps[0]["unit"] = (arm.get("unit") or {}).get("codePoints")
+            # Sixth round: how many restore presses it took (absent before).
+            steps[0]["restorePresses"] = arm.get("restorePresses")
         key = f"{arm['case']} {arm['arm']}"
         out.setdefault(key, {"boundary": arm["boundary"], "result": (arm.get("result") or "")[:90],
                              "rounds": {}})["rounds"][arm["round"]] = steps
@@ -144,7 +146,9 @@ def main() -> int:
             for s in steps:
                 mark = "" if s["agree"] else "  <-- DISAGREE"
                 if "equalsKey" in s:
+                    presses = s.get("restorePresses")
                     mark += (f"  restore={'ok' if s['restoredCollapsed'] and s['restoredAtPlacedCaret'] else 'FAILED'}"
+                             f"{'' if presses in (None, 1) else '/' + str(presses)}"
                              f" =key={'Y' if s['equalsKeyBlocks'] else 'NO'}"
                              f"{'' if s['equalsKey'] == s['equalsKeyBlocks'] else '(bytes ' + ('Y' if s['equalsKey'] else 'n') + ')'}")
                 if limit is not None:

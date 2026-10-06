@@ -36,6 +36,12 @@ XCU
   echo "MERGE_UNDO_STEPS=$MERGE_UNDO_STEPS" > "$round_dir/undo-steps.txt"
 fi
 
+# MERGE_RESTORE_PRESSES (sixth round): the probe's arm b may press the
+# restore arrow up to that many times; recorded beside the round.
+if [ -n "${MERGE_RESTORE_PRESSES:-}" ]; then
+  echo "MERGE_RESTORE_PRESSES=$MERGE_RESTORE_PRESSES" > "$round_dir/restore-presses.txt"
+fi
+
 probe="$round_dir/merge-native-boundaries"
 echo "== compiling =="
 g++ -std=c++17 -O2 -I"$src/include" \
