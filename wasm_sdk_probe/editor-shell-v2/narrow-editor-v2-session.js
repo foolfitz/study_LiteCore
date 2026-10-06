@@ -424,6 +424,57 @@ export class NarrowEditorV2Session extends EditorSession {
   }
 
   /**
+   * Would `restart()` get a fresh Worker, or hit the generation ceiling?
+   *
+   * B1 (specs/SPEC-M3-production-ui.md §8, §9).  Asked BEFORE `restart()`,
+   * because `restart()` disposes the live engine first and only then does
+   * `_openFresh` check the ceiling (editor-shell/editor-session.js:148).  A
+   * host that restarts on the user's behalf without asking turned the third
+   * boundary refusal of a page load back into finding 109: engine gone, save
+   * refused, the work alive only in the checkpoint bytes.
+   */
+  restartAvailable() {
+    return this._generation < this._maxWorkerGenerations;
+  }
+
+  /**
+   * The bytes a restart would reopen, handed out as SAVED -- for a host that
+   * cannot restart any more and must put the work somewhere before a reload.
+   *
+   * Only from a stopped session (nothing in flight can move the content stamp)
+   * and only when `restartKeepsContent()` holds: anything else would hand out
+   * older bytes as if they were the work.  `null` otherwise, and nothing is
+   * touched.  Marking clean at the hand-over is `save()`'s convention: the host
+   * write that follows is covered by the page's `savesUnsettled`, and a write
+   * that fails is the host's to strand and guard (finding 108).  Left dirty,
+   * the reload the user is asked for would be guarded for nothing.
+   */
+  takeContentForRescue() {
+    if (!["restart-required", "recoverable-error"].includes(this.state.snapshot.state)
+        || !this.restartKeepsContent())
+      return null;
+    const useCheckpoint = this._checkpointBytes !== null
+      && this._checkpointStamp !== null
+      && this._checkpointStamp > this._authorityStamp;
+    if (useCheckpoint) {
+      this._authorityBytes = this._checkpointBytes.slice(0);
+      this._authorityStamp = this._checkpointStamp;
+    }
+    this._checkpointBytes = null;
+    this._checkpointRevision = null;
+    this._checkpointStamp = null;
+    this._checkpointError = null;
+    this.state.update({
+      dirty: false,
+      hasSavedBytes: true,
+      hasCheckpoint: false,
+      checkpointRevision: null,
+      checkpointError: null,
+    });
+    return this._authorityBytes.slice(0);
+  }
+
+  /**
    * Any of the fifteen, through the same queue as everything else.
    *
    * The queue is the point.  A paragraph action that ran outside it could

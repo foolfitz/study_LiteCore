@@ -1140,3 +1140,182 @@ test("finding 109: after a save, the saved bytes are what a restart keeps", asyn
   await f.session.action("set-italic", { enabled: true });
   assert.equal(f.session.restartKeepsContent(), false);
 });
+
+// -------------------------------------------------- B1 (the generation ceiling)
+//
+// specs/SPEC-M3-production-ui.md §8, §9, criterion A1-4.  The Worker
+// generation ceiling is 3 and opening the document takes one, so the third
+// boundary refusal of a page load cannot restart.  `restart()` disposes the
+// engine before `_openFresh` checks the ceiling, so the question has to be
+// asked before it.
+
+/** Refuse a boundary delete on a dirty document; `n` such refusals so far. */
+async function refuseDirty(f) {
+  await f.session.action("set-bold", { enabled: true });
+  await f.session.action("delete-forward").catch(() => {});
+  assert.equal(f.session.state.snapshot.state, "restart-required");
+}
+
+const disposals = (f) => f.calls.filter((call) => call === "dispose").length;
+
+test("B1: two refusals restart, and the third finds no generation left", async () => {
+  const f = await boundary();
+  for (const generation of [1, 2]) {
+    assert.equal(f.session.state.snapshot.generation, generation);
+    await refuseDirty(f);
+    assert.equal(f.session.restartAvailable(), true, `refusal ${generation}`);
+    await f.session.restart();
+  }
+  assert.equal(f.session.state.snapshot.generation, 3);
+  await refuseDirty(f);
+  assert.equal(f.session.restartAvailable(), false,
+               "a restart from here disposes the engine and is then refused");
+});
+
+test("B1: at the ceiling the refusal's content is handed out as saved, and the "
+     + "engine is left alone", async () => {
+  const f = await boundary();
+  for (let i = 0; i < 2; i += 1) {
+    await refuseDirty(f);
+    await f.session.restart();
+  }
+  await refuseDirty(f);
+  assert.deepEqual(f.banked.length, 3);
+  const bytes = f.session.takeContentForRescue();
+  assert.equal(new Uint8Array(bytes)[0], 103,
+               "handed out something other than the third refusal's checkpoint");
+  assert.equal(f.session.hasUnsavedEdits(), false,
+               "handed out but still dirty: the reload the user is asked for would be guarded");
+  assert.equal(f.session.state.snapshot.hasCheckpoint, false);
+  assert.equal(f.session.restartKeepsContent(), true);
+  assert.equal(disposals(f), 2, "the hand-over disposed the engine");
+  assert.equal(f.session.state.snapshot.state, "restart-required");
+  // A second ask hands out the same content (now the authority), not older bytes.
+  assert.equal(new Uint8Array(f.session.takeContentForRescue())[0], 103);
+});
+
+test("B1: a checkpoint that could not be written is not handed out", async () => {
+  const f = await boundary();
+  await f.session.action("set-bold", { enabled: true });
+  f.document.save = async () => { throw new Error("disk is gone"); };
+  await f.session.action("delete-forward").catch(() => {});
+  assert.equal(f.session.takeContentForRescue(), null);
+  assert.equal(f.session.state.snapshot.dirty, true, "a refused hand-over marked the work saved");
+});
+
+test("B1: never from a running session, even with a checkpoint in hand", async () => {
+  const f = await boundary();
+  await f.session.action("set-bold", { enabled: true });
+  await f.session.action("move-line-end");
+  assert.equal(f.session.state.snapshot.hasCheckpoint, true);
+  assert.equal(f.session.state.snapshot.state, "ready");
+  assert.equal(f.session.takeContentForRescue(), null);
+  assert.equal(f.session.state.snapshot.dirty, true);
+  assert.equal(f.session.state.snapshot.hasCheckpoint, true);
+});
+
+// The page half.  The page's functions are taken from its source and compiled
+// with exactly the names below in scope (page-unsaved-work.test.mjs does the
+// same for `hasUnsavedWork`); anything else they read is a ReferenceError.
+
+const PAGE_SOURCE = readFileSync(
+  fileURLToPath(new URL("../../web/e2-editor-app.js", import.meta.url)), "utf8");
+
+function pageFunction(name) {
+  const match = PAGE_SOURCE.match(
+    new RegExp(`^(?:async )?function ${name}\\(\\) \\{\\n[\\s\\S]*?\\n\\}$`, "m"));
+  assert.ok(match, `${name}() not found in the page`);
+  return match[0];
+}
+
+function page(session, { saveFails = false } = {}) {
+  const world = {
+    limit: { state: null }, toasts: [], saved: [], focused: 0, renders: 0,
+  };
+  const names = ["session", "limit", "toast", "BOUNDARY_TEXT", "run", "el",
+                 "updateState", "saveDocument"];
+  const source = ["reopenAfterBoundaryRefusal", "limitState", "takeRescueContent",
+                  "rescueAtGenerationLimit"].map(pageFunction).join("\n")
+    + "\nreturn { reopenAfterBoundaryRefusal, limitState, rescueAtGenerationLimit };";
+  // eslint-disable-next-line no-new-func
+  const compiled = new Function(...names, source)(
+    session, world.limit, (text) => world.toasts.push(text), "BOUNDARY",
+    async (label, operation) => operation(),
+    { sink: { focus() { world.focused += 1; } } },
+    () => { world.renders += 1; },
+    async (take) => {
+      const { bytes } = await take();
+      if (saveFails) throw Object.assign(new Error("412"), { code: "CONFLICT" });
+      world.saved.push(new Uint8Array(bytes)[0]);
+    });
+  return Object.assign(world, compiled);
+}
+
+test("B1 (page): the third refusal does not restart; its content goes to the "
+     + "save path", async () => {
+  const f = await boundary();
+  const p = page(f.session);
+  for (const generation of [2, 3]) {
+    await refuseDirty(f);
+    await p.reopenAfterBoundaryRefusal();
+    assert.equal(f.session.state.snapshot.generation, generation);
+    assert.equal(f.session.state.snapshot.state, "ready");
+  }
+  assert.equal(p.focused, 2, "the input sink was not given back its focus after a reopen");
+  await refuseDirty(f);
+  await p.reopenAfterBoundaryRefusal();
+  assert.equal(disposals(f), 2, "the page restarted at the ceiling");
+  assert.equal(f.session.state.snapshot.state, "restart-required");
+  assert.deepEqual(p.saved, [103], "the save did not carry the third refusal's content");
+  assert.equal(p.limit.state, "saved");
+  assert.equal(p.limitState(), "saved");
+  assert.equal(f.session.hasUnsavedEdits(), false);
+  // Everything queued behind the refused delete calls in again: one rescue only.
+  await p.reopenAfterBoundaryRefusal();
+  assert.deepEqual(p.saved, [103]);
+});
+
+test("B1 (page): a failed write stays `failed`, and is not retried into `clean`", async () => {
+  const f = await boundary();
+  const p = page(f.session, { saveFails: true });
+  for (let i = 0; i < 2; i += 1) {
+    await refuseDirty(f);
+    await p.reopenAfterBoundaryRefusal();
+  }
+  await refuseDirty(f);
+  await p.reopenAfterBoundaryRefusal();
+  assert.equal(p.limit.state, "failed");
+  await p.rescueAtGenerationLimit();
+  assert.equal(p.limitState(), "failed");
+});
+
+test("B1 (page): nothing unsaved at the ceiling is `clean` and saves nothing", async () => {
+  const f = await boundary();
+  const p = page(f.session);
+  for (let i = 0; i < 2; i += 1) {
+    await refuseDirty(f);
+    await p.reopenAfterBoundaryRefusal();
+  }
+  await f.session.save();
+  await f.session.action("delete-forward").catch(() => {});
+  await p.reopenAfterBoundaryRefusal();
+  assert.equal(p.limit.state, "clean");
+  assert.deepEqual(p.saved, []);
+  assert.equal(disposals(f), 2);
+});
+
+test("B1 (page): unsaved work that cannot be kept is `lost`, not saved", async () => {
+  const f = await boundary();
+  const p = page(f.session);
+  for (let i = 0; i < 2; i += 1) {
+    await refuseDirty(f);
+    await p.reopenAfterBoundaryRefusal();
+  }
+  await f.session.action("set-bold", { enabled: true });
+  f.document.save = async () => { throw new Error("disk is gone"); };
+  await f.session.action("delete-forward").catch(() => {});
+  await p.reopenAfterBoundaryRefusal();
+  assert.equal(p.limit.state, "lost");
+  assert.deepEqual(p.saved, []);
+  assert.equal(f.session.hasUnsavedEdits(), true, "the loss must still guard the reload");
+});

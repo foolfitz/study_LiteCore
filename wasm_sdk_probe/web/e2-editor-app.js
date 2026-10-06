@@ -644,6 +644,19 @@ function updateState(snapshot) {
     // 054 and 061.
     el.noticeAction.disabled = !notice.restartPossible;
   }
+  // B1.  At the generation ceiling the notice's restart would dispose the
+  // engine and then be refused, so the page says what it did instead, and its
+  // one button reloads the page (or, if nothing was attempted yet, saves).
+  // The state is stamped for the same reason `data-rescue` is.
+  if (notice.visible && session && !session.restartAvailable()) {
+    const state = limitState();
+    el.notice.dataset.limit = state;
+    el.noticeText.textContent = LIMIT_TEXT[state]();
+    el.noticeAction.textContent = state === "pending" ? "存回" : "重新整理頁面";
+    el.noticeAction.disabled = state === "saving";
+  } else {
+    delete el.notice.dataset.limit;
+  }
   updateGestureAffordance();
   updateRedoAffordance();
   applySessionAvailability(snapshot);
@@ -1011,6 +1024,15 @@ async function reopenAfterBoundaryRefusal() {
   // rejected with the same error, so this runs once per rejected item; only
   // the first finds the session still waiting for a restart.
   if (session?.state?.snapshot?.state !== "restart-required") return;
+  // B1 (specs/SPEC-M3-production-ui.md §9).  FIRST, before anything that
+  // restarts: `restart()` disposes the engine and only then meets the Worker
+  // generation ceiling, so the third refusal of a page load used to end with
+  // no engine, save refused, and the work alive only in the checkpoint.
+  if (!session.restartAvailable()) {
+    toast(`${BOUNDARY_TEXT}。這個頁面不能再重新載入編輯引擎了——請看上方的說明。`, true);
+    await rescueAtGenerationLimit();
+    return;
+  }
   if (!session.restartKeepsContent()) {
     toast(`${BOUNDARY_TEXT}，但沒能先保住尚未儲存的修改——請看上方的說明。`, true);
     return;
@@ -1019,10 +1041,74 @@ async function reopenAfterBoundaryRefusal() {
   toast(`${BOUNDARY_TEXT}，正在重新載入…`);
   try {
     await run("重新載入", () => session.restart());
-    toast(`${BOUNDARY_TEXT}，已重新載入${unsaved ? "；尚未儲存的修改都還在" : ""}。`);
+    // The refusal disabled the input sink (input-adapter `setBlocked`), and a
+    // disabled element loses focus; without this the user's next keys went
+    // to the page body (review 2026-10-06, item 3).
+    el.sink.focus();
+    // "Before this key", not "all unsaved work": the queue is FIFO, so what
+    // was queued ahead of the refused delete is in the checkpoint, and what was
+    // typed after it was rejected with it (review 2026-10-06, item 2).
+    toast(`${BOUNDARY_TEXT}，已重新載入${unsaved ? "；按這一鍵之前的修改都還在" : ""}。`);
   } catch {
     // run() has already said why.
   }
+}
+
+const LIMIT_LEAD = "這個頁面不能再重新載入編輯引擎了。";
+const LIMIT_TEXT = {
+  saving: () => `${LIMIT_LEAD}正在把你的修改${HOST ? "存回" : "下載"}…`,
+  saved: () => HOST
+    ? `${LIMIT_LEAD}你的修改已經存回。請重新整理頁面，就能繼續編輯。`
+    : `${LIMIT_LEAD}你的修改已經下載。請重新整理頁面，再開啟剛下載的檔案。`,
+  failed: () => HOST
+    ? `${LIMIT_LEAD}存回沒有成功。請先用上方的「下載這份內容」把修改存下來，再重新整理頁面。`
+    : `${LIMIT_LEAD}下載沒有成功。重新整理頁面會失去自上次儲存以來的修改。`,
+  clean: () => `${LIMIT_LEAD}沒有尚未儲存的修改。請重新整理頁面，就能繼續編輯。`,
+  lost: () => `${LIMIT_LEAD}自上次儲存以來的修改沒能保住。重新整理頁面就能繼續編輯。`,
+  pending: () => `${LIMIT_LEAD}請先存回尚未儲存的修改，再重新整理頁面。`,
+};
+
+// B1: what this page load did at the generation ceiling.  `null` until a
+// rescue is attempted; then `saving`, `saved`, `failed`, `clean` or `lost`.
+// At most one attempt per page load: after it the session is clean (the
+// content was handed out as saved), so a second attempt would find nothing
+// and report `clean` over a failed write -- and a failed write is the host's
+// to strand and offer for download (finding 108).
+const limit = { state: null };
+
+/** What the notice says at the ceiling; `pending` = nothing attempted yet. */
+function limitState() {
+  if (limit.state !== null) return limit.state;
+  if (!session.hasUnsavedEdits()) return "clean";
+  return session.restartKeepsContent() ? "pending" : "lost";
+}
+
+/** The bytes a restart would have reopened, through the ordinary save path. */
+function takeRescueContent() {
+  const bytes = session.takeContentForRescue();
+  if (!bytes) {
+    const error = new Error("the session holds no bytes that keep its content");
+    error.code = "RESCUE_UNAVAILABLE";
+    throw error;
+  }
+  return { bytes };
+}
+
+async function rescueAtGenerationLimit() {
+  if (limit.state !== null) return;
+  if (!session.hasUnsavedEdits()) limit.state = "clean";
+  else if (!session.restartKeepsContent()) limit.state = "lost";
+  else limit.state = "saving";
+  updateState(session.state.snapshot);
+  if (limit.state !== "saving") return;
+  try {
+    await saveDocument(takeRescueContent);
+    limit.state = "saved";
+  } catch {
+    // run() has already said why; with a host, the host holds the bytes.
+    limit.state = "failed";
+  }
+  updateState(session.state.snapshot);
 }
 
 async function run(label, operation) {
@@ -1177,7 +1263,12 @@ async function insertText() {
 // not enough, because the order in which two `run("儲存")` calls return depends
 // on their repaints, so the older bytes could be written last.  Without a host
 // nothing changes: each press is its own download, as before.
-function saveDocument() {
+// What a save writes.  The ordinary save asks the engine; at the generation
+// ceiling (B1) there is no engine to ask, and `rescueAtGenerationLimit` hands
+// in `takeRescueContent` instead -- same queue, same host, same accounting.
+const takeSavedContent = () => run("儲存", () => session.save());
+
+function saveDocument(take = takeSavedContent) {
   // A view-only document has nothing to save, and a save here would be a PUT
   // the server refuses and a copy the user did not ask for.
   if (viewOnly) {
@@ -1198,24 +1289,24 @@ function saveDocument() {
     savesUnsettled -= 1;
   };
   if (!HOST) {
-    const once = saveOnce(settle);
+    const once = saveOnce(settle, take);
     once.then(settle, settle);
     return once;
   }
-  const turn = hostSaves.then(() => saveOnce(settle));
+  const turn = hostSaves.then(() => saveOnce(settle, take));
   hostSaves = turn.catch(() => {});
   turn.then(settle, settle);
   return turn;
 }
 
-async function saveOnce(settle = () => {}) {
+async function saveOnce(settle = () => {}, take = takeSavedContent) {
   // `EditorSession.save()` resolves to {bytes, revision, contentStamp}, not to
   // the bytes.  Taking the whole result made `new Blob([result])` stringify it,
   // so every save from this button wrote 15 bytes of "[object Object]" and the
   // toast below reported NaN KB -- finding 049, found by an operator pressing
   // the button, because every harness in this tree calls session.save() itself
   // and destructures.
-  const { bytes } = await run("儲存", () => session.save());
+  const { bytes } = await take();
   if (HOST) {
     // Locks, versions and conflicts are the host's to decide; a throw from it
     // is shown as a failure (run() says `存回 失敗` and why), never as a save.
@@ -1284,6 +1375,12 @@ el.toolbar.addEventListener("click", (event) => {
 });
 
 el.noticeAction.addEventListener("click", () => {
+  // B1: at the ceiling a rollback disposes the engine and is then refused.
+  if (session && !session.restartAvailable()) {
+    if (limitState() === "pending") void rescueAtGenerationLimit();
+    else location.reload();
+    return;
+  }
   void run("回到檢查點", () => session.rollback())
     .then(() => renderDocument())
     .catch(() => {});
@@ -1532,12 +1629,17 @@ const KEY_ACTIONS = {
 el.sink.addEventListener("keydown", (event) => {
   if (!session?.document) return;
   const accel = event.ctrlKey || event.metaKey;
+  // The three shortcuts below follow the toolbar's rule (SPEC-M3-production-ui
+  // §3.1, review 2026-10-06 item 6): outside ready/busy they do nothing and say
+  // nothing.  The key is still TAKEN, so the browser's own undo or save-page
+  // dialog does not answer in the editor's place.
+  const accepting = SESSION_ACCEPTS.has(session.state.snapshot.state);
   if (accel && event.key.toLowerCase() === "z" && !event.shiftKey) {
     // Ctrl+Z, and it earns its place: finding 046's review disposition tells
     // the user to press 復原, and until now the only way to do that was to find
     // the button.
     event.preventDefault();
-    void run("復原", () => session.undo()).catch(() => {});
+    if (accepting) void run("復原", () => session.undo()).catch(() => {});
     return;
   }
   if (accel && ((event.key.toLowerCase() === "z" && event.shiftKey)
@@ -1547,7 +1649,7 @@ el.sink.addEventListener("keydown", (event) => {
     // is left alone rather than taken and dropped.
     if (!session.offersRedo?.()) return;
     event.preventDefault();
-    void run("重做", () => session.redo()).catch(() => {});
+    if (accepting) void run("重做", () => session.redo()).catch(() => {});
     return;
   }
   if (accel && event.key.toLowerCase() === "s") {
@@ -1558,7 +1660,7 @@ el.sink.addEventListener("keydown", (event) => {
     // FINDING 106.  A held Ctrl+S is one request, not one per key repeat: the
     // repeats were each a full save (thirty PUTs for a one-second hold, about
     // 35 s of saving on host 0.2.2).  The first keydown has `repeat: false`.
-    if (event.repeat) return;
+    if (event.repeat || !accepting) return;
     void saveDocument().catch(() => {});
     return;
   }
