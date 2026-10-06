@@ -64,6 +64,22 @@ Observed costs (Bdel, Chrome, host): refusal → `ready` in generation 2 about 1
 `restart-required` sample; the checkpoint save inside the refusal about 0.9 s (standalone dev
 measurement on the same document).
 
+## `no-scope/` — a browser without CSS @scope (review item 8, spec §9.6)
+
+`probe_m3_no_scope.py`, Firefox 157 with `layout.css.at-scope.enabled` set by the probe (standing in
+for a browser without @scope; Firefox ESR 140 is not installed here). One open of the usual test file
+on host 0.2.6 `fa08307`, engine buildId `253730c6…`.
+
+| | pref on (control) | pref off |
+|---|---|---|
+| `typeof CSSScopeRule` | `function` | `undefined` |
+| `#notice` / `#expired` / `#sink` visible | no / no / no | **yes / yes / yes** |
+| A3-1 inventory: stray controls / stray text | 0 / 0 | 0 / **8** (the `#expired` banner's text) |
+| screenshot | `0.2.6-scope-on.png` | `0.2.6-scope-off.png`: **no document on screen at all**, only a column of toolbar buttons and the notice's 「回到檢查點」 |
+
+So on 0.2.6 the whole product sheet is dropped without @scope and the editor is unusable, not merely
+unstyled. The control shows the probe can tell the two apart.
+
 ## `screens/`
 
 `editor-0.2.6-chrome.png`, `editor-0.2.6-chrome-unsaved.png`: the editor in Nextcloud on 0.2.6
