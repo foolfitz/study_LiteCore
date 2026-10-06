@@ -1040,7 +1040,7 @@ const SESSION_ACCEPTS = new Set(["ready", "busy"]);
 // engine and not here can only make the page say less.  Engines without B
 // (v8, v14) send no mergeKey and keep the old sentence, which is true there.
 const MERGE_KEY_UNCHANGED_STAGES = new Set([
-  "nothing-selected", "anchor-mismatch", "restore", "return-mismatch",
+  "nothing-selected", "anchor-mismatch", "restore", "return-mismatch", "unit-late",
   "undo-read",
 ]);
 

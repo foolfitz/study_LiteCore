@@ -596,3 +596,39 @@ sweep 換規則之後只應報同矩形這一族。另：§15 說「十個兩下
 - 新 stage `return-mismatch`（K2 的文字或 point 柵欄不成立，送鍵之前、沒有改動）尚未加進頁面的「沒有被改動」白名單；在加之前頁面對它說不確定的那一句
   （fail-closed）。加進去時要有 M1-5 的紅案。
 - 仍未量：16.3(e) Escape 路徑的 P4（讀原始碼項）；游標在標號前（14.5）。
+
+## 18. 追加（2026-10-06，引擎接線的 opus 對抗性審核之後、連結之前）
+
+審核對象：`06e61634`（標頭＋模型測試）、`4863f593`（引擎接線、v15 規則、M1-1、鎖範圍）。結論：**沒有 BLOCKING**——找不到非競態的路徑能讓 v15
+把鍵按在 P 以外而回報 `verified-key-undo`；送出順序、鎖順序、完成與錯誤的 JSON 形狀都核對過。主 session 讀過每一條依據的程式碼。
+
+### 18.1 處置
+
+- **S1（修，改設計）**：`gSelectionBarrier.stage` 被 LOK 執行緒讀改寫，與引擎執行緒的重設沒有共用的鎖；證據與 2000 ms deadline 同時到達時，重設之後
+  被寫回一個非 Idle 的 stage，所有命令（含存檢查點與關閉）永久 BUSY。改成：LOK 執行緒**只**在 `gMergeMutex` 底下餵 tracker、讀一張「票」
+  （`MergeTicket`：serial、requestId、documentHandle、是否已送鍵、是否已有步驟在排），在鎖外 `submit()` 一個步驟（`values[0]=3`）；merge 的
+  stage 只由引擎執行緒寫（`advanceMerge` 依 tracker 的 phase 與目前的 stage 決定）。中間那四個「Queued」stage 拿掉。
+- **S2（修）**：merge 步驟裡的例外原本落到 engineLoop 的通用 catch（非 SDK 命令→沒有 requestId 的錯誤）→ BUSY → SDK 30 秒逾時 → rollback；
+  送鍵之後那就是一個沒有 `keyPosted:true` 的出口（10.1(d) 點名過）。merge 步驟與 B 的入口包上 try/catch，一律走 `finishMergeKeyError`
+  （送鍵之後 `key-step`）。
+- **S3（登錄）**：13.3 要求的 EditEngine 守衛沒有做。登錄成具名極限（第 8 節）：**在繪圖物件或註解的文字編輯模式裡按 Delete／Backspace，B 的
+  Escape 會先離開文字框（`SelectObj(…, SW_LEAVE_FRAME)`），K2 落在本文；擋住它的只有柵欄的座標比對（14.5 已登錄的重疊區域極限）**。產品頁面
+  推論上進不去（點擊一律單擊、打字走 `paste()`），這是推論。
+- **N1（登錄，WASM 上量）**：柵欄依賴「同一次 flush 裡 START／END 在 `TEXT_SELECTION` 之前」。Writer 在文字框（fly frame）裡會把
+  `TEXT_SELECTION` 走一般佇列先送（`move.cxx:57–69` → `crsrsh.cxx:283–294` → `viscrs.cxx:1010`，審核者讀），START／END 在 flush 時才附加、排在後面。
+  影響只在活性：那裡的每一次合併都被拒（審核者把模型改成這個順序跑過：0 合併、0 反例）。R0b／R0c 只記最後一次送達的值、沒記順序。M2 的 WASM 量測
+  要包含文字框裡的一格，預期 `anchor-mismatch`。
+- **N2（修）**：步驟的 deadline 改在送出（會等 SolarMutex）之後才起算；K1 的 250 ms 改在讀 P_start 之後起算。
+- **N3（修）**：送鍵之後，「已有步驟在排」的旗標在讀 payload **之前**清掉，期間送達的回呼會排下一個步驟，不會被吸收。
+- **N4（登錄，無害）**：deadline 拒絕之後才到的 `.uno:Escape` 結果會落到通用的 UNO 處理器；那時 `gUnoRequestId` 是 0，被忽略。
+- **N5（修）**：v15 在 250 ms 那一支看到分隔符號時，舊的訊息讓頁面說「目前還不能在段落交界刪除」——在會合併的 build 上那是錯的能力宣稱。改走
+  `finishMergeKeyError("unit-late")`（送鍵之前、沒有改動；頁面白名單同步加入，M1-5 的推導測試要求兩邊一致）。B 仍然不從這一支進入（13.3）。
+- **N6（修）**：關閉文件時重設 tracker 與票，前一份文件的游標不會變成下一份的 P。
+- **N7（更正）**：`4863f593` 的註解與 commit 訊息說「編輯器狀態只在矩形改變時才往下傳」——不對，`parseEditorRectangle` 解析成功就回 true。
+  獨立餵 tracker 的做法不受影響；錯誤的註解已隨 S1 的改寫移除。
+
+### 18.2 仍然存在（登錄）
+
+- 舊 barrier 自己的同型競態：LOK 執行緒在 `AwaitingUnitSelection` 把 stage 改成 `UnitVerificationQueued`，與 250 ms deadline 的重設之間沒有鎖
+  （opus F3 早已登錄；B 的入口沿用這一步）。
+- 模型測試不模擬 stage 機、執行緒與 deadline（10.4 已登錄「引擎的接線沒有單獨的測試，由 M2 的整份文件比較承擔」）。

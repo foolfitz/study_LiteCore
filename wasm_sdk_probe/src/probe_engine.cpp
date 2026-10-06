@@ -478,18 +478,15 @@ enum class SelectionBarrierStage {
   AwaitingDeleteCompletion,
   FinalVerificationQueued,
 #ifdef OXSDK_MERGE_KEY_UNDO
-  // Option B, the E shape (SPEC-M3-paragraph-merge 16.2).  Each "Awaiting"
-  // stage waits for one proof from the callback stream (fed to
-  // gMergeAttribution on the LOK thread); each "Queued" stage is the
-  // non-reentrant step that acts on it on the engine thread.
+  // Option B, the E shape (SPEC-M3-paragraph-merge 16.2).  Each stage waits
+  // for one proof from the callback stream.  The LOK thread only feeds
+  // gMergeAttribution and queues a step; these stages are written by the
+  // engine thread alone (review S1: a stage written from both threads could
+  // be resurrected after a reset and wedge every command as BUSY).
   MergeAwaitingCollapse1,     // .uno:Escape #1 sent
-  MergeReturnQueued,          // its empty selection seen: post K2
   MergeAwaitingReturn,        // K2 posted
-  MergeReturnVerifyQueued,    // K2's selection seen: check text and fence
   MergeAwaitingCollapse2,     // .uno:Escape #2 sent
-  MergeKeyQueued,             // its empty selection seen: P0, then the key
   MergeAwaitingKey,           // the user's key posted: payload must change
-  MergeKeyVerifyQueued,       // a callback arrived: re-read the payload
 #endif
 };
 
@@ -538,6 +535,17 @@ SelectionBarrierTransaction gSelectionBarrier;
 // thread.  13.2 holds for this mutex too: nothing under it calls LOK or emits.
 std::mutex gMergeMutex;
 probe::merge::Attribution gMergeAttribution;
+// What the LOK thread may know about the running transaction, under
+// gMergeMutex: enough to address a step to it, nothing it could write back.
+struct MergeTicket {
+  bool active = false;
+  std::uint64_t serial = 0;
+  std::uint32_t requestId = 0;
+  std::uint32_t documentHandle = 0;
+  bool afterKey = false;    // the key is posted: any callback asks for a re-read
+  bool stepPending = false; // a step is queued and the engine has not taken it
+};
+MergeTicket gMergeTicket;
 constexpr int MergeStepDeadlineMs = 2000;
 #endif
 constexpr int SelectionBarrierBoundaryDeadlineMs = 250;
@@ -2502,6 +2510,14 @@ void closeDocument(const Command *command) {
 #ifdef OXSDK_FINDING_016_SELECTION_BARRIER
   gSelectionBarrier = SelectionBarrierTransaction{};
 #endif
+#ifdef OXSDK_MERGE_KEY_UNDO
+  {
+    // Review N6: no caret of this document may become P in the next one.
+    std::lock_guard<std::mutex> merge(gMergeMutex);
+    gMergeAttribution = probe::merge::Attribution{};
+    gMergeTicket = MergeTicket{};
+  }
+#endif
 #endif
 
   if (!command)
@@ -3363,6 +3379,10 @@ void finishMergeKeyError(const char *stage) {
       gSelectionBarrier.keyPosted || (known && known->keyPosted);
   const SelectionBarrierTransaction transaction = gSelectionBarrier;
   gSelectionBarrier = SelectionBarrierTransaction{};
+  {
+    std::lock_guard<std::mutex> merge(gMergeMutex);
+    gMergeTicket = MergeTicket{};
+  }
   const std::string message =
       keyPosted
           ? std::string("the user's key was posted but its effect could not "
@@ -3470,12 +3490,6 @@ void queueSelectionBarrierStep(bool boundaryDeadline = false) {
   command.correlation = gSelectionBarrier.transactionSerial;
   command.values[0] = boundaryDeadline ? 1 : 0;
   if (submit(std::move(command)) != SubmitStatus::Ok) {
-#ifdef OXSDK_MERGE_KEY_UNDO
-    if (gSelectionBarrier.mergeKey) {
-      finishMergeKeyError(gSelectionBarrier.keyPosted ? "key-step" : "restore");
-      return;
-    }
-#endif
     finishSelectionBarrierError(
         "EDITOR_STATE_UNAVAILABLE",
         "selection barrier could not schedule a non-reentrant verification",
@@ -3497,70 +3511,67 @@ void maybeQueueSelectionBarrierFinalVerification() {
 }
 
 #ifdef OXSDK_MERGE_KEY_UNDO
-// LOK thread, every callback, before anything else looks at it.  The
-// attribution must see each START/END/TEXT_SELECTION/caret as delivered, not
-// only the ones that changed gEditorState: K2's point rectangle equals K1's
-// anchor rectangle, so the editor state would call it "no change" and drop it.
+// LOK thread, every callback, before anything else looks at it.  Feeds the
+// attribution with each START/END/TEXT_SELECTION/caret as delivered, and,
+// when a proof arrives (or, after the key, any callback), queues one merge
+// step addressed by the ticket.  It writes nothing the engine thread owns.
 void feedMergeAttribution(int type, const char *payload) {
   using Phase = probe::merge::Attribution::Phase;
-  if (gSelectionBarrier.stage == SelectionBarrierStage::MergeAwaitingKey) {
-    // After the key, any callback may be the one that carries its effect.
-    gSelectionBarrier.stage = SelectionBarrierStage::MergeKeyVerifyQueued;
-    queueSelectionBarrierStep();
-    return;
-  }
   EditorRect parsed;
+  bool relevant = true;
   bool nonEmpty = false;
   switch (type) {
   case LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR:
   case LOK_CALLBACK_TEXT_SELECTION_START:
   case LOK_CALLBACK_TEXT_SELECTION_END:
-    if (!parseEditorRectangle(payload, parsed))
-      return;
+    relevant = parseEditorRectangle(payload, parsed);
     break;
   case LOK_CALLBACK_TEXT_SELECTION:
     nonEmpty = payload && *payload && std::strcmp(payload, "EMPTY") != 0;
     break;
   default:
-    return;
+    relevant = false;
+    break;
   }
-  Phase after;
+  Command step{CommandType::EditorSelectionBarrierStep};
+  bool queue = false;
   {
     std::lock_guard<std::mutex> merge(gMergeMutex);
-    if (type == LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR)
-      gMergeAttribution.onCaret(mergeRect(parsed));
-    else if (type == LOK_CALLBACK_TEXT_SELECTION_START)
-      gMergeAttribution.onSelectionStart(mergeRect(parsed));
-    else if (type == LOK_CALLBACK_TEXT_SELECTION_END)
-      gMergeAttribution.onSelectionEnd(mergeRect(parsed));
-    else
-      gMergeAttribution.onTextSelection(nonEmpty);
-    after = gMergeAttribution.phase();
+    const Phase before = gMergeAttribution.phase();
+    if (relevant) {
+      if (type == LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR)
+        gMergeAttribution.onCaret(mergeRect(parsed));
+      else if (type == LOK_CALLBACK_TEXT_SELECTION_START)
+        gMergeAttribution.onSelectionStart(mergeRect(parsed));
+      else if (type == LOK_CALLBACK_TEXT_SELECTION_END)
+        gMergeAttribution.onSelectionEnd(mergeRect(parsed));
+      else
+        gMergeAttribution.onTextSelection(nonEmpty);
+    }
+    const Phase after = gMergeAttribution.phase();
+    const bool proof = after != before && (after == Phase::Collapsed1 ||
+                                           after == Phase::Returned ||
+                                           after == Phase::Ready);
+    if (gMergeTicket.active && !gMergeTicket.stepPending &&
+        (proof || gMergeTicket.afterKey)) {
+      gMergeTicket.stepPending = true;
+      step.requestId = gMergeTicket.requestId;
+      step.documentHandle = gMergeTicket.documentHandle;
+      step.correlation = gMergeTicket.serial;
+      step.values[0] = 3;
+      queue = true;
+    }
   }
-  // Advance only the stage that waits for exactly this proof.
-  SelectionBarrierStage next = gSelectionBarrier.stage;
-  if (after == Phase::Collapsed1 &&
-      gSelectionBarrier.stage == SelectionBarrierStage::MergeAwaitingCollapse1)
-    next = SelectionBarrierStage::MergeReturnQueued;
-  else if (after == Phase::Returned &&
-           gSelectionBarrier.stage == SelectionBarrierStage::MergeAwaitingReturn)
-    next = SelectionBarrierStage::MergeReturnVerifyQueued;
-  else if (after == Phase::Ready &&
-           gSelectionBarrier.stage ==
-               SelectionBarrierStage::MergeAwaitingCollapse2)
-    next = SelectionBarrierStage::MergeKeyQueued;
-  if (next == gSelectionBarrier.stage)
-    return;
-  gSelectionBarrier.stage = next;
-  gSelectionBarrier.stageDeadlineArmed = false;
-  queueSelectionBarrierStep();
+  // Outside gMergeMutex: submit() takes gState.mutex.  A failed submit is
+  // left to the step deadline, which the engine thread owns.
+  if (queue)
+    submit(std::move(step));
 }
 
 // Engine thread: send a .uno:Escape after marking it sent (16.2 steps 2, 4).
 // postUnoCommand with a listener runs synchronously here (unoctitm.cxx:654).
 void sendMergeEscape(SelectionBarrierStage awaiting) {
   gSelectionBarrier.stage = awaiting;
-  armMergeDeadline();
   bool sent;
   {
     std::lock_guard<std::mutex> merge(gMergeMutex);
@@ -3572,6 +3583,9 @@ void sendMergeEscape(SelectionBarrierStage awaiting) {
   }
   gState.document->pClass->postUnoCommand(gState.document, ".uno:Escape",
                                           nullptr, true);
+  // Review N2: armed after the call returns -- it waits for the SolarMutex,
+  // and a busy LOK must not use up the step's 2000 ms before the step ran.
+  armMergeDeadline();
 }
 
 void postMergeKeyEvents(int keyCode) {
@@ -3607,7 +3621,6 @@ void startMergeKeyUndo(const SelectionReadback &selected,
 // Step 3: K2, Shift+arrow back; it has a mark, so no stop in front of a label.
 void postMergeReturn() {
   gSelectionBarrier.stage = SelectionBarrierStage::MergeAwaitingReturn;
-  armMergeDeadline();
   bool posted;
   {
     std::lock_guard<std::mutex> merge(gMergeMutex);
@@ -3621,6 +3634,7 @@ void postMergeReturn() {
                           ? com::sun::star::awt::Key::RIGHT
                           : com::sun::star::awt::Key::LEFT) |
                      EditorShiftModifier);
+  armMergeDeadline();
 }
 
 // K2's selection: the same text as K1's, its point side at P.
@@ -3652,15 +3666,23 @@ void postMergeKey() {
   gSelectionBarrier.keyPosted = true;
   gSelectionBarrier.keyPostedAt = std::chrono::steady_clock::now();
   gSelectionBarrier.stage = SelectionBarrierStage::MergeAwaitingKey;
-  armMergeDeadline();
+  {
+    std::lock_guard<std::mutex> merge(gMergeMutex);
+    gMergeTicket.afterKey = true;
+  }
   postMergeKeyEvents(gSelectionBarrier.backward
                          ? com::sun::star::awt::Key::BACKSPACE
                          : com::sun::star::awt::Key::DELETE);
+  armMergeDeadline();
 }
 
 void finishMergeKeyUndo(const probe::merge::KeyJudgement &judgement) {
   const SelectionBarrierTransaction transaction = gSelectionBarrier;
   gSelectionBarrier = SelectionBarrierTransaction{};
+  {
+    std::lock_guard<std::mutex> merge(gMergeMutex);
+    gMergeTicket = MergeTicket{};
+  }
   advanceRevision();
   const long long keyToUndoMs =
       std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -3702,15 +3724,46 @@ void verifyMergeKey(bool atDeadline) {
   const bool read = readMergeUndoPayload(now);
   const probe::merge::KeyJudgement judgement = probe::merge::judgeAfterKey(
       gSelectionBarrier.p0, read, now, atDeadline);
-  if (judgement.verdict == probe::merge::KeyVerdict::Pending) {
-    gSelectionBarrier.stage = SelectionBarrierStage::MergeAwaitingKey;
+  if (judgement.verdict == probe::merge::KeyVerdict::Pending)
     return;
-  }
   if (judgement.verdict == probe::merge::KeyVerdict::Refused) {
     finishMergeKeyError(judgement.stage);
     return;
   }
   finishMergeKeyUndo(judgement);
+}
+
+// A step queued by the feed: act on the proof the attribution now holds, if
+// it is the one the current stage waits for.  The pending flag is cleared
+// before anything is read (review N3): a callback after this point queues
+// the next step instead of being absorbed by this one.
+void advanceMerge() {
+  using Phase = probe::merge::Attribution::Phase;
+  Phase phase;
+  {
+    std::lock_guard<std::mutex> merge(gMergeMutex);
+    gMergeTicket.stepPending = false;
+    phase = gMergeAttribution.phase();
+  }
+  switch (gSelectionBarrier.stage) {
+  case SelectionBarrierStage::MergeAwaitingCollapse1:
+    if (phase == Phase::Collapsed1)
+      postMergeReturn();
+    return;
+  case SelectionBarrierStage::MergeAwaitingReturn:
+    if (phase == Phase::Returned)
+      verifyMergeReturn();
+    return;
+  case SelectionBarrierStage::MergeAwaitingCollapse2:
+    if (phase == Phase::Ready)
+      postMergeKey();
+    return;
+  case SelectionBarrierStage::MergeAwaitingKey:
+    verifyMergeKey(false);
+    return;
+  default:
+    return;
+  }
 }
 
 // A step's proof did not arrive within MergeStepDeadlineMs.
@@ -3743,7 +3796,12 @@ void verifyAndDispatchSelectionBarrierDelete() {
       decodeUtf8(selected.text, codePoints) &&
       probe::merge::classifyUnit(codePoints) ==
           probe::merge::UnitClass::MergeKey) {
-    startMergeKeyUndo(selected, std::move(codePoints));
+    try {
+      startMergeKeyUndo(selected, std::move(codePoints));
+    } catch (...) {
+      if (selectionBarrierActive())
+        finishMergeKeyError("restore");
+    }
     return;
   }
   codePoints.clear();
@@ -3815,6 +3873,16 @@ void rejectSelectionBarrierAtDeadline(const Command &command) {
                             !selected.textMissing &&
                             decodeUtf8(selected.text, codePoints) &&
                             selectionBarrierContainsBoundary(codePoints);
+#ifdef OXSDK_MERGE_KEY_UNDO
+  // Review N5: B is never entered from this branch (13.3) -- the unit's
+  // selection came after the deadline, so there is no anchored P -- but on a
+  // build that can merge, the page must not be told "cannot delete at a
+  // paragraph boundary".
+  if (boundaryText) {
+    finishMergeKeyError("unit-late");
+    return;
+  }
+#endif
   finishSelectionBarrierError(
       boundaryText ? "EDITOR_BOUNDARY_UNSUPPORTED"
                    : "EDITOR_STATE_UNAVAILABLE",
@@ -3896,25 +3964,21 @@ void handleSelectionBarrierStep(const Command &command) {
     return;
   }
 #ifdef OXSDK_MERGE_KEY_UNDO
-  if (command.values[0] == 2) {
-    handleMergeDeadline();
+  if (command.values[0] == 2 || command.values[0] == 3) {
+    // Review S2: an exception in a merge step must leave through B's exit
+    // (keyPosted:true after the key), not as a non-SDK engine error that
+    // leaves the transaction BUSY until the SDK's timeout rolls back.
+    try {
+      if (command.values[0] == 2)
+        handleMergeDeadline();
+      else
+        advanceMerge();
+    } catch (...) {
+      if (selectionBarrierActive())
+        finishMergeKeyError(gSelectionBarrier.keyPosted ? "key-step"
+                                                        : "restore");
+    }
     return;
-  }
-  switch (gSelectionBarrier.stage) {
-  case SelectionBarrierStage::MergeReturnQueued:
-    postMergeReturn();
-    return;
-  case SelectionBarrierStage::MergeReturnVerifyQueued:
-    verifyMergeReturn();
-    return;
-  case SelectionBarrierStage::MergeKeyQueued:
-    postMergeKey();
-    return;
-  case SelectionBarrierStage::MergeKeyVerifyQueued:
-    verifyMergeKey(false);
-    return;
-  default:
-    break;
   }
 #endif
   if (gSelectionBarrier.stage ==
@@ -3961,9 +4025,18 @@ void startSelectionBarrierDelete(const Command &command, const char *action,
 #ifdef OXSDK_MERGE_KEY_UNDO
   // P_start (10.1(f)), then the attribution's transaction, both before K1.
   gSelectionBarrier.pStartRead = readMergeUndoPayload(gSelectionBarrier.pStart);
+  // Review N2: the 250 ms window for K1's selection starts after that read.
+  gSelectionBarrier.boundaryDeadline =
+      std::chrono::steady_clock::now() +
+      std::chrono::milliseconds(SelectionBarrierBoundaryDeadlineMs);
   {
     std::lock_guard<std::mutex> merge(gMergeMutex);
     gMergeAttribution.beginTransaction(backward);
+    gMergeTicket = MergeTicket{};
+    gMergeTicket.active = true;
+    gMergeTicket.serial = gSelectionBarrier.transactionSerial;
+    gMergeTicket.requestId = gSelectionBarrier.requestId;
+    gMergeTicket.documentHandle = gSelectionBarrier.documentHandle;
   }
 #endif
 

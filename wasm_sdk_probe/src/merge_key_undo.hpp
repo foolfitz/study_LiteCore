@@ -220,7 +220,7 @@ struct Stage {
 constexpr Stage kStages[] = {
     {"nothing-selected", false},
     {"anchor-mismatch", false},  {"restore", false},
-    {"return-mismatch", false},
+    {"return-mismatch", false},  {"unit-late", false},
     {"undo-read", false},        {"restore-mutated", false},
     {"key-deadline", true},      {"key-read", true},
     {"key-unparsed", true},      {"key-step", true},
