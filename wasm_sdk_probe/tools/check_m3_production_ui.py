@@ -61,10 +61,14 @@ MARK = "zqx"
 MARKS3 = ("zqa", "zqb", "zqc")
 BOTH = ("chrome", "firefox")
 # Bindings for a counted run (spec §4), written before it.  None = not yet bound.
-PAGE_SHA256: str | None = None
-SESSION_SHA256: str | None = None
-HOST_VERSION: str | None = None
-HOST_COMMIT: str | None = None
+# Written 2026-10-06 before any counted run (spec §9, §10; review item 18 added the
+# last two: the shell generation and the owner's document).
+PAGE_SHA256: str | None = "e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f"
+SESSION_SHA256: str | None = "3f5f754bf0495ff2001756014c76f43d8cb0b1f3b7233f0f710e1a635e782c5e"
+HOST_VERSION: str | None = "0.2.7"
+HOST_COMMIT: str | None = "0488586"
+SHELL_BUNDLE_SHA256: str | None = "2470765ae19ced019b423b55e856ef8d60759ee878d56ff835e6e9387b62167c"   # v55
+DOC_SHA256: str | None = "7b336879547df057ae6d38e907f221b40c90c37cd65d2df5afceceb91941657e"
 # Calibrated on this document (findings/evidence/109/README.md): inside the first
 # body paragraph; the blank right of the heading 「一、序言」; the first body
 # paragraph's first-line indent.
@@ -485,7 +489,21 @@ def static_facts(root: Path) -> dict[str, Any]:
             "buildId": manifest.get("buildId"),
             "servedPage": (files.get("e2-editor-app.js") or {}).get("sha256"),
             "servedSession": (files.get("editor-shell-v2/narrow-editor-v2-session.js") or {}).get("sha256"),
-            "distPage": sha256_file(DIST / "e2-editor-app.js")}
+            "distPage": sha256_file(DIST / "e2-editor-app.js"),
+            "shellBundle": shell_bundle()}
+
+
+def shell_bundle() -> dict[str, Any]:
+    """The frozen generation's own tool, asked its question (no --write): exit 0
+    means the tree and dist/ are exactly what the named manifest records."""
+    answer = subprocess.run([sys.executable, str(PROJECT / "tools" / "build_e2_c_shell_bundle.py")],
+                            capture_output=True, text=True)
+    try:
+        said = json.loads(answer.stdout)
+    except json.JSONDecodeError:
+        said = {"unparsed": answer.stdout[-400:]}
+    return {"exit": answer.returncode, "manifest": said.get("manifest"), "sha256": said.get("bundleSha256"),
+            "problems": said.get("problems")}
 
 
 # ------------------------------------------------------------------ scoring
@@ -639,6 +657,9 @@ def counted_bindings(static: dict[str, Any]) -> list[str]:
             bad.append(f"{key} is {static.get(key)!r}, the spec binds {want!r}")
     if static.get("hostDirty"):
         bad.append(f"host tree is dirty: {static['hostDirty'][:5]}")
+    shell = static.get("shellBundle") or {}
+    if shell.get("exit") != 0 or shell.get("sha256") != SHELL_BUNDLE_SHA256:
+        bad.append(f"shell generation: {shell}, the spec binds {SHELL_BUNDLE_SHA256}")
     return bad
 
 
@@ -723,10 +744,13 @@ def main() -> int:
         return 0 if red == total == len(MUTATIONS) else 1
     instance = Instance(DEFAULT_DDEV)
     static = static_facts(DEFAULT_DDEV)
+    doc = args.doc.read_bytes()
+    if args.counted and hashlib.sha256(doc).hexdigest() != DOC_SHA256:
+        print(f"refusing a counted run: the document is {hashlib.sha256(doc).hexdigest()}, the spec binds {DOC_SHA256}")
+        return 2
     if args.counted and (problems := counted_bindings(static)):
         print("refusing a counted run:", *problems, sep="\n  ")
         return 2
-    doc = args.doc.read_bytes()
     report: dict[str, Any] = {"spec": "specs/SPEC-M3-production-ui.md §4", "startedAt": utc_now(), "counted": args.counted,
                               # Review 2026-10-06 item 17: which scorer wrote this report.
                               "runner": "check_m3_production_ui.py", "runnerSha256": sha256_file(Path(__file__)),

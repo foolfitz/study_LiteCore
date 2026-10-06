@@ -61,7 +61,7 @@ SNAME = "M3 同秒 測試.odt"
 PLAN = {"same-second": ("R2", ("chrome", "firefox"), 3), "same-second-foreign": ("R3", ("chrome", "firefox"), 3)}
 # ruling D shipped as 0.2.2; SPEC-M3-page-honesty §7.6/§7.11 re-ran it on 0.2.4; SPEC-M3-zstd Z3
 # re-runs it on 0.2.5 (written 2026-09-30 before that run).
-HOST_VERSION = "0.2.5"
+HOST_VERSION = "0.2.7"   # SPEC-M3-production-ui R, written 2026-10-06 before that run
 PAIRS = 10
 SAVES = 2 * PAIRS + 1 + 2   # the ten pairs, the single save (S21), the restore pair (S22, S23)
 BUTTON = PRESS.replace("ARG_ACTION", "save")

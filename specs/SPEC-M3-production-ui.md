@@ -298,3 +298,20 @@ Firefox＝WebDriver actions）。座標沿用 `findings/evidence/109/README.md` 
 - **預測**：關掉→fallback、清單乾淨；開著→scoped、`not all`。出貨頁面恰好一個 `:root {`、一個 `body {`，所以 0.2.7 的
   `scopedStyle` 照樣放行（不會 500）。
 - **R 與綁定改綁宿主 0.2.7**（§4 的 R 列與綁定原寫 0.2.6；本輪還沒有任何計數執行，所以沒有計數要歸零）。
+
+## 11. 計數綁定（2026-10-06，寫在任何計數執行之前）
+
+只追加。§4 最後一段的綁定，加上審核一-18 要的兩項，全部已寫進 runner 的常數（`counted_bindings` 與各 runner 的拒絕條件）：
+
+| 綁定 | 值 |
+| --- | --- |
+| 頁面 `e2-editor-app.js` | `e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f` |
+| session `narrow-editor-v2-session.js` | `3f5f754bf0495ff2001756014c76f43d8cb0b1f3b7233f0f710e1a635e782c5e` |
+| 宿主 | 0.2.7，`0488586` |
+| 引擎包 buildId | `fabdb50ecd038802` |
+| 殼層 generation | v55，`2470765ae19ced019b423b55e856ef8d60759ee878d56ff835e6e9387b62167c`（runner 跑凍結工具的問答模式，exit 0 且 digest 相同才算） |
+| 擁有者的文件 | `7b336879547df057ae6d38e907f221b40c90c37cd65d2df5afceceb91941657e`（563,149 位元組，不進 repo） |
+| `check_m3_production_ui.py` | `d23043dc96beda6f61f6f8ec599a60a5dd548f486a8666e49c3196d8ce7cc587`（每份報告自帶 `runnerSha256`；與此不同的報告不算進計數） |
+
+六支既有 M3 runner 同步改綁：`check_m3_locks` 的 `PAGE_SHA256`（`versions`、`same_second` 由它匯入）、`check_m3_page_honesty` 的頁面／session／宿主、
+`check_m3_versions` 的宿主 commit、`check_m3_same_second` 的宿主版本、`check_m3_assets` 的頁面與 buildId；`check_m3_host_entry` 不寫死，逐檔比對服務中的產品檔案與 `dist/`。

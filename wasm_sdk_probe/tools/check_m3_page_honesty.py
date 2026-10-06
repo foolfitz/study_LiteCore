@@ -60,13 +60,13 @@ BOTH = ("chrome", "firefox")
 # Bindings for a counted run, written down before it (spec §7.6 style): the page,
 # the session subclass that holds the view-only gate, and the host version.
 # Written 2026-09-29 (spec §7.11), before the re-shakedown and counted runs.
-PAGE_SHA256: str | None = "fc80050c22948df63f012fa87a254c63e4f19227aa387ded76747bd6c21d947e"
-SESSION_SHA256: str | None = "747eea718c253ea01e00ec7477915c9a78c62148a6f167e6b42a677d2ff331f2"
+PAGE_SHA256: str | None = "e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f"
+SESSION_SHA256: str | None = "3f5f754bf0495ff2001756014c76f43d8cb0b1f3b7233f0f710e1a635e782c5e"
 # SPEC-M3-zstd Z3: re-counted on host 0.2.5 (7420418), written 2026-09-30 before that run.
-HOST_VERSION = "0.2.5"
+HOST_VERSION = "0.2.7"
 # The host commit too (review 2026-09-29, implementation): a version string alone
 # lets a changed host with an unchanged info.xml through.
-HOST_COMMIT: str | None = "7420418"
+HOST_COMMIT: str | None = "0488586"
 # arm -> (cells, browsers, rounds in a counted run)
 PLAN = {
     "U0": ("U0", BOTH, 3), "U1": ("U1", BOTH, 3), "Uwin": ("U-window", BOTH, 3), "U2": ("U2", BOTH, 3),
