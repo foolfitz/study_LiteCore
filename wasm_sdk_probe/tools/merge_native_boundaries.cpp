@@ -129,6 +129,13 @@ const std::vector<Case> kCases = {
 std::mutex gMutex;
 std::string gLastSelectionPayload;
 std::string gLastCursorPayload;
+// R0b (SPEC-M3-paragraph-merge 13.1): the selection's start and end
+// rectangles, which Writer computes at flush time from the current selection.
+// Cleared right before every Shift press, so an empty value means the unit's
+// flush did not send one (HasArea false) rather than a leftover from the
+// placement check's selection.
+std::string gLastSelectionStartPayload;
+std::string gLastSelectionEndPayload;
 int gSelectionCallbacks = 0;
 std::vector<std::string> gUnoResults;
 
@@ -139,6 +146,10 @@ void onCallback(int type, const char *payload, void *) {
   } else if (type == LOK_CALLBACK_TEXT_SELECTION) {
     gLastSelectionPayload = payload ? payload : "";
     ++gSelectionCallbacks;
+  } else if (type == LOK_CALLBACK_TEXT_SELECTION_START) {
+    gLastSelectionStartPayload = payload ? payload : "";
+  } else if (type == LOK_CALLBACK_TEXT_SELECTION_END) {
+    gLastSelectionEndPayload = payload ? payload : "";
   } else if (type == LOK_CALLBACK_UNO_COMMAND_RESULT) {
     gUnoResults.emplace_back(payload ? payload : "");
   }
@@ -202,8 +213,16 @@ struct Readback {
   std::string text;
   std::string rectangles;
   std::string cursor;
+  std::string selectionStart;
+  std::string selectionEnd;
   int callbacks = 0;
 };
+
+void clearSelectionEnds() {
+  std::lock_guard<std::mutex> lock(gMutex);
+  gLastSelectionStartPayload.clear();
+  gLastSelectionEndPayload.clear();
+}
 
 Readback readSelection(LibreOfficeKitDocument *document) {
   Readback out;
@@ -215,6 +234,8 @@ Readback readSelection(LibreOfficeKitDocument *document) {
   std::lock_guard<std::mutex> lock(gMutex);
   out.rectangles = gLastSelectionPayload;
   out.cursor = gLastCursorPayload;
+  out.selectionStart = gLastSelectionStartPayload;
+  out.selectionEnd = gLastSelectionEndPayload;
   out.callbacks = gSelectionCallbacks;
   return out;
 }
@@ -230,6 +251,8 @@ std::string readbackJson(const Readback &readback) {
          std::to_string(rectangleCount(readback.rectangles)) +
          ",\"rectangles\":\"" + jsonEscape(readback.rectangles) +
          "\",\"cursor\":\"" + jsonEscape(readback.cursor) +
+         "\",\"selectionStart\":\"" + jsonEscape(readback.selectionStart) +
+         "\",\"selectionEnd\":\"" + jsonEscape(readback.selectionEnd) +
          "\",\"selectionCallbacks\":" + std::to_string(readback.callbacks) +
          "}";
   return out;
@@ -409,6 +432,7 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
     if (!c.pretype.empty())
       std::cout << ",\"pretype\":\"" << jsonEscape(c.pretype)
                 << "\",\"typedAt\":" << readbackJson(typedAt);
+    clearSelectionEnds();
     key(document, (c.backward ? kLeft : kRight) | kShift);
     drain(700);
     const Readback unit = readSelection(document);
@@ -464,6 +488,7 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
       std::cout << ",\"pretype\":\"" << jsonEscape(c.pretype)
                 << "\",\"typedAt\":" << readbackJson(typedAt);
     const Readback &origin = c.pretype.empty() ? placed : typedAt;
+    clearSelectionEnds();
     key(document, (c.backward ? kLeft : kRight) | kShift);
     drain(700);
     const Readback bUnit = readSelection(document);
