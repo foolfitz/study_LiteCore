@@ -19,6 +19,7 @@ allows 20 new shares per user per 10 min) and removed at the end.
 from __future__ import annotations
 
 import argparse
+import base64
 import copy
 import hashlib
 import html
@@ -322,12 +323,53 @@ def login(session, base: str, user: str, password: str) -> Any:
     return wait_until(session, "(() => !location.pathname.endsWith('/login') && location.href)()", 30)
 
 
+FILES_DOM = """(() => ({ readyState: document.readyState, title: document.title,
+  url: location.href, scripts: document.scripts.length,
+  filesList: document.querySelector('[data-cy-files-list]') !== null,
+  rows: document.querySelectorAll('[data-cy-files-list-row]').length,
+  bodyTextLength: (document.body && document.body.innerText || '').length,
+  bodyText: (document.body && document.body.innerText || '').slice(0, 400) }))()"""
+
+
+def files_row_diagnostic(session) -> dict[str, Any]:
+    """Instrument only (finding 112): each part is kept even if another fails."""
+    out: dict[str, Any] = {}
+    try:
+        out["dom"] = evaluate(session, FILES_DOM)
+    except Exception as error:  # noqa: BLE001 -- the reason is the evidence
+        out["dom"] = f"{type(error).__name__}: {error}"
+    if isinstance(session, LockChrome):
+        try:
+            events = session.drain()
+            answered = {e["params"]["requestId"] for e in events
+                        if e["method"] in ("Network.responseReceived", "Network.loadingFailed")}
+            sent = [e["params"] for e in events if e["method"] == "Network.requestWillBeSent"]
+            out["cdp"] = summarize_cdp(events)
+            out["requests"] = len(sent)
+            out["unanswered"] = [p["request"]["url"] for p in sent if p["requestId"] not in answered]
+            out["scripts"] = [p["request"]["url"] for p in sent if p.get("type") == "Script"]
+        except Exception as error:  # noqa: BLE001
+            out["cdp"] = f"{type(error).__name__}: {error}"
+    try:
+        out["screenshotPng"] = base64.b64encode(session.screenshot()).decode("ascii")
+    except Exception as error:  # noqa: BLE001
+        out["screenshotPng"] = f"{type(error).__name__}: {error}"
+    return out
+
+
 def open_from_files(session, base: str, folder: str, name: str, record: dict[str, Any]) -> None:
     navigate(session, base + "/apps/files/files?dir=" + urllib.parse.quote("/" + folder), timeout=120)
     selector = (f'[data-cy-files-list-row-name={json.dumps(name, ensure_ascii=False)}]'
                 ' [data-cy-files-list-row-name-link]')
+    waited = time.monotonic()
     record["filesRow"] = wait_until(session, f"(() => document.querySelector({json.dumps(selector)}) !== null)()", 60)
+    # Finding 112 (m3-locks README rule 5, SPEC-M3-production-ui §12): how long
+    # the row took on every run, and on a timeout what the browser saw.  The
+    # events drained below used to be dropped, so the one red had none.
+    record["filesRowSeconds"] = round(time.monotonic() - waited, 2)
     record["clickedFrom"] = evaluate(session, "(() => location.href)()")
+    if isinstance(record["filesRow"], dict) and record["filesRow"].get("timedOut"):
+        record["filesRowDiagnostic"] = files_row_diagnostic(session)
     if isinstance(session, LockChrome):
         session.drain()
     started = time.monotonic()

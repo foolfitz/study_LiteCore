@@ -131,3 +131,38 @@ down at 01:43 local (17:43 UTC) during `heartbeat` in Firefox, so the report has
 `completedAt`. The five arms it finished pass with the runner's own `score_arm`: `hold` and
 `closetab` in both browsers, `heartbeat` in Chrome. Kept as the record of what ran; superseded by
 the runs on host 0.2.7 and page `e97d6e03…` (SPEC-M3-production-ui §11), which are the ones that count.
+
+## Counted run on host 0.2.7 (2026-10-06, SPEC-M3-production-ui §11): red, and rule 5
+
+`runs/2026-10-06T035016+0000.json`: **`LOCKS DO NOT LAND`**, 51/52 runs. `chrome:foreign-lock` 2/3:
+in `runs[13]` the Files page rendered no row for 60 s and the runner's click on the missing row
+was fatal; the product page was never requested. Not rule 2's case (reset upload 204, login 200),
+so it was read as a finding first: **finding 112**. Red cases against the report: 99 red, 0 not
+(`runs/red-cases-on-2026-10-06T035016.txt`). This report keeps its verdict.
+
+5. **(Added 2026-10-06, after that red and before any repeat; forced by finding 112; ruling by
+   fable on the owner's request, recorded in finding 112's 裁決 section.)** A red that is not
+   rule 2's case may be followed by **one** repeat, only after its finding is written, and only
+   under conditions written down before the repeat runs. For finding 112 those are:
+   1. The runner changes only as an instrument: when the Files row times out it keeps what the
+      browser saw (`filesRowDiagnostic`: the drained CDP events summarised, requests still
+      without a response, a screenshot, a DOM summary), and every run records
+      `filesRowSeconds`. No scoring function changes. Shown by running the changed runner's
+      `--score` and `--red-cases` on `runs/2026-10-06T035016+0000.json` and
+      `runs/2026-10-02T163728+0000.json` with output identical to the pinned runner's, and by
+      one non-counted run with a deliberately wrong row name that yields a non-empty diagnostic.
+      The new runner sha256 is appended to SPEC-M3-production-ui §12.
+   2. The repeat is one full counted run (rule 3), same bindings as SPEC-M3-production-ui §11,
+      rule 4 observed, and no other M3 runner or probe at any time during it. It passes only
+      with `LOCKS LAND`, `problems=[]`, every red case on the new report red, `runnerSha256`
+      equal to the new pin, and `filesRowSeconds` in all 52 runs.
+   3. Green: R's locks cell holds on 0.2.7; this README and `RESULT.md` cite both reports. Red
+      in any arm: R does not hold, the repeat budget for finding 112 is spent, no third run; the
+      next step is a dedicated open-from-Files probe with the same capture, and the owner
+      decides. If the capture ever shows the host's `litecore-files.mjs` in the causal chain,
+      it is a host fix and a new pin before any further counting.
+   4. If the repeat is never run: R does not hold, 0.2.7 is not counted for locks, findings 109
+      and 110 stay unfixed.
+   5. The other five counted reports of 2026-10-06 (page honesty, versions, assets, host entry,
+      same-second), the product-path net and the static tests stand on the same bindings; they
+      are not re-run for this.

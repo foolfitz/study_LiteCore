@@ -315,3 +315,29 @@ Firefox＝WebDriver actions）。座標沿用 `findings/evidence/109/README.md` 
 
 六支既有 M3 runner 同步改綁：`check_m3_locks` 的 `PAGE_SHA256`（`versions`、`same_second` 由它匯入）、`check_m3_page_honesty` 的頁面／session／宿主、
 `check_m3_versions` 的宿主 commit、`check_m3_same_second` 的宿主版本、`check_m3_assets` 的頁面與 buildId；`check_m3_host_entry` 不寫死，逐檔比對服務中的產品檔案與 `dist/`。
+
+## 12. locks 計數紅一格之後（2026-10-06，任何重跑之前寫）
+
+只追加。宿主 0.2.7 的計數鏈（2026-10-06 01:35–05:01 UTC）裡，本規格自己的臂 22/22 全過、合併紅案 30/30，其餘五支 runner
+全過、紅案全紅；**locks 是 `LOCKS DO NOT LAND`**（`chrome:foreign-lock` 2/3）——一次 Files 頁 60 秒沒畫出任何一列，產品頁沒有被請求，
+登錄為 **finding 112**。擁有者交 fable 裁決，裁決是 A（有界限），全文與理由在 finding 112 的「裁決」段，條件寫進
+`findings/evidence/m3-locks/README.md` 的規則 5。本節只記下對本規格的效果：
+
+- **判準不動**：R 列的 locks 格仍是「一輪完整計數 52/52、紅案全紅」。10-06 那份報告維持 `LOCKS DO NOT LAND`，不改、不併、不排除
+  任何一臂。
+- **允許一次重跑**（規則 5），條件：runner 只改儀器（逾時時存下瀏覽器看到的東西、每臂記 `filesRowSeconds`），判分不動並以既存報告
+  證明輸出相同；擷取先自己紅一次；新的 runner sha256 寫在本節之後（§12.1）；重跑綁定同 §11。
+- **結果對應現在寫死**：重跑綠＝R 的 locks 格在 0.2.7 成立，109、110 才能標已修；任何一臂紅＝R 不成立、不跑第三次，改走專用探針，
+  交擁有者。**重跑若永遠沒做**：R 不成立，109、110 維持已確認／未修，「既有判定仍只綁 0.2.5」照 §4。
+- **在那之前**，109、110 只追加一行現況：修法已在宿主 0.2.7 上計數通過本規格的 A 列，R 未過（finding 112）。
+- 順帶的影響：`check_m3_same_second.py` 與 `probe_m3_save_throw.py` 從 `check_m3_locks` 匯入 `open_from_files`，改動之後它們的報告也會
+  多帶那兩個欄位；兩者自己的檔案雜湊不變，same_second 已計數的報告照舊有效（規則 5 之 5）。
+
+### 12.1 新的 locks runner pin（2026-10-06，重跑之前）
+
+| 綁定 | 值 |
+| --- | --- |
+| `check_m3_locks.py` | `1d3099a21576171237e03e089b0edf05fdb903f90ae8cccc8c8b7df7f5317225`（取代 `6e6b2fa4…`；只加儀器，見 `findings/evidence/112/README.md`） |
+
+判分等價：舊新兩版對 10-06 與 10-02 兩份 locks 報告的 `--score`、`--red-cases` 輸出逐位元相同。擷取已紅一次（故意給錯列名，Chrome、Firefox 各一，
+`findings/evidence/112/capture-red/`）。其餘綁定照 §11。
