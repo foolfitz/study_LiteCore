@@ -9,22 +9,27 @@
 // and JSON stay in the engine, so tests/merge_key_undo_model_test.cpp can drive
 // this with generated callback sequences on the host (M1-2).
 //
-// What the attribution rests on (spec 10.1(a), 11, 13.1, 14), in short:
-//   P   the last caret delivered before the unit's non-empty TEXT_SELECTION.
-//   A   the anchor-side selection rectangle delivered in that same flush
-//       (TEXT_SELECTION_START for Shift+Right, _END for Shift+Left).  Writer
-//       computes it at flush time from wherever the caret really was when the
-//       Shift press ran, so it catches a P made stale by an event still queued
-//       when the Shift press was posted (13.1).  It is not sent at all for a
-//       table-cell selection (14.1); "absent" refuses.
-//   U   the first caret after that TEXT_SELECTION (the unit's own caret;
-//       10.1(a), which replaced 3.1 item 4's "differs from the placed caret").
-//   press 1 evidence: the first caret after the collapse TEXT_SELECTION that
-//       follows posting press 1 (carets before the collapse never count).
-//   press 2 evidence: the first caret after posting press 2 whose rectangle
-//       differs from the caret known when it was posted.
-// Premises P1-P4 are in the spec's table; the model test has a switch that
-// breaks P4 and must then find a counterexample.
+// The E shape (spec 16.2, the owner's ruling on 15.2): no unshifted arrow is
+// ever pressed, and each step is sent only after the previous one's proof
+// arrived, so at most one of our events is ever in flight.
+//   K1  Shift+arrow in the key's direction.  Proof: the first non-empty
+//       TEXT_SELECTION after it.  P = the last caret delivered before that
+//       TEXT_SELECTION; its anchor side (START for Shift+Right, END for
+//       Shift+Left), from that same flush, must satisfy the 14.2 mapping
+//       against P (13.1: catches an event still queued when K1 was posted;
+//       absent for a table-cell selection, 14.1).
+//   Esc1  .uno:Escape.  Proof: TEXT_SELECTION turns empty.
+//   K2  Shift+arrow back.  It has a mark, so it does not stop in front of a
+//       numbering label (crsrsh.cxx:351-360).  Proof: the first non-empty
+//       TEXT_SELECTION after it; its POINT side (START after Shift+Left, END
+//       after Shift+Right) must satisfy 14.2 against P, and the engine checks
+//       its text equals K1's.
+//   Esc2  .uno:Escape.  Proof: TEXT_SELECTION turns empty.  Then the key.
+// Only emptiness transitions count: a relayout re-sends a non-empty selection
+// with moved rectangles, never an empty one after a non-empty, nor a
+// non-empty one while nothing is selected.  The unshifted restore this
+// replaces had a second press whose only trace was a caret, which a relayout
+// could forge (15.1); there is no such press here.
 
 #include <cstddef>
 #include <cstdint>
@@ -82,19 +87,18 @@ class Attribution {
 public:
   enum class Phase {
     Idle,
-    AwaitUnitSelection, // Shift press posted
-    AwaitUnitCaret,     // unit's TEXT_SELECTION seen; P and A captured
-    UnitReady,          // U seen: the engine decides fence / restore
-    AwaitRestore1,      // press 1 posted
-    NeedSecondPress,    // press 1 evidence was not P
-    AwaitRestore2,      // press 2 posted
-    Restored,           // the last press's evidence is P
-    NotRestored,        // press 2's evidence is not P
+    AwaitUnit,   // K1 posted
+    UnitSeen,    // K1's selection seen; P and the K1 anchor captured
+    AwaitEmpty1, // Escape #1 sent
+    Collapsed1,  // Escape #1's empty selection seen
+    AwaitReturn, // K2 posted
+    Returned,    // K2's selection seen; its point side captured
+    AwaitEmpty2, // Escape #2 sent
+    Ready,       // Escape #2's empty selection seen: the key may be posted
   };
 
-  // Right before posting the unit's Shift press (K).  Clears the anchors
-  // (14.3); keeps the last caret, which is what P will be if nothing else
-  // arrives before the unit's selection.
+  // Right before posting K1.  Clears the anchors (14.3); keeps the last
+  // caret, which is what P will be if nothing else arrives first.
   void beginTransaction(bool backward) {
     const bool hasLast = hasLastCaret_;
     const Rect last = lastCaret_;
@@ -102,27 +106,22 @@ public:
     hasLastCaret_ = hasLast;
     lastCaret_ = last;
     backward_ = backward;
-    phase_ = Phase::AwaitUnitSelection;
+    phase_ = Phase::AwaitUnit;
   }
 
-  // Right before posting a restore press.  Returns false when the phase does
-  // not allow one (at most two presses; the second only after press 1's
-  // evidence said "not back").
-  bool restorePosted() {
-    if (phase_ == Phase::UnitReady) {
-      phase_ = Phase::AwaitRestore1;
-      collapseSeen_ = false;
-      presses_ = 1;
-      return true;
-    }
-    if (phase_ == Phase::NeedSecondPress) {
-      phase_ = Phase::AwaitRestore2;
-      known_ = lastCaret_;
-      hasKnown_ = hasLastCaret_;
-      presses_ = 2;
-      return true;
-    }
+  // Right before sending each Escape / posting K2.  False when the phase does
+  // not allow it: nothing is ever sent before the previous step's proof.
+  bool escapeSent() {
+    if (phase_ == Phase::UnitSeen) { phase_ = Phase::AwaitEmpty1; return true; }
+    if (phase_ == Phase::Returned) { phase_ = Phase::AwaitEmpty2; return true; }
     return false;
+  }
+  bool returnPosted() {
+    if (phase_ != Phase::Collapsed1)
+      return false;
+    clearAnchors();
+    phase_ = Phase::AwaitReturn;
+    return true;
   }
 
   void onSelectionStart(const Rect &r) {
@@ -135,59 +134,66 @@ public:
   }
 
   void onTextSelection(bool nonEmpty) {
-    if (phase_ == Phase::AwaitUnitSelection && nonEmpty) {
-      hasP_ = hasLastCaret_;
-      p_ = lastCaret_;
-      hasAnchor_ = backward_ ? hasEnd_ : hasStart_;
-      anchor_ = backward_ ? end_ : start_;
-      phase_ = Phase::AwaitUnitCaret;
-    } else if (phase_ == Phase::AwaitRestore1 && !nonEmpty) {
-      collapseSeen_ = true;
+    switch (phase_) {
+    case Phase::AwaitUnit:
+      if (nonEmpty) {
+        hasP_ = hasLastCaret_;
+        p_ = lastCaret_;
+        // Anchor side of K1 = where the caret was when K1 ran.
+        hasAnchor_ = backward_ ? hasEnd_ : hasStart_;
+        anchor_ = backward_ ? end_ : start_;
+        phase_ = Phase::UnitSeen;
+      }
+      break;
+    case Phase::AwaitEmpty1:
+      if (!nonEmpty) phase_ = Phase::Collapsed1;
+      break;
+    case Phase::AwaitReturn:
+      if (nonEmpty) {
+        // K2 runs the other way: its point side is START after Shift+Left
+        // (forward merge), END after Shift+Right (backward merge).
+        hasPoint_ = backward_ ? hasEnd_ : hasStart_;
+        point_ = backward_ ? end_ : start_;
+        phase_ = Phase::Returned;
+      }
+      break;
+    case Phase::AwaitEmpty2:
+      if (!nonEmpty) phase_ = Phase::Ready;
+      break;
+    default:
+      break;
     }
     clearAnchors();
   }
 
   void onCaret(const Rect &r) {
-    switch (phase_) {
-    case Phase::AwaitUnitCaret:
-      hasU_ = true;
-      u_ = r;
-      phase_ = Phase::UnitReady;
-      break;
-    case Phase::AwaitRestore1:
-      if (collapseSeen_)
-        phase_ = (hasP_ && r == p_) ? Phase::Restored : Phase::NeedSecondPress;
-      break;
-    case Phase::AwaitRestore2:
-      if (!hasKnown_ || r != known_)
-        phase_ = (hasP_ && r == p_) ? Phase::Restored : Phase::NotRestored;
-      break;
-    default:
-      break;
-    }
     hasLastCaret_ = true;
     lastCaret_ = r;
     clearAnchors();
   }
 
   Phase phase() const { return phase_; }
-  int presses() const { return presses_; }
   bool hasP() const { return hasP_; }
   const Rect &p() const { return p_; }
   bool hasAnchor() const { return hasAnchor_; }
   const Rect &anchor() const { return anchor_; }
-  bool hasU() const { return hasU_; }
-  const Rect &u() const { return u_; }
+  bool hasPoint() const { return hasPoint_; }
+  const Rect &point() const { return point_; }
+  // K1: the caret was at P when K1 ran.
   bool fenceHolds() const {
     return hasP_ && hasAnchor_ && anchorFenceHolds(p_, anchor_);
+  }
+  // K2: K2 ended at P.
+  bool returnFenceHolds() const {
+    return hasP_ && hasPoint_ && anchorFenceHolds(p_, point_);
   }
 
 private:
   // 14.3: an anchor is only ever read at the TEXT_SELECTION of its own flush.
   // Writer queues START, END, TEXT_SELECTION contiguously at flush time
   // (init.cxx:2395-2412) and the caret after them, so clearing on every
-  // TEXT_SELECTION and caret leaves, at the unit's TEXT_SELECTION, only what
-  // that flush sent.
+  // TEXT_SELECTION and caret leaves, at a TEXT_SELECTION, only what that
+  // flush sent.
   void clearAnchors() { hasStart_ = hasEnd_ = false; }
 
   Phase phase_ = Phase::Idle;
@@ -196,10 +202,8 @@ private:
   Rect lastCaret_;
   bool hasStart_ = false, hasEnd_ = false;
   Rect start_, end_;
-  bool hasP_ = false, hasAnchor_ = false, hasU_ = false, hasKnown_ = false;
-  Rect p_, anchor_, u_, known_;
-  bool collapseSeen_ = false;
-  int presses_ = 0;
+  bool hasP_ = false, hasAnchor_ = false, hasPoint_ = false;
+  Rect p_, anchor_, point_;
 };
 
 // ---- stages and refusals ----------------------------------------------------
@@ -214,8 +218,9 @@ struct Stage {
 };
 
 constexpr Stage kStages[] = {
-    {"nothing-selected", false}, {"unit-caret", false},
+    {"nothing-selected", false},
     {"anchor-mismatch", false},  {"restore", false},
+    {"return-mismatch", false},
     {"undo-read", false},        {"restore-mutated", false},
     {"key-deadline", true},      {"key-read", true},
     {"key-unparsed", true},      {"key-step", true},

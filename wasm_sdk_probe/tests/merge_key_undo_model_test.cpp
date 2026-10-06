@@ -3,40 +3,45 @@
 #include <cstdio>
 #include <deque>
 #include <string>
+#include <utility>
 #include <vector>
 
-// SPEC-M3-paragraph-merge M1-2 (as amended in 10.2, 13.1, 14.6): the
-// attribution rule and the anchor fence driven by callback sequences GENERATED
-// from a model of LOK, not listed by hand.
+// SPEC-M3-paragraph-merge M1-2 (as amended in 10.2, 13.1, 14.6, 16.4): the
+// E shape's attribution driven by callback sequences GENERATED from a model
+// of LOK, not listed by hand.
 //
 // The model, and what each part of it stands for:
-//   - one FIFO queue of user events and flushes (P1); processing an event
-//     schedules a flush only when none is pending (init.cxx:2578-2582), so an
-//     event still queued when the Shift press is posted shares its flush;
-//   - a flush computes its payloads at flush time (P2): START, END,
+//   - one FIFO queue of posted events and flushes (P1); processing an event
+//     schedules a flush only when none is pending (init.cxx:2578-2582);
+//   - a flush computes every payload first and then delivers them (P2,
+//     invoke(): enqueueUpdatedTypes, then the queue): START, END,
 //     TEXT_SELECTION, then the caret (P3); TEXT_SELECTION and the caret are
-//     dropped when equal to the last sent, START/END never are (14.1);
-//   - no START/END for a table-cell selection (14.1);
-//   - rectangles as R0b measured them: caret (x, top+offset, 0, portion
-//     height) with no mark, (x, top, 0, line height) with one; anchor
-//     (x, top, 0, line height - 1);
-//   - a relayout event that moves every line and so changes the caret's
-//     rectangle without any key (the idle-layout caret of 10.1(a));
-//   - switch P4off: press 1 flushes once in the middle of its own processing.
+//     dropped when equal to the last sent, START/END never are (14.1); a
+//     table-cell selection sends no START/END (14.1);
+//   - rectangles as R0b measured them; the caret's shape depends on whether
+//     there is a mark (crsrsh.cxx:2402-2409);
+//   - the engine's Escape is synchronous (postUnoCommand with a listener,
+//     unoctitm.cxx:654-657) and runs at an event boundary (the SolarMutex);
+//     its posted keys are appended to the queue; both happen `lag` events
+//     after the decision;
+//   - text between positions, so two different ranges can hold the same
+//     text (an empty paragraph next to a paragraph end);
+//   - relayouts (permanent, or moving back right after: the 15.1 family),
+//     resends of an unchanged caret, an event still queued when K1 is posted
+//     or processed with its flush after (straddling), and a P4-off switch: K2
+//     flushes once with its point half-way.
 //
-// The property, checked at every "post the key" decision: no restore press is
-// still queued, there is no selection, and the caret is where the Shift press
-// ran.  Every generated sequence ends in a key that satisfies it, a refusal,
-// or no decision (the engine's deadline refuses).
+// The property, checked when LOK processes the key: no selection, and the
+// caret is where K1 ran.  Liveness: with nothing disturbing the transaction,
+// a K2 that returns to the origin merges, a table or a queued event refuses at
+// K1, a K2 that lands elsewhere refuses at K2.  An Escape executed with no
+// selection is counted separately (in Writer it toggles full screen,
+// view2.cxx:1276-1281).
 //
-// It must hold with zero counterexamples for the real rule on the faithful
-// model, and the generator must FIND counterexamples for the rules the spec
-// rejected (first-different-caret, P as the transaction-start snapshot, no
-// fence) and for the real rule when P4 is broken -- otherwise the generator
-// is too weak to say anything.  Positions that share a rectangle (a zero-width
-// portion, or a relayout that lands one line exactly on another) are the
-// registered limit (14.2, 14.5): with them switched on, counterexamples are
-// expected and counted, not failed.
+// Red cases in the same generator: no K2 fence (text check alone) and P4
+// broken must produce counterexamples; Escape #2 sent before K2's selection is
+// seen must produce no counterexample and no merge it should not -- it can
+// only lose the proof (liveness).  Coincident rectangles are reported.
 
 using namespace probe::merge;
 
@@ -47,8 +52,6 @@ void fail(const std::string &what) {
   ++gFailures;
   std::printf("FAIL %s\n", what.c_str());
 }
-
-// ---- layout -----------------------------------------------------------------
 
 struct Line {
   long top, height, caretOff, caretH;
@@ -61,6 +64,7 @@ struct Pos {
 struct Layout {
   std::vector<Line> lines;
   std::vector<Pos> pos;
+  std::string text; // text[i] lies between positions i and i+1
   long shift = 0;
   Rect caret(int p, bool withMark) const {
     const Line &l = lines[pos[p].line];
@@ -72,151 +76,52 @@ struct Layout {
     const Line &l = lines[pos[p].line];
     return {pos[p].x, l.top + shift, 0, l.height - 1};
   }
+  std::string range(int a, int b) const {
+    return a < b ? text.substr(a, b - a) : text.substr(b, a - b);
+  }
 };
 
-// Line 0 as boundaries.odt (caret = line), line 1 as P27 (a taller portion
-// on the line: the caret is 52 lower and 51 shorter than the anchor).
+// Line 0 as boundaries.odt, line 1 as P27 (a taller portion).  Positions 1-2
+// and 2-3 both hold a paragraph end: the same text in two ranges.
 Layout makeLayout(bool alias) {
   Layout l;
   l.lines = {{1000, 276, 0, 276}, {1418, 400, 52, 348}};
   l.pos = {{0, 1418}, {0, 2000}, {0, 2991}, {1, 1418}, {1, 2138}, {1, 3000}};
+  l.text = "a\n\nb\n";
   if (alias)
     l.pos[4].x = 1418; // a zero-width portion: positions 3 and 4 share a rect
   return l;
 }
 
-// ---- trackers ---------------------------------------------------------------
-//
-// The real one is probe::merge::Attribution.  The two below are the rules the
-// spec rejected, kept to the same interface so the same generator drives all.
-
-// 3.2 as first written: P snapshotted when the transaction begins, press N's
-// evidence = the first caret after posting press N that differs from the
-// caret known then, no collapse requirement, no fence.
-class OldRule {
-public:
-  using Phase = Attribution::Phase;
-  void beginTransaction(bool) {
-    phase_ = Phase::AwaitUnitSelection;
-    p_ = last_;
-  }
-  bool restorePosted() {
-    if (phase_ != Phase::UnitReady && phase_ != Phase::NeedSecondPress)
-      return false;
-    phase_ = phase_ == Phase::UnitReady ? Phase::AwaitRestore1 : Phase::AwaitRestore2;
-    known_ = last_;
-    return true;
-  }
-  void onSelectionStart(const Rect &) {}
-  void onSelectionEnd(const Rect &) {}
-  void onTextSelection(bool nonEmpty) {
-    if (phase_ == Phase::AwaitUnitSelection && nonEmpty)
-      phase_ = Phase::AwaitUnitCaret;
-  }
-  void onCaret(const Rect &r) {
-    if (phase_ == Phase::AwaitUnitCaret && r != p_)
-      phase_ = Phase::UnitReady;
-    else if ((phase_ == Phase::AwaitRestore1 || phase_ == Phase::AwaitRestore2) && r != known_)
-      phase_ = r == p_ ? Phase::Restored
-               : phase_ == Phase::AwaitRestore1 ? Phase::NeedSecondPress
-                                                : Phase::NotRestored;
-    last_ = r;
-  }
-  Phase phase() const { return phase_; }
-  bool fenceHolds() const { return true; }
-
-private:
-  Phase phase_ = Phase::Idle;
-  Rect last_, p_, known_;
-};
-
-// The real rule's evidence handling (collapse first for press 1, "differs
-// from the caret known when posted" for press 2), but P is the
-// transaction-start snapshot and there is no fence -- the two things 10.1(a)
-// and 13.1 changed about P.
-class SnapshotP {
-public:
-  using Phase = Attribution::Phase;
-  void beginTransaction(bool) {
-    phase_ = Phase::AwaitUnitSelection;
-    p_ = last_;
-  }
-  bool restorePosted() {
-    if (phase_ == Phase::UnitReady) {
-      phase_ = Phase::AwaitRestore1;
-      collapse_ = false;
-      return true;
-    }
-    if (phase_ == Phase::NeedSecondPress) {
-      phase_ = Phase::AwaitRestore2;
-      known_ = last_;
-      return true;
-    }
-    return false;
-  }
-  void onSelectionStart(const Rect &) {}
-  void onSelectionEnd(const Rect &) {}
-  void onTextSelection(bool nonEmpty) {
-    if (phase_ == Phase::AwaitUnitSelection && nonEmpty)
-      phase_ = Phase::AwaitUnitCaret;
-    else if (phase_ == Phase::AwaitRestore1 && !nonEmpty)
-      collapse_ = true;
-  }
-  void onCaret(const Rect &r) {
-    if (phase_ == Phase::AwaitUnitCaret && r != p_)
-      phase_ = Phase::UnitReady;
-    else if (phase_ == Phase::AwaitRestore1 && collapse_)
-      phase_ = r == p_ ? Phase::Restored : Phase::NeedSecondPress;
-    else if (phase_ == Phase::AwaitRestore2 && r != known_)
-      phase_ = r == p_ ? Phase::Restored : Phase::NotRestored;
-    last_ = r;
-  }
-  Phase phase() const { return phase_; }
-  bool fenceHolds() const { return true; }
-
-private:
-  Phase phase_ = Phase::Idle;
-  Rect last_, p_, known_;
-  bool collapse_ = false;
-};
-
-// ---- the model run ------------------------------------------------------------
-
-// None: the caret has been at q all along.  Flushed: an event moved it s -> q
-// and its flush was delivered before the transaction.  Straddling: the event
-// was processed before the Shift press was posted but its flush runs after
-// (a caret from before the transaction delivered after it began).  Queued:
-// the event was still queued when the Shift press was posted (13.1).
 enum class EventMode { None, Flushed, Straddling, Queued };
-enum class Outcome { Merged, AnchorRefused, RestoreRefused, NoDecision, Counterexample };
+enum class Outcome { Merged, RefusedK1, RefusedK2, NoDecision, Counterexample };
 
 struct Scenario {
   bool backward;
-  int q;             // where the Shift press runs
+  int q;          // where K1 runs
   EventMode e;
-  int s;             // the caret before the event (== q when e is None)
+  int s;          // the caret before the event (== q when None)
   bool table;
-  int r1, r2;        // where restore presses 1 and 2 leave the caret
-  int relayoutAt;    // 0 none, 1 before K, 2 after K, 3 after R1, 4 after R2,
-                     // 5 when the unit's caret is delivered
-  long relayoutShift;
-  bool bounce;       // the relayout moves back right after its caret is delivered
-  int intermediate;  // P4off: press 1 flushes with the caret here; -1 = off
+  int k2;         // where K2 leaves its point (q when Writer behaves)
+  int relayoutAt; // 0 none, 1 before K1, 2 after K1, 3 at Escape #1, 4 after K2, 5 at Escape #2
+  bool bounce;
+  int intermediate; // P4 off: K2 flushes with its point here first; -1 = off
   bool alias;
-  int lag[3];        // engine posts press 1, press 2, the key after this many
-                     // more LOK events (0 = at once)
-  bool resend;       // every caret is delivered twice (only a side field changed)
+  int lag[4];       // Escape #1, K2, Escape #2, key
+  bool resend;
+  bool escDelay;    // the Escape is marked sent, then waits two LOK events for
+                    // the SolarMutex before it runs (a flush may land between)
 };
 
 struct Ev {
-  enum Kind { E, K, R1, R2, Relayout, RelayoutBack, Key, Flush } kind;
+  enum Kind { E, K1, K2, Relayout, RelayoutBack, Key, Flush } kind;
 };
 
-template <class Tracker> struct Run {
+struct Run {
   const Scenario &sc;
   Layout lay;
-  Tracker tr;
-  bool ignoreFence = false;
+  Attribution tr;
+  bool noK2Fence = false, eagerEsc2 = false;
   std::deque<Ev> q;
   int caret;
   bool hasSel = false;
@@ -224,54 +129,62 @@ template <class Tracker> struct Run {
   bool flushPending = false;
   std::string lastSel;
   Rect lastCaret;
-  bool hasLastCaret = false;
+  bool bouncePending = false;
   int kOrigin = -1;
+  std::string k1Text;
   Outcome outcome = Outcome::NoDecision;
   bool decided = false;
+  int escNoSel = 0;
   Attribution::Phase acted = Attribution::Phase::Idle;
-  int presses = 0;
-  // The engine thread: what it decided, posted only after `countdown` more
-  // LOK events have completed (the post crosses threads).
-  struct Pending { bool key; int countdown; };
-  bool bouncePending = false;
+  enum Action { Esc1, PostK2, Esc2, PostKey, EscRun };
+  struct Pending { Action action; int countdown; };
   std::vector<Pending> pending;
 
   explicit Run(const Scenario &s) : sc(s), lay(makeLayout(s.alias)) {
     caret = s.e == EventMode::None ? s.q : s.s;
-    lastSel = "";
     lastCaret = lay.caret(caret, false);
-    hasLastCaret = true;
     tr.onCaret(lastCaret); // the caret at rest, delivered long ago
   }
 
-  void post(Ev::Kind k) {
-    q.push_back({k});
-    if (k == Ev::R1 && sc.relayoutAt == 3) q.push_back({Ev::Relayout});
-    if (k == Ev::R2 && sc.relayoutAt == 4) q.push_back({Ev::Relayout});
+  void schedule() {
+    if (!flushPending) {
+      flushPending = true;
+      q.push_back({Ev::Flush});
+    }
   }
 
   void flush() {
     flushPending = false;
-    if (hasSel && !sc.table) {
+    // Every payload is computed before any is delivered.
+    std::vector<std::pair<int, Rect>> out; // 0 START, 1 END, 2 caret
+    const bool area = hasSel && selAnchor != selPoint;
+    if (area && !sc.table) {
       const int lo = selAnchor < selPoint ? selAnchor : selPoint;
       const int hi = selAnchor < selPoint ? selPoint : selAnchor;
-      deliverStart(lay.anchor(lo));
-      deliverEnd(lay.anchor(hi));
+      out.push_back({0, lay.anchor(lo)});
+      out.push_back({1, lay.anchor(hi)});
     }
     std::string sel;
-    if (hasSel)
-      sel = "S" + std::to_string(selAnchor) + "-" + std::to_string(selPoint);
-    if (sel != lastSel) {
-      lastSel = sel;
-      deliverTextSelection(!sel.empty());
-    }
+    if (area)
+      sel = "S" + std::to_string(selAnchor) + "-" + std::to_string(selPoint) + "@" +
+            std::to_string(lay.shift);
+    const bool sendSel = sel != lastSel;
     const Rect c = lay.caret(caret, hasSel);
-    if (!hasLastCaret || c != lastCaret) {
+    const bool sendCaret = c != lastCaret;
+    for (const auto &[kind, r] : out) {
+      if (kind == 0) tr.onSelectionStart(r);
+      else tr.onSelectionEnd(r);
+    }
+    if (sendSel) {
+      lastSel = sel;
+      tr.onTextSelection(!sel.empty());
+      react();
+    }
+    if (sendCaret) {
       lastCaret = c;
-      hasLastCaret = true;
-      deliverCaret(c);
-      if (sc.resend)
-        deliverCaret(c);
+      tr.onCaret(c);
+      react();
+      if (sc.resend) { tr.onCaret(c); react(); }
     }
     if (bouncePending) {
       bouncePending = false;
@@ -284,33 +197,33 @@ template <class Tracker> struct Run {
     case Ev::E:
       caret = sc.q;
       break;
-    case Ev::K:
+    case Ev::K1:
       kOrigin = caret;
       hasSel = true;
       selAnchor = caret;
       selPoint = caret + (sc.backward ? -1 : 1);
       caret = selPoint;
+      k1Text = lay.range(selAnchor, selPoint);
       break;
-    case Ev::R1:
-      hasSel = false;
+    case Ev::K2:
+      // Shift+arrow keeps an existing mark (SttSelect, select.cxx:407-423).
+      if (!hasSel)
+        selAnchor = caret;
+      hasSel = true;
       if (sc.intermediate >= 0) {
-        caret = sc.intermediate;
-        flush(); // P4 broken: a flush inside the key's own processing
+        selPoint = caret = sc.intermediate;
+        flush(); // P4 broken: a flush inside K2's own processing
       }
-      caret = sc.r1;
-      break;
-    case Ev::R2:
-      caret = sc.r2;
+      selPoint = caret = sc.k2;
       break;
     case Ev::Relayout:
-      lay.shift += sc.relayoutShift;
+      lay.shift += 100;
       bouncePending = sc.bounce;
       break;
     case Ev::RelayoutBack:
-      lay.shift -= sc.relayoutShift;
+      lay.shift -= 100;
       break;
     case Ev::Key:
-      // The property: the user's key runs where the Shift press ran.
       if (!decided)
         decide(!hasSel && caret == kOrigin ? Outcome::Merged : Outcome::Counterexample);
       return;
@@ -318,81 +231,87 @@ template <class Tracker> struct Run {
       flush();
       return;
     }
-    if (!flushPending) {
-      flushPending = true;
-      q.push_back({Ev::Flush});
-    }
+    schedule();
   }
 
-  void deliverStart(const Rect &r) { tr.onSelectionStart(r); react(); }
-  void deliverEnd(const Rect &r) { tr.onSelectionEnd(r); react(); }
-  void deliverTextSelection(bool nonEmpty) { tr.onTextSelection(nonEmpty); react(); }
-  void deliverCaret(const Rect &r) { tr.onCaret(r); react(); }
-
-  void schedule(bool key) {
-    const int lag = sc.lag[key ? 2 : presses];
-    if (lag == 0) execute(key);
-    else pending.push_back({key, lag});
-  }
-  void execute(bool key) {
-    if (key) {
-      post(Ev::Key);
+  // The synchronous Escape, at an event boundary.
+  void escape() {
+    if (!hasSel || selAnchor == selPoint) {
+      // FN_ESCAPE needs HasSelection(), which an empty mark is not
+      // (crsrsh.cxx:3040-3047): full screen, not a collapse.
+      ++escNoSel;
       return;
     }
-    if (tr.restorePosted()) {
-      ++presses;
-      post(presses == 1 ? Ev::R1 : Ev::R2);
+    hasSel = false; // EnterStdMode: ClearMark, the point stays
+    schedule();
+  }
+
+  void execute(Action a) {
+    switch (a) {
+    case Esc1:
+      if (sc.relayoutAt == 3) q.push_back({Ev::Relayout});
+      if (tr.escapeSent()) runEscape();
+      return;
+    case PostK2:
+      if (tr.returnPosted()) {
+        q.push_back({Ev::K2});
+        if (sc.relayoutAt == 4) q.push_back({Ev::Relayout});
+        if (eagerEsc2) later(Esc2); // red case: no wait for K2's selection
+      }
+      return;
+    case Esc2:
+      if (sc.relayoutAt == 5) q.push_back({Ev::Relayout});
+      if (eagerEsc2 ? true : tr.escapeSent()) runEscape();
+      return;
+    case PostKey:
+      q.push_back({Ev::Key});
+      return;
+    case EscRun:
+      escape();
+      return;
     }
   }
+  void later(Action a) { pending.push_back({a, sc.lag[a] + 1}); }
+  void runEscape() {
+    if (sc.escDelay) pending.push_back({EscRun, 2});
+    else escape();
+  }
   void tick() {
-    std::vector<Pending> due;
+    std::vector<Action> due;
     for (std::size_t i = 0; i < pending.size();) {
       if (--pending[i].countdown == 0) {
-        due.push_back(pending[i]);
-        pending.erase(pending.begin() + i);
+        due.push_back(pending[i].action);
+        pending.erase(pending.begin() + static_cast<long>(i));
       } else {
         ++i;
       }
     }
-    for (const Pending &p : due) execute(p.key);
+    for (Action a : due) execute(a);
   }
 
-  // The engine, acting once per phase it reaches.
   void react() {
     if (decided || tr.phase() == acted)
       return;
     acted = tr.phase();
     using P = Attribution::Phase;
     switch (acted) {
-    case P::AwaitUnitCaret:
-      // P and A are known at the unit's TEXT_SELECTION: a failing fence
-      // refuses here, without waiting for U (whose caret may be deduplicated
-      // away when the stale P happens to be the unit's far end).
-      if (!ignoreFence && !tr.fenceHolds())
-        decide(Outcome::AnchorRefused);
+    case P::UnitSeen:
+      if (!tr.fenceHolds()) { decide(Outcome::RefusedK1); return; }
+      later(Esc1);
       return;
-    case P::UnitReady:
-      if (sc.relayoutAt == 5) q.push_back({Ev::Relayout});
-      schedule(false);
+    case P::Collapsed1:
+      later(PostK2);
       return;
-    case P::NeedSecondPress:
-      schedule(false);
-      return;
-    case P::Restored: {
-      // Every press posted must have been seen: one still queued is a
-      // counterexample now, whatever happens later.
-      bool queuedPress = false;
-      for (const Ev &ev : q)
-        if (ev.kind == Ev::R1 || ev.kind == Ev::R2) queuedPress = true;
-      if (queuedPress) {
-        decide(Outcome::Counterexample);
+    case P::Returned:
+      if (lay.range(selAnchor, selPoint) != k1Text ||
+          (!noK2Fence && !tr.returnFenceHolds())) {
+        decide(Outcome::RefusedK2);
         return;
       }
-      schedule(true);
+      if (!eagerEsc2) later(Esc2);
       return;
-    }
-    case P::NotRestored:
-      decide(Outcome::RestoreRefused);
+    case P::Ready:
+      later(PostKey);
       return;
     default:
       return;
@@ -404,11 +323,12 @@ template <class Tracker> struct Run {
   }
 
   void drain() {
-    for (int guard = 0; (!q.empty() || !pending.empty()) && guard < 1000; ++guard) {
-      if (q.empty()) { tick(); continue; }
-      Ev ev = q.front();
-      q.pop_front();
-      process(ev);
+    for (int guard = 0; (!q.empty() || !pending.empty()) && guard < 2000; ++guard) {
+      if (!q.empty()) {
+        Ev ev = q.front();
+        q.pop_front();
+        process(ev);
+      }
       tick();
     }
   }
@@ -421,11 +341,11 @@ template <class Tracker> struct Run {
     if (sc.e == EventMode::Straddling)
       process({Ev::E}); // processed; its flush is still queued
     if (sc.e == EventMode::Queued)
-      q.push_back({Ev::E}); // posted, not yet processed, when K is posted
+      q.push_back({Ev::E}); // posted, not yet processed, when K1 is posted
     if (sc.relayoutAt == 1)
       q.push_back({Ev::Relayout});
     tr.beginTransaction(sc.backward);
-    post(Ev::K);
+    q.push_back({Ev::K1});
     if (sc.relayoutAt == 2)
       q.push_back({Ev::Relayout});
     drain();
@@ -434,110 +354,88 @@ template <class Tracker> struct Run {
 };
 
 struct Tally {
-  long runs = 0, merged = 0, merged2 = 0, anchor = 0, restore = 0, none = 0, counter = 0;
-  long live = 0; // liveness violations (expected outcome not reached)
-  long counterBounce = 0; // counterexamples whose scenario has a transient reflow
+  long runs = 0, merged = 0, k1 = 0, k2 = 0, none = 0, counter = 0, live = 0, escNoSel = 0;
   std::string firstCounter, firstLive;
 };
 
-// Liveness, for the scenarios where nothing disturbs the transaction: no
-// table, no relayout, P4 intact, no coincident rects, no event still queued.
-// Safety alone would let a rule that refuses everything pass; this is what
-// makes "type, then Delete at once" (M2-1b, the Straddling mode) merge.
-// Returns false when the outcome is not the one the design promises.
-bool liveOutcome(const Scenario &s, Outcome o, int presses) {
+std::string describe(const Scenario &s) {
+  static const char *modes[] = {"none", "flushed", "straddling", "queued"};
+  return std::string(s.backward ? "back" : "fwd") + " q=" + std::to_string(s.q) + " e=" +
+         modes[static_cast<int>(s.e)] + " s=" + std::to_string(s.s) + (s.table ? " table" : "") +
+         " k2=" + std::to_string(s.k2) + " relayout@" + std::to_string(s.relayoutAt) +
+         (s.bounce ? " bounce" : "") + " mid=" + std::to_string(s.intermediate) +
+         (s.alias ? " alias" : "") + " lag=" + std::to_string(s.lag[0]) + std::to_string(s.lag[1]) +
+         std::to_string(s.lag[2]) + std::to_string(s.lag[3]) + (s.resend ? " resend" : "") +
+         (s.escDelay ? " escDelay" : "");
+}
+
+bool liveOutcome(const Scenario &s, Outcome o) {
   if (s.relayoutAt != 0 || s.intermediate >= 0 || s.alias)
     return true;
   if (s.table || s.e == EventMode::Queued)
-    return o == Outcome::AnchorRefused; // 14.1 / 13.1: refused before the key
-  const int unitPoint = s.q + (s.backward ? -1 : 1);
-  if (s.r1 == s.q)
-    return o == Outcome::Merged && presses == 1;
-  if (s.r1 == unitPoint)
-    return true; // its caret can equal the unit's (dedup): a deadline refusal
-  if (s.r2 == s.q)
-    return o == Outcome::Merged && presses == 2;
-  if (s.r2 == s.r1)
-    return o == Outcome::NoDecision; // deduplicated: the deadline refuses
-  return o == Outcome::RestoreRefused;
+    return o == Outcome::RefusedK1;
+  if (s.k2 == s.q)
+    return o == Outcome::Merged;
+  if (s.k2 == s.q + (s.backward ? -1 : 1))
+    return o == Outcome::NoDecision; // K2 did not move: nothing selected, the deadline refuses
+  return o == Outcome::RefusedK2;
 }
 
-std::string describe(const Scenario &s) {
-  const char *e = s.e == EventMode::None      ? "none"
-                  : s.e == EventMode::Flushed ? "flushed"
-                  : s.e == EventMode::Straddling ? "straddling"
-                                                 : "queued";
-  return std::string(s.backward ? "back" : "fwd") + " q=" + std::to_string(s.q) + " e=" + e +
-         " s=" + std::to_string(s.s) + (s.table ? " table" : "") + " r1=" + std::to_string(s.r1) +
-         " r2=" + std::to_string(s.r2) + " relayout@" + std::to_string(s.relayoutAt) + "(" +
- std::to_string(s.relayoutShift) + (s.bounce ? " bounce" : "") + ") mid=" + std::to_string(s.intermediate) +
-         (s.alias ? " alias" : "") + " lag=" + std::to_string(s.lag[0]) + std::to_string(s.lag[1]) +
-         std::to_string(s.lag[2]) + (s.resend ? " resend" : "");
-}
-
-template <class Tracker>
-Tally sweep(bool p4off, bool coincidence, bool ignoreFence) {
+Tally sweep(bool p4off, bool coincidence, bool noK2Fence, bool eagerEsc2) {
   Tally t;
   const int n = 6;
-  // +100 moves every line for good, +100 bounce moves it and back (a
-  // transient reflow), -418 lands line 1 exactly on line 0 (coincidence).
-  const long shifts[] = {100, 100, -418};
-  const bool bounces[] = {false, true, false};
   for (int b = 0; b < 2; ++b)
     for (int qq = 0; qq < n; ++qq) {
       if ((b && qq == 0) || (!b && qq == n - 1)) continue;
       for (int em = 0; em < 4; ++em)
         for (int ss = 0; ss < n; ++ss) {
-          if (em == 0 && ss != qq) continue;
-          if (em != 0 && ss == qq) continue;
+          if ((em == 0) != (ss == qq)) continue;
           for (int tb = 0; tb < 2; ++tb)
-            for (int r1 = 0; r1 < n; ++r1)
-              for (int r2 = 0; r2 < n; ++r2)
-                for (int ra = 0; ra < 6; ++ra)
-                  for (int si = 0; si < (coincidence ? 3 : 2); ++si) {
-                    if (ra == 0 && si) continue;
-                    for (int mid = -1; mid < (p4off ? n : 0); ++mid)
-                      for (int al = 0; al < (coincidence ? 2 : 1); ++al)
-                      for (int lg = 0; lg < 27; ++lg)
-                      for (int rs = 0; rs < 2; ++rs) {
-                        Scenario sc{b != 0, qq, static_cast<EventMode>(em), ss, tb != 0,
-                                    r1, r2, ra, shifts[si], bounces[si], mid, al != 0,
-                                    {lg % 3, lg / 3 % 3, lg / 9}, rs != 0};
-                        Run<Tracker> run(sc);
-                        run.ignoreFence = ignoreFence;
-                        const Outcome o = run.go();
-                        ++t.runs;
-                        if (!liveOutcome(sc, o, run.presses)) {
-                          if (!t.live) t.firstLive = describe(sc);
-                          ++t.live;
+            for (int k2 = 0; k2 < n; ++k2)
+              for (int ra = 0; ra < 6; ++ra)
+                for (int bo = 0; bo < (ra ? 2 : 1); ++bo)
+                  for (int mid = -1; mid < (p4off ? n : 0); ++mid)
+                    for (int al = 0; al < (coincidence ? 2 : 1); ++al)
+                      for (int lg = 0; lg < 16; ++lg)
+                        for (int rs = 0; rs < 2; ++rs)
+                        for (int ed = 0; ed < 2; ++ed) {
+                          Scenario sc{b != 0, qq, static_cast<EventMode>(em), ss, tb != 0, k2,
+                                      ra, bo != 0, mid, al != 0,
+                                      {lg & 1, (lg >> 1) & 1, (lg >> 2) & 1, (lg >> 3) & 1},
+                                      rs != 0, ed != 0};
+                          Run run(sc);
+                          run.noK2Fence = noK2Fence;
+                          run.eagerEsc2 = eagerEsc2;
+                          const Outcome o = run.go();
+                          ++t.runs;
+                          t.escNoSel += run.escNoSel;
+                          switch (o) {
+                          case Outcome::Merged: ++t.merged; break;
+                          case Outcome::RefusedK1: ++t.k1; break;
+                          case Outcome::RefusedK2: ++t.k2; break;
+                          case Outcome::NoDecision: ++t.none; break;
+                          case Outcome::Counterexample:
+                            if (!t.counter) t.firstCounter = describe(sc);
+                            ++t.counter;
+                            break;
+                          }
+                          if (!liveOutcome(sc, o)) {
+                            if (!t.live) t.firstLive = describe(sc);
+                            ++t.live;
+                          }
                         }
-                        switch (o) {
-                        case Outcome::Merged:
-                          ++t.merged;
-                          if (run.presses == 2) ++t.merged2;
-                          break;
-                        case Outcome::AnchorRefused: ++t.anchor; break;
-                        case Outcome::RestoreRefused: ++t.restore; break;
-                        case Outcome::NoDecision: ++t.none; break;
-                        case Outcome::Counterexample:
-                          if (!t.counter) t.firstCounter = describe(sc);
-                          ++t.counter;
-                          if (sc.relayoutAt && sc.bounce) ++t.counterBounce;
-                          break;
-                        }
-                      }
-                  }
         }
     }
   return t;
 }
 
 void report(const char *name, const Tally &t) {
-  std::printf("%-34s runs=%ld merged=%ld (2 presses %ld) anchor=%ld restore=%ld none=%ld counter=%ld live=%ld\n",
-              name, t.runs, t.merged, t.merged2, t.anchor, t.restore, t.none, t.counter, t.live);
-  if (t.counter) std::printf("    first counterexample: %s (with a transient reflow: %ld)\n", t.firstCounter.c_str(), t.counterBounce);
+  std::printf("%-36s runs=%ld merged=%ld refusedK1=%ld refusedK2=%ld none=%ld counter=%ld live=%ld escNoSel=%ld\n",
+              name, t.runs, t.merged, t.k1, t.k2, t.none, t.counter, t.live, t.escNoSel);
+  if (t.counter) std::printf("    first counterexample: %s\n", t.firstCounter.c_str());
   if (t.live) std::printf("    first liveness miss:  %s\n", t.firstLive.c_str());
 }
+
 
 // ---- unit cells ----------------------------------------------------------------
 
@@ -589,6 +487,50 @@ void fenceCells() {
       fail("backward unit did not take TEXT_SELECTION_END as its anchor");
   }
 }
+
+void phaseCells() {
+  // K2 is never posted before Escape #1's empty selection is seen.
+  Attribution a;
+  a.onCaret({2991, 1418, 0, 276});
+  a.beginTransaction(false);
+  a.onSelectionStart({2991, 1418, 0, 275});
+  a.onTextSelection(true);
+  if (a.phase() != Attribution::Phase::UnitSeen || !a.escapeSent())
+    fail("phase: K1's selection did not allow Escape #1");
+  if (a.returnPosted())
+    fail("phase: K2 allowed before Escape #1's empty selection");
+  a.onTextSelection(true); // a relayout re-sending the selection: not the collapse
+  if (a.phase() != Attribution::Phase::AwaitEmpty1)
+    fail("phase: a non-empty selection counted as Escape #1's collapse");
+  a.onTextSelection(false);
+  a.onSelectionStart({2991, 1418, 0, 275}); // stale: no selection exists now
+  if (!a.returnPosted())
+    fail("phase: K2 refused after the collapse");
+  a.onTextSelection(true); // K2's flush without START (cannot happen; defensive)
+  if (a.hasPoint())
+    fail("phase: a START from before K2 was read as K2's point");
+  if (!a.escapeSent())
+    fail("phase: Escape #2 refused after K2's selection");
+  a.onTextSelection(true); // a relayout re-sending K2's selection: not the collapse
+  if (a.phase() != Attribution::Phase::AwaitEmpty2)
+    fail("phase: a non-empty selection counted as Escape #2's collapse");
+  a.onTextSelection(false);
+  if (a.phase() != Attribution::Phase::Ready)
+    fail("phase: Escape #2's empty selection did not make the key ready");
+}
+
+// Mutants of merge_key_undo.hpp that this file does not kill, and why they are
+// equivalent (spec 15.1, 16.4):
+//   - AwaitReturn accepting an empty TEXT_SELECTION: after Escape #1's empty
+//     selection was delivered, another empty one is deduplicated against the
+//     last sent (init.cxx:2525-2537); nothing else of ours is in flight.
+//   - not clearing the anchors on TEXT_SELECTION: they are also cleared by
+//     every caret, by beginTransaction and by returnPosted, and are only read
+//     at the first non-empty TEXT_SELECTION after one of those.
+// The generator does not produce a relayout flush between an Escape being
+// marked sent and running (it would need the engine to lose the SolarMutex
+// race for longer than one flush), so the "only an empty selection is the
+// collapse" rule is held by the phase cells above, not by the sweep.
 
 void payloadCells() {
   const std::string empty = "{\n    \"actions\": \"\"\n}\n";
@@ -648,37 +590,35 @@ void payloadCells() {
     fail("unit classification");
 }
 
+
 } // namespace
 
 int main() {
   fenceCells();
+  phaseCells();
   payloadCells();
 
-  const Tally real = sweep<Attribution>(false, false, false);
-  report("real rule, faithful model", real);
-  if (real.counter) fail("real rule has a counterexample on the faithful model: " + real.firstCounter);
-  if (real.live) fail("real rule misses a promised outcome on the faithful model: " + real.firstLive);
-  if (!real.merged || !real.merged2 || !real.anchor || !real.restore)
-    fail("faithful sweep is vacuous (a class of outcome never occurred)");
+  const Tally real = sweep(false, false, false, false);
+  report("E shape, faithful model", real);
+  if (real.counter) fail("counterexample on the faithful model: " + real.firstCounter);
+  if (real.live) fail("liveness miss on the faithful model: " + real.firstLive);
+  if (real.escNoSel) fail("an Escape ran with no selection on the faithful model");
+  if (!real.merged || !real.k1 || !real.k2)
+    fail("faithful sweep is vacuous (an outcome class never occurred)");
 
-  // The generator has to be able to see the dangers.
-  const Tally old = sweep<OldRule>(false, false, false);
-  report("old rule (3.2 as first written)", old);
-  if (!old.counter) fail("generator found no counterexample for the old rule");
-  const Tally snap = sweep<SnapshotP>(false, false, false);
-  report("P = transaction-start snapshot", snap);
-  if (!snap.counter) fail("generator found no counterexample for the snapshot P");
-  const Tally nofence = sweep<Attribution>(false, false, true);
-  report("real rule without the fence", nofence);
-  if (!nofence.counter) fail("generator found no counterexample without the fence");
-  const Tally p4 = sweep<Attribution>(true, false, false);
-  report("real rule, P4 broken", p4);
+  const Tally nofence = sweep(false, false, true, false);
+  report("without the K2 fence (text check only)", nofence);
+  if (!nofence.counter) fail("generator found no counterexample without the K2 fence");
+  const Tally p4 = sweep(true, false, false, false);
+  report("P4 broken (K2 flushes half-way)", p4);
   if (!p4.counter) fail("generator found no counterexample with P4 broken");
+  const Tally eager = sweep(false, false, false, true);
+  report("Escape #2 before K2's selection is seen", eager);
+  if (eager.counter) fail("eager Escape #2 produced a wrong key, not just a lost proof");
+  if (!eager.none && !eager.escNoSel) fail("eager Escape #2 changed nothing: the red case is not exercised");
 
-  // Registered limit: coincident rectangles.  Counted, not failed.
-  const Tally co = sweep<Attribution>(false, true, false);
-  report("real rule, coincident rects (limit)", co);
-  if (!co.counter) fail("coincident-rect sweep found nothing: the limit's model is not exercised");
+  const Tally co = sweep(false, true, false, false);
+  report("coincident rects (limit, reported)", co);
 
   if (gFailures) {
     std::printf("%d failure(s)\n", gFailures);
