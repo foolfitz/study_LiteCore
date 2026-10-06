@@ -14,6 +14,12 @@ from SwShellCursor::FillStartEnd -> GetCharRect).  This reader says, for every
 arm whose unit holds a paragraph or line separator, whether they agree on x,
 on y and on height, and exits 1 unless every such unit agrees on all three.
 
+It also reports, without changing the exit status, the mapping PREDICTION-R0b
+registered before the run in case the three do not agree: equal x, and the
+caret's vertical span inside the anchor rectangle's (anchor y <= caret y and
+caret y + caret height <= anchor y + anchor height + 1; the anchor is printed
+from SwRect::SVRect, which takes one off the height, the caret is not).
+
 Usage: check_merge_anchor_rect.py [--json OUT] ROUND_DIR [ROUND_DIR ...]
 """
 from __future__ import annotations
@@ -70,6 +76,8 @@ def main(argv: list[str]) -> int:
                 row["y"] = caret[1] == anchor[1]
                 row["height"] = caret[3] == anchor[3]
                 row["verdict"] = "agree" if row["x"] and row["y"] and row["height"] else "differ"
+                row["mapping"] = (row["x"] and anchor[1] <= caret[1]
+                                  and caret[1] + caret[3] <= anchor[1] + anchor[3] + 1)
             rows.append(row)
             if row["verdict"] != "agree":
                 failures.append(f"{round_dir.name} {arm['case']} r{arm['round']} {arm['arm']}: "
@@ -79,12 +87,18 @@ def main(argv: list[str]) -> int:
     summary = {v: sum(1 for r in rows if r["verdict"] == v) for v in ("agree", "differ", "absent")}
     for axis in ("x", "y", "height"):
         summary[f"{axis}Differs"] = sum(1 for r in rows if r.get(axis) is False)
+    summary["mappingHolds"] = sum(1 for r in rows if r.get("mapping") is True)
+    summary["mappingFails"] = sum(1 for r in rows if r.get("mapping") is False)
     if out:
         out.write_text(json.dumps({"summary": summary, "rows": rows, "failures": failures},
                                   indent=1) + "\n", encoding="utf-8")
     print(json.dumps(summary))
     for failure in failures:
         print("FAIL " + failure)
+    for r in rows:
+        if r.get("mapping") is False:
+            print(f"MAPPING-FAILS {r['roundDir']} {r['case']} r{r['round']} {r['arm']}: "
+                  f"caret={r['caret']} anchor={r['anchor']}")
     return 1 if failures else 0
 
 
