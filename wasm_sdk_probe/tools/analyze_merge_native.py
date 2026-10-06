@@ -4,11 +4,20 @@ one-unit selection looked like and whether deleting it gave the user's own
 key's document.
 
 Each saved ODT is reduced to a list of blocks (paragraph or heading with its
-resolved style, outline level, list membership and list type, break-before;
-tables and sections as nested blocks; line breaks, tabs and frames as markers
-in the text).  Two documents are "the same" when those lists are equal.
+resolved style, outline level, list membership and list type, break-before,
+the indents its automatic style sets, and whether a heading is counted;
+tables and sections as nested blocks; line breaks, tabs, frames and bookmarks
+as markers in the text).  Two documents are "the same" when those lists are
+equal.
 
-Usage: analyze_merge_native.py ROUND_DIR [--json OUT]
+The indents, the heading's is-list-header and the bookmarks were added on
+2026-10-06 for the second round: Writer's own Backspace at an indented
+paragraph's start removes the indent instead of merging (SwWrtShell::
+TryRemoveIndent), and at a heading's start marks it not counted (NumOrNoNum);
+neither shows in a style name or in the text, so the first reduction could
+not see what the key did.  Soft page breaks are layout and are dropped.
+
+Usage: analyze_merge_native.py ROUND_DIR [--json OUT] [--control CASE]
 """
 from __future__ import annotations
 
@@ -45,10 +54,12 @@ class Styles:
                 if style.get(q("style", "family")) != "paragraph":
                     continue
                 props = style.find(q("style", "paragraph-properties"))
+                get = (lambda k: props.get(q("fo", k)) if props is not None else None)
                 self.paragraph[style.get(q("style", "name"))] = {
                     "parent": style.get(q("style", "parent-style-name")) or "",
-                    "breakBefore": (props.get(q("fo", "break-before")) if props is not None else None) or "",
+                    "breakBefore": get("break-before") or "",
                     "listStyle": style.get(q("style", "list-style-name")) or "",
+                    "indents": {k: v for k in ("text-indent", "margin-left") if (v := get(k)) is not None},
                 }
             for lst in auto.findall(q("text", "list-style")):
                 self.lists[lst.get(q("style", "name"))] = self.list_kind(lst)
@@ -63,13 +74,13 @@ class Styles:
                     return "number:" + (child.get(q("style", "num-format")) or "")
         return "?"
 
-    def paragraph_style(self, name: str | None) -> tuple[str, str]:
+    def paragraph_style(self, name: str | None) -> tuple[str, str, dict[str, str]]:
         if not name:
-            return "", ""
+            return "", "", {}
         auto = self.paragraph.get(name)
         if auto is None:
-            return name, ""
-        return auto["parent"], auto["breakBefore"]
+            return name, "", {}
+        return auto["parent"], auto["breakBefore"], auto["indents"]
 
     def list_type(self, name: str | None) -> str:
         if not name:
@@ -89,8 +100,13 @@ def inline_text(element: ET.Element) -> str:
             out.append(" " * int(child.get(q("text", "c")) or 1))
         elif tag == q("draw", "frame"):
             out.append(f"[frame:{child.get(q('text', 'anchor-type'))}:{child.get(q('draw', 'name'))}]")
-        elif tag in (q("text", "soft-page-break"), q("text", "bookmark"), q("text", "bookmark-start"),
-                     q("text", "bookmark-end")):
+        elif tag == q("text", "bookmark"):
+            out.append(f"[bm:{child.get(q('text', 'name'))}]")
+        elif tag == q("text", "bookmark-start"):
+            out.append(f"[bm<:{child.get(q('text', 'name'))}]")
+        elif tag == q("text", "bookmark-end"):
+            out.append(f"[bm>:{child.get(q('text', 'name'))}]")
+        elif tag == q("text", "soft-page-break"):
             pass
         else:
             out.append(inline_text(child))
@@ -103,12 +119,16 @@ def blocks(parent: ET.Element, styles: Styles, lists: tuple[str, ...] = ()) -> l
     for child in parent:
         tag = child.tag
         if tag in (q("text", "p"), q("text", "h")):
-            style, brk = styles.paragraph_style(child.get(q("text", "style-name")))
+            style, brk, indents = styles.paragraph_style(child.get(q("text", "style-name")))
             block = {"kind": "h" if tag == q("text", "h") else "p", "style": style, "text": inline_text(child)}
             if tag == q("text", "h"):
                 block["outline"] = child.get(q("text", "outline-level"))
+                if child.get(q("text", "is-list-header")):
+                    block["listHeader"] = child.get(q("text", "is-list-header"))
             if brk:
                 block["breakBefore"] = brk
+            if indents:
+                block["indents"] = indents
             if lists:
                 block["list"] = list(lists)
             out.append(block)
@@ -125,7 +145,7 @@ def blocks(parent: ET.Element, styles: Styles, lists: tuple[str, ...] = ()) -> l
         elif tag == q("text", "section"):
             out.append({"kind": "section", "name": child.get(q("text", "name")), "blocks": blocks(child, styles, lists)})
         elif tag in (q("text", "sequence-decls"), q("text", "variable-decls"), q("office", "forms"),
-                     q("text", "tracked-changes")):
+                     q("text", "tracked-changes"), q("text", "soft-page-break")):
             pass
         else:
             out.append({"kind": "other", "tag": tag.split("}")[-1]})
@@ -152,7 +172,8 @@ def flatten(items: list, prefix: str = "") -> list[str]:
             lines.append(f"{prefix}SECTION {block['name']}")
             lines += flatten(block["blocks"], prefix + "  ")
         else:
-            extra = "".join(f" {k}={block[k]}" for k in ("outline", "breakBefore", "list") if k in block)
+            extra = "".join(f" {k}={block[k]}" for k in ("outline", "listHeader", "breakBefore", "indents", "list")
+                            if k in block)
             lines.append(f"{prefix}{block['kind']} [{block.get('style')}]{extra} {block.get('text')!r}")
     return lines
 
@@ -173,6 +194,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("round_dir", type=Path)
     parser.add_argument("--json", type=Path)
+    parser.add_argument("--control", default="C01",
+                        help="case whose key arm must change the document (a plain Delete at a paragraph's end)")
     args = parser.parse_args()
     docs = args.round_dir / "docs"
     arms = [json.loads(line) for line in (args.round_dir / "arms.jsonl").read_text().splitlines()
@@ -184,9 +207,10 @@ def main() -> int:
     # Positive control: Writer's own Delete at the end of a plain paragraph
     # merges.  If that left the document unchanged, nothing here could change
     # it (a stale lock once made every load read-only, and every arm "same").
-    if document(docs / "r1-C01-key.odt") == original:
-        print("POSITIVE CONTROL FAILED: the key Delete at C01 changed nothing; the document was not editable",
-              file=sys.stderr)
+    control = docs / f"r1-{args.control}-key.odt"
+    if not control.exists() or document(control) == original:
+        print(f"POSITIVE CONTROL FAILED: the key arm of {args.control} is missing or changed nothing;"
+              " the document was not editable", file=sys.stderr)
         return 1
     by_case: dict[str, list] = defaultdict(list)
     for arm in arms:

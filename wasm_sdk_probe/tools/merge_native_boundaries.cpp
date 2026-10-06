@@ -19,7 +19,12 @@
 // arm is the reference: it is what Writer does for the user's own key, and the
 // merge we ship must not differ from it.
 //
-// Usage: merge-native-boundaries INSTALL PROFILE_URL DOCUMENT_URL OUT_DIR ROUNDS
+// Usage: merge-native-boundaries INSTALL PROFILE_URL DOCUMENT_URL OUT_DIR ROUNDS [CASES_TSV]
+//
+// CASES_TSV (optional) replaces the built-in cases, for another fixture: one
+// case per line, "id<TAB>anchor<TAB>backward 0|1<TAB>line 0|1<TAB>boundary",
+// blank lines and lines starting with '#' ignored.  The anchor must be the
+// whole paragraph (or line) and occur once before any other copy of it.
 
 #define LOK_USE_UNSTABLE_API
 
@@ -31,7 +36,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -46,14 +53,14 @@ constexpr int kBackspace = 1283;   // css::awt::Key::BACKSPACE
 constexpr int kDelete = 1286;      // css::awt::Key::DELETE
 
 struct Case {
-  const char *id;
-  const char *anchor;
+  std::string id;
+  std::string anchor;
   bool backward;      // Backspace at the start (true) or Delete at the end
   bool line;          // position by line (the line-break cases), not paragraph
-  const char *boundary;
+  std::string boundary;
 };
 
-const Case kCases[] = {
+const std::vector<Case> kCases = {
     {"C01", "M01 plain alpha", false, false, "body|body"},
     {"C02", "M02 plain beta", true, false, "body|body"},
     {"C03", "M03 heading gamma", true, false, "body|numbered heading"},
@@ -239,7 +246,7 @@ Readback position(LibreOfficeKitDocument *document, const Case &c,
                   std::string &searchResult) {
   const std::string arguments =
       std::string("{\"SearchItem.SearchString\":{\"type\":\"string\","
-                  "\"value\":\"") + c.anchor + "\"},"
+                  "\"value\":\"") + jsonEscape(c.anchor) + "\"},"
       "\"SearchItem.Backward\":{\"type\":\"boolean\",\"value\":false},"
       "\"SearchItem.Command\":{\"type\":\"unsigned short\",\"value\":0}}";
   // As e2b_native_crossparagraph.cpp: the search is posted without a result
@@ -339,11 +346,31 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
   }
 }
 
+std::vector<Case> readCases(const char *path) {
+  std::vector<Case> out;
+  std::ifstream in(path);
+  std::string row;
+  while (std::getline(in, row)) {
+    if (row.empty() || row[0] == '#')
+      continue;
+    std::vector<std::string> fields;
+    std::stringstream split(row);
+    for (std::string field; std::getline(split, field, '\t');)
+      fields.push_back(field);
+    if (fields.size() != 5) {
+      std::cerr << "bad case row (want 5 tab-separated fields): " << row << "\n";
+      std::exit(2);
+    }
+    out.push_back({fields[0], fields[1], fields[2] == "1", fields[3] == "1", fields[4]});
+  }
+  return out;
+}
+
 } // namespace
 
 int main(int argc, char **argv) {
   if (argc < 6) {
-    std::cerr << "usage: merge-native-boundaries INSTALL PROFILE_URL DOCUMENT_URL OUT_DIR ROUNDS\n";
+    std::cerr << "usage: merge-native-boundaries INSTALL PROFILE_URL DOCUMENT_URL OUT_DIR ROUNDS [CASES_TSV]\n";
     return 2;
   }
   LibreOfficeKit *kit = lok_init_2(argv[1], argv[2]);
@@ -353,6 +380,11 @@ int main(int argc, char **argv) {
   }
   const std::string outDir = argv[4];
   const int rounds = std::atoi(argv[5]);
+  const std::vector<Case> cases = argc > 6 ? readCases(argv[6]) : kCases;
+  if (cases.empty()) {
+    std::cerr << "no cases\n";
+    return 2;
+  }
   {
     LibreOfficeKitDocument *document = openDocument(kit, argv[3]);
     if (!document) {
@@ -364,7 +396,7 @@ int main(int argc, char **argv) {
     document->pClass->destroy(document);
   }
   for (int round = 1; round <= rounds; ++round)
-    for (const Case &c : kCases)
+    for (const Case &c : cases)
       runCase(kit, argv[3], c, round, outDir);
   kit->pClass->destroy(kit);
   return 0;

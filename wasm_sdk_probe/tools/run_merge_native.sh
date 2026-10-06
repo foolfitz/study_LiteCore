@@ -3,7 +3,12 @@
 # delete of that selection against the user's own key, and one undo.
 # See tools/merge_native_boundaries.cpp.
 #
-# Usage: tools/run_merge_native.sh [OUTPUT_DIR] [ROUNDS]
+# Usage: tools/run_merge_native.sh [OUTPUT_DIR] [ROUNDS] [FIXTURE CASES_TSV]
+#
+# Without FIXTURE the probe's built-in cases run on test-docs/merge/boundaries.fodt.
+# With them, the cases come from CASES_TSV (see the probe's header).  A
+# document that must not enter the repository (the owner's) goes with an
+# OUTPUT_DIR outside it: every arm's saved copy lands in OUTPUT_DIR.
 
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -24,20 +29,27 @@ echo "== compiling =="
 g++ -std=c++17 -O2 -I"$src/include" \
   "$here/tools/merge_native_boundaries.cpp" -ldl -lpthread -o "$probe"
 
-source_fixture="$here/test-docs/merge/boundaries.fodt"
+source_fixture="${3:-$here/test-docs/merge/boundaries.fodt}"
+cases_file="${4:-}"
 [ -f "$source_fixture" ] || { echo "fixture missing: $source_fixture" >&2; exit 1; }
+if [ -n "$cases_file" ]; then
+  [ -f "$cases_file" ] || { echo "cases missing: $cases_file" >&2; exit 1; }
+  cases_file="$(cd "$(dirname "$cases_file")" && pwd)/$(basename "$cases_file")"
+fi
 # A copy per round: LibreOffice writes a lock file next to whatever it loads,
 # and a killed run's lock made the next run load the document read-only
 # (round-20261006T063803Z-read-only-fault: every save equal to the original).
-fixture="$round_dir/boundaries.fodt"
+# An ASCII name, so the file URL needs no escaping whatever the source is called.
+fixture="$round_dir/fixture.${source_fixture##*.}"
 cp "$source_fixture" "$fixture"
-sha256sum "$source_fixture" "$here/tools/merge_native_boundaries.cpp" > "$round_dir/inputs.sha256"
+sha256sum "$source_fixture" "$here/tools/merge_native_boundaries.cpp" ${cases_file:+"$cases_file"} \
+  > "$round_dir/inputs.sha256"
 
 echo "== running ($rounds rounds) =="
 set +e
 SAL_USE_VCLPLUGIN=svp \
   "$probe" "$install_dir" "file://$profile_dir" "file://$fixture" "$round_dir/docs" "$rounds" \
-  >"$round_dir/arms.jsonl" 2>"$round_dir/sal.log"
+  ${cases_file:+"$cases_file"} >"$round_dir/arms.jsonl" 2>"$round_dir/sal.log"
 status=$?
 set -e
 rm -rf "$profile_dir" "$probe"; rm -f "$round_dir"/.~lock.*
