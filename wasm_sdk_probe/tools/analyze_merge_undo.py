@@ -15,9 +15,17 @@ the raw bytes of content.xml (anything at all).  "Stack changed" = the
 before the press.
 
 The "b" arm is option B's whole sequence (select one unit as the barrier
-does, Shift + the opposite arrow back, the user's own key).  For it the reader
+does, the opposite arrow back without Shift, the user's own key).  For it the reader
 also says whether the selection came back collapsed at the placed caret, and
 whether its document equals the key arm's first press -- B must be Writer's key.
+
+Fifth round (undo limit): a round run with MERGE_UNDO_STEPS leaves
+undo-steps.txt, and the reader then also says whether the count alone would
+have served (it cannot once the stack is full: the count stops moving) and
+whether the stack's change was in its comments or only in its timestamps.
+It fails unless the count actually reached the limit -- a round where the
+setting did not take effect would otherwise agree everywhere and prove
+nothing about the limit.
 
 Usage: analyze_merge_undo.py ROUND_DIR [--json OUT]
 """
@@ -46,6 +54,14 @@ def stack(undo: dict | None) -> tuple:
     return (undo.get("count"), undo.get("actions"))
 
 
+def comments(undo: dict | None) -> list | None:
+    try:
+        actions = json.loads((undo or {}).get("actions") or "{}").get("actions") or []
+    except json.JSONDecodeError:
+        return None
+    return [a.get("comment") for a in actions]
+
+
 def top(undo: dict | None) -> dict:
     try:
         actions = json.loads((undo or {}).get("actions") or "{}").get("actions") or []
@@ -67,6 +83,10 @@ def main() -> int:
         return 1
     original = docs / "original.odt"
     out, disagreements, presses_seen = {}, 0, 0
+    count_disagreements, stamp_only = 0, 0
+    steps_file = args.round_dir / "undo-steps.txt"
+    limit = int(steps_file.read_text().split("=")[1]) if steps_file.exists() else None
+    counts_seen = []
     for arm in arms:
         if arm.get("fatal") or "undoBefore" not in arm:
             continue
@@ -88,11 +108,18 @@ def main() -> int:
             changed = doc != prev_doc
             raw_changed = content != prev_raw
             stack_changed = stack(undo) != prev_stack
+            count_changed = (undo or {}).get("count") != prev_stack[0]
+            comments_changed = comments(undo) != comments({"actions": prev_stack[1]})
             presses_seen += 1
             agree = stack_changed == raw_changed
             disagreements += not agree
+            count_disagreements += count_changed != raw_changed
+            stamp_only += stack_changed and not count_changed and not comments_changed
+            counts_seen.append((undo or {}).get("count"))
             steps.append({"press": press, "documentChanged": changed, "contentXmlChanged": raw_changed,
                           "stackChanged": stack_changed, "agree": agree,
+                          "countChanged": count_changed, "countAgree": count_changed == raw_changed,
+                          "commentsChanged": comments_changed,
                           "count": (undo or {}).get("count"), "top": top(undo)})
             prev_doc, prev_raw, prev_stack = doc, content, stack(undo)
         if arm["arm"] == "b":
@@ -120,12 +147,24 @@ def main() -> int:
                     mark += (f"  restore={'ok' if s['restoredCollapsed'] and s['restoredAtPlacedCaret'] else 'FAILED'}"
                              f" =key={'Y' if s['equalsKeyBlocks'] else 'NO'}"
                              f"{'' if s['equalsKey'] == s['equalsKeyBlocks'] else '(bytes ' + ('Y' if s['equalsKey'] else 'n') + ')'}")
+                if limit is not None:
+                    mark += (f" count={s['count']}{'' if s['countAgree'] else '(count-only DISAGREES)'}"
+                             f"{' stamps-only' if s['stackChanged'] and not s['countChanged'] and not s['commentsChanged'] else ''}")
                 cells.append(f"p{s['press']}: doc={'Y' if s['contentXmlChanged'] else 'n'}"
                              f"{'' if s['documentChanged'] == s['contentXmlChanged'] else '(blocks ' + ('Y' if s['documentChanged'] else 'n') + ')'}"
                              f" stack={'Y' if s['stackChanged'] else 'n'}"
                              f" [{s['top'].get('comment', '')!s}]{mark}")
             print(f"    r{rnd} " + " | ".join(cells))
     print(f"\npresses: {presses_seen}, stack-vs-content.xml disagreements: {disagreements}")
+    if limit is not None:
+        numeric = [int(c) for c in counts_seen if c is not None and str(c).isdigit()]
+        reached = bool(numeric) and max(numeric) == limit
+        print(f"undo limit {limit}: highest count seen {max(numeric) if numeric else None}"
+              f" ({'reached' if reached else 'NOT REACHED -- this round says nothing about the limit'});"
+              f" count-only disagreements: {count_disagreements};"
+              f" presses where the stack changed only in its timestamps: {stamp_only}")
+        if not reached:
+            return 1
     if args.json:
         args.json.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n")
     return 0
