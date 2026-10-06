@@ -517,3 +517,65 @@ P1–P4 都成立時 P 仍可能過期：`scheduleFlush` 只在沒有待處理�
   Shift、還原的方向鍵、收合本身都**不**產生 tile 失效（LOK 的選取是客戶端畫的，推論，未讀）。前提不成立，A 就會拒絕一切，退回 B 或 C。
 - **B**：登錄成具名極限，不寫程式。出事時是一份靜靜錯掉的文件、回報成功（同 111 換類別之後那一型）。
 - **C**：拿掉第二下：第一下沒回來就拒絕＋重開。R0 的十個兩下才回來的 case（下一段帶標號）全部變成拒絕。
+
+## 16. 裁決（2026-10-06，擁有者交 fable 裁決 §15.2）：E 形——不再有任何不帶選取的方向鍵
+
+擁有者把 §15.2 交給 fable 裁決。fable 兩輪：第一輪提出「改形」（向前改成 [右, Shift＋左]），主 session 指出缺口後撤回，第二輪定為 E 形。
+主 session 在採用前讀過它立論的原始碼（下列「已核對」）。
+
+### 16.1 裁決與白話理由
+
+**A、B、C 都不採用。**缺陷的形狀是「一下沒有痕跡的按鍵」：第一下還原會把選取收合，`TEXT_SELECTION` 從非空變空，這在 flush 當下算出、只對上一次送出
+的值去重，偽造不了也丟不掉；每一個 Shift 按鍵也都留下 flush 當下算的選取。**第二下還原是在沒有選取的狀態下按的，它唯一的痕跡是一個游標，而任何
+矩形的變動都能偽造一個游標。**所以修法不是證明第二下、也不是猜哪些排版會偽造它，而是讓每一步都留下痕跡。
+
+- A 不採用：守衛是代理（「每個偽造者都會重繪」是手工清單），窗口是整筆交易（最長約 8 秒），每次誤拒都是重開（吃一個 Worker 世代）；閒置拼字的重繪
+  在這顆 core 上活著（`config_wasm_strip.h:8`、`layact.cxx:2171–2175`，fable 讀），會打在「打字後立刻 Delete」上。
+- B 不採用：登錄一類靜靜改錯的文件（111 型），而觸發條件「Writer 的排版會不會在沒有文件改動下把游標的矩形移走再移回」是手工枚舉，既不能證明會、
+  也不能證明不會。fable 在原始碼裡找不到這樣的機制（`SwLayAction` 在一個動作內迭代到不動點、游標只在結尾更新一次），但這不能當判準。
+- C 不採用：九個量到的 case（刪進帶標號的段落）每次都變成重開。
+- 第一輪的改形（向前 [右, Shift＋左, Escape, 鍵]）**撤回**：兩個鍵各自 `doc_postKeyEvent`，每次各拿一次 SolarMutex（`init.cxx:4813`，已核對）；
+  VCL 的迴圈跑在 LOK 自己的執行緒上，被 `PostEvent` 喚醒（`svpinst.cxx:130–149`，fable 讀），第一鍵送出之後兩邊搶鎖。LOK 若先處理第一鍵並跑掉它的
+  flush，第一鍵的游標就會先送達 → P 變成它 → 柵欄誤拒。放寬柵欄救不了：那個簽名與「在文件尾端打一個字再按 Delete」完全相同，放寬的話會把剛打的
+  字當成單位刪掉。
+
+### 16.2 E 形（取代 3.1 第 5 條的還原、10.1(a) 的第一下與第二下證據）
+
+向前（Delete，單位含分隔符號）：
+
+1. **K1＝Shift＋右**（照今天）。處理的證據：非空 `TEXT_SELECTION`。位置：START 對 P 用 14.2 的對應。讀單位、分類照舊（Barrier → `.uno:Delete`；
+   兩端 → `nothing-selected`；表格沒有 START/END → `anchor-mismatch`）。
+2. **`.uno:Escape` #1**：只在看到 K1 的 flush、讀完單位之後送。路徑 `FN_ESCAPE` → 有選取時 `LeaveDrawCreate`、`SelectObj(LONG_MIN, SW_LEAVE_FRAME)`、
+   `EnterStdMode()`（`view2.cxx:1220–1252`，已核對）；`SelectObj` 在原本沒有選取物件時不移動文字游標（唯一的 `SetCursor` 在 `if (bHadSelection)`
+   裡，`feshview.cxx`，已核對）；`EnterStdMode` 用 `ClearMark()` 收合、point 留在原處、`m_bInSelect=false`（`select.cxx`，已核對）。
+   證據：`TEXT_SELECTION` 由非空**變成空**。
+3. **K2＝Shift＋左**：只在看到 #1 的空之後送。有 mark，所以不會停在標號前（`crsrsh.cxx:351–360` 要求 `!HasMark()`，已核對）。證據：非空
+   `TEXT_SELECTION`。位置：**point 那一側（START）對 P 用 14.2 的對應**；選到的文字必須逐位元組等於 K1 的。任一不成立 → 拒絕，`keyPosted:false`。
+4. **`.uno:Escape` #2**：只在看到 K2 的 flush 之後送。證據：**變成空**。之後的游標在一般行上會被去重、不一定送達，不拿來當證據（位置已在第 3 步證過，
+   `ClearMark` 不移動 point）。
+5. P_start＝P0，然後送使用者的鍵（照舊）。
+
+向後（Backspace）：鏡像——Shift＋左、Escape、Shift＋右（不會停在標號前：那一支要旗標已經立起來）、Escape、鍵，point 那一側是 END。
+（今天的「不按 Shift 的右鍵還原」在拿掉第二下之後也是對的；為了一條規則、一個模型，採用鏡像。）
+
+**不變式：我們的事件永遠只有一個在飛**——每一次送出都在前一步的證據送達之後。所以不需要原子性、不需要 VCL 的綁定、整個流程沒有不帶 Shift 的方向鍵。
+引擎要盯的是**空／非空的轉換**，不是「來了一個 `TEXT_SELECTION`」：重新排版會重送一個非空、矩形移動過的 payload（START/END 不去重，14.1）。
+同理，#2 若和 K2 併進同一次 flush，那次 flush 算出來的是空選取，什麼都證明不了——「看到 K2 的 flush 之後才送 #2」讓它不可能發生，而不是不太可能。
+
+### 16.3 R0c（原生，預測先 commit，三輪；方括號是殺死條件）
+
+- (a) 向前（含九個帶標號的 case）：#1 之後 `TEXT_SELECTION` 空、沒有 START/END、`.uno:Undo` payload 不變、游標＝origin＋1 的 no-mark 矩形
+  〔payload 變了，或游標移動〕；K2 之後非空、START 對 P 每一列都滿足 14.2、選到的文字與 K1 逐位元組相同〔文字對而 START 不滿足，或文字不同〕；
+  #2 之後空、payload 不變、游標若送達則＝P〔payload 變了，或游標移動〕；鍵臂的 `content.xml` 與原生鍵臂逐位元組相同、零個不帶 Shift 的方向鍵〔任何不同〕。
+- (b) 向後：鏡像，point 那一側＝END〔同上〕。
+- (c) C29／C30：K1 什麼都沒選到 → `nothing-selected`，不送 #1／K2，文件不變〔選到了東西〕。
+- (d) C15–C17：送鍵之前就拒絕（C17 在 K1 沒有錨點；C15／C16 在 K2 的柵欄或文字比對）〔送了鍵〕。
+- (e) 讀原始碼項（不量）：`SwView::Execute(FN_ESCAPE)` → `AttrChangedNotify` 沒有巢狀事件迴圈（P4 對 Escape 這條路）。
+- **從來沒做時的預設**：第二下不送（等於 C），v15 不連結，模型測試維持紅。B 永遠不是預設。
+
+### 16.4 模型與測試要改的
+
+`Attribution` 拿掉 `NeedSecondPress`／`AwaitRestore2`；新增 Escape #1、K2、Escape #2 的階段。產生器加上同步的 Escape（決定當下套到 LOK 狀態＋排一次
+flush）。不變式不變。紅案保留（3.2 原文、快照 P、沒有柵欄、P4 不成立），另加「#2 在 K2 的 flush 被看到之前就送」——預期是「什麼都沒證明到 →
+deadline」（活性，不是安全）。兩個順帶的修正：游標的形狀依 `HasMark()` 決定（`crsrsh.cxx:2402–2409`），不是依「選取非空」；同矩形那一輪的
+sweep 換規則之後只應報同矩形這一族。另：§15 說「十個兩下才回來的 case」，第六輪的表列的是九個（I02 C08 C10 I03 I01 P27 E13 P62 P63），以九為準。
