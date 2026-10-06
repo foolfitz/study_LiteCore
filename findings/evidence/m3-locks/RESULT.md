@@ -103,3 +103,13 @@ re-counted. Bindings written before the run (`a2df684f`): `PAGE_SHA256` = `fc800
 - Red cases on the counted report: `runs/red-cases-on-2026-09-29T142032.txt` — 99 red, 0 not.
 
 Run one at a time after `PAGE HONEST` (`m3-page-honesty/RESULT.md`, which lists all six).
+
+## Re-counted on page `e97d6e03…` and host 0.2.7 (2026-10-06, SPEC-M3-production-ui §11, §12)
+
+- Shakedown: `shakedown/2026-10-06T015512+0000.json` — clean.
+- Counted: `runs/2026-10-06T035016+0000.json` — **`LOCKS DO NOT LAND`** (51/52; one Chrome K5 run
+  where the Files page listed nothing for 60 s, finding 112). Red cases 99/0.
+- Repeat under `README.md` rule 5: `runs/2026-10-06T053046+0000.json` — **`LOCKS LAND`**, 52/52.
+  Red cases 99/0. Runner `1d3099a2…` (instrument-only change, scoring proven identical).
+
+The table of all six is in `../m3-production-ui/RESULT.md`.

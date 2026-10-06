@@ -108,3 +108,10 @@ chrome 3/3, firefox 3/3, firefox-nozstd 3/3, 156 red cases red — the gate `ZST
 together with the other five M3 runners re-counted on 0.2.5. Reports from before the zstd step
 are scored against their own criteria (`criteria` field; the 0.2.4 run `151106` still re-scores
 `ASSETS DELIVERED`).
+
+## Re-counted on page `e97d6e03…` and host 0.2.7 (2026-10-06, SPEC-M3-production-ui §11)
+
+Counted again with the other five M3 runners, one at a time, after a clean shakedown, on page
+`e97d6e03…` (finding 109's fix and B1), host 0.2.7 `0488586` (finding 110, the production UI) and
+shell generation v55. The verdict holds; the report, its red cases and the table of all six are in
+`../m3-production-ui/RESULT.md`.

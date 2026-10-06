@@ -166,3 +166,15 @@ so it was read as a finding first: **finding 112**. Red cases against the report
    5. The other five counted reports of 2026-10-06 (page honesty, versions, assets, host entry,
       same-second), the product-path net and the static tests stand on the same bindings; they
       are not re-run for this.
+
+## The repeat under rule 5 (2026-10-06)
+
+`runs/2026-10-06T053046+0000.json` (05:30–06:17 UTC, runner `1d3099a2…`, chain log
+`runs/chain-2026-10-06b.txt`; nothing else ran against the instance): **`LOCKS LAND`**, 52/52,
+`problems=[]`, no fatal. Red cases: `runs/red-cases-on-2026-10-06T053046.txt`, 99 red, 0 not.
+Every pass condition of rule 5.2 holds (`runnerSha256` = the §12.1 pin, page `e97d6e03…`, host
+`0488586` clean, `filesRowSeconds` in 52/52, no diagnostic triggered). The Files row was there
+0.00–0.07 s (Chrome) and 0.00–0.26 s (Firefox) after the page's load returned. By rule 5.3: R's
+locks cell holds on 0.2.7; `runs/2026-10-06T035016+0000.json` keeps `LOCKS DO NOT LAND`. The repeat
+budget for finding 112 is spent: a recurrence in a later counted run is read as a finding again
+under rules 2 and 5, with the capture's evidence.

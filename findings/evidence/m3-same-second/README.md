@@ -170,3 +170,9 @@ re-counted. Bindings written before the run (`a2df684f`): `HOST_VERSION` = 0.2.4
 - Red cases on the counted report: `runs/red-cases-on-2026-09-29T151851.txt` — 70 red, 0 not (the case named "the host is not 0.2.2" is the old name; it sets 0.2.1 and is red against 0.2.4).
 
 Run one at a time after `PAGE HONEST` (`m3-page-honesty/RESULT.md`, which lists all six).
+
+## Re-counted on page `e97d6e03…` and host 0.2.7 (2026-10-06, SPEC-M3-production-ui §11)
+
+`runs/2026-10-06T045028+0000.json`: `SAME-SECOND SAVES KEPT` (3/3 × 4 cells), red cases 70/0
+(`runs/red-cases-on-2026-10-06T045028.txt`). The table of all six is in
+`../m3-production-ui/RESULT.md`.

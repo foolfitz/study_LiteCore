@@ -100,3 +100,10 @@ its precondition laid out; U3's unit test missed a `!==` mutant; the implementat
 fail-closed and found BLOCKING 1 (finding 108); the re-shakedown on 0.2.4 died in K-sep
 because it read all 1,645 versions of the file and the CDP socket timed out. Product-path
 net on shell v54: `product-path/`, v8 and v14 cell for cell the same as v53.
+
+## Re-counted on page `e97d6e03…` and host 0.2.7 (2026-10-06, SPEC-M3-production-ui §11)
+
+Counted again with the other five M3 runners, one at a time, after a clean shakedown, on page
+`e97d6e03…` (finding 109's fix and B1), host 0.2.7 `0488586` (finding 110, the production UI) and
+shell generation v55. The verdict holds; the report, its red cases and the table of all six are in
+`../m3-production-ui/RESULT.md`.

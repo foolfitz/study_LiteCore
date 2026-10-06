@@ -64,3 +64,10 @@ re-counted. Bindings written before the run (`a2df684f`): `HOST_COMMIT` = `369e6
 - Red cases on the counted report: `runs/red-cases-on-2026-09-29T150721.txt` — 68 red, 0 not.
 
 Run one at a time after `PAGE HONEST` (`m3-page-honesty/RESULT.md`, which lists all six).
+
+## Re-counted on page `e97d6e03…` and host 0.2.7 (2026-10-06, SPEC-M3-production-ui §11)
+
+Counted again with the other five M3 runners, one at a time, after a clean shakedown, on page
+`e97d6e03…` (finding 109's fix and B1), host 0.2.7 `0488586` (finding 110, the production UI) and
+shell generation v55. The verdict holds; the report, its red cases and the table of all six are in
+`../m3-production-ui/RESULT.md`.

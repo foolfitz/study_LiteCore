@@ -341,3 +341,10 @@ Firefox＝WebDriver actions）。座標沿用 `findings/evidence/109/README.md` 
 
 判分等價：舊新兩版對 10-06 與 10-02 兩份 locks 報告的 `--score`、`--red-cases` 輸出逐位元相同。擷取已紅一次（故意給錯列名，Chrome、Firefox 各一，
 `findings/evidence/112/capture-red/`）。其餘綁定照 §11。
+
+### 12.2 重跑的結果（2026-10-06）
+
+`findings/evidence/m3-locks/runs/2026-10-06T053046+0000.json`：**`LOCKS LAND`**，52/52、`problems=[]`、紅案 99／0、`runnerSha256` 是 §12.1 的 pin、
+52 臂都帶 `filesRowSeconds`、擷取一次都沒觸發。照 §12 寫死的對應：**R 的 locks 格在 0.2.7 成立**，10-06 第一份照舊是 `LOCKS DO NOT LAND`。
+**R 成立**：六支 M3 判定在頁面 `e97d6e03…`、宿主 0.2.7 上都計數過，產品路徑網 v55 與 v54 逐格相同，`make test-e2-c-static` 結束碼 0。
+109、110 依 §4 改標已修；111、112 仍開著。逐判準的讀法在 `findings/evidence/m3-production-ui/RESULT.md`。

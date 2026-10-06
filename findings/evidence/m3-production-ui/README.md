@@ -128,3 +128,12 @@ and which parts are exposed.
 
 `editor-0.2.6-chrome.png`, `editor-0.2.6-chrome-unsaved.png`: the editor in Nextcloud on 0.2.6
 (Chrome 151 headless, 1850×980), before and after typing one character.
+
+## `runs/` — the counted runs (host 0.2.7, spec §11 bindings), 2026-10-06
+
+`counted-B-x3.json`, `counted-ctl-S-P.json`, `counted-B3x-x2.json`, written by `chain-2026-10-06.sh`
+(its log `chain-2026-10-06.txt`) after the six M3 runners' shakedowns were clean: 22/22 runs pass;
+the three reports pooled for `--red-cases` give 30/30 (`red-cases-on-counted-pooled.txt`). The
+per-criterion reading, the six runners' counted verdicts (locks red once, finding 112, then one
+repeat `LOCKS LAND` under rule 5 of `../m3-locks/README.md`) and what this does and does not settle
+are in `RESULT.md`.
