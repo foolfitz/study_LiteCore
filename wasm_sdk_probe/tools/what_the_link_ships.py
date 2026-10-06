@@ -73,7 +73,15 @@ PRODUCT_UNITS = ["sdk_api", "probe_engine", "unoembind_stub", "editor_api"]
 # `configurationDrift` asserts both against `make -pn`.
 A11Y_DEFINES = PRODUCT_DEFINES + ["-DOXSDK_A11Y_PARAGRAPH_TEXT",
                                   "-DOXSDK_A11Y_OUTLINE"]
+# SPEC-M3-paragraph-merge: v15 is v8's defines plus option B.
+MERGE_V15_DEFINES = PRODUCT_DEFINES + ["-DOXSDK_MERGE_KEY_UNDO"]
 VARIANTS = {
+    "merge-v15": {
+        "objectsVar": "E2_V15_OBJECTS",
+        "cppflagsVar": "E1_CPPFLAGS",
+        "defines": MERGE_V15_DEFINES,
+        "units": PRODUCT_UNITS,
+    },
     "product": {
         "objectsVar": "E2_V4_OBJECTS",
         "cppflagsVar": "E1_CPPFLAGS",

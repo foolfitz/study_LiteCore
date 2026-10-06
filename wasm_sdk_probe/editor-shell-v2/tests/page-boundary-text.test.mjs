@@ -55,12 +55,33 @@ test("M1-5: keyPosted missing or not false is never told 'not changed'", () => {
               String(keyPosted));
 });
 
+// The engine's stage table, read from the header the engine compiles
+// (src/merge_key_undo.hpp kStages), not listed here: a stage the engine
+// gains without the page deciding its sentence turns this red.
+const ENGINE_STAGES = (() => {
+  const header = readFileSync(new URL("../../src/merge_key_undo.hpp", import.meta.url), "utf8");
+  const table = header.match(/constexpr Stage kStages\[\] = \{([\s\S]*?)\};/);
+  assert.ok(table, "kStages not found in merge_key_undo.hpp");
+  const stages = [...table[1].matchAll(/\{"([a-z-]+)",\s*(true|false)\}/g)]
+    .map(([, name, posted]) => ({ name, keyPosted: posted === "true" }));
+  assert.ok(stages.length >= 8, `only ${stages.length} stages parsed`);
+  return stages;
+})();
+
 test("M1-5: before-the-key stages say 'not changed'; unknown and restore-mutated do not", () => {
-  for (const stage of ["nothing-selected", "unit-caret", "anchor-mismatch",
-                       "insert-fallback", "restore", "undo-read"])
-    assert.ok(boundaryText(refusal({ keyPosted: false, stage })).includes(UNCHANGED), stage);
-  for (const stage of ["restore-mutated", "key-deadline", "a-stage-added-later", ""])
+  // restore-mutated is before the key but means the payload moved: uncertain.
+  for (const { name, keyPosted } of ENGINE_STAGES) {
+    const says = boundaryText(refusal({ keyPosted, stage: name })).includes(UNCHANGED);
+    assert.equal(says, !keyPosted && name !== "restore-mutated", name);
+  }
+  for (const stage of ["a-stage-added-later", ""])
     assert.ok(!boundaryText(refusal({ keyPosted: false, stage })).includes(UNCHANGED), stage);
+});
+
+test("M1-5: the page's 'not changed' set holds only stages the engine has", () => {
+  const names = new Set(ENGINE_STAGES.map(({ name }) => name));
+  for (const stage of eval(`new Set(${STAGES_DECL.match(/new Set\(([\s\S]*)\)/)[1]})`))
+    assert.ok(names.has(stage), `page lists ${stage}, which the engine never sends`);
 });
 
 test("M1-5: 'nothing selected' does not claim a document end", () => {
