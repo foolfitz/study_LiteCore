@@ -1,0 +1,7993 @@
+{
+ "runner": "check_m3_same_second.py",
+ "runnerSha256": "865a10c924084835d94bb7bd747a68a13a9c150ba26a9861a88eb67b76ae69d4",
+ "label": "shakedown",
+ "startedAt": "2026-10-06T02:34:28+00:00",
+ "static": {
+  "page": {
+   "dist": "e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f",
+   "web": "e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f"
+  }
+ },
+ "hostRepo": "048858634cad45bf74e04cf84211cef637a5a94f Host 0.2.7: a browser without CSS @scope gets the product's unscoped sheet instead of none",
+ "hostDirty": "",
+ "hostFiles": {
+  "js/litecore-editor.js": "8c047137e93af1dfa54409e7bd66a5167e57d2c42ba398c3665befb36f0ff3df",
+  "lib/Controller/EditorController.php": "c5d638579d84d00d36ea65e1fedd1a5bb3779c2ca9a5c7a165bff102c304ff12",
+  "templates/editor.php": "dc9bdac1bf786b748c11ed44f860942e7186a7b370f9dbc6f6efdc556984ac63"
+ },
+ "hostBinding": {
+  "appDir": "/home/jiajun/Projects/Nextcloud_Apps/litecore",
+  "sourceRepo": "/home/jiajun/Projects/Nextcloud_Apps/litecore"
+ },
+ "hostVersion": "0.2.7",
+ "baseUrl": "https://litecore.ddev.site:8443",
+ "original": {
+  "source": "e1-fixtures/multi-paragraph.odt",
+  "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934"
+ },
+ "intruder": {
+  "source": "e1-fixtures/list-contexts.odt",
+  "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d"
+ },
+ "runs": [
+  {
+   "arm": "same-second",
+   "spec": "R2",
+   "browser": "chrome",
+   "startedAt": "2026-10-06T02:34:29+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 同秒 測試.odt",
+    "adminPath": "M3 同秒 測試.odt"
+   },
+   "clearedLocks": "0",
+   "removedOld": 404,
+   "reset": {
+    "upload": 201,
+    "fileId": 7932
+   },
+   "copiesBefore": [],
+   "version": "Chrome/151.0.7922.169",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/fabdb50ecd038802-90d7bc2c/e2-editor.html?fileId=7932",
+   "host": {
+    "started": 1791254074222,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 242
+     },
+     {
+      "step": "fetched",
+      "at": 300
+     },
+     {
+      "step": "opened",
+      "at": 2043,
+      "state": {
+       "state": "ready",
+       "doc": "M3 同秒 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 同秒 測試.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 3041,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9738,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 3042,
+         "status": 200,
+         "etag": "\"6ac45e3a75060\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 20
+        },
+        "ifMatch": "\"6ac45e3a75060\"",
+        "withToken": true,
+        "at": 3062,
+        "respondedAt": 3111,
+        "status": 204
+       }
+      ],
+      "sha256": "97c1e15ecc4fc02dd6679d25f1a2292e7ffd38e2f99d1e78db37e209b04dda10",
+      "ifMatch": "\"6ac45e3a75060\"",
+      "status": 204,
+      "etag": "\"e65664accaf25f3582bc7822112ae8d8\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 3201,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9759,
+      "attempts": [
+       {
+        "waited": 1014,
+        "check": {
+         "at": 4215,
+         "status": 200,
+         "etag": "\"e65664accaf25f3582bc7822112ae8d8\"",
+         "sha256": "97c1e15ecc4fc02dd6679d25f1a2292e7ffd38e2f99d1e78db37e209b04dda10",
+         "ms": 21
+        },
+        "ifMatch": "\"e65664accaf25f3582bc7822112ae8d8\"",
+        "withToken": true,
+        "at": 4236,
+        "respondedAt": 4278,
+        "status": 204
+       }
+      ],
+      "sha256": "b9bca645318fed0500db5a201ae794dc12133b6341f445bbc6b87abac5adda56",
+      "ifMatch": "\"e65664accaf25f3582bc7822112ae8d8\"",
+      "status": 204,
+      "etag": "\"3be15e2d5ec9ebba6359ea2ac13fca3d\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 8016,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9759,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 8016,
+         "status": 200,
+         "etag": "\"3be15e2d5ec9ebba6359ea2ac13fca3d\"",
+         "sha256": "b9bca645318fed0500db5a201ae794dc12133b6341f445bbc6b87abac5adda56",
+         "ms": 27
+        },
+        "ifMatch": "\"3be15e2d5ec9ebba6359ea2ac13fca3d\"",
+        "withToken": true,
+        "at": 8043,
+        "respondedAt": 8092,
+        "status": 204
+       }
+      ],
+      "sha256": "61824800d0e1939c24a0c5f0949a3f7d1253a7f17c04d1e4a63a7472db53ef36",
+      "ifMatch": "\"3be15e2d5ec9ebba6359ea2ac13fca3d\"",
+      "status": 204,
+      "etag": "\"6a73fc1f8267b33baa91ea16a9328e05\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 8175,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9759,
+      "attempts": [
+       {
+        "waited": 1020,
+        "check": {
+         "at": 9196,
+         "status": 200,
+         "etag": "\"6a73fc1f8267b33baa91ea16a9328e05\"",
+         "sha256": "61824800d0e1939c24a0c5f0949a3f7d1253a7f17c04d1e4a63a7472db53ef36",
+         "ms": 19
+        },
+        "ifMatch": "\"6a73fc1f8267b33baa91ea16a9328e05\"",
+        "withToken": true,
+        "at": 9215,
+        "respondedAt": 9263,
+        "status": 204
+       }
+      ],
+      "sha256": "3f9711055a683edc05fd50546cf7024e613c0c4915ccb5d6089def088e284990",
+      "ifMatch": "\"6a73fc1f8267b33baa91ea16a9328e05\"",
+      "status": 204,
+      "etag": "\"877085f37f6cffd9d1f2cf4ce5dca8ce\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 13118,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9760,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 13119,
+         "status": 200,
+         "etag": "\"877085f37f6cffd9d1f2cf4ce5dca8ce\"",
+         "sha256": "3f9711055a683edc05fd50546cf7024e613c0c4915ccb5d6089def088e284990",
+         "ms": 25
+        },
+        "ifMatch": "\"877085f37f6cffd9d1f2cf4ce5dca8ce\"",
+        "withToken": true,
+        "at": 13144,
+        "respondedAt": 13189,
+        "status": 204
+       }
+      ],
+      "sha256": "bd5ac93d016810408f9ce43c3fd6e90b00b9fc24a8dda8006553b9e8ee33fc3c",
+      "ifMatch": "\"877085f37f6cffd9d1f2cf4ce5dca8ce\"",
+      "status": 204,
+      "etag": "\"225ce09736addd11e565c84437ab9f7c\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 13271,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9760,
+      "attempts": [
+       {
+        "waited": 1018,
+        "check": {
+         "at": 14289,
+         "status": 200,
+         "etag": "\"225ce09736addd11e565c84437ab9f7c\"",
+         "sha256": "bd5ac93d016810408f9ce43c3fd6e90b00b9fc24a8dda8006553b9e8ee33fc3c",
+         "ms": 22
+        },
+        "ifMatch": "\"225ce09736addd11e565c84437ab9f7c\"",
+        "withToken": true,
+        "at": 14311,
+        "respondedAt": 14358,
+        "status": 204
+       }
+      ],
+      "sha256": "3875288d246bd2066422f8cf162c9ced79f99a6637fac8c0ca2f45e697adfd55",
+      "ifMatch": "\"225ce09736addd11e565c84437ab9f7c\"",
+      "status": 204,
+      "etag": "\"83501019fda95a6aa622569575d97ba8\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 18210,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9760,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 18210,
+         "status": 200,
+         "etag": "\"83501019fda95a6aa622569575d97ba8\"",
+         "sha256": "3875288d246bd2066422f8cf162c9ced79f99a6637fac8c0ca2f45e697adfd55",
+         "ms": 26
+        },
+        "ifMatch": "\"83501019fda95a6aa622569575d97ba8\"",
+        "withToken": true,
+        "at": 18236,
+        "respondedAt": 18280,
+        "status": 204
+       }
+      ],
+      "sha256": "2f2ccafe90d7e2032a434a444ff01427cdb0b4afa555b5ee63ba14dc26a688c5",
+      "ifMatch": "\"83501019fda95a6aa622569575d97ba8\"",
+      "status": 204,
+      "etag": "\"1861b12a597add5590ec53c410be9a2b\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 18362,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9760,
+      "attempts": [
+       {
+        "waited": 1018,
+        "check": {
+         "at": 19380,
+         "status": 200,
+         "etag": "\"1861b12a597add5590ec53c410be9a2b\"",
+         "sha256": "2f2ccafe90d7e2032a434a444ff01427cdb0b4afa555b5ee63ba14dc26a688c5",
+         "ms": 22
+        },
+        "ifMatch": "\"1861b12a597add5590ec53c410be9a2b\"",
+        "withToken": true,
+        "at": 19402,
+        "respondedAt": 19442,
+        "status": 204
+       }
+      ],
+      "sha256": "67f54727bf2bf9d4f107b05f99dca0286ccb63a7dac04eef7a01bd7e445c75a2",
+      "ifMatch": "\"1861b12a597add5590ec53c410be9a2b\"",
+      "status": 204,
+      "etag": "\"423ec3f9653904068154373e486eb8cf\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 23329,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9761,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 23329,
+         "status": 200,
+         "etag": "\"423ec3f9653904068154373e486eb8cf\"",
+         "sha256": "67f54727bf2bf9d4f107b05f99dca0286ccb63a7dac04eef7a01bd7e445c75a2",
+         "ms": 25
+        },
+        "ifMatch": "\"423ec3f9653904068154373e486eb8cf\"",
+        "withToken": true,
+        "at": 23354,
+        "respondedAt": 23398,
+        "status": 204
+       }
+      ],
+      "sha256": "988e2c2a4ca4891fb14aa9f5c78d125f16f82eb5edf3ab40079ec62733eef1d9",
+      "ifMatch": "\"423ec3f9653904068154373e486eb8cf\"",
+      "status": 204,
+      "etag": "\"929e7277a3eb1e07e5da550e6804b14f\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 23482,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9761,
+      "attempts": [
+       {
+        "waited": 1016,
+        "check": {
+         "at": 24498,
+         "status": 200,
+         "etag": "\"929e7277a3eb1e07e5da550e6804b14f\"",
+         "sha256": "988e2c2a4ca4891fb14aa9f5c78d125f16f82eb5edf3ab40079ec62733eef1d9",
+         "ms": 22
+        },
+        "ifMatch": "\"929e7277a3eb1e07e5da550e6804b14f\"",
+        "withToken": true,
+        "at": 24520,
+        "respondedAt": 24562,
+        "status": 204
+       }
+      ],
+      "sha256": "f8174886ad6b23b0693163cbceb175dc48f54fac216036d7d5e6c28b81c489d0",
+      "ifMatch": "\"929e7277a3eb1e07e5da550e6804b14f\"",
+      "status": 204,
+      "etag": "\"9ecdc74d48c198fba97248be7122af7e\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 28412,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9759,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 28412,
+         "status": 200,
+         "etag": "\"9ecdc74d48c198fba97248be7122af7e\"",
+         "sha256": "f8174886ad6b23b0693163cbceb175dc48f54fac216036d7d5e6c28b81c489d0",
+         "ms": 24
+        },
+        "ifMatch": "\"9ecdc74d48c198fba97248be7122af7e\"",
+        "withToken": true,
+        "at": 28436,
+        "respondedAt": 28481,
+        "status": 204
+       }
+      ],
+      "sha256": "ed0d74581284c7dccace1de5352133fc4991182dd4c98c3d3bb4e074384727e6",
+      "ifMatch": "\"9ecdc74d48c198fba97248be7122af7e\"",
+      "status": 204,
+      "etag": "\"db30b70e5cabe494c802dd0058e76006\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 28564,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9759,
+      "attempts": [
+       {
+        "waited": 1017,
+        "check": {
+         "at": 29581,
+         "status": 200,
+         "etag": "\"db30b70e5cabe494c802dd0058e76006\"",
+         "sha256": "ed0d74581284c7dccace1de5352133fc4991182dd4c98c3d3bb4e074384727e6",
+         "ms": 23
+        },
+        "ifMatch": "\"db30b70e5cabe494c802dd0058e76006\"",
+        "withToken": true,
+        "at": 29604,
+        "respondedAt": 29644,
+        "status": 204
+       }
+      ],
+      "sha256": "b49bd1fbddd6c7da850ca9faab22b86ef068a1c37fbed38ef26202c3a69159a7",
+      "ifMatch": "\"db30b70e5cabe494c802dd0058e76006\"",
+      "status": 204,
+      "etag": "\"d3307f07bfe6414a3c0c5c4e43d74b2f\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 33511,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9760,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 33511,
+         "status": 200,
+         "etag": "\"d3307f07bfe6414a3c0c5c4e43d74b2f\"",
+         "sha256": "b49bd1fbddd6c7da850ca9faab22b86ef068a1c37fbed38ef26202c3a69159a7",
+         "ms": 21
+        },
+        "ifMatch": "\"d3307f07bfe6414a3c0c5c4e43d74b2f\"",
+        "withToken": true,
+        "at": 33532,
+        "respondedAt": 33577,
+        "status": 204
+       }
+      ],
+      "sha256": "98b5b80a6f24cf81a800e31c37229c7be8f6996e98bb524191167319d1afbcc3",
+      "ifMatch": "\"d3307f07bfe6414a3c0c5c4e43d74b2f\"",
+      "status": 204,
+      "etag": "\"e18f8dba6b5c1580440b338377b4cbf1\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 33662,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9759,
+      "attempts": [
+       {
+        "waited": 1020,
+        "check": {
+         "at": 34682,
+         "status": 200,
+         "etag": "\"e18f8dba6b5c1580440b338377b4cbf1\"",
+         "sha256": "98b5b80a6f24cf81a800e31c37229c7be8f6996e98bb524191167319d1afbcc3",
+         "ms": 26
+        },
+        "ifMatch": "\"e18f8dba6b5c1580440b338377b4cbf1\"",
+        "withToken": true,
+        "at": 34708,
+        "respondedAt": 34754,
+        "status": 204
+       }
+      ],
+      "sha256": "1636421ed742e2e9022890dfd8947d0abbedbdd4d1a87ba2adaa2ce507730718",
+      "ifMatch": "\"e18f8dba6b5c1580440b338377b4cbf1\"",
+      "status": 204,
+      "etag": "\"e6cd93e3d3e266fd8b18bd3b7882d951\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 38609,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9759,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 38609,
+         "status": 200,
+         "etag": "\"e6cd93e3d3e266fd8b18bd3b7882d951\"",
+         "sha256": "1636421ed742e2e9022890dfd8947d0abbedbdd4d1a87ba2adaa2ce507730718",
+         "ms": 24
+        },
+        "ifMatch": "\"e6cd93e3d3e266fd8b18bd3b7882d951\"",
+        "withToken": true,
+        "at": 38633,
+        "respondedAt": 38681,
+        "status": 204
+       }
+      ],
+      "sha256": "1c459ad382ea19a4a5f4891f3eba943935822c039773f925d8b161829df23c7e",
+      "ifMatch": "\"e6cd93e3d3e266fd8b18bd3b7882d951\"",
+      "status": 204,
+      "etag": "\"333848f904a1dfa7c041e32524684cbc\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 38762,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9759,
+      "attempts": [
+       {
+        "waited": 1023,
+        "check": {
+         "at": 39785,
+         "status": 200,
+         "etag": "\"333848f904a1dfa7c041e32524684cbc\"",
+         "sha256": "1c459ad382ea19a4a5f4891f3eba943935822c039773f925d8b161829df23c7e",
+         "ms": 22
+        },
+        "ifMatch": "\"333848f904a1dfa7c041e32524684cbc\"",
+        "withToken": true,
+        "at": 39807,
+        "respondedAt": 39844,
+        "status": 204
+       }
+      ],
+      "sha256": "700f61a4f27c402b881c45cd7830d265178682da5a775d7926e9a55bac63a23b",
+      "ifMatch": "\"333848f904a1dfa7c041e32524684cbc\"",
+      "status": 204,
+      "etag": "\"c4cc4f2de868ca9b0daa747629d55b69\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 43710,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9758,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 43710,
+         "status": 200,
+         "etag": "\"c4cc4f2de868ca9b0daa747629d55b69\"",
+         "sha256": "700f61a4f27c402b881c45cd7830d265178682da5a775d7926e9a55bac63a23b",
+         "ms": 21
+        },
+        "ifMatch": "\"c4cc4f2de868ca9b0daa747629d55b69\"",
+        "withToken": true,
+        "at": 43731,
+        "respondedAt": 43787,
+        "status": 204
+       }
+      ],
+      "sha256": "eebbe6e5a542ab0bd5352af45f593b1bf321db99754f33a2594dcbdb4204d3df",
+      "ifMatch": "\"c4cc4f2de868ca9b0daa747629d55b69\"",
+      "status": 204,
+      "etag": "\"0e44ba90ceeeacb20d1a090dd42bdd22\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 43867,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9760,
+      "attempts": [
+       {
+        "waited": 1020,
+        "check": {
+         "at": 44887,
+         "status": 200,
+         "etag": "\"0e44ba90ceeeacb20d1a090dd42bdd22\"",
+         "sha256": "eebbe6e5a542ab0bd5352af45f593b1bf321db99754f33a2594dcbdb4204d3df",
+         "ms": 25
+        },
+        "ifMatch": "\"0e44ba90ceeeacb20d1a090dd42bdd22\"",
+        "withToken": true,
+        "at": 44912,
+        "respondedAt": 44950,
+        "status": 204
+       }
+      ],
+      "sha256": "5031702212d115af18ba59cfb399798c2577a55d8fe1fe5e6ea1752938284559",
+      "ifMatch": "\"0e44ba90ceeeacb20d1a090dd42bdd22\"",
+      "status": 204,
+      "etag": "\"cdb36d022003906135f422dccba39ba6\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 48809,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9761,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 48809,
+         "status": 200,
+         "etag": "\"cdb36d022003906135f422dccba39ba6\"",
+         "sha256": "5031702212d115af18ba59cfb399798c2577a55d8fe1fe5e6ea1752938284559",
+         "ms": 24
+        },
+        "ifMatch": "\"cdb36d022003906135f422dccba39ba6\"",
+        "withToken": true,
+        "at": 48833,
+        "respondedAt": 48878,
+        "status": 204
+       }
+      ],
+      "sha256": "a893ac78a6a49d4f56f3f7d50c5140245bbdb378066319dfd55d45976901944c",
+      "ifMatch": "\"cdb36d022003906135f422dccba39ba6\"",
+      "status": 204,
+      "etag": "\"6bccf7534c8fae2fe9a9f91cba900b07\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 48958,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9760,
+      "attempts": [
+       {
+        "waited": 1024,
+        "check": {
+         "at": 49982,
+         "status": 200,
+         "etag": "\"6bccf7534c8fae2fe9a9f91cba900b07\"",
+         "sha256": "a893ac78a6a49d4f56f3f7d50c5140245bbdb378066319dfd55d45976901944c",
+         "ms": 21
+        },
+        "ifMatch": "\"6bccf7534c8fae2fe9a9f91cba900b07\"",
+        "withToken": true,
+        "at": 50003,
+        "respondedAt": 50041,
+        "status": 204
+       }
+      ],
+      "sha256": "0aa3f48bd8b2323ca2ca5c4b6d9bee1884be3eaec834f656c037b3e1e4a3bc8c",
+      "ifMatch": "\"6bccf7534c8fae2fe9a9f91cba900b07\"",
+      "status": 204,
+      "etag": "\"7b89ccdd4b654cc20985cf50d93dffc2\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 53127,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9760,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 53127,
+         "status": 200,
+         "etag": "\"7b89ccdd4b654cc20985cf50d93dffc2\"",
+         "sha256": "0aa3f48bd8b2323ca2ca5c4b6d9bee1884be3eaec834f656c037b3e1e4a3bc8c",
+         "ms": 23
+        },
+        "ifMatch": "\"7b89ccdd4b654cc20985cf50d93dffc2\"",
+        "withToken": true,
+        "at": 53150,
+        "respondedAt": 53200,
+        "status": 204
+       }
+      ],
+      "sha256": "6748207006519435afe8c1fcdf0bee8d466fcc4ddfe417944af53c36f1db9598",
+      "ifMatch": "\"7b89ccdd4b654cc20985cf50d93dffc2\"",
+      "status": 204,
+      "etag": "\"32a07036bde12c7b0fac2f0b6f221ea5\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 63908,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9760,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 63908,
+         "status": 200,
+         "etag": "\"32a07036bde12c7b0fac2f0b6f221ea5\"",
+         "sha256": "6748207006519435afe8c1fcdf0bee8d466fcc4ddfe417944af53c36f1db9598",
+         "ms": 26
+        },
+        "ifMatch": "\"32a07036bde12c7b0fac2f0b6f221ea5\"",
+        "withToken": true,
+        "at": 63934,
+        "respondedAt": 63978,
+        "status": 204
+       }
+      ],
+      "sha256": "d1e3b161549498124119983e590893a5858fea2eabcedaa018e87b22f187b8df",
+      "ifMatch": "\"32a07036bde12c7b0fac2f0b6f221ea5\"",
+      "status": 204,
+      "etag": "\"66c9d48a55e445ac5f49c40885a31ebc\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 64059,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9759,
+      "attempts": [
+       {
+        "waited": 1023,
+        "check": {
+         "at": 65082,
+         "status": 200,
+         "etag": "\"66c9d48a55e445ac5f49c40885a31ebc\"",
+         "sha256": "d1e3b161549498124119983e590893a5858fea2eabcedaa018e87b22f187b8df",
+         "ms": 22
+        },
+        "ifMatch": "\"66c9d48a55e445ac5f49c40885a31ebc\"",
+        "withToken": true,
+        "at": 65104,
+        "respondedAt": 65151,
+        "status": 204
+       }
+      ],
+      "sha256": "11f403bb1f8e06998eac1f4d44973f75fe5c91672d4679cd8b3f1748c1febd8d",
+      "ifMatch": "\"66c9d48a55e445ac5f49c40885a31ebc\"",
+      "status": 204,
+      "etag": "\"9746fbb8d06290aa716f7769c091ecde\"",
+      "outcome": "saved",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 261,
+     "refreshes": [
+      {
+       "at": 60300,
+       "status": 200,
+       "seconds": 361
+      }
+     ],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "scope": "scoped",
+    "file": {
+     "id": 7932,
+     "name": "M3 同秒 測試.odt",
+     "size": 1343,
+     "etag": "5dc7054b21733f0ef692026b2f22f700",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/fabdb50ecd038802-90d7bc2c/e2-editor.html?fileId=7932",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ac45e3a75060\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 300
+    },
+    "handedReadOnly": false,
+    "finished": 2043
+   },
+   "secondsToOpened": 2.51,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ac45e3a75060\"",
+    "fileid": "7932",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b"
+   },
+   "presses": [
+    {
+     "label": "pair 0",
+     "phase": 0.05,
+     "pressedAt": 1791254077.05,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 0,
+     "settled": [
+      2,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1077 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254078
+    },
+    {
+     "label": "pair 1",
+     "phase": 0.15,
+     "pressedAt": 1791254082.15,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 2,
+     "settled": [
+      4,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1088 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254083
+    },
+    {
+     "label": "pair 2",
+     "phase": 0.25,
+     "pressedAt": 1791254087.25,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 4,
+     "settled": [
+      6,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1087 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254088
+    },
+    {
+     "label": "pair 3",
+     "phase": 0.35,
+     "pressedAt": 1791254092.35,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 6,
+     "settled": [
+      8,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1080 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254093
+    },
+    {
+     "label": "pair 4",
+     "phase": 0.45,
+     "pressedAt": 1791254097.45,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 8,
+     "settled": [
+      10,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1079 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254098
+    },
+    {
+     "label": "pair 5",
+     "phase": 0.55,
+     "pressedAt": 1791254102.55,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 10,
+     "settled": [
+      12,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1080 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254103
+    },
+    {
+     "label": "pair 6",
+     "phase": 0.65,
+     "pressedAt": 1791254107.65,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 12,
+     "settled": [
+      14,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1092 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254108
+    },
+    {
+     "label": "pair 7",
+     "phase": 0.75,
+     "pressedAt": 1791254112.75,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 14,
+     "settled": [
+      16,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1082 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254114
+    },
+    {
+     "label": "pair 8",
+     "phase": 0.85,
+     "pressedAt": 1791254117.85,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 16,
+     "settled": [
+      18,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1084 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254119
+    },
+    {
+     "label": "pair 9",
+     "phase": 0.95,
+     "pressedAt": 1791254122.95,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 18,
+     "settled": [
+      20,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1083 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254124
+    },
+    {
+     "label": "single",
+     "phase": null,
+     "pressedAt": 1791254127.269,
+     "pressed": true,
+     "savesBefore": 20,
+     "settled": [
+      21,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 74 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254127
+    },
+    {
+     "label": "restore pair",
+     "phase": 0.05,
+     "pressedAt": 1791254138.05,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 21,
+     "settled": [
+      23,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1092 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254139
+    }
+   ],
+   "Lb": {
+    "status": 207,
+    "mtime": 1791254127,
+    "fileid": 7932,
+    "entries": [
+     {
+      "revision": 1791254069,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934"
+     },
+     {
+      "revision": 1791254077,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "97c1e15ecc4fc02dd6679d25f1a2292e7ffd38e2f99d1e78db37e209b04dda10"
+     },
+     {
+      "revision": 1791254078,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "b9bca645318fed0500db5a201ae794dc12133b6341f445bbc6b87abac5adda56"
+     },
+     {
+      "revision": 1791254082,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "61824800d0e1939c24a0c5f0949a3f7d1253a7f17c04d1e4a63a7472db53ef36"
+     },
+     {
+      "revision": 1791254083,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "3f9711055a683edc05fd50546cf7024e613c0c4915ccb5d6089def088e284990"
+     },
+     {
+      "revision": 1791254087,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "bd5ac93d016810408f9ce43c3fd6e90b00b9fc24a8dda8006553b9e8ee33fc3c"
+     },
+     {
+      "revision": 1791254088,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "3875288d246bd2066422f8cf162c9ced79f99a6637fac8c0ca2f45e697adfd55"
+     },
+     {
+      "revision": 1791254092,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "2f2ccafe90d7e2032a434a444ff01427cdb0b4afa555b5ee63ba14dc26a688c5"
+     },
+     {
+      "revision": 1791254093,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "67f54727bf2bf9d4f107b05f99dca0286ccb63a7dac04eef7a01bd7e445c75a2"
+     },
+     {
+      "revision": 1791254097,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "988e2c2a4ca4891fb14aa9f5c78d125f16f82eb5edf3ab40079ec62733eef1d9"
+     },
+     {
+      "revision": 1791254098,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "f8174886ad6b23b0693163cbceb175dc48f54fac216036d7d5e6c28b81c489d0"
+     },
+     {
+      "revision": 1791254102,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "ed0d74581284c7dccace1de5352133fc4991182dd4c98c3d3bb4e074384727e6"
+     },
+     {
+      "revision": 1791254103,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "b49bd1fbddd6c7da850ca9faab22b86ef068a1c37fbed38ef26202c3a69159a7"
+     },
+     {
+      "revision": 1791254107,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "98b5b80a6f24cf81a800e31c37229c7be8f6996e98bb524191167319d1afbcc3"
+     },
+     {
+      "revision": 1791254108,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "1636421ed742e2e9022890dfd8947d0abbedbdd4d1a87ba2adaa2ce507730718"
+     },
+     {
+      "revision": 1791254112,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "1c459ad382ea19a4a5f4891f3eba943935822c039773f925d8b161829df23c7e"
+     },
+     {
+      "revision": 1791254114,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "700f61a4f27c402b881c45cd7830d265178682da5a775d7926e9a55bac63a23b"
+     },
+     {
+      "revision": 1791254117,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "eebbe6e5a542ab0bd5352af45f593b1bf321db99754f33a2594dcbdb4204d3df"
+     },
+     {
+      "revision": 1791254119,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "5031702212d115af18ba59cfb399798c2577a55d8fe1fe5e6ea1752938284559"
+     },
+     {
+      "revision": 1791254123,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "a893ac78a6a49d4f56f3f7d50c5140245bbdb378066319dfd55d45976901944c"
+     },
+     {
+      "revision": 1791254124,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "0aa3f48bd8b2323ca2ca5c4b6d9bee1884be3eaec834f656c037b3e1e4a3bc8c"
+     },
+     {
+      "revision": 1791254127,
+      "current": true,
+      "author": "admin"
+     }
+    ]
+   },
+   "beforeRestore": {
+    "status": 207,
+    "etag": "\"9746fbb8d06290aa716f7769c091ecde\"",
+    "fileid": "7932",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b"
+   },
+   "restoredRevision": 1791254069,
+   "restore": 201,
+   "serverAfterRestore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "Lc": {
+    "status": 207,
+    "mtime": 1791254069,
+    "fileid": 7932,
+    "entries": [
+     {
+      "revision": 1791254069,
+      "current": true,
+      "author": "admin"
+     },
+     {
+      "revision": 1791254077,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "97c1e15ecc4fc02dd6679d25f1a2292e7ffd38e2f99d1e78db37e209b04dda10"
+     },
+     {
+      "revision": 1791254078,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "b9bca645318fed0500db5a201ae794dc12133b6341f445bbc6b87abac5adda56"
+     },
+     {
+      "revision": 1791254082,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "61824800d0e1939c24a0c5f0949a3f7d1253a7f17c04d1e4a63a7472db53ef36"
+     },
+     {
+      "revision": 1791254083,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "3f9711055a683edc05fd50546cf7024e613c0c4915ccb5d6089def088e284990"
+     },
+     {
+      "revision": 1791254087,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "bd5ac93d016810408f9ce43c3fd6e90b00b9fc24a8dda8006553b9e8ee33fc3c"
+     },
+     {
+      "revision": 1791254088,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "3875288d246bd2066422f8cf162c9ced79f99a6637fac8c0ca2f45e697adfd55"
+     },
+     {
+      "revision": 1791254092,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "2f2ccafe90d7e2032a434a444ff01427cdb0b4afa555b5ee63ba14dc26a688c5"
+     },
+     {
+      "revision": 1791254093,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "67f54727bf2bf9d4f107b05f99dca0286ccb63a7dac04eef7a01bd7e445c75a2"
+     },
+     {
+      "revision": 1791254097,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "988e2c2a4ca4891fb14aa9f5c78d125f16f82eb5edf3ab40079ec62733eef1d9"
+     },
+     {
+      "revision": 1791254098,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "f8174886ad6b23b0693163cbceb175dc48f54fac216036d7d5e6c28b81c489d0"
+     },
+     {
+      "revision": 1791254102,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "ed0d74581284c7dccace1de5352133fc4991182dd4c98c3d3bb4e074384727e6"
+     },
+     {
+      "revision": 1791254103,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "b49bd1fbddd6c7da850ca9faab22b86ef068a1c37fbed38ef26202c3a69159a7"
+     },
+     {
+      "revision": 1791254107,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "98b5b80a6f24cf81a800e31c37229c7be8f6996e98bb524191167319d1afbcc3"
+     },
+     {
+      "revision": 1791254108,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "1636421ed742e2e9022890dfd8947d0abbedbdd4d1a87ba2adaa2ce507730718"
+     },
+     {
+      "revision": 1791254112,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "1c459ad382ea19a4a5f4891f3eba943935822c039773f925d8b161829df23c7e"
+     },
+     {
+      "revision": 1791254114,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "700f61a4f27c402b881c45cd7830d265178682da5a775d7926e9a55bac63a23b"
+     },
+     {
+      "revision": 1791254117,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "eebbe6e5a542ab0bd5352af45f593b1bf321db99754f33a2594dcbdb4204d3df"
+     },
+     {
+      "revision": 1791254119,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "5031702212d115af18ba59cfb399798c2577a55d8fe1fe5e6ea1752938284559"
+     },
+     {
+      "revision": 1791254123,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "a893ac78a6a49d4f56f3f7d50c5140245bbdb378066319dfd55d45976901944c"
+     },
+     {
+      "revision": 1791254124,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "0aa3f48bd8b2323ca2ca5c4b6d9bee1884be3eaec834f656c037b3e1e4a3bc8c"
+     },
+     {
+      "revision": 1791254127,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "6748207006519435afe8c1fcdf0bee8d466fcc4ddfe417944af53c36f1db9598"
+     },
+     {
+      "revision": 1791254138,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "d1e3b161549498124119983e590893a5858fea2eabcedaa018e87b22f187b8df"
+     },
+     {
+      "revision": 1791254139,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "11f403bb1f8e06998eac1f4d44973f75fe5c91672d4679cd8b3f1748c1febd8d"
+     }
+    ]
+   },
+   "copiesAfter": [],
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/fabdb50ecd038802-90d7bc2c/e2-editor.html?fileId=7932",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     }
+    ],
+    "loadingFailed": [
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     }
+    ],
+    "errorLogs": [],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/Readme.md",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"6ac45e3a75060\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"e65664accaf25f3582bc7822112ae8d8\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"3be15e2d5ec9ebba6359ea2ac13fca3d\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"6a73fc1f8267b33baa91ea16a9328e05\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"877085f37f6cffd9d1f2cf4ce5dca8ce\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"225ce09736addd11e565c84437ab9f7c\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"83501019fda95a6aa622569575d97ba8\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"1861b12a597add5590ec53c410be9a2b\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"423ec3f9653904068154373e486eb8cf\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"929e7277a3eb1e07e5da550e6804b14f\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"9ecdc74d48c198fba97248be7122af7e\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"db30b70e5cabe494c802dd0058e76006\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"d3307f07bfe6414a3c0c5c4e43d74b2f\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"e18f8dba6b5c1580440b338377b4cbf1\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"e6cd93e3d3e266fd8b18bd3b7882d951\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"333848f904a1dfa7c041e32524684cbc\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"c4cc4f2de868ca9b0daa747629d55b69\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"0e44ba90ceeeacb20d1a090dd42bdd22\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"cdb36d022003906135f422dccba39ba6\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"6bccf7534c8fae2fe9a9f91cba900b07\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"7b89ccdd4b654cc20985cf50d93dffc2\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": "Second-361"
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"32a07036bde12c7b0fac2f0b6f221ea5\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"66c9d48a55e445ac5f49c40885a31ebc\"",
+     "if": "(<opaquelocktoken:7e70e33b-248d-42bc-8804-cb8360329d3b>)",
+     "timeout": null
+    }
+   ],
+   "clearedAtEnd": "0",
+   "registered": [
+    {
+     "label": "pair 0",
+     "phase": 0.05,
+     "putPhases": [
+      0.284,
+      0.458
+     ],
+     "sendGapMs": [
+      1174
+     ],
+     "waitedMs": [
+      0,
+      1014
+     ],
+     "answeredAfterMs": [
+      49,
+      42
+     ],
+     "checkMs": [
+      20,
+      21
+     ],
+     "page": "存回 1077 ms",
+     "mtimeAfter": 1791254078
+    },
+    {
+     "label": "pair 1",
+     "phase": 0.15,
+     "putPhases": [
+      0.265,
+      0.437
+     ],
+     "sendGapMs": [
+      1172
+     ],
+     "waitedMs": [
+      0,
+      1020
+     ],
+     "answeredAfterMs": [
+      49,
+      48
+     ],
+     "checkMs": [
+      27,
+      19
+     ],
+     "page": "存回 1088 ms",
+     "mtimeAfter": 1791254083
+    },
+    {
+     "label": "pair 2",
+     "phase": 0.25,
+     "putPhases": [
+      0.366,
+      0.533
+     ],
+     "sendGapMs": [
+      1167
+     ],
+     "waitedMs": [
+      0,
+      1018
+     ],
+     "answeredAfterMs": [
+      45,
+      47
+     ],
+     "checkMs": [
+      25,
+      22
+     ],
+     "page": "存回 1087 ms",
+     "mtimeAfter": 1791254088
+    },
+    {
+     "label": "pair 3",
+     "phase": 0.35,
+     "putPhases": [
+      0.458,
+      0.624
+     ],
+     "sendGapMs": [
+      1166
+     ],
+     "waitedMs": [
+      0,
+      1018
+     ],
+     "answeredAfterMs": [
+      44,
+      40
+     ],
+     "checkMs": [
+      26,
+      22
+     ],
+     "page": "存回 1080 ms",
+     "mtimeAfter": 1791254093
+    },
+    {
+     "label": "pair 4",
+     "phase": 0.45,
+     "putPhases": [
+      0.576,
+      0.742
+     ],
+     "sendGapMs": [
+      1166
+     ],
+     "waitedMs": [
+      0,
+      1016
+     ],
+     "answeredAfterMs": [
+      44,
+      42
+     ],
+     "checkMs": [
+      25,
+      22
+     ],
+     "page": "存回 1079 ms",
+     "mtimeAfter": 1791254098
+    },
+    {
+     "label": "pair 5",
+     "phase": 0.55,
+     "putPhases": [
+      0.658,
+      0.826
+     ],
+     "sendGapMs": [
+      1168
+     ],
+     "waitedMs": [
+      0,
+      1017
+     ],
+     "answeredAfterMs": [
+      45,
+      40
+     ],
+     "checkMs": [
+      24,
+      23
+     ],
+     "page": "存回 1080 ms",
+     "mtimeAfter": 1791254103
+    },
+    {
+     "label": "pair 6",
+     "phase": 0.65,
+     "putPhases": [
+      0.754,
+      0.93
+     ],
+     "sendGapMs": [
+      1176
+     ],
+     "waitedMs": [
+      0,
+      1020
+     ],
+     "answeredAfterMs": [
+      45,
+      46
+     ],
+     "checkMs": [
+      21,
+      26
+     ],
+     "page": "存回 1092 ms",
+     "mtimeAfter": 1791254108
+    },
+    {
+     "label": "pair 7",
+     "phase": 0.75,
+     "putPhases": [
+      0.855,
+      0.029
+     ],
+     "sendGapMs": [
+      1174
+     ],
+     "waitedMs": [
+      0,
+      1023
+     ],
+     "answeredAfterMs": [
+      48,
+      37
+     ],
+     "checkMs": [
+      24,
+      22
+     ],
+     "page": "存回 1082 ms",
+     "mtimeAfter": 1791254114
+    },
+    {
+     "label": "pair 8",
+     "phase": 0.85,
+     "putPhases": [
+      0.953,
+      0.134
+     ],
+     "sendGapMs": [
+      1181
+     ],
+     "waitedMs": [
+      0,
+      1020
+     ],
+     "answeredAfterMs": [
+      56,
+      38
+     ],
+     "checkMs": [
+      21,
+      25
+     ],
+     "page": "存回 1084 ms",
+     "mtimeAfter": 1791254119
+    },
+    {
+     "label": "pair 9",
+     "phase": 0.95,
+     "putPhases": [
+      0.055,
+      0.225
+     ],
+     "sendGapMs": [
+      1170
+     ],
+     "waitedMs": [
+      0,
+      1024
+     ],
+     "answeredAfterMs": [
+      45,
+      38
+     ],
+     "checkMs": [
+      24,
+      21
+     ],
+     "page": "存回 1083 ms",
+     "mtimeAfter": 1791254124
+    },
+    {
+     "label": "single",
+     "phase": null,
+     "putPhases": [
+      0.372
+     ],
+     "sendGapMs": [],
+     "waitedMs": [
+      0
+     ],
+     "answeredAfterMs": [
+      50
+     ],
+     "checkMs": [
+      23
+     ],
+     "page": "存回 74 ms",
+     "mtimeAfter": 1791254127
+    },
+    {
+     "label": "restore pair",
+     "phase": 0.05,
+     "putPhases": [
+      0.156,
+      0.326
+     ],
+     "sendGapMs": [
+      1170
+     ],
+     "waitedMs": [
+      0,
+      1023
+     ],
+     "answeredAfterMs": [
+      44,
+      47
+     ],
+     "checkMs": [
+      26,
+      22
+     ],
+     "page": "存回 1092 ms",
+     "mtimeAfter": 1791254139
+    }
+   ]
+  },
+  {
+   "arm": "same-second-foreign",
+   "spec": "R3",
+   "browser": "chrome",
+   "startedAt": "2026-10-06T02:35:51+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 同秒 測試.odt",
+    "adminPath": "M3 同秒 測試.odt"
+   },
+   "clearedLocks": "0",
+   "removedOld": 204,
+   "reset": {
+    "upload": 201,
+    "fileId": 7957
+   },
+   "copiesBefore": [],
+   "version": "Chrome/151.0.7922.169",
+   "login": {
+    "status": 200,
+    "url": "https://litecore.ddev.site:8443/apps/dashboard/"
+   },
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/fabdb50ecd038802-90d7bc2c/e2-editor.html?fileId=7957",
+   "host": {
+    "started": 1791254156822,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 243
+     },
+     {
+      "step": "fetched",
+      "at": 302
+     },
+     {
+      "step": "opened",
+      "at": 2046,
+      "state": {
+       "state": "ready",
+       "doc": "M3 同秒 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 同秒 測試.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 3457,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9738,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 3457,
+         "status": 200,
+         "etag": "\"6ac45e8d13df9\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 25
+        },
+        "ifMatch": "\"6ac45e8d13df9\"",
+        "withToken": true,
+        "at": 3482,
+        "respondedAt": 3536,
+        "status": 204
+       }
+      ],
+      "sha256": "025a16c97f5c38e0c6a47cfedfb09cdb8f44cdcbed6c171bf2edb77c2f8cc1a1",
+      "ifMatch": "\"6ac45e8d13df9\"",
+      "status": 204,
+      "etag": "\"16a692de6aab461ae05462d7bb371bdb\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 6013,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9757,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 6013,
+         "status": 200,
+         "etag": "\"16a692de6aab461ae05462d7bb371bdb\"",
+         "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+         "ms": 27
+        },
+        "ifMatch": "\"16a692de6aab461ae05462d7bb371bdb\"",
+        "withToken": true,
+        "status": "changed"
+       }
+      ],
+      "sha256": "bc7b9c32d04e260e7829f52a6b12828dbf64b57856d573edb7588573f3524b1f",
+      "ifMatch": "\"16a692de6aab461ae05462d7bb371bdb\"",
+      "status": "changed",
+      "responseEtag": null,
+      "conflictCopy": {
+       "name": "M3 同秒 測試（衝突副本 2026-10-06 103602）.odt",
+       "status": 201
+      },
+      "outcome": "copy",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 263,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "scope": "scoped",
+    "file": {
+     "id": 7957,
+     "name": "M3 同秒 測試.odt",
+     "size": 1343,
+     "etag": "46f3322b4bf911f506361deab16776f2",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/fabdb50ecd038802-90d7bc2c/e2-editor.html?fileId=7957",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ac45e8d13df9\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 302
+    },
+    "handedReadOnly": false,
+    "finished": 2046
+   },
+   "secondsToOpened": 2.53,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ac45e8d13df9\"",
+    "fileid": "7957",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:32e3bf4e-2969-4fd1-a06f-fd2491a1636a"
+   },
+   "pressedAt": 1791254160.05,
+   "s1SeenSettledAt": 1791254160.359,
+   "foreignPut": 204,
+   "foreignDoneAt": 1791254160.666,
+   "afterForeign": {
+    "status": 207,
+    "etag": "\"16a692de6aab461ae05462d7bb371bdb\"",
+    "fileid": "7957",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:32e3bf4e-2969-4fd1-a06f-fd2491a1636a"
+   },
+   "foreignMtime": 1791254160,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 同秒 測試.odt",
+    "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改，沒有覆寫。你的內容另存為「M3 同秒 測試（衝突副本 2026-10-06 103602）.odt」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+    "bytes": 1558
+   },
+   "lockAfterSave": {
+    "status": 207,
+    "etag": "\"16a692de6aab461ae05462d7bb371bdb\"",
+    "fileid": "7957",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:32e3bf4e-2969-4fd1-a06f-fd2491a1636a"
+   },
+   "copiesAfter": [
+    {
+     "name": "M3 同秒 測試（衝突副本 2026-10-06 103602）.odt",
+     "status": 200,
+     "sha256": "bc7b9c32d04e260e7829f52a6b12828dbf64b57856d573edb7588573f3524b1f",
+     "bytes": 9757
+    }
+   ],
+   "cdp": {
+    "documents": [
+     {
+      "url": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/fabdb50ecd038802-90d7bc2c/e2-editor.html?fileId=7957",
+      "status": 200,
+      "coop": "same-origin",
+      "coep": "require-corp",
+      "dip": null
+     }
+    ],
+    "loadingFailed": [
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     },
+     {
+      "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-10-06%20103602%EF%BC%89.odt",
+      "type": "Fetch",
+      "errorText": "net::ERR_ABORTED",
+      "blockedReason": null,
+      "corsError": null
+     }
+    ],
+    "errorLogs": [],
+    "exceptions": []
+   },
+   "fixtureRequests": [],
+   "davRequests": [
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/Readme.md",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "LOCK",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": "Second-300"
+    },
+    {
+     "method": "PROPFIND",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": "\"6ac45e8d13df9\"",
+     "if": "(<opaquelocktoken:32e3bf4e-2969-4fd1-a06f-fd2491a1636a>)",
+     "timeout": null
+    },
+    {
+     "method": "GET",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    },
+    {
+     "method": "PUT",
+     "url": "https://litecore.ddev.site:8443/remote.php/dav/files/admin/M3%20%E5%90%8C%E7%A7%92%20%E6%B8%AC%E8%A9%A6%EF%BC%88%E8%A1%9D%E7%AA%81%E5%89%AF%E6%9C%AC%202026-10-06%20103602%EF%BC%89.odt",
+     "ifMatch": null,
+     "if": null,
+     "timeout": null
+    }
+   ],
+   "clearedAtEnd": "0",
+   "registered": [
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 3457,
+        "status": 200,
+        "etag": "\"6ac45e8d13df9\"",
+        "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+        "ms": 25
+       },
+       "ifMatch": "\"6ac45e8d13df9\"",
+       "withToken": true,
+       "at": 3482,
+       "respondedAt": 3536,
+       "status": 204
+      }
+     ],
+     "sha256": "025a16c97f5c38e0c6a47cfedfb09cdb8f44cdcbed6c171bf2edb77c2f8cc1a1"
+    },
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 6013,
+        "status": 200,
+        "etag": "\"16a692de6aab461ae05462d7bb371bdb\"",
+        "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+        "ms": 27
+       },
+       "ifMatch": "\"16a692de6aab461ae05462d7bb371bdb\"",
+       "withToken": true,
+       "status": "changed"
+      }
+     ],
+     "sha256": "bc7b9c32d04e260e7829f52a6b12828dbf64b57856d573edb7588573f3524b1f"
+    }
+   ]
+  },
+  {
+   "arm": "same-second",
+   "spec": "R2",
+   "browser": "firefox",
+   "startedAt": "2026-10-06T02:36:06+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 同秒 測試.odt",
+    "adminPath": "M3 同秒 測試.odt"
+   },
+   "clearedLocks": "0",
+   "removedOld": 204,
+   "reset": {
+    "upload": 201,
+    "fileId": 7961
+   },
+   "copiesBefore": [],
+   "version": "157.0",
+   "login": "https://litecore.ddev.site:8443/apps/dashboard/",
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/fabdb50ecd038802-90d7bc2c/e2-editor.html?fileId=7961",
+   "host": {
+    "started": 1791254173345,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 245
+     },
+     {
+      "step": "fetched",
+      "at": 302
+     },
+     {
+      "step": "opened",
+      "at": 2247,
+      "state": {
+       "state": "ready",
+       "doc": "M3 同秒 測試.odt",
+       "revision": "0",
+       "toast": null
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 2897,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9722,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 2897,
+         "status": 200,
+         "etag": "\"6ac45e9d9403c\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 24
+        },
+        "ifMatch": "\"6ac45e9d9403c\"",
+        "withToken": true,
+        "at": 2921,
+        "respondedAt": 2962,
+        "status": 204
+       }
+      ],
+      "sha256": "e98a111d38de36fbd2a27053f312a85dc8430b3122aa38205f4ce3cda5344817",
+      "ifMatch": "\"6ac45e9d9403c\"",
+      "status": 204,
+      "etag": "\"2ec1fca3eb64088e5ceb2ad9cb790c7f\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 3068,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9743,
+      "attempts": [
+       {
+        "waited": 998,
+        "check": {
+         "at": 4066,
+         "status": 200,
+         "etag": "\"2ec1fca3eb64088e5ceb2ad9cb790c7f\"",
+         "sha256": "e98a111d38de36fbd2a27053f312a85dc8430b3122aa38205f4ce3cda5344817",
+         "ms": 30
+        },
+        "ifMatch": "\"2ec1fca3eb64088e5ceb2ad9cb790c7f\"",
+        "withToken": true,
+        "at": 4096,
+        "respondedAt": 4139,
+        "status": 204
+       }
+      ],
+      "sha256": "5c0677208ba0efba53ba522607f85d1dad2fc6b7ff9403908b510483d9d76480",
+      "ifMatch": "\"2ec1fca3eb64088e5ceb2ad9cb790c7f\"",
+      "status": 204,
+      "etag": "\"92b987f72901d7d0fa192e7e102178b6\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 7919,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9744,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 7919,
+         "status": 200,
+         "etag": "\"92b987f72901d7d0fa192e7e102178b6\"",
+         "sha256": "5c0677208ba0efba53ba522607f85d1dad2fc6b7ff9403908b510483d9d76480",
+         "ms": 28
+        },
+        "ifMatch": "\"92b987f72901d7d0fa192e7e102178b6\"",
+        "withToken": true,
+        "at": 7947,
+        "respondedAt": 7988,
+        "status": 204
+       }
+      ],
+      "sha256": "7ac3cbac6f63f2d933897cf986c378a2699178d2365f76b90dcac64f91981580",
+      "ifMatch": "\"92b987f72901d7d0fa192e7e102178b6\"",
+      "status": 204,
+      "etag": "\"7da9088b38372b4d0e986c347e410924\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 8095,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9745,
+      "attempts": [
+       {
+        "waited": 993,
+        "check": {
+         "at": 9088,
+         "status": 200,
+         "etag": "\"7da9088b38372b4d0e986c347e410924\"",
+         "sha256": "7ac3cbac6f63f2d933897cf986c378a2699178d2365f76b90dcac64f91981580",
+         "ms": 20
+        },
+        "ifMatch": "\"7da9088b38372b4d0e986c347e410924\"",
+        "withToken": true,
+        "at": 9108,
+        "respondedAt": 9151,
+        "status": 204
+       }
+      ],
+      "sha256": "e3f2d07022b73f1f5eefd0b9f6bf6326d41f486404806a9eaacc167cc3c9b245",
+      "ifMatch": "\"7da9088b38372b4d0e986c347e410924\"",
+      "status": 204,
+      "etag": "\"9884be4b61989b6b8113043d00172565\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 13019,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9745,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 13019,
+         "status": 200,
+         "etag": "\"9884be4b61989b6b8113043d00172565\"",
+         "sha256": "e3f2d07022b73f1f5eefd0b9f6bf6326d41f486404806a9eaacc167cc3c9b245",
+         "ms": 25
+        },
+        "ifMatch": "\"9884be4b61989b6b8113043d00172565\"",
+        "withToken": true,
+        "at": 13044,
+        "respondedAt": 13090,
+        "status": 204
+       }
+      ],
+      "sha256": "46ff1013e3b76f0326d5ae0568bb6a9769b34cca21e2cf844d464c470cf9fec7",
+      "ifMatch": "\"9884be4b61989b6b8113043d00172565\"",
+      "status": 204,
+      "etag": "\"e522333b0982e6a3606753d91747a079\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 13198,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9745,
+      "attempts": [
+       {
+        "waited": 996,
+        "check": {
+         "at": 14194,
+         "status": 200,
+         "etag": "\"e522333b0982e6a3606753d91747a079\"",
+         "sha256": "46ff1013e3b76f0326d5ae0568bb6a9769b34cca21e2cf844d464c470cf9fec7",
+         "ms": 18
+        },
+        "ifMatch": "\"e522333b0982e6a3606753d91747a079\"",
+        "withToken": true,
+        "at": 14212,
+        "respondedAt": 14255,
+        "status": 204
+       }
+      ],
+      "sha256": "70a7c46d2f9950b08582c312466f0b6c4926e938d715aa6d933b1ee7d252e6f7",
+      "ifMatch": "\"e522333b0982e6a3606753d91747a079\"",
+      "status": 204,
+      "etag": "\"6e4768583696cb65de40e144ef80bb4d\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 18125,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9746,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 18125,
+         "status": 200,
+         "etag": "\"6e4768583696cb65de40e144ef80bb4d\"",
+         "sha256": "70a7c46d2f9950b08582c312466f0b6c4926e938d715aa6d933b1ee7d252e6f7",
+         "ms": 26
+        },
+        "ifMatch": "\"6e4768583696cb65de40e144ef80bb4d\"",
+        "withToken": true,
+        "at": 18151,
+        "respondedAt": 18196,
+        "status": 204
+       }
+      ],
+      "sha256": "723a435b28163ef24ba502afe9438eb229805bbcab310090a6323f0133d4ef74",
+      "ifMatch": "\"6e4768583696cb65de40e144ef80bb4d\"",
+      "status": 204,
+      "etag": "\"0b3e426977573b528e9f1b6bc2a5f122\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 18305,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9746,
+      "attempts": [
+       {
+        "waited": 995,
+        "check": {
+         "at": 19300,
+         "status": 200,
+         "etag": "\"0b3e426977573b528e9f1b6bc2a5f122\"",
+         "sha256": "723a435b28163ef24ba502afe9438eb229805bbcab310090a6323f0133d4ef74",
+         "ms": 22
+        },
+        "ifMatch": "\"0b3e426977573b528e9f1b6bc2a5f122\"",
+        "withToken": true,
+        "at": 19322,
+        "respondedAt": 19364,
+        "status": 204
+       }
+      ],
+      "sha256": "375966c6c9a6b3da33001a0d501b4fd378dbd6ad4810c611ffdfaf6ab97f4cef",
+      "ifMatch": "\"0b3e426977573b528e9f1b6bc2a5f122\"",
+      "status": 204,
+      "etag": "\"c7c2dbc90d04c6a184c8fcf452707ae9\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 23218,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9745,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 23218,
+         "status": 200,
+         "etag": "\"c7c2dbc90d04c6a184c8fcf452707ae9\"",
+         "sha256": "375966c6c9a6b3da33001a0d501b4fd378dbd6ad4810c611ffdfaf6ab97f4cef",
+         "ms": 27
+        },
+        "ifMatch": "\"c7c2dbc90d04c6a184c8fcf452707ae9\"",
+        "withToken": true,
+        "at": 23245,
+        "respondedAt": 23289,
+        "status": 204
+       }
+      ],
+      "sha256": "9574b8a121f20400e53bed1e626bce1bab23e410753600d6643203a978a27c33",
+      "ifMatch": "\"c7c2dbc90d04c6a184c8fcf452707ae9\"",
+      "status": 204,
+      "etag": "\"40650a8e1a598a1b21b604fa2fb9c8c2\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 23396,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9745,
+      "attempts": [
+       {
+        "waited": 992,
+        "check": {
+         "at": 24389,
+         "status": 200,
+         "etag": "\"40650a8e1a598a1b21b604fa2fb9c8c2\"",
+         "sha256": "9574b8a121f20400e53bed1e626bce1bab23e410753600d6643203a978a27c33",
+         "ms": 21
+        },
+        "ifMatch": "\"40650a8e1a598a1b21b604fa2fb9c8c2\"",
+        "withToken": true,
+        "at": 24410,
+        "respondedAt": 24450,
+        "status": 204
+       }
+      ],
+      "sha256": "cc3aba8132fdfe2f24a1636519cba0012a1db7357ad7890bd3e87c89636da342",
+      "ifMatch": "\"40650a8e1a598a1b21b604fa2fb9c8c2\"",
+      "status": 204,
+      "etag": "\"33c68d590a275c72c8e60d5b1de2dd29\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 28323,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9745,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 28323,
+         "status": 200,
+         "etag": "\"33c68d590a275c72c8e60d5b1de2dd29\"",
+         "sha256": "cc3aba8132fdfe2f24a1636519cba0012a1db7357ad7890bd3e87c89636da342",
+         "ms": 19
+        },
+        "ifMatch": "\"33c68d590a275c72c8e60d5b1de2dd29\"",
+        "withToken": true,
+        "at": 28342,
+        "respondedAt": 28383,
+        "status": 204
+       }
+      ],
+      "sha256": "89fad8c49df77bee28474abc715bdc3fd6043ddfea467a59ee8145557289c4aa",
+      "ifMatch": "\"33c68d590a275c72c8e60d5b1de2dd29\"",
+      "status": 204,
+      "etag": "\"9f1f21239129aab2f955b92633403dcb\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 28493,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9742,
+      "attempts": [
+       {
+        "waited": 1006,
+        "check": {
+         "at": 29499,
+         "status": 200,
+         "etag": "\"9f1f21239129aab2f955b92633403dcb\"",
+         "sha256": "89fad8c49df77bee28474abc715bdc3fd6043ddfea467a59ee8145557289c4aa",
+         "ms": 25
+        },
+        "ifMatch": "\"9f1f21239129aab2f955b92633403dcb\"",
+        "withToken": true,
+        "at": 29524,
+        "respondedAt": 29568,
+        "status": 204
+       }
+      ],
+      "sha256": "042270b06ecefb062f531f19af172fd3a7c0ef61166a03ec38d28f30b12916e0",
+      "ifMatch": "\"9f1f21239129aab2f955b92633403dcb\"",
+      "status": 204,
+      "etag": "\"f2d61678263facf5b6b5ffce7bc8c402\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 33419,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9745,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 33419,
+         "status": 200,
+         "etag": "\"f2d61678263facf5b6b5ffce7bc8c402\"",
+         "sha256": "042270b06ecefb062f531f19af172fd3a7c0ef61166a03ec38d28f30b12916e0",
+         "ms": 23
+        },
+        "ifMatch": "\"f2d61678263facf5b6b5ffce7bc8c402\"",
+        "withToken": true,
+        "at": 33442,
+        "respondedAt": 33481,
+        "status": 204
+       }
+      ],
+      "sha256": "1d730dd52d634744e77b695b526439c54408a7f1e3abb7356293b63f67886041",
+      "ifMatch": "\"f2d61678263facf5b6b5ffce7bc8c402\"",
+      "status": 204,
+      "etag": "\"f40d12c3e4614bef957425f5c5330dac\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 33589,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9744,
+      "attempts": [
+       {
+        "waited": 992,
+        "check": {
+         "at": 34581,
+         "status": 200,
+         "etag": "\"f40d12c3e4614bef957425f5c5330dac\"",
+         "sha256": "1d730dd52d634744e77b695b526439c54408a7f1e3abb7356293b63f67886041",
+         "ms": 21
+        },
+        "ifMatch": "\"f40d12c3e4614bef957425f5c5330dac\"",
+        "withToken": true,
+        "at": 34602,
+        "respondedAt": 34640,
+        "status": 204
+       }
+      ],
+      "sha256": "a416bc3b628aeafd2aba88db7f563092a44798d1ccfc55fc3d053539bcc87ade",
+      "ifMatch": "\"f40d12c3e4614bef957425f5c5330dac\"",
+      "status": 204,
+      "etag": "\"796e6f8def4e0323d9559e838df72647\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 38524,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9742,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 38525,
+         "status": 200,
+         "etag": "\"796e6f8def4e0323d9559e838df72647\"",
+         "sha256": "a416bc3b628aeafd2aba88db7f563092a44798d1ccfc55fc3d053539bcc87ade",
+         "ms": 20
+        },
+        "ifMatch": "\"796e6f8def4e0323d9559e838df72647\"",
+        "withToken": true,
+        "at": 38545,
+        "respondedAt": 38590,
+        "status": 204
+       }
+      ],
+      "sha256": "014f3a7ab5b27e2ae489cbece9adc1931bceb2c747e4f1296e6f97332d94c121",
+      "ifMatch": "\"796e6f8def4e0323d9559e838df72647\"",
+      "status": 204,
+      "etag": "\"6d1128ae17a26592723425144422a42d\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 38696,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9743,
+      "attempts": [
+       {
+        "waited": 998,
+        "check": {
+         "at": 39693,
+         "status": 200,
+         "etag": "\"6d1128ae17a26592723425144422a42d\"",
+         "sha256": "014f3a7ab5b27e2ae489cbece9adc1931bceb2c747e4f1296e6f97332d94c121",
+         "ms": 26
+        },
+        "ifMatch": "\"6d1128ae17a26592723425144422a42d\"",
+        "withToken": true,
+        "at": 39719,
+        "respondedAt": 39756,
+        "status": 204
+       }
+      ],
+      "sha256": "b18a08960958e4094c13740e67c4738cf5ee5d513aa8e5e61c28598b4c2b4d19",
+      "ifMatch": "\"6d1128ae17a26592723425144422a42d\"",
+      "status": 204,
+      "etag": "\"1c201f98cdddcdbe41a4fbad45f828cb\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 43624,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9746,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 43624,
+         "status": 200,
+         "etag": "\"1c201f98cdddcdbe41a4fbad45f828cb\"",
+         "sha256": "b18a08960958e4094c13740e67c4738cf5ee5d513aa8e5e61c28598b4c2b4d19",
+         "ms": 24
+        },
+        "ifMatch": "\"1c201f98cdddcdbe41a4fbad45f828cb\"",
+        "withToken": true,
+        "at": 43648,
+        "respondedAt": 43690,
+        "status": 204
+       }
+      ],
+      "sha256": "62202fd2c630a4c90d80bbf5d680af817d2516826d09f45503ae50ef87fde976",
+      "ifMatch": "\"1c201f98cdddcdbe41a4fbad45f828cb\"",
+      "status": 204,
+      "etag": "\"0d3a871be9f31ca532026813827af445\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 43799,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9746,
+      "attempts": [
+       {
+        "waited": 1024,
+        "check": {
+         "at": 44824,
+         "status": 200,
+         "etag": "\"0d3a871be9f31ca532026813827af445\"",
+         "sha256": "62202fd2c630a4c90d80bbf5d680af817d2516826d09f45503ae50ef87fde976",
+         "ms": 22
+        },
+        "ifMatch": "\"0d3a871be9f31ca532026813827af445\"",
+        "withToken": true,
+        "at": 44846,
+        "respondedAt": 44885,
+        "status": 204
+       }
+      ],
+      "sha256": "ce98e57587569e87d013a325835d7f83d16246b86f943e67e1787f4b044670fa",
+      "ifMatch": "\"0d3a871be9f31ca532026813827af445\"",
+      "status": 204,
+      "etag": "\"2ea4aa546d2f65eb717e72ba76efc648\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 48718,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9743,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 48718,
+         "status": 200,
+         "etag": "\"2ea4aa546d2f65eb717e72ba76efc648\"",
+         "sha256": "ce98e57587569e87d013a325835d7f83d16246b86f943e67e1787f4b044670fa",
+         "ms": 25
+        },
+        "ifMatch": "\"2ea4aa546d2f65eb717e72ba76efc648\"",
+        "withToken": true,
+        "at": 48743,
+        "respondedAt": 48783,
+        "status": 204
+       }
+      ],
+      "sha256": "2843cba2cb2c05b2e046e791ad4e41215b399bd1377e1e701a00f501c567195c",
+      "ifMatch": "\"2ea4aa546d2f65eb717e72ba76efc648\"",
+      "status": 204,
+      "etag": "\"43390c506063c3065f464405af1a0e8e\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 48895,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9745,
+      "attempts": [
+       {
+        "waited": 987,
+        "check": {
+         "at": 49883,
+         "status": 200,
+         "etag": "\"43390c506063c3065f464405af1a0e8e\"",
+         "sha256": "2843cba2cb2c05b2e046e791ad4e41215b399bd1377e1e701a00f501c567195c",
+         "ms": 23
+        },
+        "ifMatch": "\"43390c506063c3065f464405af1a0e8e\"",
+        "withToken": true,
+        "at": 49906,
+        "respondedAt": 49952,
+        "status": 204
+       }
+      ],
+      "sha256": "93bb3cac05ccab792efa5f5cdef10aafd6c433c067a1b2e86ac45e9dd43080ec",
+      "ifMatch": "\"43390c506063c3065f464405af1a0e8e\"",
+      "status": 204,
+      "etag": "\"528aeb33d959a21dbbe0435290d2f6db\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 53060,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9745,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 53060,
+         "status": 200,
+         "etag": "\"528aeb33d959a21dbbe0435290d2f6db\"",
+         "sha256": "93bb3cac05ccab792efa5f5cdef10aafd6c433c067a1b2e86ac45e9dd43080ec",
+         "ms": 24
+        },
+        "ifMatch": "\"528aeb33d959a21dbbe0435290d2f6db\"",
+        "withToken": true,
+        "at": 53084,
+        "respondedAt": 53129,
+        "status": 204
+       }
+      ],
+      "sha256": "3891f2b3709720e68f51ee48e6cd9370851b03b0536baac73c3a1954a91444bc",
+      "ifMatch": "\"528aeb33d959a21dbbe0435290d2f6db\"",
+      "status": 204,
+      "etag": "\"871ecd7c4dd7d8a95869112f95cc347f\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 63819,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9747,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 63819,
+         "status": 200,
+         "etag": "\"871ecd7c4dd7d8a95869112f95cc347f\"",
+         "sha256": "3891f2b3709720e68f51ee48e6cd9370851b03b0536baac73c3a1954a91444bc",
+         "ms": 23
+        },
+        "ifMatch": "\"871ecd7c4dd7d8a95869112f95cc347f\"",
+        "withToken": true,
+        "at": 63842,
+        "respondedAt": 63886,
+        "status": 204
+       }
+      ],
+      "sha256": "2f8407db54ae6f7c310768dcc13c28da394a23d2703aa08ce99a6b0b3c026774",
+      "ifMatch": "\"871ecd7c4dd7d8a95869112f95cc347f\"",
+      "status": 204,
+      "etag": "\"69cea2ef2caae06b2bf0a676ad701424\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 63999,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9745,
+      "attempts": [
+       {
+        "waited": 991,
+        "check": {
+         "at": 64990,
+         "status": 200,
+         "etag": "\"69cea2ef2caae06b2bf0a676ad701424\"",
+         "sha256": "2f8407db54ae6f7c310768dcc13c28da394a23d2703aa08ce99a6b0b3c026774",
+         "ms": 22
+        },
+        "ifMatch": "\"69cea2ef2caae06b2bf0a676ad701424\"",
+        "withToken": true,
+        "at": 65012,
+        "respondedAt": 65050,
+        "status": 204
+       }
+      ],
+      "sha256": "45ece29062a8f5fdbfac6532d903d5f38d9dce3e2742bf8ec71dd6799444b5a0",
+      "ifMatch": "\"69cea2ef2caae06b2bf0a676ad701424\"",
+      "status": 204,
+      "etag": "\"5defb5c345aeab752969de4d23f40c67\"",
+      "outcome": "saved",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 263,
+     "refreshes": [
+      {
+       "at": 60305,
+       "status": 200,
+       "seconds": 361
+      }
+     ],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "scope": "scoped",
+    "file": {
+     "id": 7961,
+     "name": "M3 同秒 測試.odt",
+     "size": 1343,
+     "etag": "17066b6d258f93f4fde9c343e02678c0",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/fabdb50ecd038802-90d7bc2c/e2-editor.html?fileId=7961",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ac45e9d9403c\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 302
+    },
+    "handedReadOnly": false,
+    "finished": 2247
+   },
+   "secondsToOpened": 2.71,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ac45e9d9403c\"",
+    "fileid": "7961",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:5f822734-db8d-47fd-a595-23f68e89f594"
+   },
+   "presses": [
+    {
+     "label": "pair 0",
+     "phase": 0.05,
+     "pressedAt": 1791254176.05,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 0,
+     "settled": [
+      2,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1071 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254177
+    },
+    {
+     "label": "pair 1",
+     "phase": 0.15,
+     "pressedAt": 1791254181.15,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 2,
+     "settled": [
+      4,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1056 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254182
+    },
+    {
+     "label": "pair 2",
+     "phase": 0.25,
+     "pressedAt": 1791254186.25,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 4,
+     "settled": [
+      6,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1057 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254187
+    },
+    {
+     "label": "pair 3",
+     "phase": 0.35,
+     "pressedAt": 1791254191.351,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 6,
+     "settled": [
+      8,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1060 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254192
+    },
+    {
+     "label": "pair 4",
+     "phase": 0.45,
+     "pressedAt": 1791254196.45,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 8,
+     "settled": [
+      10,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1054 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254197
+    },
+    {
+     "label": "pair 5",
+     "phase": 0.55,
+     "pressedAt": 1791254201.55,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 10,
+     "settled": [
+      12,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1075 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254202
+    },
+    {
+     "label": "pair 6",
+     "phase": 0.65,
+     "pressedAt": 1791254206.651,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 12,
+     "settled": [
+      14,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1052 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254207
+    },
+    {
+     "label": "pair 7",
+     "phase": 0.75,
+     "pressedAt": 1791254211.75,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 14,
+     "settled": [
+      16,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1061 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254213
+    },
+    {
+     "label": "pair 8",
+     "phase": 0.85,
+     "pressedAt": 1791254216.85,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 16,
+     "settled": [
+      18,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1086 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254218
+    },
+    {
+     "label": "pair 9",
+     "phase": 0.95,
+     "pressedAt": 1791254221.951,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 18,
+     "settled": [
+      20,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1056 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254223
+    },
+    {
+     "label": "single",
+     "phase": null,
+     "pressedAt": 1791254226.292,
+     "pressed": true,
+     "savesBefore": 20,
+     "settled": [
+      21,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 69 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254226
+    },
+    {
+     "label": "restore pair",
+     "phase": 0.05,
+     "pressedAt": 1791254237.05,
+     "pressed": [
+      true,
+      true
+     ],
+     "savesBefore": 21,
+     "settled": [
+      23,
+      true
+     ],
+     "state": {
+      "state": "ready",
+      "label": "就緒",
+      "revision": "0",
+      "pending": "0",
+      "checkpoint": "無",
+      "latency": "存回 1050 ms",
+      "doc": "M3 同秒 測試.odt",
+      "toast": "已存回 M3 同秒 測試.odt（9.5 KB）",
+      "buttons": [
+       {
+        "action": "undo",
+        "disabled": false
+       },
+       {
+        "action": "redo",
+        "disabled": false
+       },
+       {
+        "action": "move-character-left",
+        "disabled": false
+       },
+       {
+        "action": "move-character-right",
+        "disabled": false
+       },
+       {
+        "action": "delete-backward",
+        "disabled": false
+       },
+       {
+        "action": "delete-forward",
+        "disabled": false
+       },
+       {
+        "action": "insert-paragraph-break",
+        "disabled": false
+       },
+       {
+        "action": "insert-line-break",
+        "disabled": false
+       },
+       {
+        "action": "set-bold",
+        "disabled": false
+       },
+       {
+        "action": "set-italic",
+        "disabled": false
+       },
+       {
+        "action": "set-underline",
+        "disabled": false
+       },
+       {
+        "action": "set-strikethrough",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-heading",
+        "disabled": false
+       },
+       {
+        "action": "set-paragraph-body",
+        "disabled": false
+       },
+       {
+        "action": "set-list-unordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-ordered",
+        "disabled": false
+       },
+       {
+        "action": "set-list-none",
+        "disabled": false
+       },
+       {
+        "action": "insert-text",
+        "disabled": false
+       },
+       {
+        "action": "save",
+        "disabled": false
+       }
+      ]
+     },
+     "mtimeAfter": 1791254238
+    }
+   ],
+   "Lb": {
+    "status": 207,
+    "mtime": 1791254226,
+    "fileid": 7961,
+    "entries": [
+     {
+      "revision": 1791254167,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934"
+     },
+     {
+      "revision": 1791254176,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "e98a111d38de36fbd2a27053f312a85dc8430b3122aa38205f4ce3cda5344817"
+     },
+     {
+      "revision": 1791254177,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "5c0677208ba0efba53ba522607f85d1dad2fc6b7ff9403908b510483d9d76480"
+     },
+     {
+      "revision": 1791254181,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "7ac3cbac6f63f2d933897cf986c378a2699178d2365f76b90dcac64f91981580"
+     },
+     {
+      "revision": 1791254182,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "e3f2d07022b73f1f5eefd0b9f6bf6326d41f486404806a9eaacc167cc3c9b245"
+     },
+     {
+      "revision": 1791254186,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "46ff1013e3b76f0326d5ae0568bb6a9769b34cca21e2cf844d464c470cf9fec7"
+     },
+     {
+      "revision": 1791254187,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "70a7c46d2f9950b08582c312466f0b6c4926e938d715aa6d933b1ee7d252e6f7"
+     },
+     {
+      "revision": 1791254191,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "723a435b28163ef24ba502afe9438eb229805bbcab310090a6323f0133d4ef74"
+     },
+     {
+      "revision": 1791254192,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "375966c6c9a6b3da33001a0d501b4fd378dbd6ad4810c611ffdfaf6ab97f4cef"
+     },
+     {
+      "revision": 1791254196,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "9574b8a121f20400e53bed1e626bce1bab23e410753600d6643203a978a27c33"
+     },
+     {
+      "revision": 1791254197,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "cc3aba8132fdfe2f24a1636519cba0012a1db7357ad7890bd3e87c89636da342"
+     },
+     {
+      "revision": 1791254201,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "89fad8c49df77bee28474abc715bdc3fd6043ddfea467a59ee8145557289c4aa"
+     },
+     {
+      "revision": 1791254202,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "042270b06ecefb062f531f19af172fd3a7c0ef61166a03ec38d28f30b12916e0"
+     },
+     {
+      "revision": 1791254206,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "1d730dd52d634744e77b695b526439c54408a7f1e3abb7356293b63f67886041"
+     },
+     {
+      "revision": 1791254207,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "a416bc3b628aeafd2aba88db7f563092a44798d1ccfc55fc3d053539bcc87ade"
+     },
+     {
+      "revision": 1791254211,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "014f3a7ab5b27e2ae489cbece9adc1931bceb2c747e4f1296e6f97332d94c121"
+     },
+     {
+      "revision": 1791254213,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "b18a08960958e4094c13740e67c4738cf5ee5d513aa8e5e61c28598b4c2b4d19"
+     },
+     {
+      "revision": 1791254217,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "62202fd2c630a4c90d80bbf5d680af817d2516826d09f45503ae50ef87fde976"
+     },
+     {
+      "revision": 1791254218,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "ce98e57587569e87d013a325835d7f83d16246b86f943e67e1787f4b044670fa"
+     },
+     {
+      "revision": 1791254222,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "2843cba2cb2c05b2e046e791ad4e41215b399bd1377e1e701a00f501c567195c"
+     },
+     {
+      "revision": 1791254223,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "93bb3cac05ccab792efa5f5cdef10aafd6c433c067a1b2e86ac45e9dd43080ec"
+     },
+     {
+      "revision": 1791254226,
+      "current": true,
+      "author": "admin"
+     }
+    ]
+   },
+   "beforeRestore": {
+    "status": 207,
+    "etag": "\"5defb5c345aeab752969de4d23f40c67\"",
+    "fileid": "7961",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:5f822734-db8d-47fd-a595-23f68e89f594"
+   },
+   "restoredRevision": 1791254167,
+   "restore": 201,
+   "serverAfterRestore": {
+    "status": 200,
+    "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+    "bytes": 1343
+   },
+   "Lc": {
+    "status": 207,
+    "mtime": 1791254167,
+    "fileid": 7961,
+    "entries": [
+     {
+      "revision": 1791254167,
+      "current": true,
+      "author": "admin"
+     },
+     {
+      "revision": 1791254176,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "e98a111d38de36fbd2a27053f312a85dc8430b3122aa38205f4ce3cda5344817"
+     },
+     {
+      "revision": 1791254177,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "5c0677208ba0efba53ba522607f85d1dad2fc6b7ff9403908b510483d9d76480"
+     },
+     {
+      "revision": 1791254181,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "7ac3cbac6f63f2d933897cf986c378a2699178d2365f76b90dcac64f91981580"
+     },
+     {
+      "revision": 1791254182,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "e3f2d07022b73f1f5eefd0b9f6bf6326d41f486404806a9eaacc167cc3c9b245"
+     },
+     {
+      "revision": 1791254186,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "46ff1013e3b76f0326d5ae0568bb6a9769b34cca21e2cf844d464c470cf9fec7"
+     },
+     {
+      "revision": 1791254187,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "70a7c46d2f9950b08582c312466f0b6c4926e938d715aa6d933b1ee7d252e6f7"
+     },
+     {
+      "revision": 1791254191,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "723a435b28163ef24ba502afe9438eb229805bbcab310090a6323f0133d4ef74"
+     },
+     {
+      "revision": 1791254192,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "375966c6c9a6b3da33001a0d501b4fd378dbd6ad4810c611ffdfaf6ab97f4cef"
+     },
+     {
+      "revision": 1791254196,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "9574b8a121f20400e53bed1e626bce1bab23e410753600d6643203a978a27c33"
+     },
+     {
+      "revision": 1791254197,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "cc3aba8132fdfe2f24a1636519cba0012a1db7357ad7890bd3e87c89636da342"
+     },
+     {
+      "revision": 1791254201,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "89fad8c49df77bee28474abc715bdc3fd6043ddfea467a59ee8145557289c4aa"
+     },
+     {
+      "revision": 1791254202,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "042270b06ecefb062f531f19af172fd3a7c0ef61166a03ec38d28f30b12916e0"
+     },
+     {
+      "revision": 1791254206,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "1d730dd52d634744e77b695b526439c54408a7f1e3abb7356293b63f67886041"
+     },
+     {
+      "revision": 1791254207,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "a416bc3b628aeafd2aba88db7f563092a44798d1ccfc55fc3d053539bcc87ade"
+     },
+     {
+      "revision": 1791254211,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "014f3a7ab5b27e2ae489cbece9adc1931bceb2c747e4f1296e6f97332d94c121"
+     },
+     {
+      "revision": 1791254213,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "b18a08960958e4094c13740e67c4738cf5ee5d513aa8e5e61c28598b4c2b4d19"
+     },
+     {
+      "revision": 1791254217,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "62202fd2c630a4c90d80bbf5d680af817d2516826d09f45503ae50ef87fde976"
+     },
+     {
+      "revision": 1791254218,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "ce98e57587569e87d013a325835d7f83d16246b86f943e67e1787f4b044670fa"
+     },
+     {
+      "revision": 1791254222,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "2843cba2cb2c05b2e046e791ad4e41215b399bd1377e1e701a00f501c567195c"
+     },
+     {
+      "revision": 1791254223,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "93bb3cac05ccab792efa5f5cdef10aafd6c433c067a1b2e86ac45e9dd43080ec"
+     },
+     {
+      "revision": 1791254226,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "3891f2b3709720e68f51ee48e6cd9370851b03b0536baac73c3a1954a91444bc"
+     },
+     {
+      "revision": 1791254237,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "2f8407db54ae6f7c310768dcc13c28da394a23d2703aa08ce99a6b0b3c026774"
+     },
+     {
+      "revision": 1791254238,
+      "current": false,
+      "author": "admin",
+      "get": 200,
+      "sha256": "45ece29062a8f5fdbfac6532d903d5f38d9dce3e2742bf8ec71dd6799444b5a0"
+     }
+    ]
+   },
+   "copiesAfter": [],
+   "clearedAtEnd": "0",
+   "registered": [
+    {
+     "label": "pair 0",
+     "phase": 0.05,
+     "putPhases": [
+      0.266,
+      0.441
+     ],
+     "sendGapMs": [
+      1175
+     ],
+     "waitedMs": [
+      0,
+      998
+     ],
+     "answeredAfterMs": [
+      41,
+      43
+     ],
+     "checkMs": [
+      24,
+      30
+     ],
+     "page": "存回 1071 ms",
+     "mtimeAfter": 1791254177
+    },
+    {
+     "label": "pair 1",
+     "phase": 0.15,
+     "putPhases": [
+      0.292,
+      0.453
+     ],
+     "sendGapMs": [
+      1161
+     ],
+     "waitedMs": [
+      0,
+      993
+     ],
+     "answeredAfterMs": [
+      41,
+      43
+     ],
+     "checkMs": [
+      28,
+      20
+     ],
+     "page": "存回 1056 ms",
+     "mtimeAfter": 1791254182
+    },
+    {
+     "label": "pair 2",
+     "phase": 0.25,
+     "putPhases": [
+      0.389,
+      0.557
+     ],
+     "sendGapMs": [
+      1168
+     ],
+     "waitedMs": [
+      0,
+      996
+     ],
+     "answeredAfterMs": [
+      46,
+      43
+     ],
+     "checkMs": [
+      25,
+      18
+     ],
+     "page": "存回 1057 ms",
+     "mtimeAfter": 1791254187
+    },
+    {
+     "label": "pair 3",
+     "phase": 0.35,
+     "putPhases": [
+      0.496,
+      0.667
+     ],
+     "sendGapMs": [
+      1171
+     ],
+     "waitedMs": [
+      0,
+      995
+     ],
+     "answeredAfterMs": [
+      45,
+      42
+     ],
+     "checkMs": [
+      26,
+      22
+     ],
+     "page": "存回 1060 ms",
+     "mtimeAfter": 1791254192
+    },
+    {
+     "label": "pair 4",
+     "phase": 0.45,
+     "putPhases": [
+      0.59,
+      0.755
+     ],
+     "sendGapMs": [
+      1165
+     ],
+     "waitedMs": [
+      0,
+      992
+     ],
+     "answeredAfterMs": [
+      44,
+      40
+     ],
+     "checkMs": [
+      27,
+      21
+     ],
+     "page": "存回 1054 ms",
+     "mtimeAfter": 1791254197
+    },
+    {
+     "label": "pair 5",
+     "phase": 0.55,
+     "putPhases": [
+      0.687,
+      0.869
+     ],
+     "sendGapMs": [
+      1182
+     ],
+     "waitedMs": [
+      0,
+      1006
+     ],
+     "answeredAfterMs": [
+      41,
+      44
+     ],
+     "checkMs": [
+      19,
+      25
+     ],
+     "page": "存回 1075 ms",
+     "mtimeAfter": 1791254202
+    },
+    {
+     "label": "pair 6",
+     "phase": 0.65,
+     "putPhases": [
+      0.787,
+      0.947
+     ],
+     "sendGapMs": [
+      1160
+     ],
+     "waitedMs": [
+      0,
+      992
+     ],
+     "answeredAfterMs": [
+      39,
+      38
+     ],
+     "checkMs": [
+      23,
+      21
+     ],
+     "page": "存回 1052 ms",
+     "mtimeAfter": 1791254207
+    },
+    {
+     "label": "pair 7",
+     "phase": 0.75,
+     "putPhases": [
+      0.89,
+      0.064
+     ],
+     "sendGapMs": [
+      1174
+     ],
+     "waitedMs": [
+      0,
+      998
+     ],
+     "answeredAfterMs": [
+      45,
+      37
+     ],
+     "checkMs": [
+      20,
+      26
+     ],
+     "page": "存回 1061 ms",
+     "mtimeAfter": 1791254213
+    },
+    {
+     "label": "pair 8",
+     "phase": 0.85,
+     "putPhases": [
+      0.993,
+      0.191
+     ],
+     "sendGapMs": [
+      1198
+     ],
+     "waitedMs": [
+      0,
+      1024
+     ],
+     "answeredAfterMs": [
+      42,
+      39
+     ],
+     "checkMs": [
+      24,
+      22
+     ],
+     "page": "存回 1086 ms",
+     "mtimeAfter": 1791254218
+    },
+    {
+     "label": "pair 9",
+     "phase": 0.95,
+     "putPhases": [
+      0.088,
+      0.251
+     ],
+     "sendGapMs": [
+      1163
+     ],
+     "waitedMs": [
+      0,
+      987
+     ],
+     "answeredAfterMs": [
+      40,
+      46
+     ],
+     "checkMs": [
+      25,
+      23
+     ],
+     "page": "存回 1056 ms",
+     "mtimeAfter": 1791254223
+    },
+    {
+     "label": "single",
+     "phase": null,
+     "putPhases": [
+      0.429
+     ],
+     "sendGapMs": [],
+     "waitedMs": [
+      0
+     ],
+     "answeredAfterMs": [
+      45
+     ],
+     "checkMs": [
+      24
+     ],
+     "page": "存回 69 ms",
+     "mtimeAfter": 1791254226
+    },
+    {
+     "label": "restore pair",
+     "phase": 0.05,
+     "putPhases": [
+      0.187,
+      0.357
+     ],
+     "sendGapMs": [
+      1170
+     ],
+     "waitedMs": [
+      0,
+      991
+     ],
+     "answeredAfterMs": [
+      44,
+      38
+     ],
+     "checkMs": [
+      23,
+      22
+     ],
+     "page": "存回 1050 ms",
+     "mtimeAfter": 1791254238
+    }
+   ]
+  },
+  {
+   "arm": "same-second-foreign",
+   "spec": "R3",
+   "browser": "firefox",
+   "startedAt": "2026-10-06T02:37:43+00:00",
+   "file": {
+    "user": "admin",
+    "path": "M3 同秒 測試.odt",
+    "adminPath": "M3 同秒 測試.odt"
+   },
+   "clearedLocks": "0",
+   "removedOld": 204,
+   "reset": {
+    "upload": 201,
+    "fileId": 7986
+   },
+   "copiesBefore": [],
+   "version": "157.0",
+   "login": "https://litecore.ddev.site:8443/apps/dashboard/",
+   "filesRow": true,
+   "clickedFrom": "https://litecore.ddev.site:8443/apps/files/files?dir=/",
+   "landed": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/fabdb50ecd038802-90d7bc2c/e2-editor.html?fileId=7986",
+   "host": {
+    "started": 1791254270417,
+    "done": true,
+    "steps": [
+     {
+      "step": "imported",
+      "at": 237
+     },
+     {
+      "step": "fetched",
+      "at": 295
+     },
+     {
+      "step": "opened",
+      "at": 2240,
+      "state": {
+       "state": "ready",
+       "doc": "M3 同秒 測試.odt",
+       "revision": "0",
+       "toast": "已開啟 M3 同秒 測試.odt"
+      }
+     }
+    ],
+    "saves": [
+     {
+      "at": 2820,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9723,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 2821,
+         "status": 200,
+         "etag": "\"6ac45efea3a97\"",
+         "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+         "ms": 28
+        },
+        "ifMatch": "\"6ac45efea3a97\"",
+        "withToken": true,
+        "at": 2849,
+        "respondedAt": 2897,
+        "status": 204
+       }
+      ],
+      "sha256": "13098756ac1ee4c4a2838cbc9d0507743499a83a01edf6ecebb33abcbacdae33",
+      "ifMatch": "\"6ac45efea3a97\"",
+      "status": 204,
+      "etag": "\"f20a76974892b1ddc4cc1a3d43709bd4\"",
+      "outcome": "saved",
+      "settled": true
+     },
+     {
+      "at": 5395,
+      "name": "M3 同秒 測試.odt",
+      "bytes": 9747,
+      "attempts": [
+       {
+        "waited": 0,
+        "check": {
+         "at": 5395,
+         "status": 200,
+         "etag": "\"f20a76974892b1ddc4cc1a3d43709bd4\"",
+         "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+         "ms": 23
+        },
+        "ifMatch": "\"f20a76974892b1ddc4cc1a3d43709bd4\"",
+        "withToken": true,
+        "status": "changed"
+       }
+      ],
+      "sha256": "a6d3030d43316294b47c1169bba05a76c4510aa3dbac4c8ea8aa1b170dfd6ccd",
+      "ifMatch": "\"f20a76974892b1ddc4cc1a3d43709bd4\"",
+      "status": "changed",
+      "responseEtag": null,
+      "conflictCopy": {
+       "name": "M3 同秒 測試（衝突副本 2026-10-06 103755）.odt",
+       "status": 201
+      },
+      "outcome": "copy",
+      "settled": true
+     }
+    ],
+    "lock": {
+     "state": "held",
+     "status": 200,
+     "at": 255,
+     "refreshes": [],
+     "verified": true
+    },
+    "stranded": null,
+    "notice": "",
+    "scope": "scoped",
+    "file": {
+     "id": 7986,
+     "name": "M3 同秒 測試.odt",
+     "size": 1343,
+     "etag": "9bc4c3d09a172e5ee9701a79ea170962",
+     "writable": true
+    },
+    "isolation": {
+     "crossOriginIsolated": true,
+     "sharedArrayBuffer": true
+    },
+    "href": "https://litecore.ddev.site:8443/index.php/apps/litecore/r/fabdb50ecd038802-90d7bc2c/e2-editor.html?fileId=7986",
+    "watchingPage": true,
+    "fetched": {
+     "status": 200,
+     "contentType": "application/vnd.oasis.opendocument.text",
+     "etag": "\"6ac45efea3a97\"",
+     "bytes": 1343,
+     "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+     "at": 295
+    },
+    "handedReadOnly": false,
+    "finished": 2240
+   },
+   "secondsToOpened": 2.69,
+   "pickers": {
+    "fixtureDisabled": true,
+    "openFileDisabled": true,
+    "fileDisabled": true,
+    "fixtureOptions": 0
+   },
+   "bar": {
+    "notice": "",
+    "barHidden": true,
+    "downloadHidden": true
+   },
+   "afterOpen": {
+    "status": 207,
+    "etag": "\"6ac45efea3a97\"",
+    "fileid": "7986",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:45d7fbd7-d8b7-4132-b57f-a14b56fcaefc"
+   },
+   "pressedAt": 1791254273.05,
+   "s1SeenSettledAt": 1791254273.315,
+   "foreignPut": 204,
+   "foreignDoneAt": 1791254273.623,
+   "afterForeign": {
+    "status": 207,
+    "etag": "\"f20a76974892b1ddc4cc1a3d43709bd4\"",
+    "fileid": "7986",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:45d7fbd7-d8b7-4132-b57f-a14b56fcaefc"
+   },
+   "foreignMtime": 1791254273,
+   "save2Seen": 2,
+   "save2State": {
+    "state": "ready",
+    "label": "就緒",
+    "revision": "0",
+    "pending": "0",
+    "checkpoint": "無",
+    "latency": "存回 失敗",
+    "doc": "M3 同秒 測試.odt",
+    "toast": "存回：CONFLICT：檔案在你開啟之後已被別處修改，沒有覆寫。你的內容另存為「M3 同秒 測試（衝突副本 2026-10-06 103755）.odt」。",
+    "buttons": [
+     {
+      "action": "undo",
+      "disabled": false
+     },
+     {
+      "action": "redo",
+      "disabled": false
+     },
+     {
+      "action": "move-character-left",
+      "disabled": false
+     },
+     {
+      "action": "move-character-right",
+      "disabled": false
+     },
+     {
+      "action": "delete-backward",
+      "disabled": false
+     },
+     {
+      "action": "delete-forward",
+      "disabled": false
+     },
+     {
+      "action": "insert-paragraph-break",
+      "disabled": false
+     },
+     {
+      "action": "insert-line-break",
+      "disabled": false
+     },
+     {
+      "action": "set-bold",
+      "disabled": false
+     },
+     {
+      "action": "set-italic",
+      "disabled": false
+     },
+     {
+      "action": "set-underline",
+      "disabled": false
+     },
+     {
+      "action": "set-strikethrough",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-heading",
+      "disabled": false
+     },
+     {
+      "action": "set-paragraph-body",
+      "disabled": false
+     },
+     {
+      "action": "set-list-unordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-ordered",
+      "disabled": false
+     },
+     {
+      "action": "set-list-none",
+      "disabled": false
+     },
+     {
+      "action": "insert-text",
+      "disabled": false
+     },
+     {
+      "action": "save",
+      "disabled": false
+     }
+    ]
+   },
+   "serverAfter": {
+    "status": 200,
+    "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+    "bytes": 1558
+   },
+   "lockAfterSave": {
+    "status": 207,
+    "etag": "\"f20a76974892b1ddc4cc1a3d43709bd4\"",
+    "fileid": "7986",
+    "lock": "1",
+    "lockOwner": "admin",
+    "lockOwnerType": "2",
+    "token": "opaquelocktoken:45d7fbd7-d8b7-4132-b57f-a14b56fcaefc"
+   },
+   "copiesAfter": [
+    {
+     "name": "M3 同秒 測試（衝突副本 2026-10-06 103755）.odt",
+     "status": 200,
+     "sha256": "a6d3030d43316294b47c1169bba05a76c4510aa3dbac4c8ea8aa1b170dfd6ccd",
+     "bytes": 9747
+    }
+   ],
+   "clearedAtEnd": "0",
+   "registered": [
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 2821,
+        "status": 200,
+        "etag": "\"6ac45efea3a97\"",
+        "sha256": "3b6db004d5315a6f442a2189e0b91d784504ac159138fb5468950d99d1b8d934",
+        "ms": 28
+       },
+       "ifMatch": "\"6ac45efea3a97\"",
+       "withToken": true,
+       "at": 2849,
+       "respondedAt": 2897,
+       "status": 204
+      }
+     ],
+     "sha256": "13098756ac1ee4c4a2838cbc9d0507743499a83a01edf6ecebb33abcbacdae33"
+    },
+    {
+     "s1": [
+      {
+       "waited": 0,
+       "check": {
+        "at": 5395,
+        "status": 200,
+        "etag": "\"f20a76974892b1ddc4cc1a3d43709bd4\"",
+        "sha256": "bf10a4b011e7fab902afa6006253ccc2c08dd20d6c9787e8e97c13c704c23b5d",
+        "ms": 23
+       },
+       "ifMatch": "\"f20a76974892b1ddc4cc1a3d43709bd4\"",
+       "withToken": true,
+       "status": "changed"
+      }
+     ],
+     "sha256": "a6d3030d43316294b47c1169bba05a76c4510aa3dbac4c8ea8aa1b170dfd6ccd"
+    }
+   ]
+  }
+ ],
+ "setup": {
+  "clearedLocks": "0"
+ },
+ "completedAt": "2026-10-06T02:38:10+00:00",
+ "httpLog": [
+  {
+   "step": "reset",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 404,
+   "headers": {
+    "content-type": "application/xml; charset=utf-8"
+   },
+   "body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<d:error xmlns:d=\"DAV:\" xmlns:s=\"http://sabredav.org/ns\">\n  <s:exception>Sabre\\DAV\\Exception\\NotFound</s:exception>\n  <s:message>File with name /M3 同秒 測試.odt could not be located</s:message>\n</d:error>\n"
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"5dc7054b21733f0ef692026b2f22f700\"",
+    "oc-etag": "\"5dc7054b21733f0ef692026b2f22f700\"",
+    "oc-fileid": "00007932oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 620
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3397
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 943
+  },
+  {
+   "step": "mtime after pair 0",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 1",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 2",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 3",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 4",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 5",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 6",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 7",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 8",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 9",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after single",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "Lb after the single save",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 962
+  },
+  {
+   "step": "Lb after the single save",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/versions/admin/versions/7932",
+   "status": 207,
+   "bytes": 7708
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254069",
+   "status": 200,
+   "bytes": 1343
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254077",
+   "status": 200,
+   "bytes": 9738
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254078",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254082",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254083",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254087",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254088",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254092",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254093",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254097",
+   "status": 200,
+   "bytes": 9761
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254098",
+   "status": 200,
+   "bytes": 9761
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254102",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254103",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254107",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254108",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254112",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254114",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254117",
+   "status": 200,
+   "bytes": 9758
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254119",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254123",
+   "status": 200,
+   "bytes": 9761
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254124",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "mtime after restore pair",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 962
+  },
+  {
+   "step": "restore (Files' request, no token)",
+   "actor": "admin",
+   "method": "MOVE",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254069",
+   "status": 201,
+   "bytes": 0
+  },
+  {
+   "step": "Lc after the restore",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 962
+  },
+  {
+   "step": "Lc after the restore",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/versions/admin/versions/7932",
+   "status": 207,
+   "bytes": 8372
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254077",
+   "status": 200,
+   "bytes": 9738
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254078",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254082",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254083",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254087",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254088",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254092",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254093",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254097",
+   "status": 200,
+   "bytes": 9761
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254098",
+   "status": 200,
+   "bytes": 9761
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254102",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254103",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254107",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254108",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254112",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254114",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254117",
+   "status": 200,
+   "bytes": 9758
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254119",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254123",
+   "status": 200,
+   "bytes": 9761
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254124",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254127",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254138",
+   "status": 200,
+   "bytes": 9760
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7932/1791254139",
+   "status": 200,
+   "bytes": 9759
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3397
+  },
+  {
+   "step": "reset",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"46f3322b4bf911f506361deab16776f2\"",
+    "oc-etag": "\"46f3322b4bf911f506361deab16776f2\"",
+    "oc-fileid": "00007957oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 620
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3397
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 943
+  },
+  {
+   "step": "put",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text",
+    "If": "(<opaquelocktoken:32e3bf4e-2969-4fd1-a06f-fd2491a1636a>)"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"16a692de6aab461ae05462d7bb371bdb\"",
+    "oc-etag": "\"16a692de6aab461ae05462d7bb371bdb\"",
+    "oc-fileid": "00007957oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 962
+  },
+  {
+   "step": "mtime after X",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 962
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3756
+  },
+  {
+   "step": "remove",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試（衝突副本 2026-10-06 103602）.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "reset",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"17066b6d258f93f4fde9c343e02678c0\"",
+    "oc-etag": "\"17066b6d258f93f4fde9c343e02678c0\"",
+    "oc-fileid": "00007961oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 620
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3397
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 943
+  },
+  {
+   "step": "mtime after pair 0",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 1",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 2",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 3",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 4",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 5",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 6",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 7",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 8",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after pair 9",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "mtime after single",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "Lb after the single save",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 962
+  },
+  {
+   "step": "Lb after the single save",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/versions/admin/versions/7961",
+   "status": 207,
+   "bytes": 7708
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254167",
+   "status": 200,
+   "bytes": 1343
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254176",
+   "status": 200,
+   "bytes": 9722
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254177",
+   "status": 200,
+   "bytes": 9743
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254181",
+   "status": 200,
+   "bytes": 9744
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254182",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254186",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254187",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254191",
+   "status": 200,
+   "bytes": 9746
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254192",
+   "status": 200,
+   "bytes": 9746
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254196",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254197",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254201",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254202",
+   "status": 200,
+   "bytes": 9742
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254206",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254207",
+   "status": 200,
+   "bytes": 9744
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254211",
+   "status": 200,
+   "bytes": 9742
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254213",
+   "status": 200,
+   "bytes": 9743
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254217",
+   "status": 200,
+   "bytes": 9746
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254218",
+   "status": 200,
+   "bytes": 9746
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254222",
+   "status": 200,
+   "bytes": 9743
+  },
+  {
+   "step": "Lb after the single save (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254223",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "mtime after restore pair",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 962
+  },
+  {
+   "step": "restore (Files' request, no token)",
+   "actor": "admin",
+   "method": "MOVE",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254167",
+   "status": 201,
+   "bytes": 0
+  },
+  {
+   "step": "Lc after the restore",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 962
+  },
+  {
+   "step": "Lc after the restore",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/versions/admin/versions/7961",
+   "status": 207,
+   "bytes": 8372
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254176",
+   "status": 200,
+   "bytes": 9722
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254177",
+   "status": 200,
+   "bytes": 9743
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254181",
+   "status": 200,
+   "bytes": 9744
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254182",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254186",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254187",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254191",
+   "status": 200,
+   "bytes": 9746
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254192",
+   "status": 200,
+   "bytes": 9746
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254196",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254197",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254201",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254202",
+   "status": 200,
+   "bytes": 9742
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254206",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254207",
+   "status": 200,
+   "bytes": 9744
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254211",
+   "status": 200,
+   "bytes": 9742
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254213",
+   "status": 200,
+   "bytes": 9743
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254217",
+   "status": 200,
+   "bytes": 9746
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254218",
+   "status": 200,
+   "bytes": 9746
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254222",
+   "status": 200,
+   "bytes": 9743
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254223",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254226",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254237",
+   "status": 200,
+   "bytes": 9747
+  },
+  {
+   "step": "Lc after the restore (bytes)",
+   "actor": "admin",
+   "method": "GET",
+   "path": "/remote.php/dav/versions/admin/versions/7961/1791254238",
+   "status": 200,
+   "bytes": 9745
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3397
+  },
+  {
+   "step": "reset",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "upload",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text"
+   },
+   "status": 201,
+   "headers": {
+    "content-type": "text/html; charset=UTF-8",
+    "etag": "\"9bc4c3d09a172e5ee9701a79ea170962\"",
+    "oc-etag": "\"9bc4c3d09a172e5ee9701a79ea170962\"",
+    "oc-fileid": "00007986oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 620
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3397
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 943
+  },
+  {
+   "step": "put",
+   "actor": "admin",
+   "method": "PUT",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {
+    "Content-Type": "application/vnd.oasis.opendocument.text",
+    "If": "(<opaquelocktoken:45d7fbd7-d8b7-4132-b57f-a14b56fcaefc>)"
+   },
+   "status": 204,
+   "headers": {
+    "etag": "\"f20a76974892b1ddc4cc1a3d43709bd4\"",
+    "oc-etag": "\"f20a76974892b1ddc4cc1a3d43709bd4\"",
+    "oc-fileid": "00007986oczcndor1sx6"
+   },
+   "body": null
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 962
+  },
+  {
+   "step": "mtime after X",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 435
+  },
+  {
+   "step": "props",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "M3 同秒 測試.odt",
+   "status": 207,
+   "bytes": 962
+  },
+  {
+   "step": "list",
+   "actor": "admin",
+   "method": "PROPFIND",
+   "path": "",
+   "status": 207,
+   "bytes": 3756
+  },
+  {
+   "step": "remove",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試（衝突副本 2026-10-06 103755）.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  },
+  {
+   "step": "teardown",
+   "actor": "admin",
+   "method": "DELETE",
+   "path": "/remote.php/dav/files/admin/M3 同秒 測試.odt",
+   "sent": {},
+   "status": 204,
+   "headers": {},
+   "body": null
+  }
+ ],
+ "score": {
+  "verdict": "clean",
+  "tally": {
+   "chrome:same-second": {
+    "pass": 1,
+    "runs": 1,
+    "problems": []
+   },
+   "chrome:same-second-foreign": {
+    "pass": 1,
+    "runs": 1,
+    "problems": []
+   },
+   "firefox:same-second": {
+    "pass": 1,
+    "runs": 1,
+    "problems": []
+   },
+   "firefox:same-second-foreign": {
+    "pass": 1,
+    "runs": 1,
+    "problems": []
+   }
+  },
+  "problems": []
+ }
+}

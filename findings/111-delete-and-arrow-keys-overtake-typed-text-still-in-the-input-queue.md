@@ -28,3 +28,14 @@
 ## 處置方向（未決）
 
 不能只是「Delete 之前等轉接器 `idle()`」：`idle()` 等的是現在**和之後**所有的字，Delete 之後才打的字會反過來排到 Delete 前面。要的是「只等排在我前面的那幾筆」的屏障，得動轉接器的內部（或讓刪除與移動也走轉接器的佇列）。另開一輪：先在瀏覽器用真鍵量發生頻率（逐字間隔掃描），再決定修法。
+
+## 2026-10-06 補充：不只刪除與方向鍵（讀原始碼，未量）
+
+接手的 session 讀 `web/e2-editor-app.js` 的按鍵處理器，同一個「不等轉接器」的形狀還出現在：
+
+- **Enter／Shift+Enter**：`keydown` → `editorAction("insert-paragraph-break"／"insert-line-break")`（約 :1770）。「打一個字、立刻按 Enter」是最日常的節奏，所以分段落在最後幾個字**之前**的機會，推論比刪除更常見。
+- **Ctrl+B／I／U**：`keydown` → `editorAction(formatAction)`（約 :1723）。
+- **Ctrl+Z／Ctrl+Y**：`keydown` → `run(..., () => session.undo()／redo())`（約 :1687、:1697），不經 `editorAction`，同樣直接進 session 佇列。
+- **Ctrl+S 與儲存鈕**：`takeSavedContent` ＝ `run("儲存", () => session.save())`（:1307），不等轉接器。推論：剛打完就存，最後幾個字可能不在存出去的位元組裡；它們之後照常送進引擎、修訂號前進，所以頁面會再變成「尚未儲存」——**不是無聲遺失**，但「已存回」那一刻的 toast 說得比實際多。
+
+所以量測那一輪的掃描應該把 Enter 與 Ctrl+S 放進去，不只 Backspace／Delete／方向鍵；修法若是「只等排在我前面的那幾筆」的屏障，也得套在這些路徑上。
