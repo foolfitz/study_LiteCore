@@ -15,11 +15,17 @@ a tier of code points needs, then checks the result against the original face:
   corpus    every code point used in the corpus documents that the original
             face can draw, the subset can draw (per document: which ones not).
 
-`locl` is dropped: in the TC face the cmap already gives Traditional forms, and
-`locl` only swaps in Japanese/Korean/Simplified forms for text tagged with
-those languages -- which would pull their glyphs back in.  Such text renders
-in Traditional forms.  Everything else in GSUB/GPOS (vertical forms included)
-is kept.
+Layout features: fontTools' default set minus `locl`.  LibreOffice shapes
+with HarfBuzz's default features only, plus features named in the font name
+(`Font:smpl`) and kerning/ligatures switched off (CommonSalLayout.cxx:446-462);
+fontTools' default set mirrors the shapers' defaults and the vertical ones.
+Optional features (`aalt`, `fwid`/`hwid`/`pwid`, `ruby`, `dlig`, `hist`) are
+dropped: keeping them all pulled ~17,000 alternate glyphs into tier C
+(shakedown 2026-10-07).  `locl` is dropped too: the TC face's cmap already
+gives Traditional forms, and `locl` swaps in Japanese/Korean/Simplified forms
+for text tagged with those languages -- such text renders in Traditional
+forms.  A document that names an optional feature in its font name gets the
+default forms for the glyphs not kept.
 
 Tiers (code points the TC face maps, intersected):
   C  Latin, punctuation, symbols, Bopomofo, fullwidth, CJK radicals and
@@ -95,7 +101,7 @@ def build(tier: str, outdir: Path) -> tuple[Path, set[int]]:
     cmap = face.getBestCmap()
     wanted = tier_points(tier) & set(cmap)
     opts = subset.Options()
-    opts.parse_opts(["--layout-features=*", "--layout-features-=locl", "--name-IDs=*",
+    opts.parse_opts(["--layout-features-=locl", "--name-IDs=*",
                      "--name-languages=*", "--name-legacy", "--notdef-outline",
                      "--notdef-glyph", "--recalc-bounds", "--drop-tables-=DSIG"])
     subsetter = subset.Subsetter(options=opts)
@@ -135,10 +141,13 @@ def verify(path: Path, wanted: set[int], original: TTFont, problems: list[str]) 
 TEXT_TAG = re.compile(rb"<[^>]+>")
 
 
-def document_points(path: Path) -> set[int]:
+def document_points(path: Path) -> set[int] | None:
     if path.suffix in (".odt", ".ods", ".odp"):
-        with zipfile.ZipFile(path) as z:
-            blobs = [z.read(n) for n in ("content.xml", "styles.xml") if n in z.namelist()]
+        try:
+            with zipfile.ZipFile(path) as z:
+                blobs = [z.read(n) for n in ("content.xml", "styles.xml") if n in z.namelist()]
+        except zipfile.BadZipFile:
+            return None  # a deliberately broken fixture; listed in the report
     else:
         blobs = [path.read_bytes()]
     text = b" ".join(TEXT_TAG.sub(b" ", b) for b in blobs).decode("utf-8", "replace")
@@ -179,9 +188,15 @@ def main() -> int:
     docs = corpus_files(a.corpus)
     if not docs:
         problems.append("no corpus document found -- the corpus check would prove nothing")
-    doc_points = {str(d): document_points(d) & set(ocmap) for d in docs}
-    report = {"source": str(SOURCE.relative_to(HERE)), "face": TC_FACE,
-              "faceSizes": None, "tiers": {}, "corpusDocuments": len(docs)}
+    doc_points, skipped = {}, []
+    for d in docs:
+        points = document_points(d)
+        if points is None:
+            skipped.append(str(d))
+        else:
+            doc_points[str(d)] = points & set(ocmap)
+    report = {"source": str(SOURCE.relative_to(HERE)), "face": TC_FACE, "tiers": {},
+              "corpusDocuments": len(doc_points), "corpusSkipped": skipped}
     for tier in (["C", "E", "F"] if a.tier == "all" else [a.tier]):
         path, wanted = build(tier, outdir)
         row = verify(path, wanted, original, problems)

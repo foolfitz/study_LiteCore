@@ -35,3 +35,13 @@ Basis: fable's derivation from the CFF charstrings (§7.2 of the research file),
 - Tier C missing characters in the owner's document: C is not safe for real documents; E becomes the floor.
 - Sizes far above the ranges (say C over 6 MB zstd): the saving no longer justifies the coverage loss against E; re-derive.
 - As predicted: present C/E/F with sizes and corpus misses to the owner; the chosen tier becomes the v15 profile's CJK pack (a re-pack, no relink).
+
+## Amendment (2026-10-07, after an uncounted shakedown, before the counted run)
+
+**Shakedown, not counted** (`wasm_sdk_probe/build/cjk-subset/try-C.json`, tier C only, corpus `test-docs/` — 385 documents, 3 deliberately broken fixtures skipped and listed): with "all layout features except `locl`", tier C kept **37,118 glyphs for 20,089 code points, 10.54 MB raw, 7.78 MB zstd** — far outside the prediction. The GSUB closure pulled in the alternates of optional features: the TC face's GSUB has `aalt` (access all alternates), `fwid`/`hwid`/`pwid`, `ruby`, `dlig`, `hist` besides the default ones.
+
+**What forced the change, read from source:** LibreOffice shapes with HarfBuzz's default features only, adding just the features named in the font name (`vcl::font::FeatureParser`) and switching kerning/ligatures off (`vcl/source/gdi/CommonSalLayout.cxx:446–462`; vertical runs check `vert`, `:319–336`). None of the optional features above is applied unless a document names it in a font name.
+
+**Instrument change:** layout features = fontTools' default set (it mirrors shapers' defaults plus the vertical features) minus `locl`. The instrument description above ("all layout features except `locl`") is superseded by this line. Registered consequence: a document that names an optional feature (e.g. `Noto Sans CJK TC:fwid`) gets default forms for glyphs not kept.
+
+**Predictions for the corrected policy** (the shakedown measured the old policy only): the table above stands as written — C glyphs 19,000–21,000 / zstd 3.8–4.7 MB; E 24,600–27,000 / 4.8–5.9; F 42,000–45,000 / 6.9–8.4. Coverage and identity 0 failures. The shakedown's 7 corpus documents with misses at tier C are expected to remain at C (code points outside Big5/HKSCS in test fixtures, e.g. kana or Hangul) and to drop at E or F.
