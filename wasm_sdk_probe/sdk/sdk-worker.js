@@ -201,6 +201,31 @@ function editorContractEnabled(operation) {
     && activeManifest?.editorContract?.version === spec.version;
 }
 
+// SPEC-M3-paragraph-merge 3.3 / M1-4: the boundary completion of an engine
+// built with OXSDK_MERGE_KEY_UNDO, and the shape of its refusals.  Named fields
+// only, like productFormatBarrier.  `keyPosted` fails toward TRUE: a refusal
+// that does not say clearly that no key went out must not reach a page that
+// would then tell the user "the document was not changed" (10.1(d)).
+function productKeyUndo(value = {}) {
+  return {
+    comment: typeof value.comment === "string" ? value.comment : "",
+    actionsBefore: Number.isInteger(value.actionsBefore) ? value.actionsBefore : null,
+    actionsAfter: Number.isInteger(value.actionsAfter) ? value.actionsAfter : null,
+    restorePresses: Number.isInteger(value.restorePresses) ? value.restorePresses : null,
+    keyToUndoMs: Number.isFinite(value.keyToUndoMs) ? value.keyToUndoMs : null,
+    codePoints: Array.isArray(value.codePoints)
+      ? value.codePoints.filter((point) => Number.isInteger(point)) : [],
+  };
+}
+
+function productMergeKey(value = {}) {
+  return {
+    keyPosted: value.keyPosted !== false,
+    stage: typeof value.stage === "string" ? value.stage : "",
+    restorePresses: Number.isInteger(value.restorePresses) ? value.restorePresses : null,
+  };
+}
+
 // The product projection of the format barrier.
 //
 // Named fields only, for the same reason productEditorState exists: the
@@ -864,6 +889,8 @@ function handleCEvent(rawEvent) {
         // is itself the evidence that the shared worker never forwarded it.
         if (event.formatBarrier)
           result.formatBarrier = productFormatBarrier(event.formatBarrier);
+        if (event.keyUndo)
+          result.keyUndo = productKeyUndo(event.keyUndo);
         complete(requestId, result);
       }
       break;
@@ -1071,6 +1098,7 @@ function handleCEvent(rawEvent) {
           // unverified outcome (roll back), and those want opposite responses.
           formatBarrier: event.formatBarrier
             ? productFormatBarrier(event.formatBarrier) : undefined,
+          mergeKey: event.mergeKey ? productMergeKey(event.mergeKey) : undefined,
         });
       } else {
         postEvent("engine-error", {

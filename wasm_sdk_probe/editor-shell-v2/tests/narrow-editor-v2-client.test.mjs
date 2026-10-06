@@ -73,6 +73,26 @@ const REPLY_MUTATIONS = [
   // disagree -- see DECLARED_DIVERGENCE below.
   ["completion verified-move-readback",
    (reply) => ({ ...reply, completion: "verified-move-readback" })],
+  // SPEC-M3-paragraph-merge 3.3 / 10.1(e): the boundary completion of an
+  // engine that presses the user's own key.  Accepted by v2 for the two
+  // caret-relative deletes only when its record is structurally whole; the
+  // comment is Writer's string and is deliberately NOT a condition.
+  ["completion verified-key-undo",
+   (reply) => ({ ...reply, completion: "verified-key-undo",
+                 keyUndo: { comment: "Delete paragraph", actionsAfter: 1 } })],
+  ["completion verified-key-undo, empty comment",
+   (reply) => ({ ...reply, completion: "verified-key-undo",
+                 keyUndo: { comment: "", actionsAfter: 100 } })],
+  ["completion verified-key-undo, no keyUndo",
+   (reply) => ({ ...reply, completion: "verified-key-undo" })],
+  ["completion verified-key-undo, keyUndo not an object",
+   (reply) => ({ ...reply, completion: "verified-key-undo", keyUndo: "Delete paragraph" })],
+  ["completion verified-key-undo, actionsAfter 0",
+   (reply) => ({ ...reply, completion: "verified-key-undo",
+                 keyUndo: { comment: "Delete paragraph", actionsAfter: 0 } })],
+  ["completion verified-key-undo, actionsAfter not an integer",
+   (reply) => ({ ...reply, completion: "verified-key-undo",
+                 keyUndo: { comment: "Delete paragraph", actionsAfter: "1" } })],
   ["completion missing", (reply) => ({ ...reply, completion: undefined })],
   ["empty reply", () => ({})],
   // The asynchronous failure paths.  Testing only resolved replies leaves the
@@ -162,7 +182,18 @@ async function verdict(Client, manifest, action, options, mutate) {
 // Written as an assertion on the difference and not as an exemption: an
 // exemption would go on passing the day somebody removes the widening, which
 // is the failure this whole matrix exists to prevent.
+const KEY_UNDO_DIVERGENCE = {
+  appliesTo: (action) => DELETE.has(action),
+  v1: "EDITOR_RESULT_INVALID",
+  v2: "ok",
+  why: "SPEC-M3-paragraph-merge 3.3: the v2 client accepts the boundary "
+     + "completion of an engine that presses the user's own key, structurally; "
+     + "the frozen v1 client rejects it",
+};
+
 const DECLARED_DIVERGENCE = {
+  "completion verified-key-undo": KEY_UNDO_DIVERGENCE,
+  "completion verified-key-undo, empty comment": KEY_UNDO_DIVERGENCE,
   "completion verified-move-readback": {
     appliesTo: (action) => MOVE.has(action),
     v1: "EDITOR_RESULT_INVALID",

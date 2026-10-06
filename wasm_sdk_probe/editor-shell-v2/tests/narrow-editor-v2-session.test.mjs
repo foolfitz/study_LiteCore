@@ -1141,6 +1141,80 @@ test("finding 109: after a save, the saved bytes are what a restart keeps", asyn
   assert.equal(f.session.restartKeepsContent(), false);
 });
 
+// -------------------------------------------------- SPEC-M3-paragraph-merge M1-3
+//
+// v15 refuses AFTER pressing the user's key when the undo payload has not moved
+// by the deadline: EDITOR_BOUNDARY_UNSUPPORTED with mergeKey.keyPosted true.
+// The 109 path then runs on a document the key may have changed while the
+// content stamp did not move (a refused action is not counted).  10.1(d)'s
+// promise: every typed change survives the restart; only the key's own effect
+// is uncertain.  Modelled here: the engine's content is a list of changes, a
+// save snapshots it, a restart records which snapshot it reopened.
+
+async function keyPostedBoundary(action, keyApplied) {
+  const failure = Object.assign(new Error(
+    "the key was posted and the undo payload did not change by the deadline"),
+  { code: "EDITOR_BOUNDARY_UNSUPPORTED",
+    details: { mergeKey: { keyPosted: true, stage: "key-deadline" } } });
+  const f = await opened({ failing: action, failure });
+  f.content = [];
+  f.snapshots = [];
+  const request = f.engine._request.bind(f.engine);
+  f.engine._request = async (operation, payload) => {
+    if (payload.action === action && keyApplied) f.content.push("K");
+    const result = await request(operation, payload);
+    if (payload.action && result?.changed !== false && !MOVE.has(payload.action))
+      f.content.push(`m${result.revision}`);
+    return result;
+  };
+  f.document.save = async () => {
+    f.snapshots.push([...f.content]);
+    return Uint8Array.of(f.snapshots.length).buffer;
+  };
+  f.reopened = [];
+  const open = f.engine.open.bind(f.engine);
+  f.engine.open = async (bytes, options) => {
+    const index = new Uint8Array(bytes)[0] ?? 0;
+    const content = index === 0 ? [] : f.snapshots[index - 1];
+    f.reopened.push(content);
+    f.content = [...content];
+    return open(bytes, options);
+  };
+  return f;
+}
+
+for (const keyApplied of [false, true]) {
+  for (const start of ["clean", "dirty, nothing banked", "dirty, banked at this stamp"]) {
+    test(`M1-3: keyPosted refusal (${start}, key ${keyApplied ? "applied" : "not applied"}) `
+         + "keeps every typed change across the restart", async () => {
+      for (const action of ["delete-forward", "delete-backward"]) {
+        const f = await keyPostedBoundary(action, keyApplied);
+        if (start === "clean") {
+          await f.session.action("set-bold", { enabled: true });
+          await f.session.save();
+        } else {
+          await f.session.action("set-bold", { enabled: true });
+          if (start === "dirty, banked at this stamp")
+            await f.session.action("move-line-end");
+        }
+        const typed = f.content.filter((c) => c !== "K");
+        const error = await f.session.action(action).then(() => null, (e) => e);
+        assert.equal(error.code, "EDITOR_BOUNDARY_UNSUPPORTED", action);
+        assert.equal(error.details?.mergeKey?.keyPosted, true, action);
+        assert.equal(f.session.state.snapshot.state, "restart-required", action);
+        assert.equal(f.session.restartKeepsContent(), true, `${action}: ${start}`);
+        await f.session.restart();
+        const reopened = f.reopened.at(-1);
+        for (const change of typed)
+          assert.ok(reopened.includes(change),
+                    `${action} / ${start}: the restart lost the typed change ${change}`);
+        assert.ok(reopened.every((c) => c === "K" || typed.includes(c)),
+                  `${action} / ${start}: the restart reopened something never typed`);
+      }
+    });
+  }
+}
+
 // -------------------------------------------------- B1 (the generation ceiling)
 //
 // specs/SPEC-M3-production-ui.md §8, §9, criterion A1-4.  The Worker

@@ -124,6 +124,22 @@ const MOVE_COMPLETIONS = (completion) =>
   || completion === "verified-move-readback";
 
 const DELETE_ACTIONS = new Set(["delete-backward", "delete-forward"]);
+// SPEC-M3-paragraph-merge 3.3 and 10.1(e).  At a paragraph boundary an engine
+// built with OXSDK_MERGE_KEY_UNDO presses the user's own key and proves what it
+// did from the .uno:Undo payload; it completes with `verified-key-undo` and a
+// `keyUndo` record.  The check here is STRUCTURAL on purpose.  By the time this
+// reply exists the key has already changed the document, and a rejection is
+// EDITOR_RESULT_INVALID -> a recovery error -> rollback to an older checkpoint
+// (editor-shell/editor-session.js RECOVERY_ERRORS) -- finding 109's loss again.
+// So nothing here may depend on Writer's strings: an empty undo comment is not
+// a reason to throw away what the user typed.  Engines without the macro never
+// send this completion, so accepting it changes nothing for them.
+const DELETE_COMPLETION = (result) =>
+  result.completion === "verified-selection-delete"
+  || (result.completion === "verified-key-undo"
+      && result.keyUndo !== null && typeof result.keyUndo === "object"
+      && Number.isInteger(result.keyUndo.actionsAfter)
+      && result.keyUndo.actionsAfter >= 1);
 const FORMAT_ACTIONS = new Set(["set-bold", "set-italic", "set-underline",
   "set-strikethrough"]);
 // delete-selection belongs here and NOT in DELETE_ACTIONS, which is the
@@ -274,7 +290,7 @@ export class NarrowEditorV2Client {
           { result });
       }
     } else if (DELETE_ACTIONS.has(action)) {
-      if (result.completion !== "verified-selection-delete"
+      if (!DELETE_COMPLETION(result)
           || result.changed !== true
           || result.revision !== expectedRevision + 1) {
         throw invalidResult(

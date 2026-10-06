@@ -389,6 +389,17 @@ export class NarrowEditorV2Session extends EditorSession {
    * caret with the mouse had no checkpoint, so one Delete lost everything typed
    * since the last save.
    *
+   * SPEC-M3-paragraph-merge 10.1(d): an engine built with
+   * OXSDK_MERGE_KEY_UNDO also raises this code AFTER pressing the user's key,
+   * when the undo payload did not move by its deadline
+   * (`details.mergeKey.keyPosted === true`).  Then "the document is exactly
+   * what it was" is no longer known: the key may or may not have acted, and
+   * the content stamp did not move either way.  What still holds, and is all
+   * this path promises: a clean or already-banked document reopens the bytes
+   * from before the key, a dirty one banks the engine's current content, and
+   * in both every typed change survives; only the key's own effect is
+   * uncertain, and the page says so (tests: "M1-3: keyPosted refusal ...").
+   *
    * So this runs inside the operation, after the refusal and before the
    * rethrow: the drain still owns the engine, nothing is queued ahead of it,
    * and the content stamp has not moved (a refused action is not counted as a
