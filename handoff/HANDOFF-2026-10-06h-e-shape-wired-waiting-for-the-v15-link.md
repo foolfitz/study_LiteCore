@@ -38,3 +38,7 @@ Side work the owner asked for: `research/RESEARCH-2026-10-06-wasm-size-status.md
 - Safety-only criteria let a refuse-everything rule pass; the liveness oracle is what killed the snapshot-P and press-2 mutants.
 - The M1-1 tool's first real run went red on a blank line (`-E -P` pads skipped `#if` blocks): a new check's first red was the tool, not the product — confirmed by diffing before changing anything.
 - "What the link ships" is three engine changes, not one: 096's and 082's fixes have never been on the v8 line.
+
+## Addendum, 2026-10-07 — the CJK subset rides v15
+
+Owner chose option D (keep bundled fonts, subset CJK) and tier E, to ship with v15 (one identity change). `81ca5dad`: `tools/build_cjk_subset.py` (subset + coverage/identity/corpus checks, deterministic) and `tools/build_cjk_subset_pack.py` (pack `cjk-sub-e.2d8240354ce1cf78`, 7.2 MB raw / 5.6 MB zstd vs 12.17; `sdk/v15-writer-review-manifest.json` = r6 with only the CJK entry replaced; the v15 profile rule runs `--check` first). Evidence `findings/evidence/cjk-subset/`; spec §19; runbook updated (v15 now ships four things; WASM step 2b is a CJK tile A/B). fontconfig in the base pack scans `/instdir/share/fonts` with no prebuilt cache, so the renamed font file is found (read, not run). `check_m3_assets.py` hardcodes `cjk-r5` in two red cases: change at host 0.2.8, which makes it a new pin. The link step and command are unchanged.
