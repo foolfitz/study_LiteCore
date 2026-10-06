@@ -13,6 +13,9 @@ acts on the browser's own beforeinput/keydown, and that is the path 109 sat on.
   Bctl  A1-2  positive control: type, Backspace mid-text
   S     A2-1, A2-2  the product stylesheet touches nothing outside its container
   P     A3-1, A3-2, A2-3  what is visible, the keys, the unsaved mark, closing
+  B3x   A1-5  three boundary refusals in one page load (B1, spec §9): the third
+              meets the Worker generation ceiling, is not restarted, and its
+              content reaches the server without a save; then the notice's reload
 
   check_m3_production_ui.py --out REPORT [--arms Bdel,Bbs,...] [--browsers chrome,firefox]
                             [--rounds N] [--doc ODT] [--counted]
@@ -53,6 +56,9 @@ SCRATCH = PROJECT / "build" / "scratch-m3-production-ui"   # snap Firefox cannot
 DOC = SCRATCH / "PMPC指南.odt"
 NAME = "m3-109 測試.odt"
 MARK = "zqx"
+# B3x: one marker per refusal, so the server's file says which refusal's content
+# arrived.  None of them is in the owner's document (checked per run: `serverBefore`).
+MARKS3 = ("zqa", "zqb", "zqc")
 BOTH = ("chrome", "firefox")
 # Bindings for a counted run (spec §4), written before it.  None = not yet bound.
 PAGE_SHA256: str | None = None
@@ -133,6 +139,11 @@ HOST = "(() => JSON.parse(document.documentElement.getAttribute('data-litecore')
 PATH = "(() => location.pathname + location.search)()"
 HAS_ROOT = "(() => !!document.getElementById('litecore-editor-root'))()"
 CLOSE = "(() => { document.querySelector('#litecore-host-close').click(); return true; })()"
+# B1 (spec §9): what the page says at the Worker generation ceiling, and its one button.
+LIMIT = """(() => { const n = document.querySelector('#notice'), a = document.querySelector('#notice-action');
+  return { limit: n.dataset.limit ?? null, show: n.dataset.show ?? null, rescue: n.dataset.rescue ?? null,
+           text: document.querySelector('#notice-text').textContent, action: a.textContent, disabled: a.disabled }; })()"""
+NOTICE_ACTION = "(() => { document.querySelector('#notice-action').click(); return true; })()"
 
 
 # ------------------------------------------------------------------ browsers
@@ -245,14 +256,15 @@ def save_and_settle(session, limit: float = 60) -> dict[str, Any]:
     return {"saves": before, "timedOut": True, "state": state(session)}
 
 
-def marks(odt: bytes) -> int:
+def marks(odt: bytes, mark: str = MARK) -> int:
     with zipfile.ZipFile(io.BytesIO(odt)) as archive:
-        return archive.read("content.xml").decode("utf-8").count(MARK)
+        return archive.read("content.xml").decode("utf-8").count(mark)
 
 
 def server_marks(server: Server) -> dict[str, Any]:
     status, raw = server.instance.dav("GET", NAME)
-    return {"status": status, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw), "marks": marks(raw)}
+    return {"status": status, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw), "marks": marks(raw),
+            "marks3": {mark: marks(raw, mark) for mark in MARKS3}}
 
 
 # ------------------------------------------------------------------ arms
@@ -275,6 +287,9 @@ def run_arm(arm: str, kind: str, server: Server, doc: bytes) -> dict[str, Any]:
         record["opened"] = quiet(session, 60)
         if arm in ("Bdel", "Bbs", "Bctl"):
             run_boundary(arm, kind, session, server, record)
+        elif arm == "B3x":
+            record["serverBefore"] = server_marks(server)
+            run_three_refusals(kind, session, server, record)
         elif arm == "S":
             record["editorBody"] = evaluate(session, BODY_BG)
             record["styleBefore"] = evaluate(session, STYLE_BEFORE.replace("ARG_PROPS", json.dumps(STYLE_PROPS)))
@@ -312,6 +327,66 @@ def run_boundary(arm: str, kind: str, session, server: Server, record: dict[str,
     record["save"] = save_and_settle(session, 60)
     record["timeline"] = evaluate(session, READ_TIMELINE)
     record["server"] = server_marks(server)
+
+
+def run_three_refusals(kind: str, session, server: Server, record: dict[str, Any]) -> None:
+    """A1-5 (spec §9.3).  Three boundary refusals; the third meets the ceiling.
+
+    No click after a reopen: the next marker is typed straight away, so a page
+    that did not give the input sink its focus back drops it (spec §9.5 (3)).
+    No save is pressed: whatever reaches the server, the rescue put there.
+    """
+    evaluate(session, TIMELINE)
+    record["genOpened"] = evaluate(session, GEN)
+    record["inText"] = click(session, IN_TEXT)
+    record["refusals"] = []
+    places = ((HEADING_END, "Delete"), (PARA_START, "Backspace"), (HEADING_END, "Delete"))
+    for index, (mark, (at, key)) in enumerate(zip(MARKS3, places)):
+        step: dict[str, Any] = {"mark": mark, "key": key, "genBefore": evaluate(session, GEN)}
+        step["typed"] = [keyed(session, kind, ch) for ch in mark]
+        step["placed"] = click(session, at)
+        pressed = time.monotonic()
+        press(session, kind, key)
+        if index < 2:
+            time.sleep(1.0)
+            step["after"] = until(session, lambda s, before=step["genBefore"]: s.get("state") == "ready"
+                                  and str(s.get("pending")) == "0" and evaluate(session, GEN) != before, 60) or state(session)
+            time.sleep(1.0)
+        else:
+            # Spec §9.3: `data-limit` is `saved` within 10 s of the key.
+            seen = None
+            while time.monotonic() - pressed < 10.0:
+                seen = evaluate(session, LIMIT)
+                if (seen or {}).get("limit") == "saved":
+                    step["limitAfter"] = round(time.monotonic() - pressed, 2)
+                    break
+                time.sleep(0.15)
+            step["limit"] = seen
+            step["after"] = state(session)
+        step["genAfter"] = evaluate(session, GEN)
+        record["refusals"].append(step)
+    # The host's own unsaved mark follows the page's watchUnsaved answer (and
+    # anything it stranded): hidden = the page says nothing is unsaved AND the
+    # host holds nothing.
+    rescued_at = time.monotonic()
+    hidden = None
+    while time.monotonic() - rescued_at < 3.0:
+        if evaluate(session, UNSAVED_SHOWN) is False:
+            hidden = round(time.monotonic() - rescued_at, 2)
+            break
+        time.sleep(0.1)
+    record["unsavedHiddenAfter"] = hidden
+    record["timeline"] = evaluate(session, READ_TIMELINE)
+    record["hostBefore"] = evaluate(session, HOST)
+    record["server"] = server_marks(server)
+    # The notice's button reloads the page; the host must not ask.  Chrome needs
+    # user activation for a beforeunload dialog to show at all, as in P.
+    if kind == "chrome":
+        record["activation"] = session.real_click("#state-pill")
+    record["reload"] = leave_by_close(session, kind, record, "reload", NOTICE_ACTION)
+    record["reloaded"] = quiet(session, 90)
+    record["genReloaded"] = evaluate(session, GEN)
+    record["hostAfter"] = evaluate(session, HOST)
 
 
 def run_production(kind: str, session, server: Server, record: dict[str, Any]) -> None:
@@ -360,21 +435,21 @@ def run_production(kind: str, session, server: Server, record: dict[str, Any]) -
     record["closeDirty"]["hasEditor"] = evaluate(session, HAS_ROOT)
 
 
-def leave_by_close(session, kind: str, record: dict[str, Any], key: str) -> dict[str, Any]:
+def leave_by_close(session, kind: str, record: dict[str, Any], key: str, expression: str = CLOSE) -> dict[str, Any]:
     nonce = f"{key}-{time.monotonic_ns()}"
     evaluate(session, RECORDER.replace("ARG_NONCE", json.dumps(nonce)))
     result: dict[str, Any] = {}
     if kind == "chrome":
         session.next_id += 1
         session.websocket.send(json.dumps({"id": session.next_id, "method": "Runtime.evaluate",
-                                           "params": {"expression": CLOSE}}))
+                                           "params": {"expression": expression}}))
         result["dialog"] = chrome_wait_dialog(session, 5.0)
         if result["dialog"]:
             session.call("Page.handleJavaScriptDialog", {"accept": False})
         time.sleep(2.0)
     else:
         try:
-            evaluate(session, CLOSE)
+            evaluate(session, expression)
         except Exception as error:  # noqa: BLE001 -- the navigation can cut the answer off
             result["evaluateError"] = f"{type(error).__name__}: {error}"
         time.sleep(4)
@@ -405,12 +480,15 @@ def score_run(run: dict[str, Any]) -> list[str]:
     arm, bad = run["arm"], []
     if run.get("fatal"):
         return ["fatal: " + run["fatal"].strip().splitlines()[-1]]
-    if arm in ("Bdel", "Bbs"):
-        if run.get("genOpened") != "1" or run.get("genAfter") != "2":
-            bad.append(f"generation {run.get('genOpened')} -> {run.get('genAfter')}: no refusal-and-reopen happened")
-        server = run.get("server") or {}
-        if not server.get("marks"):
-            bad.append(f"the server's file has no {MARK!r} (saves {run.get('save', {}).get('saves')})")
+    if arm in ("Bdel", "Bbs", "B3x"):
+        if arm == "B3x":
+            bad += score_three_refusals(run)
+        else:
+            if run.get("genOpened") != "1" or run.get("genAfter") != "2":
+                bad.append(f"generation {run.get('genOpened')} -> {run.get('genAfter')}: no refusal-and-reopen happened")
+            server = run.get("server") or {}
+            if not server.get("marks"):
+                bad.append(f"the server's file has no {MARK!r} (saves {run.get('save', {}).get('saves')})")
         samples = run.get("timeline") or []
         blocked = [s for s in samples if s.get("state") not in ("ready", "busy")]
         if not blocked:
@@ -477,6 +555,42 @@ def score_run(run: dict[str, Any]) -> list[str]:
     return bad
 
 
+def score_three_refusals(run: dict[str, Any]) -> list[str]:
+    """A1-5 (spec §9.3)."""
+    bad = []
+    before = (run.get("serverBefore") or {}).get("marks3") or {}
+    if set(before) != set(MARKS3) or any(before.values()):
+        bad.append(f"A1-5: the uploaded document already has markers {before} (vacuous)")
+    steps = run.get("refusals") or []
+    generations = [(s.get("genBefore"), s.get("genAfter")) for s in steps]
+    if generations != [("1", "2"), ("2", "3"), ("3", "3")]:
+        bad.append(f"A1-5: generations {generations}, want 1->2, 2->3, 3->3")
+    last = steps[-1] if len(steps) == 3 else {}
+    if (last.get("after") or {}).get("state") != "restart-required":
+        bad.append(f"A1-5: after the third refusal the state is {(last.get('after') or {}).get('state')!r}")
+    if (last.get("limit") or {}).get("limit") != "saved":
+        bad.append(f"A1-5: the notice says {(last.get('limit') or {}).get('limit')!r} 10 s after the key, not 'saved'")
+    present = (run.get("server") or {}).get("marks3") or {}
+    missing = [mark for mark in MARKS3 if not present.get(mark)]
+    if missing:
+        bad.append(f"A1-5: the server's file lacks {missing} (no save was pressed)")
+    if run.get("unsavedHiddenAfter") is None:
+        bad.append("A1-5: the host still showed unsaved work 3 s after the rescue")
+    reload = run.get("reload") or {}
+    entries = reload.get("record") if isinstance(reload.get("record"), list) else []
+    asked = sorted({e.get("who") for e in entries if e.get("what") == "preventDefault"})
+    if asked or reload.get("dialog"):
+        bad.append(f"A1-5: the reload was guarded: askers {asked}, dialog {bool(reload.get('dialog'))}")
+    if not any(e.get("what") == "fired" for e in entries):
+        bad.append(f"A1-5: the recorder saw no beforeunload, so 'not asked' means nothing ({reload.get('record')!r:.80})")
+    fetched = ((run.get("hostAfter") or {}).get("fetched") or {}).get("sha256")
+    if run.get("genReloaded") != "1" or (run.get("reloaded") or {}).get("state") != "ready":
+        bad.append(f"A1-5: after the reload generation {run.get('genReloaded')}, state {(run.get('reloaded') or {}).get('state')}")
+    if not fetched or fetched != (run.get("server") or {}).get("sha256"):
+        bad.append("A1-5: the reloaded page did not open the server's rescued bytes")
+    return bad
+
+
 def score(report: dict[str, Any]) -> dict[str, Any]:
     cells: dict[str, dict[str, Any]] = {}
     for run in report["runs"]:
@@ -519,6 +633,16 @@ MUTATIONS = [
     ("A2-3 close landed on a doubled path", "P",
      lambda r: r["closeClean"].update(path="/apps/files/index.php" + r["closeClean"]["path"])),
     ("A2-3 dirty close not asked", "P", lambda r: r["closeDirty"].update(record=[])),
+    ("A1-5 a fourth Worker", "B3x", lambda r: r["refusals"][2].update(genAfter="4")),
+    ("A1-5 third marker missing", "B3x", lambda r: r["server"]["marks3"].update({MARKS3[2]: 0})),
+    ("A1-5 second marker missing (focus not given back)", "B3x", lambda r: r["server"]["marks3"].update({MARKS3[1]: 0})),
+    ("A1-5 the rescue failed", "B3x", lambda r: r["refusals"][2]["limit"].update(limit="failed")),
+    ("A1-5 the session died", "B3x", lambda r: r["refusals"][2]["after"].update(state="recoverable-error")),
+    ("A1-5 still unsaved", "B3x", lambda r: r.update(unsavedHiddenAfter=None)),
+    ("A1-5 the reload was asked", "B3x", lambda r: r["reload"]["record"].append({"what": "preventDefault", "who": "host"})),
+    ("A1-5 the recorder saw nothing", "B3x", lambda r: r["reload"].update(record=[])),
+    ("A1-5 the reload opened other bytes", "B3x", lambda r: r["hostAfter"]["fetched"].update(sha256="0" * 64)),
+    ("A1-5 markers were already there", "B3x", lambda r: r["serverBefore"]["marks3"].update({MARKS3[0]: 1})),
 ]
 
 
@@ -546,7 +670,7 @@ def red_cases(report: dict[str, Any]) -> tuple[int, int, list[str]]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path)
-    parser.add_argument("--arms", default="Bdel,Bbs,Bctl,S,P")
+    parser.add_argument("--arms", default="Bdel,Bbs,Bctl,S,P,B3x")
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--rounds", type=int, default=1)
     parser.add_argument("--doc", type=Path, default=DOC)
@@ -570,6 +694,8 @@ def main() -> int:
         return 2
     doc = args.doc.read_bytes()
     report: dict[str, Any] = {"spec": "specs/SPEC-M3-production-ui.md §4", "startedAt": utc_now(), "counted": args.counted,
+                              # Review 2026-10-06 item 17: which scorer wrote this report.
+                              "runner": "check_m3_production_ui.py", "runnerSha256": sha256_file(Path(__file__)),
                               "static": static, "doc": {"name": args.doc.name, "bytes": len(doc),
                                                         "sha256": hashlib.sha256(doc).hexdigest(), "marks": marks(doc)},
                               "runs": []}
