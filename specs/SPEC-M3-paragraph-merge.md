@@ -376,3 +376,52 @@ session 的 rsid 寫成字元屬性（`sw/source/core/doc/docfmt.cxx:429–445`�
   同檢查點自己的作法）得到 X；重開之後由 session 存檔得到 Y；要求 `content.xml`(X)＝`content.xml`(Y)。標記的 rsid 隨文字存進檔案，所以同一
   session 內可以比位元組。開發 shakedown 若量到「載入 X 再存」本身就不穩定，改比段落文字序列，並以追加段寫明是哪一次量測逼出來的。
 - 段落文字序列的比較器要有自己的紅案：把一個字挪到同一段的另一個位置 → 紅；把一段拆成兩段 → 紅。
+
+## 13. 追加（2026-10-06，opus 第二輪聚焦審核之後、任何引擎程式碼之前）
+
+題目：只打 10.1(a) 的新規則與 §11 的 P4 論證。報告的 BLOCKING 一條、SHOULD 一條、NOTE 五條；主 session 核對了 BLOCKING 與柵欄的原始碼。
+
+### 13.1 過期的 P 還有一類：還排在 LOK 佇列裡的事件（BLOCKING，已核對）
+
+P1–P4 都成立時 P 仍可能過期：`scheduleFlush` 只在沒有待處理的 flush 時才排一個（`init.cxx:2578–2582`），所以某個會移動游標的事件 E
+若在引擎送出 Shift＋方向鍵（K）時**還在 LOK 的佇列裡**，E 的 flush 會排在 K 後面、和 K 的選取與游標併成同一次——E 的游標從來不會單獨送達，
+「單位的 `TEXT_SELECTION` 之前最後一個送達的游標」就是 E **之前**的游標。E 的來源不只 insert 的退路：`handleClick` 送出滑鼠事件後**立刻**
+回報（`probe_engine.cpp:3095–3116`），`placeCaret` 在「游標本來就在被點的那一行，而且任何回呼讓序號前進」時就返回
+（`editor-session.js:404–426`；序號會被 tile 失效推進），滑鼠事件可能還沒被處理。「游標在句點前、使用者點句點後、立刻按 Delete」
+→ 第二下落在過期的 P →「回來了」→ 刪掉句點，回報成功。需要 LOK 在點擊到 Delete 之間忙著、而且點在舊游標右邊一格；都沒量過。
+
+**柵欄（採用；取代 10.1(a) 的「insert 的退路」那一條，它被涵蓋了）**：K 自己那次 flush 帶著選取的**錨點側**矩形——Shift＋Right 是
+`TEXT_SELECTION_START`、Shift＋Left 是 `TEXT_SELECTION_END`。它在 flush 當下由當下的選取算出（`SwShellCursor::FillStartEnd` →
+`lcl_getLayoutRect(Start()/End())`，`viscrs.cxx:536–563`），排在 `TEXT_SELECTION` 與游標之前（`init.cxx:2395–2412`、`:2461`），引擎已經
+解析它（`probe_engine.cpp:2504–2511`）。錨點就是 K 被處理時游標所在的位置——**不管之前的事件有沒有單獨送達**。規則：錨點側矩形的
+（x, y, 高）必須等於 P 的；不等、或那個矩形沒送來（`HasArea` 為假時不送，`viscrs.cxx:511–514`）→ 拒絕，`keyPosted:false`，
+`stage:"anchor-mismatch"`。
+
+**前提要量**：游標矩形（`m_aLastLOKRect`，寬 0）與選取起點／終點矩形（`GetCharRect` 的版面矩形）在段落尾端、段落開頭、標號前這幾種位置，
+（x, y, 高）是不是相同。**讀原始碼回答不了，R0 也沒記錄這兩個回呼**（探針只留游標與選取矩形）。所以加一輪 **R0b**：探針在每一臂的單位
+讀回裡另記最後送達的 `TEXT_SELECTION_START`／`_END`，R0 的三個 case 檔全部、每個 case 一輪；工具對每一個 B 單位比錨點側矩形與放置時的游標。
+預測與工具先 commit。**全部相等**才照上面的規則實作；有任何一格不等，設計回到這裡（例如改用量到的對應，或改用別的柵欄），不得先寫程式。
+
+### 13.2 鎖的順序寫成不變式（SHOULD，審核者讀）
+
+10.1(a) 說「判定在 LOK 執行緒做、在 `gState.mutex` 之下交給引擎執行緒」，但沒寫它依賴的順序。今天的順序是 SolarMutex → `gState.mutex`
+（LOK 執行緒在 `invoke()` 裡持有 SolarMutex，經 `submit()` 取 `gState.mutex`）。兩條不變式：
+
+- 引擎執行緒**持有 `gState.mutex` 時不得呼叫任何 LOK API**（`postKeyEvent`、`getCommandValues`、`getTextSelection` 都取 SolarMutex → ABBA）。
+- **任何執行緒持有 `gState.mutex` 時不得呼叫 `emitJson`** 或其他 `MAIN_THREAD_*` 代理：主執行階段執行緒是 SDK Worker，它的入口會
+  `submit()` 取這把鎖；Worker 裡的 futex 等待不處理被代理的呼叫，會死鎖。
+
+加入 M1：一支靜態檢查，`gState.mutex` 的每一個鎖範圍內不得出現 `pClass->` 或 `emitJson`／`MAIN_THREAD_`；紅案：在一個鎖範圍裡放一行
+`pClass->` → 紅。
+
+### 13.3 其餘（NOTE）
+
+- **B 只能從 `TEXT_SELECTION` 回呼那一支進入**，不得從 250 ms deadline 讀到交界文字的那一支進入（`probe_engine.cpp:3433–3445`）——那裡沒有
+  錨定的 P。
+- **EditEngine 的文字**（註解、繪圖物件裡的文字）把游標當一般回呼排隊（`lokhelper.cxx:692`、`impedit.cxx:1481–1483`，審核者讀），P3 在那裡
+  不成立。產品頁面推論上進不去（點擊一律單擊、Enter 走 `.uno:InsertPara`），但這是推論。實作時用可觀察的狀態擋（例如圖形選取不為空就不進 B）；
+  擋不了就登錄成具名極限。
+- LOK 忙的時候 250 ms 會先到，B 退化成拒絕＋重開，而每次重開吃掉一個 Worker 世代（上限 3）。M2-1b 會量到這件事；登錄。
+- §11 對 `CalcLayout` 的界線**大概太悲觀**：審核者追到 `SfxProgress` 用的是版面管理器的進度條元件，那兩處 `Reschedule` 都不是它的
+  （`progress.cxx:195–239`、`workwin.cxx:1108–1133`，審核者讀、未核對）。界線的形式不變（有界、手搜），措辭以此為準。
+- 「畫過所以有版面框」沒有反例；隱藏修訂模式下跨隱藏刪除合併的段落未讀。登錄。
