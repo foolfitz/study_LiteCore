@@ -141,9 +141,15 @@ PATH = "(() => location.pathname + location.search)()"
 HAS_ROOT = "(() => !!document.getElementById('litecore-editor-root'))()"
 CLOSE = "(() => { document.querySelector('#litecore-host-close').click(); return true; })()"
 # B1 (spec §9): what the page says at the Worker generation ceiling, and its one button.
+# `hostSave` is read IN THE SAME EVALUATION as `limit`: a page that said `saved`
+# before the host's write landed would otherwise pass, because the server is
+# read seconds later (review 2026-10-06b item 1).
 LIMIT = """(() => { const n = document.querySelector('#notice'), a = document.querySelector('#notice-action');
+  const host = JSON.parse(document.documentElement.getAttribute('data-litecore') || 'null');
+  const last = host && host.saves && host.saves.length ? host.saves[host.saves.length - 1] : null;
   return { limit: n.dataset.limit ?? null, show: n.dataset.show ?? null, rescue: n.dataset.rescue ?? null,
-           text: document.querySelector('#notice-text').textContent, action: a.textContent, disabled: a.disabled }; })()"""
+           text: document.querySelector('#notice-text').textContent, action: a.textContent, disabled: a.disabled,
+           hostSave: last ? { settled: last.settled ?? null, outcome: last.outcome ?? null, saves: host.saves.length } : null }; })()"""
 NOTICE_ACTION = "(() => { document.querySelector('#notice-action').click(); return true; })()"
 
 
@@ -580,8 +586,11 @@ def score_three_refusals(run: dict[str, Any]) -> list[str]:
     last = steps[-1] if len(steps) == 3 else {}
     if (last.get("after") or {}).get("state") != "restart-required":
         bad.append(f"A1-5: after the third refusal the state is {(last.get('after') or {}).get('state')!r}")
-    if (last.get("limit") or {}).get("limit") != "saved":
-        bad.append(f"A1-5: the notice says {(last.get('limit') or {}).get('limit')!r} 10 s after the key, not 'saved'")
+    seen = last.get("limit") or {}
+    if seen.get("limit") != "saved":
+        bad.append(f"A1-5: the notice says {seen.get('limit')!r} 10 s after the key, not 'saved'")
+    elif (seen.get("hostSave") or {}).get("settled") is not True or (seen.get("hostSave") or {}).get("outcome") != "saved":
+        bad.append(f"A1-5: the notice said 'saved' while the host's last save was {seen.get('hostSave')}")
     present = (run.get("server") or {}).get("marks3") or {}
     missing = [mark for mark in MARKS3 if not present.get(mark)]
     if missing:
@@ -600,6 +609,9 @@ def score_three_refusals(run: dict[str, Any]) -> list[str]:
         bad.append(f"A1-5: after the reload generation {run.get('genReloaded')}, state {(run.get('reloaded') or {}).get('state')}")
     if not fetched or fetched != (run.get("server") or {}).get("sha256"):
         bad.append("A1-5: the reloaded page did not open the server's rescued bytes")
+    lock = ((run.get("hostAfter") or {}).get("lock") or {}).get("state")
+    if lock != "held":
+        bad.append(f"A1-5: after the reload the host's lock is {lock!r}, not held")
     return bad
 
 
@@ -655,6 +667,10 @@ MUTATIONS = [
     ("A1-5 third marker missing", "B3x", lambda r: r["server"]["marks3"].update({MARKS3[2]: 0})),
     ("A1-5 second marker missing (focus not given back)", "B3x", lambda r: r["server"]["marks3"].update({MARKS3[1]: 0})),
     ("A1-5 the rescue failed", "B3x", lambda r: r["refusals"][2]["limit"].update(limit="failed")),
+    ("A1-5 'saved' before the write landed", "B3x",
+     lambda r: r["refusals"][2]["limit"]["hostSave"].update(settled=False)),
+    ("A1-5 the rescue went to a copy", "B3x", lambda r: r["refusals"][2]["limit"]["hostSave"].update(outcome="copy")),
+    ("A1-5 no lock after the reload", "B3x", lambda r: r["hostAfter"]["lock"].update(state="released")),
     ("A1-5 the session died", "B3x", lambda r: r["refusals"][2]["after"].update(state="recoverable-error")),
     ("A1-5 still unsaved", "B3x", lambda r: r.update(unsavedHiddenAfter=None)),
     ("A1-5 the reload was asked", "B3x", lambda r: r["reload"]["record"].append({"what": "preventDefault", "who": "host"})),

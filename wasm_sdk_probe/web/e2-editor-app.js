@@ -649,11 +649,11 @@ function updateState(snapshot) {
   // one button reloads the page (or, if nothing was attempted yet, saves).
   // The state is stamped for the same reason `data-rescue` is.
   if (notice.visible && session && !session.restartAvailable()) {
-    const state = limitState();
-    el.notice.dataset.limit = state;
-    el.noticeText.textContent = LIMIT_TEXT[state]();
-    el.noticeAction.textContent = state === "pending" ? "存回" : "重新整理頁面";
-    el.noticeAction.disabled = state === "saving";
+    const said = limitNotice();
+    el.notice.dataset.limit = said.state;
+    el.noticeText.textContent = said.text;
+    el.noticeAction.textContent = said.action;
+    el.noticeAction.disabled = said.disabled;
   } else {
     delete el.notice.dataset.limit;
   }
@@ -1043,29 +1043,41 @@ async function reopenAfterBoundaryRefusal() {
     await run("重新載入", () => session.restart());
     // The refusal disabled the input sink (input-adapter `setBlocked`), and a
     // disabled element loses focus; without this the user's next keys went
-    // to the page body (review 2026-10-06, item 3).
-    el.sink.focus();
-    // "Before this key", not "all unsaved work": the queue is FIFO, so what
-    // was queued ahead of the refused delete is in the checkpoint, and what was
-    // typed after it was rejected with it (review 2026-10-06, item 2).
-    toast(`${BOUNDARY_TEXT}，已重新載入${unsaved ? "；按這一鍵之前的修改都還在" : ""}。`);
+    // to the page body (review 2026-10-06, item 3; measured on the pre-fix
+    // page: the next three keys landed nowhere, both browsers).  No scroll:
+    // the sink sits at the caret, which a restart puts at the document start
+    // (the other two `focus()` calls in this file pass the same; 069's class).
+    el.sink.focus({ preventScroll: true });
+    // Not "everything is still there": keys typed just around the refused one
+    // can be lost.  Typed text waits in the input adapter's own queue while
+    // Delete goes straight to the session's, so a key typed BEFORE the refused
+    // delete can still be behind it and be rejected with it (finding 111;
+    // review 2026-10-06b item 4), and keys after it always are (review
+    // 2026-10-06 item 2).  Said, rather than claimed away.
+    toast(`${BOUNDARY_TEXT}，已重新載入${unsaved
+      ? "。緊接在這一鍵前後打的字可能沒有打進去，請看一下" : ""}。`);
   } catch {
     // run() has already said why.
   }
 }
 
 const LIMIT_LEAD = "這個頁面不能再重新載入編輯引擎了。";
+// The host's own sentence is the one to show on failure: a refused write may
+// have landed as a conflict copy (named in that sentence, no download button)
+// or been stranded (download button) -- review 2026-10-06b item 3.  Without a
+// host, `saved` means the download was HANDED OVER, which the user can cancel
+// (item 6).  `clean` claims nothing about earlier saves, which the host may
+// have copied or stranded (item 8).
 const LIMIT_TEXT = {
   saving: () => `${LIMIT_LEAD}正在把你的修改${HOST ? "存回" : "下載"}…`,
   saved: () => HOST
     ? `${LIMIT_LEAD}你的修改已經存回。請重新整理頁面，就能繼續編輯。`
-    : `${LIMIT_LEAD}你的修改已經下載。請重新整理頁面，再開啟剛下載的檔案。`,
-  failed: () => HOST
-    ? `${LIMIT_LEAD}存回沒有成功。請先用上方的「下載這份內容」把修改存下來，再重新整理頁面。`
-    : `${LIMIT_LEAD}下載沒有成功。重新整理頁面會失去自上次儲存以來的修改。`,
-  clean: () => `${LIMIT_LEAD}沒有尚未儲存的修改。請重新整理頁面，就能繼續編輯。`,
+    : `${LIMIT_LEAD}你的修改已經交給瀏覽器下載。確認下載好了，再重新整理頁面、開啟剛下載的檔案。`,
+  failed: () => `${LIMIT_LEAD}${HOST ? "存回" : "下載"}沒有成功：${limit.detail ?? "原因不明"}`
+    + "處理好之後再重新整理頁面。",
+  clean: () => `${LIMIT_LEAD}請重新整理頁面，就能繼續編輯。`,
   lost: () => `${LIMIT_LEAD}自上次儲存以來的修改沒能保住。重新整理頁面就能繼續編輯。`,
-  pending: () => `${LIMIT_LEAD}請先存回尚未儲存的修改，再重新整理頁面。`,
+  pending: () => `${LIMIT_LEAD}請先${HOST ? "存回" : "下載"}尚未儲存的修改，再重新整理頁面。`,
 };
 
 // B1: what this page load did at the generation ceiling.  `null` until a
@@ -1074,13 +1086,24 @@ const LIMIT_TEXT = {
 // content was handed out as saved), so a second attempt would find nothing
 // and report `clean` over a failed write -- and a failed write is the host's
 // to strand and offer for download (finding 108).
-const limit = { state: null };
+const limit = { state: null, detail: null };
 
 /** What the notice says at the ceiling; `pending` = nothing attempted yet. */
 function limitState() {
   if (limit.state !== null) return limit.state;
   if (!session.hasUnsavedEdits()) return "clean";
   return session.restartKeepsContent() ? "pending" : "lost";
+}
+
+/** The notice at the ceiling: its sentence, its one button, and whether it is live. */
+function limitNotice() {
+  const state = limitState();
+  return {
+    state,
+    text: LIMIT_TEXT[state](),
+    action: state === "pending" ? (HOST ? "存回" : "下載") : "重新整理頁面",
+    disabled: state === "saving",
+  };
 }
 
 /** The bytes a restart would have reopened, through the ordinary save path. */
@@ -1096,16 +1119,19 @@ function takeRescueContent() {
 
 async function rescueAtGenerationLimit() {
   if (limit.state !== null) return;
-  if (!session.hasUnsavedEdits()) limit.state = "clean";
-  else if (!session.restartKeepsContent()) limit.state = "lost";
-  else limit.state = "saving";
+  // The same decision the notice shows, not a second derivation of it
+  // (review 2026-10-06b item 2: the two could drift).
+  const now = limitState();
+  limit.state = now === "pending" ? "saving" : now;
   updateState(session.state.snapshot);
   if (limit.state !== "saving") return;
   try {
     await saveDocument(takeRescueContent);
     limit.state = "saved";
-  } catch {
-    // run() has already said why; with a host, the host holds the bytes.
+  } catch (error) {
+    // The host's sentence says where the bytes went (a copy, or stranded
+    // behind its download button); RESCUE_UNAVAILABLE says nothing was taken.
+    limit.detail = error?.message ?? String(error);
     limit.state = "failed";
   }
   updateState(session.state.snapshot);
@@ -1133,7 +1159,10 @@ async function run(label, operation) {
     // The disposition is a field, not a guess from the message (E2-B 5.13).
     const recovery = error?.recovery;
     toast(`${label}：${describeError(error)}` +
-          (recovery === "rollback" ? "（可能已經改到文件：請回到檢查點）"
+          (recovery === "rollback"
+            // B1: at the ceiling there is no 「回到檢查點」 to press.
+            ? (session?.restartAvailable?.() === false ? "（請看上方的說明）"
+               : "（可能已經改到文件：請回到檢查點）")
            : recovery === "restart" ? "（需要重新開啟文件）"
            // Finding 046's residual.  Says dispatched-and-unverified, and does
            // NOT say it worked -- the barrier did not verify it.  Undo is
@@ -1374,7 +1403,8 @@ el.toolbar.addEventListener("click", (event) => {
   if (handler) void Promise.resolve(handler()).catch(() => {});
 });
 
-el.noticeAction.addEventListener("click", () => {
+// Named so a test can compile it (review 2026-10-06b item 2).
+function onNoticeAction() {
   // B1: at the ceiling a rollback disposes the engine and is then refused.
   if (session && !session.restartAvailable()) {
     if (limitState() === "pending") void rescueAtGenerationLimit();
@@ -1384,7 +1414,9 @@ el.noticeAction.addEventListener("click", () => {
   void run("回到檢查點", () => session.rollback())
     .then(() => renderDocument())
     .catch(() => {});
-});
+}
+
+el.noticeAction.addEventListener("click", onNoticeAction);
 
 /* ------------------------------------------------------------------- drag */
 
@@ -1631,8 +1663,11 @@ el.sink.addEventListener("keydown", (event) => {
   const accel = event.ctrlKey || event.metaKey;
   // The three shortcuts below follow the toolbar's rule (SPEC-M3-production-ui
   // §3.1, review 2026-10-06 item 6): outside ready/busy they do nothing and say
-  // nothing.  The key is still TAKEN, so the browser's own undo or save-page
-  // dialog does not answer in the editor's place.
+  // nothing.  A guard, not a measured path: the sink is disabled whenever the
+  // queue is blocked, and a disabled element has no focus to receive keys, so
+  // in a stopped session these keys mostly never reach this handler -- and
+  // Ctrl+S then reaches the browser's own save-page dialog (review 2026-10-06b
+  // item 9; registered, spec §10).
   const accepting = SESSION_ACCEPTS.has(session.state.snapshot.state);
   if (accel && event.key.toLowerCase() === "z" && !event.shiftKey) {
     // Ctrl+Z, and it earns its place: finding 046's review disposition tells
@@ -1897,6 +1932,11 @@ async function openDocument(bytes, name, { readOnly = false } = {}) {
     try { await session.close(); } catch { /* a dead session must not block */ }
     session = null;
   }
+  // B1's record belongs to the session that reached the ceiling, not to the
+  // page: a second document opened here starts with no rescue attempted
+  // (review 2026-10-06b item 5; the host disables the picker, so standalone only).
+  limit.state = null;
+  limit.detail = null;
   session = new NarrowEditorV2Session({
     engineFactory,
     clipboard: navigator.clipboard,

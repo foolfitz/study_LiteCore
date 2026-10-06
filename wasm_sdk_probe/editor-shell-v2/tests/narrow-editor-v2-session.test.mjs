@@ -1228,27 +1228,52 @@ function pageFunction(name) {
   return match[0];
 }
 
-function page(session, { saveFails = false } = {}) {
+function page(session, { saveFails = false, hold = false } = {}) {
   const world = {
-    limit: { state: null }, toasts: [], saved: [], focused: 0, renders: 0,
+    limit: { state: null, detail: null }, toasts: [], saved: [], focused: 0, renders: 0,
+    reloads: 0, rollbacks: 0, release: null,
   };
   const names = ["session", "limit", "toast", "BOUNDARY_TEXT", "run", "el",
-                 "updateState", "saveDocument"];
-  const source = ["reopenAfterBoundaryRefusal", "limitState", "takeRescueContent",
-                  "rescueAtGenerationLimit"].map(pageFunction).join("\n")
-    + "\nreturn { reopenAfterBoundaryRefusal, limitState, rescueAtGenerationLimit };";
+                 "updateState", "saveDocument", "LIMIT_TEXT", "HOST", "location",
+                 "renderDocument"];
+  const source = ["reopenAfterBoundaryRefusal", "limitState", "limitNotice",
+                  "takeRescueContent", "rescueAtGenerationLimit", "onNoticeAction"]
+    .map(pageFunction).join("\n")
+    + "\nreturn { reopenAfterBoundaryRefusal, limitState, limitNotice, "
+    + "rescueAtGenerationLimit, onNoticeAction };";
+  // Every sentence is its own key, so a test can tell which one was chosen.
+  const texts = new Proxy({}, { get: (_, key) => () => `text:${String(key)}` });
   // eslint-disable-next-line no-new-func
   const compiled = new Function(...names, source)(
     session, world.limit, (text) => world.toasts.push(text), "BOUNDARY",
-    async (label, operation) => operation(),
+    async (label, operation) => {
+      if (label === "回到檢查點") world.rollbacks += 1;
+      return operation();
+    },
     { sink: { focus() { world.focused += 1; } } },
     () => { world.renders += 1; },
     async (take) => {
       const { bytes } = await take();
-      if (saveFails) throw Object.assign(new Error("412"), { code: "CONFLICT" });
+      // `hold`: the host's write has not landed until the test releases it.
+      if (hold) await new Promise((resolve) => { world.release = resolve; });
+      if (saveFails) throw Object.assign(new Error("另存為「衝突副本」。"), { code: "CONFLICT" });
       world.saved.push(new Uint8Array(bytes)[0]);
-    });
+    },
+    texts, { save() {} },
+    { reload() { world.reloads += 1; } },
+    async () => {});
   return Object.assign(world, compiled);
+}
+
+/** Two refusals restarted by the page; the next one meets the ceiling. */
+async function atCeiling(options) {
+  const f = await boundary();
+  const p = page(f.session, options);
+  for (let i = 0; i < 2; i += 1) {
+    await refuseDirty(f);
+    await p.reopenAfterBoundaryRefusal();
+  }
+  return { f, p };
 }
 
 test("B1 (page): the third refusal does not restart; its content goes to the "
@@ -1318,4 +1343,95 @@ test("B1 (page): unsaved work that cannot be kept is `lost`, not saved", async (
   assert.equal(p.limit.state, "lost");
   assert.deepEqual(p.saved, []);
   assert.equal(f.session.hasUnsavedEdits(), true, "the loss must still guard the reload");
+});
+
+test("B1: a session stopped by something else at the ceiling hands out its "
+     + "content too (recoverable-error)", async () => {
+  const f = await boundary();
+  for (let i = 0; i < 2; i += 1) {
+    await refuseDirty(f);
+    await f.session.restart();
+  }
+  await f.session.action("set-italic", { enabled: true });
+  await f.session.action("move-line-end");   // banks the content (096 half C)
+  f.session._enterRecovery(Object.assign(new Error("Worker crashed"), { code: "WORKER_CRASHED" }));
+  assert.equal(f.session.state.snapshot.state, "recoverable-error");
+  assert.equal(f.session.restartAvailable(), false);
+  const bytes = f.session.takeContentForRescue();
+  assert.ok(bytes, "a crash at the ceiling left the work with nowhere to go");
+  assert.equal(f.session.hasUnsavedEdits(), false);
+});
+
+test("B1 (page): before any attempt the notice tells clean, pending and lost apart", async () => {
+  {
+    const { f, p } = await atCeiling();
+    await f.session.save();
+    await f.session.action("delete-forward").catch(() => {});
+    assert.equal(p.limitState(), "clean");
+  }
+  {
+    const { f, p } = await atCeiling();
+    await refuseDirty(f);   // banked: a rescue would keep it
+    assert.equal(p.limitState(), "pending");
+    assert.deepEqual([p.limitNotice().action, p.limitNotice().disabled], ["存回", false]);
+  }
+  {
+    const { f, p } = await atCeiling();
+    await f.session.action("set-bold", { enabled: true });
+    f.document.save = async () => { throw new Error("disk is gone"); };
+    await f.session.action("delete-forward").catch(() => {});
+    assert.equal(p.limitState(), "lost");
+  }
+});
+
+test("B1 (page): `saved` only once the write has landed; the button is dead "
+     + "while it is in flight", async () => {
+  const { f, p } = await atCeiling({ hold: true });
+  await refuseDirty(f);
+  const rescue = p.reopenAfterBoundaryRefusal();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(p.limitState(), "saving", "said `saved` before the host's write landed");
+  assert.equal(p.limitNotice().disabled, true, "a live button while the work is in flight");
+  assert.equal(p.limitNotice().text, "text:saving");
+  p.release();
+  await rescue;
+  assert.equal(p.limitState(), "saved");
+  assert.deepEqual([p.limitNotice().action, p.limitNotice().disabled], ["重新整理頁面", false]);
+});
+
+test("B1 (page): a failed write keeps the host's own sentence", async () => {
+  const { f, p } = await atCeiling({ saveFails: true });
+  await refuseDirty(f);
+  await p.reopenAfterBoundaryRefusal();
+  assert.equal(p.limit.state, "failed");
+  assert.match(p.limit.detail, /衝突副本/);
+});
+
+test("B1 (page): the notice's button -- rollback below the ceiling; at it, "
+     + "save when nothing was attempted, reload after", async () => {
+  {
+    // Below the ceiling: the old behaviour, a rollback.
+    const f = await boundary();
+    const p = page(f.session);
+    await refuseDirty(f);
+    p.onNoticeAction();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepEqual([p.rollbacks, p.reloads], [1, 0]);
+  }
+  {
+    // At the ceiling, reached without a rescue (stopped by something else).
+    const { f, p } = await atCeiling();
+    await f.session.action("set-italic", { enabled: true });
+    await f.session.action("move-line-end");
+    f.session._enterRecovery(Object.assign(new Error("Worker crashed"), { code: "WORKER_CRASHED" }));
+    assert.equal(p.limitState(), "pending");
+    p.onNoticeAction();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepEqual([p.rollbacks, p.reloads], [0, 0], "a pending rescue was answered with a reload");
+    assert.equal(p.limitState(), "saved");
+    assert.equal(p.saved.length, 1);
+    p.onNoticeAction();
+    assert.deepEqual([p.rollbacks, p.reloads], [0, 1]);
+    assert.equal(disposals(f), 2, "the button disposed the engine at the ceiling");
+  }
 });
