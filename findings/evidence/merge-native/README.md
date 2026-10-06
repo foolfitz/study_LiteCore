@@ -156,6 +156,6 @@ The comment of a folded delete is the deleted text shortened to `aaaaaaaa...aaaa
 ## What the four rounds say for B
 
 - At every paragraph boundary measured — plain, line break, numbered and unlabelled headings, list items, first-line, left and hanging indents, headings with table-of-contents bookmarks, in the fixtures and in the owner's document — B's sequence produced **the same `content.xml` as Writer's own key, 3/3**, and the caret came back to where it was placed before the key.
-- The undo stack changed **exactly** when the document did on every press at a boundary or on a no-op (324 presses across the four batches); it fails only for a long run of identical characters deleted one by one inside a paragraph (G10, G11 from press 20), where B is not used.
+- The undo stack changed **exactly** when the document did on every press at a boundary or on a no-op (324 presses across the three boundary batches: 174 + 60 + 90); it fails only for a long run of identical characters deleted one by one inside a paragraph (G10, G11 from press 20), where B is not used.
 - Where the step cannot be taken back (C08: Delete before a bullet item lands in front of the label; C15, C16: a table selected whole), the caret check fails every time, so B can refuse there before pressing anything.
 - Not measured here, and needed before B ships: the order of a posted key and the engine's undo readback on WASM; the undo stack at its limit (the count saturates; the whole payload must be compared); a delete on a real no-op inside a protected index entry.

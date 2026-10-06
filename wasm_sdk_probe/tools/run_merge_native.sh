@@ -24,6 +24,17 @@ mkdir -p "$out"; out="$(cd "$out" && pwd)"
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 round_dir="$out/round-$stamp"; mkdir -p "$round_dir/docs"
 profile_dir="$round_dir/user-profile"; mkdir -p "$profile_dir"
+# MERGE_UNDO_STEPS (fifth round): the undo limit, so a short run reaches it.
+if [ -n "${MERGE_UNDO_STEPS:-}" ]; then
+  mkdir -p "$profile_dir/user"
+  cat > "$profile_dir/user/registrymodifications.xcu" <<XCU
+<?xml version="1.0" encoding="UTF-8"?>
+<oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<item oor:path="/org.openoffice.Office.Common/Undo"><prop oor:name="Steps" oor:op="fuse"><value>$MERGE_UNDO_STEPS</value></prop></item>
+</oor:items>
+XCU
+  echo "MERGE_UNDO_STEPS=$MERGE_UNDO_STEPS" > "$round_dir/undo-steps.txt"
+fi
 
 probe="$round_dir/merge-native-boundaries"
 echo "== compiling =="
