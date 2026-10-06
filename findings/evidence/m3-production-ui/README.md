@@ -80,6 +80,23 @@ on host 0.2.6 `fa08307`, engine buildId `253730c6…`.
 So on 0.2.6 the whole product sheet is dropped without @scope and the editor is unusable, not merely
 unstyled. The control shows the probe can tell the two apart.
 
+### Host 0.2.7 `0488586` — criterion A2-4 (spec §9.6), same probe, same engine package
+
+| | pref on | pref off |
+|---|---|---|
+| `typeof CSSScopeRule` | `function` | `undefined` |
+| host `data-litecore` `.scope` | `scoped` | `unscoped-fallback` |
+| `#litecore-unscoped` `media` | `not all` (only the scoped sheet in force) | `all` |
+| `#notice` / `#expired` / `#sink` visible | no / no / no | no / no / no |
+| A3-1 inventory: stray controls / stray text | 0 / 0 | 0 / 0 |
+| state after open | `ready` | `ready` |
+
+A2-4 holds as predicted. The fallback's cost is visible in `0.2.7-scope-off.png`: Nextcloud's header
+is repainted light again (finding 110's look) while the editor's layout is intact. In both 0.2.7
+screenshots the page itself is blank white: the screenshot is taken at `ready` and does not show the
+document in either mode, so it says nothing about rendering; what the probe measures is the layout
+and which parts are exposed.
+
 ## `screens/`
 
 `editor-0.2.6-chrome.png`, `editor-0.2.6-chrome-unsaved.png`: the editor in Nextcloud on 0.2.6
