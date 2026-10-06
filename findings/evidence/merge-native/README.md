@@ -202,3 +202,25 @@ Why: round four's C08 was the only boundary where B's restore failed — the uns
 ### What rounds four to six say for B, together
 
 The restore is "the opposite arrow without Shift, at most twice, the second only while the caret is not back". With it, B's sequence equals Writer's own key at every paragraph boundary measured in both directions — 19 cases on the fixtures (round four: C01, C02, C03, C09, C27, G01, D01, D04, D08, D12; round six: C08, C10, C11, C12, C13, C14, I01, I02, I03) and 11 in the owner's document (E01, E02, E05, E10, E12, T01; E13, E15, P27, P62, P63), 3/3 each — and the undo payload is its proof, at the limit too (round five). Where the caret does not come back (tables) the engine refuses before pressing; where it comes back and Writer does nothing (C17, a cell's end) the payload does not move and only a deadline can end the wait; where nothing is selected (document ends) the shipped 250 ms refusal stays.
+
+## R0: the native reference for the WASM criteria (`r0/`)
+
+Why: `specs/SPEC-M3-paragraph-merge.md` 4.2 (corrected in 10.2 and 12) — rerun rounds four and six on the **`.odt` bytes WASM loads**, classify every case into the list a WASM criterion runs, and add the caret after the key, "type, then Delete at once", line breaks folded into an earlier delete, and the default undo limit. Instruments and predictions `PREDICTION-R0.md` (`9bc0a851`). Probe `merge_native_boundaries.cpp` as committed there; `MERGE_RESTORE_PRESSES=2`, `MERGE_FOLLOW_TEXT=Z` (runs 1–3), 3 rounds each.
+
+| Run | Directory | Input |
+|---|---|---|
+| 1 | `r0/round-20261006T103621Z/` | `odt/boundaries.odt` (`3c17c870…`), `r0-boundaries.cases.tsv` (22) |
+| 2 | `r0/round-20261006T105325Z/` | `odt/boundaries-indent.odt` (`95009f10…`), `r0-indent.cases.tsv` (4) |
+| 3 | `r0/pmpc-round-20261006T105626Z/` (arms only; documents under `wasm_sdk_probe/build/merge-native-pmpc/r0/`) | the owner's document (`7b336879…`), `r0-pmpc.cases.tsv` (11) |
+| 4 | `r0/limit-round-20261006T110524Z/` (`arms.jsonl.gz`: gunzip before rerunning the reader; documents under `build/`) | `odt/undo-limit-105.odt` (`09b5ced0…`), H03, Steps=100, PRESSES=105 |
+| 5 | `r0/grouping-round-20261006T111121Z/`, `r0/grouping-round-20261006T111404Z/` (arms only) | `odt/line-break-grouping.odt` (`06ce0d85…`), G13 PRESSES=34, G14 PRESSES=2 |
+
+**Classification** (`tools/classify_merge_r0.py` over runs 1–4, `r0/r0-classes.json`): **no STOP**. merge 30 (C01 C02 C03 C08 C09 C10 C11 C12 C13 C14 C27 I01 I02 I03; D01 D04 D08 D12; E01 E02 E05 E10 E12 T01 P27 E13 E15 P62 P63; H03), typed-merge 2 (Y01, Y02), restore-refused 2 (C15, C16), key-noop 1 (C17), nothing-selected 2 (C29, C30), barrier 1 (G01). Restore presses 2 for exactly I02 C08 C10 I03 I01 Y02 P27 E13 P62 P63, 1 for every other restored case, equal across rounds. Comments as rounds four and six. The text typed after the key (`Z`) landed at the same paragraph and position after the b arm as after the key arm in every merge and typed-merge case. Every prediction about classes, presses, comments, the `.odt` inputs and the follow text held.
+
+**H03** (`analyze_merge_undo.py`): 321 presses, **0 payload disagreements**; the count reached 100 and stayed there; presses 101–105 changed the payload only in its timestamps (15). As predicted.
+
+**G13**: the payload did **not** change on press 33 (the third line break, folded into the same delete action; comment `Delete “...........e breaks` both times), 3/3 rounds — as predicted, the shape spec 10.1(c) registered: a document change B cannot prove, which v15 will refuse at the key deadline. Presses 31, 32 and 34 changed it, as predicted. **Predicted wrong by one press about the full stops** (barrier territory, not B): the payload stopped changing from press 19, not 20 — `ShortenString`'s filler is "...", so the shortened comment of 19 full stops reads exactly like the unshortened comment of 18. 39 disagreements in all (13 per round: 19–30 and 33).
+
+**G14**: 0 disagreements (both presses change the payload). As predicted.
+
+What R0 does not cover: the anchor-side selection rectangle the engine's fence will compare (spec 13.1) — the probe did not record `TEXT_SELECTION_START`/`_END`; that is R0b.

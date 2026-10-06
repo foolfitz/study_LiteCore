@@ -1,0 +1,14 @@
+G14 b        a trailing space, then a line break (one paragraph)
+    r1 p1: doc=Y stack=Y [Delete “ ”]  restore=ok =key=Y
+    r2 p1: doc=Y stack=Y [Delete “ ”]  restore=ok =key=Y
+    r3 p1: doc=Y stack=Y [Delete “ ”]  restore=ok =key=Y
+G14 key      a trailing space, then a line break (one paragraph)
+    r1 p1: doc=Y stack=Y [Delete “ ”] | p2: doc=Y stack=Y [Delete “ ”One line break]
+    r2 p1: doc=Y stack=Y [Delete “ ”] | p2: doc=Y stack=Y [Delete “ ”One line break]
+    r3 p1: doc=Y stack=Y [Delete “ ”] | p2: doc=Y stack=Y [Delete “ ”One line break]
+G14 select   a trailing space, then a line break (one paragraph)
+    r1 p1: doc=Y stack=Y [Delete “ ”]
+    r2 p1: doc=Y stack=Y [Delete “ ”]
+    r3 p1: doc=Y stack=Y [Delete “ ”]
+
+presses: 12, stack-vs-content.xml disagreements: 0
