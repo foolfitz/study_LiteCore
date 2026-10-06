@@ -17,6 +17,10 @@ TryRemoveIndent), and at a heading's start marks it not counted (NumOrNoNum);
 neither shows in a style name or in the text, so the first reduction could
 not see what the key did.  Soft page breaks are layout and are dropped.
 
+When the key arm pressed its key more than once (the probe's PRESSES), the
+summary also says after how many presses the key's document equals the select
+arm's ("keyPressesToMatchSelect", null when none of the recorded presses did).
+
 Usage: analyze_merge_native.py ROUND_DIR [--json OUT] [--control CASE]
 """
 from __future__ import annotations
@@ -221,6 +225,7 @@ def main() -> int:
         rounds = sorted({e["round"] for e in entries})
         boundary = entries[0]["boundary"]
         signatures, verdicts, undo, results, placed_ok = set(), [], [], set(), True
+        presses_to_match: list = []
         detail = None
         for r in rounds:
             sel = next(e for e in entries if e["round"] == r and e["arm"] == "select")
@@ -241,6 +246,13 @@ def main() -> int:
                 same = sel_doc == key_doc
                 verdicts.append("same" if same else "differs")
                 undo.append(document(Path(f"{stem}-select-undo.odt")) == original)
+                later = sorted(int(e["press"]) for e in key.get("laterPresses") or [])
+                if later:
+                    match = 1 if same else None
+                    for n in later:
+                        if match is None and document(Path(f"{stem}-key{n}.odt")) == sel_doc:
+                            match = n
+                    presses_to_match.append(match)
                 if not same and detail is None:
                     detail = {"select-vs-key": diff(key_doc, sel_doc)}
             else:
@@ -255,13 +267,16 @@ def main() -> int:
             "unitSignatures": [{"type": t, "codePoints": list(cp), "rectangles": rc} for t, cp, rc in sorted(signatures, key=str)],
             "selectVsKey": verdicts, "undoRestores": undo, "commandResults": sorted(results), "detail": detail,
         }
+        if presses_to_match:
+            summary[case]["keyPressesToMatchSelect"] = presses_to_match
 
     for case in sorted(summary):
         s = summary[case]
         sig = "; ".join(f"type {x['type']} cp {x['codePoints']} rects {x['rectangles']}" for x in s["unitSignatures"])
         verdict = sorted(set(s["selectVsKey"]))
         print(f"{case} {'⌫' if s['backward'] else '⌦'} {s['boundary']:<32} unit[{sig}]  {verdict}"
-              f"  undo={sorted(set(s['undoRestores']))}{'' if s['caretCollapsedBeforeEveryArm'] else '  PLACEMENT-NOT-COLLAPSED'}")
+              f"  undo={sorted(set(s['undoRestores']))}{'' if s['caretCollapsedBeforeEveryArm'] else '  PLACEMENT-NOT-COLLAPSED'}"
+              + (f"  presses-to-match={s['keyPressesToMatchSelect']}" if "keyPressesToMatchSelect" in s else ""))
         if s["detail"] and "note" not in s["detail"]:
             for k, lines in s["detail"].items():
                 for line in lines[:8]:

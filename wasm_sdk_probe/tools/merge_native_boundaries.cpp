@@ -19,12 +19,18 @@
 // arm is the reference: it is what Writer does for the user's own key, and the
 // merge we ship must not differ from it.
 //
-// Usage: merge-native-boundaries INSTALL PROFILE_URL DOCUMENT_URL OUT_DIR ROUNDS [CASES_TSV]
+// Usage: merge-native-boundaries INSTALL PROFILE_URL DOCUMENT_URL OUT_DIR ROUNDS [CASES_TSV [PRESSES]]
 //
 // CASES_TSV (optional) replaces the built-in cases, for another fixture: one
 // case per line, "id<TAB>anchor<TAB>backward 0|1<TAB>line 0|1<TAB>boundary",
 // blank lines and lines starting with '#' ignored.  The anchor must be the
 // whole paragraph (or line) and occur once before any other copy of it.
+//
+// PRESSES (optional, default 1): the key arm presses its key this many times,
+// saving after each press (-key.odt, then -key2.odt, -key3.odt, ...).  Added
+// for the third round: where Writer's first Backspace does something other
+// than merge (removes an indent, stops counting a heading), does a later press
+// reach what the select arm's single delete gives?
 
 #define LOK_USE_UNSTABLE_API
 
@@ -272,7 +278,7 @@ Readback position(LibreOfficeKitDocument *document, const Case &c,
 }
 
 void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
-             const std::string &outDir) {
+             const std::string &outDir, int presses) {
   const std::string stem =
       outDir + "/r" + std::to_string(round) + "-" + c.id;
 
@@ -341,6 +347,19 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
     drain(900);
     std::cout << ",\"after\":" << readbackJson(readSelection(document))
               << ",\"saved\":" << (saveAs(document, stem + "-key.odt") ? "true" : "false");
+    if (presses > 1) {
+      std::cout << ",\"laterPresses\":[";
+      for (int press = 2; press <= presses; ++press) {
+        key(document, c.backward ? kBackspace : kDelete);
+        drain(900);
+        std::cout << (press > 2 ? "," : "") << "{\"press\":" << press
+                  << ",\"after\":" << readbackJson(readSelection(document))
+                  << ",\"saved\":"
+                  << (saveAs(document, stem + "-key" + std::to_string(press) + ".odt") ? "true" : "false")
+                  << "}";
+      }
+      std::cout << "]";
+    }
     document->pClass->destroy(document);
     std::cout << "}" << std::endl;
   }
@@ -370,7 +389,7 @@ std::vector<Case> readCases(const char *path) {
 
 int main(int argc, char **argv) {
   if (argc < 6) {
-    std::cerr << "usage: merge-native-boundaries INSTALL PROFILE_URL DOCUMENT_URL OUT_DIR ROUNDS [CASES_TSV]\n";
+    std::cerr << "usage: merge-native-boundaries INSTALL PROFILE_URL DOCUMENT_URL OUT_DIR ROUNDS [CASES_TSV [PRESSES]]\n";
     return 2;
   }
   LibreOfficeKit *kit = lok_init_2(argv[1], argv[2]);
@@ -381,7 +400,8 @@ int main(int argc, char **argv) {
   const std::string outDir = argv[4];
   const int rounds = std::atoi(argv[5]);
   const std::vector<Case> cases = argc > 6 ? readCases(argv[6]) : kCases;
-  if (cases.empty()) {
+  const int presses = argc > 7 ? std::atoi(argv[7]) : 1;
+  if (cases.empty() || presses < 1) {
     std::cerr << "no cases\n";
     return 2;
   }
@@ -397,7 +417,7 @@ int main(int argc, char **argv) {
   }
   for (int round = 1; round <= rounds; ++round)
     for (const Case &c : cases)
-      runCase(kit, argv[3], c, round, outDir);
+      runCase(kit, argv[3], c, round, outDir, presses);
   kit->pClass->destroy(kit);
   return 0;
 }

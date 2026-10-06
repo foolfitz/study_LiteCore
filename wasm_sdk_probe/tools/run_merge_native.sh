@@ -3,12 +3,13 @@
 # delete of that selection against the user's own key, and one undo.
 # See tools/merge_native_boundaries.cpp.
 #
-# Usage: tools/run_merge_native.sh [OUTPUT_DIR] [ROUNDS] [FIXTURE CASES_TSV]
+# Usage: tools/run_merge_native.sh [OUTPUT_DIR] [ROUNDS] [FIXTURE CASES_TSV [PRESSES]]
 #
 # Without FIXTURE the probe's built-in cases run on test-docs/merge/boundaries.fodt.
 # With them, the cases come from CASES_TSV (see the probe's header).  A
 # document that must not enter the repository (the owner's) goes with an
-# OUTPUT_DIR outside it: every arm's saved copy lands in OUTPUT_DIR.
+# OUTPUT_DIR outside it: every arm's saved copy lands in OUTPUT_DIR.  PRESSES
+# makes the key arm press its key that many times, saving after each.
 
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -31,6 +32,7 @@ g++ -std=c++17 -O2 -I"$src/include" \
 
 source_fixture="${3:-$here/test-docs/merge/boundaries.fodt}"
 cases_file="${4:-}"
+presses="${5:-1}"
 [ -f "$source_fixture" ] || { echo "fixture missing: $source_fixture" >&2; exit 1; }
 if [ -n "$cases_file" ]; then
   [ -f "$cases_file" ] || { echo "cases missing: $cases_file" >&2; exit 1; }
@@ -49,7 +51,7 @@ echo "== running ($rounds rounds) =="
 set +e
 SAL_USE_VCLPLUGIN=svp \
   "$probe" "$install_dir" "file://$profile_dir" "file://$fixture" "$round_dir/docs" "$rounds" \
-  ${cases_file:+"$cases_file"} >"$round_dir/arms.jsonl" 2>"$round_dir/sal.log"
+  ${cases_file:+"$cases_file"} ${cases_file:+"$presses"} >"$round_dir/arms.jsonl" 2>"$round_dir/sal.log"
 status=$?
 set -e
 rm -rf "$profile_dir" "$probe"; rm -f "$round_dir"/.~lock.*
