@@ -792,7 +792,15 @@ function layoutCanvas() {
   if (lastProjectedParagraphs) positionProjection(lastProjectedParagraphs);
 }
 
-async function renderDocument(retriesLeft = 6) {
+// The BUSY budget.  Every engine command is BUSY while a delete barrier is in
+// flight (probe_engine.cpp `dispatch`), and SPEC-M3-paragraph-merge 10.1(g):
+// a boundary delete that presses the user's own key can hold the barrier up to
+// about 8 s (unit caret 2000 ms + two restore presses 2000 ms each + the key's
+// deadline 2000 ms).  Six retries (720 ms) turned a correct merge into
+// 「重繪失敗」; 84 x 120 ms covers ten seconds.
+const RENDER_BUSY_RETRIES = 84;
+
+async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
   if (!session?.document
       || !["ready", "busy"].includes(session.state.snapshot.state))
     return;
@@ -1014,12 +1022,46 @@ function pointToTwips(event) {
 // only button would have done the same.  When it would NOT (the checkpoint
 // could not be written), the recovery notice stays up and says so, as before.
 //
-// Merging the two paragraphs is what the user wanted, and it is engine work
-// (the barrier keeps the separator outside its safe scope); not this page's.
+// Merging the two paragraphs is engine work.  An engine built with
+// OXSDK_MERGE_KEY_UNDO (e2-editor-v15) merges by pressing the user's own key and
+// completes like any delete; what still reaches this path from it is a refusal
+// it describes in `details.mergeKey` (boundaryText below).
 const BOUNDARY_TEXT = "目前還不能在段落交界刪除（把兩段合併成一段）。文件沒有被改動";
 const SESSION_ACCEPTS = new Set(["ready", "busy"]);
 
-async function reopenAfterBoundaryRefusal() {
+// SPEC-M3-paragraph-merge 10.1(d), 10.1(h), M1-5.  An engine built with
+// OXSDK_MERGE_KEY_UNDO merges at a paragraph boundary by pressing the user's
+// own key, and its refusals say what happened in `details.mergeKey` (the SDK
+// puts a remote error's fields in `details`).  "Not changed" is said ONLY for
+// the stages that end before the key is posted and before anything could have
+// moved the undo payload; an unknown stage, `restore-mutated` (the payload
+// moved during the restore) and anything with the key posted get the
+// uncertain sentence.  Fail-closed on purpose: a future stage added to the
+// engine and not here can only make the page say less.  Engines without B
+// (v8, v14) send no mergeKey and keep the old sentence, which is true there.
+const MERGE_KEY_UNCHANGED_STAGES = new Set([
+  "nothing-selected", "unit-caret", "anchor-mismatch", "insert-fallback",
+  "restore", "undo-read",
+]);
+
+function boundaryKeyUncertain(error) {
+  const mergeKey = error?.details?.mergeKey ?? null;
+  return mergeKey !== null
+    && !(mergeKey.keyPosted === false && MERGE_KEY_UNCHANGED_STAGES.has(mergeKey.stage));
+}
+
+function boundaryText(error) {
+  const mergeKey = error?.details?.mergeKey ?? null;
+  if (!mergeKey) return BOUNDARY_TEXT;
+  if (boundaryKeyUncertain(error)) return "這一下刪除送出了，但沒能確認它做了什麼";
+  return mergeKey.stage === "nothing-selected"
+    ? "這一下沒有取得可刪除的內容。文件沒有被改動"
+    : "這裡目前還不能這樣刪除。文件沒有被改動";
+}
+
+async function reopenAfterBoundaryRefusal(error) {
+  const lead = boundaryText(error);
+  const uncertain = boundaryKeyUncertain(error);
   // When the queue blocks, everything queued behind the refused delete is
   // rejected with the same error, so this runs once per rejected item; only
   // the first finds the session still waiting for a restart.
@@ -1029,16 +1071,16 @@ async function reopenAfterBoundaryRefusal() {
   // generation ceiling, so the third refusal of a page load used to end with
   // no engine, save refused, and the work alive only in the checkpoint.
   if (!session.restartAvailable()) {
-    toast(`${BOUNDARY_TEXT}。這個頁面不能再重新載入編輯引擎了——請看上方的說明。`, true);
+    toast(`${lead}。這個頁面不能再重新載入編輯引擎了——請看上方的說明。`, true);
     await rescueAtGenerationLimit();
     return;
   }
   if (!session.restartKeepsContent()) {
-    toast(`${BOUNDARY_TEXT}，但沒能先保住尚未儲存的修改——請看上方的說明。`, true);
+    toast(`${lead}，但沒能先保住尚未儲存的修改——請看上方的說明。`, true);
     return;
   }
   const unsaved = session.state.snapshot.dirty === true;
-  toast(`${BOUNDARY_TEXT}，正在重新載入…`);
+  toast(`${lead}，正在重新載入…`);
   try {
     // The refusal disabled the input sink (input-adapter `setBlocked`), and a
     // disabled element loses focus; without this the user's next keys went
@@ -1063,8 +1105,9 @@ async function reopenAfterBoundaryRefusal() {
     // delete can still be behind it and be rejected with it (finding 111;
     // review 2026-10-06b item 4), and keys after it always are (review
     // 2026-10-06 item 2).  Said, rather than claimed away.
-    toast(`${BOUNDARY_TEXT}，已重新載入${unsaved
-      ? "。緊接在這一鍵前後打的字可能沒有打進去，請看一下" : ""}。`);
+    toast(`${lead}，已重新載入${uncertain
+      ? "。請看一下那個位置：這一鍵可能生效了，也可能沒有"
+      : unsaved ? "。緊接在這一鍵前後打的字可能沒有打進去，請看一下" : ""}。`);
   } catch {
     // run() has already said why.
   }
@@ -1162,7 +1205,7 @@ async function run(label, operation) {
     }
     el.s.latency.textContent = `${label} 失敗`;
     if (error?.code === "EDITOR_BOUNDARY_UNSUPPORTED") {
-      void reopenAfterBoundaryRefusal();
+      void reopenAfterBoundaryRefusal(error);
       throw error;
     }
     // The disposition is a field, not a guess from the message (E2-B 5.13).

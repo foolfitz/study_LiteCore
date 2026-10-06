@@ -1297,7 +1297,7 @@ const PAGE_SOURCE = readFileSync(
 
 function pageFunction(name) {
   const match = PAGE_SOURCE.match(
-    new RegExp(`^(?:async )?function ${name}\\(\\) \\{\\n[\\s\\S]*?\\n\\}$`, "m"));
+    new RegExp(`^(?:async )?function ${name}\\([^)]*\\) \\{\\n[\\s\\S]*?\\n\\}$`, "m"));
   assert.ok(match, `${name}() not found in the page`);
   return match[0];
 }
@@ -1309,7 +1309,7 @@ function page(session, { saveFails = false, hold = false } = {}) {
   };
   const names = ["session", "limit", "toast", "BOUNDARY_TEXT", "run", "el",
                  "updateState", "saveDocument", "LIMIT_TEXT", "HOST", "location",
-                 "renderDocument"];
+                 "renderDocument", "boundaryText", "boundaryKeyUncertain"];
   const source = ["reopenAfterBoundaryRefusal", "limitState", "limitNotice",
                   "takeRescueContent", "rescueAtGenerationLimit", "onNoticeAction"]
     .map(pageFunction).join("\n")
@@ -1335,7 +1335,12 @@ function page(session, { saveFails = false, hold = false } = {}) {
     },
     texts, { save() {} },
     { reload() { world.reloads += 1; } },
-    async () => {});
+    async () => {},
+    // SPEC-M3-paragraph-merge M1-5: these tests drive the refusal of an engine
+    // WITHOUT B (no mergeKey), so the page's sentence is BOUNDARY_TEXT and the
+    // key's effect is not in question; page-boundary-text.test.mjs runs the
+    // page's own two functions.
+    () => "BOUNDARY", () => false);
   return Object.assign(world, compiled);
 }
 
