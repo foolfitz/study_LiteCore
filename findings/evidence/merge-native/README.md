@@ -172,3 +172,33 @@ Why: B's proof cannot be `.uno:UndoCount` once the stack is full (the count stop
 In H02, presses 4–8 (15 presses) changed the payload **only in its timestamps**: the three listed actions all read `Delete paragraph` before and after. Select and b arms (one press, below the limit): b's caret came back and its document equals the key arm's first press, 6/6. 72 presses, **0 payload disagreements**. Every prediction held.
 
 What this says for B: comparing the whole payload works at the limit, natively. When the newest actions share a comment, what moves is the newest action's `dateTime` — natively nanoseconds; on WASM `Date.now()`, whole milliseconds (read, `PREDICTION-5.md`). So on WASM the payload is guaranteed to move only if B's key lands in a later millisecond than the action before it; the engine can make that a guarantee rather than a likelihood by posting the key only after its wall clock (the same `Date.now()`) has passed the millisecond in which it read the payload. Not measured: anything on WASM.
+
+## Sixth round: B's restore before a labelled paragraph (`restore/`)
+
+Why: round four's C08 was the only boundary where B's restore failed — the unshifted Left stopped in front of the next item's label — and round four measured arm b at no other boundary whose next paragraph has a label. Predictions `PREDICTION-6.md` (`af26cd61`; 6b appended before 6b ran), from `SwCursorShell::LeftRight` (`crsrsh.cxx:326–380`): a Left at the start of a paragraph with visible numbering only sets the in-front-of-label flag; the next Left is a normal move. Probe `MERGE_RESTORE_PRESSES=2`: arm b presses the restore arrow a second time only while the caret is not back at the placed caret, and records every step. PRESSES=1, 3 rounds; placement held on every arm.
+
+### 6a: `restore/round-20261006T090017Z/` (boundaries.fodt) and `restore/pmpc-round-20261006T090743Z/` (the owner's document; arms and summaries only, saved documents under `wasm_sdk_probe/build/merge-native-pmpc/`)
+
+| Cases | Restore presses | Arm b = key arm (`content.xml` bytes) | Undo comment |
+|---|---|---|---|
+| C01, E01 (controls), C12, E15 (Delete, next paragraph unlabelled) | 1 | 3/3 each | `Delete paragraph` |
+| C11, C14 (Backspace at a list item's start) | 1 | 3/3 | `Number On/Off` |
+| C13 (Backspace, body after a bullet item) | 1 | 3/3 | `Delete paragraph` |
+| **I02** (body before the numbered heading), **C08** (body before a bullet item), **C10** (bullet before bullet), **I03** (body before a numbered item), **I01** (numbered before numbered), **P27** (PMPC body before the WW8Num3 list), **E13** (numbered before numbered), **P62** (body before the WW8Num4 bullet list), **P63** (bullet before bullet) | **2** (the first stops in front of the label) | **3/3 each** | `Delete paragraph` |
+
+144 presses (90 + 54), 0 stack-vs-content disagreements. Every prediction held. **C08 is no longer a refusal**: with a second press only where the first did not come back, B's sequence gave Writer's own document at every Delete before a labelled paragraph measured. P62 — the handoff's candidate for the production-UI runner's refusal arms — merges, so it cannot be one.
+
+### 6b: `restore/round-20261006T091423Z/` (tables and the document's ends)
+
+| Case | Restore steps (drawn caret, twips) | Result |
+|---|---|---|
+| C15 (Delete before a table) | placed (3070, 6848) → (7352, 7266) → (7232, 7266): never back | the probe's key then deleted "o" inside a cell (`Delete “o”`) |
+| C16 (Backspace after a table) | placed (1418, 7542) → (1418, 7266) → (1631, 7266): never back | the probe's key deleted "M" inside a cell |
+| C17 (Delete at a cell's end) | back in 1 | the key changed nothing; stack unchanged |
+| C29, C30 (document start, end) | nothing selected, no restore | the key changed nothing |
+
+3/3 each, 39 presses, 0 disagreements; every prediction held. At a table neither press comes back, and what the key does from there is not what the user's key would do at their caret — **the engine must refuse when the caret is not back, and press nothing**. This is the check that makes B safe, and 6b is its red case.
+
+### What rounds four to six say for B, together
+
+The restore is "the opposite arrow without Shift, at most twice, the second only while the caret is not back". With it, B's sequence equals Writer's own key at every paragraph boundary measured in both directions — 13 boundary shapes on the fixtures and 10 in the owner's document — and the undo payload is its proof, at the limit too (round five). Where the caret does not come back (tables) the engine refuses before pressing; where it comes back and Writer does nothing (C17, a cell's end) the payload does not move and only a deadline can end the wait; where nothing is selected (document ends) the shipped 250 ms refusal stays.

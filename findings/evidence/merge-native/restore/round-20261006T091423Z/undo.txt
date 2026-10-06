@@ -1,0 +1,54 @@
+C15 b        body|table
+    r1 p1: doc=Y stack=Y [Delete “o”]  restore=FAILED/2 =key=NO
+    r2 p1: doc=Y stack=Y [Delete “o”]  restore=FAILED/2 =key=NO
+    r3 p1: doc=Y stack=Y [Delete “o”]  restore=FAILED/2 =key=NO
+C15 key      body|table
+    r1 p1: doc=n stack=n []
+    r2 p1: doc=n stack=n []
+    r3 p1: doc=n stack=n []
+C15 select   body|table
+    r1 p1: doc=Y stack=Y [Delete Paragraphs]
+    r2 p1: doc=Y stack=Y [Delete Paragraphs]
+    r3 p1: doc=Y stack=Y [Delete Paragraphs]
+C16 b        table|body
+    r1 p1: doc=Y stack=Y [Delete “M”]  restore=FAILED/2 =key=NO
+    r2 p1: doc=Y stack=Y [Delete “M”]  restore=FAILED/2 =key=NO
+    r3 p1: doc=Y stack=Y [Delete “M”]  restore=FAILED/2 =key=NO
+C16 key      table|body
+    r1 p1: doc=n stack=n []
+    r2 p1: doc=n stack=n []
+    r3 p1: doc=n stack=n []
+C16 select   table|body
+    r1 p1: doc=Y stack=Y [Delete Paragraphs]
+    r2 p1: doc=Y stack=Y [Delete Paragraphs]
+    r3 p1: doc=Y stack=Y [Delete Paragraphs]
+C17 b        cell|cell
+    r1 p1: doc=n stack=n []  restore=ok =key=Y
+    r2 p1: doc=n stack=n []  restore=ok =key=Y
+    r3 p1: doc=n stack=n []  restore=ok =key=Y
+C17 key      cell|cell
+    r1 p1: doc=n stack=n []
+    r2 p1: doc=n stack=n []
+    r3 p1: doc=n stack=n []
+C17 select   cell|cell
+    r1 p1: doc=Y stack=Y [Delete multiple selection]
+    r2 p1: doc=Y stack=Y [Delete multiple selection]
+    r3 p1: doc=Y stack=Y [Delete multiple selection]
+C29 b        document start
+    r1 p1: doc=n stack=n []  restore=ok/0 =key=Y
+    r2 p1: doc=n stack=n []  restore=ok/0 =key=Y
+    r3 p1: doc=n stack=n []  restore=ok/0 =key=Y
+C29 key      document start
+    r1 p1: doc=n stack=n []
+    r2 p1: doc=n stack=n []
+    r3 p1: doc=n stack=n []
+C30 b        document end
+    r1 p1: doc=n stack=n []  restore=ok/0 =key=Y
+    r2 p1: doc=n stack=n []  restore=ok/0 =key=Y
+    r3 p1: doc=n stack=n []  restore=ok/0 =key=Y
+C30 key      document end
+    r1 p1: doc=n stack=n []
+    r2 p1: doc=n stack=n []
+    r3 p1: doc=n stack=n []
+
+presses: 39, stack-vs-content.xml disagreements: 0
