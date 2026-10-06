@@ -279,3 +279,22 @@ Firefox＝WebDriver actions）。座標沿用 `findings/evidence/109/README.md` 
 | 一-19 | A1-1 那一列「從來沒做時的結論」是「—」 | 補：**單元層沒有證據時，109 的修法不得宣稱** |
 | 一-20 | 狀態不是 ready／busy 時，工具列 `.click()` 現在什麼都不做 | 讀原始碼：產品路徑網的 `capture_save` 在停下的 session 上，修法前後都拿到空擷取、都等滿 `wait_saves` 的 90 秒；預測網逐格不變，凍 v55 之後實測 |
 | 一-21 | A3 的隱藏清單是位置式（`.sep:nth-of-type`），A3-1 不看 `title` 提示文字 | 具名極限 |
+
+## 9.6 不支援 `@scope` 的瀏覽器（審核一-8、一-9；2026-10-06，宿主改動之前寫）
+
+只追加。接在 §10 之後寫，編號接 §9.5 的「（8）另寫」。
+
+- **量測（已觀察，宿主 0.2.6）**：Firefox 157 關掉 `layout.css.at-scope.enabled` 代替沒有 `@scope` 的瀏覽器（Firefox ESR 140
+  沒裝）。`CSSScopeRule` 是 `undefined`；`#notice`、`#expired`、`#sink` 都看得見；A3-1 的清單多 8 段不該看到的文字。正向對照
+  （同一支探針、偏好開著）：`function`、上述元素全看不見、清單乾淨。證據 `findings/evidence/m3-production-ui/no-scope/`，探針
+  `wasm_sdk_probe/tools/probe_m3_no_scope.py`。
+- **修法（宿主 0.2.7）**：模板在限縮的那份之後多印一份**未限縮**的產品樣式 `<style id="litecore-unscoped" media="not all">`；
+  宿主 JS 一開始看 `typeof CSSScopeRule`，沒有就把它打開（`media="all"`），並把 `scope`（`scoped`／`unscoped-fallback`）寫進
+  `data-litecore`。**代價照實寫**：沒有 `@scope` 的瀏覽器回到 110 的樣子（Nextcloud 頂欄被蓋），但編輯器能用、不露出內部元件。
+  一-9 同版修：`scopedStyle` 先數**所有**出現位置（不只規則開頭），不是恰好一次就拒絕。
+- **判準 A2-4**（一次量測，Firefox，同一支探針，宿主 0.2.7）：偏好關掉時 `hostScope == "unscoped-fallback"`、`#notice`／`#expired`／
+  `#sink` 都看不見、A3-1 清單 0 控制項 0 文字；偏好開著時 `hostScope == "scoped"`、未限縮那份的 `media` 仍是 `not all`（不得兩份
+  同時生效）。**從來沒做時的結論**：不支援 `@scope` 的瀏覽器上頁面露出內部元件，登錄為具名極限，110 的修法只對支援的瀏覽器宣稱。
+- **預測**：關掉→fallback、清單乾淨；開著→scoped、`not all`。出貨頁面恰好一個 `:root {`、一個 `body {`，所以 0.2.7 的
+  `scopedStyle` 照樣放行（不會 500）。
+- **R 與綁定改綁宿主 0.2.7**（§4 的 R 列與綁定原寫 0.2.6；本輪還沒有任何計數執行，所以沒有計數要歸零）。
