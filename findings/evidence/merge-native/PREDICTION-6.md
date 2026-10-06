@@ -32,3 +32,17 @@ What would change the decision:
 - P62 merges under B: it cannot serve as the production-UI runner's refusal arm, and that arm needs another boundary B still refuses (document start, a table, or one found by measurement).
 
 Not covered: a caret that is already in front of a label when the user presses Delete (the user pressed Left at an item's start first); nested lists; a label that is a picture.
+
+## 6b: tables and the document's ends with two restore presses (added before 6b ran; 6a's results are in the README)
+
+Why: with a second restore press allowed, a table boundary that failed in one press (round four C15, C16) might come back in two, and then B would press the key there. Case file `round-i-tables.cases.tsv`: C15, C16, C17, C29, C30, boundaries.fodt, `MERGE_RESTORE_PRESSES=2`, PRESSES=1, 3 rounds.
+
+Round four's readbacks show where one press went: C15 (Delete at a body's end before a table) from the body's line (y 6848) to inside the table's row (7352, 7266); C16 (Backspace at the start of the body after the table) from (1418, 7542) to the first cell's start (1418, 7266). A second press moves inside the table again (case 3, a normal move, or `GoPrevCell`/`GoNextCell` if the selection left the cursor in table mode).
+
+| Case | Prediction |
+|---|---|
+| C15, C16 | two presses, **neither at the placed caret** — B refuses before the key. (The probe presses the key anyway; inside a cell it may delete a character, which is why the engine must not.) |
+| C17 | one press, back (as round four); the key changes nothing, the stack does not change |
+| C29, C30 | nothing selected, no restore press; the key changes nothing |
+
+If C15 or C16 comes back in two presses: B presses Delete/Backspace there; round 1's key arm changed nothing at both, so the outcome is a no-op that reaches the deadline — slower than a refusal, not wrong.
