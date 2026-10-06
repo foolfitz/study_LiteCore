@@ -22,6 +22,27 @@ Chrome Bctl and P again, after the first run's instrument fault (below).
 
 So **Firefox reproduces 109 as Chrome does** (it had not been measured).
 
+### `b3x-red-0.2.6-prefix.json` — A1-5's red case (B1, spec §9.3), 2026-10-06
+
+Host 0.2.6 `fa08307` with the engine package as served before the B1 fix (buildId `253730c6…`, page
+`d41ae604…`, session `a4f8c219…`); runner `2f923764` (`runnerSha256` `95bbe9e1…`). One B3x arm per
+browser, Chrome 151 and Firefox 157. Spec §9.4 predicted red in both, at the ceiling.
+
+| | Chrome | Firefox |
+|---|---|---|
+| refusal 1 (Delete at the heading's end) | generation 1→2, `ready` | 1→2, `ready` |
+| refusal 2 (Backspace at the paragraph's start) | 2→3, `ready` | 2→3, `ready` |
+| refusal 3 (Delete at the heading's end) | stays 3, **`recoverable-error`** | stays 3, **`recoverable-error`** |
+| notice after refusal 3 | no `data-limit`; text 「這一步可能已經改到文件，而且無法驗證。回到選取手勢前的檢查點。」, its button disabled | same |
+| server file | none of `zqa`/`zqb`/`zqc` | none |
+| notice button | disabled, so no reload; generation still 3 | same |
+
+Red for the predicted reason in both browsers; refusals 1 and 2 each opened a new Worker, so it is
+not vacuous. **Measured on the way (review item 3):** after each reopen the next marker was typed
+without clicking, and none of its keys landed (revision stayed 0 in generations 2 and 3, both
+browsers) — the reopened page did not give the input sink its focus back. It was read from source
+only until now.
+
 Instrument fault in the first Chrome run (Bctl, P): `websockets ConnectionClosedError 1009` — the
 save's `Network.requestWillBeSent` carried the 573 KB PUT body (1.37 MB JSON-escaped), past the CDP
 socket's 1 MiB frame limit. The runner's Chrome side now disables the Network domain.

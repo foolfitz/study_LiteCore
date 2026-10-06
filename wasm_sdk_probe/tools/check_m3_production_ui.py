@@ -74,10 +74,6 @@ KEEP_ACTIONS = ["undo", "redo", "set-bold", "set-italic", "set-underline", "set-
                 "set-list-none", "save"]
 KEEP_IDS = ["clear-format", "litecore-host-close", "litecore-host-download", "notice-action"]
 TEXT_PLACES = "#litecore-host-title, #litecore-host-unsaved, #state-pill, #notice, #litecore-host-bar"
-STYLE_PROPS = ["display", "box-sizing", "background-color", "background-image", "color", "font-size",
-               "font-family", "font-weight", "line-height", "padding-top", "padding-left", "margin-top",
-               "margin-left", "border-top-width", "border-top-color", "border-top-left-radius", "height",
-               "cursor"]
 
 # Every change of the page's state, as the DOM shows it, with the toolbar's
 # disabled count -- A1-3 is asked of each sample.
@@ -96,12 +92,14 @@ TIMELINE = """(() => { const t0 = performance.now(); const log = window.__m3ui =
   tick(); return true; })()"""
 READ_TIMELINE = "(() => window.__m3ui || null)()"
 GEN = "(() => document.querySelector('#s-generation').textContent)()"
-STYLE_BEFORE = """(() => { const props = ARG_PROPS;
+# Review 2026-10-06 item 11: every longhand the browser itself lists, not a hand
+# enumeration (CLAUDE.md §1, form two); `props` in the report says how many.
+STYLE_BEFORE = """(() => { const props = [...getComputedStyle(document.body)];
   const node = [...document.querySelectorAll('style')].find(s => s.textContent.includes('--accent:'));
   if (!node) return { error: 'no product stylesheet' };
   const all = [...document.querySelectorAll('body, body *')];
   window.__m3style = { node, all, props, before: all.map(e => { const s = getComputedStyle(e); return props.map(p => s.getPropertyValue(p)); }) };
-  node.sheet.disabled = true; return { elements: all.length, scoped: node.textContent.includes('@scope') }; })()"""
+  node.sheet.disabled = true; return { elements: all.length, props: props.length, scoped: node.textContent.includes('@scope') }; })()"""
 STYLE_AFTER = """(() => { const { node, all, props, before } = window.__m3style;
   const after = all.map(e => { const s = getComputedStyle(e); return props.map(p => s.getPropertyValue(p)); });
   node.sheet.disabled = false;
@@ -111,8 +109,11 @@ STYLE_AFTER = """(() => { const { node, all, props, before } = window.__m3style;
     if (!diff.length) return;
     const rec = { tag: e.tagName.toLowerCase(), id: e.id || null, cls: String(e.className || '').slice(0, 40), diff };
     (root && root.contains(e) ? inside : outside).push(rec); });
+  // Review 2026-10-06 item 10: a scoping that skipped `:root` leaves every var(--…)
+  // unresolved and still changes elements inside, so ask the container itself.
+  const accent = root ? getComputedStyle(root).getPropertyValue('--accent').trim() : null;
   return { outsideCount: outside.length, outside: outside.slice(0, 30), insideCount: inside.length,
-           inside: inside.slice(0, 5) }; })()"""
+           inside: inside.slice(0, 5), accent }; })()"""
 BODY_BG = """(() => { const s = getComputedStyle(document.body);
   return { color: s.backgroundColor, image: s.backgroundImage.slice(0, 200) }; })()"""
 INVENTORY = """(() => { const KEEP_ACTIONS = ARG_ACTIONS, KEEP_IDS = ARG_IDS, PLACES = ARG_PLACES;
@@ -292,7 +293,7 @@ def run_arm(arm: str, kind: str, server: Server, doc: bytes) -> dict[str, Any]:
             run_three_refusals(kind, session, server, record)
         elif arm == "S":
             record["editorBody"] = evaluate(session, BODY_BG)
-            record["styleBefore"] = evaluate(session, STYLE_BEFORE.replace("ARG_PROPS", json.dumps(STYLE_PROPS)))
+            record["styleBefore"] = evaluate(session, STYLE_BEFORE)
             time.sleep(1.0)   # past any transition the change started
             record["style"] = evaluate(session, STYLE_AFTER)
         elif arm == "P":
@@ -395,17 +396,24 @@ def run_production(kind: str, session, server: Server, record: dict[str, Any]) -
                                    .replace("ARG_IDS", json.dumps(KEEP_IDS)).replace("ARG_PLACES", json.dumps(TEXT_PLACES)))
     record["unsavedAtOpen"] = evaluate(session, UNSAVED_SHOWN)
     record["inText"] = click(session, IN_TEXT)
-    record["keys"] = [keyed(session, kind, "a")]
-    # From the moment the edit has landed (keyed() returns once the queue is
-    # quiet): the first shakedown started this clock before keyed(), whose own
-    # waits take longer than the window, so the loop never ran.
+    # The unsaved mark's clock starts AT THE KEY (spec §4 A3-2, "打字後 1.5 秒內").
+    # Review 2026-10-06 item 13: starting it after keyed() -- which itself waits
+    # past the host's 0.5 s poll -- made `shown` 0.0 by construction.  So this
+    # key is pressed raw and the mark watched from the press; keyed()'s record
+    # is assembled around it.
+    before = quiet(session)
+    generation = evaluate(session, GEN)
     typed_at = time.monotonic()
+    press(session, kind, "a")
     shown = None
     while time.monotonic() - typed_at < 1.5:
         if evaluate(session, UNSAVED_SHOWN) is True:
             shown = round(time.monotonic() - typed_at, 2)
             break
-        time.sleep(0.1)
+        time.sleep(0.05)
+    after = quiet(session)
+    record["keys"] = [{"key": "a", "revBefore": before.get("revision"), "revAfter": after.get("revision"),
+                       "genBefore": generation, "genAfter": evaluate(session, GEN), "latency": after.get("latency")}]
     record["unsavedShownAfter"] = shown
     # Mid-paragraph only: Backspace right after Shift+Enter would delete the line
     # break, which the barrier refuses like a paragraph boundary (spec §7).
@@ -511,6 +519,10 @@ def score_run(run: dict[str, Any]) -> list[str]:
             bad.append(f"A2-1: {style.get('outsideCount')} elements outside the container change: {style.get('outside', [])[:3]}")
         if not style.get("insideCount"):
             bad.append("A2-1: nothing inside the container changes (vacuous)")
+        if not style.get("accent"):
+            bad.append("A2-1: the container does not resolve the sheet's --accent (its :root was not scoped)")
+        if (run.get("styleBefore") or {}).get("props", 0) < 100:
+            bad.append(f"A2-1: compared {(run.get('styleBefore') or {}).get('props')} properties (the browser's list is hundreds)")
         if run.get("filesBody") != run.get("editorBody"):
             bad.append(f"A2-2: body {run.get('editorBody')} != Files {run.get('filesBody')}")
     elif arm == "P":
@@ -600,7 +612,11 @@ def score(report: dict[str, Any]) -> dict[str, Any]:
         cell["pass"] += not problems
         if problems:
             cell["failures"].append(problems)
-    return {"cells": cells, "allPass": all(c["pass"] == c["runs"] for c in cells.values()) and bool(cells)}
+    # Review 2026-10-06 item 14: a document that already had the marker would
+    # pass A1-2 with nothing typed.
+    doc_clean = (report.get("doc") or {}).get("marks") == 0
+    return {"cells": cells, "docClean": doc_clean,
+            "allPass": all(c["pass"] == c["runs"] for c in cells.values()) and bool(cells) and doc_clean}
 
 
 def counted_bindings(static: dict[str, Any]) -> list[str]:
@@ -624,6 +640,8 @@ MUTATIONS = [
     ("A1-2 control did not delete", "Bctl", lambda r: r["key"].update(revAfter=r["key"]["revBefore"])),
     ("A2-1 a header element changes", "S", lambda r: r["style"].update(outsideCount=1)),
     ("A2-1 vacuous", "S", lambda r: r["style"].update(insideCount=0)),
+    ("A2-1 :root not scoped", "S", lambda r: r["style"].update(accent="")),
+    ("A2-1 a hand-picked property list", "S", lambda r: r["styleBefore"].update(props=18)),
     ("A2-2 body differs", "S", lambda r: r.update(editorBody={"color": "rgb(244, 246, 248)", "image": "none"})),
     ("A3-1 a developer control shows", "P", lambda r: r["inventory"]["badControls"].append("button[delete-forward]")),
     ("A3-1 developer text shows", "P", lambda r: r["inventory"]["badText"].append({"text": "修訂", "in": "span"})),
