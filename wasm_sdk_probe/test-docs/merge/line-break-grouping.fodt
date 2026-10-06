@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Manual line breaks folded into an earlier delete, R0 (native, 2026-10-06;
+     SPEC-M3-paragraph-merge 10.1(c)).  A line break is one character inside
+     its paragraph, so Writer may fold its delete into the previous delete
+     action (SwUndoDelete::CanGrouping) and only the comment changes.  G13:
+     thirty full stops, then three line breaks, deleted with Delete from
+     after "G13 run": does the .uno:Undo payload still change on every
+     press that changes the document?  G14: the ordinary shape, a trailing
+     space and then a line break. -->
+<office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  office:version="1.3" office:mimetype="application/vnd.oasis.opendocument.text">
+ <office:styles>
+  <style:style style:name="Standard" style:family="paragraph" style:class="text"/>
+ </office:styles>
+ <office:body>
+  <office:text>
+   <text:p text:style-name="Standard">G13 run..............................<text:line-break/><text:line-break/><text:line-break/>G13 tail</text:p>
+   <text:p text:style-name="Standard">G14 end. <text:line-break/>G14 next</text:p>
+   <text:p text:style-name="Standard">G15 last paragraph</text:p>
+  </office:text>
+ </office:body>
+</office:document>

@@ -39,6 +39,17 @@
 // (round-20261006T073914Z-second-search-fault); does the undo stack tell the
 // two apart?
 //
+// An 8th field "pretype" (R0, 2026-10-06): ASCII text typed with key events
+// in every arm right after the checked placement (and its offset), before
+// anything else -- the native reference for "type, then Delete at once"
+// (SPEC-M3-paragraph-merge M2-1b).  Empty or absent: nothing is typed.
+//
+// MERGE_FOLLOW_TEXT (R0): after the b arm's and the key arm's saved press
+// (the key arm only when PRESSES is 1), type this ASCII text with key events
+// and save again (-b-follow.odt, -key-follow.odt): where the next typed text
+// lands after the key.  Typed text carries a per-session rsid, so these files
+// are compared by paragraph text, not bytes (spec section 12).
+//
 // PRESSES (optional, default 1): the key arm presses its key this many times,
 // saving after each press (-key.odt, then -key2.odt, -key3.odt, ...).  Added
 // for the third round: where Writer's first Backspace does something other
@@ -80,6 +91,7 @@ struct Case {
   std::string boundary;
   int occurrence = 1;
   int offset = 0;
+  std::string pretype;
 };
 
 const std::vector<Case> kCases = {
@@ -241,6 +253,23 @@ void key(LibreOfficeKitDocument *document, int code) {
   document->pClass->postKeyEvent(document, LOK_KEYEVENT_KEYUP, 0, code);
 }
 
+// ASCII only: one KEYINPUT/KEYUP per character, charCode set, keyCode 0 (as
+// probe_engine.cpp's insert fallback posts them).
+void typeText(LibreOfficeKitDocument *document, const std::string &text) {
+  for (const unsigned char ch : text) {
+    document->pClass->postKeyEvent(document, LOK_KEYEVENT_KEYINPUT, ch, 0);
+    document->pClass->postKeyEvent(document, LOK_KEYEVENT_KEYUP, ch, 0);
+    drain(60);
+  }
+  if (!text.empty())
+    drain(300);
+}
+
+std::string followText() {
+  const char *value = std::getenv("MERGE_FOLLOW_TEXT");
+  return value ? value : "";
+}
+
 // Returns the UNO_COMMAND_RESULT payload for `command`, or "" on timeout.
 std::string dispatch(LibreOfficeKitDocument *document, const char *command,
                      const char *arguments = nullptr, int timeoutMs = 4000) {
@@ -375,6 +404,11 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
               << "\",\"placementCheck\":\"" << jsonEscape(check)
               << "\",\"placementOk\":" << (check == c.anchor ? "true" : "false")
               << ",\"placed\":" << readbackJson(placed);
+    typeText(document, c.pretype);
+    const Readback typedAt = readSelection(document);
+    if (!c.pretype.empty())
+      std::cout << ",\"pretype\":\"" << jsonEscape(c.pretype)
+                << "\",\"typedAt\":" << readbackJson(typedAt);
     key(document, (c.backward ? kLeft : kRight) | kShift);
     drain(700);
     const Readback unit = readSelection(document);
@@ -422,6 +456,14 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
               << "\",\"placementCheck\":\"" << jsonEscape(check)
               << "\",\"placementOk\":" << (check == c.anchor ? "true" : "false")
               << ",\"placed\":" << readbackJson(placed);
+    typeText(document, c.pretype);
+    // With pretype, the caret the restore must come back to is where the
+    // typing left it, not the checked placement.
+    const Readback typedAt = readSelection(document);
+    if (!c.pretype.empty())
+      std::cout << ",\"pretype\":\"" << jsonEscape(c.pretype)
+                << "\",\"typedAt\":" << readbackJson(typedAt);
+    const Readback &origin = c.pretype.empty() ? placed : typedAt;
     key(document, (c.backward ? kLeft : kRight) | kShift);
     drain(700);
     const Readback bUnit = readSelection(document);
@@ -449,8 +491,8 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
         ++restorePresses;
         const Readback step = readSelection(document);
         restoreSteps += (restoreSteps.empty() ? "" : ",") + readbackJson(step);
-        if (step.type == LOK_SELTYPE_NONE && !placed.cursor.empty() &&
-            step.cursor == placed.cursor)
+        if (step.type == LOK_SELTYPE_NONE && !origin.cursor.empty() &&
+            step.cursor == origin.cursor)
           break;
       }
     }
@@ -464,6 +506,12 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
     std::cout << ",\"undoAfter\":" << undoJson(document)
               << ",\"after\":" << readbackJson(readSelection(document))
               << ",\"saved\":" << (saveAs(document, stem + "-b.odt") ? "true" : "false");
+    if (!followText().empty()) {
+      typeText(document, followText());
+      std::cout << ",\"follow\":\"" << jsonEscape(followText())
+                << "\",\"followSaved\":"
+                << (saveAs(document, stem + "-b-follow.odt") ? "true" : "false");
+    }
     document->pClass->destroy(document);
     std::cout << "}" << std::endl;
   }
@@ -483,13 +531,23 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
     std::cout << ",\"search\":\"" << jsonEscape(search)
               << "\",\"placementCheck\":\"" << jsonEscape(check)
               << "\",\"placementOk\":" << (check == c.anchor ? "true" : "false")
-              << ",\"placed\":" << readbackJson(placed)
-              << ",\"undoBefore\":" << undoJson(document);
+              << ",\"placed\":" << readbackJson(placed);
+    typeText(document, c.pretype);
+    if (!c.pretype.empty())
+      std::cout << ",\"pretype\":\"" << jsonEscape(c.pretype)
+                << "\",\"typedAt\":" << readbackJson(readSelection(document));
+    std::cout << ",\"undoBefore\":" << undoJson(document);
     key(document, c.backward ? kBackspace : kDelete);
     drain(900);
     std::cout << ",\"undoAfter\":" << undoJson(document)
               << ",\"after\":" << readbackJson(readSelection(document))
               << ",\"saved\":" << (saveAs(document, stem + "-key.odt") ? "true" : "false");
+    if (presses == 1 && !followText().empty()) {
+      typeText(document, followText());
+      std::cout << ",\"follow\":\"" << jsonEscape(followText())
+                << "\",\"followSaved\":"
+                << (saveAs(document, stem + "-key-follow.odt") ? "true" : "false");
+    }
     if (presses > 1) {
       std::cout << ",\"laterPresses\":[";
       for (int press = 2; press <= presses; ++press) {
@@ -520,15 +578,22 @@ std::vector<Case> readCases(const char *path) {
     std::stringstream split(row);
     for (std::string field; std::getline(split, field, '\t');)
       fields.push_back(field);
-    if (fields.size() < 5 || fields.size() > 7) {
-      std::cerr << "bad case row (want 5 to 7 tab-separated fields): " << row << "\n";
+    if (fields.size() < 5 || fields.size() > 8) {
+      std::cerr << "bad case row (want 5 to 8 tab-separated fields): " << row << "\n";
       std::exit(2);
     }
     Case c{fields[0], fields[1], fields[2] == "1", fields[3] == "1", fields[4]};
     if (fields.size() >= 6)
       c.occurrence = std::atoi(fields[5].c_str());
-    if (fields.size() == 7)
+    if (fields.size() >= 7)
       c.offset = std::atoi(fields[6].c_str());
+    if (fields.size() == 8)
+      c.pretype = fields[7];
+    for (const unsigned char ch : c.pretype)
+      if (ch < 0x20 || ch > 0x7e) {
+        std::cerr << "pretype must be printable ASCII: " << row << "\n";
+        std::exit(2);
+      }
     if (c.occurrence < 1) {
       std::cerr << "bad occurrence: " << row << "\n";
       std::exit(2);

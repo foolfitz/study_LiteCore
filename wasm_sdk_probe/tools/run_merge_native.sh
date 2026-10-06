@@ -42,6 +42,12 @@ if [ -n "${MERGE_RESTORE_PRESSES:-}" ]; then
   echo "MERGE_RESTORE_PRESSES=$MERGE_RESTORE_PRESSES" > "$round_dir/restore-presses.txt"
 fi
 
+# MERGE_FOLLOW_TEXT (R0): text typed after the b and key arms' press, saved
+# again as -follow.odt; recorded beside the round.
+if [ -n "${MERGE_FOLLOW_TEXT:-}" ]; then
+  echo "MERGE_FOLLOW_TEXT=$MERGE_FOLLOW_TEXT" > "$round_dir/follow-text.txt"
+fi
+
 probe="$round_dir/merge-native-boundaries"
 echo "== compiling =="
 g++ -std=c++17 -O2 -I"$src/include" \
