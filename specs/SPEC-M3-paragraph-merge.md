@@ -330,3 +330,32 @@ B 的最壞情形；判準見 M2-1、M2-3。
 
 2. 讀 Writer 方向鍵的 KeyInput 路徑確認 P4（沒有 Yield／Reschedule），結果以追加段寫進本文件；不成立就設計柵欄並先讀原始碼證明它
    「排在該按鍵處理完之後」。
+
+## 11. 追加（2026-10-06）：P4 的讀原始碼結果——成立（有界）
+
+10.1(a) 的前提 P4（處理一下方向鍵的過程中不會跑 flush）。主 session 讀的，全部是**讀原始碼，沒量**：
+
+- **flush 只有一個入口**：`CallbackFlushHandler::invoke()` 只被 `FlushQueue` 呼叫（`init.cxx:2584–2588`），而 `FlushQueue` 只由
+  `scheduleFlush()` 用 `Application::PostUserEvent` 排進去（`init.cxx:2578–2582`）；`libreOfficeKitViewAddPendingInvalidateTiles` 也只是
+  `scheduleFlush()`（`:1765–1768`）。LOK 的 API 呼叫不會同步觸發 flush。所以 flush 要在一下按鍵的處理中途跑，只能是那段處理自己跑了巢狀的
+  事件迴圈。
+- **user event 是 FIFO**：`SalUserEventList::DispatchUserEvents` 從前端取（`vcl/source/app/salusereventlist.cxx:65–92`）。鍵事件
+  （`lokhelper.cxx:1286–1290`）和 flush 進的是同一個佇列。
+- **鍵事件直接進 `SwEditWin::KeyInput`**：`LOKPostAsyncEvent` 呼叫 `pFocusWindow->KeyInput(singlePress)`（`lokhelper.cxx:1186–1222`），
+  不經過 `winproc.cxx`。
+- **方向鍵經過的模組裡沒有巢狀事件迴圈**：在 `sw/source/uibase/{docvw,wrtsh,uiview}`、`sw/source/core/{crsr,view,layout,text}`、
+  `sfx2/source/{control,view}`、`vcl/source/window/{winproc,window}.cxx` 搜 `Application::Reschedule`／`Application::Yield`／
+  `ProcessEventsToIdle`／`DoYield(`，只有兩處，都不在方向鍵的路上：
+  - `winproc.cxx:1389`：IME 的 ExtTextInput，而且 LOK 下在它之前就 `break`（`:1383–1387`）。
+  - `sfxbasecontroller.cxx:158–166`：狀態列進度指示器的 `reschedule()`。
+- **版面配置的 Reschedule 不讓出**：`SwLayAction::CheckWaitCursor` 的 `RescheduleProgress`（`layact.cxx:76–81`）最後呼叫
+  `SfxProgress::Reschedule()`，那是一個空函式（`sfx2/source/bastyp/progress.cxx:329–338`）。LOK 下的中斷檢查
+  `Application::AnyInput`（`layact.cxx:89–99`）只問有沒有輸入，headless 的實作只看計時器（`vcl/headless/svpinst.cxx:549–554`），不處理事件。
+
+**界線（推論，寫明）**：這是在上列模組裡搜尋，不是把方向鍵的呼叫圖遞移地走完。已知的一條會碰到進度指示器的路是 `UpdateCursor` 遇到游標所在節點
+**沒有版面框**時呼叫 `CalcLayout()`（`crsrsh.cxx:2310–2326`），`CalcLayout` 會開進度（`viewsh.cxx:1245–1275`），進度的 `setValue` 可能走到上面
+那個 `reschedule()`。B 的還原兩端（U 與 P，以及標號前的中間位置）都是**畫出來過的游標**，所以都有版面框——這是推論。WASM 核心若沒有狀態列進度
+指示器，這條路也不會讓出，沒查。
+
+**結論**：P4 以「讀原始碼、有界」成立，10.1(a) 的規則照用，不改柵欄。M1-2 事件模型裡「一下按鍵的處理中跑 flush」那個開關保留，作為規則依賴
+P4 的紅案。
