@@ -1040,14 +1040,23 @@ async function reopenAfterBoundaryRefusal() {
   const unsaved = session.state.snapshot.dirty === true;
   toast(`${BOUNDARY_TEXT}，正在重新載入…`);
   try {
-    await run("重新載入", () => session.restart());
     // The refusal disabled the input sink (input-adapter `setBlocked`), and a
     // disabled element loses focus; without this the user's next keys went
     // to the page body (review 2026-10-06, item 3; measured on the pre-fix
-    // page: the next three keys landed nowhere, both browsers).  No scroll:
-    // the sink sits at the caret, which a restart puts at the document start
-    // (the other two `focus()` calls in this file pass the same; 069's class).
-    el.sink.focus({ preventScroll: true });
+    // page: the next three keys landed nowhere, both browsers).
+    //
+    // INSIDE the operation, the moment `restart()` returns -- the session is
+    // `ready` and the sink enabled by then -- and NOT after `run()`, which
+    // also awaits the repaint.  Focusing after the repaint lost the first key
+    // typed once the pill said 就緒 (shakedown 2026-10-06, B3x Chrome: `z` of
+    // `zqb` and of `zqc` landed nowhere, the next two keys did; review
+    // 2026-10-06b item 10 had predicted it).  No scroll: the sink sits at the
+    // caret, which a restart puts at the document start (the other two
+    // `focus()` calls in this file pass the same; 069's class).
+    await run("重新載入", async () => {
+      await session.restart();
+      el.sink.focus({ preventScroll: true });
+    });
     // Not "everything is still there": keys typed just around the refused one
     // can be lost.  Typed text waits in the input adapter's own queue while
     // Delete goes straight to the session's, so a key typed BEFORE the refused

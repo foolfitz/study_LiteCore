@@ -60,6 +60,25 @@ socket's 1 MiB frame limit. The runner's Chrome side now disables the Network do
   reason `page` (Chrome: dialog dismissed, still on the editor; Firefox: the driver accepts the prompt).
 - Red cases (`--red-cases` on shake1's B/S runs + shake2's P runs): 15/15 mutations turn the score red.
 
+- `shake3-0.2.7.json` (host 0.2.7 `0488586`, engine buildId `63e149f3…`, page `1c438c36…`, session
+  `3f5f754b…`; the B1 fix `04d19fcd`; runner with review items 10, 11, 13, 14 and the B3x arm): all six
+  arms, both browsers. Bdel, Bbs, Bctl, S, P pass in both. **B3x red in both, on one line:** the
+  server's file lacks `zqb` and `zqc`. Everything else in A1-5 held (third refusal not restarted,
+  `restart-required`, `data-limit=saved` 0.78 s / 1.09 s after the key with the host's last save
+  `settled` and `saved`, reload not asked, the reload opened the rescued bytes, lock `held`). Read
+  from the report: after each reopen the FIRST key typed without clicking (`z`) left the revision at
+  0 and the next two landed, in both browsers. The page gave the sink its focus only after `run()`
+  had also awaited the repaint, so a key typed once the pill said 就緒 went to the body (review
+  2026-10-06b item 10 had predicted this). Fixed in the page (focus inside the operation, right after
+  `restart()` returns); re-run as shake4. Also measured here for the first time with the clock at the
+  key (review item 13): the unsaved mark appeared 0.49 s (Chrome) / 0.14 s (Firefox) after the key.
+  S compared 1065 (Chrome) / 974 (Firefox) properties over 285 elements, `--accent` resolves in the
+  container, 0 elements outside change.
+- Re-scored with the final scorer and `--expect-red` (review item 17): `prefix/prefix-0.2.5.json`,
+  `prefix-0.2.5-chrome-rerun.json` and `b3x-red-0.2.6-prefix.json` stay red for their original
+  reasons (S additionally red on the two fields those older reports do not have); Bctl, the positive
+  control, passes.
+
 Observed costs (Bdel, Chrome, host): refusal → `ready` in generation 2 about 1.2 s after the
 `restart-required` sample; the checkpoint save inside the refusal about 0.9 s (standalone dev
 measurement on the same document).
