@@ -632,3 +632,16 @@ sweep 換規則之後只應報同矩形這一族。另：§15 說「十個兩下
 - 舊 barrier 自己的同型競態：LOK 執行緒在 `AwaitingUnitSelection` 把 stage 改成 `UnitVerificationQueued`，與 250 ms deadline 的重設之間沒有鎖
   （opus F3 早已登錄；B 的入口沿用這一步）。
 - 模型測試不模擬 stage 機、執行緒與 deadline（10.4 已登錄「引擎的接線沒有單獨的測試，由 M2 的整份文件比較承擔」）。
+
+## 19. 追加（2026-10-07）：v15 同時換上 CJK 字形子集（擁有者選 D、E 級）
+
+不屬於併段，但跟 v15 同一次身分變更出貨（擁有者裁示：一次變更付清）。證據：`findings/evidence/cjk-subset/README.md`；研究：
+`research/RESEARCH-2026-10-06-wasm-size-status.md` 第 7–8 節。
+
+- v15 的 profile 從 `sdk/v15-writer-review-manifest.json` 打包＝r6 的來源 manifest 只把 `cjk-r5` 換成 `cjk-sub-e`（Noto Sans CJK TC 的 E 級子集：Big5、
+  HKSCS、U+4E00–U+9FFF、假名；7,200,632 位元組原始、5.60 MB zstd；原本 19,484,784／12.17 MB）。打包規則先跑 `build_cjk_subset_pack.py --check`。
+- **v15 出貨的東西因此是四塊**：B、096 的引擎那一半、082 的修法、CJK 包。連結手冊同步更新。
+- 判準追加（形式一，逐實例）：WASM 驗證時，同一顆 v15、只差 CJK 包（另以 r6 manifest 打一份不出貨的對照 profile）的語料頁面，tile 逐張相同——只要那頁的字都在
+  E 級裡。不同的那一張要查是哪個字（預期只會出現在韓文或擴充 A 的測試檔）。
+- 登錄：日文／韓文／簡中標記的文字改用繁中字形；字型名稱點名可選 feature（`:fwid` 等）時拿到預設字形；E 級以外的字畫成缺字方塊而沒有回報（085）。
+- 宿主：`tools/check_m3_assets.py` 的 Z2-2 與「Z2 D」兩個紅案寫死了 `cjk-r5` 的檔名，v15 進宿主（0.2.8）時要改——依既有規矩，runner 改了就是新的 pin。

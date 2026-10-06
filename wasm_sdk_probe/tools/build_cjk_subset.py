@@ -94,7 +94,9 @@ def tier_points(tier: str) -> set[int]:
 
 
 def load_face() -> TTFont:
-    return TTFont(str(SOURCE), fontNumber=TC_FACE, lazy=False)
+    # recalcTimestamp=False: keep the source's head.modified, so the same input
+    # always gives the same bytes (the pack is named by its hash).
+    return TTFont(str(SOURCE), fontNumber=TC_FACE, lazy=False, recalcTimestamp=False)
 
 
 def build(tier: str, outdir: Path) -> tuple[Path, set[int]]:

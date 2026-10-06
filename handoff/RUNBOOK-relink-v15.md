@@ -11,6 +11,7 @@ Written 2026-10-06 at `f76c470e`. Follows [`RUNBOOK-relink-v8.md`](RUNBOOK-relin
 | `sdk_api`, `unoembind_stub`, `editor_api` | preprocess identically |
 | `probe_engine` | changed — **three things, not one** |
 | `sdk-worker.js` | `070229cd…` (v8's) → `00882139…`: +69 lines, 26 of them code |
+| CJK resource pack | `cjk-r5` (19,484,784 B, 12.17 MB zstd) → `cjk-sub-e` (7,200,632 B, 5.60 MB zstd): the Traditional Chinese tier-E glyph subset (spec §19, owner's choice 2026-10-07). Source manifest `sdk/v15-writer-review-manifest.json` = r6's with only that entry replaced |
 
 The engine:
 
@@ -30,6 +31,7 @@ From `wasm_sdk_probe/`:
 - `node --test editor-shell-v2/tests/*.test.mjs` — M1-3/4/5 included.
 - `make test-e2-c-static` — **red by design on one item**: `test_the_real_manifest_matches_the_real_tree` (the shell bundle's dist copies are newer than the frozen manifest). Resolved by freezing shell generation v56 after the WASM shakedown, when this round's shell changes are complete. Every other item green.
 - Native premises: R0 (`fa65a20a`), R0b (`f934d4ff`), R0c (`60058eb4`), all with predictions committed first.
+- `python3 tools/build_cjk_subset_pack.py --check` — the committed v15 source manifest names exactly the pack the tool rebuilds, and `dist/profiles/resources/cjk-sub-e.2d8240354ce1cf78.data` / `.9bbc2a5e752f1364.metadata` exist (if missing: `python3 tools/build_cjk_subset_pack.py`, needs `python3-fonttools`). The profile rule runs this check itself before packing.
 
 ## 1. Before the link: record v8
 
@@ -71,6 +73,7 @@ grep -o '"profile": *"[^"]*"' dist/profiles/e2-editor-v15/sdk-manifest.json
 
 1. **WASM shakedown** on the standalone page with the fake host (spec 4.3 as amended; Chrome by CDP `Input.dispatchKeyEvent`, Firefox by WebDriver actions): a few R0 merge cases, one labelled case, C29, C17, C15 (expected `key-deadline` / `keyPosted:true`, §17), **one case inside a text frame** (§18 N1: expected `anchor-mismatch`). Not counted.
 2. **The product-path net** (`run_e2_c_product_path.py`) on v15 against v8: v15 must not regress any cell — this is where 096's and 082's first appearance on this line is checked.
+2b. **CJK tile A/B** (spec §19): pack a second, unshipped profile from the same v15 link with the r6 source manifest (full `cjk-r5`) into a scratch dist directory, and compare tiles of the corpus pages between the two: identical wherever the page's characters are in tier E.
 3. Freeze shell generation v56 (only when the shell needs no more changes), pin, then the counted M2 rounds; then host 0.2.8 and R.
 
 The page's `workerUrl` and `PINNED_WASM_SHA256` move to v15 only after these, both lines together (spec 3.3).
