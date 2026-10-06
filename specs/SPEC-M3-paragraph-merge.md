@@ -579,3 +579,20 @@ P1–P4 都成立時 P 仍可能過期：`scheduleFlush` 只在沒有待處理�
 flush）。不變式不變。紅案保留（3.2 原文、快照 P、沒有柵欄、P4 不成立），另加「#2 在 K2 的 flush 被看到之前就送」——預期是「什麼都沒證明到 →
 deadline」（活性，不是安全）。兩個順帶的修正：游標的形狀依 `HasMark()` 決定（`crsrsh.cxx:2402–2409`），不是依「選取非空」；同矩形那一輪的
 sweep 換規則之後只應報同矩形這一族。另：§15 說「十個兩下才回來的 case」，第六輪的表列的是九個（I02 C08 C10 I03 I01 P27 E13 P62 P63），以九為準。
+
+## 17. 追加（2026-10-06，R0c 之後）：E 形採用；C15／C16 成為 `keyPosted:true` 的誘因
+
+證據：`findings/evidence/merge-native/README.md`「R0c」節；預測 `PREDICTION-R0c.md`（`cfc41b55`，執行之前）。
+
+- **16.3 的殺死條件一條都沒成立**（三個 case 檔各三輪，0 KILL、0 STOP）。29 個合併 case（含九個帶標號的）與兩個打字後合併，E 形的文件都等於
+  Writer 自己的鍵；兩次 Escape 都沒改 undo payload、都沒移動 point；Escape #2 之後的游標只在 P27／P62／P63（較高的行）送達且等於原點，其餘被去重——
+  與預測逐格相同。**E 形採用**，引擎照 16.2 實作。
+- **預測錯一處**：C15／C16 不是在 K2 因文字不同而拒絕。K2 把整列選了回來（文字、START、END 都與 K1 相同），point 那一側通過柵欄，回到原位；而
+  Writer 自己的鍵在這兩個位置什麼都沒做。所以 v15 在這兩格會送鍵、到 key deadline 以 `keyPosted:true` 拒絕（照實：鍵送出了、沒有效果可證）。
+- 判準更正（取代 14.4 的 M2-3b 段與「連帶的覆蓋缺口」）：M2-3 每一臂的期望 stage 由工具從 **R0c 的判讀結果**（`r0c/eshape.json`）產生，不再從 R0 的類別：
+  `nothing-selected` → `nothing-selected`；`refused-k1-anchor`／`refused-k1-fence` → `anchor-mismatch`；`refused-k2-*` → `return-mismatch`；
+  `key-noop` → `key-deadline`＋`keyPosted:true`。今天的清單：C29／C30、C17、C15／C16。**WASM 上 `keyPosted:true` 有誘因了**（C15／C16），14.4 登錄的
+  缺口關閉；10.4「真宿主上沒有計數臂走到 `keyPosted:true`」不變（R 臂在宿主上，M2-3 在獨立頁面＋假宿主）。
+- 新 stage `return-mismatch`（K2 的文字或 point 柵欄不成立，送鍵之前、沒有改動）尚未加進頁面的「沒有被改動」白名單；在加之前頁面對它說不確定的那一句
+  （fail-closed）。加進去時要有 M1-5 的紅案。
+- 仍未量：16.3(e) Escape 路徑的 P4（讀原始碼項）；游標在標號前（14.5）。

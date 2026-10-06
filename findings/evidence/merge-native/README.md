@@ -256,3 +256,32 @@ Why the heights never agree (source, `PREDICTION-R0b.md`): the caret payload is 
 What this says for the design: §13.1's rule as written would refuse every merge (height), and on lines with a taller portion also on y. The mapping registered before the run held everywhere an anchor existed. A table-cell selection always refuses at the fence, before the key — where B must refuse anyway, but earlier than the criterion M2-3b expected (`key-deadline` with the key posted). Both go to the spec as §14.
 
 What R0b does not measure: that a stale P is caught (the other half of the fence); placement by click; a caret in front of a numbering label; overlapping text areas (a text frame over body text).
+
+## R0c: the E shape (`r0c/`)
+
+Why: the owner's ruling on spec 15.2 (spec §16) replaced the unshifted restore with the E shape — K1 Shift+arrow, `.uno:Escape`, K2 Shift+arrow back, `.uno:Escape`, the key — and made adoption conditional on this native round (16.3). Instruments and predictions `PREDICTION-R0c.md` (`cfc41b55`), committed before the run; `MERGE_ESHAPE=1 MERGE_FOLLOW_TEXT=Z`, 3 rounds each; probe sha `c2aa2a30…` in every `inputs.sha256`.
+
+| Run | Directory | Input |
+|---|---|---|
+| 0 (not counted) | `wasm_sdk_probe/build/merge-native-r0c-shakedown/` | C01, C02; only for the reader's red cases |
+| 1 | `r0c/round-20261006T144628Z/` | `odt/boundaries.odt`, `r0-boundaries.cases.tsv` |
+| 2 | `r0c/round-20261006T150437Z/` | `odt/boundaries-indent.odt`, `r0-indent.cases.tsv` |
+| 3 | `r0c/pmpc-round-20261006T150756Z/` (arms only; documents under `wasm_sdk_probe/build/merge-native-pmpc/r0c/`) | the owner's document, `r0-pmpc.cases.tsv` |
+
+Reader red cases (on copies of the shakedown round, before the counted runs), 15 shapes: Escape #1 changing the payload, leaving a selection, sending START, moving the caret; K2 point side off the fence (forward and backward); Escape #2 changing the payload or delivering a foreign caret; a non-E-shape arm; a missing key arm; the b document replaced by the original; follow text landing elsewhere; a decision differing between rounds — each KILL or STOP. Positive controls: K2 text differing → a refusal, not a KILL; garbage in START of a backward arm → no effect (backward reads END).
+
+**Result** (`tools/check_merge_eshape.py --json r0c/eshape.json`): **0 KILL, 0 STOP.** Per case, the same in all three rounds: merge C01 C02 C03 C08 C09 C10 C11 C12 C13 C14 C27 I01 I02 I03, D01 D04 D08 D12, E01 E02 E05 E10 E12 E13 E15 P27 P62 P63 T01 (29 × 3 = 87); typed-merge Y01 Y02; nothing-selected C29 C30; barrier G01; refused at K1 (no anchor) C17; **key-noop C15 C16**.
+
+| What | Predicted | Measured |
+|---|---|---|
+| merge, typed-merge, nothing-selected, barrier, C17 | as listed | **as predicted** |
+| The nine labelled cases (I02 C08 C10 I03 I01 P27 E13 P62 P63) | K2 selects K1's text, merges | **as predicted** — K2 has a mark and does not stop in front of the label |
+| C15, C16 | refused at K2, text differs | **wrong**: K2 selected the whole table row back (`'\nM17 cell one\tM17b cell two\n'`, the same text and the same START/END as K1), its point side passed the fence, and Writer's own key did nothing there (key arm content = original; the E-shape document = original too) → v15 posts the key and refuses at the key deadline with `keyPosted:true` |
+| Escape #1 | empty, no START/END, payload unchanged, caret at K1's point | as predicted, every row where v15 would send it |
+| Escape #2 | empty, payload unchanged; caret delivered only on P27 P62 P63 and equal to the origin, deduplicated elsewhere | **as predicted**, exactly those three cases |
+| `.uno:Escape` result | success | success in every call |
+| The key | b = key arm `content.xml` (bytes), Y01/Y02 by paragraph text, follow `Z` lands the same | as predicted, 0 differences |
+
+What this says: every premise 16.3 named held on every row v15 would act on. The E shape gives Writer's own key result on all 29 merge cases and both typed cases, with no unshifted arrow and no undo action of its own. C15/C16 move from "restore never comes back" to "back, and Writer's key is a no-op" — that is the `key-deadline` / `keyPosted:true` exit, which spec 14.4 had registered as having no WASM inducer.
+
+Not measured here: P4 for the Escape path (16.3(e), a read item); a caret in front of a numbering label; WASM.
