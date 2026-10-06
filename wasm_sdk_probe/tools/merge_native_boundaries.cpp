@@ -100,12 +100,15 @@ const std::vector<Case> kCases = {
 
 std::mutex gMutex;
 std::string gLastSelectionPayload;
+std::string gLastCursorPayload;
 int gSelectionCallbacks = 0;
 std::vector<std::string> gUnoResults;
 
 void onCallback(int type, const char *payload, void *) {
   std::lock_guard<std::mutex> lock(gMutex);
-  if (type == LOK_CALLBACK_TEXT_SELECTION) {
+  if (type == LOK_CALLBACK_INVALIDATE_VISIBLE_CURSOR) {
+    gLastCursorPayload = payload ? payload : "";
+  } else if (type == LOK_CALLBACK_TEXT_SELECTION) {
     gLastSelectionPayload = payload ? payload : "";
     ++gSelectionCallbacks;
   } else if (type == LOK_CALLBACK_UNO_COMMAND_RESULT) {
@@ -170,6 +173,7 @@ struct Readback {
   int type = -1;
   std::string text;
   std::string rectangles;
+  std::string cursor;
   int callbacks = 0;
 };
 
@@ -182,6 +186,7 @@ Readback readSelection(LibreOfficeKitDocument *document) {
   std::free(text);
   std::lock_guard<std::mutex> lock(gMutex);
   out.rectangles = gLastSelectionPayload;
+  out.cursor = gLastCursorPayload;
   out.callbacks = gSelectionCallbacks;
   return out;
 }
@@ -196,6 +201,7 @@ std::string readbackJson(const Readback &readback) {
   out += "],\"rectangleCount\":" +
          std::to_string(rectangleCount(readback.rectangles)) +
          ",\"rectangles\":\"" + jsonEscape(readback.rectangles) +
+         "\",\"cursor\":\"" + jsonEscape(readback.cursor) +
          "\",\"selectionCallbacks\":" + std::to_string(readback.callbacks) +
          "}";
   return out;
@@ -255,6 +261,12 @@ Readback position(LibreOfficeKitDocument *document, const Case &c,
                   "\"value\":\"") + jsonEscape(c.anchor) + "\"},"
       "\"SearchItem.Backward\":{\"type\":\"boolean\",\"value\":false},"
       "\"SearchItem.Command\":{\"type\":\"unsigned short\",\"value\":0}}";
+  // From the document's start: a load can restore the cursor where the file
+  // was last saved (the owner's PMPC document), and a search from there finds
+  // a later copy of the anchor first -- the table of contents repeats every
+  // heading (round-20261006T073914Z-second-search-fault).
+  dispatch(document, ".uno:GoToStartOfDoc", nullptr, 1500);
+  drain(300);
   // As e2b_native_crossparagraph.cpp: the search is posted without a result
   // request and given time; the selection readback below is the check.
   document->pClass->postUnoCommand(document, ".uno:ExecuteSearch",
@@ -277,6 +289,31 @@ Readback position(LibreOfficeKitDocument *document, const Case &c,
   return readSelection(document);
 }
 
+// Place the caret with ONE search, check the placement, and come back to it.
+// The check selects from the caret to the paragraph's (line's) far edge and
+// compares that text with the anchor; then a move without Shift returns to
+// the caret's edge of the same paragraph.  The first version searched again
+// after the check, and where the anchor had a second copy (a table of
+// contents) the arm measured the copy while the check had passed on the
+// original (round-20261006T073914Z-second-search-fault).
+Readback placeAndCheck(LibreOfficeKitDocument *document, const Case &c,
+                       std::string &search, std::string &checkText) {
+  position(document, c, search);
+  const char *edge = c.line ? (c.backward ? ".uno:EndOfLineSel" : ".uno:StartOfLineSel")
+                            : (c.backward ? ".uno:EndOfParaSel" : ".uno:StartOfParaSel");
+  dispatch(document, edge, nullptr, 1500);
+  drain(300);
+  checkText = readSelection(document).text;
+  // Backward: the point is at the far end, GoToStartOfPara collapses at this
+  // paragraph's start.  Forward: the point is at the start, and from a
+  // paragraph's start GoToEndOfPara is this paragraph's end.
+  const char *back = c.line ? (c.backward ? ".uno:GoToStartOfLine" : ".uno:GoToEndOfLine")
+                            : (c.backward ? ".uno:GoToStartOfPara" : ".uno:GoToEndOfPara");
+  dispatch(document, back, nullptr, 1500);
+  drain(300);
+  return readSelection(document);
+}
+
 void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
              const std::string &outDir, int presses) {
   const std::string stem =
@@ -293,19 +330,13 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
       std::cout << ",\"fatal\":\"documentLoad\"}" << std::endl;
       return;
     }
-    std::string search;
+    std::string search, check;
     // Placement self-check: from the caret to the paragraph's (line's) far
     // edge must be exactly the anchor, or this case measured another boundary.
-    position(document, c, search);
-    const char *edge = c.line ? (c.backward ? ".uno:EndOfLineSel" : ".uno:StartOfLineSel")
-                              : (c.backward ? ".uno:EndOfParaSel" : ".uno:StartOfParaSel");
-    dispatch(document, edge, nullptr, 1500);
-    drain(300);
-    const Readback check = readSelection(document);
-    const Readback placed = position(document, c, search);
+    const Readback placed = placeAndCheck(document, c, search, check);
     std::cout << ",\"search\":\"" << jsonEscape(search)
-              << "\",\"placementCheck\":\"" << jsonEscape(check.text)
-              << "\",\"placementOk\":" << (check.text == c.anchor ? "true" : "false")
+              << "\",\"placementCheck\":\"" << jsonEscape(check)
+              << "\",\"placementOk\":" << (check == c.anchor ? "true" : "false")
               << ",\"placed\":" << readbackJson(placed);
     key(document, (c.backward ? kLeft : kRight) | kShift);
     drain(700);
@@ -340,9 +371,12 @@ void runCase(LibreOfficeKit *kit, const char *url, const Case &c, int round,
       std::cout << ",\"fatal\":\"documentLoad\"}" << std::endl;
       return;
     }
-    std::string search;
-    const Readback placed = position(document, c, search);
-    std::cout << ",\"placed\":" << readbackJson(placed);
+    std::string search, check;
+    const Readback placed = placeAndCheck(document, c, search, check);
+    std::cout << ",\"search\":\"" << jsonEscape(search)
+              << "\",\"placementCheck\":\"" << jsonEscape(check)
+              << "\",\"placementOk\":" << (check == c.anchor ? "true" : "false")
+              << ",\"placed\":" << readbackJson(placed);
     key(document, c.backward ? kBackspace : kDelete);
     drain(900);
     std::cout << ",\"after\":" << readbackJson(readSelection(document))

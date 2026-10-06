@@ -234,8 +234,18 @@ def main() -> int:
                 if (e.get("placed") or {}).get("type") != 0:
                     placed_ok = False
             # The probe's own self-check: caret-to-edge text equals the anchor.
+            # Since 2026-10-06 (second-search fault) the key arm checks too, and
+            # both arms record where the caret was drawn: the two arms must
+            # have measured the same place, not just text equal to the anchor.
             if sel.get("placementOk") is not True:
                 placed_ok = False
+            if "placementOk" in key and key["placementOk"] is not True:
+                placed_ok = False
+            sel_cursor = (sel.get("placed") or {}).get("cursor")
+            key_cursor = (key.get("placed") or {}).get("cursor")
+            if sel_cursor is not None or key_cursor is not None:
+                if not sel_cursor or sel_cursor != key_cursor:
+                    placed_ok = False
             unit = sel.get("unit") or {}
             signatures.add((unit.get("type"), tuple(unit.get("codePoints") or ()), unit.get("rectangleCount")))
             stem = docs / f"r{r}-{case}"
