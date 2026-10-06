@@ -1,0 +1,15 @@
+H01 b        join, delete, join, ... past the undo limit
+    r1 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y count=1
+    r2 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y count=1
+    r3 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y count=1
+H01 key      join, delete, join, ... past the undo limit
+    r1 p1: doc=Y stack=Y [Delete paragraph] count=1 | p2: doc=Y stack=Y [Delete “b”] count=2 | p3: doc=Y stack=Y [Delete paragraph] count=3 | p4: doc=Y stack=Y [Delete “c”] count=3(count-only DISAGREES) | p5: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) | p6: doc=Y stack=Y [Delete “d”] count=3(count-only DISAGREES) | p7: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) | p8: doc=Y stack=Y [Delete “e”] count=3(count-only DISAGREES) | p9: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) | p10: doc=Y stack=Y [Delete “f”] count=3(count-only DISAGREES)
+    r2 p1: doc=Y stack=Y [Delete paragraph] count=1 | p2: doc=Y stack=Y [Delete “b”] count=2 | p3: doc=Y stack=Y [Delete paragraph] count=3 | p4: doc=Y stack=Y [Delete “c”] count=3(count-only DISAGREES) | p5: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) | p6: doc=Y stack=Y [Delete “d”] count=3(count-only DISAGREES) | p7: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) | p8: doc=Y stack=Y [Delete “e”] count=3(count-only DISAGREES) | p9: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) | p10: doc=Y stack=Y [Delete “f”] count=3(count-only DISAGREES)
+    r3 p1: doc=Y stack=Y [Delete paragraph] count=1 | p2: doc=Y stack=Y [Delete “b”] count=2 | p3: doc=Y stack=Y [Delete paragraph] count=3 | p4: doc=Y stack=Y [Delete “c”] count=3(count-only DISAGREES) | p5: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) | p6: doc=Y stack=Y [Delete “d”] count=3(count-only DISAGREES) | p7: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) | p8: doc=Y stack=Y [Delete “e”] count=3(count-only DISAGREES) | p9: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) | p10: doc=Y stack=Y [Delete “f”] count=3(count-only DISAGREES)
+H01 select   join, delete, join, ... past the undo limit
+    r1 p1: doc=Y stack=Y [Delete paragraph] count=1
+    r2 p1: doc=Y stack=Y [Delete paragraph] count=1
+    r3 p1: doc=Y stack=Y [Delete paragraph] count=1
+
+presses: 36, stack-vs-content.xml disagreements: 0
+undo limit 3: highest count seen 3 (reached); count-only disagreements: 21; presses where the stack changed only in its timestamps: 0

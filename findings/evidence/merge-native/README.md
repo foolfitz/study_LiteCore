@@ -159,3 +159,16 @@ The comment of a folded delete is the deleted text shortened to `aaaaaaaa...aaaa
 - The undo stack changed **exactly** when the document did on every press at a boundary or on a no-op (324 presses across the three boundary batches: 174 + 60 + 90); it fails only for a long run of identical characters deleted one by one inside a paragraph (G10, G11 from press 20), where B is not used.
 - Where the step cannot be taken back (C08: Delete before a bullet item lands in front of the label; C15, C16: a table selected whole), the caret check fails every time, so B can refuse there before pressing anything.
 - Not measured here, and needed before B ships: the order of a posted key and the engine's undo readback on WASM; the undo stack at its limit (the count saturates; the whole payload must be compared); a delete on a real no-op inside a protected index entry.
+
+## Fifth round: the undo stack at its limit (`limit/`)
+
+Why: B's proof cannot be `.uno:UndoCount` once the stack is full (the count stops moving), so the engine would compare the whole `.uno:Undo` payload. Predictions `PREDICTION-5.md` (`b3eaf3b4`), which also records the payload's shape and the default limit (100, `Common.xcs`), both read from source. Probe `d30bbce8…` (unchanged since round four), `MERGE_UNDO_STEPS=3` (the runner writes it into the profile; `undo-steps.txt`), PRESSES=10, 3 rounds. The reader now fails a round whose count never reached the limit (red case in `PREDICTION-5.md`).
+
+| Round | Fixture, case | Key arm, per round | Payload vs `content.xml` | `.uno:UndoCount` alone vs `content.xml` |
+|---|---|---|---|---|
+| `round-20261006T085152Z` | `undo-limit.fodt` (`ab3d8662…`), H01 | 10 presses, each a new action, comments alternating `Delete paragraph` / `Delete “b”`…`“f”`; count 1, 2, 3, then 3 | agree 30/30 | disagree on presses 4–10: **21** |
+| `round-20261006T085306Z` | `undo-limit-same.fodt` (`09cf2c3a…`), H02 | presses 1–8 join an empty paragraph, all `Delete paragraph`; presses 9–10 at the document's end change nothing; count 1, 2, 3, then 3 | agree 30/30, including the two no-ops with the stack full | disagree on presses 4–8: **15** |
+
+In H02, presses 4–8 (15 presses) changed the payload **only in its timestamps**: the three listed actions all read `Delete paragraph` before and after. Select and b arms (one press, below the limit): b's caret came back and its document equals the key arm's first press, 6/6. 72 presses, **0 payload disagreements**. Every prediction held.
+
+What this says for B: comparing the whole payload works at the limit, natively. When the newest actions share a comment, what moves is the newest action's `dateTime` — natively nanoseconds; on WASM `Date.now()`, whole milliseconds (read, `PREDICTION-5.md`). So on WASM the payload is guaranteed to move only if B's key lands in a later millisecond than the action before it; the engine can make that a guarantee rather than a likelihood by posting the key only after its wall clock (the same `Date.now()`) has passed the millisecond in which it read the payload. Not measured: anything on WASM.

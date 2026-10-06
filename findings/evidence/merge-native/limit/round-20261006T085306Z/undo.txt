@@ -1,0 +1,15 @@
+H02 b        join an empty paragraph x8 (same comment), then the document end x2
+    r1 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y count=1
+    r2 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y count=1
+    r3 p1: doc=Y stack=Y [Delete paragraph]  restore=ok =key=Y count=1
+H02 key      join an empty paragraph x8 (same comment), then the document end x2
+    r1 p1: doc=Y stack=Y [Delete paragraph] count=1 | p2: doc=Y stack=Y [Delete paragraph] count=2 | p3: doc=Y stack=Y [Delete paragraph] count=3 | p4: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p5: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p6: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p7: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p8: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p9: doc=n stack=n [Delete paragraph] count=3 | p10: doc=n stack=n [Delete paragraph] count=3
+    r2 p1: doc=Y stack=Y [Delete paragraph] count=1 | p2: doc=Y stack=Y [Delete paragraph] count=2 | p3: doc=Y stack=Y [Delete paragraph] count=3 | p4: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p5: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p6: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p7: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p8: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p9: doc=n stack=n [Delete paragraph] count=3 | p10: doc=n stack=n [Delete paragraph] count=3
+    r3 p1: doc=Y stack=Y [Delete paragraph] count=1 | p2: doc=Y stack=Y [Delete paragraph] count=2 | p3: doc=Y stack=Y [Delete paragraph] count=3 | p4: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p5: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p6: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p7: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p8: doc=Y stack=Y [Delete paragraph] count=3(count-only DISAGREES) stamps-only | p9: doc=n stack=n [Delete paragraph] count=3 | p10: doc=n stack=n [Delete paragraph] count=3
+H02 select   join an empty paragraph x8 (same comment), then the document end x2
+    r1 p1: doc=Y stack=Y [Delete paragraph] count=1
+    r2 p1: doc=Y stack=Y [Delete paragraph] count=1
+    r3 p1: doc=Y stack=Y [Delete paragraph] count=1
+
+presses: 36, stack-vs-content.xml disagreements: 0
+undo limit 3: highest count seen 3 (reached); count-only disagreements: 15; presses where the stack changed only in its timestamps: 15
