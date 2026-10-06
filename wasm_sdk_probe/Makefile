@@ -1222,6 +1222,73 @@ $(E2_V8_DIST)/sdk-manifest.json: $(E2_V8_BUILD)/probe.js \
 $(E2_V8_BUILD) $(E2_V8_DIST):
 	mkdir -p $@
 
+# ------------------------------------------- v15, paragraph merge (option B)
+#
+# specs/SPEC-M3-paragraph-merge.md: v8's rules with one macro added,
+# OXSDK_MERGE_KEY_UNDO (the E shape, section 16).  A copy, not a template
+# shared with v8, for the reason v4 -> v8 gave: v8 is bound to verdicts and
+# must not change when this block does.  The macro is defined here and
+# nowhere else; tools/check_merge_key_undo_scope.py checks that every other
+# rule's objects preprocess to the same bytes as before B.  The v14 a11y line
+# has no B.
+E2_V15_BUILD := build/e2/editor-v15
+E2_V15_DIST := dist/profiles/e2-editor-v15
+E2_V15_SOURCES := $(E2_C_SOURCES)
+E2_V15_OBJECTS := $(patsubst src/%.cpp,$(E2_V15_BUILD)/%.o,$(E2_V15_SOURCES))
+
+$(E2_V15_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/format_readback_text.hpp src/a11y_paragraph_identity.hpp \
+		src/merge_key_undo.hpp Makefile | $(E2_V15_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v8's export list, made by v8's recipe (not copied out of v8's build
+# directory, which a v15 build must not touch).
+$(E2_V15_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V15_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V15_BUILD)/probe.js: $(E2_V15_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V15_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,the paragraph-merge product artifact (v15) -- every link mints a new hash)
+	$(call link_r5_product,$(E2_V15_OBJECTS) $(EXTRA_OBJECTS),$(E2_V15_BUILD)/exports.txt,$@)
+
+$(E2_V15_BUILD)/probe.wasm: $(E2_V15_BUILD)/probe.js
+	@test -s $@
+
+# The v15 product profile: v8's, including the gestures v8 ships.
+$(E2_V15_DIST)/sdk-manifest.json: $(E2_V15_BUILD)/probe.js \
+		$(E2_V15_BUILD)/probe.wasm \
+		$(E2_V15_BUILD)/exports.txt sdk/sdk-worker.js \
+		sdk/r6-writer-review-manifest.json \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V15_DIST)
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/r6-writer-review-manifest.json \
+		--loader $(E2_V15_BUILD)/probe.js --wasm $(E2_V15_BUILD)/probe.wasm \
+		--worker sdk/sdk-worker.js --exports $(E2_V15_BUILD)/exports.txt \
+		--profile e2-editor-v15 --inline-range-gestures all \
+		--output $(E2_V15_DIST)
+	@test -s $(E2_V15_DIST)/probe.js
+	@test -s $(E2_V15_DIST)/probe.wasm
+	@test -s $(E2_V15_DIST)/sdk-worker.js
+
+$(E2_V15_BUILD) $(E2_V15_DIST):
+	mkdir -p $@
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The
@@ -3233,6 +3300,16 @@ test-e2-c-static:
 	# this -- its client side is the UNION of two shells and one of them
 	# refuses to attach to the v2 profile at all.
 	node --test editor-shell-v2/tests/manifest-reachability.test.mjs
+	# SPEC-M3-paragraph-merge.  13.2: no LOK call or emit under the engine's
+	# mutexes.  M1-2: option B's attribution against a generated LOK model.
+	# M1-1: B reaches only the v15 objects; the base is the last commit
+	# before B's engine code (5d77dc84).
+	python3 tools/check_engine_lock_scopes.py
+	mkdir -p build
+	$(HOST_CXX) -std=c++17 -O2 -Isrc -o build/merge_key_undo_model_test \
+		tests/merge_key_undo_model_test.cpp
+	build/merge_key_undo_model_test > /dev/null
+	python3 tools/check_merge_key_undo_scope.py --base 5d77dc84
 	# E2-C must never touch what E1-C bound.  Read-only on purpose: a static
 	# target that rewrites verdict-bound evidence has happened here once.
 	python3 tools/check_e1_c_bundle_intact.py > /dev/null

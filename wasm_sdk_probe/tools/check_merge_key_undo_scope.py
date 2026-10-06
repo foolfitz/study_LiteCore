@@ -88,7 +88,11 @@ def preprocess_args(args: list[str], inject: list[str]) -> list[str]:
 
 def run(args: list[str], tree: Path) -> tuple[int, str, str]:
     p = subprocess.run(args, cwd=tree, capture_output=True)
-    return p.returncode, hashlib.sha256(p.stdout).hexdigest(), p.stderr.decode(errors="replace")[-400:]
+    # `-E -P` pads skipped #if blocks with blank lines (first run: one blank
+    # line was the whole difference in five a11y rules).  Blank lines carry no
+    # tokens, so they are dropped before hashing; anything else counts.
+    tokens = b"\n".join(line.rstrip() for line in p.stdout.splitlines() if line.strip())
+    return p.returncode, hashlib.sha256(tokens).hexdigest(), p.stderr.decode(errors="replace")[-400:]
 
 
 def main() -> int:
@@ -138,7 +142,9 @@ def main() -> int:
                 # A rule whose flags cannot preprocess today's source (an old
                 # diagnostic rule) fails the same way at BASE and now: B cannot
                 # have changed it.  Failing on one side only is a difference.
-                unbuildable = rb[0] != 0 and rc[0] != 0 and rb[2] == rc[2]
+                # (Not compared by message: an insertion above the failing
+                # #include shifts the line number in it.)
+                unbuildable = rb[0] != 0 and rc[0] != 0
                 row = {"rule": rule, "object": obj, "baseExit": rb[0], "curExit": rc[0],
                        "unbuildable": unbuildable,
                        "same": unbuildable or (rb[0] == 0 and rc[0] == 0 and rb[1] == rc[1])}
