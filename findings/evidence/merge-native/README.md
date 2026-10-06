@@ -224,3 +224,35 @@ Why: `specs/SPEC-M3-paragraph-merge.md` 4.2 (corrected in 10.2 and 12) — rerun
 **G14**: 0 disagreements (both presses change the payload). As predicted.
 
 What R0 does not cover: the anchor-side selection rectangle the engine's fence will compare (spec 13.1) — the probe did not record `TEXT_SELECTION_START`/`_END`; that is R0b.
+
+## R0b: the anchor rectangle against the placed caret (`r0b/`)
+
+Why: `specs/SPEC-M3-paragraph-merge.md` 13.1 adopted a fence — the anchor-side rectangle in the unit's own flush (`TEXT_SELECTION_START` for Shift+Right, `_END` for Shift+Left) must equal the caret P on (x, y, height) — and required its premise to be measured before any engine code. Instruments `dcbed256`; predictions and the reader's candidate-mapping output `PREDICTION-R0b.md` (`596443ba`), both before the run. One round per case file, `MERGE_RESTORE_PRESSES=2`, no follow text; probe sha `9592f294…` in every `inputs.sha256`.
+
+| Run | Directory | Input |
+|---|---|---|
+| 1 | `r0b/round-20261006T130630Z/` | `odt/boundaries.odt` (`3c17c870…`), `r0-boundaries.cases.tsv` |
+| 2 | `r0b/round-20261006T131205Z/` | `odt/boundaries-indent.odt` (`95009f10…`), `r0-indent.cases.tsv` |
+| 3 | `r0b/pmpc-round-20261006T131344Z/` (arms only; documents under `wasm_sdk_probe/build/merge-native-pmpc/r0b/`) | the owner's document (`7b336879…`), `r0-pmpc.cases.tsv` |
+
+Reader: `tools/check_merge_anchor_rect.py --json r0b/anchor-rect.json <the three>` → exit 1, `{"agree": 0, "differ": 66, "absent": 2, "xDiffers": 0, "yDiffers": 6, "heightDiffers": 66, "mappingHolds": 66, "mappingFails": 0}`.
+
+Sanity: every arm's placed caret, unit text, unit caret, caret after, and restore press count equals R0 round 1's for the same case (111 arms, 0 differences) — the probe change did not move what was measured.
+
+| What | Predicted | Measured |
+|---|---|---|
+| Rows | 68 | 68 |
+| x | equal on all | equal on all 66 with an anchor |
+| height | anchor = caret − 1 on 62; P27/P62/P63 anchor 399, caret 348 | **as predicted** (60 + 6; C17's two rows have no anchor) |
+| y | equal except P27/P62/P63, anchor = caret − 52 | **as predicted** |
+| Anchor width | 0 | 0 on all 66 |
+| `absent` | 0 | **2: C17 select and b — predicted wrong** |
+| Candidate mapping (equal x; anchor y ≤ caret y; caret y + h ≤ anchor y + h + 1) | holds on 68 | holds on all 66 with an anchor |
+
+Why the heights never agree (source, `PREDICTION-R0b.md`): the caret payload is a rectangle built as `(x, y, x + w, y + h)` and printed open, so it shows `h`; the anchor is `SwRect::SVRect()`, which subtracts one from each dimension. On lines holding a taller portion than the caret's, the caret is also moved down by the ascent difference and is shorter than the line (`m_aRealHeight`), while the anchor is the whole line: the bottoms coincide (P27: 42820 + 348 = 42768 + 399 + 1).
+
+**Why C17 has no anchor (read after the run):** Shift+Right at the end of a cell with a next cell makes a table-cell selection. Writer then creates `m_pTableCursor`, deletes the shell cursor's mark and clears its rectangles (`crsrsh.cxx:2104–2108`). The START/END payload is taken from the shell cursor, not the table cursor (`wrtsh4.cxx:273–275`: `GetCursor_()->getLOKPayload`), and an empty shell cursor returns nothing (`viscrs.cxx:550–551`). So **every** table-cell selection sends no anchor, not just C17; the TEXT_SELECTION rectangles still arrive (they are gathered from all cursors). C15 and C16 (a paragraph next to a table, the unit swallowing a whole row) are text selections and do carry an anchor. I had seen `SwShellTableCursor::FillStartEnd` while reading for the prediction and did not follow where the payload is actually taken from.
+
+What this says for the design: §13.1's rule as written would refuse every merge (height), and on lines with a taller portion also on y. The mapping registered before the run held everywhere an anchor existed. A table-cell selection always refuses at the fence, before the key — where B must refuse anyway, but earlier than the criterion M2-3b expected (`key-deadline` with the key posted). Both go to the spec as §14.
+
+What R0b does not measure: that a stale P is caught (the other half of the fence); placement by click; a caret in front of a numbering label; overlapping text areas (a text frame over body text).
