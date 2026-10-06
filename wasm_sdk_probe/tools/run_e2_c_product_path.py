@@ -2261,8 +2261,13 @@ MUTATIONS = {
     "save": {
         "check": "product-save-button-writes-a-real-odt",
         "path": "e2-editor-app.js",
-        "find": 'const { bytes } = await run("儲存", () => session.save());',
-        "replace": 'const bytes = await run("儲存", () => session.save());',
+        # The save path takes its bytes from a producer since B1 (2026-10-06,
+        # SPEC-M3-production-ui §9: the rescue at the Worker generation ceiling
+        # saves bytes the engine can no longer produce).  The ordinary producer
+        # is `run("儲存", () => session.save())`, and this line is where its
+        # result is taken apart -- the same line 049 broke.
+        "find": 'const { bytes } = await take();',
+        "replace": 'const bytes = await take();',
         "reintroduces": "finding 049",
         # Breaking the save button also blinds the IME check, whose document
         # half is read THROUGH the product's own save -- there is no other way

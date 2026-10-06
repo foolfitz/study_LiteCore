@@ -548,7 +548,26 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # forcing changes; frozen once they stopped (all six M3 runners clean on page
 # fc80050c and host 0.2.4, b954857d).  Still pins `e2-editor-v8`; no engine
 # change, no link.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v54.json")
+#
+# v55, 2026-10-06: M3 production UI (specs/SPEC-M3-production-ui.md), two files.
+#
+#   * `editor-shell-v2/narrow-editor-v2-session.js` -- a boundary refusal
+#     banks the content inside the refusal and `restartKeepsContent()` says
+#     whether a restart keeps it (finding 109); `restartAvailable()` and
+#     `takeContentForRescue()` for the Worker generation ceiling (B1, §9).
+#   * `web/e2-editor-app.js` -- the page reopens on its own after a boundary
+#     refusal when nothing is lost, and at the ceiling hands the content to
+#     the save path and asks for a reload instead of restarting (B1); the
+#     notice says which (`data-limit`); the sink gets its focus back the moment
+#     `restart()` returns; the toolbar and Ctrl+Z/Y/S do nothing outside
+#     ready/busy.
+#
+# NOT frozen in the same commit as the change (finding 091's rule): the page
+# changed in 27402abc, ec951c41, 04d19fcd and bc95b342 as the round's
+# shakedowns and two reviews forced changes; frozen once B3x, Bdel and Bbs were
+# clean in both browsers on host 0.2.7 (shake4, 68f68b1b).  Still pins
+# `e2-editor-v8`; no engine change, no link.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v55.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
