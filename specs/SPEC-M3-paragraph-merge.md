@@ -769,3 +769,26 @@ v16 3 NE；同一格在當天早上的 v8（另一個 runner sha）是 3 NE。NE
 
 任何一格出現 v8 沒有的 FAIL → 紅。登錄極限：v8 會放棄判斷的格子（Firefox 上沒有 CDP 的 11–12 格、以及上面這格）對 v16 不作宣稱——若 v16 的退步
 正好表現成「前置條件更常不成立」，這條看不到。從來沒做時：v16 沒有產品路徑的判定。
+
+## 24. 追加（2026-10-07，任何計數 M2 之前）：M2-0 的結果與化約
+
+**量到的**（`findings/evidence/v16-shakedown/merge/shakedown-chrome-3`，v16、Chrome、頁面 `b003534c…`；WASM 載入＋存檔、不編輯，對原生 R0c 那一輪的
+`original.odt`）：四份輸入的 `content.xml` 都**位元組不同、段落文字相同**。差異（`xmllint --format` 之後逐行比）：
+
+| 輸入 | 差異 |
+| --- | --- |
+| boundaries、boundaries-indent、text-frame | 只有一處：根元素 `office:document-content` 上 namespace 宣告的**順序** |
+| 擁有者的文件 | 同上，加上：原生多一個空的 `<office:forms form:automatic-focus="false" form:apply-design-mode="false"/>`；`<text:soft-page-break/>` 的位置不同（約二十處——分頁點是版面，WASM 用的字型不同） |
+
+**第 5 節的 M2-0 預測錯兩處**：「合成文件相同」不成立（三份都差在 namespace 順序）；擁有者文件的差異不在「自動樣式或字型宣告」，在表單宣告與分頁點。
+
+**化約**（只從上表推出，`run_merge_wasm_shakedown.reduce_content`）：①根元素的 `xmlns:*` 依名稱排序（其餘屬性原順序）；②移除空的 `<office:forms …/>`；
+③移除 `<text:soft-page-break/>`。化約後四份 M2-0 位元組相等。
+
+**非崩塌證明（10.2）**：工具封閉的 32 個 case（M2-1 31＋barrier 1）裡，化約後原生「按鍵前」與「鍵臂」文件**沒有一對變成相同**
+（`reduction_collapses()` 回空；單元測試 `Reduction.test_no_case_collapses`）。化約本身的紅案：namespace 的值、段落文字、根元素的其他屬性、段落的樣式屬性，
+任何一個改了都還是不同；兩個突變（排序拿掉、把根元素屬性全丟）都被測試抓到。
+
+**於是**：M2-1 的「存出來的 `content.xml`（化約後）等於原生鍵臂的」從 NE 變成一條會判的條款（`afterKeyBytes`）。同一次執行的前 14 個 merge／barrier case，
+化約後**逐位元組等於 Writer 自己按鍵的文件**（未計數的 shakedown，只是這條判準第一次有資料，不是它的判定）。登錄極限：③讓 M2-1 看不到分頁點的差異——
+那是版面的事，由 20.3／21.2 的語料版面比對負責，不由 M2 負責。

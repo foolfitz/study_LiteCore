@@ -61,6 +61,7 @@ import functools
 import hashlib
 import io
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -374,6 +375,46 @@ def tool_cases(frame_cell: bool) -> dict:
     return out
 
 
+# M2-0's reduction (spec 24), derived from the no-edit diff of 2026-10-07
+# (shakedown-chrome-3: all four fixtures load+save on WASM against native
+# original.odt) and from nothing else.  Three differences, three operations:
+#   1. the root element's namespace declarations in another order (all four);
+#   2. an empty <office:forms .../> the native build writes and WASM does not
+#      (the owner's document);
+#   3. <text:soft-page-break/> at other places (the owner's document): where a
+#      page ends is layout, and WASM lays out with other fonts.
+ROOT_TAG = re.compile(rb"<office:document-content ([^>]*)>")
+ATTRIBUTE = re.compile(rb'(\S+?)="([^"]*)"')
+
+
+def reduce_content(content: bytes) -> bytes:
+    def root(match: re.Match) -> bytes:
+        attributes = ATTRIBUTE.findall(match.group(1))
+        names = sorted(a for a in attributes if a[0].startswith(b"xmlns:"))
+        rest = [a for a in attributes if not a[0].startswith(b"xmlns:")]
+        return (b"<office:document-content "
+                + b" ".join(k + b'="' + v + b'"' for k, v in names + rest) + b">")
+    content, found = ROOT_TAG.subn(root, content, count=1)
+    if found != 1:
+        raise ValueError("content.xml has no office:document-content start tag")
+    content = re.sub(rb"<office:forms [^>]*/>", b"", content)
+    return content.replace(b"<text:soft-page-break/>", b"")
+
+
+def reduction_collapses() -> list[str]:
+    """Spec 10.2 (M2-0): cases whose native before-key and key-arm documents
+    become EQUAL under the reduction.  Any such case refuses the reduction."""
+    out = []
+    for case, spec in tool_cases(frame_cell=False).items():
+        if spec["expected"][0] == "refused":
+            continue
+        before = reduce_content(odt_parts(spec["original"].read_bytes())["content"])
+        after = reduce_content(odt_parts(spec["key"].read_bytes())["content"])
+        if before == after:
+            out.append(case)
+    return out
+
+
 def odt_parts(raw: bytes) -> dict:
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
         content = archive.read("content.xml")
@@ -395,6 +436,7 @@ def compare(raw: bytes | None, reference: Path, private: bool) -> dict:
                   if a != b), None)
     out = {"saved": True, "reference": reference.name,
            "bytesEqual": mine["content"] == theirs["content"],
+           "reducedBytesEqual": reduce_content(mine["content"]) == reduce_content(theirs["content"]),
            "textEqual": mine["paragraphs"] == theirs["paragraphs"],
            "mine": mine["sha"], "theirs": theirs["sha"],
            "paragraphs": [len(mine["paragraphs"]), len(theirs["paragraphs"])],
@@ -506,9 +548,9 @@ def merge_clauses(out: dict, spec: dict) -> dict:
     clauses = {"outcome": out.get("outcome") == spec["expected"][0],
                "generation": out["generation"][0] == out["generation"][1],
                "afterKeyText": (out.get("afterKeyDocument") or {}).get("textEqual") is True,
-               # M2-0: WASM and native differ with no edit, so bytes wait for
-               # the reduction appended to the spec (4.3).
-               "afterKeyBytes": None,
+               # M2-0: WASM and native differ with no edit; compared after
+               # the reduction appended to the spec (24).
+               "afterKeyBytes": (out.get("afterKeyDocument") or {}).get("reducedBytesEqual") is True,
                "followText": (out.get("followDocument") or {}).get("textEqual") is True,
                "noToast": out.get("toasts") == []}
     if spec["criterion"] == "M2-1":

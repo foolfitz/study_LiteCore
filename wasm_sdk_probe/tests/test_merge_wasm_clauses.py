@@ -43,13 +43,14 @@ class MergeClauses(unittest.TestCase):
         for case in ("C01", "C03", "I02", "C11", "Y01"):
             clauses = m.merge_clauses(observed_merge(case), CASES[case])
             self.assertTrue(verdict(clauses), (case, clauses))
-            self.assertIsNone(clauses["afterKeyBytes"], "bytes wait for M2-0's reduction")
+            self.assertTrue(clauses["afterKeyBytes"], case)
 
     def test_red_the_select_arm_is_not_the_key(self):
         # 10.2: C03's native select-arm document as what the page saved.
         clauses = m.merge_clauses(observed_merge("C03", key_doc=DOCS / "r1-C03-select.odt"),
                                   CASES["C03"])
         self.assertFalse(clauses["afterKeyText"])
+        self.assertFalse(clauses["afterKeyBytes"])
         self.assertFalse(verdict(clauses))
 
     def test_red_a_different_undo_comment(self):
@@ -119,6 +120,39 @@ class RefusalClauses(unittest.TestCase):
         clauses = m.refusal_clauses(observed_refusal("C17", self.reopen, generation=("1", "1")),
                                     CASES["C17"], self.expected, self.expected)
         self.assertFalse(clauses["generation"])
+
+
+ROOT = (b'<office:document-content xmlns:b="u2" xmlns:a="u1" office:version="1.4">'
+        b'<office:body><office:text><office:forms form:automatic-focus="false" '
+        b'form:apply-design-mode="false"/><text:p>ab<text:soft-page-break/>cd</text:p>'
+        b'</office:text></office:body></office:document-content>')
+
+
+class Reduction(unittest.TestCase):
+    """Spec 24: M2-0's three operations, and nothing they should not do."""
+
+    def test_the_three_differences_reduce_away(self):
+        other = (ROOT.replace(b'xmlns:b="u2" xmlns:a="u1"', b'xmlns:a="u1" xmlns:b="u2"')
+                 .replace(b'<office:forms form:automatic-focus="false" '
+                          b'form:apply-design-mode="false"/>', b"")
+                 .replace(b"ab<text:soft-page-break/>cd", b"abc<text:soft-page-break/>d"))
+        self.assertNotEqual(ROOT, other)
+        self.assertEqual(m.reduce_content(ROOT), m.reduce_content(other))
+
+    def test_red_a_namespace_value_text_or_attribute_still_differs(self):
+        for changed in (ROOT.replace(b'"u2"', b'"u3"'), ROOT.replace(b"cd</text:p>", b"cx</text:p>"),
+                        ROOT.replace(b'office:version="1.4"', b'office:version="1.3"'),
+                        ROOT.replace(b"<text:p>", b'<text:p text:style-name="P1">')):
+            self.assertNotEqual(m.reduce_content(ROOT), m.reduce_content(changed))
+
+    def test_no_case_collapses(self):
+        # 10.2: the reduction is refused if it makes any case's native
+        # before-key and key-arm documents equal.
+        self.assertEqual(m.reduction_collapses(), [])
+
+    def test_no_root_is_an_error(self):
+        with self.assertRaises(ValueError):
+            m.reduce_content(b"<office:document-styles/>")
 
 
 class List(unittest.TestCase):
