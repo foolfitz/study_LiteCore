@@ -146,6 +146,7 @@ def expectation(decision: str | None) -> tuple[str, tuple]:
 OBSERVER = r"""<script>
 (() => {
   const Native = window.Worker;
+  const RECORD = true;   // false on the paired control (spec 22.3): caret and size only
   const KEEP = 64;
   const obs = { workers: 0, responses: [], responsesSeen: 0, caret: null, carets: 0,
                 size: null };
@@ -163,8 +164,8 @@ OBSERVER = r"""<script>
       obs.carets += 1; later(); return;
     }
     if (data.kind !== "response") return;
-    const request = requests.get(data.requestId) || {};
-    requests.delete(data.requestId);
+    const request = (requests && requests.get(data.requestId)) || {};
+    if (requests) requests.delete(data.requestId);
     const value = data.ok ? data.result : data.error;
     if (value && typeof value === "object") {
       let size = null;
@@ -178,6 +179,7 @@ OBSERVER = r"""<script>
         obs.size = { ...size, generation }; later();
       }
     }
+    if (!RECORD) return;
     const editor = /^editorAction/.test(request.operation || "");
     const marked = value && typeof value === "object"
       && (value.keyUndo || value.mergeKey || value.completion);
@@ -197,14 +199,16 @@ OBSERVER = r"""<script>
     if (options && options.name === "oxoffice-document-engine") {
       obs.workers += 1;
       const generation = obs.workers;
-      const requests = new Map();
-      const post = worker.postMessage.bind(worker);
-      worker.postMessage = (message, transfer) => {
-        if (message && message.kind === "request")
-          requests.set(message.requestId, { operation: message.operation,
-                                            action: message.payload?.action });
-        return post(message, transfer);
-      };
+      const requests = RECORD ? new Map() : null;
+      if (RECORD) {
+        const post = worker.postMessage.bind(worker);
+        worker.postMessage = (message, transfer) => {
+          if (message && message.kind === "request")
+            requests.set(message.requestId, { operation: message.operation,
+                                              action: message.payload?.action });
+          return post(message, transfer);
+        };
+      }
       worker.addEventListener("message", (event) => {
         try { seen(event.data, generation, requests); }
         catch (error) { obs.error = String(error); later(); }
@@ -538,7 +542,12 @@ def refusal_clauses(out: dict, spec: dict, expected_text: list | None, mine: lis
     return clauses
 
 
-def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: str) -> dict:
+# What only the full instrument can see (spec 22.2); NE on the paired control.
+INSTRUMENT_ONLY = ("outcome", "stage", "keyPosted", "comment", "restorePresses")
+
+
+def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: str,
+             control: bool = False) -> dict:
     private = spec["private"]
     out = {"case": case, "round": round_no, "fixture": spec["fixture"],
            "criterion": spec["criterion"], "decision": spec["decision"],
@@ -584,7 +593,7 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
     # (the observer records those since the review, mergeKey or not, and never
     # a failed paint); everything before it is kept as `intervening`.
     response, intervening, lost = None, [], False
-    deadline = time.monotonic() + 20
+    deadline = time.monotonic() + (0 if control else 20)
     while time.monotonic() < deadline and response is None:
         record = obs(session).get("responses") or []
         lost = bool(record) and record[0].get("n", 0) > responses_before
@@ -606,7 +615,7 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
         out["code"] = response.get("code")
         out["stage"], out["keyPosted"] = mk.get("stage"), mk.get("keyPosted")
     else:
-        out["outcome"] = "no-response"
+        out["outcome"] = "control" if control else "no-response"
     if refusal or out["outcome"] == "refused":
         out["toastWindow"] = toast_window(session, gen_before)
         out["afterKey"] = quiet(session, 90)
@@ -639,6 +648,8 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
         out["followDocument"] = compare(save(session, f"{case}-r{round_no}-follow", private),
                                         spec["follow"], private)
         out["clauses"] = merge_clauses(out, spec)
+    if control:
+        out["clauses"].update({k: None for k in INSTRUMENT_ONLY if k in out["clauses"]})
     out["notEstablished"] = sorted(k for k, v in out["clauses"].items() if v is None)
     out["pass"] = all(v for v in out["clauses"].values() if v is not None)
     return out
@@ -653,6 +664,45 @@ def m2_0(session, fixture: str, url: str) -> dict:
                                 round_dir / "docs" / "original.odt", private)}
 
 
+def kept_text(report_path: Path, case: dict, kind: str) -> list | None:
+    """Paragraph text of a document a run kept (its own .docs, or build/ when private)."""
+    stem = report_path.stem
+    for folder in (report_path.parent / f"{stem}.docs",
+                   HERE / "build" / "merge-wasm-private" / f"{stem}.docs"):
+        path = folder / f"{case['case']}-r{case['round']}-{kind}.odt"
+        if path.is_file():
+            return odt_parts(path.read_bytes())["paragraphs"]
+    return None
+
+
+def pair(instrumented: Path, control: Path) -> dict:
+    """Spec 22.3: the instrumented run against its paired control, case by case."""
+    a, b = (json.loads(path.read_text()) for path in (instrumented, control))
+    if a.get("control") or not b.get("control"):
+        raise SystemExit("pass the instrumented report first and the control second")
+    index = {(c["case"], c["round"]): c for c in b["cases"]}
+    rows = []
+    for x in a["cases"]:
+        y = index.get((x["case"], x["round"]))
+        if y is None:
+            rows.append({"case": x["case"], "round": x["round"], "missingInControl": True})
+            continue
+        def seen(c):
+            window = c.get("toastWindow")
+            return ((window or {}).get("generation") if window else (c.get("generation") or [None, None])[1],
+                    (window or {}).get("toasts") if window else c.get("toasts"))
+        row = {"case": x["case"], "round": x["round"],
+               "generation": seen(x)[0] == seen(y)[0], "toasts": seen(x)[1] == seen(y)[1]}
+        for kind in ("after-key", "follow", "reopened"):
+            mine, theirs = kept_text(instrumented, x, kind), kept_text(control, y, kind)
+            if mine is not None or theirs is not None:
+                row[kind] = mine == theirs
+        row["same"] = all(v for k, v in row.items() if k not in ("case", "round"))
+        rows.append(row)
+    return {"instrumented": instrumented.name, "control": control.name, "pairs": len(rows),
+            "differ": [r for r in rows if not r.get("same")]}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--browser", choices=("chrome", "firefox"), default="chrome")
@@ -663,8 +713,19 @@ def main() -> int:
     ap.add_argument("--frame-cell", action="store_true",
                     help="also run spec 22.2's registered text-frame cell (F01, F02)")
     ap.add_argument("--rounds", type=int, default=1)
-    ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--out", type=Path)
+    ap.add_argument("--control", action="store_true",
+                    help="the paired control (spec 22.3): an observer that keeps only the caret "
+                         "and the document size; outcome, stage, keyPosted, comment and "
+                         "restorePresses are NE")
+    ap.add_argument("--pair", nargs=2, type=Path, metavar=("INSTRUMENTED", "CONTROL"),
+                    help="offline: compare a run with its paired control and exit")
     args = ap.parse_args()
+    if args.pair:
+        print(json.dumps(pair(*args.pair), indent=1, ensure_ascii=False))
+        return 0
+    if args.out is None:
+        raise SystemExit("--out is required")
 
     root = HERE / "dist"
     # THE CUTOVER'S SOURCE, not dist's.  `tools/build_cutover_page.py` repoints
@@ -681,7 +742,10 @@ def main() -> int:
     anchor = '<script type="module" src="./e2-editor-app.js"></script>'
     if html.count(anchor) != 1:
         raise SystemExit("the page's module script is not where the instrument expects it")
-    instrumented = html.replace(anchor, OBSERVER + anchor)
+    observer = OBSERVER.replace("const RECORD = true;", "const RECORD = false;") if args.control else OBSERVER
+    if args.control and observer == OBSERVER:
+        raise SystemExit("the observer's RECORD switch is not where --control expects it")
+    instrumented = html.replace(anchor, observer + anchor)
     mirror = Path(tempfile.mkdtemp(prefix="merge-wasm-")) / "root"
     pp.build_mirror(root, mirror, {"e2-editor-app.js": page.encode("utf-8"),
                                    "e2-editor.html": instrumented.encode("utf-8")})
@@ -722,7 +786,8 @@ def main() -> int:
         # The owner's document: what the page saves from it stays in build/.
         DOCS["private"] = HERE / "build" / "merge-wasm-private" / f"{args.out.stem}.docs"
         DOCS["private"].mkdir(parents=True, exist_ok=False)
-    report = {"counted": False, "instrumented": True, "browser": args.browser,
+    report = {"counted": False, "instrumented": not args.control, "control": args.control,
+              "browser": args.browser,
               "startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
               "candidate": {"profile": args.candidate_profile, "pinBefore": pin_before,
                             "pageSource": pp.CUTOVER_PAGE_SOURCE.relative_to(HERE).as_posix(),
@@ -760,7 +825,7 @@ def main() -> int:
             for case in wanted:
                 try:
                     report["cases"].append(run_case(session, args.browser, case, cases[case], round_no,
-                                                    fixture_urls[cases[case]["fixture"]]))
+                                                    fixture_urls[cases[case]["fixture"]], args.control))
                 except Exception as error:  # noqa: BLE001 -- recorded with the case, the run goes on
                     report["cases"].append({"case": case, "round": round_no, "outcome": "runner-error",
                                             "error": f"{type(error).__name__}: {error}"})
