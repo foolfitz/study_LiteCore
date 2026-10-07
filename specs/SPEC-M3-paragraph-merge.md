@@ -806,3 +806,52 @@ v16 3 NE；同一格在當天早上的 v8（另一個 runner sha）是 3 NE。NE
   `check_m3_production_ui.py` 的併段臂在這份文件上跑，位置由那支 runner 自己決定、不依原生座標）。登錄極限：WASM 上擁有者文件的 11 種交界
   （含標題、帶標號段落）沒有逐格的 WASM 量測。
 - 非崩塌證明（24）照舊涵蓋擁有者文件（文件在本機時）：`reduction_collapses()` 仍回空。
+
+## 26. 追加（2026-10-07，任何 v17 的建置與量測之前）：finding 114 的修法；擁有者選「現在修、出 v17」，修法形式由 fable 裁決＝拿掉 `35-lang-normalize.conf`
+
+逼出它的量測：finding 114 的判別探針（`findings/evidence/114/fc-debug/`，預測先 commit 於 `58c512cf`）、原生單一變因重現（`native-repro/`）、
+opus 對抗性審核（`findings/evidence/114/review/`）。成因：base 包的 `conf.d/35-lang-normalize.conf` 把 LibreOffice 以字串送出的語言用子字串
+`contains` 改寫（`zh-tw`→`tw`），字型名不在 profile 裡的 zh-TW 段落主字型落到 Liberation，行高約為桌面版 0.79 倍；LO 能送出的 282 個語言碼有 66 個
+被改寫。啟用這份規則的是上游 LibreOffice 的打包（`external/fontconfig/ExternalPackage_fontconfig_data.mk:34`）。v8、v16 都中。
+
+### 26.1 決定
+
+- 擁有者（2026-10-07）：**現在修**，新身分 v17，在 v16 的 cutover（v56 凍結、計數 M2、宿主 0.2.8）之前；今天在 v16 上做過的 shakedown 改在 v17 上重跑。
+- 擁有者問我時，我說的修法是「另一個包多放一條規則、不動 base」。審核指出窄規則只修 3 個語言碼、留 63 個；擁有者把修法形式交 fable 裁決。
+- **fable 裁決＝拿掉 `35-lang-normalize.conf`**（重建 base 包少這一個檔）。理由：①「小包加規則」的前提在樹上不成立——worker 的資源包載入器只收
+  `/instdir/share/fonts/truetype/` 底下的路徑（`sdk/sdk-worker.js:597-603`、`:639-642`；v16 的 worker 就是這份，`00882139…`），要放 conf.d 檔就得放寬
+  worker 的允許清單＝換 worker 身分；base 包由 Emscripten 自己的載入器經 `locateFile` 取，沒有這道限制；②35 對 LO 只會是恆等或破壞（LO 只送
+  `FcGetLangs()` 的成員；fontconfig 從環境推出的弱綁定預設語言也在規則之前插入、同樣被改寫），普查 66→0；③上游 fontconfig 預設不啟用 35、Ubuntu
+  只放 conf.avail，拿掉它就是上游 LO 該有的修法；④另造 66 條規則去抵銷一個不該啟用的檔，是第 4 條（撤回宣稱，不造機械）禁止的形狀；⑤重新下載的代價
+  是 base 包 zstd 5.5 MB，cutover 本來就要換 wasm（30.7 MB）與 CJK 包。
+- **我先前的錯**（登錄）：我說「CJK 包能多放一個 conf.d 檔在技術上可行」，只讀了 `create_pack` 能放多個檔，沒讀 worker 收不收那個路徑。
+
+### 26.2 v17 的定義
+
+v16 的 `probe.js`、`probe.wasm`、`sdk-worker.js`、export 清單（皆為 v15 封存，`SHA256SUMS` 驗證）、`cjk-sub-e5`、`fallback-fonts-r5` 不變；
+`artifactFiles` 的 `soffice.data`／`soffice.data.js.metadata` 換成新包 `base-r5-no35`＝`base-r5`（1,241 筆）去掉
+`/instdir/share/fontconfig/conf.d/35-lang-normalize.conf`（48,949 bytes）那一筆。名字帶差異（不沿用 `base-r5` 的 stem）。只改這一個變因：
+同時「順手」拿掉 `65-khmer.conf` 等其他檔是禁止的。
+
+### 26.3 驗證判準（v17；寫在任何 v17 量測之前）
+
+| 項 | 判準 | 形式 | 紅案 |
+| --- | --- | --- | --- |
+| V1 對帳 | 新 metadata 的檔案清單＝舊清單恰好少 35 那一筆；其餘每一筆的位元組與舊包對應切片 sha 相同；`remote_package_size` ＝ 34,129,451；從既有 base 包切與從原始 `soffice.data` 切得到同一個 sha | 二 | 以任何其他丟棄清單建的包必須不過 |
+| V2 普查 | 從**出貨的包**（metadata＋data，不從建置樹）抽出 fontconfig 設定，以絕對路徑引入 conf.d，用 LO 自帶 fontconfig 2.18.2 跑 `census.py`：改寫 0 | 二 | 同一工具對 v16 的包必須印 66；並證明規則真的載入了（不能是相對路徑又讀到系統規則） |
+| V3 引擎側 | `probe_fc_debug.py` 在 v17：conf.d 載入 21 個、沒有 35；思源黑體那次**主字型**查詢（請求沒有 charset）帶 `lang` 含 `zh-tw`、最佳比對是 Noto Sans CJK 的某個 face（記下哪一個；審核 N3 說是 KR／JP 不是 TC，v16 上度量與 cmap 相同） | 一 | v16 同一支探針：主字型查詢 `lang` 是 `tw`、答 Liberation（＝今天的 run1） |
+| V4 版面 | 113 的字型槽 fixture，Chrome 在 zh-TW 與 en-US 兩種 locale 各跑一次（以頁面的 `navigator.languages` 與 log 的 `familylang` 證明 locale 真的換了）：TW-SIYUAN／TW-PMINGLIU／TW-XIMINGTI／TW-KAI 由 15–16 變 20；TW-TC、TW-DEFAULT、SLOT-TC 維持 20；LATIN-DEFAULT 維持 16；兩種 locale 的 pitch 表逐格相同 | 一 | v16 同一 fixture 的四列是 15–16（＝run1） |
+| V5 擁有者文件 | merge WASM runner `--owner-document`（診斷，不計數）在 v17：引擎游標高度由 276／414 變成原生 R0c 的 348／521 twips；11 格的 `placement-mismatch` 改變類別 | 一 | v16 上是 276／414、11 格 `placement-mismatch` |
+| V6 重跑 | 產品路徑網 v8 對 v17（同一 runner sha、交錯、三輪×兩瀏覽器，依 §23 逐格判）；merge WASM shakedown（Chrome 與 Firefox）；語料計數比較的對照組改為 `e2-editor-v17-cjk-r5-ab`（v17 只把 CJK 包換回 `cjk-r5`），以維持 20.3／21.2 的單一變因 | 一 | 各自的判準既有紅案 |
+
+N2 的預測（寫在跑之前；**推論，不是量測**）：弱綁定的預設語言在 zh-TW 瀏覽器上由 `tw` 變成 `zh-tw`；拉丁文字不受影響，因為 `49-sansserif` 一定補上
+通用家族、`60-latin` 的偏好清單（Liberation）在 FAMILY_WEAK 排在 `65-nonlatin`（Noto）之前，而 FAMILY_WEAK 的權重高於 LANG_WEAK。V4 的兩種 locale
+就是用來量它；拉丁列若移動，那是 finding，不是調整的理由。
+
+登錄極限：其餘 65 個被改寫的語言碼是**由建構**修好的（V2 普查），不是由版面量測；閩南語、客語的文件不在任何 fixture 裡，不得寫成「量過」。
+§25 的「退回 A」是在未修狀態下寫的；V5 若讓擁有者文件回到可放置，要不要把它放回 M2-1 另寫追加段並寫理由，不在本節預設。
+
+從來沒做時：v17 沒有驗證，不得 cutover；v16 仍是候選，finding 114 為具名保真極限。
+
+上游（照例擱置送出）：①LO 的 `ExternalPackage_fontconfig_data.mk` 應去掉 35（它的清單由 `find` 讀範本目錄產生，所以 703466d7 說「照 Ubuntu」卻留下了 35）；
+②fontconfig：35 的 `contains` 遇到字串型別的 `lang` 是子字串比對（`src/fccfg.c:1134`）；③LO 的 `Substitute` 可改以 langset 加語言（要連結，不在本輪）。
