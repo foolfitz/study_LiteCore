@@ -11,8 +11,11 @@ profile (the page `build_cutover_page.py` would produce, by the runner's own
 `repointed_page`), Chrome or Firefox:
 
   1. open the fixture through the product's file input;
-  2. refusal cases only: type a marker at the end of "M01 plain alpha" (spec
-     M2-3: it must survive the refusal's reopen; 109's guarantee);
+  2. refusal cases only: type a marker at a native caret OF THE SAME FIXTURE
+     (`MARKER_AT`: boundaries.odt the end of "M01 plain alpha", text-frame.odt
+     the start of "F01 frame second"; spec M2-3: it must survive the refusal's
+     reopen, 109's guarantee).  A marker that cannot be placed ends the case as
+     `marker-placement-mismatch`: its reopen check would say nothing;
   3. PLACE: click at the native caret of that case (R0c's `placed.cursor`, in
      twips, turned into canvas fractions -- the canvas is the whole document),
      then a real End (forward) or Home (backward); the engine's caret must then
@@ -33,7 +36,9 @@ profile (the page `build_cutover_page.py` would produce, by the runner's own
      say 「沒有被改動」.
 
 M2-0 runs first per fixture: load and save with no edit, `content.xml` against
-native `original.odt`.  When they differ, the merge comparisons report the
+native `original.odt`.  Every document the page saves is KEPT, under
+`<report stem>.docs/`, so the M2-0 diff (and any later reduction) is read from
+the bytes rather than from a hash of them.  When they differ, the merge comparisons report the
 byte result anyway and the paragraph-text result beside it; no reduction is
 invented here (spec 4.3: a reduction is derived from that diff, in the spec).
 
@@ -52,6 +57,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import functools
 import hashlib
 import io
 import json
@@ -75,8 +81,23 @@ FIXTURES = {
                    EVIDENCE / "r0c-frame/round-20261007T060036Z", None),
 }
 DEFAULT_CASES = "C01,C02,I02,C11,Y01,C29,C30,C17,C15,F01"
-MARKER_AT = "C01"          # the end of "M01 plain alpha"; refusal arms type here
+# What WASM must do where it differs from R0c's native decision.  Spec 18.1
+# N1: inside a text frame Writer sends TEXT_SELECTION before START/END, so the
+# fence refuses every merge there; "M2's WASM measurement includes a cell in a
+# text frame, expected anchor-mismatch".  The runner compared F01 with the
+# native merge instead, so the refusal it saw (both runs, 2026-10-07) was
+# graded against the wrong expectation and no marker had been typed.
+WASM_EXPECT = {"text-frame": ("refused", "anchor-mismatch", False)}
+# Where refusal arms type the marker: a native caret IN THE FIXTURE UNDER TEST,
+# and not the case's own.  It was C01's for every fixture, a boundaries.odt
+# coordinate.  In the frame, F01 (the end of "F01 frame first") and F02 (the
+# start of "F01 frame second") are on different lines, so each marks the
+# other's.  Backward cases are placed with Home, so the marker goes in FRONT
+# of the paragraph's text; forward ones with End, after it.
+MARKER_AT = {"boundaries": ("C01",), "text-frame": ("F02", "F01")}
 MARKER = "mk"
+# Where the page's saved documents are kept (set in main()).
+DOCS: dict = {"dir": None}
 UNCHANGED = "沒有被改動"
 DELETE_ACTIONS = ("delete-forward", "delete-backward")
 # R0c's decision -> what v15/v16 must do (spec section 17).
@@ -200,6 +221,7 @@ def caret_tuple(record) -> list | None:
     return [caret.get(k) for k in keys] if all(k in caret for k in keys) else None
 
 
+@functools.lru_cache(maxsize=None)
 def native_cases(fixture: str) -> dict:
     """Per case: native placed cursor, direction, R0c decision, reference documents."""
     _, round_dir, decisions = FIXTURES[fixture]
@@ -251,13 +273,20 @@ def compare(raw: bytes | None, reference: Path) -> dict:
                 else ["count", len(mine["paragraphs"]), len(theirs["paragraphs"])])}
 
 
-def save(session) -> bytes | None:
+def save(session, name: str) -> bytes | None:
+    """The product's save; the bytes are kept as `<DOCS>/<name>.odt`."""
     index = pp.evaluate(session, pp.SAVE_COUNT) or 0
     pp.evaluate(session, pp.PRESS.replace("ARG_ACTION", "save"))
     if not pp.wait_saves(session, index + 1, 60):
         return None
     saved = pp.evaluate(session, pp.READ_SAVE.replace("ARG_INDEX", str(index)))
-    return base64.b64decode(saved["b64"]) if saved else None
+    raw = base64.b64decode(saved["b64"]) if saved else None
+    if raw is not None and DOCS["dir"] is not None:
+        target = DOCS["dir"] / f"{name}.odt"
+        if target.exists():
+            raise SystemExit(f"refusing to overwrite a kept document: {target}")
+        target.write_bytes(raw)
+    return raw
 
 
 def open_fixture(session, url: str, name: str) -> dict:
@@ -306,16 +335,21 @@ def place(session, browser: str, target: list[int], backward: bool) -> dict:
 def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: str) -> dict:
     out = {"case": case, "round": round_no, "decision": spec["decision"],
            "backward": spec["backward"], "search": spec["search"]}
-    expected = EXPECT.get(spec["decision"])
-    if spec["fixture"] == "text-frame":
-        out["note"] = ("spec 18.1 N1 predicts anchor-mismatch inside a frame on WASM; "
-                       "a merge is compared with R0c-frame's key arm instead")
+    expected = WASM_EXPECT.get(spec["fixture"], EXPECT.get(spec["decision"]))
+    if spec["fixture"] in WASM_EXPECT:
+        out["note"] = (f"native R0c decided {spec['decision']!r}; on WASM the expectation is "
+                       "spec 18.1 N1's (the fence refuses inside a text frame)")
     out["expected"] = expected
     out["open"] = open_fixture(session, url, f"{case}-r{round_no}.odt")
     refusal = expected is not None and expected[0] == "refused"
+    marker_case = next(c for c in MARKER_AT[spec["fixture"]] if c != case)
+    marker_at = native_cases(spec["fixture"])[marker_case]
+    out["markerAt"] = marker_case
     if refusal:
-        marker_target = native_cases("boundaries")[MARKER_AT]["nativeCaret"]
-        out["markerPlace"] = place(session, browser, marker_target, False)
+        out["markerPlace"] = place(session, browser, marker_at["nativeCaret"], marker_at["backward"])
+        if not out["markerPlace"]["ok"]:
+            out["outcome"] = "marker-placement-mismatch"
+            return out
         for letter in MARKER:
             press(session, browser, letter)
         out["markerSettled"] = quiet(session)
@@ -356,23 +390,23 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
     if response and response.get("ok") and response.get("completion") == "verified-key-undo":
         out["outcome"] = "verified-key-undo"
         out["keyUndo"] = response.get("keyUndo")
-        raw = save(session)
+        raw = save(session, f"{case}-r{round_no}-after-key")
         out["afterKeyDocument"] = compare(raw, spec["key"])
         press(session, browser, "Z")
         out["followSettled"] = quiet(session)
-        out["followDocument"] = compare(save(session), spec["follow"])
+        out["followDocument"] = compare(save(session, f"{case}-r{round_no}-follow"), spec["follow"])
     elif response and not response.get("ok"):
         mk = response.get("mergeKey") or {}
         out["outcome"] = "refused"
         out["stage"], out["keyPosted"] = mk.get("stage"), mk.get("keyPosted")
-        raw = save(session)
+        raw = save(session, f"{case}-r{round_no}-reopened")
         original = odt_parts(spec["key"].with_name("original.odt").read_bytes())["paragraphs"]
         mine = odt_parts(raw)["paragraphs"] if raw else None
         expected_text = list(original)
-        target = native_cases("boundaries")[MARKER_AT]["search"]
+        target = marker_at["search"]
         if target in expected_text:
             i = expected_text.index(target)
-            expected_text[i] = target + MARKER
+            expected_text[i] = MARKER + target if marker_at["backward"] else target + MARKER
         out["reopenedDocument"] = {"saved": raw is not None,
                                    "textIsOriginalPlusMarker": mine == expected_text,
                                    "markerSurvived": bool(mine) and any(MARKER in p for p in mine)}
@@ -391,7 +425,7 @@ def m2_0(session, fixture: str, url: str) -> dict:
     _, round_dir, _ = FIXTURES[fixture]
     opened = open_fixture(session, url, f"m2-0-{fixture}.odt")
     return {"fixture": fixture, "open": opened,
-            "document": compare(save(session), round_dir / "docs" / "original.odt")}
+            "document": compare(save(session, f"m2-0-{fixture}"), round_dir / "docs" / "original.odt")}
 
 
 def main() -> int:
@@ -408,8 +442,10 @@ def main() -> int:
     # web/e2-editor-app.js; dist/ still serves the v8-era page until the shell
     # generation is frozen, and on 2026-10-07 the two differed by 63 lines --
     # B's refusal wording and the BUSY budget among them.  Measured: the first
-    # run of this runner repointed dist's page and saw the old toasts.
-    source = (HERE / "web" / "e2-editor-app.js").read_text(encoding="utf-8")
+    # run of this runner repointed dist's page and saw the old toasts.  The
+    # constant is the one `build_cutover_page.py` and the product-path runner's
+    # candidate mode read (3ab4f04a).
+    source = pp.CUTOVER_PAGE_SOURCE.read_text(encoding="utf-8")
     manifest = root / "profiles" / args.candidate_profile / "sdk-manifest.json"
     page, pin_before, wasm = pp.repointed_page(source, args.candidate_profile, manifest)
     html = (root / "e2-editor.html").read_text(encoding="utf-8")
@@ -427,6 +463,14 @@ def main() -> int:
             raise SystemExit(f"refusing to write {target}")
         target.write_bytes(path.read_bytes())
         fixture_urls[name] = f"./merge-{name}.odt"
+    # Kept documents beside the report.  Never inside the native evidence tree:
+    # spec 10.2 (M2-1) -- expected documents and candidate output must not
+    # share a tree, so a comparison can never read its own output as the truth.
+    docs = args.out.parent / f"{args.out.stem}.docs"
+    if EVIDENCE.resolve() in [docs.resolve(), *docs.resolve().parents]:
+        raise SystemExit(f"{docs} is inside the native evidence tree {EVIDENCE}")
+    docs.mkdir(parents=True, exist_ok=False)
+    DOCS["dir"] = docs
     cases = {**native_cases("boundaries"), **native_cases("text-frame")}
     wanted = [c for c in args.cases.split(",") if c]
     missing = [c for c in wanted if c not in cases]
@@ -435,13 +479,14 @@ def main() -> int:
     report = {"counted": False, "instrumented": True, "browser": args.browser,
               "startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
               "candidate": {"profile": args.candidate_profile, "pinBefore": pin_before,
-                            "pageSource": "web/e2-editor-app.js",
+                            "pageSource": pp.CUTOVER_PAGE_SOURCE.relative_to(HERE).as_posix(),
                             "pinAfter": wasm[:16],
                             "pageSha256": hashlib.sha256(page.encode()).hexdigest(),
                             "htmlSha256": hashlib.sha256(instrumented.encode()).hexdigest()},
               "runner": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16],
               "fixtures": {n: hashlib.sha256(p.read_bytes()).hexdigest()[:16]
                            for n, (p, _, _) in FIXTURES.items()},
+              "keptDocuments": docs.name,
               "m2_0": [], "cases": []}
     port = pp.free_port()
     server = subprocess.Popen([sys.executable, str(HERE / "web" / "serve.py"), "--port", str(port),
