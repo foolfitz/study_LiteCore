@@ -421,6 +421,21 @@ CARET_ANNOUNCE_JS = """      // --caret-source-diagnostic (harness mirror, not s
 """
 
 
+# THE PAGE A CUTOVER REPOINTS, read from one place by both tools.
+#
+# This runner's candidate mode repointed `dist/e2-editor-app.js` and
+# `tools/build_cutover_page.py` repoints `web/e2-editor-app.js`. dist/ is a
+# `make` copy of web/ and nothing makes anyone run it: on 2026-10-07 the two
+# differed by 63 diff lines (paragraph merge's refusal wording, the BUSY
+# budget), so the v15 and v16 "candidate" reports measured the v8-era page with
+# the new engine while their own note said the cutover writes those bytes.
+# The cutover's sha256 check would have refused at the cutover, but no
+# product-path run had measured the page that ships. Owner's choice
+# (2026-10-07, A): the candidate reads what the cutover reads, by construction.
+CUTOVER_PAGE_SOURCE = PROJECT / "web" / "e2-editor-app.js"
+CUTOVER_PAGE_SERVED = "e2-editor-app.js"
+
+
 def repointed_page(source: str, profile: str,
                    manifest_path: Path) -> tuple[str, str, str]:
     """The product page, pointed at another profile.
@@ -1741,9 +1756,22 @@ MUTATIONS = {
     "slow-repaint": {
         "check": "editing-a-long-document-stays-responsive",
         "path": "e2-editor-app.js",
-        "find": "async function renderDocument(retriesLeft = 6) {",
-        "replace": "async function renderDocument(retriesLeft = 6) {\n"
-                   "  await new Promise((resolve) => setTimeout(resolve, 3000));",
+        # Anchored on the body's first statement, not the signature: the merge
+        # page changed the default to `RENDER_BUSY_RETRIES`, and a signature
+        # anchor found nothing in web/ (found 2026-10-07 by running every
+        # page mutation against the cutover's source). The sleep is still the
+        # body's first statement, so the mutation is the same one.
+        "find": ('  if (!session?.document\n'
+                 '      || !["ready", "busy"].includes('
+                 'session.state.snapshot.state))\n'
+                 '    return;\n'
+                 '  if (rendering) { renderAgain = true; return; }\n'),
+        "replace": ('  await new Promise((resolve) => setTimeout(resolve, 3000));\n'
+                    '  if (!session?.document\n'
+                    '      || !["ready", "busy"].includes('
+                    'session.state.snapshot.state))\n'
+                    '    return;\n'
+                    '  if (rendering) { renderAgain = true; return; }\n'),
         "reintroduces": "an editor you wait for after every keystroke",
         "alsoRed": [],
     },
@@ -2606,18 +2634,25 @@ def served_shell_identity(root: Path) -> dict:
     }
 
 
-def apply_mutation(name: str, scratch: Path) -> tuple[Path, dict]:
+def apply_mutation(name: str, scratch: Path,
+                   base: Path) -> tuple[Path, dict]:
+    """Mirror `base` with one mutation in it.
+
+    `base` is dist/, or for a candidate run the root that already serves the
+    cutover's page -- the three page mutations that require
+    `--candidate-profile` have to break the page the candidate measures.
+    """
     spec = MUTATIONS[name]
-    original = (PROJECT / "dist" / spec["path"]).read_text(encoding="utf-8")
+    original = (base / spec["path"]).read_text(encoding="utf-8")
     hits = original.count(spec["find"])
     if hits != 1:
         raise SystemExit(
             f"mutation '{name}' expects exactly one occurrence of its pattern in "
-            f"dist/{spec['path']}, found {hits}.  The tree moved under the "
+            f"{base / spec['path']}, found {hits}.  The tree moved under the "
             f"mutation; fix the pattern rather than the count.")
     mutated = original.replace(spec["find"], spec["replace"])
     root = scratch / "root"
-    build_mirror(PROJECT / "dist", root,
+    build_mirror(base, root,
                  {spec["path"]: mutated.encode("utf-8")})
     return root, {"mutation": name, "file": spec["path"],
                   "reintroduces": spec["reintroduces"],
@@ -4635,8 +4670,48 @@ def main() -> int:
 
     scratch = Path(tempfile.mkdtemp(prefix="e2c-product-path-"))
     root = PROJECT / "dist"
+    if args.candidate_profile:
+        # FIRST, so every mirror after this one (a mutation, a diagnostic, the
+        # repoint itself) is built on the page the cutover will repoint.
+        #
+        # Only the page is taken from source, because only the page is what
+        # `build_cutover_page.py` reads. Everything else the page loads is
+        # served from dist/, so it has to BE the source: a module that lags
+        # its source would make this the same wrong-page measurement one file
+        # over, and a candidate that mixed the two would be a shell nobody
+        # freezes. Refused rather than mirrored -- `make` is the fix, and a
+        # silent substitute would hide that dist/ is stale.
+        bundle = json.loads(SHELL_BUNDLE_V2.read_text(encoding="utf-8"))
+        entrypoint = bundle.get("entrypoint")
+        lagging = []
+        for relative in [*(entry["path"] for entry in bundle["included"]
+                           if entry["path"] != entrypoint),
+                         "web/e2-editor.html"]:
+            served = root / served_in_dist(relative)
+            if (not served.is_file()
+                    or sha256_file(served) != sha256_file(PROJECT / relative)):
+                lagging.append(relative)
+        if lagging:
+            raise SystemExit(
+                "a candidate run measures the page the cutover repoints "
+                f"({CUTOVER_PAGE_SOURCE.relative_to(PROJECT)}) with the rest of "
+                "the shell served from dist/, and these served files are not "
+                f"their source: {lagging}. Run `make` for them, or measure "
+                "something else -- not a candidate.")
+        page_source = CUTOVER_PAGE_SOURCE.read_bytes()
+        served_page = root / CUTOVER_PAGE_SERVED
+        report["candidateSource"] = {
+            "page": CUTOVER_PAGE_SOURCE.relative_to(PROJECT).as_posix(),
+            "sha256BeforeRepoint": hashlib.sha256(page_source).hexdigest(),
+            "distPageWasTheSame": (served_page.is_file()
+                                   and served_page.read_bytes() == page_source),
+            "restOfShellEqualsSource": True,
+        }
+        mirror = scratch / "candidate-source-root"
+        build_mirror(root, mirror, {CUTOVER_PAGE_SERVED: page_source})
+        root = mirror
     if args.mutate != "none":
-        root, mutation_report = apply_mutation(args.mutate, scratch)
+        root, mutation_report = apply_mutation(args.mutate, scratch, root)
         report["mutationDetail"] = mutation_report
     if args.cut_via_replace_selection:
         sdk_rel = "sdk/document-sdk.js"

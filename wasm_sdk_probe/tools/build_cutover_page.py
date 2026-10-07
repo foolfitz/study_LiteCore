@@ -25,9 +25,10 @@ from pathlib import Path
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "tools"))
 
-from run_e2_c_product_path import repointed_page  # noqa: E402
-
-PAGE = PROJECT / "web" / "e2-editor-app.js"
+# The same file the runner's candidate mode reads, imported rather than
+# spelled twice: on 2026-10-07 the two tools read different copies.
+from run_e2_c_product_path import (  # noqa: E402
+    CUTOVER_PAGE_SOURCE as PAGE, repointed_page)
 
 
 def main() -> int:
