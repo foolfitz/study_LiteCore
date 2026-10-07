@@ -71,7 +71,8 @@
 
 ## 還缺什麼才能送（2026-10-07 補）
 
-- [ ] 上游 Bugzilla 查重複單（REST API；送出重啟時才做，見常設規則）
+- [ ] 上游 Bugzilla 查重複單（REST API；送出重啟時要再查一次）。2026-10-08 先做過一次**只看標題**的 quicksearch（`35-lang-normalize`、`lang-normalize`、`FC_LANG`、`fontconfig zh-tw`、`emscripten font`、`wasm font`、`Traditional Chinese line height` 等）：沒有相符的單；留言內文沒搜
+- 平台範圍（2026-10-08 讀 `configure.ac`＠671c848b，**已讀原始碼、未逐平台實測**）：Windows／macOS 的一般桌面版 `using_freetype_fontconfig=no`（只有 `--enable-headless` 才是 yes），`PrintFontManager::Substitute` 根本沒編進去，不會中；Linux 桌面用系統 fontconfig，中不中看發行版有沒有啟用 35（上游預設不啟用、Ubuntu 不啟用，其他發行版未查）；LO 自己打包規則的是 MSC、EMSCRIPTEN、MACOSX（`Module_fontconfig.mk`），WASM 映像從 2021-11（`b7313bc1`）就帶著 35，Windows 打包從 2025-11（`a7411d59`）
 - [ ] 在上游發佈的 WASM build 或 CODA-W 上重現（目前是：原生＋上游自己打包的 conf.d＋LO 自帶 fontconfig 2.18.2，以及我們自己建的 26.8 WASM；本地修改只在建置系統，不在 vcl 或 external/fontconfig）
 - [ ] 確認 CODA-W 的字型替代真的走 `PrintFontManager::Substitute`（`vcl_headless_freetype_code`；草稿目前寫「推測，未測」）
 - [ ] 決定元件（提議 graphics stack），以及「`Substitute` 改用 langset」要不要拆成另一張
@@ -90,3 +91,4 @@
 | 2026-10-07 | 對抗性審核（opus）：機制成立；所在／是否上游改為上游 LO 的打包；改寫範圍改為普查的 66 個；更正排序論證 |
 | 2026-10-07 | 補裁決（fable：拿掉 35）；狀態改為修法已打包未出貨（v17，V1–V4 量過） |
 | 2026-10-07 | V5 過（擁有者文件 11 格游標與原生逐 twip 相同）；上游草稿寫好、補「還缺什麼才能送」 |
+| 2026-10-08 | 補平台範圍（讀 configure.ac）與一次只看標題的 Bugzilla 查重（0 筆） |
