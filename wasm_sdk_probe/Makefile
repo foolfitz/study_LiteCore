@@ -1400,6 +1400,43 @@ $(E2_V17_AB_DIST)/sdk-manifest.json: $(E2_V17_DEPS) \
 $(E2_V17_DIST) $(E2_V17_AB_DIST):
 	mkdir -p $@
 
+# ------------------- v18, v17 with a CJK pack that adds five Mono faces
+#
+# NO LINK. v17's wasm, loader, worker and export list (all v15's archive), its
+# base pack `base-r5-no35` and `fallback-fonts-r5`, byte-identical; what moves
+# is the CJK pack.  Finding 116: `cjk-sub-e5` has no Noto Sans Mono CJK family,
+# so a generic `monospace` request -- and every fixed-pitch request, which
+# LibreOffice extends with `monospace` -- resolves to Liberation Mono where
+# the full TTC (v8) gives Noto Sans Mono CJK KR (fontconfig's stock
+# 65-nonlatin.conf names only that Mono face).  `cjk-sub-e10` = e5's five Sans
+# faces unchanged + five Mono faces cut from the full TTC's Mono TC face with
+# the same tier-E code points (tools/build_cjk_subset_mono_pack.py), under a
+# new font path.  zstd -19 +144,587 bytes.  Owner's choice A, 2026-10-08;
+# spec SPEC-M3-paragraph-merge section 28.  v17 stays, archived as "not shipped
+# (116)"; the corpus control stays `e2-editor-v17-cjk-r5-ab` (it differs from
+# v18 only in the CJK pack).
+E2_V18_DIST := dist/profiles/e2-editor-v18
+
+$(E2_V18_DIST)/sdk-manifest.json: $(E2_V17_DEPS) sdk/v18-writer-review-manifest.json \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py | $(E2_V18_DIST)
+	cd $(E2_V15_ARCHIVE) && sha256sum -c --quiet SHA256SUMS
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V15_ARCHIVE)/probe.js --wasm $(E2_V15_ARCHIVE)/probe.wasm \
+		--worker $(E2_V15_ARCHIVE)/sdk-worker.js \
+		--exports $(E2_V15_ARCHIVE)/exports.txt \
+		--profile e2-editor-v18 --inline-range-gestures all \
+		--output $(E2_V18_DIST)
+	@test -s $(E2_V18_DIST)/probe.js
+	@test -s $(E2_V18_DIST)/probe.wasm
+	@test -s $(E2_V18_DIST)/sdk-worker.js
+
+$(E2_V18_DIST):
+	mkdir -p $@
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The

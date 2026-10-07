@@ -1,0 +1,30 @@
+mkdir -p dist/profiles/e2-editor-v18
+cd build/archive/e2-editor-v15-ad3f68bb-worker-00882139 && sha256sum -c --quiet SHA256SUMS
+python3 tools/build_base_no35_pack.py --check
+ok: base-r5-no35.65e8acbb5f0632be.data (34129451 bytes, 1240 files, sha256 65e8acbb5f0632be); V1 reconciles; same sha from the original image
+python3 tools/build_cjk_subset_mono_pack.py --check
+ok: cjk-sub-e10.06976180177c8bd2.data (14384632 bytes; sizes {'raw': 14384632, 'zstd19': 5748639, 'e5Raw': 7210328, 'e5Zstd19': 5604052}) matches v18-writer-review-manifest.json
+python3 tools/build_e2_editor_v4_profile.py \
+	--source-manifest sdk/v18-writer-review-manifest.json \
+	--loader build/archive/e2-editor-v15-ad3f68bb-worker-00882139/probe.js --wasm build/archive/e2-editor-v15-ad3f68bb-worker-00882139/probe.wasm \
+	--worker build/archive/e2-editor-v15-ad3f68bb-worker-00882139/sdk-worker.js \
+	--exports build/archive/e2-editor-v15-ad3f68bb-worker-00882139/exports.txt \
+	--profile e2-editor-v18 --inline-range-gestures all \
+	--output dist/profiles/e2-editor-v18
+{
+  "profile": "e2-editor-v18",
+  "abiVersion": 4,
+  "wasmSha256": "ad3f68bb85f94589ea3c47560a6c3796031e5c805626291b2d98aaf8eef872c7",
+  "manifestSha256": "456e9a72ab26a3f85cf35baf8b0c7a8536b39c72d2140db79716ee2bae6d3a0f",
+  "actions": 21,
+  "withheld": [
+    "select-all"
+  ],
+  "noteLimitOn": [
+    "set-list-none",
+    "set-list-ordered",
+    "set-list-unordered",
+    "set-paragraph-body",
+    "set-paragraph-heading"
+  ]
+}
