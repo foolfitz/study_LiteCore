@@ -736,6 +736,11 @@ def main() -> int:
     # constant is the one `build_cutover_page.py` and the product-path runner's
     # candidate mode read (3ab4f04a).
     source = pp.CUTOVER_PAGE_SOURCE.read_text(encoding="utf-8")
+    # The rest of the shell must BE its source (review S3): the run-1 wrong
+    # page, one file over, would otherwise be invisible.
+    lagging = pp.shell_lagging_source(root)
+    if lagging:
+        raise SystemExit(f"served from dist/ but not their source: {lagging}; run `make` for them")
     manifest = root / "profiles" / args.candidate_profile / "sdk-manifest.json"
     page, pin_before, wasm = pp.repointed_page(source, args.candidate_profile, manifest)
     html = (root / "e2-editor.html").read_text(encoding="utf-8")
@@ -797,6 +802,7 @@ def main() -> int:
                             "uninstrumentedHtmlSha256": hashlib.sha256(html.encode()).hexdigest(),
                             "workerSha256": sha256_of(root / "profiles" / args.candidate_profile
                                                       / "sdk-worker.js")},
+              "restOfShellEqualsSource": True,
               "caseList": "subset" if args.cases else "tool",
               "frameCell": args.frame_cell,
               "eshapeSha256": sha256_of(ESHAPE),

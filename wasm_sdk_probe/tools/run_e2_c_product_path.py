@@ -2634,6 +2634,29 @@ def served_shell_identity(root: Path) -> dict:
     }
 
 
+def shell_lagging_source(root: Path) -> list[str]:
+    """Shell files served from `root` that are not their source.
+
+    Every module of the current bundle except the entrypoint, and the page's
+    HTML.  A tool that serves the CUTOVER's page (`CUTOVER_PAGE_SOURCE`) with
+    the rest of the shell from dist/ measures a shell nobody freezes if any of
+    these lags; `make` is the fix, so callers refuse rather than substitute.
+    One function for the three tools that do this (this runner's candidate
+    mode, the merge runner, the corpus layout tool) -- review S3, 2026-10-07.
+    """
+    bundle = json.loads(SHELL_BUNDLE_V2.read_text(encoding="utf-8"))
+    entrypoint = bundle.get("entrypoint")
+    lagging = []
+    for relative in [*(entry["path"] for entry in bundle["included"]
+                       if entry["path"] != entrypoint),
+                     "web/e2-editor.html"]:
+        served = root / served_in_dist(relative)
+        if (not served.is_file()
+                or sha256_file(served) != sha256_file(PROJECT / relative)):
+            lagging.append(relative)
+    return lagging
+
+
 def apply_mutation(name: str, scratch: Path,
                    base: Path) -> tuple[Path, dict]:
     """Mirror `base` with one mutation in it.
@@ -4681,16 +4704,7 @@ def main() -> int:
         # over, and a candidate that mixed the two would be a shell nobody
         # freezes. Refused rather than mirrored -- `make` is the fix, and a
         # silent substitute would hide that dist/ is stale.
-        bundle = json.loads(SHELL_BUNDLE_V2.read_text(encoding="utf-8"))
-        entrypoint = bundle.get("entrypoint")
-        lagging = []
-        for relative in [*(entry["path"] for entry in bundle["included"]
-                           if entry["path"] != entrypoint),
-                         "web/e2-editor.html"]:
-            served = root / served_in_dist(relative)
-            if (not served.is_file()
-                    or sha256_file(served) != sha256_file(PROJECT / relative)):
-                lagging.append(relative)
+        lagging = shell_lagging_source(root)
         if lagging:
             raise SystemExit(
                 "a candidate run measures the page the cutover repoints "

@@ -107,6 +107,9 @@ def corpus() -> list[Path]:
 
 def measure(profile: str, documents: list[Path], timeout: float) -> dict:
     root = HERE / "dist"
+    lagging = pp.shell_lagging_source(root)
+    if lagging:
+        raise SystemExit(f"served from dist/ but not their source: {lagging}; run `make` for them")
     # The cutover's page (3ab4f04a), like every other candidate tool.  Both
     # arms of a comparison get the same page, so this does not bias it; it
     # keeps "the page measured" one answer across the tools.
