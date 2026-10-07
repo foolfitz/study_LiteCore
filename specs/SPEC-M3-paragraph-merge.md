@@ -645,3 +645,43 @@ sweep 換規則之後只應報同矩形這一族。另：§15 說「十個兩下
   E 級裡。不同的那一張要查是哪個字（預期只會出現在韓文或擴充 A 的測試檔）。
 - 登錄：日文／韓文／簡中標記的文字改用繁中字形；字型名稱點名可選 feature（`:fwid` 等）時拿到預設字形；E 級以外的字畫成缺字方塊而沒有回報（085）。
 - 宿主：`tools/check_m3_assets.py` 的 Z2-2 與「Z2 D」兩個紅案寫死了 `cjk-r5` 的檔名，v15 進宿主（0.2.8）時要改——依既有規矩，runner 改了就是新的 pin。
+
+## 20. 追加（2026-10-07，v15 產品路徑網之後）：v15 的 CJK 包改變了行高（finding 113）；擁有者選 A，出貨身分改為 v16
+
+證據：`findings/evidence/v15-shakedown/cjk-ab/README.md`；finding：`findings/113-the-v15-cjk-subset-has-one-family-so-cjk-lines-get-a-latin-line-height.md`。
+
+### 20.1 量到的
+
+- v15 產品路徑網的兩處紅（Chrome 第 42 格、Firefox 兩個游標格）**都是 CJK 包造成的**：同一顆 v15 連結只把 CJK 包換回完整 `cjk-r5`，兩個瀏覽器每一格回到 v8。
+  B、096 的引擎那一半、082 的修法在這些格上乾淨；Chrome 上 096 的效果看得到（交界方向鍵被引擎回應、session 維持 `ready`、B4 由 worker 誘因量到）。
+- 成因：E 級子集只有 `Noto Sans CJK TC` 一個家族名，原 TTC 有 JP／KR／SC／TC／HK。預設亞洲字型（引擎寫下的：v8 `Noto Sans CJK KR`、v15
+  `Liberation Sans`）與指名 SC／JP／KR 的段落在 v15 落到 Liberation Sans，**含中文的行高約為 v8 的 0.8 倍**（探針 20 對 15–16 px），文件重排。
+  第 19 節登錄的「日韓簡標記的文字改用繁中字形」**沒有發生**——實際發生的是拉丁行高，這一條當時沒有登錄。
+- 不是 v15 的差異：台灣文件常用的字型名（思源黑體、PMingLiU、新細明體、Microsoft JhengHei、AR PL UMing TW、標楷體）在 v8 上就是拉丁行高。未診斷、未判定是否為缺口。
+
+### 20.2 裁決與身分（擁有者 2026-10-07 選 A）
+
+- CJK 包改為 `cjk-sub-e5`：同一份 E 級字型（重建後與 v15 出貨的逐位元相同）依原 TTC 的 face 順序放五次，只有 `name` 表不同，存成表格共用的
+  collection，7,210,328 位元組（＋9,696）。工具 `tools/build_cjk_subset_ttc_pack.py`（`--check` 有兩個紅案）。
+- **出貨身分改為 `e2-editor-v16`＝v15 的連結（wasm `ad3f68bb…`、loader、worker、export list 全同）＋`cjk-sub-e5`**，manifest `99cf5f13…`；
+  不連結，從 v15 的封存打包（Makefile「v16」區塊）。封存：`wasm_sdk_probe/build/archive/e2-editor-v16-ad3f68bb-worker-00882139-cjk-e5-ce59153d/`。
+- v15 原樣封存，標為「已連結、因 113 不出貨」。v15 名下的量測（產品路徑網、連結紀錄）照舊綁在 v15 的 manifest 上，不重新歸屬。
+- 第 19 節的損失因此**照字面成立**：指名 SC／JP／KR／HK 的文字畫繁中字形、行高與 v8 相同。另補一條登錄（**推論**，未逐像素驗證）：沒有語言標記的中文在 v8 是用 KR face
+  的字形畫的（量到的：預設亞洲字型解析到 KR；推論的部分：KR face 的 cmap 把漢字對到韓國字形），v16 改為繁中字形——對台灣使用者是預期中的改善，但它是一個像素差異。
+
+### 20.3 判準更正：第 19 節的 tile 判準撤回
+
+第 19 節「同一顆連結、只差 CJK 包的對照 profile，語料頁面 tile 逐張相同——只要那頁的字都在 E 級裡」**前提不成立**：完整 TTC 上沒有語言標記或標
+日韓簡的漢字本來就畫成非繁中字形，所以大部分語料頁面在任何單一家族或五家族子集上都不會逐張相同。依「撤回宣稱，不要造機械去維持它」，撤回該條，
+不補機制。
+
+取代它的（形式一，逐實例；**草案，在任何會算進它的執行之前定稿**）：語料裡每一份文件，在 v16 與完整 TTC 的對照 profile 上，**每一頁的行位置相同**
+（以畫布逐列墨帶的上緣比對，容差在定稿時依一次空跑量到的同 profile 重複差異決定）。它抓得到 113 這一類（行高或換行改變），而不被字形差異淹沒；
+字形涵蓋（E 級以外的字畫成缺字方塊）照舊由 `build_cjk_subset.py` 的語料覆蓋檢查負責。若這條永遠沒跑：結論是「v16 的版面只在探針 fixture 與
+產品路徑網的 fixture 上量過與 v8 相同」，不得外推到語料。
+
+### 20.4 順序更新（取代 runbook 第 4 節的 profile 名）
+
+第 4 節的 1、2、2b、3 改在 v16 上做：WASM 驗證（B 的 merge shakedown）、產品路徑網 v16 對 v8（v15 那一輪的兩處紅已歸因，v16 要重跑才算數）、
+20.3 的語料版面比對、凍殼層 v56、計數。宿主 0.2.8 的 `check_m3_assets.py`（Z2-2、「Z2 D」寫死 `cjk-r5`）要改成 v16 的包名。頁面的 `workerUrl`
+與 `PINNED_WASM_SHA256` 最後一起改到 v16（wasm 與 v15 相同，pin 值不變，變的是 worker 路徑）。

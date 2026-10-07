@@ -1297,6 +1297,51 @@ $(E2_V15_DIST)/sdk-manifest.json: $(E2_V15_BUILD)/probe.js \
 $(E2_V15_BUILD) $(E2_V15_DIST):
 	mkdir -p $@
 
+# ------------------- v16, v15's artifact repackaged with a five-family CJK pack
+#
+# NO LINK. v15's wasm, loader, worker and export list, byte-identical; what
+# moves is the CJK pack.  Finding 113: v15's tier-E subset carries one family
+# (`Noto Sans CJK TC`), so the default Asian font and any document naming Noto
+# Sans CJK SC/JP/KR fell to Liberation Sans and every CJK line got a Latin line
+# height.  `cjk-sub-e5` is the same font five times over (JP KR SC TC HK, only
+# the name table differs, shared tables, +9,696 bytes); measured to restore
+# v8's layout (findings/evidence/v15-shakedown/cjk-ab/).  Owner's choice A,
+# 2026-10-07: a new name, v15 kept as archived.
+#
+# WHY A NEW NAME: the product-path shakedown and the link record are bound to
+# v15's manifest (`2a98050c...`); repackaging in place would leave them
+# describing a manifest that no longer exists at that path (finding 027).
+#
+# PACKAGED FROM THE ARCHIVE, not the build tree, for v11's reason:
+# `$(E2_V15_BUILD)/probe.js` depends on this Makefile, so adding these lines
+# makes it out of date, and a rule naming it would ask for a relink.  The
+# archive's `exports.txt` was added for this (its ATTRIBUTION.md says how).
+E2_V16_DIST := dist/profiles/e2-editor-v16
+E2_V15_ARCHIVE := build/archive/e2-editor-v15-ad3f68bb-worker-00882139
+
+$(E2_V16_DIST)/sdk-manifest.json: $(E2_V15_ARCHIVE)/probe.js \
+		$(E2_V15_ARCHIVE)/probe.wasm $(E2_V15_ARCHIVE)/sdk-worker.js \
+		$(E2_V15_ARCHIVE)/exports.txt \
+		sdk/v16-writer-review-manifest.json \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V16_DIST)
+	cd $(E2_V15_ARCHIVE) && sha256sum -c --quiet SHA256SUMS
+	python3 tools/build_cjk_subset_ttc_pack.py --check
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/v16-writer-review-manifest.json \
+		--loader $(E2_V15_ARCHIVE)/probe.js --wasm $(E2_V15_ARCHIVE)/probe.wasm \
+		--worker $(E2_V15_ARCHIVE)/sdk-worker.js \
+		--exports $(E2_V15_ARCHIVE)/exports.txt \
+		--profile e2-editor-v16 --inline-range-gestures all \
+		--output $(E2_V16_DIST)
+	@test -s $(E2_V16_DIST)/probe.js
+	@test -s $(E2_V16_DIST)/probe.wasm
+	@test -s $(E2_V16_DIST)/sdk-worker.js
+
+$(E2_V16_DIST):
+	mkdir -p $@
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The
