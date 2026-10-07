@@ -48,3 +48,13 @@ With M1's bytes and M2's reach, the owner chooses A or B. Under A, a new pack id
 ## If never done
 
 The owner chooses without these numbers, or V6 stays not met.
+
+## Amendment 1 (2026-10-08, after M2's first run and before its second; supersedes PC-M2a's "with 6 bands")
+
+**What forced it.** M2's first run (`fixed-probe.json`, `summary-fixed.txt`, renamed `run1-*` below) missed PC-M2a as written: the sessions gave 7, 8 and 8 bands, not 6. I wrote 6 for six lines and forgot the page's own bands (one at the top, y 15, and one at the bottom, y 914, in all three sessions). The fixture already shows these, as bands 0-1 and 24-26. v17 has one band fewer than the control because two of its lines' ink touches. So a band count cannot say whether the instrument is alive, because the effect under test changes it. The pre-written fallback ("stop") was taken: no Q2 verdict is drawn from the first run. Its files are kept as `run1-*`.
+
+**Replacement (PC-M2a′, for the second run):** every session is `ready` and settled (`unsettled` false), loads 21/21/22 conf.d files, and has fixture-phase Match blocks. Each of the six lines' fonts is requested: at least one fixture-phase request whose first family is 細明體, MingLiU, 新細明體 and Courier New, plus one of K1's shape. The `Liberation Serif` request of F3 may come from the document default rather than F3, so it is not required. Band counts are reported and not required.
+
+**Unchanged:** PC-M2b, Q2-yes/Q2-no, the negative controls, and the bands being secondary. The second run is the same code, a cold session per profile, one at a time.
+
+**Limit of this amendment:** it is written after seeing the first run's data, and the probe is deterministic. The second run therefore tests reproducibility and runs under a written positive control. It is not an independent pre-registration of Q2.
