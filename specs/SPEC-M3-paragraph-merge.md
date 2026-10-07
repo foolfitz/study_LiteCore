@@ -886,3 +886,56 @@ v17 對 v16 只差 base 包裡一個 fontconfig 規則檔（§26.3 V1），不�
 若 v17 對 v17-cjk-r5-ab 的計數比較裡出現「沒量到」集合與本次不同，先當儀器問題查，不得直接判 v17。
 
 從來沒做時（不變）：結論退回 20.3 的「從來沒做時」。
+
+## 28. 追加（2026-10-08，任何 v18 的建置與量測之前）：v17 的 V5／V6 紀錄；語料紅的成因（finding 116）；擁有者選 A＝CJK 包補五個 Mono 面，新身分 v18
+
+### 28.1 v17 的 V5／V6 紀錄（§26.3 不改）
+
+- **V5 中**（11／11，Chrome 一輪，`findings/evidence/v17/v5/`）。E02 的 `afterKeyBytes` 紅是 finding 115，不屬於 V5 的判準。
+- **V6 產品路徑網中**（P1–P3；§23 紅格 0／84；P4 是描述性的，有兩格 Firefox 不同）；**merge shakedown 中**（Chrome、Firefox 各 56／56，`--pair` 0 差，兩邊比對到的文件各 98 份）；
+  **語料計數比較 VERDICT RED，一份**（`test-docs/e1/paragraph-content.odt`，最大 4 px，`findings/evidence/v17/layout-corpus/`）。
+- 所以 **v17 的 V6 未過**，v17 不 cutover。
+
+### 28.2 語料紅的成因（finding 116，已量）
+
+那一段的西文字型是通用字族 `monospace`。fontconfig 標準規則 `65-nonlatin.conf` 的 monospace 偏好清單裡，唯一的 Mono CJK 面是 `Noto Sans Mono CJK KR`。
+完整 TTC（對照組、出貨的 v8）有這個面，就答它；v15 起的子集沒有任何 Mono 字族，就答 Liberation Mono。兩臂送出的請求相同、答案不同；把該槽直接指名為 Liberation Mono，兩臂 27 條帶完全相同；
+v8 與對照組逐條相同（`findings/evidence/v17/layout-corpus/fc-request/`，預測先 commit）。
+
+**波及範圍是觀察，不是判定**（`findings/evidence/v17/mono-reach/` M2：兩次執行的正向對照各有一條照字面落空，Q2 未正式判定）：宣告為固定字距的 細明體／MingLiU，v17 的兩個槽都答 Liberation Mono。
+原因是 fontconfig 2.18 的通用字族準則排在語言之前，而子集裡唯一被歸類為等寬的就是 Liberation Mono。這兩行各矮約 5 px，與 114 的症狀同形（推論）。擁有者的文件與整份語料都沒有固定字距宣告（讀 XML）。
+
+### 28.3 決定（擁有者 2026-10-08 選 A，依據 M1 的代價與 M2 的觀察）
+
+- 新 CJK 包 **`cjk-sub-e10`**，一個 10 面、表格共用的 collection，面的順序同完整 TTC：
+  - 前五面：`cjk-sub-e5` 的五個 Sans 面，逐表相同（`head` 除 `checkSumAdjustment` 外也相同）；
+  - 後五面：從完整 TTC 的 Mono TC 面（face 8）切**同一份 E 級碼位**、用同一組子集選項，再依 JP KR SC TC HK 命名。每一面的 `name` 記錄要與完整 TTC 對應地區的原始 Mono 面相同。
+    沿用 §20.2 的作法：五個名字共用 TC 的字形。
+- 字型檔換新路徑 `/instdir/share/fonts/truetype/NotoSansCJK-Regular-subset-E10.ttc`，不沿用 e5 的路徑，避免任何依路徑的快取把新內容當成舊檔。
+- **新身分 `e2-editor-v18`＝v17 的一切（wasm `ad3f68bb…`、loader、worker、export 清單，皆為 v15 封存；`base-r5-no35`；`fallback-fonts-r5`），只把 `cjk-sub-e5` 換成 `cjk-sub-e10`。不連結。**
+  v17 保留，標為「因 116 不出貨」；v17 名下的量測照舊綁在 v17 的 manifest 上，不重新歸屬。
+- 理由：
+  1. 代價是 zstd 多 0.14 MB（M1；宿主的參數就是 level 19、8 MiB 視窗）、gzip 多 6.2 MB、檔案系統多 7.2 MB；
+  2. 一次修掉語料紅，以及觀察到的固定字距那條路；
+  3. 單一變因，不需要連結。
+- 單一變因的對照組不變：語料比較仍以 `e2-editor-v17-cjk-r5-ab` 為對照（它與 v18 只差 CJK 包）。
+
+### 28.4 驗證判準（v18；寫在任何 v18 量測之前）
+
+| 項 | 判準 | 形式 | 紅案 |
+| --- | --- | --- | --- |
+| W1 包 | 建置工具 `--check`：兩次建置逐位元相同；第 28.3 的逐表條件全部成立；Mono 子集通過子集工具自己的 `verify`（對 face 8：cmap、hmtx／vmtx、每一個輪廓）；包的 zstd −19 大小 ≤ `cjk-sub-e5` ＋ 300,000 位元組（超過就停，交回擁有者——決定的依據變了） | 二 | `--check` 對「改掉一個 Sans 面的一個表」與「改掉一個 Mono 面的一筆 name 記錄」都必須不過 |
+| W2 身分 | v18 的 manifest＝v17 的 manifest 只差 CJK 包那一筆；profile 的 `probe.js`／`probe.wasm`／`sdk-worker.js` 與 v17 逐位元相同 | 二 | 任何其他差異 |
+| W3 引擎側 | fc-request 的 `one_session` 在 v18 開 A：K1 答 `Noto Sans Mono CJK KR`（同對照組）；conf.d 21 個；log 掃描到新路徑 | 一 | v17 答 Liberation Mono（已量） |
+| W4 語料 | 語料計數比較 v18 對 `e2-editor-v17-cjk-r5-ab`（同一支工具、同一個判讀器、§21.2＋§27）：VERDICT 不是 RED；「沒量到」的集合與 v17 那次相同 | 一 | v17 那次 RED（已量） |
+| W5 固定字距 | mono-reach 的探針在 v18：細明體／MingLiU 每個請求的答案字族與對照組相同；探針六行的帶位與對照組的差 ≤ 2 px、帶數相同。儀器存活條件＝PC-M2a′ 拿掉 Courier New 那一條（它不經 fontconfig，已量），再加 PC-M2b | 一 | v17 在這支探針上兩槽都是 Liberation Mono、少一條帶（已量兩次） |
+| W6 重跑 | 產品路徑網 v8 對 v18（同一 runner、交錯、三輪×兩瀏覽器，§23 逐格）；merge WASM shakedown（Chrome 與 Firefox，`--pair` 要寫比對到的文件數）；V5 的擁有者文件在 v18（同 §26.3 V5 的條款） | 一 | 各自既有的紅案 |
+
+- 判準 W4／W5 若有任何一份文件或任何一行紅：先依 116 的方法查（看請求與答案），**不得調整 T 或判準**。
+- 從來沒做時：v18 沒有驗證，不得 cutover；v17 依 28.1 也不得 cutover。要不要改走「v17＋116 為具名極限」（選項 B 的形狀），由擁有者另行決定，本節不預設。
+- 登錄極限：
+  - M2 的 Q2 沒有正式判定；真實文件是否宣告固定字距，未知；
+  - Mono 面以 TC 字形帶 JP／KR／SC／HK 的名字（與 §20.2 相同的取捨）；
+  - 記憶體多 7.2 MB 與開機時間沒量；
+  - 只收 gzip 的瀏覽器下載多 6.2 MB。
+- cutover 鏈（交接 Next 4）之後改以 v18 進行：頁面 sha 依 v18 重算，宿主 0.2.8 的 CJK 包 pin 改為 `cjk-sub-e10`。
