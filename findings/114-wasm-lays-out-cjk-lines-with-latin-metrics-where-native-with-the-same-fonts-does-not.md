@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已診斷、修法已打包未出貨**（2026-10-07）：成因是 profile 的 fontconfig 規則檔 × LibreOffice 以字串加語言，原生加上同一份 conf.d 完整重現。修法＝v17（base 包拿掉 `35-lang-normalize.conf`，規格 §26）；V1–V3 過、V4 兩列 19（判準寫 20）、V5／V6 未做（`evidence/v17/`） |
+| **狀態** | **已診斷、修法已打包未出貨**（2026-10-07）：成因是 profile 的 fontconfig 規則檔 × LibreOffice 以字串加語言，原生加上同一份 conf.d 完整重現。修法＝v17（base 包拿掉 `35-lang-normalize.conf`，規格 §26）；V1–V3 過、V4 兩列 19（判準寫 20）、**V5 過**（擁有者文件 11 格游標高度與 x／y 逐 twip 等於原生，`evidence/v17/v5/`）、V6 未做（`evidence/v17/`）；上游草稿 `drafts/114-bugzilla.txt` 已寫、送出照例擱置 |
 | **所在** | base 包的 `/instdir/share/fontconfig/conf.d/35-lang-normalize.conf`（fontconfig 2.18.2 原樣）——**啟用它的是上游 LibreOffice 的打包**（`external/fontconfig/ExternalPackage_fontconfig_data.mk:34`，2026-10-07 審核 B2 補）；觸發條件在 LibreOffice `PrintFontManager::Substitute` 以 `FcPatternAddString(FC_LANG, …)` 加語言（**已觀察**，原始碼與量測） |
 | **發現日** | 2026-10-07（merge WASM shakedown 第 3 次：擁有者文件 11 格全部 `placement-mismatch`） |
 | **嚴重度** | 一般：沒有東西消失，但擁有者這類台灣字型名的文件在 WASM 上整份比桌面版矮約兩成、分頁不同（WASM 文件總高 257,114 twips，原生在 275,530 還有內容） |
@@ -69,6 +69,14 @@
 - ~~讀 WASM 建置的字型替代路徑~~（2026-10-07 已做，見「成因」）。
 - ~~v8 上同一份文件的行高~~：探針量的是 113 的合成 fixture，v8 與 v16 結果相同；擁有者文件本身在 v8 上仍未量。
 
+## 還缺什麼才能送（2026-10-07 補）
+
+- [ ] 上游 Bugzilla 查重複單（REST API；送出重啟時才做，見常設規則）
+- [ ] 在上游發佈的 WASM build 或 CODA-W 上重現（目前是：原生＋上游自己打包的 conf.d＋LO 自帶 fontconfig 2.18.2，以及我們自己建的 26.8 WASM；本地修改只在建置系統，不在 vcl 或 external/fontconfig）
+- [ ] 確認 CODA-W 的字型替代真的走 `PrintFontManager::Substitute`（`vcl_headless_freetype_code`；草稿目前寫「推測，未測」）
+- [ ] 決定元件（提議 graphics stack），以及「`Substitute` 改用 langset」要不要拆成另一張
+- [x] 草稿：`drafts/114-bugzilla.txt`（英文、一段一行、無表格；附件只用專案產生的 `cjk-font-slots.odt` 與 `fc_string_lang.py`，擁有者文件不附）
+
 ## 裁決（2026-10-07）
 
 擁有者選「現在修、出新身分 v17、在 v16 cutover 之前」，修法形式交 fable 裁決＝**拿掉 `35-lang-normalize.conf`**。白話理由：另加小包放規則在這棵樹上做不到（worker 只收字型路徑，要放寬就得換 worker）；這個檔對 LibreOffice 只會把正確的語言碼改錯，拿掉它改寫數是 0；上游 fontconfig 與 Ubuntu 本來就不啟用它，拿掉正是上游 LO 該有的修法；代價是 base 包換身分、使用者多下載一次約 5.5 MB。條件與判準見規格 §26。
@@ -81,3 +89,4 @@
 | 2026-10-07 | 修正「同一組 fontconfig」（原生重跑載入的是系統規則）；補成因與原生重現；狀態改為已診斷 |
 | 2026-10-07 | 對抗性審核（opus）：機制成立；所在／是否上游改為上游 LO 的打包；改寫範圍改為普查的 66 個；更正排序論證 |
 | 2026-10-07 | 補裁決（fable：拿掉 35）；狀態改為修法已打包未出貨（v17，V1–V4 量過） |
+| 2026-10-07 | V5 過（擁有者文件 11 格游標與原生逐 twip 相同）；上游草稿寫好、補「還缺什麼才能送」 |

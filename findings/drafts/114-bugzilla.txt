@@ -1,0 +1,28 @@
+=== Internal note (not sent) ===
+Status: draft only; upstream submissions are on hold (since 2026-08-15). Before sending: search Bugzilla for duplicates (REST API, terms: 35-lang-normalize, FC_LANG, zh-tw, fontconfig WASM), pick the component (proposal: LibreOffice / graphics stack), and decide whether point (c) below is a separate report. Not reproduced on a published upstream WASM build or on CODA-W; reproduced natively with upstream's own packaged conf.d and LibreOffice's bundled fontconfig 2.18.2, and in our WASM build of libreoffice-26-8 at 671c848b (local build-system patches only, none in vcl or external/fontconfig). The attachment is the project-generated fixture from tools/probe_fc_debug.py (cjk-font-slots.odt) plus findings/evidence/114/fc-debug/native-repro/fc_string_lang.py; the owner's document that first showed it is private and must not be attached.
+=== End of internal note ===
+
+Summary: WASM/CODA-W: packaged fontconfig 35-lang-normalize.conf rewrites the FC_LANG string "zh-tw" to "tw" (Twi), so Traditional Chinese text gets Latin primary fonts and Latin line heights
+
+Description:
+
+In builds that use the fontconfig configuration LibreOffice packages itself (external/fontconfig/ExternalPackage_fontconfig_data.mk; per commit 703466d7 that is WASM and CODA-W), Chinese paragraphs tagged zh-TW are laid out with the line height of a Latin font. In a WASM build of libreoffice-26-8, a 12 pt zh-TW paragraph whose Asian font is not installed under its own name gets a 276 twip line where desktop LibreOffice on Linux gives 348 twips (about 0.79 of the CJK height); 18 pt gives 414 against 521. The CJK glyphs are still drawn (glyph fallback), so the only visible symptom is cramped lines and different pagination.
+
+Cause: PrintFontManager::Substitute adds the language to the pattern as a string, FcPatternAddString(pPattern, FC_LANG, ...) (vcl/unx/generic/fontmanager/fontconfig.cxx:1139 and :1420 at 671c848b). The packaged conf.d includes 35-lang-normalize.conf, whose rules are of the form <test name="lang" compare="contains"><string>tw</string></test> followed by an assignment of "tw". When the pattern's lang is a string, fontconfig evaluates "contains" between two strings as a case-insensitive substring test (src/fccfg.c, FcConfigCompareValue, FcStrStrIgnoreCase), so "zh-tw" contains "tw" and the language becomes "tw", a Latin-script language. The best match is then a Latin face (Liberation Sans in our build). With FC_DEBUG=4 the pattern enters with lang "zh-tw"(s) and the first rule that touches lang is 35's "tw" rule.
+
+It is not only zh-TW. Running every tag FcGetLangs() can return (282, which is what mapToFontConfigLangTag can produce) through the packaged rules as a string, 66 are rewritten, among them zh-tw to tw, zh-sg to sg, zh-mo to mo, nan to an and hak to ak. With 35 removed, 0 are rewritten.
+
+Upstream fontconfig does not enable 35-lang-normalize.conf by default (in 2.18.2 it is generated into conf.avail and is not in conf.d/meson.build's conf_links), and Ubuntu, which commit 703466d7 says it follows, ships it only in conf.avail. The list in ExternalPackage_fontconfig_data.mk is generated with find over the template directory, which is how 35 ended up enabled.
+
+Steps to reproduce (native, Linux, no WASM build needed):
+1. Make a fonts.conf that includes the conf.d directory LibreOffice packages (instdir/share/fontconfig/conf.d of a WASM build, or workdir/UnpackedTarball/fontconfig/conf.d filtered to the list in ExternalPackage_fontconfig_data.mk) by ABSOLUTE path, and a <dir> with Liberation Sans and Noto Sans CJK TC. Note: a relative <include>conf.d</include> resolves against fontconfig's default configuration directory, not the including file's, so it silently loads /etc/fonts/conf.d instead.
+2. FONTCONFIG_FILE=that/fonts.conf python3 fc_string_lang.py /path/to/libfontconfig.so.1 zh-tw - (attached; it builds the pattern the way Substitute does: family "思源黑體", lang added with FcPatternAddString).
+
+Actual: after FcConfigSubstitute the lang is "tw" and the match is Liberation Sans.
+Expected: lang stays "zh-tw" and the match is Noto Sans CJK, as it is with the same fonts and the system's /etc/fonts/conf.d (no 35), or with 35 omitted.
+
+In LibreOffice itself: open the attached cjk-font-slots.odt in a WASM build (one paragraph per Asian font name, most of them tagged zh-TW). The zh-TW rows that name a font not present under that name (思源黑體, PMingLiU, 新細明體, Microsoft JhengHei, AR PL UMing TW, 標楷體) are drawn 15-16 px apart in Chrome at our zoom, against 20 px for the row that names Noto Sans CJK TC directly. With 35-lang-normalize.conf removed from the packaged conf.d, four of those rows become 20 px and two (思源黑體, 標楷體) 19 px; the Latin rows do not move, in a zh-TW and an en-US browser locale alike. On the private document mentioned above, removing 35 makes all eleven caret positions and heights we measured equal desktop LibreOffice's to the twip.
+
+Suggested fix: drop conf.d/35-lang-normalize.conf from ExternalPackage_fontconfig_data.mk. It can only rewrite LibreOffice's tags, never improve them, because mapToFontConfigLangTag already returns members of FcGetLangs(). Independently, Substitute could add the language as an FcLangSet (FcPatternAddLangSet) instead of a string, so that "contains" means language containment; that would also protect builds that use a system fontconfig where 35 is enabled.
+
+Version: master / libreoffice-26-8 (671c848b). Platform: WASM (Emscripten); CODA-W presumably, not tested.
