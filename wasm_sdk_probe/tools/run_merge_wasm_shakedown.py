@@ -78,6 +78,7 @@ DEFAULT_CASES = "C01,C02,I02,C11,Y01,C29,C30,C17,C15,F01"
 MARKER_AT = "C01"          # the end of "M01 plain alpha"; refusal arms type here
 MARKER = "mk"
 UNCHANGED = "沒有被改動"
+DELETE_ACTIONS = ("delete-forward", "delete-backward")
 # R0c's decision -> what v15/v16 must do (spec section 17).
 EXPECT = {"merge": ("verified-key-undo", None, None),
           "typed-merge": ("verified-key-undo", None, None),
@@ -111,6 +112,7 @@ OBSERVER = r"""<script>
       obs.size = { w: value.documentWidthTwips, h: value.documentHeightTwips, from: "paint" };
     if (value.keyUndo || value.mergeKey || value.completion) {
       obs.responses.push({ t: performance.now(), generation, ok: data.ok,
+        action: value.action ?? null,
         completion: value.completion ?? null, keyUndo: value.keyUndo ?? null,
         code: value.code ?? null, message: value.message ?? null,
         mergeKey: value.mergeKey ?? null, operation: value.operation ?? null });
@@ -276,9 +278,17 @@ def place(session, browser: str, target: list[int], backward: bool) -> dict:
     pp.evaluate(session, pp.POINT_AT.replace("ARG_X", f"{fx:.6f}").replace("ARG_Y", f"{fy:.6f}"))
     pp.wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 30)
     quiet(session)
-    press(session, browser, "Home" if backward else "End")
-    time.sleep(0.4)
-    quiet(session)
+    time.sleep(0.3)
+    clicked = caret_tuple(obs(session).get("caret"))
+    # A click that already lands on the native caret needs no key: Home at the
+    # start of a numbered or bulleted paragraph moves IN FRONT OF the label
+    # (measured on C11: x 1778 against the native 2138), which is not where
+    # the native round placed it.
+    keyed = not (clicked and clicked[:2] == target[:2] and clicked[3] == target[3])
+    if keyed:
+        press(session, browser, "Home" if backward else "End")
+        time.sleep(0.4)
+        quiet(session)
     deadline = time.monotonic() + 5
     caret = None
     while time.monotonic() < deadline:
@@ -288,7 +298,8 @@ def place(session, browser: str, target: list[int], backward: bool) -> dict:
             break
         time.sleep(0.2)
     ok = bool(caret) and caret[:2] == target[:2] and caret[3] == target[3]
-    return {"ok": ok, "click": [round(fx, 6), round(fy, 6)], "size": size,
+    return {"ok": ok, "click": [round(fx, 6), round(fy, 6)], "size": size, "keyed": keyed,
+            "afterClick": clicked,
             "engineCaret": caret, "nativeCaret": target}
 
 
@@ -320,15 +331,23 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
     if case.startswith("Y"):
         press(session, browser, "x")
     press(session, browser, "Backspace" if spec["backward"] else "Delete")
-    response = None
+    # THE DELETE'S OWN ANSWER, not the next one.  Every editor action's reply
+    # carries `completion` (moves, caret placement, typing), so "the first
+    # response after the key" is the typed `x` on Y01.  Taken: the first
+    # successful reply of a delete action, or the first error; everything
+    # before it is kept as `intervening`.
+    response, intervening = None, []
     deadline = time.monotonic() + 20
-    while time.monotonic() < deadline:
-        seen = obs(session).get("responses") or []
-        if len(seen) > responses_before:
-            response = seen[responses_before]
-            break
+    while time.monotonic() < deadline and response is None:
+        seen = (obs(session).get("responses") or [])[responses_before:]
+        intervening = []
+        for item in seen:
+            if (item.get("ok") and item.get("action") in DELETE_ACTIONS) or not item.get("ok"):
+                response = item
+                break
+            intervening.append({k: item.get(k) for k in ("action", "completion", "ok")})
         time.sleep(0.1)
-    out["response"] = response
+    out["response"], out["intervening"] = response, intervening
     out["keyToResponseMs"] = round(response["t"] - t0, 1) if response else None
     time.sleep(0.5)
     out["afterKey"] = quiet(session, 90)
@@ -385,7 +404,12 @@ def main() -> int:
     args = ap.parse_args()
 
     root = HERE / "dist"
-    source = (root / "e2-editor-app.js").read_text(encoding="utf-8")
+    # THE CUTOVER'S SOURCE, not dist's.  `tools/build_cutover_page.py` repoints
+    # web/e2-editor-app.js; dist/ still serves the v8-era page until the shell
+    # generation is frozen, and on 2026-10-07 the two differed by 63 lines --
+    # B's refusal wording and the BUSY budget among them.  Measured: the first
+    # run of this runner repointed dist's page and saw the old toasts.
+    source = (HERE / "web" / "e2-editor-app.js").read_text(encoding="utf-8")
     manifest = root / "profiles" / args.candidate_profile / "sdk-manifest.json"
     page, pin_before, wasm = pp.repointed_page(source, args.candidate_profile, manifest)
     html = (root / "e2-editor.html").read_text(encoding="utf-8")
@@ -411,6 +435,7 @@ def main() -> int:
     report = {"counted": False, "instrumented": True, "browser": args.browser,
               "startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
               "candidate": {"profile": args.candidate_profile, "pinBefore": pin_before,
+                            "pageSource": "web/e2-editor-app.js",
                             "pinAfter": wasm[:16],
                             "pageSha256": hashlib.sha256(page.encode()).hexdigest(),
                             "htmlSha256": hashlib.sha256(instrumented.encode()).hexdigest()},
