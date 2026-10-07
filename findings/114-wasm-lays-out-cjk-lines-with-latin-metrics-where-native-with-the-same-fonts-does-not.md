@@ -44,7 +44,7 @@
 - LibreOffice core（我們的樹 `libreoffice-26-8`＠`671c848b`）：
   - `b7313bc1`（2021-11-30）〈WASM add fontconfig data to FS image〉——35 第一次進入打包清單（`git log -S35-lang-normalize -- external/fontconfig`）
   - `a7411d59`（2025-11-22）Windows 也打包這批規則；`703466d7`（同日）說「照 Ubuntu 的 conf.d 留」卻留下 35；`e219153c`（2025-11-24）最近一次改清單
-  - `vcl/unx/generic/fontmanager/fontconfig.cxx:1139`、`:1420`（`FcPatternAddString(…, FC_LANG, …)`）；`:951` 起 `mapToFontConfigLangTag`（只回傳 `FcGetLangs()` 的成員）
+  - `vcl/unx/generic/fontmanager/fontconfig.cxx:1139`（在 `Substitute`）、`:1420`（在 `matchFont`，**不是** `Substitute`；codex 審核 6），兩處都是 `FcPatternAddString(…, FC_LANG, …)`；master `216d3914` 上檔案搬到 `vcl/unx/generic/font/fontconfig.cxx`（`:1125`、`:1406`，codex 讀的，我沒重查）；`:951` 起 `mapToFontConfigLangTag`（只回傳 `FcGetLangs()` 的成員）
   - `external/fontconfig/ExternalPackage_fontconfig_data.mk:34`（35 那一行）；`Module_fontconfig.mk`（MSC、EMSCRIPTEN、MACOSX 才打包）；`configure.ac` 的 `using_freetype_fontconfig`（Windows／macOS 只有 `--enable-headless` 才是 yes）
 - fontconfig 2.18.2（LO 自帶版）：`src/fccfg.c` 的 `FcConfigCompareValue`（字串的 `FcOpContains` → `FcStrStrIgnoreCase`，約第 1134 行）；`conf.d/meson.build:51–72` 的 `conf_links` 不含 35
 
@@ -61,6 +61,13 @@
 - 原生最小重現：先 `python3 wasm_sdk_probe/tools/extract_wasm_fontset.py --profile e2-editor-v16 --out <新目錄>`，把產生的 `fonts.conf` 裡 `<include ignore_missing="yes">conf.d</include>` 改成**絕對路徑**，再 `FONTCONFIG_FILE=<那份 fonts.conf> python3 -I findings/evidence/114/fc-debug/native-repro/fc_string_lang.py <libfontconfig> zh-tw zh-cn`。預期 `zh-tw` 被改成 `tw`、配到 Liberation（這個最小 pattern 沒帶粗細與通用家族，所以是 Liberation Mono；LO 實際的請求配到 Sans）。
 - 引擎內（要瀏覽器）：`python3 wasm_sdk_probe/tools/probe_fc_debug.py --profiles e2-editor-v16 e2-editor-v17 --out <目錄>`。
 - **不能給**：擁有者的 `PMPC指南.odt`（V5 只能看報告裡的高度與段落序號）。
+
+### 獨立審核（codex，2026-10-08）
+
+報告：`findings/114-review-2026-10-08-codex.md`。結論：修正後的診斷成立，是 LO 自帶 fontconfig 設定的整合缺陷，值得以一般嚴重度回報上游；不要說成台灣桌面版普遍的問題，也不要說成 WASM 特有的字型度量計算缺陷。
+它另外做了**原生 LibreOffice 的單一變因重現**（同一顆原生 build、v16 的 13 個字型、規則只差 35）：思源黑體 12 pt 276→348、18 pt 414→521，Noto Sans CJK TC 與拉丁對照兩邊不動。主 session 讀過原始輸出、與表格一致，已收進 `evidence/114/codex-native/`（原本在 `/tmp`）。
+它的七條更正已套用到上游草稿（`drafts/114-bugzilla.txt`）；其中 5（本地修改有 `vcl/qt5/QtFrame.cxx`）與 6（`:1420` 在 `matchFont`）是**我寫錯的事實**，已在本文與草稿更正。
+它也從原始碼推論上游預設的 Qt 版 WASM 走同一條路（**推論，未在官方發佈的 artifact 上測**）。
 
 ### 請特別挑戰的地方（已知的弱點）
 
@@ -134,9 +141,9 @@
 
 ## 還缺什麼才能送（2026-10-07 補）
 
-- [ ] 上游 Bugzilla 查重複單（REST API；送出重啟時要再查一次）。2026-10-08 先做過一次**只看標題**的 quicksearch（`35-lang-normalize`、`lang-normalize`、`FC_LANG`、`fontconfig zh-tw`、`emscripten font`、`wasm font`、`Traditional Chinese line height` 等）：沒有相符的單；留言內文沒搜
+- [ ] 上游 Bugzilla 查重複單（REST API；送出重啟時要再查一次）。2026-10-08 codex 審核做了**留言全文**子字串搜尋：`35-lang-normalize`、`lang-normalize`、`FC_LANG` 都是 0 筆；zh-tw／fontconfig 與行高／fontconfig 組合查到的單（55469、43984、58324、137393、64509 等）成因都不同。2026-10-08 先做過一次**只看標題**的 quicksearch（`35-lang-normalize`、`lang-normalize`、`FC_LANG`、`fontconfig zh-tw`、`emscripten font`、`wasm font`、`Traditional Chinese line height` 等）：沒有相符的單；留言內文沒搜
 - 平台範圍（2026-10-08 讀 `configure.ac`＠671c848b，**已讀原始碼、未逐平台實測**）：Windows／macOS 的一般桌面版 `using_freetype_fontconfig=no`（只有 `--enable-headless` 才是 yes），`PrintFontManager::Substitute` 根本沒編進去，不會中；Linux 桌面用系統 fontconfig，中不中看發行版有沒有啟用 35（上游預設不啟用、Ubuntu 不啟用，其他發行版未查）；LO 自己打包規則的是 MSC、EMSCRIPTEN、MACOSX（`Module_fontconfig.mk`），WASM 映像從 2021-11（`b7313bc1`）就帶著 35，Windows 打包從 2025-11（`a7411d59`）
-- [ ] 在上游發佈的 WASM build 或 CODA-W 上重現（目前是：原生＋上游自己打包的 conf.d＋LO 自帶 fontconfig 2.18.2，以及我們自己建的 26.8 WASM；本地修改只在建置系統，不在 vcl 或 external/fontconfig）
+- [ ] 在上游發佈的 WASM build 或 CODA-W 上重現（目前是：原生＋上游自己打包的 conf.d＋LO 自帶 fontconfig 2.18.2，以及我們自己建的 26.8 WASM。**2026-10-08 更正（codex 審核 5）**：本地修改不只建置系統，還有 `vcl/qt5/QtFrame.cxx`（輸入法 context）；正確說法是「fontconfig 比對程式（`vcl/unx/generic/fontmanager`）與 fontconfig 打包（`external/fontconfig`）沒有本地修改」）
 - [ ] 確認 CODA-W 的字型替代真的走 `PrintFontManager::Substitute`（`vcl_headless_freetype_code`；草稿目前寫「推測，未測」）
 - [ ] 決定元件（提議 graphics stack），以及「`Substitute` 改用 langset」要不要拆成另一張
 - [x] 草稿：`drafts/114-bugzilla.txt`（英文、一段一行、無表格；附件只用專案產生的 `cjk-font-slots.odt` 與 `fc_string_lang.py`，擁有者文件不附）
@@ -156,3 +163,4 @@
 | 2026-10-07 | V5 過（擁有者文件 11 格游標與原生逐 twip 相同）；上游草稿寫好、補「還缺什麼才能送」 |
 | 2026-10-08 | 補平台範圍（讀 configure.ac）與一次只看標題的 Bugzilla 查重（0 筆） |
 | 2026-10-08 | 加「給審核者」（目前宣稱、關鍵 commit、上游位置、證據地圖、可重跑指令、已知弱點）；更正重現步驟 2（相對路徑不會重現）；影響、修法候選、未做補上 v17 現況 |
+| 2026-10-08 | codex 獨立審核入帳：原生 LO 單一變因重現收進證據；更正本地修改的說法（有 QtFrame.cxx）與 `:1420` 屬於 `matchFont`；查重補留言全文搜尋；草稿依七條更正改寫 |
