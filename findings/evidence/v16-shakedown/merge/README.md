@@ -66,3 +66,12 @@ no key was pressed in these 11 cases. It is also the first measurement of the ha
 already get a Latin line height on v8"): on this document WASM lines are about 0.79 of the native height. Cause not diagnosed.
 
 M2-0 (spec 24): all four inputs differ from native by bytes and are equal by paragraph text; the diff and the reduction are in the spec.
+
+### Paired control for run 3 (spec 22.2/22.3)
+
+`control-chrome-3.json` (`--control`: the observer keeps only the caret and the document size; no `postMessage` wrap, no
+responses recorded), same list, same order, run right after run 3. `run_merge_wasm_shakedown.py --pair shakedown-chrome-3.json
+control-chrome-3.json`: 39 case pairs, **0 differ** in generation transitions, toast sequences, or the paragraph text of the kept
+documents. Not vacuous: 21 after-key, 21 follow and 7 reopened documents existed on both sides and were compared. The control's
+own result is the same 28 pass / 11 `placement-mismatch` (the owner's document). One browser (Chrome), one round: a one-time
+measurement as spec 22.2 registers it, not a statement about Firefox.
