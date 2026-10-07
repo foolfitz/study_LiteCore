@@ -285,3 +285,24 @@ Reader red cases (on copies of the shakedown round, before the counted runs), 15
 What this says: every premise 16.3 named held on every row v15 would act on. The E shape gives Writer's own key result on all 29 merge cases and both typed cases, with no unshifted arrow and no undo action of its own. C15/C16 move from "restore never comes back" to "back, and Writer's key is a no-op" — that is the `key-deadline` / `keyPosted:true` exit, which spec 14.4 had registered as having no WASM inducer.
 
 Not measured here: P4 for the Escape path (16.3(e), a read item); a caret in front of a numbering label; WASM.
+
+## R0c-frame: the E shape inside a text frame (`r0c-frame/`)
+
+Prediction: `PREDICTION-R0c-frame.md` (`43d5370d`, before the run). Run 2026-10-07 06:00 UTC on a quiet machine (no browser
+runner going), exactly the command the prediction names:
+`MERGE_ESHAPE=1 MERGE_FOLLOW_TEXT=Z tools/run_merge_native.sh ../findings/evidence/merge-native/r0c-frame 3 test-docs/merge/odt/text-frame.odt test-docs/merge/text-frame.cases.tsv 1`
+→ `r0c-frame/round-20261007T060036Z/` (exit 0; `arms.jsonl`, `docs/`, `sal.log`).
+
+Reader: `tools/check_merge_eshape.py r0c-frame/round-*` → `{"merge": 6}`, F01 merge, F02 merge, then **STOP vacuous** (a decision
+class never occurred) -- the stop the prediction said this two-case round would give; **no KILL line**.
+
+| What | Predicted | Measured (all three rounds) |
+|---|---|---|
+| placement | both anchors inside the frame | `placementOk: true` on every arm (`boundary` "frame (inside a text frame)") |
+| the unit | one paragraph break | `codePoints [10]` on every select and E-shape arm |
+| decision | merge, 0 KILL | F01 merge, F02 merge; no KILL |
+| the key arm | merges the two frame paragraphs | undo comment `Delete paragraph` on every key arm |
+
+What this says: natively, the E shape's premises hold inside a text frame, so frames need no explicit engine refusal before WASM.
+Whether WASM refuses there (spec 18.1 N1, `anchor-mismatch`, a flush-order question the native probe cannot see) is for the WASM
+shakedown's frame case, compared with these key-arm documents (`docs/r<N>-F0<k>-key.odt`).
