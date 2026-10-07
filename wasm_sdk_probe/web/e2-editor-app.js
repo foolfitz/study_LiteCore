@@ -806,6 +806,13 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
     return;
   if (rendering) { renderAgain = true; return; }
   rendering = true;
+  // Set when a BUSY retry takes over: the retry has already set `rendering`
+  // again, and this call's `finally` must not clear it while the retried
+  // request is in flight -- it did (`return renderDocument(...)` does not wait
+  // for the promise), so a repaint asked for in that window started a second
+  // loop (review N4, 2026-10-07; measured with a stub: two in flight).  With B
+  // a barrier keeps the engine BUSY for up to about 8 s.
+  let retried = false;
   try {
     // One request per strip, none of them taller than the engine will paint.
     // A document short enough to fit takes exactly one strip covering the whole
@@ -866,12 +873,25 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
     if (error?.code === "BUSY" && retriesLeft > 0) {
       await new Promise((resolve) => setTimeout(resolve, 120));
       rendering = false;
+      retried = true;
       return renderDocument(retriesLeft - 1);
     }
+    // The page disposed this engine itself -- `restart()` (a boundary
+    // refusal's reopen, the recovery notice) or `close()` -- while this repaint
+    // waited for its reply, and the SDK rejects every pending request with
+    // ENGINE_DISPOSED (document-sdk.js `dispose()`).  Nothing failed that the
+    // user could act on, and the restart's own `run()` repaints the new
+    // engine.  It toasted 「重繪失敗：ENGINE_DISPOSED」 beside the reopen's
+    // sentence on the merge shakedown (2026-10-07: F01, C17), which M2-3
+    // counts as a second toast.  Only this code: a crashed worker or a stale
+    // handle is not the page's own doing and is still said.
+    if (error?.code === "ENGINE_DISPOSED") return;
     toast(`重繪失敗：${describeError(error)}`, true);
   } finally {
-    rendering = false;
-    if (renderAgain) { renderAgain = false; void renderDocument(); }
+    if (!retried) {
+      rendering = false;
+      if (renderAgain) { renderAgain = false; void renderDocument(); }
+    }
   }
 }
 
