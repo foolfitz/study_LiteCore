@@ -74,81 +74,142 @@ import run_e2_c_product_path as pp  # noqa: E402
 
 HERE = pp.PROJECT
 EVIDENCE = HERE.parent / "findings/evidence/merge-native"
+ESHAPE = EVIDENCE / "r0c/eshape.json"
+PMPC_ROUND = HERE / "build/merge-native-pmpc/r0c/round-20261006T150756Z"
+# name -> (fixture, R0c round directory with arms.jsonl and docs/, the round's
+# key in eshape.json or None, private).  The three eshape.json rounds are the
+# M2-1/M2-3 population (spec 22.1); text-frame is the registered one-time cell
+# (22.2) and is read through the native reader instead.  PRIVATE: the owner's
+# document -- read from build/ only, kept documents go to build/, and the
+# report carries hashes and paragraph indices, never paragraph text.
 FIXTURES = {
     "boundaries": (HERE / "test-docs/merge/odt/boundaries.odt",
-                   EVIDENCE / "r0c/round-20261006T144628Z", EVIDENCE / "r0c/eshape.json"),
+                   EVIDENCE / "r0c/round-20261006T144628Z", "round-20261006T144628Z", False),
+    "boundaries-indent": (HERE / "test-docs/merge/odt/boundaries-indent.odt",
+                          EVIDENCE / "r0c/round-20261006T150437Z", "round-20261006T150437Z", False),
+    "pmpc": (PMPC_ROUND / "fixture.odt", PMPC_ROUND, "round-20261006T150756Z", True),
     "text-frame": (HERE / "test-docs/merge/odt/text-frame.odt",
-                   EVIDENCE / "r0c-frame/round-20261007T060036Z", None),
+                   EVIDENCE / "r0c-frame/round-20261007T060036Z", None, False),
 }
-DEFAULT_CASES = "C01,C02,I02,C11,Y01,C29,C30,C17,C15,F01"
-# What WASM must do where it differs from R0c's native decision.  Spec 18.1
-# N1: inside a text frame Writer sends TEXT_SELECTION before START/END, so the
-# fence refuses every merge there; "M2's WASM measurement includes a cell in a
-# text frame, expected anchor-mismatch".  The runner compared F01 with the
-# native merge instead, so the refusal it saw (both runs, 2026-10-07) was
-# graded against the wrong expectation and no marker had been typed.
-WASM_EXPECT = {"text-frame": ("refused", "anchor-mismatch", False)}
+FRAME_CELL = ("F01", "F02")
+# The one STOP the native reader prints for the frame round, and why it is
+# expected: that round has only merge cases, so every other decision class is
+# empty.  Any other STOP, or a KILL, stops this runner.
+FRAME_STOPS = ["vacuous: a decision class never occurred {'merge': 6}"]
+# Spec 22.2: inside a text frame the fence refuses every merge (18.1 N1).  A
+# registered one-time cell, outside the M2-1/M2-3 lists, valid only while the
+# native decision there is still `merge`.
+FRAME_EXPECT = ("refused", "anchor-mismatch", False)
 # Where refusal arms type the marker: a native caret IN THE FIXTURE UNDER TEST,
 # and not the case's own.  It was C01's for every fixture, a boundaries.odt
 # coordinate.  In the frame, F01 (the end of "F01 frame first") and F02 (the
 # start of "F01 frame second") are on different lines, so each marks the
 # other's.  Backward cases are placed with Home, so the marker goes in FRONT
-# of the paragraph's text; forward ones with End, after it.
+# of the paragraph's text; forward ones with End, after it.  Hand-picked
+# (review N7): a fixture with a refusal case and no entry here stops the run.
 MARKER_AT = {"boundaries": ("C01",), "text-frame": ("F02", "F01")}
 MARKER = "mk"
-# Where the page's saved documents are kept (set in main()).
-DOCS: dict = {"dir": None}
+# Where the page's saved documents are kept (set in main()); `private` for the
+# owner's document, under build/.
+DOCS: dict = {"dir": None, "private": None}
 UNCHANGED = "沒有被改動"
 DELETE_ACTIONS = ("delete-forward", "delete-backward")
-# R0c's decision -> what v15/v16 must do (spec section 17).
-EXPECT = {"merge": ("verified-key-undo", None, None),
-          "typed-merge": ("verified-key-undo", None, None),
-          "nothing-selected": ("refused", "nothing-selected", False),
-          "refused-k1-anchor": ("refused", "anchor-mismatch", False),
-          "refused-k1-fence": ("refused", "anchor-mismatch", False),
-          "key-noop": ("refused", "key-deadline", True)}
+# R0c's decision -> what v16 must do and which criterion counts it (spec 17,
+# 22.1).  Anything else STOPS the runner: before the review a decision with no
+# entry (G01's `barrier`, any `refused-k2-*`) got no expectation and passed
+# silently.
+def expectation(decision: str | None) -> tuple[str, tuple]:
+    if decision in ("merge", "typed-merge"):
+        return "M2-1", ("verified-key-undo", None, None)
+    if decision == "barrier":
+        return "barrier", ("verified-selection-delete", None, None)
+    if decision == "nothing-selected":
+        return "M2-3", ("refused", "nothing-selected", False)
+    if decision and decision.startswith("refused-k1-"):
+        return "M2-3", ("refused", "anchor-mismatch", False)
+    if decision and decision.startswith("refused-k2-"):
+        return "M2-3", ("refused", "return-mismatch", False)
+    if decision == "key-noop":
+        return "M2-3", ("refused", "key-deadline", True)
+    raise SystemExit(f"no expectation for the R0c decision {decision!r}; spec 22.1 says stop")
 
+
+# The instrument (spec 22.2 on its cost and on what only it can see).  Since the
+# review of 5555e554: a bounded record written OUTSIDE the message handler
+# (setTimeout, so the SDK's own listener for the same message is not delayed by
+# a JSON.stringify of everything seen so far), and EVERY failed editor action is
+# recorded -- before, an error was kept only if it carried keyUndo/mergeKey/
+# completion, so v8's refusal (no mergeKey) read as `no-response`.  Responses
+# carry only a requestId, so outgoing requests are mapped to their operation
+# (and an editor action to its action name) on the way out; a failed paint
+# (BUSY during a barrier) is therefore never taken for the delete's answer.
 OBSERVER = r"""<script>
 (() => {
   const Native = window.Worker;
-  const obs = { workers: 0, responses: [], caret: null, carets: 0, size: null };
+  const KEEP = 64;
+  const obs = { workers: 0, responses: [], responsesSeen: 0, caret: null, carets: 0,
+                size: null };
   const node = document.createElement("script");
   node.type = "application/json"; node.id = "merge-observer";
-  const flush = () => { node.textContent = JSON.stringify(obs); };
+  let queued = false;
+  const flush = () => { queued = false; node.textContent = JSON.stringify(obs); };
+  const later = () => { if (!queued) { queued = true; setTimeout(flush, 0); } };
   document.addEventListener("DOMContentLoaded", () => { document.head.appendChild(node); flush(); });
-  function seen(data, generation) {
+  function seen(data, generation, requests) {
     if (!data || typeof data !== "object") return;
     if (data.kind === "event" && data.event === "editor-state" && data.caret) {
       obs.caret = { generation, t: performance.now(), caret: data.caret,
                     sourceSequence: data.sourceSequence ?? null };
-      obs.carets += 1; flush(); return;
+      obs.carets += 1; later(); return;
     }
     if (data.kind !== "response") return;
+    const request = requests.get(data.requestId) || {};
+    requests.delete(data.requestId);
     const value = data.ok ? data.result : data.error;
-    if (!value || typeof value !== "object") return;
-    if (typeof value.width === "number" && typeof value.height === "number"
-        && value.documentHandle !== undefined)
-      obs.size = { w: value.width, h: value.height, from: "open" };
-    if (typeof value.documentWidthTwips === "number")
-      obs.size = { w: value.documentWidthTwips, h: value.documentHeightTwips, from: "paint" };
-    if (value.keyUndo || value.mergeKey || value.completion) {
-      obs.responses.push({ t: performance.now(), generation, ok: data.ok,
-        action: value.action ?? null,
-        completion: value.completion ?? null, keyUndo: value.keyUndo ?? null,
-        code: value.code ?? null, message: value.message ?? null,
-        mergeKey: value.mergeKey ?? null, operation: value.operation ?? null });
+    if (value && typeof value === "object") {
+      let size = null;
+      if (typeof value.width === "number" && typeof value.height === "number"
+          && value.documentHandle !== undefined)
+        size = { w: value.width, h: value.height, from: "open" };
+      if (typeof value.documentWidthTwips === "number")
+        size = { w: value.documentWidthTwips, h: value.documentHeightTwips, from: "paint" };
+      if (size && (!obs.size || obs.size.w !== size.w || obs.size.h !== size.h
+                   || obs.size.generation !== generation)) {
+        obs.size = { ...size, generation }; later();
+      }
     }
-    flush();
+    const editor = /^editorAction/.test(request.operation || "");
+    const marked = value && typeof value === "object"
+      && (value.keyUndo || value.mergeKey || value.completion);
+    if (!(marked || (editor && !data.ok))) return;
+    obs.responses.push({ n: obs.responsesSeen, t: performance.now(), generation, ok: data.ok,
+      operation: request.operation ?? null,
+      action: request.action ?? value?.action ?? null,
+      completion: value?.completion ?? null, keyUndo: value?.keyUndo ?? null,
+      code: value?.code ?? null, message: value?.message ?? null,
+      mergeKey: value?.mergeKey ?? value?.details?.mergeKey ?? null });
+    obs.responsesSeen += 1;
+    if (obs.responses.length > KEEP) obs.responses.shift();
+    later();
   }
   function Wrapped(url, options) {
     const worker = new Native(url, options);
     if (options && options.name === "oxoffice-document-engine") {
       obs.workers += 1;
       const generation = obs.workers;
+      const requests = new Map();
+      const post = worker.postMessage.bind(worker);
+      worker.postMessage = (message, transfer) => {
+        if (message && message.kind === "request")
+          requests.set(message.requestId, { operation: message.operation,
+                                            action: message.payload?.action });
+        return post(message, transfer);
+      };
       worker.addEventListener("message", (event) => {
-        try { seen(event.data, generation); } catch (error) { obs.error = String(error); flush(); }
+        try { seen(event.data, generation, requests); }
+        catch (error) { obs.error = String(error); later(); }
       });
-      flush();
+      later();
     }
     return worker;
   }
@@ -221,35 +282,92 @@ def caret_tuple(record) -> list | None:
     return [caret.get(k) for k in keys] if all(k in caret for k in keys) else None
 
 
+def sha256_of(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def top_undo_comment(row: dict) -> str | None:
+    """The newest undo action's comment in a native arm (index 0 is the newest)."""
+    after = row.get("undoAfter")
+    after = json.loads(after) if isinstance(after, str) else (after or {})
+    actions = json.loads(after.get("actions") or "{}").get("actions") or []
+    newest = [a for a in actions if str(a.get("index")) == "0"]
+    return newest[0].get("comment") if newest else None
+
+
 @functools.lru_cache(maxsize=None)
 def native_cases(fixture: str) -> dict:
-    """Per case: native placed cursor, direction, R0c decision, reference documents."""
-    _, round_dir, decisions = FIXTURES[fixture]
-    rows = [json.loads(line) for line in (round_dir / "arms.jsonl").read_text().splitlines() if line.strip()]
-    if decisions is not None:
-        table = json.loads(decisions.read_text())["cases"]
-        decided = {key.split(" ", 1)[1]: value for key, value in table.items()
-                   if key.startswith(round_dir.name + " ")}
+    """Per case: native placed cursor, direction, R0c decision, reference documents.
+
+    Bound, not assumed: the fixture served must be the round's own fixture.odt,
+    and the decisions come from eshape.json (its KILL/STOP lists must be empty)
+    or, for the frame round, from the native reader with only its one expected
+    STOP.
+    """
+    path, round_dir, round_key, private = FIXTURES[fixture]
+    arms = round_dir / "arms.jsonl"
+    if not path.is_file() or not arms.is_file():
+        raise SystemExit(f"{fixture}: {path} or {arms} is missing")
+    if (round_dir / "fixture.odt").is_file() and sha256_of(round_dir / "fixture.odt") != sha256_of(path):
+        raise SystemExit(f"{fixture}: {path} is not the fixture R0c ran ({round_dir}/fixture.odt)")
+    rows = [json.loads(line) for line in arms.read_text().splitlines() if line.strip()]
+    if round_key is not None:
+        table = json.loads(ESHAPE.read_text())
+        if table["kills"] or table["stops"]:
+            raise SystemExit(f"{ESHAPE}: KILL {table['kills']} STOP {table['stops']}")
+        decided = {key.split(" ", 1)[1]: value for key, value in table["cases"].items()
+                   if key.split(" ", 1)[0] == round_key}
     else:
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "eshape.json"
             subprocess.run([sys.executable, str(HERE / "tools/check_merge_eshape.py"), "--json",
                             str(target), str(round_dir)], capture_output=True, text=True)
             verdict = json.loads(target.read_text())
-        if verdict["kills"]:
-            raise SystemExit(f"{round_dir.name}: the native reader has KILL lines {verdict['kills']}")
+        if verdict["kills"] or verdict["stops"] != FRAME_STOPS:
+            raise SystemExit(f"{round_dir.name}: native reader KILL {verdict['kills']} "
+                             f"STOP {verdict['stops']} (only {FRAME_STOPS} is expected)")
         decided = {key.split(" ", 1)[1]: value for key, value in verdict["cases"].items()}
+    comments = {row["case"]: top_undo_comment(row) for row in rows
+                if row.get("round") == 1 and row.get("arm") == "key"}
     cases = {}
     for row in rows:
         if row.get("round") != 1 or row.get("arm") != "select":
             continue
-        cursor = [int(v) for v in ((row.get("placed") or {}).get("cursor") or "").split(",")]
-        cases[row["case"]] = {"fixture": fixture, "backward": bool(row.get("backward")),
+        placed = row.get("placed") or {}
+        placed = json.loads(placed) if isinstance(placed, str) else placed
+        cursor = [int(v) for v in (placed.get("cursor") or "").split(",")]
+        cases[row["case"]] = {"fixture": fixture, "private": private,
+                              "backward": bool(row.get("backward")),
                               "nativeCaret": cursor, "search": row.get("search"),
                               "decision": decided.get(row["case"]),
+                              "nativeComment": comments.get(row["case"]),
+                              "original": round_dir / "docs" / "original.odt",
                               "key": round_dir / "docs" / f"r1-{row['case']}-key.odt",
                               "follow": round_dir / "docs" / f"r1-{row['case']}-key-follow.odt"}
+    if not cases or set(cases) != set(decided):
+        raise SystemExit(f"{fixture}: R0c select arms {sorted(cases)} and decisions "
+                         f"{sorted(decided)} do not match")
     return cases
+
+
+def tool_cases(frame_cell: bool) -> dict:
+    """The M2-1/M2-3 population (spec 22.1), plus the frame cell when asked."""
+    out = {}
+    for fixture, (_, _, round_key, _) in FIXTURES.items():
+        if round_key is None and not frame_cell:
+            continue
+        for case, spec in native_cases(fixture).items():
+            if round_key is None:
+                if spec["decision"] != "merge":
+                    raise SystemExit(f"{case}: the frame cell assumes the native decision "
+                                     f"`merge`, R0c-frame says {spec['decision']!r} (spec 22.2)")
+                out[case] = {**spec, "criterion": "frame", "expected": FRAME_EXPECT}
+                continue
+            criterion, expected = expectation(spec["decision"])
+            if expected[0] == "refused" and fixture not in MARKER_AT:
+                raise SystemExit(f"{case}: a refusal case in {fixture}, which has no marker place")
+            out[case] = {**spec, "criterion": criterion, "expected": expected}
+    return out
 
 
 def odt_parts(raw: bytes) -> dict:
@@ -260,20 +378,29 @@ def odt_parts(raw: bytes) -> dict:
             "paragraphs": paragraphs}
 
 
-def compare(raw: bytes | None, reference: Path) -> dict:
+def compare(raw: bytes | None, reference: Path, private: bool) -> dict:
+    """content.xml against a native document: bytes and paragraph text.
+
+    `bytesEqual` is reported but is not a clause until M2-0's reduction is in
+    the spec (4.3).  A private fixture reports indices and hashes, never text.
+    """
     if raw is None:
         return {"saved": False}
     mine, theirs = odt_parts(raw), odt_parts(reference.read_bytes())
-    return {"saved": True, "reference": reference.name, "bytesEqual": mine["content"] == theirs["content"],
-            "textEqual": mine["paragraphs"] == theirs["paragraphs"],
-            "mine": mine["sha"], "theirs": theirs["sha"],
-            "firstTextDifference": next(([i, a, b] for i, (a, b) in enumerate(
-                zip(mine["paragraphs"], theirs["paragraphs"])) if a != b),
-                None if len(mine["paragraphs"]) == len(theirs["paragraphs"])
-                else ["count", len(mine["paragraphs"]), len(theirs["paragraphs"])])}
+    first = next((i for i, (a, b) in enumerate(zip(mine["paragraphs"], theirs["paragraphs"]))
+                  if a != b), None)
+    out = {"saved": True, "reference": reference.name,
+           "bytesEqual": mine["content"] == theirs["content"],
+           "textEqual": mine["paragraphs"] == theirs["paragraphs"],
+           "mine": mine["sha"], "theirs": theirs["sha"],
+           "paragraphs": [len(mine["paragraphs"]), len(theirs["paragraphs"])],
+           "firstTextDifference": first}
+    if first is not None and not private:
+        out["firstTextDifferenceText"] = [mine["paragraphs"][first], theirs["paragraphs"][first]]
+    return out
 
 
-def save(session, name: str) -> bytes | None:
+def save(session, name: str, private: bool) -> bytes | None:
     """The product's save; the bytes are kept as `<DOCS>/<name>.odt`."""
     index = pp.evaluate(session, pp.SAVE_COUNT) or 0
     pp.evaluate(session, pp.PRESS.replace("ARG_ACTION", "save"))
@@ -281,8 +408,9 @@ def save(session, name: str) -> bytes | None:
         return None
     saved = pp.evaluate(session, pp.READ_SAVE.replace("ARG_INDEX", str(index)))
     raw = base64.b64decode(saved["b64"]) if saved else None
-    if raw is not None and DOCS["dir"] is not None:
-        target = DOCS["dir"] / f"{name}.odt"
+    folder = DOCS["private" if private else "dir"]
+    if raw is not None and folder is not None:
+        target = folder / f"{name}.odt"
         if target.exists():
             raise SystemExit(f"refusing to overwrite a kept document: {target}")
         target.write_bytes(raw)
@@ -296,59 +424,140 @@ def open_fixture(session, url: str, name: str) -> dict:
 
 
 def place(session, browser: str, target: list[int], backward: bool) -> dict:
-    """Click at the native caret, then End/Home; the engine's caret must equal it."""
-    size = obs(session).get("size") or {}
-    if not size.get("w") or not size.get("h"):
-        return {"ok": False, "why": "no document size from the instrument"}
+    """Click at the native caret, then End/Home; the engine's caret must equal it.
+
+    The caret and the document size must come from the CURRENT worker (review
+    S5): right after an open the last caret seen can be the previous worker's,
+    and if it happened to equal the target the key would go out unplaced.
+    """
+    seen = obs(session)
+    current, size = seen.get("workers"), seen.get("size") or {}
+    if not size.get("w") or not size.get("h") or size.get("generation") != current:
+        return {"ok": False, "why": "no document size from the current worker", "size": size,
+                "workers": current}
+
+    def at_target(record) -> bool:
+        caret = caret_tuple(record)
+        return (bool(caret) and (record or {}).get("generation") == current
+                and caret[:2] == target[:2] and caret[3] == target[3])
+
     x, y, _, height = target
     fx = (x + (-40 if not backward else 40)) / size["w"]
     fy = (y + height / 2) / size["h"]
-    before = (obs(session).get("carets") or 0)
+    before = seen.get("carets") or 0
     pp.evaluate(session, pp.POINT_AT.replace("ARG_X", f"{fx:.6f}").replace("ARG_Y", f"{fy:.6f}"))
     pp.wait_for(session, lambda s: "定位游標" in (s.get("latency") or ""), 30)
     quiet(session)
     time.sleep(0.3)
-    clicked = caret_tuple(obs(session).get("caret"))
+    clicked_record = obs(session).get("caret")
     # A click that already lands on the native caret needs no key: Home at the
     # start of a numbered or bulleted paragraph moves IN FRONT OF the label
     # (measured on C11: x 1778 against the native 2138), which is not where
     # the native round placed it.
-    keyed = not (clicked and clicked[:2] == target[:2] and clicked[3] == target[3])
+    keyed = not at_target(clicked_record)
     if keyed:
         press(session, browser, "Home" if backward else "End")
         time.sleep(0.4)
         quiet(session)
-    deadline = time.monotonic() + 5
-    caret = None
+    deadline, record = time.monotonic() + 5, None
     while time.monotonic() < deadline:
         seen = obs(session)
-        caret = caret_tuple(seen.get("caret"))
-        if (seen.get("carets") or 0) > before and caret and caret[:2] == target[:2] and caret[3] == target[3]:
+        record = seen.get("caret")
+        if (seen.get("carets") or 0) > before and at_target(record):
             break
         time.sleep(0.2)
-    ok = bool(caret) and caret[:2] == target[:2] and caret[3] == target[3]
-    return {"ok": ok, "click": [round(fx, 6), round(fy, 6)], "size": size, "keyed": keyed,
-            "afterClick": clicked,
-            "engineCaret": caret, "nativeCaret": target}
+    return {"ok": at_target(record), "click": [round(fx, 6), round(fy, 6)], "size": size,
+            "keyed": keyed, "afterClick": caret_tuple(clicked_record),
+            "engineCaret": caret_tuple(record), "caretGeneration": (record or {}).get("generation"),
+            "workers": current, "nativeCaret": target}
+
+
+# The reopen's own last sentence (e2-editor-app.js reopenAfterBoundaryRefusal),
+# or the generation ceiling's, which ends the flow without a restart.
+REOPENED, AT_LIMIT = "已重新載入", "不能再重新載入"
+
+
+def toast_window(session, gen_before: str, limit: float = 90) -> dict:
+    """Spec 22.1 (B4): the window closes on the reopen's own end, not on a timer.
+
+    Closed when the generation has moved AND the final sentence is shown, or
+    when the ceiling's sentence is (that path does not restart).  Not closed
+    within `limit` seconds: the case fails, it is not read early.
+    """
+    deadline = time.monotonic() + limit
+    generation, toasts = gen_before, []
+    while time.monotonic() < deadline:
+        generation = pp.evaluate(session, GEN)
+        toasts = pp.evaluate(session, pp.READ_TOASTS) or []
+        if any(AT_LIMIT in (t or "") for t in toasts) or (
+                generation != gen_before and any(REOPENED in (t or "") for t in toasts)):
+            return {"closed": True, "generation": generation, "toasts": toasts}
+        time.sleep(0.2)
+    return {"closed": False, "generation": generation, "toasts": toasts}
+
+
+def merge_clauses(out: dict, spec: dict) -> dict:
+    """Spec 22.1, every clause on its own (None = not established yet)."""
+    key_undo = out.get("keyUndo") or {}
+    clauses = {"outcome": out.get("outcome") == spec["expected"][0],
+               "generation": out["generation"][0] == out["generation"][1],
+               "afterKeyText": (out.get("afterKeyDocument") or {}).get("textEqual") is True,
+               # M2-0: WASM and native differ with no edit, so bytes wait for
+               # the reduction appended to the spec (4.3).
+               "afterKeyBytes": None,
+               "followText": (out.get("followDocument") or {}).get("textEqual") is True,
+               "noToast": out.get("toasts") == []}
+    if spec["criterion"] == "M2-1":
+        clauses["comment"] = (key_undo.get("comment") is not None
+                              and key_undo.get("comment") == spec["nativeComment"])
+        clauses["restorePresses"] = key_undo.get("restorePresses") == 0
+    return clauses
+
+
+def refusal_clauses(out: dict, spec: dict, expected_text: list | None, mine: list | None) -> dict:
+    """Spec 22.1 and 22.2 (the narrowed M2-3), every clause on its own."""
+    _, stage, posted = spec["expected"]
+    window = out.get("toastWindow") or {}
+    toasts = window.get("toasts") or []
+    before = out.get("beforeKey") or {}
+    after = out.get("afterKey") or {}
+    try:
+        reopened = str(int(out["generation"][0]) + 1)
+    except (TypeError, ValueError):
+        reopened = None
+    clauses = {"outcome": out.get("outcome") == "refused",
+               "stage": out.get("stage") == stage,
+               "keyPosted": out.get("keyPosted") == posted,
+               "generation": reopened is not None and window.get("generation") == reopened,
+               "toastWindowClosed": window.get("closed") is True,
+               "reopenedText": mine is not None and mine == expected_text,
+               "markerSurvived": mine is not None and sum(MARKER in p for p in mine) == 1,
+               "checkpointRevision": after.get("checkpoint") == f"有（r{before.get('revision')}）",
+               "onlyTheReopenToasts": len(toasts) == 2 and all("重新載入" in (t or "") for t in toasts),
+               "noUnchanged": (not any(UNCHANGED in (t or "") for t in toasts)) if posted else None}
+    return clauses
 
 
 def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: str) -> dict:
-    out = {"case": case, "round": round_no, "decision": spec["decision"],
-           "backward": spec["backward"], "search": spec["search"]}
-    expected = WASM_EXPECT.get(spec["fixture"], EXPECT.get(spec["decision"]))
-    if spec["fixture"] in WASM_EXPECT:
-        out["note"] = (f"native R0c decided {spec['decision']!r}; on WASM the expectation is "
-                       "spec 18.1 N1's (the fence refuses inside a text frame)")
-    out["expected"] = expected
+    private = spec["private"]
+    out = {"case": case, "round": round_no, "fixture": spec["fixture"],
+           "criterion": spec["criterion"], "decision": spec["decision"],
+           "backward": spec["backward"], "search": None if private else spec["search"],
+           "expected": spec["expected"]}
+    if spec["criterion"] == "frame":
+        out["note"] = (f"native R0c decided {spec['decision']!r}; spec 22.2 registers the frame "
+                       "cell as a one-time measurement expecting 18.1 N1's anchor-mismatch")
     out["open"] = open_fixture(session, url, f"{case}-r{round_no}.odt")
-    refusal = expected is not None and expected[0] == "refused"
-    marker_case = next(c for c in MARKER_AT[spec["fixture"]] if c != case)
-    marker_at = native_cases(spec["fixture"])[marker_case]
-    out["markerAt"] = marker_case
+    refusal = spec["expected"][0] == "refused"
+    marker_at = None
     if refusal:
+        marker_case = next(c for c in MARKER_AT[spec["fixture"]] if c != case)
+        marker_at = native_cases(spec["fixture"])[marker_case]
+        out["markerAt"] = marker_case
         out["markerPlace"] = place(session, browser, marker_at["nativeCaret"], marker_at["backward"])
         if not out["markerPlace"]["ok"]:
             out["outcome"] = "marker-placement-mismatch"
+            out["pass"] = False
             return out
         for letter in MARKER:
             press(session, browser, letter)
@@ -356,83 +565,103 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
     out["place"] = place(session, browser, spec["nativeCaret"], spec["backward"])
     if not out["place"]["ok"]:
         out["outcome"] = "placement-mismatch"
+        out["pass"] = False
         return out
     out["beforeKey"] = quiet(session)
     gen_before = pp.evaluate(session, GEN)
-    responses_before = len(obs(session).get("responses") or [])
+    responses_before = obs(session).get("responsesSeen") or 0
     pp.evaluate(session, pp.CLEAR_TOASTS)
-    t0 = pp.evaluate(session, NOW)
     if case.startswith("Y"):
         press(session, browser, "x")
+    # The clock starts at the DELETE (review N1; spec 22.1 M2-2): Y's typed `x`
+    # is not the merge's latency.
+    t0 = pp.evaluate(session, NOW)
     press(session, browser, "Backspace" if spec["backward"] else "Delete")
     # THE DELETE'S OWN ANSWER, not the next one.  Every editor action's reply
     # carries `completion` (moves, caret placement, typing), so "the first
     # response after the key" is the typed `x` on Y01.  Taken: the first
-    # successful reply of a delete action, or the first error; everything
-    # before it is kept as `intervening`.
-    response, intervening = None, []
+    # successful reply of a delete action, or the first FAILED EDITOR ACTION
+    # (the observer records those since the review, mergeKey or not, and never
+    # a failed paint); everything before it is kept as `intervening`.
+    response, intervening, lost = None, [], False
     deadline = time.monotonic() + 20
     while time.monotonic() < deadline and response is None:
-        seen = (obs(session).get("responses") or [])[responses_before:]
+        record = obs(session).get("responses") or []
+        lost = bool(record) and record[0].get("n", 0) > responses_before
         intervening = []
-        for item in seen:
+        for item in (r for r in record if r.get("n", -1) >= responses_before):
             if (item.get("ok") and item.get("action") in DELETE_ACTIONS) or not item.get("ok"):
                 response = item
                 break
             intervening.append({k: item.get(k) for k in ("action", "completion", "ok")})
         time.sleep(0.1)
-    out["response"], out["intervening"] = response, intervening
+    out["response"], out["intervening"], out["responsesLost"] = response, intervening, lost
     out["keyToResponseMs"] = round(response["t"] - t0, 1) if response else None
-    time.sleep(0.5)
-    out["afterKey"] = quiet(session, 90)
-    out["generation"] = [gen_before, pp.evaluate(session, GEN)]
-    out["toasts"] = pp.evaluate(session, pp.READ_TOASTS)
-    if response and response.get("ok") and response.get("completion") == "verified-key-undo":
-        out["outcome"] = "verified-key-undo"
+    if response and response.get("ok"):
+        out["outcome"] = response.get("completion")
         out["keyUndo"] = response.get("keyUndo")
-        raw = save(session, f"{case}-r{round_no}-after-key")
-        out["afterKeyDocument"] = compare(raw, spec["key"])
-        press(session, browser, "Z")
-        out["followSettled"] = quiet(session)
-        out["followDocument"] = compare(save(session, f"{case}-r{round_no}-follow"), spec["follow"])
-    elif response and not response.get("ok"):
+    elif response:
         mk = response.get("mergeKey") or {}
         out["outcome"] = "refused"
+        out["code"] = response.get("code")
         out["stage"], out["keyPosted"] = mk.get("stage"), mk.get("keyPosted")
-        raw = save(session, f"{case}-r{round_no}-reopened")
-        original = odt_parts(spec["key"].with_name("original.odt").read_bytes())["paragraphs"]
+    else:
+        out["outcome"] = "no-response"
+    if refusal or out["outcome"] == "refused":
+        out["toastWindow"] = toast_window(session, gen_before)
+        out["afterKey"] = quiet(session, 90)
+        out["generation"] = [gen_before, pp.evaluate(session, GEN)]
+        raw = save(session, f"{case}-r{round_no}-reopened", private)
+        original = odt_parts(spec["original"].read_bytes())["paragraphs"]
         mine = odt_parts(raw)["paragraphs"] if raw else None
         expected_text = list(original)
-        target = marker_at["search"]
-        if target in expected_text:
-            i = expected_text.index(target)
-            expected_text[i] = MARKER + target if marker_at["backward"] else target + MARKER
+        if marker_at is not None:
+            # Exactly once, checked before any browser ran (tool_cases); an
+            # insertion that silently found nothing made "original + marker"
+            # read as "original" and passed when the marker was lost (B3).
+            i = expected_text.index(marker_at["search"])
+            expected_text[i] = (MARKER + marker_at["search"] if marker_at["backward"]
+                                else marker_at["search"] + MARKER)
         out["reopenedDocument"] = {"saved": raw is not None,
-                                   "textIsOriginalPlusMarker": mine == expected_text,
-                                   "markerSurvived": bool(mine) and any(MARKER in p for p in mine)}
-        out["toastSaysUnchanged"] = any(UNCHANGED in (t or "") for t in (out["toasts"] or []))
+                                   "paragraphs": None if mine is None else len(mine)}
+        out["clauses"] = refusal_clauses(out, spec, expected_text if marker_at else None, mine)
+        if not refusal:
+            out["clauses"]["outcome"] = False
     else:
-        out["outcome"] = "no-response" if response is None else "other"
-    if expected:
-        want, stage, posted = expected
-        out["asExpected"] = (out["outcome"] == want and
-                             (want != "refused" or (out.get("stage") == stage and out.get("keyPosted") == posted)))
+        time.sleep(0.5)
+        out["afterKey"] = quiet(session, 90)
+        out["generation"] = [gen_before, pp.evaluate(session, GEN)]
+        out["toasts"] = pp.evaluate(session, pp.READ_TOASTS)
+        raw = save(session, f"{case}-r{round_no}-after-key", private)
+        out["afterKeyDocument"] = compare(raw, spec["key"], private)
+        press(session, browser, "Z")
+        out["followSettled"] = quiet(session)
+        out["followDocument"] = compare(save(session, f"{case}-r{round_no}-follow", private),
+                                        spec["follow"], private)
+        out["clauses"] = merge_clauses(out, spec)
+    out["notEstablished"] = sorted(k for k, v in out["clauses"].items() if v is None)
+    out["pass"] = all(v for v in out["clauses"].values() if v is not None)
     return out
 
 
 def m2_0(session, fixture: str, url: str) -> dict:
     """Load and save with no edit; content.xml against native original.odt."""
-    _, round_dir, _ = FIXTURES[fixture]
+    _, round_dir, _, private = FIXTURES[fixture]
     opened = open_fixture(session, url, f"m2-0-{fixture}.odt")
     return {"fixture": fixture, "open": opened,
-            "document": compare(save(session, f"m2-0-{fixture}"), round_dir / "docs" / "original.odt")}
+            "document": compare(save(session, f"m2-0-{fixture}", private),
+                                round_dir / "docs" / "original.odt", private)}
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--browser", choices=("chrome", "firefox"), default="chrome")
     ap.add_argument("--candidate-profile", default="e2-editor-v16")
-    ap.add_argument("--cases", default=DEFAULT_CASES)
+    ap.add_argument("--cases", default=None,
+                    help="a SUBSET for a shakedown; the default is the tool-generated list "
+                         "(spec 22.1), and a report from a subset says so")
+    ap.add_argument("--frame-cell", action="store_true",
+                    help="also run spec 22.2's registered text-frame cell (F01, F02)")
     ap.add_argument("--rounds", type=int, default=1)
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
@@ -456,8 +685,26 @@ def main() -> int:
     mirror = Path(tempfile.mkdtemp(prefix="merge-wasm-")) / "root"
     pp.build_mirror(root, mirror, {"e2-editor-app.js": page.encode("utf-8"),
                                    "e2-editor.html": instrumented.encode("utf-8")})
+    # Before any browser: the list, its fixtures, and every marker target
+    # exactly once in its original (B3's offline half).
+    cases = tool_cases(args.frame_cell)
+    wanted = [c for c in (args.cases.split(",") if args.cases else cases) if c]
+    missing = [c for c in wanted if c not in cases]
+    if missing:
+        raise SystemExit(f"not in the tool-generated list: {missing}")
+    for fixture in {cases[c]["fixture"] for c in wanted if cases[c]["expected"][0] == "refused"}:
+        original = odt_parts(next(iter(native_cases(fixture).values()))["original"]
+                             .read_bytes())["paragraphs"]
+        for marker_case in MARKER_AT[fixture]:
+            target = native_cases(fixture)[marker_case]["search"]
+            if original.count(target) != 1:
+                raise SystemExit(f"marker target of {marker_case} occurs {original.count(target)} "
+                                 f"times in {fixture}'s original, not once")
+    needed = {cases[c]["fixture"] for c in wanted}
     fixture_urls = {}
-    for name, (path, _, _) in FIXTURES.items():
+    for name, (path, _, _, _) in FIXTURES.items():
+        if name not in needed:
+            continue
         target = mirror / f"merge-{name}.odt"     # mirror ROOT: a real directory
         if target.exists() or mirror.is_symlink():
             raise SystemExit(f"refusing to write {target}")
@@ -471,21 +718,27 @@ def main() -> int:
         raise SystemExit(f"{docs} is inside the native evidence tree {EVIDENCE}")
     docs.mkdir(parents=True, exist_ok=False)
     DOCS["dir"] = docs
-    cases = {**native_cases("boundaries"), **native_cases("text-frame")}
-    wanted = [c for c in args.cases.split(",") if c]
-    missing = [c for c in wanted if c not in cases]
-    if missing:
-        raise SystemExit(f"no native R0c row for {missing}")
+    if any(FIXTURES[f][3] for f in needed):
+        # The owner's document: what the page saves from it stays in build/.
+        DOCS["private"] = HERE / "build" / "merge-wasm-private" / f"{args.out.stem}.docs"
+        DOCS["private"].mkdir(parents=True, exist_ok=False)
     report = {"counted": False, "instrumented": True, "browser": args.browser,
               "startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
               "candidate": {"profile": args.candidate_profile, "pinBefore": pin_before,
                             "pageSource": pp.CUTOVER_PAGE_SOURCE.relative_to(HERE).as_posix(),
                             "pinAfter": wasm[:16],
                             "pageSha256": hashlib.sha256(page.encode()).hexdigest(),
-                            "htmlSha256": hashlib.sha256(instrumented.encode()).hexdigest()},
+                            "htmlSha256": hashlib.sha256(instrumented.encode()).hexdigest(),
+                            "uninstrumentedHtmlSha256": hashlib.sha256(html.encode()).hexdigest(),
+                            "workerSha256": sha256_of(root / "profiles" / args.candidate_profile
+                                                      / "sdk-worker.js")},
+              "caseList": "subset" if args.cases else "tool",
+              "frameCell": args.frame_cell,
+              "eshapeSha256": sha256_of(ESHAPE),
+              "observedOnlyOnTheInstrumentedPage": ["completion", "keyUndo.comment",
+                                                    "restorePresses", "stage", "keyPosted"],
               "runner": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16],
-              "fixtures": {n: hashlib.sha256(p.read_bytes()).hexdigest()[:16]
-                           for n, (p, _, _) in FIXTURES.items()},
+              "fixtures": {n: sha256_of(FIXTURES[n][0])[:16] for n in sorted(needed)},
               "keptDocuments": docs.name,
               "m2_0": [], "cases": []}
     port = pp.free_port()
@@ -501,7 +754,7 @@ def main() -> int:
         report["boot"] = pp.wait_for(session, lambda s: s.get("state") == "ready", 300)
         report["shims"] = pp.evaluate(session, pp.INSTALL)
         report["observerAtBoot"] = obs(session)
-        for fixture in sorted({cases[c]["fixture"] for c in wanted}):
+        for fixture in sorted(needed):
             report["m2_0"].append(m2_0(session, fixture, fixture_urls[fixture]))
         for round_no in range(1, args.rounds + 1):
             for case in wanted:
@@ -520,7 +773,9 @@ def main() -> int:
         server.terminate()
         server.wait(timeout=10)
         args.out.write_text(json.dumps(report, indent=1, ensure_ascii=False, default=str))
-    summary = [(c["case"], c.get("outcome"), c.get("stage"), c.get("asExpected")) for c in report["cases"]]
+    summary = [(c["case"], c.get("outcome"), c.get("stage"), c.get("pass"),
+                [k for k, v in (c.get("clauses") or {}).items() if v is False])
+               for c in report["cases"]]
     print(json.dumps(summary, ensure_ascii=False))
     return 0
 
