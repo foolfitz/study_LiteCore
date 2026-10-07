@@ -10,7 +10,7 @@ Run 2026-10-08 (+08:00). Tool `wasm_sdk_probe/tools/build_cjk_subset_mono_pack.p
   - The five Mono faces are table-for-table the Mono subset's, and their name records equal the full TTC's own Mono faces for each region.
   - The Mono subset passes the subset tool's `verify` against face 8 (cmap, hmtx/vmtx, every outline).
   - The rebuilt e5 collection is first required to be byte-identical to the shipped `cjk-sub-e5`.
-- Size: pack data 14,384,632 bytes raw. zstd -19 is 5,748,639 against e5's 5,604,052, **+144,587**, within the criterion's +300,000. This agrees with M1's +144,730 for the same construction (`../../v17/mono-reach/mono-cost.json`, E5+M5). The 143-byte difference is M1's `head.modified` artefact, recorded there.
+- Size: pack data 14,384,632 bytes raw. zstd -19 is 5,748,639 against e5's 5,604,052, **+144,587**, within the criterion's +300,000. It is within 143 bytes zstd (and 224 bytes raw) of M1's E5+M5 (`../../v17/mono-reach/mono-cost.json`). The difference was measured by counting the table blobs in both collections. M1's collection stores 6 `head` blobs: the five Sans faces each got their own, because M1 re-loaded them without `recalcTimestamp=False`. This pack stores 2: one shared by the five Sans faces and one shared by the five Mono faces. 4 × 56 bytes = 224.
 
 ## W2: HIT
 
