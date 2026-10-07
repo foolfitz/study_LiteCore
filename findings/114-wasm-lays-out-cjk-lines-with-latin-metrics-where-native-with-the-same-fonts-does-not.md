@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已診斷、修法已打包未出貨**（2026-10-07）：成因是 profile 的 fontconfig 規則檔 × LibreOffice 以字串加語言，原生加上同一份 conf.d 完整重現。修法＝v17（base 包拿掉 `35-lang-normalize.conf`，規格 §26）；V1–V3 過、V4 兩列 19（判準寫 20）、**V5 過**（擁有者文件 11 格游標高度與 x／y 逐 twip 等於原生，`evidence/v17/v5/`）、V6 未做（`evidence/v17/`）；上游草稿 `drafts/114-bugzilla.txt` 已寫、送出照例擱置 |
+| **狀態** | **已診斷、修法已打包未出貨**（2026-10-07）：成因是 profile 的 fontconfig 規則檔 × LibreOffice 以字串加語言，原生加上同一份 conf.d 完整重現。修法＝v17（base 包拿掉 `35-lang-normalize.conf`，規格 §26）；V1–V3 過、V4 兩列 19（判準寫 20）、**V5 過**（擁有者文件 11 格游標高度與 x／y 逐 twip 等於原生，`evidence/v17/v5/`）；V6：產品路徑網過（§23 紅格 0／84）、merge shakedown 兩瀏覽器過，**語料計數比較紅一份**（`e1/paragraph-content.odt` 4 px，與 35 無關、是 CJK 子集的性質，成因診斷中，`evidence/v17/layout-corpus/`）＝V6 未過、v17 尚不得 cutover；上游草稿 `drafts/114-bugzilla.txt` 已寫、送出照例擱置 |
 | **所在** | base 包的 `/instdir/share/fontconfig/conf.d/35-lang-normalize.conf`（fontconfig 2.18.2 原樣）——**啟用它的是上游 LibreOffice 的打包**（`external/fontconfig/ExternalPackage_fontconfig_data.mk:34`，2026-10-07 審核 B2 補）；觸發條件在 LibreOffice `PrintFontManager::Substitute` 以 `FcPatternAddString(FC_LANG, …)` 加語言（**已觀察**，原始碼與量測） |
 | **發現日** | 2026-10-07（merge WASM shakedown 第 3 次：擁有者文件 11 格全部 `placement-mismatch`） |
 | **嚴重度** | 一般：沒有東西消失，但擁有者這類台灣字型名的文件在 WASM 上整份比桌面版矮約兩成、分頁不同（WASM 文件總高 257,114 twips，原生在 275,530 還有內容） |
@@ -135,7 +135,7 @@
 ## 未做
 
 - 哪些發行版的桌面 LibreOffice 會因啟用 `35-lang-normalize.conf` 而在原生也中。
-- 修法本身與它對產品路徑網、merge、語料版面的影響。**2026-10-08**：V5 過；產品路徑網 v8 對 v17 §23 紅格 0／84（`evidence/v17/product-path/`）；merge 與語料計數比較進行中。
+- 修法本身與它對產品路徑網、merge、語料版面的影響。**2026-10-08**：V5 過；產品路徑網 v8 對 v17 §23 紅格 0／84（`evidence/v17/product-path/`）；merge shakedown Chrome／Firefox 各 56／56（`evidence/v17/merge/`）；語料計數比較 VERDICT RED 一份（`evidence/v17/layout-corpus/RESULT.md`；v17 量到的 48 份與 v16 空跑逐帶相同，所以不是拿掉 35 造成的）。
 - ~~讀 WASM 建置的字型替代路徑~~（2026-10-07 已做，見「成因」）。
 - ~~v8 上同一份文件的行高~~：探針量的是 113 的合成 fixture，v8 與 v16 結果相同；擁有者文件本身在 v8 上仍未量。
 
@@ -164,3 +164,4 @@
 | 2026-10-08 | 補平台範圍（讀 configure.ac）與一次只看標題的 Bugzilla 查重（0 筆） |
 | 2026-10-08 | 加「給審核者」（目前宣稱、關鍵 commit、上游位置、證據地圖、可重跑指令、已知弱點）；更正重現步驟 2（相對路徑不會重現）；影響、修法候選、未做補上 v17 現況 |
 | 2026-10-08 | codex 獨立審核入帳：原生 LO 單一變因重現收進證據；更正本地修改的說法（有 QtFrame.cxx）與 `:1420` 屬於 `matchFont`；查重補留言全文搜尋；草稿依七條更正改寫 |
+| 2026-10-08 | 狀態補 V6：產品路徑網與 merge 過、語料計數比較紅一份（與 35 無關）＝V6 未過 |
