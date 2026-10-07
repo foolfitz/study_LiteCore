@@ -25,6 +25,7 @@ import argparse
 import base64
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -46,6 +47,7 @@ CAPTURE = ('{const W=globalThis.Worker;globalThis.__fcLog=[];globalThis.Worker=c
            'globalThis.__fcLog.push([m.level,String(m.message)]);});}};}\n')
 LOG_LEN = "(() => (globalThis.__fcLog || []).length)()"
 LOG_SLICE = "(() => (globalThis.__fcLog || []).slice(ARG_FROM, ARG_TO))()"
+LANGUAGES = "(() => Array.from(navigator.languages || []))()"
 FIXTURE = "cjk-font-slots.odt"
 
 
@@ -113,6 +115,9 @@ def match_blocks(lines: list[str]) -> list[dict]:
                     i += 1
         lang_line = element(best, "lang") or ""
         out.append({
+            # Glyph fallback asks with the missing code points as FC_CHARSET;
+            # the primary lookup (pre-match hook) asks without (review N6).
+            "askedCharset": element(asked, "charset") is not None,
             "line": start,
             "askedFamily": values(element(asked, "family") or ""),
             "askedLang": values(element(asked, "lang") or ""),
@@ -125,7 +130,17 @@ def match_blocks(lines: list[str]) -> list[dict]:
     return out
 
 
-def measure(profile: str, out_dir: Path, fixture: bytes) -> dict:
+def pitch_table(runs: list[list[int]]) -> dict | None:
+    """113's reading (font-slots-r3/pitches.txt): drop the page frame's 1-row
+    runs above y 40 and below y 880, then second top minus first top per pair.
+    run1 of this probe read `pitches.runs` by hand for want of this."""
+    kept = [r for r in runs if not (r[1] - r[0] <= 2 and (r[0] < 40 or r[0] > 880))]
+    if len(kept) != 2 * len(slots.VARIANTS):
+        return None
+    return {v[0]: kept[2 * i + 1][0] - kept[2 * i][0] for i, v in enumerate(slots.VARIANTS)}
+
+
+def measure(profile: str, out_dir: Path, fixture: bytes, locale: str | None = None) -> dict:
     root = pp.PROJECT / "dist"
     loader_path = root / "profiles" / profile / "probe.js"
     loader_before = loader_path.read_bytes()
@@ -155,14 +170,30 @@ def measure(profile: str, out_dir: Path, fixture: bytes) -> dict:
                               stderr=subprocess.DEVNULL)
     result = {"profile": profile, "pinBefore": pin_before, "wasm": wasm[:16],
               "servedLoaderSha256": sha256(loader.encode("utf-8")),
-              "shippedLoaderSha256": sha256(loader_before), "fcDebug": FC_DEBUG}
+              "shippedLoaderSha256": sha256(loader_before), "fcDebug": FC_DEBUG,
+              "locale": locale}
+    stem = f"{profile}-{locale}" if locale else profile
     session = None
+    # Chrome takes navigator.languages from the environment on Linux; the
+    # engine's fontconfig takes its default language from navigator (via
+    # Emscripten's ENV).  Both are recorded, so a locale that did not take is
+    # visible rather than assumed (spec 26.3 V4).
+    saved_env = {k: os.environ.get(k) for k in ("LANG", "LANGUAGE", "LC_ALL")}
+    if locale:
+        posix = locale.replace("-", "_") + ".UTF-8"
+        os.environ.update({"LANG": posix, "LANGUAGE": locale.replace("-", "_"), "LC_ALL": posix})
     try:
         base = f"http://127.0.0.1:{port}/e2-editor.html"
         pp.wait_page(base)
         session = pp.ChromeSession("cold")
+        for key, value in saved_env.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
         pp.navigate(session, base)
         result["boot"] = pp.wait_for(session, lambda s: s.get("state") == "ready", 300)
+        result["navigatorLanguages"] = pp.evaluate(session, LANGUAGES)
         result["shims"] = pp.evaluate(session, pp.INSTALL)
         result["logLinesAtReady"] = pp.evaluate(session, LOG_LEN)
         pp.evaluate(session, pp.OPEN_FILE.replace("ARG_URL", "./" + FIXTURE)
@@ -172,17 +203,23 @@ def measure(profile: str, out_dir: Path, fixture: bytes) -> dict:
         scan = slots.settle(session)
         if scan and scan.get("png"):
             png = base64.b64decode(scan["png"].split(",", 1)[1])
-            (out_dir / f"{profile}-fixture.png").write_bytes(png)
+            (out_dir / f"{stem}-fixture.png").write_bytes(png)
             result["pitches"] = slots.pitches(png)
+            result["pitchTable"] = pitch_table(result["pitches"]["runs"])
         log = read_log(session)
     finally:
+        for key, value in saved_env.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
         if session is not None:
             session.close()
         server.terminate()
         server.wait(timeout=10)
     if loader_path.read_bytes() != loader_before:
         raise SystemExit(f"{loader_path} changed during the run")
-    (out_dir / f"{profile}-fc-log.txt").write_text(
+    (out_dir / f"{stem}-fc-log.txt").write_text(
         "".join(f"{level}\t{text}\n" for level, text in log), encoding="utf-8")
     lines = [text for level, text in log if level == "stdout"]
     at_ready = result["logLinesAtReady"] or 0
@@ -194,6 +231,9 @@ def measure(profile: str, out_dir: Path, fixture: bytes) -> dict:
         "logLines": len(log),
         "stderr": [text for level, text in log if level == "stderr"][:200],
         "configLines": [t for t in lines if "config file" in t or "config dir" in t],
+        "confdLoaded": sorted({m.group(1) for t in lines
+                               if (m := re.search(r"Loading config file from \S*/conf\.d/(\S+?) done", t))}),
+        "familylang": sorted({v for t in lines if t.startswith("\tfamilylang:") for v in values(t)}),
         "scannedFiles": [t.strip() for t in lines if t.lstrip().startswith("Scanning file")],
         "matchBlocks": blocks,
         "siyuanBlocks": [b for b in blocks if "思源黑體" in b["askedFamily"]],
@@ -205,6 +245,8 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--profiles", nargs="+", default=["e2-editor-v8", "e2-editor-v16"])
     parser.add_argument("--out", type=Path, required=True, help="a directory")
+    parser.add_argument("--locales", nargs="+", default=[None],
+                        help="e.g. zh-TW en-US: each profile is measured once per locale")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     fixture = slots.fixture_bytes()
@@ -212,7 +254,8 @@ def main() -> int:
     report = {"startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "browser": "chrome",
               "probeSha256": sha256(Path(__file__).read_bytes()),
               "fixtureSha256": sha256(fixture),
-              "profiles": [measure(profile, args.out, fixture) for profile in args.profiles],
+              "profiles": [measure(profile, args.out, fixture, locale)
+                           for profile in args.profiles for locale in args.locales],
               "completedAt": None}
     report["completedAt"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
     (args.out / "fc-debug.json").write_text(json.dumps(report, indent=1, ensure_ascii=False),

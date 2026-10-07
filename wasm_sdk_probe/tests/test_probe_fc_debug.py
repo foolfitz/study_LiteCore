@@ -46,6 +46,24 @@ class ReaderKnownAnswers(unittest.TestCase):
         self.assertEqual(b["bestFamily"], ["Liberation Mono"])
         self.assertFalse(b["bestLangHasZhTw"])
 
+    def test_asked_charset_marks_glyph_fallback(self):
+        # Review N6: the primary lookup asks without FC_CHARSET, glyph fallback
+        # with the missing code points.  Both known answers, both ways.
+        self.assertFalse(blocks("native-full-config-zh-tw.txt")[0]["askedCharset"])
+        b = blocks("native-bare-config-zh-tw-charset-3001.txt")[0]
+        self.assertTrue(b["askedCharset"])
+        self.assertEqual(b["askedLang"], ["zh-tw", "en"])  # fc-match adds its weak default
+        self.assertEqual(b["bestFamily"], ["Noto Sans CJK JP"])
+
+    def test_pitch_table_reads_run1_like_113(self):
+        # run1's runs, read by hand in RESULT.md (TW-TC 20, TW-SIYUAN 16).
+        import json
+        report = json.loads((CHECK.parent / "run1/fc-debug.json").read_text(encoding="utf-8"))
+        table = p.pitch_table(report["profiles"][1]["pitches"]["runs"])
+        self.assertEqual((table["TW-TC"], table["TW-SIYUAN"], table["LATIN-DEFAULT"]), (20, 16, 16))
+        # An extra ink run (not a 1-row frame rule) breaks the pairing: nothing is claimed.
+        self.assertIsNone(p.pitch_table(report["profiles"][1]["pitches"]["runs"] + [[500, 510]]))
+
     def test_not_vacuous(self):
         # A renamed directory must fail, not read zero blocks as "no match".
         self.assertTrue((CHECK / "native-full-config-zh-tw.txt").is_file())
