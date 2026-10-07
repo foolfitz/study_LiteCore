@@ -1,0 +1,99 @@
+== inputs ==
+layout-0-e2-editor-v16.json: profile=e2-editor-v16 wasm=ad3f68bb85f94589 boot=ready documents=76
+layout-1-e2-editor-v16.json: profile=e2-editor-v16 wasm=ad3f68bb85f94589 boot=ready documents=76
+layout-2-e2-editor-v15.json: profile=e2-editor-v15 wasm=ad3f68bb85f94589 boot=ready documents=76
+
+== non-vacuity (expected: 76 documents; cjk>0 44, cjk==0 27, None 5, in each measurement) ==
+measurement 0 (e2-editor-v16): {'documents': 76, 'cjk_gt0': 44, 'cjk_eq0': 27, 'cjk_none': 5} -> OK
+measurement 1 (e2-editor-v16): {'documents': 76, 'cjk_gt0': 44, 'cjk_eq0': 27, 'cjk_none': 5} -> OK
+measurement 2 (e2-editor-v15): {'documents': 76, 'cjk_gt0': 44, 'cjk_eq0': 27, 'cjk_none': 5} -> OK
+
+== per-measurement health ==
+measurement 0: comparable=71 notComparable=5 states={'ready': 71, 'recoverable-error': 5}
+  unsettled (canvas never gave two identical reads): 23 ['test-docs/e1/r7-t2-styled.odt', 'test-docs/r7-compat/l0-t2-styled.odt', 'test-docs/r7-compat/l1-layout-table-image.odt', 'test-docs/r7-compat/l1-review.odt', 'test-docs/r7-compat/l2-qa-redlines-and-comments.odt', 'test-docs/r7-compat/l4-stress-100.odt', 'test-docs/r7-finding-012/t2-image-l4-geometry.odt', 'test-docs/r7-finding-012/t2-image-l4-like-frame.odt', 'test-docs/r7-finding-012/t2-image-no-clip.odt', 'test-docs/r7-finding-012/t2-image-no-graphic-properties.odt', 'test-docs/r7-finding-012/t2-image-no-mime.odt', 'test-docs/r7-finding-012/t2-image-no-name-zindex.odt', 'test-docs/r7-finding-012/t2-image-no-style-ref.odt', 'test-docs/r7-finding-012/t2-image-unwrapped.odt', 'test-docs/r7-finding-012/t2-keep-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-annotation.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-image-annotation.odt', 'test-docs/r7-finding-012/t2-original.odt', 'test-docs/t2-styled.odt']
+  comparable but zero bands (blank canvas read): 23 ['test-docs/e1/r7-t2-styled.odt', 'test-docs/r7-compat/l0-t2-styled.odt', 'test-docs/r7-compat/l1-layout-table-image.odt', 'test-docs/r7-compat/l1-review.odt', 'test-docs/r7-compat/l2-qa-redlines-and-comments.odt', 'test-docs/r7-compat/l4-stress-100.odt', 'test-docs/r7-finding-012/t2-image-l4-geometry.odt', 'test-docs/r7-finding-012/t2-image-l4-like-frame.odt', 'test-docs/r7-finding-012/t2-image-no-clip.odt', 'test-docs/r7-finding-012/t2-image-no-graphic-properties.odt', 'test-docs/r7-finding-012/t2-image-no-mime.odt', 'test-docs/r7-finding-012/t2-image-no-name-zindex.odt', 'test-docs/r7-finding-012/t2-image-no-style-ref.odt', 'test-docs/r7-finding-012/t2-image-unwrapped.odt', 'test-docs/r7-finding-012/t2-keep-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-annotation.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-image-annotation.odt', 'test-docs/r7-finding-012/t2-original.odt', 'test-docs/t2-styled.odt']
+  not comparable: test-docs/r7-compat/l3-bad-central-directory.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=None reboot=ready
+  not comparable: test-docs/r7-compat/l3-high-ratio.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=177 reboot=ready
+  not comparable: test-docs/r7-compat/l3-too-many-entries.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=177 reboot=ready
+  not comparable: test-docs/r7-compat/l3-truncated.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=None reboot=ready
+  not comparable: test-docs/r7/r7-corrupt-truncated.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=None reboot=ready
+measurement 1: comparable=71 notComparable=5 states={'ready': 71, 'recoverable-error': 5}
+  unsettled (canvas never gave two identical reads): 23 ['test-docs/e1/r7-t2-styled.odt', 'test-docs/r7-compat/l0-t2-styled.odt', 'test-docs/r7-compat/l1-layout-table-image.odt', 'test-docs/r7-compat/l1-review.odt', 'test-docs/r7-compat/l2-qa-redlines-and-comments.odt', 'test-docs/r7-compat/l4-stress-100.odt', 'test-docs/r7-finding-012/t2-image-l4-geometry.odt', 'test-docs/r7-finding-012/t2-image-l4-like-frame.odt', 'test-docs/r7-finding-012/t2-image-no-clip.odt', 'test-docs/r7-finding-012/t2-image-no-graphic-properties.odt', 'test-docs/r7-finding-012/t2-image-no-mime.odt', 'test-docs/r7-finding-012/t2-image-no-name-zindex.odt', 'test-docs/r7-finding-012/t2-image-no-style-ref.odt', 'test-docs/r7-finding-012/t2-image-unwrapped.odt', 'test-docs/r7-finding-012/t2-keep-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-annotation.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-image-annotation.odt', 'test-docs/r7-finding-012/t2-original.odt', 'test-docs/t2-styled.odt']
+  comparable but zero bands (blank canvas read): 23 ['test-docs/e1/r7-t2-styled.odt', 'test-docs/r7-compat/l0-t2-styled.odt', 'test-docs/r7-compat/l1-layout-table-image.odt', 'test-docs/r7-compat/l1-review.odt', 'test-docs/r7-compat/l2-qa-redlines-and-comments.odt', 'test-docs/r7-compat/l4-stress-100.odt', 'test-docs/r7-finding-012/t2-image-l4-geometry.odt', 'test-docs/r7-finding-012/t2-image-l4-like-frame.odt', 'test-docs/r7-finding-012/t2-image-no-clip.odt', 'test-docs/r7-finding-012/t2-image-no-graphic-properties.odt', 'test-docs/r7-finding-012/t2-image-no-mime.odt', 'test-docs/r7-finding-012/t2-image-no-name-zindex.odt', 'test-docs/r7-finding-012/t2-image-no-style-ref.odt', 'test-docs/r7-finding-012/t2-image-unwrapped.odt', 'test-docs/r7-finding-012/t2-keep-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-annotation.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-image-annotation.odt', 'test-docs/r7-finding-012/t2-original.odt', 'test-docs/t2-styled.odt']
+  not comparable: test-docs/r7-compat/l3-bad-central-directory.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=None reboot=ready
+  not comparable: test-docs/r7-compat/l3-high-ratio.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=177 reboot=ready
+  not comparable: test-docs/r7-compat/l3-too-many-entries.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=177 reboot=ready
+  not comparable: test-docs/r7-compat/l3-truncated.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=None reboot=ready
+  not comparable: test-docs/r7/r7-corrupt-truncated.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=None reboot=ready
+measurement 2: comparable=71 notComparable=5 states={'ready': 71, 'recoverable-error': 5}
+  unsettled (canvas never gave two identical reads): 23 ['test-docs/e1/r7-t2-styled.odt', 'test-docs/r7-compat/l0-t2-styled.odt', 'test-docs/r7-compat/l1-layout-table-image.odt', 'test-docs/r7-compat/l1-review.odt', 'test-docs/r7-compat/l2-qa-redlines-and-comments.odt', 'test-docs/r7-compat/l4-stress-100.odt', 'test-docs/r7-finding-012/t2-image-l4-geometry.odt', 'test-docs/r7-finding-012/t2-image-l4-like-frame.odt', 'test-docs/r7-finding-012/t2-image-no-clip.odt', 'test-docs/r7-finding-012/t2-image-no-graphic-properties.odt', 'test-docs/r7-finding-012/t2-image-no-mime.odt', 'test-docs/r7-finding-012/t2-image-no-name-zindex.odt', 'test-docs/r7-finding-012/t2-image-no-style-ref.odt', 'test-docs/r7-finding-012/t2-image-unwrapped.odt', 'test-docs/r7-finding-012/t2-keep-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-annotation.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-image-annotation.odt', 'test-docs/r7-finding-012/t2-original.odt', 'test-docs/t2-styled.odt']
+  comparable but zero bands (blank canvas read): 23 ['test-docs/e1/r7-t2-styled.odt', 'test-docs/r7-compat/l0-t2-styled.odt', 'test-docs/r7-compat/l1-layout-table-image.odt', 'test-docs/r7-compat/l1-review.odt', 'test-docs/r7-compat/l2-qa-redlines-and-comments.odt', 'test-docs/r7-compat/l4-stress-100.odt', 'test-docs/r7-finding-012/t2-image-l4-geometry.odt', 'test-docs/r7-finding-012/t2-image-l4-like-frame.odt', 'test-docs/r7-finding-012/t2-image-no-clip.odt', 'test-docs/r7-finding-012/t2-image-no-graphic-properties.odt', 'test-docs/r7-finding-012/t2-image-no-mime.odt', 'test-docs/r7-finding-012/t2-image-no-name-zindex.odt', 'test-docs/r7-finding-012/t2-image-no-style-ref.odt', 'test-docs/r7-finding-012/t2-image-unwrapped.odt', 'test-docs/r7-finding-012/t2-keep-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-annotation.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-image-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation-pagebreak.odt', 'test-docs/r7-finding-012/t2-keep-table-annotation.odt', 'test-docs/r7-finding-012/t2-keep-table-image-annotation.odt', 'test-docs/r7-finding-012/t2-original.odt', 'test-docs/t2-styled.odt']
+  not comparable: test-docs/r7-compat/l3-bad-central-directory.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=None reboot=ready
+  not comparable: test-docs/r7-compat/l3-high-ratio.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=177 reboot=ready
+  not comparable: test-docs/r7-compat/l3-too-many-entries.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=177 reboot=ready
+  not comparable: test-docs/r7-compat/l3-truncated.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=None reboot=ready
+  not comparable: test-docs/r7/r7-corrupt-truncated.odt state=recoverable-error toast='LOK_ERROR：loadComponentFromURL returned an empty reference' cjk=None reboot=ready
+
+== cross-check against comparison.json (tool's own numbers vs. recomputed) ==
+pair (0,1) ['e2-editor-v16', 'e2-editor-v16']: tool comparable=71 identical=71 differ=0 notComparable=5; recomputed comparable=71 identical=71 differ=0 -> AGREE
+pair (0,2) ['e2-editor-v16', 'e2-editor-v15']: tool comparable=71 identical=64 differ=7 notComparable=5; recomputed comparable=71 identical=64 differ=7 -> AGREE
+pair (1,2) ['e2-editor-v16', 'e2-editor-v15']: tool comparable=71 identical=64 differ=7 notComparable=5; recomputed comparable=71 identical=64 differ=7 -> AGREE
+
+== L1: v16 s1 vs v16 s2 (noise) ==
+comparable documents: 71; band count equal: 71; band count different: 0
+max top-edge difference M = 0 px (over documents with equal band count: 71)
+documents with runs != runs (tops or bottoms): 0
+L1 HIT (prediction: every comparable document identical, maxTopDifference 0, same band count)
+T = M + 2 = 2 px
+
+== L2: cjkCharacters > 0, v16 vs v15 ==
+(v16 s1, v15): cjk>0 comparable documents: 42; differ by > T=2 or band count: 7
+  test-docs/e1/a11y-audible.odt cjk=165 max top diff 39 px, band count 12 vs 12
+  test-docs/e2/d1-anchors.odt cjk=14 max top diff 20 px, band count 31 vs 31
+  test-docs/e1/multi-paragraph.odt cjk=14 max top diff 12 px, band count 7 vs 7
+  test-docs/e1/list-contexts.odt cjk=14 max top diff 8 px, band count 11 vs 11
+  test-docs/e2/list-split.odt cjk=14 max top diff 8 px, band count 12 vs 12
+  test-docs/e1/plain-grapheme.odt cjk=8 max top diff 4 px, band count 8 vs 8
+  test-docs/e1/paragraph-content.odt cjk=7 max top diff 3 px, band count 27 vs 27
+(v16 s2, v15): cjk>0 comparable documents: 42; differ by > T=2 or band count: 7
+  test-docs/e1/a11y-audible.odt cjk=165 max top diff 39 px, band count 12 vs 12
+  test-docs/e2/d1-anchors.odt cjk=14 max top diff 20 px, band count 31 vs 31
+  test-docs/e1/multi-paragraph.odt cjk=14 max top diff 12 px, band count 7 vs 7
+  test-docs/e1/list-contexts.odt cjk=14 max top diff 8 px, band count 11 vs 11
+  test-docs/e2/list-split.odt cjk=14 max top diff 8 px, band count 12 vs 12
+  test-docs/e1/plain-grapheme.odt cjk=8 max top diff 4 px, band count 8 vs 8
+  test-docs/e1/paragraph-content.odt cjk=7 max top diff 3 px, band count 27 vs 27
+L2 HIT (prediction: at least one document in each pair)
+
+== L3: cjkCharacters == 0, v16 vs v15 ==
+(v16 s1, v15): cjk==0 comparable documents: 27; differ at all (runs != runs): 0
+(v16 s2, v15): cjk==0 comparable documents: 27; differ at all (runs != runs): 0
+L3 HIT (prediction: every cjk==0 document identical in both pairs)
+
+== L4: not-comparable sets ==
+measurement 0: 5 not comparable: ['test-docs/r7-compat/l3-bad-central-directory.odt', 'test-docs/r7-compat/l3-high-ratio.odt', 'test-docs/r7-compat/l3-too-many-entries.odt', 'test-docs/r7-compat/l3-truncated.odt', 'test-docs/r7/r7-corrupt-truncated.odt']
+measurement 1: 5 not comparable: ['test-docs/r7-compat/l3-bad-central-directory.odt', 'test-docs/r7-compat/l3-high-ratio.odt', 'test-docs/r7-compat/l3-too-many-entries.odt', 'test-docs/r7-compat/l3-truncated.odt', 'test-docs/r7/r7-corrupt-truncated.odt']
+measurement 2: 5 not comparable: ['test-docs/r7-compat/l3-bad-central-directory.odt', 'test-docs/r7-compat/l3-high-ratio.odt', 'test-docs/r7-compat/l3-too-many-entries.odt', 'test-docs/r7-compat/l3-truncated.odt', 'test-docs/r7/r7-corrupt-truncated.odt']
+cjkCharacters is None: 5; of which not a zip file: 3 ['test-docs/r7-compat/l3-bad-central-directory.odt', 'test-docs/r7-compat/l3-truncated.odt', 'test-docs/r7/r7-corrupt-truncated.odt']; zip without readable content.xml: 2 ['test-docs/r7-compat/l3-docx-disguised-as-odt.odt', 'test-docs/r7-compat/l3-missing-content-xml.odt']
+not-comparable beyond the cjk-None documents (documents that failed to open): ['test-docs/r7-compat/l3-high-ratio.odt', 'test-docs/r7-compat/l3-too-many-entries.odt']
+cjk-None documents that nevertheless measured: ['test-docs/r7-compat/l3-docx-disguised-as-odt.odt', 'test-docs/r7-compat/l3-missing-content-xml.odt']
+L4 HIT (prediction: identical in all three and includes the three non-zip documents; identical=True, includes 3 non-zip=True)
+
+== coverage (a pair of blank reads is 'identical' too; this section counts how many comparisons saw ink) ==
+(v16 s1, v16 s2) cjk>0: comparable 42; both measurements have bands 21; both blank (zero bands) 21; one blank one not 0
+(v16 s1, v16 s2) cjk==0: comparable 27; both measurements have bands 25; both blank (zero bands) 2; one blank one not 0
+(v16 s1, v16 s2) cjk None (opened): comparable 2; both measurements have bands 2; both blank (zero bands) 0; one blank one not 0
+(v16 s1, v15) cjk>0: comparable 42; both measurements have bands 21; both blank (zero bands) 21; one blank one not 0
+(v16 s1, v15) cjk==0: comparable 27; both measurements have bands 25; both blank (zero bands) 2; one blank one not 0
+(v16 s1, v15) cjk None (opened): comparable 2; both measurements have bands 2; both blank (zero bands) 0; one blank one not 0
+(v16 s2, v15) cjk>0: comparable 42; both measurements have bands 21; both blank (zero bands) 21; one blank one not 0
+(v16 s2, v15) cjk==0: comparable 27; both measurements have bands 25; both blank (zero bands) 2; one blank one not 0
+(v16 s2, v15) cjk None (opened): comparable 2; both measurements have bands 2; both blank (zero bands) 0; one blank one not 0
+documents with zero bands in all three measurements: 23 (cjk>0: 21, cjk==0: 2, None: 0)
+page-edge detection result (page field) for those: [(-1, -1)]
+L1 restricted to documents that have bands: 48 documents, max top diff 0 px
+canvas size differs between the two v16 sessions for 10 documents (height s1 vs s2): l0-t2-styled.odt=2201/2208, l1-review.odt=1472/1476, t2-image-l4-geometry.odt=2201/2208, t2-image-no-mime.odt=2208/2201, t2-keep-annotation-pagebreak.odt=2201/2208, t2-keep-annotation.odt=744/742, t2-keep-image-annotation-pagebreak.odt=2201/2208, t2-keep-image-annotation.odt=744/742, t2-keep-table-annotation-pagebreak.odt=2201/2208, t2-keep-table-annotation.odt=744/742
+(canvas size is not part of the 21.2 criterion; reported as observed)
+
+== verdict ==
+L1 HIT; L2 HIT; L3 HIT; L4 HIT; M=0 px; T=2 px
