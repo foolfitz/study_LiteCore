@@ -751,3 +751,21 @@ B4 toast 在 0.5 秒安靜後就讀，C15 的第二句沒讀到；B5 見下）�
 留下的游標監聽兩組相同，所以對照證明的是「回覆記錄與請求包裝沒有改變行為」，不是「觀察器整個不存在時也一樣」——後者登錄為量不到。
 比較由 `run_merge_wasm_shakedown.py --pair 儀器版.json 對照.json` 離線做：每個 case×輪的 generation 轉換、關窗後的 toast 序列、存下來的文件的段落文字。
 對照組裡只有儀器看得到的條款（outcome、stage、keyPosted、comment、restorePresses）記 NE。
+
+## 23. 追加（2026-10-07，產品路徑網第一次量 B 的頁面之後、任何計數 M2-5 之前）：M2-5 改成逐格判準
+
+逼出它的量測：`59b3fb4c`（同一個 runner sha、v8 與 v16 交錯、各三輪）。Firefox 的 `clear-format-removes-every-inline-format`：v8 1 PASS／2 NE，
+v16 3 NE；同一格在當天早上的 v8（另一個 runner sha）是 3 NE。NE 是前置條件沒成立而放棄判斷（`everyFormatWasOn`：打字當下四種格式全開），
+`allOnWhenTyped` 每一輪都不同、兩個 profile 都如此。放棄的分佈在 v8 自己身上就不穩定，所以 4.3 的「含 PASS／NE 的分佈逐格相同」在三輪的計數裡
+是擲骰——它會讓正確的 v16 紅，也可能讓有問題的 v16 碰巧綠。
+
+更正（取代 4.3 M2-5 的「含 PASS／NE 的分佈」；形式一，逐格、每個瀏覽器）：
+
+| v8 在該格 | v16 必須 |
+| --- | --- |
+| 每一輪都 PASS | 每一輪都 PASS |
+| 有 FAIL | FAIL 的輪數不多於 v8 |
+| 有 NE、沒有 FAIL | 沒有 FAIL（PASS／NE 的比例列出、不判） |
+
+任何一格出現 v8 沒有的 FAIL → 紅。登錄極限：v8 會放棄判斷的格子（Firefox 上沒有 CDP 的 11–12 格、以及上面這格）對 v16 不作宣稱——若 v16 的退步
+正好表現成「前置條件更常不成立」，這條看不到。從來沒做時：v16 沒有產品路徑的判定。
