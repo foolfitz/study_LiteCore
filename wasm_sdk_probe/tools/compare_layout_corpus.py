@@ -21,13 +21,16 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import tempfile
 import time
+import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import odt_paragraphs  # noqa: E402
 import run_e2_c_product_path as pp  # noqa: E402
 
 HERE = pp.PROJECT
@@ -82,13 +85,32 @@ def settle(session, tries: int = 25) -> dict:
     return {**(last or {}), "unsettled": True}
 
 
+# CJK ideographs (incl. extension A), kana, hangul.  Spec 21.2's red case
+# splits the corpus by this, so the split is computed from the documents, not
+# listed by hand.
+CJK = re.compile(r"[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]")
+
+
+def cjk_characters(document: Path) -> int | None:
+    """CJK characters in the document's paragraph text; None if unreadable."""
+    try:
+        with zipfile.ZipFile(document) as archive:
+            texts = odt_paragraphs.paragraph_texts_from_xml(archive.read("content.xml"))
+    except Exception:  # noqa: BLE001 -- the three deliberately broken zips
+        return None
+    return sum(len(CJK.findall(text)) for text in texts)
+
+
 def corpus() -> list[Path]:
     return sorted(p for p in (HERE / "test-docs").rglob("*") if p.suffix == ".odt" and p.is_file())
 
 
 def measure(profile: str, documents: list[Path], timeout: float) -> dict:
     root = HERE / "dist"
-    page, _, wasm = pp.repointed_page((root / "e2-editor-app.js").read_text(encoding="utf-8"),
+    # The cutover's page (3ab4f04a), like every other candidate tool.  Both
+    # arms of a comparison get the same page, so this does not bias it; it
+    # keeps "the page measured" one answer across the tools.
+    page, _, wasm = pp.repointed_page(pp.CUTOVER_PAGE_SOURCE.read_text(encoding="utf-8"),
                                       profile, root / "profiles" / profile / "sdk-manifest.json")
     mirror = Path(tempfile.mkdtemp(prefix="layout-corpus-")) / "root"
     pp.build_mirror(root, mirror, {"e2-editor-app.js": page.encode("utf-8")})
@@ -124,7 +146,8 @@ def measure(profile: str, documents: list[Path], timeout: float) -> dict:
                                  and s.get("state") in ("ready", "stopped", "expired",
                                                         "recoverable-error", "restart-required"),
                                  timeout)
-            entry = {"state": (opened or {}).get("state"), "toast": (opened or {}).get("toast")}
+            entry = {"state": (opened or {}).get("state"), "toast": (opened or {}).get("toast"),
+                     "cjkCharacters": cjk_characters(document)}
             if entry["state"] == "ready":
                 scan = settle(session)
                 entry.update({"canvas": [scan.get("width"), scan.get("height")],
@@ -154,6 +177,7 @@ def compare(a: dict, b: dict) -> dict:
         same_count = len(x["runs"]) == len(y["runs"])
         top = max((abs(p[0] - q[0]) for p, q in zip(x["runs"], y["runs"])), default=0) if same_count else None
         rows.append({"document": key, "comparable": True, "identical": x["runs"] == y["runs"],
+                     "cjkCharacters": x.get("cjkCharacters"),
                      "runs": [len(x["runs"]), len(y["runs"])], "maxTopDifference": top,
                      "canvas": [x["canvas"], y["canvas"]]})
     comparable = [r for r in rows if r["comparable"]]
