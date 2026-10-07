@@ -15,9 +15,18 @@ Picks up from `HANDOFF-2026-10-06h-e-shape-wired-waiting-for-the-v15-link.md` (r
 
 A sonnet subagent was running the **product-path net, v15 candidate vs v8** (runbook §4 step 2): `tools/run_e2_c_product_path.py`, Chrome and Firefox, 3 rounds each, `--candidate-profile e2-editor-v15` for v15. Output: `findings/evidence/v15-shakedown/product-path/<profile>-<browser>-r<N>.json` and a `README.md` with a per-check table — **not committed** (the main session commits after reading). If the directory is missing or incomplete, rerun it the same way (one runner at a time; refusals reported verbatim, never worked around).
 
+## Product-path results (arrived before the session ended; committed with this handoff)
+
+`findings/evidence/v15-shakedown/product-path/README.md` (12 runs, 10:42–12:07, no refusal, no session death). Runbook criterion "v15 regresses no cell" is **not met as measured**; three differences, all 3/3:
+
+- **A. Chrome `a-boundary-arrow-press-does-not-cost-the-work`: v8 PASS, v15 FAIL** — B4 not measured: "the second inducer never fired … auto-attach delivered no session for a document worker". On v15 the engine *answers* the boundary press (state ready) where v8 died and restored the checkpoint — consistent with 096's engine half working, so the check needs an inducer to kill the session, and `induce_worker_failure` works once per browser (`HANDOFF-2026-09-28b` lesson 1); the earlier check used it because finding 038 did **not** reproduce on v15 Chrome (v8: 3/3). Consistency only, not a diagnosis.
+- **B. Firefox `the-caret-is-drawn-where-it-was-placed` FAIL and `the-caret-lands-where-the-click-was` NE on v15** (PASS on v8); and the ink span of the line sampled at y 0.28 is ~8% narrower on v15 **in both browsers**. Possibly the CJK subset (face selection/layout) or the engine changes — undiagnosed. The CJK tile A/B (step 4) separates the two and should run early.
+- C. Firefox `recovery-returns-what-the-product-promised`: v15 not worse (v8 had one NE).
+- Also: Firefox `an-inline-format-reaches-a-selection` fails on both profiles (not a v15 difference).
+
 ## Next, in order
 
-1. **Product-path results.** Read the README and spot-check the JSON with your own reader; commit. Any cell where v15 differs from v8 is investigated before anything else — 096's engine half and 082's fix are on the v8 line for the first time.
+1. **Diagnose B, then A.** For B: build the unshipped A/B profile (same v15 link, r6 source manifest = full `cjk-r5`; runbook §4 2b) and rerun the two Firefox caret checks and the ink-span sample on it: if they recover, the CJK pack is the cause (then find which face rendered that line before — the TTC's face 0 is JP). For A: confirm on the report fields that the session no longer dies on v15 (096) and that 038's non-reproduction is real; then decide whether check 42 needs a second inducer or a disposition (it is a runner limit, but 038 changing behaviour on v15 is a product question).
 2. **Native R0c-frame** — the command is in `PREDICTION-R0c-frame.md`; only when no browser run is going (the native probe's readbacks use fixed waits).
 3. **The B WASM shakedown** (runbook §4 step 1; uncounted; evidence under `findings/evidence/v15-shakedown/merge/`). There is no runner yet; write `tools/run_merge_wasm_shakedown.py`, reusing `run_e2_c_product_path.py`'s infrastructure (mirror and serving, browser launch, `repointed_page` for the v15 candidate page, document open, `capture_save`/`zip_report`). Design (decided here, not yet reviewed):
    - **Document**: `test-docs/merge/odt/boundaries.odt`; `odt/text-frame.odt` for the frame case.
