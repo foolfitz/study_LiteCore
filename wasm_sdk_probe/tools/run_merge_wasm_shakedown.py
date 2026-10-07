@@ -355,11 +355,21 @@ def native_cases(fixture: str) -> dict:
     return cases
 
 
-def tool_cases(frame_cell: bool) -> dict:
-    """The M2-1/M2-3 population (spec 22.1), plus the frame cell when asked."""
+# Spec 25: WASM lays the owner's document out with other line heights than
+# native does, even with the same font files (finding 114), so its cases cannot
+# be placed at native coordinates; out of the M2-1 population, runnable for a
+# diagnostic with --owner-document.
+NOT_PLACEABLE = {"pmpc"}
+
+
+def tool_cases(frame_cell: bool, owner_document: bool = False) -> dict:
+    """The M2-1/M2-3 population (spec 22.1 as narrowed by 25), plus the frame
+    cell and the owner's document when asked."""
     out = {}
     for fixture, (_, _, round_key, _) in FIXTURES.items():
         if round_key is None and not frame_cell:
+            continue
+        if fixture in NOT_PLACEABLE and not owner_document:
             continue
         for case, spec in native_cases(fixture).items():
             if round_key is None:
@@ -405,7 +415,8 @@ def reduction_collapses() -> list[str]:
     """Spec 10.2 (M2-0): cases whose native before-key and key-arm documents
     become EQUAL under the reduction.  Any such case refuses the reduction."""
     out = []
-    for case, spec in tool_cases(frame_cell=False).items():
+    owner = FIXTURES["pmpc"][0].is_file()     # stronger when the owner's document is here
+    for case, spec in tool_cases(frame_cell=False, owner_document=owner).items():
         if spec["expected"][0] == "refused":
             continue
         before = reduce_content(odt_parts(spec["original"].read_bytes())["content"])
@@ -759,6 +770,9 @@ def main() -> int:
                          "(spec 22.1), and a report from a subset says so")
     ap.add_argument("--frame-cell", action="store_true",
                     help="also run spec 22.2's registered text-frame cell (F01, F02)")
+    ap.add_argument("--owner-document", action="store_true",
+                    help="a diagnostic: also the owner's document, which spec 25 takes out of "
+                         "M2-1 (its WASM layout differs from native, finding 114)")
     ap.add_argument("--rounds", type=int, default=1)
     ap.add_argument("--out", type=Path)
     ap.add_argument("--control", action="store_true",
@@ -803,7 +817,7 @@ def main() -> int:
                                    "e2-editor.html": instrumented.encode("utf-8")})
     # Before any browser: the list, its fixtures, and every marker target
     # exactly once in its original (B3's offline half).
-    cases = tool_cases(args.frame_cell)
+    cases = tool_cases(args.frame_cell, args.owner_document)
     wanted = [c for c in (args.cases.split(",") if args.cases else cases) if c]
     missing = [c for c in wanted if c not in cases]
     if missing:
@@ -852,6 +866,7 @@ def main() -> int:
               "restOfShellEqualsSource": True,
               "caseList": "subset" if args.cases else "tool",
               "frameCell": args.frame_cell,
+              "ownerDocument": args.owner_document,
               "eshapeSha256": sha256_of(ESHAPE),
               "observedOnlyOnTheInstrumentedPage": ["completion", "keyUndo.comment",
                                                     "restorePresses", "stage", "keyPosted"],

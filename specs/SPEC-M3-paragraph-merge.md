@@ -792,3 +792,17 @@ v16 3 NE；同一格在當天早上的 v8（另一個 runner sha）是 3 NE。NE
 **於是**：M2-1 的「存出來的 `content.xml`（化約後）等於原生鍵臂的」從 NE 變成一條會判的條款（`afterKeyBytes`）。同一次執行的前 14 個 merge／barrier case，
 化約後**逐位元組等於 Writer 自己按鍵的文件**（未計數的 shakedown，只是這條判準第一次有資料，不是它的判定）。登錄極限：③讓 M2-1 看不到分頁點的差異——
 那是版面的事，由 20.3／21.2 的語料版面比對負責，不由 M2 負責。
+
+## 25. 追加（2026-10-07，任何計數 M2 之前）：擁有者文件移出 M2-1（擁有者選 B，依事先寫好的規則退回 A）
+
+逼出它的量測：merge shakedown 第 3 次，擁有者文件 11 格全部 `placement-mismatch`——WASM 上同一位置的行高與原生不同（276／414 對 348／521 twips），
+原生座標放不回去，沒有按鍵。擁有者選 B：原生 R0c 改用 v16 profile 的字型與 fontconfig 重跑（`findings/evidence/merge-native/r0c-wasmfonts/`，
+預測先 commit）。結果：W1 命中（合併判讀不因字型改變，11 格 `merge`、0 KILL）；**W2 沒中**——原生在 WASM 的字型下 11 個游標與系統字型那一輪逐 twip
+相同，正向對照（`strace`：帶設定只開了 WASM 那 7 個字型檔）證明設定確實生效。差異在 WASM 引擎那一側，登錄為 finding 114。依預測寫好的規則，B 退回 A：
+
+- **M2-1 的母體縮為兩份合成文件**（boundaries 16＋boundaries-indent 4＝20 個 merge，加 barrier G01）；M2-3 不變（5 個，都在 boundaries）。
+  22.1 的「三輪 37 個 case」改為「兩輪 26 個 case」。runner 以 `--owner-document` 仍可跑擁有者文件，只作診斷，不進任何判準。
+- **擁有者文件上的合併**由兩處負責：原生（R0c 與本輪 W1：E 形在這份文件上 11 格都等於 Writer 自己的鍵）；真宿主上的 R（4.4，
+  `check_m3_production_ui.py` 的併段臂在這份文件上跑，位置由那支 runner 自己決定、不依原生座標）。登錄極限：WASM 上擁有者文件的 11 種交界
+  （含標題、帶標號段落）沒有逐格的 WASM 量測。
+- 非崩塌證明（24）照舊涵蓋擁有者文件（文件在本機時）：`reduction_collapses()` 仍回空。

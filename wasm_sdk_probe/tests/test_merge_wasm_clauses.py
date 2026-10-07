@@ -163,7 +163,7 @@ class List(unittest.TestCase):
         counts = {}
         for spec in CASES.values():
             counts[spec["criterion"]] = counts.get(spec["criterion"], 0) + 1
-        self.assertEqual(counts, {"M2-1": 31, "M2-3": 5, "barrier": 1})
+        self.assertEqual(counts, {"M2-1": 20, "M2-3": 5, "barrier": 1})   # spec 25
 
     def test_an_unknown_decision_stops(self):
         with self.assertRaises(SystemExit):
