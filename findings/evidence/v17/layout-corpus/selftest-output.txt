@@ -1,0 +1,44 @@
+mutated document: test-docs/e1/a11y-audible.odt
+### A v16 s1 vs v16 s2 (expect PASS)
+== verdict (spec 21.2 / 27) ==
+documents 76; not comparable 5; not measured 23; measured 48
+VERDICT: PASS
+exit 0
+### B v16 vs v15 (expect RED, 7)
+  RED  test-docs/e1/a11y-audible.odt: bands 12/12 maxTop=39 cjk=165
+  RED  test-docs/e2/d1-anchors.odt: bands 31/31 maxTop=20 cjk=14
+  RED  test-docs/e1/multi-paragraph.odt: bands 7/7 maxTop=12 cjk=14
+  RED  test-docs/e1/list-contexts.odt: bands 11/11 maxTop=8 cjk=14
+  RED  test-docs/e2/list-split.odt: bands 12/12 maxTop=8 cjk=14
+  RED  test-docs/e1/plain-grapheme.odt: bands 8/8 maxTop=4 cjk=8
+  RED  test-docs/e1/paragraph-content.odt: bands 27/27 maxTop=3 cjk=7
+  RED: test-docs/e1/a11y-audible.odt: bands 12/12, max top difference 39 px (T=2)
+  RED: test-docs/e1/list-contexts.odt: bands 11/11, max top difference 8 px (T=2)
+  RED: test-docs/e1/multi-paragraph.odt: bands 7/7, max top difference 12 px (T=2)
+  RED: test-docs/e1/paragraph-content.odt: bands 27/27, max top difference 3 px (T=2)
+  RED: test-docs/e1/plain-grapheme.odt: bands 8/8, max top difference 4 px (T=2)
+  RED: test-docs/e2/d1-anchors.odt: bands 31/31, max top difference 20 px (T=2)
+  RED: test-docs/e2/list-split.odt: bands 12/12, max top difference 8 px (T=2)
+VERDICT: RED
+exit 1
+### c-zero
+  RED: not-measured sets differ: only arm0 [], only arm1 ['test-docs/e1/a11y-audible.odt']
+VERDICT: RED
+exit 1
+### d-plus3
+  RED  test-docs/e1/a11y-audible.odt: bands 12/12 maxTop=3 cjk=165
+  RED: test-docs/e1/a11y-audible.odt: bands 12/12, max top difference 3 px (T=2)
+VERDICT: RED
+exit 1
+### d-plus2
+VERDICT: PASS
+exit 0
+### e-nc
+  RED: not-comparable sets differ: only arm0 [], only arm1 ['test-docs/e1/a11y-audible.odt']
+VERDICT: RED
+exit 1
+### f-extra-band
+  RED  test-docs/e1/a11y-audible.odt: bands 12/13 maxTop=None cjk=165
+  RED: test-docs/e1/a11y-audible.odt: bands 12/13, max top difference None px (T=2)
+VERDICT: RED
+exit 1
