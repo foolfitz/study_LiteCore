@@ -30,3 +30,39 @@ Outcomes, decided now:
 
 Not decided by this run: whether a red caret cell is a product defect or this instrument's documented limit (the caret is
 adjacent to glyph ink and on Firefox `strokeLost` can be 0). That is a separate question either way.
+
+## Addendum, same day, still before any run: the Asian-slot probe
+
+Read while the A/B run was going (no browser involved):
+
+- Vertical metrics of the subset font are identical to every face of the TTC (`hhea` 1160/-288/0, `OS/2` typo 880/-120/0,
+  win 1160/288, `head` yMin/yMax -1048/1808), so "the subset font is selected" cannot change a line height.
+- The TTC carries ten families (Noto Sans CJK JP/KR/SC/TC/HK and the Mono variants); the subset carries one, `Noto Sans CJK TC`.
+- fontconfig 2.17.1 (`fc-scan`) says the tier-E subset covers `zh-cn`, `zh-tw`, `ja` but **not `ko`**; every TTC face covers `ko`.
+- An ODT the WASM engine saved earlier (`findings/evidence/016/selection-barrier-wasm/browser/firefox/plain-positive-final.odt`,
+  an r5-era profile with the full TTC) declares `style:font-name-asian` "Noto Sans CJK KR" (2) and "Noto Sans CJK SC" (1), and
+  `style:font-name-complex` "Noto Sans CJK KR" (3): the engine's defaults named TTC families that the subset does not have.
+- The base pack's only other fonts are Liberation Mono/Sans/Serif and OpenSymbol. The ratio of the caret heights on v15 to v8 in
+  the recovery arm (Chrome 16/20, Firefox 19/24, both about 0.8) is close to a Liberation line (about 1.15 em) over a Noto Sans
+  CJK line (1.448 em).
+- Check 42 (finding A) is consistent with the same cause: on v15 Chrome the endnote fixture's first two body lines are 8 px or
+  less apart and merge into one band under `BAND_MERGE_GAP = 8`; the page-bottom endnote band keeps the band count at 3, so the
+  `len(bands) >= len(base_lines)` guard passes and `noteLineIndex [1]` aims at the third line (`drag` y 0.07197 is the centre of
+  band [126, 139]). The 038 inducer then misses, the once-per-browser worker-failure inducer is spent on the recovery arm, and
+  check 42 cannot fire its own.
+
+Hypothesis H-slot: on v15 the Asian font slot that the defaults (and any non-TC CJK family name) ask for no longer resolves to a
+CJK font, so it is filled by a Latin font with a smaller line height, and the CJK glyphs come from glyph fallback.
+
+Probe: `wasm_sdk_probe/tools/probe_cjk_font_slots.py` (Chrome only; profiles v8, v15, v15-cjk-r5-ab; saves each document through
+the product's save button and keeps the engine's font declarations; canvas PNG and unmerged ink runs). Its generated fixture has,
+for each variant, two identical one-line paragraphs, so the pitch between the pair's ink tops is that variant's line height:
+default, `font-name-asian` = Noto Sans CJK TC / SC / JP / KR, and Latin-only pairs (default, TC, KR).
+
+Predictions under H-slot:
+- v8 and the A/B profile: every CJK-variant pitch equal; v15: `SLOT-TC` equal to v8's, `SLOT-DEFAULT` smaller.
+- Latin-only `LATIN-DEFAULT` follows the default slot (smaller on v15 than v8) -- that is what the `EN-PLAIN` line already showed.
+- Not predicted: which names v15 writes for the defaults, nor whether `SLOT-SC`/`SLOT-JP`/`SLOT-KR` resolve to the subset on v15
+  (fontconfig's answer depends on the language the pattern carries, which this probe does not control).
+
+H-slot is refuted for this probe if v15 `SLOT-DEFAULT` pitch equals v8's, or if v15 `SLOT-TC` pitch differs from v8's.
