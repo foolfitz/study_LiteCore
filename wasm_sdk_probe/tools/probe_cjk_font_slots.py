@@ -40,11 +40,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import run_e2_c_product_path as pp  # noqa: E402
 
-FIXTURE = "e1-fixtures/cjk-font-slots.odt"
-VARIANTS = [("SLOT-DEFAULT", None, True), ("SLOT-TC", "Noto Sans CJK TC", True),
-            ("SLOT-SC", "Noto Sans CJK SC", True), ("SLOT-JP", "Noto Sans CJK JP", True),
-            ("SLOT-KR", "Noto Sans CJK KR", True), ("LATIN-DEFAULT", None, False),
-            ("LATIN-TC", "Noto Sans CJK TC", False), ("LATIN-KR", "Noto Sans CJK KR", False)]
+FIXTURE = "cjk-font-slots.odt"  # at the mirror ROOT, which is a real directory
+# (label, font-name-asian or None, carries CJK text, Asian country or None).
+# The zh-TW rows use the names a real Taiwanese document carries (the owner's
+# document names 思源黑體, PMingLiU/新細明體, Microsoft JhengHei, AR PL UMing TW
+# and Noto Sans CJK TC, tagged zh-TW); its CONTENT is never used here.
+VARIANTS = [("SLOT-DEFAULT", None, True, None), ("SLOT-TC", "Noto Sans CJK TC", True, None),
+            ("SLOT-SC", "Noto Sans CJK SC", True, None), ("SLOT-JP", "Noto Sans CJK JP", True, None),
+            ("SLOT-KR", "Noto Sans CJK KR", True, None), ("LATIN-DEFAULT", None, False, None),
+            ("LATIN-TC", "Noto Sans CJK TC", False, None), ("LATIN-KR", "Noto Sans CJK KR", False, None),
+            ("TW-DEFAULT", None, True, "TW"), ("TW-TC", "Noto Sans CJK TC", True, "TW"),
+            ("TW-SIYUAN", "思源黑體", True, "TW"), ("TW-PMINGLIU", "PMingLiU", True, "TW"),
+            ("TW-XIMINGTI", "新細明體", True, "TW"), ("TW-JHENGHEI", "Microsoft JhengHei", True, "TW"),
+            ("TW-UMING", "AR PL UMing TW", True, "TW"), ("TW-KAI", "標楷體", True, "TW")]
 
 ROWS = """(() => {
 const canvas = document.querySelector('#canvas');
@@ -69,16 +77,19 @@ def fixture_bytes() -> bytes:
           'xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" '
           'xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" '
           'xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"')
-    families = sorted({f for _, f, _ in VARIANTS if f})
+    families = sorted({v[1] for v in VARIANTS if v[1]})
     faces = "".join(f'<style:font-face style:name="{f}" svg:font-family="&apos;{f}&apos;" '
                     f'style:font-family-generic="system" style:font-pitch="variable"/>'
                     for f in families)
-    styles = "".join(f'<style:style style:name="P{f.split()[-1]}" style:family="paragraph">'
-                     f'<style:text-properties style:font-name-asian="{f}"/></style:style>'
-                     for f in families)
-    body = ""
-    for label, family, cjk in VARIANTS:
-        attr = f' text:style-name="P{family.split()[-1]}"' if family else ""
+    styles, body = "", ""
+    for index, (label, family, cjk, country) in enumerate(VARIANTS):
+        props = (f' style:font-name-asian="{family}"' if family else "") + (
+            f' style:language-asian="zh" style:country-asian="{country}"' if country else "")
+        attr = ""
+        if props:
+            styles += (f'<style:style style:name="P{index}" style:family="paragraph">'
+                       f'<style:text-properties{props}/></style:style>')
+            attr = f' text:style-name="P{index}"'
         text = f"{label} 中文字 MH" if cjk else f"{label} MH MH"
         body += f"<text:p{attr}>{text}</text:p>" * 2
     content = (f'<?xml version="1.0" encoding="UTF-8"?><office:document-content {ns} '
@@ -130,6 +141,28 @@ def runs(counts: list[int]) -> list[list[int]]:
     return found
 
 
+def pitches(png: bytes, left: int = 82, right: int = 680) -> dict:
+    """Line pitch per variant, from the canvas PNG.
+
+    Rows are counted only between `left` and `right`: the page frame inks every
+    row (so a whole-canvas count is one run -- this probe's first reading), and
+    the caret is drawn at x 80 on the first line.  Both lines of a pair are
+    identical, so second top minus first top is that variant's line height.
+    """
+    from PIL import Image
+    image = Image.open(io.BytesIO(png)).convert("RGBA")
+    width, height = image.size
+    px = image.load()
+    rows = [sum(1 for x in range(left, min(right, width))
+                if px[x, y][3] > 128 and max(px[x, y][:3]) < 100) for y in range(height)]
+    found = runs(rows)
+    out = {"columns": [left, right], "runs": found}
+    if len(found) == 2 * len(VARIANTS):
+        out["pitch"] = {v[0]: found[2 * i + 1][0] - found[2 * i][0]
+                        for i, v in enumerate(VARIANTS)}
+    return out
+
+
 def settle(session, tries: int = 20) -> dict:
     last = None
     for _ in range(tries):
@@ -147,8 +180,15 @@ def measure(profile: str, out_dir: Path, fixture: bytes) -> dict:
     page, pin_before, wasm = pp.repointed_page(
         source, profile, root / "profiles" / profile / "sdk-manifest.json")
     mirror = Path(tempfile.mkdtemp(prefix="cjk-font-slots-")) / "root"
-    pp.build_mirror(root, mirror, {"e2-editor-app.js": page.encode("utf-8"),
-                                   FIXTURE: fixture})
+    # `build_mirror` only REPLACES files the source has (measured: the first run
+    # of this probe served a 404 page as the fixture, and the engine opened it).
+    # The fixture is new, so it is written after the mirror exists -- at the
+    # mirror's root, which is a real directory; every subdirectory not on an
+    # override's path is a SYMLINK into dist/, and writing there writes dist.
+    pp.build_mirror(root, mirror, {"e2-editor-app.js": page.encode("utf-8")})
+    if (mirror / FIXTURE).exists() or not mirror.is_dir() or mirror.is_symlink():
+        raise SystemExit(f"refusing to write the fixture into {mirror}")
+    (mirror / FIXTURE).write_bytes(fixture)
     port = pp.free_port()
     server = subprocess.Popen([sys.executable, str(pp.PROJECT / "web" / "serve.py"),
                                "--port", str(port), "--root", str(mirror)],
@@ -180,6 +220,13 @@ def measure(profile: str, out_dir: Path, fixture: bytes) -> dict:
                 raw = base64.b64decode(saved["b64"])
                 doc["savedBytes"] = len(raw)
                 doc["fontNames"] = font_names(raw)
+                # Which document is this, by its own text -- not by the name the
+                # page shows, which is whatever the file input was told.
+                with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+                    content = archive.read("content.xml").decode("utf-8")
+                doc["firstText"] = re.sub(r"<[^>]+>", " ", content.split("<office:text", 1)[-1])[:80].split()
+                if name == "cjk-font-slots.odt":
+                    doc["fixtureOpened"] = all(v[0] in content for v in VARIANTS)
             scan = settle(session)
             if scan:
                 stem = f"{profile}-{(doc['document'] or 'boot').removesuffix('.odt')}"
@@ -189,6 +236,8 @@ def measure(profile: str, out_dir: Path, fixture: bytes) -> dict:
                 doc["canvas"] = [scan["width"], scan["height"]]
                 doc["inkRuns"] = runs(scan["counts"])
                 doc["png"] = f"{stem}.png"
+                if name == "cjk-font-slots.odt":
+                    doc["pitches"] = pitches(base64.b64decode(png.split(",", 1)[1]))
             result["documents"].append(doc)
     finally:
         if session is not None:
@@ -208,7 +257,7 @@ def main() -> int:
     fixture = fixture_bytes()
     (args.out / "cjk-font-slots.odt").write_bytes(fixture)
     report = {"startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "browser": "chrome",
-              "variants": [[label, family, cjk] for label, family, cjk in VARIANTS],
+              "variants": [list(v) for v in VARIANTS],
               "profiles": [measure(profile, args.out, fixture) for profile in args.profiles],
               "completedAt": None}
     report["completedAt"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")

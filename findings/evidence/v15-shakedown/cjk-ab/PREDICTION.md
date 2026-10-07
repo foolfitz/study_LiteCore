@@ -66,3 +66,29 @@ Predictions under H-slot:
   (fontconfig's answer depends on the language the pattern carries, which this probe does not control).
 
 H-slot is refuted for this probe if v15 `SLOT-DEFAULT` pitch equals v8's, or if v15 `SLOT-TC` pitch differs from v8's.
+
+## Addendum 2, same day, before the candidate is run: a five-family collection of the same subset
+
+Measured since addendum 1 (details in the README written after these runs): the A/B profile restored v8 on every cell in
+both browsers (P1 holds, for finding B and for finding A); the slot probe (`font-slots-r3/pitches.txt`) shows v15's
+regression is confined to CJK lines whose Asian font is the default or names Noto Sans CJK SC/JP/KR (pitch 15-16 against
+19-20 on v8 and on the A/B profile), and the engine writes `Liberation Sans` as the default Asian font on v15 where v8 and the
+A/B profile write `Noto Sans CJK KR`. Names a Taiwanese document uses (思源黑體, PMingLiU, 新細明體, Microsoft JhengHei,
+AR PL UMing TW, 標楷體, tagged zh-TW) give 15-16 on v8 too: not a v15 difference.
+
+Candidate: `wasm_sdk_probe/tools/build_cjk_subset_ttc_candidate.py` -- the shipped tier-E font five times in the original
+TTC's face order (JP KR SC TC HK), only the `name` table differing (TC face unchanged), saved as one collection with shared
+tables: 7,210,328 bytes against 7,200,632 (+9,696); deterministic (two builds equal); every face's cmap, hmtx, vmtx, hhea,
+OS/2, CFF, GSUB and GPOS equal to the shipped subset's; fontconfig reports five families. Packed as
+`cjk-sub-e-ttc5-ab.ce59153d3861ef9c` into the unshipped profile `e2-editor-v15-cjk-ttc5-ab` (v15's link; manifest differs
+from v15's only in the profile name, sdkVersion and the CJK pack entry).
+
+Predictions:
+- Slot probe: every one of the 16 pitches equals v8's; the default Asian font written is one of the five Noto Sans CJK
+  families (which one is not predicted; v8 writes KR).
+- Product-path, one round per browser: Chrome 40 PASS / 2 NE as v8; Firefox `inkRight` 627 and both caret cells PASS; the
+  recovery arm's bands equal v8's in both browsers.
+
+Refuted if any CJK-variant pitch differs from v8's, or if either product-path report differs from the A/B profile's in any
+check outcome. Expected and not a refutation: lines whose Asian font names SC/JP/KR draw Traditional Chinese glyph forms
+(spec section 19's registered loss), so their pixels may differ from v8's while their positions may not.
