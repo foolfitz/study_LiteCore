@@ -41,3 +41,7 @@ Read with `e02_breaks.py` (re-runnable; prints tags, style names and text length
 
 - V5 holds on this document in Chrome: v17 lays the owner's document out with native line heights and native caret positions in all 11 cells (finding 114's symptom is gone here).
 - Not established: Firefox; more than one round; v8 on this document; whether the owner's document returns to M2-1 (spec 26.3 leaves that to a new appended section with reasons; if it does, E02's bytes clause would be red under the current reduction).
+
+## Addendum (same day, after `e02-discriminator/`)
+
+The discriminator read **H-wasm**, with one caveat recorded there (C1 missed as written: every native run also loads LibreOffice's own `share/fonts/truetype/fc_local.conf` and OpenSymbol, which the WASM packs lack). Native with v17's own font files and rules paginates E02's merge exactly as native with the system fonts; WASM differs at breaks 2, 3, 14, 15, and does so identically in a second run. Registered as finding 115 (`findings/115-…md`). V5's verdict above is unchanged by it.
