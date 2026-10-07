@@ -77,3 +77,11 @@ grep -o '"profile": *"[^"]*"' dist/profiles/e2-editor-v15/sdk-manifest.json
 3. Freeze shell generation v56 (only when the shell needs no more changes), pin, then the counted M2 rounds; then host 0.2.8 and R.
 
 The page's `workerUrl` and `PINNED_WASM_SHA256` move to v15 only after these, both lines together (spec 3.3).
+
+## Link record (2026-10-07)
+
+Run by the owner; objects 10:22, link and pack 10:24 (local). Checked by the main session right after:
+
+- v8 unchanged: `4a2710bba1ef07d9`, `c382b834aa768b91`, `070229cd10bda4a0`, `d70481cb1be5b1f9` — equal to §1.
+- v15: `probe.wasm` `ad3f68bb85f94589…` (115,307,269 B; v8 + 9,766 B), `probe.js` `46b2f40ac24b6a78…`, `sdk-worker.js` `00882139cd0b2e58…` (as expected), `sdk-manifest.json` `2a98050cfec967ca…`; `"profile": "e2-editor-v15"`; resource packs `cjk-sub-e` (startup) and `fallback-fonts-r5` (declared, not loaded).
+- Archived: `wasm_sdk_probe/build/archive/e2-editor-v15-ad3f68bb-worker-00882139/` (the four files, the CJK pack, `SHA256SUMS`, `ATTRIBUTION.md`); `sha256sum -c` 6/6.
