@@ -1342,6 +1342,64 @@ $(E2_V16_DIST)/sdk-manifest.json: $(E2_V15_ARCHIVE)/probe.js \
 $(E2_V16_DIST):
 	mkdir -p $@
 
+# ------------------- v17, v16 with a base pack that omits 35-lang-normalize.conf
+#
+# NO LINK. v16's wasm, loader, worker and export list (all v15's archive) and
+# v16's CJK and fallback packs, byte-identical; what moves is the base pack.
+# Finding 114: LibreOffice adds the font language to a fontconfig pattern as a
+# STRING, and conf.d/35-lang-normalize.conf's `contains` is a substring test on
+# strings -- `zh-tw` becomes `tw` and zh-TW text whose font the profile lacks
+# gets a Latin line height (66 of the 282 tags LibreOffice can send are
+# rewritten).  Upstream fontconfig does not enable the file; LibreOffice's
+# packaging does.  Spec SPEC-M3-paragraph-merge 26: owner chose "fix now as
+# v17", fable chose "omit the file" (a pack cannot add a conf.d file: the
+# worker admits only /instdir/share/fonts/truetype/ paths).
+#
+# `base-r5-no35` is base-r5 minus that one entry, built from base-r5 and from
+# the original image and required to be the same sha (tools/build_base_no35_pack.py).
+# `e2-editor-v17-cjk-r5-ab` is the corpus comparison's control (spec 26.3 V6):
+# v17 with the full CJK TTC, so 20.3's one variable stays the CJK subset.
+E2_V17_DIST := dist/profiles/e2-editor-v17
+E2_V17_AB_DIST := dist/profiles/e2-editor-v17-cjk-r5-ab
+E2_V17_DEPS := $(E2_V15_ARCHIVE)/probe.js \
+		$(E2_V15_ARCHIVE)/probe.wasm $(E2_V15_ARCHIVE)/sdk-worker.js \
+		$(E2_V15_ARCHIVE)/exports.txt \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py
+
+$(E2_V17_DIST)/sdk-manifest.json: $(E2_V17_DEPS) sdk/v17-writer-review-manifest.json \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py | $(E2_V17_DIST)
+	cd $(E2_V15_ARCHIVE) && sha256sum -c --quiet SHA256SUMS
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_ttc_pack.py --check
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/v17-writer-review-manifest.json \
+		--loader $(E2_V15_ARCHIVE)/probe.js --wasm $(E2_V15_ARCHIVE)/probe.wasm \
+		--worker $(E2_V15_ARCHIVE)/sdk-worker.js \
+		--exports $(E2_V15_ARCHIVE)/exports.txt \
+		--profile e2-editor-v17 --inline-range-gestures all \
+		--output $(E2_V17_DIST)
+	@test -s $(E2_V17_DIST)/probe.js
+	@test -s $(E2_V17_DIST)/probe.wasm
+	@test -s $(E2_V17_DIST)/sdk-worker.js
+
+$(E2_V17_AB_DIST)/sdk-manifest.json: $(E2_V17_DEPS) \
+		sdk/v17-cjk-r5-ab-writer-review-manifest.json | $(E2_V17_AB_DIST)
+	cd $(E2_V15_ARCHIVE) && sha256sum -c --quiet SHA256SUMS
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/v17-cjk-r5-ab-writer-review-manifest.json \
+		--loader $(E2_V15_ARCHIVE)/probe.js --wasm $(E2_V15_ARCHIVE)/probe.wasm \
+		--worker $(E2_V15_ARCHIVE)/sdk-worker.js \
+		--exports $(E2_V15_ARCHIVE)/exports.txt \
+		--profile e2-editor-v17-cjk-r5-ab --inline-range-gestures all \
+		--output $(E2_V17_AB_DIST)
+	@test -s $(E2_V17_AB_DIST)/probe.wasm
+
+$(E2_V17_DIST) $(E2_V17_AB_DIST):
+	mkdir -p $@
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The
