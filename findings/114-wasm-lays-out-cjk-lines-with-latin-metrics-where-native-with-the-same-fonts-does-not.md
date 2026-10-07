@@ -11,6 +11,67 @@
 | **可重現** | 100%（決定性：原生兩種字型設定 11 格逐 twip 相同；WASM 兩次執行相同） |
 | **是否上游** | **是，上游 LibreOffice**（2026-10-07 審核後修正）：上游 fontconfig 預設不啟用 35、Ubuntu 只放在 conf.avail，而 LO 的 `ExternalPackage_fontconfig_data.mk` 把它裝進會生效的 conf.d（EMSCRIPTEN、MACOSX、MSC 建置；commit 703466d7 說要照 Ubuntu 保留，卻留下了 35）。LO 能送出的 282 個語言碼有 66 個被改寫（`evidence/114/review/census-abs.txt`）。上游送出照例擱置 |
 
+## 給審核者（2026-10-08；先讀這一節）
+
+標題與開頭的「同一組 fontconfig」是**舊的、已被推翻的說法**，保留只為了不斷掉引用。下面是目前的宣稱，每條標了證據等級。
+
+### 目前的宣稱
+
+1. **機制**：LibreOffice 的 `PrintFontManager::Substitute` 以**字串**加 `FC_LANG`；`35-lang-normalize.conf` 的 `compare="contains"` 遇到字串是子字串比對；`zh-tw` 含 `tw` → 語言被改成 `tw`（Twi，拉丁文字）→ 主字型挑到 Liberation → 行高是拉丁的。**已觀察**：WASM 引擎內的 `FC_DEBUG` log、原生單一變因重現、原始碼。
+2. **啟用 35 的是上游 LibreOffice 的打包**，WASM 映像從 2021-11 起就帶著它。**已讀原始碼與 git 歷史**。
+3. **範圍**：LO 送得出的 282 個語言碼有 66 個被改寫。**工具普查**（由建構得出）；版面影響**只量了 zh-TW**。
+4. **修法（base 包拿掉 35＝v17）有效**：V2 普查 0、V3 引擎側、V4 版面（兩列 19 未解釋）、V5 擁有者文件 11 格逐 twip 等於原生。**已量測**。
+5. **平台**：Windows／macOS 一般桌面版不會中，Linux 看發行版。**讀原始碼，未逐平台實測**（見「還缺什麼才能送」）。
+
+### 關鍵 commit（本 repo，依時間）
+
+| commit | 內容 | 審核時看什麼 |
+| --- | --- | --- |
+| `99d07c82` | 發現：merge shakedown 第 3 次，擁有者文件 11 格全部 `placement-mismatch` | 症狀的第一筆數字 |
+| `b2b30f65`、`fa44c830` | 第一次判別：原生換成 WASM 的字型檔重跑，沒重現 → 當時下了「成因在 WASM 引擎那側」的**錯誤結論** | 錯在哪：抽出來的 `fonts.conf` 用相對路徑 `<include>conf.d</include>`，原生載入的其實是系統規則（下方「排除了什麼」的修正） |
+| `58c512cf` | 判別探針：讓 WASM 裡的 fontconfig 自己印比對；預測與解析器紅案先 commit | 探針只改 mirror 的 `probe.js` 一行，`probe.wasm` 不動 |
+| `14464496` | **診斷**：WASM 裡看到 `tw`；原生以絕對路徑引入同一份 conf.d 單一變因重現；撤回 `fa44c830` 的結論 | 主要證據 |
+| `b7026d9a` | opus 對抗性審核：66 個、啟用者是上游打包、更正排序論證 | 前一位審核者挑過什麼 |
+| `58602d90` | 規格 §26：修法形式（fable 裁決拿掉 35）與 V1–V6 判準，**寫在任何 v17 量測之前** | 判準有沒有事後移動 |
+| `321f76fe` | v17 打包（不連結）＋V1 對帳、V2 普查 | |
+| `c5d360da`、`a74b24c2` | V3（引擎側）、V4（版面；兩列 19 照實記落空） | |
+| `5f22c21a`、`c7b8c5c0` | V5 預測與結果 | |
+| `badb2193` | finding 115：E02 合併後的分頁差，判別實驗排除 v17 字型集 | 相關但**是另一件事** |
+| `14498361`、`1191edc4` | 上游草稿；平台範圍與只看標題的查重 | |
+
+### 上游的關鍵位置
+
+- LibreOffice core（我們的樹 `libreoffice-26-8`＠`671c848b`）：
+  - `b7313bc1`（2021-11-30）〈WASM add fontconfig data to FS image〉——35 第一次進入打包清單（`git log -S35-lang-normalize -- external/fontconfig`）
+  - `a7411d59`（2025-11-22）Windows 也打包這批規則；`703466d7`（同日）說「照 Ubuntu 的 conf.d 留」卻留下 35；`e219153c`（2025-11-24）最近一次改清單
+  - `vcl/unx/generic/fontmanager/fontconfig.cxx:1139`、`:1420`（`FcPatternAddString(…, FC_LANG, …)`）；`:951` 起 `mapToFontConfigLangTag`（只回傳 `FcGetLangs()` 的成員）
+  - `external/fontconfig/ExternalPackage_fontconfig_data.mk:34`（35 那一行）；`Module_fontconfig.mk`（MSC、EMSCRIPTEN、MACOSX 才打包）；`configure.ac` 的 `using_freetype_fontconfig`（Windows／macOS 只有 `--enable-headless` 才是 yes）
+- fontconfig 2.18.2（LO 自帶版）：`src/fccfg.c` 的 `FcConfigCompareValue`（字串的 `FcOpContains` → `FcStrStrIgnoreCase`，約第 1134 行）；`conf.d/meson.build:51–72` 的 `conf_links` 不含 35
+
+### 證據地圖
+
+- `evidence/114/fc-debug/`：`PREDICTION.md`、`RESULT.md`（英文）、`run1/`（WASM 內的 fontconfig log）、`native-repro/`（`fc_string_lang.py`、`fonts-abs-include.conf`、絕對／相對路徑兩種輸出、載入的規則檔清單）
+- `evidence/114/review/`：opus 審核 `README.md`、`census.py` 與三份普查輸出
+- `evidence/merge-native/r0c-wasmfonts/`：第一次（被推翻的）判別實驗，留著當歷史
+- `evidence/v17/v1-v2/`、`v3-v4/`、`v5/`（含 `e02-discriminator/`＝finding 115）；規格 §26、§27；`drafts/114-bugzilla.txt`
+
+### 審核者自己能重跑的（都不需要擁有者文件）
+
+- 普查（規則改寫幾個語言碼）：`python3 wasm_sdk_probe/tools/check_fontconfig_lang_rewrites.py --profile e2-editor-v16 --expect 66`；v17 用 `--expect 0`。工具自己會在規則檔不是全部來自包內時判失敗。
+- 原生最小重現：先 `python3 wasm_sdk_probe/tools/extract_wasm_fontset.py --profile e2-editor-v16 --out <新目錄>`，把產生的 `fonts.conf` 裡 `<include ignore_missing="yes">conf.d</include>` 改成**絕對路徑**，再 `FONTCONFIG_FILE=<那份 fonts.conf> python3 -I findings/evidence/114/fc-debug/native-repro/fc_string_lang.py <libfontconfig> zh-tw zh-cn`。預期 `zh-tw` 被改成 `tw`、配到 Liberation（這個最小 pattern 沒帶粗細與通用家族，所以是 Liberation Mono；LO 實際的請求配到 Sans）。
+- 引擎內（要瀏覽器）：`python3 wasm_sdk_probe/tools/probe_fc_debug.py --profiles e2-editor-v16 e2-editor-v17 --out <目錄>`。
+- **不能給**：擁有者的 `PMPC指南.odt`（V5 只能看報告裡的高度與段落序號）。
+
+### 請特別挑戰的地方（已知的弱點）
+
+1. V4 有兩列（思源黑體、標楷體）修好後是 19 px 不是 20 px，原因未量。
+2. 「276＝12 pt × Liberation 的 1.149、348＝12 pt × Noto Sans CJK 的 1.448」是**推算**，不是從引擎讀出的。
+3. 「LO 只送 `FcGetLangs()` 的成員」靠讀 `mapToFontConfigLangTag`；另有一條弱綁定的預設語言從瀏覽器 locale 進來（審核 N2）。
+4. 另外 65 個被改寫的語言碼只是**由建構**修好，沒有版面量測；閩南語、客語文件不在任何 fixture 裡。
+5. 平台範圍是讀 `configure.ac` 得出，CODA-W 沒實測。
+6. 修法取捨（拿掉 35 vs 窄規則 vs 引擎改用 langset）的理由在「裁決」與規格 §26.1。
+7. finding 115 是 v17 上另一個、更小的差異；它的判別實驗有一條照字面落空的對照（原生多載入 LO 自己的 `fc_local.conf` 與 OpenSymbol）。
+
 ## 現象
 
 擁有者的 `PMPC指南.odt` 在 WASM（v16）上，原生 R0c 記下的游標放不回去：同一個位置的行高原生 348／521 twips，WASM 276／414。
@@ -35,12 +96,14 @@
 1. merge WASM runner 對擁有者文件（`run_merge_wasm_shakedown.py --cases E01`，需要 `build/` 底下的文件）：`place.engineCaret` 的高度對 `nativeCaret` 的高度。
 2. 原生：`FONTCONFIG_FILE=…/build/wasm-fontset-v16/fonts.conf MERGE_ESHAPE=1 MERGE_FOLLOW_TEXT=Z tools/run_merge_native.sh <out> 1 <PMPC> test-docs/merge/r0-pmpc.cases.tsv 1`，
    看 `arms.jsonl` 的 `placed.cursor`。
+   **2026-10-08 更正：照這一步做不會重現。**那份 `fonts.conf` 以相對路徑引入 `conf.d`，原生載入的是系統規則（沒有 35），所以會得到正常的 348。
+   要重現必須把 include 改成絕對路徑（見「給審核者」的原生最小重現），並記下實際載入的規則檔（`FC_DEBUG=1024`）。
 
 **預期**：同一組字型、同一個 core，行高相同。**實際**：原生 348、WASM 276（E01 等七格）；521 對 414（E02）。
 
 ## 影響
 
-- M2-1 在擁有者文件上無法用原生座標放置（規格 §25：退回 A）。
+- M2-1 在擁有者文件上無法用原生座標放置（規格 §25：退回 A）。**2026-10-08 補**：在 v17 上可以了（V5：11 格都由點擊直接放到原生座標）；要不要放回 M2-1 依 §26.3 另寫追加段決定。
 - 保真：凡是段落字型名不是剛好五個 Noto Sans CJK 家族名之一的中文文件，WASM 的版面都可能比桌面版矮（113 的機制在 v16 的五家族之外仍然存在）。
   量成語料層級的保真缺口，要等 20.3／21.2 的語料版面比對（那是 v16 對完整 TTC，不是對原生）或另立一個對原生的比較。
 
@@ -55,7 +118,7 @@
 - 不只中文：`zh-sg`→`sg`、`pt-br`→`br`、`fr-ca`→`ca` 在原生重現裡同樣被改寫（**已觀察**）；對版面的影響只量了 zh-TW。
   **2026-10-07 修正（對抗性審核，`evidence/114/review/`）**：`pt-br`、`fr-ca` 不是 LO 會以強綁定送出的值（LO 只送 `FcGetLangs()` 的成員，會送 `pt`、`fr`），只可能經由 fontconfig 從瀏覽器 locale 推出的弱綁定預設語言進來；LO 實際送得出的改寫集合是普查的 66 個（含閩南語 `nan`→`an`、客語 `hak`→`ak`）。另外「`tw` 排在 `zh` 前面」那句論證是錯的——35 根本沒有 `zh` 規則，`tw` 只是唯一一個是 `zh-tw` 子字串的語言碼。主字型那次查詢落到 Liberation、glyph fallback 給 Noto Sans CJK KR，審核以同一份 log 確認（**已觀察**）。
 
-## 修法候選（未做，交擁有者）
+## 修法候選（2026-10-07 當時的三個選項；已選第一個的「拿掉 35」＝v17，見「裁決」）
 
 - 打包層：profile 的 conf.d 拿掉 `35-lang-normalize.conf`，或在它之前加一條把字串 `zh-tw` 換成 langset 的規則（langset 的 `contains` 是語言包含，不是子字串）。不用連結，但改的是 profile 的位元組＝新身分。
   （2026-10-07 補：擁有者選「現在修、出 v17」；審核指出窄規則只修 3 個、留 63 個改寫，拿掉 35 則為 0；修法形式交 fable 裁決。）
@@ -65,7 +128,7 @@
 ## 未做
 
 - 哪些發行版的桌面 LibreOffice 會因啟用 `35-lang-normalize.conf` 而在原生也中。
-- 修法本身與它對產品路徑網、merge、語料版面的影響。
+- 修法本身與它對產品路徑網、merge、語料版面的影響。**2026-10-08**：V5 過；產品路徑網 v8 對 v17 §23 紅格 0／84（`evidence/v17/product-path/`）；merge 與語料計數比較進行中。
 - ~~讀 WASM 建置的字型替代路徑~~（2026-10-07 已做，見「成因」）。
 - ~~v8 上同一份文件的行高~~：探針量的是 113 的合成 fixture，v8 與 v16 結果相同；擁有者文件本身在 v8 上仍未量。
 
@@ -92,3 +155,4 @@
 | 2026-10-07 | 補裁決（fable：拿掉 35）；狀態改為修法已打包未出貨（v17，V1–V4 量過） |
 | 2026-10-07 | V5 過（擁有者文件 11 格游標與原生逐 twip 相同）；上游草稿寫好、補「還缺什麼才能送」 |
 | 2026-10-08 | 補平台範圍（讀 configure.ac）與一次只看標題的 Bugzilla 查重（0 筆） |
+| 2026-10-08 | 加「給審核者」（目前宣稱、關鍵 commit、上游位置、證據地圖、可重跑指令、已知弱點）；更正重現步驟 2（相對路徑不會重現）；影響、修法候選、未做補上 v17 現況 |
