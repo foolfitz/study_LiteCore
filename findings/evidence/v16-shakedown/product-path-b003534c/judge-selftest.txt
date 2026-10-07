@@ -1,0 +1,23 @@
+# judge.py self-test (red cases). Not part of the result; shows the reader can go red.
+# Input: a scratch COPY of the reports in ../product-path-web-page/ (the previous page, 3cf01330...), with two edits:
+#   v16-chrome-r2: check[0] product-save-button-writes-a-real-odt PASS -> FAIL   (v8 chrome = 3 PASS, so this must be RED)
+#   v16-firefox-r1: notice-action-recovers-the-session NE -> FAIL                (v8 firefox = 3 NE and no FAIL, so this must be RED)
+# P2 is expected MISS here for a different reason: that directory's page is 3cf01330..., not b003534c....
+
+All 12 reports carry exactly 42 checks with the same ids in the same order.
+P1: HIT
+P2: MISS
+Cells judged: 84.  Section-23 red cells: 2
+  RED: ('chrome', 'product-save-button-writes-a-real-odt', '3 PASS', '2 PASS, 1 FAIL')
+  RED: ('firefox', 'notice-action-recovers-the-session', '3 NE', '1 FAIL, 2 NE')
+P3: MISS
+Cells with equal v8/v16 counts: 81 of 84.  Cells that differ: 3
+  DIFF: ('chrome', 'product-save-button-writes-a-real-odt', '3 PASS', '2 PASS, 1 FAIL')
+  DIFF: ('firefox', 'notice-action-recovers-the-session', '3 NE', '1 FAIL, 2 NE')
+  DIFF: ('firefox', 'clear-format-removes-every-inline-format', '1 PASS, 2 NE', '3 NE')
+P4: MISS (>=83 of 84 equal: False; any differing cell is Firefox clear-format-removes-every-inline-format: False; Firefox an-inline-format-reaches-a-selection FAILs on both profiles: True)
+SUMMARY  P1: HIT  P2: MISS  P3: MISS (red cells 2)  P4: MISS (differing cells 3)
+
+# Second edit: v8-chrome-r1 with its last check removed (41 checks). The reader must stop, not adjust:
+STOP: ('chrome', 'v8', 1) has 41 checks, expected 42. Not adjusting the reader.
+exit status of judge.py: 4
