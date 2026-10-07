@@ -43,7 +43,10 @@ class MergeClauses(unittest.TestCase):
         for case in ("C01", "C03", "I02", "C11", "Y01"):
             clauses = m.merge_clauses(observed_merge(case), CASES[case])
             self.assertTrue(verdict(clauses), (case, clauses))
-            self.assertTrue(clauses["afterKeyBytes"], case)
+            if CASES[case]["decision"] == "typed-merge":
+                self.assertIsNone(clauses["afterKeyBytes"], "spec 12: typed text compares by text")
+            else:
+                self.assertTrue(clauses["afterKeyBytes"], case)
 
     def test_red_the_select_arm_is_not_the_key(self):
         # 10.2: C03's native select-arm document as what the page saved.

@@ -549,8 +549,13 @@ def merge_clauses(out: dict, spec: dict) -> dict:
                "generation": out["generation"][0] == out["generation"][1],
                "afterKeyText": (out.get("afterKeyDocument") or {}).get("textEqual") is True,
                # M2-0: WASM and native differ with no edit; compared after
-               # the reduction appended to the spec (24).
-               "afterKeyBytes": (out.get("afterKeyDocument") or {}).get("reducedBytesEqual") is True,
+               # the reduction appended to the spec (24).  Not where text was
+               # typed (spec 12): the page types through its insert path and
+               # Writer's arm through key events, so a typed `x` carries an rsid
+               # span natively and an automatic paragraph style on WASM
+               # (measured on Y01/Y02, shakedown-chrome-3).
+               "afterKeyBytes": (None if spec["decision"] == "typed-merge" else
+                                 (out.get("afterKeyDocument") or {}).get("reducedBytesEqual") is True),
                "followText": (out.get("followDocument") or {}).get("textEqual") is True,
                "noToast": out.get("toasts") == []}
     if spec["criterion"] == "M2-1":
