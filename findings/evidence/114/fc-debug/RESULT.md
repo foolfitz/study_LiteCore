@@ -38,3 +38,9 @@ The same also applies to the `fc-match` rows written in `PREDICTION.md` under "W
 
 - Which distributions enable `35-lang-normalize.conf` for desktop LibreOffice (where the same rewrite would happen natively) is not checked.
 - No fix is made or measured here. The candidates are listed in finding 114.
+
+## Corrections after the adversarial review (2026-10-07, `../review/README.md`)
+
+- **Ordering (review N1).** "`tw` sorts before `zh`, so it wins" is wrong: 35 has no `zh` rule (the zh orths all contain `_`). `tw` is simply the only orth code that is a substring of `zh-tw`.
+- **Reach (review B1, B2).** `pt-br` and `fr-ca` above are not tags LibreOffice sends as strong values (`mapToFontConfigLangTag` returns only `FcGetLangs()` members, so it sends `pt`, `fr`); they can arrive only through fontconfig's weak env default. The reachable set is the census: 66 of the 282 `FcGetLangs()` tags are rewritten (`../review/census-abs.txt`). And 35 is enabled by upstream LibreOffice's packaging (`external/fontconfig/ExternalPackage_fontconfig_data.mk:34`), not by us.
+- **Primary vs fallback (review item 2).** The open question in "Against the prediction" is answered from the same logs: the Liberation answers are the primary lookups (no charset in the asked pattern), the Noto answers are glyph fallback for U+3001 and the fixture's Han characters.

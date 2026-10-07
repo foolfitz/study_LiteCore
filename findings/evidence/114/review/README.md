@@ -1,0 +1,15 @@
+# Adversarial review of the finding 114 diagnosis (opus, 2026-10-07, read-only)
+
+Reviewed commit `14464496`. Scripts here were written by the reviewer in scratch and copied in; the census outputs were re-run by the main session with LibreOffice's bundled fontconfig (`native-lok-26-8/build/instdir/program/libfontconfig-lo.so.1.16.1`, 2.18.2) and v16's 13 font files.
+
+| Item | Verdict | Decisive evidence |
+|---|---|---|
+| 1. `tw` comes from 35-lang-normalize, not from LibreOffice | CONFIRMED | Native FC_DEBUG=4: the pattern enters with `lang: "zh-tw"(s)`; the first rule touching lang is 35 (`test pattern any lang Contains "tw"` -> `Edit lang Assign "tw"`). `mapToFontConfigLangTag` only returns `FcGetLangs()` members (`vcl/unx/generic/fontmanager/fontconfig.cxx:951-990`). In the WASM log fontconfig's own weak env default is rewritten too: `lang: "en"(s) "tw"(w)` (v16 log, 13 `"tw"(w)` values). |
+| 2. Liberation is the primary lookup, Noto the glyph fallback | CONFIRMED | v16 log: primary pattern has no charset, `lang: "tw"(s)`, best score LANG slot 0 -> `LiberationSans-Regular.ttf`. Fallback 1 asks U+3001 (`ImplInitFlags`, `vcl/source/font/fontmetric.cxx:386-392`, only reached when the primary lacks U+3001); fallback 2 asks 中文字; CHARSET outranks LANG (`fcmatch.c:368-373`) so Noto Sans CJK KR wins. `fcq_sp.py` with spacing/width/weight added reproduces WASM's Liberation Sans exactly. |
+| 3. Nothing else produces the 0.79 | CONFIRMED (natively) | With the rewrite removed, every owner-document font name tagged zh-TW lands on a Noto Sans CJK face; all five subset faces share vertical metrics (hhea 1160/-288/0) -> 1.448 x size = native 348/521. |
+| 4. Narrow langset rule (`34-zh-region-langset.conf`) | WEAKENED | Legal and works for zh-tw/zh-mo/zh-sg, but `census-abs.txt`: 66 of the 282 `FcGetLangs()` tags are rewritten by 35 (e.g. nan->an, hak->ak, kok->ko, ast->as, fil->fi); `census-fix.txt`: 63 still rewritten (+3 now langsets); `census-no35.txt`: 0. |
+| 5. Probe/parser read the log correctly | CONFIRMED | Every pattern dump intact (declared elts = parsed elts). Gap: the JSON drops `charset`. |
+
+Blocking items: B1 (narrow fix incomplete; omitting 35 fixes all 66; upstream fontconfig does not enable 35 by default, Ubuntu ships it only in conf.avail); B2 (35 is enabled by upstream LibreOffice's packaging, `external/fontconfig/ExternalPackage_fontconfig_data.mk:34`, built for EMSCRIPTEN, MACOSX, MSC). Non-blocking: N1 (RESULT's "tw sorts before zh" argument is wrong: 35 has no `zh` rule; `tw` is the only orth code that is a substring of `zh-tw`), N2 (either fix also changes the weak default channel, which comes from the browser locale through Emscripten ENV), N3 (post-fix primary is KR/JP, not TC; same metrics and cmap on v16), N4 (the relative-include native run also loaded `~/.config/fontconfig/fonts.conf`, embolden rules only), N5 (113's v15 inference cites familylang, which is the env default, not the document's CJK language), N6 (add `askedCharset` to the probe's parse).
+
+Re-run: `FONTCONFIG_FILE=<fonts.conf including the profile's conf.d by absolute path> LANG=C python3 -I census.py <libfontconfig>`.
