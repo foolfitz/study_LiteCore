@@ -1,0 +1,130 @@
+All 12 reports carry exactly 42 checks with the same ids in the same order.
+
+## P1  complete / liveness.lastState / pageErrors
+
+| report | started | completed | PASS | FAIL | NE | ok | complete | lastState | pageErrors | exit |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `e2-editor-v8-chrome-r1.json` | 23:12:46 | 23:19:37 | 40 | 0 | 2 | True | True | ready | None | 0 |
+| `e2-editor-v17-chrome-r1.json` | 23:19:38 | 23:26:02 | 40 | 0 | 2 | True | True | ready | None | 0 |
+| `e2-editor-v8-chrome-r2.json` | 23:26:02 | 23:32:54 | 40 | 0 | 2 | True | True | ready | None | 0 |
+| `e2-editor-v17-chrome-r2.json` | 23:32:54 | 23:39:19 | 40 | 0 | 2 | True | True | ready | None | 0 |
+| `e2-editor-v8-chrome-r3.json` | 23:39:19 | 23:46:09 | 40 | 0 | 2 | True | True | ready | None | 0 |
+| `e2-editor-v17-chrome-r3.json` | 23:46:09 | 23:52:33 | 40 | 0 | 2 | True | True | ready | None | 0 |
+| `e2-editor-v8-firefox-r1.json` | 23:52:33 | 23:58:36 | 30 | 1 | 11 | False | True | ready | None | 1 |
+| `e2-editor-v17-firefox-r1.json` | 23:58:46 | 00:04:45 | 30 | 1 | 11 | False | True | ready | None | 1 |
+| `e2-editor-v8-firefox-r2.json` | 00:04:56 | 00:12:54 | 30 | 1 | 11 | False | True | ready | None | 1 |
+| `e2-editor-v17-firefox-r2.json` | 00:13:05 | 00:19:06 | 30 | 1 | 11 | False | True | ready | None | 1 |
+| `e2-editor-v8-firefox-r3.json` | 00:19:17 | 00:25:19 | 31 | 1 | 10 | False | True | ready | None | 1 |
+| `e2-editor-v17-firefox-r3.json` | 00:25:30 | 00:31:32 | 31 | 1 | 10 | False | True | ready | None | 1 |
+
+P1 per-report condition (complete is True, lastState == 'ready', pageErrors is None) holds in 12 of 12 reports.
+P1: HIT
+
+## P2  served page / candidate fields
+
+| report | servedShell.entrypointSha256 | candidateSource.page | sha256BeforeRepoint | distPageWasTheSame | restOfShellEqualsSource | candidateCutover.pageSha256 | profile | pinBefore | pinAfter |
+|---|---|---|---|---|---|---|---|---|---|
+| `v8-chrome-r1` | `e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f` | (no key) | | | | (no key) | | | |
+| `v17-chrome-r1` | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | `web/e2-editor-app.js` | `a3fd9ac1d057eea22fa1af0d359d1760b5f211dead6af1db8ac010cc473aa7bc` | False | True | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | e2-editor-v17 | `4a2710bba1ef07d9` | `ad3f68bb85f94589` |
+| `v8-chrome-r2` | `e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f` | (no key) | | | | (no key) | | | |
+| `v17-chrome-r2` | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | `web/e2-editor-app.js` | `a3fd9ac1d057eea22fa1af0d359d1760b5f211dead6af1db8ac010cc473aa7bc` | False | True | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | e2-editor-v17 | `4a2710bba1ef07d9` | `ad3f68bb85f94589` |
+| `v8-chrome-r3` | `e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f` | (no key) | | | | (no key) | | | |
+| `v17-chrome-r3` | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | `web/e2-editor-app.js` | `a3fd9ac1d057eea22fa1af0d359d1760b5f211dead6af1db8ac010cc473aa7bc` | False | True | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | e2-editor-v17 | `4a2710bba1ef07d9` | `ad3f68bb85f94589` |
+| `v8-firefox-r1` | `e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f` | (no key) | | | | (no key) | | | |
+| `v17-firefox-r1` | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | `web/e2-editor-app.js` | `a3fd9ac1d057eea22fa1af0d359d1760b5f211dead6af1db8ac010cc473aa7bc` | False | True | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | e2-editor-v17 | `4a2710bba1ef07d9` | `ad3f68bb85f94589` |
+| `v8-firefox-r2` | `e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f` | (no key) | | | | (no key) | | | |
+| `v17-firefox-r2` | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | `web/e2-editor-app.js` | `a3fd9ac1d057eea22fa1af0d359d1760b5f211dead6af1db8ac010cc473aa7bc` | False | True | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | e2-editor-v17 | `4a2710bba1ef07d9` | `ad3f68bb85f94589` |
+| `v8-firefox-r3` | `e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f` | (no key) | | | | (no key) | | | |
+| `v17-firefox-r3` | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | `web/e2-editor-app.js` | `a3fd9ac1d057eea22fa1af0d359d1760b5f211dead6af1db8ac010cc473aa7bc` | False | True | `4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498` | e2-editor-v17 | `4a2710bba1ef07d9` | `ad3f68bb85f94589` |
+
+Expected v8 entrypointSha256        = e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f
+Expected v17 page / entrypoint      = 4c0088c7a518bc36b9cc999d2e67796d20a58525355b68ae67881228dc95b498
+Expected v17 sha256BeforeRepoint    = a3fd9ac1d057eea22fa1af0d359d1760b5f211dead6af1db8ac010cc473aa7bc
+servedShell (bundle, declared[:16], served[:16], differingPaths, differsOnlyInTheEntrypoint, missing) distinct values for v8: 1
+    ('e2/editor-shell-v2-bundle-v55.json', '2470765ae19ced01', '5bfc7642f5d1f8ec', ('editor-shell-v2/narrow-editor-v2-client.js', 'editor-shell-v2/narrow-editor-v2-session.js'), False, ())
+servedShell (bundle, declared[:16], served[:16], differingPaths, differsOnlyInTheEntrypoint, missing) distinct values for v17: 1
+    ('e2/editor-shell-v2-bundle-v55.json', '2470765ae19ced01', '916de3dabada6bdc', ('editor-shell-v2/narrow-editor-v2-client.js', 'editor-shell-v2/narrow-editor-v2-session.js', 'web/e2-editor-app.js'), False, ())
+P2: HIT
+
+## P3  every check, 3 rounds per arm (NE = NOT_ESTABLISHED), spec section 23 verdict per cell
+
+| check id | chrome v8 | chrome v17 | chrome | firefox v8 | firefox v17 | firefox |
+|---|---|---|---|---|---|---|
+| `product-save-button-writes-a-real-odt` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `every-ime-commit-reaches-the-document` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `ctrl-c-asks-the-engine` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `product-insert-button-inserts-what-the-field-holds` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `product-undo-button-reverses-the-last-edit` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `product-redo-button-restores-what-undo-removed` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `bulleting-a-blank-line-does-not-demand-a-rollback` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `notice-action-recovers-the-session` | 3 NE | 3 NE | ok | 3 NE | 3 NE | ok |
+| `backspace-and-arrows-reach-the-document` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `the-keyboard-reaches-the-document` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `ctrl-v-reaches-the-document` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `the-caret-is-drawn-where-it-was-placed` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `the-caret-lands-where-the-click-was` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `bold-can-be-turned-off-again` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `a-format-that-worked-is-not-reported-as-failed` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `a-failed-format-does-not-block-the-session` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `format-a-paragraph-changes-that-paragraph` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `cut-removes-the-selected-text` | 3 PASS | 3 PASS | ok | 3 NE | 3 NE | ok |
+| `a-refused-action-is-reported-and-changes-nothing` | 3 NE | 3 NE | ok | 3 NE | 3 NE | ok |
+| `every-inline-format-reaches-the-document` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `clear-format-removes-every-inline-format` | 3 PASS | 3 PASS | ok | 2 PASS, 1 NE | 1 PASS, 2 NE | ok |
+| `formatting-survives-the-next-paragraph-break` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `the-toolbar-gives-the-keyboard-back` | 3 PASS | 3 PASS | ok | 3 NE | 3 NE | ok |
+| `the-edit-buttons-do-what-they-say` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `the-open-button-opens-the-file-chooser` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `an-aborted-gesture-stops-selecting` | 3 PASS | 3 PASS | ok | 3 NE | 3 NE | ok |
+| `caret-follows-the-text-you-type` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `the-vertical-arrows-move-the-caret` | 3 PASS | 3 PASS | ok | 3 NE | 3 NE | ok |
+| `the-composition-you-are-typing-is-visible` | 3 PASS | 3 PASS | ok | 3 NE | 3 NE | ok |
+| `the-document-region-says-why-it-is-empty` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `the-projection-is-placed-where-the-document-is` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `an-inline-format-reaches-a-selection` | 3 PASS | 3 PASS | ok | 3 FAIL | 3 FAIL | ok |
+| `the-page-agrees-with-the-engine-about-the-selection` | 3 PASS | 3 PASS | ok | 3 NE | 3 NE | ok |
+| `the-canvas-follows-a-window-that-changed-size` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `the-sample-picker-opens-a-second-document` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `product-opens-a-document-the-user-chose` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `the-enter-key-reaches-the-document` | 3 PASS | 3 PASS | ok | 3 NE | 3 NE | ok |
+| `a-long-document-is-drawn-or-the-product-says-it-is-not` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `the-canvas-follows-a-document-that-grew` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `editing-a-long-document-stays-responsive` | 3 PASS | 3 PASS | ok | 3 PASS | 3 PASS | ok |
+| `recovery-returns-what-the-product-promised` | 3 PASS | 3 PASS | ok | 2 PASS, 1 NE | 3 PASS | ok |
+| `a-boundary-arrow-press-does-not-cost-the-work` | 3 PASS | 3 PASS | ok | 3 NE | 3 NE | ok |
+
+Cells judged: 84.  Section-23 red cells: 0
+P3: HIT
+
+## P4  count equality (descriptive)
+
+Cells with equal v8/v17 counts: 82 of 84.  Cells that differ: 2
+  DIFF: ('firefox', 'clear-format-removes-every-inline-format', '2 PASS, 1 NE', '1 PASS, 2 NE')
+  DIFF: ('firefox', 'recovery-returns-what-the-product-promised', '2 PASS, 1 NE', '3 PASS')
+Firefox an-inline-format-reaches-a-selection: FAIL rounds v8=3 v17=3 (Chrome v8=0 v17=0)
+
+Firefox clear-format-removes-every-inline-format, per round (observed.allOnWhenTyped bold / italic / underline / strikethrough; everyFormatWasOn):
+
+| arm | round | outcome | allOnWhenTyped | everyFormatWasOn |
+|---|---|---|---|---|
+| v8 | r1 | NOT_ESTABLISHED | False / True / False / False | False |
+| v8 | r2 | PASS | True / True / True / True | True |
+| v8 | r3 | PASS | True / True / True / True | True |
+| v17 | r1 | NOT_ESTABLISHED | True / False / True / False | False |
+| v17 | r2 | NOT_ESTABLISHED | True / True / False / False | False |
+| v17 | r3 | PASS | True / True / True / True | True |
+
+Chrome clear-format, for reference:
+   v8 ['PASS', 'PASS', 'PASS']
+   v17 ['PASS', 'PASS', 'PASS']
+P4: descriptive (no HIT/MISS by this reader); differing cells listed above
+
+## chain.log lines of interest
+
+2026-10-07 23:11:45 +0800 CHAIN START runner_sha256=b52779e498ae33cffea5970ad9a6f8cdf49b03240ef1211905ebc68f975c940c
+2026-10-07 23:11:45 +0800 WAIT other process present: 1424519 /bin/bash -c source /home/jiajun/.claude/shell-snapshots/snapshot-bash-1791361989159-fkbof9.sh 2>/dev/null || tr|
+2026-10-07 23:12:05 +0800 WAIT other process present: 1424519 /bin/bash -c source /home/jiajun/.claude/shell-snapshots/snapshot-bash-1791361989159-fkbof9.sh 2>/dev/null || tr|
+2026-10-07 23:12:26 +0800 WAIT other process present: 
+2026-10-08 00:31:42 +0800 CHAIN DONE runner_sha256=b52779e498ae33cffea5970ad9a6f8cdf49b03240ef1211905ebc68f975c940c
+
+SUMMARY  P1: HIT  P2: HIT  P3: HIT (red cells 0)  P4: descriptive (differing cells 2)
