@@ -711,3 +711,35 @@ profile 依語言標記畫日、韓、簡字形，墨帶上緣可能因此差一
 | 計數比較 | v16 對 `e2-editor-v15-cjk-r5-ab`，每一份可比文件都過 |
 
 T 由空跑決定之後，**以追加段寫進本文件、commit，才跑計數比較**。空跑本身不算數。
+
+## 22. 追加（2026-10-07，merge WASM runner 的 opus 對抗性審核之後、任何計數 M2 之前）
+
+審核對象：`tools/run_merge_wasm_shakedown.py`（`5555e554`）的設計。五個 BLOCKING 都經主 session 對原始碼與資料核對成立（B1 清單手寫且只有兩份文件；
+B2 只判 outcome／stage／keyPosted；B3 目標段落不在時標記檢查反轉——run 2 的 F01 就是 `textIsOriginalPlusMarker: true`、`markerSurvived: false`；
+B4 toast 在 0.5 秒安靜後就讀，C15 的第二句沒讀到；B5 見下）。這一節只寫判準層的處置，runner 照它改；改完之前 runner 只能做不算數的 shakedown。
+
+### 22.1 判準更正（取代 4.3 與 10.2 的對應文字）
+
+| 判準 | 更正 | 理由 |
+| --- | --- | --- |
+| M2-1「`restorePresses` 等於 R0 的」 | **撤回**，改為每一個完成的 `restorePresses` **等於 0**（欄位缺 → 紅） | E 形（16.2）沒有不帶 Shift 的還原鍵；R0 的「2 下」屬於被取代的處方。照字面，九個帶標號的 case 在正確的 v16 上會紅（run 2 的 I02＝0）。等於 0 守的是「舊處方沒有回來」 |
+| M2-2「每一下還原的等待也都 < 1000 ms」 | **撤回** | 引擎不回報逐步等待，E 形也沒有還原下數。延遲照 10.2：runner 自己量送鍵（**緊接在刪除鍵之前**取起點，Y 型的 `x` 不算進去）→ 完成事件，加上 `keyToUndoMs` |
+| M2-1／M2-3 的清單 | 由工具從 `merge-native/r0c/eshape.json` 產生（三輪：boundaries、boundaries-indent、PMPC，共 37 個 case）：`merge`／`typed-merge` → M2-1（31 個）；`nothing-selected`、`refused-k1-*`、`refused-k2-*`、`key-noop` → M2-3（今天 C15 C16 C17 C29 C30）；`barrier`（G01）→ 期望 `verified-selection-delete`（10.2 R0）；**其他任何判讀 → runner 停下**。計數執行不接受 `--cases` | 4.3 的形式本來就是「工具封閉（清單由 R0 產生）」 |
+| PMPC 那一輪 | 照跑。文件只從 `wasm_sdk_probe/build/` 讀；存下來的文件只放在 `build/`；報告與證據裡**只有雜湊與段落序號，沒有段落文字** | 擁有者的文件不進 repo（常設規則） |
+| 每一條各自判（B2） | M2-1：`verified-key-undo`；`keyUndo.comment`＝原生鍵臂 `undoAfter` 最上面那筆的 comment；`restorePresses`＝0；generation 不變；鍵後文件＝原生鍵臂（位元組比較等 M2-0 的化約落地，之前那一條記 NE，段落文字照比）；續打 `Z` 的段落文字＝原生 key-follow；沒有任何 toast。M2-3：stage／keyPosted；generation ＋1；重開後的段落文字＝原文＋標記（標記目標段落必須恰好出現一次，否則停下）；`#s-checkpoint` 的 revision 等於按鍵前的 revision；toast 序列見下一列 | 審核 B2 |
+| toast 的讀取窗（B4） | 以正向事件關窗：generation 已前進，**而且**重開那一句的結尾句（「已重新載入」或世代上限那一句）已出現；逾時（90 秒）該 case 紅。關窗後：`keyPosted:true` 的那一臂沒有任何一句含「沒有被改動」；除了重開流程自己的兩句，沒有別的 toast | 審核 B4 |
+| 比較器紅案（10.2 M2-1） | 照 10.2，第三個改成「把一個預期的 `restorePresses` 竄改成 2 → 紅」 | 隨上面第一列 |
+
+### 22.2 縮限（撤回宣稱，不造機械）
+
+- **§12 的同 session 位元組比較不可實作，撤回**：產品頁面不公開引擎 handle，「不經 session 的引擎存檔」拿不到；若在按鍵前用產品的存檔，重開會讀到
+  權威位元組而不是拒絕當下的檢查點（`narrow-editor-v2-session.js` 的 `_openFresh`），比較就被自己破壞。M2-3 改為：段落文字＝原文＋標記，**且**
+  generation ＋1，**且**檢查點 revision＝按鍵前的 revision。登錄極限：重開前後的非文字損失（樣式、清單、框）M2-3 看不到。
+- **4.3「獨立頁面＋假宿主」→ 獨立頁面、不接宿主**（檔案選取開檔、下載存檔）。假宿主是新機制；宿主的存檔路徑是 R 的事（4.4，`check_m3_production_ui.py`
+  在真宿主上的併段臂）。登錄：M2 對宿主存檔路徑不作任何宣稱。
+- **文字框（18.1 N1）不進 M2-1／M2-3 的清單**，改為登錄的一次性量測（形式三）：`text-frame.odt`（綁 fixture 雜湊與 `r0c-frame` 那一輪）的 F01、F02，
+  預期 `anchor-mismatch`、`keyPosted:false`，重開後標記還在。逼出它的量測：shakedown 第 1、2 次的 F01（Chrome）。從來沒量時的結論：「B 在文字框裡
+  不合併；不作宣稱」。runner 在框內 case 的原生判讀不是 `merge` 時停下（那表示原生那一側變了，這條登錄的前提跟著失效）。
+- **儀器（審核 Q1／S6）**：計數執行在加了觀察器的頁面上跑；只有觀察器看得到的條款（completion、comment、stage、keyPosted、restorePresses）在報告裡標成
+  「在加了儀器的頁面上觀察」。每個瀏覽器做一次**不加觀察器**的配對對照（同順序；比 generation 的轉換、關窗後的 toast 序列、存下來的文件的段落文字），
+  登錄為一次性量測；對照與儀器版不一致時，計數結果不得引用。觀察器只保留最近的回覆（有總數）並且只在內容改變時才寫 DOM。
