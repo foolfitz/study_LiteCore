@@ -101,3 +101,14 @@ Also hashed, not named by Amendment 1: the v18 profile's `probe.js` `46b2f40a…
   - Finding 115 (E02's pagination).
   - The §28.5 limits: monospace requests tagged `bin gn ig ko miq`; "like the control" is not "like v8" on fixed-pitch text; boot time and memory with e10.
 - The product-path net, the merge shakedown and the owner's document ran on candidate pages with `--candidate-profile`, not on a cut-over product. The cutover chain (shell v56, pins, host 0.2.8 with the `cjk-sub-e10` pin, R) is not started and waits for the owner.
+
+## Correction (2026-10-08, after the handoff draft found it): `identity-after-chain.txt` is not the file described above
+
+Supersedes the timestamp and the "also hashed" sentence of "Identity after the chain" above; that text is kept as written.
+
+- I wrote the file at 09:58:10 with a header line and the four named hashes. I then appended the v18 profile's `probe.js`, `probe.wasm` and `sdk-worker.js` hashes.
+- At **09:58:27.5** (the file's mtime) something overwrote it with a date line and the same four hashes, in the format of `identity-during-chain.txt`. That is what was committed.
+- The writer is **not identified**. Inference: a job of the previous session that waited for `CHAIN DONE` and then hashed identity, which is what PREDICTION Amendment 1 asked for. No such process was alive at 11:01; only this session's own MCP and a terminal were found.
+- The committed file still shows the four named files equal to the archive's values, taken 29 s after `CHAIN DONE`, not 12 s. So the Amendment 1 verdict stands.
+- The three extra hashes are not in it. Their evidence is instead `w1-w2/review5-make.txt` (10:05:41, after the make), where `probe.js` `46b2f40a…`, `probe.wasm` `ad3f68bb…` and `sdk-worker.js` `00882139…` equal the archive.
+- Lesson: an evidence file that a waiting job may also write needs one writer. Check `git diff` against what you wrote before citing it.
