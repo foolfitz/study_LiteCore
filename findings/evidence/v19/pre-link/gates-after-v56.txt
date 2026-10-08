@@ -1,0 +1,47 @@
+Runbook RELINK-v19 §0 and §1, re-run by the main session after the v56 freeze
+(commit baea3540, 2026-10-08), right before handing the link to the owner.
+
+make e2-c-assets                      -> cp web/e2-editor-app.js dist/e2-editor-app.js (the only copy)
+make test-e2-c-static                 -> exit 0 (node 155/155 + reachability 5/5, python 108 OK); no anchor re-set
+v56 bundle                            -> b256fe04fe48abb5f8b75793718422fff80a0fbb965cae681f21d65ea4f3a95e
+                                         differs from v55 in exactly narrow-editor-v2-client.js,
+                                         narrow-editor-v2-session.js, web/e2-editor-app.js; exclusions as v55
+
+check_merge_key_undo_scope.py --base 5d77dc84
+{"carriers": ["E2_V15", "E2_V19"], "rules": 25, "objects": 100, "different": 2, "unbuildable": ["FINDING_012_DIAGNOSTIC build/finding-012/diagnostic/probe_engine.o"], "guards": [{"rule": "E2_V15", "variant": "with OXSDK_MAINLOOP_ENGINE", "exit": 1}, {"rule": "E2_V15", "variant": "without OXSDK_FINDING_016_SELECTION_BARRIER", "exit": 1}, {"rule": "E2_V19", "variant": "with OXSDK_MAINLOOP_ENGINE", "exit": 1}, {"rule": "E2_V19", "variant": "without OXSDK_FINDING_016_SELECTION_BARRIER", "exit": 1}]}
+  rc=0
+
+what_the_link_ships.py --since 1990bb64 --variant merge-v15 --shipped-profile dist/profiles/e2-editor-v18
+  rc=0; output identical to what-the-link-ships.txt (ignoring blank lines and its trailing exit=0 line):
+  sdk_api, unoembind_stub, editor_api same; probe_engine = 66e5c0af's hunk; sdk-worker.js same (00882139cd0b2e58)
+
+check_engine_lock_scopes.py
+  probe_engine.cpp: lock scopes checked (gState.mutex 12, gMergeMutex 11), 97 tainted functions
+  rc=0
+
+merge_key_undo_model_test             -> ok
+node --test editor-shell-v2/tests/*.test.mjs -> tests 155, pass 155, fail 0
+python3 -m unittest tests.test_merge_wasm_clauses tests.test_judge_counted_m2 tests.test_profile_identity tests.test_merge_key_undo_scope
+                                      -> Ran 115 tests, OK
+
+core link inputs newer than build/e2/editor-v15/probe.wasm (2026-10-07 10:24:04 +0800): 0
+  (run by the main session; the runbook asks the owner to run it again in their shell right before the link)
+
+make -n dist/profiles/e2-editor-v19/sdk-manifest.json (with the six variables unset): the only build/dist paths
+naming a profile are build/e2/editor-v19/*, dist/profiles/e2-editor-v19/* and the v15 archive's sdk-worker.js
+(read, not written). No v8, v15 or v18 path.
+
+§1, before the link (first 16 hex), equal to the runbook's table:
+  4a2710bba1ef07d9 dist/profiles/e2-editor-v8/probe.wasm
+  c382b834aa768b91 dist/profiles/e2-editor-v8/probe.js
+  070229cd10bda4a0 dist/profiles/e2-editor-v8/sdk-worker.js
+  d70481cb1be5b1f9 dist/profiles/e2-editor-v8/sdk-manifest.json
+  ad3f68bb85f94589 dist/profiles/e2-editor-v15/probe.wasm
+  46b2f40ac24b6a78 dist/profiles/e2-editor-v15/probe.js
+  00882139cd0b2e58 dist/profiles/e2-editor-v15/sdk-worker.js
+  2a98050cfec967ca dist/profiles/e2-editor-v15/sdk-manifest.json
+  ad3f68bb85f94589 dist/profiles/e2-editor-v18/probe.wasm
+  46b2f40ac24b6a78 dist/profiles/e2-editor-v18/probe.js
+  00882139cd0b2e58 dist/profiles/e2-editor-v18/sdk-worker.js
+  456e9a72ab26a3f8 dist/profiles/e2-editor-v18/sdk-manifest.json
+dist/profiles/e2-editor-v19 and build/e2/editor-v19: do not exist.
