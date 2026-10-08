@@ -851,3 +851,14 @@ stamp 守衛在這裡擋不住」）以及 `narrow-editor-v2-session.js` 裡同�
 本節上方 3/3 的 `with` 臂量測**不受影響**：那一輪每個 attempt 只死一次（碰不到第二代），
 而且在押檢查點與受測那一按之間只有打字、沒有走 review 路徑的動作（碰不到 Worker 內那一種）。
 兩個條件缺一，都不足以排除。
+
+## 補記（2026-10-09，只 append）：cutover 之後出貨的引擎帶著 A 半
+
+產品頁面自 `6e9ec27e` 起指 `e2-editor-v19`。A 半（`completePendingEditorActionByReadback`，250 ms 讀回期限）在 `src/probe_engine.cpp`
+裡不在任何 `#ifdef` 之下，v14 起每一顆連結出來的引擎都帶著它，v19 也是；凍結的 v8 沒有。所以**出貨的產品第一次同時有 A 與 C 兩半**。
+
+兩筆量到的實例，都不是本單原本那個方向鍵形狀的重新量測：
+- X5（`evidence/v19/x5-product-path/`）在 v19 上跑過第 42 道檢查 `a-boundary-arrow-press-does-not-cost-the-work`：Chrome 3 PASS、報告寫
+  `theEngineAnsweredThePress: true`；Firefox 3 NE（v8 也是 3 NE，前置條件不成立）。
+- R 的 shakedown 與計數（`evidence/m3-production-ui/v19-shakedown/README.md`）：文件開頭的 Home（`move-line-home`）在 v19 上 8/8＋計數 6/6
+  都完成，每次 0.84–0.98 秒＝C 半的檢查點（有未存修改時）加約 0.26 秒的移動；同一個 Home 在 v8 引擎上 30 秒逾時、`recoverable-error`（1/1）。
