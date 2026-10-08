@@ -36,6 +36,20 @@ Uncertain, said in advance: (i) Q01 press 2 might keep the body's paragraph attr
 - Q02 or Q03 not `nothing-selected`: that end is not a refusal on v19; the refusal arm moves or is dropped, and the R section says which.
 - E02's press 1 not byte-equal to R0c's: the native reference is not stable across sessions; the host comparison stays on paragraph text (it is anyway) and this is recorded.
 
-## Results
+## Results (round `r-host/round-20261008T161021Z/`, 2026-10-08 16:10 UTC, 3 m 9 s; probe `c2aa2a30…` = R0c's; documents under `wasm_sdk_probe/build/merge-native-pmpc/r-host/`)
 
-(appended after the round)
+Readers: `check_merge_eshape.txt` (exit 1 as said above: no refusal class in this list) and `summary.txt` (`summarize.py`, written after the round to print the arms' undo comments, carets and the document comparisons below).
+
+| Prediction | Result |
+|---|---|
+| E02 b: merge, `content.xml` = key arm | **hit**, 3/3 |
+| E02 key press 1: `Delete paragraph`, bytes = R0c's `r1-E02-key.odt` | **hit**, 3/3 (the native reference is stable across sessions) |
+| E02 key press 2: another `Delete paragraph` | **miss** — `Delete “這”`: after the merge the caret sits in the joined paragraph and Delete takes the next character. Not used. |
+| Q01 b: merge decision | **hit**, 3/3; b arm's undo `Apply attributes` |
+| Q01 key press 1: `Apply attributes`, text sequence = original | **hit**, 3/3; caret 1898 → 1418 (the indent went) |
+| Q01 key press 2: `Delete paragraph`, text sequence = E02 press 1 | **hit**, 3/3; and more than predicted: **`content.xml` byte-equal to E02's press 1** (uncertainty (i): the heading's attributes win) |
+| Q02: nothing-selected; key `Number On/Off` or nothing | **hit**, 3/3; key press 1 `Number On/Off`, press 2 `Delete numbering`; text unchanged |
+| Q03: nothing-selected; key does nothing | **hit**, 3/3; undo count 0 after both presses, `content.xml` byte-equal to the original |
+| Carets | E02 (2858, 1658, 521), Q01 (1898, 2377, 348), Q02 (1418, 1658, 521) **hit**; Q03 **(10478, 305449, 276)** — height 276, not 348 (uncertainty (iii)); `placementOk` true in every arm |
+
+None of "what would change the design" happened. For the host arms: K-del's reference is `r1-E02-key.odt` (content `bfd645aa…` as an `.odt`), K-bs's is `r1-Q01-key2.odt`, both with the same paragraph text sequence; the two ends are refusals on v19's E shape, and Writer itself does something at the start (the numbering) and nothing at the end.
