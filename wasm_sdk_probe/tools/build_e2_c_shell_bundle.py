@@ -592,7 +592,14 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # HIT in both browsers on v18 (99475c4b) and spec §34 froze the checks
 # (202313ba).  Still pins `e2-editor-v8`: the v19 link is separate, and its
 # candidate page is built by `build_cutover_page.py`, not by editing this one.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v56.json")
+#
+# v57, 2026-10-08: THE CUTOVER TO `e2-editor-v19`, one file (`web/e2-editor-app.js`).
+# `build_cutover_page.py --profile e2-editor-v19 --write --expect-sha256 e00ab76a…` rewrote exactly two lines of
+# v56's page: `PINNED_WASM_SHA256` 4a2710bb… -> 1aafd4f9…, `workerUrl` e2-editor-v8 -> e2-editor-v19.  The
+# bytes are the candidate page every v19 report measured (e00ab76a…; findings/evidence/v19/RESULT.md: X1-X5 and
+# X7 pass, spec §35/§36).  Frozen in the SAME commit as the cutover (Ruling E-1, as v47 was); the other twelve
+# modules equal v56's.  Approved by the owner 2026-10-08.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v57.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
