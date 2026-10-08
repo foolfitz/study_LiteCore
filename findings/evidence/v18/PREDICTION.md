@@ -50,3 +50,13 @@ Candidate page for v18: `cfc8ba1d54dc4bef52baebc34f9d5f60ffe9cc4af9bee8c7a326bb0
 - A runner error or a missing report stops the chain (`chain.sh` aborts on a missing report). Nothing after it runs.
 
 Note on names: the owner's-document run writes to `v5/shakedown-chrome-v18-v5.json`. The runner keeps that document's saves in `wasm_sdk_probe/build/merge-wasm-private/<stem>.docs` and refuses an existing directory, and v17's run already used the stem `shakedown-chrome-v5`.
+
+## Amendment 1 (2026-10-08 08:0x, after the opus review and before the merge, owner's-document and corpus steps start; the product-path step was in its Firefox rounds)
+
+Forced by `review/opus-review.md` items 1-4. Spec §28.5 carries the W4 change.
+
+- **Stop rule (corrects "What a miss means", last bullet).** `chain.sh` aborts **only** when a product-path report is missing. A merge, owner's-document or corpus step that fails is recorded with its exit code in `chain.log`, and the chain goes on to the next step. Each such part is judged afterwards from its own report, and a missing or unreadable report means that part was not done. `chain.sh` is not edited while it runs.
+- **Which lines are criteria.**
+  - Criteria: Q1-Q3 (Q1 and Q2 are its preconditions), M1-M4, O1-O2, and C1-C3. C1 is read as reader exit 0 and VERDICT PASS (§28.5); a STOP is "not done".
+  - Descriptive: Q4, O3 and C4.
+- **Which pack the runs used.** No W4/W6 report records the CJK pack, and v17, v18 and the control share the wasm. So the dist v18 manifest, the `cjk-sub-e10` data and metadata, and the control's manifest are hashed during the chain (`identity-during-chain.txt`, 08:02) and again after it ends. Both must equal the archive's values (`456e9a72…`, `06976180…`, `4144b2b2…`; control `584ba6b8…`), or the runs are not evidence about v18.
