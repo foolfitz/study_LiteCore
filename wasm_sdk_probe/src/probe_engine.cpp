@@ -547,6 +547,8 @@ struct MergeTicket {
 };
 MergeTicket gMergeTicket;
 constexpr int MergeStepDeadlineMs = 2000;
+// Finding 117: the key stage alone also re-reads .uno:Undo on this period.
+constexpr int MergeKeyPollMs = 15;
 #endif
 constexpr int SelectionBarrierBoundaryDeadlineMs = 250;
 std::uint64_t gNextSelectionBarrierSerial = 1;
@@ -6056,22 +6058,43 @@ void engineLoop(Command initialReady) {
 #ifdef OXSDK_MERGE_KEY_UNDO
         // Option B: each step waits at most MergeStepDeadlineMs for its proof.
         // Same re-check after waking as above: the step may have advanced.
+        //
+        // FINDING 117.  The key stage's proof is a STATE -- the .uno:Undo
+        // payload against P0 -- and nothing promised a callback after it: on
+        // blank paragraphs 102 of 105 presses waited out the whole deadline
+        // and then found the record already there.  So that one stage also
+        // wakes every MergeKeyPollMs and takes the step a callback would have
+        // queued (values[0] = 3, `verifyMergeKey(false)`).  A read cannot land
+        // inside the key: both hold the SolarMutex.  The other three stages
+        // prove themselves by transitions and are not polled; the deadline and
+        // its reading are unchanged.  New order, harmless and named for review:
+        // the completion may now be sent between the key's KEYINPUT and KEYUP.
         if (gSelectionBarrier.stageDeadlineArmed && mergeStageAwaiting()) {
           const auto deadline = gSelectionBarrier.stageDeadline;
           const std::uint64_t serial = gSelectionBarrier.transactionSerial;
+          const bool poll =
+              gSelectionBarrier.stage == SelectionBarrierStage::MergeAwaitingKey;
+          const auto wake =
+              poll ? std::min(deadline,
+                              std::chrono::steady_clock::now() +
+                                  std::chrono::milliseconds(MergeKeyPollMs))
+                   : deadline;
           if (!gState.condition.wait_until(
-                  lock, deadline,
+                  lock, wake,
                   [] { return !gState.commands.empty(); }) &&
               gSelectionBarrier.transactionSerial == serial &&
-              gSelectionBarrier.stageDeadlineArmed && mergeStageAwaiting() &&
-              std::chrono::steady_clock::now() >= deadline) {
-            command = Command{CommandType::EditorSelectionBarrierStep};
-            command.requestId = gSelectionBarrier.requestId;
-            command.documentHandle = gSelectionBarrier.documentHandle;
-            command.correlation = gSelectionBarrier.transactionSerial;
-            command.values[0] = 2;
-            syntheticSelectionDeadline = true;
-            break;
+              gSelectionBarrier.stageDeadlineArmed && mergeStageAwaiting()) {
+            const bool expired = std::chrono::steady_clock::now() >= deadline;
+            if (expired || (poll && gSelectionBarrier.stage ==
+                                        SelectionBarrierStage::MergeAwaitingKey)) {
+              command = Command{CommandType::EditorSelectionBarrierStep};
+              command.requestId = gSelectionBarrier.requestId;
+              command.documentHandle = gSelectionBarrier.documentHandle;
+              command.correlation = gSelectionBarrier.transactionSerial;
+              command.values[0] = expired ? 2 : 3;
+              syntheticSelectionDeadline = true;
+              break;
+            }
           }
           continue;
         }
