@@ -150,7 +150,21 @@ LIMIT_CASE, LIMIT_PRESSES, LIMIT_STEPS = "H03", 105, 100
 LATENCY_BOUND_MS = 1000                 # spec 30.2 M2-2 and 31.2 M2-4: runner and engine, each under it
 # Spec 7 and 30.2: what a counted run is bound to, written here after shell generation v56 is frozen.  None =
 # nothing is bound yet: every report then says "counted": false, whatever its mode.  Keys as in bound_values().
-BINDING: dict | None = None
+# Bound 2026-10-08 to e2-editor-v19 (linked by the owner; archive build/archive/e2-editor-v19-1aafd4f9-worker-00882139/)
+# on shell generation v56 (baea3540).  Computed by bound_values() as main() calls it, with no browser, and checked
+# against independent hashes: sha256sum of the wasm, the worker, the served session, dist/e2-editor.html,
+# web/e2-editor-app.js and r0c/eshape.json; `build_cutover_page.py --profile e2-editor-v19` (no --write) for the
+# page; the v56 manifest's own module hashes for the shell; the v18 runner-shakedown reports for native and eshape.
+# Spec 34.1: from this commit until the X7 verdict is read, this file is not edited.
+BINDING: dict | None = {"wasmSha256": "1aafd4f9da42fd83d9be4c4e9edfbd818e3c7ea17d62fa1cb1bfbd47d1a32819",
+                        "workerSha256": "00882139cd0b2e5898a96b8c7b21a4f8ee1d231ae13da39929e12088e9bb0241",
+                        "sessionSha256": "ee3e53a24fb20a255609c8c684ec597ff21fa938ad55b46fcea4dff04a7cdb65",
+                        "shellSha256": "c28578b7c056b37071a11c5bd0d38c761c4b40d5d1315796a92419ff806a5b35",
+                        "htmlSha256": "f7e477998385c28390aaa6e77f8907ca15b0e0f1003e0d2ee469ed1f785236e0",
+                        "pageSha256": "e00ab76a550dc12fda5dee1849d9cfb73343b9cfab9c8e9436a8bd035a0a4be8",
+                        "pageSourceSha256": "a7d8ffa1adc60a9a02c3eae0ed0ee46db5f8b8fb463b3bbb4d5977ce32c2d647",
+                        "eshapeSha256": "c3f9bbed6f21b43592ce4ad91b0d6e52d003d8e784443bb9a045c743f6d589af",
+                        "nativeSha256": "2940a8410dc0a44d73e69be61749e4e6e5eae772046bf175bbe61664613b522e"}
 MODES = ("shakedown", "counted", "m2-1b", "m2-4", "m2-1-red")
 # R0c's decision -> what v16 must do and which criterion counts it (spec 17,
 # 22.1).  Anything else STOPS the runner: before the review a decision with no

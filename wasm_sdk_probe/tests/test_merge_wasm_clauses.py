@@ -215,10 +215,16 @@ class Schedules(unittest.TestCase):
         with self.assertRaises(SystemExit):
             m.mode_schedule("m2-1b", without)
 
-    def test_nothing_is_bound_before_v56(self):
-        # Spec 7 / 30.1: the binding is written after shell generation v56 is frozen; until then no report may
-        # say "counted": true.  When BINDING is set this test is updated with it, in the same commit.
-        self.assertIsNone(m.BINDING)
+    def test_bound_to_v19_after_v56(self):
+        # Spec 7 / 30.1: the binding is written after shell generation v56 is frozen; until then no report could
+        # say "counted": true.  Was `test_nothing_is_bound_before_v56` (BINDING is None) until the commit that set
+        # BINDING, 2026-10-08.  Not compared with the live tree: the cutover rewrites web/e2-editor-app.js.
+        self.assertIsNotNone(m.BINDING)
+        self.assertEqual(tuple(m.BINDING), m.BOUND_KEYS)
+        for key, value in m.BINDING.items():
+            self.assertRegex(value, r"^[0-9a-f]{64}$", key)
+        self.assertTrue(m.BINDING["wasmSha256"].startswith("1aafd4f9"))        # e2-editor-v19
+        self.assertTrue(m.BINDING["workerSha256"].startswith("00882139"))
 
 
 LIMIT = m.limit_reference() if m.LIMIT_ROUND.is_dir() else None
