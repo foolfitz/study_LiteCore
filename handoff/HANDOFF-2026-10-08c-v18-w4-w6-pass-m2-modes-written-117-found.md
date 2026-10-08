@@ -120,3 +120,26 @@ Labels always name their document, because they collide:
 - Tracked and relevant: `wasm_sdk_probe/test-docs/merge/odt/undo-limit-105.odt` (`09b5ced0…`), `wasm_sdk_probe/sdk/v18-writer-review-manifest.json`, `findings/evidence/v18/m2-shakedown/chain.sh` (the detached-chain template), `findings/evidence/v18/layout-corpus/{judge.py,selftest.sh,selftest-v18.sh,selftest-output.txt}`, `findings/evidence/v18/{merge,v5}/judge.py`.
 - The owner's private document `PMPC指南.odt` is not in the repository and no report carries its text.
 - Nothing known to exist only in `/tmp`. The shakedown's `m2-1b-*.docs` and `m2-4-*.docs` directories (kept documents, synthetic) are committed with `e3321b0a`.
+
+## Addendum, same session, after the handoff was committed: the owner sent 117 to fable; the ruling is in, awaiting the owner's confirmation
+
+- **The owner's stance**, given with the request: the delay is unacceptable; re-running everything is acceptable; but no wasted work. Verification and diagnosis are best batched with more changes.
+- **Fable's ruling** is kept verbatim in `findings/evidence/v18/review/fable-ruling-117.md`; a zh-TW summary is in finding 117's new 「裁決」 section.
+- **The main session spot-checked five of its claims, and all held:**
+  - `INVALIDATE_TILES` is not in `m_states`;
+  - the document shrinks from 51,650 to 17,406 twips;
+  - `tileWasPainted`'s 50 % rule;
+  - no engine-source commit since `f76c470e`;
+  - no clock wait in `postMergeKey`, and `stepPending` is cleared only at `probe_engine.cpp:3745`.
+- **The ruling, in short.** It supersedes this file's Next 1 options A/B/C and its Next 2–4 order:
+  - Diagnose first, without a link. Use a worker-only throwaway profile that forwards every `lok` event with a timestamp, and commit predictions D1–D4 first:
+    - D1: does any callback arrive after the key on a slow press? If id 0 arrives and the press is still slow, a step is lost in our machinery, and that needs a second fix.
+    - D2: why presses 1, 3 and 55 are fast. Predicted: first undo state, then page-count drops.
+    - D3: which press toasts.
+    - D4: the 630 ms typed-merge plateau.
+  - Engine fix, written in parallel: re-read `.uno:Undo` on a 10–20 ms engine timer during `MergeAwaitingKey` only, keeping the 2000 ms deadline.
+  - The toast is a new finding, fixed on the page, not in the link. Inference until D3. The same code ships on v8; verify the fix on v18 with the M2-4 mode before the v56 freeze.
+  - Nothing else rides the v19 link.
+  - Spec §31 (append-only): a per-press latency clause for M2-4, in M2-2's form; `noToast` kept.
+  - Order: diagnosis → §31 → engine fix and page fix → counted-M2 reader → adversarial review → freeze v56 → owner links v19 → `BINDING` → one v19 round, with the merge runs counted directly → host 0.2.8 → R.
+- **Next for the new session:** ask the owner to confirm the ruling (or not), then start at the diagnosis. Nothing from the ruling has been done yet.
