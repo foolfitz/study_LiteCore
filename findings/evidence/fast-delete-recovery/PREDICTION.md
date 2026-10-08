@@ -41,3 +41,9 @@ What differs from the one time it happened: in the 111 run the failing trial was
 | After it | as the table above (recoverable-error, save refused, the notice's reopen loses X) |
 
 If run 2 also finds nothing: registered as seen once (with its conditions and both runs as the attempts), no finding opened.
+
+## Run 2 results (2026-10-09; written after both same-page runs)
+
+- `chrome-same-page-1.json` (probe before the leave-prompt fix): **attempt 41 failed** with the measured code; after it: `recoverable-error`, revision 1, checkpoint 「無」, the save button disabled and no bytes, the notice 「引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來」 with one button 「重新開啟」; pressing it reopened generation 2 at revision 0 and the saved heading held **no X** (data loss, as predicted); `Q` typed without a click after that reopen did **not** land (predicted to work: missed); reopening through the file input, clicking and typing `Q` worked. Attempts 42–43 then hung on the page's own leave prompt (the probe had left an unsaved `Q`); the run was stopped there and the probe fixed to save first.
+- `chrome-same-page-2.json` (fixed probe): **0 failures in 150** (all `overtaken-1` or `ok`).
+- So the frequency prediction for run 2 ("≥ 1 in 120, none in the first 30") hit on run 1 and missed on run 2. Together: 2 natural failures in about 250 same-page attempts (run 1's 41, run 2's 150, the 111 round's 61), 0 in 60 fresh-page attempts. Finding 119 records the consequences; the ruling (`ruling/fable-ruling.md`) sets how its fix is verified.
