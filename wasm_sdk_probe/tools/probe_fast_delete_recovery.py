@@ -31,7 +31,7 @@ is kept and the next attempt starts.  On a failed delete (`上次操作` ends in
      does typing reach the new document.
 
   probe_fast_delete_recovery.py --browser chrome --out REPORT.json
-      [--attempts 60] [--failures 3]
+      [--attempts 60] [--failures 3] [--same-page]
 """
 from __future__ import annotations
 
@@ -141,6 +141,10 @@ def main() -> int:
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--attempts", type=int, default=60)
     ap.add_argument("--failures", type=int, default=3)
+    ap.add_argument("--same-page", action="store_true",
+                    help="boot the page once (and again after each failure) and open every attempt's document "
+                         "through the page's file input, as the 111 run did -- the one failure seen so far came "
+                         "after some sixty opens in one page")
     args = ap.parse_args()
     mirror = Path(tempfile.mkdtemp(prefix="probe-fdr-")) / "root"
     pp.build_mirror(DIST, mirror, {})
@@ -149,6 +153,7 @@ def main() -> int:
               "runner": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16],
               "page": hashlib.sha256((DIST / "e2-editor-app.js").read_bytes()).hexdigest(),
               "documentSha256": hashlib.sha256(DOC.read_bytes()).hexdigest(),
+              "samePage": args.same_page,
               "startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "attempts": []}
     port = pp.free_port()
     server = subprocess.Popen([sys.executable, str(HERE / "web" / "serve.py"), "--port", str(port),
@@ -160,10 +165,14 @@ def main() -> int:
         pp.wait_page(base)
         session = (pp.ChromeSession if args.browser == "chrome" else pp.FirefoxSession)("cold")
         report["version"] = getattr(session, "version", None)
+        booted = False
         for number in range(1, args.attempts + 1):
             out: dict = {"n": number}
             try:
-                boot(session, base)
+                if not (args.same_page and booted):
+                    boot(session, base)
+                    booted = True
+                    out["booted"] = True
                 out["opened"] = open_and_place(session, args.browser, f"probe-owner-{number}.odt")
                 pp.evaluate(session, p111.KEYLOG)
                 p111.burst(session, args.browser, ["X", "Y", "Backspace"], 0)
@@ -175,6 +184,7 @@ def main() -> int:
                 out["failed"] = (seen.get("latency") or "").endswith("失敗")
                 if out["failed"]:
                     failures += 1
+                    booted = False   # a failure poisons the page: the next attempt starts fresh
                     out["toast"] = seen.get("toast")
                     after_failure(session, args.browser, out)
                 else:

@@ -26,3 +26,18 @@ Probe: `wasm_sdk_probe/tools/probe_fast_delete_recovery.py` (this commit), shipp
 ## Results
 
 (appended after the run)
+
+## Run 1 result, and run 2's prediction (written 2026-10-09, before run 2)
+
+**Run 1** (`chrome.json`, fresh page every attempt): **0 failures in 60** (44 overtaken, 16 correct). The frequency prediction ("at least 1 in 60") **missed**. The other rows have nothing to judge.
+
+What differs from the one time it happened: in the 111 run the failing trial was the 61st document opened in one page (five rounds of twelve, every one opened through the page's file input in the same Worker session). Run 1 started every attempt in a fresh page.
+
+**Run 2** (`chrome-same-page.json`, `--same-page`, this commit's probe): the page booted once (and again after a failure), every attempt's document opened through the file input, up to 120 attempts, stop at 3 failures.
+
+| What | Prediction |
+|---|---|
+| Frequency | the failure comes back once the page has opened many documents (≥ 1 in 120), none in the first 30 |
+| After it | as the table above (recoverable-error, save refused, the notice's reopen loses X) |
+
+If run 2 also finds nothing: registered as seen once (with its conditions and both runs as the attempts), no finding opened.
