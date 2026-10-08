@@ -51,18 +51,18 @@ EMPTY = b'<text:p text:style-name="Standard"/>'
 CLICK = "(() => {{ const b = document.querySelector('[data-action=\"{0}\"]'); if (!b || b.disabled) return false; b.click(); return true; }})()"
 
 
-def fixture() -> bytes:
-    """The first KEEP paragraphs of SOURCE, every other part byte-identical, zip entries in order."""
+def fixture(keep: int = KEEP) -> bytes:
+    """The first `keep` paragraphs of SOURCE, every other part byte-identical, zip entries in order."""
     raw = SOURCE.read_bytes()
     if hashlib.sha256(raw).hexdigest()[:16] != SOURCE_SHA:
         raise SystemExit(f"{SOURCE} is not the fixture M2-4 ran")
     zin = zipfile.ZipFile(io.BytesIO(raw))
     content = zin.read("content.xml")
     empties = content.count(EMPTY)
-    if content.count(b"<text:p") != empties + 1 or empties < KEEP:
+    if content.count(b"<text:p") != empties + 1 or empties < keep - 1:
         raise SystemExit("the fixture is not 'S01' followed by empty paragraphs")
     head, tail = content.split(EMPTY, 1)[0], content.rsplit(EMPTY, 1)[1]
-    cut = head + EMPTY * (KEEP - 1) + tail
+    cut = head + EMPTY * (keep - 1) + tail
     out = io.BytesIO()
     with zipfile.ZipFile(out, "w") as zout:
         for info in zin.infolist():
@@ -88,6 +88,8 @@ def main() -> int:
     ap.add_argument("--profile", required=True)
     ap.add_argument("--page", choices=("dist", "cutover"), required=True)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--keep", type=int, default=KEEP,
+                    help="paragraphs kept; 107 = the uncut M2-4 fixture, the positive control for the open path")
     args = ap.parse_args()
     root = HERE / "dist"
     manifest = root / "profiles" / args.profile / "sdk-manifest.json"
@@ -107,16 +109,23 @@ def main() -> int:
     if html.count(anchor) != 1:
         raise SystemExit("the page's module script is not where the instrument expects it")
     instrumented = html.replace(anchor, mw.OBSERVER + anchor)
-    doc = fixture()
+    doc = fixture(args.keep)
     mirror = Path(tempfile.mkdtemp(prefix="shrink-")) / "root"
     pp.build_mirror(root, mirror, {"e2-editor-app.js": page.encode("utf-8"),
-                                   "e2-editor.html": instrumented.encode("utf-8"),
-                                   "shrink-52.odt": doc})
+                                   "e2-editor.html": instrumented.encode("utf-8")})
+    # NOT as an override: `build_mirror` writes an override only where it meets that
+    # path in dist/, so a new file passed there is silently never written.  It was
+    # (2026-10-08, first P1/P2): the fetch got serve.py's 404 page and the engine
+    # opened that HTML -- a 37,325-twip-wide web layout on v8 and v18 alike.
+    target = mirror / "shrink-52.odt"
+    if target.exists() or mirror.is_symlink():
+        raise SystemExit(f"refusing to write {target}")
+    target.write_bytes(doc)
     report = {"finding": 118, "browser": args.browser, "profile": args.profile, "page": args.page,
               "pageSha256": hashlib.sha256(page.encode()).hexdigest(), "wasm": wasm[:16],
               "runner": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16],
               "observerRunner": hashlib.sha256(Path(mw.__file__).read_bytes()).hexdigest()[:16],
-              "fixtureSha256": hashlib.sha256(doc).hexdigest(), "paragraphs": KEEP,
+              "fixtureSha256": hashlib.sha256(doc).hexdigest(), "paragraphs": args.keep,
               "startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z")}
     port = pp.free_port()
     server = subprocess.Popen([sys.executable, str(HERE / "web" / "serve.py"), "--port", str(port),
@@ -133,16 +142,19 @@ def main() -> int:
         report["open"] = mw.open_fixture(session, "./shrink-52.odt", "shrink-52.odt")
         report["opened"], report["openedAtOnePage"] = wait_paint(session, 17406)
         mw.quiet(session)
+        report["sizeOpened"] = mw.obs(session).get("size")
         pp.evaluate(session, pp.CLEAR_TOASTS)
         report["breakClicked"] = pp.evaluate(session, CLICK.format("insert-paragraph-break"))
         report["grown"], report["grewToTwoPages"] = wait_paint(session, 34528)
         report["grownQuiet"] = mw.quiet(session)
         report["grown"] += mw.drain(session)
+        report["sizeGrown"] = mw.obs(session).get("size")
         report["undoClicked"] = pp.evaluate(session, CLICK.format("undo"))
         report["shrunk"], report["shrankToOnePage"] = wait_paint(session, 17406)
         time.sleep(1.0)
         report["shrunkQuiet"] = mw.quiet(session)
         report["shrunk"] += mw.drain(session)
+        report["sizeShrunk"] = mw.obs(session).get("size")
         report["toasts"] = pp.evaluate(session, pp.READ_TOASTS)
     except Exception as error:  # noqa: BLE001 -- recorded, never read as a verdict
         report["error"] = f"{type(error).__name__}: {error}"
