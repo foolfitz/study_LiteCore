@@ -1425,6 +1425,27 @@
         }
       ],
       "checkNote": "The two together ARE the defect: the runner interpolates a namespace and the heap page publishes under a different one. When the item is closed the pair must be rewritten to state what the fix made true, with the reason."
+    },
+    {
+      "id": "queue-f119-barrier-callback-late-after-insert",
+      "title": "A delete right after typed text on a large document can meet the selection barrier's 250 ms negative deadline before its unit-selection callback is flushed -- the shell now banks and reopens (finding 119), the engine cause is OPEN",
+      "expectation": "absent",
+      "blocksRelink": false,
+      "source": "measured 2026-10-09: 2 natural failures in about 250 same-page attempts on the owner's document, Chrome (findings/evidence/fast-delete-recovery/); ruling D (fable, on the owner's authority): shell now, engine registered (findings/evidence/fast-delete-recovery/ruling/fable-ruling.md)",
+      "note": "The engine turns a unit selection that is readable at the negative deadline but whose LOK_CALLBACK_TEXT_SELECTION was not flushed into EDITOR_STATE_UNAVAILABLE (src/probe_engine.cpp rejectSelectionBarrierAtDeadline). The shell (SPEC-M3-production-ui §14.1) banks the content and reopens, so no work is lost, but the delete fails and the page reloads the engine (about 2.5-3.5 s, the caret back at the start). Before choosing a fix, MEASURE with engine-side timestamps the interval between the barrier posting its unit selection and that callback, across same-page attempts, and tell callback-flush latency (finding 040's family) from accumulated per-document work in a long-lived Worker; then choose between arming the barrier only after the last insert's callbacks and re-arming on a readable-but-unannounced selection. Not blocking a relink: a relink is when it can ship.",
+      "checks": [
+        {
+          "kind": "contains",
+          "file": "src/probe_engine.cpp",
+          "text": "selection text became visible without its required typed callback"
+        },
+        {
+          "kind": "contains",
+          "file": "editor-shell-v2/narrow-editor-v2-session.js",
+          "text": "if (stateUnavailableOnDelete(action, error)) {"
+        }
+      ],
+      "checkNote": "The pair is the state today: the engine still reports a late unit-selection callback as this error, and the shell still turns it into a banked reopen. When the engine is fixed the first check stops holding (or the shell branch goes); flip the expectation and rewrite the checks to state what the fix made true, with the reason."
     }
   ],
   "blocksRelinkSemantics": "An item with blocksRelink true must be AS-DECLARED **and**, if it is declared absent, it is still outstanding work -- so P1 is not complete while it is open. Two items are deliberately false: the WASM heap field was withdrawn after measurement (2026-08-16), and the search-after-reopen wedge is an observation the product does not take today. Without this field the checker would report 'P1 complete' whenever every finished item was finished, which is the exact shape of a check that agrees with whatever it is shown.",
