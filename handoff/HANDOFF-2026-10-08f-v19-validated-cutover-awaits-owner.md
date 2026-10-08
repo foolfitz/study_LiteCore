@@ -57,3 +57,26 @@ Rules a-cc of the earlier handoffs stand. New:
 - **Both reds were the dice, and both were in the checks.** The product passed every claimed clause. Each fix was reader-side and had a committed honest-run witness, and the runner never moved, so neither needed a re-run.
 - **The ruling's own recommendation needed a red case too.** fable's recommended census window was wrong in the same way the census was meant to guard against. The tool's red case, not a re-read, caught it.
 - **Counting first was cheap.** The census (41 reports per browser) turned "this looks like noise" into 2/18 against 2/23, and the ruling rests on those numbers, not on the impression.
+
+## Addendum (2026-10-08 ~23:55, after this file): the owner approved the cutover; it and host 0.2.8 are done; R is next
+
+The owner answered "A" (approve the cutover). Done since, in order:
+
+| Where | Commit | What |
+|---|---|---|
+| study_LiteCore | `6e9ec27e` | **Cutover.** `build_cutover_page.py --profile e2-editor-v19 --write --expect-sha256 e00ab76a…` changed exactly two lines (`PINNED_WASM_SHA256` 4a2710bb → 1aafd4f9, `workerUrl` v8 → v19); `make e2-c-assets`. **Shell generation v57** (`1aed21b1…`) frozen in the same commit (Ruling E-1, as v47); it differs from v56 only in the entrypoint, and its digest equals the `servedShell` hash all six v19 X5 reports recorded. The relink-queue item `queue-v11-cutover-soak-not-started` drifted on the cutover, as its checkNote says it should. It guards the **a11y** cutover, and v19 is on v8's line (no `documentOutline`; v15's Makefile block: "the v14 a11y line has no B"), so the expectation stays `absent` and the incumbent anchor moved to `profiles/e2-editor-v19/sdk-worker.js` (CORRECTION paragraph in its note). `make test-e2-c-static` exit 0, unittest 119 OK, E1-C intact. |
+| litecore (`~/Projects/Nextcloud_Apps/litecore`) | `4140e00` | **Host 0.2.8** = version bump only. `engine/` was re-packaged by `tools/package_m3_engine.py` from `dist/`: buildId `63656ee4aa7e4059`, profile e2-editor-v19, page `e00ab76a…`, packs `base-r5-no35` + `cjk-sub-e10` (fallback declared, not loaded); 22 files, 60.8 MB gzip / 42.1 MB zstd, and the wasm is 40.88 MB gzip, under the 45 MB cap. `ddev occ upgrade` → litecore 0.2.8 on the dev instance. The 0.2.7 engine (`fabdb50ecd038802`, built from the v8 page that `dist/` no longer has) is kept in `wasm_sdk_probe/build/archive/host-0.2.7-engine-fabdb50ecd038802/`. |
+
+**State now:** the dev instance serves v19 on host 0.2.8, but **0.2.8 is not counted**: every existing M3 verdict binds 0.2.7 (merge spec §4.4, "從來沒做時"). The six M3 runners' pins are stale on purpose (page `e97d6e03…`, buildId `fabdb50e…`, host 0.2.7), so they refuse to count until they are re-pinned.
+
+### Next: R (merge spec §4.4; production-ui spec §4's R row and §11's binding pattern)
+
+1. **Design first, written before any counted run.** Append a section to `specs/SPEC-M3-production-ui.md` that re-binds A1-2:
+   - B-del and B-bs (heading end, paragraph start on the owner's document) **are no longer refusals on v19**. They become host merge arms: `verified-key-undo`, no reopen (generation stays 1), marker on the server, and the server's reduced `content.xml` = the native key arm (merge spec line ~302, the review's "R" row).
+   - 109's refusal arm moves to **Backspace at document start** (C29 type, refused at about 250 ms).
+   - A Delete refusal arm on the owner's document must be **measured natively first**: document end, or a protected TOC entry (the latter needs TSV to carry a positioning character). Choose only after the measurement; if the choice is not obvious, take it to the owner.
+   - The A1-2 red case (pre-fix page) and A1-5 (B-3x, the third refusal) have to be re-read against v19: B-3x needs three refusals, and the boundary keys it used now merge.
+2. Implement the runner change (main session; a semantic change, ≲150 lines). Make each new arm red once.
+3. **Re-pin** as `533578d7` did: page `e00ab76a…`, session `ee3e53a2…`, host 0.2.8 `4140e00`, buildId `63656ee4aa7e4059`, shell v57 `1aed21b1…`, document `7b336879…`, the new `check_m3_production_ui.py` sha256. `check_m3_assets.py` also hard-codes `cjk-r5.b76b0433203017ca.data` in its Z2-2 and "Z2 D" red cases (lines ~1015-1021) and `profiles/e2-editor-v8/…` at lines ~317 and ~905; move them to `cjk-sub-e10.06976180177c8bd2.data` / `e2-editor-v19`, and re-read the file before editing.
+4. The counted chain: the six M3 runners on both browsers, plus their red cases (0.2.7's took about 3.5 h, 01:35-05:01 UTC). Ask the owner to leave the other ddev projects alone during it (the shared router 404s; see the ddev memory).
+5. The product-path net per M2-5: X5 (§36) measured v8 vs v19 on this exact page. Decide in the R section whether that counts or a run against the served host is needed.
