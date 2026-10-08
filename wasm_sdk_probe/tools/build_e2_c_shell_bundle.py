@@ -567,7 +567,32 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # shakedowns and two reviews forced changes; frozen once B3x, Bdel and Bbs were
 # clean in both browsers on host 0.2.7 (shake4, 68f68b1b).  Still pins
 # `e2-editor-v8`; no engine change, no link.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v55.json")
+#
+# v56, 2026-10-08: paragraph merge B (specs/SPEC-M3-paragraph-merge.md), three
+# files.
+#
+#   * `editor-shell-v2/narrow-editor-v2-client.js` -- the two delete actions
+#     also accept `verified-key-undo` with a structural `keyUndo` check (M1-3,
+#     106eaf1a); nothing depends on Writer's undo comment string.
+#   * `editor-shell-v2/narrow-editor-v2-session.js` -- comment only (106eaf1a):
+#     a boundary refusal raised after the key was pressed
+#     (`mergeKey.keyPosted`) keeps every typed change; only the key's own
+#     effect is uncertain.
+#   * `web/e2-editor-app.js` -- the refusal wording follows `mergeKey`: only
+#     stages known to come before the key say "the document was not changed"
+#     (M1-5, 525dcffe, 9919d06a, f76c470e); a repaint the page's own dispose
+#     refused (ENGINE_DISPOSED) is not reported, and at most one BUSY retry
+#     loop is in flight (c50c7789); `documentSizeChanged` is handled before the
+#     paint check (finding 118, 840794af).
+#
+# NOT frozen in the same commit as the change (finding 091's rule): the page
+# changed in 525dcffe, 9919d06a, f76c470e, c50c7789 and 840794af as the
+# round's reviews and the 117/118 diagnosis forced changes; frozen once the
+# pre-link review was dispositioned (3af89eb5), the reviewed runner was all
+# HIT in both browsers on v18 (99475c4b) and spec §34 froze the checks
+# (202313ba).  Still pins `e2-editor-v8`: the v19 link is separate, and its
+# candidate page is built by `build_cutover_page.py`, not by editing this one.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v56.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`
