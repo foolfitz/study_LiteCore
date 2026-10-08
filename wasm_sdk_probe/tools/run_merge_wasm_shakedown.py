@@ -60,6 +60,14 @@ into a hidden DOM node what it saw -- responses carrying `keyUndo`,
 `mergeKey` or `completion`, the last `editor-state` caret, the document size.
 DOM, not a page global: Firefox evaluates in a Marionette sandbox.
 
+Since 2026-10-08 (finding 117) the instrumented observer also keeps a drained
+log on the page's clock: every paint's request rectangle and reply (with the
+page's own painted-fraction test), every toast with its time, and, only when the
+profile is `e2-editor-v18-trace117` (`build_merge_trace_profile.py`), every
+engine event the worker saw.  `run_limit` attaches each press's window
+(`presses[n].trace`, from its key to the next press's quiet point); `run_case`
+attaches the key's window (`keyTrace`).  The control records none of it.
+
   run_merge_wasm_shakedown.py --browser chrome --out REPORT.json
       [--candidate-profile e2-editor-v16] [--cases C01,C02,...] [--rounds 1]
 """
@@ -181,9 +189,48 @@ OBSERVER = r"""<script>
   let queued = false;
   const flush = () => { queued = false; node.textContent = JSON.stringify(obs); };
   const later = () => { if (!queued) { queued = true; setTimeout(flush, 0); } };
-  document.addEventListener("DOMContentLoaded", () => { document.head.appendChild(node); flush(); });
+  // Finding 117 (2026-10-08): a DRAINED log, on this page's clock -- the trace
+  // profile's engine events (none from any other worker), every paint's request
+  // and reply, every toast with its time.  The runner reads #merge-trace and
+  // acknowledges with data-cut; an acknowledged entry is dropped at the next
+  // flush, so a 105-press run never re-serialises what it has already read.
+  const trace = { seq: 0, entries: [] };
+  const tnode = document.createElement("script");
+  tnode.type = "application/json"; tnode.id = "merge-trace";
+  let tqueued = false;
+  const tflush = () => {
+    tqueued = false;
+    const cut = Number(tnode.dataset.cut ?? -1);
+    trace.entries = trace.entries.filter((e) => e.s > cut);
+    tnode.textContent = JSON.stringify(trace.entries);
+  };
+  const log = (entry) => {
+    if (!RECORD) return;
+    entry.s = trace.seq++; entry.t = performance.now();
+    trace.entries.push(entry);
+    if (!tqueued) { tqueued = true; setTimeout(tflush, 0); }
+  };
+  document.addEventListener("DOMContentLoaded", () => {
+    document.head.appendChild(node); flush();
+    if (!RECORD) return;
+    document.head.appendChild(tnode); tflush();
+    const toastNode = document.querySelector("#toast");
+    if (toastNode) new MutationObserver((records) => {
+      for (const record of records) {
+        for (const added of record.addedNodes) if (added.textContent) log({ k: "t", text: added.textContent });
+        if (record.type === "characterData" && record.target.data) log({ k: "t", text: record.target.data });
+      }
+    }).observe(toastNode, { childList: true, characterData: true, subtree: true });
+  });
   function seen(data, generation, requests) {
     if (!data || typeof data !== "object") return;
+    if (data.kind === "event" && data.event === "merge-trace") {
+      log({ k: "e", tw: typeof data.tw === "number" ? data.tw - performance.timeOrigin : null,
+            type: data.type ?? null, id: data.id ?? null, rq: data.requestId ?? null,
+            completion: data.completion ?? null, code: data.code ?? null,
+            keyToUndoMs: data.keyToUndoMs ?? null, len: data.len ?? null, head: data.head ?? null });
+      return;
+    }
     if (data.kind === "event" && data.event === "editor-state" && data.caret) {
       obs.caret = { generation, t: performance.now(), caret: data.caret,
                     sourceSequence: data.sourceSequence ?? null };
@@ -206,6 +253,21 @@ OBSERVER = r"""<script>
       }
     }
     if (!RECORD) return;
+    if (request.operation === "paint") {
+      // The page's own test (`tileWasPainted`, e2-editor-app.js): alpha > 128 at
+      // about 512 sampled points; it fails below one half.
+      let painted = null;
+      if (data.ok && value && value.pixels) {
+        const px = new Uint8Array(value.pixels);
+        const step = Math.max(4, Math.floor(px.length / 4 / 512) * 4);
+        let sampled = 0, opaque = 0;
+        for (let i = 3; i < px.length; i += step) { sampled += 1; if (px[i] > 128) opaque += 1; }
+        painted = sampled ? Math.round((opaque / sampled) * 1000) / 1000 : 0;
+      }
+      log({ k: "p", ok: data.ok, y: request.y ?? null, h: request.h ?? null, rows: request.rows ?? null,
+            docH: value?.documentHeightTwips ?? null, changed: value?.documentSizeChanged ?? null,
+            painted, code: data.ok ? null : (value?.code ?? null) });
+    }
     const editor = /^editorAction/.test(request.operation || "");
     const marked = value && typeof value === "object"
       && (value.keyUndo || value.mergeKey || value.completion);
@@ -231,7 +293,10 @@ OBSERVER = r"""<script>
         worker.postMessage = (message, transfer) => {
           if (message && message.kind === "request")
             requests.set(message.requestId, { operation: message.operation,
-                                              action: message.payload?.action });
+                                              action: message.payload?.action,
+                                              y: message.payload?.yTwips,
+                                              h: message.payload?.heightTwips,
+                                              rows: message.payload?.canvasHeightPx });
           return post(message, transfer);
         };
       }
@@ -249,6 +314,9 @@ OBSERVER = r"""<script>
 </script>
 """
 READ_OBS = "(() => { const n = document.getElementById('merge-observer'); return n ? n.textContent : null; })()"
+READ_TRACE = "(() => { const n = document.getElementById('merge-trace'); return n ? n.textContent : null; })()"
+CUT_TRACE = "(() => {{ const n = document.getElementById('merge-trace'); if (n) n.dataset.cut = '{0}'; return true; }})()"
+TRACE = {"last": -1}
 NOW = "(() => performance.now())()"
 GEN = "(() => document.querySelector('#s-generation').textContent)()"
 
@@ -283,6 +351,26 @@ def press(session, browser: str, key: str) -> None:
 def obs(session) -> dict:
     raw = pp.evaluate(session, READ_OBS)
     return json.loads(raw) if raw else {}
+
+
+def drain(session) -> list:
+    """Finding 117: the observer's log since the last drain, acknowledged so the page drops it.
+    Sequence numbers, not the node: an entry logged after the page's last flush is read next time."""
+    raw = pp.evaluate(session, READ_TRACE)
+    entries = [e for e in (json.loads(raw) if raw else []) if e.get("s", -1) > TRACE["last"]]
+    if entries:
+        TRACE["last"] = max(e["s"] for e in entries)
+        pp.evaluate(session, CUT_TRACE.format(TRACE["last"]))
+    return entries
+
+
+def census(entries: list) -> dict:
+    """A window kept as counts only (opening, placement): what kinds, not when."""
+    counts: dict[str, int] = {}
+    for e in entries:
+        key = f"lok:{e.get('id')}" if e.get("type") == "lok" else (e.get("type") or e.get("k"))
+        counts[key] = counts.get(key, 0) + 1
+    return dict(sorted(counts.items()))
 
 
 def state(session) -> dict:
@@ -683,6 +771,7 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
         out["pass"] = False
         return out
     out["beforeKey"] = quiet(session)
+    out["traceBeforeKey"] = census(drain(session))      # finding 117: opening and placement, counts only
     gen_before = pp.evaluate(session, GEN)
     responses_before = obs(session).get("responsesSeen") or 0
     pp.evaluate(session, pp.CLEAR_TOASTS)
@@ -708,6 +797,7 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
     if refusal or out["outcome"] == "refused":
         out["toastWindow"] = toast_window(session, gen_before)
         out["afterKey"] = quiet(session, 90)
+        out["keyTrace"] = drain(session)
         out["generation"] = [gen_before, pp.evaluate(session, GEN)]
         raw = save(session, f"{case}-r{round_no}-reopened", private)
         original = odt_parts(spec["original"].read_bytes())["paragraphs"]
@@ -728,6 +818,7 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
     else:
         time.sleep(0.5)
         out["afterKey"] = quiet(session, 90)
+        out["keyTrace"] = drain(session)
         out["generation"] = [gen_before, pp.evaluate(session, GEN)]
         out["toasts"] = pp.evaluate(session, pp.READ_TOASTS)
         raw = save(session, f"{case}-r{round_no}-after-key", private)
@@ -826,6 +917,13 @@ def run_limit(session, browser: str, url: str, ref: dict, control: bool = False)
     presses = []
     for n in range(1, LIMIT_PRESSES + 1):
         settled = quiet(session)
+        # Finding 117: press n-1's window runs from its key to this quiet point (its
+        # repaint and any toast included); before press 1 only the counts are kept.
+        window = drain(session)
+        if presses:
+            presses[-1]["trace"] = window
+        else:
+            out["traceBeforeFirst"] = census(window)
         before = obs(session).get("responsesSeen") or 0
         t0 = pp.evaluate(session, NOW)
         press(session, browser, "Delete")
@@ -848,6 +946,8 @@ def run_limit(session, browser: str, url: str, ref: dict, control: bool = False)
     out["presses"] = presses
     time.sleep(0.5)
     out["afterKeys"] = quiet(session, 90)
+    if presses:
+        presses[-1]["trace"] = drain(session)
     out["generation"] = [gen_before, pp.evaluate(session, GEN)]
     out["toasts"] = pp.evaluate(session, pp.READ_TOASTS)
     out["afterKeyDocument"] = compare(save(session, f"{LIMIT_CASE}-r1-after-key", False), ref["final"], False)
