@@ -484,3 +484,45 @@ Z2-2 與 Z2 D′ 的 CJK 包改成 `cjk-sub-e10.06976180177c8bd2.data`）——�
 B-ctl／S／P 6/6、A1-5 4/4，合併突變 40/40；六支 M3 runner 全過（PAGE HONEST、LOCKS LAND 一輪就過、VERSIONS CORRECT、ASSETS DELIVERED、
 HOST_ENTRY LANDS、SAME-SECOND SAVES KEPT），各自的紅案全紅；產品路徑網由 X5 滿足（13.4，跑之前就決定）；`make test-e2-c-static` 結束碼 0。
 §13.6 的預測除了紅一次的 R-bs 正向對照（13.7）之外全中。
+
+## 14. finding 119 與 111 的修法（2026-10-09，任何實作與執行之前；fable 依擁有者授權裁決）
+
+只追加。裁決原文：`findings/evidence/fast-delete-recovery/ruling/fable-ruling.md`（119＝D：先殼層、引擎根因登錄；111＝同一次發佈出修法）。
+逼出它的量測：119 的兩次重現（`findings/evidence/fast-delete-recovery/chrome-same-page-1.json` 第 41 次、`findings/evidence/111/browser/owner-chrome.json`
+第 6 輪）與 111 的瀏覽器量測（`findings/evidence/111/PREDICTION.md`）。
+
+### 14.1 修法
+
+- **119（殼層＋頁面）**：`NarrowEditorV2Session.action()` 對 `delete-backward`／`delete-forward` 收到 `EDITOR_STATE_UNAVAILABLE`、而且沒有 `formatBarrier` 細節時：
+  比照 109 先存檢查點（`_checkpointBeforeBoundaryRestart`，失敗記進 `checkpointError`），自己把佇列擋成 `restart-required`，把 `error.recovery` 設成
+  `restart` 再丟出。頁面的 `run()` 把這個情形也送進既有的 `reopenAfterBoundaryRefusal`（世代上限、`restartKeepsContent`、焦點都照舊），句首寫
+  「這一下刪除沒有完成」，結尾一律用「這一鍵可能生效了，也可能沒有」那一句——**不宣稱「文件沒有被改動」**（引擎有一個出口理論上在送出之後）。
+  另：`onNoticeAction` 的回復完成後把焦點還給輸入槽。範圍**不看**錯誤訊息文字。
+- **111（殼層）**：非打字的操作在轉接器還有沒交出去的字時（公開的 `input.state.queueDepth > 0`），以 `input.state.requestCount` 為屏障暫緩；`commitText`
+  的覆寫在排第 k 個字之前放行屏障小於 k 的、之後放行等於 k 的；轉接器 `idle()` 收尾被取消的字。**世代守衛**：暫緩時記下 session 的世代，放行時世代已變就以
+  `STALE_EDITOR_GENERATION` 拒絕、不執行。
+- 不動：`editor-shell/editor-session.js`、`input/input-adapter.js`（E1-C）、引擎；不連結。兩個修法分兩個 commit。
+
+### 14.2 判準
+
+| 判準 | 內容 | 形式 | 從來沒做時的結論 |
+| --- | --- | --- | --- |
+| **F119-U** | 單元：U1 有未存修改、假引擎讓 `delete-backward` 以 `EDITOR_STATE_UNAVAILABLE`（無細節）拒絕 → 存了引擎當下內容的檢查點、狀態 `restart-required`、`restartKeepsContent()` 真、`error.recovery === "restart"`、輸入被擋、`restart()` 打開檢查點位元組；U2 乾淨文件 → 不存檔、`restart-required`、`restartKeepsContent()` 真；U3 檢查點存不出來 → `checkpointError`、`restartKeepsContent()` 假、呼叫端拿到引擎的錯誤；U4 對照：同代碼在非刪除動作上照舊（rollback／`recoverable-error`）；U5 `delete-forward`；U6 頁面：這個錯誤走到自動重開、句首不含「沒有被改動」、`onNoticeAction` 回復後聚焦輸入槽。紅案各紅一次：拿掉檢查點（U1）、擋成 `recoverable-error`（U1）、拿掉動作範圍（U4）、拿掉聚焦（U6） | 逐實例（單元） | 119 不得宣稱已修 |
+| **F111-U** | 單元：原型五條＋U7 暫緩的操作跨過一次擋住＋重開會被拒絕、不在新世代執行（守衛之前紅）＋U8「X 送出中、Y 在轉接器、存檔」的順序是 X、Y、存檔。既有 155 條全過 | 逐實例（單元） | 111 不得宣稱已修 |
+| **F119-B** | 瀏覽器（候選 `dist/`、Chrome）：`probe_fast_delete_recovery.py --same-page` 改成讀自動重開（不按通知）：失敗的刪除之後 10 秒內 `ready`、世代＋1、工具列可用、`#notice` 隱藏；存檔 → 標題段含 X（與 Y）；不點擊打 `Q` → 修訂前進。預算 400 次、自然出現 3 次就停。**判定規則（現在寫死）**：自然出現 ≥2 次而且每次都綠 → 瀏覽器那一半成立；0–1 次 → 自然路徑登錄為「沒有實例可量」（附次數），瀏覽器那一半改由**注入臂**負責：探針讓 `editor.action` 以那個錯誤拒絕（真引擎、擁有者文件），每個瀏覽器 3/3、同樣的觀測。注入臂兩種結果都要跑（它是決定性的正向對照）。讀法的紅案：既有的 `chrome-same-page-1.json` 第 41 次（holdsX 假、Q 0→0）必須讀成 FAIL | 逐實例＋先紅一次 | 同 F119-U |
+| **F111-B** | 瀏覽器（候選 `dist/`）：`probe_111_overtake.py --document boundaries` 與 `--document owner`，間隔 0、10，Backspace 與 Enter 各 10 次，兩個瀏覽器：0 插隊、0 `other`、0 `no-save`。讀法的紅案：既有的 `browser/firefox.json` 與 `owner-firefox.json`（0 ms 9–10/10 插隊）必須讀成 FAIL | 逐實例＋先紅一次 | 同 F111-U |
+| **R′** | 發佈順序照裁決：兩個 commit → `make test-e2-c-static`、E1-C 完好 → `make e2-c-assets`（確認 cutover 的兩個 pin 沒動）→ 兩支瀏覽器探針 → **最後**凍殼層 v58（絕不覆寫 v57）→ 宿主 0.2.9 → 依 §13.5 的形狀改綁（只動 pin 行）→ 七支 runner 各自紅案、計數鏈、產品路徑網（M2-5，新頁面）、`make test-e2-c-static` | 既有協定 | 0.2.9 不得稱為已計數；119、111 維持未修 |
+
+### 14.3 預測（寫在執行之前）
+
+- 單元：F119-U、F111-U 全過；四個紅案與 U7 在修法前紅。
+- F111-B：兩份文件、兩個瀏覽器、兩個間隔都 0 插隊；Backspace 結果「…X」、Enter 結果「…XY」＋空段。
+- F119-B：同頁 400 次內自然出現 2–3 次（目前約 180 次 2 次；111 的修法讓刪除排在 Y 之後，頻率**不預測**），每次都在 10 秒內自動重開、X 與 Y 都在、Q 打得進去；
+  注入臂兩個瀏覽器 3/3。
+- R′：與 §13 相同的結果；產品路徑網逐格同 v8（§23 規則）。
+
+### 14.4 登錄（不在本輪）
+
+- **C（引擎根因）**：先量（引擎端時間戳）barrier 送出單位選取到 `LOK_CALLBACK_TEXT_SELECTION` 之間的時間，區辨 callback flush 的延遲（040 的家族）與長壽 Worker 的
+  累積負擔，再在「插入的 callback 到齊才 arm」與「選取可讀但沒公告時重新 arm」之間選。
+- 具名極限：每次自動重開用掉一個 Worker 世代（B1 上限，第三次起走救援）；暫緩的操作在轉接器佇列非空的那幾毫秒不算進 `pending`。
