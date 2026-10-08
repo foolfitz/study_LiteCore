@@ -1,0 +1,70 @@
+since 1990bb64: 3 unit(s) preprocess identically, 1 changed
+  same     sdk_api
+  same     unoembind_stub
+  same     editor_api
+  CHANGED  probe_engine
+      --- probe_engine@1990bb64
+      +++ probe_engine@tree
+      +
+constexpr int MergeKeyPollMs = 15
+      -
+          if (!gState.condition.wait_until(
+                  lock, deadline,
+                  [] { return !gState.commands.empty()
+      - }) &&
+              gSelectionBarrier.transactionSerial == serial &&
+              gSelectionBarrier.stageDeadlineArmed && mergeStageAwaiting() &&
+ 
+      -
+            command.requestId = gSelectionBarrier.requestId
+      -
+            command.documentHandle = gSelectionBarrier.documentHandle
+      -
+            command.correlation = gSelectionBarrier.transactionSerial
+      -
+            command.values[0] = 2
+      -
+            syntheticSelectionDeadline = true
+      -
+            break
+      -
+          }
+          continue
+      +
+          const bool poll =
+              gSelectionBarrier.stage == SelectionBarrierStage::MergeAwaitingKey
+      +
+          const auto wake =
+              poll ? std::min(deadline,
+                              std::chrono::steady_clock::now() +
+               
+      +
+          if (!gState.condition.wait_until(
+                  lock, wake,
+                  [] { return !gState.commands.empty()
+      + }) &&
+              gSelectionBarrier.transactionSerial == serial &&
+              gSelectionBarrier.stageDeadlineArmed && mergeStageAwaiting()) {
+ 
+      +
+            if (expired || (poll && gSelectionBarrier.stage ==
+                                        SelectionBarrierStage::MergeAwaitingKey)) {
+ 
+      +
+              command.requestId = gSelectionBarrier.requestId
+      +
+              command.documentHandle = gSelectionBarrier.documentHandle
+      +
+              command.correlation = gSelectionBarrier.transactionSerial
+      +
+              command.values[0] = expired ? 2 : 3
+      +
+              syntheticSelectionDeadline = true
+      +
+              break
+      +
+            }
+          }
+          continue
+  same     sdk-worker.js (00882139cd0b2e58)
+exit=0

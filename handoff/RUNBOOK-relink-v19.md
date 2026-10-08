@@ -13,13 +13,15 @@ Written 2026-10-08, before the adversarial review and before shell generation v5
 
 From `wasm_sdk_probe/`. State at the commit that adds this file: all green **except the two marked open**.
 
-- `python3 tools/check_merge_key_undo_scope.py --base 5d77dc84` — M1-1 (extended, §32.4): exit 0, 25 rules, 100 objects, only `E2_V15`'s and `E2_V19`'s `probe_engine.o` differ from BASE. Red cases recorded in `findings/evidence/v19/pre-link/m1-1/`.
+- `python3 tools/check_merge_key_undo_scope.py --base 5d77dc84` — M1-1 (extended, §32.4; per object since the review, §33): exit 0, 25 rules, 100 objects, only `E2_V15`'s and `E2_V19`'s `probe_engine.o` differ from BASE and every other object of the two carriers is the same. Red cases in `findings/evidence/v19/pre-link/m1-1-after-review/` (the first run, before the per-object rule, in `m1-1/`).
+- `python3 tools/what_the_link_ships.py --since 1990bb64 --variant merge-v15 --shipped-profile dist/profiles/e2-editor-v18` — what the link compiles differently from v15's source (1990bb64 = the last commit before v15's link, 2026-10-07 07:16; `src/` has changed since only in `66e5c0af`): `sdk_api`, `unoembind_stub`, `editor_api` identical; `probe_engine` changed by exactly `66e5c0af`'s hunk; `sdk-worker.js` the same as v18's (`00882139…`). Measured 2026-10-08 (`findings/evidence/v19/pre-link/what-the-link-ships.txt`); any other changed unit stops the link.
 - `python3 tools/check_engine_lock_scopes.py` — exit 0, `gState.mutex` 12, `gMergeMutex` 11 (the poll adds no scope).
 - `c++ -std=c++17 -O2 -Isrc -o build/merge_key_undo_model_test tests/merge_key_undo_model_test.cpp && build/merge_key_undo_model_test` — ends `ok`.
 - `node --test editor-shell-v2/tests/*.test.mjs` — 155 pass (the glob form; `node --test editor-shell-v2/tests/` does not find them).
-- `python3 -m unittest tests.test_merge_wasm_clauses tests.test_judge_counted_m2 tests.test_profile_identity` — the runner's clauses, the counted reader, X1's checker.
-- **Open: the adversarial review** (§31.3 step 3; handoff 10-08d Next 4). Its BLOCKING items are dispositioned before the link.
-- **Open: shell generation v56 frozen and `make` dist** (§31.3 step 4). Until then `make test-e2-c-static` is red on `test_the_real_manifest_matches_the_real_tree` (`web/e2-editor-app.js`, the v55 bundle's entrypoint, changed in `840794af`); after the freeze it must exit 0.
+- `L=../wasm-lite/build-headless-probe; find $L/instdir/program $L/workdir/LinkTarget $L/workdir/CustomTarget/static/emscripten_fs_image ../libreoffice-26-8/static/emscripten/environment.js -newer build/e2/editor-v15/probe.wasm -type f | wc -l` — `0`: no core link input has changed since v15's link (2026-10-07 10:24; `soffice.js.linkdeps` and `soffice.data.js.link` are dated 2026-08-01). Measured 2026-10-08 (review 2026-10-08, opus S1). Run it in the owner's shell right before the link.
+- `python3 -m unittest tests.test_merge_wasm_clauses tests.test_judge_counted_m2 tests.test_profile_identity tests.test_merge_key_undo_scope` — the runner's clauses, the counted reader, X1's checker, M1-1's per-object judgement.
+- The adversarial review (§31.3 step 3): done 2026-10-08, opus and codex; every BLOCKING item dispositioned (spec §33, `findings/evidence/v19/review/DISPOSITION.md`).
+- **Open: shell generation v56 frozen and `make` dist** (§31.3 step 4; it also binds the review's runner changes). Until then `make test-e2-c-static` is red on `test_the_real_manifest_matches_the_real_tree` (`web/e2-editor-app.js`, the v55 bundle's entrypoint, changed in `840794af`); after the freeze it must exit 0.
 
 ## 1. Before the link: record v8, v15, v18
 
@@ -41,8 +43,12 @@ Do **not** run any make target that names v8 or v15 (`dist/profiles/e2-editor-v{
 
 ```
 cd /home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe
-make ALLOW_FROZEN_RELINK=1 dist/profiles/e2-editor-v19/sdk-manifest.json
+env | grep -E '^(LOSRC|LOBUILD|EMSDK_ROOT|EXTRA_DEFINES|EXTRA_OBJECTS|HOST_CXX)='   # must print nothing
+env -u LOSRC -u LOBUILD -u EMSDK_ROOT -u EXTRA_DEFINES -u EXTRA_OBJECTS -u HOST_CXX \
+    make ALLOW_FROZEN_RELINK=1 dist/profiles/e2-editor-v19/sdk-manifest.json
 ```
+
+- Why the `env -u` (review 2026-10-08, opus S1): those six are `?=` in the Makefile, so a value left in the shell would silently replace the core tree, the toolchain or the defines, and no gate after the link sees them (M1-1 forces `EXTRA_DEFINES=`; X1 cannot see defines or the core). If the `grep` prints anything, say so before linking.
 
 - Builds `build/e2/editor-v19/{sdk_api,probe_engine,unoembind_stub,editor_api}.o`, regenerates `build/r5/writer-review/exports.txt` (a text file, not a v8 artifact), writes `build/e2/editor-v19/exports.txt`, links `build/e2/editor-v19/probe.{js,wasm}`, checks the v15 archive (`sha256sum -c`) and the two packs (`--check`), and packs `dist/profiles/e2-editor-v19/`. v15's link took about two minutes from objects to packed profile (10:22 → 10:24); expect the same order.
 

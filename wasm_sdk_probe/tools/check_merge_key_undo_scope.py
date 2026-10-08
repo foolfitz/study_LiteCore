@@ -11,8 +11,10 @@ preprocessing run (`-E -P`).  Each run happens twice, from two scratch trees
 holding `src/` at BASE (a git ref before B's engine code) and `src/` as it is
 in the working tree, with the same relative paths, so `__FILE__` and the
 include chain are identical.  Every object of every rule must preprocess to
-the same bytes, except the rules named by --carrier (default E2_V15 and
-E2_V19), whose objects must each differ somewhere (otherwise B is not in it).
+the same bytes, except the probe_engine object of each rule named by
+--carrier (default E2_V15 and E2_V19), which must differ (otherwise B is not
+in it); a carrier's other objects must be the same as well (since the review
+of 2026-10-08: before, one differing object let any number of others pass).
 Before 2026-10-08 there was one such rule (--v15); with one carrier named, the
 other carrier's objects differ from BASE and the run is red -- the red case
 below that shows the checker sees v19.
@@ -101,6 +103,25 @@ def run(args: list[str], tree: Path) -> tuple[int, str, str]:
     return p.returncode, hashlib.sha256(tokens).hexdigest(), p.stderr.decode(errors="replace")[-400:]
 
 
+def judge_rows(rows: list[dict], carriers: tuple, rules: list[str], base: str) -> list[str]:
+    """Per object: only a carrier's probe_engine.o may differ from BASE, and it must.  Before the review of
+    2026-10-08 (codex B7, opus S3) a carrier passed with ANY one differing object and any number of others."""
+    failures = []
+    for row in rows:
+        engine = row["rule"] in carriers and row["object"].endswith("/probe_engine.o")
+        if not row["same"] and not engine:
+            failures.append(f"{row['rule']} {row['object']}: preprocessed output differs from {base}")
+    for carrier in carriers:
+        if carrier not in rules:
+            continue
+        mine = [r for r in rows if r["rule"] == carrier]
+        if any(r["unbuildable"] for r in mine):
+            failures.append(f"{carrier}: an object does not preprocess")
+        if not any(not r["same"] for r in mine if r["object"].endswith("/probe_engine.o")):
+            failures.append(f"{carrier}: its probe_engine object does not differ from {base} (B is not in it)")
+    return failures
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", required=True)
@@ -159,13 +180,7 @@ def main() -> int:
                 rows.append(row)
                 if (rb[0] or rc[0]) and not unbuildable:
                     failures.append(f"{rule} {obj}: preprocessing failed on one side: {(rb[2] or rc[2]).strip()}")
-                elif rule not in carriers and not row["same"]:
-                    failures.append(f"{rule} {obj}: preprocessed output differs from {a.base}")
-        for carrier in carriers:
-            if carrier in rules and any(r["unbuildable"] for r in rows if r["rule"] == carrier):
-                failures.append(f"{carrier}: an object does not preprocess")
-            if carrier in rules and not any(not r["same"] for r in rows if r["rule"] == carrier):
-                failures.append(f"{carrier}: no object differs from {a.base} (B is not in it)")
+        failures += judge_rows(rows, carriers, rules, a.base)
 
         # 3.1 item 10: the compile guard.
         guards = []

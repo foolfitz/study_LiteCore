@@ -82,6 +82,7 @@ import functools
 import hashlib
 import io
 import json
+import math
 import re
 import subprocess
 import sys
@@ -648,6 +649,28 @@ def place(session, browser: str, target: list[int], backward: bool) -> dict:
 # The reopen's own last sentence (e2-editor-app.js reopenAfterBoundaryRefusal),
 # or the generation ceiling's, which ends the flow without a restart.
 REOPENED, AT_LIMIT = "已重新載入", "不能再重新載入"
+# The reopen's own two toasts (e2-editor-app.js: `${lead}，正在重新載入…`, then `${lead}，已重新載入…`).
+STARTING, REOPENED_AFTER = "，正在重新載入…", "，已重新載入"
+# The standalone page's save confirmation (`已存出 ${kb} KB`): the only toast a merge case may show after its key.
+SAVED = re.compile(r"已存出 [0-9]+(?:\.[0-9]+)? KB")
+
+
+def reopen_pair(toasts) -> bool:
+    """Review 2026-10-08 (codex B8): the reopen's own two toasts IN ORDER and about the same refusal -- not any
+    two toasts that contain 「重新載入」 (two end sentences, or two starts, passed before)."""
+    if not isinstance(toasts, list) or len(toasts) != 2 or not all(isinstance(t, str) for t in toasts):
+        return False
+    first, second = toasts
+    if not first.endswith(STARTING):
+        return False
+    lead = first[: -len(STARTING)]
+    return bool(lead) and second.startswith(lead + REOPENED_AFTER)
+
+
+def only_saves(toasts, saves: int) -> bool:
+    """Review 2026-10-08 (codex B5): from the key to the end of the case, nothing but the case's own saves."""
+    return (isinstance(toasts, list) and len(toasts) == saves
+            and all(isinstance(t, str) and SAVED.fullmatch(t) for t in toasts))
 
 
 def toast_window(session, gen_before: str, limit: float = 90) -> dict:
@@ -684,7 +707,10 @@ def merge_clauses(out: dict, spec: dict) -> dict:
                "afterKeyBytes": (None if spec["decision"] == "typed-merge" else
                                  (out.get("afterKeyDocument") or {}).get("reducedBytesEqual") is True),
                "followText": (out.get("followDocument") or {}).get("textEqual") is True,
-               "noToast": out.get("toasts") == []}
+               "noToast": out.get("toasts") == [],
+               # Review 2026-10-08 (codex B5): `toasts` is read before the first save; a repaint failure after
+               # the typed `Z` was never read.  `toastsAtEnd` runs to after the second save.
+               "noToastThroughFollow": only_saves(out.get("toastsAtEnd"), 2)}
     if spec["criterion"] == "M2-1":
         clauses["comment"] = (key_undo.get("comment") is not None
                               and key_undo.get("comment") == spec["nativeComment"])
@@ -706,12 +732,15 @@ def refusal_clauses(out: dict, spec: dict, expected_text: list | None, mine: lis
     clauses = {"outcome": out.get("outcome") == "refused",
                "stage": out.get("stage") == stage,
                "keyPosted": out.get("keyPosted") == posted,
-               "generation": reopened is not None and window.get("generation") == reopened,
+               # Review 2026-10-08 (opus S5): also the generation read after the 90 s quiet, so a second reopen
+               # after the window closed is not passed.
+               "generation": (reopened is not None and window.get("generation") == reopened
+                              and (out.get("generation") or [None, None])[1] == reopened),
                "toastWindowClosed": window.get("closed") is True,
                "reopenedText": mine is not None and mine == expected_text,
                "markerSurvived": mine is not None and sum(MARKER in p for p in mine) == 1,
                "checkpointRevision": after.get("checkpoint") == f"有（r{before.get('revision')}）",
-               "onlyTheReopenToasts": len(toasts) == 2 and all("重新載入" in (t or "") for t in toasts),
+               "onlyTheReopenToasts": reopen_pair(toasts),
                "noUnchanged": (not any(UNCHANGED in (t or "") for t in toasts)) if posted else None}
     return clauses
 
@@ -813,8 +842,11 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
             i = expected_text.index(marker_at["search"])
             expected_text[i] = (MARKER + marker_at["search"] if marker_at["backward"]
                                 else marker_at["search"] + MARKER)
+        # `sha` (review 2026-10-08, opus NOTE 6): ties the kept document to this record by content, as `mine`
+        # does for a merge's documents; the paragraph count alone did not.
         out["reopenedDocument"] = {"saved": raw is not None,
-                                   "paragraphs": None if mine is None else len(mine)}
+                                   "paragraphs": None if mine is None else len(mine),
+                                   "sha": odt_parts(raw)["sha"] if raw else None}
         out["clauses"] = refusal_clauses(out, spec, expected_text if marker_at else None, mine)
         if not refusal:
             out["clauses"]["outcome"] = False
@@ -830,6 +862,7 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
         out["followSettled"] = quiet(session)
         out["followDocument"] = compare(save(session, f"{case}-r{round_no}-follow", private),
                                         spec["follow"], private)
+        out["toastsAtEnd"] = pp.evaluate(session, pp.READ_TOASTS)
         out["clauses"] = merge_clauses(out, spec)
     if control:
         out["clauses"].update({k: None for k in INSTRUMENT_ONLY if k in out["clauses"]})
@@ -896,6 +929,7 @@ def limit_clauses(out: dict) -> dict:
                                 and all(a == LIMIT_STEPS for a in after[full - 1:])),
                "generation": out["generation"][0] == out["generation"][1],
                "noToast": out.get("toasts") == [],
+               "noToastThroughSave": only_saves(out.get("toastsAtEnd"), 1),     # review 2026-10-08, codex B5
                # Spec 31.2 (finding 117): every press, the runner's and the engine's latency both under
                # LATENCY_BOUND_MS; a missing number is not a pass.  Added 2026-10-08 so that `pass` is not true
                # on a report the criterion calls red (handoff 10-08d, rule x).  The counted reader judges it from
@@ -912,7 +946,8 @@ def limit_clauses(out: dict) -> dict:
 
 def fast(ms) -> bool:
     """Spec 30.2 M2-2 / 31.2: a number, and under LATENCY_BOUND_MS."""
-    return isinstance(ms, (int, float)) and not isinstance(ms, bool) and ms < LATENCY_BOUND_MS
+    return (isinstance(ms, (int, float)) and not isinstance(ms, bool) and math.isfinite(ms)
+            and 0 <= ms < LATENCY_BOUND_MS)          # review 2026-10-08 (codex S2): a negative time is no answer
 
 
 def run_limit(session, browser: str, url: str, ref: dict, control: bool = False) -> dict:
@@ -967,6 +1002,7 @@ def run_limit(session, browser: str, url: str, ref: dict, control: bool = False)
     out["toasts"] = pp.evaluate(session, pp.READ_TOASTS)
     out["afterKeyDocument"] = compare(save(session, f"{LIMIT_CASE}-r1-after-key", False), ref["final"], False)
     out["finalDocument"] = out["afterKeyDocument"]
+    out["toastsAtEnd"] = pp.evaluate(session, pp.READ_TOASTS)
     out["outcome"] = "control" if control else ("verified-key-undo" if len(presses) == LIMIT_PRESSES
                                                 and presses[-1].get("completion") == "verified-key-undo"
                                                 else "stopped")
@@ -976,15 +1012,53 @@ def run_limit(session, browser: str, url: str, ref: dict, control: bool = False)
     return out
 
 
-def bound_values(root: Path, profile: str, page: str, source: str) -> dict:
+# Spec 7 as extended in 32.3 and 33: every key a binding has.  The reader checks a binding against this list.
+BOUND_KEYS = ("wasmSha256", "workerSha256", "sessionSha256", "shellSha256", "htmlSha256", "pageSha256",
+              "pageSourceSha256", "eshapeSha256", "nativeSha256")
+
+
+def digest(lines: list[str]) -> str:
+    return hashlib.sha256("\n".join(sorted(lines)).encode()).hexdigest()
+
+
+def shell_digest(root: Path) -> str:
+    """Review 2026-10-08 (opus S4): every module of the frozen shell bundle as served, not only the session.  The
+    entrypoint is left out: it is the page, bound as `pageSha256` (repointed) and `pageSourceSha256`."""
+    manifest = json.loads(pp.SHELL_BUNDLE_V2.read_text(encoding="utf-8"))
+    paths = [e["path"] for e in manifest["included"] if e["path"] != manifest.get("entrypoint")]
+    return digest([f"{path}={sha256_of(root / pp.served_in_dist(path))}" for path in paths])
+
+
+def native_digest() -> str:
+    """Spec 7 binds "R0's report directory and input sha256" (review 2026-10-08, opus S6): the fixtures, the
+    native arms and documents every comparison reads -- R0c's two rounds and R0 run 4's -- by path and hash.
+    A missing file is part of the digest, so it cannot equal a binding made with the file present."""
+    files = []
+    for fixture in ("boundaries", "boundaries-indent"):
+        path, round_dir, _, _ = FIXTURES[fixture]
+        files += [path, round_dir / "arms.jsonl", *sorted((round_dir / "docs").glob("*.odt"))]
+    files += [LIMIT_FIXTURE, LIMIT_ROUND / "arms.jsonl", LIMIT_ROUND / "fixture.odt",
+              LIMIT_ROUND / "docs" / "original.odt", LIMIT_ROUND / "docs" / f"r1-{LIMIT_CASE}-key{LIMIT_PRESSES}.odt"]
+    return digest([f"{f.relative_to(HERE.parent).as_posix()}={sha256_of(f) if f.is_file() else 'missing'}"
+                   for f in files])
+
+
+def bound_values(root: Path, profile: str, page: str, source: str, html: str) -> dict:
     """What spec 7 binds a counted run to, as served by this run.  `pageSourceSha256` (2026-10-08): the cutover
-    page's source before it is repointed, so the M2-1 red case can show it ran the same source on v8."""
-    return {"wasmSha256": sha256_of(root / "profiles" / profile / "probe.wasm"),
-            "workerSha256": sha256_of(root / "profiles" / profile / "sdk-worker.js"),
-            "sessionSha256": sha256_of(root / pp.served_in_dist("editor-shell-v2/narrow-editor-v2-session.js")),
-            "pageSha256": hashlib.sha256(page.encode()).hexdigest(),
-            "pageSourceSha256": hashlib.sha256(source.encode()).hexdigest(),
-            "eshapeSha256": sha256_of(ESHAPE)}
+    page's source before it is repointed, so the M2-1 red case can show it ran the same source on v8.
+    `shellSha256`, `htmlSha256` (the page's HTML before the instrument goes in) and `nativeSha256`: review
+    2026-10-08."""
+    out = {"wasmSha256": sha256_of(root / "profiles" / profile / "probe.wasm"),
+           "workerSha256": sha256_of(root / "profiles" / profile / "sdk-worker.js"),
+           "sessionSha256": sha256_of(root / pp.served_in_dist("editor-shell-v2/narrow-editor-v2-session.js")),
+           "shellSha256": shell_digest(root),
+           "htmlSha256": hashlib.sha256(html.encode()).hexdigest(),
+           "pageSha256": hashlib.sha256(page.encode()).hexdigest(),
+           "pageSourceSha256": hashlib.sha256(source.encode()).hexdigest(),
+           "eshapeSha256": sha256_of(ESHAPE),
+           "nativeSha256": native_digest()}
+    assert tuple(out) == BOUND_KEYS
+    return out
 
 
 # The bound values that belong to the PROFILE served: on RED_PROFILE they differ from the binding by
@@ -998,9 +1072,10 @@ def is_counted(mode: str, bound: dict, binding: dict | None) -> bool:
     the same runner, the same cutover page source)."""
     if mode == "shakedown" or binding is None:
         return False
+    if set(bound) != set(BOUND_KEYS) or set(binding) != set(BOUND_KEYS):
+        return False
     if mode == "m2-1-red":
-        return set(bound) == set(binding) and all(bound[k] == binding[k] for k in binding
-                                                  if k not in PROFILE_BOUND)
+        return all(bound[k] == binding[k] for k in binding if k not in PROFILE_BOUND)
     return bound == binding
 
 
@@ -1037,19 +1112,24 @@ def pair(instrumented: Path, control: Path) -> dict:
             rows.append({"case": x["case"], "round": x["round"], "missingInControl": True})
             continue
         def seen(c):
-            window = c.get("toastWindow")
-            return ((window or {}).get("generation") if window else (c.get("generation") or [None, None])[1],
-                    (window or {}).get("toasts") if window else c.get("toasts"))
-        row = {"case": x["case"], "round": x["round"],
-               "generation": seen(x)[0] == seen(y)[0], "toasts": seen(x)[1] == seen(y)[1]}
+            # Review 2026-10-08 (codex B4): the whole transition (before and after), the window's own
+            # generation and closure, and the toasts through the end of the case -- not only the last generation.
+            window = c.get("toastWindow") or {}
+            return {"generation": c.get("generation"), "windowGeneration": window.get("generation"),
+                    "windowClosed": window.get("closed"),
+                    "toasts": window.get("toasts") if window else c.get("toasts"),
+                    "toastsAtEnd": c.get("toastsAtEnd")}
+        mine, theirs = seen(x), seen(y)
+        row = {"case": x["case"], "round": x["round"], **{k: mine[k] == theirs[k] for k in mine}}
         for kind in ("after-key", "follow", "reopened"):
             mine, theirs = kept_text(instrumented, x, kind), kept_text(control, y, kind)
             if mine is not None or theirs is not None:
                 row[kind] = mine == theirs
         row["same"] = all(v for k, v in row.items() if k not in ("case", "round"))
         rows.append(row)
+    order = [(c["case"], c["round"]) for c in a["cases"]] == [(c["case"], c["round"]) for c in b["cases"]]
     return {"instrumented": instrumented.name, "control": control.name, "pairs": len(rows),
-            "differ": [r for r in rows if not r.get("same")]}
+            "sameOrder": order, "differ": [r for r in rows if not r.get("same")]}
 
 
 def teardown(session, report: dict) -> None:
@@ -1062,7 +1142,10 @@ def teardown(session, report: dict) -> None:
     except Exception as error:  # noqa: BLE001 -- recorded; the close below must still run
         report["observerAtEnd"] = {"error": f"{type(error).__name__}: {error}"}
     finally:
-        session.close()
+        try:
+            session.close()
+        except Exception as error:  # noqa: BLE001 -- review 2026-10-08 (codex S3): the server and the report
+            report["teardownError"] = f"{type(error).__name__}: {error}"   # after this must still be done
 
 
 def main() -> int:
@@ -1093,8 +1176,9 @@ def main() -> int:
                          "value but the profile's own)")
     args = ap.parse_args()
     if args.pair:
-        print(json.dumps(pair(*args.pair), indent=1, ensure_ascii=False))
-        return 0
+        paired = pair(*args.pair)
+        print(json.dumps(paired, indent=1, ensure_ascii=False))
+        return 0 if paired["sameOrder"] and not paired["differ"] else 1    # review 2026-10-08: was always 0
     if args.out is None:
         raise SystemExit("--out is required")
     if args.mode != "shakedown":
@@ -1185,7 +1269,7 @@ def main() -> int:
         # The owner's document: what the page saves from it stays in build/.
         DOCS["private"] = HERE / "build" / "merge-wasm-private" / f"{args.out.stem}.docs"
         DOCS["private"].mkdir(parents=True, exist_ok=False)
-    bound = bound_values(root, args.candidate_profile, page, source)
+    bound = bound_values(root, args.candidate_profile, page, source, html)
     report = {"mode": args.mode,
               "counted": is_counted(args.mode, bound, BINDING),
               "bound": bound, "binding": BINDING, "rounds": rounds,

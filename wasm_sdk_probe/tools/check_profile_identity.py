@@ -36,10 +36,13 @@ FILES = ("probe.js", "probe.wasm", "sdk-manifest.json", "sdk-worker.js")
 
 
 def leaves(value, path=""):
-    if isinstance(value, dict):
+    """Every scalar, AND every empty container as itself (review 2026-10-08, codex B6): `gestures: []` is how a
+    withheld action is written, and it yielded nothing, so deleting it -- which opens the action -- moved no
+    leaf."""
+    if isinstance(value, dict) and value:
         for key, item in value.items():
             yield from leaves(item, f"{path}.{key}")
-    elif isinstance(value, list):
+    elif isinstance(value, list) and value:
         for i, item in enumerate(value):
             yield from leaves(item, f"{path}[{i}]")
     else:

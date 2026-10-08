@@ -17,3 +17,12 @@ Hashes before the link (first 16 hex of sha256; `dist/profiles/<p>/{probe.wasm,p
 | e2-editor-v8 | `4a2710bba1ef07d9` | `c382b834aa768b91` | `070229cd10bda4a0` | `d70481cb1be5b1f9` |
 | e2-editor-v15 | `ad3f68bb85f94589` | `46b2f40ac24b6a78` | `00882139cd0b2e58` | `2a98050cfec967ca` |
 | e2-editor-v18 | `ad3f68bb85f94589` | `46b2f40ac24b6a78` | `00882139cd0b2e58` | `456e9a72ab26a3f8` |
+
+## Added after the review (2026-10-08, `../review/DISPOSITION.md`)
+
+| File | What |
+|---|---|
+| `m1-1-after-review/` | M1-1 rerun with the per-object carrier rule (only a carrier's `probe_engine.o` may differ): green rc 0, 25 rules / 100 objects, `different` 2; the three red cases rc 1; stderr empty. Same commands as `m1-1/run.sh`. |
+| `what-the-link-ships.txt` | `tools/what_the_link_ships.py --since 1990bb64 --variant merge-v15 --shipped-profile dist/profiles/e2-editor-v18`, exit 0: `sdk_api`, `unoembind_stub`, `editor_api` preprocess identically; `probe_engine` changed by exactly `66e5c0af`'s hunk; `sdk-worker.js` the same as v18's (`00882139cd0b2e58`). `1990bb64` is the last commit before v15's link (read: `git log --before='2026-10-07 10:22'`); `src/` changed since only in `66e5c0af`. |
+
+Also measured: `find` on the core link inputs (`$LOBUILD/instdir/program`, `workdir/LinkTarget`, `workdir/CustomTarget/static/emscripten_fs_image`, `environment.js`) newer than `build/e2/editor-v15/probe.wasm` (2026-10-07 10:24:04): 0 files. The command is a gate in the runbook.

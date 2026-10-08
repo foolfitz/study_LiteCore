@@ -8,7 +8,10 @@ v18 reports (none of them edited in place):
   m2-4                       <- v18/finding-118/p4-m2-4-fixed-B.json with EVERY PRESS'S TWO LATENCIES REPLACED
                                 (40 / 140.5 ms): no real report is green under spec 31.2;
   red                        <- v18/m2-shakedown/red-B.json.
-Identity is normalised on every copy (one runner, one binding equal to what was served, mode, counted).
+Identity is normalised on every copy (one runner = this tree's runner file, one binding equal to what was
+served, mode, counted), and `m.BINDING` is replaced by that binding for the duration of the tests (a TEST
+AUTHORITY: nothing is bound in the tree).  Fields the runner gained in the review of 2026-10-08 are added to
+the copies: `toastsAtEnd` (the save confirmations only) and an empty `<stem>.stderr.txt` per report.
 The real red cases of spec 31.2 are the five v18 M2-4 reports, put in unedited but for identity.
 
     python3 -m unittest tests.test_judge_counted_m2
@@ -29,9 +32,10 @@ import run_merge_wasm_shakedown as m  # noqa: E402
 
 V18 = m.HERE.parent / "findings/evidence/v18"
 PROFILE = "e2-editor-v18"
-BINDING = {"wasmSha256": "w" * 64, "workerSha256": "k" * 64, "sessionSha256": "s" * 64, "pageSha256": "p" * 64,
-           "pageSourceSha256": "c" * 64, "eshapeSha256": j.sha256(m.ESHAPE)}
+BINDING = {key: f"{i:x}" * 64 for i, key in enumerate(m.BOUND_KEYS, start=1)}
+BINDING["eshapeSha256"] = j.sha256(m.ESHAPE)
 RED_BOUND = {**BINDING, "wasmSha256": "8" * 64, "workerSha256": "9" * 64, "pageSha256": "a" * 64}
+SAVED = "已存出 11.9 KB"
 FRAME = {"F01", "F02"}
 SPEC_31_2_RED = ("m2-shakedown/m2-4-{}.json", "diag-117/m2-4-chrome.json", "finding-118/p4-m2-4-fixed-{}.json")
 
@@ -39,16 +43,20 @@ SPEC_31_2_RED = ("m2-shakedown/m2-4-{}.json", "diag-117/m2-4-chrome.json", "find
 def identity(report: dict, kind: str) -> dict:
     report = copy.deepcopy(report)
     red = kind == "red"
-    report.update({"mode": j.MODES[kind], "runner": "synthetic000000", "counted": True, "binding": BINDING,
+    report.update({"mode": j.MODES[kind], "runner": j.RUNNER_SHA, "counted": True, "binding": BINDING,
                    "bound": RED_BOUND if red else BINDING, "caseList": "tool", "frameCell": False,
                    "ownerDocument": False, "control": kind == "control", "instrumented": kind != "control"})
     report["candidate"] = {**report["candidate"], "profile": j.RED_PROFILE if red else PROFILE,
                            "pageSha256": (RED_BOUND if red else BINDING)["pageSha256"]}
+    for case in report["cases"]:
+        if "toastWindow" not in case and "toastsAtEnd" not in case:
+            case["toastsAtEnd"] = [SAVED] * (1 if kind == "m2-4" else 2)
     return report
 
 
 def put(target: Path, name: str, report: dict, docs: Path) -> None:
     (target / f"{name}.json").write_text(json.dumps(report, ensure_ascii=False))
+    (target / f"{name}.stderr.txt").write_text("")
     shutil.copytree(docs, target / f"{name}.docs")
 
 
@@ -67,6 +75,14 @@ def tool_run(source: Path, kind: str, target: Path, name: str) -> None:
         path.unlink()
     for path in docs.glob("F0*"):
         path.unlink()
+    # The reopened documents' content hash, which the runner records since the review of 2026-10-08.
+    path = target / f"{name}.json"
+    report = json.loads(path.read_text())
+    for case in report["cases"]:
+        kept = docs / f"{case['case']}-r{case['round']}-reopened.odt"
+        if "reopenedDocument" in case and kept.is_file():
+            case["reopenedDocument"]["sha"] = m.odt_parts(kept.read_bytes())["sha"]
+    path.write_text(json.dumps(report, ensure_ascii=False))
 
 
 def synthetic_m2_4(report: dict) -> dict:
@@ -83,13 +99,18 @@ def build(target: Path, browser: str) -> None:
                                ("m2-4", f"finding-118/p4-m2-4-fixed-{browser}.json", synthetic_m2_4),
                                ("red", f"m2-shakedown/red-{browser}.json", None)):
         report = json.loads((V18 / source).read_text())
-        put(target, f"{kind}-{browser}", identity(edit(report) if edit else report, kind),
-            (V18 / source).with_suffix(".docs"))
+        docs = (V18 / source).with_suffix(".docs")
+        for case in report["cases"]:
+            kept = docs / f"{case['case']}-r{case['round']}-reopened.odt"
+            if "reopenedDocument" in case and kept.is_file():
+                case["reopenedDocument"]["sha"] = m.odt_parts(kept.read_bytes())["sha"]
+        put(target, f"{kind}-{browser}", identity(edit(report) if edit else report, kind), docs)
 
 
 class Reader(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        cls.binding, m.BINDING = m.BINDING, dict(BINDING)        # the test authority (module docstring)
         cls.tmp = tempfile.TemporaryDirectory(prefix="judge-counted-m2-")
         cls.green = Path(cls.tmp.name) / "green"
         cls.green.mkdir()
@@ -98,6 +119,7 @@ class Reader(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        m.BINDING = cls.binding
         cls.tmp.cleanup()
 
     def setUp(self):
@@ -124,14 +146,60 @@ class Reader(unittest.TestCase):
     # ---- green ----------------------------------------------------------------------------------------------
     def test_green_both_browsers(self):
         code, last, lines = self.judge(j.BROWSERS)
-        self.assertEqual((code, last), (0, "VERDICT PASS"), "\n".join(lines))
+        self.assertEqual(code, 0, "\n".join(lines))
+        self.assertTrue(last.startswith(f"VERDICT PASS (chrome, firefox; runner {j.RUNNER_SHA}"), last)
         text = "\n".join(lines)
         self.assertIn("60 completions (expected 60)", text)          # non-vacuity, printed
         self.assertIn("'after-key': [63, 63], 'follow': [63, 63], 'reopened': [15, 15]", text)
 
     def test_green_uncounted_is_never_0(self):
-        code, last, _ = self.judge(uncounted=True)
-        self.assertEqual((code, last), (4, "VERDICT PASS (UNCOUNTED: not a counted verdict)"))
+        code, last, _ = self.judge(j.BROWSERS, uncounted=True)
+        self.assertEqual((code, last), (4, "VERDICT PASS (NOT A COUNTED VERDICT: uncounted)"))
+
+    # ---- review 2026-10-08: identity ------------------------------------------------------------------------
+    def test_one_browser_is_never_a_counted_pass(self):
+        # opus B1, codex B1.
+        code, last, _ = self.judge(("chrome",))
+        self.assertEqual((code, last), (4, "VERDICT PASS (NOT A COUNTED VERDICT: browsers ['chrome'])"))
+
+    def test_red_firefox_ran_another_candidate(self):
+        # codex B2: each browser consistent with itself, the two not with each other.
+        other = {**BINDING, "wasmSha256": "e" * 64, "sessionSha256": "d" * 64}
+        for kind in ("counted", "counted-control", "m2-1b", "m2-4", "red"):
+            def swap(report):
+                report["binding"] = other
+                report["bound"] = {**other, **({k: RED_BOUND[k] for k in m.PROFILE_BOUND} if kind == "red" else {})}
+            self.edit(f"{kind}-firefox", swap)
+        code, last, _ = self.judge(j.BROWSERS)
+        self.assertEqual((code, last), (3, "VERDICT NOT DONE: ['all identity']"))
+
+    def test_nothing_is_counted_while_nothing_is_committed(self):
+        # opus B2: the reports' own binding is not an authority.
+        saved, m.BINDING = m.BINDING, None
+        try:
+            self.assertEqual(self.judge(j.BROWSERS)[:2], (3, "VERDICT NOT DONE: ['all identity']"))
+        finally:
+            m.BINDING = saved
+
+    def test_red_a_binding_of_another_schema(self):
+        # codex B3.
+        for name in [f"{k}-{b}" for k in ("counted", "counted-control", "m2-1b", "m2-4", "red") for b in j.BROWSERS]:
+            self.edit(name, lambda r: r.update(binding={"irrelevant": 1}, bound={"irrelevant": 1}))
+        saved, m.BINDING = m.BINDING, {"irrelevant": 1}
+        try:
+            self.assertEqual(self.judge(j.BROWSERS)[:2], (3, "VERDICT NOT DONE: ['all identity']"))
+        finally:
+            m.BINDING = saved
+
+    def test_another_runner_file(self):
+        for name in [f"{k}-{b}" for k in ("counted", "counted-control", "m2-1b", "m2-4", "red") for b in j.BROWSERS]:
+            self.edit(name, lambda r: r.update(runner="0123456789abcdef"))
+        self.assertEqual(self.judge(j.BROWSERS)[:2], (3, "VERDICT NOT DONE: ['all identity']"))
+
+    def test_a_missing_stderr_is_not_done_when_counted(self):
+        (self.dir / "m2-4-chrome.stderr.txt").unlink()
+        self.assertEqual(self.judge()[:2], (3, "VERDICT NOT DONE: ['chrome identity']"))
+        self.assertEqual(self.judge(uncounted=True)[0], 4)
 
     # ---- spec 31.2's red cases: the five v18 M2-4 reports, unedited but for identity --------------------------
     def test_red_the_v18_m2_4_reports(self):
@@ -196,7 +264,9 @@ class Reader(unittest.TestCase):
         self.assertEqual(self.judge()[:2], (1, "VERDICT FAIL: ['chrome barrier']"))
 
     def test_a_missing_record_is_not_done(self):
-        self.edit("counted-chrome", lambda r: r["cases"].remove(self.record(r, "D12", 2)))
+        # From both sides: with the control's record kept, the pair's order differs too (a FAIL).
+        for side in ("counted-chrome", "counted-control-chrome"):
+            self.edit(side, lambda r: r["cases"].remove(self.record(r, "D12", 2)))
         code, last, _ = self.judge()
         self.assertEqual(code, 3)
         self.assertIn("chrome M2-1", last)
@@ -240,6 +310,8 @@ class Reader(unittest.TestCase):
     def test_red_the_marker_lost(self):
         original = (m.EVIDENCE / "r0c/round-20261006T144628Z/docs/original.odt").read_bytes()
         (self.dir / "counted-chrome.docs/C29-r2-reopened.odt").write_bytes(original)
+        self.edit("counted-chrome", lambda r: self.record(r, "C29", 2)["reopenedDocument"].update(
+            sha=m.odt_parts(original)["sha"]))                  # as the runner would have recorded it
         code, last, lines = self.judge()
         self.assertEqual((code, last), (1, "VERDICT FAIL: ['chrome M2-3', 'chrome control']"))
         self.assertIn("markerOnce", next(x for x in lines if x.startswith("M2-3 ")))
@@ -320,6 +392,73 @@ class Reader(unittest.TestCase):
         (self.dir / "counted-control-chrome.docs/C02-r2-follow.odt").write_bytes(other)
         self.assertEqual(self.judge()[:2], (1, "VERDICT FAIL: ['chrome control']"))
 
+    # ---- review 2026-10-08: clauses -------------------------------------------------------------------------
+    def test_a_reopened_document_the_report_did_not_save_is_not_done(self):
+        # opus NOTE 6: the same paragraph count, another content.
+        original = (m.EVIDENCE / "r0c/round-20261006T144628Z/docs/original.odt").read_bytes()
+        for side in ("counted-chrome", "counted-control-chrome"):
+            (self.dir / f"{side}.docs/C29-r2-reopened.odt").write_bytes(original)
+        self.assertEqual(self.judge()[:2], (3, "VERDICT NOT DONE: ['chrome M2-3']"))
+
+    def test_red_a_toast_after_the_typed_z(self):
+        # codex B5.  The control did not see it, so the pair is red as well.
+        self.edit("counted-chrome", lambda r: self.record(r, "C09", 2).update(
+            toastsAtEnd=[SAVED, "重繪失敗：TILE_NOT_PAINTED", SAVED]))
+        self.assertEqual(self.judge()[:2], (1, "VERDICT FAIL: ['chrome M2-1', 'chrome control']"))
+
+    def test_a_report_without_the_end_toasts_is_not_done(self):
+        for side in ("counted-chrome", "counted-control-chrome"):
+            self.edit(side, lambda r: self.record(r, "C09", 2).pop("toastsAtEnd"))
+        self.assertEqual(self.judge()[:2], (3, "VERDICT NOT DONE: ['chrome M2-1']"))
+
+    def test_red_m2_4_a_toast_at_the_save(self):
+        self.edit("m2-4-chrome", lambda r: r["cases"][0].update(toastsAtEnd=["重繪失敗：X", SAVED]))
+        self.assertEqual(self.judge()[:2], (1, "VERDICT FAIL: ['chrome M2-4']"))
+
+    def test_red_the_reopen_pair(self):
+        # codex B8: two end sentences on both sides, so the pair agrees and only the clause can see it.
+        def two_ends(report):
+            window = self.record(report, "C29", 1)["toastWindow"]
+            window["toasts"] = [window["toasts"][1], window["toasts"][1]]
+        for side in ("counted-chrome", "counted-control-chrome"):
+            self.edit(side, two_ends)
+        self.assertEqual(self.judge()[:2], (1, "VERDICT FAIL: ['chrome M2-3']"))
+
+    def test_red_a_second_reopen_after_the_window(self):
+        # opus S5, on both sides.
+        for side in ("counted-chrome", "counted-control-chrome"):
+            self.edit(side, lambda r: self.record(r, "C30", 3)["generation"].__setitem__(
+                1, str(int(self.record(r, "C30", 3)["generation"][0]) + 2)))
+        self.assertEqual(self.judge()[:2], (1, "VERDICT FAIL: ['chrome M2-3']"))
+
+    def test_red_the_control_reopened_from_elsewhere(self):
+        # codex B4: the same end generation, another transition; and a window that did not close.
+        for change in (lambda c: c.update(generation=[c["generation"][1], c["generation"][1]]),
+                       lambda c: c["toastWindow"].update(closed=False)):
+            with self.subTest():
+                self.setUp()
+                self.edit("counted-control-chrome", lambda r: change(self.record(r, "C15", 2)))
+                self.assertEqual(self.judge()[:2], (1, "VERDICT FAIL: ['chrome control']"))
+
+    def test_red_the_control_in_another_order(self):
+        self.edit("counted-control-chrome", lambda r: r["cases"].reverse())
+        self.assertEqual(self.judge()[:2], (1, "VERDICT FAIL: ['chrome control']"))
+
+    def test_red_a_negative_latency(self):
+        # codex S2.
+        self.edit("counted-chrome", lambda r: self.record(r, "D08", 1).update(keyToResponseMs=-500.0))
+        self.assertEqual(self.judge()[:2], (1, "VERDICT FAIL: ['chrome M2-2']"))
+
+    def test_another_m2_4_reference_is_not_done(self):
+        # opus S6: the native document under build/ is pinned by its content hash.
+        saved, j.LIMIT_REFERENCE_SHA16 = j.LIMIT_REFERENCE_SHA16, "0" * 16
+        try:
+            code, last, _ = self.judge()
+        finally:
+            j.LIMIT_REFERENCE_SHA16 = saved
+        self.assertEqual(code, 3)
+        self.assertIn("chrome reports", last)
+
     # ---- identity -------------------------------------------------------------------------------------------
     def test_not_bound_is_not_done(self):
         for name, change in (("m2-1b-chrome", lambda r: r.update(counted=False)),
@@ -332,7 +471,7 @@ class Reader(unittest.TestCase):
                 self.edit(name, change)
                 code, last, _ = self.judge()
                 self.assertEqual(code, 3, last)
-                self.assertIn("chrome identity", last)
+                self.assertIn("identity", last)
 
     def test_a_missing_report_leaves_what_it_carries_not_done(self):
         (self.dir / "m2-4-chrome.json").unlink()

@@ -11,7 +11,9 @@ will meet in a run.
 from __future__ import annotations
 
 import json
+import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -20,6 +22,7 @@ import run_merge_wasm_shakedown as m  # noqa: E402
 
 CASES = m.tool_cases(frame_cell=False)
 DOCS = m.EVIDENCE / "r0c/round-20261006T144628Z/docs"
+SAVED_TOAST = "已存出 11.9 KB"
 
 
 def observed_merge(case: str, *, key_doc: Path | None = None, comment: str | None = None,
@@ -30,7 +33,7 @@ def observed_merge(case: str, *, key_doc: Path | None = None, comment: str | Non
     return {"outcome": "verified-key-undo",
             "keyUndo": {"comment": spec["nativeComment"] if comment is None else comment,
                         "restorePresses": presses},
-            "generation": ["1", "1"], "toasts": [],
+            "generation": ["1", "1"], "toasts": [], "toastsAtEnd": [SAVED_TOAST, SAVED_TOAST],
             "afterKeyDocument": m.compare(key_doc.read_bytes(), spec["key"], False),
             "followDocument": m.compare(spec["follow"].read_bytes(), spec["follow"], False)}
 
@@ -68,13 +71,24 @@ class MergeClauses(unittest.TestCase):
         self.assertFalse(clauses["restorePresses"])
         self.assertFalse(verdict(clauses))
 
+    def test_red_a_toast_after_the_typed_z(self):
+        # Review 2026-10-08 (codex B5): `toasts` is read before the first save; this one came after the `Z`.
+        observed = observed_merge("C01")
+        observed["toastsAtEnd"] = [SAVED_TOAST, "重繪失敗：TILE_NOT_PAINTED", SAVED_TOAST]
+        clauses = m.merge_clauses(observed, CASES["C01"])
+        self.assertTrue(clauses["noToast"])
+        self.assertFalse(clauses["noToastThroughFollow"])
+        for missing in (None, [SAVED_TOAST]):
+            observed["toastsAtEnd"] = missing
+            self.assertFalse(m.merge_clauses(observed, CASES["C01"])["noToastThroughFollow"], missing)
 
-def observed_refusal(case: str, toasts: list[str], *, generation=("1", "2"),
+
+def observed_refusal(case: str, toasts: list[str], *, generation=("1", "2"), later=None,
                      checkpoint="有（r2）") -> dict:
     spec = CASES[case]
     _, stage, posted = spec["expected"]
     return {"outcome": "refused", "stage": stage, "keyPosted": posted,
-            "generation": list(generation),
+            "generation": [generation[0], generation[1] if later is None else later],
             "toastWindow": {"closed": True, "generation": generation[1], "toasts": toasts},
             "beforeKey": {"revision": "2"}, "afterKey": {"checkpoint": checkpoint}}
 
@@ -124,6 +138,22 @@ class RefusalClauses(unittest.TestCase):
         clauses = m.refusal_clauses(observed_refusal("C17", self.reopen, generation=("1", "1")),
                                     CASES["C17"], self.expected, self.expected)
         self.assertFalse(clauses["generation"])
+
+    # Review 2026-10-08.
+    def test_red_a_second_reopen_after_the_window(self):
+        # opus S5: the window closed at generation 2, the session was reopened again before the save.
+        clauses = m.refusal_clauses(observed_refusal("C17", self.reopen, later="3"),
+                                    CASES["C17"], self.expected, self.expected)
+        self.assertFalse(clauses["generation"])
+
+    def test_red_two_toasts_that_are_not_the_reopen_pair(self):
+        # codex B8: two end sentences, two starts, the pair reversed, or two leads.
+        other = ["這一下刪除送出了，但沒能確認它做了什麼，正在重新載入…", self.reopen[1]]
+        for toasts in ([self.reopen[1], self.reopen[1]], [self.reopen[0], self.reopen[0]],
+                       list(reversed(self.reopen)), other, ["重新載入", "重新載入"]):
+            clauses = m.refusal_clauses(observed_refusal("C17", toasts), CASES["C17"],
+                                        self.expected, self.expected)
+            self.assertFalse(clauses["onlyTheReopenToasts"], toasts)
 
 
 ROOT = (b'<office:document-content xmlns:b="u2" xmlns:a="u1" office:version="1.4">'
@@ -206,6 +236,7 @@ class LimitClauses(unittest.TestCase):
                        for n in range(1, m.LIMIT_PRESSES + 1)]
         final = LIMIT["final"] if final is None else final
         return {"presses": presses, "generation": list(generation), "toasts": [] if toasts is None else toasts,
+                "toastsAtEnd": [SAVED_TOAST],
                 "control": control, "finalDocument": m.compare(final.read_bytes(), LIMIT["final"], False)}
 
     def test_the_reference(self):
@@ -262,6 +293,18 @@ class LimitClauses(unittest.TestCase):
             presses[54] = {**presses[54], field: m.LATENCY_BOUND_MS}
             self.assertFalse(m.limit_clauses(self.observed(presses=presses))["latency"], field)
 
+    def test_red_a_negative_number(self):
+        # Review 2026-10-08 (codex S2): a time before the key is not an answer to it.
+        for value in (-1, -0.5, float("nan"), float("-inf")):
+            presses = self.observed()["presses"]
+            presses[3] = {**presses[3], "keyToResponseMs": value}
+            self.assertFalse(m.limit_clauses(self.observed(presses=presses))["latency"], value)
+
+    def test_red_a_toast_at_the_save(self):
+        observed = self.observed()
+        observed["toastsAtEnd"] = ["重繪失敗：TILE_NOT_PAINTED", SAVED_TOAST]
+        self.assertFalse(m.limit_clauses(observed)["noToastThroughSave"])
+
     def test_red_a_missing_number(self):
         for field in ("keyToUndoMs", "keyToResponseMs"):
             presses = self.observed()["presses"]
@@ -282,8 +325,8 @@ class LimitClauses(unittest.TestCase):
 class Binding(unittest.TestCase):
     """Spec 7 / 30.2: what makes a report counted; the red case runs v8 and the same page source."""
 
-    BINDING = {"wasmSha256": "w19", "workerSha256": "k19", "sessionSha256": "s", "pageSha256": "p19",
-               "pageSourceSha256": "src", "eshapeSha256": "e"}
+    BINDING = {**{k: k.lower() for k in m.BOUND_KEYS}, "wasmSha256": "w19", "workerSha256": "k19",
+               "pageSha256": "p19"}
 
     def test_the_candidate(self):
         self.assertTrue(m.is_counted("counted", dict(self.BINDING), self.BINDING))
@@ -296,14 +339,60 @@ class Binding(unittest.TestCase):
     def test_the_red_case_on_v8(self):
         v8 = {**self.BINDING, "wasmSha256": "w8", "workerSha256": "k8", "pageSha256": "p8"}
         self.assertTrue(m.is_counted("m2-1-red", v8, self.BINDING))
-        for key in ("sessionSha256", "pageSourceSha256", "eshapeSha256"):
+        for key in set(m.BOUND_KEYS) - set(m.PROFILE_BOUND):
             self.assertFalse(m.is_counted("m2-1-red", {**v8, key: "other"}, self.BINDING), key)
         self.assertFalse(m.is_counted("m2-1-red", {k: v for k, v in v8.items() if k != "eshapeSha256"},
                                       self.BINDING))
 
+    def test_red_another_schema(self):
+        # Review 2026-10-08 (codex B3): two equal dicts without the binding's keys are not a binding.
+        for mode in ("counted", "m2-1-red"):
+            self.assertFalse(m.is_counted(mode, {"irrelevant": 1}, {"irrelevant": 1}), mode)
+            short = {k: v for k, v in self.BINDING.items() if k != "nativeSha256"}
+            self.assertFalse(m.is_counted(mode, short, short), mode)
+
     def test_nothing_counts_unbound_or_in_a_shakedown(self):
         self.assertFalse(m.is_counted("counted", dict(self.BINDING), None))
         self.assertFalse(m.is_counted("shakedown", dict(self.BINDING), self.BINDING))
+
+
+class Pair(unittest.TestCase):
+    """Spec 22.3's paired control, as tightened by the review of 2026-10-08 (codex B4)."""
+
+    def reports(self, change=None):
+        refusal = {"case": "C15", "round": 1, "generation": ["1", "2"],
+                   "toastWindow": {"closed": True, "generation": "2", "toasts": ["a，正在重新載入…", "a，已重新載入。"]}}
+        merge = {"case": "C01", "round": 1, "generation": ["2", "2"], "toasts": [],
+                 "toastsAtEnd": [SAVED_TOAST, SAVED_TOAST]}
+        a = {"control": False, "cases": [json.loads(json.dumps(c)) for c in (refusal, merge)]}
+        b = {"control": True, "cases": [json.loads(json.dumps(c)) for c in (refusal, merge)]}
+        if change:
+            change(b)
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        (tmp / "x.json").write_text(json.dumps(a))
+        (tmp / "y.json").write_text(json.dumps(b))
+        return m.pair(tmp / "x.json", tmp / "y.json")
+
+    def test_the_same(self):
+        paired = self.reports()
+        self.assertEqual((paired["pairs"], paired["sameOrder"], paired["differ"]), (2, True, []))
+
+    def test_red_another_transition_with_the_same_end(self):
+        paired = self.reports(lambda b: b["cases"][0].update(generation=["2", "2"]))
+        self.assertEqual([r["case"] for r in paired["differ"]], ["C15"])
+
+    def test_red_a_window_that_did_not_close(self):
+        paired = self.reports(lambda b: b["cases"][0]["toastWindow"].update(closed=False))
+        self.assertEqual([r["case"] for r in paired["differ"]], ["C15"])
+
+    def test_red_a_toast_after_the_follow(self):
+        paired = self.reports(lambda b: b["cases"][1].update(toastsAtEnd=[SAVED_TOAST, "x", SAVED_TOAST]))
+        self.assertEqual([r["case"] for r in paired["differ"]], ["C01"])
+
+    def test_red_another_order(self):
+        paired = self.reports(lambda b: b["cases"].reverse())
+        self.assertFalse(paired["sameOrder"])
 
 
 class Teardown(unittest.TestCase):
@@ -340,6 +429,20 @@ class Teardown(unittest.TestCase):
             m.obs = original
         self.assertEqual(session.closed, 1)
         self.assertEqual(report["observerAtEnd"], {"responsesSeen": 1})
+
+    def test_a_close_that_raises(self):
+        # Review 2026-10-08 (codex S3): the caller's server and report steps run after this.
+        class Raising(self.Session):
+            def close(self):
+                raise RuntimeError("geckodriver gone")
+        report = {}
+        original = m.obs
+        m.obs = lambda s: {"responsesSeen": 1}
+        try:
+            m.teardown(Raising(), report)
+        finally:
+            m.obs = original
+        self.assertEqual(report["teardownError"], "RuntimeError: geckodriver gone")
 
     def test_no_session(self):
         report = {}

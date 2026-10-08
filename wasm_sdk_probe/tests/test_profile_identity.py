@@ -105,6 +105,18 @@ class ProfileIdentity(unittest.TestCase):
         self.write(manifest)
         self.assertEqual(self.run_check()[1][-1], "VERDICT FAIL: ['manifest']")
 
+    def test_red_a_withheld_action_opened(self):
+        # Review 2026-10-08 (codex B6): `select-all` is withheld as `gestures: []`; without the key the worker
+        # never sends its mask and the engine leaves it fully permitted.
+        manifest = self.manifest()
+        self.assertEqual(manifest["editorContract"]["actions"]["select-all"]["gestures"], [])
+        for change in (lambda a: a.pop("gestures"), lambda a: a.update(gestures={})):
+            with self.subTest():
+                manifest = self.manifest()
+                change(manifest["editorContract"]["actions"]["select-all"])
+                self.write(manifest)
+                self.assertEqual(self.run_check()[1][-1], "VERDICT FAIL: ['manifest']")
+
     def test_red_the_old_name(self):
         manifest = self.manifest()
         manifest["sdkVersion"] = json.loads((V18 / "sdk-manifest.json").read_text())["sdkVersion"]
