@@ -47,3 +47,13 @@ If run 2 also finds nothing: registered as seen once (with its conditions and bo
 - `chrome-same-page-1.json` (probe before the leave-prompt fix): **attempt 41 failed** with the measured code; after it: `recoverable-error`, revision 1, checkpoint 「無」, the save button disabled and no bytes, the notice 「引擎需要重新開啟。沒有檢查點，所以自上次儲存以來的內容不會回來」 with one button 「重新開啟」; pressing it reopened generation 2 at revision 0 and the saved heading held **no X** (data loss, as predicted); `Q` typed without a click after that reopen did **not** land (predicted to work: missed); reopening through the file input, clicking and typing `Q` worked. Attempts 42–43 then hung on the page's own leave prompt (the probe had left an unsaved `Q`); the run was stopped there and the probe fixed to save first.
 - `chrome-same-page-2.json` (fixed probe): **0 failures in 150** (all `overtaken-1` or `ok`).
 - So the frequency prediction for run 2 ("≥ 1 in 120, none in the first 30") hit on run 1 and missed on run 2. Together: 2 natural failures in about 250 same-page attempts (run 1's 41, run 2's 150, the 111 round's 61), 0 in 60 fresh-page attempts. Finding 119 records the consequences; the ruling (`ruling/fable-ruling.md`) sets how its fix is verified.
+
+## F119-B on the fixed page (SPEC-M3-production-ui §14.2; 2026-10-09)
+
+Candidate `dist/` (page `537d62d7…`, session `62a2a20e…`; findings 119 and 111 fixed, v58 not yet frozen), probe with `--fixed`:
+
+- **Injection arm** (`fixed-inject-chrome.json`, `fixed-inject-firefox.json`; each attempt a fresh page; the served HTML's shim answered the delete request with the recorded error, the request never reached the Worker): **3/3 PASS in each browser** — reopened by itself in 2.53–2.74 s (Chrome) / 3.37–3.47 s (Firefox), generation 1 → 2, `#notice` hidden, 19/19 toolbar buttons enabled, the saved heading 「一、序言XY」 (X and Y kept), `Q` typed with no click advanced the revision 0 → 1.
+- **Natural arm** (`fixed-natural-chrome.json`, Chrome, one page, 400 attempts): **0 failures** — all 400 `ok` (with 111's fix no Backspace overtook Y any more).
+- **Reading rule's red case** (`read-rule-red-case.txt`): `chrome-same-page-1.json` attempt 41 under the same rule reads FAIL.
+
+Verdict under the rule written before the run (§14.2 F119-B): natural occurrences 0 (fewer than 2) → **the natural path is registered 「沒有實例可量」 (0 in 400 on the fixed page)**, and the browser half is carried by the injection arm, which passed 3/3 in both browsers. **F119-B holds; it does not establish the natural path.** Predictions (§14.3): the injection arm hit; "2–3 natural failures in 400" missed. The 0 in 400 is recorded, not read as evidence that the cause is gone (the ruling's F6: 111's fix changes when the delete starts, not why the callback is late).
