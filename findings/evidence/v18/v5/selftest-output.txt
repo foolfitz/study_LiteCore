@@ -1,0 +1,49 @@
+### 0. v17 as recorded, v17's profile and page (expect pre, O1, O2 HIT, exit 0)
+   E02 after-key vs native key arm r1: 15 vs 15 soft page breaks; differing by context (1-based): [2, 3, 14, 15]; reduced content.xml token-equal: False
+SUMMARY  pre: HIT  O1: HIT  O2: HIT  O3: descriptive
+exit 0
+### 1. v17 as recorded, read as v18 (expect pre MISS: profile, page)
+   profile: False
+   page: False
+   E02 after-key vs native key arm r1: 15 vs 15 soft page breaks; differing by context (1-based): [2, 3, 14, 15]; reduced content.xml token-equal: False
+SUMMARY  pre: MISS  O1: HIT  O2: HIT  O3: descriptive
+exit 1
+### 2. E10's engine caret height 230 (v16's value) (expect O1 MISS)
+| E10 | 348 | 230 | True | False | verified-key-undo | True | - | 140.8 |  <- not as predicted
+   E02 after-key vs native key arm r1: 15 vs 15 soft page breaks; differing by context (1-based): [2, 3, 14, 15]; reduced content.xml token-equal: False
+SUMMARY  pre: HIT  O1: MISS  O2: HIT  O3: descriptive
+exit 1
+### 3. E05 placed by a key (keyed true) (expect O1 MISS)
+| E05 | 521 | 521 | True | True | verified-key-undo | True | - | 131.0 |  <- not as predicted
+   E02 after-key vs native key arm r1: 15 vs 15 soft page breaks; differing by context (1-based): [2, 3, 14, 15]; reduced content.xml token-equal: False
+SUMMARY  pre: HIT  O1: MISS  O2: HIT  O3: descriptive
+exit 1
+### 4. P62's engine x off by one twip (expect O1 MISS)
+| P62 | 348 | 348 | False | False | verified-key-undo | True | - | 149.9 |  <- not as predicted
+   E02 after-key vs native key arm r1: 15 vs 15 soft page breaks; differing by context (1-based): [2, 3, 14, 15]; reduced content.xml token-equal: False
+SUMMARY  pre: HIT  O1: MISS  O2: HIT  O3: descriptive
+exit 1
+### 5. an owner row carries a search string (expect pre MISS)
+   search null in owner rows: False
+   E02 after-key vs native key arm r1: 15 vs 15 soft page breaks; differing by context (1-based): [2, 3, 14, 15]; reduced content.xml token-equal: False
+SUMMARY  pre: MISS  O1: HIT  O2: HIT  O3: descriptive
+exit 1
+### 6. an owner row carries a CJK string that is not a page UI word (expect pre MISS)
+precondition: owner-row CJK strings ['儲存', '刪除', '前刪', '定位游標', '就緒', '已存出', '已開啟', '測試段落', '無']; outside v17's UI words: ['測試段落']
+   owner-row CJK strings within v17's UI words: False
+   E02 after-key vs native key arm r1: 15 vs 15 soft page breaks; differing by context (1-based): [2, 3, 14, 15]; reduced content.xml token-equal: False
+SUMMARY  pre: MISS  O1: HIT  O2: HIT  O3: descriptive
+exit 1
+### 7. one synthetic case not passing (expect O2 MISS)
+O2 synthetic: 25 of 26 pass (expected 26 of 26); not passing: [('C01', 'verified-key-undo')]
+   E02 after-key vs native key arm r1: 15 vs 15 soft page breaks; differing by context (1-based): [2, 3, 14, 15]; reduced content.xml token-equal: False
+SUMMARY  pre: HIT  O1: HIT  O2: MISS  O3: descriptive
+exit 1
+### 8. M2-0 false on the owner's document (expect O2 MISS)
+O2 M2-0 reducedBytesEqual: {'boundaries': True, 'boundaries-indent': True, 'pmpc': False}
+   E02 after-key vs native key arm r1: 15 vs 15 soft page breaks; differing by context (1-based): [2, 3, 14, 15]; reduced content.xml token-equal: False
+SUMMARY  pre: HIT  O1: HIT  O2: MISS  O3: descriptive
+exit 1
+### 9. report missing (expect NOT DONE, exit 3)
+NOT DONE: [Errno 2] No such file or directory: '/tmp/claude-1000/-home-jiajun-LibreOffice-study-LiteCore/5cce05ac-a512-45ce-9f15-41feabae9041/scratchpad/tmp.ydFSoNssk4/absent.json'
+exit 3

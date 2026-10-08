@@ -959,3 +959,35 @@ v8 與對照組逐條相同（`findings/evidence/v17/layout-corpus/fc-request/`�
      - zstd 12,170,785 → 5,748,639；
      - gzip 約 15.5 MB → 約 12.45 MB（e10 的 gzip 沒有直接量過，用的是 M1 的 E5+M5 數字）。
      **v18 的 CJK 包三種量法都比出貨的小**（審核第 14 項，數字讀自 `~/Projects/Nextcloud_Apps/litecore/engine/MANIFEST.json`）。
+
+## 29. 追加（2026-10-08，W4／W6 判定之後、任何 cutover 動作之前）：v18 的 §28.4 全部成立
+
+依 §28.4（`37525eec`）與 §28.5（`c073478d`）。證據在 `findings/evidence/v18/RESULT.md`；預測與判準在串接開跑前 commit（`15eca506`、Amendment 1 在 `c073478d`）。本節只記錄結果，不改任何判準。
+
+### 29.1 結果
+
+| 項 | 結果 | 依據 |
+| --- | --- | --- |
+| W1 包 | 過 | `evidence/v18/w1-w2/`（大小條款由人比：＋144,587 ≤ 300,000，§28.5） |
+| W2 身分 | 過 | 同上 |
+| W3 引擎側 | 過 | `evidence/v18/w3-w5/` |
+| W4 語料 | **過**：判讀器 exit 0、VERDICT PASS；「不可比」5 份兩臂相同；「沒量到」23 份與 v17 那次同一組；量到 48 份全在 T＝2 px 內，最大差 1 px | `evidence/v18/layout-corpus/judge-output.txt` |
+| W5 固定字距 | 過（只對這支探針） | `evidence/v18/w3-w5/` |
+| W6 重跑 | **過**：產品路徑網 §23 紅格 0／84；merge 兩瀏覽器各 56／56、`--pair` 56 對 0 差異（比對文件數兩邊各 42＋42＋14）；擁有者文件 11 格游標高度、x、y 逐 twip 等於原生，合成 26／26 | `evidence/v18/{product-path,merge,v5}/judge-output.txt` |
+
+串接前後各雜湊一次 v18 的 manifest、CJK 包、metadata 與對照組 manifest，四者都等於封存值（`identity-during-chain.txt`、`identity-after-chain.txt`），所以這些執行是關於 v18 的證據。
+
+### 29.2 「過了」的意思
+
+- §28.4 的「從來沒做時」預設不再適用於 v18：v18 有驗證。
+- **cutover 不因此自動發生。**它會改產品頁面與宿主，照例要擁有者核可。cutover 鏈照 §28.4 末條：殼層凍新 generation、頁面 sha 依 v18 重算、宿主 0.2.8 的 CJK 包 pin 改 `cjk-sub-e10`。
+- 計數的 M2 沒有做：3 輪 × 2 瀏覽器；M2-1b、M2-2、M2-4 還不在 runner 裡。以上 W6 都是未計數的 shakedown。
+- 沿用的極限不變：§28.4 的四條登錄極限，加上 §28.5 的三條（`bin gn ig ko miq`；「與對照組相同」不等於「與 v8 相同」；大小對出貨的比）。
+
+### 29.3 判讀工具
+
+merge 與擁有者文件兩段的判讀器（`evidence/v18/merge/judge.py`、`evidence/v18/v5/judge.py`）**不是**在串接前寫的。
+
+- merge 的判讀器寫於 Chrome merge 跑完、看過它 stdout 的結果清單之後；擁有者文件的判讀器寫於該步開跑之前。
+- 判準本身沒有在這時候寫或改，兩支判讀器裡的期望值都抄自 `PREDICTION.md`。
+- 兩支都先重判 v17 的紀錄，得到與 v17 的 RESULT 相同的結論；紅案各 7 個與 9 個，每個都只紅在它改動的那一格。

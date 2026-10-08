@@ -1,0 +1,34 @@
+### 0. v17 as recorded, v17's profile and page (expect every line HIT, exit 0)
+SUMMARY  chrome M1:HIT M2:HIT M3:HIT M4:HIT  firefox M1:HIT M2:HIT M3:HIT M4:HIT
+exit 0
+### 1. v17 as recorded, read as v18 (expect M1 MISS on both browsers: profile and page)
+M1 shakedown: profile=e2-editor-v17 page=4c0088c7a518bc36 boot=ready records=56 stderr=0 started=2026-10-08T00:31:58+0800 completed=2026-10-08T00:38:44+0800 -> FAILS ['profile', 'page']
+M1 control: profile=e2-editor-v17 page=4c0088c7a518bc36 boot=ready records=56 stderr=0 started=2026-10-08T00:38:44+0800 completed=2026-10-08T00:45:07+0800 -> FAILS ['profile', 'page']
+M1 shakedown: profile=e2-editor-v17 page=4c0088c7a518bc36 boot=ready records=56 stderr=0 started=2026-10-08T00:45:07+0800 completed=2026-10-08T00:53:00+0800 -> FAILS ['profile', 'page']
+M1 control: profile=e2-editor-v17 page=4c0088c7a518bc36 boot=ready records=56 stderr=0 started=2026-10-08T00:53:10+0800 completed=2026-10-08T01:00:48+0800 -> FAILS ['profile', 'page']
+SUMMARY  chrome M1:MISS M2:HIT M3:HIT M4:HIT  firefox M1:MISS M2:HIT M3:HIT M4:HIT
+exit 1
+### 2. one case's pass flag false, shakedown-chrome (expect chrome M2 MISS only)
+M2 pass 55 of 56; cases off the expected outcome or not passing: 1
+SUMMARY  chrome M1:HIT M2:MISS M3:HIT M4:HIT  firefox M1:HIT M2:HIT M3:HIT M4:HIT
+exit 1
+### 3. C15's stage changed, its pass flag left true (expect chrome M2 MISS only: the reader does not trust pass)
+M2 pass 56 of 56; cases off the expected outcome or not passing: 1
+SUMMARY  chrome M1:HIT M2:MISS M3:HIT M4:HIT  firefox M1:HIT M2:HIT M3:HIT M4:HIT
+exit 1
+### 4. M2-0 false on text-frame, shakedown-firefox (expect firefox M2 MISS only)
+M2-0 reducedBytesEqual: {'boundaries': True, 'boundaries-indent': True, 'text-frame': False} -> False
+SUMMARY  chrome M1:HIT M2:HIT M3:HIT M4:HIT  firefox M1:HIT M2:MISS M3:HIT M4:HIT
+exit 1
+### 5. one kept follow document removed from control-firefox.docs, pair output untouched (expect firefox M3 MISS only)
+M3 the same (case, round) set kept on both sides for every kind: False
+SUMMARY  chrome M1:HIT M2:HIT M3:HIT M4:HIT  firefox M1:HIT M2:HIT M3:MISS M4:HIT
+exit 1
+### 6. 「重繪失敗」 added to one toast list in control-chrome, clauses untouched (expect chrome M4 MISS only)
+M4 「重繪失敗」 anywhere in the reports: ['control-chrome.json']
+SUMMARY  chrome M1:HIT M2:HIT M3:HIT M4:MISS  firefox M1:HIT M2:HIT M3:HIT M4:HIT
+exit 1
+### 7. pair-firefox.stdout.txt missing (expect NOT DONE firefox, exit 3)
+NOT DONE: unreadable or missing ['pair']: pair: [Errno 2] No such file or directory: '/tmp/claude-1000/-home-jiajun-LibreOffice-study-LiteCore/5cce05ac-a512-45ce-9f15-41feabae9041/scratchpad/tmp.Ovh1XgDADL/pair-firefox.stdout.txt'
+SUMMARY  chrome M1:HIT M2:HIT M3:HIT M4:HIT  NOT DONE: ['firefox']
+exit 3

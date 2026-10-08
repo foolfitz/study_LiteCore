@@ -1,0 +1,44 @@
+
+## chrome
+
+M1 shakedown: profile=e2-editor-v18 page=cfc8ba1d54dc4bef boot=ready records=56 stderr=0 started=2026-10-08T08:37:43+0800 completed=2026-10-08T08:44:51+0800 -> ok
+M1 control: profile=e2-editor-v18 page=cfc8ba1d54dc4bef boot=ready records=56 stderr=0 started=2026-10-08T08:44:51+0800 completed=2026-10-08T08:51:42+0800 -> ok
+M1 pair stderr bytes: 0
+M2 every (case, round) once, rounds [1, 2]: True
+M2 split: {'verified-key-undo': 40, 'refused': 14, 'verified-selection-delete': 2} (expected {'verified-key-undo': 40, 'refused': 14, 'verified-selection-delete': 2}) -> True
+M2 pass 56 of 56; cases off the expected outcome or not passing: 0
+M2 cases with notEstablished clauses: [('C17', 1, ['noUnchanged']), ('C29', 1, ['noUnchanged']), ('C30', 1, ['noUnchanged']), ('Y01', 1, ['afterKeyBytes']), ('Y02', 1, ['afterKeyBytes']), ('F01', 1, ['noUnchanged']), ('F02', 1, ['noUnchanged']), ('C17', 2, ['noUnchanged']), ('C29', 2, ['noUnchanged']), ('C30', 2, ['noUnchanged']), ('Y01', 2, ['afterKeyBytes']), ('Y02', 2, ['afterKeyBytes']), ('F01', 2, ['noUnchanged']), ('F02', 2, ['noUnchanged'])]
+M2-0 reducedBytesEqual: {'boundaries': True, 'boundaries-indent': True, 'text-frame': True} -> True
+M2 control pass 56 of 56, outcomes {'control': 56}
+M3 pair: pairs=56 differ=0 -> True
+M3 kept on shakedown: after-key 42, follow 42, reopened 14; files with no paragraph or unreadable: none
+M3 kept on control: after-key 42, follow 42, reopened 14; files with no paragraph or unreadable: none
+M3 the same (case, round) set kept on both sides for every kind: True
+M4 toast clauses (noToast / onlyTheReopenToasts) not true: none
+M4 cases per toast clause: {('shakedown', 'noToast'): 42, ('shakedown', 'onlyTheReopenToasts'): 14, ('control', 'noToast'): 42, ('control', 'onlyTheReopenToasts'): 14}
+M4 「重繪失敗」 anywhere in the reports: no
+
+chrome: M1: HIT  M2: HIT  M3: HIT  M4: HIT
+
+## firefox
+
+M1 shakedown: profile=e2-editor-v18 page=cfc8ba1d54dc4bef boot=ready records=56 stderr=0 started=2026-10-08T08:51:43+0800 completed=2026-10-08T08:59:37+0800 -> ok
+M1 control: profile=e2-editor-v18 page=cfc8ba1d54dc4bef boot=ready records=56 stderr=0 started=2026-10-08T08:59:48+0800 completed=2026-10-08T09:07:29+0800 -> ok
+M1 pair stderr bytes: 0
+M2 every (case, round) once, rounds [1, 2]: True
+M2 split: {'verified-key-undo': 40, 'refused': 14, 'verified-selection-delete': 2} (expected {'verified-key-undo': 40, 'refused': 14, 'verified-selection-delete': 2}) -> True
+M2 pass 56 of 56; cases off the expected outcome or not passing: 0
+M2 cases with notEstablished clauses: [('C17', 1, ['noUnchanged']), ('C29', 1, ['noUnchanged']), ('C30', 1, ['noUnchanged']), ('Y01', 1, ['afterKeyBytes']), ('Y02', 1, ['afterKeyBytes']), ('F01', 1, ['noUnchanged']), ('F02', 1, ['noUnchanged']), ('C17', 2, ['noUnchanged']), ('C29', 2, ['noUnchanged']), ('C30', 2, ['noUnchanged']), ('Y01', 2, ['afterKeyBytes']), ('Y02', 2, ['afterKeyBytes']), ('F01', 2, ['noUnchanged']), ('F02', 2, ['noUnchanged'])]
+M2-0 reducedBytesEqual: {'boundaries': True, 'boundaries-indent': True, 'text-frame': True} -> True
+M2 control pass 56 of 56, outcomes {'control': 56}
+M3 pair: pairs=56 differ=0 -> True
+M3 kept on shakedown: after-key 42, follow 42, reopened 14; files with no paragraph or unreadable: none
+M3 kept on control: after-key 42, follow 42, reopened 14; files with no paragraph or unreadable: none
+M3 the same (case, round) set kept on both sides for every kind: True
+M4 toast clauses (noToast / onlyTheReopenToasts) not true: none
+M4 cases per toast clause: {('shakedown', 'noToast'): 42, ('shakedown', 'onlyTheReopenToasts'): 14, ('control', 'noToast'): 42, ('control', 'onlyTheReopenToasts'): 14}
+M4 「重繪失敗」 anywhere in the reports: no
+
+firefox: M1: HIT  M2: HIT  M3: HIT  M4: HIT
+
+SUMMARY  chrome M1:HIT M2:HIT M3:HIT M4:HIT  firefox M1:HIT M2:HIT M3:HIT M4:HIT

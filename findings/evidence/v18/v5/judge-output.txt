@@ -1,0 +1,40 @@
+precondition: profile=e2-editor-v18 page=cfc8ba1d54dc4bef worker=00882139cd0b2e58 pinAfter=ad3f68bb85f94589 boot=ready started=2026-10-08T09:07:39+0800 completed=2026-10-08T09:12:32+0800 cases=37
+precondition: owner-row CJK strings ['儲存', '刪除', '前刪', '定位游標', '就緒', '已存出', '已開啟', '無']; outside v17's UI words: none
+   profile: True
+   page: True
+   restOfShellEqualsSource: True
+   bootReady: True
+   ownerDocument: True
+   completedAt: True
+   no runner-error: True
+   11 owner rows: True
+   search null in owner rows: True
+   owner-row CJK strings within v17's UI words: True
+
+| case | native h | engine h | engine x,y = native | keyed | outcome | pass | false clauses | key ms |
+|---|---|---|---|---|---|---|---|---|
+| E01 | 348 | 348 | True | False | verified-key-undo | True | - | 141.7 |
+| E02 | 521 | 521 | True | False | verified-key-undo | False | afterKeyBytes | 151.2 |
+| E05 | 521 | 521 | True | False | verified-key-undo | True | - | 132.2 |
+| E10 | 348 | 348 | True | False | verified-key-undo | True | - | 135.3 |
+| T01 | 463 | 463 | True | False | verified-key-undo | True | - | 139.3 |
+| E12 | 348 | 348 | True | False | verified-key-undo | True | - | 135.4 |
+| P27 | 348 | 348 | True | False | verified-key-undo | True | - | 150.2 |
+| E13 | 348 | 348 | True | False | verified-key-undo | True | - | 146.8 |
+| E15 | 348 | 348 | True | False | verified-key-undo | True | - | 146.9 |
+| P62 | 348 | 348 | True | False | verified-key-undo | True | - | 150.8 |
+| P63 | 348 | 348 | True | False | verified-key-undo | True | - | 153.5 |
+O1: HIT
+
+O2 synthetic: 26 of 26 pass (expected 26 of 26); not passing: none
+O2 M2-0 reducedBytesEqual: {'boundaries': True, 'boundaries-indent': True, 'pmpc': True}
+O2: HIT
+
+O3 (descriptive, finding 115)
+   E02 false clauses: ['afterKeyBytes']; afterKeyDocument textEqual=True reducedBytesEqual=False
+   E02 after-key vs native key arm r1: 15 vs 15 soft page breaks; differing by context (1-based): [2, 3, 14, 15]; reduced content.xml token-equal: False
+   E01 after-key vs native key arm r1: 15 vs 15 soft page breaks; differing by context (1-based): []; reduced content.xml token-equal: True
+   no-edit save vs native original: 15 vs 15 soft page breaks; differing by context (1-based): []; reduced content.xml token-equal: True
+   E02 after-key vs v17's E02 after-key: 15 vs 15 soft page breaks; differing by context (1-based): []; reduced content.xml token-equal: True
+
+SUMMARY  pre: HIT  O1: HIT  O2: HIT  O3: descriptive

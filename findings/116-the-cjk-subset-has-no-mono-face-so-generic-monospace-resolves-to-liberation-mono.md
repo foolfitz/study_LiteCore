@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認、已診斷**（2026-10-08）；擁有者選 A（補 Mono 面），修法在 `e2-editor-v18`，§28.4 的 W1–W3、W5 已過，W4／W6 在跑 |
+| **狀態** | **已確認、已診斷、修法已驗證未出貨**（2026-10-08）；擁有者選 A（補 Mono 面），修法在 `e2-editor-v18`，**§28.4 的 W1–W6 全過**（W4 語料：判讀器 exit 0、VERDICT PASS，這份 fixture 兩臂逐帶相同；`evidence/v18/RESULT.md`）；cutover 等擁有者核可 |
 | **所在** | 我們自己的打包：`cjk-sub-e5`（v15 起）沒有任何 Noto Sans Mono CJK 面；fontconfig 的標準規則照設計運作 |
 | **發現日** | 2026-10-08（v17 的 V6 語料計數比較，唯一一份紅：`test-docs/e1/paragraph-content.odt`） |
 | **嚴重度** | 低：語料 73 份可讀文件只有這一份（合成 fixture）用到通用等寬字族；效果是那一段的拉丁字換成另一個等寬字型，在語料工具的縮放下每行矮 3 px，後面的段落跟著上移 |
@@ -48,6 +48,7 @@
 - 新包 `cjk-sub-e10`（`tools/build_cjk_subset_mono_pack.py`）：e5 的五個 Sans 面逐表不變，加上五個 Mono 面——從完整 TTC 的 Mono TC 面切同一份 E 級碼位，每一面的 name 記錄與完整 TTC 該地區的原 Mono 面相同；字型換新路徑。zstd −19 多 144,587 位元組。
 - 新身分 `e2-editor-v18`＝v17 只換 CJK 包，不連結，wasm／loader／worker 與 v17 逐位元相同。v17 因本 finding 不出貨。
 - §28.4 進度：W1（包）、W2（身分）、W3（引擎側：K1 答 Noto Sans Mono CJK KR）、W5（固定字距探針：細明體／MingLiU 的答案與帶位都與對照組相同）**已過**（`evidence/v18/`）；W4（語料計數比較）與 W6（產品路徑網、merge、擁有者文件）在跑。
+- **2026-10-08 09:59 更新：W4 與 W6 也過了**（`evidence/v18/RESULT.md`）。語料：判讀器 exit 0、VERDICT PASS；`paragraph-content.odt` 兩臂 27 條帶逐條相同（第 10 條兩邊都是 209）；原本差 1 px 的八份仍是同樣八份、仍差 1 px（Mono 面沒有碰到它們）。產品路徑網 §23 紅格 0／84、v8 與 v18 每格次數相同；merge 兩瀏覽器 56／56、`--pair` 56 對 0 差異（比對文件數兩邊各 42＋42＋14）；擁有者文件 11 格游標高度與 x／y 逐 twip 等於原生。串接前後 v18 的 manifest、包、metadata 雜湊都等於封存值。
 
 ## 未做
 
@@ -62,3 +63,5 @@
 - 2026-10-08：H-mono 判別不成立（亞洲槽）。
 - 2026-10-08 02:11–02:16：fc-request 判別：R1＋D1，v8 為 V8-1；登錄本 finding。
 - 2026-10-08：擁有者選 C（先量兩件）。M1：補 Mono 面 zstd ＋144 KB；M2：固定字距的 細明體／MingLiU 在 v17 兩槽都落到 Liberation Mono（觀察，兩次相同；正向對照兩條照字面落空，Q2 未正式判定）。
+- 2026-10-08：擁有者選 A；v18 打包（不連結），W1–W3、W5 過；opus 審核無 BLOCKING。
+- 2026-10-08 07:20–09:57：W4／W6 串接跑完；W4、W6 全過（`evidence/v18/RESULT.md`）。
