@@ -322,10 +322,13 @@ def limit_record(record: dict, report: dict, path: Path) -> tuple[dict, dict]:
                "noToastThroughSave": only_saves(record.get("toastsAtEnd"), 1),
                "finalBytes": final["bytes"],
                "finalText": final["text"]}
+    engine = [p.get("keyToUndoMs") for p in presses if isinstance(p.get("keyToUndoMs"), (int, float))]
     counts = {"presses": len(presses),
               "withBothNumbers": sum(None not in lat.values() for lat in per_press),
               "slow": sum(False in lat.values() for lat in per_press),
-              "limitAtPress": full}
+              "limitAtPress": full,
+              # Spec 33.4: the clock-guard argument is re-read against v19's minimum.
+              "engineMs": [min(engine), statistics.median(engine), max(engine)] if engine else None}
     return clauses, counts
 
 

@@ -11,7 +11,7 @@ Written 2026-10-08, before the adversarial review and before shell generation v5
 
 ## 0. Gates before the link
 
-From `wasm_sdk_probe/`. State at the commit that adds this file: all green **except the two marked open**.
+From `wasm_sdk_probe/`. State at `99475c4b`: all green **except the one marked open** (the review is done; see below).
 
 - `python3 tools/check_merge_key_undo_scope.py --base 5d77dc84` — M1-1 (extended, §32.4; per object since the review, §33): exit 0, 25 rules, 100 objects, only `E2_V15`'s and `E2_V19`'s `probe_engine.o` differ from BASE and every other object of the two carriers is the same. Red cases in `findings/evidence/v19/pre-link/m1-1-after-review/` (the first run, before the per-object rule, in `m1-1/`).
 - `python3 tools/what_the_link_ships.py --since 1990bb64 --variant merge-v15 --shipped-profile dist/profiles/e2-editor-v18` — what the link compiles differently from v15's source (1990bb64 = the last commit before v15's link, 2026-10-07 07:16; `src/` has changed since only in `66e5c0af`): `sdk_api`, `unoembind_stub`, `editor_api` identical; `probe_engine` changed by exactly `66e5c0af`'s hunk; `sdk-worker.js` the same as v18's (`00882139…`). Measured 2026-10-08 (`findings/evidence/v19/pre-link/what-the-link-ships.txt`); any other changed unit stops the link.
@@ -70,7 +70,7 @@ python3 tools/check_profile_identity.py --candidate dist/profiles/e2-editor-v19 
 
 ## 4. After the link (spec §31.3 steps 6-9, the main session's)
 
-1. **Bind** (§7, §32.3): `BINDING` in `run_merge_wasm_shakedown.py` (wasm, worker, session, page, page source, eshape) and `test_nothing_is_bound_before_v56` change in **one** commit. The candidate page is the cutover source with the 118 fix, repointed to v19; its sha256 is computed by the runner (`bound_values`) and checked against `build_cutover_page.py --profile e2-editor-v19` (prints the sha; never `--write`).
+1. **Bind** (§7, §32.3): `BINDING` in `run_merge_wasm_shakedown.py` (the nine `BOUND_KEYS`: wasm, worker, session, shell, html, page, page source, eshape, native; spec §33.2) and `test_nothing_is_bound_before_v56` change in **one** commit. The candidate page is the cutover source with the 118 fix, repointed to v19; its sha256 is computed by the runner (`bound_values`) and checked against `build_cutover_page.py --profile e2-editor-v19` (prints the sha; never `--write`).
 2. **Predictions** for X2-X7 under `findings/evidence/v19/`, committed before the round (§31.4: M2-4 105/105 `verified-key-undo`, per-press engine latency < 300 ms, no toast, final = native; Y01/Y02 engine latency in the 28-49 ms band).
 3. **The v19 round**: X2 (M1-1 again), X3 (W3, W5 probes), X4 (corpus v19 vs v18), X5 (product-path net v8 vs v19), X6 (owner document V5), X7 (the counted M2: per browser `counted`, `counted --control`, `m2-1b`, `m2-4`, `m2-1-red`, written as `counted-B.json`, `counted-control-B.json`, `m2-1b-B.json`, `m2-4-B.json`, `red-B.json`, then `tools/judge_counted_m2.py --dir DIR` without `--uncounted`: exit 0 and `VERDICT PASS`). One runner at a time; count `chrome` processes before each counted run (rule y).
 4. If X7 is voided by a page or shell red: freeze v57, never overwrite v56 (§31.4).
