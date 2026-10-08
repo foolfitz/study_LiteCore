@@ -82,6 +82,7 @@ BOUND_MS = 1000                              # 30.2 M2-2 and 31.2: runner and en
 STARTING, REOPENED = "，正在重新載入…", "，已重新載入"
 SAVED = re.compile(r"已存出 [0-9]+(?:\.[0-9]+)? KB")   # the standalone page's save confirmation, the one toast a
                                                        # merge case may show after its key (one per save)
+SAVE_TOKEN = "已存出 N KB"                             # 34.1 (b): what every SAVED becomes in the paired control
 # M2-4's native reference (R0 run 4, round 1, press 105): content.xml sha256[:16], recorded by every v18 M2-4
 # report as `finalDocument.theirs`.  The file lives under build/ (not in git); review 2026-10-08, opus S6.
 LIMIT_REFERENCE_SHA16 = "60087d9401a68bf6"
@@ -488,7 +489,7 @@ class Browser:
                  f"not under {BOUND_MS} ms or missing: {bad if bad else 'none'}")
 
     def control(self, counted: tuple, control: tuple) -> None:
-        (_, counted_path), (control_report, control_path) = counted, control
+        (counted_report, counted_path), (control_report, control_path) = counted, control
         wanted = {(c, r) for c in self.cases for r in range(1, ROUNDS + 1)}
         ok, note = self.population_of(control_report, wanted)
         try:
@@ -496,6 +497,30 @@ class Browser:
         except SystemExit as error:
             self.say("control", "NOT DONE", f"pair: {error}")
             return
+        # Spec 34.1 (b), fable's ruling of 2026-10-08 (findings/evidence/v19/x7-counted-m2/fable-ruling-control.md),
+        # witness: v19's X7 reports (b8324a85).  `pair()` compares `toastsAtEnd` verbatim, but a save confirmation's
+        # figure is the saved file's size rounded to 0.1 KB, and dc:date and the Rsid move it by a byte or two on
+        # every save: C03 straddles 14.25 KB and flipped inside one arm.  §33.3 writes that toast `已存出 N KB`.  A
+        # row is forgiven only when `toastsAtEnd` is its one false field and the two lists are equal once each
+        # element that FULL-matches SAVED is one token; count, order and every other toast stay verbatim.  `pair()`
+        # itself (the runner) is unchanged, so the runner's standalone `--pair` still reports the raw rows.
+        cases = {side: {(c.get("case"), c.get("round")): c for c in report.get("cases") or []}
+                 for side, report in (("counted", counted_report), ("control", control_report))}
+
+        def saves_as_one(toasts):
+            return [SAVE_TOKEN if isinstance(t, str) and SAVED.fullmatch(t) else t for t in toasts]
+
+        def kb_only(row: dict) -> bool:
+            if row.get("toastsAtEnd") is not False or any(
+                    v is not True for k, v in row.items() if k not in ("case", "round", "toastsAtEnd", "same")):
+                return False
+            mine, theirs = (cases[side].get((row["case"], row["round"]), {}).get("toastsAtEnd")
+                            for side in ("counted", "control"))
+            return (isinstance(mine, list) and isinstance(theirs, list)
+                    and saves_as_one(mine) == saves_as_one(theirs))
+
+        forgiven = [row for row in paired["differ"] if kb_only(row)]
+        differ = [row for row in paired["differ"] if row not in forgiven]
         sides = {}
         for path in (counted_path, control_path):
             docs = path.parent / f"{path.stem}.docs"
@@ -506,12 +531,14 @@ class Browser:
         clauses = {"population": ok or None,
                    "pairs": paired["pairs"] == len(wanted) or None,
                    "sameOrder": paired.get("sameOrder") is True,
-                   "differ": paired["differ"] == [],
+                   "differ": differ == [],
                    "kept": all(n == [KEPT[k]] * 2 for k, n in counts.items()) or None,
                    "sameKept": all(a[k] == b[k] for k in KEPT)}
         self.say("control", status(clauses), f"pairs {paired['pairs']} (expected {len(wanted)}), differ "
-                 f"{len(paired['differ'])}; documents compared per kind [counted, control] {counts} (expected "
-                 f"{KEPT}){note}" + (f"; differ {paired['differ'][:4]}" if paired["differ"] else ""))
+                 f"{len(differ)}; {len(forgiven)} pairs equal up to the KB figure (34.1 (b)"
+                 + (f": {[(r['case'], r['round']) for r in forgiven]}" if forgiven else "")
+                 + f"); documents compared per kind [counted, control] {counts} (expected "
+                 f"{KEPT}){note}" + (f"; differ {differ[:4]}" if differ else ""))
 
     def m2_1b(self, report: dict, path: Path) -> None:
         typed = [c for c in self.order if self.cases[c]["decision"] == "typed-merge"]

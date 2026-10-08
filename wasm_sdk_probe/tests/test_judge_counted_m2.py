@@ -485,5 +485,69 @@ class Reader(unittest.TestCase):
         self.assertEqual(self.judge()[:2], (3, "VERDICT NOT DONE: ['chrome identity']"))
 
 
+
+V19_X7 = m.HERE.parent / "findings/evidence/v19/x7-counted-m2"
+
+
+@unittest.skipUnless(V19_X7.is_dir() and m.LIMIT_ROUND.is_dir(), "v19's X7 reports or R0 run 4's documents missing")
+class V19Witness(unittest.TestCase):
+    """Spec 34.1 (b), fable's ruling of 2026-10-08 (v19/x7-counted-m2/fable-ruling-control.md): the committed v19
+    X7 reports (b8324a85) are the witness.  Judged with the COMMITTED binding, not the test authority above.  The
+    reader before the fix printed `VERDICT FAIL: ['chrome control', 'firefox control']` on them (judge-output.txt
+    there): the only false field was `toastsAtEnd`, `已存出 14.2 KB` against `已存出 14.3 KB`."""
+
+    def judge(self, directory: Path) -> tuple[int, str, list]:
+        code, lines = j.judge(directory, "e2-editor-v19", list(j.BROWSERS), False)
+        return code, lines[-1], lines
+
+    def copy(self, change) -> Path:
+        target = Path(tempfile.mkdtemp(prefix="judge-v19-witness-")) / "x7"
+        self.addCleanup(shutil.rmtree, target.parent)
+        shutil.copytree(V19_X7, target)
+        change(target)
+        return target
+
+    @staticmethod
+    def edit(directory: Path, name: str, case: str, round_no: int, toasts) -> None:
+        path = directory / f"{name}.json"
+        report = json.loads(path.read_text())
+        record = next(c for c in report["cases"] if c["case"] == case and c["round"] == round_no)
+        record["toastsAtEnd"] = toasts(record["toastsAtEnd"])
+        path.write_text(json.dumps(report, ensure_ascii=False))
+
+    def control_lines(self, lines: list) -> list[str]:
+        return [line for line in lines if line.startswith("control ")]
+
+    def test_a_the_witness_passes(self):
+        code, last, lines = self.judge(V19_X7)
+        self.assertEqual(code, 0, "\n".join(lines))
+        self.assertTrue(last.startswith(f"VERDICT PASS (chrome, firefox; runner {j.RUNNER_SHA}"), last)
+        chrome, firefox = self.control_lines(lines)
+        self.assertIn("differ 0; 2 pairs equal up to the KB figure", chrome)
+        self.assertIn("differ 0; 3 pairs equal up to the KB figure", firefox)
+
+    def test_b_a_repaint_failure_in_one_arm_is_still_red(self):
+        target = self.copy(lambda d: self.edit(d, "counted-chrome", "C03", 1,
+                                               lambda t: [t[0], "重繪失敗：TILE_NOT_PAINTED", *t[1:]]))
+        code, last, lines = self.judge(target)
+        self.assertEqual(code, 1)
+        self.assertIn("chrome control", last)
+        self.assertTrue(self.control_lines(lines)[0].split()[1] == "FAIL", lines)
+
+    def test_c_one_arm_with_a_single_save_is_red(self):
+        target = self.copy(lambda d: self.edit(d, "counted-control-chrome", "C03", 1, lambda t: t[:1]))
+        code, last, _ = self.judge(target)
+        self.assertEqual((code, last), (1, "VERDICT FAIL: ['chrome control']"))
+
+    def test_d_another_toast_differing_in_a_digit_is_red(self):
+        def change(d):
+            self.edit(d, "counted-chrome", "C01", 1, lambda t: [*t, "某訊息 1"])
+            self.edit(d, "counted-control-chrome", "C01", 1, lambda t: [*t, "某訊息 2"])
+        code, last, lines = self.judge(self.copy(change))
+        self.assertEqual(code, 1)
+        self.assertIn("chrome control", last)
+        self.assertTrue(self.control_lines(lines)[0].split()[1] == "FAIL", lines)
+
+
 if __name__ == "__main__":
     unittest.main()

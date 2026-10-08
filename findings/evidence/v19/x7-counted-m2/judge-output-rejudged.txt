@@ -1,0 +1,44 @@
+population (eshape.json c3f9bbed6f21b435): M2-1 ['C01', 'C02', 'C03', 'C08', 'C09', 'C10', 'C11', 'C12', 'C13', 'C14', 'C27', 'D01', 'D04', 'D08', 'D12', 'I01', 'I02', 'I03', 'Y01', 'Y02'], M2-3 ['C15', 'C16', 'C17', 'C29', 'C30'], barrier ['G01']
+
+## chrome
+identity   PASS     counted-chrome.json: runner 73b2e9ff4b1e6fbe page e00ab76a550dc12f ok
+identity   PASS     counted-control-chrome.json: runner 73b2e9ff4b1e6fbe page e00ab76a550dc12f ok
+identity   PASS     m2-1b-chrome.json: runner 73b2e9ff4b1e6fbe page e00ab76a550dc12f ok
+identity   PASS     m2-4-chrome.json: runner 73b2e9ff4b1e6fbe page e00ab76a550dc12f ok
+identity   PASS     red-chrome.json: runner 73b2e9ff4b1e6fbe page a7d8ffa1adc60a9a ok
+M2-1       PASS     60 records (expected 60: 20 cases x 3 rounds); not passing: none
+M2-3       PASS     15 records (expected 15: 5 cases x 3 rounds); not passing: none
+barrier    PASS     3 records (expected 3: 1 cases x 3 rounds); not passing: none
+M2-2       PASS     counted: 60 completions (expected 60); runner n=60 min=103.5 median=123.3 max=158.3; engine n=60 min=15 median=30.0 max=45; not under 1000 ms or missing: none
+control    PASS     pairs 78 (expected 78), differ 0; 2 pairs equal up to the KB figure (34.1 (b): [('C03', 1), ('C03', 3)]); documents compared per kind [counted, control] {'after-key': [63, 63], 'follow': [63, 63], 'reopened': [15, 15]} (expected {'after-key': 63, 'follow': 63, 'reopened': 15})
+M2-1b      PASS     20 records (expected 20: ['Y01', 'Y02'] x 10); not passing: none
+M2-2       PASS     M2-1b: 20 completions (expected 20); runner n=20 min=141.8 median=149.5 max=161.5; engine n=20 min=30 median=30.0 max=42; not under 1000 ms or missing: none
+M2-4       PASS     {'presses': 105, 'withBothNumbers': 105, 'slow': 0, 'limitAtPress': 100, 'engineMs': [30, 32, 36]}; not true: none
+red        PASS     ['C01', 'C02', 'C03'] (expected ['C01', 'C02', 'C03'], on e2-editor-v8, each placed, refused and reopened); not red: none
+M2-0       PASS     counted-chrome.json: boundaries PASS, boundaries-indent PASS
+M2-0       PASS     m2-1b-chrome.json: boundaries PASS
+M2-0       PASS     m2-4-chrome.json: undo-limit-105 PASS
+
+## firefox
+identity   PASS     counted-firefox.json: runner 73b2e9ff4b1e6fbe page e00ab76a550dc12f ok
+identity   PASS     counted-control-firefox.json: runner 73b2e9ff4b1e6fbe page e00ab76a550dc12f ok
+identity   PASS     m2-1b-firefox.json: runner 73b2e9ff4b1e6fbe page e00ab76a550dc12f ok
+identity   PASS     m2-4-firefox.json: runner 73b2e9ff4b1e6fbe page e00ab76a550dc12f ok
+identity   PASS     red-firefox.json: runner 73b2e9ff4b1e6fbe page a7d8ffa1adc60a9a ok
+M2-1       PASS     60 records (expected 60: 20 cases x 3 rounds); not passing: none
+M2-3       PASS     15 records (expected 15: 5 cases x 3 rounds); not passing: none
+barrier    PASS     3 records (expected 3: 1 cases x 3 rounds); not passing: none
+M2-2       PASS     counted: 60 completions (expected 60); runner n=60 min=110.5 median=127.95 max=149.7; engine n=60 min=15 median=30.0 max=46; not under 1000 ms or missing: none
+control    PASS     pairs 78 (expected 78), differ 0; 3 pairs equal up to the KB figure (34.1 (b): [('C10', 1), ('C03', 2), ('C03', 3)]); documents compared per kind [counted, control] {'after-key': [63, 63], 'follow': [63, 63], 'reopened': [15, 15]} (expected {'after-key': 63, 'follow': 63, 'reopened': 15})
+M2-1b      PASS     20 records (expected 20: ['Y01', 'Y02'] x 10); not passing: none
+M2-2       PASS     M2-1b: 20 completions (expected 20); runner n=20 min=144.0 median=148.3 max=150.1; engine n=20 min=30 median=30.0 max=30; not under 1000 ms or missing: none
+M2-4       PASS     {'presses': 105, 'withBothNumbers': 105, 'slow': 0, 'limitAtPress': 100, 'engineMs': [30, 32, 33]}; not true: none
+red        PASS     ['C01', 'C02', 'C03'] (expected ['C01', 'C02', 'C03'], on e2-editor-v8, each placed, refused and reopened); not red: none
+M2-0       PASS     counted-firefox.json: boundaries PASS, boundaries-indent PASS
+M2-0       PASS     m2-1b-firefox.json: boundaries PASS
+M2-0       PASS     m2-4-firefox.json: undo-limit-105 PASS
+
+## all
+identity   PASS     runners ['73b2e9ff4b1e6fbe'] (this runner 73b2e9ff4b1e6fbe) pages ['e00ab76a550dc12f'] ok
+
+VERDICT PASS (chrome, firefox; runner 73b2e9ff4b1e6fbe; page e00ab76a550dc12f; wasm 1aafd4f9da42fd83)
