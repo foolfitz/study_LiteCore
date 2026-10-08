@@ -1,0 +1,558 @@
+#!/usr/bin/env python3
+"""Reader for the counted M2 of paragraph merge (SPEC-M3-paragraph-merge 30.2 and 31.2; 31.4 X7).
+
+Written 2026-10-08, before any counted run exists.  It reads one directory of reports and decides, per
+browser, M2-0, M2-1, M2-1b, M2-2, M2-3, the G01 barrier, M2-4 (with 31.2's per-press latency), the M2-1 red
+case and the paired control.  It writes nothing.
+
+  judge_counted_m2.py --dir DIR [--profile e2-editor-v19] [--browsers chrome firefox] [--uncounted]
+
+Files it reads in DIR, per browser B (the names the counted chain is to write):
+  counted-B.json          --mode counted                 (the tool list, 3 rounds)
+  counted-control-B.json  --mode counted --control       (spec 22.3's paired control)
+  m2-1b-B.json            --mode m2-1b
+  m2-4-B.json             --mode m2-4
+  red-B.json              --mode m2-1-red --candidate-profile e2-editor-v8
+and each one's kept documents (`<stem>.docs/`) and, when present, `<stem>.stderr.txt`.
+
+What it trusts and what it does not:
+  - NOT the runner's `pass` or `clauses` (handoff 10-08d rule x: two M2-4 reports say `pass: true` and are red
+    under 31.2).  Every clause is recomputed from the recorded fields.
+  - NOT the runner's document verdicts: every comparison is redone from the kept documents against the native
+    references, and a report whose recorded content hash or text verdict disagrees with the kept file is NOT
+    DONE for that record (the kept file is not the one the report compared).
+  - The POPULATION is the reader's own: eshape.json read here, the two synthetic fixtures of spec 25, the
+    decision -> expectation table of spec 17 / 22.1, and the counts of spec 25 (20 / 5 / 1).  The runner's
+    `tool_cases` is used only for the ORDER of the list (the red case's "first three") and must name the same
+    cases.  Shared with the runner, and tested there: `native_cases` (the native arms: caret, comment,
+    reference paths), `odt_parts` and `reduce_content` (spec 24's reduction), `pair`.
+
+Verdicts.  A clause is True, False, or None (not done: a number, a document or a record is missing).  A record
+or criterion FAILS when any clause is False, is NOT DONE when none is False and one is None, and PASSES
+otherwise.  The exit code carries the verdict (handoff rule p):
+  0  every criterion PASSES on every browser, and the reports are the counted run (counted, bound, one runner);
+  1  some criterion FAILS (a known miss outranks an unmeasured part: the verdict is not pass either way);
+  3  nothing FAILS and something is NOT DONE (a report missing or unreadable, a population short, a number
+     missing, the reports not bound);
+  4  --uncounted, everything PASSES: a dry run on reports that are not bound.  Never a counted verdict.
+The last line is `VERDICT ...` and names every FAIL and NOT DONE.
+
+Decisions written down here (2026-10-08):
+  - M2-1 red: spec 30.2 says each case must NOT be `verified-key-undo` "(109's refusal + reopen)"; the
+    parenthesis is taken as the clause.  A case that was never placed, or never answered, is not a red.
+  - The M2-4 control is not read: spec 30.2 pairs a control with the counted run only.
+  - M2-2's population is every M2-1 record of the counted run (20 cases x 3 rounds per browser); a record with
+    no number (a refusal has no keyUndo) makes M2-2 NOT DONE while M2-1 FAILS on that record.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import statistics
+import sys
+from collections import Counter
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import run_merge_wasm_shakedown as m  # noqa: E402
+
+# ---- the spec's numbers, not any report's ----------------------------------------------------------------------
+BROWSERS = ("chrome", "firefox")
+ROUNDS = 3                                   # 30.2 計數執行
+FIXTURES = ("boundaries", "boundaries-indent")   # 25: the M2-1 population is the two synthetic documents
+POPULATION = Counter({"M2-1": 20, "M2-3": 5, "barrier": 1})   # 25 (16 + 4 merges, G01); 17 / 22.1 (five refusals)
+M2_1B_RUNS = 10                              # 30.2: per typed-merge case and browser
+M2_1B_TOTAL = 20                             # 30.2: N = 20 per browser
+RED_CASES, RED_PROFILE = 3, "e2-editor-v8"   # 30.2 M2-1 紅案
+LIMIT = {"case": "H03", "presses": 105, "steps": 100, "comment": "Delete paragraph",
+         "fixtureSha256": "09b5ced0e619f8258bb60f46a196e4ab76861c75466f926e076b737f4ce3ecfb"}   # 30.2 M2-4
+BOUND_MS = 1000                              # 30.2 M2-2 and 31.2: runner and engine, each strictly under
+REOPEN = "重新載入"                            # 22.1: the reopen's own two toasts
+UNCHANGED = "沒有被改動"                        # 22.1: never said after the key went out
+KEPT = {"after-key": (POPULATION["M2-1"] + POPULATION["barrier"]) * ROUNDS, "follow":
+        (POPULATION["M2-1"] + POPULATION["barrier"]) * ROUNDS, "reopened": POPULATION["M2-3"] * ROUNDS}
+FILES = {"counted": "counted-{}.json", "control": "counted-control-{}.json", "m2-1b": "m2-1b-{}.json",
+         "m2-4": "m2-4-{}.json", "red": "red-{}.json"}
+MODES = {"counted": "counted", "control": "counted", "m2-1b": "m2-1b", "m2-4": "m2-4", "red": "m2-1-red"}
+# What each report carries: when it is missing, each of these is NOT DONE whatever another report says.
+CARRIES = {"counted": ("M2-0", "M2-1", "M2-2", "M2-3", "barrier", "control"), "control": ("control",),
+           "m2-1b": ("M2-0", "M2-1b", "M2-2"), "m2-4": ("M2-0", "M2-4"), "red": ("red",)}
+M2_0 = {"counted": set(FIXTURES), "m2-1b": {"boundaries"}, "m2-4": {"undo-limit-105"}}
+
+
+class Stop(Exception):
+    """The population or the native side cannot be established: nothing can be judged."""
+
+
+def expectation(decision: str) -> tuple | None:
+    """Spec 17 and 22.1: R0c's decision -> (criterion, outcome, stage, keyPosted).  None = stop."""
+    if decision in ("merge", "typed-merge"):
+        return "M2-1", "verified-key-undo", None, None
+    if decision == "barrier":
+        return "barrier", "verified-selection-delete", None, None
+    if decision == "nothing-selected":
+        return "M2-3", "refused", "nothing-selected", False
+    if decision.startswith("refused-k1-"):
+        return "M2-3", "refused", "anchor-mismatch", False
+    if decision.startswith("refused-k2-"):
+        return "M2-3", "refused", "return-mismatch", False
+    if decision == "key-noop":
+        return "M2-3", "refused", "key-deadline", True
+    return None
+
+
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def population() -> tuple[dict, list]:
+    table = json.loads(m.ESHAPE.read_text())
+    if table.get("kills") or table.get("stops"):
+        raise Stop(f"eshape.json: KILL {table.get('kills')} STOP {table.get('stops')}")
+    rounds = {m.FIXTURES[f][2]: f for f in FIXTURES}
+    out = {}
+    for key, decision in table["cases"].items():
+        round_key, case = key.split(" ", 1)
+        if round_key not in rounds:
+            continue
+        expected = expectation(decision)
+        if expected is None:
+            raise Stop(f"{case}: R0c decision {decision!r} has no expectation (spec 22.1: stop)")
+        try:
+            native = m.native_cases(rounds[round_key])[case]
+        except (SystemExit, KeyError) as error:
+            raise Stop(f"{case}: native side: {error}") from error
+        if native["decision"] != decision:
+            raise Stop(f"{case}: eshape.json says {decision!r}, the runner's native side {native['decision']!r}")
+        out[case] = {"fixture": rounds[round_key], "decision": decision, "criterion": expected[0],
+                     "expected": expected[1:], "native": native}
+    counts = Counter(v["criterion"] for v in out.values())
+    if counts != POPULATION:
+        raise Stop(f"population {dict(counts)} is not spec 25's {dict(POPULATION)}")
+    try:
+        order = list(m.tool_cases(frame_cell=False))
+    except SystemExit as error:
+        raise Stop(f"the runner's tool list: {error}") from error
+    if set(order) != set(out):
+        raise Stop(f"the runner's tool list {sorted(order)} is not the reader's {sorted(out)}")
+    return out, order
+
+
+# ---- clauses ---------------------------------------------------------------------------------------------------
+def status(clauses: dict) -> str:
+    values = list(clauses.values())
+    return "FAIL" if False in values else "NOT DONE" if None in values else "PASS"
+
+
+def worst(statuses) -> str:
+    statuses = list(statuses)
+    return "FAIL" if "FAIL" in statuses else "NOT DONE" if "NOT DONE" in statuses else "PASS"
+
+
+def kept(path: Path, name: str) -> bytes | None:
+    target = path.parent / f"{path.stem}.docs" / f"{name}.odt"
+    return target.read_bytes() if target.is_file() else None
+
+
+def against(raw: bytes | None, reference: Path, recorded: dict | None, with_bytes: bool) -> dict:
+    """A kept document against a native one: paragraph text, and spec 24's reduced bytes when asked.  None when
+    the document is missing or is not the one the report compared (its recorded hash or text verdict)."""
+    if not reference.is_file():
+        raise Stop(f"native reference {reference} is missing")
+    if raw is None:
+        return {"text": None, "bytes": None}
+    mine, theirs = m.odt_parts(raw), m.odt_parts(reference.read_bytes())
+    text = mine["paragraphs"] == theirs["paragraphs"]
+    if recorded is not None and (recorded.get("mine") != mine["sha"] or recorded.get("textEqual") is not text):
+        return {"text": None, "bytes": None, "disagrees": True}
+    return {"text": text, "bytes": (m.reduce_content(mine["content"]) == m.reduce_content(theirs["content"])
+                                    if with_bytes else None)}
+
+
+def fast(ms) -> bool | None:
+    if ms is None:
+        return None
+    return isinstance(ms, (int, float)) and not isinstance(ms, bool) and ms < BOUND_MS
+
+
+def same_generation(record: dict) -> bool:
+    gen = record.get("generation") or [None, None]
+    return gen[0] is not None and gen[0] == gen[1]
+
+
+def next_generation(value) -> str | None:
+    try:
+        return str(int(value) + 1)
+    except (TypeError, ValueError):
+        return None
+
+
+def merge_record(record: dict, case: dict, path: Path) -> dict:
+    """M2-1 (22.1, 24; typed merges by paragraph text only, 12) and the G01 barrier (10.2 R0)."""
+    native, typed = case["native"], case["decision"] == "typed-merge"
+    name = f"{record['case']}-r{record['round']}"
+    after = against(kept(path, f"{name}-after-key"), native["key"], record.get("afterKeyDocument"), not typed)
+    follow = against(kept(path, f"{name}-follow"), native["follow"], record.get("followDocument"), False)
+    key_undo = record.get("keyUndo") or {}
+    clauses = {"placed": (record.get("place") or {}).get("ok") is True,
+               "outcome": record.get("outcome") == case["expected"][0],
+               "generation": same_generation(record),
+               "afterKeyText": after["text"],
+               "followText": follow["text"],
+               "noToast": record.get("toasts") == []}
+    if not typed:
+        clauses["afterKeyBytes"] = after["bytes"]
+    if case["criterion"] == "M2-1":
+        clauses["comment"] = native["nativeComment"] is not None and key_undo.get("comment") == native["nativeComment"]
+        clauses["restorePresses"] = key_undo.get("restorePresses") == 0
+    return clauses
+
+
+def refusal_record(record: dict, case: dict, path: Path) -> dict:
+    """M2-3 as narrowed by 22.1 and 22.2: stage, keyPosted, reopen, original + marker, checkpoint, toasts."""
+    _, stage, posted = case["expected"]
+    fixture = case["fixture"]
+    marker_case = next((c for c in m.MARKER_AT.get(fixture, ()) if c != record["case"]), None)
+    if marker_case is None:
+        raise Stop(f"{record['case']}: no marker place in {fixture}")
+    target = m.native_cases(fixture)[marker_case]
+    original = m.odt_parts(case["native"]["original"].read_bytes())["paragraphs"]
+    if original.count(target["search"]) != 1:
+        raise Stop(f"marker target {target['search']!r} occurs {original.count(target['search'])} times")
+    expected_text = [(m.MARKER + p if target["backward"] else p + m.MARKER) if p == target["search"] else p
+                     for p in original]
+    raw = kept(path, f"{record['case']}-r{record['round']}-reopened")
+    mine = m.odt_parts(raw)["paragraphs"] if raw is not None else None
+    if mine is not None and (record.get("reopenedDocument") or {}).get("paragraphs") != len(mine):
+        mine = None                             # not the document the report saved
+    window = record.get("toastWindow") or {}
+    toasts = window.get("toasts")
+    before, after = record.get("beforeKey") or {}, record.get("afterKey") or {}
+    reopened = next_generation((record.get("generation") or [None])[0])
+    clauses = {"markerPlaced": (record.get("markerPlace") or {}).get("ok") is True,
+               "placed": (record.get("place") or {}).get("ok") is True,
+               "outcome": record.get("outcome") == "refused",
+               "stage": record.get("stage") == stage,
+               "keyPosted": record.get("keyPosted") is posted,
+               "generation": reopened is not None and window.get("generation") == reopened,
+               "toastWindowClosed": window.get("closed") is True,
+               "reopenedText": None if mine is None else mine == expected_text,
+               "markerOnce": None if mine is None else sum(m.MARKER in p for p in mine) == 1,
+               "checkpointRevision": (before.get("revision") is not None
+                                      and after.get("checkpoint") == f"有（r{before.get('revision')}）"),
+               "onlyTheReopenToasts": isinstance(toasts, list) and len(toasts) == 2
+               and all(REOPEN in (t or "") for t in toasts)}
+    if posted:
+        clauses["noUnchanged"] = isinstance(toasts, list) and not any(UNCHANGED in (t or "") for t in toasts)
+    return clauses
+
+
+def latency(record: dict, engine_ms) -> dict:
+    return {"runner": fast(record.get("keyToResponseMs")), "engine": fast(engine_ms)}
+
+
+def limit_record(record: dict, report: dict, path: Path) -> tuple[dict, dict]:
+    """M2-4 (30.2) with 31.2's per-press latency.  Returns the clauses and the descriptive counts."""
+    presses = record.get("presses") or []
+    after = [p.get("actionsAfter") for p in presses]
+    full = next((i for i, a in enumerate(after, 1) if a == LIMIT["steps"]), None)
+    per_press = [latency(p, p.get("keyToUndoMs")) for p in presses]
+    flat = [v for lat in per_press for v in lat.values()]
+    final = against(kept(path, f"{LIMIT['case']}-r1-after-key"),
+                    m.LIMIT_ROUND / "docs" / f"r1-{LIMIT['case']}-key{LIMIT['presses']}.odt",
+                    record.get("finalDocument"), True)
+    clauses = {"fixture": ((report.get("limit") or {}).get("fixtureSha256") == LIMIT["fixtureSha256"]
+                           and sha256(m.LIMIT_FIXTURE) == LIMIT["fixtureSha256"]) or None,   # another run: NOT DONE
+               "placed": (record.get("place") or {}).get("ok") is True,
+               "presses": len(presses) == LIMIT["presses"],
+               "everyPressVerified": len(presses) == LIMIT["presses"] and all(
+                   p.get("ok") is True and p.get("completion") == "verified-key-undo" for p in presses),
+               "comment": len(presses) == LIMIT["presses"] and all(p.get("comment") == LIMIT["comment"]
+                                                                   for p in presses),
+               "restorePresses": len(presses) == LIMIT["presses"] and all(p.get("restorePresses") == 0
+                                                                          for p in presses),
+               "limitReached": (full is not None and full <= LIMIT["steps"]
+                                and all(a == LIMIT["steps"] for a in after[full - 1:])),
+               "latency": (False if False in flat else None if None in flat or not presses else True),
+               "generation": same_generation(record),
+               "noToast": record.get("toasts") == [],
+               "finalBytes": final["bytes"],
+               "finalText": final["text"]}
+    counts = {"presses": len(presses),
+              "withBothNumbers": sum(None not in lat.values() for lat in per_press),
+              "slow": sum(False in lat.values() for lat in per_press),
+              "limitAtPress": full}
+    return clauses, counts
+
+
+def red_record(record: dict) -> dict:
+    gen = record.get("generation") or [None, None]
+    return {"placed": (record.get("place") or {}).get("ok") is True,
+            "refused": record.get("outcome") == "refused",
+            "reopened": next_generation(gen[0]) is not None and gen[1] == next_generation(gen[0])}
+
+
+def m2_0_record(record: dict, path: Path) -> dict:
+    fixture = record.get("fixture")
+    reference = (m.LIMIT_ROUND / "docs" / "original.odt" if fixture == "undo-limit-105"
+                 else m.FIXTURES[fixture][1] / "docs" / "original.odt")
+    result = against(kept(path, f"m2-0-{fixture}"), reference, record.get("document"), True)
+    return {"reducedBytes": result["bytes"], "text": result["text"]}
+
+
+# ---- one browser -----------------------------------------------------------------------------------------------
+def load(path: Path):
+    try:
+        return json.loads(path.read_text())
+    except (OSError, ValueError) as error:
+        return error
+
+
+def describe(values: list) -> str:
+    values = [v for v in values if isinstance(v, (int, float))]
+    if not values:
+        return "none"
+    return f"n={len(values)} min={min(values)} median={statistics.median(values)} max={max(values)}"
+
+
+class Browser:
+    def __init__(self, directory: Path, browser: str, profile: str, uncounted: bool, cases: dict, order: list):
+        self.d, self.b, self.profile, self.uncounted = directory, browser, profile, uncounted
+        self.cases, self.order = cases, order
+        self.lines: list[str] = []
+        self.verdicts: dict[str, str] = {}
+
+    def say(self, name: str, verdict: str, detail: str) -> None:
+        self.verdicts[name] = worst([self.verdicts.get(name, "PASS"), verdict])
+        self.lines.append(f"{name:<10} {verdict:<8} {detail}")
+
+    def records(self, report: dict, judge) -> tuple[str, list]:
+        bad = []
+        for record in report.get("cases") or []:
+            clauses = judge(record)
+            verdict = status(clauses)
+            if verdict != "PASS":
+                bad.append((verdict, f"{record.get('case')} r{record.get('round')}",
+                            sorted(k for k, v in clauses.items() if v is not True)))
+        return worst(v for v, _, _ in bad), bad
+
+    def population_of(self, report: dict, wanted: set) -> tuple[bool, str]:
+        keys = Counter((c.get("case"), c.get("round")) for c in report.get("cases") or [])
+        missing, extra = wanted - set(keys), set(keys) - wanted
+        repeated = [k for k, n in keys.items() if n > 1]
+        ok = not (missing or extra or repeated)
+        return ok, ("" if ok else f" population: missing {sorted(missing)[:6]} extra {sorted(extra)[:6]} "
+                                  f"repeated {repeated[:6]}")
+
+    def identity(self, kind: str, report: dict, path: Path) -> dict:
+        control = kind == "control"
+        stderr = path.with_suffix(".stderr.txt")
+        clauses = {"completedAt": bool(report.get("completedAt")),
+                   "boot": (report.get("boot") or {}).get("state") == "ready",
+                   "restOfShellEqualsSource": report.get("restOfShellEqualsSource") is True,
+                   "mode": report.get("mode") == MODES[kind],
+                   "browser": report.get("browser") == self.b,
+                   "control": report.get("control") is control and report.get("instrumented") is (not control),
+                   "toolList": (report.get("caseList") == "tool" and report.get("frameCell") is False
+                                and report.get("ownerDocument") is False),
+                   "eshape": report.get("eshapeSha256") == sha256(m.ESHAPE),
+                   "profile": (report.get("candidate") or {}).get("profile") == (
+                       RED_PROFILE if kind == "red" else self.profile),
+                   "noRunnerError": not any(c.get("outcome") == "runner-error" for c in report.get("cases") or []),
+                   "observerClosed": "error" not in (report.get("observerAtEnd") or {}),
+                   "stderrEmpty": (not stderr.is_file()) or stderr.stat().st_size == 0}
+        if not self.uncounted:
+            clauses["counted"] = report.get("counted") is True and report.get("binding") is not None
+        return clauses
+
+    def run(self) -> dict:
+        reports = {}
+        for kind, pattern in FILES.items():
+            path = self.d / pattern.format(self.b)
+            report = load(path)
+            if not isinstance(report, dict):
+                self.say("reports", "NOT DONE", f"{path.name}: {report}")
+                for name in CARRIES[kind]:
+                    self.say(name, "NOT DONE", f"{path.name} is missing or unreadable")
+                continue
+            reports[kind] = (report, path)
+            clauses = self.identity(kind, report, path)
+            verdict = status({k: (None if v is False else v) for k, v in clauses.items()})
+            self.say("identity", verdict, f"{path.name}: runner {report.get('runner')} page "
+                     f"{str((report.get('candidate') or {}).get('pageSha256'))[:16]} "
+                     + ("ok" if verdict == "PASS" else f"off: {sorted(k for k, v in clauses.items() if not v)}"))
+        self.together(reports)
+        if "counted" in reports:
+            self.counted(*reports["counted"])
+        if "counted" in reports and "control" in reports:
+            self.control(reports["counted"], reports["control"])
+        if "m2-1b" in reports:
+            self.m2_1b(*reports["m2-1b"])
+        if "m2-4" in reports:
+            self.m2_4(*reports["m2-4"])
+        if "red" in reports:
+            self.red(*reports["red"])
+        for kind, names in M2_0.items():
+            if kind not in reports:
+                continue
+            report, path = reports[kind]
+            got = {r.get("fixture"): m2_0_record(r, path) for r in report.get("m2_0") or []
+                   if r.get("fixture") in names}
+            verdict = worst([status(c) for c in got.values()] + (["NOT DONE"] if set(got) != names else []))
+            self.say("M2-0", verdict, f"{path.name}: " + ", ".join(
+                f"{f} {status(got[f]) if f in got else 'missing'}" for f in sorted(names)))
+        for name in ("M2-0", "M2-1", "M2-1b", "M2-2", "M2-3", "barrier", "M2-4", "red", "control"):
+            self.verdicts.setdefault(name, "NOT DONE")
+        return self.verdicts
+
+    def together(self, reports: dict) -> None:
+        """One runner, one binding, one candidate page; the binding equals what each run served."""
+        runners = {r.get("runner") for r, _ in reports.values()}
+        bindings = [json.dumps(r.get("binding"), sort_keys=True) for r, _ in reports.values()]
+        pages = {(r.get("candidate") or {}).get("pageSha256") for k, (r, _) in reports.items() if k != "red"}
+        clauses = {"oneRunner": len(runners) == 1, "onePage": len(pages) == 1}
+        if not self.uncounted:
+            clauses["oneBinding"] = len(set(bindings)) == 1 and "null" not in bindings
+            for kind, (report, _) in reports.items():
+                bound, binding = report.get("bound") or {}, report.get("binding") or {}
+                keys = [k for k in binding if kind != "red" or k not in m.PROFILE_BOUND]
+                clauses[f"bound:{kind}"] = bool(binding) and set(bound) == set(binding) and all(
+                    bound.get(k) == binding.get(k) for k in keys)
+        verdict = status({k: (None if v is False else v) for k, v in clauses.items()})
+        self.say("identity", verdict, f"together: runners {sorted(map(str, runners))} pages "
+                 f"{sorted(str(p)[:16] for p in pages)} " + ("ok" if verdict == "PASS" else
+                                                             f"off: {sorted(k for k, v in clauses.items() if not v)}"))
+
+    def counted(self, report: dict, path: Path) -> None:
+        wanted = {(c, r) for c in self.cases for r in range(1, ROUNDS + 1)}
+        ok, note = self.population_of(report, wanted)
+        records = [c for c in report.get("cases") or [] if c.get("case") in self.cases]
+        decisions = [c["case"] for c in records if c.get("decision") != self.cases[c["case"]]["decision"]]
+        if decisions:
+            ok, note = False, note + f" decision differs from eshape.json on {decisions[:6]}"
+        for criterion in ("M2-1", "M2-3", "barrier"):
+            mine = {"cases": [c for c in records if self.cases[c["case"]]["criterion"] == criterion]}
+            judge = refusal_record if criterion == "M2-3" else merge_record
+            verdict, bad = self.records(mine, lambda r: judge(r, self.cases[r["case"]], path))
+            n = len(mine["cases"])
+            expected = POPULATION[criterion] * ROUNDS
+            if n != expected or not ok:
+                verdict = worst([verdict, "NOT DONE"])
+            self.say(criterion, verdict, f"{n} records (expected {expected}: {POPULATION[criterion]} cases x "
+                     f"{ROUNDS} rounds); not passing: {bad if bad else 'none'}{note}")
+        m2_1 = [c for c in records if self.cases[c["case"]]["criterion"] == "M2-1"]
+        self.m2_2(m2_1, POPULATION["M2-1"] * ROUNDS, "counted")
+
+    def m2_2(self, records: list, expected: int, source: str) -> None:
+        """30.2 M2-2: every completion, the runner's and the engine's latency, each < BOUND_MS."""
+        per = [(c, latency(c, (c.get("keyUndo") or {}).get("keyToUndoMs"))) for c in records]
+        bad = [(f"{c.get('case')} r{c.get('round')}", c.get("keyToResponseMs"),
+                (c.get("keyUndo") or {}).get("keyToUndoMs")) for c, lat in per if status(lat) != "PASS"]
+        verdict = worst([status(lat) for _, lat in per] + (["NOT DONE"] if len(records) != expected else []))
+        self.say("M2-2", verdict, f"{source}: {len(records)} completions (expected {expected}); runner "
+                 f"{describe([c.get('keyToResponseMs') for c in records])}; engine "
+                 f"{describe([(c.get('keyUndo') or {}).get('keyToUndoMs') for c in records])}; "
+                 f"not under {BOUND_MS} ms or missing: {bad if bad else 'none'}")
+
+    def control(self, counted: tuple, control: tuple) -> None:
+        (_, counted_path), (control_report, control_path) = counted, control
+        wanted = {(c, r) for c in self.cases for r in range(1, ROUNDS + 1)}
+        ok, note = self.population_of(control_report, wanted)
+        try:
+            paired = m.pair(counted_path, control_path)
+        except SystemExit as error:
+            self.say("control", "NOT DONE", f"pair: {error}")
+            return
+        sides = {}
+        for path in (counted_path, control_path):
+            docs = path.parent / f"{path.stem}.docs"
+            files = {f.name for f in docs.glob("*.odt")} if docs.is_dir() else set()
+            sides[path.name] = {kind: {n for n in files if n.endswith(f"-{kind}.odt")} for kind in KEPT}
+        a, b = sides.values()
+        counts = {kind: [len(a[kind]), len(b[kind])] for kind in KEPT}
+        clauses = {"population": ok or None,
+                   "pairs": paired["pairs"] == len(wanted) or None,
+                   "differ": paired["differ"] == [],
+                   "kept": all(n == [KEPT[k]] * 2 for k, n in counts.items()) or None,
+                   "sameKept": all(a[k] == b[k] for k in KEPT)}
+        self.say("control", status(clauses), f"pairs {paired['pairs']} (expected {len(wanted)}), differ "
+                 f"{len(paired['differ'])}; documents compared per kind [counted, control] {counts} (expected "
+                 f"{KEPT}){note}" + (f"; differ {paired['differ'][:4]}" if paired["differ"] else ""))
+
+    def m2_1b(self, report: dict, path: Path) -> None:
+        typed = [c for c in self.order if self.cases[c]["decision"] == "typed-merge"]
+        wanted = {(c, r) for c in typed for r in range(1, M2_1B_RUNS + 1)}
+        ok, note = self.population_of(report, wanted)
+        records = [c for c in report.get("cases") or [] if c.get("case") in typed]
+        verdict, bad = self.records({"cases": records}, lambda r: merge_record(r, self.cases[r["case"]], path))
+        if len(wanted) != M2_1B_TOTAL or len(records) != M2_1B_TOTAL or not ok:
+            verdict = worst([verdict, "NOT DONE"])
+        self.say("M2-1b", verdict, f"{len(records)} records (expected {M2_1B_TOTAL}: {typed} x {M2_1B_RUNS}); "
+                 f"not passing: {bad if bad else 'none'}{note}")
+        self.m2_2(records, M2_1B_TOTAL, "M2-1b")
+
+    def m2_4(self, report: dict, path: Path) -> None:
+        records = [c for c in report.get("cases") or [] if c.get("case") == LIMIT["case"]]
+        if len(records) != 1 or len(report.get("cases") or []) != 1:
+            self.say("M2-4", "NOT DONE", f"{len(records)} {LIMIT['case']} records of {len(report.get('cases') or [])}")
+            return
+        clauses, counts = limit_record(records[0], report, path)
+        self.say("M2-4", status(clauses), f"{counts}; not true: "
+                 f"{sorted(k for k, v in clauses.items() if v is not True) or 'none'}")
+
+    def red(self, report: dict, path: Path) -> None:
+        first = [c for c in self.order if self.cases[c]["criterion"] == "M2-1"][:RED_CASES]
+        ok, note = self.population_of(report, {(c, 1) for c in first})
+        verdict, bad = self.records(report, red_record)
+        if not ok:
+            verdict = worst([verdict, "NOT DONE"])
+        self.say("red", verdict, f"{[c.get('case') for c in report.get('cases') or []]} (expected {first}, on "
+                 f"{RED_PROFILE}, each placed, refused and reopened); not red: {bad if bad else 'none'}{note}")
+
+
+def judge(directory: Path, profile: str, browsers, uncounted: bool) -> tuple[int, list[str]]:
+    try:
+        cases, order = population()
+    except Stop as error:
+        return 3, [f"VERDICT NOT DONE: {error}"]
+    lines = [f"population (eshape.json {sha256(m.ESHAPE)[:16]}): "
+             + ", ".join(f"{k} {sorted(c for c in cases if cases[c]['criterion'] == k)}" for k in POPULATION)]
+    verdicts = {}
+    for browser in browsers:
+        one = Browser(directory, browser, profile, uncounted, cases, order)
+        try:
+            verdicts[browser] = one.run()
+        except Stop as error:
+            one.say("reports", "NOT DONE", str(error))
+            verdicts[browser] = {**one.verdicts, "reports": "NOT DONE"}
+        lines += ["", f"## {browser}", *one.lines]
+    fails = [f"{b} {k}" for b, v in verdicts.items() for k, s in v.items() if s == "FAIL"]
+    undone = [f"{b} {k}" for b, v in verdicts.items() for k, s in v.items() if s == "NOT DONE"]
+    if fails:
+        code, verdict = 1, f"VERDICT FAIL: {fails}" + (f"; NOT DONE: {undone}" if undone else "")
+    elif undone:
+        code, verdict = 3, f"VERDICT NOT DONE: {undone}"
+    elif uncounted:
+        code, verdict = 4, "VERDICT PASS (UNCOUNTED: not a counted verdict)"
+    else:
+        code, verdict = 0, "VERDICT PASS"
+    return code, lines + ["", verdict]
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--dir", type=Path, required=True)
+    ap.add_argument("--profile", default="e2-editor-v19")
+    ap.add_argument("--browsers", nargs="+", default=list(BROWSERS), choices=BROWSERS)
+    ap.add_argument("--uncounted", action="store_true",
+                    help="a dry run on reports that are not bound: binding clauses are not judged, and a full "
+                         "pass exits 4, never 0")
+    args = ap.parse_args()
+    code, lines = judge(args.dir, args.profile, args.browsers, args.uncounted)
+    print("\n".join(lines))
+    return code
+
+
+if __name__ == "__main__":
+    sys.exit(main())

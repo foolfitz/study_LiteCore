@@ -10,6 +10,7 @@ will meet in a run.
 """
 from __future__ import annotations
 
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -200,7 +201,8 @@ class LimitClauses(unittest.TestCase):
     def observed(self, *, presses=None, final=None, toasts=None, generation=("1", "1"), control=False):
         if presses is None:
             presses = [{"press": n, "ok": True, "completion": "verified-key-undo", "comment": "Delete paragraph",
-                        "restorePresses": 0, "actionsAfter": min(n, m.LIMIT_STEPS)}
+                        "restorePresses": 0, "actionsAfter": min(n, m.LIMIT_STEPS),
+                        "keyToUndoMs": 40, "keyToResponseMs": 140.5}
                        for n in range(1, m.LIMIT_PRESSES + 1)]
         final = LIMIT["final"] if final is None else final
         return {"presses": presses, "generation": list(generation), "toasts": [] if toasts is None else toasts,
@@ -250,8 +252,99 @@ class LimitClauses(unittest.TestCase):
         presses = [{"press": n, "settledBefore": True} for n in range(1, m.LIMIT_PRESSES + 1)]
         clauses = m.limit_clauses(self.observed(presses=presses, control=True))
         self.assertEqual({k for k, v in clauses.items() if v is None},
-                         {"everyPressVerified", "comment", "restorePresses", "limitReached"})
+                         {"everyPressVerified", "comment", "restorePresses", "limitReached", "latency"})
         self.assertTrue(verdict(clauses), clauses)
+
+    # Spec 31.2: every press under LATENCY_BOUND_MS, the runner's and the engine's number both.
+    def test_red_one_press_at_the_bound(self):
+        for field in ("keyToUndoMs", "keyToResponseMs"):
+            presses = self.observed()["presses"]
+            presses[54] = {**presses[54], field: m.LATENCY_BOUND_MS}
+            self.assertFalse(m.limit_clauses(self.observed(presses=presses))["latency"], field)
+
+    def test_red_a_missing_number(self):
+        for field in ("keyToUndoMs", "keyToResponseMs"):
+            presses = self.observed()["presses"]
+            presses[0] = {**presses[0], field: None}
+            self.assertFalse(m.limit_clauses(self.observed(presses=presses))["latency"], field)
+
+    def test_red_the_v18_reports(self):
+        # The five reports spec 31.2 names as its red cases; two of them say `pass: true` under the old clauses.
+        v18 = m.HERE.parent / "findings/evidence/v18"
+        for name in ("m2-shakedown/m2-4-chrome.json", "m2-shakedown/m2-4-firefox.json",
+                     "diag-117/m2-4-chrome.json", "finding-118/p4-m2-4-fixed-chrome.json",
+                     "finding-118/p4-m2-4-fixed-firefox.json"):
+            presses = json.loads((v18 / name).read_text())["cases"][0]["presses"]
+            self.assertEqual(len(presses), m.LIMIT_PRESSES, name)
+            self.assertFalse(m.limit_clauses(self.observed(presses=presses))["latency"], name)
+
+
+class Binding(unittest.TestCase):
+    """Spec 7 / 30.2: what makes a report counted; the red case runs v8 and the same page source."""
+
+    BINDING = {"wasmSha256": "w19", "workerSha256": "k19", "sessionSha256": "s", "pageSha256": "p19",
+               "pageSourceSha256": "src", "eshapeSha256": "e"}
+
+    def test_the_candidate(self):
+        self.assertTrue(m.is_counted("counted", dict(self.BINDING), self.BINDING))
+        self.assertTrue(m.is_counted("m2-4", dict(self.BINDING), self.BINDING))
+
+    def test_red_any_value_differs_on_the_candidate(self):
+        for key in self.BINDING:
+            self.assertFalse(m.is_counted("m2-1b", {**self.BINDING, key: "other"}, self.BINDING), key)
+
+    def test_the_red_case_on_v8(self):
+        v8 = {**self.BINDING, "wasmSha256": "w8", "workerSha256": "k8", "pageSha256": "p8"}
+        self.assertTrue(m.is_counted("m2-1-red", v8, self.BINDING))
+        for key in ("sessionSha256", "pageSourceSha256", "eshapeSha256"):
+            self.assertFalse(m.is_counted("m2-1-red", {**v8, key: "other"}, self.BINDING), key)
+        self.assertFalse(m.is_counted("m2-1-red", {k: v for k, v in v8.items() if k != "eshapeSha256"},
+                                      self.BINDING))
+
+    def test_nothing_counts_unbound_or_in_a_shakedown(self):
+        self.assertFalse(m.is_counted("counted", dict(self.BINDING), None))
+        self.assertFalse(m.is_counted("shakedown", dict(self.BINDING), self.BINDING))
+
+
+class Teardown(unittest.TestCase):
+    """Handoff 10-08d Next 2: the browser is closed even when the last observer read fails."""
+
+    class Session:
+        def __init__(self):
+            self.closed = 0
+
+        def evaluate(self, *_):
+            raise ConnectionError("CDP dropped")
+
+        def close(self):
+            self.closed += 1
+
+    def test_the_browser_is_closed_when_the_read_fails(self):
+        session, report = self.Session(), {}
+        original = m.obs
+        m.obs = lambda s: (_ for _ in ()).throw(ConnectionError("CDP dropped"))
+        try:
+            m.teardown(session, report)
+        finally:
+            m.obs = original
+        self.assertEqual(session.closed, 1)
+        self.assertEqual(report["observerAtEnd"], {"error": "ConnectionError: CDP dropped"})
+
+    def test_a_normal_end(self):
+        session, report = self.Session(), {}
+        original = m.obs
+        m.obs = lambda s: {"responses": [1], "responsesSeen": 1}
+        try:
+            m.teardown(session, report)
+        finally:
+            m.obs = original
+        self.assertEqual(session.closed, 1)
+        self.assertEqual(report["observerAtEnd"], {"responsesSeen": 1})
+
+    def test_no_session(self):
+        report = {}
+        m.teardown(None, report)
+        self.assertEqual(report, {})
 
 
 if __name__ == "__main__":

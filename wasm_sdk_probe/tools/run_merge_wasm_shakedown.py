@@ -12,9 +12,11 @@ list, 3 rounds), `m2-1b` (every typed-merge case 10 times), `m2-4` (R0 run 4's
 H03: 105 real Deletes, each waited for, then the document against native
 press 105; `run_limit`), `m2-1-red` (the first three M2-1 cases on v8).  A
 report says `"counted": true` only when `BINDING` (spec 7) is set and every
-value `bound_values` reads from the served root equals it; `BINDING` stays None
-until shell generation v56 is frozen, so until then every mode is a shakedown
-of itself.  M2-2 is not a mode: it is read from a counted run's reports.
+value `bound_values` reads from the served root equals it (the red case: every
+value but the profile's own, `is_counted`); `BINDING` stays None until shell
+generation v56 is frozen, so until then every mode is a shakedown of itself.
+M2-2 is not a mode: it is read from a counted run's reports.  Whether a set of
+reports IS the counted M2 is decided by `judge_counted_m2.py`, never by `pass`.
 
 What it drives, per case, on the standalone product page pointed at a candidate
 profile (the page `build_cutover_page.py` would produce, by the runner's own
@@ -144,6 +146,7 @@ RED_PROFILE = "e2-editor-v8"
 LIMIT_ROUND = HERE / "build/merge-native-r0-limit/round-20261006T110524Z"
 LIMIT_FIXTURE = HERE / "test-docs/merge/odt/undo-limit-105.odt"
 LIMIT_CASE, LIMIT_PRESSES, LIMIT_STEPS = "H03", 105, 100
+LATENCY_BOUND_MS = 1000                 # spec 30.2 M2-2 and 31.2 M2-4: runner and engine, each under it
 # Spec 7 and 30.2: what a counted run is bound to, written here after shell generation v56 is frozen.  None =
 # nothing is bound yet: every report then says "counted": false, whatever its mode.  Keys as in bound_values().
 BINDING: dict | None = None
@@ -893,11 +896,23 @@ def limit_clauses(out: dict) -> dict:
                                 and all(a == LIMIT_STEPS for a in after[full - 1:])),
                "generation": out["generation"][0] == out["generation"][1],
                "noToast": out.get("toasts") == [],
+               # Spec 31.2 (finding 117): every press, the runner's and the engine's latency both under
+               # LATENCY_BOUND_MS; a missing number is not a pass.  Added 2026-10-08 so that `pass` is not true
+               # on a report the criterion calls red (handoff 10-08d, rule x).  The counted reader judges it from
+               # the numbers, not from this clause.
+               "latency": bool(presses) and all(fast(p.get("keyToResponseMs")) and fast(p.get("keyToUndoMs"))
+                                                for p in presses),
                "finalBytes": final.get("reducedBytesEqual") is True,
                "finalText": final.get("textEqual") is True}
     if out.get("control"):
-        clauses.update({k: None for k in ("everyPressVerified", "comment", "restorePresses", "limitReached")})
+        clauses.update({k: None for k in ("everyPressVerified", "comment", "restorePresses", "limitReached",
+                                          "latency")})
     return clauses
+
+
+def fast(ms) -> bool:
+    """Spec 30.2 M2-2 / 31.2: a number, and under LATENCY_BOUND_MS."""
+    return isinstance(ms, (int, float)) and not isinstance(ms, bool) and ms < LATENCY_BOUND_MS
 
 
 def run_limit(session, browser: str, url: str, ref: dict, control: bool = False) -> dict:
@@ -961,13 +976,32 @@ def run_limit(session, browser: str, url: str, ref: dict, control: bool = False)
     return out
 
 
-def bound_values(root: Path, profile: str, page: str) -> dict:
-    """What spec 7 binds a counted run to, as served by this run."""
+def bound_values(root: Path, profile: str, page: str, source: str) -> dict:
+    """What spec 7 binds a counted run to, as served by this run.  `pageSourceSha256` (2026-10-08): the cutover
+    page's source before it is repointed, so the M2-1 red case can show it ran the same source on v8."""
     return {"wasmSha256": sha256_of(root / "profiles" / profile / "probe.wasm"),
             "workerSha256": sha256_of(root / "profiles" / profile / "sdk-worker.js"),
             "sessionSha256": sha256_of(root / pp.served_in_dist("editor-shell-v2/narrow-editor-v2-session.js")),
             "pageSha256": hashlib.sha256(page.encode()).hexdigest(),
+            "pageSourceSha256": hashlib.sha256(source.encode()).hexdigest(),
             "eshapeSha256": sha256_of(ESHAPE)}
+
+
+# The bound values that belong to the PROFILE served: on RED_PROFILE they differ from the binding by
+# construction (another wasm and worker, the same source repointed to another profile).
+PROFILE_BOUND = ("wasmSha256", "workerSha256", "pageSha256")
+
+
+def is_counted(mode: str, bound: dict, binding: dict | None) -> bool:
+    """Spec 7 / 30.2.  Before 2026-10-08 the red case compared its v8 wasm with the binding and could never be
+    counted; it is now counted when everything but the profile's own values equals the binding (spec 30.2:
+    the same runner, the same cutover page source)."""
+    if mode == "shakedown" or binding is None:
+        return False
+    if mode == "m2-1-red":
+        return set(bound) == set(binding) and all(bound[k] == binding[k] for k in binding
+                                                  if k not in PROFILE_BOUND)
+    return bound == binding
 
 
 def m2_0(session, fixture: str, url: str) -> dict:
@@ -1018,6 +1052,19 @@ def pair(instrumented: Path, control: Path) -> dict:
             "differ": [r for r in rows if not r.get("same")]}
 
 
+def teardown(session, report: dict) -> None:
+    """Close the browser whatever the observer read does.  Before 2026-10-08 the read came first and, when CDP
+    had dropped, raised past `session.close()`, leaving the test Chrome running (diag-117 attempt 1)."""
+    if session is None:
+        return
+    try:
+        report["observerAtEnd"] = {k: v for k, v in obs(session).items() if k != "responses"}
+    except Exception as error:  # noqa: BLE001 -- recorded; the close below must still run
+        report["observerAtEnd"] = {"error": f"{type(error).__name__}: {error}"}
+    finally:
+        session.close()
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--browser", choices=("chrome", "firefox"), default="chrome")
@@ -1042,7 +1089,8 @@ def main() -> int:
                     help="spec 30.2: `counted` = the tool list, COUNTED_ROUNDS rounds; `m2-1b` = every "
                          "typed-merge case M2_1B_PER_CASE times; `m2-4` = H03, LIMIT_PRESSES presses; "
                          "`m2-1-red` = the first RED_CASES M2-1 cases on RED_PROFILE.  A report says "
-                         "\"counted\": true only when BINDING is set and every bound value matches")
+                         "\"counted\": true only when BINDING is set and every bound value matches (on m2-1-red, every "
+                         "value but the profile's own)")
     args = ap.parse_args()
     if args.pair:
         print(json.dumps(pair(*args.pair), indent=1, ensure_ascii=False))
@@ -1137,9 +1185,9 @@ def main() -> int:
         # The owner's document: what the page saves from it stays in build/.
         DOCS["private"] = HERE / "build" / "merge-wasm-private" / f"{args.out.stem}.docs"
         DOCS["private"].mkdir(parents=True, exist_ok=False)
-    bound = bound_values(root, args.candidate_profile, page)
+    bound = bound_values(root, args.candidate_profile, page, source)
     report = {"mode": args.mode,
-              "counted": args.mode != "shakedown" and BINDING is not None and bound == BINDING,
+              "counted": is_counted(args.mode, bound, BINDING),
               "bound": bound, "binding": BINDING, "rounds": rounds,
               "instrumented": not args.control, "control": args.control,
               "browser": args.browser,
@@ -1204,9 +1252,7 @@ def main() -> int:
                 args.out.write_text(json.dumps(report, indent=1, ensure_ascii=False, default=str))
     finally:
         report["completedAt"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
-        if session is not None:
-            report["observerAtEnd"] = {k: v for k, v in obs(session).items() if k != "responses"}
-            session.close()
+        teardown(session, report)
         server.terminate()
         server.wait(timeout=10)
         args.out.write_text(json.dumps(report, indent=1, ensure_ascii=False, default=str))
