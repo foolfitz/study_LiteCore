@@ -87,3 +87,16 @@ Tree: HEAD `99475c4b` (2026-10-08 15:56:01 +0800). `git status --short` was **em
 - **No v19 build, no `dist/profiles/e2-editor-v19`, no v19 archive, no `e2/editor-shell-v2-bundle-v56.json`** (`ls`, read).
 - **Processes:** the orphaned test `serve.py` (PID 1849783, port 48085) of `v18/diag-117/attempt1/` was killed by PID before the shakedown (`runner-shakedown/PREDICTION.md`); `ps -p 1849783` finds nothing now and no `serve.py` is alive. The owner's own Chrome and Firefox-family browsers appear in the `ps-before` snapshots (top 15 by CPU only) and none matched the test-browser filter (`*.test-browsers` empty); I cannot show from files that they were "untouched", only that no runner step reported touching or leaving anything.
 - This file is new and uncommitted; `git status --short` was empty before it.
+
+## Addendum (2026-10-08, after this file): spec §34 adopted — the checking machinery is frozen
+
+The owner asked about "constantly fixing defects in the machinery" (「一直在修機械的缺陷」讓我怕怕的); the question went to fable; **the owner adopted the ruling A′** (verbatim `findings/evidence/v19/review/fable-ruling-machinery.md`, commit `c6c31b82`) and it is now **spec §34** (the last section). What it changes for the next session:
+
+- **34.1 freeze**: from the bind commit until the X7 verdict is read, no edit to `judge_counted_m2.py`, `run_merge_wasm_shakedown.py`, `check_profile_identity.py`, `check_merge_key_undo_scope.py`, or the product-path runner. The only exceptions are (a) an honest crash (fix, re-run that step) and (b) a FAIL a witness report shows to be a reader bug (fix with the witness as red case, re-judge, no re-run).
+- **34.2 threat model**: checks defend against accidents in honest runs, never against forged or hand-edited reports. Such scenarios are a one-line NOTE at most, never code.
+- **34.3 review budget**: one two-seat review per new judging tool, before its first counted use. **The counted-M2 reader's review is spent.** Later reviews address product changes only.
+- **34.4 witness rule**: a finding about a check is actionable only with a committed honest-run report it misjudges. **Every handoff reports two counts**: check-fixes triggered by runs, and check-fixes triggered by reviews. Once 34.3 is spent, a non-zero second count is a rule breach.
+- **34.5** `BOUND_KEYS` stays at nine. **34.6** no new criteria text (§9 only); the §33.4 registrations block nothing. **34.7** X5 reads the product-path reader's `SUMMARY` line, not its exit code (it exits 0 on a MISS).
+- **34.8 plan unchanged**: v56 freeze → owner's link → hashes / X1 / archive / M1-1 → bind → predictions → X2-X7 (X6 diagnostic only, last or in parallel) → host 0.2.8 → R. **Remove nothing. Add nothing** (no more pre-count shakedowns, no third seat, no reader for the reader).
+
+**The two counts for this stretch (dd4ef6b2..HEAD), as 34.4 asks:** check-fixes triggered by runs **0**; check-fixes triggered by reviews **16** (the reader's one review, `v19/review/DISPOSITION.md`, before §34 existed: this is the budget 34.3 now records as spent). From here on the second count must stay 0.
