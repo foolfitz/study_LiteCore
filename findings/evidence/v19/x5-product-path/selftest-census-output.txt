@@ -1,0 +1,14 @@
+### (1) the committed reports, copied (expect exit 0)
+CENSUS OK: 41 reports
+exit 0
+### (2) v18 firefox r1 turned into FAIL (expect exit 1)
+FLAG FAIL: v18/product-path/e2-editor-v18-firefox-r1.json
+CENSUS FLAGGED: 41 reports
+exit 1
+### (3) v19 firefox r1's NE with 038 marked as reproduced (expect exit 1)
+FLAG NE although an inducer fired: v19/x5-product-path/e2-editor-v19-firefox-r1.json
+CENSUS FLAGGED: 41 reports
+exit 1
+### (4) an empty directory (expect exit 2)
+CENSUS EMPTY: no report in the window
+exit 2

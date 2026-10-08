@@ -1291,3 +1291,62 @@ merge 與擁有者文件兩段的判讀器（`evidence/v18/merge/judge.py`、`ev
 
 - 因執行而修的檢查：**1**（證人＝v19 X7 的配對對照）。
 - 因審核而修的檢查：**0**。
+
+## 36. 追加（2026-10-08，X5 判讀之後）：§23 第一列更正為 1′；X5 的判定；P2 照 34.1 (b) 類推修正
+
+**依據**：X5 照 §23 第一列紅了一格；擁有者選「交 fable 裁決」；fable 判定 X5 過，原文 `findings/evidence/v19/x5-product-path/fable-ruling-x5.md`（`6847b9ce`）。這一節照第 4 節處理：前提被證偽的判準要撤回或更正，不是補機制。
+
+### 36.1 證人與量到的
+
+- **證人**：`e2-editor-v19-firefox-r1.json`、`judge-output.txt`（`85334a1a`）。`SUMMARY  P1: HIT  P2: MISS  P3: MISS (red cells 1)`。
+- **紅的那一格**：Firefox `recovery-returns-what-the-product-promised`，v8 3 PASS、v19 2 PASS 1 NE。
+- **NE 的成因**：兩個誘因都沒觸發，回復路徑沒有走到，不是走到了失敗。
+  - 038 的拖曳沒有卡住引擎（`finding038Reproduced: false`）。
+  - Firefox 沒有 CDP，第二個誘因發不出去（`fallbackInducer.why`）。
+- **普查**（`census_recovery_cell.py`，形式二，讀 git 已追蹤的報告；紅案四個 `selftest-census-output.txt`）。
+  - Firefox：v8 18 次，16 PASS、2 NE；候選 23 次，21 PASS、2 NE。
+  - Chrome：兩臂全部 PASS。
+  - 從來沒有 FAIL。每一個 NE 都是兩個誘因都沒觸發，每一個 PASS 都至少觸發了一個，沒有例外。
+- **第一列的前提被證偽**：第一列假設「v8 三輪都 PASS ＝這一格穩定會 PASS」。對這一格，本文件自己以前的資料就證偽了它：v15 那輪與 v17 那輪，v8 都在這一格放棄過。
+- **推論，未量**：117 的引擎修法只在 `MergeAwaitingKey` 時輪詢；這個誘因只送拖曳和點擊、沒有邊界鍵，碰不到那個狀態。
+
+### 36.2 更正：第一列′（取代 §23 表的第一列）
+
+| v8 在該格 | 候選必須 |
+| --- | --- |
+| 每一輪都 PASS，**而且**視窗內的 v8 報告在該格沒有 NE | 每一輪都 PASS |
+| 每一輪都 PASS，但視窗內的 v8 報告在該格有過 NE | 照第三列：沒有 FAIL；PASS／NE 列出、不判。屬 §23 的登錄極限 |
+
+- **視窗**：git 已追蹤的 `findings/evidence/**/e2-editor-v8-<瀏覽器>-r*.json`，而且該格的紀錄帶有它現行語意的欄位。
+  - 本格的欄位是 `observed.finding038Reproduced`（兩個誘因的語意，`ba84ec81` 起）。
+  - **不是**裁決建議的 `observed.fallbackInducer`：只有第一個誘因沒觸發的紀錄才帶它，那個視窗裡只會有 NE，FAIL 和 PASS 都進不去。普查工具的第一版就用了它，結果紅案 (2)（放一個 FAIL）仍是綠的；那一版的輸出留著（`*-first-version.txt`）。
+- **§23 的盲點照舊**：若候選的退步正好表現成「前置條件更常不成立」，這一條看不到。本格候選 2/23、v8 2/18，沒有顯示這件事。
+- **第 9 條**（對這一輪之後的每一輪）：
+  1. 先於滿足：寫在之後任何一輪 X5 之前；
+  2. 被逼出而且指名：X5 v19 Firefox r1；
+  3. 形式二：視窗與次數由普查工具從已 commit 的報告產生；
+  4. 截止：下一輪 X5 的判讀器複本在執行前實作 1′，之後不再改這一列（34.6）。
+- **計數語意**：不歸零。這一輪是照第 4 節更正，不重跑。
+- **不做的**：不改產品路徑 runner、不重跑 X5、不對 NE 比例設門檻（34.6）、不拿這一節去重讀其他格。
+
+### 36.3 X5 的判定
+
+- **X5 過**：被宣稱的格子 0 格紅；1 格不宣稱（Firefox 回復，依 36.2）。判讀器印出的 `P3: MISS (red cells 1)` 留在紀錄上，判讀器的 P3 不改。
+- **從來沒做時**：X5 照判讀器印出的算，是紅。
+
+### 36.4 P2（照 34.1 (b) 類推）
+
+- **問題**：本輪的判讀器複本（`v19/x5-product-path/judge.py`）沿用了 v17 的 `distPageWasTheSame is False`。那是 v17 時代的事實（當時 dist 服務的是比原始碼舊的頁面）。v56 凍結並 `make` 之後，dist 等於原始碼，六份 v19 報告都是 True。PREDICTION 的 X5.P2 沒有寫這個欄位，寫了的欄位都照預測成立。
+- **處置**：只拿掉本輪複本的那一條，不換成 `is True`（欄位仍列在表裡）。v17 的判讀器與 `tools/` 都不動。
+  - 紅案：修過的判讀器在 v18 已 commit 的執行上仍是 `P2: MISS`（`selftest-output-after-p2-fix.txt`）。
+  - 重判：`judge-output-rejudged.txt` 是 `P1: HIT  P2: HIT  P3: MISS (red cells 1)`，其餘輸出逐行相同。
+
+### 36.5 預測的不精確（登錄）
+
+- `PREDICTION.md` 的 X5.P4 說這一格在 v18 那輪「已經在輪與輪之間變過」。實際上 v18 那輪兩個瀏覽器都是 3 PASS／3 PASS（`v18/product-path/judge-output.txt:93`）。變過的是 v17 那輪的 v8。不影響判定。
+
+### 36.6 34.4 的兩個數字（到這一節為止）
+
+- 因執行而修的檢查：**2**（X7 的配對對照，§35；X5 的 P2 複本，36.4）。
+- 因審核而修的檢查：**0**。
+- 普查工具第一版的視窗錯誤，是在第一次使用前被它自己的紅案抓到的，沒有任何執行或審核觸發它，所以不計入這兩個數字；照實寫在 36.2。

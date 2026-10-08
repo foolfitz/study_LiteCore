@@ -2,7 +2,8 @@
 """Reader for the product-path net run in this directory (PREDICTION.md P1-P4).
 
 Copied from ../../v17/product-path/judge.py 2026-10-08 for X5 (spec 31.4, v8 vs v19); changed: the candidate
-defaults (v19, page e00ab76a...), V8_ENTRY and BEFORE_REPOINT (both a7d8ffa1..., v56's page source), these lines.
+defaults (v19, page e00ab76a...), V8_ENTRY and BEFORE_REPOINT (both a7d8ffa1..., v56's page source), these lines;
+after the run, P2's `distPageWasTheSame is False` clause (fable-ruling-x5.md; witness: this run's six v19 reports).
 P1-P4 here are ../PREDICTION.md's X5 lines; the verdict is the SUMMARY line (spec 34.7), not the exit code.
 
 Re-run:  python3 judge.py            (reads the 12 reports next to this file)
@@ -132,7 +133,8 @@ for key in ORDER:
         cc = cc or {}
         good = (cs.get("page") == "web/e2-editor-app.js"
                 and cs.get("sha256BeforeRepoint") == BEFORE_REPOINT
-                and cs.get("distPageWasTheSame") is False
+                # 34.1 (b) by analogy (fable-ruling-x5.md): `distPageWasTheSame is False` removed -- a v17-era
+                # fact; since the v56 freeze dist equals source.  PREDICTION names no such field; still in the table.
                 and cs.get("restOfShellEqualsSource") is True
                 and ep == cc.get("pageSha256") == CAND_PAGE)
         print(f"| `{CAND}-{b}-r{n}` | `{ep}` | `{cs.get('page')}` | `{cs.get('sha256BeforeRepoint')}` | {cs.get('distPageWasTheSame')} | "
