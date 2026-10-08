@@ -1,0 +1,58 @@
+# make -n (dry run) before the make, 2026-10-08 10:04:54 +0800
+cd build/archive/e2-editor-v15-ad3f68bb-worker-00882139 && sha256sum -c --quiet SHA256SUMS
+python3 tools/build_base_no35_pack.py --check
+python3 tools/build_cjk_subset_mono_pack.py --check
+python3 tools/build_e2_editor_v4_profile.py \
+	--source-manifest sdk/v18-writer-review-manifest.json \
+	--loader build/archive/e2-editor-v15-ad3f68bb-worker-00882139/probe.js --wasm build/archive/e2-editor-v15-ad3f68bb-worker-00882139/probe.wasm \
+	--worker build/archive/e2-editor-v15-ad3f68bb-worker-00882139/sdk-worker.js \
+	--exports build/archive/e2-editor-v15-ad3f68bb-worker-00882139/exports.txt \
+	--profile e2-editor-v18 --inline-range-gestures all \
+	--output dist/profiles/e2-editor-v18
+test -s dist/profiles/e2-editor-v18/probe.js
+test -s dist/profiles/e2-editor-v18/probe.wasm
+test -s dist/profiles/e2-editor-v18/sdk-worker.js
+
+# make dist/profiles/e2-editor-v18/sdk-manifest.json
+cd build/archive/e2-editor-v15-ad3f68bb-worker-00882139 && sha256sum -c --quiet SHA256SUMS
+python3 tools/build_base_no35_pack.py --check
+ok: base-r5-no35.65e8acbb5f0632be.data (34129451 bytes, 1240 files, sha256 65e8acbb5f0632be); V1 reconciles; same sha from the original image
+python3 tools/build_cjk_subset_mono_pack.py --check
+ok: cjk-sub-e10.06976180177c8bd2.data (14384632 bytes; sizes {'raw': 14384632, 'zstd19': 5748639, 'e5Raw': 7210328, 'e5Zstd19': 5604052}) matches v18-writer-review-manifest.json
+python3 tools/build_e2_editor_v4_profile.py \
+	--source-manifest sdk/v18-writer-review-manifest.json \
+	--loader build/archive/e2-editor-v15-ad3f68bb-worker-00882139/probe.js --wasm build/archive/e2-editor-v15-ad3f68bb-worker-00882139/probe.wasm \
+	--worker build/archive/e2-editor-v15-ad3f68bb-worker-00882139/sdk-worker.js \
+	--exports build/archive/e2-editor-v15-ad3f68bb-worker-00882139/exports.txt \
+	--profile e2-editor-v18 --inline-range-gestures all \
+	--output dist/profiles/e2-editor-v18
+{
+  "profile": "e2-editor-v18",
+  "abiVersion": 4,
+  "wasmSha256": "ad3f68bb85f94589ea3c47560a6c3796031e5c805626291b2d98aaf8eef872c7",
+  "manifestSha256": "456e9a72ab26a3f85cf35baf8b0c7a8536b39c72d2140db79716ee2bae6d3a0f",
+  "actions": 21,
+  "withheld": [
+    "select-all"
+  ],
+  "noteLimitOn": [
+    "set-list-none",
+    "set-list-ordered",
+    "set-list-unordered",
+    "set-paragraph-body",
+    "set-paragraph-heading"
+  ]
+}
+make exit 0
+
+# sha256 after the make, 2026-10-08 10:05:41 +0800
+456e9a72ab26a3f85cf35baf8b0c7a8536b39c72d2140db79716ee2bae6d3a0f  dist/profiles/e2-editor-v18/sdk-manifest.json
+46b2f40ac24b6a787481f8dbf341817f903d30f130580825e3f1145976a8c2e1  dist/profiles/e2-editor-v18/probe.js
+ad3f68bb85f94589ea3c47560a6c3796031e5c805626291b2d98aaf8eef872c7  dist/profiles/e2-editor-v18/probe.wasm
+00882139cd0b2e5898a96b8c7b21a4f8ee1d231ae13da39929e12088e9bb0241  dist/profiles/e2-editor-v18/sdk-worker.js
+06976180177c8bd2a0c7bb7c18837bd12ce116481aefc56b60807948b585ffab  dist/profiles/resources/cjk-sub-e10.06976180177c8bd2.data
+4144b2b2a44dd797cd54170bc28a6b27e01a27397bd1f8307c4f13229856a93b  dist/profiles/resources/cjk-sub-e10.4144b2b2a44dd797.metadata
+d70481cb1be5b1f963458a090a8b2b23e48ef68a4d07f3ebd934e566f03efa0d  dist/profiles/e2-editor-v8/sdk-manifest.json
+99cf5f135868c9da89c2cbf3b715f066739456d94d2604951b6a77ed1435c08f  dist/profiles/e2-editor-v16/sdk-manifest.json
+1e7de91f19953040242aeadb8721b15363261c5fafd9a09d18aeeda982b7e7ac  dist/profiles/e2-editor-v17/sdk-manifest.json
+584ba6b878642b56f44af042e6ace52a837c0dd2183d9b2ac977ce4884bd0ebd  dist/profiles/e2-editor-v17-cjk-r5-ab/sdk-manifest.json

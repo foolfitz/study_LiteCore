@@ -25,10 +25,14 @@ sdk/v18-writer-review-manifest.json is written: v17's manifest with the
 
   build_cjk_subset_mono_pack.py             build the pack, write the v18 manifest
   build_cjk_subset_mono_pack.py --check     rebuild twice in scratch directories; fail unless
-                                            the builds agree, verify, and the committed v18
-                                            manifest names exactly that pack, present on disk
+                                            the builds agree, verify, the committed v18
+                                            manifest names exactly that pack, the pack's data
+                                            and metadata on disk have the built bytes (sha256),
+                                            and zstd -19 is within spec 28.4 W1's allowance
   build_cjk_subset_mono_pack.py --self-test the verifier's red cases (a Sans table altered, a
-                                            Mono name record altered) must both be reported
+                                            Mono name record altered) must both be reported, and
+                                            so must --check's (pack bytes on disk altered or
+                                            missing, a size one byte over the allowance)
 
 tools/build_cjk_subset_ttc_pack.py (v16/v17's) is not edited: their profile
 rules depend on it and run its --check.
@@ -55,6 +59,7 @@ HERE = Path(__file__).resolve().parent.parent
 STEM = "cjk-sub-e10"
 FONT_PATH = "/instdir/share/fonts/truetype/NotoSansCJK-Regular-subset-E10.ttc"
 MONO_TC_FACE = 8                     # the full TTC: faces 0-4 Sans JP KR SC TC HK, 5-9 Mono JP KR SC TC HK
+ZSTD_ALLOWANCE = 300_000             # spec 28.4 W1: zstd -19 bytes allowed over cjk-sub-e5
 SOURCE_MANIFEST = HERE / "sdk/v17-writer-review-manifest.json"
 V18_MANIFEST = HERE / "sdk/v18-writer-review-manifest.json"
 RESOURCES = HERE / "dist/profiles/resources"
@@ -66,6 +71,29 @@ PURPOSE = ("CJK corpus: Traditional Chinese subset of Noto Sans CJK, tier E "
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def size_problems(sizes: dict) -> list[str]:
+    """Spec SPEC-M3-paragraph-merge 28.4 W1: the pack's zstd -19 size is at most `cjk-sub-e5`'s plus this."""
+    over = sizes["zstd19"] - sizes["e5Zstd19"]
+    if over > ZSTD_ALLOWANCE:
+        return [f"zstd -19 is {sizes['zstd19']} bytes, {over} over cjk-sub-e5's {sizes['e5Zstd19']}; spec 28.4 W1 "
+                f"allows {ZSTD_ALLOWANCE}: stop and return the decision to the owner"]
+    return []
+
+
+def on_disk_problems(built: dict, resources: Path) -> list[str]:
+    """`built` maps each pack file name to the sha256 of what the tool just built; the file on disk must have it."""
+    problems = []
+    for name, digest in built.items():
+        path = resources / name
+        if not path.exists():
+            problems.append(f"{path.relative_to(HERE) if path.is_relative_to(HERE) else path} is missing: "
+                            "run the tool without --check")
+        elif sha256(path) != digest:
+            problems.append(f"{path.relative_to(HERE) if path.is_relative_to(HERE) else path} is not the bytes the "
+                            f"tool builds (sha256 {sha256(path)[:16]} on disk, {digest[:16]} built)")
+    return problems
 
 
 def shipped_e5() -> Path:
@@ -222,10 +250,26 @@ def self_test() -> int:
             altered = work / case / "altered.ttc"
             ttc.save(str(altered), shareTables=True)
             results[case] = verify(altered, sans, mono)
+    # --check's own comparisons (opus review item 5): a pack file on disk that is not the built bytes, a missing
+    # one, and a size one byte over the allowance must be reported; the built bytes and a size exactly at the
+    # allowance must not.
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        (work / "p.data").write_bytes(b"built")
+        built = {"p.data": sha256(work / "p.data")}
+        results["disk-same"] = on_disk_problems(built, work)
+        (work / "p.data").write_bytes(b"altered")
+        results["disk-altered"] = on_disk_problems(built, work)
+        results["disk-missing"] = on_disk_problems({"q.data": built["p.data"]}, work)
+    results["size-at-allowance"] = size_problems({"zstd19": 100 + ZSTD_ALLOWANCE, "e5Zstd19": 100})
+    results["size-over"] = size_problems({"zstd19": 101 + ZSTD_ALLOWANCE, "e5Zstd19": 100})
     for case, problems in results.items():
         print(f"{case}: {len(problems)} problem(s)" + "".join(f"\n  {p}" for p in problems))
     good = (not results["unaltered"] and any("OS/2" in p for p in results["sans-table"])
-            and any("name records" in p for p in results["mono-name"]))
+            and any("name records" in p for p in results["mono-name"])
+            and not results["disk-same"] and any("not the bytes" in p for p in results["disk-altered"])
+            and any("missing" in p for p in results["disk-missing"])
+            and not results["size-at-allowance"] and any("allows" in p for p in results["size-over"]))
     print("SELF-TEST " + ("PASS" if good else "FAIL"))
     return 0 if good else 1
 
@@ -245,14 +289,14 @@ def main() -> int:
         with tempfile.TemporaryDirectory() as tmp:
             pack = build_pack(Path(tmp))
             expected = dump(v18_manifest(pack))
+            built = {name: sha256(Path(tmp) / name) for name in (pack["data"], pack["metadata"])}
         committed = V18_MANIFEST.read_text(encoding="utf-8") if V18_MANIFEST.exists() else ""
         problems = []
         if committed != expected:
             problems.append(f"{V18_MANIFEST.name} is not what the tool generates from "
                             f"{SOURCE_MANIFEST.name} and today's collection (pack {pack['data']})")
-        for name in (pack["data"], pack["metadata"]):
-            if not (RESOURCES / name).exists():
-                problems.append(f"{RESOURCES.relative_to(HERE)}/{name} is missing: run the tool without --check")
+        problems += on_disk_problems(built, RESOURCES)
+        problems += size_problems(pack["sizes"])
         for p in problems:
             print("FAIL " + p)
         if not problems:
