@@ -8,16 +8,28 @@ page's own pointer handler (POINT_AT, like every M3 runner); KEYS ARE REAL KEYS
 (Chrome: CDP Input.dispatchKeyEvent; Firefox: WebDriver actions) -- the page
 acts on the browser's own beforeinput/keydown, and that is the path 109 sat on.
 
-  Bdel  A1-2  type a marker, click the end of a heading, Delete, wait, save
-  Bbs   A1-2  the same at a paragraph's start, Backspace
+On v19 (spec §13) the two boundary places of 0.2.7 are Writer's own key, not
+refusals, and the refusals left on this document are its two ends:
+
+  Kdel  A1-2' K  type a marker, click the end of the heading, Delete, wait, save;
+                 no reopen, and the server's paragraph text (marker removed) is
+                 the native key arm's (R-host E02)
+  Kbs   A1-2' K  the same at the first body paragraph's start, Backspace TWICE
+                 (Writer's first removes the indent; R-host Q01's second save)
+  Rbs   A1-2' R  type a marker, the first line + Home, Backspace: refused and
+                 reopened, the server's text (marker removed) is the original's
+  Rdel  A1-2' R  the last line + End, type the marker THERE, Delete: the same
   Bctl  A1-2  positive control: type, Backspace mid-text
   S     A2-1, A2-2  the product stylesheet touches nothing outside its container
   P     A3-1, A3-2, A2-3  what is visible, the keys, the unsaved mark, closing
   B3x   A1-5  three boundary refusals in one page load (B1, spec §9): the third
               meets the Worker generation ceiling, is not restarted, and its
-              content reaches the server without a save; then the notice's reload
+              content reaches the server without a save; then the notice's reload.
+              All three at the document's start on v19.
+  Bdel, Bbs: 0.2.7's arms (v8).  Scored as they were, so their reports re-score;
+              no longer run (their positions are v8's layout).
 
-  check_m3_production_ui.py --out REPORT [--arms Bdel,Bbs,...] [--browsers chrome,firefox]
+  check_m3_production_ui.py --out REPORT [--arms Kdel,Kbs,...] [--browsers chrome,firefox]
                             [--rounds N] [--doc ODT] [--counted]
   check_m3_production_ui.py --score REPORT [--expect-red]
   check_m3_production_ui.py --red-cases REPORT
@@ -45,6 +57,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from check_m3_locks import HOST_DONE, LockChrome, Server, login, open_from_files  # noqa: E402
 from check_m3_page_honesty import READ_RECORD, RECORDER, chrome_wait_dialog  # noqa: E402
 from check_m3_skeleton_open import DEFAULT_DDEV, READ_STATE, Instance  # noqa: E402
+from odt_paragraphs import paragraph_texts_from_xml  # noqa: E402
 from probe_m3_gate0_coep import DIST, firefox_profile, sha256_file, utc_now, wait_until  # noqa: E402
 from r7_support import evaluate  # noqa: E402
 from run_browser_probe import FirefoxSession  # noqa: E402
@@ -61,18 +74,37 @@ MARK = "zqx"
 MARKS3 = ("zqa", "zqb", "zqc")
 BOTH = ("chrome", "firefox")
 # Bindings for a counted run (spec §4), written before it.  None = not yet bound.
-# Written 2026-10-06 before any counted run (spec §9, §10; review item 18 added the
-# last two: the shell generation and the owner's document).
-PAGE_SHA256: str | None = "e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f"
-SESSION_SHA256: str | None = "3f5f754bf0495ff2001756014c76f43d8cb0b1f3b7233f0f710e1a635e782c5e"
-HOST_VERSION: str | None = "0.2.7"
-HOST_COMMIT: str | None = "0488586"
-SHELL_BUNDLE_SHA256: str | None = "2470765ae19ced019b423b55e856ef8d60759ee878d56ff835e6e9387b62167c"   # v55
+# Spec §13.5, written 2026-10-09 before any counted run on host 0.2.8 (v19); the
+# 0.2.7 values (spec §11) were page e97d6e03, session 3f5f754b, 0488586, v55 2470765a.
+PAGE_SHA256: str | None = "e00ab76a550dc12fda5dee1849d9cfb73343b9cfab9c8e9436a8bd035a0a4be8"
+SESSION_SHA256: str | None = "ee3e53a24fb20a255609c8c684ec597ff21fa938ad55b46fcea4dff04a7cdb65"
+HOST_VERSION: str | None = "0.2.8"
+HOST_COMMIT: str | None = "4140e00"
+SHELL_BUNDLE_SHA256: str | None = "1aed21b1fdcc5d4242f71c06b1a3ea6623927a198919706894a2a72670e1ec88"   # v57
 DOC_SHA256: str | None = "7b336879547df057ae6d38e907f221b40c90c37cd65d2df5afceceb91941657e"
-# Calibrated on this document (findings/evidence/109/README.md): inside the first
-# body paragraph; the blank right of the heading 「一、序言」; the first body
-# paragraph's first-line indent.
-IN_TEXT, HEADING_END, PARA_START = ("0.5", "0.0115"), ("0.693", "0.00728"), ("0.127", "0.00927")
+# 0.2.7's places, calibrated on v8's layout (findings/evidence/109/README.md):
+# inside the first body paragraph; the blank right of the heading 「一、序言」;
+# the first body paragraph's first-line indent.  Kept for the record; v19's
+# document is 308480 twips tall against v8's ~257000 and these land on other lines.
+IN_TEXT_V8, HEADING_END_V8, PARA_START_V8 = ("0.5", "0.0115"), ("0.693", "0.00728"), ("0.127", "0.00927")
+# v19's places (spec §13.2): fractions of 12474 x 308480 twips from the native
+# carets of round R-host (findings/evidence/merge-native/PREDICTION-R-host.md),
+# x-40 twips for a Delete place, x+40 for a Backspace place, y at mid-line --
+# the merge runner's rule.  v19's caret equals native's on this document (X6).
+IN_TEXT = ("0.5", "0.010373")               # y 3200: the first body paragraph, about its third line
+HEADING_END = ("0.225910", "0.006219")      # E02 (2858, 1658, 521): X6 clicked here on v19, keyed false
+PARA_START = ("0.155363", "0.008270")       # Q01 (1898, 2377, 348)
+FIRST_LINE = ("0.116883", "0.006219")       # Q02 (1418, 1658, 521), then Home
+LAST_LINE = ("0.836781", "0.990622")        # Q03 (10478, 305449, 276), then End
+# Paragraph text sequences (odt_paragraphs, json.dumps(ensure_ascii=False), sha256)
+# of the references, spec §13.3: the owner's document as uploaded (211
+# paragraphs), and Writer's key arm at the heading's end = its two Backspaces at
+# the body's start (R-host r1..r3 E02 key, r1..r3 Q01 key2: 210 paragraphs, all
+# six the same).  The server's file is compared with its marker removed.
+ORIGINAL_SEQ = "d646dda7c887a8b6830d245ab6a678f38c02488171a0d5ff2ca26064d99180e4"
+MERGED_SEQ = "1f53faf461e0349178353f4728a38b139e6b154525822405e51f34a3f104f06e"
+KEY_ARMS = {"Kdel": ("Delete", 1), "Kbs": ("Backspace", 2)}
+REFUSAL_ARMS = ("Rbs", "Rdel")
 KEEP_ACTIONS = ["undo", "redo", "set-bold", "set-italic", "set-underline", "set-strikethrough",
                 "set-paragraph-heading", "set-paragraph-body", "set-list-unordered", "set-list-ordered",
                 "set-list-none", "save"]
@@ -178,8 +210,8 @@ def new_session(kind: str):
 
 
 CDP_KEYS = {"Delete": ("Delete", "Delete", 46), "Backspace": ("Backspace", "Backspace", 8),
-            "Enter": ("Enter", "Enter", 13)}
-WD_KEYS = {"Delete": "", "Backspace": "", "Enter": "", "Shift": ""}
+            "Enter": ("Enter", "Enter", 13), "Home": ("Home", "Home", 36), "End": ("End", "End", 35)}
+WD_KEYS = {"Delete": "", "Backspace": "", "Enter": "", "Shift": "", "Home": "\ue011", "End": "\ue010"}
 
 
 def press(session, kind: str, key: str, shift: bool = False) -> None:
@@ -272,10 +304,35 @@ def marks(odt: bytes, mark: str = MARK) -> int:
         return archive.read("content.xml").decode("utf-8").count(mark)
 
 
-def server_marks(server: Server) -> dict[str, Any]:
+def sequence_sha256(texts: list[str]) -> str:
+    return hashlib.sha256(json.dumps(texts, ensure_ascii=False).encode("utf-8")).hexdigest()
+
+
+def first_difference_index(a: list[str], b: list[str]) -> int | None:
+    """The first paragraph index where two sequences differ (None: equal).  An
+    index, not the text: the reports carry none of the owner's text."""
+    for index, (x, y) in enumerate(zip(a, b)):
+        if x != y:
+            return index
+    return None if len(a) == len(b) else min(len(a), len(b))
+
+
+def server_marks(server: Server, uploaded: bytes | None = None) -> dict[str, Any]:
     status, raw = server.instance.dav("GET", NAME)
-    return {"status": status, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw), "marks": marks(raw),
-            "marks3": {mark: marks(raw, mark) for mark in MARKS3}}
+    out = {"status": status, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw), "marks": marks(raw),
+           "marks3": {mark: marks(raw, mark) for mark in MARKS3}}
+    # Spec §13.3: the paragraph text sequence with the marker removed, as a hash.
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            texts = [p.replace(MARK, "") for p in paragraph_texts_from_xml(archive.read("content.xml"))]
+        out.update(seqSha256=sequence_sha256(texts), paragraphs=len(texts))
+        if uploaded is not None:
+            with zipfile.ZipFile(io.BytesIO(uploaded)) as archive:
+                out["firstDiffFromUploaded"] = first_difference_index(
+                    texts, paragraph_texts_from_xml(archive.read("content.xml")))
+    except Exception:  # noqa: BLE001 -- recorded; the score reads a missing hash as a failure
+        out["seqError"] = traceback.format_exc().strip().splitlines()[-1]
+    return out
 
 
 # ------------------------------------------------------------------ arms
@@ -296,8 +353,12 @@ def run_arm(arm: str, kind: str, server: Server, doc: bytes) -> dict[str, Any]:
             record["filesBody"] = evaluate(session, BODY_BG)
         open_from_files(session, base, "", NAME, record)
         record["opened"] = quiet(session, 60)
-        if arm in ("Bdel", "Bbs", "Bctl"):
+        if arm == "Bctl":
             run_boundary(arm, kind, session, server, record)
+        elif arm in KEY_ARMS:
+            run_key(arm, kind, session, server, record, doc)
+        elif arm in REFUSAL_ARMS:
+            run_refusal(arm, kind, session, server, record, doc)
         elif arm == "B3x":
             record["serverBefore"] = server_marks(server)
             run_three_refusals(kind, session, server, record)
@@ -320,24 +381,76 @@ def run_arm(arm: str, kind: str, server: Server, doc: bytes) -> dict[str, Any]:
 
 
 def run_boundary(arm: str, kind: str, session, server: Server, record: dict[str, Any]) -> None:
+    """Bctl only since spec §13 (0.2.7's Bdel and Bbs went through here too)."""
     evaluate(session, TIMELINE)
     record["genOpened"] = evaluate(session, GEN)
     record["inText"] = click(session, IN_TEXT)
     record["typed"] = [keyed(session, kind, ch) for ch in MARK]
-    if arm == "Bctl":
-        record["key"] = keyed(session, kind, "Backspace")
-    else:
-        record["placed"] = click(session, HEADING_END if arm == "Bdel" else PARA_START)
-        press(session, kind, "Delete" if arm == "Bdel" else "Backspace")
-        time.sleep(1.0)
-        # Back to ready on its own (the fix), or stuck (109): either ends this wait.
-        record["afterKey"] = until(session, lambda s: s.get("state") == "ready" and str(s.get("pending")) == "0"
-                                   and evaluate(session, GEN) != record["genOpened"], 60) or state(session)
-        time.sleep(1.0)
+    record["key"] = keyed(session, kind, "Backspace")
     record["genAfter"] = evaluate(session, GEN)
     record["save"] = save_and_settle(session, 60)
     record["timeline"] = evaluate(session, READ_TIMELINE)
     record["server"] = server_marks(server)
+
+
+def wait_reopened(session, record: dict[str, Any]) -> dict[str, Any]:
+    """After a key that should be refused: back to ready on its own in a new
+    Worker (109's fix), or stuck (109), or never refused -- each ends this wait."""
+    time.sleep(1.0)
+    seen = until(session, lambda s: s.get("state") == "ready" and str(s.get("pending")) == "0"
+                 and evaluate(session, GEN) != record["genOpened"], 60) or state(session)
+    time.sleep(1.0)
+    return seen
+
+
+def run_key(arm: str, kind: str, session, server: Server, record: dict[str, Any], doc: bytes) -> None:
+    """A1-2' K (spec §13.3): Writer's own key at a boundary, no reopen.
+
+    The marker goes in first (unsaved work at the moment of the key: 109's
+    shape), then the boundary key, once (Kdel) or twice (Kbs: Writer's first
+    Backspace there removes the indent, the second joins).
+    """
+    key, count = KEY_ARMS[arm]
+    evaluate(session, TIMELINE)
+    record["genOpened"] = evaluate(session, GEN)
+    record["inText"] = click(session, IN_TEXT)
+    record["typed"] = [keyed(session, kind, ch) for ch in MARK]
+    record["placed"] = click(session, HEADING_END if arm == "Kdel" else PARA_START)
+    record["presses"] = []
+    for _ in range(count):
+        record["presses"].append(keyed(session, kind, key))
+        time.sleep(1.0)
+    record["genAfter"] = evaluate(session, GEN)
+    record["save"] = save_and_settle(session, 60)
+    record["timeline"] = evaluate(session, READ_TIMELINE)
+    record["server"] = server_marks(server, doc)
+
+
+def run_refusal(arm: str, kind: str, session, server: Server, record: dict[str, Any], doc: bytes) -> None:
+    """A1-2' R (spec §13.3): a refusal at one of the document's two ends.
+
+    Rbs: marker mid-text, then the first line + Home + Backspace.  Rdel: the
+    last line + End FIRST, the marker typed there, then Delete -- typing earlier
+    in the document could push the last line down a line before the click.
+    """
+    evaluate(session, TIMELINE)
+    record["genOpened"] = evaluate(session, GEN)
+    if arm == "Rbs":
+        record["inText"] = click(session, IN_TEXT)
+        record["typed"] = [keyed(session, kind, ch) for ch in MARK]
+        record["placed"] = click(session, FIRST_LINE)
+        record["moved"] = keyed(session, kind, "Home")
+        press(session, kind, "Backspace")
+    else:
+        record["placed"] = click(session, LAST_LINE)
+        record["moved"] = keyed(session, kind, "End")
+        record["typed"] = [keyed(session, kind, ch) for ch in MARK]
+        press(session, kind, "Delete")
+    record["afterKey"] = wait_reopened(session, record)
+    record["genAfter"] = evaluate(session, GEN)
+    record["save"] = save_and_settle(session, 60)
+    record["timeline"] = evaluate(session, READ_TIMELINE)
+    record["server"] = server_marks(server, doc)
 
 
 def run_three_refusals(kind: str, session, server: Server, record: dict[str, Any]) -> None:
@@ -351,11 +464,16 @@ def run_three_refusals(kind: str, session, server: Server, record: dict[str, Any
     record["genOpened"] = evaluate(session, GEN)
     record["inText"] = click(session, IN_TEXT)
     record["refusals"] = []
-    places = ((HEADING_END, "Delete"), (PARA_START, "Backspace"), (HEADING_END, "Delete"))
-    for index, (mark, (at, key)) in enumerate(zip(MARKS3, places)):
+    # Spec §13.2: on v19 the only refusals on this document are at its ends; all
+    # three at the start.  After a reopen the next marker lands at the start
+    # (the caret is there), so the click is followed by Home, which does not
+    # depend on which side of the marker the click fell.
+    for index, mark in enumerate(MARKS3):
+        key = "Backspace"
         step: dict[str, Any] = {"mark": mark, "key": key, "genBefore": evaluate(session, GEN)}
         step["typed"] = [keyed(session, kind, ch) for ch in mark]
-        step["placed"] = click(session, at)
+        step["placed"] = click(session, FIRST_LINE)
+        step["moved"] = keyed(session, kind, "Home")
         pressed = time.monotonic()
         press(session, kind, key)
         if index < 2:
@@ -512,7 +630,7 @@ def score_run(run: dict[str, Any]) -> list[str]:
     arm, bad = run["arm"], []
     if run.get("fatal"):
         return ["fatal: " + run["fatal"].strip().splitlines()[-1]]
-    if arm in ("Bdel", "Bbs", "B3x"):
+    if arm in ("Bdel", "Bbs", "B3x") + REFUSAL_ARMS:
         if arm == "B3x":
             bad += score_three_refusals(run)
         else:
@@ -521,6 +639,13 @@ def score_run(run: dict[str, Any]) -> list[str]:
             server = run.get("server") or {}
             if not server.get("marks"):
                 bad.append(f"the server's file has no {MARK!r} (saves {run.get('save', {}).get('saves')})")
+            if arm in REFUSAL_ARMS:   # spec §13.3 A1-2' R
+                if server.get("marks") and server.get("marks") != 1:
+                    bad.append(f"A1-2' R: the server's file has {server.get('marks')} markers, one was typed")
+                if server.get("seqSha256") != ORIGINAL_SEQ:
+                    bad.append(f"A1-2' R: the server's text (marker removed) is not the original's: first difference at "
+                               f"paragraph {server.get('firstDiffFromUploaded')}, {server.get('paragraphs')} paragraphs "
+                               f"{server.get('seqError') or ''}")
         samples = run.get("timeline") or []
         blocked = [s for s in samples if s.get("state") not in ("ready", "busy")]
         if not blocked:
@@ -530,6 +655,8 @@ def score_run(run: dict[str, Any]) -> list[str]:
                 bad.append(f"A1-3: {sample.get('state')} at {sample.get('t')} ms with "
                            f"{sample.get('disabled')}/{sample.get('buttons')} buttons disabled")
                 break
+    elif arm in KEY_ARMS:
+        bad += score_key(run)
     elif arm == "Bctl":
         key = run.get("key") or {}
         if not (str(key.get("revBefore", "")).isdigit() and str(key.get("revAfter", "")).isdigit()
@@ -588,6 +715,46 @@ def score_run(run: dict[str, Any]) -> list[str]:
         if asked != ["host"] or "page" not in reasons or not stayed:
             bad.append(f"A2-3 dirty: askers {asked}, reasons {reasons}, dialog {bool(dirty.get('dialog'))}, "
                        f"path {dirty.get('path')!r}, editor {dirty.get('hasEditor')}")
+    return bad
+
+
+def digits(*values: Any) -> bool:
+    return all(str(v if v is not None else "").isdigit() for v in values)
+
+
+def score_key(run: dict[str, Any]) -> list[str]:
+    """A1-2' K (spec §13.3)."""
+    bad = []
+    if MERGED_SEQ == ORIGINAL_SEQ:
+        bad.append("A1-2' K: the reference equals the original (vacuous)")
+    presses = run.get("presses") or []
+    want = KEY_ARMS[run["arm"]][1]
+    if len(presses) != want:
+        bad.append(f"A1-2' K: {len(presses)} presses recorded, the arm presses {want}")
+    generations = [run.get("genOpened"), run.get("genAfter")] + [
+        g for p in presses for g in (p.get("genBefore"), p.get("genAfter"))]
+    if any(g != "1" for g in generations):
+        bad.append(f"A1-2' K: generations {generations}: a Worker was reopened")
+    for number, p in enumerate(presses, 1):
+        latency = p.get("latency") or ""
+        if latency.endswith("失敗") or not re.search(r"[0-9]+ ms$", latency):
+            bad.append(f"A1-2' K: press {number}'s last operation reads {latency!r}")
+        if not (digits(p.get("revBefore"), p.get("revAfter")) and int(p["revAfter"]) > int(p["revBefore"])):
+            bad.append(f"A1-2' K: press {number} revision {p.get('revBefore')} -> {p.get('revAfter')}")
+    samples = run.get("timeline") or []
+    stopped = [s for s in samples if s.get("state") not in ("ready", "busy")]
+    if not samples:
+        bad.append("A1-2' K: no timeline (vacuous)")
+    elif stopped:
+        bad.append(f"A1-2' K: the session stopped: {stopped[0].get('state')} at {stopped[0].get('t')} ms")
+    server = run.get("server") or {}
+    if server.get("marks") != 1:
+        bad.append(f"A1-2' K: the server's file has {server.get('marks')} markers, one was typed "
+                   f"(saves {run.get('save', {}).get('saves')})")
+    if server.get("seqSha256") != MERGED_SEQ:
+        bad.append(f"A1-2' K: the server's text (marker removed) is not Writer's key arm's: first difference from "
+                   f"the uploaded document at paragraph {server.get('firstDiffFromUploaded')}, "
+                   f"{server.get('paragraphs')} paragraphs {server.get('seqError') or ''}")
     return bad
 
 
@@ -665,11 +832,26 @@ def counted_bindings(static: dict[str, Any]) -> list[str]:
 
 # One mutation per criterion, on a passing report: every one must turn it red.
 MUTATIONS = [
-    ("A1-2 marker missing", "Bdel", lambda r: r["server"].update(marks=0)),
-    ("A1-2 no reopen", "Bbs", lambda r: r.update(genAfter="1")),
-    ("A1-3 a blocked sample with a live button", "Bdel",
+    # Spec §13.3 (v19): the refusal arms moved to the document's ends, the
+    # boundary keys became Writer's own (K).  0.2.7's Bdel/Bbs mutations were
+    # these four on those arms; re-check 0.2.7's reports with that commit's runner.
+    ("A1-2' R marker missing", "Rdel", lambda r: r["server"].update(marks=0)),
+    ("A1-2' R no reopen", "Rbs", lambda r: r.update(genAfter="1")),
+    ("A1-2' R the refusal changed the text", "Rbs", lambda r: r["server"].update(seqSha256=MERGED_SEQ)),
+    ("A1-2' R two markers", "Rdel", lambda r: r["server"].update(marks=2)),
+    ("A1-3 a blocked sample with a live button", "Rdel",
      lambda r: r["timeline"].append({"state": "restart-required", "t": 1, "disabled": 0, "buttons": 21})),
-    ("A1-3 no blocked sample", "Bbs", lambda r: r.update(timeline=[s for s in r["timeline"] if s.get("state") in ("ready", "busy")])),
+    ("A1-3 no blocked sample", "Rbs", lambda r: r.update(timeline=[s for s in r["timeline"] if s.get("state") in ("ready", "busy")])),
+    ("A1-2' K reopened", "Kdel", lambda r: r.update(genAfter="2")),
+    ("A1-2' K the second press in a new Worker", "Kbs", lambda r: r["presses"][1].update(genAfter="2")),
+    ("A1-2' K stopped", "Kbs",
+     lambda r: r["timeline"].append({"state": "restart-required", "t": 1, "disabled": 21, "buttons": 21})),
+    ("A1-2' K a press failed", "Kbs", lambda r: r["presses"][0].update(latency="⌫ 刪除 失敗")),
+    ("A1-2' K a press changed nothing", "Kdel", lambda r: r["presses"][0].update(revAfter=r["presses"][0]["revBefore"])),
+    ("A1-2' K one press short", "Kbs", lambda r: r["presses"].pop()),
+    ("A1-2' K the text is the original's (v8 refused and kept it)", "Kdel",
+     lambda r: r["server"].update(seqSha256=ORIGINAL_SEQ)),
+    ("A1-2' K marker missing", "Kbs", lambda r: r["server"].update(marks=0)),
     ("A1-2 control did not delete", "Bctl", lambda r: r["key"].update(revAfter=r["key"]["revBefore"])),
     ("A2-1 a header element changes", "S", lambda r: r["style"].update(outsideCount=1)),
     ("A2-1 vacuous", "S", lambda r: r["style"].update(insideCount=0)),
@@ -725,7 +907,7 @@ def red_cases(report: dict[str, Any]) -> tuple[int, int, list[str]]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path)
-    parser.add_argument("--arms", default="Bdel,Bbs,Bctl,S,P,B3x")
+    parser.add_argument("--arms", default="Kdel,Kbs,Rbs,Rdel,Bctl,S,P,B3x")
     parser.add_argument("--browsers", default="chrome,firefox")
     parser.add_argument("--rounds", type=int, default=1)
     parser.add_argument("--doc", type=Path, default=DOC)
@@ -742,6 +924,10 @@ def main() -> int:
         red, total, notes = red_cases(json.loads(args.red_cases.read_text()))
         print(f"red cases: {red}/{total}", *notes, sep="\n")
         return 0 if red == total == len(MUTATIONS) else 1
+    stale = [arm for arm in args.arms.split(",") if arm in ("Bdel", "Bbs")]
+    if stale:
+        print(f"{stale}: 0.2.7's arms, on v8's layout; spec §13 replaced them (Kdel, Kbs, Rbs, Rdel)")
+        return 2
     instance = Instance(DEFAULT_DDEV)
     static = static_facts(DEFAULT_DDEV)
     doc = args.doc.read_bytes()
