@@ -65,3 +65,7 @@ Callbacks after the key, with offsets from the key:
 - **v19 change set:** the key-stage poll only, plus the v19 Makefile rule and M1-1 plumbing. D1 found no lost step.
 - **The toast and the stale canvas:** a page fix, own finding (118), verified on v18 before v56. The same code ships on v8.
 - **D2's miss** changes nothing downstream. The ruling only used D2 to confirm "state changes are what wake the engine", and they are.
+
+## Correction, 2026-10-08: "exit 0" above is not a recorded exit code
+
+`chain.sh` and `chain-rerun.sh` log `exit=$?` after a `$(ts)` substitution, so their `exit=0` lines always say 0 (see `../m2-shakedown/RESULT.md`, correction of the same date). Proof that they mean nothing: `attempt1/`'s M2-1b ended in a traceback, and its line still says `exit=0`. For M2-4 and the M2-1b rerun, what is recorded is an empty stderr and a report with `completedAt`. The reader's exit code (1) was taken directly by `read_trace.py ...; echo exit=${PIPESTATUS[0]}`, with no substitution in front, so it stands (`reader-output.txt`).
