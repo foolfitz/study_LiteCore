@@ -1248,3 +1248,46 @@ merge 與擁有者文件兩段的判讀器（`evidence/v18/merge/judge.py`、`ev
 - **什麼都不刪**：九個鍵、`toastsAtEnd`、有序的重開兩句、逐物件 M1-1、空容器也算葉子的 X1，都是已測過、守著本文件既有判準的守衛。
 - **也不再加**：計數之前不再做 shakedown，沒有第三席審核，不為判讀器再寫判讀器。
 - **擁有者看得到的停止條件**：X7 之後交接裡的那兩個數字。「因審核而修」是 0、「因執行而修」很少且每項都有證人，比例就是相稱的。第二個數字往上長，就是規則被打破，擁有者可以直接叫停。
+
+## 35. 追加（2026-10-08，X7 判讀之後、X5／X4／X6 跑完之前）：X7 的配對對照照 34.1 (b) 重判
+
+**依據**：X7 第一次判讀紅在配對對照；擁有者選「先交 fable 裁決」；fable 判定 34.1 (b) 成立，照 A 處理但只限 `toastsAtEnd`（原文 `findings/evidence/v19/x7-counted-m2/fable-ruling-control.md`，`8d9004f8`）。這一節是記錄，不新增判準。
+
+### 35.1 證人與量到的
+
+- **證人**：`b8324a85` 的 v19 X7 報告，在綁定好的 runner 上誠實執行（`73b2e9ff…`）。原判讀器的結果是 exit 1，`VERDICT FAIL: ['chrome control', 'firefox control']`（`judge-output.txt`）。
+- **其餘全部 PASS**：M2-1 60／60、M2-3 15、barrier 3、M2-1b 20、M2-2、M2-4、紅案、M2-0、身分，兩個瀏覽器都是。
+- **紅的那幾對**：Chrome 2 對（C03 r1、r3）、Firefox 3 對（C10 r1、C03 r2、r3）。每一對唯一的 false 欄位都是 `toastsAtEnd`，內容只差「已存出 14.2 KB」對「已存出 14.3 KB」。
+- **成因**（已讀檔）：
+  - 頁面印的是 `(bytes.byteLength / 1024).toFixed(1)`。
+  - 每次存檔，`meta.xml` 的 `dc:date` 與 `settings.xml` 的 `Rsid` 都不同，壓縮後差一兩個位元組。
+  - C03 的檔案在 14,590～14,595 位元組之間，跨過 14.25 KB 的進位界線。
+  - 同一臂不同輪也會跳（Chrome 對照組 C03：14.2、14.3、14.3）。
+  - fable 核對過：四臂共 252 筆 `toastsAtEnd`，每一筆都等於保留下來那個檔案的大小照同樣算法得到的數字。
+- **預測**：`PREDICTION.md:32` 的「pair 0 differ」，在原始配對上 **MISS**，在 34.1 (b) 之後才成立。
+
+### 35.2 處置（只動判讀器）
+
+- **改的範圍**：只有 `judge_counted_m2.py` 的 `control()`。`m.pair` 之後，一列只有同時滿足下面兩個條件才放過：
+  - `toastsAtEnd` 是它唯一的 false 欄位；
+  - 兩邊的清單把**完整符合** `SAVED` 的元素換成同一個記號之後相等。
+  次數、順序、其他 toast 都照舊逐字比。輸出印出放過幾對、是哪幾對，原始差異看得到。
+- **不改的**：runner（含 `pair()`）、`BINDING`、報告、保留的文件、`pair-*.stdout.txt`、原判的 `judge-output.txt`。`toasts` 欄位也不比照放寬：它沒有證人。
+- **紅案**（`tests/test_judge_counted_m2.py` 的 `V19Witness`，用 commit 的 `BINDING`）：
+  - (a) 證人目錄：PASS，exit 0；
+  - (b) 一臂多一句「重繪失敗」：control FAIL；
+  - (c) 一臂只有一次存檔確認：FAIL；
+  - (d) 非存檔的 toast 只差一個數字：FAIL。
+  四個測試模組共 119 個測試 OK。
+- **重判**（不重跑）：exit 0，`VERDICT PASS (chrome, firefox; runner 73b2e9ff4b1e6fbe; page e00ab76a550dc12f; wasm 1aafd4f9da42fd83)`（`judge-output-rejudged.txt`，`0ce96b32`）。除了兩行 control 和 VERDICT 之外，與原判逐行相同。
+- **審核**：不需要。34.3 的預算已經用掉，而這不是新工具，也沒有改寫超過一半；34.4 只要求證人。
+
+### 35.3 具名極限（34.7 的形式）
+
+- **runner 單獨跑 `--pair` 的結束碼不是判定，判讀器的才是。**`--pair` 仍會對這幾對印出 `toastsAtEnd: false`、exit 1（`pair-*.stdout.txt`）。
+- 這一條的證人會是：某條串接把 `--pair` 的 exit 1 當成 X7 紅。
+
+### 35.4 34.4 的兩個數字
+
+- 因執行而修的檢查：**1**（證人＝v19 X7 的配對對照）。
+- 因審核而修的檢查：**0**。
