@@ -45,3 +45,16 @@ Every overtaken trial is `overtaken-1` (the key landed between X and Y); no `ove
 Against the predictions: **0 ms hit on Firefox, half on Chrome; 10 and 20 ms miss (predicted ≥ 7/10, measured 0/10); 40 ms miss (predicted mixed, 0/10); 80 and 160 ms hit.** What happened is the uncertainty written in advance: one character's commit L on this small document is far below 40 ms — under the model (overtaken when 2 × gap < L), below about 28 ms, since a 14 ms gap never overtakes. The pre-written rule for this outcome: "it lives in key rollover and fast bursts; still a fix, ranked behind data-loss items".
 
 Not measured here: L on a large document (the fixture is 27 short paragraphs; the owner's 563 KB document may commit a character more slowly, which would widen the window toward ordinary fast typing), and Ctrl+S / arrows / format keys (same path by the source, not run).
+
+## Second run: the owner's document (predictions written 2026-10-09 before it ran)
+
+Why: the window is set by one character's commit time L, and the first run's fixture is tiny. On the owner's 563 KB document the M3 runs show a mid-text Backspace at 101–105 ms against 43–78 ms on the fixture, so L there is likely about twice as long. Same probe with `--document owner` (this commit): click at the end of the heading 「一、序言」 (X6's v19 click), End, then the same bursts; the report keeps only the first paragraph (and the key's own new paragraph). Same gaps, 10 trials per cell, both browsers.
+
+| Nominal gap | Prediction, both browsers |
+|---|---|
+| 0 ms | overtaken in most trials |
+| 10 ms | overtaken in some trials (L × 2 on this document puts the edge near 14–28 ms real gaps) |
+| 20 ms | rare |
+| 40, 80, 160 ms | 0 |
+
+What it changes: overtaking at 20 ms or more (keydown-to-keydown ≈ 24 ms, which is key rollover in ordinary fast typing) makes 111 an everyday bug on real documents; 0 at 10 ms and up keeps it where the first run put it.

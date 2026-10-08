@@ -28,7 +28,7 @@ page's own keydown times (a capture-phase listener, performance.now()) are kept,
 so the report says what the gaps really were.
 
   probe_111_overtake.py --browser chrome --out REPORT.json [--gaps 0,10,20,40,80,160]
-                        [--keys Backspace,Enter] [--repeats 10]
+                        [--keys Backspace,Enter] [--repeats 10] [--document boundaries|owner]
 """
 from __future__ import annotations
 
@@ -50,15 +50,28 @@ import run_e2_c_product_path as pp  # noqa: E402
 
 HERE = Path(__file__).resolve().parent.parent
 DIST = HERE / "dist"
-FIXTURE = HERE / "test-docs" / "merge" / "odt" / "boundaries.odt"
-FIRST = "M01 plain alpha"
-# v19's click at the end of the first paragraph: the merge runner's C01 click on
-# boundaries.odt (12474 x 34528 twips; X7 counted reports, caret 2991, 1418).
-END_OF_FIRST = ("0.236572", "0.045065")
-EXPECTED = {
-    "Backspace": {"ok": [FIRST + "X"], "overtaken-1": [FIRST + "Y"], "overtaken-2": ["M01 plain alphXY"]},
-    "Enter": {"ok": [FIRST + "XY", ""], "overtaken-1": [FIRST + "X", "Y"], "overtaken-2": [FIRST, "XY"]},
+# Two documents.  `boundaries`: 27 short synthetic paragraphs; v19's click at the
+# end of the first one is the merge runner's C01 click (12474 x 34528 twips; X7
+# counted reports, caret 2991, 1418).  `owner`: the owner's 563 KB document (not
+# in the repo; copied under build/), the click at the end of its first heading
+# 「一、序言」 that X6 placed on v19 (caret 2858, 1658).  On `owner` the report
+# keeps only the first paragraph (and the second when it is the key's own new one).
+DOCUMENTS = {
+    "boundaries": (HERE / "test-docs" / "merge" / "odt" / "boundaries.odt", "M01 plain alpha",
+                   ("0.236572", "0.045065")),
+    "owner": (HERE / "build" / "scratch-m3-production-ui" / "PMPC指南.odt", "一、序言",
+              ("0.225910", "0.006219")),
 }
+
+
+def expected(first: str) -> dict:
+    return {"Backspace": {"ok": [first + "X"], "overtaken-1": [first + "Y"], "overtaken-2": [first[:-1] + "XY"]},
+            "Enter": {"ok": [first + "XY", ""], "overtaken-1": [first + "X", "Y"], "overtaken-2": [first, "XY"]}}
+
+
+FIXTURE, FIRST, END_OF_FIRST = DOCUMENTS["boundaries"]
+EXPECTED = expected(FIRST)
+PRIVATE = False
 CDP_KEYS = {"Backspace": ("Backspace", "Backspace", 8), "Enter": ("Enter", "Enter", 13),
             "End": ("End", "End", 35)}
 WD = {"Backspace": "", "Enter": "", "End": ""}
@@ -169,7 +182,15 @@ def trial(session, browser: str, key: str, gap: int, number: int, url: str) -> d
     out["toast"] = settled.get("toast")
     texts = save_texts(session)
     out["verdict"] = classify(key, texts)
-    out["head"] = texts[:3] if texts is not None else None
+    if texts is None:
+        out["head"] = None
+    elif PRIVATE:
+        # The owner's text stays out of the report: the first paragraph (a
+        # heading plus what was typed), and the second only when it is short
+        # enough to be the key's own new paragraph.
+        out["head"] = [texts[0]] + ([texts[1]] if len(texts) > 1 and len(texts[1]) <= 3 else [])
+    else:
+        out["head"] = texts[:3]
     return out
 
 
@@ -180,7 +201,11 @@ def main() -> int:
     ap.add_argument("--gaps", default="0,10,20,40,80,160")
     ap.add_argument("--keys", default="Backspace,Enter")
     ap.add_argument("--repeats", type=int, default=10)
+    ap.add_argument("--document", choices=sorted(DOCUMENTS), default="boundaries")
     args = ap.parse_args()
+    global FIXTURE, FIRST, END_OF_FIRST, EXPECTED, PRIVATE
+    FIXTURE, FIRST, END_OF_FIRST = DOCUMENTS[args.document]
+    EXPECTED, PRIVATE = expected(FIRST), args.document == "owner"
     gaps = [int(g) for g in args.gaps.split(",")]
     keys = args.keys.split(",")
     mirror = Path(tempfile.mkdtemp(prefix="probe-111-")) / "root"
@@ -192,7 +217,8 @@ def main() -> int:
     report = {"probe": "probe_111_overtake.py", "browser": args.browser,
               "runner": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16],
               "page": hashlib.sha256((DIST / "e2-editor-app.js").read_bytes()).hexdigest(),
-              "fixture": FIXTURE.name, "gaps": gaps, "keys": keys, "repeats": args.repeats,
+              "fixture": FIXTURE.name, "document": args.document,
+              "fixtureSha256": hashlib.sha256(FIXTURE.read_bytes()).hexdigest(), "gaps": gaps, "keys": keys, "repeats": args.repeats,
               "startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "trials": []}
     port = pp.free_port()
     server = subprocess.Popen([sys.executable, str(HERE / "web" / "serve.py"), "--port", str(port),
