@@ -1,0 +1,7 @@
+R0 (117 reproduces on the trace profile): fast [1, 3, 55], slow 102, other 0 -> HIT
+D1 (no lok event after the key on a slow press): 102 of 102 slow presses have none; ids on the others {} -> HIT
+D2 (press 1: STATE_CHANGED .uno:Undo; 3 and 55: DOCUMENT_SIZE_CHANGED after the key): {1: False, 3: True, 55: True}; ids after the key: 1 [8], 3 [0, 13], 55 [0, 13] -> MISS
+D3 (one toast, press 55, the strip asked for the 2-page height of a 1-page document): toasts [(55, '重繪失敗：TILE_NOT_PAINTED：引擎回了一張沒有畫進去的圖')]; paints 2049, below one half [(55, {'y': 0, 'h': 34528, 'rows': 2007, 'docH': 17406, 'changed': True, 'painted': 0.47})]; document heights seen [17406, 34528, 51650] -> HIT
+D4 (typed merge: the first lok event after the key arrives within 15 ms before the completion): (case, keyToUndoMs, first offset, id) [('Y01', 628, 627.0, 8), ('Y02', 628, 627.4, 8), ('Y01', 628, 627.6, 8), ('Y02', 628, 627.5, 8), ('Y01', 629, 628.5, 8), ('Y02', 628, 627.5, 8), ('Y01', 628, 627.6, 8), ('Y02', 629, 628.4, 8), ('Y01', 628, 627.4, 8), ('Y02', 628, 627.6, 8), ('Y01', 627, 626.5, 8), ('Y02', 629, 628.5, 8), ('Y01', 627, 626.6, 8), ('Y02', 629, 628.5, 8), ('Y01', 628, 627.6, 8), ('Y02', 628, 627.5, 8), ('Y01', 628, 627.6, 8), ('Y02', 629, 628.5, 8), ('Y01', 627, 626.6, 8), ('Y02', 628, 627.6, 8)] -> HIT
+VERDICT R0 HIT D1 HIT D2 MISS D3 HIT D4 HIT
+exit=1

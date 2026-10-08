@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **狀態** | **已確認、未診斷**（2026-10-08）：兩個瀏覽器、儀器版與對照組都重現；成因只有讀原始碼得到的假說，未量。**fable 已裁決（先做不連結的診斷，再修引擎連結成 v19；toast 另案修在頁面），擁有者 2026-10-08 確認全部採用**；診斷（D1–D4）的預測已先 commit（`evidence/v18/diag-117/PREDICTION.md`） |
+| **狀態** | **已確認、已診斷**（2026-10-08）：兩個瀏覽器、儀器版與對照組都重現；成因已量（見「成因」，`evidence/v18/diag-117/`，D1–D4 四題三中、D2 照實記落空）。修法（引擎輪詢）已寫、**未連結**（v19）。**fable 已裁決（先做不連結的診斷，再修引擎連結成 v19；toast 另案修在頁面），擁有者 2026-10-08 確認全部採用**；診斷（D1–D4）的預測已先 commit（`evidence/v18/diag-117/PREDICTION.md`） |
 | **所在** | 我們自己的引擎：選項 B 的併段（`OXSDK_MERGE_KEY_UNDO`，`wasm_sdk_probe/src/probe_engine.cpp`）——送出按鍵之後，要等**任何一個** LOK 回呼排進一個步驟，才去讀 `.uno:Undo` 比對；沒有回呼就只能等期限到了自己讀 |
 | **發現日** | 2026-10-08（規格 §30.2 的 M2-4 第一次在 WASM 上跑，`evidence/v18/m2-shakedown/`，不算數的 shakedown） |
 | **嚴重度** | 一般：沒有資料遺失，105 下最後的文件逐位元組（化約後）等於 Writer 自己按 105 下的結果；但使用者在空白行上連按 Delete，每一下要 **2.1 秒**才回應，中間還會看到一則錯誤 toast |
@@ -30,12 +30,22 @@ fixture `test-docs/merge/odt/undo-limit-105.odt`（`09b5ced0…`，R0 第 4 輪�
 | `m2-4-firefox.json` | Firefox | 是 | 1、3、55 | 2001 | 重繪失敗 ×1 | 是 |
 | `m2-4-control-firefox.json` | Firefox（對照） | （儀器條款 NE） | — | — | 重繪失敗 ×1 | 是 |
 
-## 讀原始碼得到的假說（未量）
+## 讀原始碼得到的假說（未量；已由下一節「成因」的量測取代，原文保留）
 
 - 引擎在按鍵送出後進入 `MergeAwaitingKey`。在這個階段，`feedMergeAttribution` 收到**任何** LOK 回呼都會排一個步驟（`probe_engine.cpp` 約 3510–3560 行，`gMergeTicket.afterKey`）。步驟裡的 `verifyMergeKey(false)` 讀一次 `.uno:Undo`，跟按鍵前的 P0 比：變了就完成，沒變就繼續等。
 - 期限到時（`MergeStepDeadlineMs`＝2000）由 `handleMergeDeadline` 呼叫 `verifyMergeKey(true)`；這時讀到 payload 已經變了，就照樣完成成 `verified-key-undo`。所以 102 下都是「證據其實早就在，但沒有人叫引擎去看」。
 - 推論：在同一個游標位置、刪掉一模一樣的空段落時，鍵處理完**之後**沒有新的回呼被送出。可能是 LOK 的 `CallbackFlushHandler` 把和上一次相同狀態的回呼去重了（`desktop/source/lib/init.cxx` 的 `m_states`，對 `TEXT_SELECTION`、`INVALIDATE_VISIBLE_CURSOR` 等），或是回呼在復原紀錄寫入之前就已送出。第 1、3、55 下為什麼不同（例如第 55 下附近文件從兩頁變一頁、送出文件大小改變的回呼）**沒有查**。
 - 「重繪失敗」與上面的延遲是不是同一個成因，**未知**。
+
+## 成因（量到的，2026-10-08，`evidence/v18/diag-117/RESULT.md`）
+
+儀器：只改 worker 的不出貨 profile `e2-editor-v18-trace117`（wasm 與 v18 逐位元相同），把每個引擎事件帶時間戳轉送出來；判讀器跑前寫好、預測跑前 commit。
+
+- **慢的那 102 下，鍵送出之後到期限為止，一個 LOK 回呼都沒有**（D1 中）。窗口裡只有頁面每 120 ms 一次、被回 BUSY 的重繪請求。引擎的「鍵後任何回呼都排一步去讀」機制本身沒壞，是 Writer 在空白段落之間刪掉一個空白段落時**什麼都不送**：畫面沒變（沒有 INVALIDATE_TILES）、游標沒動、狀態沒變。所以沒有人叫引擎去讀，只能等 2000 ms 的期限。
+- **不是 LOK 去重、也沒有步驟遺失**：假說裡的 `m_states` 去重用不上，因為根本沒有回呼可去重。fable 擔心的「id 0 有來卻還是等滿」沒有發生，所以 v19 不需要第二個引擎修法。
+- **快的三下是因為有東西真的變了**（D2）：第 1 下是文件變成「已修改」（`.uno:ModifiedStatus=true`，預測寫的是 `.uno:Undo`，照實記落空）；第 3、55 下是少了一頁（整份 INVALIDATE_TILES＋DOCUMENT_SIZE_CHANGED，高度 51,650 → 34,528 → 17,406）。都在鍵後約 36 ms 到，1 ms 後完成。
+- **打字後併段的 628 ms 也是同一件事**（D4 中）：20 次都是鍵後 626.5–628.5 ms 才來第一個回呼（`.uno:DocumentRepair=true`、`.uno:Undo=enabled`），1 ms 內完成。紀錄早就在了，只是沒人去讀；那兩個狀態為什麼在 628 ms 才送出，沒有查。
+- **toast 不是這個成因**（D3 中）：是頁面在文件少一頁時照舊高度要圖，另立 finding 118。
 
 ## 影響
 
@@ -74,11 +84,13 @@ fixture `test-docs/merge/odt/undo-limit-105.odt`（`09b5ced0…`，R0 第 4 輪�
 
 ## 未做
 
-- 第 1、3、55 下為什麼快；鍵之後到底有哪些回呼、何時到（需要在引擎記錄回呼序列，或在原生 LOK 上量）。
-- 「重繪失敗」是第幾下出現、對應哪一張圖塊。
+- ~~第 1、3、55 下為什麼快；鍵之後到底有哪些回呼、何時到~~（2026-10-08 已量，見「成因」）。
+- ~~「重繪失敗」是第幾下出現、對應哪一張圖塊~~（第 55 下、要兩頁高度的那一條，見「成因」與 finding 118）。
+- 打字後併段那兩個狀態回呼為什麼在 628 ms 才送出（不影響修法）。
 - v15–v17 是否相同（推論相同：引擎沒變，wasm 都是 `ad3f68bb…`）。
-- 修法：要動引擎就要重新連結（v19），由擁有者決定。
+- 修法：`MergeAwaitingKey` 每 15 ms 重讀 `.uno:Undo`（`probe_engine.cpp`），已寫、未連結；連結（v19）由擁有者執行。
 
 ## 時間軸
 
 - 2026-10-08 10:27–10:52：M2-4 在 v18 上第一次執行（Chrome、Firefox，各加對照組）；四份都有那則 toast，兩個 `--pair` 都是 0 差異。
+- 2026-10-08 12:05–12:16：診斷（trace profile，Chrome）：M2-4 與 M2-1b 各一次（M2-1b 第一次在第 5 筆失去 CDP 連線、與螢幕鎖定同一秒，重跑）；R0、D1、D3、D4 中，D2 落空。

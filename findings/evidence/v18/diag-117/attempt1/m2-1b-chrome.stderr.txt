@@ -1,0 +1,33 @@
+Traceback (most recent call last):
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_merge_wasm_shakedown.py", line 1221, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_merge_wasm_shakedown.py", line 1208, in main
+    report["observerAtEnd"] = {k: v for k, v in obs(session).items() if k != "responses"}
+                                                ~~~^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_merge_wasm_shakedown.py", line 352, in obs
+    raw = pp.evaluate(session, READ_OBS)
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/r7_support.py", line 96, in evaluate
+    return session.evaluate(expression)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 276, in evaluate
+    result = self.call(
+             ~~~~~~~~~^
+        "Runtime.evaluate",
+        ^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        },
+        ^^
+    ).get("result", {})
+    ^
+  File "/home/jiajun/LibreOffice/study_LiteCore/wasm_sdk_probe/tools/run_browser_probe.py", line 266, in call
+    self.websocket.send(json.dumps(message))
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/websockets/sync/connection.py", line 467, in send
+    with self.send_context():
+         ~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/usr/lib/python3/dist-packages/websockets/sync/connection.py", line 1012, in send_context
+    raise self.protocol.close_exc from original_exc
+websockets.exceptions.ConnectionClosedError: no close frame received or sent
