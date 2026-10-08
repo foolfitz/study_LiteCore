@@ -6,6 +6,16 @@ Written 2026-10-07.  NOT a counted M2 run: the design has not been through its
 adversarial review, and the page is INSTRUMENTED (below), so every report says
 `"counted": false` and `"instrumented": true`.
 
+Since 2026-10-08 (spec 30.2), `--mode` selects a criterion run whose cases and
+rounds come from the tool list alone (`mode_schedule`): `counted` (the tool
+list, 3 rounds), `m2-1b` (every typed-merge case 10 times), `m2-4` (R0 run 4's
+H03: 105 real Deletes, each waited for, then the document against native
+press 105; `run_limit`), `m2-1-red` (the first three M2-1 cases on v8).  A
+report says `"counted": true` only when `BINDING` (spec 7) is set and every
+value `bound_values` reads from the served root equals it; `BINDING` stays None
+until shell generation v56 is frozen, so until then every mode is a shakedown
+of itself.  M2-2 is not a mode: it is read from a counted run's reports.
+
 What it drives, per case, on the standalone product page pointed at a candidate
 profile (the page `build_cutover_page.py` would produce, by the runner's own
 `repointed_page`), Chrome or Firefox:
@@ -56,6 +66,7 @@ DOM, not a page global: Firefox evaluates in a Marionette sandbox.
 from __future__ import annotations
 
 import argparse
+import ast
 import base64
 import functools
 import hashlib
@@ -115,6 +126,20 @@ MARKER = "mk"
 DOCS: dict = {"dir": None, "private": None}
 UNCHANGED = "沒有被改動"
 DELETE_ACTIONS = ("delete-forward", "delete-backward")
+# Spec 30.2: the parameters of the counted run, M2-1b, M2-4 and the M2-1 red case.
+COUNTED_ROUNDS = 3
+M2_1B_PER_CASE = 10                     # per typed-merge case and browser; N = 20 with Y01, Y02
+RED_CASES = 3                           # the first three M2-1 cases of the tool list, on v8
+RED_PROFILE = "e2-editor-v8"
+# M2-4: R0 run 4 (H03, Steps=100, PRESSES=105).  Its documents are under build/ (not in git); the evidence copy
+# findings/evidence/merge-native/r0/limit-round-20261006T110524Z/ has the arms only.
+LIMIT_ROUND = HERE / "build/merge-native-r0-limit/round-20261006T110524Z"
+LIMIT_FIXTURE = HERE / "test-docs/merge/odt/undo-limit-105.odt"
+LIMIT_CASE, LIMIT_PRESSES, LIMIT_STEPS = "H03", 105, 100
+# Spec 7 and 30.2: what a counted run is bound to, written here after shell generation v56 is frozen.  None =
+# nothing is bound yet: every report then says "counted": false, whatever its mode.  Keys as in bound_values().
+BINDING: dict | None = None
+MODES = ("shakedown", "counted", "m2-1b", "m2-4", "m2-1-red")
 # R0c's decision -> what v16 must do and which criterion counts it (spec 17,
 # 22.1).  Anything else STOPS the runner: before the review a decision with no
 # entry (G01's `barrier`, any `refused-k2-*`) got no expectation and passed
@@ -604,6 +629,29 @@ def refusal_clauses(out: dict, spec: dict, expected_text: list | None, mine: lis
 INSTRUMENT_ONLY = ("outcome", "stage", "keyPosted", "comment", "restorePresses")
 
 
+def await_delete(session, responses_before: int, control: bool) -> tuple[dict | None, list, bool]:
+    """THE DELETE'S OWN ANSWER, not the next one.  Every editor action's reply
+    carries `completion` (moves, caret placement, typing), so "the first
+    response after the key" is the typed `x` on Y01.  Taken: the first
+    successful reply of a delete action, or the first FAILED EDITOR ACTION
+    (the observer records those since the review, mergeKey or not, and never
+    a failed paint); everything before it is kept as `intervening`.  The
+    control's observer records no responses, so it does not wait."""
+    response, intervening, lost = None, [], False
+    deadline = time.monotonic() + (0 if control else 20)
+    while time.monotonic() < deadline and response is None:
+        record = obs(session).get("responses") or []
+        lost = bool(record) and record[0].get("n", 0) > responses_before
+        intervening = []
+        for item in (r for r in record if r.get("n", -1) >= responses_before):
+            if (item.get("ok") and item.get("action") in DELETE_ACTIONS) or not item.get("ok"):
+                response = item
+                break
+            intervening.append({k: item.get(k) for k in ("action", "completion", "ok")})
+        time.sleep(0.1)
+    return response, intervening, lost
+
+
 def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: str,
              control: bool = False) -> dict:
     private = spec["private"]
@@ -644,24 +692,7 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
     # is not the merge's latency.
     t0 = pp.evaluate(session, NOW)
     press(session, browser, "Backspace" if spec["backward"] else "Delete")
-    # THE DELETE'S OWN ANSWER, not the next one.  Every editor action's reply
-    # carries `completion` (moves, caret placement, typing), so "the first
-    # response after the key" is the typed `x` on Y01.  Taken: the first
-    # successful reply of a delete action, or the first FAILED EDITOR ACTION
-    # (the observer records those since the review, mergeKey or not, and never
-    # a failed paint); everything before it is kept as `intervening`.
-    response, intervening, lost = None, [], False
-    deadline = time.monotonic() + (0 if control else 20)
-    while time.monotonic() < deadline and response is None:
-        record = obs(session).get("responses") or []
-        lost = bool(record) and record[0].get("n", 0) > responses_before
-        intervening = []
-        for item in (r for r in record if r.get("n", -1) >= responses_before):
-            if (item.get("ok") and item.get("action") in DELETE_ACTIONS) or not item.get("ok"):
-                response = item
-                break
-            intervening.append({k: item.get(k) for k in ("action", "completion", "ok")})
-        time.sleep(0.1)
+    response, intervening, lost = await_delete(session, responses_before, control)
     out["response"], out["intervening"], out["responsesLost"] = response, intervening, lost
     out["keyToResponseMs"] = round(response["t"] - t0, 1) if response else None
     if response and response.get("ok"):
@@ -711,6 +742,132 @@ def run_case(session, browser: str, case: str, spec: dict, round_no: int, url: s
     out["notEstablished"] = sorted(k for k, v in out["clauses"].items() if v is None)
     out["pass"] = all(v for v in out["clauses"].values() if v is not None)
     return out
+
+
+def mode_schedule(mode: str, cases: dict) -> tuple[list, int]:
+    """Spec 30.2: which cases a criterion run takes, and how many rounds, from the tool list alone."""
+    if mode == "counted":
+        return list(cases), COUNTED_ROUNDS
+    if mode == "m2-1b":
+        wanted, rounds = [c for c in cases if cases[c]["decision"] == "typed-merge"], M2_1B_PER_CASE
+    elif mode == "m2-1-red":
+        wanted, rounds = [c for c in cases if cases[c]["criterion"] == "M2-1"][:RED_CASES], 1
+    elif mode == "m2-4":
+        return [], 1
+    else:
+        raise SystemExit(f"no schedule for --mode {mode}")
+    if not wanted:
+        raise SystemExit(f"--mode {mode}: the tool list gives no case")
+    return wanted, rounds
+
+
+def limit_reference() -> dict:
+    """M2-4's native side (spec 30.2), checked before any browser: the fixture served is the one R0 run 4 ran,
+    its round-1 select arm gives H03's caret, and the three rounds' key arms agree on content.xml after
+    LIMIT_PRESSES presses (the reference is round 1's)."""
+    arms = LIMIT_ROUND / "arms.jsonl"
+    if not (LIMIT_FIXTURE.is_file() and arms.is_file() and (LIMIT_ROUND / "fixture.odt").is_file()):
+        raise SystemExit(f"M2-4: {LIMIT_FIXTURE}, {arms} or {LIMIT_ROUND}/fixture.odt is missing")
+    if sha256_of(LIMIT_ROUND / "fixture.odt") != sha256_of(LIMIT_FIXTURE):
+        raise SystemExit(f"M2-4: {LIMIT_FIXTURE} is not the fixture R0 run 4 ran")
+    rows = [json.loads(line) for line in arms.read_text().splitlines() if line.strip()]
+    select = [r for r in rows if str(r.get("round")) == "1" and r.get("arm") == "select"
+              and r.get("case") == LIMIT_CASE]
+    if len(select) != 1 or str(select[0].get("backward")) != "False":
+        raise SystemExit(f"M2-4: expected one forward round-1 select arm of {LIMIT_CASE} in {arms}")
+    # This round's arms store Python reprs (the TSV-era probe), not JSON.
+    placed = ast.literal_eval(select[0]["placed"]) if isinstance(select[0]["placed"], str) else select[0]["placed"]
+    caret = [int(v) for v in placed["cursor"].split(",")]
+    finals = [LIMIT_ROUND / "docs" / f"r{n}-{LIMIT_CASE}-key{LIMIT_PRESSES}.odt" for n in (1, 2, 3)]
+    contents = {odt_parts(path.read_bytes())["content"] for path in finals}
+    if len(contents) != 1:
+        raise SystemExit(f"M2-4: the native rounds disagree on content.xml after {LIMIT_PRESSES} presses")
+    return {"caret": caret, "original": LIMIT_ROUND / "docs" / "original.odt", "final": finals[0],
+            "fixtureSha256": sha256_of(LIMIT_FIXTURE)}
+
+
+def limit_clauses(out: dict) -> dict:
+    """Spec 30.2 M2-4, every clause on its own (None = not established: the control records no responses)."""
+    presses = out.get("presses") or []
+    after = [p.get("actionsAfter") for p in presses]
+    full = next((i for i, a in enumerate(after, 1) if a == LIMIT_STEPS), None)
+    final = out.get("finalDocument") or {}
+    clauses = {"presses": len(presses) == LIMIT_PRESSES,
+               "everyPressVerified": bool(presses) and all(p.get("ok") is True
+                                                           and p.get("completion") == "verified-key-undo"
+                                                           for p in presses),
+               "comment": bool(presses) and all(p.get("comment") == "Delete paragraph" for p in presses),
+               "restorePresses": bool(presses) and all(p.get("restorePresses") == 0 for p in presses),
+               "limitReached": (full is not None and full <= LIMIT_STEPS
+                                and all(a == LIMIT_STEPS for a in after[full - 1:])),
+               "generation": out["generation"][0] == out["generation"][1],
+               "noToast": out.get("toasts") == [],
+               "finalBytes": final.get("reducedBytesEqual") is True,
+               "finalText": final.get("textEqual") is True}
+    if out.get("control"):
+        clauses.update({k: None for k in ("everyPressVerified", "comment", "restorePresses", "limitReached")})
+    return clauses
+
+
+def run_limit(session, browser: str, url: str, ref: dict, control: bool = False) -> dict:
+    """M2-4 (spec 30.2): LIMIT_PRESSES real Deletes at H03's native caret.  Before each press the session is
+    quiet (as before run_case's key); each press is waited for -- its own reply on the instrumented page, quiet
+    again on the control, whose observer records no replies.  The first press that is not `verified-key-undo`
+    ends the loop: the clauses then read it as fewer presses than LIMIT_PRESSES."""
+    out = {"case": LIMIT_CASE, "round": 1, "fixture": "undo-limit-105", "criterion": "M2-4",
+           "control": control, "nativeCaret": ref["caret"]}
+    out["open"] = open_fixture(session, url, f"{LIMIT_CASE}-r1.odt")
+    out["place"] = place(session, browser, ref["caret"], False)
+    if not out["place"]["ok"]:
+        out["outcome"], out["pass"] = "placement-mismatch", False
+        return out
+    gen_before = pp.evaluate(session, GEN)
+    pp.evaluate(session, pp.CLEAR_TOASTS)
+    presses = []
+    for n in range(1, LIMIT_PRESSES + 1):
+        settled = quiet(session)
+        before = obs(session).get("responsesSeen") or 0
+        t0 = pp.evaluate(session, NOW)
+        press(session, browser, "Delete")
+        if control:
+            presses.append({"press": n, "settledBefore": not settled.get("timedOut")})
+            continue
+        response, intervening, lost = await_delete(session, before, False)
+        key_undo = (response or {}).get("keyUndo") or {}
+        presses.append({"press": n, "ok": (response or {}).get("ok"),
+                        "completion": (response or {}).get("completion"),
+                        "code": (response or {}).get("code"), "mergeKey": (response or {}).get("mergeKey"),
+                        "comment": key_undo.get("comment"), "actionsBefore": key_undo.get("actionsBefore"),
+                        "actionsAfter": key_undo.get("actionsAfter"),
+                        "restorePresses": key_undo.get("restorePresses"),
+                        "keyToUndoMs": key_undo.get("keyToUndoMs"),
+                        "keyToResponseMs": round(response["t"] - t0, 1) if response else None,
+                        "intervening": len(intervening), "responsesLost": lost})
+        if not (response and response.get("ok") and response.get("completion") == "verified-key-undo"):
+            break
+    out["presses"] = presses
+    time.sleep(0.5)
+    out["afterKeys"] = quiet(session, 90)
+    out["generation"] = [gen_before, pp.evaluate(session, GEN)]
+    out["toasts"] = pp.evaluate(session, pp.READ_TOASTS)
+    out["afterKeyDocument"] = compare(save(session, f"{LIMIT_CASE}-r1-after-key", False), ref["final"], False)
+    out["finalDocument"] = out["afterKeyDocument"]
+    out["outcome"] = "control" if control else ("verified-key-undo" if len(presses) == LIMIT_PRESSES
+                                                and presses[-1].get("completion") == "verified-key-undo"
+                                                else "stopped")
+    out["clauses"] = limit_clauses(out)
+    out["notEstablished"] = sorted(k for k, v in out["clauses"].items() if v is None)
+    out["pass"] = all(v for v in out["clauses"].values() if v is not None)
+    return out
+
+
+def bound_values(root: Path, profile: str, page: str) -> dict:
+    """What spec 7 binds a counted run to, as served by this run."""
+    return {"wasmSha256": sha256_of(root / "profiles" / profile / "probe.wasm"),
+            "workerSha256": sha256_of(root / "profiles" / profile / "sdk-worker.js"),
+            "sessionSha256": sha256_of(root / pp.served_in_dist("editor-shell-v2/narrow-editor-v2-session.js")),
+            "pageSha256": hashlib.sha256(page.encode()).hexdigest(),
+            "eshapeSha256": sha256_of(ESHAPE)}
 
 
 def m2_0(session, fixture: str, url: str) -> dict:
@@ -781,12 +938,29 @@ def main() -> int:
                          "restorePresses are NE")
     ap.add_argument("--pair", nargs=2, type=Path, metavar=("INSTRUMENTED", "CONTROL"),
                     help="offline: compare a run with its paired control and exit")
+    ap.add_argument("--mode", choices=MODES, default="shakedown",
+                    help="spec 30.2: `counted` = the tool list, COUNTED_ROUNDS rounds; `m2-1b` = every "
+                         "typed-merge case M2_1B_PER_CASE times; `m2-4` = H03, LIMIT_PRESSES presses; "
+                         "`m2-1-red` = the first RED_CASES M2-1 cases on RED_PROFILE.  A report says "
+                         "\"counted\": true only when BINDING is set and every bound value matches")
     args = ap.parse_args()
     if args.pair:
         print(json.dumps(pair(*args.pair), indent=1, ensure_ascii=False))
         return 0
     if args.out is None:
         raise SystemExit("--out is required")
+    if args.mode != "shakedown":
+        # Spec 22.1 / 30.2: what a criterion run takes is the tool's, not the caller's.
+        extra = [flag for flag, on in (("--cases", args.cases), ("--frame-cell", args.frame_cell),
+                                       ("--owner-document", args.owner_document)) if on]
+        if extra:
+            raise SystemExit(f"--mode {args.mode} does not take {extra}")
+        if args.rounds != 1:
+            raise SystemExit(f"--mode {args.mode} sets its own rounds; drop --rounds")
+        if args.mode == "m2-1-red" and (args.candidate_profile != RED_PROFILE or args.control):
+            raise SystemExit(f"--mode m2-1-red runs on {RED_PROFILE} and has no control")
+        if args.mode != "m2-1-red" and args.candidate_profile == RED_PROFILE:
+            raise SystemExit(f"--mode {args.mode} is about the candidate, not {RED_PROFILE}")
 
     root = HERE / "dist"
     # THE CUTOVER'S SOURCE, not dist's.  `tools/build_cutover_page.py` repoints
@@ -822,6 +996,11 @@ def main() -> int:
     missing = [c for c in wanted if c not in cases]
     if missing:
         raise SystemExit(f"not in the tool-generated list: {missing}")
+    if args.mode != "shakedown":
+        wanted, rounds = mode_schedule(args.mode, cases)
+    else:
+        rounds = args.rounds
+    limit_ref = limit_reference() if args.mode == "m2-4" else None
     for fixture in {cases[c]["fixture"] for c in wanted if cases[c]["expected"][0] == "refused"}:
         original = odt_parts(next(iter(native_cases(fixture).values()))["original"]
                              .read_bytes())["paragraphs"]
@@ -832,6 +1011,12 @@ def main() -> int:
                                  f"times in {fixture}'s original, not once")
     needed = {cases[c]["fixture"] for c in wanted}
     fixture_urls = {}
+    if limit_ref is not None:
+        target = mirror / "merge-undo-limit-105.odt"
+        if target.exists() or mirror.is_symlink():
+            raise SystemExit(f"refusing to write {target}")
+        target.write_bytes(LIMIT_FIXTURE.read_bytes())
+        fixture_urls["undo-limit-105"] = "./merge-undo-limit-105.odt"
     for name, (path, _, _, _) in FIXTURES.items():
         if name not in needed:
             continue
@@ -852,7 +1037,11 @@ def main() -> int:
         # The owner's document: what the page saves from it stays in build/.
         DOCS["private"] = HERE / "build" / "merge-wasm-private" / f"{args.out.stem}.docs"
         DOCS["private"].mkdir(parents=True, exist_ok=False)
-    report = {"counted": False, "instrumented": not args.control, "control": args.control,
+    bound = bound_values(root, args.candidate_profile, page)
+    report = {"mode": args.mode,
+              "counted": args.mode != "shakedown" and BINDING is not None and bound == BINDING,
+              "bound": bound, "binding": BINDING, "rounds": rounds,
+              "instrumented": not args.control, "control": args.control,
               "browser": args.browser,
               "startedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
               "candidate": {"profile": args.candidate_profile, "pinBefore": pin_before,
@@ -865,6 +1054,10 @@ def main() -> int:
                                                       / "sdk-worker.js")},
               "restOfShellEqualsSource": True,
               "caseList": "subset" if args.cases else "tool",
+              "limit": None if limit_ref is None else {
+                  "case": LIMIT_CASE, "presses": LIMIT_PRESSES, "steps": LIMIT_STEPS,
+                  "fixtureSha256": limit_ref["fixtureSha256"], "nativeRound": LIMIT_ROUND.name,
+                  "reference": limit_ref["final"].name},
               "frameCell": args.frame_cell,
               "ownerDocument": args.owner_document,
               "eshapeSha256": sha256_of(ESHAPE),
@@ -889,7 +1082,18 @@ def main() -> int:
         report["observerAtBoot"] = obs(session)
         for fixture in sorted(needed):
             report["m2_0"].append(m2_0(session, fixture, fixture_urls[fixture]))
-        for round_no in range(1, args.rounds + 1):
+        if limit_ref is not None:
+            opened = open_fixture(session, fixture_urls["undo-limit-105"], "m2-0-undo-limit-105.odt")
+            report["m2_0"].append({"fixture": "undo-limit-105", "open": opened,
+                                   "document": compare(save(session, "m2-0-undo-limit-105", False),
+                                                       limit_ref["original"], False)})
+            try:
+                report["cases"].append(run_limit(session, args.browser, fixture_urls["undo-limit-105"],
+                                                 limit_ref, args.control))
+            except Exception as error:  # noqa: BLE001 -- recorded with the case
+                report["cases"].append({"case": LIMIT_CASE, "round": 1, "outcome": "runner-error",
+                                        "error": f"{type(error).__name__}: {error}"})
+        for round_no in range(1, rounds + 1):
             for case in wanted:
                 try:
                     report["cases"].append(run_case(session, args.browser, case, cases[case], round_no,

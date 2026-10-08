@@ -170,5 +170,89 @@ class List(unittest.TestCase):
             m.expectation("something-new")
 
 
+class Schedules(unittest.TestCase):
+    """Spec 30.2: a criterion run's cases and rounds come from the tool list alone."""
+
+    def test_each_mode(self):
+        self.assertEqual(m.mode_schedule("counted", CASES), (list(CASES), 3))
+        self.assertEqual(m.mode_schedule("m2-1b", CASES), (["Y01", "Y02"], 10))
+        self.assertEqual(m.mode_schedule("m2-1-red", CASES), (["C01", "C02", "C03"], 1))
+        self.assertEqual(m.mode_schedule("m2-4", CASES), ([], 1))
+
+    def test_red_no_typed_merge_case_stops(self):
+        without = {c: s for c, s in CASES.items() if s["decision"] != "typed-merge"}
+        with self.assertRaises(SystemExit):
+            m.mode_schedule("m2-1b", without)
+
+    def test_nothing_is_bound_before_v56(self):
+        # Spec 7 / 30.1: the binding is written after shell generation v56 is frozen; until then no report may
+        # say "counted": true.  When BINDING is set this test is updated with it, in the same commit.
+        self.assertIsNone(m.BINDING)
+
+
+LIMIT = m.limit_reference() if m.LIMIT_ROUND.is_dir() else None
+
+
+@unittest.skipIf(LIMIT is None, "R0 run 4's documents are not under build/")
+class LimitClauses(unittest.TestCase):
+    """Spec 30.2 M2-4, built from R0 run 4's own documents."""
+
+    def observed(self, *, presses=None, final=None, toasts=None, generation=("1", "1"), control=False):
+        if presses is None:
+            presses = [{"press": n, "ok": True, "completion": "verified-key-undo", "comment": "Delete paragraph",
+                        "restorePresses": 0, "actionsAfter": min(n, m.LIMIT_STEPS)}
+                       for n in range(1, m.LIMIT_PRESSES + 1)]
+        final = LIMIT["final"] if final is None else final
+        return {"presses": presses, "generation": list(generation), "toasts": [] if toasts is None else toasts,
+                "control": control, "finalDocument": m.compare(final.read_bytes(), LIMIT["final"], False)}
+
+    def test_the_reference(self):
+        self.assertEqual(LIMIT["caret"], [1791, 1418, 0, 276])
+        self.assertEqual(LIMIT["fixtureSha256"][:8], "09b5ced0")
+
+    def test_the_native_run_passes(self):
+        clauses = m.limit_clauses(self.observed())
+        self.assertTrue(verdict(clauses), clauses)
+
+    def test_red_stopped_early(self):
+        presses = self.observed()["presses"][:50]
+        presses[-1] = {**presses[-1], "ok": False, "completion": None}
+        clauses = m.limit_clauses(self.observed(presses=presses))
+        self.assertFalse(clauses["presses"])
+        self.assertFalse(clauses["everyPressVerified"])
+
+    def test_red_the_limit_never_reached(self):
+        presses = [{**p, "actionsAfter": min(p["actionsAfter"], 99)} for p in self.observed()["presses"]]
+        self.assertFalse(m.limit_clauses(self.observed(presses=presses))["limitReached"])
+
+    def test_red_the_count_falls_after_the_limit(self):
+        presses = self.observed()["presses"]
+        presses[102] = {**presses[102], "actionsAfter": 99}
+        self.assertFalse(m.limit_clauses(self.observed(presses=presses))["limitReached"])
+
+    def test_red_one_other_comment(self):
+        presses = self.observed()["presses"]
+        presses[103] = {**presses[103], "comment": "Delete “b”"}
+        self.assertFalse(m.limit_clauses(self.observed(presses=presses))["comment"])
+
+    def test_red_the_document_after_104_presses(self):
+        doc = m.LIMIT_ROUND / "docs" / f"r1-{m.LIMIT_CASE}-key104.odt"
+        clauses = m.limit_clauses(self.observed(final=doc))
+        self.assertFalse(clauses["finalBytes"])
+        self.assertFalse(clauses["finalText"])
+
+    def test_red_a_toast_and_a_reopen(self):
+        clauses = m.limit_clauses(self.observed(toasts=["已重新載入"], generation=("1", "2")))
+        self.assertFalse(clauses["noToast"])
+        self.assertFalse(clauses["generation"])
+
+    def test_the_control_leaves_the_instrument_clauses_open(self):
+        presses = [{"press": n, "settledBefore": True} for n in range(1, m.LIMIT_PRESSES + 1)]
+        clauses = m.limit_clauses(self.observed(presses=presses, control=True))
+        self.assertEqual({k for k, v in clauses.items() if v is None},
+                         {"everyPressVerified", "comment", "restorePresses", "limitReached"})
+        self.assertTrue(verdict(clauses), clauses)
+
+
 if __name__ == "__main__":
     unittest.main()
