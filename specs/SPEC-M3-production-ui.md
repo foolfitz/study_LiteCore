@@ -477,3 +477,10 @@ Z2-2 與 Z2 D′ 的 CJK 包改成 `cjk-sub-e10.06976180177c8bd2.data`）——�
 - **更正（取代上面「觀察」那一點的解讀）**：v19 的 Home 不卡，是 finding 096 的 A 半（引擎 250 ms 讀回期限，原始碼無條件編入，v14 起每顆引擎都有、凍結的 v8 沒有）；
   那 0.7–1.0 秒是 096 的 C 半（有未存修改時、移動之前先存檢查點，這份文件約 0.7 秒）加約 0.26 秒的移動，時間軸逐筆看得到。不是 117 的輪詢。
   所以 cutover 之後出貨的產品帶著 096 的 A 半；本輪是它的一個實例（v19 8/8、v8 1/1 卡住），不是 096 原本那個方向鍵形狀的量測。
+
+### 13.8 R 的結果（2026-10-09；`findings/evidence/m3-production-ui/RESULT-0.2.8.md`）
+
+**R 在宿主 0.2.8 上成立。**計數鏈 2026-10-08 16:39–20:11 UTC（六支 shakedown 全乾淨之後才計數）：本規格的臂 A1-2′ K 12/12、A1-2′ R 12/12、
+B-ctl／S／P 6/6、A1-5 4/4，合併突變 40/40；六支 M3 runner 全過（PAGE HONEST、LOCKS LAND 一輪就過、VERSIONS CORRECT、ASSETS DELIVERED、
+HOST_ENTRY LANDS、SAME-SECOND SAVES KEPT），各自的紅案全紅；產品路徑網由 X5 滿足（13.4，跑之前就決定）；`make test-e2-c-static` 結束碼 0。
+§13.6 的預測除了紅一次的 R-bs 正向對照（13.7）之外全中。
