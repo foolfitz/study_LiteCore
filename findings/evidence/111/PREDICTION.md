@@ -27,6 +27,21 @@ Uncertain, said in advance: Chrome's CDP dispatch adds a few ms per event, so it
 - Overtaking only at 0–10 ms: it lives in key rollover and fast bursts; still a fix, ranked behind data-loss items.
 - No overtaking at any gap: the unit-test mechanism does not occur in the browser (something serialises the two paths); 111's status changes to "not reproduced in the browser" and the reason gets looked for before any fix.
 
-## Results
+## Results (2026-10-09, `browser/chrome.json`, `browser/firefox.json`; Chrome 151.0.7922.169, Firefox 157.0; page `e00ab76a…`; probe at `89793022`)
 
-(appended after the run)
+`browser/smoke-chrome.json` is the instrument check (1 trial per cell) run before them; it is not part of the counts. The real gaps come from the page's own keydown times.
+
+| Nominal gap | Real keydown gaps (X→Y, Y→key) | Chrome Backspace | Chrome Enter | Firefox Backspace | Firefox Enter |
+|---|---|---|---|---|---|
+| 0 ms | 3–6 ms, 0.5–7 ms | **5/10 overtaken** | **2/10 overtaken** | **9/10 overtaken** | **10/10 overtaken** |
+| 10 ms | 13.6–15 ms, 13–20 ms | 0/10 | 0/10 | 0/10 | 0/10 |
+| 20 ms | 23–25 ms | 0/10 | 0/10 | 0/10 | 0/10 |
+| 40 ms | 43–49 ms | 0/10 | 0/10 | 0/10 | 0/10 |
+| 80 ms | 83–90 ms | 0/10 | 0/10 | 0/10 | 0/10 |
+| 160 ms | 163–169 ms | 0/10 | 0/10 | 0/10 | 0/10 |
+
+Every overtaken trial is `overtaken-1` (the key landed between X and Y); no `overtaken-2`, no `other`, no `no-save`, no runner error (240 trials).
+
+Against the predictions: **0 ms hit on Firefox, half on Chrome; 10 and 20 ms miss (predicted ≥ 7/10, measured 0/10); 40 ms miss (predicted mixed, 0/10); 80 and 160 ms hit.** What happened is the uncertainty written in advance: one character's commit L on this small document is far below 40 ms — under the model (overtaken when 2 × gap < L), below about 28 ms, since a 14 ms gap never overtakes. The pre-written rule for this outcome: "it lives in key rollover and fast bursts; still a fix, ranked behind data-loss items".
+
+Not measured here: L on a large document (the fixture is 27 short paragraphs; the owner's 563 KB document may commit a character more slowly, which would widen the window toward ordinary fast typing), and Ctrl+S / arrows / format keys (same path by the source, not run).
