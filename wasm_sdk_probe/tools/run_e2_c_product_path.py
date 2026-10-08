@@ -2383,8 +2383,8 @@ MUTATIONS = {
     "rollback": {
         "check": "notice-action-recovers-the-session",
         "path": "e2-editor-app.js",
-        "find": '  void run("回到檢查點", () => session.rollback())',
-        "replace": '  void run("回到檢查點", () => session.undo())',
+        "find": '    await session.rollback();',
+        "replace": '    await session.undo();',
         "reintroduces": "the recovery path wired to undo instead of rollback -- "
                         "which SPEC E2-B 5.13 rules out explicitly, because undo "
                         "goes through the queue a post-dispatch failure has just "
