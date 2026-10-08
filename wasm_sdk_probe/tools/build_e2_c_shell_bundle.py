@@ -599,7 +599,18 @@ FROZEN_MANIFEST = FROZEN_MANIFESTS[0]
 # bytes are the candidate page every v19 report measured (e00ab76a…; findings/evidence/v19/RESULT.md: X1-X5 and
 # X7 pass, spec §35/§36).  Frozen in the SAME commit as the cutover (Ruling E-1, as v47 was); the other twelve
 # modules equal v56's.  Approved by the owner 2026-10-08.
-MANIFEST = Path("e2/editor-shell-v2-bundle-v57.json")
+#
+# v58, 2026-10-09: FINDINGS 119 AND 111 (fable's ruling on the owner's authority; SPEC-M3-production-ui §14).
+# Two files differ from v57:
+#   * `editor-shell-v2/narrow-editor-v2-session.js` -- 119 (73da170e): a delete that comes back
+#     EDITOR_STATE_UNAVAILABLE with no barrier detail banks the content and blocks as restart-required, 109's
+#     mould; 111 (f26b80a6): an operation that is not typed text waits behind characters still in the input
+#     adapter (its public `state`), released by `commitText`, rejected if a restart came in between.
+#   * `web/e2-editor-app.js` -- 119 (73da170e): that refusal reaches the auto-reopen with its own wording, never
+#     "unchanged"; the notice's reopen gives the input sink its focus back.  Still pins e2-editor-v19 (1aafd4f9...).
+# Frozen AFTER both browser probes were green on dist/, as the ruling orders (finding 091's rule): F111-B 160/160
+# (a3f2a23e), F119-B injection 3/3 + 3/3 and natural 0 in 400 registered (1c3edf15).  The other modules equal v57's.
+MANIFEST = Path("e2/editor-shell-v2-bundle-v58.json")
 ENTRYPOINT = Path("web/e2-editor-app.js")
 
 # The directories whose *.js files must all be accounted for.  `editor-shell`

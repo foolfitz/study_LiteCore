@@ -86,3 +86,39 @@ Must not:
 
 - F2's correction holds: `maybeQueueSelectionBarrierFinalVerification` (`src/probe_engine.cpp` :3502) runs only in `AwaitingDeleteCompletion`, which the barrier enters right before `postUnoCommand` (:3836–3840), and it calls `queueSelectionBarrierStep`, whose submit failure emits `EDITOR_STATE_UNAVAILABLE` (:3494–3498) without the "no mutation" suffix.
 - The adapter's public `state` getter has `requestCount` and `queueDepth` (`input/input-adapter.js` :82–92; `queueDepth` counts the in-flight item too).
+
+---
+
+# Second ruling (2026-10-09, after the v58 freeze): the `rollback` mutation's anchor
+
+Asked: after freezing v58, `make test-e2-c-static` failed `test_every_mutation_matches_its_target_exactly_once` (mutation `rollback`, `tools/run_e2_c_product_path.py` ~:2383): its anchor `  void run("回到檢查點", () => session.rollback())` no longer exists because U6 moved the focus into that operation; the first ruling forbade runner edits beyond pins. Options A (re-anchor the one mutation), B (restore the line, focus after run()), C (drop the focus). Returned verbatim:
+
+RULING
+
+A. Re-anchor the one mutation in `run_e2_c_product_path.py`: find `    await session.rollback();` → replace `    await session.undo();`, same check id, same `reintroduces` text. Keep the page as frozen; v58 stands (the runner is not in the shell bundle, so no refreeze). Not B (focus after `run()` was measured too late for the first key on 2026-10-06, and it moves the page → v59). Not C (it trades a measured defect fix — `typingQ 0→0` in `chrome-same-page-1.json` attempt 41 — for a test anchor; the check serves the product, not the reverse).
+
+WHY（給擁有者）
+
+1. 那條測試自己的錯誤訊息就寫著「樹在突變底下移動了；修樣式，不要修次數」——這正是它被寫來抓的情況，不是產品錯。
+2. 突變的意思（把回復接成 undo）一個字都沒變，只是釘的那一行因為加了「重開後把焦點還給輸入槽」而換了形狀。
+3. 不選 B：焦點晚一拍給，第一個鍵會掉——2026-10-06 量過；而且要改頁面、重凍 v59。
+4. 不選 C：為了保住一個測試錨點而拿掉一個量到的缺陷修法，本末倒置。
+5. 這算「因執行而修」的檢查 1 筆，證人就是那次 `make test-e2-c-static` 的失敗輸出；「因審核而修」仍是 0。
+6. 還沒有任何 0.2.9 的產品路徑執行，所以沒有東西作廢；預測檔那句「runner 不變」要用追加的方式更正。
+
+FACT CHECK
+
+- Mutation `rollback` at `wasm_sdk_probe/tools/run_e2_c_product_path.py:2383–2399`: find `  void run("回到檢查點", () => session.rollback())`, check `notice-action-recovers-the-session`, declared live (no `expectedToBeDetected`). Confirmed.
+- `wasm_sdk_probe/tests/test_product_path_mutations.py:146–158` (`test_every_mutation_matches_its_target_exactly_once`) reads `dist/`, demands exactly one hit, and its own message prescribes "fix the pattern, not the count". Confirmed — an honest static failure with a committed product cause (73da170e), which is the witness §34.4 asks for.
+- `web/e2-editor-app.js:1516–1518` and `dist/e2-editor-app.js:1516` now read `void run("回到檢查點", async () => { await session.rollback(); el.sink.focus({ preventScroll: true }); …`. Confirmed; `await session.rollback();` is the natural single-occurrence anchor (the boundary reopen calls `session.restart()`, not `rollback()`). The census test itself proves the count after the edit.
+- §34.1's freeze window ended when X7's verdict was read (handoff 10-08f); §34.4 still applies and is satisfied by the witness. `findings/evidence/release-0.2.9/product-path/PREDICTION.md` line 5 says "`tools/run_e2_c_product_path.py` unchanged" — now false; correct by appending, not editing.
+- v58 (`a6f9331a…`) differs from v57 only in session and page; the runner is outside the bundle — A does not touch the frozen bytes. Uncommitted right now: `e2/editor-shell-v2-bundle-v58.json` and the pointer change in `build_e2_c_shell_bundle.py`.
+
+CONDITIONS
+
+1. Commit the v58 freeze as it is (manifest + MANIFEST pointer) BEFORE the runner edit.
+2. Runner commit: only the two strings of the `rollback` mutation (find/replace); `make test-e2-c-static` exit 0 after; the pre-edit failing output saved as the witness (e.g. `findings/evidence/release-0.2.9/product-path/test-e2-c-static-before-reanchor.txt`) and cited in the commit message.
+3. Let the mutation go red once before any counted product-path run: if the net's plan already includes the self-proof mutation run, nothing extra; otherwise run that single mutation, one browser, and record `notice-action-recovers-the-session` red under it. A green there means the re-anchor missed — fix before counting.
+4. Append to `release-0.2.9/product-path/PREDICTION.md`: the runner is no longer "unchanged"; its new sha256, the reason (this ruling), and that no run preceded the change so nothing is voided. If `judge.py` pins the runner's sha, move that pin in the same commit (pin line, allowed) and say so in the appended paragraph.
+5. Handoff numbers: 因執行而修 = 1 (this, with the witness), 因審核而修 = 0.
+6. Must not: edit the page or session again for this (no v59); widen the runner edit beyond the two strings; change the check id, the mutation's semantics, or any other mutation; count the product-path net before step 3 has gone red once.
