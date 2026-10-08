@@ -154,6 +154,8 @@ export class NarrowEditorV2Session extends EditorSession {
     this.clientReplacements = 0;
     // SPEC-M3-page-honesty §3: a read-only file opens view-only.  See _enqueue.
     this._viewOnly = false;
+    // FINDING 111: operations held behind typed text (see _enqueue).
+    this._afterTyped = [];
     Object.defineProperty(this, "editor", {
       configurable: true,
       enumerable: true,
@@ -637,7 +639,56 @@ export class NarrowEditorV2Session extends EditorSession {
       error.recovery = "none";
       return Promise.reject(error);
     }
+    // FINDING 111.  Typed text waits in the input adapter's own queue and
+    // reaches this queue one character at a time, each after the previous one
+    // completed; a key (Delete, Enter, a format, save, a click) came straight
+    // here and could be dispatched before a character typed BEFORE it --
+    // measured with real keys, both browsers (findings/evidence/111/).  So an
+    // operation that is not typed text, arriving while the adapter still holds
+    // characters, is held with the adapter's request count as its barrier and
+    // released by `commitText` right behind the character it followed.  The
+    // adapter is E1-C's and cannot change; this reads its public `state`.
+    // `queueDepth` counts the character in flight too, so the hold lasts one
+    // character longer than it must -- never out of order.
+    if (label !== "commit-text"
+        && ((this.input?.state?.queueDepth ?? 0) > 0 || this._afterTyped.length > 0))
+      return this._holdBehindTyped(label, operation, options);
     return super._enqueue(label, operation, options);
+  }
+
+  _holdBehindTyped(label, operation, options) {
+    return new Promise((resolve, reject) => {
+      this._afterTyped.push({ label, operation, options, resolve, reject,
+                              barrier: this.input.state.requestCount, generation: this._generation });
+      // Characters the adapter cancels never reach commitText; its idle
+      // releases whatever is still held.
+      void this.input.idle().then(() => this._releaseHeld(Infinity));
+    });
+  }
+
+  _releaseHeld(limit) {
+    while (this._afterTyped.length && this._afterTyped[0].barrier <= limit) {
+      const held = this._afterTyped.shift();
+      // The base class stamps the Worker generation at enqueue time, so an
+      // operation released after a restart would run on the fresh Worker,
+      // against a document the key was never pressed in (spec §14.1).
+      if (held.generation !== this._generation) {
+        const error = new Error(`editor operation ${held.label} was held behind typed text `
+          + "across a Worker restart");
+        error.code = "STALE_EDITOR_GENERATION";
+        held.reject(error);
+        continue;
+      }
+      super._enqueue(held.label, held.operation, held.options).then(held.resolve, held.reject);
+    }
+  }
+
+  commitText(text, options = {}) {
+    const number = options?.metadata?.requestNumber;
+    if (Number.isInteger(number)) this._releaseHeld(number - 1);
+    const committed = super.commitText(text, options);
+    if (Number.isInteger(number)) this._releaseHeld(number);
+    return committed;
   }
 
   setList(kind, options = {}) {

@@ -1578,3 +1578,119 @@ test("B1 (page): the notice's button -- rollback below the ceiling; at it, "
     assert.equal(disposals(f), 2, "the button disposed the engine at the ceiling");
   }
 });
+
+// -------------------------------------------------- finding 111 (spec SPEC-M3-production-ui §14)
+
+/**
+ * An engine whose inserts take `delay` ms, recording the order the engine
+ * sees text and actions in.  Typed text goes through the session's real
+ * input adapter (`session.input.commitText`), as the sink's beforeinput does.
+ */
+function typing({ delay = 20 } = {}) {
+  const calls = [];
+  let revision = 0;
+  const document = {
+    handle: 1, revision: 0, widthTwips: 1000, heightTwips: 2000, _assertUsable() {},
+    async render() { return { pixels: new ArrayBuffer(4), revision }; },
+    async save() { calls.push("save"); return new ArrayBuffer(16); },
+    async insertText(text) {
+      calls.push(`insert ${text}`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      document.revision = ++revision;
+      return { revision, state: editorState(revision) };
+    },
+    async getSelection() { return { text: "", selectionType: "text", revision }; },
+    async close() {},
+  };
+  const engine = {
+    manifest: V2_MANIFEST,
+    onEvent() { return () => {}; },
+    async open() { return document; },
+    async _request(operation, payload) {
+      if (operation === "editorGetStateV2") return editorState(revision);
+      calls.push(`action ${payload.action}`);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      document.revision = ++revision;
+      return { action: payload.action, beforeRevision: payload.expectedRevision, revision, changed: true,
+               completion: "verified-selection-delete", state: editorState(revision) };
+    },
+    dispose() {},
+  };
+  document._engine = engine;
+  const session = new NarrowEditorV2Session({
+    engineFactory: async () => engine, secureContext: true,
+    clipboard: { async writeText() {}, async readText() { return ""; } },
+  });
+  return { calls, session };
+}
+
+async function typed(options) {
+  const f = typing(options);
+  await f.session.open({ bytes: new ArrayBuffer(8), name: "d.odt" });
+  return f;
+}
+
+test("finding 111: X, Y, then Delete at once -- the Delete waits for Y", async () => {
+  const { calls, session } = await typed();
+  const x = session.input.commitText("X"), y = session.input.commitText("Y");
+  const del = session.action("delete-backward");
+  await Promise.all([x, y, del]);
+  assert.deepEqual(calls, ["insert X", "insert Y", "action delete-backward"]);
+});
+
+test("finding 111: X, Y, Delete, Z -- Z after the Delete", async () => {
+  const { calls, session } = await typed();
+  const x = session.input.commitText("X"), y = session.input.commitText("Y");
+  const del = session.action("delete-backward");
+  const z = session.input.commitText("Z");
+  await Promise.all([x, y, del, z]);
+  assert.deepEqual(calls, ["insert X", "insert Y", "action delete-backward", "insert Z"]);
+});
+
+test("finding 111: two keys in a row keep their order behind the text", async () => {
+  const { calls, session } = await typed();
+  const x = session.input.commitText("X"), y = session.input.commitText("Y");
+  const a = session.action("delete-backward"), b = session.action("delete-forward");
+  await Promise.all([x, y, a, b]);
+  assert.deepEqual(calls, ["insert X", "insert Y", "action delete-backward", "action delete-forward"]);
+});
+
+test("finding 111: nothing typed -- the key goes straight in", async () => {
+  const { calls, session } = await typed();
+  await session.action("delete-backward");
+  assert.deepEqual(calls, ["action delete-backward"]);
+});
+
+test("finding 111: typed text the adapter cancels does not strand the key", async () => {
+  const { calls, session } = await typed();
+  const x = session.input.commitText("X");
+  const y = session.input.commitText("Y").catch((error) => error.code);
+  const del = session.action("delete-backward");
+  session.input.invalidate("test");
+  assert.equal(await y, "INPUT_CANCELLED");
+  await Promise.all([x, del]);
+  assert.deepEqual(calls, ["insert X", "action delete-backward"]);
+});
+
+test("finding 111 U7: a key held behind typed text is not run on the Worker of a restart", async () => {
+  const { calls, session } = await typed({ delay: 200 });
+  const x = session.input.commitText("X").catch(() => {});
+  const y = session.input.commitText("Y").catch(() => {});
+  const del = session.action("delete-backward").then(() => null, (error) => error.code);
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  session._blockQueue(Object.assign(new Error("forced"), { code: "EDITOR_BOUNDARY_UNSUPPORTED" }),
+                      "restart-required", "test");
+  await session.restart();
+  await Promise.all([x, y]);
+  assert.equal(await del, "STALE_EDITOR_GENERATION");
+  assert.ok(!calls.includes("action delete-backward"),
+            `the held delete ran on the fresh Worker: ${JSON.stringify(calls)}`);
+});
+
+test("finding 111 U8: X in flight, Y in the adapter, then save -- the save holds both", async () => {
+  const { calls, session } = await typed();
+  const x = session.input.commitText("X"), y = session.input.commitText("Y");
+  const saved = session.save();
+  await Promise.all([x, y, saved]);
+  assert.deepEqual(calls, ["insert X", "insert Y", "save"]);
+});
