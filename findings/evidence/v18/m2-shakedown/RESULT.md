@@ -1,0 +1,16 @@
+# v18: shakedown of the new merge-runner modes: result
+
+Per `PREDICTION.md` (committed `e6e8c170` before the run). Run by `chain.sh`, launched detached, 2026-10-08 10:24:31 - 10:51:38 (+08:00); every step `exit=0`, every stderr empty (`chain.log`). Runner sha256 prefix `927e2863091c3208` at chain start and end (= `e62ddec4`). Uncounted: `BINDING` is None, so every report says `"counted": false`. Read by hand from the reports; no reader exists yet for these modes.
+
+| report | browser | what | result |
+|---|---|---|---|
+| `red-{chrome,firefox}.json` | both | M2-1 red case, `e2-editor-v8`, page `a3fd9ac1…` (the cutover source, which already points at v8) | C01, C02, C03 each `refused`, placed at the native caret, `pass: false`: **S1 HIT** on both |
+| `m2-1b-{chrome,firefox}.json` | both | M2-1b, v18, Y01/Y02 alternating x 10 | 20 of 20 `verified-key-undo`, every clause true. Runner 729.0-756.8 ms (Chrome), 730.4-752.5 ms (Firefox); engine `keyToUndoMs` 628-629 / 630-633 ms: **S2 HIT** on both |
+| `m2-4-{chrome,firefox}.json` | both | M2-4, v18, H03 x 105 | M2-0 on the limit fixture `reducedBytesEqual` true. Placement at (1791, 1418, 0, 276) ok. 105 of 105 `verified-key-undo`, comment `Delete paragraph`, `restorePresses` 0, `actionsAfter` 1..100 then 100, generation unchanged, final document equal to native press 105 (reduced bytes and paragraph text, 2 paragraphs). **But:** `noToast` false (one toast 「重繪失敗：TILE_NOT_PAINTED：引擎回了一張沒有畫進去的圖」), and **102 of 105 presses waited the full 2000 ms step deadline** (engine `keyToUndoMs` 2000-2001; only presses 1, 3 and 55 were fast, about 37 ms, identically on both browsers; runner up to 2103 ms). **S3 MISSED** on both (the toast; and the latency prediction "under 300 ms") |
+| `m2-4-control-{chrome,firefox}.json` | both | the same, `--control` | final document equal to native, generation unchanged, the **same toast**. Instrument-only clauses NE: **S4 MISSED** as written (I predicted no toast) |
+| `pair-m2-4-{chrome,firefox}.stdout.txt` | both | `--pair` | 1 pair, 0 differ. Documents compared on each side: 1 after-key document (`H03-r1-after-key.odt`), plus the M2-0 save kept and not paired |
+
+- **S5 HIT.** No `runner-error`, stderr empty everywhere.
+- **The misses are product behaviour, not the runner's threshold.** The control, whose observer records no replies, shows the same toast and takes as long (4 min 49 s for the 105 presses on Chrome, against 5 min 2 s instrumented). Registered as **finding 117** (`../../../117-repeated-merges-over-blank-paragraphs-each-wait-the-2000-ms-step-deadline.md`): confirmed, not diagnosed. The hypothesis is read from source and not measured: after the key, the engine verifies only when some LOK callback arrives, and here none arrives after the undo action is recorded, so the deadline's own check finds the change.
+- What this means for spec §30.2 M2-4, as written: every clause but `noToast` holds, and M2-4 is red on the toast. The 2 s per press is guarded by no criterion; M2-2 covers M2-1 completions only.
+- Observed and not judged: M2-1b's engine `keyToUndoMs` sits at 628-633 ms in all 40 records, against 28-49 ms for an untyped merge. It is about 370 ms under M2-2's 1000 ms engine-side bound and about 245 ms under the runner-side one; cause not looked at.
