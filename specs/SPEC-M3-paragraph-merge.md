@@ -1088,3 +1088,35 @@ merge 與擁有者文件兩段的判讀器（`evidence/v18/merge/judge.py`、`ev
 - **「鍵沒有效果」（C17 型）仍要等滿期限才拒絕**（§8）：沒有改變這件事無法提早證明。輪詢不改這件事。
 - **新的先後順序**：完成可能在鍵的 KEYINPUT 與 KEYUP 之間送出。KEYUP 不改文件，下一個 K1 也排在它後面。審核時要點名這一條。
 - **打字後併段那兩個狀態回呼**（`.uno:DocumentRepair`、`.uno:Undo`）為什麼在 628 ms 才送出，沒有查，不影響修法。
+
+## 32. 追加（2026-10-08，判讀器落地之後、任何 v19 連結之前）：X1 更正；判讀器、紅案的計數、M1-1 擴充的落地
+
+### 32.1 X1 更正（取代 31.4 X1「只差 profile 名稱與 wasm 的雜湊」）
+
+- **讀到的**（讀檔，不是量測）：v18 的 manifest 另外記了 `editorContract.loaderSha256`，也就是 `probe.js` 的雜湊。`probe.js` 與 `probe.wasm` 是同一次連結的產物；v8 → v15 那次 `probe.js` 從 `c382b834…` 變成 `46b2f40a…`（`handoff/RUNBOOK-relink-v15.md` 的連結紀錄）。照 31.4 的字面，正確的 v19 只要載入器跟著變就會紅。
+- **更正**：v19 的 manifest 與 v18 的逐葉相同，只有四片葉子可以不同：`profile`、`sdkVersion`（只換名字）、`editorContract.wasmSha256`、`editorContract.loaderSha256`；後兩者各自必須等於檔案本身的雜湊。另加一條：**wasm 必須與 v18 不同**——相同就不是新的連結，修法不在裡面。載入器相同與否照實記錄（一次性），不是判準。`sdk-worker.js`、export 清單逐位元相同，目錄裡的檔名相同。
+- **工具**：`wasm_sdk_probe/tools/check_profile_identity.py`。形式二：所有葉子由工具比，日後 builder 多寫一個欄位也會被比到，不必有人列。紅案 `tests/test_profile_identity.py` 11 支，其中一支是真的 v16 對 v18（包不同，而且共用 v15 的 wasm）。綠案是合成的。
+- **第 9 條**：這是更正不是新增，撤掉的是一個會讓正確產物紅的字面；先於滿足（v19 不存在）；沒有任何計數，所以不談歸零。
+
+### 32.2 判讀器（31.3 第 2 步）
+
+- `wasm_sdk_probe/tools/judge_counted_m2.py`。X7 的「判讀器 exit 0」＝這支**不帶** `--uncounted` 的 exit 0。結束碼：0 全過、1 有 FAIL、3 沒有 FAIL 但有沒做到的、4 `--uncounted` 全過（永遠不是計數判定）。
+- 它不讀 runner 的 `pass` 與 `clauses`，文件比較從存下來的文件重算，母體自己從 `eshape.json` 與本文件的數字（20／5／1）重建。
+- **跑之前寫下的四個判讀決定**：
+  - 30.2 紅案的括號（「109 的拒絕＋重開」）當成條款：放好了、被拒絕、generation ＋1。沒放好的 case 不算紅。
+  - M2-4 不讀對照：30.2 只給計數執行配對照。
+  - FAIL 先於 NOT DONE（結束碼 1 先於 3）：兩者都不是過，而已知的紅比沒量到的部分更有資訊。
+  - 報告檔名由判讀器定，計數鏈照寫：`counted-B.json`、`counted-control-B.json`、`m2-1b-B.json`、`m2-4-B.json`、`red-B.json`。
+- runner 的 M2-4 `pass` 也加上 31.2 的條款，免得判準紅的報告寫著 `pass: true`。判讀器不依賴它。
+- 紅案：31.2 指名的五份 v18 報告放進合成的綠案目錄，各自 exit 1、只紅 M2-4、慢的 102 下。綠案是合成的（v18 報告的副本，M2-4 每下延遲換掉），已標明。證據 `findings/evidence/v18/counted-m2-reader/`。
+
+### 32.3 紅案的計數（更正 30.2「計數執行的定義」的綁定列）
+
+- 30.2 的紅案在 v8 上跑，而 §7 綁的 wasm、worker、頁面都是 v19 的，所以照原本的比較，紅案的報告永遠是「未計數」。
+- 改為：紅案的 session、`eshape.json` 與**頁面原始碼**的雜湊等於綁定，就算計數；wasm、worker、改指過的頁面是 profile 自己的值，本來就不同。綁定因此多一個值 `pageSourceSha256`（改指之前的 cutover 頁面原始碼）。`run_merge_wasm_shakedown.py` 的 `is_counted`，有單元測試。
+
+### 32.4 M1-1 擴充（31.3）
+
+- `tools/check_merge_key_undo_scope.py` 改成「帶 B 的規則」可以有多條（預設 v15、v19），每一條都必須與 BASE 不同，其他規則都必須相同；兩個非法定義組合在每一條帶 B 的規則上都必須失敗。
+- 結果（`5d77dc84` 為 BASE）：25 條規則、100 個物件，只有 v15 與 v19 的 `probe_engine.o` 與 BASE 不同。紅案三個都紅：只列 v15（v19 的物件不同）、把 B 注入 v8、把 v8 列成帶 B 的規則。證據 `findings/evidence/v19/pre-link/`。
+- 登錄：v19 與 v15 的編譯命令除了目錄名逐字相同（`make -n -B` 比過），所以今天的樹上對 v15 跑 `make` 會編出含輪詢的物件；v15 的連結由 `refuse_unasked_relink` 擋住（`make -n` 讀過）。v8、v15 都不得帶 `ALLOW_FROZEN_RELINK=1`。

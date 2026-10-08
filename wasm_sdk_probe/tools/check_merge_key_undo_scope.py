@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""M1-1 (SPEC-M3-paragraph-merge 4.1 as amended in 10.2): option B reaches only
-the v15 objects.
+"""M1-1 (SPEC-M3-paragraph-merge 4.1 as amended in 10.2; 31.3): option B
+reaches only the objects of the rules that carry it -- v15 and, since spec 31.3,
+v19 (v18 with finding 117's fix, the same defines over the tree's engine).
 
 Population, taken from the Makefile, not listed: every rule of the form
 `$(NAME_BUILD)/%.o: src/%.cpp`, every object in `$(NAME_OBJECTS)`.  For each
@@ -10,21 +11,25 @@ preprocessing run (`-E -P`).  Each run happens twice, from two scratch trees
 holding `src/` at BASE (a git ref before B's engine code) and `src/` as it is
 in the working tree, with the same relative paths, so `__FILE__` and the
 include chain are identical.  Every object of every rule must preprocess to
-the same bytes, except the rule named by --v15, whose objects must differ
-somewhere (otherwise B is not in it).
+the same bytes, except the rules named by --carrier (default E2_V15 and
+E2_V19), whose objects must each differ somewhere (otherwise B is not in it).
+Before 2026-10-08 there was one such rule (--v15); with one carrier named, the
+other carrier's objects differ from BASE and the run is red -- the red case
+below that shows the checker sees v19.
 
-Also, for the v15 rule's probe_engine object (3.1 item 10): adding
+Also, for each carrier's probe_engine object (3.1 item 10): adding
 -DOXSDK_MAINLOOP_ENGINE, or removing -DOXSDK_FINDING_016_SELECTION_BARRIER,
 must make preprocessing fail.
 
-Non-vacuity: the rules for v8 (E2_V8), v14 (E2_V14) and v15 must all be found,
-and at least 20 rules in all; a rule without objects is an error.
+Non-vacuity: the rules for v8 (E2_V8), v14 (E2_V14) and every carrier must be
+found, and at least 20 rules in all; a rule without objects is an error.
 
-Red case (--inject RULE=FLAG, test only): adds FLAG to that rule's commands;
-with B's code present, injecting -DOXSDK_MERGE_KEY_UNDO into E2_V8 must turn
-it red.
+Red cases (test only): --inject RULE=FLAG adds FLAG to that rule's commands
+(injecting -DOXSDK_MERGE_KEY_UNDO into E2_V8 must turn it red); --carrier
+E2_V15 alone must be red (v19 carries B unlisted); naming E2_V8 as a carrier
+must be red (it carries no B).
 
-Usage: check_merge_key_undo_scope.py --base REF [--v15 NAME] [--inject RULE=FLAG] [--json OUT]
+Usage: check_merge_key_undo_scope.py --base REF [--carrier NAME ...] [--inject RULE=FLAG] [--json OUT]
 """
 from __future__ import annotations
 
@@ -43,6 +48,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent.parent
 RULE = re.compile(r"^\$\(([A-Z0-9_]+)_BUILD\)/%\.o: src/%\.cpp")
 REQUIRED = ("E2_V8", "E2_V14")
+CARRIERS = ("E2_V15", "E2_V19")
 
 
 def make(*args: str) -> str:
@@ -98,10 +104,12 @@ def run(args: list[str], tree: Path) -> tuple[int, str, str]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", required=True)
-    ap.add_argument("--v15", default="E2_V15")
+    ap.add_argument("--carrier", action="append", default=None,
+                    help="a rule that must carry B (repeatable); default E2_V15 and E2_V19")
     ap.add_argument("--inject", action="append", default=[])
     ap.add_argument("--json")
     a = ap.parse_args()
+    carriers = tuple(a.carrier or CARRIERS)
     inject: dict[str, list[str]] = {}
     for item in a.inject:
         rule, flag = item.split("=", 1)
@@ -110,7 +118,7 @@ def main() -> int:
     rules = [m.group(1) for line in (HERE / "Makefile").read_text().splitlines()
              if (m := RULE.match(line))]
     failures = []
-    for need in (*REQUIRED, a.v15):
+    for need in (*REQUIRED, *carriers):
         if need not in rules:
             failures.append(f"rule {need} not found in the Makefile")
     if len(rules) < 20:
@@ -151,29 +159,31 @@ def main() -> int:
                 rows.append(row)
                 if (rb[0] or rc[0]) and not unbuildable:
                     failures.append(f"{rule} {obj}: preprocessing failed on one side: {(rb[2] or rc[2]).strip()}")
-                elif rule != a.v15 and not row["same"]:
+                elif rule not in carriers and not row["same"]:
                     failures.append(f"{rule} {obj}: preprocessed output differs from {a.base}")
-        if a.v15 in rules and any(r["unbuildable"] for r in rows if r["rule"] == a.v15):
-            failures.append(f"{a.v15}: an object does not preprocess")
-        if a.v15 in rules and not any(not r["same"] for r in rows if r["rule"] == a.v15):
-            failures.append(f"{a.v15}: no object differs from {a.base} (B is not in it)")
+        for carrier in carriers:
+            if carrier in rules and any(r["unbuildable"] for r in rows if r["rule"] == carrier):
+                failures.append(f"{carrier}: an object does not preprocess")
+            if carrier in rules and not any(not r["same"] for r in rows if r["rule"] == carrier):
+                failures.append(f"{carrier}: no object differs from {a.base} (B is not in it)")
 
         # 3.1 item 10: the compile guard.
         guards = []
-        engine = [j for j in jobs if j[0] == a.v15 and j[1].endswith("/probe_engine.o")]
+        engine = [j for j in jobs if j[0] in carriers and j[1].endswith("/probe_engine.o")]
         for rule, obj, args in engine:
             with_mainloop = args[:1] + ["-DOXSDK_MAINLOOP_ENGINE"] + args[1:]
             without_barrier = [x for x in args if x != "-DOXSDK_FINDING_016_SELECTION_BARRIER"]
             for name, variant in (("with OXSDK_MAINLOOP_ENGINE", with_mainloop),
                                   ("without OXSDK_FINDING_016_SELECTION_BARRIER", without_barrier)):
                 code = run(variant, cur)[0]
-                guards.append({"variant": name, "exit": code})
+                guards.append({"rule": rule, "variant": name, "exit": code})
                 if code == 0:
                     failures.append(f"{rule}: preprocessing {name} did not fail")
-        if a.v15 in rules and not engine:
-            failures.append(f"{a.v15}: no probe_engine object")
+        for carrier in carriers:
+            if carrier in rules and not any(j[0] == carrier for j in engine):
+                failures.append(f"{carrier}: no probe_engine object")
 
-    summary = {"rules": len(rules), "objects": len(rows),
+    summary = {"carriers": list(carriers), "rules": len(rules), "objects": len(rows),
                "different": sum(1 for r in rows if not r["same"]),
                "unbuildable": sorted({f"{r['rule']} {r['object']}" for r in rows if r["unbuildable"]}),
                "guards": guards}

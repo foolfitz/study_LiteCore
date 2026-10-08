@@ -1437,6 +1437,84 @@ $(E2_V18_DIST)/sdk-manifest.json: $(E2_V17_DEPS) sdk/v18-writer-review-manifest.
 $(E2_V18_DIST):
 	mkdir -p $@
 
+# ------------------------------- v19, v18 with finding 117's engine fix (NEW LINK)
+#
+# Spec SPEC-M3-paragraph-merge 31.3.  v15's compile and link rules, copied and
+# not shared (31.3; the reason v4 -> v8 gave: v15 is archived and bound to its
+# own records): the same defines, OXSDK_MERGE_KEY_UNDO among them, over the
+# tree's engine, which since 66e5c0af re-reads `.uno:Undo` every 15 ms while a
+# merge waits for its key (finding 117).  Everything else is v18's, byte for
+# byte: the source manifest and its two --check preludes, and the worker, taken
+# from v15's archive exactly as v18 takes it.  The export list is made by v15's
+# recipe (it reproduces v18's, d6c22670..., read 2026-10-08); X1 compares it.
+#
+# v15 is NOT rebuilt by this: its objects would now compile the poll as well,
+# and its link refuses (refuse_unasked_relink).  Never pass
+# ALLOW_FROZEN_RELINK=1 for v8 or v15.  tools/check_merge_key_undo_scope.py
+# checks that only v15's and v19's probe_engine objects carry B.
+E2_V19_BUILD := build/e2/editor-v19
+E2_V19_DIST := dist/profiles/e2-editor-v19
+E2_V19_SOURCES := $(E2_C_SOURCES)
+E2_V19_OBJECTS := $(patsubst src/%.cpp,$(E2_V19_BUILD)/%.o,$(E2_V19_SOURCES))
+
+$(E2_V19_BUILD)/%.o: src/%.cpp $(HEADERS) src/editor_api.h \
+		src/format_readback_text.hpp src/a11y_paragraph_identity.hpp \
+		src/merge_key_undo.hpp Makefile | $(E2_V19_BUILD)
+	$(CXX) $(E1_CPPFLAGS) $(R5_CXXFLAGS) -DOXSDK_EDITOR_DISCOVERY \
+		-DOXSDK_FINDING_016_SELECTION_BARRIER -DOXSDK_E2_FORMAT_BARRIER \
+		-DOXSDK_MERGE_KEY_UNDO \
+		$(EXTRA_DEFINES) -c $< -o $@
+
+# v15's recipe (v8's), not a copy of v15's or v18's file.
+$(E2_V19_BUILD)/exports.txt: $(R5_BUILD)/writer-review/exports.txt Makefile \
+		| $(E2_V19_BUILD)
+	cp $< $@
+	printf '%s\n' \
+		_oxsdk_editor_action \
+		_oxsdk_editor_get_state \
+		_oxsdk_editor_select_range \
+		_oxsdk_editor_place_caret \
+		_oxsdk_editor_abi_version \
+		_oxsdk_editor_set_action_gestures \
+		_oxsdk_document_redo >> $@
+	@if grep -q editor_discovery $@; then \
+		echo "product export list contains a discovery symbol"; exit 1; fi
+
+# Guarded from the first link, like every product artifact before it.
+$(E2_V19_BUILD)/probe.js: $(E2_V19_OBJECTS) $(EXTRA_OBJECTS) \
+		$(E2_V19_BUILD)/exports.txt $(LINKDEPS) $(FS_PRE_JS) Makefile
+	$(call refuse_unasked_relink,finding 117's fix on the merge product (v19) -- every link mints a new hash)
+	$(call link_r5_product,$(E2_V19_OBJECTS) $(EXTRA_OBJECTS),$(E2_V19_BUILD)/exports.txt,$@)
+
+$(E2_V19_BUILD)/probe.wasm: $(E2_V19_BUILD)/probe.js
+	@test -s $@
+
+# v18's packing with v19's loader, wasm and export list.
+$(E2_V19_DIST)/sdk-manifest.json: $(E2_V19_BUILD)/probe.js $(E2_V19_BUILD)/probe.wasm \
+		$(E2_V19_BUILD)/exports.txt $(E2_V15_ARCHIVE)/sdk-worker.js \
+		sdk/v18-writer-review-manifest.json \
+		tools/build_base_no35_pack.py tools/build_r5_profiles.py \
+		tools/build_cjk_subset.py tools/build_cjk_subset_ttc_pack.py \
+		tools/build_cjk_subset_mono_pack.py \
+		tools/build_e2_editor_v4_profile.py tools/build_e2_c_profile.py \
+		tools/build_e2_b_profile.py tools/e1_support.py | $(E2_V19_DIST)
+	cd $(E2_V15_ARCHIVE) && sha256sum -c --quiet SHA256SUMS
+	python3 tools/build_base_no35_pack.py --check
+	python3 tools/build_cjk_subset_mono_pack.py --check
+	python3 tools/build_e2_editor_v4_profile.py \
+		--source-manifest sdk/v18-writer-review-manifest.json \
+		--loader $(E2_V19_BUILD)/probe.js --wasm $(E2_V19_BUILD)/probe.wasm \
+		--worker $(E2_V15_ARCHIVE)/sdk-worker.js \
+		--exports $(E2_V19_BUILD)/exports.txt \
+		--profile e2-editor-v19 --inline-range-gestures all \
+		--output $(E2_V19_DIST)
+	@test -s $(E2_V19_DIST)/probe.js
+	@test -s $(E2_V19_DIST)/probe.wasm
+	@test -s $(E2_V19_DIST)/sdk-worker.js
+
+$(E2_V19_BUILD) $(E2_V19_DIST):
+	mkdir -p $@
+
 # ---------------------------------------------------------------- v5, a11y
 #
 # Everything below names $(E2_V5_CORE) explicitly instead of $(LOBUILD).  The
