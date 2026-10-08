@@ -526,3 +526,9 @@ HOST_ENTRY LANDS、SAME-SECOND SAVES KEPT），各自的紅案全紅；產品路
 - **C（引擎根因）**：先量（引擎端時間戳）barrier 送出單位選取到 `LOK_CALLBACK_TEXT_SELECTION` 之間的時間，區辨 callback flush 的延遲（040 的家族）與長壽 Worker 的
   累積負擔，再在「插入的 callback 到齊才 arm」與「選取可讀但沒公告時重新 arm」之間選。
 - 具名極限：每次自動重開用掉一個 Worker 世代（B1 上限，第三次起走救援）；暫緩的操作在轉接器佇列非空的那幾毫秒不算進 `pending`。
+
+### 14.5 實作中的讀法（2026-10-09，119 的 commit 時寫）
+
+裁決的發佈步驟 1 要每個 commit 之後 `make test-e2-c-static` 結束碼 0，步驟 4 又要最後才凍 v58。兩者在一格上衝突：`test_the_real_manifest_matches_the_real_tree`
+（殼層 generation 的守衛）在殼層檔案改了而 v58 還沒凍的時候**必然**紅——那正是它的用途。讀法：步驟 1 的「結束碼 0」在凍結之前指**這一條以外**全過
+（119 的 commit：node 162/162、python 107/108，唯一的紅就是這一條，E1-C 完好），凍 v58 之後才要求整體結束碼 0。不是放寬：凍結之後的那一次仍是 R′ 的格子。

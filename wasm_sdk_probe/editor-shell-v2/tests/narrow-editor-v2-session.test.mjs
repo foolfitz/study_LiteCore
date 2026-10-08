@@ -1034,11 +1034,10 @@ test("finding 107: unsaved edits follow dirty and pending, never the revision",
  * record of the bytes each fresh Worker is opened from (index 0 = the first
  * RESTART, installed after the first open).
  */
-async function boundary(action = "delete-forward") {
-  const failure = Object.assign(new Error(
-    "one Writer unit did not produce a safe single-line text selection; "
-    + "no mutation was dispatched; start a fresh Worker"),
-  { code: "EDITOR_BOUNDARY_UNSUPPORTED" });
+async function boundary(action = "delete-forward", failure = Object.assign(new Error(
+  "one Writer unit did not produce a safe single-line text selection; "
+  + "no mutation was dispatched; start a fresh Worker"),
+{ code: "EDITOR_BOUNDARY_UNSUPPORTED" })) {
   const f = await opened({ failing: action, failure });
   f.banked = [];
   f.stateAtSave = [];
@@ -1214,6 +1213,71 @@ for (const keyApplied of [false, true]) {
     });
   }
 }
+
+// -------------------------------------------------- finding 119
+
+/** The error the engine returned in the measured failure (no barrier detail). */
+const unverifiedDelete = () => Object.assign(new Error(
+  "selection text became visible without its required typed callback; "
+  + "no mutation was dispatched; start a fresh Worker"),
+{ code: "EDITOR_STATE_UNAVAILABLE" });
+
+test("finding 119 U1/U5: a delete the barrier could not verify banks the work, blocks as "
+     + "restart-required, and the restart reopens it", async () => {
+  for (const action of ["delete-backward", "delete-forward"]) {
+    const f = await boundary(action, unverifiedDelete());
+    await f.session.action("set-bold", { enabled: true });
+    assert.equal(f.session.restartKeepsContent(), false, `${action}: nothing banked yet`);
+    const error = await f.session.action(action).then(() => null, (e) => e);
+    assert.equal(error.code, "EDITOR_STATE_UNAVAILABLE", action);
+    assert.equal(error.recovery, "restart", action);
+    assert.equal(f.session.state.snapshot.state, "restart-required",
+                 `${action}: recoverable-error is the state whose only exit lost the work`);
+    assert.equal(f.banked.length, 1, `${action}: the refusal banked nothing`);
+    assert.equal(f.session.restartKeepsContent(), true, action);
+    assert.equal(f.session.input.state.blocked, true, `${action}: typing must stop until the reopen`);
+    await f.session.restart();
+    assert.equal(f.reopenedFrom[0], 101, `${action}: the restart did not reopen the banked work`);
+  }
+});
+
+test("finding 119 U2: a CLEAN document pays nothing and loses nothing", async () => {
+  const f = await boundary("delete-backward", unverifiedDelete());
+  await f.session.action("delete-backward").catch(() => {});
+  assert.equal(f.session.state.snapshot.state, "restart-required");
+  assert.equal(f.banked.length, 0);
+  assert.equal(f.session.restartKeepsContent(), true);
+});
+
+test("finding 119 U3: a checkpoint that cannot be written says so; the caller still "
+     + "gets the engine's error", async () => {
+  const f = await boundary("delete-backward", unverifiedDelete());
+  f.document.save = async () => { throw new Error("disk is gone"); };
+  await f.session.action("set-bold", { enabled: true });
+  const error = await f.session.action("delete-backward").then(() => null, (e) => e);
+  assert.equal(error.code, "EDITOR_STATE_UNAVAILABLE");
+  assert.equal(f.session.state.snapshot.checkpointError.code, "CHECKPOINT_FAILED");
+  assert.equal(f.session.restartKeepsContent(), false);
+});
+
+test("finding 119 U4: the same code anywhere else keeps today's disposition", async () => {
+  // Not a delete: no barrier detail either, and still a rollback.
+  const f = await boundary("set-italic", unverifiedDelete());
+  await f.session.action("set-bold", { enabled: true });
+  const error = await f.session.action("set-italic", { enabled: true }).then(() => null, (e) => e);
+  assert.equal(error.code, "EDITOR_STATE_UNAVAILABLE");
+  assert.equal(error.recovery, "rollback");
+  assert.equal(f.session.state.snapshot.state, "recoverable-error");
+  assert.equal(f.banked.length, 0);
+  // A delete whose error carries a format barrier's detail is not this case.
+  const withDetail = Object.assign(unverifiedDelete(),
+    { details: { formatBarrier: { dispatched: true, route: "selection" } } });
+  const g = await boundary("delete-backward", withDetail);
+  await g.session.action("set-bold", { enabled: true });
+  await g.session.action("delete-backward").catch(() => {});
+  assert.equal(g.session.state.snapshot.state, "recoverable-error");
+  assert.equal(g.banked.length, 0);
+});
 
 // -------------------------------------------------- B1 (the generation ceiling)
 //

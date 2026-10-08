@@ -25,6 +25,8 @@ function slice(pattern, what) {
 const BOUNDARY_TEXT_DECL = slice(/^const BOUNDARY_TEXT = .*;$/m, "BOUNDARY_TEXT");
 const STAGES_DECL = slice(/^const MERGE_KEY_UNCHANGED_STAGES = new Set\(\[[\s\S]*?\]\);$/m,
                           "MERGE_KEY_UNCHANGED_STAGES");
+const UNVERIFIED_FN = slice(/^function deleteUnverified\(error\) \{[\s\S]*?\n\}$/m, "deleteUnverified()");
+const REOPENS_FN = slice(/^function reopensAfterRefusal\(error\) \{[\s\S]*?\n\}$/m, "reopensAfterRefusal()");
 const UNCERTAIN_FN = slice(/^function boundaryKeyUncertain\(error\) \{[\s\S]*?\n\}$/m,
                            "boundaryKeyUncertain()");
 const BOUNDARY_FN = slice(/^function boundaryText\(error\) \{[\s\S]*?\n\}$/m, "boundaryText()");
@@ -32,9 +34,9 @@ const REOPEN_FN = slice(/^async function reopenAfterBoundaryRefusal\(error\) \{[
                         "reopenAfterBoundaryRefusal(error)");
 
 // eslint-disable-next-line no-new-func
-const { boundaryText, boundaryKeyUncertain } = new Function(
-  `${BOUNDARY_TEXT_DECL}\n${STAGES_DECL}\n${UNCERTAIN_FN}\n${BOUNDARY_FN}\n`
-  + "return { boundaryText, boundaryKeyUncertain };")();
+const { boundaryText, boundaryKeyUncertain, reopensAfterRefusal } = new Function(
+  `${BOUNDARY_TEXT_DECL}\n${STAGES_DECL}\n${UNVERIFIED_FN}\n${REOPENS_FN}\n${UNCERTAIN_FN}\n${BOUNDARY_FN}\n`
+  + "return { boundaryText, boundaryKeyUncertain, reopensAfterRefusal };")();
 
 const refusal = (mergeKey) => ({ code: "EDITOR_BOUNDARY_UNSUPPORTED",
                                  details: mergeKey === undefined ? {} : { mergeKey } });
@@ -150,3 +152,51 @@ test("M1-5: the page hands the error to the reopen path", () => {
   assert.ok(!/reopenAfterBoundaryRefusal\(\)/.test(SOURCE),
             "a call without the error cannot see mergeKey");
 });
+
+// -------------------------------------------------- finding 119 (spec SPEC-M3-production-ui §14, U6)
+
+const unverified = () => ({ code: "EDITOR_STATE_UNAVAILABLE", recovery: "restart", details: {} });
+
+test("finding 119 U6: the session's restart disposition reaches the reopen path; the code alone does not",
+     () => {
+  assert.equal(reopensAfterRefusal(unverified()), true);
+  assert.equal(reopensAfterRefusal({ code: "EDITOR_STATE_UNAVAILABLE", recovery: "rollback" }), false);
+  assert.equal(reopensAfterRefusal(refusal(undefined)), true, "109's path must stay");
+  assert.match(SOURCE, /if \(reopensAfterRefusal\(error\)\) \{\n\s+void reopenAfterBoundaryRefusal\(error\);/);
+});
+
+test("finding 119 U6: no exit says 'not changed'; each names the unfinished delete; a restart asks to look",
+     async () => {
+  let toasts = 0;
+  for (const [label, options] of EXITS) {
+    const messages = await reopen(unverified(), options);
+    for (const message of messages) {
+      toasts += 1;
+      assert.ok(!message.includes(UNCHANGED), `${label}: ${message}`);
+      assert.ok(message.startsWith("這一下刪除沒有完成"), `${label}: ${message}`);
+    }
+  }
+  assert.ok(toasts >= EXITS.length, "the exits produced no toasts; the stubs reached nothing");
+  for (const options of [{}, { dirty: false }])
+    assert.match((await reopen(unverified(), options)).at(-1), /那個位置/);
+});
+
+test("finding 119 U6: the notice's reopen gives the input sink its focus back, after the rollback",
+     async () => {
+  const fnSource = slice(/^function onNoticeAction\(\) \{[\s\S]*?\n\}$/m, "onNoticeAction()");
+  const order = [];
+  const session = { restartAvailable: () => true, async rollback() { order.push("rollback"); } };
+  const done = [];
+  const run = (_label, operation) => { const p = Promise.resolve().then(operation); done.push(p); return p; };
+  // eslint-disable-next-line no-new-func
+  const onNoticeAction = new Function("session", "run", "el", "renderDocument", "limitState",
+                                      "rescueAtGenerationLimit", "location",
+                                      `${fnSource}\nreturn onNoticeAction;`)(
+    session, run, { sink: { focus(options) { order.push(`focus:${options?.preventScroll}`); } } },
+    async () => { order.push("render"); }, () => null, async () => {}, { reload() {} });
+  onNoticeAction();
+  await Promise.all(done);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.deepEqual(order.slice(0, 2), ["rollback", "focus:true"]);
+});
+

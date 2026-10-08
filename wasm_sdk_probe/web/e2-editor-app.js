@@ -1073,13 +1073,29 @@ const MERGE_KEY_UNCHANGED_STAGES = new Set([
   "undo-read",
 ]);
 
+// FINDING 119 (spec SPEC-M3-production-ui §14.1).  A delete the selection
+// barrier could not verify in time.  The session banked the content and blocked
+// as restart-required, and marked it `recovery: "restart"` -- the field, not the
+// message, decides.  One of the engine's exits for this code is (in theory)
+// after the delete was posted, so this path never says "unchanged": every typed
+// change is kept, the key's own effect is uncertain.
+function deleteUnverified(error) {
+  return error?.code === "EDITOR_STATE_UNAVAILABLE" && error?.recovery === "restart";
+}
+
+function reopensAfterRefusal(error) {
+  return error?.code === "EDITOR_BOUNDARY_UNSUPPORTED" || deleteUnverified(error);
+}
+
 function boundaryKeyUncertain(error) {
+  if (deleteUnverified(error)) return true;
   const mergeKey = error?.details?.mergeKey ?? null;
   return mergeKey !== null
     && !(mergeKey.keyPosted === false && MERGE_KEY_UNCHANGED_STAGES.has(mergeKey.stage));
 }
 
 function boundaryText(error) {
+  if (deleteUnverified(error)) return "這一下刪除沒有完成";
   const mergeKey = error?.details?.mergeKey ?? null;
   if (!mergeKey) return BOUNDARY_TEXT;
   if (boundaryKeyUncertain(error)) return "這一下刪除送出了，但沒能確認它做了什麼";
@@ -1233,7 +1249,7 @@ async function run(label, operation) {
       throw error;
     }
     el.s.latency.textContent = `${label} 失敗`;
-    if (error?.code === "EDITOR_BOUNDARY_UNSUPPORTED") {
+    if (reopensAfterRefusal(error)) {
       void reopenAfterBoundaryRefusal(error);
       throw error;
     }
@@ -1492,7 +1508,15 @@ function onNoticeAction() {
     else location.reload();
     return;
   }
-  void run("回到檢查點", () => session.rollback())
+  // FINDING 119's run: after this reopen the next key typed without a click
+  // landed nowhere -- the block had disabled the sink, which loses focus.  Given
+  // back the moment the session is ready, inside the operation, as the
+  // boundary reopen does (and for the same measured reason: after the repaint
+  // is too late for the first key).
+  void run("回到檢查點", async () => {
+    await session.rollback();
+    el.sink.focus({ preventScroll: true });
+  })
     .then(() => renderDocument())
     .catch(() => {});
 }

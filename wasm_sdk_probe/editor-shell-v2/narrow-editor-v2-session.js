@@ -76,6 +76,17 @@ const BOUNDARY_CAPABLE_MOVES = new Set([
   "move-line-up", "move-line-down", "move-line-home", "move-line-end",
 ]);
 
+// FINDING 119 (spec SPEC-M3-production-ui §14.1): the two deletes go through
+// the selection barrier; a format barrier's EDITOR_STATE_UNAVAILABLE carries its
+// own detail and keeps the disposition it has.
+const SELECTION_BARRIER_DELETES = new Set(["delete-backward", "delete-forward"]);
+
+export function stateUnavailableOnDelete(action, error) {
+  return SELECTION_BARRIER_DELETES.has(action)
+    && error?.code === "EDITOR_STATE_UNAVAILABLE"
+    && (error?.details?.formatBarrier ?? error?.formatBarrier ?? null) === null;
+}
+
 // A Symbol, not a string key: this rides through the base class's resolve path
 // on an object the base class treats as an opaque result, and a string key
 // could collide with a field a future engine payload adds.  It never leaves
@@ -506,6 +517,24 @@ export class NarrowEditorV2Session extends EditorSession {
         try {
           return await editor.action(action, options);
         } catch (error) {
+          // FINDING 119.  A delete the selection barrier could not verify in
+          // time comes back as EDITOR_STATE_UNAVAILABLE with no barrier detail;
+          // the disposition default made that a rollback, so the queue blocked
+          // in recoverable-error with no checkpoint and the only exit reopened
+          // the last SAVED bytes -- everything typed since was gone (measured,
+          // findings/evidence/fast-delete-recovery/).  109's mould instead:
+          // bank what the engine holds now, block as restart-required, and let
+          // the page reopen it.  Banked whatever the key did: one of the four
+          // engine exits for this code is (in theory) after the delete was
+          // posted, so nothing here or on the page may say "unchanged" -- every
+          // typed change survives, only the key's own effect is uncertain.
+          // Scoped by action and code, never by message text (spec §14.1).
+          if (stateUnavailableOnDelete(action, error)) {
+            await this._checkpointBeforeBoundaryRestart(document);
+            this._blockQueue(error, "restart-required", "editor-boundary");
+            error.recovery = "restart";
+            throw error;
+          }
           this._blockQueueIfDispatched(error);
           if (error?.code === "EDITOR_BOUNDARY_UNSUPPORTED")
             await this._checkpointBeforeBoundaryRestart(document);
