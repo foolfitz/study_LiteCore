@@ -836,17 +836,26 @@ async function renderDocument(retriesLeft = RENDER_BUSY_RETRIES) {
         canvasWidthPx: el.canvas.width,
         canvasHeightPx: rows,
       }, { timeoutMs: 60000 });
-      if (!tileWasPainted(tile)) {
-        throw Object.assign(
-          new Error("引擎回了一張沒有畫進去的圖"),
-          { code: "TILE_NOT_PAINTED" });
-      }
       // Finding 062's second half: until the engine started reporting it, a
       // document that grew a page left this canvas sized from the height it
       // had when it was opened, and nothing could tell.  The SDK has already
       // updated the handle by the time this returns, so re-laying out picks up
       // the new height.
       if (tile.documentSizeChanged) documentResized = true;
+      // FINDING 118: and it is acted on BEFORE the painted test.  A strip asked
+      // against a height the document no longer has is not a fair question: a
+      // document that LOST a page answers it with everything below its new end
+      // unpainted (measured 0.47 for two pages asked of one), the test below
+      // threw, and the size change was lost with the strip -- the canvas kept
+      // two pages' rows for every later repaint.  So stop, re-lay out, ask
+      // again.  The engine reports a change once, so the next reply says false
+      // and a genuinely unpainted strip (062) is still caught, one request on.
+      if (documentResized) break;
+      if (!tileWasPainted(tile)) {
+        throw Object.assign(
+          new Error("引擎回了一張沒有畫進去的圖"),
+          { code: "TILE_NOT_PAINTED" });
+      }
       strips.push({
         image: new ImageData(new Uint8ClampedArray(tile.pixels),
                              tile.width, tile.height),
