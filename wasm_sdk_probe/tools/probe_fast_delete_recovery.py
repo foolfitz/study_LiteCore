@@ -133,6 +133,10 @@ def after_failure(session, browser: str, out: dict) -> None:
     p111.quiet(session, 15)
     out["reopenedByFileInput"] = {"typingQ": [revision, state(session).get("revision")],
                                   "notice": pp.evaluate(session, NOTICE), "state": state(session)}
+    # Leave the page clean: the typed Q is unsaved, and the next attempt's
+    # navigation would otherwise stop at the page's leave prompt (the first
+    # same-page run hung there for two attempts, 42 and 43).
+    out["reopenedByFileInput"]["savedAfter"] = bool(save_bytes(session, 30))
 
 
 def main() -> int:
