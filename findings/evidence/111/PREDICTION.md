@@ -58,3 +58,15 @@ Why: the window is set by one character's commit time L, and the first run's fix
 | 40, 80, 160 ms | 0 |
 
 What it changes: overtaking at 20 ms or more (keydown-to-keydown ≈ 24 ms, which is key rollover in ordinary fast typing) makes 111 an everyday bug on real documents; 0 at 10 ms and up keeps it where the first run put it.
+
+## Second run: results (2026-10-09, `browser/owner-chrome.json`, `browser/owner-firefox.json`; `browser/smoke-owner-chrome.json` is the instrument check)
+
+| Nominal gap (real) | Chrome Backspace | Chrome Enter | Firefox Backspace | Firefox Enter |
+|---|---|---|---|---|
+| 0 ms (≈ 4, ≈ 1 ms) | 5/5 overtaken | 5/5 overtaken | 10/10 overtaken | 10/10 overtaken |
+| 10 ms (≈ 14 ms) | 1/5 overtaken | 0/5 | **10/10 overtaken** | **10/10 overtaken** |
+| 20, 40, 80, 160 ms | 0/5 each | 0/5 each | 0/10 each | 0/10 each |
+
+**Chrome counts only its first five rounds.** In round 6 the Backspace at 0 ms did not overtake and did not delete: it failed (`⌫ 刪除 失敗`, `EDITOR_STATE_UNAVAILABLE：selection text became visible without its required typed callback`) and nothing was saved; in every one of the 59 trials after it in that page the typed keys never reached the document (revision 0 → 0, the saved file unchanged), although each trial opened its document (「已開啟」) and placed its caret (in about 0.9 s instead of 0.2 s). Those 59 are not 111 data. The failure is followed up on its own (`../fast-delete-recovery/`).
+
+Against the predictions: 0 ms hit; 10 ms "some" — Firefox overtook every time, Chrome once in five; 20 ms "rare" — none; 40 ms and up hit. On the owner's document the edge sits between a 14 ms and a 24 ms keydown-to-keydown gap; on the small fixture it sat below 14 ms. The rule written before the run ("20 ms or more makes it everyday") is not met: 111 is a bug of near-simultaneous keys (key rollover, a key pressed with the last letter), whose window grows with the document.
