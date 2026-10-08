@@ -460,3 +460,15 @@ Z2-2 與 Z2 D′ 的 CJK 包改成 `cjk-sub-e10.06976180177c8bd2.data`）——�
 - 紅一次（K）：K-del、K-bs 紅在世代 1→2，伺服器的序列＝原文（v8 的拒絕保住了標記、沒有併段）；R-bs、R-del 綠。
 - 六支既有 runner：結果與 0.2.7 相同（它們不碰段落交界；ASSETS 的數字照 0.2.8 的包：wasm gzip 40.88 MB）。
 - 若 Home 在文件開頭讓 Backspace **不**拒絕（推論錯）：R-bs 與 B-3x 在 shakedown 紅在世代沒變；那時改成只點擊、不按 Home，並以追加段寫明。
+
+### 13.7 shakedown 與紅一次（2026-10-09，非計數；`findings/evidence/m3-production-ui/v19-shakedown/`）
+
+- **runner pin（§13.5 的最後一項）**：`check_m3_production_ui.py` `3e19651098fa992600c7b0a84a9fd0ee04ab36ea6dd3d3d6a37b3bdd8f21b38f`（`c823b955`）。
+  與這個值不同的報告不算進計數。六支既有 runner 的 pin 照 §13.5 改綁（本節同一個 commit），`make test-e2-c-static` 結束碼 0。
+- **shakedown**：兩個瀏覽器 16 臂全過，合併突變 40/40。各臂為了對的理由過（README 逐臂列出）：K 兩臂世代全程 1、每一下 146–177 ms、序列＝Writer 的；
+  R 兩臂與 B-3x 拒絕並重開、序列＝原文。
+- **紅一次（K）成立**：v8 引擎上 K-del、K-bs 都紅在世代 1→2（v8 拒絕、重開、序列＝原文）。**正向對照一半**：R-del 綠；R-bs 沒走到它的鍵——
+  v8 上 Home 在文件開頭 30 秒逾時（`recoverable-error`，檢查點 r3），是 finding 096 的形狀（文件邊界上的移動打死 session），不是「開頭不拒絕」。
+  不重跑：正向對照要表明的是兩端在 v8 上也是拒絕，結尾已表明；開頭在 v19 上八次 Home 全都完成並拒絕。§13.3 沒有事先寫這種情況，照實記下。
+- **觀察（不判）**：v19 上同一個 Home 要 717–981 ms（8/8 完成），v8 上卡 30 秒（1/1）。096 的線索，登錄，不在本輪。
+- §13.6 的預測：K、R、B-3x、B-ctl、S、P 全中（shakedown，非計數）；紅一次的 R-bs 那一格**沒中**（預測綠，實際紅在 v8 的 Home）。

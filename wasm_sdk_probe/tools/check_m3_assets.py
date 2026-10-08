@@ -74,7 +74,7 @@ REPO = PROJECT.parent
 EVIDENCE = REPO / "findings" / "evidence" / "m3-assets"
 # SPEC-M3-page-honesty §7.6: the reviewed page (b61e9fd9), written 2026-09-29 before
 # the re-shakedown and counted runs on host 0.2.4 (369e6ed); was fbfb59a4….
-PAGE_SHA256 = "e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f"   # SPEC-M3-production-ui, 2026-10-06
+PAGE_SHA256 = "e00ab76a550dc12fda5dee1849d9cfb73343b9cfab9c8e9436a8bd035a0a4be8"   # SPEC-M3-production-ui §13.5 (v19), 2026-10-09; was e97d6e03
 PLAN = {"chrome": 3, "firefox": 3, "firefox-nozstd": 3}
 # A report is scored against the criteria its runner wrote into it (SPEC-M3-zstd
 # §7, review item 3): reports from before the zstd step keep their own verdicts.
@@ -96,7 +96,7 @@ TYPES = {".js": "text/javascript", ".json": "application/json", ".wasm": "applic
 # SPEC-M3-zstd §4, written 2026-09-30 before the code: the engine's decoded
 # content did not change, only its codings.
 ENGINE_SCHEMA = "litecore-engine/2"
-BUILD_ID = "fabdb50ecd038802"   # the engine package served with page e97d6e03 (2026-10-06)
+BUILD_ID = "63656ee4aa7e4059"   # host 0.2.8's engine package (v19, page e00ab76a), §13.5; was fabdb50e (0.2.7)
 # What Chrome 151 and Firefox 156 are predicted to send over HTTPS (spec §2, P1).
 BROWSER_AE = "gzip, deflate, br, zstd"
 # Z1-2: Accept-Encoding -> the coding the host must pick.
@@ -314,7 +314,7 @@ def wire_record(instance: Instance, manifest: dict[str, Any], file_id: int, zstd
         "dot-dot encoded": base + "%2e%2e/appinfo/info.xml",
         "wrong address": instance.base + "/index.php" + asset_prefix("0" * 16 + "-" + "0" * 8) + "sdk/document-sdk.js",
         "the build id alone": instance.base + "/index.php" + asset_prefix(build) + "sdk/document-sdk.js",
-        "old static dist": instance.base + "/apps-extra/litecore/dist/profiles/e2-editor-v8/probe.wasm",
+        "old static dist": instance.base + "/apps-extra/litecore/dist/profiles/e2-editor-v19/probe.wasm",
         "engine dir, static": instance.base + "/apps-extra/litecore/engine/MANIFEST.json",
     }
     return {
@@ -902,7 +902,7 @@ WIRE_CASES = [
     ("K1-3", "dot-dot is served", lambda w, m: w["negatives"]["dot-dot"].update(status=200)),
     ("K1-6", "no ETag", lambda w, m: w["files"][_wasm_path(m)]["gzip"]["headers"].pop("etag")),
     ("K1-6", "a conditional request answered with the body",
-     lambda w, m: w["files"]["profiles/e2-editor-v8/sdk-manifest.json"]["conditional"].update(status=200, bodyBytes=2082)),
+     lambda w, m: w["files"]["profiles/e2-editor-v19/sdk-manifest.json"]["conditional"].update(status=200, bodyBytes=2082)),
     ("K1-4", "the entry is not a redirect", lambda w, m: w["entry"].update(status=200)),
     ("K1-4", "the entry redirects to a scheme-relative URL",
      lambda w, m: w["entry"]["headers"].update(location=f"//index.php/apps/litecore/r/{w['address']}/{DOC}?fileId={w['entry']['fileId']}")),
@@ -1012,13 +1012,13 @@ RUN_CASES = [
         sent=c["manifest"]["files"]["e2-editor-app.js"]["gzBytes"] + 900), ("chrome", "firefox")),
     ("Z2-2", "the fallback arm got zstd", lambda r, c: _first_asset(r, c, "probe.wasm").update(
         sent=c["manifest"]["files"][_wasm_path(c["manifest"])]["zstBytes"] + 900), ("firefox-nozstd",)),
-    ("Z2-2", "the fallback arm got identity", lambda r, c: _first_asset(r, c, "cjk-r5.b76b0433203017ca.data").update(
-        sent=c["manifest"]["files"]["profiles/resources/cjk-r5.b76b0433203017ca.data"]["bytes"] + 900), ("firefox-nozstd",)),
+    ("Z2-2", "the fallback arm got identity", lambda r, c: _first_asset(r, c, "cjk-sub-e10.06976180177c8bd2.data").update(
+        sent=c["manifest"]["files"]["profiles/resources/cjk-sub-e10.06976180177c8bd2.data"]["bytes"] + 900), ("firefox-nozstd",)),
     ("Z2 D", "D lost the wasm (zstd no smaller than gzip)", lambda r, c: c["manifest"]["files"][_wasm_path(c["manifest"])]
      .update(zstBytes=c["manifest"]["files"][_wasm_path(c["manifest"])]["gzBytes"])),
     ("Z2 D", "D' lost the cjk pack (gzip saves under 1500; review item 8)", lambda r, c: c["manifest"]["files"][
-        "profiles/resources/cjk-r5.b76b0433203017ca.data"].update(bytes=c["manifest"]["files"][
-            "profiles/resources/cjk-r5.b76b0433203017ca.data"]["gzBytes"] + 100), ("firefox-nozstd",)),
+        "profiles/resources/cjk-sub-e10.06976180177c8bd2.data"].update(bytes=c["manifest"]["files"][
+            "profiles/resources/cjk-sub-e10.06976180177c8bd2.data"]["gzBytes"] + 100), ("firefox-nozstd",)),
 ]
 
 

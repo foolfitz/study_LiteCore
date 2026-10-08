@@ -54,7 +54,7 @@ REPO = PROJECT.parent
 EVIDENCE = REPO / "findings" / "evidence" / "m3-locks"
 # SPEC-M3-page-honesty §7.6: the reviewed page (b61e9fd9), written 2026-09-29 before
 # the re-shakedown and counted runs on host 0.2.4 (369e6ed); was fbfb59a4….
-PAGE_SHA256 = "e97d6e035d8f84efc2c9b8833e4b5ac1dc0c3b15ad1d3d9a9c861eea8c542e1f"   # SPEC-M3-production-ui §9/§10, written 2026-10-06 before any counted run
+PAGE_SHA256 = "e00ab76a550dc12fda5dee1849d9cfb73343b9cfab9c8e9436a8bd035a0a4be8"   # SPEC-M3-production-ui §13.5 (v19, host 0.2.8), written 2026-10-09 before any counted run; was e97d6e03 (§9/§10)
 ODT = "application/vnd.oasis.opendocument.text"
 OTHER = "lcprobe"
 RO_NAME = "M3 鎖 唯讀.odt"
