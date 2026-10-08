@@ -532,3 +532,18 @@ HOST_ENTRY LANDS、SAME-SECOND SAVES KEPT），各自的紅案全紅；產品路
 裁決的發佈步驟 1 要每個 commit 之後 `make test-e2-c-static` 結束碼 0，步驟 4 又要最後才凍 v58。兩者在一格上衝突：`test_the_real_manifest_matches_the_real_tree`
 （殼層 generation 的守衛）在殼層檔案改了而 v58 還沒凍的時候**必然**紅——那正是它的用途。讀法：步驟 1 的「結束碼 0」在凍結之前指**這一條以外**全過
 （119 的 commit：node 162/162、python 107/108，唯一的紅就是這一條，E1-C 完好），凍 v58 之後才要求整體結束碼 0。不是放寬：凍結之後的那一次仍是 R′ 的格子。
+
+### 14.6 綁定（R′；2026-10-09，寫在任何 0.2.9 計數執行之前，值全由程式從檔案算出）
+
+| 綁定 | 值 |
+| --- | --- |
+| 頁面 `e2-editor-app.js` | `537d62d73b8a38d56210fc1df3bf332155b0194a1304ab6b946d657cfd53eb5d` |
+| session `narrow-editor-v2-session.js` | `62a2a20e4c66f630d77caf5bb75973e28aa58b0d8c7bf4cb0e35fa44b6a6fc5c` |
+| 宿主 | 0.2.9，`069de55` |
+| 引擎包 buildId | `7bf6dbd6142388f1`（同 §13.5：RESULT 從報告的 `static.buildId` 照實讀） |
+| 殼層 generation | v58，`a6f9331a4292859a2509a609ded6f82ea6e0fee02af72b42b4b9686e92db234c` |
+| 擁有者的文件 | 同 §11 |
+| `check_m3_production_ui.py` | `fc4b2298b146ff453b4f1cf2ce3ed8a5f9d44e9701098ec59d59555286a16e64`（只動了 pin 行） |
+| `run_e2_c_product_path.py` | `7468abcdaa6a0c1c59a4096a01df25bd3af7768b7299336ba390cad80c26e1b9`（`rollback` 突變重錨，fable 第二次裁決；不是計數 runner 的 pin，記在這裡供產品路徑網對照） |
+
+六支既有 runner 的 pin 同步改綁（只動 pin 行）。改綁之後 `make test-e2-c-static` 結束碼 0。

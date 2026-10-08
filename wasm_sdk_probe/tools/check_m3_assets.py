@@ -74,7 +74,7 @@ REPO = PROJECT.parent
 EVIDENCE = REPO / "findings" / "evidence" / "m3-assets"
 # SPEC-M3-page-honesty §7.6: the reviewed page (b61e9fd9), written 2026-09-29 before
 # the re-shakedown and counted runs on host 0.2.4 (369e6ed); was fbfb59a4….
-PAGE_SHA256 = "e00ab76a550dc12fda5dee1849d9cfb73343b9cfab9c8e9436a8bd035a0a4be8"   # SPEC-M3-production-ui §13.5 (v19), 2026-10-09; was e97d6e03
+PAGE_SHA256 = "537d62d73b8a38d56210fc1df3bf332155b0194a1304ab6b946d657cfd53eb5d"   # SPEC-M3-production-ui §14 R′ (0.2.9, v58), 2026-10-09; was e00ab76a (§13.5), e97d6e03
 PLAN = {"chrome": 3, "firefox": 3, "firefox-nozstd": 3}
 # A report is scored against the criteria its runner wrote into it (SPEC-M3-zstd
 # §7, review item 3): reports from before the zstd step keep their own verdicts.
@@ -96,7 +96,7 @@ TYPES = {".js": "text/javascript", ".json": "application/json", ".wasm": "applic
 # SPEC-M3-zstd §4, written 2026-09-30 before the code: the engine's decoded
 # content did not change, only its codings.
 ENGINE_SCHEMA = "litecore-engine/2"
-BUILD_ID = "63656ee4aa7e4059"   # host 0.2.8's engine package (v19, page e00ab76a), §13.5; was fabdb50e (0.2.7)
+BUILD_ID = "7bf6dbd6142388f1"   # host 0.2.9's engine package (v19, page 537d62d7, shell v58), §14 R′; was 63656ee4 (0.2.8), fabdb50e (0.2.7)
 # What Chrome 151 and Firefox 156 are predicted to send over HTTPS (spec §2, P1).
 BROWSER_AE = "gzip, deflate, br, zstd"
 # Z1-2: Accept-Encoding -> the coding the host must pick.
