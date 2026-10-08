@@ -1,0 +1,47 @@
+== inputs ==
+layout-0-e2-editor-v19.json: profile=e2-editor-v19 wasm=1aafd4f9da42fd83 boot=ready documents=76
+layout-1-e2-editor-v18.json: profile=e2-editor-v18 wasm=ad3f68bb85f94589 boot=ready documents=76
+NOTE: wasm prefix differs between the arms: 1aafd4f9da42fd83, ad3f68bb85f94589
+
+== not comparable (did not open): arm0 5, arm1 5 ==
+  test-docs/r7-compat/l3-bad-central-directory.odt: arm0 NC state='recoverable-error'; arm1 NC state='recoverable-error'
+  test-docs/r7-compat/l3-high-ratio.odt: arm0 NC state='recoverable-error'; arm1 NC state='recoverable-error'
+  test-docs/r7-compat/l3-too-many-entries.odt: arm0 NC state='recoverable-error'; arm1 NC state='recoverable-error'
+  test-docs/r7-compat/l3-truncated.odt: arm0 NC state='recoverable-error'; arm1 NC state='recoverable-error'
+  test-docs/r7/r7-corrupt-truncated.odt: arm0 NC state='recoverable-error'; arm1 NC state='recoverable-error'
+
+== not measured (zero bands or unsettled): arm0 23, arm1 23 ==
+  test-docs/e1/r7-t2-styled.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-compat/l0-t2-styled.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-compat/l1-layout-table-image.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-compat/l1-review.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-compat/l2-qa-redlines-and-comments.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-compat/l4-stress-100.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-image-l4-geometry.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-image-l4-like-frame.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-image-no-clip.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-image-no-graphic-properties.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-image-no-mime.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-image-no-name-zindex.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-image-no-style-ref.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-image-unwrapped.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-keep-annotation-pagebreak.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-keep-annotation.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-keep-image-annotation-pagebreak.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-keep-image-annotation.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-keep-table-annotation-pagebreak.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-keep-table-annotation.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-keep-table-image-annotation.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/r7-finding-012/t2-original.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+  test-docs/t2-styled.odt: arm0 [zero bands unsettled] arm1 [zero bands unsettled]
+spec 31.4 X4: v18's counted run (arm 0) not measured 23; this run 23; same set: True
+
+== measured: 48 documents (21 with CJK characters) ==
+band count equal: 48; max top difference over all measured: 0 px; over T=2: 0
+
+== cross-check: tool comparable=71 identical=71 notComparable=5; recomputed comparable=71 identical=71 -> AGREE ==
+
+== verdict (spec 21.2 / 27) ==
+documents 76; not comparable 5; not measured 23; measured 48
+VERDICT: PASS
+exit 0
