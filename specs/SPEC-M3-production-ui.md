@@ -666,3 +666,19 @@ B-ctl／S／P 6/6、B-3x 4/4、突變 40/40；六支 M3 runner 全過、紅案�
 - **122-B 成立**：審核過的判讀工具讀六份 `v59-candidate2-*.json`，兩個瀏覽器每一格都過、結束碼 0（`findings/evidence/typing-latency/judge-output.txt`）。§15.8 的預測全中：Firefox (a) 82.6、(b) 65.3，Chrome 54.8／45.2；積壓 b_i 兩個瀏覽器每一鍵 0；頭五／尾五 65.3／65.2、46.3／44.1（這些預測是讀既有報告後寫的，不是盲測）。
 - 121-B、120-B 在同一份位元組 `18c8afbe…` 上重跑過（`5293628a`）。
 - **殼層 generation v59 凍結**：`ad65480a97353cc8b1a4c98672ba2bdb437503d072b30c6bea4da57ee5acb337`，與 v58 只差 `web/e2-editor-app.js`（`18c8afbe…`），排除清單相同。凍結後 `make test-e2-c-static` 結束碼 0、E1-C 完好。之後照 §15.2 的 R‴：宿主 0.2.10 → 七支 runner 改綁 → 紅案、計數鏈、產品路徑網（先跑一次重錨的突變）。
+
+### 15.11 綁定（R‴；2026-10-10，寫在任何 0.2.10 計數執行之前，值全由程式從檔案算出）
+
+| 綁定 | 值 |
+| --- | --- |
+| 頁面 `e2-editor-app.js` | `18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a` |
+| session `narrow-editor-v2-session.js` | `62a2a20e4c66f630d77caf5bb75973e28aa58b0d8c7bf4cb0e35fa44b6a6fc5c`（與 v58 相同，pin 不動） |
+| 宿主 | 0.2.10，`d87960d` |
+| 引擎包 buildId | `bebc7e83f573d1a8`（與 0.2.9 的引擎包只差頁面；0.2.9 的封存在 `build/archive/host-0.2.9-engine-7bf6dbd6142388f1/`） |
+| 殼層 generation | v59，`ad65480a97353cc8b1a4c98672ba2bdb437503d072b30c6bea4da57ee5acb337` |
+| 擁有者的文件 | 同 §11 |
+| `check_m3_production_ui.py` | `5bce52d0b1426a784b002715ff2a800f4966cde1e962b7ecab25707c94d08361`（只動了 pin 行） |
+| `run_e2_c_product_path.py` | `a6e318966d50cf141437dd5655bc559dca66b62deb06551e6badc9e6b5450dce`（`ignore-a-document-that-grew` 突變重錨，fable 第四次裁決第二部分；不是計數 runner 的 pin，記在這裡供產品路徑網對照） |
+| 122-B 判讀工具 `judge.py` | `f02845ac5aa8cb599459ed97efcb222d9b77217c13de6bb106e6e740a84e173c`（§15.9 審核過、§15.10 計數判讀用的就是這一份） |
+
+六支既有 runner 的 pin 同步改綁（只動 pin 行，共 12 行）；host_entry 沒有 pin。產品路徑網：v19 臂＝dist 照原樣（頁面 `18c8afbe…`），v8 臂＝同一份頁面改指 v8，改指後的 sha256 用 runner 自己的 `repointed_page()` 算出＝`d446cbfd826b1beab80b761439aa3d80b1b76ddc35a8721efb78aab436e187e6`（同一個方法對 0.2.9 的頁面算得出當時的 `4d3f3bd6…`）。

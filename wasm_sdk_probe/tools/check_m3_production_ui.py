@@ -76,11 +76,11 @@ BOTH = ("chrome", "firefox")
 # Bindings for a counted run (spec §4), written before it.  None = not yet bound.
 # Spec §13.5, written 2026-10-09 before any counted run on host 0.2.8 (v19); the
 # 0.2.7 values (spec §11) were page e97d6e03, session 3f5f754b, 0488586, v55 2470765a.
-PAGE_SHA256: str | None = "537d62d73b8a38d56210fc1df3bf332155b0194a1304ab6b946d657cfd53eb5d"   # §14 R′ (0.2.9, v58); was e00ab76a (§13.5)
+PAGE_SHA256: str | None = "18c8afbe29e8a5472a7a5eb0fdfae8f94a3e7a95147972c83e192fc69ebeef1a"   # §15 R‴ (0.2.10, v59); was 537d62d7 (§14 R′), e00ab76a (§13.5)
 SESSION_SHA256: str | None = "62a2a20e4c66f630d77caf5bb75973e28aa58b0d8c7bf4cb0e35fa44b6a6fc5c"   # §14 R′; was ee3e53a2
-HOST_VERSION: str | None = "0.2.9"
-HOST_COMMIT: str | None = "069de55"
-SHELL_BUNDLE_SHA256: str | None = "a6f9331a4292859a2509a609ded6f82ea6e0fee02af72b42b4b9686e92db234c"   # v58; was v57 1aed21b1
+HOST_VERSION: str | None = "0.2.10"
+HOST_COMMIT: str | None = "d87960d"
+SHELL_BUNDLE_SHA256: str | None = "ad65480a97353cc8b1a4c98672ba2bdb437503d072b30c6bea4da57ee5acb337"   # v59; was v58 a6f9331a, v57 1aed21b1
 DOC_SHA256: str | None = "7b336879547df057ae6d38e907f221b40c90c37cd65d2df5afceceb91941657e"
 # 0.2.7's places, calibrated on v8's layout (findings/evidence/109/README.md):
 # inside the first body paragraph; the blank right of the heading 「一、序言」;
